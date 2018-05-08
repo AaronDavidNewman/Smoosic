@@ -2,29 +2,41 @@ VF = Vex.Flow;
 Vex.Xform = (typeof (Vex.Xform)=='undefined' ? {} : Vex.Xform);
 VX = Vex.Xform;
 
+VX.groupCounter = 1;
+
+// ## Description:
+//   Create a staff and draw music on it.
+//
+// ##  Options:
+//  clef:'treble',
+//  num_beats:num_beats,
+//  timeSignature: '4/4'
+
 class StaffMeasure {
-    constructor(context, renderer) {
+    constructor(context,options) {
         this.context = context;
-        this.renderer = renderer;
+        Vex.Merge(this, options);
         this.notes = [];
+        this.groupName = 'staffGroup-' + VX.groupCounter;
+        VX.groupCounter += 1;
     }
 
 
-    drawNotes(notes, grpname) {
+    drawNotes(notes) {
         if (this.notes.length) {
             $(this.context.svg).find('#vf-' + this.notes[0].attrs.id).closest('g.measure').remove();
         }
         this.notes = notes;
 
         var group = this.context.openGroup();
-        group.classList.add(grpname);
+        group.classList.add(this.groupName);
         group.classList.add('measure');
 
         // Create a stave of width 400 at position 10, 40 on the canvas.
         var stave = new VF.Stave(10, 40, 400);
 
         // Add a clef and time signature.
-        stave.addClef("treble").addTimeSignature("4/4");
+        stave.addClef(this.clef).addTimeSignature(this.timeSignature);
 
         // Connect it to the rendering context and draw!
         stave.setContext(this.context).draw();
@@ -32,12 +44,18 @@ class StaffMeasure {
         // console.log(JSON.stringify(notes));
         // Create a voice in 4/4 and add above notes
         var voice = new VF.Voice({
-            num_beats: 4
+            num_beats: this.num_beats
         });
         voice.addTickables(notes);
 
         // var beams = VF.Beam.generateBeams(notes);
         this.createBeamGroups(voice, notes);
+
+        notes.forEach(function(note) {
+            if (note.dots > 0) {
+                note.addDotToAll();
+            }
+        });
         // Format and justify the notes to 400 pixels.
         var formatter = new VF.Formatter().joinVoices([voice]).formatToStave([voice], stave);
 

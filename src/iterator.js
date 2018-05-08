@@ -3,15 +3,25 @@ VF = Vex.Flow;
 Vex.Xform = (typeof (Vex.Xform)=='undefined' ? {} : Vex.Xform);
 VX = Vex.Xform;
 
-/** General purpose iterator through an array of notes that have 
-been drawn and hence have tickable and geometry information.  Used to 
-transform notes, e.g. change duration, pitch etc.
-**/
+// ## Description
+// This file implements an iterator through a set of notes.  This is useful when
+// redrawing the notes to transform them into something else.   E.g. changing the 
+// pitch of one note.
+//
+// ## Usage:
+// VX.ITERATE (actor, notes)
+// where actor is a function that is called at each tick in the voice.
+// 
+// VX.TICKMAP(notes)
+// that iterates through all notes and creates information about the notes, like the 
+// tuplet ticks, index-to-tick map.
 class noteIterator {
     constructor(notes, voice) {
         this.index = 0;
         this.startIndex = 0;
         this.endIndex = notes.length;
+
+        // so a client can tell if the iterator's been run or not
         var states = ['CREATED', 'RUNNING', 'COMPLETE'];
         this.state = 'CREATED';
 
@@ -33,14 +43,15 @@ class noteIterator {
         this.notes = notes;
         this.beattime = 4096;
         if (voice)
-            this.beattime = voice.time.resolution / voice.time.beat_value;
+            this.beattime = voice.time.resolution / voice.time.num_beats;
 
     }
 
+    // ## Description:
+    // empty function for a default iterator (tickmap)
     static nullActor() { }
-    /*slice() {
-      return this.notes.slice(this.startRange, this.endRange);
-    }  */
+
+    // ## todo: is promise useful here?
     _iterate(actor) {
         this.state = 'RUNNING';
         for (this.index = this.startIndex; this.index < this.endIndex; ++this.index) {
@@ -87,8 +98,10 @@ class noteIterator {
         // todo add promise
         this._iterate(actor);
     }
-    /* get the index into notes array that takes up
-      duration of ticks */
+    
+    // ## getTickIndex
+    // get the index into notes array that takes up
+    // duration of ticks */
     getTickIndex(index, duration) {
         if (index == 0)
             return 0;
@@ -100,7 +113,9 @@ class noteIterator {
         }
         return index;
     }
-    /* Skip the next set of n notes, and return the notes in an array */
+    // ## skipNext
+    // ## Description:
+    // skip some number of notes in the iteration, because we want to skip over them.
     skipNext(skipCount) {
         var rv = [];
         var startRange = this.index;
@@ -111,22 +126,16 @@ class noteIterator {
         // this.startRange = this.index;
         return rv;
     }
-    skip(offset) {
-        if (!offset)
-            offset = 1;
-        this.index += offset;
-    }
 }
 
 /* iterate over a set of notes, calling actor for each tick */
-
-VX.ITERATE = function (actor, notes, voice) {
+VX.ITERATE= (actor, notes, voice) => {
     var iterator = new noteIterator(notes, voice);
     iterator.iterate(actor);
     return iterator;
 }
 
 /* iteratoe over a set of notes, creating a map of notes to ticks */
-VX.TICKMAP = function (notes) {
+VX.TICKMAP = (notes) => {
     return VX.ITERATE(noteIterator.nullActor, notes);
 }

@@ -3,12 +3,15 @@ VF = Vex.Flow;
 Vex.Xform = (typeof (Vex.Xform)=='undefined' ? {} : Vex.Xform);
 VX = Vex.Xform;
 
-/* clone a slice of a note array.  
-TODO: preserve attributes 
-
-supported options: start,end : index
-  pitchChange: change a pitch while cloning.
-*/
+// ## Description
+//  Clone a slice of a note array.  This can be usefule when re-rendering a staff.
+// the parts that you don't want to change can be cloned.
+//
+// ## Usage:
+// var ar1 = VX.CLONE(notes, {start: 0,end: index});
+// 
+// To change pitch on the note at index:
+// VX.SETPITCH = (notes, index, vexKey)
 class Cloner {
   constructor(notes, options) {
     this.notes = notes;
@@ -25,10 +28,12 @@ class Cloner {
       if (pitchChange && note.attrs.id == pitchChange.id) {
         vexKey = pitchChange.vexKey;
       }
+      
+        var vexDuration = VF.ticksToDuration()[note.ticks.numerator / note.ticks.denominator];
       var nn = new VF.StaveNote({
         clef: note.clef,
         keys: vexKey,
-        duration: note.duration
+        duration: vexDuration
       });
       return [nn];
     }
@@ -78,7 +83,7 @@ class Cloner {
   }
 }
 
-VX.CLONE = function(notes, options) {
+VX.CLONE = (notes, options) => {
   var cloner = new Cloner(notes, options);
   cloner.Clone();
   return cloner.notes;

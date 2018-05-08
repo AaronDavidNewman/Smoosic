@@ -2,13 +2,32 @@ VF = Vex.Flow;
 Vex.Xform = (typeof (Vex.Xform)=='undefined' ? {} : Vex.Xform);
 VX = Vex.Xform;
 
+// ## Description:
+// Change duration of a note in an array of notes.  Either by duplicating a note at a smaller duration
+// or by replacing a note with a note of longer duration and remove following notes.
+//
+// ## TODO: other time signatures, stacked voices
+// 
+// ## Usage:
+// VX.DURATION (notes, index, vexDuration)
+//    changes notes[index] to vexDuration, if it is legal within the 
+//    time/bar.  Works with tuplets
+//
+// VX.TUPLET (notes, index, vexDuration, numNotes)
+//      converts notes[index] into a tuplet, with numNotes over vexDuration
+//
+// VX.UNTUPLET (notes, index)  
+//    replace the tuplet at notes[index] with a non-tuplet
+// 
 class DurationChange {
   constructor(notes, options) {
     Vex.Merge(this, options)
     this.notes = notes;
 
     // duration in ticks
-    this.newTicks = DurationChange.VexDurationToTicks(this.vexDuration);
+    if (this.vexDuration) { // UNTUPLET doesn't use it.
+      this.newTicks = DurationChange.VexDurationToTicks(this.vexDuration);
+    }
 
     this.target = notes[this.index];
     this.noteTicks = DurationChange.VexDurationToTicks(this.target.duration);
@@ -18,6 +37,7 @@ class DurationChange {
     return VF.parseNoteData(VF.parseNoteDurationString(vexDuration)).ticks;
   }
   /*
+    ## Calculate the tickmap of a tuplet with respect to one of the notes.
           5
       ---------
       | | | | |
@@ -293,8 +313,6 @@ class DurationChange {
       keys: replNote.keys,
       duration: this.vexDuration
     });
-    if (this.vexDuration.indexOf('d') > 0)
-      repl.addDotToAll();
     var ar1 = VX.CLONE(notes, {
       start: 0,
       end: index
@@ -385,7 +403,7 @@ class DurationChange {
   }
 }
 
-VX.DURATION = function(notes, index, vexDuration) {
+VX.DURATION = (notes, index, vexDuration) => {
   var changer = new DurationChange(notes, {
     index: index,
     vexDuration: vexDuration
@@ -394,7 +412,7 @@ VX.DURATION = function(notes, index, vexDuration) {
   return changer.notes;
 }
 
-VX.TUPLET = function(notes, index, vexDuration, numNotes) {
+VX.TUPLET = (notes, index, vexDuration, numNotes) => {
   var changer = new DurationChange(notes, {
     index: index,
     vexDuration: vexDuration,
@@ -404,15 +422,17 @@ VX.TUPLET = function(notes, index, vexDuration, numNotes) {
   return changer.notes;
 }
 
-VX.UNTUPLET = function(notes, index, vexDuration, numNotes) {
+VX.UNTUPLET = (notes, index, vexDuration) => {
   var changer = new DurationChange(notes, {
-    index: index,
-    vexDuration: vexDuration
+    index: index
+    // vexDuration: vexDuration
   });
   changer.unmakeTuplet();
   return changer.notes;
 }
 
+// ## Description: 
+// Convert '4d', etc. to ticks.
 VF.ticksToDuration = (function() {
   var durations = ["1/2", "1", "2", "4", "8", "16", "32", "64", "128", "256"];
   var ticksToDuration = {};
