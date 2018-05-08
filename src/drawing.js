@@ -15,8 +15,10 @@ VX.groupCounter = 1;
 class StaffMeasure {
     constructor(context,options) {
         this.context = context;
+        this.timeSignature='4/4';
         Vex.Merge(this, options);
         this.notes = [];
+        this.meterNumbers=this.timeSignature.split('/').map(number => parseInt(number,10));
         this.groupName = 'staffGroup-' + VX.groupCounter;
         VX.groupCounter += 1;
     }
@@ -86,6 +88,10 @@ class StaffMeasure {
         var rv = [];
         var duration = 0;
         var startRange = 0;
+        var beamBeats = 2*2048;
+        if (this.meterNumbers[0] % 3 == 0) {
+            beamBeats = 3*2048;
+        }
         var beamLogic = function (iterator, notes, note) {
             duration += iterator.delta;
             if (note.tupletStack.length) {
@@ -95,17 +101,19 @@ class StaffMeasure {
                 // Get an array of tuplet notes, and skip to the end of the tuplet
                 var tupNotes = iterator.skipNext(tuplen);
 
+                if (iterator.delta < 4096) {
                 rv.push(new VF.Beam(tupNotes));
+                }
                 return;
             }
             // don't beam > 1/4 note in 4/4 time
-            if (iterator.delta >= iterator.beattime) {
+            if (iterator.delta >= beamBeats) {
                 duration = 0;
                 startRange = iterator.index + 1;
                 // iterator.resetRange();
                 return;
             }
-            if (duration == iterator.beattime) {
+            if (duration == beamBeats) {
 
                 rv.push(new VF.Beam(notes.slice(startRange, iterator.index + 1)));
                 startRange = iterator.index + 1;
@@ -114,14 +122,14 @@ class StaffMeasure {
             }
 
             // If this does not align on a beat, don't beam it
-            if (duration > iterator.beattime ||
-                ((iterator.totalDuration - duration) % 4096 != 0)) {
+            if (duration > beamBeats ||
+                ((iterator.totalDuration - duration) % beamBeats != 0)) {
                 duration = 0;
                 startRange = iterator.index + 1;
                 return;
             }
         }
-        VX.ITERATE(beamLogic, notes, voice);
+        VX.ITERATE(beamLogic, notes, {voice:voice,timeSignature:this.timeSignature});
         this.beams = rv;
     }
 

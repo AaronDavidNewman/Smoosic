@@ -3,6 +3,8 @@ class Test1 {
 // Create an SVG renderer and attach it to the DIV element named "boo".
     static createContext () {
         var div = document.getElementById("boo");
+        $(div).html('');
+
         var renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
 
         // Configure the rendering context.
@@ -145,7 +147,7 @@ class Test1 {
         }
 
         var makeTupletTest = () => {
-            window.music.notes = VX.TUPLET(music.notes, 6, '8', 3);
+            window.music.notes = VX.TUPLET(music.notes, 6, '8', 3,2);
             window.music = staffMeasure.drawNotes(window.music.notes);
             return timeTest();
         }

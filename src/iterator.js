@@ -16,10 +16,12 @@ VX = Vex.Xform;
 // that iterates through all notes and creates information about the notes, like the 
 // tuplet ticks, index-to-tick map.
 class noteIterator {
-    constructor(notes, voice) {
+    constructor(notes, options) {
         this.index = 0;
         this.startIndex = 0;
         this.endIndex = notes.length;
+
+        Vex.Merge(this,options);
 
         // so a client can tell if the iterator's been run or not
         var states = ['CREATED', 'RUNNING', 'COMPLETE'];
@@ -42,8 +44,8 @@ class noteIterator {
         this.noteSlice = notes;
         this.notes = notes;
         this.beattime = 4096;
-        if (voice)
-            this.beattime = voice.time.resolution / voice.time.num_beats;
+        if (this.voice)
+            this.beattime = this.voice.time.resolution / this.voice.time.num_beats;
 
     }
 
@@ -129,13 +131,13 @@ class noteIterator {
 }
 
 /* iterate over a set of notes, calling actor for each tick */
-VX.ITERATE= (actor, notes, voice) => {
-    var iterator = new noteIterator(notes, voice);
+VX.ITERATE= (actor, notes, options) => {
+    var iterator = new noteIterator(notes, options);
     iterator.iterate(actor);
     return iterator;
 }
 
 /* iteratoe over a set of notes, creating a map of notes to ticks */
-VX.TICKMAP = (notes) => {
-    return VX.ITERATE(noteIterator.nullActor, notes);
+VX.TICKMAP = (notes,options) => {
+    return VX.ITERATE(noteIterator.nullActor, notes,options);
 }

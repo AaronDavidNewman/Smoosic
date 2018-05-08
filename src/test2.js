@@ -3,6 +3,7 @@ class Test2 {
 // Create an SVG renderer and attach it to the DIV element named "boo".
     static createContext() {
         var div = document.getElementById("boo");
+        $(div).html('');
         var renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
 
         // Configure the rendering context.
@@ -58,10 +59,21 @@ class Test2 {
             window.music = staffMeasure.drawNotes(window.music.notes);
             return timeTest();
         }
+
+        var stretchTest = () => {
+            window.music.notes = VX.DURATION(music.notes, 1, '4d')
+            window.music = staffMeasure.drawNotes(window.music.notes);
+            return timeTest();
+        }
+        var makeTupletTest = () => {
+            window.music.notes = VX.TUPLET(music.notes, 1, '8', 2 , 3);
+            window.music = staffMeasure.drawNotes(window.music.notes);
+            return timeTest();
+        }
         var endTests = () => {
             return timeTest();
         }
-        var promise = drawInital().then(contractTest).then(endTests);
+        var promise = drawInital().then(contractTest).then(stretchTest).then(makeTupletTest).then(endTests);
         return promise;
     }
 }
