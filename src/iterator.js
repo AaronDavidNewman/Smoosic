@@ -94,7 +94,6 @@ class noteIterator {
             }
         }
         this.state = 'COMPLETE';
-        console.log(JSON.stringify(this.tupletMap), null, ' ');
     }
     iterate(actor) {
         // todo add promise

@@ -438,7 +438,7 @@ VX.UNTUPLET = (notes, index, vexDuration) => {
 }
 
 // ## Description: 
-// Convert '4d', etc. to ticks.
+// Convert 6144 ticks to '4d', etc.
 VF.ticksToDuration = (function () {
     var durations = ["1/2", "1", "2", "4", "8", "16", "32", "64", "128", "256"];
     var ticksToDuration = {};

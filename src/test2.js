@@ -14,7 +14,7 @@ class Test2 {
     }
 
 // Create the notes
-    static getNotes() {
+    static get notes() {
         return [
             new VF.StaveNote({
                 clef: "treble",
@@ -31,7 +31,7 @@ class Test2 {
 
     static CommonTests () {
         window.music = {};
-        window.music.notes = Test2.getNotes();
+        window.music.notes = Test2.notes;
         var context = Test2.createContext();
 
         var timeTest = () => {
@@ -47,7 +47,8 @@ class Test2 {
         var staffMeasure = new StaffMeasure(context, {
             clef:'treble',
             timeSignature:'6/8',
-            num_beats:3,
+            keySignature:'Bb',
+            num_beats:3
         });
 
         var drawInital = () => {

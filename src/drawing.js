@@ -16,6 +16,7 @@ class StaffMeasure {
     constructor(context,options) {
         this.context = context;
         this.timeSignature='4/4';
+        this.keySignature = "G";
         Vex.Merge(this, options);
         this.notes = [];
         this.meterNumbers=this.timeSignature.split('/').map(number => parseInt(number,10));
@@ -38,7 +39,7 @@ class StaffMeasure {
         var stave = new VF.Stave(10, 40, 400);
 
         // Add a clef and time signature.
-        stave.addClef(this.clef).addTimeSignature(this.timeSignature);
+        stave.addClef(this.clef).addTimeSignature(this.timeSignature).addKeySignature(this.keySignature);
 
         // Connect it to the rendering context and draw!
         stave.setContext(this.context).draw();
@@ -53,9 +54,19 @@ class StaffMeasure {
         // var beams = VF.Beam.generateBeams(notes);
         this.createBeamGroups(voice, notes);
 
+        var km = new VF.KeyManager(this.keySignature);
+        var canon = VF.Music.canonical_notes;
         notes.forEach(function(note) {
             if (note.dots > 0) {
                 note.addDotToAll();
+            }
+            for (var i = 0; i < note.keys.length;++i) {
+                var prop = note.keyProps[i];
+                var key = prop.key.toLowerCase();
+                if (km.scale.indexOf(canon.indexOf[key]) < 0 &&
+                    prop.accidental) {
+                    note.addAccidental(0, new VF.Accidental(prop.accidental));
+                }
             }
         });
         // Format and justify the notes to 400 pixels.
@@ -73,7 +84,8 @@ class StaffMeasure {
             voice: voice,
             staff: stave,
             notes: notes,
-            beams: this.beams
+            beams: this.beams,
+            keySignature:this.keySignature
         };
     }
 
@@ -146,8 +158,9 @@ class StaffMeasure {
 
 
 class Tracker {
-  constructor(music, context) {
+  constructor(music, context,staffMeasure) {
     this.modNote = 0;
+    this.staffMeasure = staffMeasure;
     this.music = music;
     this.context = context;
     this.drawRect(music.notes[0]);
@@ -160,6 +173,12 @@ class Tracker {
     $('#right').off('click').on('click', function() {
       self.rightHandler();
     });
+      $('#up').off('click').on('click', function() {
+          self.upHandler();
+      });
+      $('#down').off('click').on('click', function() {
+          self.downHandler();
+      });
   }
 
   drawRect(note) {
@@ -184,5 +203,42 @@ class Tracker {
     this.modNote = (this.modNote + 1) % len;
     this.drawRect(this.music.notes[this.modNote]);
 
+  }
+    downHandler() {
+        var note = this.music.notes[this.modNote];
+        var keys = [];
+        var canon = VF.Music.canonical_notes;
+        for (var i = 0; i < note.keys.length;++i) {
+            var prop = note.keyProps[i];
+            var key = prop.key.toLowerCase();
+            var index = (canon.indexOf(key) + canon.length-1) % canon.length;
+            var octave = prop.octave;
+            if (canon[index] == 'b')
+                octave -= 1;
+            key = canon[index] + '/' + octave;
+            console.log('push ' + key);
+            keys.push(key);
+        }
+        this.music.notes = VX.SETPITCH(music.notes, this.modNote,keys);
+        this.music = this.staffMeasure.drawNotes(this.music.notes);
+    }
+  upHandler() {
+      var note = this.music.notes[this.modNote];
+      var keys = [];
+      var canon = VF.Music.canonical_notes;
+      for (var i = 0; i < note.keys.length;++i)
+      {
+          var prop = note.keyProps[i];
+          var key = prop.key.toLowerCase();
+          var index = (canon.indexOf(key) + 1) % canon.length;
+          var octave = prop.octave;
+          if (canon[index] == 'c')
+              octave += 1;
+          key = canon[index] + '/' + octave;
+          console.log('push ' + key);
+          keys.push(key);
+      }
+      this.music.notes = VX.SETPITCH(music.notes, this.modNote,keys);
+      this.music = this.staffMeasure.drawNotes(this.music.notes);
   }
 }

@@ -65,7 +65,7 @@ class Test1 {
         ];
     }
 
-    static getNotes ()  {
+    static get Notes ()  {
         var notes = Test1.notesSet();
         var tuplet = new Vex.Flow.Tuplet(notes.slice(6, 9),
             {
@@ -80,7 +80,7 @@ class Test1 {
 
     static CommonTests () {
         window.music = {};
-        window.music.notes = Test1.getNotes();
+        window.music.notes = Test1.Notes;
         var context = Test1.createContext();
 
         var timeTest = () => {
@@ -153,7 +153,7 @@ class Test1 {
         }
 
         var endTests = () => {
-            new Tracker(window.music, context);
+            new Tracker(window.music, context,staffMeasure);
             return timeTest();
 
         }
