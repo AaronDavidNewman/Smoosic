@@ -234,9 +234,9 @@ class Tracker {
             console.log('push ' + key);
             keys.push(key);
         }
-        this.music.notes = VX.SETPITCH(music.notes, this.modNote,keys);
+        this.music.notes = VX.SETPITCH(this.music.notes, this.modNote,keys);
         this.music = this.staffMeasure.drawNotes(this.music.notes);
-
+        this.drawRect(this.music.notes[this.modNote]);
   }
     downHandler() {
       this.offsetHandler(-1);     
@@ -259,10 +259,11 @@ class Tracker {
       var prop = note.keyProps[0];
       var key = pitch+'/'+prop.octave;
       if (noteType == oldType) {
-          this.music.notes = VX.SETPITCH(music.notes, this.modNote, [key]);
+          this.music.notes = VX.SETPITCH(this.music.notes, this.modNote, [key]);
       } else {
-          this.music.notes = VX.SETNOTETYPE(music.notes, this.modNote, noteType);
+          this.music.notes = VX.SETNOTETYPE(this.music.notes, this.modNote, noteType);
       }
       this.music = this.staffMeasure.drawNotes(this.music.notes);
+      this.drawRect(this.music.notes[this.modNote]);
   }
 }
