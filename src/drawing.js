@@ -63,8 +63,9 @@ class StaffMeasure {
             for (var i = 0; i < note.keys.length;++i) {
                 var prop = note.keyProps[i];
                 var key = prop.key.toLowerCase();
-                if (km.scale.indexOf(canon.indexOf[key]) < 0 &&
-                    prop.accidental) {
+                if (km.scale.indexOf(canon.indexOf(key)) < 0) {
+                    if (!prop.accidental)
+                        prop.accidental = 'n';
                     note.addAccidental(0, new VF.Accidental(prop.accidental));
                 }
             }
@@ -179,6 +180,16 @@ class Tracker {
       $('#down').off('click').on('click', function() {
           self.downHandler();
       });
+      $('#upOctave').off('click').on('click', function() {
+          self.offsetHandler(12);
+      });
+      $('#downOctave').off('click').on('click', function() {
+          self.offsetHandler(-12);
+      });
+      $('#noteGroup button').off('click').on('click', function() {
+          var note = $(this).attr('id')[0].toLowerCase();
+          self.anoteHandler(note);
+      });
   }
 
   drawRect(note) {
@@ -204,15 +215,19 @@ class Tracker {
     this.drawRect(this.music.notes[this.modNote]);
 
   }
-    downHandler() {
+    offsetHandler(offset) {
         var note = this.music.notes[this.modNote];
         var keys = [];
         var canon = VF.Music.canonical_notes;
         for (var i = 0; i < note.keys.length;++i) {
             var prop = note.keyProps[i];
             var key = prop.key.toLowerCase();
-            var index = (canon.indexOf(key) + canon.length-1) % canon.length;
+            var index = (canon.indexOf(key) + canon.length+offset) % canon.length;
             var octave = prop.octave;
+            if (Math.abs(offset) >= 12) {
+                offset = Math.sign(offset) * Math.round(Math.abs(offset) / 12);
+                octave += offset;
+            }
             if (canon[index] == 'b')
                 octave -= 1;
             key = canon[index] + '/' + octave;
@@ -221,24 +236,33 @@ class Tracker {
         }
         this.music.notes = VX.SETPITCH(music.notes, this.modNote,keys);
         this.music = this.staffMeasure.drawNotes(this.music.notes);
+
+  }
+    downHandler() {
+      this.offsetHandler(-1);     
     }
   upHandler() {
+    this.offsetHandler(1);
+  }
+  anoteHandler(pitch) {
+      var km = new VF.KeyManager(this.staffMeasure.keySignature);
+      var noteType = 'n';
+      if (pitch.toLowerCase() == 'r') {
+          noteType = 'r';
+          pitch = 'c';
+      }
+      pitch = km.scaleMap[pitch];
       var note = this.music.notes[this.modNote];
+      var oldType = note.noteType;
       var keys = [];
       var canon = VF.Music.canonical_notes;
-      for (var i = 0; i < note.keys.length;++i)
-      {
-          var prop = note.keyProps[i];
-          var key = prop.key.toLowerCase();
-          var index = (canon.indexOf(key) + 1) % canon.length;
-          var octave = prop.octave;
-          if (canon[index] == 'c')
-              octave += 1;
-          key = canon[index] + '/' + octave;
-          console.log('push ' + key);
-          keys.push(key);
+      var prop = note.keyProps[0];
+      var key = pitch+'/'+prop.octave;
+      if (noteType == oldType) {
+          this.music.notes = VX.SETPITCH(music.notes, this.modNote, [key]);
+      } else {
+          this.music.notes = VX.SETNOTETYPE(music.notes, this.modNote, noteType);
       }
-      this.music.notes = VX.SETPITCH(music.notes, this.modNote,keys);
       this.music = this.staffMeasure.drawNotes(this.music.notes);
   }
 }

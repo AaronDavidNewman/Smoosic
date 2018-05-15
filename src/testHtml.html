@@ -16,7 +16,8 @@
     <script type="text/javascript">
         document.addEventListener("DOMContentLoaded", function (event) {
             console.log("DOM fully loaded and parsed");
-            Test2.CommonTests().then(Test1.CommonTests);
+            //Test2.CommonTests().then(Test1.CommonTests);
+            Test1.CommonTests();
         });
 
     </script>
@@ -38,34 +39,53 @@
         /\
     </button>
 </div>
-<div id="noteGroup">
-    <button id="ANote" class="control">
-        A
-    </button>
-    <button id="BNote" class="control">
-        B
-    </button>
-    <button id="CNote" class="control">
-        C
-    </button>
-    <button id="DNote" class="control">
-        D
-    </button>
-    <button id="ENote" class="control">
-        E
-    </button>
-    <button id="FNote" class="control">
-        F
-    </button>
-    <button id="BNote" class="control">
-        G
-    </button>
-    <button id="sharpNote" class="control">
-        #
-    </button>
-    <button id="flatNoteNote" class="control">
-        b
-    </button>
+<div id="pitchGroup">
+    <span id="noteGroup">
+        <button id="ANote" class="control">
+            A
+        </button>
+        <button id="BNote" class="control">
+            B
+        </button>
+        <button id="CNote" class="control">
+            C
+        </button>
+        <button id="DNote" class="control">
+            D
+        </button>
+        <button id="ENote" class="control">
+            E
+        </button>
+        <button id="FNote" class="control">
+            F
+        </button>
+        <button id="GNote" class="control">
+            G
+        </button>
+        <button id="RestNote" class="control">
+            R
+        </button>
+    </span>
+    <span id="pitchDecorations">
+        <button id="addSharp" class="control">
+            #
+        </button>
+        <button id="addFlat" class="control">
+            b
+        </button>
+        <button id="addNatural" class="control">
+            n
+        </button>
+        <button id="addCourtesy" class="control">
+            ()
+        </button>
+        <button id="upOctave" class="control">
+            8va
+        </button>
+        <button id="downOctave" class="control">
+            8vb
+        </button>
+    </span>
 </div>
 </body>
 </html>
