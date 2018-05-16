@@ -190,6 +190,9 @@ class Tracker {
           var note = $(this).attr('id')[0].toLowerCase();
           self.anoteHandler(note);
       });
+      $('#addCourtesy').off('click').on('click', function() {
+          self.courtesyHandler();
+      });
   }
 
   drawRect(note) {
@@ -228,8 +231,12 @@ class Tracker {
                 offset = Math.sign(offset) * Math.round(Math.abs(offset) / 12);
                 octave += offset;
             }
-            if (canon[index] == 'b')
-                octave -= 1;
+            if (canon[index] == 'b' && offset==-1) {
+                octave += -1;
+            }
+            if (canon[index] == 'c' && offset==1) {
+                octave += 1;
+            }
             key = canon[index] + '/' + octave;
             console.log('push ' + key);
             keys.push(key);
@@ -239,7 +246,7 @@ class Tracker {
         this.drawRect(this.music.notes[this.modNote]);
   }
     downHandler() {
-      this.offsetHandler(-1);     
+      this.offsetHandler(-1);
     }
   upHandler() {
     this.offsetHandler(1);
@@ -266,4 +273,14 @@ class Tracker {
       this.music = this.staffMeasure.drawNotes(this.music.notes);
       this.drawRect(this.music.notes[this.modNote]);
   }
+
+    courtesyHandler() {
+
+        var note = this.music.notes[this.modNote];
+        var a = (note.keyProps[0].accidental ? note.keyProps[0].accidental: 'n');
+        this.music.notes = VX.ACCIDENTAL(this.music.notes, this.modNote, a);
+        this.music = this.staffMeasure.drawNotes(this.music.notes);
+        this.drawRect(this.music.notes[this.modNote]);
+    }
 }
+
