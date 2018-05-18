@@ -251,6 +251,21 @@ class Tracker {
   upHandler() {
     this.offsetHandler(1);
   }
+  InKey(note) {
+      var canon = VF.Music.canonical_notes;
+      var km = new VF.KeyManager(this.staffMeasure.keySignature);
+      var inkey = true;
+      for (var i = 0; i < note.keyProps; ++i) {
+          var prop = note.keyProps[i];
+          var imap = canon.indexOf(prop.key);
+          if (km.scale.indexOf(imap) < 0) {
+              inkey = false;
+              break;
+          }
+      }
+      return inkey;
+  }
+ 
   anoteHandler(pitch) {
       var km = new VF.KeyManager(this.staffMeasure.keySignature);
       var noteType = 'n';

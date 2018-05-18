@@ -14,12 +14,16 @@ VX = Vex.Xform;
 // To change pitch on the note at index:
 // VX.SETPITCH = (notes, index, vexKey)
 class Cloner {
-  constructor(notes, options) {
+  constructor(notes, actor,options) {
       this.notes = notes;
+      this.actor = actor ? actor : Cloner.nullActor;
       Vex.Merge(this, options);
   }
-  /** create a new note based on attributes of note.  If this is a 
-  tuplet, create all the notes in the tuplet  **/
+  static nullActor(note) {
+      return note;
+  }
+    /** create a new note based on attributes of note.  If this is a 
+    tuplet, create all the notes in the tuplet  **/
   CloneNote(iterator,note) {
     var self = this;
     var ts = note.tupletStack;
@@ -35,9 +39,8 @@ class Cloner {
         duration: vexDuration,
         noteType:noteType
       });
-      if (this.notifier) {
-          nn=this.notifier.modNote(nn, iterator.index);
-      }
+       
+          nn=this.actor(nn, iterator.index);      
       return [nn];
     }
     var tuplet = ts[0];
@@ -56,9 +59,7 @@ class Cloner {
             keys: vexKey,
             duration: note.duration
         });
-        if (self.notifier) {
-            nn = self.notifier.modNote(nn, iterator.index);
-        }
+        nn = self.actor(nn, iterator.index);
       ar.push(nn);
     };
     VX.ITERATE(tupletActor, tuplet.notes);
@@ -85,8 +86,8 @@ class Cloner {
   }
 }
 
-VX.CLONE = (notes, options) => {
-  var cloner = new Cloner(notes, options);
+VX.CLONE = (notes, actor,options) => {
+  var cloner = new Cloner(notes, actor,options);
   cloner.Clone();
   return cloner.notes;
 }
@@ -116,17 +117,25 @@ class PitchChange {
       return note;
   }
   SetNote(vexKey) {
-    this.vexKey = vexKey;    
-    return VX.CLONE(this.notes, {
+    this.vexKey = vexKey;
+      var self = this;
+    return VX.CLONE(this.notes,
+        (note, index) => {
+            return self.modNote(note,index);
+        }, 
+        {
       start: 0,
-      end: this.notes.length,
-      notifier:this
+      end: this.notes.length
     });
   }
   SetNoteType(noteType) {
       this.noteType = noteType;
+      var self = this;
       
-      return VX.CLONE(this.notes,{
+      return VX.CLONE(this.notes,
+          (note, index) => {
+              return self.modNote(note,index);
+          },{
             start: 0,
             end: this.notes.length,
             notifier:this
@@ -140,33 +149,38 @@ class AccidentalChange {
         this.index = index;
         this.target = notes[index];
     }
+    modNote(note, index) {
+        if (index == this.index) {
+            for (var i = 0; i < note.keys.length; ++i) {
+                note.addAccidental(i, new VF.Accidental(this.accidental));
+            }
+            if (this.setCautionary) {
+                note.modifiers
+                    .filter(function(modifier) {
+                        return modifier.getAttribute('type') === 'Accidental';
+                    })
+                    .forEach(function(accid) {
+                        accid.setAsCautionary();
+                    });
+            }
+        }
+        return note;
+    }
     SetAccidental(a) {
+        this.accidental = a;
+        var self = this;
+        this.setCautionary = true;
+        var accidentals = this.target.getAccidentals();
+        if (accidentals) {
+            accidentals.forEach(function(accid) {
+                if (accid.cautionary) {
+                    self.setCautionary = false;
+                }
+            });
+        }
         var notes = this.notes;
         var note = notes[this.index];
-        var ar1 = VX.CLONE(notes, {
-            start: 0,
-            end: this.index
-        });
-        var ar2 = VX.CLONE(notes, {
-            start: this.index+1,
-            end: notes.length
-        });
-        var repl = new VF.StaveNote({
-            clef: note.clef,
-            keys: note.keys,
-            duration: note.duration
-        });
-        for (var i = 0; i < note.keys.length; ++i) {
-            repl.addAccidental(i, new VF.Accidental(a));
-        }
-        repl.modifiers
-            .filter(function(modifier) {
-                return modifier.getAttribute('type') === 'Accidental';
-            })
-            .forEach(function(accid) {
-                accid.setAsCautionary();
-            });
-        return ar1.concat([repl]).concat(ar2);
+        return VX.CLONE(notes, (note, index) => { return self.modNote(note, index); });
     }
 }
 VX.SETPITCH = (notes, index, vexKey) => {

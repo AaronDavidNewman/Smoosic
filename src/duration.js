@@ -135,11 +135,11 @@ class DurationChange {
 
         var ticks = 0;
 
-        var ar1 = VX.CLONE(notes, {
+        var ar1 = VX.CLONE(notes,null, {
             start: 0,
             end: tupletInfo.startIndex
         });
-        var ar2 = VX.CLONE(notes, {
+        var ar2 = VX.CLONE(notes,null, {
             start: tupletInfo.endIndex + 1,
             end: notes.length
         });
@@ -165,11 +165,11 @@ class DurationChange {
         var ticks = tupletInfo.smallestDuration * noteTuplet.notes_occupied;
         var vexDuration = VF.ticksToDuration()[ticks];
 
-        var ar1 = VX.CLONE(notes, {
+        var ar1 = VX.CLONE(notes,null, {
             start: 0,
             end: tupletInfo.startIndex
         });
-        var ar2 = VX.CLONE(notes, {
+        var ar2 = VX.CLONE(notes,null, {
             start: tupletInfo.endIndex + 1,
             end: notes.length
         });
@@ -193,11 +193,11 @@ class DurationChange {
             return notes;
         }
 
-        var ar1 = VX.CLONE(notes, {
+        var ar1 = VX.CLONE(notes,null, {
             start: 0,
             end: this.index
         });
-        var ar2 = VX.CLONE(notes, {
+        var ar2 = VX.CLONE(notes,null, {
             start: this.index + 1,
             end: notes.length
         });
@@ -281,11 +281,11 @@ class DurationChange {
         var tupletLength = 2 + tupletInfo.endIndex - tupletInfo.startIndex;
 
 
-        var ar1 = VX.CLONE(notes, {
+        var ar1 = VX.CLONE(notes,null, {
             start: 0,
             end: tupletInfo.startIndex
         });
-        var ar2 = VX.CLONE(notes, {
+        var ar2 = VX.CLONE(notes,null, {
             start: tupletInfo.endIndex + 1,
             end: notes.length
         });
@@ -318,11 +318,11 @@ class DurationChange {
             keys: replNote.keys,
             duration: this.vexDuration
         });
-        var ar1 = VX.CLONE(notes, {
+        var ar1 = VX.CLONE(notes,null, {
             start: 0,
             end: index
         });
-        var ar2 = VX.CLONE(notes, {
+        var ar2 = VX.CLONE(notes,null, {
             start: endIx,
             end: notes.length
         });
@@ -352,11 +352,11 @@ class DurationChange {
             });
             nar.push(repl);
         }
-        var ar1 = VX.CLONE(notes, {
+        var ar1 = VX.CLONE(notes,null, {
             start: 0,
             end: index
         });
-        var ar2 = VX.CLONE(notes, {
+        var ar2 = VX.CLONE(notes,null, {
             start: index + 1,
             end: notes.length
         });

@@ -15,7 +15,7 @@ VX = Vex.Xform;
 // VX.TICKMAP(notes)
 // that iterates through all notes and creates information about the notes, like the 
 // tuplet ticks, index-to-tick map.
-class noteIterator {
+class tickIterator {
     constructor(notes, options) {
         this.index = 0;
         this.startIndex = 0;
@@ -131,12 +131,60 @@ class noteIterator {
 
 /* iterate over a set of notes, calling actor for each tick */
 VX.ITERATE= (actor, notes, options) => {
-    var iterator = new noteIterator(notes, options);
+    var iterator = new tickIterator(notes, options);
     iterator.iterate(actor);
     return iterator;
 }
 
 /* iteratoe over a set of notes, creating a map of notes to ticks */
 VX.TICKMAP = (notes,options) => {
-    return VX.ITERATE(noteIterator.nullActor, notes,options);
+    return VX.ITERATE(tickIterator.nullActor, notes,options);
+}
+
+class PitchIterator {
+    constructor(note, keySignature) {
+        this.note=note;
+        this.keySignature = keySignature;
+        this.pitchMap = [];
+        var canon = VF.Music.canonical_notes;
+        var km = new VF.KeyManager(keySignature);
+        for (var i = 0; i < note.keyProps; ++i) {
+            var inkey = true;
+            var prop = note.keyProps[i];
+            var imap = canon.indexOf(prop.key);
+            if (km.scale.indexOf(imap) < 0) {
+                inkey = false;
+            }
+            var letter = prop.key[0].toLowerCase();
+            var keyAccidental = (prop.accidental ? prop.accidental : 'n');
+            var modifier = this.getAccidentalIndex(i);
+            var courtesy = false;
+            var renderAccidental = null;
+            if (modifier) {
+                courtesy = modifier.setCautionary;
+                renderAccidental = modifier.type;
+            }
+            pitchMap.push({
+                inkey: inkey,
+                letter: letter,
+                keyAccidental: keyAccidental,
+                courtesy: courtesy,
+                renderAccidental: renderAccidental
+            });
+        }
+    }
+    hasCourtesy() {
+        return this.pitchMap.every((pm) => { return pm.courtesy == true; })
+    }
+    getAccidentalIndex(ix) {
+        var accidentals = this.note.getAccidentals();
+        if (accidentals) {
+            for (var i = 0; i < accidentals.length; ++i) {
+                if (accidentals[i].index == ix) {
+                    return accidentals[i];
+                }
+            }
+        }
+        return null;
+    }
 }
