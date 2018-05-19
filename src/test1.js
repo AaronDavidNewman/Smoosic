@@ -118,13 +118,13 @@ class Test1 {
         }
 
         var pitchTest = () => {
-            window.music.notes = VX.SETPITCH(music.notes, 1, ['d/5']);
+            window.music.notes = VX.SETPITCH(music.notes, [1], ['d/5']);
             window.music = staffMeasure.drawNotes(window.music.notes);
             return timeTest();
         }
 
         var tupletPitchTest = () => {
-            window.music.notes = VX.SETPITCH(music.notes, 7, ['a/4']);
+            window.music.notes = VX.SETPITCH(music.notes, [7], ['a/4']);
             window.music = staffMeasure.drawNotes(window.music.notes);
             return timeTest();
         }

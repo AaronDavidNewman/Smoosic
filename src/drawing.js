@@ -222,26 +222,10 @@ class Tracker {
         var note = this.music.notes[this.modNote];
         var keys = [];
         var canon = VF.Music.canonical_notes;
-        for (var i = 0; i < note.keys.length;++i) {
-            var prop = note.keyProps[i];
-            var key = prop.key.toLowerCase();
-            var index = (canon.indexOf(key) + canon.length+offset) % canon.length;
-            var octave = prop.octave;
-            if (Math.abs(offset) >= 12) {
-                offset = Math.sign(offset) * Math.round(Math.abs(offset) / 12);
-                octave += offset;
-            }
-            if (canon[index] == 'b' && offset==-1) {
-                octave += -1;
-            }
-            if (canon[index] == 'c' && offset==1) {
-                octave += 1;
-            }
-            key = canon[index] + '/' + octave;
-            console.log('push ' + key);
-            keys.push(key);
-        }
-        this.music.notes = VX.SETPITCH(this.music.notes, this.modNote,keys);
+        var self = this;
+        this.music.notes = VX.TRANSPOSE(this.music.notes, [this.modNote], offset, this.staffMeasure.keySignature);
+        
+        // this.music.notes = VX.SETPITCH(this.music.notes, this.modNote,keys);
         this.music = this.staffMeasure.drawNotes(this.music.notes);
         this.drawRect(this.music.notes[this.modNote]);
   }
@@ -250,40 +234,19 @@ class Tracker {
     }
   upHandler() {
     this.offsetHandler(1);
-  }
-  InKey(note) {
-      var canon = VF.Music.canonical_notes;
-      var km = new VF.KeyManager(this.staffMeasure.keySignature);
-      var inkey = true;
-      for (var i = 0; i < note.keyProps; ++i) {
-          var prop = note.keyProps[i];
-          var imap = canon.indexOf(prop.key);
-          if (km.scale.indexOf(imap) < 0) {
-              inkey = false;
-              break;
-          }
-      }
-      return inkey;
-  }
+  }  
  
   anoteHandler(pitch) {
       var km = new VF.KeyManager(this.staffMeasure.keySignature);
       var noteType = 'n';
+      var note = this.music.notes[this.modNote];
       if (pitch.toLowerCase() == 'r') {
           noteType = 'r';
-          pitch = 'c';
-      }
-      pitch = km.scaleMap[pitch];
-      var note = this.music.notes[this.modNote];
-      var oldType = note.noteType;
-      var keys = [];
-      var canon = VF.Music.canonical_notes;
-      var prop = note.keyProps[0];
-      var key = pitch+'/'+prop.octave;
-      if (noteType == oldType) {
-          this.music.notes = VX.SETPITCH(this.music.notes, this.modNote, [key]);
+          this.music.notes = VX.SETNOTETYPE(this.notes, [this.modNote], 'r');
       } else {
-          this.music.notes = VX.SETNOTETYPE(this.music.notes, this.modNote, noteType);
+          pitch = vexMusic.getKeySignatureKey(pitch, this.staffMeasure.keySignature);
+          var octave = note.keyProps[0].octave;
+          this.music.notes = VX.SETPITCH(this.music.notes, [this.modNote], [pitch+'/'+octave]);
       }
       this.music = this.staffMeasure.drawNotes(this.music.notes);
       this.drawRect(this.music.notes[this.modNote]);

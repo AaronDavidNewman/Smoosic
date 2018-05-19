@@ -141,17 +141,57 @@ VX.TICKMAP = (notes,options) => {
     return VX.ITERATE(tickIterator.nullActor, notes,options);
 }
 
+class vexMusic {
+    // ### getKeyOffset
+    // ### description:  given a vex noteProp and an offset, offset that number
+    // of 1/2 steps.
+    static getKeyOffset(prop,offset) {
+        var canon = VF.Music.canonical_notes;
+        var key = prop.key.toLowerCase();
+        var index = (canon.indexOf(key) + canon.length+offset) % canon.length;
+        var octave = prop.octave;
+        if (Math.abs(offset) >= 12) {
+            offset = Math.sign(offset) * Math.round(Math.abs(offset) / 12);
+            octave += offset;
+        }
+        if (canon[index] == 'b' && offset==-1) {
+            octave += -1;
+        }
+        if (canon[index] == 'c' && offset==1) {
+            octave += 1;
+        }
+        return canon[index] + '/' + octave;
+    }
+
+    // ### getKeySignatureKey
+    // ### Description:
+    // given a letter pitch (a,b,c etc.), and a key signature, return the actual note. 
+    // 
+    // ### Usage:
+    //   vexMusic.getKeySignatureKey('F','G'); // returns f# 
+    static getKeySignatureKey(letter, keySignature) {
+        var km = new VF.KeyManager(keySignature);
+        return km.scaleMap[letter];
+    }
+}
+
 class PitchIterator {
-    constructor(note, keySignature) {
-        this.note=note;
+    constructor(note, keySignature, actor) {
+        this.note = note;
         this.keySignature = keySignature;
         this.pitchMap = [];
+    }
+    iterate(actor) {
+        if (!actor) {
+            actor = PitchIterator.nullActor;
+        }
         var canon = VF.Music.canonical_notes;
-        var km = new VF.KeyManager(keySignature);
-        for (var i = 0; i < note.keyProps; ++i) {
+        var note = this.note;
+        var km = new VF.KeyManager(this.keySignature);
+        for (var i = 0; i < note.keyProps.length; ++i) {
             var inkey = true;
             var prop = note.keyProps[i];
-            var imap = canon.indexOf(prop.key);
+            var imap = canon.indexOf(prop.key.toLowerCase());
             if (km.scale.indexOf(imap) < 0) {
                 inkey = false;
             }
@@ -164,19 +204,29 @@ class PitchIterator {
                 courtesy = modifier.setCautionary;
                 renderAccidental = modifier.type;
             }
-            pitchMap.push({
+            var mapData = {
                 inkey: inkey,
                 letter: letter,
                 keyAccidental: keyAccidental,
                 courtesy: courtesy,
                 renderAccidental: renderAccidental
-            });
+            };
+            this.pitchMap.push(mapData);
+            actor(this,i,mapData)
         }
     }
+    static get nullActor() {}
+
+  
+
     hasCourtesy() {
         return this.pitchMap.every((pm) => { return pm.courtesy == true; })
     }
     getAccidentalIndex(ix) {
+        // this seems a little hacky to me.  getAccidentals is so fragile.
+        if (!this.note.modifierContext) {
+            return null;
+        }
         var accidentals = this.note.getAccidentals();
         if (accidentals) {
             for (var i = 0; i < accidentals.length; ++i) {
@@ -188,3 +238,13 @@ class PitchIterator {
         return null;
     }
 }
+
+VX.PITCHMAP = (note, keySignature) => {
+    var rv= new PitchIterator(note, keySignature);
+    rv.iterate();
+    return rv;
+}
+VX.PITCHITERATE = (note, keySignature, actor) => {
+    var rv= new PitchIterator(note, keySignature);
+    rv.iterate(actor);
+};

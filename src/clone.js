@@ -8,8 +8,9 @@ VX = Vex.Xform;
 // the parts that you don't want to change can be cloned.
 //
 // ## Usage:
-// var ar1 = VX.CLONE(notes, {start: 0,end: index,notifier:this});
-// notifier is an object with a modNote method, that can be used to change pitch, etc.
+// var ar1 = VX.CLONE(notes, actor,{start: 0,end: index,notifier:this});
+// actor is an callback method that takes and returns the note.  It can be used
+// to change pitch, or as an iterator.  If not supplied, a default is provided
 // 
 // To change pitch on the note at index:
 // VX.SETPITCH = (notes, index, vexKey)
@@ -183,14 +184,67 @@ class AccidentalChange {
         return VX.CLONE(notes, (note, index) => { return self.modNote(note, index); });
     }
 }
-VX.SETPITCH = (notes, index, vexKey) => {
-  var changer = new PitchChange(notes, index);
-  return changer.SetNote(vexKey);
+
+VX.TRANSPOSE = (notes, selections,offset,keySignature) => {
+    // used to decide whether to specify accidental.
+    if (!keySignature) {
+        keySignature = 'C';
+    }
+    notes = VX.CLONE(notes,
+        (note, index) => {
+            if (selections.indexOf(index) < 0) {
+                return note;
+            }
+            var keys=[];
+            VX.PITCHITERATE(note,
+                keySignature,
+                (iterator, index) => {
+                    keys.push(vexMusic.getKeyOffset(note.keyProps[index], offset));
+                });
+            return new VF.StaveNote({
+                clef: note.clef,
+                keys: keys,
+                duration: note.duration
+            });
+        });
+
+    return notes;
 }
 
-VX.SETNOTETYPE = (notes, index, noteType) => {
-    var changer = new PitchChange(notes, index);
-    return changer.SetNoteType(noteType);
+VX.SETPITCH = (notes, selections, vexKey) => {
+    // used to decide whether to specify accidental.
+    notes = VX.CLONE(notes,
+        (note, index) => {
+            if (selections.indexOf(index) < 0) {
+                return note;
+            }
+            return new VF.StaveNote({
+                clef: note.clef,
+                keys: vexKey,
+                duration: note.duration,
+                noteType:note.noteType
+            });
+        });
+
+    return notes;
+}
+
+VX.SETNOTETYPE = (notes, [selections], noteType) => {
+    // used to decide whether to specify accidental.
+    notes = VX.CLONE(notes,
+        (note, index) => {
+            if (selections.indexOf(index) < 0) {
+                return note;
+            }
+            return new VF.StaveNote({
+                clef: note.clef,
+                keys: note.keys,
+                duration: note.duration,
+                noteType:noteType
+            });
+        });
+
+    return notes;
 }
 
 VX.ACCIDENTAL = (notes, index,accidental) => {
