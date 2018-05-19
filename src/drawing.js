@@ -242,7 +242,7 @@ class Tracker {
       var note = this.music.notes[this.modNote];
       if (pitch.toLowerCase() == 'r') {
           noteType = 'r';
-          this.music.notes = VX.SETNOTETYPE(this.notes, [this.modNote], 'r');
+          this.music.notes = VX.SETNOTETYPE(this.music.notes, [this.modNote], 'r');
       } else {
           pitch = vexMusic.getKeySignatureKey(pitch, this.staffMeasure.keySignature);
           var octave = note.keyProps[0].octave;

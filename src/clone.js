@@ -229,7 +229,7 @@ VX.SETPITCH = (notes, selections, vexKey) => {
     return notes;
 }
 
-VX.SETNOTETYPE = (notes, [selections], noteType) => {
+VX.SETNOTETYPE = (notes, selections, noteType) => {
     // used to decide whether to specify accidental.
     notes = VX.CLONE(notes,
         (note, index) => {
@@ -239,8 +239,7 @@ VX.SETNOTETYPE = (notes, [selections], noteType) => {
             return new VF.StaveNote({
                 clef: note.clef,
                 keys: note.keys,
-                duration: note.duration,
-                noteType:noteType
+                duration: note.duration+noteType
             });
         });
 
