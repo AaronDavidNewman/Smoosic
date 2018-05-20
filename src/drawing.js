@@ -205,9 +205,12 @@ class Tracker {
           });
   }
   setDuration(duration) {
-      this.music.notes = VX.DURATION(this.music.notes, this.modNote, duration)
+      this.music.notes = VX.DURATION(this.music.notes, this.modNote, duration);
       this.music = this.staffMeasure.drawNotes(this.music.notes);
       this.drawRect(this.music.notes[this.modNote]);
+  }
+  addDot() {
+
   }
   drawRect(note) {
     $(this.context.svg).find('g.vf-note-box').remove();
@@ -254,7 +257,6 @@ class Tracker {
       this.music.notes = VX.ENHARMONIC(this.music.notes, [this.modNote], this.staffMeasure.keySignature);
       this.music = this.staffMeasure.drawNotes(this.music.notes);
       this.drawRect(this.music.notes[this.modNote]);
-
   }
   anoteHandler(pitch) {
       var km = new VF.KeyManager(this.staffMeasure.keySignature);

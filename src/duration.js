@@ -21,7 +21,7 @@ VX = Vex.Xform;
 // 
 class DurationChange {
     constructor(notes, options) {
-        Vex.Merge(this, options)
+        Vex.Merge(this, options);
         this.notes = notes;
 
         // duration in ticks
@@ -31,7 +31,7 @@ class DurationChange {
 
         this.target = notes[this.index];
         this.noteTicks = this.target.ticks.numerator/this.target.ticks.denominator;
-        this.iterator = VX.TICKMAP(notes);
+        this.tickmap = VX.TICKMAP(notes);
     }
     static VexDurationToTicks(vexDuration) {
         return VF.parseNoteData(VF.parseNoteDurationString(vexDuration)).ticks;
@@ -60,7 +60,7 @@ class DurationChange {
         var notes = this.notes;
         var index = this.index;
         var note = this.notes[this.index];
-        var iterator = VX.TICKMAP(this.notes);
+        var iterator = this.tickmap;
         var tupletInfo = iterator.tupletMap[note.tuplet.attrs.id];
         var D = tupletInfo.smallestDuration * note.tuplet.num_notes;
         var Ax = tupletInfo.startIndex;
@@ -133,8 +133,6 @@ class DurationChange {
             ar.push(this.notes[i + tupletInfo.startNote]);
         }
 
-        var ticks = 0;
-
         var ar1 = VX.CLONE(notes,null, {
             start: 0,
             end: tupletInfo.startIndex
@@ -146,6 +144,8 @@ class DurationChange {
 
         this.notes = ar1.concat(ar).concat(ar2);
 
+        // this sets the correct duration and so needs to be called, even 
+        // though it is not used.
         var tuplet = new Vex.Flow.Tuplet(ar, {
             num_notes: note.tuplet.num_notes,
             notes_occupied: note.tuplet.notes_occupied,
@@ -157,8 +157,8 @@ class DurationChange {
     }
     unmakeTuplet() {
         var note = this.target;
-        var tickobj = this.calculateTupletTicks();
-        var tupletInfo = this.iterator.tupletMap[note.tuplet.attrs.id];
+        // var tickobj = this.calculateTupletTicks();
+        var tupletInfo = this.tickmap.tupletMap[note.tuplet.attrs.id];
         var noteTuplet = note.tuplet;
         var notes = this.notes;
         // total ticks of the new thing
@@ -188,7 +188,7 @@ class DurationChange {
         
         // total ticks of the new thing
         var notes_occupied = this.noteTicks / this.newTicks;
-        var remaininigTicks=this.iterator.totalDuration-this.iterator.durationMap[this.index];
+        var remaininigTicks=this.tickmap.totalDuration-this.tickmap.durationMap[this.index];
         if (notes_occupied<1 || notes_occupied * this.newTicks > remaininigTicks) {
             return notes;
         }
@@ -224,17 +224,12 @@ class DurationChange {
     }
     contractTuplet() {
         var notes = this.notes;
-        var index = this.index;
         var note = this.notes[this.index];
         var tickobj = this.calculateTupletTicks();
         var iterator = tickobj.iterator;
         var tupletInfo = iterator.tupletMap[note.tuplet.attrs.id];
-        var D = tickobj.D;
-        var Ax = tickobj.Ax;
         var Bx = tickobj.Bx;
         var Cx = tickobj.Cx;
-        var B = tickobj.B;
-        var A = tickobj.A;
         var C = tickobj.C;
         var changeD = this.noteTicks / this.newTicks;
 
@@ -277,9 +272,6 @@ class DurationChange {
             });
             ar.push(tRep);
         }
-        // 1 for 0-index, 1 for the note we're adding
-        var tupletLength = 2 + tupletInfo.endIndex - tupletInfo.startIndex;
-
 
         var ar1 = VX.CLONE(notes,null, {
             start: 0,
@@ -322,14 +314,14 @@ class DurationChange {
             var preDuration = iterator.durationMap[index];
 
             // if this is the duration of the whole measure, skip the rest
-            if (preDuration + this.newTicks == this.iterator.totalDuration) {
+            if (preDuration + this.newTicks == this.tickmap.totalDuration) {
                 iterator.skipNext(iterator.endIndex - index);
                 return repl;
             }
 
             // if there is no tick, just don't do the change.  
             // TODO:  borrow from next note, when that's the expected thing.
-            var mapIx = this.iterator.durationMap.indexOf(preDuration+this.newTicks);
+            var mapIx = this.tickmap.durationMap.indexOf(preDuration+this.newTicks);
             if (mapIx < 0) {            
                 return note;
             }
@@ -348,7 +340,7 @@ class DurationChange {
         }
         var ticks = note.ticks.numerator / note.ticks.denominator;
         var vexDuration = note.duration;
-        if (this.iterator.durationMap[index] + ticks > this.iterator.totalDuration) {
+        if (this.tickmap.durationMap[index] + ticks > this.tickmap.totalDuration) {
             ticks = iterator.totalDuration - iterator.durationMap[index];
             vexDuration = vexMusic.ticksToDuration[ticks];
         }
@@ -364,17 +356,7 @@ class DurationChange {
     **/
     stretch() {
         var notes = this.notes;
-        var index = this.index;
-        var vexDuration = this.vexDuration;
-        var iterator = VX.TICKMAP(this.notes);
-        var endIx = iterator.getTickIndex(index, this.newTicks);
-        var replNote = notes[index];
 
-        var repl = new VF.StaveNote({
-            clef: replNote.clef,
-            keys: replNote.keys,
-            duration: this.vexDuration
-        });
         var self = this;
         this.notes = VX.CLONE(notes,
             (note, iterator) => { return self._stretch(note, iterator); }, {
@@ -390,7 +372,6 @@ class DurationChange {
         var notes = this.notes;
         var index = this.index;
         var noteTicks = this.newTicks;
-        var iterator = VX.TICKMAP(notes);
         var replNote = notes[index];
         var noteCount = replNote.ticks.numerator / noteTicks;
         var nar = [];
