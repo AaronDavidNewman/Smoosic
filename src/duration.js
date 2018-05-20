@@ -373,7 +373,7 @@ class DurationChange {
         var index = this.index;
         var noteTicks = this.newTicks;
         var replNote = notes[index];
-        var noteCount = replNote.ticks.numerator / noteTicks;
+        var noteCount = Math.floor(replNote.ticks.numerator / noteTicks);
         var nar = [];
 
         for (var i = 0; i < noteCount; ++i) {

@@ -203,6 +203,10 @@ class Tracker {
               var duration = $(this).attr('data-duration');
               self.setDuration(duration);
           });
+      $('#dotted').off('click').on('click',
+          function() {
+              self.addDot();
+          });
   }
   setDuration(duration) {
       this.music.notes = VX.DURATION(this.music.notes, this.modNote, duration);
@@ -210,7 +214,11 @@ class Tracker {
       this.drawRect(this.music.notes[this.modNote]);
   }
   addDot() {
-
+      var note = this.music.notes[this.modNote];
+      var ticks = note.ticks.numerator / note.ticks.denominator;
+      var duration = vexMusic.ticksToDuration[ticks];
+      duration += 'd';
+      this.setDuration(duration);
   }
   drawRect(note) {
     $(this.context.svg).find('g.vf-note-box').remove();
