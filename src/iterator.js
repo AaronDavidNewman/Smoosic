@@ -173,6 +173,54 @@ class vexMusic {
         var km = new VF.KeyManager(keySignature);
         return km.scaleMap[letter];
     }
+
+    static get ticksToDuration  () {
+        var durations = ["1/2", "1", "2", "4", "8", "16", "32", "64", "128", "256"];
+        var ticksToDuration = {};
+        var _ticksToDurations = function () {
+            for (var i = 0; i < durations.length - 1; ++i) {
+                var dots = '';
+                var ticks = 0;
+                for (var j = 0; j < 4 && j + i < durations.length; ++j) {
+                    ticks += VF.durationToTicks.durations[durations[i + j]];
+                    ticksToDuration[ticks.toString()] = durations[i] + dots;
+                    dots += 'd'
+                }
+            }
+            return ticksToDuration
+        }
+        _ticksToDurations();
+        return ticksToDuration;
+    };
+
+    static get enharmonics() {
+        var rv = {};
+        var keys = Object.keys(VF.Music.noteValues);
+        for (var i = 0; i < keys.length; ++i) {
+            var key = keys[i];
+            var int_val = VF.Music.noteValues[key].int_val;
+            if (typeof (rv[int_val.toString()]) == 'undefined') {
+                rv[int_val.toString()] = [];
+            }
+            // only consider natural note 1 time.  It is in the list twice for some reason.
+            if (key.indexOf('n') == -1) {
+                rv[int_val.toString()].push(key);
+            }
+        }
+        return rv;
+    }
+
+    // ### getEnharmonic(noteProp)
+    // ###   cycle through the enharmonics for a note.
+    static getEnharmonic(noteProp) {
+        var key = noteProp.key.toLowerCase();
+        var intVal= VF.Music.noteValues[key].int_val;
+        var ar = vexMusic.enharmonics[intVal.toString()];
+        var len = ar.length;
+        var ix = ar.indexOf(key);
+        key = ar[(ix + 1) % len];
+        return (key + '/' + noteProp.octave);
+    }
 }
 
 class PitchIterator {

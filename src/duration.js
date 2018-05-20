@@ -163,7 +163,7 @@ class DurationChange {
         var notes = this.notes;
         // total ticks of the new thing
         var ticks = tupletInfo.smallestDuration * noteTuplet.notes_occupied;
-        var vexDuration = VF.ticksToDuration()[ticks];
+        var vexDuration = vexMusic.ticksToDuration[ticks];
 
         var ar1 = VX.CLONE(notes,null, {
             start: 0,
@@ -301,6 +301,63 @@ class DurationChange {
         });
         return this.notes;
     }
+    // Handle the iterator to change the duration
+    _stretch(note, iterator) {
+        var index = iterator.index;
+        // Just clone any notes before the target index
+        if (index < this.index) {
+            return note;
+        }
+
+        // Replace note with correct duration at index
+        if (this.index == index) {
+            var repl = new VF.StaveNote({
+                clef: note.clef,
+                keys: note.keys,
+                duration: this.vexDuration
+            });
+
+            // 2 iterators: over original durations, and over new durations
+            // if this note takes up space for multiple notes, skip
+            var preDuration = iterator.durationMap[index];
+
+            // if this is the duration of the whole measure, skip the rest
+            if (preDuration + this.newTicks == this.iterator.totalDuration) {
+                iterator.skipNext(iterator.endIndex - index);
+                return repl;
+            }
+
+            // if there is no tick, just don't do the change.  
+            // TODO:  borrow from next note, when that's the expected thing.
+            var mapIx = this.iterator.durationMap.indexOf(preDuration+this.newTicks);
+            if (mapIx < 0) {            
+                return note;
+            }
+            if (mapIx > this.index + 1) {
+                var toSkip = mapIx - (this.index + 1);
+                iterator.skipNext(toSkip);
+            } 
+            
+            return repl;
+        }
+
+        // For notes later in the measure, taper the note if it 
+        // exceeds the length of the measure.
+        if (note.tuplet) {
+            return note;
+        }
+        var ticks = note.ticks.numerator / note.ticks.denominator;
+        var vexDuration = note.duration;
+        if (this.iterator.durationMap[index] + ticks > this.iterator.totalDuration) {
+            ticks = iterator.totalDuration - iterator.durationMap[index];
+            vexDuration = vexMusic.ticksToDuration[ticks];
+        }
+        return new VF.StaveNote({
+            clef: note.clef,
+            keys: note.keys,
+            duration: vexDuration
+        });
+    }
     /** 
     replace the notes at index with a note oflonger duration,
     replacing any notes in the way
@@ -318,18 +375,12 @@ class DurationChange {
             keys: replNote.keys,
             duration: this.vexDuration
         });
-        var ar1 = VX.CLONE(notes,null, {
+        var self = this;
+        this.notes = VX.CLONE(notes,
+            (note, iterator) => { return self._stretch(note, iterator); }, {
             start: 0,
-            end: index
-        });
-        var ar2 = VX.CLONE(notes,null, {
-            start: endIx,
             end: notes.length
         });
-
-        this.notes = ar1.concat([repl]).concat(ar2);
-        // recreateTuplets(notes, tupletData1);
-        // recreateTuplets(notes, tupletData2);
         return this.notes;
     }
     /** split note at index into multiple notes of duration.
@@ -400,9 +451,9 @@ class DurationChange {
 
         }
         if (this.newTicks > this.noteTicks) {
-            return this.stretch(this.notes, this.index, this.newTicks);
+            this.notes= this.stretch(this.notes, this.index, this.newTicks);
         } else if (this.newTicks < this.noteTicks) {
-            return this.contract(this.notes, this.index, this.newTicks);
+            this.notes=this.contract(this.notes, this.index, this.newTicks);
         }
         return this.notes;
     }
@@ -437,24 +488,4 @@ VX.UNTUPLET = (notes, index, vexDuration) => {
     return changer.notes;
 }
 
-// ## Description: 
-// Convert 6144 ticks to '4d', etc.
-VF.ticksToDuration = (function () {
-    var durations = ["1/2", "1", "2", "4", "8", "16", "32", "64", "128", "256"];
-    var ticksToDuration = {};
-    var _ticksToDurations = function () {
-        for (var i = 0; i < durations.length - 1; ++i) {
-            var dots = '';
-            var ticks = 0;
-            for (var j = 0; j < 4 && j + i < durations.length; ++j) {
-                ticks += VF.durationToTicks.durations[durations[i + j]];
-                ticksToDuration[ticks.toString()] = durations[i] + dots;
-                dots += 'd'
-            }
-        }
-        return ticksToDuration
-    }
-    _ticksToDurations();
-    return ticksToDuration;
-});
 

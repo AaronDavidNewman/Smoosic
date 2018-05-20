@@ -193,8 +193,22 @@ class Tracker {
       $('#addCourtesy').off('click').on('click', function() {
           self.courtesyHandler();
       });
-  }
+      $('#enharmonic').off('click').on('click',
+          function() {
+              self.enharmonicHandler();
+          });
 
+      $('#noteDurations button').off('click').on('click',
+          function() {
+              var duration = $(this).attr('data-duration');
+              self.setDuration(duration);
+          });
+  }
+  setDuration(duration) {
+      this.music.notes = VX.DURATION(this.music.notes, this.modNote, duration)
+      this.music = this.staffMeasure.drawNotes(this.music.notes);
+      this.drawRect(this.music.notes[this.modNote]);
+  }
   drawRect(note) {
     $(this.context.svg).find('g.vf-note-box').remove();
     var bb = note.getBoundingBox();
@@ -236,6 +250,12 @@ class Tracker {
     this.offsetHandler(1);
   }  
  
+  enharmonicHandler() {
+      this.music.notes = VX.ENHARMONIC(this.music.notes, [this.modNote], this.staffMeasure.keySignature);
+      this.music = this.staffMeasure.drawNotes(this.music.notes);
+      this.drawRect(this.music.notes[this.modNote]);
+
+  }
   anoteHandler(pitch) {
       var km = new VF.KeyManager(this.staffMeasure.keySignature);
       var noteType = 'n';

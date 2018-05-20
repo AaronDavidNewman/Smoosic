@@ -4,8 +4,11 @@ Vex.Xform = (typeof (Vex.Xform)=='undefined' ? {} : Vex.Xform);
 VX = Vex.Xform;
 
 // ## Description
-//  Clone a slice of a note array.  This can be usefule when re-rendering a staff.
+//  Clone a slice of a note array.  This can be useful when re-rendering a staff.
 // the parts that you don't want to change can be cloned.
+//
+// Cloner is an iterator.  It will call you back after each note and allow you to
+// add modifier or make modifications.
 //
 // ## Usage:
 // var ar1 = VX.CLONE(notes, actor,{start: 0,end: index,notifier:this});
@@ -32,7 +35,7 @@ class Cloner {
       var vexKey = note.keys;
       var noteType = note.noteType;
      
-        var vexDuration = VF.ticksToDuration()[note.ticks.numerator / note.ticks.denominator];
+        var vexDuration = vexMusic.ticksToDuration[note.ticks.numerator / note.ticks.denominator];
        
       var nn = new VF.StaveNote({
         clef: note.clef,
@@ -41,7 +44,7 @@ class Cloner {
         noteType:noteType
       });
        
-          nn=this.actor(nn, iterator.index);      
+          nn=this.actor(nn, iterator);      
       return [nn];
     }
     var tuplet = ts[0];
@@ -60,7 +63,7 @@ class Cloner {
             keys: vexKey,
             duration: note.duration
         });
-        nn = self.actor(nn, iterator.index);
+        nn = self.actor(nn, iterator);
       ar.push(nn);
     };
     VX.ITERATE(tupletActor, tuplet.notes);
@@ -91,57 +94,6 @@ VX.CLONE = (notes, actor,options) => {
   var cloner = new Cloner(notes, actor,options);
   cloner.Clone();
   return cloner.notes;
-}
-
-class PitchChange {
-  constructor(notes, index) {
-    this.notes = notes;
-    this.index = index;
-      this.noteType = 'n';
-    this.target = notes[index];
-  }
-  modNote(note, index) {
-      if (index == this.index) {
-          if (!this.vexKey) {
-              this.vexKey = note.keys;
-          }
-          if (this.noteType == 'r') {
-              note.duration += 'r';
-          }
-          note = new VF.StaveNote({
-              clef: note.clef,
-              keys: this.vexKey,
-              duration: note.duration,
-              noteType:this.noteType
-      });
-      }
-      return note;
-  }
-  SetNote(vexKey) {
-    this.vexKey = vexKey;
-      var self = this;
-    return VX.CLONE(this.notes,
-        (note, index) => {
-            return self.modNote(note,index);
-        }, 
-        {
-      start: 0,
-      end: this.notes.length
-    });
-  }
-  SetNoteType(noteType) {
-      this.noteType = noteType;
-      var self = this;
-      
-      return VX.CLONE(this.notes,
-          (note, index) => {
-              return self.modNote(note,index);
-          },{
-            start: 0,
-            end: this.notes.length,
-            notifier:this
-        });
-  }
 }
 
 class AccidentalChange {
@@ -191,7 +143,8 @@ VX.TRANSPOSE = (notes, selections,offset,keySignature) => {
         keySignature = 'C';
     }
     notes = VX.CLONE(notes,
-        (note, index) => {
+        (note, iterator) => {
+            var index = iterator.index;
             if (selections.indexOf(index) < 0) {
                 return note;
             }
@@ -214,7 +167,9 @@ VX.TRANSPOSE = (notes, selections,offset,keySignature) => {
 VX.SETPITCH = (notes, selections, vexKey) => {
     // used to decide whether to specify accidental.
     notes = VX.CLONE(notes,
-        (note, index) => {
+        (note, iterator) => {
+            var index = iterator.index;
+
             if (selections.indexOf(index) < 0) {
                 return note;
             }
@@ -232,7 +187,9 @@ VX.SETPITCH = (notes, selections, vexKey) => {
 VX.SETNOTETYPE = (notes, selections, noteType) => {
     // used to decide whether to specify accidental.
     notes = VX.CLONE(notes,
-        (note, index) => {
+        (note, iterator) => {
+            var index = iterator.index;
+
             if (selections.indexOf(index) < 0) {
                 return note;
             }
@@ -249,4 +206,29 @@ VX.SETNOTETYPE = (notes, selections, noteType) => {
 VX.ACCIDENTAL = (notes, index,accidental) => {
     var changer = new AccidentalChange(notes, index);
     return changer.SetAccidental(accidental);
+}
+
+VX.ENHARMONIC = (notes, selections,keySignature) => {
+    // used to decide whether to specify accidental.
+    notes = VX.CLONE(notes,
+        (note, iterator) => {
+            var index = iterator.index;
+
+            if (selections.indexOf(index) < 0) {
+                return note;
+            }
+            var keys=[];
+            VX.PITCHITERATE(note,
+                keySignature,
+                (iterator, index) => {
+                    keys.push(vexMusic.getEnharmonic(note.keyProps[index]));
+                });
+            return new VF.StaveNote({
+                clef: note.clef,
+                keys: keys,
+                duration: note.duration
+            });            
+        });
+
+    return notes;
 }
