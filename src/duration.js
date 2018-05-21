@@ -365,6 +365,7 @@ class DurationChange {
         });
         return this.notes;
     }
+   
     /** split note at index into multiple notes of duration.
     durtation in ticks
     **/
@@ -388,12 +389,41 @@ class DurationChange {
             start: 0,
             end: index
         });
+        var ar1 = ar1.concat(nar);
+
+        // If there is no note at the end of this note, insert a rest in the gap
+        /**
+         *      old map:    
+         *     d  .  .  .  d
+         *     new map:
+         *     d  .  .  r  d
+         */
+
+        // figure out duration so far.
+        var newMap = VX.TICKMAP(ar1);
+        var nduration = newMap.totalDuration;
+        if (this.tickmap.durationMap.indexOf(nduration) < 0) {
+
+            // find the tick count of closest note
+            var gapidx = this.tickmap.durationMap.findIndex((x) => { return x > noteTicks });
+            if (gapidx > 0) {
+                // compute the gap ticks
+                var gap = this.tickmap.durationMap[gapidx] - noteTicks;
+                var vexGapDuration = vexMusic.ticksToDuration[gap];
+                ar1.push(
+                    new VF.StaveNote({
+                        clef:replNote.clef,
+                        keys:replNote.keys,
+                        duration: vexGapDuration+'r'
+                    }));
+            }
+        }
         var ar2 = VX.CLONE(notes,null, {
             start: index + 1,
             end: notes.length
         });
 
-        this.notes = ar1.concat(nar).concat(ar2);
+        this.notes = ar1.concat(ar2);
         return this.notes;
     }
 
