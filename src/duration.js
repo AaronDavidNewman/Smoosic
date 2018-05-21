@@ -355,13 +355,45 @@ class DurationChange {
     replacing any notes in the way
     **/
     stretch() {
-        var notes = this.notes;
-
         var self = this;
-        this.notes = VX.CLONE(notes,
+        var endTick = this.tickmap.durationMap[this.index] + this.newTicks;
+        var mapIx = this.tickmap.durationMap.indexOf(endTick);
+
+        // If there is no tickable at the end point, try to split the next note
+        /**
+         *      old map:    
+         *     d  . d  .  
+         *     split map:
+         *     d  .  d  d
+         *     new map:
+         *     d .   .  d
+         */
+        if (mapIx < 0) {
+            if (this.index + 1 < this.notes.length) {
+                var nextNote = this.notes[this.index + 1];
+                var nticks = vexMusic.ticksFromNote(nextNote);
+                var npos = this.tickmap.durationMap[this.index + 1];
+                var divisor = -1;
+                if (npos + nticks / 2 == endTick) {
+                    divisor = 2;
+                }
+                else if (npos + nticks / 4 == endTick) {
+                    divisor = 4;
+                }
+                if (divisor < 0) {
+                    return this.notes;
+                }
+                var nextDuration = vexMusic.ticksToDuration[nticks / divisor];
+                this.notes = VX.DURATION(this.notes, this.index + 1, nextDuration);
+                this.tickmap = VX.TICKMAP(this.notes);
+            } else {
+                return this.notes;
+            }
+        }
+        this.notes = VX.CLONE(this.notes,
             (note, iterator) => { return self._stretch(note, iterator); }, {
             start: 0,
-            end: notes.length
+            end: this.notes.length
         });
         return this.notes;
     }

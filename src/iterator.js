@@ -193,6 +193,9 @@ class vexMusic {
         return ticksToDuration;
     };
 
+    static ticksFromNote(note) {
+        return note.ticks.numerator / note.ticks.denominator;
+    }
     static get enharmonics() {
         var rv = {};
         var keys = Object.keys(VF.Music.noteValues);
