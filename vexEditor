@@ -1,0 +1,13 @@
+<NotepadPlus>
+    <Project name="vexEditor">
+        <File name="src\clone.js" />
+        <File name="src\drawing.js" />
+        <File name="src\duration.js" />
+        <File name="src\iterator.js" />
+        <File name="src\test1.js" />
+        <File name="src\test2.js" />
+        <File name="src\testEditor.html" />
+        <File name="src\testEditor.js" />
+        <File name="src\testHtml.html" />
+    </Project>
+</NotepadPlus>

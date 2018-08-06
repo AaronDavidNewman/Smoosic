@@ -434,7 +434,7 @@ class DurationChange {
         // figure out duration so far.
         var newMap = VX.TICKMAP(ar1);
         var nduration = newMap.totalDuration;
-        if (this.tickmap.durationMap.indexOf(nduration) < 0) {
+        if (this.tickmap.durationMap.indexOf(nduration) < 0 && this.tickmap.duration > nduration) {
 
             // find the tick count of closest note
             var gapidx = this.tickmap.durationMap.findIndex((x) => { return x > noteTicks });

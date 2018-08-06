@@ -141,6 +141,9 @@ VX.TICKMAP = (notes,options) => {
     return VX.ITERATE(tickIterator.nullActor, notes,options);
 }
 
+/**
+  * Utilities I wish were in VF.Music but aren't
+  **/
 class vexMusic {
     // ### getKeyOffset
     // ### description:  given a vex noteProp and an offset, offset that number
@@ -173,7 +176,7 @@ class vexMusic {
         var km = new VF.KeyManager(keySignature);
         return km.scaleMap[letter];
     }
-
+	
     static get ticksToDuration  () {
         var durations = ["1/2", "1", "2", "4", "8", "16", "32", "64", "128", "256"];
         var ticksToDuration = {};

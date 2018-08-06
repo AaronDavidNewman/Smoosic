@@ -69,7 +69,8 @@ class TestEditor {
             return timeTest();
         }
         var startEditor = () => {
-            new Tracker(window.music, context,staffMeasure);
+            window['tracker']=new Tracker(window.music, context,staffMeasure);
+            
             return timeTest();
 
         }
