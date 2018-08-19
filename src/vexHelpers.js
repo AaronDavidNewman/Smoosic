@@ -96,3 +96,54 @@ class vexMusic {
         return (key + '/' + noteProp.octave);
     }
 }
+
+class Selection {
+	
+	constructor() {
+		this.ticks={};
+	}
+	addNote(tickableIndex,note) {
+		if (typeof(this.ticks[tickableIndex]) == 'undefined') {
+			this.ticks[tickableIndex]=[];
+		}
+		for (var i = 0; i < note.keyProps.length; ++i) {
+			this.ticks[tickableIndex].push(i);
+		}
+		return this;
+	}
+	addPitch(tickableIndex,pitchIndex) {
+		if (typeof(this.ticks[tickableIndex]) == 'undefined') {
+			this.ticks[tickableIndex]=[];
+		}
+		if (this.ticks[tickableIndex].indexOf(pitchIndex)) {
+			return;
+		}
+	    this.ticks[tickableIndex].push(pitchIndex);		
+		return this;
+	}
+	static selectChords(notes,selection) {
+		var rv = new Selection();
+		if (typeof(selection)==="number") {
+			rv.addNote(selection,notes[selection]);
+		} else if (Array.isArray(selection)) {
+			for (var i=0;i<selection.length;++i) {
+				rv.addNote(notes[selection[i]],selection[i]);
+			}
+		}
+		return rv;
+	}
+	tickArray() {
+		return Object.keys(this.ticks);
+	}
+	containsPitch(tick,pitchIndex) {
+		return (this.ticks[tick] && (this.ticks[tick].indexOf(pitchIndex) >= 0));
+	}
+	noteSelections(notes) {
+		var ar=this.tickArray();
+		var rv = [];
+		for (var i=0;i<ar.length;++i) {
+			rv.push(notes[ar[i]]);
+		}
+		return rv;
+	}
+}

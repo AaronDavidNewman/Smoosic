@@ -1,5 +1,6 @@
 VF = Vex.Flow;
-Vex.Xform = (typeof (Vex.Xform)=='undefined' ? {} : Vex.Xform);
+Vex.Xform = (typeof(Vex.Xform) == 'undefined' ? {}
+     : Vex.Xform);
 VX = Vex.Xform;
 
 VX.groupCounter = 1;
@@ -13,17 +14,16 @@ VX.groupCounter = 1;
 //  timeSignature: '4/4'
 
 class StaffMeasure {
-    constructor(context,options) {
+    constructor(context, options) {
         this.context = context;
-        this.timeSignature='4/4';
+        this.timeSignature = '4/4';
         this.keySignature = "G";
         Vex.Merge(this, options);
         this.notes = [];
-        this.meterNumbers=this.timeSignature.split('/').map(number => parseInt(number,10));
+        this.meterNumbers = this.timeSignature.split('/').map(number => parseInt(number, 10));
         this.groupName = 'staffGroup-' + VX.groupCounter;
         VX.groupCounter += 1;
     }
-
 
     drawNotes(notes) {
         if (this.notes.length) {
@@ -47,8 +47,8 @@ class StaffMeasure {
         // console.log(JSON.stringify(notes));
         // Create a voice in 4/4 and add above notes
         var voice = new VF.Voice({
-            num_beats: this.num_beats
-        });
+                num_beats: this.num_beats
+            });
         voice.addTickables(notes);
 
         // var beams = VF.Beam.generateBeams(notes);
@@ -56,11 +56,11 @@ class StaffMeasure {
 
         var km = new VF.KeyManager(this.keySignature);
         var canon = VF.Music.canonical_notes;
-        notes.forEach(function(note) {
+        notes.forEach(function (note) {
             if (note.dots > 0) {
                 note.addDotToAll();
             }
-            for (var i = 0; i < note.keys.length;++i) {
+            for (var i = 0; i < note.keys.length; ++i) {
                 var prop = note.keyProps[i];
                 var key = prop.key.toLowerCase();
                 if (km.scale.indexOf(canon.indexOf(key)) < 0) {
@@ -86,7 +86,7 @@ class StaffMeasure {
             staff: stave,
             notes: notes,
             beams: this.beams,
-            keySignature:this.keySignature
+            keySignature: this.keySignature
         };
     }
 
@@ -101,9 +101,9 @@ class StaffMeasure {
         var rv = [];
         var duration = 0;
         var startRange = 0;
-        var beamBeats = 2*2048;
+        var beamBeats = 2 * 2048;
         if (this.meterNumbers[0] % 3 == 0) {
-            beamBeats = 3*2048;
+            beamBeats = 3 * 2048;
         }
         var beamLogic = function (iterator, notes, note) {
             duration += iterator.delta;
@@ -115,7 +115,7 @@ class StaffMeasure {
                 var tupNotes = iterator.skipNext(tuplen);
 
                 if (iterator.delta < 4096) {
-                rv.push(new VF.Beam(tupNotes));
+                    rv.push(new VF.Beam(tupNotes));
                 }
                 return;
             }
@@ -142,7 +142,10 @@ class StaffMeasure {
                 return;
             }
         }
-        VX.ITERATE(beamLogic, notes, {voice:voice,timeSignature:this.timeSignature});
+        VX.ITERATE(beamLogic, notes, {
+            voice: voice,
+            timeSignature: this.timeSignature
+        });
         this.beams = rv;
     }
 
@@ -157,138 +160,158 @@ class StaffMeasure {
 
 }
 
-
 class Tracker {
-  constructor(music, context,staffMeasure) {
-    this.modNote = 0;
-    this.staffMeasure = staffMeasure;
-    this.music = music;
-    this.context = context;
-    this.drawRect(music.notes[0]);
-    var self = this;
+    constructor(music, context, staffMeasure) {
+        this.modNote = Selection.selectChords(music.notes, 0);        
 
-    $('#left').off('click').on('click', function() {
-      self.leftHandler();
-    });
+        this.staffMeasure = staffMeasure;
+        this.music = music;
+        this.context = context;
+        this.modNote.noteSelections(music.notes);
 
-    $('#right').off('click').on('click', function() {
-      self.rightHandler();
-    });
-      $('#up').off('click').on('click', function() {
-          self.upHandler();
-      });
-      $('#down').off('click').on('click', function() {
-          self.downHandler();
-      });
-      $('#upOctave').off('click').on('click', function() {
-          self.offsetHandler(12);
-      });
-      $('#downOctave').off('click').on('click', function() {
-          self.offsetHandler(-12);
-      });
-      $('#noteGroup button').off('click').on('click', function() {
-          var note = $(this).attr('id')[0].toLowerCase();
-          self.anoteHandler(note);
-      });
-      $('#addCourtesy').off('click').on('click', function() {
-          self.courtesyHandler();
-      });
-      $('#enharmonic').off('click').on('click',
-          function() {
-              self.enharmonicHandler();
-          });
+        var self = this;
 
-      $('#noteDurations button').off('click').on('click',
-          function() {
-              var duration = $(this).attr('data-duration');
-              self.setDuration(duration);
-          });
-      $('#dotted').off('click').on('click',
-          function() {
-              self.addDot();
-          });
-  }
-  setDuration(duration) {
-      this.music.notes = VX.DURATION(this.music.notes, this.modNote, duration);
-      this.music = this.staffMeasure.drawNotes(this.music.notes);
-      this.drawRect(this.music.notes[this.modNote]);
-  }
-  addDot() {
-      var note = this.music.notes[this.modNote];
-      var ticks = note.ticks.numerator / note.ticks.denominator;
-      var duration = vexMusic.ticksToDuration[ticks];
-      duration += 'd';
-      this.setDuration(duration);
-  }
-  drawRect(note) {
-    $(this.context.svg).find('g.vf-note-box').remove();
-    var bb = note.getBoundingBox();
-    var grp = this.context.openGroup('note-box', 'box-' + note.attrs.id);
-    this.context.rect(bb.x, bb.y, bb.w + 3, bb.h + 3, {
-      stroke: '#fc9',
-      'stroke-width': 2,
-      'fill': 'none'
-    });
-    this.context.closeGroup(grp);
-  }
-  leftHandler() {
-    var len = this.music.notes.length;
-    this.modNote = (this.modNote + len - 1) % len;
-    this.drawRect(this.music.notes[this.modNote]);
+        $('#left').off('click').on('click', function () {
+            self.leftHandler();
+        });
 
-  }
-  rightHandler() {
-    var len = this.music.notes.length;
-    this.modNote = (this.modNote + 1) % len;
-    this.drawRect(this.music.notes[this.modNote]);
+        $('#right').off('click').on('click', function () {
+            self.rightHandler();
+        });
+        $('#up').off('click').on('click', function () {
+            self.upHandler();
+        });
+        $('#down').off('click').on('click', function () {
+            self.downHandler();
+        });
+        $('#upOctave').off('click').on('click', function () {
+            self.offsetHandler(12);
+        });
+        $('#downOctave').off('click').on('click', function () {
+            self.offsetHandler(-12);
+        });
+        $('#noteGroup button').off('click').on('click', function () {
+            var note = $(this).attr('id')[0].toLowerCase();
+            self.anoteHandler(note);
+        });
+        $('#addCourtesy').off('click').on('click', function () {
+            self.courtesyHandler();
+        });
+        $('#enharmonic').off('click').on('click',
+            function () {
+            self.enharmonicHandler();
+        });
 
-  }
-    offsetHandler(offset) {
+        $('#noteDurations button').off('click').on('click',
+            function () {
+            var duration = $(this).attr('data-duration');
+            self.setDuration(duration);
+        });
+        $('#dotted').off('click').on('click',
+            function () {
+            self.addDot();
+        });
+		
+		this.drawRect(this.modNote.noteSelections(this.music.notes, 0));
+    }
+    setDuration(duration) {
+		var selectedChords = this.modNote.tickArray();
+		for (var i=0;i<selectedChords.length;++i) {
+			this.music.notes = VX.DURATION(this.music.notes, selectedChords[i], duration);
+		}
+        this.music = this.staffMeasure.drawNotes(this.music.notes);
+        this.drawRect(this.modNote.noteSelections(this.music.notes, 0));
+    }
+    addDot() {
         var note = this.music.notes[this.modNote];
+        var ticks = note.ticks.numerator / note.ticks.denominator;
+        var duration = vexMusic.ticksToDuration[ticks];
+        duration += 'd';
+        this.setDuration(duration);
+    }
+    drawRect(noteAr) {
+        // whatever note we were tracking before, forget it
+        $(this.context.svg).find('g.vf-note-box').remove();
+		
+		// Create a bounding box around all the selections
+        var bb = null; 
+        var grp = this.context.openGroup('note-box', 'box-' + noteAr[0].attrs.id);
+        for (var i = 0; i < noteAr.length; ++i) {
+            var note = noteAr[i];
+			if (!bb) {
+				bb = note.getBoundingBox();
+			} else {
+				bb = bb.mergeWith(note.getBoundingBox());
+			}
+        }
+        this.context.rect(bb.x, bb.y, bb.w + 3, bb.h + 3, {
+            stroke: '#fc9',
+            'stroke-width': 2,
+            'fill': 'none'
+        });
+        this.context.closeGroup(grp);
+    }
+    leftHandler() {
+        var len = this.music.notes.length;
+		
+		// shift left with wrap
+        var newIndex = (this.modNote.tickArray()[0]+len-1) % len;
+        this.modNote = Selection.selectChords(this.music.notes,newIndex);
+        this.drawRect(this.modNote.noteSelections(this.music.notes, 0));
+    }
+    rightHandler() {
+        var len = this.music.notes.length;
+		// shift right with wrap
+        var newIndex = (this.modNote.tickArray()[0]+1) % len;
+		
+        this.modNote = Selection.selectChords(this.music.notes,newIndex);
+        this.drawRect(this.modNote.noteSelections(this.music.notes, 0));
+    }
+
+    offsetHandler(offset) {
         var keys = [];
         var canon = VF.Music.canonical_notes;
         var self = this;
-        this.music.notes = VX.TRANSPOSE(this.music.notes, [this.modNote], offset, this.staffMeasure.keySignature);
-        
+        this.music.notes = VX.TRANSPOSE(this.music.notes, this.modNote, offset, this.staffMeasure.keySignature);
+
         // this.music.notes = VX.SETPITCH(this.music.notes, this.modNote,keys);
         this.music = this.staffMeasure.drawNotes(this.music.notes);
-        this.drawRect(this.music.notes[this.modNote]);
-  }
-    downHandler() {
-      this.offsetHandler(-1);
+        this.drawRect(this.modNote.noteSelections(this.music.notes, 0));
     }
-  upHandler() {
-    this.offsetHandler(1);
-  }  
- 
-  enharmonicHandler() {
-      this.music.notes = VX.ENHARMONIC(this.music.notes, [this.modNote], this.staffMeasure.keySignature);
-      this.music = this.staffMeasure.drawNotes(this.music.notes);
-      this.drawRect(this.music.notes[this.modNote]);
-  }
-  anoteHandler(pitch) {
-      var km = new VF.KeyManager(this.staffMeasure.keySignature);
-      var noteType = 'n';
-      var note = this.music.notes[this.modNote];
-      if (pitch.toLowerCase() == 'r') {
-          noteType = 'r';
-          this.music.notes = VX.SETNOTETYPE(this.music.notes, [this.modNote], 'r');
-      } else {
-          pitch = vexMusic.getKeySignatureKey(pitch, this.staffMeasure.keySignature);
-          var octave = note.keyProps[0].octave;
-          this.music.notes = VX.SETPITCH(this.music.notes, [this.modNote], [pitch+'/'+octave]);
-      }
-      this.music = this.staffMeasure.drawNotes(this.music.notes);
-      this.drawRect(this.music.notes[this.modNote]);
-  }
+    downHandler() {
+        this.offsetHandler(-1);
+    }
+    upHandler() {
+        this.offsetHandler(1);
+    }
+
+    enharmonicHandler() {
+        this.music.notes = VX.ENHARMONIC(this.music.notes, this.modNote, this.staffMeasure.keySignature);
+        this.music = this.staffMeasure.drawNotes(this.music.notes);
+        this.drawRect(this.modNote.noteSelections(this.music.notes));
+    }
+    anoteHandler(pitch) {
+        var km = new VF.KeyManager(this.staffMeasure.keySignature);
+        var noteType = 'n';
+        var note = this.modNote.noteSelections(this.music.notes)[0];
+        if (pitch.toLowerCase() == 'r') {
+            noteType = 'r';
+            this.music.notes = VX.SETNOTETYPE(this.music.notes, this.modNote, 'r');
+        } else {
+            pitch = vexMusic.getKeySignatureKey(pitch, this.staffMeasure.keySignature);
+            var octave = note.keyProps[0].octave;
+            this.music.notes = VX.SETPITCH(this.music.notes, this.modNote, [pitch + '/' + octave]);
+        }
+        this.music = this.staffMeasure.drawNotes(this.music.notes);
+        this.drawRect(this.modNote.noteSelections(this.music.notes));
+    }
 
     courtesyHandler() {
 
         var note = this.music.notes[this.modNote];
-        var a = (note.keyProps[0].accidental ? note.keyProps[0].accidental: 'n');
+        var a = (note.keyProps[0].accidental ? note.keyProps[0].accidental : 'n');
         this.music.notes = VX.ACCIDENTAL(this.music.notes, this.modNote, a);
         this.music = this.staffMeasure.drawNotes(this.music.notes);
-        this.drawRect(this.music.notes[this.modNote]);
+        this.drawRect(this.modNote.noteSelections(this.music.notes));
     }
 }
-

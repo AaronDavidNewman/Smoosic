@@ -13,7 +13,7 @@ VX = Vex.Xform;
 // where actor is a function that is called at each tick in the voice.
 // 
 // VX.TICKMAP(notes)
-// that iterates through all notes and creates information about the notes, like the 
+// Iterate through all notes and creates information about the notes, like
 // tuplet ticks, index-to-tick map.
 class tickIterator {
     constructor(notes, options) {
