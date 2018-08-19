@@ -1,3 +1,5 @@
+// ## TestEditor
+// A minimal editor to give the idea of how the iterators work
 class TestEditor {
 
 // Create an SVG renderer and attach it to the DIV element named "boo".
@@ -41,7 +43,7 @@ class TestEditor {
     }
     
 
-    static CommonTests () {
+   static start () {
         window.music = {};
         window.music.notes = TestEditor.Notes;
         var context = TestEditor.createContext();

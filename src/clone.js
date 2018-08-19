@@ -39,10 +39,10 @@ class Cloner {
 		}		
 	}
 
-    /**
-      Put an accidental on the pitch if the pitch doesn't match an earlier 
-      accidental in the measure
-    **/	  
+    // ## setAccidentalForKey	
+	//
+	// ## Description:
+	// 
 	static setAccidentalForKey(note,accidentalMap) {
 		var vexKeys=note.keys;
 		// Still needs some work...
@@ -137,7 +137,7 @@ class Cloner {
 					duration: note.duration
 				});
 			self.updateAccidentalMap(iterator, note);
-			nn = self.actor(nn, iterator);
+			nn = self.actor(nn, iterator,self.accidentalMap);
 			ar.push(nn);
 		};
 		VX.ITERATE(tupletActor, tuplet.notes);
