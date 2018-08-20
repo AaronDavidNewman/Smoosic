@@ -133,12 +133,27 @@ class Selection {
 		return rv;
 	}
 	tickArray() {
-		return Object.keys(this.ticks);
+		var rv = [];
+		var keys=Object.keys(this.ticks);
+		for (var i=0;i<keys.length;++i) {
+			rv.push(parseInt(keys[i]));
+		}
+		return rv;
+	}
+	chordAtIndex(ix) {
+		return this.ticks[ix.toString()];
+	}
+	
+	getSelectedPitches(tick) {
+		if (typeof(tick) != 'string') {
+			tick = tick.toString();
+		}
+		return this.ticks[tick];
 	}
 	containsPitch(tick,pitchIndex) {
 		return (this.ticks[tick] && (this.ticks[tick].indexOf(pitchIndex) >= 0));
 	}
-	noteSelections(notes) {
+	getSelectedNotes(notes) {
 		var ar=this.tickArray();
 		var rv = [];
 		for (var i=0;i<ar.length;++i) {

@@ -160,89 +160,49 @@ class StaffMeasure {
 
 }
 
-class Tracker {
+class EditorApi {
     constructor(music, context, staffMeasure) {
-        this.modNote = Selection.selectChords(music.notes, 0);        
+        this.modNote = Selection.selectChords(music.notes, 0);
 
         this.staffMeasure = staffMeasure;
         this.music = music;
-        this.context = context;
-        this.modNote.noteSelections(music.notes);
-
-        var self = this;
-
-        $('#left').off('click').on('click', function () {
-            self.leftHandler();
-        });
-
-        $('#right').off('click').on('click', function () {
-            self.rightHandler();
-        });
-        $('#up').off('click').on('click', function () {
-            self.upHandler();
-        });
-        $('#down').off('click').on('click', function () {
-            self.downHandler();
-        });
-        $('#upOctave').off('click').on('click', function () {
-            self.offsetHandler(12);
-        });
-        $('#downOctave').off('click').on('click', function () {
-            self.offsetHandler(-12);
-        });
-        $('#noteGroup button').off('click').on('click', function () {
-            var note = $(this).attr('id')[0].toLowerCase();
-            self.anoteHandler(note);
-        });
-        $('#addCourtesy').off('click').on('click', function () {
-            self.courtesyHandler();
-        });
-        $('#enharmonic').off('click').on('click',
-            function () {
-            self.enharmonicHandler();
-        });
-
-        $('#noteDurations button').off('click').on('click',
-            function () {
-            var duration = $(this).attr('data-duration');
-            self.setDuration(duration);
-        });
-        $('#dotted').off('click').on('click',
-            function () {
-            self.addDot();
-        });
-		
-		this.drawRect(this.modNote.noteSelections(this.music.notes, 0));
+        this.context = context;      
     }
     setDuration(duration) {
-		var selectedChords = this.modNote.tickArray();
-		for (var i=0;i<selectedChords.length;++i) {
-			this.music.notes = VX.DURATION(this.music.notes, selectedChords[i], duration);
-		}
+        var selectedChords = this.modNote.tickArray();
+        for (var i = 0; i < selectedChords.length; ++i) {
+            this.music.notes = VX.DURATION(this.music.notes, selectedChords[i], duration);
+        }
         this.music = this.staffMeasure.drawNotes(this.music.notes);
-        this.drawRect(this.modNote.noteSelections(this.music.notes, 0));
+        this.drawRect(this.modNote.getSelectedNotes(this.music.notes));
     }
     addDot() {
-        var note = this.music.notes[this.modNote];
-        var ticks = note.ticks.numerator / note.ticks.denominator;
-        var duration = vexMusic.ticksToDuration[ticks];
-        duration += 'd';
-        this.setDuration(duration);
+        var notes = this.modNote.getSelectedNotes(this.music.notes);
+        for (var i = 0; i < notes.length; ++i) {
+            var note = notes[i];
+            var ticks = note.ticks.numerator / note.ticks.denominator;
+            var duration = vexMusic.ticksToDuration[ticks];
+            duration += 'd';
+            this.setDuration(duration);
+        }
+    }
+    highlightSelected() {
+        this.drawRect(this.modNote.getSelectedNotes(this.music.notes));
     }
     drawRect(noteAr) {
         // whatever note we were tracking before, forget it
         $(this.context.svg).find('g.vf-note-box').remove();
-		
-		// Create a bounding box around all the selections
-        var bb = null; 
+
+        // Create a bounding box around all the selections
+        var bb = null;
         var grp = this.context.openGroup('note-box', 'box-' + noteAr[0].attrs.id);
         for (var i = 0; i < noteAr.length; ++i) {
             var note = noteAr[i];
-			if (!bb) {
-				bb = note.getBoundingBox();
-			} else {
-				bb = bb.mergeWith(note.getBoundingBox());
-			}
+            if (!bb) {
+                bb = note.getBoundingBox();
+            } else {
+                bb = bb.mergeWith(note.getBoundingBox());
+            }
         }
         this.context.rect(bb.x, bb.y, bb.w + 3, bb.h + 3, {
             stroke: '#fc9',
@@ -253,19 +213,21 @@ class Tracker {
     }
     leftHandler() {
         var len = this.music.notes.length;
-		
-		// shift left with wrap
-        var newIndex = (this.modNote.tickArray()[0]+len-1) % len;
-        this.modNote = Selection.selectChords(this.music.notes,newIndex);
-        this.drawRect(this.modNote.noteSelections(this.music.notes, 0));
+
+        // shift left with wrap
+        var newIndex = (this.modNote.tickArray()[0] + len - 1) % len;
+        this.modNote = Selection.selectChords(this.music.notes, newIndex);
+        this.highlightSelected();
+        return this;
     }
     rightHandler() {
         var len = this.music.notes.length;
-		// shift right with wrap
-        var newIndex = (this.modNote.tickArray()[0]+1) % len;
-		
-        this.modNote = Selection.selectChords(this.music.notes,newIndex);
-        this.drawRect(this.modNote.noteSelections(this.music.notes, 0));
+        // shift right with wrap
+        var newIndex = (this.modNote.tickArray()[0] + 1) % len;
+
+        this.modNote = Selection.selectChords(this.music.notes, newIndex);
+        this.highlightSelected();
+        return this;
     }
 
     offsetHandler(offset) {
@@ -276,7 +238,8 @@ class Tracker {
 
         // this.music.notes = VX.SETPITCH(this.music.notes, this.modNote,keys);
         this.music = this.staffMeasure.drawNotes(this.music.notes);
-        this.drawRect(this.modNote.noteSelections(this.music.notes, 0));
+        this.highlightSelected();
+        return this;
     }
     downHandler() {
         this.offsetHandler(-1);
@@ -288,12 +251,12 @@ class Tracker {
     enharmonicHandler() {
         this.music.notes = VX.ENHARMONIC(this.music.notes, this.modNote, this.staffMeasure.keySignature);
         this.music = this.staffMeasure.drawNotes(this.music.notes);
-        this.drawRect(this.modNote.noteSelections(this.music.notes));
+        this.highlightSelected();
     }
     anoteHandler(pitch) {
         var km = new VF.KeyManager(this.staffMeasure.keySignature);
         var noteType = 'n';
-        var note = this.modNote.noteSelections(this.music.notes)[0];
+        var note = this.modNote.getSelectedNotes(this.music.notes)[0];
         if (pitch.toLowerCase() == 'r') {
             noteType = 'r';
             this.music.notes = VX.SETNOTETYPE(this.music.notes, this.modNote, 'r');
@@ -303,15 +266,66 @@ class Tracker {
             this.music.notes = VX.SETPITCH(this.music.notes, this.modNote, [pitch + '/' + octave]);
         }
         this.music = this.staffMeasure.drawNotes(this.music.notes);
-        this.drawRect(this.modNote.noteSelections(this.music.notes));
+        this.highlightSelected();
     }
 
     courtesyHandler() {
 
-        var note = this.music.notes[this.modNote];
-        var a = (note.keyProps[0].accidental ? note.keyProps[0].accidental : 'n');
-        this.music.notes = VX.ACCIDENTAL(this.music.notes, this.modNote, a);
+        var note = this.modNote.getSelectedNotes(this.music.notes)[0];
+        this.music.notes = VX.COURTESY(this.music.notes, this.modNote, this.staffMeasure.keySignature);
         this.music = this.staffMeasure.drawNotes(this.music.notes);
-        this.drawRect(this.modNote.noteSelections(this.music.notes));
+        this.highlightSelected();
     }
+}
+
+class Tracker {
+    constructor(music, context, staffMeasure) {
+        this.editorApi = new EditorApi(music, context, staffMeasure);
+
+        var self = this;
+
+        $('#left').off('click').on('click', function () {
+            self.editorApi.leftHandler();
+        });
+
+        $('#right').off('click').on('click', function () {
+            self.editorApi.rightHandler();
+        });
+        $('#up').off('click').on('click', function () {
+            self.editorApi.upHandler();
+        });
+        $('#down').off('click').on('click', function () {
+            self.editorApi.downHandler();
+        });
+        $('#upOctave').off('click').on('click', function () {
+            self.editorApi.offsetHandler(12);
+        });
+        $('#downOctave').off('click').on('click', function () {
+            self.editorApi.offsetHandler(-12);
+        });
+        $('#noteGroup button').off('click').on('click', function () {
+            var note = $(this).attr('id')[0].toLowerCase();
+            self.editorApi.anoteHandler(note);
+        });
+        $('#addCourtesy').off('click').on('click', function () {
+            self.editorApi.courtesyHandler();
+        });
+        $('#enharmonic').off('click').on('click',
+            function () {
+            self.editorApi.enharmonicHandler();
+        });
+
+        $('#noteDurations button').off('click').on('click',
+            function () {
+            var duration = $(this).attr('data-duration');
+            self.editorApi.setDuration(duration);
+        });
+        $('#dotted').off('click').on('click',
+            function () {
+            self.editorApi.addDot();
+        });
+
+        this.editorApi.highlightSelected();
+    }
+
 }

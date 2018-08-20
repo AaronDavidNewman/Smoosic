@@ -145,8 +145,14 @@ class Cloner {
 
 	Clone() {
 		var notes = this.notes;
+		if (typeof(this['start'])==='undefined') 
+			this.start=0;
+		if (typeof(this['end'])==='undefined') 
+			this.end=this.notes.length;
+
 		var start = this.start;
 		var end = this.end;
+		
 		var ar = [];
 		var self = this;
 		VX.ITERATE((iterator, notes, note) => {
@@ -219,7 +225,7 @@ VX.TRANSPOSE = (notes, selections, offset, keySignature) => {
 	notes = VX.CLONE(notes,
 			(note, iterator, accidentalMap) => {
 			var index = iterator.index;
-			if (selections.tickArray().indexOf(index.toString()) < 0) {
+			if (selections.tickArray().indexOf(index) < 0) {
 				return note;
 			}
 			var keys = [];
@@ -247,7 +253,7 @@ VX.SETPITCH = (notes, selections, vexKey) => {
 			(note, iterator) => {
 			var index = iterator.index;
 
-			if (selections.tickArray().indexOf(index.toString()) < 0) {
+			if (selections.tickArray().indexOf(index) < 0) {
 				return note;
 			}
 			// TODO: preserve pitches not selected
@@ -268,7 +274,7 @@ VX.SETNOTETYPE = (notes, selections, noteType) => {
 			(note, iterator) => {
 			var index = iterator.index;
 
-			if (selections.tickArray().indexOf(index.toString()) < 0) {
+			if (selections.tickArray().indexOf(index) < 0) {
 				return note;
 			}			
 			return new VF.StaveNote({
@@ -289,7 +295,7 @@ VX.COURTESY = (notes, selections, keySignature) => {
 		var note = notes[i];
 		if (note.modifierContext) {
 			var acd = note.getAccidentals();
-			for (var j = 0; j < acd.length; ++j) {
+			for (var j = 0; acd && j < acd.length; ++j) {
 				// TODO: match pitches to pitch selections
 				ar.push({
 					noteIndex: i,
@@ -305,20 +311,20 @@ VX.COURTESY = (notes, selections, keySignature) => {
 			(note, iterator) => {
 			var index = iterator.index;
 
-			if (selections.tickArray().indexOf(index.toString()) < 0) {
+			if (selections.tickArray().indexOf(index) < 0) {
 				return note;
 			}
 
 			var ar = [];
 			VX.PITCHITERATE(note,
 				keySignature,
-				(iterator, index) => {
-				vexMusic.getKeySignatureKey()
-				keys.push(vexMusic.getEnharmonic(note.keyProps[index]));
+				(iterator, index) => {	
+                // TODO: figure out accidental
+				ar.push(note.keys[index]);
 			});
 			return new VF.StaveNote({
 				clef: note.clef,
-				keys: keys,
+				keys: ar,
 				duration: note.duration
 			});
 		});
@@ -326,19 +332,24 @@ VX.COURTESY = (notes, selections, keySignature) => {
 
 VX.ENHARMONIC = (notes, selections, keySignature) => {
 	// used to decide whether to specify accidental.
+	var ticks=selections.tickArray();
 	notes = VX.CLONE(notes,
 			(note, iterator) => {
 			var index = iterator.index;
 
-			if (!selections.ticksArray().indexOf(index.toString()) < 0) {
+			if (ticks.indexOf(index) < 0) {
 				return note;
 			}
+			var pitches=selections.getSelectedPitches(index);
 			var keys = [];
 			VX.PITCHITERATE(note,
-			    selections.ticks[index],
 				keySignature,
-				(iterator, index) => {
+				(iterator, index) => {					
+				if (pitches.indexOf(index) >= 0) {
 					keys.push(vexMusic.getEnharmonic(note.keyProps[index]));
+				} else {
+					keys.push(note.keyProps[index]);
+				}
 			});
 			return new VF.StaveNote({
 				clef: note.clef,
