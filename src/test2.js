@@ -48,10 +48,12 @@ class Test2 {
             clef:'treble',
             timeSignature:'6/8',
             keySignature:'Bb',
-            num_beats:3
+            num_beats:3,
+			notes:music.notes
         });
 
         var drawInital = () => {
+			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
             window.music = staffMeasure.drawNotes(music.notes);
             return timeTest();
         }

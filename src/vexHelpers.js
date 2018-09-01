@@ -58,7 +58,7 @@ class vexMusic {
                     dots += 'd'
                 }
             }
-            return ticksToDuration
+            return ticksToDuration;
         }
         _ticksToDurations();
         return ticksToDuration;
@@ -94,6 +94,39 @@ class vexMusic {
         var ix = ar.indexOf(key);
         key = ar[(ix + 1) % len];
         return (key + '/' + noteProp.octave);
+    }
+	
+	static noteDebugRecurse(clone, level) {
+        if (!level)
+            level = 0;
+
+        if (level > 2) {
+            return '...';
+        }
+        var obj = {};
+        var keys = Object.keys(clone);
+        for (var i = 0; i < keys.length; ++i) {
+            var key = keys[i];
+            var attr = clone[key];
+            if (attr) {
+                if (key === 'glyph' || key === 'outline') {
+                    obj[key] = '...';
+                } else if (Array.isArray(attr)) {
+                    obj[key] = [];
+                    for (var j = 0; j < attr.length; ++j) {
+                        obj[key].push(noteDebugRecurse(attr[j], level + 1))
+                    }
+                } else if (typeof(attr) != 'object') {
+                    obj[key] = attr;
+                } else {
+                    obj[key] = noteDebugRecurse(attr, level + 1);
+                }
+            }
+        }
+        return obj;
+    }
+    static noteDebug (note) {
+        console.log(JSON.stringify(noteDebugRecurse(note, 0), null, ' '));
     }
 }
 

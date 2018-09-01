@@ -3,18 +3,39 @@ VF = Vex.Flow;
 Vex.Xform = (typeof (Vex.Xform)=='undefined' ? {} : Vex.Xform);
 VX = Vex.Xform;
 
+
 // ## Description
 // This file implements an iterator through a set of notes.  This is useful when
 // redrawing the notes to transform them into something else.   E.g. changing the 
 // pitch of one note.
 //
+
 // ## Usage:
 // VX.ITERATE (actor, notes)
 // where actor is a function that is called at each tick in the voice.
 // 
+// ## iterator format:
+//   iterator: {
+//      notes:[note1,note2...],
+//      delta: tick value of this note
+//      totalDuration: ticks up until this point
+//      note: current note,
+//      index: running index
+//
+// ## Tickmap format
 // VX.TICKMAP(notes)
 // Iterate through all notes and creates information about the notes, like
 // tuplet ticks, index-to-tick map.
+// 
+//     tickmap = {
+//        totalDuration: 16384,
+//        durationMap:[2048,4096,..],  // A running total
+//        deltaMap:[2048,2048...], a map of deltas
+//        tupletMap: {
+//          noteId1: 
+//          {startIndex:1,endIndex:3,numNotes:3,startTick:4096,endTick:8196,durations:[1365,...],smallestDuration:2048}
+//
+//        
 class tickIterator {
     constructor(notes, options) {
         this.index = 0;
@@ -36,6 +57,7 @@ class tickIterator {
         this.delta = 0;
         // the tick start location of notes[x]
         this.durationMap = [];
+		this.deltaMap=[];
 
         this.tupletMap = {};
 
@@ -53,6 +75,29 @@ class tickIterator {
     // empty function for a default iterator (tickmap)
     static nullActor() { }
 
+	static updateAccidentalMap(note,iterator, keySignature,accidentalMap) {
+		var sigObj = {};
+		var newObj = {};
+		if (iterator.index > 0) {
+			sigObj = accidentalMap[iterator.index - 1];
+		}
+		for (var i = 0; i < note.keyProps.length; ++i) {
+			var prop = note.keyProps[i];
+			var letter = prop.key[0].toLowerCase();
+			var sigKey = vexMusic.getKeySignatureKey(letter, keySignature);
+			if (sigObj && sigObj[letter]) {
+				if (prop.key != sigObj[letter]) {
+					newObj[letter] = prop.key;
+				}
+			} else {
+				if (prop.key.toLowerCase() != sigKey) {
+					newObj[letter] = prop.key;
+				}
+			}
+		}
+		accidentalMap.push(newObj);
+	}
+
     // ## todo: is promise useful here?
     _iterate(actor) {
         this.state = 'RUNNING';
@@ -64,21 +109,26 @@ class tickIterator {
 
             // the number of ticks for this note
             this.delta = (note.ticks.numerator / note.ticks.denominator);
+			this.deltaMap.push(this.delta);
 
             if (note.tupletStack.length) {
                 var normalizedTicks = VF.durationToTicks(note.duration);
                 if (typeof (this.tupletMap[note.tuplet.attrs.id]) == 'undefined') {
                     this.tupletMap[note.tuplet.attrs.id] = {
                         startIndex: this.index,
+						tupletIndex:0,
                         startTick: this.totalDuration,
-                        smallestDuration: normalizedTicks
+                        smallestDuration: normalizedTicks,
+						num_notes:note.tuplet.num_notes,
+						durations:[this.delta]
                     };
                 } else {
                     var entry = this.tupletMap[note.tuplet.attrs.id];
 
                     entry.endIndex = this.index;
                     entry.endTick = this.totalDuration + this.delta;
-                    entry.smallestDuration = ((normalizedTicks < entry.smallestDuration) ? normalizedTicks : entry.smallestDuration)
+                    entry.smallestDuration = ((normalizedTicks < entry.smallestDuration) ? normalizedTicks : entry.smallestDuration);
+					entry.durations.push(this.delta);
                 }
             }
 
@@ -129,11 +179,63 @@ class tickIterator {
     }
 }
 
+// ## An iterator calls a class method during every tick
+// Any number of iterators can be applied to a note.
+class TickIteratorBase {
+	constructor() {
+	}
+	handleTick(tickable, iterator) {
+        return;
+    }
+}
+
+class TickIteratorChain {
+	constructor(notes,options) {
+		this._notes = notes;
+		this.chain=[];
+		this._iterator=null;
+	}
+	
+	get iterator() {
+		return this._iterator;
+	}
+	
+	// ### addModifier
+	// ### Description: Add an actor that can modify the note.  The actor in this case will be 
+	//    an object with a method:
+	// 
+	//       transformNote(note,iterator,accidentalMap);
+	//   These will be called for each tickable.
+	addModifier(actor) {
+		if (!actor instanceof NoteTransformBase) {
+			throw "A modifier must implement the interface described in NoteTransformBase";
+		}
+		this.chain.push(actor);
+		return this;
+	}
+	//  ### run
+	//  ###  Description:  start the iteration on this set of notes
+	run(options) {
+		var self=this;
+		this._iterator = new tickIterator(notes, options);
+		this._iterator.iterate((tickable,iterator) => {
+			for (var i=0;i<self.chain.length;++I) {
+				self.chain[i].handleTick(tickable,iterator);
+			}
+		});
+		return this;
+	}
+	static Create(notes,actor) {
+		var rv = new NoteIteratorChain(notes);
+		if (actor) rv.addModifier(actor);
+		return rv;
+	}
+}
+
 /* iterate over a set of notes, calling actor for each tick */
 VX.ITERATE= (actor, notes, options) => {
-    var iterator = new tickIterator(notes, options);
-    iterator.iterate(actor);
-    return iterator;
+	var chain = TickIteratorChain.Create(notes,actor).run(options);
+    return chain.iterator;
 }
 
 /* iteratoe over a set of notes, creating a map of notes to ticks */

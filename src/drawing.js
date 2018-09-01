@@ -18,58 +18,88 @@ class StaffMeasure {
         this.context = context;
         this.timeSignature = '4/4';
         this.keySignature = "G";
+		Vex.Merge(this,StaffMeasure.defaults);
         Vex.Merge(this, options);
-        this.notes = [];
         this.meterNumbers = this.timeSignature.split('/').map(number => parseInt(number, 10));
         this.groupName = 'staffGroup-' + VX.groupCounter;
         VX.groupCounter += 1;
+       
     }
+	
+	static get defaults() {
+		this.timeSignature = '4/4';
+        this.keySignature = "C";
+		this.staffX=10;
+		this.staffY=40;
+		this.staffWidth=400;
+		this.clef='treble';
+		this.numBeats = 4;
+		this.notes= [
+            new VF.StaveNote({
+                clef: "treble",
+                keys: ["b/5"],
+                duration: "4"
+            }),
+            new VF.StaveNote({
+                clef: "treble",
+                keys: ["b/5"],
+                duration: "4"
+            }),
+            new VF.StaveNote({
+                clef: "treble",
+                keys: ["b/5"],
+                duration: "4"
+            }),
+            new VF.StaveNote({
+                clef: "treble",
+                keys: ["b/5"],
+                duration: "4"
+            })
+	}
+	
+	_createMusic() {
+		if (this.replace) {
+			this.staffX = this.replace.staffX;
+			this.staffY = this.replace.staffY;
+			this.staffWidth = this.replace.staffWidth;
+		}
+		
+		 this.stave = new VF.Stave(this.staffX, this.staffY, this.staffWidth);
 
-    drawNotes(notes) {
+		 // Add a clef and time signature.
+        this.stave.addClef(this.clef).addTimeSignature(this.timeSignature).addKeySignature(this.keySignature);
+
+        // Connect it to the rendering context and draw!
+        this.stave.setContext(this.context).draw();
+
+        // console.log(JSON.stringify(notes));
+        // Create a voice in 4/4 and add above notes
+        this.voice = new VF.Voice({
+                num_beats: this.num_beats
+            });
+			
+	}
+
+    render() {
+		
+		_createMusic();
+		
+		var beamer = FluentBeamer.Create(this.voice,this.timeSignature);
+		TickIteratorChain.addModifier(beamer).run();
+		
+		this.beamGrups = beamer.beamGroups;
+		
         if (this.notes.length) {
             $(this.context.svg).find('#vf-' + this.notes[0].attrs.id).closest('g.measure').remove();
-        }
-        this.notes = notes;
+        }        
 
         var group = this.context.openGroup();
         group.classList.add(this.groupName);
         group.classList.add('measure');
 
-        // Create a stave of width 400 at position 10, 40 on the canvas.
-        var stave = new VF.Stave(10, 40, 400);
 
-        // Add a clef and time signature.
-        stave.addClef(this.clef).addTimeSignature(this.timeSignature).addKeySignature(this.keySignature);
+        // this.createBeamGroups(voice, notes);
 
-        // Connect it to the rendering context and draw!
-        stave.setContext(this.context).draw();
-
-        // console.log(JSON.stringify(notes));
-        // Create a voice in 4/4 and add above notes
-        var voice = new VF.Voice({
-                num_beats: this.num_beats
-            });
-        voice.addTickables(notes);
-
-        // var beams = VF.Beam.generateBeams(notes);
-        this.createBeamGroups(voice, notes);
-
-        var km = new VF.KeyManager(this.keySignature);
-        var canon = VF.Music.canonical_notes;
-        notes.forEach(function (note) {
-            if (note.dots > 0) {
-                note.addDotToAll();
-            }
-            for (var i = 0; i < note.keys.length; ++i) {
-                var prop = note.keyProps[i];
-                var key = prop.key.toLowerCase();
-                if (km.scale.indexOf(canon.indexOf(key)) < 0) {
-                    if (!prop.accidental)
-                        prop.accidental = 'n';
-                    note.addAccidental(0, new VF.Accidental(prop.accidental));
-                }
-            }
-        });
         // Format and justify the notes to 400 pixels.
         var formatter = new VF.Formatter().joinVoices([voice]).formatToStave([voice], stave);
 
@@ -85,14 +115,14 @@ class StaffMeasure {
             voice: voice,
             staff: stave,
             notes: notes,
-            beams: this.beams,
+            beams: this.beamGroups,
             keySignature: this.keySignature
         };
     }
 
     drawBeams() {
         var self = this;
-        this.beams.forEach(function (b) {
+        this.beamGroups.forEach(function (b) {
             b.setContext(self.context).draw()
         });
     }
@@ -157,7 +187,6 @@ class StaffMeasure {
             });
         }, notes);
     }
-
 }
 
 class EditorApi {
@@ -173,6 +202,8 @@ class EditorApi {
         for (var i = 0; i < selectedChords.length; ++i) {
             this.music.notes = VX.DURATION(this.music.notes, selectedChords[i], duration);
         }
+		
+		this.music.notes = VX.MODIFY(this.music.notes,this.music.keySignature);
         this.music = this.staffMeasure.drawNotes(this.music.notes);
         this.drawRect(this.modNote.getSelectedNotes(this.music.notes));
     }
@@ -237,6 +268,8 @@ class EditorApi {
         this.music.notes = VX.TRANSPOSE(this.music.notes, this.modNote, offset, this.staffMeasure.keySignature);
 
         // this.music.notes = VX.SETPITCH(this.music.notes, this.modNote,keys);
+	    this.music.notes = VX.APPLY_MODIFIERS(this.music.notes,this.music.keySignature);
+
         this.music = this.staffMeasure.drawNotes(this.music.notes);
         this.highlightSelected();
         return this;
@@ -250,6 +283,8 @@ class EditorApi {
 
     enharmonicHandler() {
         this.music.notes = VX.ENHARMONIC(this.music.notes, this.modNote, this.staffMeasure.keySignature);
+		this.music.notes = VX.APPLY_MODIFIERS(this.music.notes,this.music.keySignature);
+
         this.music = this.staffMeasure.drawNotes(this.music.notes);
         this.highlightSelected();
     }
@@ -265,14 +300,15 @@ class EditorApi {
             var octave = note.keyProps[0].octave;
             this.music.notes = VX.SETPITCH(this.music.notes, this.modNote, [pitch + '/' + octave]);
         }
+		VX.APPLY_MODIFIERS(this.music.notes,this.music.keySignature);
         this.music = this.staffMeasure.drawNotes(this.music.notes);
         this.highlightSelected();
     }
 
     courtesyHandler() {
-
         var note = this.modNote.getSelectedNotes(this.music.notes)[0];
         this.music.notes = VX.COURTESY(this.music.notes, this.modNote, this.staffMeasure.keySignature);
+		VX.MODIFY(this.music.notes,this.music.keySignature);
         this.music = this.staffMeasure.drawNotes(this.music.notes);
         this.highlightSelected();
     }
