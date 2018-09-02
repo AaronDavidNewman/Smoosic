@@ -29,6 +29,7 @@ VX = Vex.Xform;
 // 
 //     tickmap = {
 //        totalDuration: 16384,
+//        accidentalMap:[{'F':'#','G':'b'},....
 //        durationMap:[2048,4096,..],  // A running total
 //        deltaMap:[2048,2048...], a map of deltas
 //        tupletMap: {
@@ -36,8 +37,21 @@ VX = Vex.Xform;
 //          {startIndex:1,endIndex:3,numNotes:3,startTick:4096,endTick:8196,durations:[1365,...],smallestDuration:2048}
 //
 //        
-class tickIterator {
-    constructor(notes, options) {
+class vxTickIterator {
+	/**
+	  music looks like:
+	  return {
+            group: group,
+            voice: voice,
+            staff: stave,
+            notes: notes,
+            beams: this.beamGroups,
+            keySignature: this.keySignature
+        };
+    }   **/
+    constructor(music,options) {
+		this.notes=music.notes;
+		this.keySignature = music.keySignature;
         this.index = 0;
         this.startIndex = 0;
         this.endIndex = notes.length;
@@ -60,6 +74,7 @@ class tickIterator {
 		this.deltaMap=[];
 
         this.tupletMap = {};
+		this.accidentalMap=[];
 
         this.hasRun = false;
 
@@ -96,6 +111,16 @@ class tickIterator {
 			}
 		}
 		accidentalMap.push(newObj);
+	}
+	getTupletInfo(index) {
+		var tuplets = Object.keys(this.tupletMap);
+		for (var i=0;i<tuplets.length;++i) {
+			var tupletInfo = this.tupletMap[tuplets[i]];
+			if (tupletInfo.startIndex <= index && tupletInfo.endIndex >= index) {
+				return tupletInfo;
+			}
+		}
+		return {};
 	}
 
     // ## todo: is promise useful here?
@@ -137,6 +162,8 @@ class tickIterator {
 
             // update the tick count for the whole array/measure
             this.totalDuration += this.delta;
+			
+			Iterator.updateAccidentalMap(note,this, this.keySignature,this.accidentalMap);
 
             var rv = actor(this, this.notes, note);
             if (rv === false) {
@@ -233,14 +260,16 @@ class TickIteratorChain {
 }
 
 /* iterate over a set of notes, calling actor for each tick */
-VX.ITERATE= (actor, notes, options) => {
+VX.ITERATE= (actor, music, options) => {
 	var chain = TickIteratorChain.Create(notes,actor).run(options);
     return chain.iterator;
 }
 
-/* iteratoe over a set of notes, creating a map of notes to ticks */
-VX.TICKMAP = (notes,options) => {
-    return VX.ITERATE(tickIterator.nullActor, notes,options);
+/* iterate over a set of notes, creating a map of notes to ticks */
+VX.TICKMAP = (music) => {
+    var iterator = new Iterator(music);
+	iterator.iterate(Iterator.nullActor,music);
+	return iterator;
 }
 
 class PitchIterator {

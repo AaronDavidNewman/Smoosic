@@ -83,6 +83,10 @@ class vexMusic {
         }
         return rv;
     }
+	
+	static isTuplet(note) {
+		return note.tupletStack && note.tupletStack.length>0;
+	}
 
     // ### getEnharmonic(noteProp)
     // ###   cycle through the enharmonics for a note.
@@ -130,6 +134,19 @@ class vexMusic {
     }
 }
 
+/**
+ *  ## Selection
+ *  represent a selection of notes as a 2-dimensional array
+ *  ## Format
+ *  selection = {
+	 ticks:{
+	     index1: [pitchIndex,pitchIndex],
+		 index2: [pitchIndex]
+	 }
+  *  ## Usages:
+  *    selection.tickArray()
+  *      Creates array of tick indices
+  **/
 class Selection {
 	
 	constructor() {
