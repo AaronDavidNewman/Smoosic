@@ -112,6 +112,31 @@ class vxTickIterator {
 		}
 		accidentalMap.push(newObj);
 	}
+	
+	static hasActiveAccidental(key, pitchIndex, accidentalMap) {
+	    var vexKey = key.split('/')[0];
+	    var duration = key.split('/')[1];
+	    var letter = key[0];
+	    var accidental = key.length > 1 ? vexKey[1] : 'n';
+
+	    // Back up the accidental map until we have a match, or until we run out
+	    for (var i = accidentalMap.length; i > 0; --i) {
+	        var map = accidentalMap[i - 1];
+	        var mapKeys = Object.keys(map);
+	        for (var j = 0; j < mapKeys.length; ++j) {
+	            var mapKey = mapKeys[j];
+	            // The letter name + accidental in the map
+	            var mapLetter = map[mapKey];
+	            var mapAcc = mapLetter.length > 1 ? mapLetter[1] : 'n';
+
+	            // if the letters match and not the accidental...
+	            if (mapLetter.toLowerCase()[0] === letter && mapAcc != accidental) {
+	                return true;
+	            }
+	        }
+	    }
+		return false;
+	}
 	getTupletInfo(index) {
 		var tuplets = Object.keys(this.tupletMap);
 		for (var i=0;i<tuplets.length;++i) {
@@ -165,7 +190,7 @@ class vxTickIterator {
 			
 			Iterator.updateAccidentalMap(note,this, this.keySignature,this.accidentalMap);
 
-            var rv = actor(this, this.notes, note);
+            var rv = actor(this,note,this.accidentalMap);
             if (rv === false) {
                 break;
             }
@@ -206,64 +231,36 @@ class vxTickIterator {
     }
 }
 
-// ## An iterator calls a class method during every tick
-// Any number of iterators can be applied to a note.
-class TickIteratorBase {
-	constructor() {
-	}
-	handleTick(tickable, iterator) {
-        return;
-    }
+class NoteModifierBase {
+	constructor(){}
+	modifyNote(note, iterator,accidentalMap) {	}
 }
+	
 
-class TickIteratorChain {
-	constructor(notes,options) {
-		this._notes = notes;
-		this.chain=[];
-		this._iterator=null;
+class vxModifier {
+	constructor(music,actors) {
+		this.actors=actors;
+		this.music=music;
+		
 	}
 	
 	get iterator() {
 		return this._iterator;
 	}
 	
-	// ### addModifier
-	// ### Description: Add an actor that can modify the note.  The actor in this case will be 
-	//    an object with a method:
-	// 
-	//       transformNote(note,iterator,accidentalMap);
-	//   These will be called for each tickable.
-	addModifier(actor) {
-		if (!actor instanceof NoteTransformBase) {
-			throw "A modifier must implement the interface described in NoteTransformBase";
-		}
-		this.chain.push(actor);
-		return this;
-	}
 	//  ### run
 	//  ###  Description:  start the iteration on this set of notes
-	run(options) {
+	run() {
 		var self=this;
-		this._iterator = new tickIterator(notes, options);
-		this._iterator.iterate((tickable,iterator) => {
-			for (var i=0;i<self.chain.length;++I) {
-				self.chain[i].handleTick(tickable,iterator);
+		var iterator = new tickIterator(music);
+		iterator.iterate((iterator,note,accidentalMap) => {
+			for (var i=0;i<actors.length;++i) {
+				actor[i].modifyNote(iterator,note,accidentalMap);
 			}
 		});
-		return this;
-	}
-	static Create(notes,actor) {
-		var rv = new NoteIteratorChain(notes);
-		if (actor) rv.addModifier(actor);
-		return rv;
 	}
 }
 
-/* iterate over a set of notes, calling actor for each tick */
-VX.ITERATE= (actor, music, options) => {
-	var chain = TickIteratorChain.Create(notes,actor).run(options);
-    return chain.iterator;
-}
 
 /* iterate over a set of notes, creating a map of notes to ticks */
 VX.TICKMAP = (music) => {
@@ -272,76 +269,3 @@ VX.TICKMAP = (music) => {
 	return iterator;
 }
 
-class PitchIterator {
-    constructor(note, keySignature, actor) {
-        this.note = note;
-        this.keySignature = keySignature;
-        this.pitchMap = [];
-    }
-    iterate(actor) {
-        if (!actor) {
-            actor = PitchIterator.nullActor;
-        }
-        var canon = VF.Music.canonical_notes;
-        var note = this.note;
-        var km = new VF.KeyManager(this.keySignature);
-        for (var i = 0; i < note.keyProps.length; ++i) {
-            var inkey = true;
-            var prop = note.keyProps[i];
-            var imap = canon.indexOf(prop.key.toLowerCase());
-            if (km.scale.indexOf(imap) < 0) {
-                inkey = false;
-            }
-            var letter = prop.key[0].toLowerCase();
-            var keyAccidental = (prop.accidental ? prop.accidental : 'n');
-            var modifier = this.getAccidentalIndex(i);
-            var courtesy = false;
-            var renderAccidental = null;
-            if (modifier) {
-                courtesy = modifier.setCautionary;
-                renderAccidental = modifier.type;
-            }
-            var mapData = {
-                inkey: inkey,
-                letter: letter,
-                keyAccidental: keyAccidental,
-                courtesy: courtesy,
-                renderAccidental: renderAccidental
-            };
-            this.pitchMap.push(mapData);
-            actor(this,i,mapData)
-        }
-    }
-    static get nullActor() {}
-
-  
-
-    hasCourtesy() {
-        return this.pitchMap.every((pm) => { return pm.courtesy == true; })
-    }
-    getAccidentalIndex(ix) {
-        // this seems a little hacky to me.  getAccidentals is so fragile.
-        if (!this.note.modifierContext) {
-            return null;
-        }
-        var accidentals = this.note.getAccidentals();
-        if (accidentals) {
-            for (var i = 0; i < accidentals.length; ++i) {
-                if (accidentals[i].index == ix) {
-                    return accidentals[i];
-                }
-            }
-        }
-        return null;
-    }
-}
-
-VX.PITCHMAP = (note, keySignature) => {
-    var rv= new PitchIterator(note, keySignature);
-    rv.iterate();
-    return rv;
-}
-VX.PITCHITERATE = (note, keySignature, actor) => {
-    var rv= new PitchIterator(note, keySignature);
-    rv.iterate(actor);
-};
