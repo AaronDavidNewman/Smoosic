@@ -195,7 +195,7 @@ class Selection {
 	}
 	
 	getSelectedPitches(tick) {
-		if (!chordAtIndex(tick)) 
+		if (!this.chordAtIndex(tick)) 
 			return [];
 		
 		if (typeof(tick) != 'string') {

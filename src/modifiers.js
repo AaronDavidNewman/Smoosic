@@ -3,10 +3,11 @@
 class vxModifierFactor {
     static getStandardModifiers(measure, options) {
         var actors = [];
-		var cautionary = options['cautionary'];
+		var cautionary = options && options['cautionary'] ? options['cautionary'] : new Selection();
 		actors.push(new vxDotModifier());
 		actors.push(new vxAccidentalModifier(measure.keySignature,cautionary));
 		actors.push(new vxBeamModifier(measure));
+		return actors;
     }
 }
 class vxDotModifier extends NoteModifierBase {
@@ -16,7 +17,7 @@ class vxDotModifier extends NoteModifierBase {
     static Create() {
         return new vxDotModifier();
     }
-    modifyNote(note, iterator, accidentalMap) {
+    modifyNote(iterator, note, accidentalMap) {
         if (note.dots > 0) {
             note.addDotToAll();
         }
@@ -31,7 +32,7 @@ class vxAccidentalModifier extends NoteModifierBase {
         this.cautionary = cautionarySelections ? cautionarySelections : new Selection();
     }
 
-    modifyNote(note, iterator, accidentalMap) {
+    modifyNote(iterator, note,accidentalMap) {
         var canon = VF.Music.canonical_notes;
         for (var i = 0; i < note.keys.length; ++i) {
             var prop = note.keyProps[i];
@@ -83,7 +84,7 @@ class vxBeamModifier extends NoteModifierBase {
         return this._beamGroups;
     }
 
-    modifyNote(note, iterator, accidentalMap) {
+    modifyNote(iterator, note, accidentalMap) {
 
         this.voice.addTickable(note);
 

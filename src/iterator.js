@@ -54,7 +54,7 @@ class vxTickIterator {
 		this.keySignature = measure.keySignature;
         this.index = 0;
         this.startIndex = 0;
-        this.endIndex = notes.length;
+        this.endIndex = this.notes.length;
 
         Vex.Merge(this,options);
 
@@ -77,9 +77,6 @@ class vxTickIterator {
 		this.accidentalMap=[];
 
         this.hasRun = false;
-
-        this.noteSlice = notes;
-        this.notes = notes;
         this.beattime = 4096;
         if (this.voice)
             this.beattime = this.voice.time.resolution / this.voice.time.num_beats;
@@ -188,7 +185,7 @@ class vxTickIterator {
             // update the tick count for the whole array/measure
             this.totalDuration += this.delta;
 			
-			Iterator.updateAccidentalMap(note,this, this.keySignature,this.accidentalMap);
+			vxTickIterator.updateAccidentalMap(note,this, this.keySignature,this.accidentalMap);
 
             var rv = actor(this,note,this.accidentalMap);
             if (rv === false) {
@@ -252,10 +249,10 @@ class vxModifier {
 	//  ###  Description:  start the iteration on this set of notes
 	run() {
 		var self=this;
-		var iterator = new tickIterator(measure);
+		var iterator = new vxTickIterator(this.measure);
 		iterator.iterate((iterator,note,accidentalMap) => {
-			for (var i=0;i<actors.length;++i) {
-				actor[i].modifyNote(iterator,note,accidentalMap);
+			for (var i=0;i<self.actors.length;++i) {
+				self.actors[i].modifyNote(iterator,note,accidentalMap);
 			}
 		});
 	}

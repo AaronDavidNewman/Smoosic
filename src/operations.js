@@ -19,7 +19,7 @@ class vxMeasureOperations {
 		var transformer = new VxTransformer(measure,actors);
 		transformer.run();
 			
-		measure = new StaffMeasure(measure.context,{
+		measure = new VxMeasure(measure.context,{
 			notes:transformer.notes,
 			replace:measure
 		});
@@ -49,7 +49,7 @@ class vxMeasureOperations {
 		transformer = new VxTransformer(measure,[transposer]);
 		transformer.run();		
 		
-		measure = new StaffMeasure(measure.context,{
+		measure = new VxMeasure(measure.context,{
 			notes:transformer.notes,
 			replace:measure
 		});
@@ -68,7 +68,7 @@ class vxMeasureOperations {
 		// -1 because no change in duration
 		var notes = vxMeasureOperations.applyNoopDurationTransform(measure);
 		
-		measure = new StaffMeasure(measure.context,{
+		measure = new VxMeasure(measure.context,{
 			notes:notes,
 			replace:measure
 		});
@@ -82,7 +82,7 @@ class vxMeasureOperations {
 		
 		transformer.run();
 		measure.notes = transformer.notes;
-		measure = new StaffMeasure(measure.context,{
+		measure = new VxMeasure(measure.context,{
 			notes:notes,
 			replace:measure
 		});
