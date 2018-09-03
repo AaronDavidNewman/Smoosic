@@ -20,8 +20,9 @@ VX = Vex.Xform;
 //     duration of any notes, you need to run a duration transformation to create the tuplet
 //     groups
 class VxTransformer {
-	constructor(notes, actors, options) {
-		this.notes = notes;
+	constructor(measure, actors, options) {
+		this.notes = measure.notes;
+		this.measure = measure;
 		this.vxNotes=[];
 		this.actors = actors ? actors : [];
 		this.keySignature = 'C';
@@ -75,7 +76,7 @@ class VxTransformer {
 
 	run() {
 		var self=this;
-		var iterator = new vxTickIterator(this.music);
+		var iterator = new vxTickIterator(this.measure);
 		iterator.iterator((iterator,note,accidentalMap) => {
 			self.transformNote(iterator,note,accidentalMap);
 		}
@@ -93,50 +94,6 @@ class NoteTransformBase {
 	transformNote(note, iterator,accidentalMap) {
         return note;
     }
-}
-
-// ## TransformChain
-// ## Description:
-// Allow multiple transforms to be done on the same set of notes.  This can be useful when adding a chain of 
-// modifiers (e.g. dots, accidentals) to some notes.
-class TransformChain extends TickIteratorChain {
-	constructor(notes) {
-		this._notes = notes;
-		this.chain=[];
-	}
-	
-	get notes() {return this._notes;}
-	
-	// ### addModifier
-	// ### Description: Add an actor that can modify the note.  The actor in this case will be 
-	//    an object with a method:
-	// 
-	//       transformNote(note,iterator,accidentalMap);
-	//   These will be called for each tickable.
-	addModifier(actor) {
-		if (!actor instanceof NoteTransformBase) {
-			throw "A modifier must implement the interface described in NoteTransformBase";
-		}
-		this.chain.push(actor);
-		return this;
-	}
-	
-	//  ### run
-	//  ###  Description:  start the transform on this set of notes
-	run(options) {
-		this._notes = VX.TRANSFORM (this._notes,(note,iterator,accidentalMap) => {
-			for (var i=0;i<this.chain.length;++i) {
-				note = this.chain[i].transformNote(note,iterator,accidentalMap);
-			}
-			return note;
-		},options);
-		return this;
-	}
-	static Create(notes,actor) {
-		var rv = new TransformChain(notes);
-		if (actor) rv.addModifier(actor);
-		return rv;
-	}
 }
 
 class vxTransposePitchActor extends NoteTransformBase {

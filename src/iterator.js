@@ -39,7 +39,7 @@ VX = Vex.Xform;
 //        
 class vxTickIterator {
 	/**
-	  music looks like:
+	  measure looks like:
 	  return {
             group: group,
             voice: voice,
@@ -49,9 +49,9 @@ class vxTickIterator {
             keySignature: this.keySignature
         };
     }   **/
-    constructor(music,options) {
-		this.notes=music.notes;
-		this.keySignature = music.keySignature;
+    constructor(measure,options) {
+		this.notes=measure.notes;
+		this.keySignature = measure.keySignature;
         this.index = 0;
         this.startIndex = 0;
         this.endIndex = notes.length;
@@ -238,9 +238,9 @@ class NoteModifierBase {
 	
 
 class vxModifier {
-	constructor(music,actors) {
+	constructor(measure,actors) {
 		this.actors=actors;
-		this.music=music;
+		this.measure=measure;
 		
 	}
 	
@@ -252,7 +252,7 @@ class vxModifier {
 	//  ###  Description:  start the iteration on this set of notes
 	run() {
 		var self=this;
-		var iterator = new tickIterator(music);
+		var iterator = new tickIterator(measure);
 		iterator.iterate((iterator,note,accidentalMap) => {
 			for (var i=0;i<actors.length;++i) {
 				actor[i].modifyNote(iterator,note,accidentalMap);
@@ -263,9 +263,9 @@ class vxModifier {
 
 
 /* iterate over a set of notes, creating a map of notes to ticks */
-VX.TICKMAP = (music) => {
-    var iterator = new Iterator(music);
-	iterator.iterate(Iterator.nullActor,music);
+VX.TICKMAP = (measure) => {
+    var iterator = new vxTickIterator(measure);
+	iterator.iterate(Iterator.nullActor,measure);
 	return iterator;
 }
 
