@@ -16,60 +16,102 @@ VX.groupCounter = 1;
 class VxMeasure {
     constructor(context, options) {
         this.context = context;
-        this.timeSignature = '4/4';
-        this.keySignature = "G";
-        Vex.Merge(this, VxMeasure.defaults);
-        Vex.Merge(this, options);
-        this.meterNumbers = this.timeSignature.split('/').map(number => parseInt(number, 10));
-        this.groupName = 'staffGroup-' + VX.groupCounter;
-        VX.groupCounter += 1;
+        VF.Merge(this, VxMeasure.defaults);
+        VF.Merge(this, options);
+        this.noVexMeasure = new NoVexMeasure(options);
+        this.noteToVexMap = {};
+        this.beamToVexMap = {};
+        this.tupletToVexMap = {};
 
-        this._createMusic()
+        this.vexNotes = [];
+        this.vexBeamGroups = [];
+        this.vexTuplets = [];
     }
 
     static get defaults() {
         return {
-            timeSignature: '4/4',
-            keySignature: "C",
             staffX: 10,
             staffY: 40,
-            drawClef: true,
             staffWidth: 400,
-            clef: 'treble',
-            numBeats: 4,
-            beatValue: 4,
-            notes: [
-                new VF.StaveNote({
-                    clef: "treble",
-                    keys: ["b/4"],
-                    duration: "4"
-                }),
-                new VF.StaveNote({
-                    clef: "treble",
-                    keys: ["b/4"],
-                    duration: "4"
-                }),
-                new VF.StaveNote({
-                    clef: "treble",
-                    keys: ["b/4"],
-                    duration: "4"
-                }),
-                new VF.StaveNote({
-                    clef: "treble",
-                    keys: ["b/4"],
-                    duration: "4"
-                })
-            ]
-        }
-    };
+            drawClef: true
+        };
+    }
 
-    _createMusic() {
-        if (this.replace) {
-            this.staffX = this.replace.staffX;
-            this.staffY = this.replace.staffY;
-            this.staffWidth = this.replace.staffWidth;
+    _createVexNote(noVxNote) {
+        var vexNote = new VF.StaveNote({
+                clef: noVxNote.clef,
+                keys: noVxNote.keys,
+                duration: noVxNote.duration + noVxNote.noteType
+            });
+
+        for (var i = 0; i < noVxNote.accidentals.length; ++i) {
+            var accMap = noVxNote.accidentals[i];
+            var keys = Object.keys(accMap);
+            for (var j = 0; j < keys.length; ++j) {
+                var key = keys[j];
+                var keyInt = parseInt(key);
+                var val = accMap[key];
+                var acc = new VF.Accidental(val.symbol);
+                if (val.isCautionary)
+                    acc.setAsCautionary();
+                vexNote.addAccidental(keyInt, acc);
+            }
+        }
+        for (var i = 0; i < noVxNote.dots; ++i) {
+            vexNote.addDotToAll();
         }
 
+        return vexNote;
+    }
+    createVexNotes() {
+        for (var i = 0; i < this.noVexMeasure.notes.length; ++i) {
+            noVexNote = this.noVexMeasure.notes[i];
+            var vexNote = _createVexNote(noVexNote);
+            this.noteToVexMap[noVxNote.attrs.id] = vexNote;
+            this.vexNotes.push(vexNote);
+        }
+    }
+    createVexBeamGroups() {
+        for (var i = 0; i < this.noVexMeasure.beamGroups.length; ++i) {
+            var bg = this.noVexMeasure.beamGroups[i];
+            var vexNotes = [];
+            for (var j = 0; j < bg.notes.length; ++j) {
+                var note = bg.notes[j];
+                vexNotes.push(this.noteToVexMap[note.attrs.id]);
+            }
+            var vexBeam = new VF.Beam(vexNotes);
+            this.beamToVexMap[bg.attrs.id] = vexBeam;
+            this.vexBeamGroups.push(vexBeam);
+        }
+    }
+
+    createVexTuplets() {
+        for (var i = 0; i < this.noVexMeasure.tuplets.length; ++i) {
+            var tp = this.noVexMeasure.tuplets[i];
+            var vexNotes = [];
+            for (var j = 0; j < tp.notes.length; ++j) {
+                var noVexNote = tp.notes[j];
+                vexNotes.push(this.noteToVexMap[noVexNote.attrs.id]);
+            }
+            var vexTuplet = new VF.Tuplet(vexNotes, {
+                    num_notes: tp.num_notes,
+                    notes_occupied: tp.notes_occupied,
+                    ratioed: false,
+                    bracketed: true,
+                    location: 1
+                });
+            this.tupletToVexMap[tp.attrs.id] = vexTuplet;
+            this.vexTuplets.push(vexTuplet);
+        }
+    }
+
+    render() {
+
+        var group = this.context.openGroup();
+        group.classList.add(this.noVexMeasure.attrs.id);
+        this.createVexNotes();
+        this.createVexTuplets();
+        this.createVexBeamGroups();
         this.stave = new VF.Stave(this.staffX, this.staffY, this.staffWidth);
 
         // Add a clef and time signature.
@@ -82,69 +124,21 @@ class VxMeasure {
         // console.log(JSON.stringify(notes));
         // Create a voice in 4/4 and add above notes
         this.voice = new VF.Voice({
-                num_beats: this.numBeats,
-                beat_value: this.beatValue
+                num_beats: this.noVexMeasure.numBeats,
+                beat_value: this.noVexMeasure.beatValue
             });
-    }
+        this.voice.addTickables(this.notes);
+        this.formatter = new VF.Formatter().joinVoices([voice]).format([voice], this.staffWidth);
+        this.voice.draw(this.context, stave);
 
-    _getBeamGroups() {
-        var beamGroups = [];
-        var beamGroupId = {};
-        for (var i = 0; i < this.notes.length; ++i) {
-            var note = this.notes[i];
-            if (note['beam']) {
-                if (!beamGroupId[beam.attr.id]) {
-                    beamGroupId[beam.attr.id] = {
-                        value: true
-                    };
-                    beamGroups.push(note.beam);
-                }
-            }
-        }
-        return beamGroups;
-    }
-
-    render() {
-
-        this.beamGroups = this._getBeamGroups();
-
-        if (this.notes.length) {
-            $(this.context.svg).find('#vf-' + this.notes[0].attrs.id).closest('g.measure').remove();
-        }
-
-        var group = this.context.openGroup();
-        group.classList.add(this.groupName);
-        group.classList.add('measure');
-
-        // this.createBeamGroups(voice, notes);
-
-        // Format and justify the notes to 400 pixels.
-        var formatter = new VF.Formatter().joinVoices([this.voice]).formatToStave([this.voice], this.stave);
-
-        // Render voice
-        this.voice.draw(this.context, this.stave);
-        this.drawBeams();
-
-        this.drawTuplets(this.notes, this.context);
-        this.context.closeGroup();
-    }
-
-    drawBeams() {
         var self = this;
-        this.beamGroups.forEach(function (b) {
+        this.vexBeamGroups.forEach(function (b) {
             b.setContext(self.context).draw()
         });
-    }
 
-    drawTuplets(notes, context) {
-        var self = this;
-        var iterator = new vxTickIterator(this);
-        iterator.iterate((iterator, notes, note) => {
-            if (note.tupletStack) {
-                note.tupletStack.forEach(function (tuplet) {
-                    tuplet.setContext(self.context).draw();
-                });
-            }
+        this.vexTupltes.forEach(function (tuplet) {
+            tuplet.setContext(self.context).draw();
         });
     }
+
 }

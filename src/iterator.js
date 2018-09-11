@@ -158,7 +158,7 @@ class vxTickIterator {
             this.delta = (note.ticks.numerator / note.ticks.denominator);
 			this.deltaMap.push(this.delta);
 
-            if (note.tupletStack.length) {
+            if (note['tuplet'] && note.tuplet['attrs']) {
                 var normalizedTicks = VF.durationToTicks(note.duration);
                 if (typeof (this.tupletMap[note.tuplet.attrs.id]) == 'undefined') {
                     this.tupletMap[note.tuplet.attrs.id] = {

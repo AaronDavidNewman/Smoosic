@@ -62,13 +62,13 @@ class VxDurationFactory {
             Cx: Cx
         };
     }
-    static _createTupletActors(tickmap, notes, exclude) {
+    static _createTupletActors(measure,tickmap, notes, exclude) {
         var rv = [];
         var tupletKeys = Object.keys(tickmap.tupletMap);
         for (var i = 0; i < tupletKeys.length; ++i) {
             var tupletInfo = tickmap.tupletMap[tupletKeys[i]];
             if (exclude.length === 0 || exclude.indexOf(tupletInfo.startIndex) < 0) {
-                rv.push(new VxReplaceTupletActor(tickmap, tupletInfo));
+                rv.push(new VxReplaceTupletActor(measure,tickmap, tupletInfo));
             }
         }
         return rv;
@@ -77,20 +77,20 @@ class VxDurationFactory {
     // ## vxCreateDurationChangeActors
 	// Create actors that either replace existing notes with notes of equal duration,
 	// or stretches/contracts existing notes
-    static vxCreateDurationChangeActors(music, index, newTicks) {
-        var tickmap = VX.TICKMAP(music);
+    static vxCreateDurationChangeActors(measure, index, newTicks) {
+        var tickmap = VX.TICKMAP(measure);
         var exclusions = [];
         var actors = [];
         if (index >= 0) {
             exclusions.push(index);
         }
-        var actors = VxDurationFactory._createTupletActors(tickmap, music.notes, exclusions);
+        var actors = VxDurationFactory._createTupletActors(measure,tickmap, measure.notes, exclusions);
 
         // No duration change, just return the actors to create the tuplets
         if (index < 0) {
             return actors;
         }
-        var note = music.notes[index];
+        var note = measure.notes[index];
         var oldDuration = (note.ticks.numerator / note.ticks.denominator);
 
         // Make sure the new duration is valid.
@@ -103,13 +103,13 @@ class VxDurationFactory {
                 if (oldDuration % newTicks !== 0) {
                     return actors;
                 }
-                actors.push(new VxContractTupletActor(tickmap, tickmap.getTupletInfo(index), index, newTicks));
+                actors.push(new VxContractTupletActor(measure,tickmap, tickmap.getTupletInfo(index), index, newTicks));
             } else if (oldDuration < newTicks) {
                 // no dots on tuplets
                 if (newTicks % oldDuration !== 0) {
                     return actors;
                 }
-                actors.push(new VxStretchTupletActor(tickmap, tickmap.getTupletInfo(index), index, newTicks));
+                actors.push(new VxStretchTupletActor(measure,tickmap, tickmap.getTupletInfo(index), index, newTicks));
             }
         } else {
             if (oldDuration > newTicks) {
@@ -125,24 +125,24 @@ class VxDurationFactory {
         return actors;
     }
 	
-    static vxCreateMakeTupletActors(music, index, newTicks,num_notes) {
-        var actors = VxDurationFactory.vxCreateDurationChangeActors(music, -1);
-		var tickmap = VX.TICKMAP(music);
-		var note = music.notes[index];
+    static vxCreateMakeTupletActors(measure, index, newTicks,num_notes) {
+        var actors = VxDurationFactory.vxCreateDurationChangeActors(measure, -1);
+		var tickmap = VX.TICKMAP(measure);
+		var note = measure.notes[index];
 		var notesOccupied = 4096/newTicks;
 		// TODO: validity checks here
-		actors.push(new MakeTuplet(tickmap, index, num_notes, notes_occupied));
+		actors.push(new VxMakeTupletActor(measure,tickmap, index, num_notes, notes_occupied));
 		return actors;
     }
-	static vxCreateUnmakeTupletActors(music,index) {
-        var actors = VxDurationFactory.vxCreateDurationChangeActors(music, index);		
-		var tickmap = VX.TICKMAP(music);
-		var note = music.notes[index];
+	static vxCreateUnmakeTupletActors(measure,index) {
+        var actors = VxDurationFactory.vxCreateDurationChangeActors(measure, index);		
+		var tickmap = VX.TICKMAP(measure);
+		var note = measure.notes[index];
 		if (!vexMusic.isTuplet(note)) {
 			return actors;
 		}
 		var tupletInfo = tickmap.getTupletInfo(index);
-		actors.push(new UnmakeTuplet(tickmap,tupletInfo));
+		actors.push(new VxUnmakeTupletActor(tickmap,tupletInfo));
 		return actors;
 	}
 }
@@ -151,7 +151,7 @@ class VxDurationFactory {
  * Replace tuplet with identical tuplet
  **/
 class VxReplaceTupletActor extends NoteTransformBase {
-    constructor(tickmap, tupletInfo) {
+    constructor(measure,tickmap, tupletInfo) {
         this.tickmap = tickmap;
         this.tupletInfo = tupletInfo;
         this.tuplet = [];
@@ -162,13 +162,14 @@ class VxReplaceTupletActor extends NoteTransformBase {
         }
         this.tuplet.push(note);
         if (iterator.index > this.tupletInfo.endIndex) {
-            var tuplet = new Vex.Flow.Tuplet(this.tuplet, {
+            var tuplet = new NoVexTuplet(this.tuplet, {
                     num_notes: tupletInfo.num_notes,
                     notes_occupied: tupletInfo.notes_occupied,
                     ratioed: false,
                     bracketed: true,
                     location: 1
                 });
+			this.measure.tuplets.push(tuplet);
         }
         return [note];
     }
@@ -200,7 +201,7 @@ class VxContractActor extends NoteTransformBase {
                  *     d  d  d  .  .
                  */
                 for (var i = 0; i < noteCount; ++i) {
-                    notes.push(new VF.StaveNote({
+                    notes.push(new NoVexNote({
                             clef: note.clef,
                             keys: note.keys,
                             duration: vexDuration
@@ -218,12 +219,12 @@ class VxContractActor extends NoteTransformBase {
                 var gap = this.tickmap.durationMap[this.startIndex + 1] -
                     (iterator.totalDuration + noteCount * this.newTicks);
                 var vexGapDuration = vexMusic.ticksToDuration[this.newTicks];
-                notes.push(new VF.StaveNote({
+                notes.push(new NoVexNote({
                         clef: note.clef,
                         keys: note.keys,
                         duration: vexDuration
                     }));
-                notes.push(new VF.StaveNote({
+                notes.push(new NoVexNote({
                         clef: note.clef,
                         keys: note.keys,
                         duration: vexGapDuration + "r"
@@ -238,12 +239,13 @@ class VxContractActor extends NoteTransformBase {
 // Stretch a note in a tuplet, replacing or shortening other notes in the tuplet
 //
 class VxStretchTupletActor extends NoteTransformBase {
-    constructor(tickmap, tupletInfo, changeIndex, newTicks) {
+    constructor(measure,tickmap, tupletInfo, changeIndex, newTicks) {
         this.tickobj = DurationChange.calculateTupletTicks(tickmap, tupletInfo.startIndex, changeIndex, newTicks);
         this.newTicks = newTicks;
         this.tupletInfo = tupletInfo;
         this.vexDuration = vexMusic.ticksToDuration[newTicks];
         this.remainingTicks = tickobj.C;
+		this.measure = measure;
         this.tuplet = [];
     }
     transformNote(note, iterator, accidentalMap) {
@@ -288,7 +290,7 @@ class VxStretchTupletActor extends NoteTransformBase {
         A | B | C
          */
         if (iterator.index < Bx) {
-            note = new VF.StaveNote({
+            note = new NoVexNote({
                     clef: note.clef,
                     keys: note.keys,
                     duration: note.duration
@@ -300,7 +302,7 @@ class VxStretchTupletActor extends NoteTransformBase {
         } else if (iterator.index == Bx) {
             // The note we are changing explicitly
             this.remainingTicks -= this.newTicks;
-            var note = VF.StaveNote({
+            var note = NoVexNote({
                     clef: note.clef,
                     keys: note.keys,
                     duration: this.vexDuration
@@ -324,7 +326,7 @@ class VxStretchTupletActor extends NoteTransformBase {
                 }
 
                 var vexDuration = vxMusic.ticksToDuration[duration];
-                var note = VF.StaveNote({
+                var note = NoVexNote({
                         clef: note.clef,
                         keys: note.keys,
                         duration: vexDuration
@@ -337,13 +339,14 @@ class VxStretchTupletActor extends NoteTransformBase {
         if (iterator.index == Cx) {
             // this sets the correct duration and so needs to be called, even
             // though it is not used.
-            var tuplet = new Vex.Flow.Tuplet(this.tuplet, {
+            var tuplet = new NoVexTuplet(this.tuplet, {
                     num_notes: tupletInfo.num_notes,
                     notes_occupied: tupletInfo.notes_occupied,
                     ratioed: false,
                     bracketed: true,
                     location: 1
                 });
+			this.measure.tuplets.push(tuplet);
         }
         return notes;
     }
@@ -355,7 +358,8 @@ class VxStretchTupletActor extends NoteTransformBase {
 // notes of fractional length
 //
 class VxContractTupletActor extends NoteTransformBase {
-    constructor(tickmap, tupletInfo, changeIndex, newTicks) {
+    constructor(measure,tickmap, tupletInfo, changeIndex, newTicks) {
+		this.measure=measure;
         this.Bx = changeIndex;
         this.Ax = tupletInfo.startIndex;
         this.Cx = tupletInfo.endIndex;
@@ -392,7 +396,7 @@ class VxContractTupletActor extends NoteTransformBase {
 
             var vexDuration = vxMusic.ticksToDuration[duration];
             for (var i = 0; i < num_notes; ++i) {
-                notes.push(new VF.StaveNote({
+                notes.push(new NoVexNote({
                         clef: note.clef,
                         keys: note.keys,
                         duration: vexDuration
@@ -405,7 +409,7 @@ class VxContractTupletActor extends NoteTransformBase {
             this.remainingTicks -= duration;
 
             var vexDuration = vxMusic.ticksToDuration[duration];
-            var note = VF.StaveNote({
+            var note = NoVexNote({
                     clef: note.clef,
                     keys: note.keys,
                     duration: vexDuration
@@ -417,13 +421,14 @@ class VxContractTupletActor extends NoteTransformBase {
         if (iterator.index == Cx) {
             // this sets the correct duration and so needs to be called, even
             // though it is not used.
-            var tuplet = new Vex.Flow.Tuplet(this.tuplet, {
+            var tuplet = new NoVexTuplet(this.tuplet, {
                     num_notes: tupletInfo.num_notes,
                     notes_occupied: tupletInfo.notes_occupied,
                     ratioed: false,
                     bracketed: true,
                     location: 1
                 });
+			this.measure.tuplets.push(tuplet);
         }
         return notes;
     }
@@ -445,7 +450,7 @@ class VxUnmakeTupletActor extends NoteTransformBase {
             return null;
         }
         if (iterator.index == this.Ax) {
-            var note = VF.StaveNote({
+            var note = NoVexNote({
                     clef: note.clef,
                     keys: note.keys,
                     duration: this.vexDuration
@@ -454,14 +459,14 @@ class VxUnmakeTupletActor extends NoteTransformBase {
         }
         return [];
     }
-
 }
 
 // ## VxUnmakeTupletActor
 // Turn a tuplet into a non-tuplet of the same length
 class VxMakeTupletActor extends NoteTransformBase {
-    constructor(tickmap, index, num_notes, notes_occupied) {
+    constructor(measure,tickmap, index, num_notes, notes_occupied) {
         this.tickmap = tickmap;
+		this.measure = measure;
         this.duration = tickmap.deltaMap[index];
         this.tupletTicks = this.duration / notes_occupied;
         this.vexDuration = vexMusic.ticksToDuration[this.tupletTicks];
@@ -483,20 +488,21 @@ class VxMakeTupletActor extends NoteTransformBase {
             return null;
         }
         for (var i = 0; i < this.num_notes; ++i) {
-            note = new VF.StaveNote({
+            note = new NoVexNote({
                     clef: note.clef,
                     keys: note.keys,
                     duration: this.vexDuration
                 });
             this.tuplet.push(note);
         }
-        var tuplet = new Vex.Flow.Tuplet(this.tuplet, {
+        var tuplet = new NoVexTuplet(this.tuplet, {
                 num_notes: this.num_notes,
                 notes_occupied: this.notes_occupied,
                 ratioed: false,
                 bracketed: true,
                 location: 1
             });
+		this.measure.tuplets.push(tuplet);
         return this.tuplet;
     }
 }
@@ -555,7 +561,7 @@ class VxStretchNoteActor extends NoteTransformBase {
                 return [];
             }
             var vexDuration = vexMusic.ticksToDuration[ticks];
-            var note = new VF.StaveNote({
+            var note = new NoVexNote({
                     clef: note.clef,
                     keys: note.keys,
                     duration: vexDuration
@@ -566,31 +572,3 @@ class VxStretchNoteActor extends NoteTransformBase {
     }
 }
 
-VX.DURATION = (notes, index, vexDuration) => {
-    var changer = new DurationChange(notes, {
-            index: index,
-            vexDuration: vexDuration
-        });
-    changer.ChangeDuration();
-    return changer.notes;
-}
-
-VX.TUPLET = (notes, index, vexDuration, numNotes, notesOccupied) => {
-    var changer = new DurationChange(notes, {
-            index: index,
-            vexDuration: vexDuration,
-            numNotes: numNotes,
-            notesOccupied: notesOccupied
-        });
-    changer.makeTuplet();
-    return changer.notes;
-}
-
-VX.UNTUPLET = (notes, index, vexDuration) => {
-    var changer = new DurationChange(notes, {
-            index: index
-            // vexDuration: vexDuration
-        });
-    changer.unmakeTuplet();
-    return changer.notes;
-}

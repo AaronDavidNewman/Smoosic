@@ -1,6 +1,6 @@
 
 
-class vxModifierFactor {
+class vxModifierFactory {
     static getStandardModifiers(measure, options) {
         var actors = [];
 		var cautionary = options && options['cautionary'] ? options['cautionary'] : new Selection();
@@ -58,8 +58,7 @@ class vxAccidentalModifier extends NoteModifierBase {
 
 class vxBeamModifier extends NoteModifierBase {
     constructor(measure) {
-        super();
-        this.voice = measure.voice;
+        super();       
         this.duration = 0;
         this._beamGroups = [];
         this.timeSignature = measure.timeSignature;
@@ -75,52 +74,46 @@ class vxBeamModifier extends NoteModifierBase {
         this.skipNext = 0;
         this.beamGroup = false;
         this.currentGroup = [];
-    }
-    static Create(voice, timeSignature) {
-        return new FluentBeamer(voice, timeSignature);
-    }
+    }   
 
     get beamGroups() {
         return this._beamGroups;
     }
 
     modifyNote(iterator, note, accidentalMap) {
-
-        this.voice.addTickable(note);
-
-        if (this.skipNext) {
-            this.skipNext -= 1;
-            if (this.beamGroup) {
-                this.currentGroup.push(note);
-                if (!this.skipNext) {
-                    this._beamGroups.push(new VF.Beam(this.currentGroup));
-                    this.beamGroup = false;
-                    this.currentGroup = [];
-                }
-            }
-        }
+       
         this.duration += iterator.delta;
-        if (note.tupletStack.length) {
+		
+		// beam tuplets
+        if (vexMusic.isTuplet(note)) {
             //todo: when does stack have more than 1?
-            this.skipNext = note.tupletStack[0].notes.length;
-
-            // Get an array of tuplet notes, and skip to the end of the tuplet
+			var tuplet = measure.getTupletFromNote(note);
+			var ult = tuplet.notes[tuplet.notes.length-1];
+            // is this beamable
             if (iterator.delta < 4096) {
                 this.beamGroup = true;
                 this.currentGroup.push(note);
             }
-            return;
+			// Ultimate note in tuplet
+			if (ult.attrs.id !== note.attrs.id) {
+				this._beamGroups.push(new NoVexBeamGroup({notes:this.currentGroup));
+				this.currentGroup=[];
+				this.duration=0;
+				this.startRange = iterator.index+1;
+			}				            
+			return note;
         }
+
         // don't beam > 1/4 note in 4/4 time
         if (iterator.delta >= this.beamBeats) {
             this.duration = 0;
             this.startRange = iterator.index + 1;
-            return;
+            return note;
         }
+		
         this.currentGroup.push(note);
         if (this.duration == this.beamBeats) {
-
-            this._beamGroups.push(new VF.Beam(this.currentGroup));
+            this._beamGroups.push(new NoVexBeamGroup({notes:this.currentGroup));
             this.currentGroup = [];
             this.startRange = iterator.index + 1;
             this.duration = 0;

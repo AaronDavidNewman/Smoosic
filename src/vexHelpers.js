@@ -85,7 +85,7 @@ class vexMusic {
     }
 	
 	static isTuplet(note) {
-		return note.tupletStack && note.tupletStack.length>0;
+		return note['tuplet'] && note.tuplet['attrs'];
 	}
 
     // ### getEnharmonic(noteProp)
@@ -152,6 +152,12 @@ class Selection {
 	constructor() {
 		this.ticks={};
 	}
+	static createFromNote(note,index) {
+		var rv = new Selection();
+		rv.ticks={index.toString():[...note.keys.keys()]};
+		return rv;
+	}
+	
 	addNote(tickableIndex,note) {
 		if (typeof(this.ticks[tickableIndex]) == 'undefined') {
 			this.ticks[tickableIndex]=[];

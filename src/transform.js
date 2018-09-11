@@ -49,7 +49,7 @@ class VxTransformer {
     // 5. if an empty array [] is returned, that copy is not added to the result.  The note is effectively deleted.
     transformNote(iterator, note) {
         var self = this;
-        var noteCopy = new VF.StaveNote({
+        var noteCopy = new NoVexNote({
                 clef: note.clef,
                 keys: vexKey,
                 duration: note.duration,
@@ -95,8 +95,8 @@ class NoteTransformBase {
 }
 
 class vxTransposePitchActor extends NoteTransformBase {
-    constructor(music, selections, offset) {
-        this.keySignature = music.keySignature;
+    constructor(measure, selections, offset) {
+        this.keySignature = measure.keySignature;
         this.tickArray = selection.tickArray();
         this.selections = selections;
         this.offset = offset;
@@ -106,28 +106,14 @@ class vxTransposePitchActor extends NoteTransformBase {
         if (this.tickArray().indexOf(index) < 0) {
             return null;
         }
-        var keys = [];
-        var selectedKeys = selections.chordIndexOf(index);
-        for (var i = 0; i < note.keys.length; ++i) {
-            var key = note.keys[i];
-            if (selectedKeys.indexOf(i) < 0) {
-                keys.push(key);
-            } else {
-                keys.push(vexMusic.getKeyOffset(key, offset));
-            }
-        }
-        return new VF.StaveNote({
-            clef: note.clef,
-            keys: keys,
-            duration: note.duration
-        });
+        return note.transpose(this.selections,this.offset);
     }
 
 }
 
 class vxSetNoteTypeActor extends NoteTransformBase {
-    constructor(music, selections, noteType) {
-        this.keySignature = music.keySignature;
+    constructor(measure, selections, noteType) {
+        this.keySignature = measure.keySignature;
         this.tickArray = selection.tickArray();
         this.selections = selections;
         this.offset = offset;
@@ -137,11 +123,8 @@ class vxSetNoteTypeActor extends NoteTransformBase {
         if (this.tickArray().indexOf(index) < 0) {
             return null;
         }
-        return new VF.StaveNote({
-            clef: note.clef,
-            keys: note.keys,
-            duration: note.duration + this.noteType
-        });
+		note.noteType=this.noteType;
+        return note;
     }
 
 }
@@ -156,7 +139,7 @@ class vxSetPitchActor extends NoteTransformBase {
         if (this.tickArray().indexOf(index) < 0) {
             return null;
         }
-        return new VF.StaveNote({
+        return new NoVexNote({
             clef: note.clef,
             keys: this.vexKeys,
             duration: note.duration
