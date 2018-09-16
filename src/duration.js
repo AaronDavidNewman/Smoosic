@@ -289,12 +289,7 @@ class VxStretchTupletActor extends NoteTransformBase {
         n n n n n
         A | B | C
          */
-        if (iterator.index < Bx) {
-            note = new NoVexNote({
-                    clef: note.clef,
-                    keys: note.keys,
-                    duration: note.duration
-                });
+        if (iterator.index < Bx) {            
             this.remainingTicks -= duration;
             notes.push(note);
             this.tuplet.push(note);

@@ -7,7 +7,8 @@ class NoVexNote {
         var ticks = VF.durationToTicks(this.duration);
         this.ticks = {
             numerator: ticks,
-            denominator: 1
+            denominator: 1,
+			remainder:0
         };
         this.tupletInfo = {};
         this.attrs = {
@@ -17,12 +18,21 @@ class NoVexNote {
         this.accidentals = [];
         this.dots = 0;
     }
+	
+	toVexKeys() {
+		var rv = [];
+		for (var i=0;i<this.keys.length;++i) {
+			var key = this.keys[i];
+			rv.push(key.key+'/'+key.octave);
+		}
+		return rv;
+	}
 
     transpose(selections, offset) {
         var keys = [];
         var selectedKeys = selections.chordIndexOf(index);
-        for (var i = 0; i < this.keys.length; ++i) {
-            var key = this.keys[i];
+        for (var i = 0; i < this.keyProps.length; ++i) {
+            var key = this.keyProps[i];
             if (selectedKeys.indexOf(i) < 0) {
                 keys.push(key);
             } else {
@@ -32,6 +42,9 @@ class NoVexNote {
         this.keys = keys;
         return this;
     }
+	get tickCount() {
+		return this.ticks.numerator/this.ticks.denominator + this.ticks.remainder;
+	}
     setKeys(selections, keys) {
         this.keys = keys;
         return this;
@@ -39,7 +52,7 @@ class NoVexNote {
     // ## Accidental format
     // {index:1,value:{symbol:'#',cautionary:false}}
     addAccidental(accidental) {
-        for (var i = 0; i < this.accidentals.length; ++0) {
+        for (var i = 0; i < this.accidentals.length; ++i) {
             var aa = this.accidentals[i];
             if (aa.index === accidental.index) {
                 aa.value = accidental.value;
@@ -62,7 +75,8 @@ class NoVexNote {
             numBeats: 4,
             beatValue: 4,
             duration: '4',
-            keys: ['B/4']
+            keys: [{key:'b',octave:4,accidental:''}],
+			accidentals:[]
         }
     }
 }
@@ -122,13 +136,20 @@ class NoVexMeasure {
         this.tuplets = [];
         this.beamGroups = [];
         this.notes = [];
-        VF.Merge(this, params);
+		this.measureNumber=1;
+		  this.attrs = {
+            id: VF.Element.newID(),
+            type: 'NoVexMeasure'
+        };
+		Vex.Merge(this,NoVexMeasure.defaults);
+        Vex.Merge(this, params);
     }
     static get defaults() {
         return {
             timeSignature: '4/4',
             keySignature: "C",
             staffX: 10,
+			customModifiers:[],
             staffY: 40,
             drawClef: true,
             staffWidth: 400,
@@ -138,27 +159,34 @@ class NoVexMeasure {
             notes: [
                 new NoVexNote({
                     clef: "treble",
-                    keys: ["b/4"],
+                    keys: [{key:'b',accidental:'',octave:4}],
                     duration: "4"
                 }),
                 new NoVexNote({
                     clef: "treble",
-                    keys: ["b/4"],
+                    keys: [{key:'b',accidental:'',octave:4}],
                     duration: "4"
                 }),
                 new NoVexNote({
                     clef: "treble",
-                    keys: ["b/4"],
+                    keys: [{key:'b',accidental:'',octave:4}],
                     duration: "4"
                 }),
                 new NoVexNote({
                     clef: "treble",
-                    keys: ["b/4"],
+                    keys: [{key:'b',accidental:'',octave:4}],
                     duration: "4"
                 })
             ]
         };
     }
+	addCustomModifier(ctor,parameters) {
+		this.customModifiers.push({ctor:ctor,parameters:parameters});
+	}
+	
+	setNumber(measureNumber) {
+		this.measureNumber = measureNumber;
+	}
     getTupletForNote(note) {
         if (!vexMusic.isTuplet(note)) {
             return null;
@@ -185,3 +213,4 @@ class NoVexMeasure {
 		return null;
 	}
 }
+

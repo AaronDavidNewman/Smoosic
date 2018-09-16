@@ -16,8 +16,8 @@ VX.groupCounter = 1;
 class VxMeasure {
     constructor(context, options) {
         this.context = context;
-        VF.Merge(this, VxMeasure.defaults);
-        VF.Merge(this, options);
+        Vex.Merge(this, VxMeasure.defaults);
+        Vex.Merge(this, options);
         this.noVexMeasure = new NoVexMeasure(options);
         this.noteToVexMap = {};
         this.beamToVexMap = {};
@@ -36,11 +36,33 @@ class VxMeasure {
             drawClef: true
         };
     }
+	addCustomModifier(ctor,parameters) {
+		this.noVexMeasure.addCustomModifier(ctor,parameters);
+	}
+	
+	applyModifiers() {
+		var modifiers = this.getModifiers();
+		var apply = new vxModifier(this.noVexMeasure,modifiers);
+		apply.run();
+	}
+	getModifiers() {
+
+		var actors = vxModifierFactory.getStandardModifiers(this.noVexMeasure);
+		for (var i=0;i<this.noVexMeasure.customModifiers.length;++i) {
+			var modifier = this.noVexMeasure.customModifiers[i];
+			var ctor=eval(modifier.ctor);
+			var instance = new ctor(modifier.parameters);
+			actors.push(instance);
+		}
+		
+		return actors;
+	
+	}
 
     _createVexNote(noVxNote) {
         var vexNote = new VF.StaveNote({
                 clef: noVxNote.clef,
-                keys: noVxNote.keys,
+                keys: noVxNote.toVexKeys(),
                 duration: noVxNote.duration + noVxNote.noteType
             });
 
@@ -65,9 +87,9 @@ class VxMeasure {
     }
     createVexNotes() {
         for (var i = 0; i < this.noVexMeasure.notes.length; ++i) {
-            noVexNote = this.noVexMeasure.notes[i];
-            var vexNote = _createVexNote(noVexNote);
-            this.noteToVexMap[noVxNote.attrs.id] = vexNote;
+            var noVexNote = this.noVexMeasure.notes[i];
+            var vexNote = this._createVexNote(noVexNote);
+            this.noteToVexMap[noVexNote.attrs.id] = vexNote;
             this.vexNotes.push(vexNote);
         }
     }
@@ -107,6 +129,8 @@ class VxMeasure {
 
     render() {
 
+	    $(this.context.svg).find('g.'+this.noVexMeasure.attrs.id).remove();
+		
         var group = this.context.openGroup();
         group.classList.add(this.noVexMeasure.attrs.id);
         this.createVexNotes();
@@ -116,7 +140,9 @@ class VxMeasure {
 
         // Add a clef and time signature.
         if (this.drawClef) {
-            this.stave.addClef(this.clef).addTimeSignature(this.timeSignature).addKeySignature(this.keySignature);
+            this.stave.addClef(this.noVexMeasure.clef)
+			.addTimeSignature(this.noVexMeasure.timeSignature)
+			.addKeySignature(this.noVexMeasure.keySignature);
         }
         // Connect it to the rendering context and draw!
         this.stave.setContext(this.context).draw();
@@ -127,18 +153,19 @@ class VxMeasure {
                 num_beats: this.noVexMeasure.numBeats,
                 beat_value: this.noVexMeasure.beatValue
             });
-        this.voice.addTickables(this.notes);
-        this.formatter = new VF.Formatter().joinVoices([voice]).format([voice], this.staffWidth);
-        this.voice.draw(this.context, stave);
+        this.voice.addTickables(this.vexNotes);
+        this.formatter = new VF.Formatter().joinVoices([this.voice]).format([this.voice], this.staffWidth);
+        this.voice.draw(this.context, this.stave);
 
         var self = this;
         this.vexBeamGroups.forEach(function (b) {
             b.setContext(self.context).draw()
         });
 
-        this.vexTupltes.forEach(function (tuplet) {
+        this.vexTuplets.forEach(function (tuplet) {
             tuplet.setContext(self.context).draw();
         });
+		this.context.closeGroup();
     }
 
 }

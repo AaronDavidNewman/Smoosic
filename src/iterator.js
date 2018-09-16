@@ -93,8 +93,8 @@ class vxTickIterator {
 		if (iterator.index > 0) {
 			sigObj = accidentalMap[iterator.index - 1];
 		}
-		for (var i = 0; i < note.keyProps.length; ++i) {
-			var prop = note.keyProps[i];
+		for (var i = 0; i < note.keys.length; ++i) {
+			var prop = note.keys[i];
 			var letter = prop.key[0].toLowerCase();
 			var sigKey = vexMusic.getKeySignatureKey(letter, keySignature);
 			if (sigObj && sigObj[letter]) {

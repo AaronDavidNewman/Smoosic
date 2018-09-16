@@ -32,9 +32,8 @@ class Test1 {
     static CommonTests() {
 		var context = Test1.createContext();
 		var measure = new VxMeasure(context);
-		vxMeasureOperations.applyStandardModifiers(measure);
+		measure.applyModifiers();
 		measure.render();
-
     }
 
     

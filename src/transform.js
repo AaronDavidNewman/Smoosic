@@ -49,14 +49,9 @@ class VxTransformer {
     // 5. if an empty array [] is returned, that copy is not added to the result.  The note is effectively deleted.
     transformNote(iterator, note) {
         var self = this;
-        var noteCopy = new NoVexNote({
-                clef: note.clef,
-                keys: vexKey,
-                duration: note.duration,
-                noteType: noteType
-            });
+       
         for (var i = 0; i < this.actors.length; ++i) {
-            var newNote = actor.transformNote(noteCopy, iterator, iterator.accidentalMap);
+            var newNote = actor.transformNote(note, iterator, iterator.accidentalMap);
             if (newNote == null) {
                 continue;
             }
@@ -139,11 +134,8 @@ class vxSetPitchActor extends NoteTransformBase {
         if (this.tickArray().indexOf(index) < 0) {
             return null;
         }
-        return new NoVexNote({
-            clef: note.clef,
-            keys: this.vexKeys,
-            duration: note.duration
-        });
+		note.keys=this.vexKeys;
+		return note;
     }
 
 }

@@ -3,13 +3,17 @@
 class vxModifierFactory {
     static getStandardModifiers(measure, options) {
         var actors = [];
-		var cautionary = options && options['cautionary'] ? options['cautionary'] : new Selection();
-		actors.push(new vxDotModifier());
-		actors.push(new vxAccidentalModifier(measure.keySignature,cautionary));
-		actors.push(new vxBeamModifier(measure));
-		return actors;
+        var cautionary = options && options['cautionary'] ? options['cautionary'] : new Selection();
+        actors.push(new vxDotModifier());
+        actors.push(new vxAccidentalModifier({
+                keySignature: measure.keySignature,
+                cautionarySelections: cautionary
+            }));
+        actors.push(new vxBeamModifier(measure));
+        return actors;
     }
 }
+
 class vxDotModifier extends NoteModifierBase {
     constructor() {
         super();
@@ -18,38 +22,45 @@ class vxDotModifier extends NoteModifierBase {
         return new vxDotModifier();
     }
     modifyNote(iterator, note, accidentalMap) {
-        if (note.dots > 0) {
-            note.addDotToAll();
+        if (vexMusic.isTuplet(note)) {
+            return note;
         }
+        var vexDuration = vexMusic.ticksToDuration[note.tickCount];
+        var dots = vexDuration.split('d').length-1;
+        note.addDots(dots);
+        return note;
     }
 }
 
 class vxAccidentalModifier extends NoteModifierBase {
-    constructor(keySignature, cautionarySelections) {
+    constructor(parameters) {
         super();
-        this.keySignature = keySignature;
+        this.keySignature = parameters.keySignature;
         this.keyManager = new VF.KeyManager(this.keySignature);
-        this.cautionary = cautionarySelections ? cautionarySelections : new Selection();
+        this.cautionary = parameters.cautionarySelections ? parameters.cautionarySelections : new Selection();
     }
 
-    modifyNote(iterator, note,accidentalMap) {
+    modifyNote(iterator, note, accidentalMap) {
         var canon = VF.Music.canonical_notes;
         for (var i = 0; i < note.keys.length; ++i) {
-            var prop = note.keyProps[i];
+            var prop = note.keys[i];
             var key = prop.key.toLowerCase();
             var accidental = (this.keyManager.scale.indexOf(canon.indexOf(key)) < 0);
             accidental = accidental && !vxTickIterator.hasActiveAccidental(key, i, accidentalMap);
             var cautionary = this.cautionary.getSelectedPitches(iterator.index).indexOf(i) > 0;
+            // {index:1,value:{symbol:'#',cautionary:false}}
 
             if (accidental || cautionary) {
-                if (!prop.accidental)
-                    prop.accidental = 'n';
-                var vxAccidental = new VF.Accidental(prop.accidental);
-
-                if (cautionary) {
-                    vxAccidental.setAsCautionary();
+                if (!accidental) {
+                    accidental = 'n';
                 }
-                note.addAccidental(0, new VF.Accidental(prop.accidental));
+                note.addAccidental({
+                    index: i,
+                    value: {
+                        symbol: accidental,
+                        cautionary: cautionary
+                    }
+                });
             }
         }
         return note;
@@ -58,7 +69,7 @@ class vxAccidentalModifier extends NoteModifierBase {
 
 class vxBeamModifier extends NoteModifierBase {
     constructor(measure) {
-        super();       
+        super();
         this.duration = 0;
         this._beamGroups = [];
         this.timeSignature = measure.timeSignature;
@@ -74,34 +85,36 @@ class vxBeamModifier extends NoteModifierBase {
         this.skipNext = 0;
         this.beamGroup = false;
         this.currentGroup = [];
-    }   
+    }
 
     get beamGroups() {
         return this._beamGroups;
     }
 
     modifyNote(iterator, note, accidentalMap) {
-       
+
         this.duration += iterator.delta;
-		
-		// beam tuplets
+
+        // beam tuplets
         if (vexMusic.isTuplet(note)) {
             //todo: when does stack have more than 1?
-			var tuplet = measure.getTupletFromNote(note);
-			var ult = tuplet.notes[tuplet.notes.length-1];
+            var tuplet = measure.getTupletFromNote(note);
+            var ult = tuplet.notes[tuplet.notes.length - 1];
             // is this beamable
             if (iterator.delta < 4096) {
                 this.beamGroup = true;
                 this.currentGroup.push(note);
             }
-			// Ultimate note in tuplet
-			if (ult.attrs.id !== note.attrs.id) {
-				this._beamGroups.push(new NoVexBeamGroup({notes:this.currentGroup));
-				this.currentGroup=[];
-				this.duration=0;
-				this.startRange = iterator.index+1;
-			}				            
-			return note;
+            // Ultimate note in tuplet
+            if (ult.attrs.id !== note.attrs.id) {
+                this._beamGroups.push(new NoVexBeamGroup({
+                        notes: this.currentGroup
+                    }));
+                this.currentGroup = [];
+                this.duration = 0;
+                this.startRange = iterator.index + 1;
+            }
+            return note;
         }
 
         // don't beam > 1/4 note in 4/4 time
@@ -110,10 +123,12 @@ class vxBeamModifier extends NoteModifierBase {
             this.startRange = iterator.index + 1;
             return note;
         }
-		
+
         this.currentGroup.push(note);
         if (this.duration == this.beamBeats) {
-            this._beamGroups.push(new NoVexBeamGroup({notes:this.currentGroup));
+            this._beamGroups.push(new NoVexBeamGroup({
+                    notes: this.currentGroup
+                }));
             this.currentGroup = [];
             this.startRange = iterator.index + 1;
             this.duration = 0;

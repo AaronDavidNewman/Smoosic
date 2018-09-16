@@ -154,7 +154,8 @@ class Selection {
 	}
 	static createFromNote(note,index) {
 		var rv = new Selection();
-		rv.ticks={index.toString():[...note.keys.keys()]};
+		var six = index.toString();
+		rv.ticks={six:note.keys.keys()};
 		return rv;
 	}
 	
@@ -219,5 +220,11 @@ class Selection {
 			rv.push(notes[ar[i]]);
 		}
 		return rv;
+	}
+}
+
+class Range {
+	constructor(params) {
+		VF.Merge(this,params);
 	}
 }

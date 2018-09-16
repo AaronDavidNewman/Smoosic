@@ -1,10 +1,6 @@
 
 class vxMeasureOperations {
-	static applyStandardModifiers(measure) {
-		var modifiers = vxModifierFactor.getStandardModifiers(measure);
-		var apply = new vxModifier(measure,modifiers);
-		apply.run();
-	}
+	
 	static applyNoopDurationTransform(measure) {
 		// -1 because no change in duration
 		var actors = vxDurationFactory.vxCreateDurationChangeActors(measure,-1);
@@ -19,23 +15,9 @@ class vxMeasureOperations {
 		var transformer = new VxTransformer(measure,actors);
 		transformer.run();
 			
-		measure = new VxMeasure(measure.context,{
-			notes:transformer.notes,
-			replace:measure
-		});
-		vxMeasureOperations.applyStandardModifiers(measure);
+		measure.applyModifiers();
 		return measure;
     }
-    addDot() {
-        var notes = this.modNote.getSelectedNotes(this.music.notes);
-        for (var i = 0; i < notes.length; ++i) {
-            var note = notes[i];
-            var ticks = note.ticks.numerator / note.ticks.denominator;
-            var duration = vexMusic.ticksToDuration[ticks];
-            duration += 'd';
-            this.setDuration(duration);
-        }
-    }           
 
     static transposeHandler(measure,selection,offset) {
         var keys = [];
@@ -48,13 +30,8 @@ class vxMeasureOperations {
 		var actors = vxDurationFactory.vxCreateDurationChangeActors(measure,-1);
 		transformer = new VxTransformer(measure,[transposer]);
 		transformer.run();		
-		
-		measure = new VxMeasure(measure.context,{
-			notes:transformer.notes,
-			replace:measure
-		});
-
-        vxMeasureOperations.applyStandardModifiers(measure);
+				
+        measure.applyModifiers();
 		return measure;
     }
 	
@@ -73,7 +50,7 @@ class vxMeasureOperations {
 			replace:measure
 		});
 
-		vxMeasureOperations.applyStandardModifiers(measure);
+		measure.applyModifiers();
 		return measure;
 	}
 	static setNoteType(measure,selection,noteType) {
@@ -87,7 +64,7 @@ class vxMeasureOperations {
 			replace:measure
 		});
 
-		vxMeasureOperations.applyStandardModifiers(measure);
+		measure.applyModifiers();
 		return measure;
 	}  
 }
