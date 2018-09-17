@@ -46,11 +46,9 @@ class Test1 {
             return timeTest();
         }
         var accidentalTest = () => {
-            var selection = new Selection({
-                    ticks: {
-                        '1': [0]
-                    }
-                });
+            var selection = new Selection([
+			{tickIndex:1,pitches:[0]}
+					]);
             measure.applyTransform('vxTransposePitchActor', {
                 selections: selection,
                 offset: -1
@@ -60,11 +58,9 @@ class Test1 {
         }
 
         var intervalTest = () => {
-            var selection = new Selection({
-                    ticks: {
-                        '2': [1]
-                    }
-                });
+            var selection = new Selection([{
+			tickIndex:2,pitches:[1]}
+                ]);
             measure.applyTransform('vxTransposePitchActor', {
                 selections: selection,
                 offset: 4

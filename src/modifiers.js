@@ -47,7 +47,8 @@ class vxAccidentalModifier extends NoteModifierBase {
 			var vexKey=prop.key+prop.accidental;
             var accidental = (this.keyManager.scale.indexOf(canon.indexOf(vexKey)) < 0);
             accidental = accidental && !vxTickIterator.hasActiveAccidental(prop, i, accidentalMap);
-            var cautionary = this.cautionary.getSelectedPitches(iterator.index).indexOf(i) > 0;
+			var cpitch = this.cautionary.pitchArray(iterator.index);
+            var cautionary = cpitch.indexOf(i) >= 0;
             // {index:1,value:{symbol:'#',cautionary:false}}
 
             if (accidental || cautionary) {

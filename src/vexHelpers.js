@@ -38,6 +38,8 @@ class vexMusic {
 		rv.octave=octave;
         return rv;
     }
+	
+	
 
     // ### getKeySignatureKey
     // ### Description:
@@ -148,11 +150,9 @@ class vexMusic {
  *  ## Selection
  *  represent a selection of notes as a 2-dimensional array
  *  ## Format
- *  selection = {
-	 ticks:{
-	     index1: [pitchIndex,pitchIndex],
-		 index2: [pitchIndex]
-	 }
+ *  selection = [
+	 tickIndex:0,pitches:[0,1]
+    ]
   *  ## Usages:
   *    selection.tickArray()
   *      Creates array of tick indices
@@ -160,78 +160,20 @@ class vexMusic {
 class Selection {
 	
 	constructor(params) {
-		this.ticks={};
-		Vex.Merge(this,params);
-	}
-	static createFromNote(note,index) {
-		var rv = new Selection();
-		var six = index.toString();
-		rv.ticks={six:note.keys.keys()};
-		return rv;
-	}
-	
-	addNote(tickableIndex,note) {
-		if (typeof(this.ticks[tickableIndex]) == 'undefined') {
-			this.ticks[tickableIndex]=[];
+		this._obj=[];
+		if (params && Array.isArray(params)) {
+			this._obj=params;
 		}
-		for (var i = 0; i < note.keyProps.length; ++i) {
-			this.ticks[tickableIndex].push(i);
-		}
-		return this;
 	}
-	addPitch(tickableIndex,pitchIndex) {
-		if (typeof(this.ticks[tickableIndex]) == 'undefined') {
-			this.ticks[tickableIndex]=[];
-		}
-		if (this.ticks[tickableIndex].indexOf(pitchIndex)) {
-			return;
-		}
-	    this.ticks[tickableIndex].push(pitchIndex);		
-		return this;
-	}
-	static selectChords(notes,selection) {
-		var rv = new Selection();
-		if (typeof(selection)==="number") {
-			rv.addNote(selection,notes[selection]);
-		} else if (Array.isArray(selection)) {
-			for (var i=0;i<selection.length;++i) {
-				rv.addNote(notes[selection[i]],selection[i]);
+	pitchArray(tickIndex) {
+		
+		for (var i=0;i<this._obj.length;++i) {			
+			if (this._obj[i].tickIndex===tickIndex) {
+				return this._obj[i].pitches;
 			}
 		}
-		return rv;
-	}
-	tickArray() {
-		var rv = [];
-		var keys=Object.keys(this.ticks);
-		for (var i=0;i<keys.length;++i) {
-			rv.push(parseInt(keys[i]));
-		}
-		return rv;
-	}
-	chordAtIndex(ix) {
-		return this.ticks[ix.toString()];
-	}
-	
-	getSelectedPitches(tick) {
-		if (!this.chordAtIndex(tick)) 
-			return [];
-		
-		if (typeof(tick) != 'string') {
-			tick = tick.toString();
-		}
-		return this.ticks[tick];
-	}
-	containsPitch(tick,pitchIndex) {
-		return (this.ticks[tick] && (this.ticks[tick].indexOf(pitchIndex) >= 0));
-	}
-	getSelectedNotes(notes) {
-		var ar=this.tickArray();
-		var rv = [];
-		for (var i=0;i<ar.length;++i) {
-			rv.push(notes[ar[i]]);
-		}
-		return rv;
-	}
+		return [];
+	}	
 }
 
 class Range {

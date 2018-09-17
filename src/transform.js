@@ -93,17 +93,15 @@ class NoteTransformBase {
 class vxTransposePitchActor extends NoteTransformBase {
     constructor(parameters) {
 		super();
-		Vex.Merge(this,parameters);
-        this.tickArray = this.selections.tickArray();
+		Vex.Merge(this,parameters);        
     }
     transformNote(note, iterator, accidentalMap) {
         var index = iterator.index;
-        if (this.tickArray.indexOf(index) < 0) {
+        if (this.selections.pitchArray(index).length === 0) {
             return null;
         }
-        return note.transpose(this.selections.ticks[iterator.index.toString()],this.offset);
+        return note.transpose(this.selections.pitchArray(iterator.index),this.offset);
     }
-
 }
 
 class vxSetNoteTypeActor extends NoteTransformBase {
@@ -133,11 +131,13 @@ class vxSetPitchActor extends NoteTransformBase {
     }
     transformNote(note, iterator, accidentalMap) {
         var index = iterator.index;
-        if (this.tickArray().indexOf(index) < 0) {
+        if (this.pitchArray(index).length === 0) {
             return null;
         }
-		var selections = 
-		    this.selections.ticks[iterator.index.toString()];
+		var pitches = 
+		    this.selections.pitchArray(iterator.index);
+			
+	    // TODO: fix this.
 		note.keys=this.vexKeys;
 		return note;
     }
