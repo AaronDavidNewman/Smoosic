@@ -28,12 +28,11 @@ class NoVexNote {
 		return rv;
 	}
 
-    transpose(selections, offset) {
+    transpose(pitchArray, offset) {
         var keys = [];
-        var selectedKeys = selections.chordIndexOf(index);
-        for (var i = 0; i < this.keyProps.length; ++i) {
-            var key = this.keyProps[i];
-            if (selectedKeys.indexOf(i) < 0) {
+        for (var i = 0; i < this.keys.length; ++i) {
+            var key = this.keys[i];
+            if (pitchArray.indexOf(i) < 0) {
                 keys.push(key);
             } else {
                 keys.push(vexMusic.getKeyOffset(key, offset));

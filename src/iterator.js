@@ -111,10 +111,9 @@ class vxTickIterator {
 	}
 	
 	static hasActiveAccidental(key, pitchIndex, accidentalMap) {
-	    var vexKey = key.split('/')[0];
-	    var duration = key.split('/')[1];
-	    var letter = key[0];
-	    var accidental = key.length > 1 ? vexKey[1] : 'n';
+	    var vexKey = key.key;	    
+	    var letter = vexKey;
+	    var accidental = key.accidental.length > 0 ? key.accidental: 'n';
 
 	    // Back up the accidental map until we have a match, or until we run out
 	    for (var i = accidentalMap.length; i > 0; --i) {

@@ -26,7 +26,15 @@ class vexMusic {
         if (canon[index] == 'c' && offset==1) {
             octave += 1;
         }
-        return canon[index] + '/' + octave;
+		var rv = JSON.parse(JSON.stringify(prop));
+		key=canon[index];
+		if (key.length>0) {
+			rv.accidental=key.substring(1);
+			key=key[0];
+		}
+		rv.key=key;
+		rv.octave=octave;
+        return rv;
     }
 
     // ### getKeySignatureKey
@@ -149,8 +157,9 @@ class vexMusic {
   **/
 class Selection {
 	
-	constructor() {
+	constructor(params) {
 		this.ticks={};
+		Vex.Merge(this,params);
 	}
 	static createFromNote(note,index) {
 		var rv = new Selection();

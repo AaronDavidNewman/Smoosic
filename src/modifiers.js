@@ -44,20 +44,17 @@ class vxAccidentalModifier extends NoteModifierBase {
         var canon = VF.Music.canonical_notes;
         for (var i = 0; i < note.keys.length; ++i) {
             var prop = note.keys[i];
-            var key = prop.key.toLowerCase();
-            var accidental = (this.keyManager.scale.indexOf(canon.indexOf(key)) < 0);
-            accidental = accidental && !vxTickIterator.hasActiveAccidental(key, i, accidentalMap);
+			var vexKey=prop.key+prop.accidental;
+            var accidental = (this.keyManager.scale.indexOf(canon.indexOf(vexKey)) < 0);
+            accidental = accidental && !vxTickIterator.hasActiveAccidental(prop, i, accidentalMap);
             var cautionary = this.cautionary.getSelectedPitches(iterator.index).indexOf(i) > 0;
             // {index:1,value:{symbol:'#',cautionary:false}}
 
             if (accidental || cautionary) {
-                if (!accidental) {
-                    accidental = 'n';
-                }
                 note.addAccidental({
                     index: i,
                     value: {
-                        symbol: accidental,
+                        symbol: prop.accidental,
                         cautionary: cautionary
                     }
                 });

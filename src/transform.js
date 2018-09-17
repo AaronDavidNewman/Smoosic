@@ -51,8 +51,10 @@ class VxTransformer {
         var self = this;
        
         for (var i = 0; i < this.actors.length; ++i) {
+			var actor=this.actors[i];
             var newNote = actor.transformNote(note, iterator, iterator.accidentalMap);
             if (newNote == null) {
+				this.vxNotes.push(note); // no change
                 continue;
             }
             if (Array.isArray(newNote)) {
@@ -65,13 +67,12 @@ class VxTransformer {
             this.vxNotes.push(newNote);
             return;
         }
-        this.vxNotes.push(noteCopy);
     }
 
     run() {
         var self = this;
         var iterator = new vxTickIterator(this.measure);
-        iterator.iterator((iterator, note, accidentalMap) => {
+        iterator.iterate((iterator, note, accidentalMap) => {
             self.transformNote(iterator, note, accidentalMap);
         });
 
@@ -90,24 +91,24 @@ class NoteTransformBase {
 }
 
 class vxTransposePitchActor extends NoteTransformBase {
-    constructor(measure, selections, offset) {
-        this.keySignature = measure.keySignature;
-        this.tickArray = selection.tickArray();
-        this.selections = selections;
-        this.offset = offset;
+    constructor(parameters) {
+		super();
+		Vex.Merge(this,parameters);
+        this.tickArray = this.selections.tickArray();
     }
     transformNote(note, iterator, accidentalMap) {
         var index = iterator.index;
-        if (this.tickArray().indexOf(index) < 0) {
+        if (this.tickArray.indexOf(index) < 0) {
             return null;
         }
-        return note.transpose(this.selections,this.offset);
+        return note.transpose(this.selections.ticks[iterator.index.toString()],this.offset);
     }
 
 }
 
 class vxSetNoteTypeActor extends NoteTransformBase {
     constructor(measure, selections, noteType) {
+		super();
         this.keySignature = measure.keySignature;
         this.tickArray = selection.tickArray();
         this.selections = selections;
@@ -126,6 +127,7 @@ class vxSetNoteTypeActor extends NoteTransformBase {
 
 class vxSetPitchActor extends NoteTransformBase {
     constructor(music, selections, vexKeys) {
+		super();
         this.tickArray = selection.tickArray();
         this.vexKey = vexKey;
     }
