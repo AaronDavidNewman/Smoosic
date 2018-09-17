@@ -8,7 +8,7 @@ class NoVexNote {
         this.ticks = {
             numerator: ticks,
             denominator: 1,
-			remainder:0
+            remainder: 0
         };
         this.tupletInfo = {};
         this.attrs = {
@@ -18,32 +18,50 @@ class NoVexNote {
         this.accidentals = [];
         this.dots = 0;
     }
-	
-	toVexKeys() {
-		var rv = [];
-		for (var i=0;i<this.keys.length;++i) {
-			var key = this.keys[i];
-			rv.push(key.key+'/'+key.octave);
-		}
-		return rv;
-	}
+
+    toVexKeys() {
+        var rv = [];
+        for (var i = 0; i < this.keys.length; ++i) {
+            var key = this.keys[i];
+            rv.push(key.key + '/' + key.octave);
+        }
+        return rv;
+    }
+    _sortKeys() {
+        var canon = VF.Music.canonical_notes;
+        var keyIndex = ((key) => {
+            return canon.indexOf(key.key) + key.octave * 12;
+        });
+        this.keys.sort((a, b) => {
+            return keyIndex(a) - keyIndex(b);
+        });
+    }
+    addPitchOffset(offset) {
+        if (this.keys.length == 0) {
+            return this;
+        }
+        var key = this.keys[0];
+        this.keys.push(vexMusic.getKeyOffset(key, offset));
+
+        this._sortKeys();
+    }
 
     transpose(pitchArray, offset) {
         var keys = [];
-        for (var i = 0; i < this.keys.length; ++i) {
-            var key = this.keys[i];
-            if (pitchArray.indexOf(i) < 0) {
-                keys.push(key);
+        for (var j = 0; j < pitchArray.length; ++j) {
+            var index = pitchArray[j];
+            if (index + 1 > this.keys.length) {
+                this.addPitchOffset(offset);
             } else {
-                keys.push(vexMusic.getKeyOffset(key, offset));
+                this.keys[index] = vexMusic.getKeyOffset(this.keys[index], offset);
             }
         }
-        this.keys = keys;
+        this._sortKeys();
         return this;
     }
-	get tickCount() {
-		return this.ticks.numerator/this.ticks.denominator + this.ticks.remainder;
-	}
+    get tickCount() {
+        return this.ticks.numerator / this.ticks.denominator + this.ticks.remainder;
+    }
     setKeys(selections, keys) {
         this.keys = keys;
         return this;
@@ -74,8 +92,13 @@ class NoVexNote {
             numBeats: 4,
             beatValue: 4,
             duration: '4',
-            keys: [{key:'b',octave:4,accidental:''}],
-			accidentals:[]
+            keys: [{
+                    key: 'b',
+                    octave: 4,
+                    accidental: ''
+                }
+            ],
+            accidentals: []
         }
     }
 }
@@ -135,12 +158,12 @@ class NoVexMeasure {
         this.tuplets = [];
         this.beamGroups = [];
         this.notes = [];
-		this.measureNumber=1;
-		  this.attrs = {
+        this.measureNumber = 1;
+        this.attrs = {
             id: VF.Element.newID(),
             type: 'NoVexMeasure'
         };
-		Vex.Merge(this,NoVexMeasure.defaults);
+        Vex.Merge(this, NoVexMeasure.defaults);
         Vex.Merge(this, params);
     }
     static get defaults() {
@@ -148,7 +171,7 @@ class NoVexMeasure {
             timeSignature: '4/4',
             keySignature: "C",
             staffX: 10,
-			customModifiers:[],
+            customModifiers: [],
             staffY: 40,
             drawClef: true,
             staffWidth: 400,
@@ -158,34 +181,57 @@ class NoVexMeasure {
             notes: [
                 new NoVexNote({
                     clef: "treble",
-                    keys: [{key:'b',accidental:'',octave:4}],
+                    keys: [{
+                            key: 'b',
+                            accidental: '',
+                            octave: 4
+                        }
+                    ],
                     duration: "4"
                 }),
                 new NoVexNote({
                     clef: "treble",
-                    keys: [{key:'b',accidental:'',octave:4}],
+                    keys: [{
+                            key: 'b',
+                            accidental: '',
+                            octave: 4
+                        }
+                    ],
                     duration: "4"
                 }),
                 new NoVexNote({
                     clef: "treble",
-                    keys: [{key:'b',accidental:'',octave:4}],
+                    keys: [{
+                            key: 'b',
+                            accidental: '',
+                            octave: 4
+                        }
+                    ],
                     duration: "4"
                 }),
                 new NoVexNote({
                     clef: "treble",
-                    keys: [{key:'b',accidental:'',octave:4}],
+                    keys: [{
+                            key: 'b',
+                            accidental: '',
+                            octave: 4
+                        }
+                    ],
                     duration: "4"
                 })
             ]
         };
     }
-	addCustomModifier(ctor,parameters) {
-		this.customModifiers.push({ctor:ctor,parameters:parameters});
-	}
-	
-	setNumber(measureNumber) {
-		this.measureNumber = measureNumber;
-	}
+    addCustomModifier(ctor, parameters) {
+        this.customModifiers.push({
+            ctor: ctor,
+            parameters: parameters
+        });
+    }
+
+    setNumber(measureNumber) {
+        this.measureNumber = measureNumber;
+    }
     getTupletForNote(note) {
         if (!vexMusic.isTuplet(note)) {
             return null;
@@ -200,16 +246,15 @@ class NoVexMeasure {
             return null;
         }
     }
-	getBeamGroupForNote(note) {
-		for (var i=0;i<this.beamGroups.length;++i) {
-			var bg = this.beamGroups[i];
-			for (var j=0;j<bg.notes.length;++j) {
-				if (bg.notes[j].attrs.id === note.attrs.id) {
-					return bg;
-				}
-			}
-		}
-		return null;
-	}
+    getBeamGroupForNote(note) {
+        for (var i = 0; i < this.beamGroups.length; ++i) {
+            var bg = this.beamGroups[i];
+            for (var j = 0; j < bg.notes.length; ++j) {
+                if (bg.notes[j].attrs.id === note.attrs.id) {
+                    return bg;
+                }
+            }
+        }
+        return null;
+    }
 }
-

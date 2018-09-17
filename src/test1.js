@@ -28,8 +28,6 @@ class Test1 {
     static CommonTests() {
         var context = Test1.createContext();
         var measure = new VxMeasure(context);
-        measure.applyModifiers();
-        measure.render();
 
         var timeTest = () => {
             const promise = new Promise((resolve, reject) => {
@@ -40,17 +38,40 @@ class Test1 {
                 });
             return promise;
         }
-        var selection = new Selection({
-                ticks: {
-                    '0': [0]
-                }
+
+        var drawDefaults = () => {
+            // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
+            measure.applyModifiers();
+            measure.render();
+            return timeTest();
+        }
+        var accidentalTest = () => {
+            var selection = new Selection({
+                    ticks: {
+                        '1': [0]
+                    }
+                });
+            measure.applyTransform('vxTransposePitchActor', {
+                selections: selection,
+                offset: -1
             });
-        measure.applyTransform('vxTransposePitchActor', {
-            selections: selection,
-            offset: -1
-        });
-        measure.render();
+            measure.render();
+            return timeTest();
+        }
 
+        var intervalTest = () => {
+            var selection = new Selection({
+                    ticks: {
+                        '2': [1]
+                    }
+                });
+            measure.applyTransform('vxTransposePitchActor', {
+                selections: selection,
+                offset: 4
+            });
+            measure.render();
+            return timeTest();
+        }
+        drawDefaults().then(accidentalTest).then(intervalTest);
     }
-
 }

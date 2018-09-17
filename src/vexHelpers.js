@@ -14,17 +14,19 @@ class vexMusic {
     static getKeyOffset(prop,offset) {
         var canon = VF.Music.canonical_notes;
         var key = prop.key.toLowerCase();
-        var index = (canon.indexOf(key) + canon.length+offset) % canon.length;
+		var rootIndex = canon.indexOf(key);
+        var index = (rootIndex + canon.length+offset) % canon.length;
         var octave = prop.octave;
         if (Math.abs(offset) >= 12) {
-            offset = Math.sign(offset) * Math.round(Math.abs(offset) / 12);
-            octave += offset;
+            var octaveOffset = Math.sign(offset) * Math.round(Math.abs(offset) / 12);
+            octave += octaveOffset;
+			offset = offset % 12;
         }
-        if (canon[index] == 'b' && offset==-1) {
-            octave += -1;
-        }
-        if (canon[index] == 'c' && offset==1) {
+        if (rootIndex + offset >= canon.length) {
             octave += 1;
+        }
+        if (rootIndex + offset < 0) {
+            octave -= 1;
         }
 		var rv = JSON.parse(JSON.stringify(prop));
 		key=canon[index];

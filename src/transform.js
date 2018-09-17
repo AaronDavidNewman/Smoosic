@@ -126,16 +126,18 @@ class vxSetNoteTypeActor extends NoteTransformBase {
 }
 
 class vxSetPitchActor extends NoteTransformBase {
-    constructor(music, selections, vexKeys) {
+    constructor(parameters) {
 		super();
-        this.tickArray = selection.tickArray();
-        this.vexKey = vexKey;
+		Vex.Merge(this,parameter);
+        this.tickArray = this.selections.tickArray();
     }
     transformNote(note, iterator, accidentalMap) {
         var index = iterator.index;
         if (this.tickArray().indexOf(index) < 0) {
             return null;
         }
+		var selections = 
+		    this.selections.ticks[iterator.index.toString()];
 		note.keys=this.vexKeys;
 		return note;
     }
