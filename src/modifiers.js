@@ -68,8 +68,9 @@ class vxAccidentalModifier extends NoteModifierBase {
 class vxBeamModifier extends NoteModifierBase {
     constructor(measure) {
         super();
+		this.measure=measure;
+		this.measure.beamGroups=[];
         this.duration = 0;
-        this._beamGroups = [];
         this.timeSignature = measure.timeSignature;
         this.meterNumbers = this.timeSignature.split('/').map(number => parseInt(number, 10));
 
@@ -86,7 +87,7 @@ class vxBeamModifier extends NoteModifierBase {
     }
 
     get beamGroups() {
-        return this._beamGroups;
+        return this.measure.beamGroups;
     }
 
     modifyNote(iterator, note, accidentalMap) {
@@ -105,7 +106,7 @@ class vxBeamModifier extends NoteModifierBase {
             }
             // Ultimate note in tuplet
             if (ult.attrs.id !== note.attrs.id) {
-                this._beamGroups.push(new NoVexBeamGroup({
+                this.measure.beamGroups.push(new NoVexBeamGroup({
                         notes: this.currentGroup
                     }));
                 this.currentGroup = [];
@@ -124,7 +125,7 @@ class vxBeamModifier extends NoteModifierBase {
 
         this.currentGroup.push(note);
         if (this.duration == this.beamBeats) {
-            this._beamGroups.push(new NoVexBeamGroup({
+            this.measure.beamGroups.push(new NoVexBeamGroup({
                     notes: this.currentGroup
                 }));
             this.currentGroup = [];

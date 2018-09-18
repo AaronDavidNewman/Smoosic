@@ -148,6 +148,7 @@ class NoVexBeamGroup {
         Vex.Merge(this, params);
 
         for (var i = 0; i < this.notes.length; ++i) {
+			var note=this.notes[i];
             note.beam_group = this.attrs;
         }
     }

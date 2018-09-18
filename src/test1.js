@@ -68,6 +68,17 @@ class Test1 {
             measure.render();
             return timeTest();
         }
-        drawDefaults().then(accidentalTest).then(intervalTest);
+		
+		var durationTest = () => {
+			var tickmap = measure.tickmap();
+            measure.applyTransform('VxContractActor', {
+                startIndex: 1,
+                tickmap: tickmap,
+				newTicks:2048
+            });
+            measure.render();
+            return timeTest();
+        }
+        drawDefaults().then(accidentalTest).then(intervalTest).then(durationTest);
     }
 }

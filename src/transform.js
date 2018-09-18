@@ -61,7 +61,7 @@ class VxTransformer {
                 if (newNote.length === 0) {
                     return;
                 }
-                this.vxNotes.concat(newNote);
+                this.vxNotes = this.vxNotes.concat(newNote);
                 return;
             }
             this.vxNotes.push(newNote);

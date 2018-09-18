@@ -67,6 +67,9 @@ class VxMeasure {
         return actors;
 
     }
+	tickmap() {
+		return VX.TICKMAP(this.noVexMeasure);
+	}
 
     _createVexNote(noVxNote) {
         var vexNote = new VF.StaveNote({

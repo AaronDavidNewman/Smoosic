@@ -180,13 +180,12 @@ class VxReplaceTupletActor extends NoteTransformBase {
 // or rest.
 //
 class VxContractActor extends NoteTransformBase {
-    constructor(tickmap, startIndex, newTicks) {
-        this.tickmap = tickmap;
-        this.startIndex = startIndex;
-        this.newTicks = newTicks;
+    constructor(params) {
+		super();
+		Vex.Merge(this,params);
     }
     transformNote(note, iterator, accidentalMap) {
-        if (iterator.index == startIndex) {
+        if (iterator.index == this.startIndex) {
             var notes = [];
             var noteCount = Math.floor(note.ticks.numerator / this.newTicks);
             var nextIndex = this.tickmap.durationMap.indexOf(iterator.totalDuration + noteCount * this.newTicks);

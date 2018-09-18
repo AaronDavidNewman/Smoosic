@@ -261,7 +261,7 @@ class vxModifier {
 /* iterate over a set of notes, creating a map of notes to ticks */
 VX.TICKMAP = (measure) => {
     var iterator = new vxTickIterator(measure);
-	iterator.iterate(Iterator.nullActor,measure);
+	iterator.iterate(vxTickIterator.nullActor,measure);
 	return iterator;
 }
 
