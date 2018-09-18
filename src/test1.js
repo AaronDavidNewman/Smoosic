@@ -72,13 +72,26 @@ class Test1 {
 		var durationTest = () => {
 			var tickmap = measure.tickmap();
             measure.applyTransform('VxContractActor', {
-                startIndex: 1,
+                startIndex: 2,
                 tickmap: tickmap,
 				newTicks:2048
             });
             measure.render();
             return timeTest();
         }
-        drawDefaults().then(accidentalTest).then(intervalTest).then(durationTest);
+		
+		var durationTest2 = () => {
+			var tickmap = measure.tickmap();
+            measure.applyTransform('VxStretchNoteActor', {
+                startIndex: 2,
+                tickmap: tickmap,
+				newTicks:4096
+            });
+            measure.render();
+            return timeTest();
+        }
+		VxStretchNoteActor
+        drawDefaults().then(accidentalTest).then(intervalTest).then(durationTest)
+		.then(durationTest2);
     }
 }

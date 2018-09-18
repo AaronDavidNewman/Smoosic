@@ -188,7 +188,7 @@ class VxContractActor extends NoteTransformBase {
         if (iterator.index == this.startIndex) {
             var notes = [];
             var noteCount = Math.floor(note.ticks.numerator / this.newTicks);
-            var nextIndex = this.tickmap.durationMap.indexOf(iterator.totalDuration + noteCount * this.newTicks);
+            var nextIndex = this.tickmap.durationMap.indexOf(iterator.totalDuration + noteCount * this.newTicks - iterator.delta);
             var notes = [];
             var vexDuration = vexMusic.ticksToDuration[this.newTicks];
             if (nextIndex >= 0) {
@@ -226,7 +226,8 @@ class VxContractActor extends NoteTransformBase {
                 notes.push(new NoVexNote({
                         clef: note.clef,
                         keys: note.keys,
-                        duration: vexGapDuration + "r"
+                        duration: vexGapDuration,
+						noteType:'r'
                     }));
                 return notes;
             }
@@ -502,20 +503,19 @@ class VxMakeTupletActor extends NoteTransformBase {
 }
 
 class VxStretchNoteActor extends NoteTransformBase {
-    constructor(tickmap, index, newTicks) {
-        this.index = index;
-        this.tickmap = tickmap;
-        this.newTicks = newTicks;
-        this.vexDuration = vexMusic.ticksToDuration[newTicks];
+    constructor(parameters) {
+		super();
+		Vex.Merge(this,parameters);
+        this.vexDuration = vexMusic.ticksToDuration[this.newTicks];
         this.endIndex = this.index + 1;
-        this.startTick = this.tickmap.durationMap[this.index];
+        this.startTick = this.tickmap.durationMap[this.startIndex];
 
-        var endTick = this.tickmap.durationMap[this.index] + this.newTicks;
+        var endTick = this.tickmap.durationMap[this.startIndex] + this.newTicks;
         this.divisor = -1;
         this.durationMap = [];
-        this.skipFromStart = this.index + 1;
-        this.skipFromEnd = this.index + 1;
-        this.durationMap.push(newTicks);
+        this.skipFromStart = this.startIndex + 1;
+        this.skipFromEnd = this.startIndex + 1;
+        this.durationMap.push(this.newTicks);
 
         var mapIx = this.tickmap.durationMap.indexOf(endTick);
         // If there is no tickable at the end point, try to split the next note
@@ -528,18 +528,18 @@ class VxStretchNoteActor extends NoteTransformBase {
          *     d .   .  d
          */
         if (mapIx < 0) {
-            var npos = this.tickmap.durationMap[this.index + 1];
-            var ndelta = this.tickmap.deltaMap[this.index + 1];
+            var npos = this.tickmap.durationMap[this.startIndex + 1];
+            var ndelta = this.tickmap.deltaMap[this.startIndex + 1];
             if (ndelta / 2 + this.startTick + this.newTicks === npos) {
-                durationMap.push(ndelta / 2);
+                this.durationMap.push(ndelta / 2);
             } else {
                 // there is no way to do this...
-                durationMap = [];
+                this.durationMap = [];
 
             }
         } else {
             // If this note now takes up the space of other notes, remove those notes
-            for (var i = this.startTick + 1; i < mapIx; ++i) {
+            for (var i = this.startIndex + 1; i < mapIx; ++i) {
                 this.durationMap.push(0);
             }
         }
@@ -548,8 +548,8 @@ class VxStretchNoteActor extends NoteTransformBase {
         if (this.durationMap.length == 0) {
             return null;
         }
-        if (iterator.index >= this.index && iterator.index < this.index + this.durationMap.length) {
-            var mapIndex = iterator.index - this.index;
+        if (iterator.index >= this.startIndex && iterator.index < this.startIndex + this.durationMap.length) {
+            var mapIndex = iterator.index - this.startIndex;
             var ticks = this.durationMap[mapIndex];
             if (ticks == 0) {
                 return [];
