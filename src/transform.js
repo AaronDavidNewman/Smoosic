@@ -90,7 +90,7 @@ class NoteTransformBase {
     }
 }
 
-class vxTransposePitchActor extends NoteTransformBase {
+class VxTransposePitchActor extends NoteTransformBase {
     constructor(parameters) {
 		super();
 		Vex.Merge(this,parameters);        
@@ -104,7 +104,7 @@ class vxTransposePitchActor extends NoteTransformBase {
     }
 }
 
-class vxSetNoteTypeActor extends NoteTransformBase {
+class VxSetNoteTypeActor extends NoteTransformBase {
     constructor(measure, selections, noteType) {
 		super();
         this.keySignature = measure.keySignature;
@@ -123,7 +123,7 @@ class vxSetNoteTypeActor extends NoteTransformBase {
 
 }
 
-class vxSetPitchActor extends NoteTransformBase {
+class VxSetPitchActor extends NoteTransformBase {
     constructor(parameters) {
 		super();
 		Vex.Merge(this,parameter);

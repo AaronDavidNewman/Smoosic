@@ -49,10 +49,12 @@ class Test1 {
             var selection = new Selection([
 			{tickIndex:1,pitches:[0]}
 					]);
-            measure.applyTransform('vxTransposePitchActor', {
+			var actor = new VxTransposePitchActor(
+			{
                 selections: selection,
                 offset: -1
             });
+            measure.applyTransform(actor);
             measure.render();
             return timeTest();
         }
@@ -61,36 +63,39 @@ class Test1 {
             var selection = new Selection([{
 			tickIndex:2,pitches:[1]}
                 ]);
-            measure.applyTransform('vxTransposePitchActor', {
+			var actor = new VxTransposePitchActor({
                 selections: selection,
                 offset: 4
-            });
+			});
+            measure.applyTransform(actor);
             measure.render();
             return timeTest();
         }
 		
 		var durationTest = () => {
 			var tickmap = measure.tickmap();
-            measure.applyTransform('VxContractActor', {
+			var actor = new VxContractActor({
                 startIndex: 2,
                 tickmap: tickmap,
 				newTicks:2048
             });
+            measure.applyTransform(actor);
             measure.render();
             return timeTest();
         }
 		
 		var durationTest2 = () => {
 			var tickmap = measure.tickmap();
-            measure.applyTransform('VxStretchNoteActor', {
-                startIndex: 2,
+			var actor = new VxStretchNoteActor({
+				 startIndex: 2,
                 tickmap: tickmap,
 				newTicks:4096
-            });
+			});
+            measure.applyTransform(actor);
             measure.render();
             return timeTest();
         }
-		VxStretchNoteActor
+		
         drawDefaults().then(accidentalTest).then(intervalTest).then(durationTest)
 		.then(durationTest2);
     }

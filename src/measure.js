@@ -40,10 +40,7 @@ class VxMeasure {
         this.noVexMeasure.addCustomModifier(ctor, parameters);
     }
 
-    applyTransform(ctorString, parameters) {
-        var ctor = eval(ctorString);
-        parameters.keySignature = this.noVexMeasure.keySignature;
-        var actor = new ctor(parameters);
+    applyTransform(actor) {
         var transformer = new VxTransformer(this.noVexMeasure, [actor]);
         transformer.run();
         this.noVexMeasure.notes = transformer.notes;
