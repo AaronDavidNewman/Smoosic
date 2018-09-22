@@ -18,7 +18,7 @@ class NoVexNote {
         this.accidentals = [];
         this.dots = 0;
     }
-	
+
     toVexKeys() {
         var rv = [];
         for (var i = 0; i < this.keys.length; ++i) {
@@ -122,11 +122,19 @@ class NoVexTuplet {
             var tupletBase = normTicks * this.notes_occupied;
             note.ticks.denominator = 1;
             note.ticks.numerator = Math.floor(tupletBase / this.num_notes);
-			// put all the remainder in the first note of the tuplet
-            note.ticks.remainder = (i==0) ? tupletBase % this.num_notes : 0;
+            // put all the remainder in the first note of the tuplet
+            note.ticks.remainder = (i == 0) ? tupletBase % this.num_notes : 0;
 
             note.tuplet = this.attrs;
         }
+    }
+    get tickCount() {
+        var rv = 0;
+        for (var i = 0; i < this.notes.length; ++i) {
+            var note = this.notes[i];
+            rv += (note.ticks.numerator / note.ticks.denominator) + note.ticks.remainder;
+        }
+        return rv;
     }
     static get defaults() {
         return {
@@ -149,7 +157,7 @@ class NoVexBeamGroup {
         Vex.Merge(this, params);
 
         for (var i = 0; i < this.notes.length; ++i) {
-			var note=this.notes[i];
+            var note = this.notes[i];
             note.beam_group = this.attrs;
         }
     }
@@ -224,14 +232,23 @@ class NoVexMeasure {
             ]
         };
     }
-	
-	clearAccidentals() {
-		for (var i=0;i<this.notes.length;++i) {
-			this.notes[i].accidentals=[];
+
+    clearAccidentals() {
+        for (var i = 0; i < this.notes.length; ++i) {
+            this.notes[i].accidentals = [];
+        }
+    }
+
+	removeTupletForNote(note) {
+		var tuplets=[];
+		for (var i=0;i<this.tuplets.length;++i) {
+			var tuplet = this.tuplets[i];
+			if (note.tuplet.id !== tuplet.attrs.id) {
+				tuplets.push(tuplet);
+			}
 		}
+		this.tuplets=tuplet;
 	}
-
-
     addCustomModifier(ctor, parameters) {
         this.customModifiers.push({
             ctor: ctor,
@@ -248,9 +265,9 @@ class NoVexMeasure {
         }
         for (var i = 0; i < this.tuplets.length; ++i) {
             var tuplet = this.tuplets[i];
-			if (tuplet.attrs.id === note.tuplet.id) {
-				return tuplet;
-			}
+            if (tuplet.attrs.id === note.tuplet.id) {
+                return tuplet;
+            }
             return null;
         }
     }

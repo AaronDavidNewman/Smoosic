@@ -126,7 +126,19 @@ class Test1 {
             return timeTest();
 		}
 		
+		var unmakeTupletTest = () => {
+			var actor = new VxUnmakeTupletActor({
+				startIndex:1,
+				endIndex:3,
+				measure:measure.noVexMeasure
+			});
+			  measure.applyTransform(actor);
+            measure.render();
+            return timeTest();
+		}
+		
         drawDefaults().then(accidentalTest).then(intervalTest).then(durationTest)
-		.then(durationTest2).then(setPitchTest).then(makeTupletTest);
+		.then(durationTest2).then(setPitchTest).then(makeTupletTest)
+		.then(unmakeTupletTest);
     }
 }

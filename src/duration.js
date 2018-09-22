@@ -431,26 +431,30 @@ class VxContractTupletActor extends NoteTransformBase {
 
 // ## VxUnmakeTupletActor
 // Turn a tuplet into a non-tuplet of the same length
+// ## Parameters:
+// startIndex: start index of tuplet
+// endIndex: end index of tuplet
+// measure: noVex measure that the tuplet is contained in.
 class VxUnmakeTupletActor extends NoteTransformBase {
-    constructor(tickmap, tupletInfo) {
-        this.Ax = tupletInfo.startIndex;
-        this.Cx = tupletInfo.endIndex;
-        this.tupletInfo = tupletInfo;
-        this.ticks = tupletInfo.endTick - tupletInfo.startTick;
-        this.vexDuration = vexMusic.ticksToDuration[this.ticks];
-        this.tuplet = [];
+    constructor(parameters) {
+		super();
+		Vex.Merge(this,parameters);
     }
     transformNote(note, iterator, accidentalMap) {
-        if (iterator.index < this.Ax || this.iterator.index > this.Bx) {
+        if (iterator.index < this.startIndex || iterator.index > this.endIndex) {
             return null;
         }
-        if (iterator.index == this.Ax) {
-            var note = NoVexNote({
+        if (iterator.index == this.startIndex) {
+			var tuplet = this.measure.getTupletForNote(note);
+			var ticks = tuplet.tickCount;
+			var vexDuration = vexMusic.ticksToDuration[ticks];
+            var nn = new NoVexNote({
                     clef: note.clef,
                     keys: note.keys,
-                    duration: this.vexDuration
+                    duration: vexDuration
                 });
-            return [note];
+			this.measure.removeTupletForNote(note);
+            return [nn];
         }
         return [];
     }
