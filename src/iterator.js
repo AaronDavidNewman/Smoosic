@@ -95,38 +95,43 @@ class vxTickIterator {
 		}
 		for (var i = 0; i < note.keys.length; ++i) {
 			var prop = note.keys[i];
-			var letter = prop.key[0].toLowerCase();
+			var letter = prop.key.toLowerCase();
+			var sigLetter = letter+prop.accidental;
 			var sigKey = vexMusic.getKeySignatureKey(letter, keySignature);
+			
 			if (sigObj && sigObj[letter]) {
-				if (prop.key != sigObj[letter]) {
-					newObj[letter] = prop.key;
+				var currentVal = sigObj[letter].key+sigObj[letter].accidental;
+				if (sigLetter != currentVal) {
+					newObj[letter] = prop;
 				}
 			} else {
-				if (prop.key.toLowerCase() != sigKey) {
-					newObj[letter] = prop.key;
+				if (sigLetter != sigKey) {
+					newObj[letter] = prop;
 				}
 			}
 		}
 		accidentalMap.push(newObj);
 	}
 	
-	static hasActiveAccidental(key, pitchIndex, accidentalMap) {
+	static hasActiveAccidental(key, iteratorIndex, accidentalMap) {
+		if (iteratorIndex === 0) 
+			return false;
 	    var vexKey = key.key;	    
 	    var letter = vexKey;
-	    var accidental = key.accidental.length > 0 ? key.accidental: 'n';
+	    var accidental = key.accidental.length > 0 ? key.accidental: 'n';		
 
 	    // Back up the accidental map until we have a match, or until we run out
-	    for (var i = accidentalMap.length; i > 0; --i) {
+	    for (var i = iteratorIndex; i > 0; --i) {
 	        var map = accidentalMap[i - 1];
 	        var mapKeys = Object.keys(map);
 	        for (var j = 0; j < mapKeys.length; ++j) {
 	            var mapKey = mapKeys[j];
 	            // The letter name + accidental in the map
 	            var mapLetter = map[mapKey];
-	            var mapAcc = mapLetter.length > 1 ? mapLetter[1] : 'n';
+	            var mapAcc = mapLetter.accidental ? mapLetter.accidental : 'n';
 
-	            // if the letters match and not the accidental...
-	            if (mapLetter.toLowerCase()[0] === letter && mapAcc != accidental) {
+	            // if the letters match and the accidental...
+	            if (mapLetter.key.toLowerCase() === letter && mapAcc == accidental) {
 	                return true;
 	            }
 	        }

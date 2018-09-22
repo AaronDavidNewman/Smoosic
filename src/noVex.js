@@ -18,7 +18,7 @@ class NoVexNote {
         this.accidentals = [];
         this.dots = 0;
     }
-
+	
     toVexKeys() {
         var rv = [];
         for (var i = 0; i < this.keys.length; ++i) {
@@ -118,18 +118,19 @@ class NoVexTuplet {
     _adjustTicks() {
         for (var i = 0; i < this.notes.length; ++i) {
             var note = this.notes[i];
-            var normTicks = VF.durationToTicks[note.duration];
+            var normTicks = VF.durationToTicks(note.duration);
             var tupletBase = normTicks * this.notes_occupied;
-            note.ticks.denominator = this.num_notes;
+            note.ticks.denominator = 1;
             note.ticks.numerator = Math.floor(tupletBase / this.num_notes);
-            note.ticks.remainder = tupletBase % this.num_notes;
+			// put all the remainder in the first note of the tuplet
+            note.ticks.remainder = (i==0) ? tupletBase % this.num_notes : 0;
 
             note.tuplet = this.attrs;
         }
     }
     static get defaults() {
         return {
-            num_notes: this.notes.length,
+            num_notes: 3,
             notes_occupied: 2,
             location: 1,
             bracketed: true,
@@ -223,6 +224,14 @@ class NoVexMeasure {
             ]
         };
     }
+	
+	clearAccidentals() {
+		for (var i=0;i<this.notes.length;++i) {
+			this.notes[i].accidentals=[];
+		}
+	}
+
+
     addCustomModifier(ctor, parameters) {
         this.customModifiers.push({
             ctor: ctor,
@@ -239,11 +248,9 @@ class NoVexMeasure {
         }
         for (var i = 0; i < this.tuplets.length; ++i) {
             var tuplet = this.tuplets[i];
-            for (j = 0; i < tuplet.notes.length; ++i) {
-                if (tuplet.notes[j].attrs.id === note.attrs.id) {
-                    return tuplet;
-                }
-            }
+			if (tuplet.attrs.id === note.tuplet.id) {
+				return tuplet;
+			}
             return null;
         }
     }

@@ -46,7 +46,7 @@ class vxAccidentalModifier extends NoteModifierBase {
             var prop = note.keys[i];
 			var vexKey=prop.key+prop.accidental;
             var accidental = (this.keyManager.scale.indexOf(canon.indexOf(vexKey)) < 0);
-            accidental = accidental && !vxTickIterator.hasActiveAccidental(prop, i, accidentalMap);
+            accidental = accidental && !vxTickIterator.hasActiveAccidental(prop, iterator.index, accidentalMap);
 			var cpitch = this.cautionary.pitchArray(iterator.index);
             var cautionary = cpitch.indexOf(i) >= 0;
             // {index:1,value:{symbol:'#',cautionary:false}}
@@ -97,7 +97,7 @@ class vxBeamModifier extends NoteModifierBase {
         // beam tuplets
         if (vexMusic.isTuplet(note)) {
             //todo: when does stack have more than 1?
-            var tuplet = measure.getTupletFromNote(note);
+            var tuplet = this.measure.getTupletForNote(note);
             var ult = tuplet.notes[tuplet.notes.length - 1];
             // is this beamable
             if (iterator.delta < 4096) {
@@ -105,7 +105,7 @@ class vxBeamModifier extends NoteModifierBase {
                 this.currentGroup.push(note);
             }
             // Ultimate note in tuplet
-            if (ult.attrs.id !== note.attrs.id) {
+            if (ult.attrs.id === note.attrs.id) {
                 this.measure.beamGroups.push(new NoVexBeamGroup({
                         notes: this.currentGroup
                     }));

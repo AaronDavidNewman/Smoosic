@@ -97,7 +97,7 @@ class vexMusic {
     }
 	
 	static isTuplet(note) {
-		return note['tuplet'] && note.tuplet['attrs'];
+		return note['tuplet'] && note.tuplet['id'];
 	}
 
     // ### getEnharmonic(noteProp)
@@ -174,10 +174,4 @@ class Selection {
 		}
 		return [];
 	}	
-}
-
-class Range {
-	constructor(params) {
-		VF.Merge(this,params);
-	}
 }

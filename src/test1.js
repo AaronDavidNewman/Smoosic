@@ -96,7 +96,37 @@ class Test1 {
             return timeTest();
         }
 		
+		var setPitchTest = () => {
+			var tickmap = measure.tickmap();
+			var keys=[{
+                    key: 'e',
+                    octave: 4,
+                    accidental: 'b'
+                },{key:'g',octave:5,accidental:''}];
+			var actor = new VxSetPitchActor({
+				 selection: 2,
+                tickmap: tickmap,
+				keys:keys
+			});
+            measure.applyTransform(actor);
+            measure.render();
+            return timeTest();
+        }
+		
+		var makeTupletTest = () => {
+			var tickmap = measure.tickmap();
+			var actor = new VxMakeTupletActor({
+				index:1,
+				ticks:4096,
+				numNotes:3,
+				measure:measure.noVexMeasure
+			});
+			  measure.applyTransform(actor);
+            measure.render();
+            return timeTest();
+		}
+		
         drawDefaults().then(accidentalTest).then(intervalTest).then(durationTest)
-		.then(durationTest2);
+		.then(durationTest2).then(setPitchTest).then(makeTupletTest);
     }
 }
