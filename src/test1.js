@@ -96,6 +96,10 @@ class Test1 {
             return timeTest();
         }
 		
+		var rerenderTest = () => {
+			measure.render();
+			return timeTest();
+		}
 		var setPitchTest = () => {
 			var tickmap = measure.tickmap();
 			var keys=[{
@@ -138,7 +142,7 @@ class Test1 {
 		}
 		
         drawDefaults().then(accidentalTest).then(intervalTest).then(durationTest)
-		.then(durationTest2).then(setPitchTest).then(makeTupletTest)
+		.then(durationTest2).then(rerenderTest).then(setPitchTest).then(makeTupletTest)
 		.then(unmakeTupletTest);
     }
 }

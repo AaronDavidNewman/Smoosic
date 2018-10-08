@@ -237,12 +237,15 @@ class VxContractActor extends NoteTransformBase {
 }
 // ## VxStretchTupletActor
 // Stretch a note in a tuplet, replacing or shortening other notes in the tuplet
+// ## Parameters:
+//   measure, tickmap, tupletInfo, changeIndex, newTicks
 //
 class VxStretchTupletActor extends NoteTransformBase {
-    constructor(measure, tickmap, tupletInfo, changeIndex, newTicks) {
-        this.tickobj = DurationChange.calculateTupletTicks(tickmap, tupletInfo.startIndex, changeIndex, newTicks);
-        this.newTicks = newTicks;
-        this.tupletInfo = tupletInfo;
+    constructor(params) {
+		super();
+		Vex.Merge(this,parameters);
+        this.tickobj = DurationChange.calculateTupletTicks(
+		this.tickmap, this.tuplet.startIndex, this.changeIndex, this.newTicks);
         this.vexDuration = vexMusic.ticksToDuration[newTicks];
         this.remainingTicks = tickobj.C;
         this.measure = measure;

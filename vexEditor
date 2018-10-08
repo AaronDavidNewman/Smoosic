@@ -14,5 +14,6 @@
         <File name="src\modifiers.js" />
         <File name="src\operations.js" />
         <File name="src\tracker.js" />
+        <File name="src\noVex.js" />
     </Project>
 </NotepadPlus>
