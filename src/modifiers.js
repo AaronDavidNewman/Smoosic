@@ -100,15 +100,18 @@ class vxBeamModifier extends NoteModifierBase {
             var tuplet = this.measure.getTupletForNote(note);
             var ult = tuplet.notes[tuplet.notes.length - 1];
             // is this beamable
-            if (iterator.delta < 4096) {
+            if (VF.durationToTicks(note.duration) < 4096) {
                 this.beamGroup = true;
                 this.currentGroup.push(note);
             }
             // Ultimate note in tuplet
             if (ult.attrs.id === note.attrs.id) {
-                this.measure.beamGroups.push(new NoVexBeamGroup({
-                        notes: this.currentGroup
-                    }));
+				// don't beam groups of 1
+				if (this.currentGroup.length>1) {
+					this.measure.beamGroups.push(new NoVexBeamGroup({
+							notes: this.currentGroup
+						}));
+				}
                 this.currentGroup = [];
                 this.duration = 0;
                 this.startRange = iterator.index + 1;

@@ -30,29 +30,32 @@ class VxDurationFactory {
     Bx=offset into tuplet of note to change
     Cx=offset  of first tuplet note after change
      */
-    static calculateTupletTicks(tickmap, tupletInfo, changeIndex, changeTicks) {
+    static calculateTupletTicks(tickmap, tuplet, changeIndex, changeTicks) {
         var iterator = tickmap;
-        var tupletInfo = iterator.tupletMap[tupletId];
-        var D = tupletInfo.smallestDuration * tupletInfo.num_notes;
-        var index = tupletInfo.startIndex;
-        var Ax = tupletInfo.startIndex;
+        var D = tuplet.tickCount;
+        var index = changeIndex;
+        var Ax = tuplet.startIndex;
         var Bx = changeIndex - Ax;
         var Cx = Bx + 1;
         var B = changeTicks;
-        var A = tupletInfo.durations.reduce((sum, current) => {
-                sum + current
-            });
+        var A = 0;
+
         var i;
         // calculate remaining ticks after start note and duration change
-        for (i = tupletInfo.startIndex; i < changeIndex; ++i) {
-            // Can't I just VF.durationToTicks?
-            A += VxDurationFactory.VexDurationToTicks(tupletInfo.durations[i - tupletInfo.startIndex]);
+        for (i = 0; i < tuplet.notes.length; ++i) {
+			var note=tuplet.notes[i];
+            if (i+Ax < Bx) {
+			    A += VF.durationToTicks(note.duration);
+			}
+            else if (i+Ax>Bx) {
+				C+=VF.durationToTicks(note.duration);
+			}
         }
 
         var C = D - (A + B);
         return {
             iterator: iterator,
-            tupletInfo: tupletInfo,
+            tupletInfo: tuplet,
             D: D,
             A: A,
             B: B,
@@ -147,33 +150,6 @@ class VxDurationFactory {
     }
 }
 
-/**
- * Replace tuplet with identical tuplet
- **/
-class VxReplaceTupletActor extends NoteTransformBase {
-    constructor(measure, tickmap, tupletInfo) {
-        this.tickmap = tickmap;
-        this.tupletInfo = tupletInfo;
-        this.tuplet = [];
-    }
-    transformNote(note, iterator, accidentalMap) {
-        if (iterator.index < this.tupletInfo.startIndex || iterator.index > this.tupletInfo.endIndex) {
-            return null;
-        }
-        this.tuplet.push(note);
-        if (iterator.index > this.tupletInfo.endIndex) {
-            var tuplet = new NoVexTuplet(this.tuplet, {
-                    num_notes: tupletInfo.num_notes,
-                    notes_occupied: tupletInfo.notes_occupied,
-                    ratioed: false,
-                    bracketed: true,
-                    location: 1
-                });
-            this.measure.tuplets.push(tuplet);
-        }
-        return [note];
-    }
-}
 
 // ## VxContractActor
 // Contract the duration of a note, filling in the space with another note
@@ -236,55 +212,29 @@ class VxContractActor extends NoteTransformBase {
     }
 }
 // ## VxStretchTupletActor
-// Stretch a note in a tuplet, replacing or shortening other notes in the tuplet
+// Stretch a note in a tuplet, removing or shortening other notes in the tuplet
 // ## Parameters:
-//   measure, tickmap, tupletInfo, changeIndex, newTicks
+//   {changeIndex:changeIndex, multiplier:multiplier,measure:measure}
 //
 class VxStretchTupletActor extends NoteTransformBase {
     constructor(params) {
 		super();
-		Vex.Merge(this,parameters);
-        this.tickobj = DurationChange.calculateTupletTicks(
-		this.tickmap, this.tuplet.startIndex, this.changeIndex, this.newTicks);
-        this.vexDuration = vexMusic.ticksToDuration[newTicks];
-        this.remainingTicks = tickobj.C;
-        this.measure = measure;
-        this.tuplet = [];
+		Vex.Merge(this,params);		
+		this.tickmap=VX.TICKMAP(this.measure);
+		this.tuplet  = this.measure.getTupletForNote(this.measure.notes[this.changeIndex]);
+		this.oldLength=this.tuplet.notes.length;
+		this.tupletIndex = this.measure.tupletIndex(this.tuplet);
+		
+		this.tuplet.combine(this.startIndex,this.endIndex);
+		this.durationMap=this.tuplet.durationMap;	        
     }
     transformNote(note, iterator, accidentalMap) {
 
-        var index = iterator.index;
-        var tupletInfo = iterator.tupletMap[note.tuplet.attrs.id];
-        var tickobj = this.tickobj;
-        var D = tickobj.D;
-        var Ax = tickobj.Ax;
-        var Bx = tickobj.Bx;
-        var Cx = tickobj.Cx;
-        var B = tickobj.B;
-        var A = tickobj.A;
-        var C = tickobj.C;
-
-        // if this exceeds the length of tuplet, fail
-        if (tickobj.C < 0) {
-            return [note];
-        }
-
-        if (iterator.index < Ax || iterator.index >= Cx) {
-            return null;
-        }
-        var notes = [];
-        var duration = tupletInfo.durations[tupletIndex];
-
-        var tupletIndex = Ax - iterator.index;
-
         /*
         ## Strategy:
-        Parts of tuplet before A, leave alone
-        Parts of tuplet B, give new duration
-        After B:
-        place notes that fit as normal
-        shorten notes that don't fit
-        once all the ticks are used up, just remove the notes
+        Before A, after C, leave alone
+        At A, send all notes of the tuplet
+        Between A+1 and C, return empty array for removed note
 
         5
         ---------
@@ -292,61 +242,16 @@ class VxStretchTupletActor extends NoteTransformBase {
         n n n n n
         A | B | C
          */
-        if (iterator.index < Bx) {
-            this.remainingTicks -= duration;
-            notes.push(note);
-            this.tuplet.push(note);
 
-        } else if (iterator.index == Bx) {
-            // The note we are changing explicitly
-            this.remainingTicks -= this.newTicks;
-            var note = NoVexNote({
-                    clef: note.clef,
-                    keys: note.keys,
-                    duration: this.vexDuration
-
-                });
-            notes.push(note);
-            this.tuplet.push(note);
-
-        }
-        // Cx > iterator.index > Bx.
-        // Borrow ticks from remaining notes.
-        else {
-            if (this.remainingTicks <= 0) {
-                notes = [];
-            } else {
-                if (tupletInfo.durations[tupletIndex] > this.remainingTicks) {
-                    duration = this.remainingTicks;
-                    this.remainingTicks = 0;
-                } else {
-                    this.remainingTicks -= duration;
-                }
-
-                var vexDuration = vxMusic.ticksToDuration[duration];
-                var note = NoVexNote({
-                        clef: note.clef,
-                        keys: note.keys,
-                        duration: vexDuration
-                    });
-                notes.push(note);
-                this.tuplet.push(note);
-            }
-        }
-
-        if (iterator.index == Cx) {
-            // this sets the correct duration and so needs to be called, even
-            // though it is not used.
-            var tuplet = new NoVexTuplet(this.tuplet, {
-                    num_notes: tupletInfo.num_notes,
-                    notes_occupied: tupletInfo.notes_occupied,
-                    ratioed: false,
-                    bracketed: true,
-                    location: 1
-                });
-            this.measure.tuplets.push(tuplet);
-        }
-        return notes;
+		if (iterator.index < this.tupletIndex) 
+			return note;
+		if (iterator.index >= this.tupletIndex+this.oldLength) 
+			return note;
+		if (iterator.index === this.tupletIndex) {
+			return this.tuplet.notes;
+		}
+		return [];
+        
     }
 
 }
@@ -420,7 +325,7 @@ class VxContractTupletActor extends NoteTransformBase {
             // this sets the correct duration and so needs to be called, even
             // though it is not used.
             var tuplet = new NoVexTuplet(this.tuplet, {
-                    num_notes: tupletInfo.num_notes,
+                    numNotes: tupletInfo.num_notes,
                     notes_occupied: tupletInfo.notes_occupied,
                     ratioed: false,
                     bracketed: true,
@@ -471,7 +376,7 @@ class VxMakeTupletActor extends NoteTransformBase {
     constructor(params) {
 		super();
         Vex.Merge(this, params);
-        var ticks = this.ticks;
+        var ticks = this.baseTicks;
         var tupletTicks = ticks / this.numNotes;
         var normalizedTicks = ticks;
         while (normalizedTicks > tupletTicks) {
@@ -480,7 +385,6 @@ class VxMakeTupletActor extends NoteTransformBase {
             }
             normalizedTicks = Math.round(Math.abs(normalizedTicks / 2));
         }
-        this.notesOccupied = ticks / normalizedTicks;
 		this.normalizedTicks=normalizedTicks;
 
       
@@ -502,10 +406,11 @@ class VxMakeTupletActor extends NoteTransformBase {
         }
         var tuplet = new NoVexTuplet( {
 			notes:this.tuplet,
-                num_notes: this.numNotes,
-                notes_occupied: this.notesOccupied,
+                numNotes: this.numNotes,
+                baseTicks: this.baseTicks,
                 ratioed: false,
                 bracketed: true,
+				startIndex:iterator.index,
                 location: 1
             });
         this.measure.tuplets.push(tuplet);

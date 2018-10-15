@@ -42,6 +42,7 @@ class VxMeasure {
 
     applyTransform(actor) {
 		this.noVexMeasure.clearAccidentals();
+		this.noVexMeasure.clearBeamGroups();
         var transformer = new VxTransformer(this.noVexMeasure, [actor]);
         transformer.run();
         this.noVexMeasure.notes = transformer.notes;

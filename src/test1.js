@@ -1,14 +1,4 @@
 
-var timeTest = () => {
-    const promise = new Promise((resolve, reject) => {
-            setTimeout(() => {
-                resolve();
-            },
-                500);
-        });
-    return promise;
-};
-
 class Test1 {
 
     // Create an SVG renderer and attach it to the DIV element named "boo".
@@ -121,7 +111,7 @@ class Test1 {
 			var tickmap = measure.tickmap();
 			var actor = new VxMakeTupletActor({
 				index:1,
-				ticks:4096,
+				baseTicks:4096,
 				numNotes:3,
 				measure:measure.noVexMeasure
 			});

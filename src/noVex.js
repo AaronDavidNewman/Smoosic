@@ -83,6 +83,16 @@ class NoVexNote {
         this.dots = num;
         return this;
     }
+	static clone(note) {
+		var keys = Object.keys(note);
+		var clone = {};
+		for (var i=0;i<keys.length;++i) {
+			var key=keys[i];
+			clone[key]=note[key];
+		}
+		// should tuplet info be cloned?
+		return new NoVexNote(clone);
+	}
     static get defaults() {
         return {
             timeSignature: '4/4',
@@ -121,13 +131,67 @@ class NoVexTuplet {
             var normTicks = VF.durationToTicks(note.duration);
             var tupletBase = normTicks * this.notes_occupied;
             note.ticks.denominator = 1;
-            note.ticks.numerator = Math.floor(tupletBase / this.num_notes);
+            note.ticks.numerator = Math.floor(this.baseTicks / this.numNotes);
             // put all the remainder in the first note of the tuplet
-            note.ticks.remainder = (i == 0) ? tupletBase % this.num_notes : 0;
+            note.ticks.remainder = (i == 0) ?this.baseTicks % this.numNotes : 0;
 
             note.tuplet = this.attrs;
         }
     }
+	combine(startIndex,endIndex) {
+		// can't combine in this way, too many notes
+		if (this.num_notes <= endIndex || startIndex >= endIndex) {
+			return this;
+		}
+		var acc=0.0;
+		var i;
+		var base=0.0;
+		for (i=startIndex;i<=endIndex;++i) {
+			acc+=this.durationMap[i];
+			if (i==startIndex) {
+				base=this.durationMap[i];
+			}
+			else if (this.durationMap[i] != base) {
+				// Can't combine non-equal tuplet notes
+				return this;
+			}
+		}
+		// how much each combined value will be multiplied by
+		var multiplier=acc/base;
+		
+		var nmap=[];
+		var nnotes=[];
+		// adjust the duration map
+		for (i=0;i<this.num_notes;++i) {
+			var note = this.notes[i];
+			// notes that don't change are unchanged
+			if (i<startIndex || i > endIndex) {
+				nmap.push(this.durationMap[i]);
+				nnotes.push(note);
+			}
+			// changed note with combined duration
+			if (i == startIndex) {
+				note.ticks.numerator=note.ticks.numerator*acc;
+				var normTicks = VF.durationToTicks(note.duration)*multiplier;
+				note.duration=vexMusic.ticksToDuration[normTicks];
+				nmap.push(acc);
+				nnotes.push(note);
+			}
+			// other notes after startIndex are removed from the map.
+		}
+		this.notes=nnotes;
+		this.durationMap=nmap;
+	}
+	get num_notes() {
+		var acc=0;
+		for (var i=0;i<this.durationMap.length;++i) {
+			acc+=this.durationMap[i];
+		}
+		return Math.round(acc);
+	}
+	get notes_occupied() {
+		return this.baseTicks/2048;
+	}
     get tickCount() {
         var rv = 0;
         for (var i = 0; i < this.notes.length; ++i) {
@@ -138,9 +202,10 @@ class NoVexTuplet {
     }
     static get defaults() {
         return {
-            num_notes: 3,
-            notes_occupied: 2,
+            numNotes: 3,
+			baseTicks:4096,
             location: 1,
+			durationMap:[1.0,1.0,1.0],
             bracketed: true,
             ratioed: false
         }
@@ -158,7 +223,8 @@ class NoVexBeamGroup {
 
         for (var i = 0; i < this.notes.length; ++i) {
             var note = this.notes[i];
-            note.beam_group = this.attrs;
+			if (VF.durationToTicks(note.duration) < 4096)
+				note.beam_group = this.attrs;
         }
     }
 }
@@ -232,12 +298,23 @@ class NoVexMeasure {
             ]
         };
     }
+	clearBeamGroups() {
+		this.beamGroups=[];
+	}
 
     clearAccidentals() {
         for (var i = 0; i < this.notes.length; ++i) {
             this.notes[i].accidentals = [];
         }
     }
+	tupletIndex(tuplet) {
+		for (var i=0;i<this.notes.length;++i) {
+			if (this.notes[i]['tuplet'] && this.notes[i].tuplet.id===tuplet.attrs.id) {
+				return i;
+			}
+		}
+		return -1;
+	}
 
 	removeTupletForNote(note) {
 		var tuplets=[];
