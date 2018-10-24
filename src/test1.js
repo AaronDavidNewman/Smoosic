@@ -111,7 +111,7 @@ class Test1 {
 			var tickmap = measure.tickmap();
 			var actor = new VxMakeTupletActor({
 				index:1,
-				baseTicks:4096,
+				totalTicks:4096,
 				numNotes:3,
 				measure:measure.noVexMeasure
 			});

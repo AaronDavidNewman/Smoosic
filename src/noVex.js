@@ -126,18 +126,46 @@ class NoVexTuplet {
     }
 
     _adjustTicks() {
+		var sum = this.durationSum;
         for (var i = 0; i < this.notes.length; ++i) {
             var note = this.notes[i];
-            var normTicks = VF.durationToTicks(note.duration);
+            var normTicks = VF.durationToTicks(vexMusic.ticksToDuration[this.stemTicks]);
+			// TODO:  notes_occupied needs to consider vex duration
             var tupletBase = normTicks * this.notes_occupied;
             note.ticks.denominator = 1;
-            note.ticks.numerator = Math.floor(this.baseTicks / this.numNotes);
+            note.ticks.numerator = Math.floor((this.totalTicks * this.durationMap[i])/sum);
             // put all the remainder in the first note of the tuplet
-            note.ticks.remainder = (i == 0) ?this.baseTicks % this.numNotes : 0;
+            note.ticks.remainder = (i == 0) ? this.totalTicks * this.durationMap[i] % sum : 0;
 
             note.tuplet = this.attrs;
         }
     }
+	split(combineIndex) {
+		var multiplier=0.5;
+		var nnotes=[];
+		var nmap=[];
+		
+		for (var i=0;i<this.notes.length;++i) {
+			var note = this.notes[i];
+			if (i === combineIndex) {
+				nmap.push(this.durationMap[i]*multiplier);
+				nmap.push(this.durationMap[i]*multiplier);
+				note.ticks.numerator *= multiplier;
+				
+				var normalizedTicks=VF.durationToTicks(note.duration)/2;
+				note.duration=vexMusic.ticksToDuration[normalizedTicks];
+				
+				var onote=NoVexNote.clone(note);
+			    nnotes.push(note);
+				nnotes.push(onote);
+			} else {
+				nmap.push(this.durationMap[i]);
+				nnotes.push(note);
+			}
+		}
+		this.notes=nnotes;
+		this.durationMap=nmap;
+	}
 	combine(startIndex,endIndex) {
 		// can't combine in this way, too many notes
 		if (this.num_notes <= endIndex || startIndex >= endIndex) {
@@ -182,15 +210,18 @@ class NoVexTuplet {
 		this.notes=nnotes;
 		this.durationMap=nmap;
 	}
-	get num_notes() {
+	get durationSum() {
 		var acc=0;
 		for (var i=0;i<this.durationMap.length;++i) {
 			acc+=this.durationMap[i];
 		}
 		return Math.round(acc);
 	}
+	get num_notes() {
+		return this.durationSum;
+	}
 	get notes_occupied() {
-		return this.baseTicks/2048;
+		return this.totalTicks/this.stemTicks;
 	}
     get tickCount() {
         var rv = 0;
@@ -203,7 +234,8 @@ class NoVexTuplet {
     static get defaults() {
         return {
             numNotes: 3,
-			baseTicks:4096,
+			totalTicks:4096,  // how many ticks this tuple takes up
+			stemTicks:2048,  // the stem ticks, for drawing purposes.  >16th, draw as 8th etc.
             location: 1,
 			durationMap:[1.0,1.0,1.0],
             bracketed: true,
@@ -324,7 +356,7 @@ class NoVexMeasure {
 				tuplets.push(tuplet);
 			}
 		}
-		this.tuplets=tuplet;
+		this.tuplets=tuplets;
 	}
     addCustomModifier(ctor, parameters) {
         this.customModifiers.push({

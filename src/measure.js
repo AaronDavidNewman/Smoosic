@@ -145,6 +145,8 @@ class VxMeasure {
         this.createVexNotes();
         this.createVexTuplets();
         this.createVexBeamGroups();
+		// offset for left-hand stuff
+		var xOffset=0;
         this.stave = new VF.Stave(this.staffX, this.staffY, this.staffWidth);
 
         // Add a clef and time signature.
@@ -152,6 +154,7 @@ class VxMeasure {
             this.stave.addClef(this.noVexMeasure.clef)
             .addTimeSignature(this.noVexMeasure.timeSignature)
             .addKeySignature(this.noVexMeasure.keySignature);
+			xOffset=70;
         }
         // Connect it to the rendering context and draw!
         this.stave.setContext(this.context).draw();
@@ -163,7 +166,7 @@ class VxMeasure {
                 beat_value: this.noVexMeasure.beatValue
             });
         this.voice.addTickables(this.vexNotes);
-        this.formatter = new VF.Formatter().joinVoices([this.voice]).format([this.voice], this.staffWidth);
+        this.formatter = new VF.Formatter().joinVoices([this.voice]).format([this.voice], this.staffWidth-xOffset);
         this.voice.draw(this.context, this.stave);
 
         var self = this;

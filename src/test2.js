@@ -10,7 +10,7 @@ class Test2 {
         var renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
 
         // Configure the rendering context.
-        renderer.resize(500, 500);
+        renderer.resize(1280, 500);
         var context = renderer.getContext();
         context.setFont("Arial", 10, "").setBackgroundFillStyle("#eed");
         return context;
@@ -36,33 +36,102 @@ class Test2 {
             measure.render();
             return timeTest();
         }
-        
-		
-		var makeTupletTest = () => {
-			var tickmap = measure.tickmap();
-			var actor = new VxMakeTupletActor({
-				index:1,
-				baseTicks:4096,
-				numNotes:3,
-				measure:measure.noVexMeasure
-			});
-			  measure.applyTransform(actor);
+
+        var makeTupletTest = () => {
+            var tickmap = measure.tickmap();
+            var actor = new VxMakeTupletActor({
+                    index: 1,
+                    totalTicks: 4096,
+                    numNotes: 3,
+                    measure: measure.noVexMeasure
+                });
+            measure.applyTransform(actor);
             measure.render();
             return timeTest();
-		}
-		
-		var stretchTupletTest = () => {
-			var actor = new VxStretchTupletActor({
-				changeIndex:1,
-				startIndex:0,
-				endIndex:1,
-				measure:measure.noVexMeasure
-			});
-			measure.applyTransform(actor);
+        }
+
+        var stretchTupletTest = () => {
+            var actor = new VxStretchTupletActor({
+                    changeIndex: 1,
+                    startIndex: 0,
+                    endIndex: 1,
+                    measure: measure.noVexMeasure
+                });
+            measure.applyTransform(actor);
             measure.render();
             return timeTest();
-		}
+        }
+
+        var contractTupletTest = () => {
+            // maybe just need changeIndex?
+            var actor = new VxContractTupletActor({
+                    changeIndex: 1,
+                    measure: measure.noVexMeasure
+                });
+            measure.applyTransform(actor);
+            measure.render();
+            return timeTest();
+        }
+
+        var stretchTupletTest2 = () => {
+            var actor = new VxStretchTupletActor({
+                    changeIndex: 2,
+                    startIndex: 1,
+                    endIndex: 2,
+                    measure: measure.noVexMeasure
+                });
+            measure.applyTransform(actor);
+            measure.render();
+            return timeTest();
+        }
+        var contractTupletTest2 = () => {
+            // maybe just need changeIndex?
+            var actor = new VxContractTupletActor({
+                    changeIndex: 2,
+                    measure: measure.noVexMeasure
+                });
+            measure.applyTransform(actor);
+            measure.render();
+            return timeTest();
+        }
+		var contractTupletTest3 = () => {
+            // maybe just need changeIndex?
+            var actor = new VxContractTupletActor({
+                    changeIndex: 1,
+                    measure: measure.noVexMeasure
+                });
+            measure.applyTransform(actor);
+            measure.render();
+            return timeTest();
+        }
+
+		var unmakeTupletTest = () => {
+            // maybe just need changeIndex?
+            var actor = new VxUnmakeTupletActor({
+                    startIndex:1,
+				    endIndex:4,
+                    measure: measure.noVexMeasure
+                });
+            measure.applyTransform(actor);
+            measure.render();
+            return timeTest();
+        }
 		
-        drawDefaults().then(makeTupletTest).then(stretchTupletTest);
+		var makeTupletTest2 = () => {
+            // maybe just need changeIndex?
+            var actor = new VxMakeTupletActor({
+                    index:3,
+					totalTicks:4096,
+				    numNotes:5,
+                    measure: measure.noVexMeasure
+                });
+            measure.applyTransform(actor);
+            measure.render();
+            return timeTest();
+        }
+				
+        drawDefaults().then(makeTupletTest).then(stretchTupletTest).then(contractTupletTest)
+		.then(stretchTupletTest2).then(contractTupletTest2).then(contractTupletTest3)
+		.then(unmakeTupletTest).then(makeTupletTest2);
     }
 }
