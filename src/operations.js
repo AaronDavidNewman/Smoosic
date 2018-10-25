@@ -1,6 +1,6 @@
 
 class vxMeasureOperations {
-	
+	/*
 	static applyNoopDurationTransform(measure) {
 		// -1 because no change in duration
 		var actors = vxDurationFactory.vxCreateDurationChangeActors(measure,-1);
@@ -66,5 +66,5 @@ class vxMeasureOperations {
 
 		measure.applyModifiers();
 		return measure;
-	}  
+	}     */
 }
