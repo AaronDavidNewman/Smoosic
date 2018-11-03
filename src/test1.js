@@ -24,14 +24,14 @@ class Test1 {
                     setTimeout(() => {
                         resolve();
                     },
-                        500);
+                        100);
                 });
             return promise;
         }
 
         var drawDefaults = () => {
             // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
-            measure.applyModifiers();
+            // measure.applyModifiers();
             measure.render();
             return timeTest();
         }
@@ -131,8 +131,19 @@ class Test1 {
             return timeTest();
 		}
 		
+		var courtesyTest = () => {
+			var courtesy= new Selection([{
+			tickIndex:2,pitches:[1]}
+            ]);
+			measure.noVexMeasure.modifierOptions={cautionary:courtesy};
+			measure.applyModifiers();
+			// measure.noVexMeasure.notes[1].accidentals[0].value.isCautionary = true;
+			measure.render();
+			return timeTest();
+		}
+		
         drawDefaults().then(accidentalTest).then(intervalTest).then(durationTest)
 		.then(durationTest2).then(rerenderTest).then(setPitchTest).then(makeTupletTest)
-		.then(unmakeTupletTest);
+		.then(unmakeTupletTest).then(courtesyTest);
     }
 }

@@ -52,6 +52,8 @@ class vxAccidentalModifier extends NoteModifierBase {
             // {index:1,value:{symbol:'#',cautionary:false}}
 
             if (accidental || cautionary) {
+				// if cautionary natural
+				prop.accidental = (prop.accidental) ? prop.accidental : 'n';
                 note.addAccidental({
                     index: i,
                     value: {

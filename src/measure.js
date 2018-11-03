@@ -22,6 +22,7 @@ class VxMeasure {
         this.noteToVexMap = {};
         this.beamToVexMap = {};
         this.tupletToVexMap = {};
+		this.modifierOptions={};
 
         this.vexNotes = [];
         this.vexBeamGroups = [];
@@ -49,13 +50,15 @@ class VxMeasure {
         this.applyModifiers();
     }
     applyModifiers() {
+		this.modifierOptions = this.noVexMeasure.modifierOptions;
         var modifiers = this.getModifiers();
         var apply = new vxModifier(this.noVexMeasure, modifiers);
         apply.run();
     }
     getModifiers() {
+		
 
-        var actors = vxModifierFactory.getStandardModifiers(this.noVexMeasure);
+        var actors = vxModifierFactory.getStandardModifiers(this.noVexMeasure,this.modifierOptions);
         for (var i = 0; i < this.noVexMeasure.customModifiers.length; ++i) {
             var modifier = this.noVexMeasure.customModifiers[i];
             var ctor = eval(modifier.ctor);
@@ -80,7 +83,7 @@ class VxMeasure {
         for (var i = 0; i < noVxNote.accidentals.length; ++i) {
             var noVexAcc = noVxNote.accidentals[i];
             var acc = new VF.Accidental(noVexAcc.value.symbol);
-            if (noVexAcc.value.isCautionary)
+            if (noVexAcc.value.cautionary)
                 acc.setAsCautionary();
             vexNote.addAccidental(noVexAcc.index, acc);
 
@@ -139,7 +142,7 @@ class VxMeasure {
     render() {
 
         $(this.context.svg).find('g.' + this.noVexMeasure.attrs.id).remove();
-
+		
         var group = this.context.openGroup();
         group.classList.add(this.noVexMeasure.attrs.id);
         this.createVexNotes();

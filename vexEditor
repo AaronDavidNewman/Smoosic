@@ -1,13 +1,9 @@
 <NotepadPlus>
     <Project name="vexEditor">
-        <File name="src\clone.js" />
         <File name="src\duration.js" />
         <File name="src\iterator.js" />
         <File name="src\test1.js" />
         <File name="src\test2.js" />
-        <File name="src\testEditor.html" />
-        <File name="src\testEditor.js" />
-        <File name="src\testHtml.html" />
         <File name="src\vexHelpers.js" />
         <File name="src\transform.js" />
         <File name="src\measure.js" />
@@ -15,5 +11,7 @@
         <File name="src\operations.js" />
         <File name="src\tracker.js" />
         <File name="src\noVex.js" />
+        <File name="src\tupletTest.html" />
+        <File name="src\chordTest.html" />
     </Project>
 </NotepadPlus>

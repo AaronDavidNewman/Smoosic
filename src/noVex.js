@@ -62,10 +62,7 @@ class NoVexNote {
     get tickCount() {
         return this.ticks.numerator / this.ticks.denominator + this.ticks.remainder;
     }
-    setKeys(selections, keys) {
-        this.keys = keys;
-        return this;
-    }
+    
     // ## Accidental format
     // {index:1,value:{symbol:'#',cautionary:false}}
     addAccidental(accidental) {
@@ -101,6 +98,7 @@ class NoVexNote {
             noteType: 'n',
             numBeats: 4,
             beatValue: 4,
+			voice:0,
             duration: '4',
             keys: [{
                     key: 'b',
@@ -283,6 +281,7 @@ class NoVexMeasure {
             staffY: 40,
             drawClef: true,
             staffWidth: 400,
+		    modifierOptions:{},
             clef: 'treble',
             numBeats: 4,
             beatValue: 4,
