@@ -364,8 +364,8 @@ class NoVexMeasure {
         });
     }
 
-    setNumber(measureNumber) {
-        this.measureNumber = measureNumber;
+    setNumbering(numberObj) {
+        Vex.Merge(this, numberObj);
     }
     getTupletForNote(note) {
         if (!vexMusic.isTuplet(note)) {
