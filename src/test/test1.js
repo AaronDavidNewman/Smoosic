@@ -113,7 +113,7 @@ class Test1 {
 				index:1,
 				totalTicks:4096,
 				numNotes:3,
-				measure:measure.noVexMeasure
+				measure:measure.smoMeasure
 			});
 			  measure.applyTransform(actor);
             measure.render();
@@ -124,7 +124,7 @@ class Test1 {
 			var actor = new VxUnmakeTupletActor({
 				startIndex:1,
 				endIndex:3,
-				measure:measure.noVexMeasure
+				measure:measure.smoMeasure
 			});
 			  measure.applyTransform(actor);
             measure.render();
@@ -135,7 +135,7 @@ class Test1 {
 			var courtesy= new Selection([{
 			tickIndex:2,pitches:[1]}
             ]);
-			measure.noVexMeasure.modifierOptions={cautionary:courtesy};
+			measure.smoMeasure.modifierOptions={cautionary:courtesy};
 			measure.applyModifiers();
 			// measure.noVexMeasure.notes[1].accidentals[0].value.isCautionary = true;
 			measure.render();

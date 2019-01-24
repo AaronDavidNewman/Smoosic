@@ -43,7 +43,7 @@ class Test2 {
                     index: 1,
                     totalTicks: 4096,
                     numNotes: 3,
-                    measure: measure.noVexMeasure
+                    measure: measure.smoMeasure
                 });
             measure.applyTransform(actor);
             measure.render();
@@ -55,7 +55,7 @@ class Test2 {
                     changeIndex: 1,
                     startIndex: 0,
                     endIndex: 1,
-                    measure: measure.noVexMeasure
+                    measure: measure.smoMeasure
                 });
             measure.applyTransform(actor);
             measure.render();
@@ -66,7 +66,7 @@ class Test2 {
             // maybe just need changeIndex?
             var actor = new VxContractTupletActor({
                     changeIndex: 1,
-                    measure: measure.noVexMeasure
+                    measure: measure.smoMeasure
                 });
             measure.applyTransform(actor);
             measure.render();
@@ -78,7 +78,7 @@ class Test2 {
                     changeIndex: 2,
                     startIndex: 1,
                     endIndex: 2,
-                    measure: measure.noVexMeasure
+                    measure: measure.smoMeasure
                 });
             measure.applyTransform(actor);
             measure.render();
@@ -88,7 +88,7 @@ class Test2 {
             // maybe just need changeIndex?
             var actor = new VxContractTupletActor({
                     changeIndex: 2,
-                    measure: measure.noVexMeasure
+                    measure: measure.smoMeasure
                 });
             measure.applyTransform(actor);
             measure.render();
@@ -98,7 +98,7 @@ class Test2 {
             // maybe just need changeIndex?
             var actor = new VxContractTupletActor({
                     changeIndex: 1,
-                    measure: measure.noVexMeasure
+                    measure: measure.smoMeasure
                 });
             measure.applyTransform(actor);
             measure.render();
@@ -110,7 +110,7 @@ class Test2 {
             var actor = new VxUnmakeTupletActor({
                     startIndex:1,
 				    endIndex:4,
-                    measure: measure.noVexMeasure
+                    measure: measure.smoMeasure
                 });
             measure.applyTransform(actor);
             measure.render();
@@ -123,7 +123,7 @@ class Test2 {
                     index:3,
 					totalTicks:4096,
 				    numNotes:5,
-                    measure: measure.noVexMeasure
+                    measure: measure.smoMeasure
                 });
             measure.applyTransform(actor);
             measure.render();

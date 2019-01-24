@@ -110,7 +110,7 @@ class vxBeamModifier extends NoteModifierBase {
             if (ult.attrs.id === note.attrs.id) {
 				// don't beam groups of 1
 				if (this.currentGroup.length>1) {
-					this.measure.beamGroups.push(new NoVexBeamGroup({
+					this.measure.beamGroups.push(new SmoBeamGroup({
 							notes: this.currentGroup
 						}));
 				}
@@ -130,7 +130,7 @@ class vxBeamModifier extends NoteModifierBase {
 
         this.currentGroup.push(note);
         if (this.duration == this.beamBeats) {
-            this.measure.beamGroups.push(new NoVexBeamGroup({
+            this.measure.beamGroups.push(new SmoBeamGroup({
                     notes: this.currentGroup
                 }));
             this.currentGroup = [];

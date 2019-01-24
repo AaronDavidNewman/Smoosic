@@ -174,7 +174,7 @@ class VxContractActor extends NoteTransformBase {
                  *     d  d  d  .  .
                  */
                 for (var i = 0; i < noteCount; ++i) {
-                    notes.push(new NoVexNote({
+                    notes.push(new SmoNote({
                             clef: note.clef,
                             keys: note.keys,
                             duration: vexDuration
@@ -192,12 +192,12 @@ class VxContractActor extends NoteTransformBase {
                 var gap = this.tickmap.durationMap[this.startIndex + 1] -
                     (iterator.totalDuration + noteCount * this.newTicks);
                 var vexGapDuration = vexMusic.ticksToDuration[this.newTicks];
-                notes.push(new NoVexNote({
+                notes.push(new SmoNote({
                         clef: note.clef,
                         keys: note.keys,
                         duration: vexDuration
                     }));
-                notes.push(new NoVexNote({
+                notes.push(new SmoNote({
                         clef: note.clef,
                         keys: note.keys,
                         duration: vexGapDuration,
@@ -284,7 +284,7 @@ class VxContractTupletActor extends NoteTransformBase {
 // ## Parameters:
 // startIndex: start index of tuplet
 // endIndex: end index of tuplet
-// measure: noVex measure that the tuplet is contained in.
+// measure: Smo measure that the tuplet is contained in.
 class VxUnmakeTupletActor extends NoteTransformBase {
     constructor(parameters) {
         super();
@@ -298,7 +298,7 @@ class VxUnmakeTupletActor extends NoteTransformBase {
             var tuplet = this.measure.getTupletForNote(note);
             var ticks = tuplet.totalTicks;
             var vexDuration = vexMusic.ticksToDuration[ticks];
-            var nn = new NoVexNote({
+            var nn = new SmoNote({
                     clef: note.clef,
                     keys: note.keys,
                     duration: vexDuration
@@ -339,14 +339,14 @@ class VxMakeTupletActor extends NoteTransformBase {
             return null;
         }
         for (var i = 0; i < this.numNotes; ++i) {
-            note = new NoVexNote({
+            note = new SmoNote({
                     clef: note.clef,
                     keys: note.keys,
                     duration: this.vexDuration
                 });
             this.tuplet.push(note);
         }
-        var tuplet = new NoVexTuplet({
+        var tuplet = new SmoTuplet({
                 notes: this.tuplet,
                 stemTicks: this.stemTicks,
                 totalTicks: this.totalTicks,
@@ -414,7 +414,7 @@ class VxStretchNoteActor extends NoteTransformBase {
                 return [];
             }
             var vexDuration = vexMusic.ticksToDuration[ticks];
-            var note = new NoVexNote({
+            var note = new SmoNote({
                     clef: note.clef,
                     keys: note.keys,
                     duration: vexDuration
