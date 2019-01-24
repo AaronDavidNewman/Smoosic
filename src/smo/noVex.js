@@ -263,8 +263,6 @@ class NoVexMeasure {
     constructor(params) {
         this.tuplets = [];
         this.beamGroups = [];
-        this.notes = [];
-        this.measureNumber = 1;
         this.attrs = {
             id: VF.Element.newID(),
             type: 'NoVexMeasure'
@@ -279,7 +277,9 @@ class NoVexMeasure {
             staffX: 10,
             customModifiers: [],
             staffY: 40,
+			bars:[1,1],  // follows enumeration in VF.Barline
             drawClef: true,
+			measureNumber:1,
             staffWidth: 400,
 		    modifierOptions:{},
             clef: 'treble',
@@ -364,8 +364,8 @@ class NoVexMeasure {
         });
     }
 
-    setNumbering(numberObj) {
-        Vex.Merge(this, numberObj);
+    setMeasureNumber(num) {
+        this.measureNumber=num;
     }
     getTupletForNote(note) {
         if (!vexMusic.isTuplet(note)) {

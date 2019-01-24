@@ -31,7 +31,7 @@ class VxSystemStaff {
 	}
 	addMeasure(index,measure) {
 		if (index === 0 && this.measures.length) {
-			measure.setNumber(this.measures[0].measureNumber);
+			measure.setMeasureNumber(this.measures[0].measureNumber);
 		}
 		if (index>=this.measures.length) {
 			this.measures.push(measure);
@@ -39,6 +39,6 @@ class VxSystemStaff {
 			this.measures.splice(index,0,measure);
 		}
 		
-		this._renumberMeasures();
+		this._numberMeasures();
 	}
 }
