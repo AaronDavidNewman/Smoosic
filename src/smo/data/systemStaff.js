@@ -1,23 +1,28 @@
 
-class VxSystemStaff {
+class SmoSystemStaff {
 	constructor(params) {
 		this.measures=[];
-		VF.Merge(this,VxSystemStaff.defaults);
+		VF.Merge(this,SmoSystemStaff.defaults);
 		VF.Merge(this,params);
 	}
 	static get defaults() {
 		return {
             staffX: 10,
             staffY: 40,
-            staffWidth: 400,
+            staffWidth: 1600,
 			startIndex:0,
-			renumberingMap:{}
+			renumberingMap:{},
+			measures:[]
         };
 	}
 	
 	_numberMeasures() {
 		this.renumberIndex = this.startIndex;
+		var startx = 0;
 		for (var i=0;i<this.measures.length;++i) {
+			var measure = this.measures[i];
+			startx += (i > 0) ? this.measures[i-1].staffWidth : measure.staffX;
+			measure.staffX=startx;
 			renumberIndex = this.renumberingMap[i] ? this.renumberingMap[i].startIndex : renumberIndex;
 			var localIndex = renumberIndex + i;
 			numberObj = {
@@ -25,7 +30,6 @@ class VxSystemStaff {
 				measureIndex:i+this.startIndex,
 				systemIndex:i
 			}
-			var measure=this.measures[i];
 			measure.setMeasureNumber(i+1);
 		}
 	}
@@ -40,5 +44,6 @@ class VxSystemStaff {
 		}
 		
 		this._numberMeasures();
+		return this; // fluent interface
 	}
 }

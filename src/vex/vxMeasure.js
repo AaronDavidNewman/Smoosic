@@ -18,7 +18,7 @@ class VxMeasure {
         this.context = context;
         Vex.Merge(this, VxMeasure.defaults);
         Vex.Merge(this, options);
-        this.smoMeasure = new SmoMeasure(options);
+        this.smoMeasure = this.smoMeasure ? this.smoMeasure : new SmoMeasure(options);
         this.noteToVexMap = {};
         this.beamToVexMap = {};
         this.tupletToVexMap = {};
@@ -34,7 +34,8 @@ class VxMeasure {
             staffX: 10,
             staffY: 40,
             staffWidth: 400,
-            drawClef: true
+            drawClef: true,
+			smoMeasure:null
         };
     }
     addCustomModifier(ctor, parameters) {
@@ -56,8 +57,6 @@ class VxMeasure {
         apply.run();
     }
     getModifiers() {
-		
-
         var actors = vxModifierFactory.getStandardModifiers(this.smoMeasure,this.modifierOptions);
         for (var i = 0; i < this.smoMeasure.customModifiers.length; ++i) {
             var modifier = this.smoMeasure.customModifiers[i];
