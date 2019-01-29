@@ -25,6 +25,7 @@ class SmoMeasure {
 		    modifierOptions:{},
             clef: 'treble',
             numBeats: 4,
+			forceClef:false,
             beatValue: 4,
             notes: [
                 new SmoNote({

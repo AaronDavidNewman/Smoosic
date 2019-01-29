@@ -34,7 +34,6 @@ class VxMeasure {
             staffX: 10,
             staffY: 40,
             staffWidth: 400,
-            drawClef: true,
 			smoMeasure:null
         };
     }
@@ -149,10 +148,10 @@ class VxMeasure {
         this.createVexBeamGroups();
 		// offset for left-hand stuff
 		var xOffset=0;
-        this.stave = new VF.Stave(this.smoMeasure.staffX, this.staffY, this.staffWidth);
+        this.stave = new VF.Stave(this.smoMeasure.staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth);
 
         // Add a clef and time signature.
-        if (this.drawClef) {
+        if (this.smoMeasure.forceClef || this.smoMeasure.measureNumber.systemIndex === 0) {
             this.stave.addClef(this.smoMeasure.clef)
             .addTimeSignature(this.smoMeasure.timeSignature)
             .addKeySignature(this.smoMeasure.keySignature);
