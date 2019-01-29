@@ -2,8 +2,11 @@
 class SmoSystemStaff {
 	constructor(params) {
 		this.measures=[];
-		VF.Merge(this,SmoSystemStaff.defaults);
-		VF.Merge(this,params);
+		Vex.Merge(this,SmoSystemStaff.defaults);
+		Vex.Merge(this,params);
+		if (this.measures.length) {
+			this._numberMeasures();
+		}
 	}
 	static get defaults() {
 		return {
@@ -23,14 +26,14 @@ class SmoSystemStaff {
 			var measure = this.measures[i];
 			startx += (i > 0) ? this.measures[i-1].staffWidth : measure.staffX;
 			measure.staffX=startx;
-			renumberIndex = this.renumberingMap[i] ? this.renumberingMap[i].startIndex : renumberIndex;
-			var localIndex = renumberIndex + i;
-			numberObj = {
+			this.renumberIndex = this.renumberingMap[i] ? this.renumberingMap[i].startIndex : this.renumberIndex;
+			var localIndex = this.renumberIndex + i;
+			var numberObj = {
 				measureNumber:localIndex,
 				measureIndex:i+this.startIndex,
 				systemIndex:i
 			}
-			measure.setMeasureNumber(i+1);
+			measure.setMeasureNumber(numberObj);
 		}
 	}
 	addMeasure(index,measure) {

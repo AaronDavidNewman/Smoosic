@@ -17,8 +17,11 @@ class SystemTest {
 
     static CommonTests() {
         var context = SystemTest.createContext();
-        var measure = new VxMeasure(context);
-
+		var m1 = new SmoMeasure();
+		var m2 = new SmoMeasure();
+		var sys = new SmoSystemStaff({measures:[m1,m2]});
+		var line1 = new VxSystemStaff(context,{smoMeasures:sys});
+		
         var timeTest = () => {
             const promise = new Promise((resolve, reject) => {
                     setTimeout(() => {
@@ -32,6 +35,10 @@ class SystemTest {
         var drawDefaults = () => {
             // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
             // measure.applyModifiers();
-            measure.render();
+            line1.render();
             return timeTest();
         }
+		
+		drawDefaults();
+	}
+}

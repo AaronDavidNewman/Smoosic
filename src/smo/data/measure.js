@@ -20,7 +20,7 @@ class SmoMeasure {
             staffY: 40,
 			bars:[1,1],  // follows enumeration in VF.Barline
             drawClef: true,
-			measureNumber:1,
+			measureNumber:{localIndex:1,systemIndex:1,measureNumber:1},
             staffWidth: 400,
 		    modifierOptions:{},
             clef: 'treble',

@@ -149,7 +149,7 @@ class VxMeasure {
         this.createVexBeamGroups();
 		// offset for left-hand stuff
 		var xOffset=0;
-        this.stave = new VF.Stave(this.staffX, this.staffY, this.staffWidth);
+        this.stave = new VF.Stave(this.smoMeasure.staffX, this.staffY, this.staffWidth);
 
         // Add a clef and time signature.
         if (this.drawClef) {

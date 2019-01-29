@@ -11,13 +11,16 @@ class VxSystemStaff {
         this.context = context;
         Vex.Merge(this, VxSystemStaff.defaults);
         Vex.Merge(this, options);
-        this.smoMeasures = new SmoSystemStaff(options);
+		if (!this.smoMeasures) {
+			this.smoMeasures = new SmoSystemStaff();
+		}
     }
 	static get defaults() {
         return {
             staffX: 10,
             staffY: 40,
             staffWidth: 1600,
+			smoMeasures:{},
 			vxMeasures:[]
         };
     }
@@ -26,10 +29,11 @@ class VxSystemStaff {
 		 
 		 var i=0;
 		 this.vxMeasures=[];
-		 for (i=0;i<this.smoMeasure.length;++i) {
-			 var smoMeasure = this.smoMeasure[i];
-			 var vxMeasure = new vxMeasure(this.context);
-			 
+		 for (i=0;i<this.smoMeasures.measures.length;++i) {
+			 var smoMeasure = this.smoMeasures.measures[i];
+			 var vxMeasure = new VxMeasure(this.context,{smoMeasure:smoMeasure});
+			 this.vxMeasures.push(vxMeasure);
+			 vxMeasure.render();
 		 }
 	 }
 }
