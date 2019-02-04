@@ -151,7 +151,7 @@ class vexMusic {
  *  represent a selection of notes as a 2-dimensional array
  *  ## Format
  *  selection = [
-	 tickIndex:0,pitches:[0,1]
+ {tickIndex:{measure:0,voice:0,tick:0},pitches:[0,1]}
     ]
   *  ## Usages:
   *    selection.tickArray()
@@ -162,7 +162,9 @@ class Selection {
 	constructor(params) {
 		this._obj=[];
 		if (params && Array.isArray(params)) {
-			this._obj=params;
+			this._obj=params;		
+		} else if (params != null) {
+			this._obj=[params];
 		}
 	}
 	pitchArray(tickIndex) {

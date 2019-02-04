@@ -13,5 +13,8 @@
         <File name="src\smo\data\note.js" />
         <File name="src\smo\data\measure.js" />
         <File name="src\smo\xform\duration.js" />
+        <File name="src\smo\data\systemStaff.js" />
+        <File name="src\test\systemTest.html" />
+        <File name="src\vex\vxSystem.js" />
     </Project>
 </NotepadPlus>
