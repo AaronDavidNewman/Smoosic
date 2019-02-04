@@ -16,5 +16,6 @@
         <File name="src\smo\xform\measureTransform.js" />
         <File name="src\test\tupletTest.js" />
         <File name="src\test\chordTest.js" />
+        <File name="src\test\systemTest.js" />
     </Project>
 </NotepadPlus>
