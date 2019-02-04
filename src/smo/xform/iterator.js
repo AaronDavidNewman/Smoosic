@@ -232,35 +232,6 @@ class vxTickIterator {
     }
 }
 
-class NoteModifierBase {
-	constructor(){}
-	modifyNote(note, iterator,accidentalMap) {	}
-}
-	
-
-class vxModifier {
-	constructor(measure,actors) {
-		this.actors=actors;
-		this.measure=measure;
-		
-	}
-	
-	get iterator() {
-		return this._iterator;
-	}
-	
-	//  ### run
-	//  ###  Description:  start the iteration on this set of notes
-	run() {
-		var self=this;
-		var iterator = new vxTickIterator(this.measure);
-		iterator.iterate((iterator,note,accidentalMap) => {
-			for (var i=0;i<self.actors.length;++i) {
-				self.actors[i].modifyNote(iterator,note,accidentalMap);
-			}
-		});
-	}
-}
 
 
 /* iterate over a set of notes, creating a map of notes to ticks */

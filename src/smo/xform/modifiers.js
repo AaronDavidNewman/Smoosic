@@ -1,25 +1,52 @@
 
+class NoteModifierBase {
+	constructor(){}
+	modifyNote(note, iterator,accidentalMap) {	}
+}
 
-class vxModifierFactory {
+class smoModifierFactory {
     static getStandardModifiers(measure, options) {
         var actors = [];
         var cautionary = options && options['cautionary'] ? options['cautionary'] : new Selection();
-        actors.push(new vxDotModifier());
-        actors.push(new vxAccidentalModifier({
+        actors.push(new smoDotModifier());
+        actors.push(new smoAccidentalModifier({
                 keySignature: measure.keySignature,
                 cautionarySelections: cautionary
             }));
-        actors.push(new vxBeamModifier(measure));
+        actors.push(new smoBeamModifier(measure));
         return actors;
-    }
+	}	
 }
 
-class vxDotModifier extends NoteModifierBase {
+class smoModifierIterator {
+	constructor(measure,actors) {
+		this.actors=actors;
+		this.measure=measure;		
+	}
+	
+	get iterator() {
+		return this._iterator;
+	}
+	
+	//  ### run
+	//  ###  Description:  start the iteration on this set of notes
+	run() {
+		var self=this;
+		var iterator = new vxTickIterator(this.measure);
+		iterator.iterate((iterator,note,accidentalMap) => {
+			for (var i=0;i<self.actors.length;++i) {
+				self.actors[i].modifyNote(iterator,note,accidentalMap);
+			}
+		});
+	}
+}
+
+class smoDotModifier extends NoteModifierBase {
     constructor() {
         super();
     }
     static Create() {
-        return new vxDotModifier();
+        return new smoDotModifier();
     }
     modifyNote(iterator, note, accidentalMap) {
         if (vexMusic.isTuplet(note)) {
@@ -32,7 +59,7 @@ class vxDotModifier extends NoteModifierBase {
     }
 }
 
-class vxAccidentalModifier extends NoteModifierBase {
+class smoAccidentalModifier extends NoteModifierBase {
     constructor(parameters) {
         super();
         this.keySignature = parameters.keySignature;
@@ -67,7 +94,7 @@ class vxAccidentalModifier extends NoteModifierBase {
     }
 }
 
-class vxBeamModifier extends NoteModifierBase {
+class smoBeamModifier extends NoteModifierBase {
     constructor(measure) {
         super();
 		this.measure=measure;

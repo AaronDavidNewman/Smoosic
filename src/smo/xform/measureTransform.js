@@ -4,8 +4,8 @@ Vex.Xform = (typeof(Vex.Xform) == 'undefined' ? {}
      : Vex.Xform);
 VX = Vex.Xform;
 
-// ## VxTransformer
-//  Transform a note array into another note array.  The new array may have fewer or
+// ## SmoMeasureTransformer
+//  Transform a note array for a measure into another note array.  The new array may have fewer or
 //  additional notes.
 //
 //
@@ -19,7 +19,7 @@ VX = Vex.Xform;
 //  2) actors that change the duration.   ** Note:  Even if you are not changing the
 //     duration of any notes, you need to run a duration transformation to create the tuplet
 //     groups
-class VxTransformer {
+class SmoMeasureTransformer {
     constructor(measure, actors, options) {
         this.notes = measure.notes;
         this.measure = measure;
@@ -90,7 +90,7 @@ class NoteTransformBase {
     }
 }
 
-class VxTransposePitchActor extends NoteTransformBase {
+class SmoTransposePitchActor extends NoteTransformBase {
     constructor(parameters) {
 		super();
 		Vex.Merge(this,parameters);        
@@ -104,7 +104,7 @@ class VxTransposePitchActor extends NoteTransformBase {
     }
 }
 
-class VxSetNoteTypeActor extends NoteTransformBase {
+class SmoSetNoteTypeActor extends NoteTransformBase {
     constructor(measure, selections, noteType) {
 		super();
         this.keySignature = measure.keySignature;
@@ -123,7 +123,7 @@ class VxSetNoteTypeActor extends NoteTransformBase {
 
 }
 
-class VxSetPitchActor extends NoteTransformBase {
+class SmoSetPitchActor extends NoteTransformBase {
     constructor(parameters) {
 		super();
 		Vex.Merge(this,parameters);

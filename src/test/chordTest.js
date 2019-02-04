@@ -1,5 +1,5 @@
 
-class Test1 {
+class ChordTest {
 
     // Create an SVG renderer and attach it to the DIV element named "boo".
     static createContext() {
@@ -16,7 +16,7 @@ class Test1 {
     }
 
     static CommonTests() {
-        var context = Test1.createContext();
+        var context = ChordTest.createContext();
         var measure = new VxMeasure(context);
 
         var timeTest = () => {

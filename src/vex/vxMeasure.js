@@ -44,7 +44,7 @@ class VxMeasure {
     applyTransform(actor) {
 		this.smoMeasure.clearAccidentals();
 		this.smoMeasure.clearBeamGroups();
-        var transformer = new VxTransformer(this.smoMeasure, [actor]);
+        var transformer = new SmoMeasureTransformer(this.smoMeasure, [actor]);
         transformer.run();
         this.smoMeasure.notes = transformer.notes;
         this.applyModifiers();
@@ -52,11 +52,11 @@ class VxMeasure {
     applyModifiers() {
 		this.modifierOptions = this.smoMeasure.modifierOptions;
         var modifiers = this.getModifiers();
-        var apply = new vxModifier(this.smoMeasure, modifiers);
+        var apply = new smoModifierIterator(this.smoMeasure, modifiers);
         apply.run();
     }
     getModifiers() {
-        var actors = vxModifierFactory.getStandardModifiers(this.smoMeasure,this.modifierOptions);
+        var actors = smoModifierFactory.getStandardModifiers(this.smoMeasure,this.modifierOptions);
         for (var i = 0; i < this.smoMeasure.customModifiers.length; ++i) {
             var modifier = this.smoMeasure.customModifiers[i];
             var ctor = eval(modifier.ctor);
