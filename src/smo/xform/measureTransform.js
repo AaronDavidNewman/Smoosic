@@ -3,7 +3,7 @@ Vex.Xform = (typeof(Vex.Xform) == 'undefined' ? {}
      : Vex.Xform);
 VX = Vex.Xform;
 
-class SmoSystemTransformer {
+class SmoMeasureTransform {
     constructor(system, actors, options) {
         this.system = system;
         this.actors = actors ? actors : [];
