@@ -4,8 +4,8 @@ Vex.Xform = (typeof(Vex.Xform) == 'undefined' ? {}
      : Vex.Xform);
 VX = Vex.Xform;
 
-// ## SmoMeasureTransformer
-//  Transform a note array for a measure into another note array.  The new array may have fewer or
+// ## SmoTickTransformer
+//  Transform a note (tick) array for a measure into another note array.  The new array may have fewer or
 //  additional notes.
 //
 //
@@ -19,7 +19,7 @@ VX = Vex.Xform;
 //  2) actors that change the duration.   ** Note:  Even if you are not changing the
 //     duration of any notes, you need to run a duration transformation to create the tuplet
 //     groups
-class SmoMeasureTransformer {
+class SmoTickTransformer {
     constructor(measure, actors, options) {
         this.notes = measure.notes;
         this.measure = measure;
@@ -47,12 +47,12 @@ class SmoMeasureTransformer {
     // 4. if an array of notes is returned, it is concatenated to the existing note array and no more actors are called.
     //     Note that *return note;* and *return [note];* produce the same result.
     // 5. if an empty array [] is returned, that copy is not added to the result.  The note is effectively deleted.
-    transformNote(iterator, note) {
+    transformTick(iterator, note) {
         var self = this;
        
         for (var i = 0; i < this.actors.length; ++i) {
 			var actor=this.actors[i];
-            var newNote = actor.transformNote(note, iterator, iterator.accidentalMap);
+            var newNote = actor.transformTick(note, iterator, iterator.accidentalMap);
             if (newNote == null) {
 				this.vxNotes.push(note); // no change
                 continue;
@@ -71,9 +71,9 @@ class SmoMeasureTransformer {
 
     run() {
         var self = this;
-        var iterator = new vxTickIterator(this.measure);
+        var iterator = new smoTickIterator(this.measure);
         iterator.iterate((iterator, note, accidentalMap) => {
-            self.transformNote(iterator, note, accidentalMap);
+            self.transformTick(iterator, note, accidentalMap);
         });
 
         this.notes = this.vxNotes;
@@ -83,19 +83,19 @@ class SmoMeasureTransformer {
 
 // ## A note transformer is just a function that modifies a note in some way.
 // Any number of transformers can be applied to a note.
-class NoteTransformBase {
+class TickTransformBase {
     constructor() {}
-    transformNote(note, iterator, accidentalMap) {
+    transformTick(note, iterator, accidentalMap) {
         return note;
     }
 }
 
-class SmoTransposePitchActor extends NoteTransformBase {
+class SmoTransposePitchActor extends TickTransformBase {
     constructor(parameters) {
 		super();
 		Vex.Merge(this,parameters);        
     }
-    transformNote(note, iterator, accidentalMap) {
+    transformTick(note, iterator, accidentalMap) {
         var index = iterator.index;
         if (this.selections.pitchArray(index).length === 0) {
             return null;
@@ -104,7 +104,7 @@ class SmoTransposePitchActor extends NoteTransformBase {
     }
 }
 
-class SmoSetNoteTypeActor extends NoteTransformBase {
+class SmoSetNoteTypeActor extends TickTransformBase {
     constructor(measure, selections, noteType) {
 		super();
         this.keySignature = measure.keySignature;
@@ -112,7 +112,7 @@ class SmoSetNoteTypeActor extends NoteTransformBase {
         this.selections = selections;
         this.offset = offset;
     }
-    transformNote(note, iterator, accidentalMap) {
+    transformTick(note, iterator, accidentalMap) {
         var index = iterator.index;
         if (this.tickArray().indexOf(index) < 0) {
             return null;
@@ -123,12 +123,12 @@ class SmoSetNoteTypeActor extends NoteTransformBase {
 
 }
 
-class SmoSetPitchActor extends NoteTransformBase {
+class SmoSetPitchActor extends TickTransformBase {
     constructor(parameters) {
 		super();
 		Vex.Merge(this,parameters);
     }
-    transformNote(note, iterator, accidentalMap) {
+    transformTick(note, iterator, accidentalMap) {
         var index = iterator.index;
         if (this.selection !== index) {
             return null;

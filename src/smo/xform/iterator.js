@@ -37,7 +37,7 @@ VX = Vex.Xform;
 //          {startIndex:1,endIndex:3,numNotes:3,startTick:4096,endTick:8196,durations:[1365,...],smallestDuration:2048}
 //
 //        
-class vxTickIterator {
+class smoTickIterator {
 	/**
 	  measure looks like:
 	  return {
@@ -189,7 +189,7 @@ class vxTickIterator {
             // update the tick count for the whole array/measure
             this.totalDuration += this.delta;
 			
-			vxTickIterator.updateAccidentalMap(note,this, this.keySignature,this.accidentalMap);
+			smoTickIterator.updateAccidentalMap(note,this, this.keySignature,this.accidentalMap);
 
             var rv = actor(this,note,this.accidentalMap);
             if (rv === false) {
@@ -232,12 +232,24 @@ class vxTickIterator {
     }
 }
 
-
+class smoMeasureIterator {
+	constructor(system,options) {
+		this.measures=system.measures;
+		Vex.Merge(this,options);
+	}
+	
+	iterate(actor) {
+		for (var i=0;i<this.measures.length;++i) {
+			var measure=this.measures[i];
+			actor(this,measure);
+		}
+	}
+}
 
 /* iterate over a set of notes, creating a map of notes to ticks */
 VX.TICKMAP = (measure) => {
-    var iterator = new vxTickIterator(measure);
-	iterator.iterate(vxTickIterator.nullActor,measure);
+    var iterator = new smoTickIterator(measure);
+	iterator.iterate(smoTickIterator.nullActor,measure);
 	return iterator;
 }
 

@@ -7,12 +7,12 @@ VX = Vex.Xform;
 // Contract the duration of a note, filling in the space with another note
 // or rest.
 //
-class SmoContractNoteActor extends NoteTransformBase {
+class SmoContractNoteActor extends TickTransformBase {
     constructor(params) {
         super();
         Vex.Merge(this, params);
     }
-    transformNote(note, iterator, accidentalMap) {
+    transformTick(note, iterator, accidentalMap) {
         if (iterator.index == this.startIndex) {
             var notes = [];
             var noteCount = Math.floor(note.ticks.numerator / this.newTicks);
@@ -68,7 +68,7 @@ class SmoContractNoteActor extends NoteTransformBase {
 // ## Parameters:
 //   {changeIndex:changeIndex, multiplier:multiplier,measure:measure}
 //
-class SmoStretchTupletActor extends NoteTransformBase {
+class SmoStretchTupletActor extends TickTransformBase {
     constructor(params) {
         super();
         Vex.Merge(this, params);
@@ -79,7 +79,7 @@ class SmoStretchTupletActor extends NoteTransformBase {
         this.tuplet.combine(this.startIndex, this.endIndex);
         this.durationMap = this.tuplet.durationMap;
     }
-    transformNote(note, iterator, accidentalMap) {
+    transformTick(note, iterator, accidentalMap) {
 
         /*
         ## Strategy:
@@ -111,7 +111,7 @@ class SmoStretchTupletActor extends NoteTransformBase {
 // Contract the duration of a note in a tuplet by duplicate
 // notes of fractional length
 //
-class SmoContractTupletActor extends NoteTransformBase {
+class SmoContractTupletActor extends TickTransformBase {
     constructor(params) {
         super();
         Vex.Merge(this, params);
@@ -121,7 +121,7 @@ class SmoContractTupletActor extends NoteTransformBase {
 		this.splitIndex = this.changeIndex-this.tupletIndex;
         this.tuplet.split(this.splitIndex);
     }
-    transformNote(note, iterator, accidentalMap) {
+    transformTick(note, iterator, accidentalMap) {
         if (iterator.index < this.tupletIndex)
             return note;
         if (iterator.index >= this.tupletIndex + this.oldLength)
@@ -139,12 +139,12 @@ class SmoContractTupletActor extends NoteTransformBase {
 // startIndex: start index of tuplet
 // endIndex: end index of tuplet
 // measure: Smo measure that the tuplet is contained in.
-class SmoUnmakeTupletActor extends NoteTransformBase {
+class SmoUnmakeTupletActor extends TickTransformBase {
     constructor(parameters) {
         super();
         Vex.Merge(this, parameters);		
     }
-    transformNote(note, iterator, accidentalMap) {
+    transformTick(note, iterator, accidentalMap) {
         if (iterator.index < this.startIndex || iterator.index > this.endIndex) {
             return null;
         }
@@ -168,7 +168,7 @@ class SmoUnmakeTupletActor extends NoteTransformBase {
 // Turn a tuplet into a non-tuplet of the same length
 // parameters:
 //  {tickmap:tickmap,ticks:ticks,
-class SmoMakeTupletActor extends NoteTransformBase {
+class SmoMakeTupletActor extends TickTransformBase {
     constructor(params) {
         super();
         Vex.Merge(this, params);
@@ -188,7 +188,7 @@ class SmoMakeTupletActor extends NoteTransformBase {
         this.tuplet = [];
 
     }
-    transformNote(note, iterator, accidentalMap) {
+    transformTick(note, iterator, accidentalMap) {
         if (iterator.index != this.index) {
             return null;
         }
@@ -215,7 +215,7 @@ class SmoMakeTupletActor extends NoteTransformBase {
     }
 }
 
-class SmoStretchNoteActor extends NoteTransformBase {
+class SmoStretchNoteActor extends TickTransformBase {
     constructor(parameters) {
         super();
         Vex.Merge(this, parameters);
@@ -258,7 +258,7 @@ class SmoStretchNoteActor extends NoteTransformBase {
             }
         }
     }
-    transformNote(note, iterator, accidentalMap) {
+    transformTick(note, iterator, accidentalMap) {
         if (this.durationMap.length == 0) {
             return null;
         }

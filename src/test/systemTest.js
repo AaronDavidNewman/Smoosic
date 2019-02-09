@@ -9,7 +9,7 @@ class SystemTest {
         var renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
 
         // Configure the rendering context.
-        renderer.resize(1600, 500);
+        renderer.resize(1600, 200);
         var context = renderer.getContext();
         context.setFont("Arial", 10, "").setBackgroundFillStyle("#eed");
         return context;
@@ -19,7 +19,8 @@ class SystemTest {
         var context = SystemTest.createContext();
 		var m1 = new SmoMeasure();
 		var m2 = new SmoMeasure();
-		var sys = new SmoSystemStaff({measures:[m1,m2]});
+		var m3 = new SmoMeasure();
+		var sys = new SmoSystemStaff({measures:[m1,m2,m3]});
 		var line1 = new VxSystemStaff(context,{smoMeasures:sys});
 		
         var timeTest = () => {

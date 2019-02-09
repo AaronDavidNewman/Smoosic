@@ -32,7 +32,7 @@ class smoModifierIterator {
 	//  ###  Description:  start the iteration on this set of notes
 	run() {
 		var self=this;
-		var iterator = new vxTickIterator(this.measure);
+		var iterator = new smoTickIterator(this.measure);
 		iterator.iterate((iterator,note,accidentalMap) => {
 			for (var i=0;i<self.actors.length;++i) {
 				self.actors[i].modifyNote(iterator,note,accidentalMap);
@@ -73,7 +73,7 @@ class smoAccidentalModifier extends NoteModifierBase {
             var prop = note.keys[i];
 			var vexKey=prop.key+prop.accidental;
             var accidental = (this.keyManager.scale.indexOf(canon.indexOf(vexKey)) < 0);
-            accidental = accidental && !vxTickIterator.hasActiveAccidental(prop, iterator.index, accidentalMap);
+            accidental = accidental && !smoTickIterator.hasActiveAccidental(prop, iterator.index, accidentalMap);
 			var cpitch = this.cautionary.pitchArray(iterator.index);
             var cautionary = cpitch.indexOf(i) >= 0;
             // {index:1,value:{symbol:'#',cautionary:false}}

@@ -10,7 +10,7 @@ class TupletTest {
         var renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
 
         // Configure the rendering context.
-        renderer.resize(1280, 500);
+        renderer.resize(500, 200);
         var context = renderer.getContext();
         context.setFont("Arial", 10, "").setBackgroundFillStyle("#eed");
         return context;

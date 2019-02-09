@@ -44,7 +44,7 @@ class VxMeasure {
     applyTransform(actor) {
 		this.smoMeasure.clearAccidentals();
 		this.smoMeasure.clearBeamGroups();
-        var transformer = new SmoMeasureTransformer(this.smoMeasure, [actor]);
+        var transformer = new SmoTickTransformer(this.smoMeasure, [actor]);
         transformer.run();
         this.smoMeasure.notes = transformer.notes;
         this.applyModifiers();
