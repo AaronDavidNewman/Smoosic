@@ -167,6 +167,9 @@ class Selection {
 			this._obj=[params];
 		}
 	}
+	get length() {
+		return _obj.length;
+	}
 	pitchArray(tickIndex) {
 		
 		for (var i=0;i<this._obj.length;++i) {			

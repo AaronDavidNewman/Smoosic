@@ -4,8 +4,8 @@
 // ##  Options:
 //  clef:'treble',
 //  num_beats:num_beats,
-//  timeSignature: '4/4'
-
+//  timeSignature: '4/4',
+//  smoMeasures: []
 class VxSystemStaff {
 	constructor(context, options) {
         this.context = context;
@@ -25,6 +25,13 @@ class VxSystemStaff {
         };
     }
 	
+	transformStaff(actor) {
+		for (var i=0;i<actor.selections.length;++i) {
+			for (var j=0;j<smoMeasures.measures.length;++j) {
+				
+			}
+		}
+	}
 	 render() {
 		 
 		 var i=0;

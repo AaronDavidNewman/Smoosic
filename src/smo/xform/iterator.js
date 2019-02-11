@@ -235,12 +235,14 @@ class smoTickIterator {
 class smoMeasureIterator {
 	constructor(system,options) {
 		this.measures=system.measures;
+		this.index = this.startIndex = 0;
+		this.endIndex = this.measures.length;
 		Vex.Merge(this,options);
 	}
 	
 	iterate(actor) {
-		for (var i=0;i<this.measures.length;++i) {
-			var measure=this.measures[i];
+		for (this.index=this.startIndex;i<this.endIndex;this.index+=1) {
+			var measure=this.measures[this.index];
 			actor(this,measure);
 		}
 	}

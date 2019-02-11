@@ -58,11 +58,36 @@ class SmoMeasureTransform {
 		this.newMeasures=[];
 
         iterator.iterate((iterator, measure) => {
-            var newMeasure = self.transformMeasure(iterator, measure);
-			
+            self.transformMeasure(iterator, measure);
         });
 
-        this.notes = this.vxNotes;
-        return this.vxNotes;
+        this.measures = this.newMeasures;
+        return this.newMeasures;
+    }
+}
+
+class SmoMeasureTransformBase {
+	constructor() {}
+	transformMeasure(measure,iterator,accidentalMap) {
+		return measure;
+	}
+}
+class SmoTransposeMeasurePitchActor extends TickTransformBase {
+    constructor(parameters) {
+		super();
+		Vex.Merge(this,parameters);        
+    }
+    transformMeasure(measure, iterator, accidentalMap) {
+        var index = iterator.index;
+		for (var i=0;i<this.selections.length;++i) {
+			var selection = this.selections[i];
+			if (selection.measure === measure.index) {
+				// TODO: make apply transform not vx-specific
+			}
+		}
+        if (this.selections.pitchArray(index).length === 0) {
+            return null;
+        }
+        return note.transpose(this.selections.pitchArray(iterator.index),this.offset);
     }
 }
