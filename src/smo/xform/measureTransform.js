@@ -15,9 +15,18 @@ class SmoMeasureTransform {
         return measure;
     }
 
-    // ## transformNote
-    // call the actors for each note, and put the result in the note array.
-    // The note from the original array is copied and sent to each actor.
+	// ## applyTransform
+	// create a transform with the given actors and run it against the supplied measure
+	static applyTransform(system,actors) {
+		var actAr = (Array.isArray(actors)) ? actors : [actors];
+        var transformer = new SmoMeasureTransform(system, actAr);
+        transformer.run();
+        system.measures = transformer.measures;
+	}
+	
+    // ## transformMeasure
+    // call the actors for each measure, and put the result in the measure array.
+    // The measure from the original array is copied and sent to each actor.
     //
     // Because the resulting array can have a different number of measures than the existing
     // array, the actors communicate with the transformer in the following, jquery-ish
@@ -25,10 +34,10 @@ class SmoMeasureTransform {
     //
     // 1. if the actor returns null, the next actor is called and the results of that actor are used
     // 2. if all the actors return null, the copy is used.
-    // 3. if a note object is returned, that is used for the current tick and no more actors are called.
-    // 4. if an array of notes is returned, it is concatenated to the existing note array and no more actors are called.
-    //     Note that *return note;* and *return [note];* produce the same result.
-    // 5. if an empty array [] is returned, that copy is not added to the result.  The note is effectively deleted.
+    // 3. if a measure object is returned, that is used for the current tick and no more measures are called.
+    // 4. if an array of measures is returned, it is concatenated to the existing measure array and no more actors are called.
+    //     Note that *return measure;* and *return [measure];* produce the same result.
+    // 5. if an empty array [] is returned, that copy is not added to the result.  The measure is effectively deleted.
     transformMeasure(iterator, measure) {
         var self = this;
        
@@ -54,7 +63,7 @@ class SmoMeasureTransform {
 
     run() {
         var self = this;
-        var iterator = new smoMeasureIterator(this.measure);
+        var iterator = new smoMeasureIterator(this.system);
 		this.newMeasures=[];
 
         iterator.iterate((iterator, measure) => {
@@ -73,21 +82,28 @@ class SmoMeasureTransformBase {
 	}
 }
 class SmoTransposeMeasurePitchActor extends TickTransformBase {
-    constructor(parameters) {
+	// ## options: 
+	// selections: [{selection:{measure:2,voice:0,tickIndex:1},
+	//    keys:[{key: 'e',octave: 4,accidental: 'b'}]];
+    constructor(options) {
 		super();
-		Vex.Merge(this,parameters);        
+		Vex.Merge(this,options);        
     }
     transformMeasure(measure, iterator, accidentalMap) {
         var index = iterator.index;
 		for (var i=0;i<this.selections.length;++i) {
-			var selection = this.selections[i];
-			if (selection.measure === measure.index) {
-				// TODO: make apply transform not vx-specific
+			var selection = this.selections[i].selection;
+			
+			if (selection.measure === measure.measureNumber.measureIndex) {
+				var keys=this.selections[i].keys;
+				var tickmap = measure.tickmap();
+				var actor = new SmoSetPitchActor(
+				    {selection:selection.tick,tickmap:tickmap,keys:keys}
+					);
+				SmoTickTransformer.applyTransform(measure,[actor]);
+				return measure;
 			}
 		}
-        if (this.selections.pitchArray(index).length === 0) {
-            return null;
-        }
-        return note.transpose(this.selections.pitchArray(iterator.index),this.offset);
+		return null; // no change
     }
 }

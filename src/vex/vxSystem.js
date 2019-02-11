@@ -25,12 +25,8 @@ class VxSystemStaff {
         };
     }
 	
-	transformStaff(actor) {
-		for (var i=0;i<actor.selections.length;++i) {
-			for (var j=0;j<smoMeasures.measures.length;++j) {
-				
-			}
-		}
+	applyTransform(actor) {
+		SmoMeasureTransform.applyTransform(this.smoMeasures,[actor]);
 	}
 	 render() {
 		 

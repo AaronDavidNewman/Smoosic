@@ -71,6 +71,9 @@ class SmoMeasure {
             ]
         };
     }
+	tickmap() {
+		return VX.TICKMAP(this);
+	}
 	clearBeamGroups() {
 		this.beamGroups=[];
 	}

@@ -241,7 +241,7 @@ class smoMeasureIterator {
 	}
 	
 	iterate(actor) {
-		for (this.index=this.startIndex;i<this.endIndex;this.index+=1) {
+		for (this.index=this.startIndex;this.index<this.endIndex;this.index+=1) {
 			var measure=this.measures[this.index];
 			actor(this,measure);
 		}

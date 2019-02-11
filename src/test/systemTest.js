@@ -40,6 +40,18 @@ class SystemTest {
             return timeTest();
         }
 		
-		drawDefaults();
+		var changePitch = () => {
+			var pc = new SmoTransposeMeasurePitchActor(
+			{
+			selections:[
+				{selection:{measure:2,voice:0,tick:1},
+				  keys:[{key: 'e',octave: 4,accidental: 'b'}]
+				}
+			]
+			});
+			line1.applyTransform(pc);
+			line1.render();
+		}
+		drawDefaults().then(changePitch);
 	}
 }
