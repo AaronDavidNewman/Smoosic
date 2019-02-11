@@ -42,31 +42,12 @@ class VxMeasure {
     }
 
     applyTransform(actor) {
-		this.smoMeasure.clearAccidentals();
-		this.smoMeasure.clearBeamGroups();
-        var transformer = new SmoTickTransformer(this.smoMeasure, [actor]);
-        transformer.run();
-        this.smoMeasure.notes = transformer.notes;
-        this.applyModifiers();
+		SmoTickTransformer.applyTransform(this.smoMeasure,[actor]);
+		smoModifierFactory.applyModifiers(this.smoMeasure);
     }
-    applyModifiers() {
-		this.modifierOptions = this.smoMeasure.modifierOptions;
-        var modifiers = this.getModifiers();
-        var apply = new smoModifierIterator(this.smoMeasure, modifiers);
-        apply.run();
-    }
-    getModifiers() {
-        var actors = smoModifierFactory.getStandardModifiers(this.smoMeasure,this.modifierOptions);
-        for (var i = 0; i < this.smoMeasure.customModifiers.length; ++i) {
-            var modifier = this.smoMeasure.customModifiers[i];
-            var ctor = eval(modifier.ctor);
-            var instance = new ctor(modifier.parameters);
-            actors.push(instance);
-        }
-
-        return actors;
-
-    }
+	applyModifiers() {
+		smoModifierFactory.applyModifiers(this.smoMeasure);
+	}
 	tickmap() {
 		return VX.TICKMAP(this.smoMeasure);
 	}

@@ -5,9 +5,9 @@ class NoteModifierBase {
 }
 
 class smoModifierFactory {
-    static getStandardModifiers(measure, options) {
+    static getStandardModifiers(measure) {
         var actors = [];
-        var cautionary = options && options['cautionary'] ? options['cautionary'] : new Selection();
+        var cautionary = measure.options && measure.options['cautionary'] ? measure.options['cautionary'] : new Selection();
         actors.push(new smoDotModifier());
         actors.push(new smoAccidentalModifier({
                 keySignature: measure.keySignature,
@@ -15,7 +15,21 @@ class smoModifierFactory {
             }));
         actors.push(new smoBeamModifier(measure));
         return actors;
-	}	
+	}
+	
+	static applyModifiers(measure) {
+		var modifierOptions = measure.modifierOptions;
+		var modifiers = smoModifierFactory.getStandardModifiers(measure);
+        for (var i = 0; i < measure.customModifiers.length; ++i) {
+            var modifier = measure.customModifiers[i];
+            var ctor = eval(modifier.ctor);
+            var instance = new ctor(modifier.parameters);
+            modifiers.push(instance);
+        }
+		
+        var apply = new smoModifierIterator(measure, modifiers);
+        apply.run();
+	}
 }
 
 class smoModifierIterator {

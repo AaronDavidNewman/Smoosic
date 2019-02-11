@@ -32,7 +32,16 @@ class SmoTickTransformer {
     static nullActor(note) {
         return note;
     }
-
+	// ## applyTransform
+	// create a transform with the given actors and run it against the supplied measure
+	static applyTransform(measure,actors) {
+		var actAr = (Array.isArray(actors)) ? actors : [actors];
+    	measure.clearAccidentals();
+		measure.clearBeamGroups();
+        var transformer = new SmoTickTransformer(measure, actAr);
+        transformer.run();
+        measure.notes = transformer.notes;
+	}
     // ## transformNote
     // call the actors for each note, and put the result in the note array.
     // The note from the original array is copied and sent to each actor.
