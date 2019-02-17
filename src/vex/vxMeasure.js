@@ -12,7 +12,6 @@ VX.groupCounter = 1;
 //  clef:'treble',
 //  num_beats:num_beats,
 //  timeSignature: '4/4'
-
 class VxMeasure {
     constructor(context, options) {
         this.context = context;
@@ -22,7 +21,7 @@ class VxMeasure {
         this.noteToVexMap = {};
         this.beamToVexMap = {};
         this.tupletToVexMap = {};
-		this.modifierOptions={};
+        this.modifierOptions = {};
 
         this.vexNotes = [];
         this.vexBeamGroups = [];
@@ -34,7 +33,7 @@ class VxMeasure {
             staffX: 10,
             staffY: 40,
             staffWidth: 400,
-			smoMeasure:null
+            smoMeasure: null
         };
     }
     addCustomModifier(ctor, parameters) {
@@ -42,22 +41,41 @@ class VxMeasure {
     }
 
     applyTransform(actor) {
-		SmoTickTransformer.applyTransform(this.smoMeasure,[actor]);
-		smoModifierFactory.applyModifiers(this.smoMeasure);
+        SmoTickTransformer.applyTransform(this.smoMeasure, [actor]);
+        smoModifierFactory.applyModifiers(this.smoMeasure);
     }
-	applyModifiers() {
-		smoModifierFactory.applyModifiers(this.smoMeasure);
-	}
-	tickmap() {
-		return VX.TICKMAP(this.smoMeasure);
-	}
+    applyModifiers() {
+        smoModifierFactory.applyModifiers(this.smoMeasure);
+    }
+    tickmap() {
+        return VX.TICKMAP(this.smoMeasure);
+    }
 
+	// ## Description:
+	// decide whether to force stem direction for multi-voice, or use the default.
+	// ## TODO:
+	// use x position of ticks in other voices, pitch of note, and consider 
+	// stem direction modifier.
+    applyStemDirection(vxParams) {
+        if (this.smoMeasure.voices.length === 1) {
+            vxParams.auto_stem = true;
+        } else if (this.smoMeasure.activeVoice % 2) {
+            vxParams.stem_direction = -1;
+        } else {
+            vxParams.stem_direction = 1;
+        }
+    }
+
+	// ## Description:
+	// convert a smoNote into a vxNote so it can be rasterized
     _createVexNote(smoNote) {
-        var vexNote = new VF.StaveNote({
-                clef: smoNote.clef,
-                keys: smoNote.toVexKeys(),
-                duration: smoNote.duration + smoNote.noteType
-            });
+        var noteParams = {
+            clef: smoNote.clef,
+            keys: smoNote.toVexKeys(),
+            duration: smoNote.duration + smoNote.noteType
+        };
+        this.applyStemDirection(noteParams);
+        var vexNote = new VF.StaveNote(noteParams);
 
         for (var i = 0; i < smoNote.accidentals.length; ++i) {
             var smoAcc = smoNote.accidentals[i];
@@ -73,6 +91,8 @@ class VxMeasure {
 
         return vexNote;
     }
+	// ## Description:
+	// create an a array of VF.StaveNote objects to render the active voice.
     createVexNotes() {
         this.vexNotes = [];
         for (var i = 0; i < this.smoMeasure.notes.length; ++i) {
@@ -82,6 +102,11 @@ class VxMeasure {
             this.vexNotes.push(vexNote);
         }
     }
+	
+	// ## Description:
+	// create the VX beam groups, honoring the Smo custom modifiers
+	// ## TODO:
+	// make the Smo custom modifiers
     createVexBeamGroups() {
         this.vexBeamGroups = [];
         for (var i = 0; i < this.smoMeasure.beamGroups.length; ++i) {
@@ -97,6 +122,9 @@ class VxMeasure {
         }
     }
 
+	// ## Description:
+	// Create the VF tuplet objects based on the smo tuplet objects
+	// that have been defined.
     createVexTuplets() {
         this.vexTuplets = [];
         for (var i = 0; i < this.smoMeasure.tuplets.length; ++i) {
@@ -118,17 +146,17 @@ class VxMeasure {
         }
     }
 
+	// ## Description:
+	// Render all the notes in my smoMeasure.  All rendering logic is called from here.
     render() {
 
         $(this.context.svg).find('g.' + this.smoMeasure.attrs.id).remove();
-		
+
         var group = this.context.openGroup();
         group.classList.add(this.smoMeasure.attrs.id);
-        this.createVexNotes();
-        this.createVexTuplets();
-        this.createVexBeamGroups();
-		// offset for left-hand stuff
-		var xOffset=0;
+
+        // offset for left-hand stuff
+        var xOffset = 0;
         this.stave = new VF.Stave(this.smoMeasure.staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth);
 
         // Add a clef and time signature.
@@ -136,29 +164,37 @@ class VxMeasure {
             this.stave.addClef(this.smoMeasure.clef)
             .addTimeSignature(this.smoMeasure.timeSignature)
             .addKeySignature(this.smoMeasure.keySignature);
-			xOffset=70;
+            xOffset = 70;
         }
         // Connect it to the rendering context and draw!
         this.stave.setContext(this.context).draw();
 
-        // console.log(JSON.stringify(notes));
-        // Create a voice in 4/4 and add above notes
-        this.voice = new VF.Voice({
-                num_beats: this.smoMeasure.numBeats,
-                beat_value: this.smoMeasure.beatValue
+        for (var j = 0; j < this.smoMeasure.voices.length; ++j) {
+
+            this.smoMeasure.activeVoice = j;
+            this.createVexNotes();
+            this.createVexTuplets();
+            this.createVexBeamGroups();
+
+            // console.log(JSON.stringify(notes));
+            // Create a voice in 4/4 and add above notes
+            this.voice = new VF.Voice({
+                    num_beats: this.smoMeasure.numBeats,
+                    beat_value: this.smoMeasure.beatValue
+                });
+            this.voice.addTickables(this.vexNotes);
+            this.formatter = new VF.Formatter().joinVoices([this.voice]).format([this.voice], this.staffWidth - xOffset);
+            this.voice.draw(this.context, this.stave);
+
+            var self = this;
+            this.vexBeamGroups.forEach(function (b) {
+                b.setContext(self.context).draw()
             });
-        this.voice.addTickables(this.vexNotes);
-        this.formatter = new VF.Formatter().joinVoices([this.voice]).format([this.voice], this.staffWidth-xOffset);
-        this.voice.draw(this.context, this.stave);
 
-        var self = this;
-        this.vexBeamGroups.forEach(function (b) {
-            b.setContext(self.context).draw()
-        });
-
-        this.vexTuplets.forEach(function (tuplet) {
-            tuplet.setContext(self.context).draw();
-        });
+            this.vexTuplets.forEach(function (tuplet) {
+                tuplet.setContext(self.context).draw();
+            });
+        }
         this.context.closeGroup();
     }
 
