@@ -145,6 +145,9 @@ class VxMeasure {
             this.vexTuplets.push(vexTuplet);
         }
     }
+	unrender() {
+		$(this.context.svg).find('g.' + this.smoMeasure.attrs.id).remove();
+	}
 
 	// ## Description:
 	// Render all the notes in my smoMeasure.  All rendering logic is called from here.

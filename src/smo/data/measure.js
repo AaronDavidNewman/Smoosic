@@ -4,13 +4,17 @@ class SmoMeasure {
     constructor(params) {
         this.tuplets = [];
         this.beamGroups = [];
-        this.attrs = {
-            id: VF.Element.newID(),
-            type: 'SmoMeasure'
-        };
+        
         Vex.Merge(this, SmoMeasure.defaults);
         Vex.Merge(this, params);
-
+		if (!this['attrs']) {
+            this.attrs = {
+                id: VF.Element.newID(),
+                type: 'SmoMeasure'
+            };
+        } else {
+			console.log('inherit attrs');
+		}
     }
     get notes() {
         return this.voices[this.activeVoice].notes;
@@ -20,6 +24,48 @@ class SmoMeasure {
     }
     get stemDirection() {
         return this.activeVoice % 2 ? -1 : 1;
+    }
+    static deserialize(jsonString) {
+        var jsonObj = JSON.parse(jsonString);
+        var voices = [];
+        for (var j = 0; j < jsonObj.voices.length; ++j) {
+            var voice = jsonObj.voices[j];
+            var notes = [];
+            voices.push({
+                notes: notes
+            });
+            for (var i = 0; i < voice.notes.length; ++i) {
+                var noteParams = voice.notes[i];
+                var smoNote = new SmoNote(noteParams);
+                notes.push(smoNote);
+            }
+        }
+
+        var tuplets = [];
+        for (j = 0; j < jsonObj.tuplets.length; ++j) {
+            var tuplet = new SmoTuplet(jsonObj.tuplets[j]);
+            tuplets.push(tuplet);
+        }
+
+        var beamGroups = [];
+        for (j = 0; j < jsonObj.beamGroups.length; ++j) {
+            var smoBeam = new SmoBeamGroup(jsonObj.beamGroups[j]);
+            beamGroups.push(smoBeam);
+        }
+
+        var attrs = [
+            'timeSignature', 'keySignature', 'staffX', 'staffY', 'customModifiers',
+            'drawClef', 'measureNumber', 'staffWidth', 'modifierOptions', 'beatValue',
+            'activeVoice'];
+        var params = {
+            voices: voices,
+            tuplets: tuplets,
+            beamGroups: beamGroups
+        };
+		
+		vexMusic.filteredMerge(attrs,jsonObj,params);
+
+        return new SmoMeasure(params);
     }
 
     static get defaultVoice44() {
@@ -77,9 +123,9 @@ class SmoMeasure {
             bars: [1, 1], // follows enumeration in VF.Barline
             drawClef: true,
             measureNumber: {
-                localIndex: 1,
-                systemIndex: 1,
-                measureNumber: 1
+                localIndex: 0,
+                systemIndex: 0,
+                measureNumber: 0
             },
             staffWidth: 400,
             modifierOptions: {},

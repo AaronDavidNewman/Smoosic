@@ -117,6 +117,8 @@ class ChordTest {
 			});
 			  measure.applyTransform(actor);
             measure.render();
+			console.log('tuplet serialize');
+			console.log(JSON.stringify(measure.smoMeasure,null,' '));
             return timeTest();
 		}
 		

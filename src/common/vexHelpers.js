@@ -144,6 +144,14 @@ class vexMusic {
     static noteDebug (note) {
         console.log(JSON.stringify(noteDebugRecurse(note, 0), null, ' '));
     }
+	
+	static filteredMerge(attrs,src,dest) {
+		attrs.forEach(function(attr) {
+            if (src[attr]) {
+                dest[attr] = src[attr];
+            }
+		});
+	}
 }
 
 /**

@@ -1,5 +1,7 @@
 
+
 class VoiceTest {
+
 
     // Create an SVG renderer and attach it to the DIV element named "boo".
     static createContext() {
@@ -52,6 +54,16 @@ class VoiceTest {
             return timeTest();
         }
 		
-        drawDefaults().then(accidentalTest);
+		var serializeTest = () => {
+			measure.unrender();
+			measure.smoMeasure=SmoMeasure.deserialize(JSON.stringify(serializeTestJson.tupletMeasure));;
+			measure.render();
+		}
+		var serialize = () => {
+			console.log(JSON.stringify(measure.smoMeasure,null,' '));
+			return timeTest();
+		}
+		
+        drawDefaults().then(accidentalTest).then(serializeTest);
     }
 }

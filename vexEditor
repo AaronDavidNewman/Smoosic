@@ -32,6 +32,8 @@
             <File name="src\test\tupletTest.html" />
             <File name="src\test\chordTest.html" />
             <File name="src\test\test_all.html" />
+            <File name="src\test\voiceTest.html" />
+            <File name="src\test\voiceTest.js" />
         </Folder>
     </Project>
 </NotepadPlus>
