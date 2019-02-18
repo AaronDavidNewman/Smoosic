@@ -55,7 +55,7 @@ class SmoMeasure {
 
         var attrs = [
             'timeSignature', 'keySignature', 'staffX', 'staffY', 'customModifiers',
-            'drawClef', 'measureNumber', 'staffWidth', 'modifierOptions', 'beatValue',
+            'drawClef', 'measureNumber', 'staffWidth', 'modifierOptions',
             'activeVoice'];
         var params = {
             voices: voices,

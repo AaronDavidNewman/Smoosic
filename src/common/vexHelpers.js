@@ -75,6 +75,25 @@ class vexMusic {
         _ticksToDurations();
         return ticksToDuration;
     };
+	
+	// ## durationToTicks
+	// Uses VF.durationToTicks, but handles dots.
+	static durationToTicks(duration) {
+		var dots = duration.indexOf('d');
+		if (dots < 0) {
+			return VF.durationToTicks(duration);
+		} else {
+			var vfDuration = VF.durationToTicks(duration.substring(0,dots));
+			dots = duration.length-dots; // number of dots
+			var split=vfDuration/2;
+			for (var i=0;i<dots;++i) {
+				vfDuration+=split;
+				split=split/2;
+			}
+			
+			return vfDuration;
+		}
+	}
 
     static ticksFromNote(note) {
         return note.ticks.numerator / note.ticks.denominator;

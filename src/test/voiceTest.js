@@ -29,7 +29,7 @@ class VoiceTest {
                     setTimeout(() => {
                         resolve();
                     },
-                        100);
+                        500);
                 });
             return promise;
         }

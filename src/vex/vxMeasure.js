@@ -95,6 +95,8 @@ class VxMeasure {
 	// create an a array of VF.StaveNote objects to render the active voice.
     createVexNotes() {
         this.vexNotes = [];
+		this.noteToVexMap={};
+
         for (var i = 0; i < this.smoMeasure.notes.length; ++i) {
             var smoNote = this.smoMeasure.notes[i];
             var vexNote = this._createVexNote(smoNote);
@@ -109,6 +111,7 @@ class VxMeasure {
 	// make the Smo custom modifiers
     createVexBeamGroups() {
         this.vexBeamGroups = [];
+		this.beamToVexMap={};
         for (var i = 0; i < this.smoMeasure.beamGroups.length; ++i) {
             var bg = this.smoMeasure.beamGroups[i];
             var vexNotes = [];
@@ -127,6 +130,7 @@ class VxMeasure {
 	// that have been defined.
     createVexTuplets() {
         this.vexTuplets = [];
+		this.tupletToVexMap={};
         for (var i = 0; i < this.smoMeasure.tuplets.length; ++i) {
             var tp = this.smoMeasure.tuplets[i];
             var vexNotes = [];

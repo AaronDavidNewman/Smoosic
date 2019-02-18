@@ -14,7 +14,7 @@ class SmoNote {
     constructor(params) {
         Vex.Merge(this, SmoNote.defaults);
         Vex.Merge(this, params);
-        var ticks = VF.durationToTicks(this.duration);
+        var ticks = vexMusic.durationToTicks(this.duration);
         this.ticks = {
             numerator: ticks,
             denominator: 1,
@@ -94,13 +94,18 @@ class SmoNote {
         this.dots = num;
         return this;
     }
-    static clone(note) {
+	static _cloneParameters(note) {
         var keys = Object.keys(note);
         var clone = {};
         for (var i = 0; i < keys.length; ++i) {
             var key = keys[i];
             clone[key] = note[key];
         }
+		return clone;
+	}
+    static clone(note) {
+        var clone = SmoNote._cloneParameters(note);
+
         // should tuplet info be cloned?
         var rv = new SmoNote(clone);
 		
@@ -111,6 +116,24 @@ class SmoNote {
             };
 		return rv;
     }
+	
+	// ## Description:
+	// Clone the note, but use the different duration.  Changes the length
+	// of the note but nothing else.
+	static cloneWithDuration(note,duration) {
+		var clone = SmoNote._cloneParameters(note);
+		clone.duration = duration;
+        // should tuplet info be cloned?
+        var rv = new SmoNote(clone);
+		
+		// make sure id is unique
+		rv.attrs={
+                id: VF.Element.newID(),
+                type: 'SmoNote'
+            };
+		return rv;
+	}
+	
     static get defaults() {
         return {
             timeSignature: '4/4',
@@ -152,9 +175,9 @@ class SmoTuplet {
         var sum = this.durationSum;
         for (var i = 0; i < this.notes.length; ++i) {
             var note = this.notes[i];
-            var normTicks = VF.durationToTicks(vexMusic.ticksToDuration[this.stemTicks]);
+            var normTicks = vexMusic.durationToTicks(vexMusic.ticksToDuration[this.stemTicks]);
             // TODO:  notes_occupied needs to consider vex duration
-            var tupletBase = normTicks * this.notes_occupied;
+            var tupletBase = normTicks * this.note_ticks_occupied;
             note.ticks.denominator = 1;
             note.ticks.numerator = Math.floor((this.totalTicks * this.durationMap[i]) / sum);
             // put all the remainder in the first note of the tuplet
@@ -243,8 +266,11 @@ class SmoTuplet {
         return this.durationSum;
     }
     get notes_occupied() {
-        return this.totalTicks / this.stemTicks;
+        return Math.floor(this.totalTicks / this.stemTicks);
     }
+	get note_ticks_occupied() {
+		return this.totalTicks / this.stemTicks;
+	}
     get tickCount() {
         var rv = 0;
         for (var i = 0; i < this.notes.length; ++i) {

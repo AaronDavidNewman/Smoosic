@@ -26,7 +26,7 @@ class TimeSignatureTest {
                     setTimeout(() => {
                         resolve();
                     },
-                        100);
+                        500);
                 });
             return promise;
         }
@@ -37,8 +37,57 @@ class TimeSignatureTest {
             measure.render();
             return timeTest();
         }
-        
 		
-        drawDefaults();
+		var stretchTest = () => {
+            var tickmap = measure.tickmap();
+        var actor = new SmoStretchNoteActor({
+				 startIndex: 0,
+                tickmap: tickmap,
+				newTicks:6144
+			});
+            measure.applyTransform(actor);
+            measure.render();
+            return timeTest();
+		}
+		
+		var contractTest = () => {
+            var tickmap = measure.tickmap();
+            var actor = new SmoContractNoteActor({
+				 startIndex: 0,
+                tickmap: tickmap,
+				newTicks:6144/3
+			});
+            measure.applyTransform(actor);
+            measure.render();
+            return timeTest();
+		}
+		
+        var makeDupletTest = () => {
+            var tickmap = measure.tickmap();
+            var actor = new SmoMakeTupletActor({
+                    index: 0,
+                    totalTicks: 6144,
+                    numNotes: 2,
+                    measure: measure.smoMeasure
+                });
+            measure.applyTransform(actor);
+            measure.render();
+            return timeTest();
+        }
+		
+		var unmakeTupletTest = () => {
+            // maybe just need changeIndex?
+            var actor = new SmoUnmakeTupletActor({
+                    startIndex:0,
+				    endIndex:1,
+                    measure: measure.smoMeasure
+                });
+            measure.applyTransform(actor);
+            measure.render();
+            return timeTest();
+        }
+
+		
+        drawDefaults().then(stretchTest).then(contractTest).then(makeDupletTest).then(unmakeTupletTest);
     }
 }
