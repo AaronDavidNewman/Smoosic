@@ -4,17 +4,17 @@ class SmoMeasure {
     constructor(params) {
         this.tuplets = [];
         this.beamGroups = [];
-        
+
         Vex.Merge(this, SmoMeasure.defaults);
         Vex.Merge(this, params);
-		if (!this['attrs']) {
+        if (!this['attrs']) {
             this.attrs = {
                 id: VF.Element.newID(),
                 type: 'SmoMeasure'
             };
         } else {
-			console.log('inherit attrs');
-		}
+            console.log('inherit attrs');
+        }
     }
     get notes() {
         return this.voices[this.activeVoice].notes;
@@ -62,55 +62,95 @@ class SmoMeasure {
             tuplets: tuplets,
             beamGroups: beamGroups
         };
-		
-		vexMusic.filteredMerge(attrs,jsonObj,params);
+
+        vexMusic.filteredMerge(attrs, jsonObj, params);
 
         return new SmoMeasure(params);
     }
 
+    // TODO: learn what all these clefs are
+    static get defaultKeyForClef() {
+        return {
+            'treble': {
+                key: 'b',
+                accidental: '',
+                octave: 4
+            },
+            'bass': {
+                key: 'd',
+                accidental: '',
+                octave: 3
+            },
+            'tenor': {
+                key: 'a',
+                accidental: '',
+                octave: 4
+            },
+            'alto': {
+                key: 'a',
+                accidental: '',
+                octave: 3
+            },
+            'soprano': {
+                key: 'b',
+                accidental: '',
+                octave: 4
+            },
+            'percussion': {
+                key: 'b',
+                accidental: '',
+                octave: 4
+            },
+            'mezzo-soprano': {
+                key: 'b',
+                accidental: '',
+                octave: 4
+            },
+            'baritone-c': {
+                key: 'b',
+                accidental: '',
+                octave: 3
+            },
+            'baritone-f': {
+                key: 'e',
+                accidental: '',
+                octave: 3
+            },
+            'subbass': {
+                key: 'd',
+                accidental: '',
+                octave: 2
+            },
+            'french': {
+                key: 'b',
+                accidental: '',
+                octave: 4
+            } // no idea
+        }
+    }
+    static getDefaultNotes(clef, timeSignature) {
+        var meterNumbers = timeSignature.split('/').map(number => parseInt(number, 10));
+        var duration = '4';
+        if (meterNumbers[0] % 3 == 0) {
+            duration = '8';
+        }
+        var keys = SmoMeasure.defaultKeyForClef[clef];
+        var rv = [];
+
+        for (var i = 0; i < meterNumbers[0]; ++i) {
+            var note = new SmoNote({
+                    clef: clef,
+                    keys: [keys],
+                    duration: duration,
+					timeSignature:timeSignature
+                });
+            rv.push(note);
+        }
+        return rv;
+    }
+
     static get defaultVoice44() {
-        return [
-            new SmoNote({
-                clef: "treble",
-                keys: [{
-                        key: 'b',
-                        accidental: '',
-                        octave: 4
-                    }
-                ],
-                duration: "4"
-            }),
-            new SmoNote({
-                clef: "treble",
-                keys: [{
-                        key: 'b',
-                        accidental: '',
-                        octave: 4
-                    }
-                ],
-                duration: "4"
-            }),
-            new SmoNote({
-                clef: "treble",
-                keys: [{
-                        key: 'b',
-                        accidental: '',
-                        octave: 4
-                    }
-                ],
-                duration: "4"
-            }),
-            new SmoNote({
-                clef: "treble",
-                keys: [{
-                        key: 'b',
-                        accidental: '',
-                        octave: 4
-                    }
-                ],
-                duration: "4"
-            })
-        ];
+		return SmoMeasure.getDefaultNotes('treble','4/4');
     }
     static get defaults() {
         var noteDefault = SmoMeasure.defaultVoice44;
@@ -129,10 +169,8 @@ class SmoMeasure {
             },
             staffWidth: 400,
             modifierOptions: {},
-            clef: 'treble',
-            numBeats: 4,
+            clef: 'treble',            
             forceClef: false,
-            beatValue: 4,
             voices: [{
                     notes: noteDefault
                 }
@@ -183,6 +221,12 @@ class SmoMeasure {
             parameters: parameters
         });
     }
+	get numBeats() {
+		return this.timeSignature.split('/').map(number => parseInt(number, 10))[0];
+	}
+	get beatValue() {
+		return this.timeSignature.split('/').map(number => parseInt(number, 10))[1];
+	}
 
     setMeasureNumber(num) {
         this.measureNumber = num;

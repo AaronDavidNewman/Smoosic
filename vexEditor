@@ -34,6 +34,8 @@
             <File name="src\test\test_all.html" />
             <File name="src\test\voiceTest.html" />
             <File name="src\test\voiceTest.js" />
+            <File name="src\test\timeSignatureTest.html" />
+            <File name="src\test\timeSignatureTest.js" />
         </Folder>
     </Project>
 </NotepadPlus>
