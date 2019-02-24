@@ -173,37 +173,3 @@ class vexMusic {
 	}
 }
 
-/**
- *  ## Selection
- *  represent a selection of notes as a 2-dimensional array
- *  ## Format
- *  selection = [
- {tickIndex:{measure:0,voice:0,tick:0},pitches:[0,1]}
-    ]
-  *  ## Usages:
-  *    selection.tickArray()
-  *      Creates array of tick indices
-  **/
-class Selection {
-	
-	constructor(params) {
-		this._obj=[];
-		if (params && Array.isArray(params)) {
-			this._obj=params;		
-		} else if (params != null) {
-			this._obj=[params];
-		}
-	}
-	get length() {
-		return _obj.length;
-	}
-	pitchArray(tickIndex) {
-		
-		for (var i=0;i<this._obj.length;++i) {			
-			if (this._obj[i].tickIndex===tickIndex) {
-				return this._obj[i].pitches;
-			}
-		}
-		return [];
-	}	
-}

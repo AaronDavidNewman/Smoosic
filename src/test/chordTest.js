@@ -24,7 +24,7 @@ class ChordTest {
                     setTimeout(() => {
                         resolve();
                     },
-                        100);
+                        200);
                 });
             return promise;
         }
@@ -36,28 +36,20 @@ class ChordTest {
             return timeTest();
         }
         var accidentalTest = () => {
-            var selection = new Selection([
-			{tickIndex:1,pitches:[0]}
-					]);
-			var actor = new SmoTransposePitchActor(
-			{
-                selections: selection,
-                offset: -1
-            });
-            measure.applyTransform(actor);
+			var pitches=[0];
+			
+			var target = measure.smoMeasure.getSelection(0,1,pitches);
+            target.note.transpose(pitches,-1);
+			measure.applyModifiers();
             measure.render();
             return timeTest();
         }
 
         var intervalTest = () => {
-            var selection = new Selection([{
-			tickIndex:2,pitches:[1]}
-                ]);
-			var actor = new SmoTransposePitchActor({
-                selections: selection,
-                offset: 4
-			});
-            measure.applyTransform(actor);
+			var target = measure.smoMeasure.getSelection(0,2,[1]);
+			if (target) {
+				target.note.transpose([1],4);
+			}
             measure.render();
             return timeTest();
         }
@@ -91,18 +83,12 @@ class ChordTest {
 			return timeTest();
 		}
 		var setPitchTest = () => {
-			var tickmap = measure.tickmap();
-			var keys=[{
-                    key: 'e',
-                    octave: 4,
-                    accidental: 'b'
-                },{key:'g',octave:5,accidental:''}];
-			var actor = new SmoSetPitchActor({
-				 selection: 2,
-                tickmap: tickmap,
-				keys:keys
-			});
-            measure.applyTransform(actor);
+			var target = measure.smoMeasure.getSelection(0,2,[0]);
+			if (target) {
+				target.note.keys=[{key:'e',octave:4,accidental:'b'},
+				{key:'g',octave:5,accidental:''}];
+			}
+			measure.applyModifiers();
             measure.render();
             return timeTest();
         }
@@ -134,12 +120,9 @@ class ChordTest {
 		}
 		
 		var courtesyTest = () => {
-			var courtesy= new Selection([{
-			tickIndex:2,pitches:[1]}
-            ]);
-			measure.smoMeasure.modifierOptions={cautionary:courtesy};
-			measure.applyModifiers();
-			// measure.noVexMeasure.notes[1].accidentals[0].value.isCautionary = true;
+			var target = measure.smoMeasure.getSelection(0,2,[1]);
+			target.note.addAccidental({index:1,value:{symbol:'n',cautionary:true}});
+			measure.applyModifiers();			
 			measure.render();
 			return timeTest();
 		}

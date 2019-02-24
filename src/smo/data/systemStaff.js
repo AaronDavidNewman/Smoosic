@@ -51,6 +51,19 @@ class SmoSystemStaff {
             measure.setMeasureNumber(numberObj);
         }
     }
+	getSelection(measure,voice,tick,pitches) {		
+		for (var i = 0; i < this.measures.length; ++i) {
+			var measure = this.measures[i];
+			if (measure.measureNumber.measureNumber) {				
+				var target = this.measures[i].getSelection(voice,tick,pitches);
+				if (!target) {					
+				    return null;
+				}				
+				return ({measure:measure,note:target.note,selection:target.selection});
+			}
+		}
+		return null;
+	}
     addMeasure(index, measure) {
         if (index === 0 && this.measures.length) {
             measure.setMeasureNumber(this.measures[0].measureNumber);
@@ -65,3 +78,4 @@ class SmoSystemStaff {
         return this; // fluent interface
     }
 }
+

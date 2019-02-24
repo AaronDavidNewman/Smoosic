@@ -7,7 +7,7 @@ class NoteModifierBase {
 class smoModifierFactory {
     static getStandardModifiers(measure) {
         var actors = [];
-        var cautionary = measure.options && measure.options['cautionary'] ? measure.options['cautionary'] : new Selection();
+        var cautionary = measure.options && measure.options['cautionary'] ? measure.options['cautionary'] : {measure:0,voice:0,tick:0,pitches:[]};
         actors.push(new smoDotModifier());
         actors.push(new smoAccidentalModifier({
                 keySignature: measure.keySignature,
@@ -78,7 +78,7 @@ class smoAccidentalModifier extends NoteModifierBase {
         super();
         this.keySignature = parameters.keySignature;
         this.keyManager = new VF.KeyManager(this.keySignature);
-        this.cautionary = parameters.cautionarySelections ? parameters.cautionarySelections : new Selection();
+        this.cautionary = parameters.cautionarySelections ? parameters.cautionarySelections : {measure:0,voice:0,tick:0,pitches:[]};
     }
 
     modifyNote(iterator, note, accidentalMap) {
@@ -88,8 +88,7 @@ class smoAccidentalModifier extends NoteModifierBase {
 			var vexKey=prop.key+prop.accidental;
             var accidental = (this.keyManager.scale.indexOf(canon.indexOf(vexKey)) < 0);
             accidental = accidental && !smoTickIterator.hasActiveAccidental(prop, iterator.index, accidentalMap);
-			var cpitch = this.cautionary.pitchArray(iterator.index);
-            var cautionary = cpitch.indexOf(i) >= 0;
+			var cautionary = this.cautionary.pitches.indexOf(i) >= 0;
             // {index:1,value:{symbol:'#',cautionary:false}}
 
             if (accidental || cautionary) {

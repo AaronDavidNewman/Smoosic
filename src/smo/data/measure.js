@@ -181,6 +181,57 @@ class SmoMeasure {
     tickmap() {
         return VX.TICKMAP(this);
     }
+	transpose(voice,tick,optionPitchArray,offset) {
+		var pitches = [];
+		var target = this.getSelection(voice,tick,optionPitchArray);
+		if (target) {
+			
+		}
+	}
+	// {index:1,value:{symbol:'#',cautionary:false}}
+	setAccidental(voice,tick,pitch,value) {
+		var target = this.getSelection(voice,tick,[pitch]);
+		if (target) {
+			target.note.addAccidental(value);
+		}
+	}
+	getSelection(voice,tick,optionPitchArray) {
+		
+		if (this.voices.length < voice) {
+			return null;
+		}
+				
+	    this.activeVoice = voice;
+		
+		var tickmap = this.tickmap();
+		
+		if (this.notes.length < tick) {
+			return null;
+		}
+		
+		var note = this.notes[tick];
+		var pitches = note.keys;
+		
+		if (optionPitchArray.length > note.keys.length) {
+			return null;
+		}
+		if (!optionPitchArray.length) {
+			pitches=[];
+			for (var i=0;i<note.keys.length;++i) {
+				optionPitchArray.push(i);
+			}
+		}
+		
+		// {tickIndex:{measure:0,voice:0,tick:0},pitches:[0,1]}
+		var pitchSelection = 		    
+			   {measure:this.measureNumber.measureNumber,
+			   voice:voice,
+			   tick:tick,
+			   pitches:pitches};
+			
+		return {note:note,selection:pitchSelection};
+	}
+	
     clearBeamGroups() {
         this.beamGroups = [];
     }

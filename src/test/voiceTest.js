@@ -41,15 +41,12 @@ class VoiceTest {
             return timeTest();
         }
 		var accidentalTest = () => {
-            var selection = new Selection([
-			{tickIndex:1,pitches:[0]}
-					]);
-			var actor = new SmoTransposePitchActor(
-			{
-                selections: selection,
-                offset: -1
-            });
-            measure.applyTransform(actor);
+			var target = measure.smoMeasure.getSelection(
+			0,1,[0]);
+			if (target) {
+				target.note.transpose([0],-1);
+			}
+			measure.applyModifiers();
             measure.render();
             return timeTest();
         }

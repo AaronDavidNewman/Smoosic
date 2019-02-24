@@ -42,6 +42,7 @@ class VxSystemStaff {
 			 var smoMeasure = this.smoMeasures.measures[i];
 			 var vxMeasure = new VxMeasure(this.context,{smoMeasure:smoMeasure});
 			 this.vxMeasures.push(vxMeasure);
+			 vxMeasure.applyModifiers();
 			 vxMeasure.render();
 		 }
 	 }

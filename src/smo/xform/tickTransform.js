@@ -99,40 +99,8 @@ class TickTransformBase {
     }
 }
 
-class SmoTransposePitchActor extends TickTransformBase {
-    constructor(parameters) {
-		super();
-		Vex.Merge(this,parameters);        
-    }
-    transformTick(note, iterator, accidentalMap) {
-        var index = iterator.index;
-        if (this.selections.pitchArray(index).length === 0) {
-            return null;
-        }
-        return note.transpose(this.selections.pitchArray(iterator.index),this.offset);
-    }
-}
 
-class SmoSetNoteTypeActor extends TickTransformBase {
-    constructor(measure, selections, noteType) {
-		super();
-        this.keySignature = measure.keySignature;
-        this.tickArray = selection.tickArray();
-        this.selections = selections;
-        this.offset = offset;
-    }
-    transformTick(note, iterator, accidentalMap) {
-        var index = iterator.index;
-        if (this.tickArray().indexOf(index) < 0) {
-            return null;
-        }
-		note.noteType=this.noteType;
-        return note;
-    }
-
-}
-
-class SmoSetPitchActor extends TickTransformBase {
+/* class SmoSetPitchActor extends TickTransformBase {
     constructor(parameters) {
 		super();
 		Vex.Merge(this,parameters);
@@ -148,3 +116,4 @@ class SmoSetPitchActor extends TickTransformBase {
     }
 
 }
+  */
