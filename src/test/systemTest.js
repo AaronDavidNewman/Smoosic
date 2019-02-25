@@ -32,7 +32,7 @@ class SystemTest {
 					setTimeout(() => {
 						resolve();
 					},
-						1000);
+						100);
 				});
 			return promise;
 		}
@@ -60,13 +60,13 @@ class SystemTest {
 		var changePitch2 = () => {
 			var target = line1.smoMeasures.getSelection(1, 0, 1, [0]);
 			if (target) {
-				target.note.keys= [{
+				target.note.keys = [{
 						key: 'f',
 						octave: 4,
 						accidental: '#'
 					}
 				]
-			}			
+			}
 			line1.render();
 			return timeTest();
 		}
@@ -78,6 +78,22 @@ class SystemTest {
 				});
 			line1.render();
 		}
-		drawDefaults().then(changePitch).then(changePitch2).then(serializeTest);
+
+		var trackTest = () => {
+			var active = line1.smoMeasures.getSelection(0, 0, 0, []);
+			var id = active.note.renderId;
+			var vxNote = $(line1.context.svg).find('#vf-'+id);
+			var bb = vxNote[0].getBBox();
+			var grp = line1.context.openGroup('note-box', 'box-' + id);
+			line1.context.rect(bb.x, bb.y, bb.width + 3, bb.height + 3, {
+				stroke: '#fc9',
+				'stroke-width': 2,
+				'fill': 'none'
+			});
+			line1.context.closeGroup(grp);
+
+		}
+
+		drawDefaults().then(changePitch).then(changePitch2).then(serializeTest).then(trackTest);
 	}
 }

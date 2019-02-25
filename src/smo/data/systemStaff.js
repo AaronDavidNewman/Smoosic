@@ -51,10 +51,10 @@ class SmoSystemStaff {
             measure.setMeasureNumber(numberObj);
         }
     }
-	getSelection(measure,voice,tick,pitches) {		
+	getSelection(measureNumber,voice,tick,pitches) {		
 		for (var i = 0; i < this.measures.length; ++i) {
 			var measure = this.measures[i];
-			if (measure.measureNumber.measureNumber) {				
+			if (measure.measureNumber.measureNumber === measureNumber) {				
 				var target = this.measures[i].getSelection(voice,tick,pitches);
 				if (!target) {					
 				    return null;

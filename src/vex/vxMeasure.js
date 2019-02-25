@@ -76,6 +76,7 @@ class VxMeasure {
         };
         this.applyStemDirection(noteParams);
         var vexNote = new VF.StaveNote(noteParams);
+		smoNote.renderId = vexNote.attrs.id;
 
         for (var i = 0; i < smoNote.accidentals.length; ++i) {
             var smoAcc = smoNote.accidentals[i];
