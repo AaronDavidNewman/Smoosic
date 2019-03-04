@@ -1,10 +1,10 @@
 
-class testPaginator {
+class testLayout {
 	constructor(params) {
 		Vex.Merge(this, params);
 		this.attrs = {
 			id: VF.Element.newID(),
-			type: 'testPaginator'
+			type: 'testLayout'
 		};
 	}
 	bind(measureSource) {

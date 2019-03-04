@@ -23,7 +23,7 @@
         </Folder>
         <Folder name="ui">
             <File name="src\ui\tracker.js" />
-            <File name="src\ui\paginator.js" />
+            <File name="src\ui\layout.js" />
         </Folder>
         <Folder name="test">
             <File name="src\test\systemTest.html" />
