@@ -22,7 +22,10 @@ class VoiceTest {
 		var smoMeasure = new SmoMeasure();
 		var voice2=SmoMeasure.defaultVoice44;
 		smoMeasure.voices.push({notes:voice2});
-        var measure = new VxMeasure(context,{smoMeasure:smoMeasure});
+		
+		var system = new SmoSystemStaff({measures:[smoMeasure]});
+		var line = new VxSystemStaff(context,{smoMeasures:system});
+		var measure = line.smoMeasures.measures[0];
 
         var timeTest = () => {
             const promise = new Promise((resolve, reject) => {
@@ -37,27 +40,29 @@ class VoiceTest {
         var drawDefaults = () => {
             // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
             // measure.applyModifiers();
-            measure.render();
+            line.render();
             return timeTest();
         }
 		var accidentalTest = () => {
-			var target = measure.smoMeasure.getSelection(
+			var target = measure.getSelection(
 			0,1,[0]);
 			if (target) {
 				target.note.transpose([0],-1);
 			}
-			measure.applyModifiers();
-            measure.render();
+			smoModifierFactory.applyModifiers(measure);
+            line.render();
             return timeTest();
         }
 		
 		var serializeTest = () => {
-			measure.unrender();
-			measure.smoMeasure=SmoMeasure.deserialize(JSON.stringify(serializeTestJson.tupletMeasure));;
-			measure.render();
+			line.unrender();
+			smoMeasure = SmoMeasure.deserialize(JSON.stringify(serializeTestJson.tupletMeasure));
+			system = new SmoSystemStaff({measures:[smoMeasure]});
+			line = new VxSystemStaff(context,{smoMeasures:system});
+			line.render();
 		}
 		var serialize = () => {
-			console.log(JSON.stringify(measure.smoMeasure,null,' '));
+			console.log(JSON.stringify(measure,null,' '));
 			return timeTest();
 		}
 		

@@ -29,10 +29,9 @@ class VxMeasure {
     }
 
     static get defaults() {
+		// var defaultLayout = new smrfSimpleLayout();
+
         return {
-            staffX: 10,
-            staffY: 40,
-            staffWidth: 400,
             smoMeasure: null
         };
     }
@@ -164,15 +163,13 @@ class VxMeasure {
         group.classList.add(this.smoMeasure.attrs.id);
 
         // offset for left-hand stuff
-        var xOffset = 0;
         this.stave = new VF.Stave(this.smoMeasure.staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth);
 
         // Add a clef and time signature.
-        if (this.smoMeasure.forceClef || this.smoMeasure.measureNumber.systemIndex === 0) {
+        if (this.smoMeasure.forceClef) {
             this.stave.addClef(this.smoMeasure.clef)
             .addTimeSignature(this.smoMeasure.timeSignature)
             .addKeySignature(this.smoMeasure.keySignature);
-            xOffset = 70;
         }
         // Connect it to the rendering context and draw!
         this.stave.setContext(this.context).draw();
@@ -191,7 +188,7 @@ class VxMeasure {
                     beat_value: this.smoMeasure.beatValue
                 });
             this.voice.addTickables(this.vexNotes);
-            this.formatter = new VF.Formatter().joinVoices([this.voice]).format([this.voice], this.staffWidth - xOffset);
+            this.formatter = new VF.Formatter().joinVoices([this.voice]).format([this.voice], this.smoMeasure.noteWidth);
             this.voice.draw(this.context, this.stave);
 
             var self = this;

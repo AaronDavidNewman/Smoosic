@@ -32,7 +32,7 @@ class SystemTest {
 					setTimeout(() => {
 						resolve();
 					},
-						100);
+						500);
 				});
 			return promise;
 		}

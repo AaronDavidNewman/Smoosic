@@ -14,7 +14,7 @@ class SmoMeasure {
             };
         } else {
             console.log('inherit attrs');
-        }
+        }		
     }
     get notes() {
         return this.voices[this.activeVoice].notes;
@@ -168,6 +168,7 @@ class SmoMeasure {
                 measureNumber: 0
             },
             staffWidth: 400,
+			noteWidth:400,
             modifierOptions: {},
             clef: 'treble',            
             forceClef: false,

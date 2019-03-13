@@ -18,7 +18,9 @@ class TupletTest {
 
     static CommonTests() {
         var context = TupletTest.createContext();
-        var measure = new VxMeasure(context);
+		var line1 = new VxSystemStaff(context);
+		var measure = line1.smoMeasures.measures[0];
+
 
         var timeTest = () => {
             const promise = new Promise((resolve, reject) => {
@@ -32,8 +34,8 @@ class TupletTest {
 
         var drawDefaults = () => {
             // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
-            measure.applyModifiers();
-            measure.render();
+			smoModifierFactory.applyModifiers(measure);
+            line1.render();
             return timeTest();
         }
 
@@ -43,10 +45,10 @@ class TupletTest {
                     index: 1,
                     totalTicks: 4096,
                     numNotes: 3,
-                    measure: measure.smoMeasure
+                    measure: measure
                 });
-            measure.applyTransform(actor);
-            measure.render();
+			SmoTickTransformer.applyTransform(measure,actor);
+            line1.render();
             return timeTest();
         }
 
@@ -55,10 +57,10 @@ class TupletTest {
                     changeIndex: 1,
                     startIndex: 0,
                     endIndex: 1,
-                    measure: measure.smoMeasure
+                    measure: measure
                 });
-            measure.applyTransform(actor);
-            measure.render();
+			SmoTickTransformer.applyTransform(measure,actor);
+            line1.render();
             return timeTest();
         }
 
@@ -66,10 +68,10 @@ class TupletTest {
             // maybe just need changeIndex?
             var actor = new SmoContractTupletActor({
                     changeIndex: 1,
-                    measure: measure.smoMeasure
+                    measure: measure
                 });
-            measure.applyTransform(actor);
-            measure.render();
+			SmoTickTransformer.applyTransform(measure,actor);
+            line1.render();
             return timeTest();
         }
 
@@ -78,30 +80,30 @@ class TupletTest {
                     changeIndex: 2,
                     startIndex: 1,
                     endIndex: 2,
-                    measure: measure.smoMeasure
+                    measure: measure
                 });
-            measure.applyTransform(actor);
-            measure.render();
+			SmoTickTransformer.applyTransform(measure,actor);
+            line1.render();
             return timeTest();
         }
         var contractTupletTest2 = () => {
             // maybe just need changeIndex?
             var actor = new SmoContractTupletActor({
                     changeIndex: 2,
-                    measure: measure.smoMeasure
+                    measure: measure
                 });
-            measure.applyTransform(actor);
-            measure.render();
+			SmoTickTransformer.applyTransform(measure,actor);
+            line1.render();
             return timeTest();
         }
 		var contractTupletTest3 = () => {
             // maybe just need changeIndex?
             var actor = new SmoContractTupletActor({
                     changeIndex: 1,
-                    measure: measure.smoMeasure
+                    measure: measure
                 });
-            measure.applyTransform(actor);
-            measure.render();
+			SmoTickTransformer.applyTransform(measure,actor);
+            line1.render();
             return timeTest();
         }
 
@@ -110,10 +112,10 @@ class TupletTest {
             var actor = new SmoUnmakeTupletActor({
                     startIndex:1,
 				    endIndex:4,
-                    measure: measure.smoMeasure
+                    measure: measure
                 });
-            measure.applyTransform(actor);
-            measure.render();
+			SmoTickTransformer.applyTransform(measure,actor);
+            line1.render();
             return timeTest();
         }
 		
@@ -123,10 +125,10 @@ class TupletTest {
                     index:3,
 					totalTicks:4096,
 				    numNotes:5,
-                    measure: measure.smoMeasure
+                    measure: measure
                 });
-            measure.applyTransform(actor);
-            measure.render();
+			SmoTickTransformer.applyTransform(measure,actor);
+            line1.render();
             return timeTest();
         }
 				

@@ -7,15 +7,20 @@ class SmoSystemStaff {
         if (this.measures.length) {
             this._numberMeasures();
         }
+		this.layout.bind(this);
+		this.layout.layout();
     }
     static get defaults() {
+		var layout = new smrfSimpleLayout();
+		var measure = new SmoMeasure();
         return {
             staffX: 10,
             staffY: 40,
             staffWidth: 1600,
             startIndex: 0,
             renumberingMap: {},
-            measures: []
+            measures: [measure],
+			layout
         };
     }
 
@@ -75,6 +80,7 @@ class SmoSystemStaff {
         }
 
         this._numberMeasures();
+		this.layout.layout();
         return this; // fluent interface
     }
 }

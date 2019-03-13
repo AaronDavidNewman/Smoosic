@@ -17,7 +17,8 @@ class ChordTest {
 
     static CommonTests() {
         var context = ChordTest.createContext();
-        var measure = new VxMeasure(context);
+		var line1 = new VxSystemStaff(context);
+		var measure = line1.smoMeasures.measures[0];
 
         var timeTest = () => {
             const promise = new Promise((resolve, reject) => {
@@ -32,25 +33,24 @@ class ChordTest {
         var drawDefaults = () => {
             // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
             // measure.applyModifiers();
-            measure.render();
+            line1.render();			
             return timeTest();
         }
         var accidentalTest = () => {
 			var pitches=[0];
-			
-			var target = measure.smoMeasure.getSelection(0,1,pitches);
+			var target = measure.getSelection(0,1,pitches);
             target.note.transpose(pitches,-1);
-			measure.applyModifiers();
-            measure.render();
+			smoModifierFactory.applyModifiers(measure);
+            line1.render();
             return timeTest();
         }
 
         var intervalTest = () => {
-			var target = measure.smoMeasure.getSelection(0,2,[1]);
+			var target = measure.getSelection(0,2,[1]);
 			if (target) {
 				target.note.transpose([1],4);
 			}
-            measure.render();
+            line1.render();
             return timeTest();
         }
 		
@@ -61,8 +61,8 @@ class ChordTest {
                 tickmap: tickmap,
 				newTicks:2048
             });
-            measure.applyTransform(actor);
-            measure.render();
+			SmoTickTransformer.applyTransform(measure,actor);
+            line1.render();
             return timeTest();
         }
 		
@@ -73,23 +73,23 @@ class ChordTest {
                 tickmap: tickmap,
 				newTicks:4096
 			});
-            measure.applyTransform(actor);
-            measure.render();
+			SmoTickTransformer.applyTransform(measure,actor);
+            line1.render();
             return timeTest();
         }
 		
 		var rerenderTest = () => {
-			measure.render();
+			line1.render();
 			return timeTest();
 		}
 		var setPitchTest = () => {
-			var target = measure.smoMeasure.getSelection(0,2,[0]);
+			var target = measure.getSelection(0,2,[0]);
 			if (target) {
 				target.note.keys=[{key:'e',octave:4,accidental:'b'},
 				{key:'g',octave:5,accidental:''}];
 			}
-			measure.applyModifiers();
-            measure.render();
+			smoModifierFactory.applyModifiers(measure);
+            line1.render();
             return timeTest();
         }
 		
@@ -99,12 +99,12 @@ class ChordTest {
 				index:1,
 				totalTicks:4096,
 				numNotes:3,
-				measure:measure.smoMeasure
+				measure:measure
 			});
-			  measure.applyTransform(actor);
-            measure.render();
+			SmoTickTransformer.applyTransform(measure,actor);
+            line1.render();
 			console.log('tuplet serialize');
-			console.log(JSON.stringify(measure.smoMeasure,null,' '));
+			console.log(JSON.stringify(measure,null,' '));
             return timeTest();
 		}
 		
@@ -112,18 +112,18 @@ class ChordTest {
 			var actor = new SmoUnmakeTupletActor({
 				startIndex:1,
 				endIndex:3,
-				measure:measure.smoMeasure
+				measure:measure
 			});
-			  measure.applyTransform(actor);
-            measure.render();
+			SmoTickTransformer.applyTransform(measure,actor);
+            line1.render();
             return timeTest();
 		}
 		
 		var courtesyTest = () => {
-			var target = measure.smoMeasure.getSelection(0,2,[1]);
+			var target = measure.getSelection(0,2,[1]);
 			target.note.addAccidental({index:1,value:{symbol:'n',cautionary:true}});
-			measure.applyModifiers();			
-			measure.render();
+			smoModifierFactory.applyModifiers(measure);			
+			line1.render();
 			return timeTest();
 		}
 		
