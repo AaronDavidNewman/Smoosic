@@ -29,6 +29,10 @@ class ChordTest {
                 });
             return promise;
         }
+		
+		var signalComplete = () => {
+			return timeTest();
+		}
 
         var drawDefaults = () => {
             // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
@@ -127,8 +131,8 @@ class ChordTest {
 			return timeTest();
 		}
 		
-        drawDefaults().then(accidentalTest).then(intervalTest).then(durationTest)
+        return drawDefaults().then(accidentalTest).then(intervalTest).then(durationTest)
 		.then(durationTest2).then(rerenderTest).then(setPitchTest).then(makeTupletTest)
-		.then(unmakeTupletTest).then(courtesyTest);
+		.then(unmakeTupletTest).then(courtesyTest).then(signalComplete);
     }
 }

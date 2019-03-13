@@ -19,8 +19,10 @@ class TimeSignatureTest {
         var context = TimeSignatureTest.createContext();
 		var notes = SmoMeasure.getDefaultNotes('treble','6/8');
 		var smo = new SmoMeasure({voices:[{notes:notes}],timeSignature:'6/8',clef:'treble'});
-        var measure = new VxMeasure(context,{smoMeasure:smo});
-
+		var system = new SmoSystemStaff({measures:[smo]});
+		var line = new VxSystemStaff(context,{smoMeasures:system});
+		var measure = line.smoMeasures.measures[0];
+		
         var timeTest = () => {
             const promise = new Promise((resolve, reject) => {
                     setTimeout(() => {
@@ -30,11 +32,15 @@ class TimeSignatureTest {
                 });
             return promise;
         }
+		
+		var signalComplete = () => {
+			return timeTest();
+		}
 
         var drawDefaults = () => {
             // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
-            measure.applyModifiers();
-            measure.render();
+			smoModifierFactory.applyModifiers(measure);
+            line.render();
             return timeTest();
         }
 		
@@ -45,8 +51,8 @@ class TimeSignatureTest {
                 tickmap: tickmap,
 				newTicks:6144
 			});
-            measure.applyTransform(actor);
-            measure.render();
+            SmoTickTransformer.applyTransform(measure,actor);
+            line.render();
             return timeTest();
 		}
 		
@@ -57,8 +63,8 @@ class TimeSignatureTest {
                 tickmap: tickmap,
 				newTicks:6144/3
 			});
-            measure.applyTransform(actor);
-            measure.render();
+            SmoTickTransformer.applyTransform(measure,actor);
+            line.render();
             return timeTest();
 		}
 		
@@ -68,10 +74,10 @@ class TimeSignatureTest {
                     index: 0,
                     totalTicks: 6144,
                     numNotes: 2,
-                    measure: measure.smoMeasure
+                    measure: measure
                 });
-            measure.applyTransform(actor);
-            measure.render();
+            SmoTickTransformer.applyTransform(measure,actor);
+            line.render();
             return timeTest();
         }
 		
@@ -80,14 +86,15 @@ class TimeSignatureTest {
             var actor = new SmoUnmakeTupletActor({
                     startIndex:0,
 				    endIndex:1,
-                    measure: measure.smoMeasure
+                    measure: measure
                 });
-            measure.applyTransform(actor);
-            measure.render();
+            SmoTickTransformer.applyTransform(measure,actor);
+            line.render();
             return timeTest();
         }
 
 		
-        drawDefaults().then(stretchTest).then(contractTest).then(makeDupletTest).then(unmakeTupletTest);
+        return drawDefaults().then(stretchTest).then(contractTest).then(makeDupletTest).then(unmakeTupletTest).then(signalComplete);
+		
     }
 }

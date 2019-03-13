@@ -32,6 +32,10 @@ class TupletTest {
             return promise;
         }
 
+		var signalComplete = () => {
+			return timeTest();
+		}
+		
         var drawDefaults = () => {
             // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
 			smoModifierFactory.applyModifiers(measure);
@@ -132,8 +136,8 @@ class TupletTest {
             return timeTest();
         }
 				
-        drawDefaults().then(makeTupletTest).then(stretchTupletTest).then(contractTupletTest)
+        return drawDefaults().then(makeTupletTest).then(stretchTupletTest).then(contractTupletTest)
 		.then(stretchTupletTest2).then(contractTupletTest2).then(contractTupletTest3)
-		.then(unmakeTupletTest).then(makeTupletTest2);
+		.then(unmakeTupletTest).then(makeTupletTest2).then(signalComplete);
     }
 }

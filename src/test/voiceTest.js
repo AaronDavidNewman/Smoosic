@@ -36,6 +36,10 @@ class VoiceTest {
                 });
             return promise;
         }
+		
+		var signalComplete = () => {
+			return timeTest();
+		}
 
         var drawDefaults = () => {
             // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
@@ -66,6 +70,6 @@ class VoiceTest {
 			return timeTest();
 		}
 		
-        drawDefaults().then(accidentalTest).then(serializeTest);
+        return drawDefaults().then(accidentalTest).then(serializeTest).then(signalComplete);
     }
 }

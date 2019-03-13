@@ -36,6 +36,10 @@ class SystemTest {
 				});
 			return promise;
 		}
+		
+		var signalComplete = () => {
+			return timeTest();
+		}
 
 		var drawDefaults = () => {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
@@ -93,7 +97,7 @@ class SystemTest {
 			line1.context.closeGroup(grp);
 
 		}
-
-		drawDefaults().then(changePitch).then(changePitch2).then(serializeTest).then(trackTest);
+		
+		return drawDefaults().then(changePitch).then(changePitch2).then(serializeTest).then(trackTest).then(signalComplete);
 	}
 }

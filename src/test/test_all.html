@@ -9,23 +9,39 @@ float:left;
 margin-left:10px;
 }
 </style>
+ <script type="text/javascript" src="https://npmcdn.com/vexflow/releases/vexflow-debug.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.js"
+            integrity="sha256-fNXJFIlca05BIO2Y5zh1xrShK3ME+/lYZ0j+ChxX2DA="
+			
+            crossorigin="anonymous"></script>
+	<script type="text/javascript" src="../common/vexHelpers.js"></script>
+	<script type="text/javascript" src="../smo/data/note.js"></script>
+	<script type="text/javascript" src="../smo/data/measure.js"></script>
+	<script type="text/javascript" src="../smo/data/systemStaff.js"></script>
+    <script type="text/javascript" src="../smo/xform/iterator.js"></script>
+    <script type="text/javascript" src="../smo/xform/tickTransform.js"></script>
+    <script type="text/javascript" src="../smo/xform/tickDuration.js"></script>
+    <script type="text/javascript" src="../smo/xform/modifiers.js"></script>
+	<script type="text/javascript" src="../ui/layout.js"></script>
+	<script type="text/javascript" src="../vex/vxMeasure.js"></script>
+	<script type="text/javascript" src="../vex/vxSystem.js"></script>
+	<script type="text/javascript" src="serializeTestJson.js"></script>
+	<script type="text/javascript" src="timeSignatureTest.js"></script>
+	<script type="text/javascript" src="chordTest.js"></script>
+	<script type="text/javascript" src="voiceTest.js"></script>
+	<script type="text/javascript" src="tupletTest.js"></script>
+	<script type="text/javascript" src="systemTest.js"></script>
+	<script type="text/javascript" src="testAll.js"></script>
+		<script type="text/javascript">
+document.addEventListener("DOMContentLoaded", function (event) {
+            console.log("DOM fully loaded and parsed");
+            TestAll.Run();
+        });
+		</script>
 </head>
-<div class="x1">
-<iframe src="chordTest.html" width="500px" height="250px"></iframe>
-</div>
+<body>
+    <div id="boo"></div>
 
-<div class="x2">
-<iframe src="tupletTest.html" width="550px" height="250px"></iframe>
-</div>
+</body>
 
-<div class="x3">
-<iframe src="voiceTest.html" width="550px" height="250px"></iframe>
-</div>
-
-<div class="x4">
-<iframe src="timeSignatureTest.html" width="550px" height="250px"></iframe>
-</div>
-
-<div class="x5">
-<iframe src="systemTest.html" width="1650px" height="250px"></iframe>
-</div>
+		
