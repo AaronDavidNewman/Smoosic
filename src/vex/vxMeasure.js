@@ -75,7 +75,7 @@ class VxMeasure {
         };
         this.applyStemDirection(noteParams);
         var vexNote = new VF.StaveNote(noteParams);
-		smoNote.renderId = vexNote.attrs.id;
+		smoNote.renderId = 'vf-'+vexNote.attrs.id; // where does 'vf' come from?
 
         for (var i = 0; i < smoNote.accidentals.length; ++i) {
             var smoAcc = smoNote.accidentals[i];
@@ -193,7 +193,7 @@ class VxMeasure {
 
             var self = this;
             this.vexBeamGroups.forEach(function (b) {
-                b.setContext(self.context).draw()
+                b.setContext(self.context).draw();
             });
 
             this.vexTuplets.forEach(function (tuplet) {

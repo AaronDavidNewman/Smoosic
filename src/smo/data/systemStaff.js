@@ -39,6 +39,16 @@ class SmoSystemStaff {
         return new SmoSystemStaff(params);
 
     }
+	
+	getRenderedNote(id) {
+		for (var i = 0; i < this.measures.length; ++i) {
+            var measure = this.measures[i];
+			var note = measure.getRenderedNote(id);
+			if (note)
+				return note;
+		}
+		return null;
+	}
     _numberMeasures() {
         this.renumberIndex = this.startIndex;
         var startx = 0;

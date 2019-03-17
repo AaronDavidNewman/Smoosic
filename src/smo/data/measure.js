@@ -19,6 +19,18 @@ class SmoMeasure {
     get notes() {
         return this.voices[this.activeVoice].notes;
     }
+	getRenderedNote(id) {
+        for (var j = 0; j < this.voices.length; ++j) {
+            var voice = this.voices[j];
+            for (var i = 0; i < voice.notes.length; ++i) {
+				var note = voice.notes[i];
+				if (note.renderId === id) {
+					return note;
+				}
+			}
+		}
+		return null;		
+	}
     set notes(val) {
         this.voices[this.activeVoice].notes = val;
     }

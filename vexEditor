@@ -37,6 +37,7 @@
             <File name="src\test\voiceTest.js" />
             <File name="src\test\timeSignatureTest.html" />
             <File name="src\test\timeSignatureTest.js" />
+            <File name="src\test\testAll.js" />
         </Folder>
     </Project>
 </NotepadPlus>

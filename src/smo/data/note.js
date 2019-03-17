@@ -32,7 +32,10 @@ class SmoNote {
         this.accidentals = [];
         this.dots = 0;
     }
-
+	get id() {
+		return this.attrs.id;
+	}
+	
     toVexKeys() {
         var rv = [];
         for (var i = 0; i < this.keys.length; ++i) {
