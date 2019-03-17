@@ -37,7 +37,6 @@ class SmoSystemStaff {
         });
 
         return new SmoSystemStaff(params);
-
     }
 	
 	getRenderedNote(id) {
@@ -50,9 +49,11 @@ class SmoSystemStaff {
 				    smoNote: note.smoNote,					
 				    smoSystem: this,
 					selection: {
-						measureNumber:measure.measureNumber,
-						voice:note.voice,
-						tick:note.tick
+						measureIndex:measure.measureIndex,
+						voice:measure.activeVoice,
+						tick:note.tick,
+						maxTickIndex:measure.notes.length,
+						maxMeasureIndex:this.measures.length
 					},
 				    type: note.smoNote.attrs.type,
 				    id: note.smoNote.id
@@ -61,6 +62,27 @@ class SmoSystemStaff {
 		return null;
 	}
 	
+	getNoteAtSelection(selection) {
+		if (this.measures.length < selection.measureIndex) {
+			return null;
+		}
+		var measure = this.measures[selection.measureIndex];
+		if (measure.notes.length < selection.ticks) {
+			return null;
+		}
+		var smoNote = measure.notes[selection.tick];
+		
+		// If the caller increments the measure, fill in the max tick here
+		selection.maxTickIndex = measure.notes.length;
+		return {
+				    smoMeasure: measure,
+				    smoNote: measure.notes[selection.tick],
+				    smoSystem: this,
+					selection: selection,
+				    type: smoNote.attrs.type,
+				    id: smoNote.id
+				};
+	}
     _numberMeasures() {
         this.renumberIndex = this.startIndex;
         var startx = 0;

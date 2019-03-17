@@ -13,6 +13,7 @@ class Tracker {
         this.groupObjectMap = {};
         this.objectGroupMap = {};
         this.objects = [];
+        this.selections = [];
         this.selection = {};
         this.suggestion = {};
     }
@@ -46,16 +47,48 @@ class Tracker {
             console.log('' + ev.clientX + ' ' + ev.clientY);
         });
     }
-
-	get selectedArtifact() {
-		if (this.selection['artifact']) {
-			return this.selection.artifact;
-		}
-		return {};
-	}
 	
-	static containsArtifact(artifact) {
-        return artifact && artifact['artifact'];
+	// WIP
+	get incrementSelection() {
+		var increment=1;
+		var sign=1;
+		for (var i=0;i<this.selections.length;++i) {
+			var sa=this.selections[i];
+			var testTick=sa.selection.tick+increment;
+			var testMeasure = sa.selection.measureIndex+increment;
+			if (sa.selection.maxTicks<testTick && testTick>=0) {
+				return ({
+					measureIndex:selection.measureIndex,
+						voice:selection.voice,
+						tick:testTick,
+						maxTick:sa.selection.maxTicks,
+						maxMeasureIndex:sa.selection.maxMeasureIndex
+				});
+			} else if (sa.selection.maxMeasureIndex < testMeasure && testMeasure>=0) {
+				return ({
+					measureIndex:selection.measureIndex+1,
+						voice:selection.voice,
+						tick:0,
+						maxTick:0, // unknown, this will get filled in
+						maxMeasureIndex:this.measures.length
+				});
+				
+			}
+		}
+	}
+
+    get selectedArtifact() {
+        for (var i = 0; i < this.selections.length; ++i) {
+            var selection = this.selections[i];
+            if (selection['artifact']) {
+                return selection.artifact;
+            }
+        }
+        return {};
+    }
+
+    containsArtifact() {
+        return this.selections.length > 0;
     }
     bindEvents() {
         var self = this;
@@ -69,9 +102,16 @@ class Tracker {
         $(this.renderElement).off('click').on('click', function (ev) {
             if (self.suggestion) {
                 self.drawRect(self.suggestion, 'selection');
-                self.selection = self.suggestion;
+                self.selections = [];
+                self.selections.push(self.suggestion);
             }
         });
+
+        window.addEventListener("keydown", function (event) {
+            console.log("KeyboardEvent: key='" + event.key + "' | code='" +
+                event.code + "'"
+                 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
+        }, true);
 
     }
 
@@ -91,41 +131,50 @@ class Tracker {
         }
     }
 
-    intersectingArtifact(bb) {
+    _findIntersectionArtifact(box) {
         var obj = null;
 
         $(this.objects).each(function (ix, object) {
-            var i1 = bb.x - object.box.x;
-            var i2 = bb.y - object.box.y;
+            var i1 = box.x - object.box.x;
+            var i2 = box.y - object.box.y;
             if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
                 obj = object;
                 return false;
             }
         });
-        if (obj) {
-            if (this['suggestFadeTimer']) {
-                clearTimeout(this.suggestFadeTimer);
-            }
-            var self = this;
-            this.suggestion = obj;
-
-            // don't suggest the current selection.
-            if (Tracker.containsArtifact(this.selection) &&
-                Tracker.containsArtifact(obj) && this.selectedArtifact.id === obj.artifact.id) {
-                return obj;
-            }
-            this.drawRect(obj, 'suggestion');
-			
-			// Make selection fade if there is a selection.
-            this.suggestFadeTimer = setTimeout(function () {
-                    if (Tracker.containsArtifact(self.selection)) {
-                        self.eraseRect('suggestion');
-                    }
-                }, 1000);
-        }
-
         return obj;
     }
+
+    _highlightArtifact(bb, artifact) {
+        if (this['suggestFadeTimer']) {
+            clearTimeout(this.suggestFadeTimer);
+        }
+        var self = this;
+        this.suggestion = artifact;
+
+        // don't suggest the current selection.
+        if (this.containsArtifact(this.selections) &&
+            this.selectedArtifact.id === artifact.artifact.id) {
+            return artifact;
+        }
+        this.drawRect(artifact, 'suggestion');
+
+        // Make selection fade if there is a selection.
+        this.suggestFadeTimer = setTimeout(function () {
+                if (self.containsArtifact()) {
+                    self.eraseRect('suggestion');
+                }
+            }, 1000);
+    }
+
+    intersectingArtifact(bb) {
+        var artifact = this._findIntersectionArtifact(bb);
+		if (artifact) {
+			this._highlightArtifact(bb,artifact);
+		}
+		return artifact;
+    }
+	
     eraseRect(stroke) {
         $(this.renderElement).find('g.vf-' + stroke).remove();
     }
