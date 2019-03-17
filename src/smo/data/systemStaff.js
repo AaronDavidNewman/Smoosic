@@ -45,10 +45,22 @@ class SmoSystemStaff {
             var measure = this.measures[i];
 			var note = measure.getRenderedNote(id);
 			if (note)
-				return note;
+				return {
+				    smoMeasure: measure,
+				    smoNote: note.smoNote,					
+				    smoSystem: this,
+					selection: {
+						measureNumber:measure.measureNumber,
+						voice:note.voice,
+						tick:note.tick
+					},
+				    type: note.smoNote.attrs.type,
+				    id: note.smoNote.id
+				};
 		}
 		return null;
 	}
+	
     _numberMeasures() {
         this.renumberIndex = this.startIndex;
         var startx = 0;

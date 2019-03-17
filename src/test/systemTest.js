@@ -90,12 +90,7 @@ class SystemTest {
                     context: line1.context
                 });
 			tracker.updateMap();
-            $('#boo svg').off('mousemove').on('mousemove', function (ev) {
-                tracker.intersectingArtifact({
-                    x: ev.clientX,
-                    y: ev.clientY
-                });
-            });
+			tracker.bindEvents();
         }
 
         return drawDefaults().then(changePitch).then(changePitch2).then(serializeTest).then(trackTest).then(signalComplete);

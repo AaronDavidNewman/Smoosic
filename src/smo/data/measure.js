@@ -25,7 +25,7 @@ class SmoMeasure {
             for (var i = 0; i < voice.notes.length; ++i) {
 				var note = voice.notes[i];
 				if (note.renderId === id) {
-					return note;
+					return {smoNote:note,voice:j,tick:i};
 				}
 			}
 		}
@@ -194,6 +194,7 @@ class SmoMeasure {
     tickmap() {
         return VX.TICKMAP(this);
     }
+	
 	transpose(voice,tick,optionPitchArray,offset) {
 		var pitches = [];
 		var target = this.getSelection(voice,tick,optionPitchArray);
@@ -237,10 +238,12 @@ class SmoMeasure {
 		
 		// {tickIndex:{measure:0,voice:0,tick:0},pitches:[0,1]}
 		var pitchSelection = 		    
-			   {measure:this.measureNumber.measureNumber,
-			   voice:voice,
-			   tick:tick,
-			   pitches:pitches};
+			   {
+			       measure: this.measureNumber.measureNumber,
+			       voice: voice,
+			       tick: tick,
+			       pitches: pitches
+			   };
 			
 		return {note:note,selection:pitchSelection};
 	}
