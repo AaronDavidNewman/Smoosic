@@ -38,6 +38,9 @@
             <File name="src\test\timeSignatureTest.html" />
             <File name="src\test\timeSignatureTest.js" />
             <File name="src\test\testAll.js" />
+            <File name="src\test\trackerTest.js" />
+            <File name="src\test\trackerTest.html" />
+            <File name="src\test\glyphs.html" />
         </Folder>
     </Project>
 </NotepadPlus>

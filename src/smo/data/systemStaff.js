@@ -49,7 +49,7 @@ class SmoSystemStaff {
 				    smoNote: note.smoNote,					
 				    smoSystem: this,
 					selection: {
-						measureIndex:measure.measureIndex,
+						measureIndex:measure.measureNumber.measureIndex,
 						voice:measure.activeVoice,
 						tick:note.tick,
 						maxTickIndex:measure.notes.length,
@@ -83,6 +83,13 @@ class SmoSystemStaff {
 				    id: smoNote.id
 				};
 	}
+	getMaxTicksMeasure(measure) {
+		if (this.measures.length < measure) {
+			return 0;
+		}
+		return this.measures[measure].notes.length;
+	}
+	
     _numberMeasures() {
         this.renumberIndex = this.startIndex;
         var startx = 0;

@@ -1,19 +1,15 @@
-
+﻿
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<style type="text/css">
-.x1 {
-float:left;
-}
-.x2 {
-float:left;
-margin-left:10px;
-}
-</style>
- <script type="text/javascript" src="https://npmcdn.com/vexflow/releases/vexflow-debug.js"></script>
+    <meta charset="utf-8" />
+    <title></title>
+    <script type="text/javascript" src="https://npmcdn.com/vexflow/releases/vexflow-debug.js"></script>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.js"
             integrity="sha256-fNXJFIlca05BIO2Y5zh1xrShK3ME+/lYZ0j+ChxX2DA="
 			
             crossorigin="anonymous"></script>
+<!-- link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jasmine/3.2.1/jasmine.css"  -->
+<!-- script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jasmine/3.2.1/jasmine.js"></script -->
 	<script type="text/javascript" src="../common/vexHelpers.js"></script>
 	<script type="text/javascript" src="../smo/data/note.js"></script>
 	<script type="text/javascript" src="../smo/data/measure.js"></script>
@@ -22,28 +18,23 @@ margin-left:10px;
     <script type="text/javascript" src="../smo/xform/tickTransform.js"></script>
     <script type="text/javascript" src="../smo/xform/tickDuration.js"></script>
     <script type="text/javascript" src="../smo/xform/modifiers.js"></script>
+	<script type="text/javascript" src="../smo/xform/measureTransform.js"></script>
 	<script type="text/javascript" src="../ui/layout.js"></script>
-	<script type="text/javascript" src="../ui/tracker.js"></script>
+	<script type="text/javascript" src="../ui/tracker.js"></script>	
 	<script type="text/javascript" src="../vex/vxMeasure.js"></script>
-	<script type="text/javascript" src="../vex/vxSystem.js"></script>
-	<script type="text/javascript" src="serializeTestJson.js"></script>
-	<script type="text/javascript" src="timeSignatureTest.js"></script>
-	<script type="text/javascript" src="chordTest.js"></script>
-	<script type="text/javascript" src="voiceTest.js"></script>
-	<script type="text/javascript" src="tupletTest.js"></script>
-	<script type="text/javascript" src="systemTest.js"></script>
+	<script type="text/javascript" src="../vex/vxSystem.js"></script>	
 	<script type="text/javascript" src="trackerTest.js"></script>
-	<script type="text/javascript" src="testAll.js"></script>
-		<script type="text/javascript">
-document.addEventListener("DOMContentLoaded", function (event) {
+    <script type="text/javascript" src="serializeTestJson.js"></script>
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function (event) {
             console.log("DOM fully loaded and parsed");
-            TestAll.Run();
+            TrackerTest.CommonTests();
         });
-		</script>
+
+    </script>
 </head>
 <body>
     <div id="boo"></div>
 
 </body>
-
-		
+</html>

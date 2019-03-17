@@ -14,7 +14,6 @@ class Tracker {
         this.objectGroupMap = {};
         this.objects = [];
         this.selections = [];
-        this.selection = {};
         this.suggestion = {};
     }
 
@@ -47,35 +46,37 @@ class Tracker {
             console.log('' + ev.clientX + ' ' + ev.clientY);
         });
     }
-	
-	// WIP
-	get incrementSelection() {
-		var increment=1;
-		var sign=1;
-		for (var i=0;i<this.selections.length;++i) {
-			var sa=this.selections[i];
-			var testTick=sa.selection.tick+increment;
-			var testMeasure = sa.selection.measureIndex+increment;
-			if (sa.selection.maxTicks<testTick && testTick>=0) {
-				return ({
-					measureIndex:selection.measureIndex,
-						voice:selection.voice,
-						tick:testTick,
-						maxTick:sa.selection.maxTicks,
-						maxMeasureIndex:sa.selection.maxMeasureIndex
-				});
-			} else if (sa.selection.maxMeasureIndex < testMeasure && testMeasure>=0) {
-				return ({
-					measureIndex:selection.measureIndex+1,
-						voice:selection.voice,
-						tick:0,
-						maxTick:0, // unknown, this will get filled in
-						maxMeasureIndex:this.measures.length
-				});
-				
-			}
-		}
-	}
+
+    // WIP
+    _bumpSelection(offset) {
+        var increment = offset;
+        for (var i = 0; i < this.selections.length; ++i) {
+            var sa = this.selections[i].artifact;
+            var testTick = sa.selection.tick + increment;
+            var testMeasure = sa.selection.measureIndex + increment;
+            if (sa.selection.maxTickIndex > testTick && testTick >= 0) {
+                return ({
+                    measureIndex: sa.selection.measureIndex,
+                    voice: sa.selection.voice,
+                    tick: testTick,
+                    maxTickIndex: sa.selection.maxTickIndex,
+                    maxMeasureIndex: sa.selection.maxMeasureIndex
+                });
+            } else if (sa.selection.maxMeasureIndex > testMeasure && testMeasure >= 0) {
+                // first or last tick of next measure.
+				var maxTick=this.measureSource.getMaxTicksMeasure(testMeasure);
+                var nextTick = increment > 0 ? 0 : maxTick-1;
+                return ({
+                    measureIndex: testMeasure,
+                    voice: sa.selection.voice,
+                    tick: nextTick,
+                    maxTickIndex: maxTick, // unknown, this will get filled in
+                    maxMeasureIndex: sa.selection.maxMeasureIndex
+                });
+
+            }
+        }
+    }
 
     get selectedArtifact() {
         for (var i = 0; i < this.selections.length; ++i) {
@@ -100,19 +101,50 @@ class Tracker {
         });
 
         $(this.renderElement).off('click').on('click', function (ev) {
-            if (self.suggestion) {
-                self.drawRect(self.suggestion, 'selection');
-                self.selections = [];
-                self.selections.push(self.suggestion);
+            if (self.suggestion['artifact']) {
+                self.selections = [self.suggestion];
+                self.highlightSelected();
             }
         });
 
         window.addEventListener("keydown", function (event) {
+            if (event.key === 'ArrowRight') {
+                if (self.selections.length == 0) {
+                    return;
+                }
+                var nselect = self._bumpSelection(1);
+                self._replaceSelection(nselect);
+            }
+			if (event.key === 'ArrowLeft') {
+                if (self.selections.length == 0) {
+                    return;
+                }
+                var nselect = self._bumpSelection(-1);
+                self._replaceSelection(nselect);
+            }
             console.log("KeyboardEvent: key='" + event.key + "' | code='" +
                 event.code + "'"
                  + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
         }, true);
 
+    }
+
+    _replaceSelection(nselect) {
+        if (nselect && typeof(nselect['measureIndex']) != 'undefined') {
+            var artifact = this.measureSource.getNoteAtSelection(nselect);
+            var mapped = this.objects.find((el) => {return el.artifact.id === artifact.id});
+            this.selections = [mapped];
+        }
+        this.highlightSelected();
+    }
+    highlightSelected() {
+        if (this.selections.length == 0)
+            return;
+        var first = this.selections[0];
+        for (var i = 0; i < this.selections.length; ++i) {
+            var selection = this.selections[i];
+            this.drawRect(selection, 'selection');
+        }
     }
 
     static get strokes() {
@@ -169,12 +201,12 @@ class Tracker {
 
     intersectingArtifact(bb) {
         var artifact = this._findIntersectionArtifact(bb);
-		if (artifact) {
-			this._highlightArtifact(bb,artifact);
-		}
-		return artifact;
+        if (artifact) {
+            this._highlightArtifact(bb, artifact);
+        }
+        return artifact;
     }
-	
+
     eraseRect(stroke) {
         $(this.renderElement).find('g.vf-' + stroke).remove();
     }
