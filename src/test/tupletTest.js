@@ -2,25 +2,11 @@
 
 class TupletTest {
 
-    // Create an SVG renderer and attach it to the DIV element named "boo".
-    static createContext() {
-        var div = document.getElementById("boo");
-        $(div).html('');
-
-        var renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
-
-        // Configure the rendering context.
-        renderer.resize(500, 200);
-        var context = renderer.getContext();
-        context.setFont("Arial", 10, "").setBackgroundFillStyle("#eed");
-        return context;
-    }
-
+   
     static CommonTests() {
-        var context = TupletTest.createContext();
-		var line1 = new VxSystemStaff(context);
-		var measure = line1.smoMeasures.measures[0];
-
+		var score = SmoScore.getDefaultScore();
+		var layout = smrfSimpleLayout.createScoreLayout(document.getElementById("boo"),score);
+		var measure = score.getMeasureAtSelection({measureIndex:0});
 
         var timeTest = () => {
             const promise = new Promise((resolve, reject) => {
@@ -39,7 +25,7 @@ class TupletTest {
         var drawDefaults = () => {
             // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
 			smoModifierFactory.applyModifiers(measure);
-            line1.render();
+            layout.render();
             return timeTest();
         }
 
@@ -52,7 +38,7 @@ class TupletTest {
                     measure: measure
                 });
 			SmoTickTransformer.applyTransform(measure,actor);
-            line1.render();
+            layout.render();
             return timeTest();
         }
 
@@ -64,7 +50,7 @@ class TupletTest {
                     measure: measure
                 });
 			SmoTickTransformer.applyTransform(measure,actor);
-            line1.render();
+            layout.render();
             return timeTest();
         }
 
@@ -75,7 +61,7 @@ class TupletTest {
                     measure: measure
                 });
 			SmoTickTransformer.applyTransform(measure,actor);
-            line1.render();
+            layout.render();
             return timeTest();
         }
 
@@ -87,7 +73,7 @@ class TupletTest {
                     measure: measure
                 });
 			SmoTickTransformer.applyTransform(measure,actor);
-            line1.render();
+            layout.render();
             return timeTest();
         }
         var contractTupletTest2 = () => {
@@ -97,7 +83,7 @@ class TupletTest {
                     measure: measure
                 });
 			SmoTickTransformer.applyTransform(measure,actor);
-            line1.render();
+            layout.render();
             return timeTest();
         }
 		var contractTupletTest3 = () => {
@@ -107,7 +93,7 @@ class TupletTest {
                     measure: measure
                 });
 			SmoTickTransformer.applyTransform(measure,actor);
-            line1.render();
+            layout.render();
             return timeTest();
         }
 
@@ -119,7 +105,7 @@ class TupletTest {
                     measure: measure
                 });
 			SmoTickTransformer.applyTransform(measure,actor);
-            line1.render();
+            layout.render();
             return timeTest();
         }
 		
@@ -132,7 +118,7 @@ class TupletTest {
                     measure: measure
                 });
 			SmoTickTransformer.applyTransform(measure,actor);
-            line1.render();
+            layout.render();
             return timeTest();
         }
 				

@@ -6,16 +6,26 @@ VX = Vex.Xform;
 VX.groupCounter = 1;
 
 class Tracker {
-    constructor(options) {
-        this.measureSource = options.measureSource;
-        this.renderElement = options.renderElement;
-        this.context = options.context;
+    constructor(layout) {
+		this.layout=layout;
         this.groupObjectMap = {};
         this.objectGroupMap = {};
         this.objects = [];
         this.selections = [];
         this.suggestion = {};
     }
+	
+	get renderElement() {
+		return this.layout.renderElement;
+	}
+	
+	get score() {
+		return this.layout.score;
+	}
+	
+	get context() {
+		return this.layout.context;
+	}
 
     updateMap() {
         var self = this;
@@ -25,7 +35,7 @@ class Tracker {
         this.objects = [];
         $(notes).each(function (ix, note) {
             var id = $(note).attr('id');
-            var artifact = self.measureSource.getRenderedNote(id);
+            var artifact = self.score.getRenderedNote(id);
             if (!artifact) {
                 console.log('note ' + id + ' not found');
             } else {
@@ -64,7 +74,7 @@ class Tracker {
                 });
             } else if (sa.selection.maxMeasureIndex > testMeasure && testMeasure >= 0) {
                 // first or last tick of next measure.
-				var maxTick=this.measureSource.getMaxTicksMeasure(testMeasure);
+				var maxTick=this.score.getMaxTicksMeasure(testMeasure);
                 var nextTick = increment > 0 ? 0 : maxTick-1;
                 return ({
                     measureIndex: testMeasure,
@@ -131,7 +141,7 @@ class Tracker {
 
     _replaceSelection(nselect) {
         if (nselect && typeof(nselect['measureIndex']) != 'undefined') {
-            var artifact = this.measureSource.getNoteAtSelection(nselect);
+            var artifact = this.score.getNoteAtSelection(nselect);
             var mapped = this.objects.find((el) => {return el.artifact.id === artifact.id});
             this.selections = [mapped];
         }

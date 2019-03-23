@@ -7,11 +7,25 @@ class smrfSimpleLayout {
 	constructor(params) {
 		Vex.Merge(this,smrfSimpleLayout.defaults);
 		Vex.Merge(this, params);
+		$(this.elementId).html('');
+		this.renderer = new VF.Renderer(this.elementId, VF.Renderer.Backends.SVG);
+		this.renderer.resize(this.pageWidth, this.pageHeight);
+		this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
 		this.attrs = {
 			id: VF.Element.newID(),
 			type: 'testLayout'
 		};
+		this.vxStaff=new VxSystemStaff(this.context,{smoMeasures:this.score});
 	}
+	static createScoreLayout(renderElement,score,layoutParams) {
+		var ctorObj = {elementId:renderElement,score:score};
+		if (layoutParams) {
+			Vex.Merge(ctorObj,layoutParams);
+		}
+		var layout = new smrfSimpleLayout(ctorObj);
+		layout.bind(score);
+		return layout;
+	}	
 	static get defaults() {
         return {
             staffX: 10,
@@ -22,9 +36,24 @@ class smrfSimpleLayout {
 			leftMargin: 15,
 			topMargin:15,
 			pageWidth:8*96+48,
-			pageHeight:11*96
+			pageHeight:11*96,
+			font:{typeface:"Arial",pointSize:10,fillStyle:'#eed'}
         };
     }
+	get context() {
+		return this.renderer.getContext();
+	}
+	get renderElement() {
+		return this.renderer.elementId;
+	}
+	render() {
+		this.layout();
+		this.vxStaff.render();
+	}
+	unrender() {
+		this.vxStaff.unrender();
+	}
+	
 	bind(measureSource) {
 		this.measureSource=measureSource;
 	}

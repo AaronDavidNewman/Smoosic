@@ -7,12 +7,8 @@ class SmoSystemStaff {
         if (this.measures.length) {
             this.numberMeasures();
         }
-		this.layout.bind(this);
-		this.layout.layout();
     }
     static get defaults() {
-		var layout = new smrfSimpleLayout();
-		var measure = new SmoMeasure();
         return {
             staffX: 10,
             staffY: 40,
@@ -24,8 +20,7 @@ class SmoSystemStaff {
 				keyOffset:'0',
 				clef:'treble'
 			},
-            measures: [measure],
-			layout
+            measures: []
         };
     }
 
@@ -33,7 +28,7 @@ class SmoSystemStaff {
 		var jsonObj = JSON.parse(jsonString);
         var params = {};
         vexMusic.filteredMerge(
-            ['staffX', 'staffY', 'staffWidth', 'startIndex', 'renumberingMap', 'renumberIndex'],
+            ['staffX', 'staffY', 'staffWidth', 'startIndex', 'renumberingMap', 'renumberIndex','instrumentInfo'],
             jsonObj, params);
         params.measures = [];
         jsonObj.measures.forEach(function (measureObj) {
@@ -44,6 +39,12 @@ class SmoSystemStaff {
         return new SmoSystemStaff(params);
     }
 	
+	applyModifiers() {
+		for (var i = 0; i < this.measures.length; ++i) {
+            var measure = this.measures[i];
+			smoModifierFactory.applyModifiers(measure);
+		}		
+	}
 	getRenderedNote(id) {
 		for (var i = 0; i < this.measures.length; ++i) {
             var measure = this.measures[i];
@@ -66,12 +67,22 @@ class SmoSystemStaff {
 		}
 		return null;
 	}
+	getMeasureAtSelection(selection) {
+		if (this.measures.length < selection.measureIndex) {
+			return null;
+		}
+		return this.measures[selection.measureIndex];
+		
+	}
 	
 	getNoteAtSelection(selection) {
 		if (this.measures.length < selection.measureIndex) {
 			return null;
 		}
-		var measure = this.measures[selection.measureIndex];
+		var measure = this.getMeasureAtSelection(selection);
+		if (measure === null) {
+			return null;
+		}
 		if (measure.notes.length < selection.ticks) {
 			return null;
 		}
@@ -143,7 +154,6 @@ class SmoSystemStaff {
         }
 
         this.numberMeasures();
-		this.layout.layout();
         return this; // fluent interface
     }
 }

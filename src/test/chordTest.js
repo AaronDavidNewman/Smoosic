@@ -1,24 +1,11 @@
 
 class ChordTest {
 
-    // Create an SVG renderer and attach it to the DIV element named "boo".
-    static createContext() {
-        var div = document.getElementById("boo");
-        $(div).html('');
-
-        var renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
-
-        // Configure the rendering context.
-        renderer.resize(450, 200);
-        var context = renderer.getContext();
-        context.setFont("Arial", 10, "").setBackgroundFillStyle("#eed");
-        return context;
-    }
 
     static CommonTests() {
-        var context = ChordTest.createContext();
-		var line1 = new VxSystemStaff(context);
-		var measure = line1.smoMeasures.measures[0];
+		var score = SmoScore.getDefaultScore();
+		var layout = smrfSimpleLayout.createScoreLayout(document.getElementById("boo"),score);
+		var measure = score.getMeasureAtSelection({measureIndex:0});
 
         var timeTest = () => {
             const promise = new Promise((resolve, reject) => {
@@ -37,7 +24,7 @@ class ChordTest {
         var drawDefaults = () => {
             // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
             // measure.applyModifiers();
-            line1.render();			
+            layout.render();			
             return timeTest();
         }
         var accidentalTest = () => {
@@ -45,7 +32,7 @@ class ChordTest {
 			var target = measure.getSelection(0,1,pitches);
             target.note.transpose(pitches,-1);
 			smoModifierFactory.applyModifiers(measure);
-            line1.render();
+            layout.render();
             return timeTest();
         }
 
@@ -54,7 +41,7 @@ class ChordTest {
 			if (target) {
 				target.note.transpose([1],4);
 			}
-            line1.render();
+            layout.render();
             return timeTest();
         }
 		
@@ -66,7 +53,7 @@ class ChordTest {
 				newTicks:2048
             });
 			SmoTickTransformer.applyTransform(measure,actor);
-            line1.render();
+            layout.render();
             return timeTest();
         }
 		
@@ -78,12 +65,12 @@ class ChordTest {
 				newTicks:4096
 			});
 			SmoTickTransformer.applyTransform(measure,actor);
-            line1.render();
+            layout.render();
             return timeTest();
         }
 		
 		var rerenderTest = () => {
-			line1.render();
+			layout.render();
 			return timeTest();
 		}
 		var setPitchTest = () => {
@@ -93,7 +80,7 @@ class ChordTest {
 				{key:'g',octave:5,accidental:''}];
 			}
 			smoModifierFactory.applyModifiers(measure);
-            line1.render();
+            layout.render();
             return timeTest();
         }
 		
@@ -106,7 +93,7 @@ class ChordTest {
 				measure:measure
 			});
 			SmoTickTransformer.applyTransform(measure,actor);
-            line1.render();
+            layout.render();
 			console.log('tuplet serialize');
 			console.log(JSON.stringify(measure,null,' '));
             return timeTest();
@@ -119,7 +106,7 @@ class ChordTest {
 				measure:measure
 			});
 			SmoTickTransformer.applyTransform(measure,actor);
-            line1.render();
+            layout.render();
             return timeTest();
 		}
 		
@@ -127,7 +114,7 @@ class ChordTest {
 			var target = measure.getSelection(0,2,[1]);
 			target.note.addAccidental({index:1,value:{symbol:'n',cautionary:true}});
 			smoModifierFactory.applyModifiers(measure);			
-			line1.render();
+			layout.render();
 			return timeTest();
 		}
 		

@@ -1,29 +1,14 @@
 
 class SystemTest {
-
-    // Create an SVG renderer and attach it to the DIV element named "boo".
-    static createContext() {
-        var div = document.getElementById("boo");
-        $(div).html('');
-
-        var renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
-
-        // Configure the rendering context.
-        renderer.resize(1600, 200);
-        var context = renderer.getContext();
-        context.setFont("Arial", 10, "").setBackgroundFillStyle("#eed");
-        return context;
-    }
-
+   
     static CommonTests() {
-        var context = SystemTest.createContext();
-		var score=new SmoScore();
-        score.addDefaultMeasure(0,{});;
-        score.addDefaultMeasure(1,{});;
-        score.addDefaultMeasure(2,{});;
-        var line1 = new VxSystemStaff(context, {
-                smoMeasures: score
-            });
+		var score=SmoScore.getEmptyScore();
+        score.addDefaultMeasure(0,{});
+        score.addDefaultMeasure(1,{});
+        score.addDefaultMeasure(2,{});
+		var serial = JSON.stringify(score,null,'');
+		console.log(serial);
+		var layout = smrfSimpleLayout.createScoreLayout(document.getElementById("boo"),score);
 
         var timeTest = () => {
             const promise = new Promise((resolve, reject) => {
@@ -42,12 +27,12 @@ class SystemTest {
         var drawDefaults = () => {
             // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
             // measure.applyModifiers();
-            line1.render();
+            layout.render();
             return timeTest();
         }
 
         var changePitch = () => {
-            var target = line1.smoMeasures.getSelection(2, 0, 1, [0]);
+            var target = layout.score.getSelection(2, 0, 1, [0]);
             if (target) {
                 target.note.keys = [{
                         key: 'e',
@@ -56,11 +41,11 @@ class SystemTest {
                     }
                 ];
             }
-            line1.render();
+            layout.render();
             return timeTest();
         }
         var changePitch2 = () => {
-            var target = line1.smoMeasures.getSelection(1, 0, 1, [0]);
+            var target = layout.score.getSelection(1, 0, 1, [0]);
             if (target) {
                 target.note.keys = [{
                         key: 'f',
@@ -69,16 +54,15 @@ class SystemTest {
                     }
                 ]
             }
-            line1.render();
+            layout.render();
             return timeTest();
         }
         var serializeTest = () => {
-            var measures = SmoSystemStaff.deserialize(JSON.stringify(serializeTestJson.systemStaffJson));
-            line1.unrender();
-            line1 = new VxSystemStaff(context, {
-                    smoMeasures: measures
-                });
-            line1.render();
+            var score = SmoScore.deserialize(JSON.stringify(serializeTestJson.systemStaffJson));
+            layout.unrender();
+			$('#boo').html('');
+            layout = smrfSimpleLayout.createScoreLayout(document.getElementById("boo"),score);
+            layout.render();
         }
       
         return drawDefaults().then(changePitch).then(changePitch2).then(serializeTest).then(signalComplete);
