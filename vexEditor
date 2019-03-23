@@ -43,6 +43,9 @@
             <File name="src\test\trackerTest.html" />
             <File name="src\test\glyphs.html" />
             <File name="src\test\serializeTestJson.js" />
+            <File name="src\test\staffTest.html" />
+            <File name="src\test\staffTest.js" />
+            <File name="src\test\testAll.html" />
         </Folder>
     </Project>
 </NotepadPlus>

@@ -91,13 +91,16 @@ class SmoScore {
 			this.activeStaff=0;
 			return;
 		}
+		if (!parameters) {
+			parameters=SmoSystemStaff.defaults;
+		}
 		var proto=this.staves[0];
 		var measures=[];
 		for (var i=0;i<proto.measures.length;++i) {
 			var newParams = {};
 			var measure=proto.measures[i];
-			vexMusic.filteredMerge(SmoMeasure.attrs, measure, newParams);
-			newParams.clef=parameters.instrument.clef;			
+			vexMusic.filteredMerge(SmoMeasure.defaultAttributes, measure, newParams);
+			newParams.clef=parameters.instrumentInfo.clef;			
 			var newMeasure=new SmoMeasure(newParams);
 			measures.push(newMeasure);
 		}
