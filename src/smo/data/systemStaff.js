@@ -5,7 +5,7 @@ class SmoSystemStaff {
         Vex.Merge(this, SmoSystemStaff.defaults);
         Vex.Merge(this, params);
         if (this.measures.length) {
-            this._numberMeasures();
+            this.numberMeasures();
         }
 		this.layout.bind(this);
 		this.layout.layout();
@@ -19,6 +19,11 @@ class SmoSystemStaff {
             staffWidth: 1600,
             startIndex: 0,
             renumberingMap: {},
+			instrumentInfo: {
+				instrumentName:'Treble Instrument',
+				keyOffset:'0',
+				clef:'treble'
+			},
             measures: [measure],
 			layout
         };
@@ -90,7 +95,7 @@ class SmoSystemStaff {
 		return this.measures[measure].notes.length;
 	}
 	
-    _numberMeasures() {
+    numberMeasures() {
         this.renumberIndex = this.startIndex;
         var startx = 0;
         for (var i = 0; i < this.measures.length; ++i) {
@@ -120,7 +125,14 @@ class SmoSystemStaff {
 		}
 		return null;
 	}
+	
+	addDefaultMeasure(index,params) {
+		var measure = SmoMeasure.getDefaultMeasure(params);
+		this.addMeasure(index,measure);
+	}
+
     addMeasure(index, measure) {
+		
         if (index === 0 && this.measures.length) {
             measure.setMeasureNumber(this.measures[0].measureNumber);
         }
@@ -130,7 +142,7 @@ class SmoSystemStaff {
             this.measures.splice(index, 0, measure);
         }
 
-        this._numberMeasures();
+        this.numberMeasures();
 		this.layout.layout();
         return this; // fluent interface
     }

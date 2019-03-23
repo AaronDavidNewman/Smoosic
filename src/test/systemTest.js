@@ -17,14 +17,12 @@ class SystemTest {
 
     static CommonTests() {
         var context = SystemTest.createContext();
-        var m1 = new SmoMeasure();
-        var m2 = new SmoMeasure();
-        var m3 = new SmoMeasure();
-        var sys = new SmoSystemStaff({
-                measures: [m1, m2, m3]
-            });
+		var score=new SmoScore();
+        score.addDefaultMeasure(0,{});;
+        score.addDefaultMeasure(1,{});;
+        score.addDefaultMeasure(2,{});;
         var line1 = new VxSystemStaff(context, {
-                smoMeasures: sys
+                smoMeasures: score
             });
 
         var timeTest = () => {

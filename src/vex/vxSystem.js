@@ -22,11 +22,7 @@ class VxSystemStaff {
 			vxMeasures:[]
         };
     }
-	
-	applyTransform(actor) {
-		SmoMeasureTransform.applyTransform(this.smoMeasures,[actor]);
-	}
-	
+		
 	unrender() {
 		this.vxMeasures.forEach(function(measure) {
 			measure.unrender();

@@ -17,8 +17,7 @@ class TimeSignatureTest {
 
     static CommonTests() {
         var context = TimeSignatureTest.createContext();
-		var notes = SmoMeasure.getDefaultNotes('treble','6/8');
-		var smo = new SmoMeasure({voices:[{notes:notes}],timeSignature:'6/8',clef:'treble'});
+		var smo = SmoMeasure.getDefaultMeasure({timeSignature:'6/8',clef:'treble'});
 		var system = new SmoSystemStaff({measures:[smo]});
 		var line = new VxSystemStaff(context,{smoMeasures:system});
 		var measure = line.smoMeasures.measures[0];

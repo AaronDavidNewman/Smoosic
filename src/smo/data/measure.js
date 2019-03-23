@@ -37,6 +37,12 @@ class SmoMeasure {
     get stemDirection() {
         return this.activeVoice % 2 ? -1 : 1;
     }
+	static get defaultAttributes() {
+		return [
+            'timeSignature', 'keySignature', 'staffX', 'staffY', 'customModifiers',
+            'drawClef', 'measureNumber', 'staffWidth', 'modifierOptions',
+            'activeVoice'];
+	}
     static deserialize(jsonString) {
         var jsonObj = JSON.parse(jsonString);
         var voices = [];
@@ -65,17 +71,13 @@ class SmoMeasure {
             beamGroups.push(smoBeam);
         }
 
-        var attrs = [
-            'timeSignature', 'keySignature', 'staffX', 'staffY', 'customModifiers',
-            'drawClef', 'measureNumber', 'staffWidth', 'modifierOptions',
-            'activeVoice'];
         var params = {
             voices: voices,
             tuplets: tuplets,
             beamGroups: beamGroups
         };
 
-        vexMusic.filteredMerge(attrs, jsonObj, params);
+        vexMusic.filteredMerge(SmoMeasure.defaultAttributes, jsonObj, params);
 
         return new SmoMeasure(params);
     }
@@ -140,29 +142,40 @@ class SmoMeasure {
             } // no idea
         }
     }
-    static getDefaultNotes(clef, timeSignature) {
-        var meterNumbers = timeSignature.split('/').map(number => parseInt(number, 10));
+	// Get a measure full of default notes for a given timeSignature/clef
+    static getDefaultNotes(params) {
+        var meterNumbers = params.timeSignature.split('/').map(number => parseInt(number, 10));
         var duration = '4';
         if (meterNumbers[0] % 3 == 0) {
             duration = '8';
         }
-        var keys = SmoMeasure.defaultKeyForClef[clef];
+        var keys = SmoMeasure.defaultKeyForClef[params.clef];
         var rv = [];
 
         for (var i = 0; i < meterNumbers[0]; ++i) {
             var note = new SmoNote({
-                    clef: clef,
+                    clef: params.clef,
                     keys: [keys],
                     duration: duration,
-					timeSignature:timeSignature
+					timeSignature:params.timeSignature
                 });
             rv.push(note);
         }
         return rv;
     }
+	
+	static getDefaultMeasure(params) {
+		var obj={};
+		if (!params) params={};
+		Vex.Merge(obj,SmoMeasure.defaults);
+		Vex.Merge(obj, params);
+        var notes = SmoMeasure.getDefaultNotes(obj);
+		obj.voices=[{notes:notes}];
+		return new SmoMeasure(obj);
+	}
 
     static get defaultVoice44() {
-		return SmoMeasure.getDefaultNotes('treble','4/4');
+		return SmoMeasure.getDefaultNotes({clef:'treble',timeSignature:'4/4'});
     }
     static get defaults() {
         var noteDefault = SmoMeasure.defaultVoice44;
