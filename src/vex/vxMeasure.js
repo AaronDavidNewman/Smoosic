@@ -156,7 +156,6 @@ class VxMeasure {
 	// ## Description:
 	// Render all the notes in my smoMeasure.  All rendering logic is called from here.
     render() {
-
         $(this.context.svg).find('g.' + this.smoMeasure.attrs.id).remove();
 
         var group = this.context.openGroup();
@@ -200,6 +199,8 @@ class VxMeasure {
                 tuplet.setContext(self.context).draw();
             });
         }
+		var box = group.getBBox();
+		this.smoMeasure.renderedSize={x:box.x,y:box.y,height:box.height,width:box.width};
         this.context.closeGroup();
     }
 

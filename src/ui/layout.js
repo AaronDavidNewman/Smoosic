@@ -14,10 +14,7 @@ class smrfSimpleLayout {
         this.attrs = {
             id: VF.Element.newID(),
             type: 'testLayout'
-        };
-        this.vxStaff = new VxSystemStaff(this.context, {
-                smoMeasures: this.score
-            });
+        };        
     }
     static createScoreLayout(renderElement, score, layoutParams) {
         var ctorObj = {
@@ -55,27 +52,36 @@ class smrfSimpleLayout {
         return this.renderer.elementId;
     }
     render() {
-        this.layout();
-        this.vxStaff.render();
+        this.layout();		
     }
     unrender() {
-        this.vxStaff.unrender();
+        
     }
 
     get width() {}
 
     layout() {
-        for (var i = 0; i < this.score.staves.length; ++i) {
+		var nextYOffset=0;
+		var yoffset=0;
+		var factory = new VF.Factory({renderer:this.renderer});
+		var system=null;
+        for (var i = 0; i < this.score.staves.length; ++i) {			
 			var start = this.staffX;
-            var staff = this.score.staves[i];			
+            var staff = this.score.staves[i];
+			yoffset = yoffset + nextYOffset;
+			nextYOffset = 0;
             for (var j = 0; j < staff.measures.length; ++j) {
                 var measure = staff.measures[j];
-				measure.staffY=staff.staffY+(this.score.interGap*i);
-                measure.forceClef = (i == 0);
+				measure.staffY=staff.staffY+(this.score.interGap*i) + yoffset;
+                measure.forceClef=(measure.measureNumber.systemIndex===0);
                 measure.staffX = start;
                 measure.staffWidth = measure.forceClef ? this.clefWidth + this.staffWidth : this.staffWidth;
                 measure.noteWidth = this.staffWidth;
                 start += measure.staffWidth;
+				smoModifierFactory.applyModifiers(measure);
+				var vxMeasure = new VxMeasure(this.context,{smoMeasure:measure});
+				vxMeasure.render();
+				nextYOffset = (nextYOffset > measure.renderedSize.height ? nextYOffset : measure.renderedSize.height);
             }
         }
     }

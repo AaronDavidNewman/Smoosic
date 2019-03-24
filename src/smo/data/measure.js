@@ -40,7 +40,7 @@ class SmoMeasure {
 	static get defaultAttributes() {
 		return [
             'timeSignature', 'keySignature', 'staffX', 'staffY', 'customModifiers',
-            'drawClef', 'measureNumber', 'staffWidth', 'modifierOptions',
+             'measureNumber', 'staffWidth', 'modifierOptions',
             'activeVoice'];
 	}
     static deserialize(jsonString) {
@@ -186,7 +186,6 @@ class SmoMeasure {
             customModifiers: [],
             staffY: 40,
             bars: [1, 1], // follows enumeration in VF.Barline
-            drawClef: true,
             measureNumber: {
                 localIndex: 0,
                 systemIndex: 0,

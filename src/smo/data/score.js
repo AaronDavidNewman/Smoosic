@@ -71,6 +71,7 @@ class SmoScore {
 				SmoMeasure.getDefaultMeasure(parameters);
 			staff.addMeasure(measureIndex,defaultMeasure);
 		}
+		this._numberStaves();
 	}
 	addMeasure(measureIndex,measure) {
 		for (var i=0;i<this.staves.length;++i) {
@@ -84,6 +85,7 @@ class SmoScore {
 				staff.addMeasure(measureIndex,defaultMeasure);
 			}
 		}
+		this._numberStaves();
 	}
 	addInstrument(parameters) {
 		if (this.staves.length ==0 )  {
@@ -102,10 +104,13 @@ class SmoScore {
 			vexMusic.filteredMerge(SmoMeasure.defaultAttributes, measure, newParams);
 			newParams.clef=parameters.instrumentInfo.clef;			
 			var newMeasure=new SmoMeasure(newParams);
+			newMeasure.measureNumber = measure.measureNumber;
 			measures.push(newMeasure);
 		}
 		parameters.measures=measures;
 		var staff = new SmoSystemStaff(parameters);
+		this.staves.push(staff);
+		this.activeStaff=this.staves.length-1;
 	}
 	
 	getNoteAtSelection(selection) {
