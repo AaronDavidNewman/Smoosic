@@ -108,11 +108,10 @@ class SmoSystemStaff {
 	
     numberMeasures() {
         this.renumberIndex = this.startIndex;
-        var startx = 0;
+        
         for (var i = 0; i < this.measures.length; ++i) {
             var measure = this.measures[i];
-            startx += (i > 0) ? this.measures[i - 1].staffWidth : measure.staffX;
-            measure.staffX = startx;
+            
             this.renumberIndex = this.renumberingMap[i] ? this.renumberingMap[i].startIndex : this.renumberIndex;
             var localIndex = this.renumberIndex + i;
             var numberObj = {

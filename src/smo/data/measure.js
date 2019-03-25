@@ -191,8 +191,7 @@ class SmoMeasure {
                 systemIndex: 0,
                 measureNumber: 0
             },
-            staffWidth: 400,
-			noteWidth:400,
+            staffWidth: 200,
             modifierOptions: {},
             clef: 'treble',            
             forceClef: false,

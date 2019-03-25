@@ -22,6 +22,7 @@ class VxMeasure {
         this.beamToVexMap = {};
         this.tupletToVexMap = {};
         this.modifierOptions = {};
+		this.renderedSize={};
 
         this.vexNotes = [];
         this.vexBeamGroups = [];
@@ -163,16 +164,22 @@ class VxMeasure {
 
         // offset for left-hand stuff
         this.stave = new VF.Stave(this.smoMeasure.staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth);
+		var clefWidth=0;
 
         // Add a clef and time signature.
         if (this.smoMeasure.forceClef) {
+			
             this.stave.addClef(this.smoMeasure.clef)
             .addTimeSignature(this.smoMeasure.timeSignature)
             .addKeySignature(this.smoMeasure.keySignature);
+			clefWidth=70;
         }
         // Connect it to the rendering context and draw!
         this.stave.setContext(this.context).draw();
+		
+		var voiceAr = [];
 
+		// If there are multiple voices, add them all to the formatter at the same time so they don't collide
         for (var j = 0; j < this.smoMeasure.voices.length; ++j) {
 
             this.smoMeasure.activeVoice = j;
@@ -180,27 +187,29 @@ class VxMeasure {
             this.createVexTuplets();
             this.createVexBeamGroups();
 
-            // console.log(JSON.stringify(notes));
             // Create a voice in 4/4 and add above notes
-            this.voice = new VF.Voice({
+            var voice = new VF.Voice({
                     num_beats: this.smoMeasure.numBeats,
                     beat_value: this.smoMeasure.beatValue
                 });
-            this.voice.addTickables(this.vexNotes);
-            this.formatter = new VF.Formatter().joinVoices([this.voice]).format([this.voice], this.smoMeasure.noteWidth);
-            this.voice.draw(this.context, this.stave);
+            voice.addTickables(this.vexNotes);
+			voiceAr.push(voice);
+		}
+		this.formatter = new VF.Formatter().joinVoices(voiceAr).format(voiceAr,this.smoMeasure.staffWidth-clefWidth);
+		for (var j=0;j<voiceAr.length;++j) {
+			voiceAr[j].draw(this.context, this.stave);			
+		}
 
-            var self = this;
-            this.vexBeamGroups.forEach(function (b) {
-                b.setContext(self.context).draw();
-            });
+		var self = this;
+		this.vexBeamGroups.forEach(function (b) {
+			b.setContext(self.context).draw();
+		});
 
-            this.vexTuplets.forEach(function (tuplet) {
-                tuplet.setContext(self.context).draw();
-            });
-        }
+		this.vexTuplets.forEach(function (tuplet) {
+			tuplet.setContext(self.context).draw();
+		});       
 		var box = group.getBBox();
-		this.smoMeasure.renderedSize={x:box.x,y:box.y,height:box.height,width:box.width};
+		this.renderedSize={x:box.x,y:box.y,height:box.height,width:box.width};
         this.context.closeGroup();
     }
 
