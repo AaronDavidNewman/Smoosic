@@ -7,56 +7,71 @@ VX.groupCounter = 1;
 
 class Tracker {
     constructor(layout) {
-		this.layout=layout;
+        this.layout = layout;
         this.groupObjectMap = {};
         this.objectGroupMap = {};
         this.objects = [];
         this.selections = [];
         this.suggestion = {};
+        this.keys = Tracker.keyBindingDefaults;
+    }
+
+    get renderElement() {
+        return this.layout.renderElement;
+    }
+
+    get score() {
+        return this.layout.score;
+    }
+
+    get context() {
+        return this.layout.context;
     }
 	
-	get renderElement() {
-		return this.layout.renderElement;
-	}
-	
-	get score() {
-		return this.layout.score;
-	}
-	
-	get context() {
-		return this.layout.context;
-	}
-
-    updateMap() {
-        var self = this;
-        var notes = $(this.renderElement).find('.vf-stavenote');
-        this.groupObjectMap = {};
-        this.objectGroupMap = {};
-        this.objects = [];
-        $(notes).each(function (ix, note) {
-            var id = $(note).attr('id');
-            var artifact = self.score.getRenderedNote(id);
+	_mapNoteElementToNote(nel) {
+            var id = nel.getAttribute('id');
+            var artifact = this.score.getRenderedNote(id);
             if (!artifact) {
                 console.log('note ' + id + ' not found');
             } else {
-                var box = $('#' + id)[0].getBBox();
+                var box = document.getElementById(id).getBBox();
                 var renderedArtifact = {
                     artifact: artifact,
                     box: box
                 };
-                self.groupObjectMap[id] = artifact;
-                self.objectGroupMap[artifact.id] = artifact;
-                self.objects.push({
+                this.groupObjectMap[id] = artifact;
+                this.objectGroupMap[artifact.id] = artifact;
+                this.objects.push({
                     artifact: artifact,
                     box: box
                 });
             }
-        });
+	}
+
+    updateMap() {
+        var notes = [].slice.call(this.renderElement.getElementsByClassName('vf-stavenote'));
+        this.groupObjectMap = {};
+        this.objectGroupMap = {};
+        this.objects = [];
+		notes.forEach((note) => this._mapNoteElementToNote(note));
+   
         $(this.renderElement).off('mousemove').on('mousemove', function (ev) {
             console.log('' + ev.clientX + ' ' + ev.clientY);
         });
     }
 
+    _getClosestTick(staffIndex, selectObj) {
+		var selection = selectObj.artifact.selection
+        var measureObj = this.objects.find((e) => e.artifact.selection.measureIndex === selection.measureIndex && 
+		e.artifact.selection.staffIndex === staffIndex
+                 && e.artifact.selection.tick === 0);
+        var tickObj = this.objects.find((e) => e.artifact.selection.measureIndex === selection.measureIndex && 
+		e.artifact.selection.staffIndex === staffIndex
+                 && e.artifact.selection.tick === selection.tick);
+        if (tickObj)
+            return tickObj;
+        return measureObj;
+    }
     // WIP
     _bumpSelection(offset) {
         var increment = offset;
@@ -66,6 +81,7 @@ class Tracker {
             var testMeasure = sa.selection.measureIndex + increment;
             if (sa.selection.maxTickIndex > testTick && testTick >= 0) {
                 return ({
+                    staffIndex: sa.selection.staffIndex,
                     measureIndex: sa.selection.measureIndex,
                     voice: sa.selection.voice,
                     tick: testTick,
@@ -74,9 +90,10 @@ class Tracker {
                 });
             } else if (sa.selection.maxMeasureIndex > testMeasure && testMeasure >= 0) {
                 // first or last tick of next measure.
-				var maxTick=this.score.getMaxTicksMeasure(testMeasure);
-                var nextTick = increment > 0 ? 0 : maxTick-1;
+                var maxTick = this.score.getMaxTicksMeasure(testMeasure);
+                var nextTick = increment > 0 ? 0 : maxTick - 1;
                 return ({
+                    staffIndex: sa.selection.staffIndex,
                     measureIndex: testMeasure,
                     voice: sa.selection.voice,
                     tick: nextTick,
@@ -96,6 +113,83 @@ class Tracker {
             }
         }
         return {};
+    }
+
+    moveSelectionRight() {
+        if (this.selections.length == 0) {
+            return;
+        }
+        var nselect = this._bumpSelection(1);
+        this._replaceSelection(nselect);
+    }
+
+    moveSelectionLeft() {
+        if (this.selections.length == 0) {
+            return;
+        }
+        var nselect = this._bumpSelection(-1);
+        this._replaceSelection(nselect);
+    }
+	
+	_moveSelectionOffset(offset) {
+		if (this.selections.length == 0) {
+            return;
+        }
+		var staffIndex = this.score.incrementActiveStaff(offset);
+		
+        this.selections=[this._getClosestTick(staffIndex,this.selections[0])];
+        this.highlightSelected();
+	}
+	moveSelectionUp() {
+		this._moveSelectionOffset(-1);
+	}
+	moveSelectionDown() {
+		this._moveSelectionOffset(1);
+	}
+
+    static get keyBindingDefaults() {
+        return [{
+                event: "keydown",
+                key: "ArrowRight",
+				ctrlKey:false,
+				altKey:false,
+				shiftKey:false,
+                action: "moveSelectionRight"
+            }, {
+                event: "keydown",
+                key: "ArrowLeft",
+				ctrlKey:false,
+				altKey:false,
+				shiftKey:false,
+                action: "moveSelectionLeft"
+            },
+			{
+                event: "keydown",
+                key: "ArrowUp",
+				ctrlKey:true,
+				altKey:false,
+				shiftKey:false,
+                action: "moveSelectionUp"
+            },
+			{
+                event: "keydown",
+                key: "ArrowDown",
+				ctrlKey:true,
+				altKey:false,
+				shiftKey:false,
+                action: "moveSelectionDown"
+            }
+        ]
+    }
+
+    keyboardHandler(evname, evdata) {
+		var binding = this.keys.find((ev) => 
+		    ev.event===evname && ev.key===evdata.key && ev.ctrlKey===evdata.ctrlKey && 
+			ev.altKey===evdata.altKey && evdata.shiftKey===ev.shiftKey);
+		
+      if (binding) {
+		  this[binding.action](evdata);
+	  }
     }
 
     containsArtifact() {
@@ -118,20 +212,7 @@ class Tracker {
         });
 
         window.addEventListener("keydown", function (event) {
-            if (event.key === 'ArrowRight') {
-                if (self.selections.length == 0) {
-                    return;
-                }
-                var nselect = self._bumpSelection(1);
-                self._replaceSelection(nselect);
-            }
-			if (event.key === 'ArrowLeft') {
-                if (self.selections.length == 0) {
-                    return;
-                }
-                var nselect = self._bumpSelection(-1);
-                self._replaceSelection(nselect);
-            }
+			self.keyboardHandler('keydown',event);
             console.log("KeyboardEvent: key='" + event.key + "' | code='" +
                 event.code + "'"
                  + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
@@ -142,7 +223,10 @@ class Tracker {
     _replaceSelection(nselect) {
         if (nselect && typeof(nselect['measureIndex']) != 'undefined') {
             var artifact = this.score.getNoteAtSelection(nselect);
-            var mapped = this.objects.find((el) => {return el.artifact.id === artifact.id});
+            this.score.setActiveStaff(nselect.staffIndex);
+            var mapped = this.objects.find((el) => {
+                    return el.artifact.id === artifact.id
+                });
             this.selections = [mapped];
         }
         this.highlightSelected();
@@ -233,5 +317,4 @@ class Tracker {
         this.context.rect(bb.x - 3, bb.y - 3, bb.width + 3, bb.height + 3, strokeObj);
         this.context.closeGroup(grp);
     }
-
 }

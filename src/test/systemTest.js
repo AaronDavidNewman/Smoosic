@@ -13,5 +13,8 @@ class SystemTest {
 		var layout = smrfSimpleLayout.createScoreLayout(document.getElementById("boo"),score);
 		layout.render();
 
+		var tracker = new Tracker(layout);
+		tracker.updateMap();
+		tracker.bindEvents();		
     }
 }

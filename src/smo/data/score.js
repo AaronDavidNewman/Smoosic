@@ -114,7 +114,7 @@ class SmoScore {
 	}
 	
 	getNoteAtSelection(selection) {
-		return this.staves[this.activeStaff].getNoteAtSelection(selection);
+		return this.staves[selection.staffIndex].getNoteAtSelection(selection);
 	}
 	
 	getMaxTicksMeasure(measure) {
@@ -126,11 +126,12 @@ class SmoScore {
 		return this.staves[this.activeStaff].measures;
 	}
 	incrementActiveStaff(offset) {
-		if (offset<0) offset = (-1*offset)+staves.length;
-		var nextStaff = (this.staves.length+offset) % this.staves.length;
-		if (nextStaff > 0 && nextStaff < this.staves.length) {
+		if (offset<0) offset = (-1*offset)+this.staves.length;
+		var nextStaff = (this.activeStaff + offset) % this.staves.length;
+		if (nextStaff >= 0 && nextStaff < this.staves.length) {
 			this.activeStaff=nextStaff;
 		}
+		return this.activeStaff;
 	}
 	
 	getSelection(measureNumber,voice,tick,pitches) {
@@ -152,12 +153,17 @@ class SmoScore {
 
         return new SmoScore(params);
     }
+	
+	setActiveStaff(index) {
+		this.activeStaff=index<=this.staves.length ? index : this.activeStaff;
+	}
 
     getRenderedNote(id) {
         for (var i = 0; i < this.staves.length; ++i) {
             var stave = this.staves[i];
             var note = stave.getRenderedNote(id);
             if (note) {
+				note.selection.staffIndex=i;
                 return note;
             }
         }
