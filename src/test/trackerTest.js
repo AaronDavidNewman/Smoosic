@@ -62,8 +62,14 @@ class TrackerTest {
 			keys.tracker.moveSelectionDown();
 			return timeTest();
 		}
+		
+		var selectIncreaseRight = () => {
+			keys.tracker.increaseSelectionRight();
+			return timeTest();
+		}
 
 		return drawDefaults().then(trackTest).then(addInstrument).then(selectionTest1)
-		.then(selectionTest2).then(selectionTest3).then(selectDown).then(signalComplete);
+		.then(selectionTest2).then(selectionTest3).then(selectDown).
+		then(selectIncreaseRight).then(signalComplete);
 	}
 }

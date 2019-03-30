@@ -5,6 +5,15 @@ VX = Vex.Xform;
 
 VX.groupCounter = 1;
 
+// ## Description
+// A tracker maps the UI elements to the logical elements ,and allows the user to
+// move through the score and make selections, for navigation and editing.
+//
+// ## Usage:
+// new suiTracker(layout)
+//
+// ## See also:
+// layout, keys
 class suiTracker {
     constructor(layout) {
         this.layout = layout;
@@ -15,6 +24,8 @@ class suiTracker {
         this.suggestion = {};
     }
 
+    // ### renderElement
+	// the element the score is rendered on
     get renderElement() {
         return this.layout.renderElement;
     }
@@ -27,6 +38,26 @@ class suiTracker {
         return this.layout.context;
     }
 	
+	// ### updateMap
+	// This should be called after rendering the score.  It updates the score to 
+	// graphics map and selects the first object.  
+	//
+	// ### TODO:
+	// try to preserve the previous selection
+	updateMap() {
+        var notes = [].slice.call(this.renderElement.getElementsByClassName('vf-stavenote'));
+        this.groupObjectMap = {};
+        this.objectGroupMap = {};
+        this.objects = [];
+		notes.forEach((note) => this._mapNoteElementToNote(note));
+		if (this.objects.length && !this.selections.length) {
+			this.selections=[this.objects[0]];
+			this._drawRect(this._outerSelection(),'selection');
+		}
+    }
+
+	// ### _mapNoteElementToNote
+	// given a svg note group, find the smo element that defines this note;
 	_mapNoteElementToNote(nel) {
             var id = nel.getAttribute('id');
             var artifact = this.score.getRenderedNote(id);
@@ -46,22 +77,8 @@ class suiTracker {
                 });
             }
 	}
-
-    updateMap() {
-        var notes = [].slice.call(this.renderElement.getElementsByClassName('vf-stavenote'));
-        this.groupObjectMap = {};
-        this.objectGroupMap = {};
-        this.objects = [];
-		notes.forEach((note) => this._mapNoteElementToNote(note));
-		if (this.objects.length && !this.selections.length) {
-			this.selections=[this.objects[0]];
-			this.drawRect(this.selections[0],'selection');
-		}
-   
-    }
-
-    _getClosestTick(staffIndex, selectObj) {
-		var selection = selectObj.artifact.selection
+      	
+    _getClosestTick(staffIndex, selection) {
         var measureObj = this.objects.find((e) => e.artifact.selection.measureIndex === selection.measureIndex && 
 		e.artifact.selection.staffIndex === staffIndex
                  && e.artifact.selection.tick === 0);
@@ -73,8 +90,9 @@ class suiTracker {
         return measureObj;
     }
 	
-    // WIP
-    _bumpSelection(offset) {
+    // ### _getOffsetSelection
+	// Get the selection that is the offset of the first existing selection
+    _getOffsetSelection(offset) {
         var increment = offset;
         for (var i = 0; i < this.selections.length; ++i) {
             var sa = this.selections[i].artifact;
@@ -105,6 +123,24 @@ class suiTracker {
             }
         }
     }
+	
+	static unionRect(b1,b2) {
+		var x=Math.min(b1.x,b2.x);
+		var y=Math.min(b1.y,b2.y);
+		var width = Math.max(b1.x+b1.width,b2.x+b2.width) - x;
+		var height = Math.max(b1.y+b1.height,b2.y+b2.height) - y;
+		return {x:x,y:y,width:width,height:height};
+	}
+	
+	_outerSelection() {
+		if (this.selections.length == 0)
+			return null;
+		var rv=this.selections[0].box;
+		for (var i=1;i<this.selections.length;++i) {
+			rv = suiTracker.unionRect(rv,this.selections[i].box);
+		}
+		return rv;
+	}
 
     get selectedArtifact() {
         for (var i = 0; i < this.selections.length; ++i) {
@@ -115,12 +151,42 @@ class suiTracker {
         }
         return {};
     }
+	
+	increaseSelectionRight() {
+		var nselect = this._getOffsetSelection(1);
+		// already selected
+		var artifact=this._getClosestTick(this.score.activeStaff,nselect);
+		if (!artifact) {
+			return;
+		}
+		if (this.selections.find((sel) => sel.artifact.id === artifact.artifact.id)) {
+			return;
+		}
+		
+		this.selections.push(artifact);
+		this._drawRect(this._outerSelection(),'selection');
+	}
+	
+	increaseSelectionLeft() {
+		var nselect = this._getOffsetSelection(-1);
+		// already selected
+		var artifact=this._getClosestTick(this.score.activeStaff,nselect);
+		if (!artifact) {
+			return;
+		}
+		if (this.selections.find((sel) => sel.artifact.id === artifact.artifact.id)) {
+			return;
+		}
+		
+		this.selections.push(artifact);
+		this._drawRect(this._outerSelection(),'selection');
+	}
 
     moveSelectionRight() {
         if (this.selections.length == 0) {
             return;
         }
-        var nselect = this._bumpSelection(1);
+        var nselect = this._getOffsetSelection(1);
         this._replaceSelection(nselect);
     }
 
@@ -128,7 +194,7 @@ class suiTracker {
         if (this.selections.length == 0) {
             return;
         }
-        var nselect = this._bumpSelection(-1);
+        var nselect = this._getOffsetSelection(-1);
         this._replaceSelection(nselect);
     }
 	moveSelectionOffset(offset) {
@@ -145,8 +211,8 @@ class suiTracker {
         }
 		var staffIndex = this.score.incrementActiveStaff(offset);
 		
-        this.selections=[this._getClosestTick(staffIndex,this.selections[0])];
-        this.drawRect(this.selections[0],'selection');
+        this.selections=[this._getClosestTick(staffIndex,this.selections[0].artifact.selection)];
+        this._drawRect(this._outerSelection(),'selection');
 	}
 	moveSelectionUp() {
 		this._moveStaffOffset(-1);
@@ -167,7 +233,7 @@ class suiTracker {
                     return el.artifact.id === artifact.id
                 });
             this.selections = [mapped];
-			this.drawRect(mapped,'selection');
+			this._drawRect(this._outerSelection(),'selection');
         }
     }
     selectSuggestion() {
@@ -180,7 +246,7 @@ class suiTracker {
         var first = this.selections[0];
         for (var i = 0; i < this.selections.length; ++i) {
             var selection = this.selections[i];
-            this.drawRect(selection, 'selection');
+            this._drawRect(this._outerSelection(), 'selection');
         }
     }
 
@@ -226,7 +292,7 @@ class suiTracker {
             this.selectedArtifact.id === artifact.artifact.id) {
             return artifact;
         }
-        this.drawRect(artifact, 'suggestion');
+        this._drawRect(artifact.box, 'suggestion');
 
         // Make selection fade if there is a selection.
         this.suggestFadeTimer = setTimeout(function () {
@@ -248,10 +314,9 @@ class suiTracker {
         $(this.renderElement).find('g.vf-' + stroke).remove();
     }
 
-    drawRect(renderedArtifact, stroke) {
+    _drawRect(bb, stroke) {
         this.eraseRect(stroke);
-        var grp = this.context.openGroup(stroke, stroke + '-' + renderedArtifact.artifact.id);
-        var bb = renderedArtifact.box;
+        var grp = this.context.openGroup(stroke, stroke + '-');
         var strokes = suiTracker.strokes[stroke];
         var strokeObj = {};
         $(Object.keys(strokes)).each(function (ix, key) {
