@@ -8,6 +8,19 @@ class suiKeys {
         Vex.Merge(this, params);
         this.bindEvents();
     }
+	
+	static createUi(renderElement,score) {
+		var params=suiKeys.keyBindingDefaults;
+		params.layout = suiSimpleLayout.createScoreLayout(renderElement, score);
+		params.tracker = new suiTracker(params.layout);
+		params.score=score;
+		var keys = new suiKeys({
+					tracker: params.tracker,
+					layout: params.layout,
+					score:params.score
+				});
+		return keys;
+	}
 
     get renderElement() {
         return this.layout.renderElement;

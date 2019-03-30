@@ -3,8 +3,10 @@ class ChordTest {
 
 
     static CommonTests() {
-		var score = SmoScore.getDefaultScore();
-		var layout = smrfSimpleLayout.createScoreLayout(document.getElementById("boo"),score);
+		$('h1.testTitle').text('Chord Test');
+		var keys = suiKeys.createUi(document.getElementById("boo"),SmoScore.getDefaultScore());
+		var score = keys.score;
+		var layout = keys.layout;
 		var measure = score.getMeasureAtSelection({measureIndex:0});
 
         var timeTest = () => {

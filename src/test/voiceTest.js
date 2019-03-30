@@ -3,8 +3,9 @@
 class VoiceTest {
 
     static CommonTests() {
-		var score = SmoScore.getDefaultScore();
-		var layout = smrfSimpleLayout.createScoreLayout(document.getElementById("boo"),score);
+		var keys = suiKeys.createUi(document.getElementById("boo"),SmoScore.getDefaultScore());
+		var score = keys.score;
+		var layout = keys.layout;
 
 		var measure = score.getMeasureAtSelection({measureIndex:0});
 		var voice2=SmoMeasure.defaultVoice44;
@@ -46,8 +47,8 @@ class VoiceTest {
 			layout.unrender();
 			$('#boo').html('');
 			score = SmoScore.deserialize(JSON.stringify(serializeTestJson.tupletMeasure));
-			layout = smrfSimpleLayout.createScoreLayout(document.getElementById("boo"),score);
-			layout.render();
+			var keys=suiKeys.createUi(document.getElementById("boo"),score);			
+			keys.layout.render();
 		}
 		var serialize = () => {
 			console.log(JSON.stringify(score,null,' '));

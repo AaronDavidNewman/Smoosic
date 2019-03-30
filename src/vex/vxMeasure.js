@@ -22,7 +22,6 @@ class VxMeasure {
         this.beamToVexMap = {};
         this.tupletToVexMap = {};
         this.modifierOptions = {};
-		this.renderedSize={};
 
         this.vexNotes = [];
         this.vexBeamGroups = [];
@@ -153,6 +152,12 @@ class VxMeasure {
 	unrender() {
 		$(this.context.svg).find('g.' + this.smoMeasure.attrs.id).remove();
 	}
+	get renderedSize() {
+		if (this.smoMeasure.renderedSize) {
+			return this.smoMeasure.renderedSize;
+		}
+		return null;
+	}
 
 	// ## Description:
 	// Render all the notes in my smoMeasure.  All rendering logic is called from here.
@@ -163,8 +168,9 @@ class VxMeasure {
         group.classList.add(this.smoMeasure.attrs.id);
 
         // offset for left-hand stuff
-        this.stave = new VF.Stave(this.smoMeasure.staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth);
-		var clefWidth=0;
+		var staffWidth = this.smoMeasure.forceClef ? this.smoMeasure.staffWidth+70 : this.smoMeasure.staffWidth ;
+		
+        this.stave = new VF.Stave(this.smoMeasure.staffX, this.smoMeasure.staffY, staffWidth);
 
         // Add a clef and time signature.
         if (this.smoMeasure.forceClef) {
@@ -172,7 +178,6 @@ class VxMeasure {
             this.stave.addClef(this.smoMeasure.clef)
             .addTimeSignature(this.smoMeasure.timeSignature)
             .addKeySignature(this.smoMeasure.keySignature);
-			clefWidth=70;
         }
         // Connect it to the rendering context and draw!
         this.stave.setContext(this.context).draw();
@@ -195,7 +200,7 @@ class VxMeasure {
             voice.addTickables(this.vexNotes);
 			voiceAr.push(voice);
 		}
-		this.formatter = new VF.Formatter().joinVoices(voiceAr).format(voiceAr,this.smoMeasure.staffWidth-clefWidth);
+		this.formatter = new VF.Formatter().joinVoices(voiceAr).format(voiceAr,this.smoMeasure.staffWidth);
 		for (var j=0;j<voiceAr.length;++j) {
 			voiceAr[j].draw(this.context, this.stave);			
 		}
@@ -209,7 +214,7 @@ class VxMeasure {
 			tuplet.setContext(self.context).draw();
 		});       
 		var box = group.getBBox();
-		this.renderedSize={x:box.x,y:box.y,height:box.height,width:box.width};
+		this.smoMeasure.renderedSize={x:box.x,y:box.y,height:box.height,width:box.width};
         this.context.closeGroup();
     }
 

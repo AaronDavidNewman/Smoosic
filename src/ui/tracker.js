@@ -5,7 +5,7 @@ VX = Vex.Xform;
 
 VX.groupCounter = 1;
 
-class Tracker {
+class suiTracker {
     constructor(layout) {
         this.layout = layout;
         this.groupObjectMap = {};
@@ -131,8 +131,15 @@ class Tracker {
         var nselect = this._bumpSelection(-1);
         this._replaceSelection(nselect);
     }
+	moveSelectionOffset(offset) {
+		var fcn = (offset>=0 ? 'moveSelectionRight' : 'moveSelectionLeft');
+		offset = (offset < 0 ) ? -1* offset: offset;
+		for (var i=0;i<offset;++i) {
+			this[fcn]();
+		}
+	}
 	
-	_moveSelectionOffset(offset) {
+	_moveStaffOffset(offset) {
 		if (this.selections.length == 0) {
             return;
         }
@@ -142,10 +149,10 @@ class Tracker {
         this.drawRect(this.selections[0],'selection');
 	}
 	moveSelectionUp() {
-		this._moveSelectionOffset(-1);
+		this._moveStaffOffset(-1);
 	}
 	moveSelectionDown() {
-		this._moveSelectionOffset(1);
+		this._moveStaffOffset(1);
 	}
 
     containsArtifact() {
@@ -165,8 +172,7 @@ class Tracker {
     }
     selectSuggestion() {
 		if (!this.suggestion['artifact']) {
-			return;
-                
+			return;               
         }
 		this.selections = [this.suggestion];
         if (this.selections.length == 0)
@@ -246,7 +252,7 @@ class Tracker {
         this.eraseRect(stroke);
         var grp = this.context.openGroup(stroke, stroke + '-' + renderedArtifact.artifact.id);
         var bb = renderedArtifact.box;
-        var strokes = Tracker.strokes[stroke];
+        var strokes = suiTracker.strokes[stroke];
         var strokeObj = {};
         $(Object.keys(strokes)).each(function (ix, key) {
             strokeObj[key] = strokes[key];

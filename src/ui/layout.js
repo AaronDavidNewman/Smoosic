@@ -3,9 +3,9 @@
 // ## Description:
 // A layout maps the measures and notes to a spot on the page.  Simple layout
 // maps the music linearly in a single line, like a lead sheet.
-class smrfSimpleLayout {
+class suiSimpleLayout {
     constructor(params) {
-        Vex.Merge(this, smrfSimpleLayout.defaults);
+        Vex.Merge(this, suiSimpleLayout.defaults);
         Vex.Merge(this, params);
         $(this.elementId).html('');
         this.renderer = new VF.Renderer(this.elementId, VF.Renderer.Backends.SVG);
@@ -24,7 +24,7 @@ class smrfSimpleLayout {
         if (layoutParams) {
             Vex.Merge(ctorObj, layoutParams);
         }
-        var layout = new smrfSimpleLayout(ctorObj);
+        var layout = new suiSimpleLayout(ctorObj);
         return layout;
     }
     static get defaults() {
@@ -91,10 +91,7 @@ class smrfSimpleLayout {
                     measure.forceClef = true;
                 }
                 measure.staffX = startX;
-                measure.staffY = ycoord;
-                if (measure.forceClef) {
-                    measure.staffWidth += this.clefWidth;
-                }
+                measure.staffY = ycoord;                
                 measure.measureNumber.systemIndex = systemIndex;
                 smoModifierFactory.applyModifiers(measure);
                 system.renderMeasure(j, measure);

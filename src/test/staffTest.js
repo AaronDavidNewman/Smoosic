@@ -2,13 +2,16 @@
 class StaffTest {
    
     static CommonTests() {
+		$('h1.testTitle').text('Staff Test');
 		var score=SmoScore.getEmptyScore();
         score.addDefaultMeasure(0,{});
         score.addDefaultMeasure(1,{});
         score.addDefaultMeasure(2,{});
 		var serial = JSON.stringify(score,null,'');
 		console.log(serial);
-		var layout = smrfSimpleLayout.createScoreLayout(document.getElementById("boo"),score);
+        var keys = suiKeys.createUi(document.getElementById("boo"),score);
+		var score = keys.score;
+		var layout = keys.layout;		
 
         var timeTest = () => {
             const promise = new Promise((resolve, reject) => {
@@ -60,8 +63,8 @@ class StaffTest {
         var serializeTest = () => {
             var score = SmoScore.deserialize(JSON.stringify(serializeTestJson.systemStaffJson));
             layout.unrender();			
-            layout = smrfSimpleLayout.createScoreLayout(document.getElementById("boo"),score);
-            layout.render();
+            var keys = suiKeys.createUi(document.getElementById("boo"),SmoScore.getDefaultScore());			
+            keys.layout.render();
         }
       
         return drawDefaults().then(changePitch).then(changePitch2).then(serializeTest).then(signalComplete);

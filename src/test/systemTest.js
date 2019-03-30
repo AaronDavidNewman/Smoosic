@@ -2,6 +2,7 @@
 class SystemTest {
    
     static CommonTests() {
+		$('h1.testTitle').text('System Test');			
 		var score=SmoScore.getEmptyScore();
         score.addDefaultMeasure(0,{});
         score.addDefaultMeasure(1,{});
@@ -10,11 +11,8 @@ class SystemTest {
         score.addDefaultMeasure(4,{});
 		score.addInstrument();
 		
-		var layout = smrfSimpleLayout.createScoreLayout(document.getElementById("boo"),score);
-		layout.render();
-
-		var tracker = new Tracker(layout);
-		tracker.updateMap();
-		var keys = new suiKeys({tracker:tracker,layout:layout});
+		var keys = suiKeys.createUi(document.getElementById("boo"),score);
+		keys.layout.render();		
+		keys.tracker.updateMap();		
     }
 }
