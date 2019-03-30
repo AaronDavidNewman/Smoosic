@@ -70,8 +70,8 @@ class smrfSimpleLayout {
         if (!topStaff.measures.length) {
             return;
         }
-        var system = new VxSystem(this.context);
-        var ycoord = topStaff.measures[0].staffY;
+        var system = new VxSystem(this.context,topStaff.measures[0].staffY);
+        var ycoord = system.topY;
         var systemIndex = 0;
         for (var i = 0; i < topStaff.measures.length; ++i) {
             var staffWidth = 0;
@@ -84,7 +84,7 @@ class smrfSimpleLayout {
 					ycoord += system.box.height + this.score.interGap;
 					measure.staffY=ycoord;
 					startX = measure.staffX = this.leftMargin;
-					system = new VxSystem(this.context);
+					system = new VxSystem(this.context,ycoord);
 					systemIndex = 0;
 				}				
                 if (systemIndex === 0) {
@@ -102,7 +102,7 @@ class smrfSimpleLayout {
             }
             ++systemIndex;
             startX = system.box.width + system.box.x - 1;
-            ycoord = topStaff.measures[0].staffY;
+            ycoord = system.topY;
         }
         system.cap();
     }

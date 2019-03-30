@@ -13,7 +13,6 @@ class Tracker {
         this.objects = [];
         this.selections = [];
         this.suggestion = {};
-        this.keys = Tracker.keyBindingDefaults;
     }
 
     get renderElement() {
@@ -54,10 +53,11 @@ class Tracker {
         this.objectGroupMap = {};
         this.objects = [];
 		notes.forEach((note) => this._mapNoteElementToNote(note));
+		if (this.objects.length && !this.selections.length) {
+			this.selections=[this.objects[0]];
+			this.drawRect(this.selections[0],'selection');
+		}
    
-        $(this.renderElement).off('mousemove').on('mousemove', function (ev) {
-            console.log('' + ev.clientX + ' ' + ev.clientY);
-        });
     }
 
     _getClosestTick(staffIndex, selectObj) {
@@ -72,6 +72,7 @@ class Tracker {
             return tickObj;
         return measureObj;
     }
+	
     // WIP
     _bumpSelection(offset) {
         var increment = offset;
@@ -138,7 +139,7 @@ class Tracker {
 		var staffIndex = this.score.incrementActiveStaff(offset);
 		
         this.selections=[this._getClosestTick(staffIndex,this.selections[0])];
-        this.highlightSelected();
+        this.drawRect(this.selections[0],'selection');
 	}
 	moveSelectionUp() {
 		this._moveSelectionOffset(-1);
@@ -147,77 +148,8 @@ class Tracker {
 		this._moveSelectionOffset(1);
 	}
 
-    static get keyBindingDefaults() {
-        return [{
-                event: "keydown",
-                key: "ArrowRight",
-				ctrlKey:false,
-				altKey:false,
-				shiftKey:false,
-                action: "moveSelectionRight"
-            }, {
-                event: "keydown",
-                key: "ArrowLeft",
-				ctrlKey:false,
-				altKey:false,
-				shiftKey:false,
-                action: "moveSelectionLeft"
-            },
-			{
-                event: "keydown",
-                key: "ArrowUp",
-				ctrlKey:true,
-				altKey:false,
-				shiftKey:false,
-                action: "moveSelectionUp"
-            },
-			{
-                event: "keydown",
-                key: "ArrowDown",
-				ctrlKey:true,
-				altKey:false,
-				shiftKey:false,
-                action: "moveSelectionDown"
-            }
-        ]
-    }
-
-    keyboardHandler(evname, evdata) {
-		var binding = this.keys.find((ev) => 
-		    ev.event===evname && ev.key===evdata.key && ev.ctrlKey===evdata.ctrlKey && 
-			ev.altKey===evdata.altKey && evdata.shiftKey===ev.shiftKey);
-		
-      if (binding) {
-		  this[binding.action](evdata);
-	  }
-    }
-
     containsArtifact() {
         return this.selections.length > 0;
-    }
-    bindEvents() {
-        var self = this;
-        $(this.renderElement).off('mousemove').on('mousemove', function (ev) {
-            self.intersectingArtifact({
-                x: ev.clientX,
-                y: ev.clientY
-            });
-        });
-
-        $(this.renderElement).off('click').on('click', function (ev) {
-            if (self.suggestion['artifact']) {
-                self.selections = [self.suggestion];
-                self.highlightSelected();
-            }
-        });
-
-        window.addEventListener("keydown", function (event) {
-			self.keyboardHandler('keydown',event);
-            console.log("KeyboardEvent: key='" + event.key + "' | code='" +
-                event.code + "'"
-                 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
-        }, true);
-
     }
 
     _replaceSelection(nselect) {
@@ -228,10 +160,15 @@ class Tracker {
                     return el.artifact.id === artifact.id
                 });
             this.selections = [mapped];
+			this.drawRect(mapped,'selection');
         }
-        this.highlightSelected();
     }
-    highlightSelected() {
+    selectSuggestion() {
+		if (!this.suggestion['artifact']) {
+			return;
+                
+        }
+		this.selections = [this.suggestion];
         if (this.selections.length == 0)
             return;
         var first = this.selections[0];
@@ -271,7 +208,7 @@ class Tracker {
         return obj;
     }
 
-    _highlightArtifact(bb, artifact) {
+    _setArtifactAsSuggestion(bb, artifact) {
         if (this['suggestFadeTimer']) {
             clearTimeout(this.suggestFadeTimer);
         }
@@ -296,7 +233,7 @@ class Tracker {
     intersectingArtifact(bb) {
         var artifact = this._findIntersectionArtifact(bb);
         if (artifact) {
-            this._highlightArtifact(bb, artifact);
+            this._setArtifactAsSuggestion(bb, artifact);
         }
         return artifact;
     }

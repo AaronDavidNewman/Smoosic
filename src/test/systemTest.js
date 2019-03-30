@@ -15,6 +15,6 @@ class SystemTest {
 
 		var tracker = new Tracker(layout);
 		tracker.updateMap();
-		tracker.bindEvents();		
+		var keys = new suiKeys({tracker:tracker,layout:layout});
     }
 }

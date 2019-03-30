@@ -33,7 +33,6 @@
             <File name="src\test\tupletTest.js" />
             <File name="src\test\tupletTest.html" />
             <File name="src\test\chordTest.html" />
-            <File name="src\test\test_all.html" />
             <File name="src\test\voiceTest.html" />
             <File name="src\test\voiceTest.js" />
             <File name="src\test\timeSignatureTest.html" />
@@ -46,6 +45,7 @@
             <File name="src\test\staffTest.html" />
             <File name="src\test\staffTest.js" />
             <File name="src\test\testAll.html" />
+            <File name="src\test\systemTest.js" />
         </Folder>
     </Project>
 </NotepadPlus>

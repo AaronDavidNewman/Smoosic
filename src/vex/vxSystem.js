@@ -7,7 +7,7 @@
 //  timeSignature: '4/4',
 //  smoMeasures: []
 class VxSystem {
-    constructor(context) {
+    constructor(context,topY) {
         this.context = context;
         this.leftConnector = [null, null];
         this.maxStaffIndex = -1;
@@ -16,6 +16,7 @@ class VxSystem {
 		this.endcaps=[];
 		this.box={x:-1,y:-1,width:0,height:0};
 		this.currentY=0;
+		this.topY=topY;
 		this.clefWidth=70;
 		this.ys = [];
     }
