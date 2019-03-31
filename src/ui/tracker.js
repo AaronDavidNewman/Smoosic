@@ -37,6 +37,22 @@ class suiTracker {
 	get context() {
 		return this.layout.context;
 	}
+	
+	_copySelections() {
+		var rv=[];
+		this.selections.forEach((sel) => {rv.push(sel.artifact.selection)});
+		return rv;
+	}
+	
+	_findClosestSelection(selection) {
+		var artifact=this._getClosestTick(selection.staffIndex,selection);
+		if (!artifact)
+			return;
+		if (this.selections.find((sel) => sel.artifactid === artifact.artifact.id)) {
+			return;
+		}
+		this.selections.push(artifact);
+	}
 
 	// ### updateMap
 	// This should be called after rendering the score.  It updates the score to
@@ -49,11 +65,15 @@ class suiTracker {
 		this.groupObjectMap = {};
 		this.objectGroupMap = {};
 		this.objects = [];
+		var selections=this._copySelections();
 		notes.forEach((note) => this._mapNoteElementToNote(note));
-		if (this.objects.length && !this.selections.length) {
+		this.selections=[];
+		if (this.objects.length && !selections.length) {
 			this.selections = [this.objects[0]];
-			this._drawRect(this._outerSelection(), 'selection');
+		}  else {
+			selections.forEach((sel) => this._findClosestSelection(sel));
 		}
+		this._drawRect(this._outerSelection(), 'selection');
 	}
 
 	// ### _mapNoteElementToNote
@@ -132,6 +152,7 @@ class suiTracker {
 				maxMeasureIndex: testSelection.maxMeasureIndex
 			});
 		}
+		return testSelection;
 	}
 
 	static unionRect(b1, b2) {
@@ -299,10 +320,12 @@ class suiTracker {
 
 	_findIntersectionArtifact(box) {
 		var obj = null;
+		box.y =box.y-this.renderElement.offsetTop;
+		box.x =box.x-this.renderElement.offsetLeft;
 
 		$(this.objects).each(function (ix, object) {
 			var i1 = box.x - object.box.x;
-			var i2 = box.y - object.box.y;
+			var i2 = box.y - object.box.y;			
 			if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
 				obj = object;
 				return false;

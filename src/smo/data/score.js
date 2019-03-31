@@ -117,6 +117,7 @@ class SmoScore {
 		return this.staves[selection.staffIndex].getNoteAtSelection(selection);
 	}
 	getMeasureAtSelection(selection) {
+		selection.staffIndex = selection['staffIndex'] ? selection['staffIndex'] : this.activeStaff;
 		return this.staves[selection.staffIndex].measures[selection.measureIndex];
 	}
 	

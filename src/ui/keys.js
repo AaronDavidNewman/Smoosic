@@ -44,7 +44,7 @@ class suiKeys {
                 ctrlKey: false,
                 altKey: false,
                 shiftKey: false,
-                action: "transposeDpwm"
+                action: "transposeDown"
             }
 		];
 	}
