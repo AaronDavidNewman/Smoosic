@@ -45,6 +45,76 @@ class suiKeys {
                 altKey: false,
                 shiftKey: false,
                 action: "transposeDown"
+            }, {
+                event: "keydown",
+                key: "=",
+                ctrlKey: true,
+                altKey: false,
+                shiftKey: false,
+                action: "upOctave"
+            },{
+                event: "keydown",
+                key: "-",
+                ctrlKey: true,
+                altKey: false,
+                shiftKey: false,
+                action: "downOctave"
+            },
+			{
+                event: "keydown",
+                key: "a",
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: "setPitch"
+            },
+			{
+                event: "keydown",
+                key: "b",
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: "setPitch"
+            },
+			{
+                event: "keydown",
+                key: "c",
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: "setPitch"
+            },
+			{
+                event: "keydown",
+                key: "d",
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: "setPitch"
+            },
+			{
+                event: "keydown",
+                key: "e",
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: "setPitch"
+            },
+			{
+                event: "keydown",
+                key: "f",
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: "setPitch"
+            },
+			{
+                event: "keydown",
+                key: "g",
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: "setPitch"
             }
 		];
 	}
@@ -91,7 +161,23 @@ class suiKeys {
                 altKey: false,
                 shiftKey: false,
                 action: "moveSelectionDown"
+            },
+			{
+                event: "keydown",
+                key: "ArrowRight",
+                ctrlKey: true,
+                altKey: false,
+                shiftKey: false,
+                action: "moveSelectionRightMeasure"
+            }, {
+                event: "keydown",
+                key: "ArrowLeft",
+                ctrlKey: true,
+                altKey: false,
+                shiftKey: false,
+                action: "moveSelectionLeftMeasure"
             }
+			
         ]
     }
 
@@ -129,6 +215,7 @@ class suiKeys {
             console.log("KeyboardEvent: key='" + event.key + "' | code='" +
                 event.code + "'"
                  + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
+				 event.preventDefault();
         }, true);
     }
 

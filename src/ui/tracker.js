@@ -53,6 +53,10 @@ class suiTracker {
 		}
 		this.selections.push(artifact);
 	}
+	
+	highlightSelection() {
+		this._drawRect(this._outerSelection(), 'selection');
+	}
 
 	// ### updateMap
 	// This should be called after rendering the score.  It updates the score to
@@ -73,7 +77,7 @@ class suiTracker {
 		}  else {
 			selections.forEach((sel) => this._findClosestSelection(sel));
 		}
-		this._drawRect(this._outerSelection(), 'selection');
+		this.highlightSelection();
 	}
 
 	// ### _mapNoteElementToNote
@@ -127,7 +131,7 @@ class suiTracker {
 	// Get the selection that is the offset of the first existing selection
 	_getOffsetSelection(offset) {
 		var increment = offset;
-		var testSelection = this._getExtremeSelection(offset < 0 ? -1 : 1);
+		var testSelection = this._getExtremeSelection(Math.sign(offset));
 		var testTick = testSelection.tick + increment;
 		var testMeasure = testSelection.measureIndex + increment;
 		if (testSelection.maxTickIndex > testTick && testTick >= 0) {
@@ -200,7 +204,7 @@ class suiTracker {
 		}
 
 		this.selections.push(artifact);
-		this._drawRect(this._outerSelection(), 'selection');
+		this.highlightSelection();
 	}
 
 	growSelectionLeft() {
@@ -215,22 +219,7 @@ class suiTracker {
 		}
 
 		this.selections.push(artifact);
-		this._drawRect(this._outerSelection(), 'selection');
-	}
-
-	increaseSelectionRight() {
-		var nselect = this._getOffsetSelection(1);
-		// already selected
-		var artifact = this._getClosestTick(this.score.activeStaff, nselect);
-		if (!artifact) {
-			return;
-		}
-		if (this.selections.find((sel) => sel.artifact.id === artifact.artifact.id)) {
-			return;
-		}
-
-		this.selections.push(artifact);
-		this._drawRect(this._outerSelection(), 'selection');
+		this.highlightSelection();
 	}
 
 	moveSelectionRight() {
@@ -248,12 +237,30 @@ class suiTracker {
 		var nselect = this._getOffsetSelection(-1);
 		this._replaceSelection(nselect);
 	}
+	moveSelectionLeftMeasure() {
+		this._moveSelectionMeasure(-1);
+	}
+	moveSelectionRightMeasure() {
+		this._moveSelectionMeasure(1);
+	}
 	moveSelectionOffset(offset) {
 		var fcn = (offset >= 0 ? 'moveSelectionRight' : 'moveSelectionLeft');
 		offset = (offset < 0) ? -1 * offset : offset;
 		for (var i = 0; i < offset; ++i) {
 			this[fcn]();
 		}
+	}
+	
+	_moveSelectionMeasure(offset) {
+		var selection=this._getExtremeSelection(Math.sign(offset));
+		selection = JSON.parse(JSON.stringify(selection));
+		selection.measureIndex += offset;
+		selection.tick=0;
+		var selObj=this._getClosestTick(selection.staffIndex,selection);
+		if (selObj) {
+			this.selections=[selObj];
+		}
+		this.highlightSelection();
 	}
 
 	_moveStaffOffset(offset) {
@@ -263,7 +270,7 @@ class suiTracker {
 		var staffIndex = this.score.incrementActiveStaff(offset);
 
 		this.selections = [this._getClosestTick(staffIndex, this.selections[0].artifact.selection)];
-		this._drawRect(this._outerSelection(), 'selection');
+		this.highlightSelection();
 	}
 	moveSelectionUp() {
 		this._moveStaffOffset(-1);
@@ -284,7 +291,7 @@ class suiTracker {
 					return el.artifact.id === artifact.id
 				});
 			this.selections = [mapped];
-			this._drawRect(this._outerSelection(), 'selection');
+			this.highlightSelection();
 		}
 	}
 	selectSuggestion() {
@@ -298,7 +305,7 @@ class suiTracker {
 		var first = this.selections[0];
 		for (var i = 0; i < this.selections.length; ++i) {
 			var selection = this.selections[i];
-			this._drawRect(this._outerSelection(), 'selection');
+			this.highlightSelection();
 		}
 	}
 
