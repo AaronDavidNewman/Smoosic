@@ -45,6 +45,7 @@ class SmoSystemStaff {
 			smoModifierFactory.applyModifiers(measure);
 		}		
 	}
+	
 	getRenderedNote(id) {
 		for (var i = 0; i < this.measures.length; ++i) {
             var measure = this.measures[i];

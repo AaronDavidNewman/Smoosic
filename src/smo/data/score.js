@@ -116,6 +116,9 @@ class SmoScore {
 	getNoteAtSelection(selection) {
 		return this.staves[selection.staffIndex].getNoteAtSelection(selection);
 	}
+	getMeasureAtSelection(selection) {
+		return this.staves[selection.staffIndex].measures[selection.measureIndex];
+	}
 	
 	getMaxTicksMeasure(measure) {
 		
@@ -157,7 +160,7 @@ class SmoScore {
 	setActiveStaff(index) {
 		this.activeStaff=index<=this.staves.length ? index : this.activeStaff;
 	}
-
+	
     getRenderedNote(id) {
         for (var i = 0; i < this.staves.length; ++i) {
             var stave = this.staves[i];

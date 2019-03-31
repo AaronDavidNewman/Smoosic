@@ -65,6 +65,7 @@ class SmoNote {
 
     transpose(pitchArray, offset) {
         var keys = [];
+		this.accidentals=[];  // modifiers need to be reapplied, accidentals may change
         for (var j = 0; j < pitchArray.length; ++j) {
             var index = pitchArray[j];
             if (index + 1 > this.keys.length) {

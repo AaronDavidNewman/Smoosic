@@ -221,7 +221,7 @@ class SmoMeasure {
 		}
 	}
 	getSelection(voice,tick,optionPitchArray) {
-		
+		optionPitchArray = optionPitchArray === null ? [] : optionPitchArray;
 		if (this.voices.length < voice) {
 			return null;
 		}

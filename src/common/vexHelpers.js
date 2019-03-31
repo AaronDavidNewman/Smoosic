@@ -8,12 +8,19 @@ VX = Vex.Xform;
   * Utilities I wish were in VF.Music but aren't
   **/
 class vexMusic {
+	
     // ### getKeyOffset
     // ### description:  given a vex noteProp and an offset, offset that number
     // of 1/2 steps.
     static getKeyOffset(prop,offset) {
         var canon = VF.Music.canonical_notes;
         var key = prop.key.toLowerCase();
+		if (prop.accidental.length === 0) {
+			key=key+'n';
+		} else {
+			key=key+prop.accidental;
+		}
+		key=canon[VF.Music.noteValues[key].int_val];
 		var rootIndex = canon.indexOf(key);
         var index = (rootIndex + canon.length+offset) % canon.length;
         var octave = prop.octave;
@@ -30,9 +37,11 @@ class vexMusic {
         }
 		var rv = JSON.parse(JSON.stringify(prop));
 		key=canon[index];
-		if (key.length>0) {
+		if (key.length>1) {
 			rv.accidental=key.substring(1);
 			key=key[0];
+		} else {
+			rv.accidental='';
 		}
 		rv.key=key;
 		rv.octave=octave;

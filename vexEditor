@@ -15,7 +15,6 @@
                 <File name="src\smo\xform\modifiers.js" />
                 <File name="src\smo\xform\tickTransform.js" />
                 <File name="src\smo\xform\tickDuration.js" />
-                <File name="src\smo\xform\measureTransform.js" />
             </Folder>
         </Folder>
         <Folder name="vex">
@@ -26,6 +25,7 @@
             <File name="src\ui\tracker.js" />
             <File name="src\ui\layout.js" />
             <File name="src\ui\keys.js" />
+            <File name="src\ui\editor.js" />
         </Folder>
         <Folder name="test">
             <File name="src\test\systemTest.html" />

@@ -14,18 +14,41 @@ class suiKeys {
 		params.layout = suiSimpleLayout.createScoreLayout(renderElement, score);
 		params.tracker = new suiTracker(params.layout);
 		params.score=score;
-		var keys = new suiKeys({
-					tracker: params.tracker,
-					layout: params.layout,
-					score:params.score
-				});
+		params.editor = new suiEditor(params);
+		var keys = new suiKeys(params);
 		return keys;
 	}
 
     get renderElement() {
         return this.layout.renderElement;
     }
-    static get keyBindingDefaults() {
+	static get keyBindingDefaults() {
+		var editorKeys = suiKeys.editorKeyBindingDefaults;
+		editorKeys.forEach((key) => {key.module='editor'});
+		var trackerKeys = suiKeys.trackerKeyBindingDefaults;
+		trackerKeys.forEach((key)=>{key.module='tracker'});
+		return trackerKeys.concat(editorKeys);
+	}
+	static get editorKeyBindingDefaults() {
+		return [
+		 {
+                event: "keydown",
+                key: "=",
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: "transposeUp"
+            },{
+                event: "keydown",
+                key: "-",
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: "transposeDpwm"
+            }
+		];
+	}
+    static get trackerKeyBindingDefaults() {
         return [{
                 event: "keydown",
                 key: "ArrowRight",
@@ -74,17 +97,17 @@ class suiKeys {
 
     static get defaults() {
         return {
-            keybind: suiKeys.keyBindingDefaults
+            keyBind: suiKeys.keyBindingDefaults
         };
     }
 
     keyboardHandler(evname, evdata) {
-        var binding = this.keybind.find((ev) =>
+        var binding = this.keyBind.find((ev) =>
                 ev.event === evname && ev.key === evdata.key && ev.ctrlKey === evdata.ctrlKey &&
                 ev.altKey === evdata.altKey && evdata.shiftKey === ev.shiftKey);
 
         if (binding) {
-            this.tracker[binding.action](evdata);
+            this[binding.module][binding.action](evdata);
         }
     }
     bindEvents() {

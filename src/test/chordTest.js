@@ -7,7 +7,7 @@ class ChordTest {
 		var keys = suiKeys.createUi(document.getElementById("boo"),SmoScore.getDefaultScore());
 		var score = keys.score;
 		var layout = keys.layout;
-		var measure = score.getMeasureAtSelection({measureIndex:0});
+		var measure = score.getMeasureAtSelection({staffIndex:0,measureIndex:0});
 
         var timeTest = () => {
             const promise = new Promise((resolve, reject) => {
