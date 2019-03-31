@@ -64,12 +64,12 @@ class TrackerTest {
 		}
 		
 		var selectIncreaseRight = () => {
-			keys.tracker.increaseSelectionRight();
+			keys.tracker.growSelectionRight();
 			return timeTest();
 		}
 		
 		var selectIncreaseLeft = () => {
-			keys.tracker.increaseSelectionLeft();
+			keys.tracker.growSelectionLeft();
 			return timeTest();
 		}
 

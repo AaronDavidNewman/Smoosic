@@ -40,6 +40,20 @@ class suiKeys {
                 altKey: false,
                 shiftKey: false,
                 action: "moveSelectionLeft"
+            },{
+                event: "keydown",
+                key: "ArrowRight",
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: true,
+                action: "growSelectionRight"
+            }, {
+                event: "keydown",
+                key: "ArrowLeft",
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: true,
+                action: "growSelectionLeft"
             }, {
                 event: "keydown",
                 key: "ArrowUp",

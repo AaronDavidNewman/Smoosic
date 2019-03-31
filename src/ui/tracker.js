@@ -97,7 +97,7 @@ class suiTracker {
 			if (sa.measureIndex * sign > rv.measureIndex * sign) {
 				rv = sa;
 			} else if (sa.measureIndex === rv.measureIndex && sa.tick * sign > rv.tick * sign) {
-				rv = sa.selection;
+				rv = sa;
 			}
 		}
 		return rv;
@@ -167,7 +167,7 @@ class suiTracker {
 		return {};
 	}
 
-	increaseSelectionRight() {
+	growSelectionRight() {
 		var nselect = this._getOffsetSelection(1);
 		// already selected
 		var artifact = this._getClosestTick(this.score.activeStaff, nselect);
@@ -182,7 +182,7 @@ class suiTracker {
 		this._drawRect(this._outerSelection(), 'selection');
 	}
 
-	increaseSelectionLeft() {
+	growSelectionLeft() {
 		var nselect = this._getOffsetSelection(-1);
 		// already selected
 		var artifact = this._getClosestTick(this.score.activeStaff, nselect);
@@ -270,6 +270,7 @@ class suiTracker {
 		if (!this.suggestion['artifact']) {
 			return;
 		}
+		this.score.setActiveStaff(this.selections[0].artifact.selection.staffIndex);
 		this.selections = [this.suggestion];
 		if (this.selections.length == 0)
 			return;
