@@ -270,7 +270,7 @@ class SmoStretchNoteActor extends TickTransformBase {
         if (mapIx < 0) {
             var npos = this.tickmap.durationMap[this.startIndex + 1];
             var ndelta = this.tickmap.deltaMap[this.startIndex + 1];
-            if (ndelta / 2 + this.startTick + this.newTicks === npos) {
+            if (ndelta / 2 + this.startTick + this.newTicks <= this.tickmap.totalDuration) {
                 this.durationMap.push(ndelta / 2);
             } else {
                 // there is no way to do this...

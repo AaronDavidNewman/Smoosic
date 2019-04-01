@@ -70,6 +70,14 @@ class suiKeys {
             },
 			{
                 event: "keydown",
+                key: "<",
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: true,
+                action: "halveDuration"
+            },
+			{
+                event: "keydown",
                 key: "a",
                 ctrlKey: false,
                 altKey: false,
@@ -123,6 +131,22 @@ class suiKeys {
                 altKey: false,
                 shiftKey: false,
                 action: "setPitch"
+            },
+			{
+                event: "keydown",
+                key: "3",
+                ctrlKey: true,
+                altKey: false,
+                shiftKey: false,
+                action: "makeTuplet"
+            },
+			{
+                event: "keydown",
+                key: "0",
+                ctrlKey: true,
+                altKey: false,
+                shiftKey: false,
+                action: "unmakeTuplet"
             }
 		];
 	}

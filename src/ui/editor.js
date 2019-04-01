@@ -85,4 +85,66 @@ class suiEditor {
 		this.layout.render();
 		this.tracker.updateMap();
 	}
+	halveDuration(keyEvent) {
+		if (this.tracker.selections.length != 1) {
+			return;
+		}
+		var selObj = this.tracker.selections[0];
+		var note = selObj.artifact.smoNote;
+		var measure = selObj.artifact.smoMeasure;
+		var nticks = note.tickCount / 2;
+		var actor = new SmoContractNoteActor({
+				startIndex: selObj.artifact.selection.tick,
+				tickmap: measure.tickmap(),
+				newTicks: nticks
+			});
+		SmoTickTransformer.applyTransform(measure, actor);
+		this.layout.render();
+		this.tracker.updateMap();
+	}
+	
+	makeTuplet(keyEvent) {
+		if (this.tracker.selections.length != 1) {
+			return;
+		}
+		var selObj = this.tracker.selections[0];
+		var numNotes=parseInt(keyEvent.key);
+		var note = selObj.artifact.smoNote;
+		var measure = selObj.artifact.smoMeasure;
+		var nticks = note.tickCount;
+
+		var actor = new SmoMakeTupletActor({
+                    index: selObj.artifact.selection.tick,
+                    totalTicks: nticks,
+                    numNotes: numNotes,
+                    measure: measure
+                });
+        SmoTickTransformer.applyTransform(measure,actor);
+        this.layout.render();
+		this.tracker.updateMap();
+	}
+	
+	unmakeTuplet(keyEvent) {
+		if (this.tracker.selections.length != 1) {
+			return;
+		}
+		var selObj = this.tracker.selections[0];
+		var numNotes=parseInt(keyEvent.key);
+		var note = selObj.artifact.smoNote;
+		var measure = selObj.artifact.smoMeasure;
+		var tuplet=measure.getTupletForNote(note);
+		if (tuplet===null)
+			return;
+		var startIndex = measure.tupletIndex(tuplet);
+		var endIndex = tuplet.notes.length+startIndex-1;
+
+		var actor = new SmoUnmakeTupletActor({
+                    startIndex:startIndex,
+				    endIndex:endIndex,
+                    measure: measure
+                });
+		SmoTickTransformer.applyTransform(measure,actor);
+        this.layout.render();
+		this.tracker.updateMap();
+	}
 }
