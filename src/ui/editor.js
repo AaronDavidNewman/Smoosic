@@ -27,7 +27,7 @@ class suiEditor {
 		if (this.changed) {
 			this.layout.render();
 			this.tracker.updateMap();
-			this.changed=false;
+			this.changed = false;
 		}
 	}
 	transposeDown() {
@@ -42,25 +42,47 @@ class suiEditor {
 	downOctave() {
 		this.transpose(-12);
 	}
-	
-	_setPitch(selected,letter) {
+
+	_setPitch(selected, letter) {
 		var measure = selected.artifact.smoMeasure;
-		var note=selected.artifact.smoNote;
-		var key=vexMusic.getKeySignatureKey(letter,measure.keySignature);
-		var prop={key:key[0],accidental:'',octave:note.keys[0].octave};
-		if (key.length>1) {
-			prop.accidental=key.substring(1);
+		var note = selected.artifact.smoNote;
+		var key = vexMusic.getKeySignatureKey(letter, measure.keySignature);
+		var prop = {
+			key: key[0],
+			accidental: '',
+			octave: note.keys[0].octave
+		};
+		if (key.length > 1) {
+			prop.accidental = key.substring(1);
 		} else {
-			prop.accidental='';
+			prop.accidental = '';
 		}
-		note.keys=[prop];
-		this.changed=true;
+		note.keys = [prop];
+		this.changed = true;
 	}
 
 	setPitch(keyEvent) {
 		this.tracker.selections.forEach((selected) => this._setPitch(selected, keyEvent.key.toLowerCase()));
 		this.layout.render();
 		this.tracker.updateMap();
-		this.changed=false;
+		this.changed = false;
+	}
+
+	doubleDuration(keyEvent) {
+		if (this.tracker.selections.length != 1) {
+			return;
+		}
+		var selObj = this.tracker.selections[0];
+		var note = selObj.artifact.smoNote;
+		var measure = selObj.artifact.smoMeasure;
+		var nticks = note.tickCount * 2;
+		var actor = new SmoStretchNoteActor({
+				startIndex: selObj.artifact.selection.tick,
+				tickmap: measure.tickmap(),
+				newTicks: nticks
+			});
+		SmoTickTransformer.applyTransform(measure, actor);
+		this.layout.render();
+		this.tracker.updateMap();
 	}
 }

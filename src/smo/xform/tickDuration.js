@@ -253,6 +253,11 @@ class SmoStretchNoteActor extends TickTransformBase {
 
         var mapIx = this.tickmap.durationMap.indexOf(endTick);
 		
+		var remaining = this.tickmap.deltaMap.slice(this.startIndex,this.tickmap.durationMap.length).reduce((accum,x)=>x+accum);
+		if (remaining===this.newTicks) {
+			mapIx=this.tickmap.deltaMap.length;
+		}
+		
         // If there is no tickable at the end point, try to split the next note
         /**
          *      old map:

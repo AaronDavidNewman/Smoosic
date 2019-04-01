@@ -60,6 +60,14 @@ class suiKeys {
                 shiftKey: false,
                 action: "downOctave"
             },
+			 {
+                event: "keydown",
+                key: ">",
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: true,
+                action: "doubleDuration"
+            },
 			{
                 event: "keydown",
                 key: "a",
