@@ -4,12 +4,21 @@ class VoiceTest {
 
     static CommonTests() {
 		var keys = suiKeys.createUi(document.getElementById("boo"),SmoScore.getDefaultScore());
+		$('h1.testTitle').text('Voice Test');
+
 		var score = keys.score;
 		var layout = keys.layout;
 
 		var measure = score.getMeasureAtSelection({measureIndex:0});
 		var voice2=SmoMeasure.defaultVoice44;
 		measure.voices.push({notes:voice2});
+		
+		var detach = () => {
+			keys.detach();
+			keys=null;
+			score=null;
+			layout=null;
+		}
 		
         var timeTest = () => {
             const promise = new Promise((resolve, reject) => {
@@ -22,6 +31,7 @@ class VoiceTest {
         }
 		
 		var signalComplete = () => {
+			detach();
 			return timeTest();
 		}
 
@@ -47,7 +57,8 @@ class VoiceTest {
 			layout.unrender();
 			$('#boo').html('');
 			score = SmoScore.deserialize(JSON.stringify(serializeTestJson.tupletMeasure));
-			var keys=suiKeys.createUi(document.getElementById("boo"),score);			
+			keys.detach();
+			keys=suiKeys.createUi(document.getElementById("boo"),score);			
 			keys.layout.render();
 		}
 		var serialize = () => {

@@ -9,7 +9,14 @@ class TupletTest {
 		var score = keys.score;
 		var layout = keys.layout;
 		var measure = score.getMeasureAtSelection({measureIndex:0});
-
+		
+		var detach = () => {
+			keys.detach();
+			keys=null;
+			score=null;
+			layout=null;
+		}
+		
         var timeTest = () => {
             const promise = new Promise((resolve, reject) => {
                     setTimeout(() => {
@@ -21,6 +28,7 @@ class TupletTest {
         }
 
 		var signalComplete = () => {
+			detach();
 			return timeTest();
 		}
 		

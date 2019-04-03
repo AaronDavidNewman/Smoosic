@@ -10,6 +10,13 @@ class TimeSignatureTest {
 		var layout = keys.layout;
 		var measure = score.getMeasureAtSelection({measureIndex:0});
 		
+		var detach = () => {
+			keys.detach();
+			keys=null;
+			score=null;
+			layout=null;
+		}
+		
         var timeTest = () => {
             const promise = new Promise((resolve, reject) => {
                     setTimeout(() => {
@@ -21,6 +28,7 @@ class TimeSignatureTest {
         }
 		
 		var signalComplete = () => {
+			detach();
 			return timeTest();
 		}
 

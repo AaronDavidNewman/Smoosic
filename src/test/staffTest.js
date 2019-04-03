@@ -12,6 +12,13 @@ class StaffTest {
         var keys = suiKeys.createUi(document.getElementById("boo"),score);
 		var score = keys.score;
 		var layout = keys.layout;		
+		
+		var detach = () => {
+			keys.detach();
+			keys=null;
+			score=null;
+			layout=null;
+		}
 
         var timeTest = () => {
             const promise = new Promise((resolve, reject) => {
@@ -24,6 +31,7 @@ class StaffTest {
         }
 
         var signalComplete = () => {
+			detach();
             return timeTest();
         }
 
@@ -62,8 +70,9 @@ class StaffTest {
         }
         var serializeTest = () => {
             var score = SmoScore.deserialize(JSON.stringify(serializeTestJson.systemStaffJson));
-            layout.unrender();			
-            var keys = suiKeys.createUi(document.getElementById("boo"),SmoScore.getDefaultScore());			
+            layout.unrender();
+			keys.detach();
+            keys = suiKeys.createUi(document.getElementById("boo"),SmoScore.getDefaultScore());			
             keys.layout.render();
         }
       

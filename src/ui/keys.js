@@ -228,6 +228,19 @@ class suiKeys {
             this[binding.module][binding.action](evdata);
         }
     }
+	detach() {
+		window.removeEventListener("keydown",this.keydownHandler,true);
+		this.layout=null;
+		this.tracker=null;
+		this.editor=null;
+	}
+	handleKeydown(event) {
+		this.keyboardHandler("keydown",event);
+            console.log("KeyboardEvent: key='" + event.key + "' | code='" +
+                event.code + "'"
+                 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
+				 event.preventDefault();
+	}
     bindEvents() {
 		var self=this;
         var tracker = this.tracker;
@@ -241,14 +254,10 @@ class suiKeys {
         $(this.renderElement).off('click').on('click', function (ev) {
             tracker.selectSuggestion();
         });
+				
+		this.keydownHandler = this.handleKeydown.bind(this);
 
-        window.addEventListener("keydown", function (event) {
-            self.keyboardHandler('keydown', event);
-            console.log("KeyboardEvent: key='" + event.key + "' | code='" +
-                event.code + "'"
-                 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
-				 event.preventDefault();
-        }, true);
+        window.addEventListener("keydown", this.keydownHandler,true); 
     }
 
 }
