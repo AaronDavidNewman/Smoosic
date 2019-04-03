@@ -68,6 +68,10 @@ class StaffTest {
             keys.render();
             return timeTest();
         }
+		var keySigTest= () => {
+			score.addKeySignature(1,'A');
+			keys.render();
+		}
         var serializeTest = () => {
 			var scoreJson=JSON.stringify(score);
             // score = SmoScore.deserialize(JSON.stringify(serializeTestJson.systemStaffJson));
@@ -78,6 +82,6 @@ class StaffTest {
             keys.render();
         }
       
-        return drawDefaults().then(changePitch).then(changePitch2).then(serializeTest).then(signalComplete);
+        return drawDefaults().then(changePitch).then(changePitch2).then(keySigTest).then(serializeTest).then(signalComplete);
     }
 }

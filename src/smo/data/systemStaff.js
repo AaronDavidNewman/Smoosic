@@ -15,6 +15,7 @@ class SmoSystemStaff {
             staffWidth: 1600,
             startIndex: 0,
             renumberingMap: {},
+			keySignatureMap:{},
 			instrumentInfo: {
 				instrumentName:'Treble Instrument',
 				keyOffset:'0',
@@ -46,6 +47,7 @@ class SmoSystemStaff {
 		}		
 	}
 	
+	
 	getRenderedNote(id) {
 		for (var i = 0; i < this.measures.length; ++i) {
             var measure = this.measures[i];
@@ -72,8 +74,7 @@ class SmoSystemStaff {
 		if (this.measures.length < selection.measureIndex) {
 			return null;
 		}
-		return this.measures[selection.measureIndex];
-		
+		return this.measures[selection.measureIndex];		
 	}
 	
 	getNoteAtSelection(selection) {
@@ -106,7 +107,27 @@ class SmoSystemStaff {
 		}
 		return this.measures[measure].notes.length;
 	}
-	
+	addKeySignature(measureIndex,key) {
+		this.keySignatureMap[measureIndex]=key;
+		this._updateKeySignatures();
+	}
+	removeKeySignature(measureIndex) {
+		var keys=Object.keys(this.keySignatureMap);
+		var nmap={};
+		keys.forEach((key)=> {if (key !== measureIndex) {nmap[key]=this.keySignatureMap[key];}});
+		this.keySignatureMap=nmap;
+		this._updateKeySignatures();
+	}
+	_updateKeySignatures() {
+		 var currentSig = this.measures[0].keySignature;
+        
+        for (var i = 0; i < this.measures.length; ++i) {
+            var measure = this.measures[i];
+            
+            var nextSig = this.keySignatureMap[i] ? this.keySignatureMap[i] : currentSig;
+			measure.keySignature = nextSig;
+        }
+	}
     numberMeasures() {
         this.renumberIndex = this.startIndex;
         

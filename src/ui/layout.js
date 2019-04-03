@@ -59,7 +59,11 @@ class suiSimpleLayout {
     get pageMarginWidth() {
 		return this.pageWidth - this.leftMargin*2;
 	}
-	
+	_previousAttr(i,j,attr) {
+        var staff = this.score.staves[j];
+		var measure = staff.measures[i];
+		return (i>0 ? staff.measures[i-1][attr] : measure[attr]);
+	}
 
     layout() {
         if (!this.score.staves.length) {
@@ -78,6 +82,9 @@ class suiSimpleLayout {
             for (var j = 0; j < this.score.staves.length; ++j) {
                 var staff = this.score.staves[j];
                 var measure = staff.measures[i];
+				var keySigLast = this._previousAttr(i,j,'keySignature');
+				var timeSigLast = this._previousAttr(i,j,'timeSignature');
+				var clefLast = this._previousAttr(i,j,'clef');
 
 				if (startX+measure.staffWidth > this.pageMarginWidth) {
 					system.cap();
@@ -86,10 +93,12 @@ class suiSimpleLayout {
 					startX = measure.staffX = this.leftMargin;
 					system = new VxSystem(this.context,ycoord);
 					systemIndex = 0;
-				}				
-                if (systemIndex === 0) {
-                    measure.forceClef = true;
-                }
+				}
+				
+				measure.forceClef=(systemIndex === 0 || measure.clef !== clefLast);
+				measure.forceTimeSignature = (systemIndex === 0 || measure.timeSignature !== timeSigLast);
+				measure.forceKeySignature = (systemIndex === 0 || measure.keySignature !== keySigLast);
+				                
                 measure.staffX = startX;
                 measure.staffY = ycoord;                
                 measure.measureNumber.systemIndex = systemIndex;

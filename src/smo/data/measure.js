@@ -195,6 +195,8 @@ class SmoMeasure {
             modifierOptions: {},
             clef: 'treble',            
             forceClef: false,
+			forceKeySignature:false,
+			forceTimeSignature:false,
             voices: [{
                     notes: noteDefault
                 }

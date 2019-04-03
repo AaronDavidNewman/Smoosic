@@ -168,17 +168,24 @@ class VxMeasure {
         group.classList.add(this.smoMeasure.attrs.id);
 
         // offset for left-hand stuff
-		var staffWidth = this.smoMeasure.forceClef ? this.smoMeasure.staffWidth+70 : this.smoMeasure.staffWidth ;
+		var staffWidth = this.smoMeasure.staffWidth
+		 + (this.smoMeasure.forceClef ? 40 : 0) 
+		 + (this.smoMeasure.forceTimeSignature ? 16 : 0)
+		 + (this.smoMeasure.forceKeySignature ? vexMusic.keySignatureLength[this.smoMeasure.keySignature]*8 : 0);
+		
 		
         this.stave = new VF.Stave(this.smoMeasure.staffX, this.smoMeasure.staffY, staffWidth);
 
         // Add a clef and time signature.
-        if (this.smoMeasure.forceClef) {
-			
-            this.stave.addClef(this.smoMeasure.clef)
-            .addTimeSignature(this.smoMeasure.timeSignature)
-            .addKeySignature(this.smoMeasure.keySignature);
-        }
+        if (this.smoMeasure.forceClef) {			
+            this.stave.addClef(this.smoMeasure.clef);            
+        }   
+		if (this.smoMeasure.forceKeySignature) {
+			this.stave.addKeySignature(this.smoMeasure.keySignature);
+		}
+		if (this.smoMeasure.forceTimeSignature) {
+			this.stave.addTimeSignature(this.smoMeasure.timeSignature);
+		}
         // Connect it to the rendering context and draw!
         this.stave.setContext(this.context).draw();
 		

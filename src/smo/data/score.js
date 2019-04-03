@@ -15,6 +15,7 @@ class SmoScore {
             interGap: 30,
             startIndex: 0,
             renumberingMap: {},
+			keySignatureMap:{},
             staves: [],
             activeStaff: 0
         };
@@ -86,6 +87,9 @@ class SmoScore {
 			}
 		}
 		this._numberStaves();
+	}
+	addKeySignature(measureIndex,key) {
+		this.staves.forEach((staff) => {staff.addKeySignature(measureIndex,key);});
 	}
 	addInstrument(parameters) {
 		if (this.staves.length ==0 )  {
