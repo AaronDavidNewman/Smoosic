@@ -298,8 +298,8 @@ class suiTracker {
 		if (!this.suggestion['artifact']) {
 			return;
 		}
-		this.score.setActiveStaff(this.selections[0].artifact.selection.staffIndex);
 		this.selections = [this.suggestion];
+		this.score.setActiveStaff(this.selections[0].artifact.selection.staffIndex);
 		if (this.selections.length == 0)
 			return;
 		var first = this.selections[0];
