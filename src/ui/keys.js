@@ -234,6 +234,11 @@ class suiKeys {
 		this.tracker=null;
 		this.editor=null;
 	}
+	
+	render() {
+		this.layout.render();
+		this.tracker.updateMap();
+	}
 	handleKeydown(event) {
 		this.keyboardHandler("keydown",event);
             console.log("KeyboardEvent: key='" + event.key + "' | code='" +

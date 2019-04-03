@@ -38,7 +38,7 @@ class StaffTest {
         var drawDefaults = () => {
             // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
             // measure.applyModifiers();
-            layout.render();
+            keys.render();
             return timeTest();
         }
 
@@ -52,7 +52,7 @@ class StaffTest {
                     }
                 ];
             }
-            layout.render();
+            keys.render();
             return timeTest();
         }
         var changePitch2 = () => {
@@ -65,15 +65,17 @@ class StaffTest {
                     }
                 ]
             }
-            layout.render();
+            keys.render();
             return timeTest();
         }
         var serializeTest = () => {
-            var score = SmoScore.deserialize(JSON.stringify(serializeTestJson.systemStaffJson));
+			var scoreJson=JSON.stringify(score);
+            // score = SmoScore.deserialize(JSON.stringify(serializeTestJson.systemStaffJson));
+			score = SmoScore.deserialize(scoreJson);
             layout.unrender();
 			keys.detach();
-            keys = suiKeys.createUi(document.getElementById("boo"),SmoScore.getDefaultScore());			
-            keys.layout.render();
+            keys = suiKeys.createUi(document.getElementById("boo"),score);			
+            keys.render();
         }
       
         return drawDefaults().then(changePitch).then(changePitch2).then(serializeTest).then(signalComplete);
