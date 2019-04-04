@@ -304,6 +304,14 @@ class SmoMeasure {
 	get numBeats() {
 		return this.timeSignature.split('/').map(number => parseInt(number, 10))[0];
 	}
+	setKeySignature(sig) {
+		this.keySignature = sig;
+		this.voices.forEach((voice) => {
+			voice.notes.forEach((note) => {
+				note.keySignature=sig;
+			});
+		});
+	}
 	get beatValue() {
 		return this.timeSignature.split('/').map(number => parseInt(number, 10))[1];
 	}

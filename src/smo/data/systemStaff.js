@@ -125,7 +125,7 @@ class SmoSystemStaff {
             var measure = this.measures[i];
             
             var nextSig = this.keySignatureMap[i] ? this.keySignatureMap[i] : currentSig;
-			measure.keySignature = nextSig;
+			measure.setKeySignature(nextSig);
         }
 	}
     numberMeasures() {
