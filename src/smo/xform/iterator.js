@@ -87,10 +87,26 @@ class smoTickIterator {
     // empty function for a default iterator (tickmap)
     static nullActor() { }
 
+	static _getAccidentalsForKey(key,map) {
+		var music = new VF.Music();
+		var keys = music.createScaleMap(key);
+		var keyKeys=Object.keys(keys);
+		keyKeys.forEach((keyKey) => {
+			var key = keys[keyKey];
+			var newObj={};
+			if (key.length>1 && (key[1]==='b' || key[1] === '#')) {
+				map[key[0]]={key:key[0],accidental:key[1]};
+			}
+		});
+	}
 	static updateAccidentalMap(note,iterator, keySignature,accidentalMap) {
 		var sigObj = {};
 		var newObj = {};
-		if (iterator.index > 0) {
+		if (iterator.index === 0) {
+			smoTickIterator._getAccidentalsForKey(keySignature,newObj);
+			sigObj=newObj;
+		}
+		else {
 			sigObj = accidentalMap[iterator.index - 1];
 		}
 		for (var i = 0; i < note.keys.length; ++i) {
@@ -116,7 +132,7 @@ class smoTickIterator {
 	static hasActiveAccidental(key, iteratorIndex, accidentalMap) {
 		if (iteratorIndex === 0) 
 			return false;
-	    var vexKey = key.key;	    
+	    var vexKey = key.key;
 	    var letter = vexKey;
 	    var accidental = key.accidental.length > 0 ? key.accidental: 'n';		
 
@@ -128,7 +144,7 @@ class smoTickIterator {
 	            var mapKey = mapKeys[j];
 	            // The letter name + accidental in the map
 	            var mapLetter = map[mapKey];
-	            var mapAcc = mapLetter.accidental ? mapLetter.accidental : 'n';
+	            var mapAcc = mapLetter.accidental ? mapLetter.accidental : 'n';			
 
 	            // if the letters match and the accidental...
 	            if (mapLetter.key.toLowerCase() === letter && mapAcc == accidental) {
