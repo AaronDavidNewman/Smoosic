@@ -50,7 +50,7 @@ class vexMusic {
 	
 	static get keySignatureLength() {
 		return {
-			'C':0,'B':5,'A':3,'F#':6,'Bb':2,'Ab':4,'Gg':6,'G':1,'F':1,'Eb':3,'Dd':5,'Cb':7,'C#':7,'F#':6,'E':4,'D':2
+			'C':0,'B':5,'A':3,'F#':6,'Bb':2,'Ab':4,'Gg':6,'G':1,'F':1,'Eb':3,'Db':5,'Cb':7,'C#':7,'F#':6,'E':4,'D':2
 		};
 	}
 

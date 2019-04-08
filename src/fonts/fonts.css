@@ -1,0 +1,118 @@
+
+@font-face {
+  font-family: "smoSprites";
+  src: url(smoosic.ttf) format("truetype");  
+}
+.keySigA:after {
+  margin-left:5px;
+  font-family:smoSprites;
+  font-size:2em;
+  content:"\e909"
+}
+
+.keySigC:after {
+  margin-left:5px;
+  font-family:smoSprites;
+  font-size:2em;
+  content:"\e900";
+}
+
+.keySigF:after {
+  margin-left:5px;
+  font-family:smoSprites;
+  font-size:2em;
+  content:"\e901";
+}
+
+.keySigBb:after {
+  margin-left:5px;
+  font-family:smoSprites;
+  font-size:2em;
+  content:"\e902";
+}
+
+.keySigEb:after {
+  margin-left:5px;
+  font-family:smoSprites;
+  font-size:2em;
+  content:"\e903";
+}
+
+.keySigAb:after {
+  margin-left:5px;
+  font-family:smoSprites;
+  font-size:2em;
+  content:"\e904";
+}
+
+.keySigDb:after {
+  margin-left:5px;
+  font-family:smoSprites;
+  font-size:2em;
+  content:"\e905";
+}
+
+.keySigGb:after {
+  margin-left:5px;
+  font-family:smoSprites;
+  font-size:2em;
+  content:"\e906";
+}
+
+.keySigG:after {
+  margin-left:5px;
+  font-family:smoSprites;
+  font-size:2em;
+  content:"\e907";
+}
+
+.keySigD:after {
+  margin-left:5px;
+  font-family:smoSprites;
+  font-size:2em;
+  content:"\e908";
+}
+
+.keySigE:after {
+  margin-left:5px;
+  font-family:smoSprites;
+  font-size:2em;
+  content:"\e90a";
+}
+
+.keySigB:after {
+  margin-left:5px;
+  font-family:smoSprites;
+  font-size:2em;
+  content:"\e90b";
+}
+
+.keySigCs:after {
+  margin-left:5px;
+  font-family:smoSprites;
+  font-size:2em;
+  content:"\e90c";
+}
+
+.keySigFs:after {
+  margin-left:5px;
+  font-family:smoSprites;
+  font-size:2em;
+  content:"\e90d";
+}
+
+.menuOption {
+	width:128px;
+	height:32px;
+	padding-left:4px;
+	padding-top:4px;
+	border:1px solid black;
+	position:relative;
+}
+
+.menuOption .icon {
+	position:absolute;
+	right:0;
+}
+
+
