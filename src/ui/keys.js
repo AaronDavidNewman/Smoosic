@@ -2,267 +2,279 @@
 
 class suiKeys {
 
-    constructor(params) {
+	constructor(params) {
 
-        Vex.Merge(this, suiKeys.defaults);
-        Vex.Merge(this, params);
-        this.bindEvents();
-    }
-	
-	static createUi(renderElement,score) {
-		var params=suiKeys.keyBindingDefaults;
+		Vex.Merge(this, suiKeys.defaults);
+		Vex.Merge(this, params);
+		this.bindEvents();
+	}
+
+	static createUi(renderElement, score) {
+		var params = suiKeys.keyBindingDefaults;
 		params.layout = suiSimpleLayout.createScoreLayout(renderElement, score);
 		params.tracker = new suiTracker(params.layout);
-		params.score=score;
+		params.score = score;
 		params.editor = new suiEditor(params);
+		params.menus = new suiMenuManager(params);
 		var keys = new suiKeys(params);
 		return keys;
 	}
 
-    get renderElement() {
-        return this.layout.renderElement;
-    }
+	get renderElement() {
+		return this.layout.renderElement;
+	}
 	static get keyBindingDefaults() {
 		var editorKeys = suiKeys.editorKeyBindingDefaults;
-		editorKeys.forEach((key) => {key.module='editor'});
+		editorKeys.forEach((key) => {
+			key.module = 'editor'
+		});
 		var trackerKeys = suiKeys.trackerKeyBindingDefaults;
-		trackerKeys.forEach((key)=>{key.module='tracker'});
+		trackerKeys.forEach((key) => {
+			key.module = 'tracker'
+		});
 		return trackerKeys.concat(editorKeys);
 	}
 	static get editorKeyBindingDefaults() {
-		return [
-		 {
-                event: "keydown",
-                key: "=",
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: "transposeUp"
-            },{
-                event: "keydown",
-                key: "-",
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: "transposeDown"
-            }, {
-                event: "keydown",
-                key: "=",
-                ctrlKey: true,
-                altKey: false,
-                shiftKey: false,
-                action: "upOctave"
-            },{
-                event: "keydown",
-                key: "-",
-                ctrlKey: true,
-                altKey: false,
-                shiftKey: false,
-                action: "downOctave"
-            },
-			 {
-                event: "keydown",
-                key: ">",
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: true,
-                action: "doubleDuration"
-            },
-			{
-                event: "keydown",
-                key: "<",
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: true,
-                action: "halveDuration"
-            },
-			{
-                event: "keydown",
-                key: "a",
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: "setPitch"
-            },
-			{
-                event: "keydown",
-                key: "b",
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: "setPitch"
-            },
-			{
-                event: "keydown",
-                key: "c",
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: "setPitch"
-            },
-			{
-                event: "keydown",
-                key: "d",
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: "setPitch"
-            },
-			{
-                event: "keydown",
-                key: "e",
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: "setPitch"
-            },
-			{
-                event: "keydown",
-                key: "f",
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: "setPitch"
-            },
-			{
-                event: "keydown",
-                key: "g",
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: "setPitch"
-            },
-			{
-                event: "keydown",
-                key: "3",
-                ctrlKey: true,
-                altKey: false,
-                shiftKey: false,
-                action: "makeTuplet"
-            },
-			{
-                event: "keydown",
-                key: "0",
-                ctrlKey: true,
-                altKey: false,
-                shiftKey: false,
-                action: "unmakeTuplet"
-            }
+		return [{
+				event: "keydown",
+				key: "=",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "transposeUp"
+			}, {
+				event: "keydown",
+				key: "-",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "transposeDown"
+			}, {
+				event: "keydown",
+				key: "=",
+				ctrlKey: true,
+				altKey: false,
+				shiftKey: false,
+				action: "upOctave"
+			}, {
+				event: "keydown",
+				key: "-",
+				ctrlKey: true,
+				altKey: false,
+				shiftKey: false,
+				action: "downOctave"
+			}, {
+				event: "keydown",
+				key: ">",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "doubleDuration"
+			}, {
+				event: "keydown",
+				key: "<",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "halveDuration"
+			}, {
+				event: "keydown",
+				key: "a",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "setPitch"
+			}, {
+				event: "keydown",
+				key: "b",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "setPitch"
+			}, {
+				event: "keydown",
+				key: "c",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "setPitch"
+			}, {
+				event: "keydown",
+				key: "d",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "setPitch"
+			}, {
+				event: "keydown",
+				key: "e",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "setPitch"
+			}, {
+				event: "keydown",
+				key: "f",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "setPitch"
+			}, {
+				event: "keydown",
+				key: "g",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "setPitch"
+			}, {
+				event: "keydown",
+				key: "3",
+				ctrlKey: true,
+				altKey: false,
+				shiftKey: false,
+				action: "makeTuplet"
+			}, {
+				event: "keydown",
+				key: "0",
+				ctrlKey: true,
+				altKey: false,
+				shiftKey: false,
+				action: "unmakeTuplet"
+			}
 		];
 	}
-    static get trackerKeyBindingDefaults() {
-        return [{
-                event: "keydown",
-                key: "ArrowRight",
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: "moveSelectionRight"
-            }, {
-                event: "keydown",
-                key: "ArrowLeft",
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: "moveSelectionLeft"
-            },{
-                event: "keydown",
-                key: "ArrowRight",
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: true,
-                action: "growSelectionRight"
-            }, {
-                event: "keydown",
-                key: "ArrowLeft",
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: true,
-                action: "growSelectionLeft"
-            }, {
-                event: "keydown",
-                key: "ArrowUp",
-                ctrlKey: true,
-                altKey: false,
-                shiftKey: false,
-                action: "moveSelectionUp"
-            }, {
-                event: "keydown",
-                key: "ArrowDown",
-                ctrlKey: true,
-                altKey: false,
-                shiftKey: false,
-                action: "moveSelectionDown"
-            },
-			{
-                event: "keydown",
-                key: "ArrowRight",
-                ctrlKey: true,
-                altKey: false,
-                shiftKey: false,
-                action: "moveSelectionRightMeasure"
-            }, {
-                event: "keydown",
-                key: "ArrowLeft",
-                ctrlKey: true,
-                altKey: false,
-                shiftKey: false,
-                action: "moveSelectionLeftMeasure"
-            }
-			
-        ]
-    }
-
-    static get defaults() {
-        return {
-            keyBind: suiKeys.keyBindingDefaults
-        };
-    }
-
-    keyboardHandler(evname, evdata) {
-        var binding = this.keyBind.find((ev) =>
-                ev.event === evname && ev.key === evdata.key && ev.ctrlKey === evdata.ctrlKey &&
-                ev.altKey === evdata.altKey && evdata.shiftKey === ev.shiftKey);
-
-        if (binding) {
-            this[binding.module][binding.action](evdata);
-        }
-    }
-	detach() {
-		window.removeEventListener("keydown",this.keydownHandler,true);
-		this.layout=null;
-		this.tracker=null;
-		this.editor=null;
+	static get menuKeyBindingDefaults() {
+		return [{
+				event: "keydown",
+				key: "k",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "suiKeySignatureMenu"
+			}
+		];
 	}
-	
+	static get trackerKeyBindingDefaults() {
+		return [{
+				event: "keydown",
+				key: "ArrowRight",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "moveSelectionRight"
+			}, {
+				event: "keydown",
+				key: "ArrowLeft",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "moveSelectionLeft"
+			}, {
+				event: "keydown",
+				key: "ArrowRight",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "growSelectionRight"
+			}, {
+				event: "keydown",
+				key: "ArrowLeft",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "growSelectionLeft"
+			}, {
+				event: "keydown",
+				key: "ArrowUp",
+				ctrlKey: true,
+				altKey: false,
+				shiftKey: false,
+				action: "moveSelectionUp"
+			}, {
+				event: "keydown",
+				key: "ArrowDown",
+				ctrlKey: true,
+				altKey: false,
+				shiftKey: false,
+				action: "moveSelectionDown"
+			}, {
+				event: "keydown",
+				key: "ArrowRight",
+				ctrlKey: true,
+				altKey: false,
+				shiftKey: false,
+				action: "moveSelectionRightMeasure"
+			}, {
+				event: "keydown",
+				key: "ArrowLeft",
+				ctrlKey: true,
+				altKey: false,
+				shiftKey: false,
+				action: "moveSelectionLeftMeasure"
+			}
+
+		]
+	}
+
+	static get defaults() {
+		return {
+			keyBind: suiKeys.keyBindingDefaults
+		};
+	}
+
+	handleKeydown(evdata) {
+		console.log("KeyboardEvent: key='" + event.key + "' | code='" +
+			event.code + "'"
+			 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
+		event.preventDefault();
+		
+		if (evdata.key == '/') {
+			window.removeEventListener("keydown", this.keydownHandler, true);
+			var self = this;
+			var rebind = function () {
+				self.render();
+				self.bindEvents();
+			}
+			this.menuPromise = this.menus.slashMenuMode().then(rebind);
+		}
+		var binding = this.keyBind.find((ev) =>
+				ev.event === 'keydown' && ev.key === evdata.key && ev.ctrlKey === evdata.ctrlKey &&
+				ev.altKey === evdata.altKey && evdata.shiftKey === ev.shiftKey);
+
+		if (binding) {
+			this[binding.module][binding.action](evdata);
+		}
+	}
+
+	detach() {
+		window.removeEventListener("keydown", this.keydownHandler, true);
+		this.layout = null;
+		this.tracker = null;
+		this.editor = null;
+	}
+
 	render() {
 		this.layout.render();
 		this.tracker.updateMap();
-	}
-	handleKeydown(event) {
-		this.keyboardHandler("keydown",event);
-            console.log("KeyboardEvent: key='" + event.key + "' | code='" +
-                event.code + "'"
-                 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
-				 event.preventDefault();
-	}
-    bindEvents() {
-		var self=this;
-        var tracker = this.tracker;
-        $(this.renderElement).off('mousemove').on('mousemove', function (ev) {
-            tracker.intersectingArtifact({
-                x: ev.clientX,
-                y: ev.clientY
-            });
-        });
+	}	
+	
+	bindEvents() {
+		var self = this;
+		var tracker = this.tracker;
+		$(this.renderElement).off('mousemove').on('mousemove', function (ev) {
+			tracker.intersectingArtifact({
+				x: ev.clientX,
+				y: ev.clientY
+			});
+		});
 
-        $(this.renderElement).off('click').on('click', function (ev) {
-            tracker.selectSuggestion();
-        });
-				
+		$(this.renderElement).off('click').on('click', function (ev) {
+			tracker.selectSuggestion();
+		});
+
 		this.keydownHandler = this.handleKeydown.bind(this);
 
-        window.addEventListener("keydown", this.keydownHandler,true); 
-    }
+		window.addEventListener("keydown", this.keydownHandler, true);
+	}
 
 }

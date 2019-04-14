@@ -4,6 +4,7 @@ class suiEditor {
 	constructor(params) {
 		Vex.Merge(this, params);
 		this.changed = false; // set to true if the score has changed.
+		this.slashMode = false;
 	}
 
 	_transpose(selected, offset) {
