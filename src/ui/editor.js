@@ -104,6 +104,12 @@ class suiEditor {
 		this.tracker.updateMap();
 	}
 	
+	addMeasure(keyEvent) {
+		if (this.tracker.selections.length < 1) {
+			return;
+		}
+		
+	}
 	makeTuplet(keyEvent) {
 		if (this.tracker.selections.length != 1) {
 			return;

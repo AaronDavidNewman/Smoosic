@@ -7,45 +7,47 @@
             <Folder name="data">
                 <File name="src\smo\data\measure.js" />
                 <File name="src\smo\data\note.js" />
-                <File name="src\smo\data\score.js" />
                 <File name="src\smo\data\systemStaff.js" />
+                <File name="src\smo\data\score.js" />
             </Folder>
             <Folder name="xform">
                 <File name="src\smo\xform\iterator.js" />
                 <File name="src\smo\xform\modifiers.js" />
-                <File name="src\smo\xform\tickDuration.js" />
                 <File name="src\smo\xform\tickTransform.js" />
+                <File name="src\smo\xform\tickDuration.js" />
             </Folder>
         </Folder>
         <Folder name="vex">
-            <File name="src\vex\vxMeasure.js" />
             <File name="src\vex\vxSystem.js" />
+            <File name="src\vex\vxMeasure.js" />
         </Folder>
         <Folder name="ui">
-            <File name="src\ui\editor.js" />
-            <File name="src\ui\keys.js" />
-            <File name="src\ui\layout.js" />
-            <File name="src\ui\menus.js" />
             <File name="src\ui\tracker.js" />
+            <File name="src\ui\layout.js" />
+            <File name="src\ui\keys.js" />
+            <File name="src\ui\editor.js" />
+            <File name="src\ui\menus.js" />
         </Folder>
         <Folder name="test">
-            <File name="src\test\chordTest.html" />
+            <File name="src\test\systemTest.html" />
+            <File name="src\test\systemTest.js" />
             <File name="src\test\chordTest.js" />
+            <File name="src\test\tupletTest.js" />
+            <File name="src\test\tupletTest.html" />
+            <File name="src\test\chordTest.html" />
+            <File name="src\test\voiceTest.html" />
+            <File name="src\test\voiceTest.js" />
+            <File name="src\test\timeSignatureTest.html" />
+            <File name="src\test\timeSignatureTest.js" />
+            <File name="src\test\testAll.js" />
+            <File name="src\test\trackerTest.js" />
+            <File name="src\test\trackerTest.html" />
             <File name="src\test\glyphs.html" />
             <File name="src\test\serializeTestJson.js" />
             <File name="src\test\staffTest.html" />
             <File name="src\test\staffTest.js" />
-            <File name="src\test\systemTest.html" />
-            <File name="src\test\systemTest.js" />
             <File name="src\test\testAll.html" />
-            <File name="src\test\testAll.js" />
-            <File name="src\test\timeSignatureTest.js" />
-            <File name="src\test\trackerTest.html" />
-            <File name="src\test\trackerTest.js" />
-            <File name="src\test\tupletTest.js" />
-            <File name="src\test\tupletTest.html" />
-            <File name="src\test\voiceTest.html" />
-            <File name="src\test\voiceTest.js" />
+            <File name="src\test\systemTest.js" />
         </Folder>
         <Folder name="fonts">
             <File name="src\fonts\smoosic.ttf" />

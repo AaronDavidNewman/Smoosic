@@ -294,6 +294,20 @@ class suiTracker {
 			this.highlightSelection();
 		}
 	}
+	
+	// ## measureIterator
+	// Description: iterate over the any measures that are part of the selection
+	iterateMeasures(callback) {
+		var set = [];
+		this.selections.forEach((sel) => {
+			var measure = this.score.getMeasureAtSelection(sel.artifact.selection);
+			var ix = measure.measureNumber.measureIndex;
+			if (set.indexOf(ix) === -1) {
+				set.push(ix);
+				callback(measure);
+			}
+		});
+	}
 	selectSuggestion() {
 		if (!this.suggestion['artifact']) {
 			return;
