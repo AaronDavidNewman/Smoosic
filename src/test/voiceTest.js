@@ -3,7 +3,7 @@
 class VoiceTest {
 
     static CommonTests() {
-		var keys = suiKeys.createUi(document.getElementById("boo"),SmoScore.getDefaultScore());
+		var keys = utController.createUi(document.getElementById("boo"),SmoScore.getDefaultScore());
 		$('h1.testTitle').text('Voice Test');
 
 		var score = keys.score;
@@ -58,7 +58,7 @@ class VoiceTest {
 			$('#boo').html('');
 			score = SmoScore.deserialize(JSON.stringify(serializeTestJson.tupletMeasure));
 			keys.detach();
-			keys=suiKeys.createUi(document.getElementById("boo"),score);			
+			keys=utController.createUi(document.getElementById("boo"),score);			
 			keys.layout.render();
 		}
 		var serialize = () => {

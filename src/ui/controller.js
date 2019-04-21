@@ -1,39 +1,58 @@
 
 
-class suiKeys {
+// ## suiController
+// ### Description:
+// Manages DOM events and binds keyboard and mouse events
+// to editor and menu commands, tracker and layout manager.
+class suiController {
 
 	constructor(params) {
 
-		Vex.Merge(this, suiKeys.defaults);
+		Vex.Merge(this, suiController.defaults);
 		Vex.Merge(this, params);
 		this.bindEvents();
 	}
 
+	// ## createUi
+	// ### Description:
+	// Convenience constructor, taking a renderElement and a score.
 	static createUi(renderElement, score) {
-		var params = suiKeys.keyBindingDefaults;
+		var params = suiController.keyBindingDefaults;
 		params.layout = suiSimpleLayout.createScoreLayout(renderElement, score);
 		params.tracker = new suiTracker(params.layout);
 		params.score = score;
 		params.editor = new suiEditor(params);
 		params.menus = new suiMenuManager(params);
-		var keys = new suiKeys(params);
-		return keys;
+		var controller = new suiController(params);
+		return controller;
 	}
 
+	// ### renderElement 
+	// return render element that is the DOM parent of the svg
 	get renderElement() {
 		return this.layout.renderElement;
 	}
+	
+	// ## keyBindingDefaults
+	// ### Description:
+	// Different applications can create their own key bindings, these are the defaults.
+	// Many editor commands can be reached by a single keystroke.  For more advanced things there
+	// are menus.
 	static get keyBindingDefaults() {
-		var editorKeys = suiKeys.editorKeyBindingDefaults;
+		var editorKeys = suiController.editorKeyBindingDefaults;
 		editorKeys.forEach((key) => {
 			key.module = 'editor'
 		});
-		var trackerKeys = suiKeys.trackerKeyBindingDefaults;
+		var trackerKeys = suiController.trackerKeyBindingDefaults;
 		trackerKeys.forEach((key) => {
 			key.module = 'tracker'
 		});
 		return trackerKeys.concat(editorKeys);
 	}
+	
+	// ## editorKeyBindingDefaults
+	// ## Description:
+	// execute a simple command on the editor, based on a keystroke.
 	static get editorKeyBindingDefaults() {
 		return [{
 				event: "keydown",
@@ -65,14 +84,14 @@ class suiKeys {
 				action: "downOctave"
 			}, {
 				event: "keydown",
-				key: ">",
+				key: ",",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: true,
 				action: "doubleDuration"
 			}, {
 				event: "keydown",
-				key: "<",
+				key: ".",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: true,
@@ -143,17 +162,11 @@ class suiKeys {
 			}
 		];
 	}
-	static get menuKeyBindingDefaults() {
-		return [{
-				event: "keydown",
-				key: "k",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "suiKeySignatureMenu"
-			}
-		];
-	}
+	
+	// ## trackerKeyBindingDefaults
+	// ### Description:
+	// Key bindings for the tracker.  The tracker is the 'cursor' in the music
+	// that lets you select and edit notes.
 	static get trackerKeyBindingDefaults() {
 		return [{
 				event: "keydown",
@@ -218,7 +231,7 @@ class suiKeys {
 
 	static get defaults() {
 		return {
-			keyBind: suiKeys.keyBindingDefaults
+			keyBind: suiController.keyBindingDefaults
 		};
 	}
 

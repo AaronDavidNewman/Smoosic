@@ -4,7 +4,7 @@ class TimeSignatureTest {
     static CommonTests() {
 		$('h1.testTitle').text('Time Signature Test');
 		
-		var keys = suiKeys.createUi(document.getElementById("boo"),
+		var keys = utController.createUi(document.getElementById("boo"),
 		  SmoScore.getDefaultScore({},{timeSignature:'6/8',clef:'treble'}));
 		var score = keys.score;
 		var layout = keys.layout;

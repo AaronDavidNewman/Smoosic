@@ -29,9 +29,24 @@ class suiMenuManager {
 
 	static get defaults() {
 		return {
-			menuBind: suiKeys.menuKeyBindingDefaults,
+			menuBind: suiMenuManager.menuKeyBindingDefaults,
 			menuContainer: '.menuContainer'
 		};
+	}
+	
+	// ### Description:
+	// slash ('/') menu key bindings.  The slash key followed by another key brings up
+	// a menu.
+	static get menuKeyBindingDefaults() {
+		return [{
+				event: "keydown",
+				key: "k",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "suiKeySignatureMenu"
+			}
+		];
 	}
 
 	unattach() {

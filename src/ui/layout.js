@@ -1,8 +1,8 @@
 
 // ## smrfSimpleLayout
 // ## Description:
-// A layout maps the measures and notes to a spot on the page.  Simple layout
-// maps the music linearly in a single line, like a lead sheet.
+// A layout maps the measures and notes to a spot on the page.  It
+// manages the flow of music as an ordinary score.
 class suiSimpleLayout {
     constructor(params) {
         Vex.Merge(this, suiSimpleLayout.defaults);

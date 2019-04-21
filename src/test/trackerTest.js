@@ -9,7 +9,7 @@ class TrackerTest {
 		score.addDefaultMeasure(0, {});
 		score.addDefaultMeasure(1, {});
 		score.addDefaultMeasure(2, {});
-		var keys = suiKeys.createUi(document.getElementById("boo"),score);
+		var keys = suiController.createUi(document.getElementById("boo"),score);
 		var timeTest = () => {
 			const promise = new Promise((resolve, reject) => {
 					setTimeout(() => {

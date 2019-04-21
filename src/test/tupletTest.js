@@ -5,7 +5,7 @@ class TupletTest {
    
     static CommonTests() {
 		$('h1.testTitle').text('Tuplet Test');		
-		var keys = suiKeys.createUi(document.getElementById("boo"),SmoScore.getDefaultScore());
+		var keys = utController.createUi(document.getElementById("boo"),SmoScore.getDefaultScore());
 		var score = keys.score;
 		var layout = keys.layout;
 		var measure = score.getMeasureAtSelection({measureIndex:0});

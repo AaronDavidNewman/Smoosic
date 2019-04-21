@@ -11,7 +11,7 @@ class SystemTest {
         score.addDefaultMeasure(4,{});
 		score.addInstrument();
 		
-		var keys = suiKeys.createUi(document.getElementById("boo"),score);
+		var keys = suiController.createUi(document.getElementById("boo"),score);
 		keys.layout.render();		
 		keys.tracker.updateMap();		
     }

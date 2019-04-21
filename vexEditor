@@ -27,6 +27,7 @@
             <File name="src\ui\keys.js" />
             <File name="src\ui\editor.js" />
             <File name="src\ui\menus.js" />
+            <File name="src\ui\utController.js" />
         </Folder>
         <Folder name="test">
             <File name="src\test\systemTest.html" />

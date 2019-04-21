@@ -9,7 +9,7 @@ class StaffTest {
         score.addDefaultMeasure(2,{});
 		var serial = JSON.stringify(score,null,'');
 		console.log(serial);
-        var keys = suiKeys.createUi(document.getElementById("boo"),score);
+        var keys = utController.createUi(document.getElementById("boo"),score);
 		var score = keys.score;
 		var layout = keys.layout;		
 		
@@ -90,7 +90,7 @@ class StaffTest {
 			score = SmoScore.deserialize(scoreJson);
             layout.unrender();
 			keys.detach();
-            keys = suiKeys.createUi(document.getElementById("boo"),score);			
+            keys = utController.createUi(document.getElementById("boo"),score);			
             keys.render();
         }
       
