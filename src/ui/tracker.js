@@ -13,7 +13,7 @@ VX.groupCounter = 1;
 // new suiTracker(layout)
 //
 // ## See also:
-// layout, keys
+// layout, controller, menu
 class suiTracker {
 	constructor(layout) {
 		this.layout = layout;
@@ -79,6 +79,10 @@ class suiTracker {
 		}
 		this.highlightSelection();
 	}
+	
+	static stringifyBox(box) {
+		return '{x:'+box.x+',y:'+box.y+',width:'+box.width+',height:'+box.height+'}';
+	}
 
 	// ### _mapNoteElementToNote
 	// given a svg note group, find the smo element that defines this note;
@@ -93,6 +97,8 @@ class suiTracker {
 				artifact: artifact,
 				box: box
 			};
+			//console.log('note '+JSON.stringify(artifact.smoMeasure.measureNumber,null,' ')+' box: '+
+			  // suiTracker.stringifyBox(box));
 			this.groupObjectMap[id] = artifact;
 			this.objectGroupMap[artifact.id] = artifact;
 			this.objects.push({
@@ -295,6 +301,12 @@ class suiTracker {
 		}
 	}
 	
+	getFirstMeasureOfSelection() {
+		if (this.selections.length) {
+			return this.selections[0].artifact.smoMeasure;
+		}
+		return null;
+	}
 	// ## measureIterator
 	// Description: iterate over the any measures that are part of the selection
 	iterateMeasures(callback) {

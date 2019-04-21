@@ -80,10 +80,8 @@ class SmoScore {
 			if (this.activeStaff===i) {				
 			    staff.addMeasure(measureIndex,measure);
 			} else {
-				// TODO: find best measure for context, with key, time signature etc.
-				var defaultMeasure = 
-				    SmoMeasure.getDefaultMeasure(this._getMeasureConext(staff,measureIndex));
-				staff.addMeasure(measureIndex,defaultMeasure);
+				// TODO: find best measure for context, with key, time signature etc.				
+				staff.addMeasure(measureIndex,SmoMeasure.cloneMeasure(measure));
 			}
 		}
 		this._numberStaves();

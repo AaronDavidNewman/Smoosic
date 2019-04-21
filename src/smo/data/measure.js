@@ -173,6 +173,37 @@ class SmoMeasure {
 		obj.voices=[{notes:notes}];
 		return new SmoMeasure(obj);
 	}
+	
+	static _cloneParameters(measure) {
+        var keys = Object.keys(measure);
+        var clone = {};
+        for (var i = 0; i < keys.length; ++i) {
+            var key = keys[i];
+            clone[key] = measure[key];
+        }
+		return clone;
+	}
+	
+	static cloneMeasure(measure) {
+		var params = SmoMeasure._cloneParameters(measure);
+		var nmeasure = new SmoMeasure(params);
+		nmeasure.attrs={
+                id: VF.Element.newID(),
+                type: 'SmoMeasure'
+            };
+	    nmeasure.voices=[];
+		for (var i=0;i<measure.voices.length;++i) {
+			
+			var notes=[];
+			var voice=measure.voices[i];
+			for (var j=0;j<voice.notes.length;++j) {
+				var note = voice.notes[j];
+				notes.push(SmoNote.clone(note));
+			}
+			nmeasure.voices.push({notes:notes});
+		}
+		return nmeasure;
+	}
 
     static get defaultVoice44() {
 		return SmoMeasure.getDefaultNotes({clef:'treble',timeSignature:'4/4'});

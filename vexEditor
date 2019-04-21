@@ -24,10 +24,10 @@
         <Folder name="ui">
             <File name="src\ui\tracker.js" />
             <File name="src\ui\layout.js" />
-            <File name="src\ui\keys.js" />
             <File name="src\ui\editor.js" />
             <File name="src\ui\menus.js" />
             <File name="src\ui\utController.js" />
+            <File name="src\ui\controller.js" />
         </Folder>
         <Folder name="test">
             <File name="src\test\systemTest.html" />
@@ -48,7 +48,6 @@
             <File name="src\test\staffTest.html" />
             <File name="src\test\staffTest.js" />
             <File name="src\test\testAll.html" />
-            <File name="src\test\systemTest.js" />
         </Folder>
         <Folder name="fonts">
             <File name="src\fonts\smoosic.ttf" />

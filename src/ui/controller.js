@@ -159,7 +159,16 @@ class suiController {
 				altKey: false,
 				shiftKey: false,
 				action: "unmakeTuplet"
+			},
+			{
+				event: "keydown",
+				key: "i",
+				ctrlKey: true,
+				altKey: false,
+				shiftKey: false,
+				action: "addMeasure"
 			}
+			
 		];
 	}
 	
