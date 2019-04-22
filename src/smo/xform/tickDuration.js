@@ -16,45 +16,40 @@ class SmoContractNoteActor extends TickTransformBase {
         if (iterator.index == this.startIndex) {
             var notes = [];
             var noteCount = Math.floor(note.ticks.numerator / this.newTicks);
-            var nextIndex = this.tickmap.durationMap.indexOf(iterator.totalDuration + noteCount * this.newTicks - iterator.delta);
             var notes = [];
+			var remainder = note.ticks.numerator;
             var vexDuration = vexMusic.ticksToDuration[this.newTicks];
-            if (nextIndex >= 0) {
-                /**
-                 *  Replace 1 note with noteCOunt notes of newTIcks duration
-                 *      old map:
-                 *     d  .  d  .  .
-                 *     new map:
-                 *     d  d  d  .  .
-                 */
-                for (var i = 0; i < noteCount; ++i) {
-                    notes.push(new SmoNote({
-                            clef: note.clef,
-                            keys: note.keys,
-                            duration: vexDuration
-                        }));
-                }
-                return notes;
-            } else {
-                /**
-                 *  Contract does not meet the next note.  Insert a gap in the rest
-                 *      old map:
-                 *     d  .  .  .  d
-                 *     new map:
-                 *     d  .  .  r  d
-                 */
-                var gap = this.tickmap.durationMap[this.startIndex + 1] -
-                    (iterator.totalDuration + noteCount * this.newTicks);
-                var vexGapDuration = vexMusic.ticksToDuration[this.newTicks];
-				
-                notes.push(SmoNote.cloneWithDuration(note,vexDuration));
-                notes.push(SmoNote.cloneWithDuration(note,vexGapDuration));
-                return notes;
+            /**
+             *  Replace 1 note with noteCOunt notes of newTIcks duration
+             *      old map:
+             *     d  .  d  .  .
+             *     new map:
+             *     d  d  d  .  .
+             */
+            for (var i = 0; i < noteCount; ++i) {
+                notes.push(new SmoNote({
+                        clef: note.clef,
+                        keys: JSON.parse(JSON.stringify(note.keys)),
+                        duration: vexDuration
+                    }));
+				remainder = remainder - this.newTicks;
             }
+			
+			if (remainder > 0) {
+				vexDuration = vexMusic.ticksToDuration[remainder];
+				notes.push(new SmoNote({
+                        clef: note.clef,
+                        keys: JSON.parse(JSON.stringify(note.keys)),
+                        duration: vexDuration
+                    }));
+			}
+            return notes;
         }
+
         return null;
     }
 }
+
 // ## VxStretchTupletActor
 // Stretch a note in a tuplet, removing or shortening other notes in the tuplet
 // ## Parameters:
@@ -110,7 +105,7 @@ class SmoContractTupletActor extends TickTransformBase {
         this.tuplet = this.measure.getTupletForNote(this.measure.notes[this.changeIndex]);
         this.oldLength = this.tuplet.notes.length;
         this.tupletIndex = this.measure.tupletIndex(this.tuplet);
-		this.splitIndex = this.changeIndex-this.tupletIndex;
+        this.splitIndex = this.changeIndex - this.tupletIndex;
         this.tuplet.split(this.splitIndex);
     }
     transformTick(note, iterator, accidentalMap) {
@@ -134,7 +129,7 @@ class SmoContractTupletActor extends TickTransformBase {
 class SmoUnmakeTupletActor extends TickTransformBase {
     constructor(parameters) {
         super();
-        Vex.Merge(this, parameters);		
+        Vex.Merge(this, parameters);
     }
     transformTick(note, iterator, accidentalMap) {
         if (iterator.index < this.startIndex || iterator.index > this.endIndex) {
@@ -144,8 +139,8 @@ class SmoUnmakeTupletActor extends TickTransformBase {
             var tuplet = this.measure.getTupletForNote(note);
             var ticks = tuplet.totalTicks;
             var vexDuration = vexMusic.ticksToDuration[ticks];
-			var nn = SmoNote.cloneWithDuration(note,vexDuration);
-			nn.tuplet={};
+            var nn = SmoNote.cloneWithDuration(note, vexDuration);
+            nn.tuplet = {};
             this.measure.removeTupletForNote(note);
             return [nn];
         }
@@ -161,63 +156,63 @@ class SmoMakeTupletActor extends TickTransformBase {
     constructor(params) {
         super();
         Vex.Merge(this, params);
-		this.durationMap=[];
-		var sum=0.0;// 819.2
-		for (var i=0;i<this.numNotes;++i) {
-			this.durationMap.push(1.0);
-			sum += 1.0;
-		}
-        var stemValue = this.totalTicks/this.numNotes;
-		var stemTicks=8192;
-		
-		// The stem value is the type on the non-tuplet note, e.g. 1/8 note
-		// for a triplet.
-		while (stemValue < stemTicks) {
-			stemTicks = stemTicks/2;
-		}
-		
-		this.stemTicks=stemTicks*2;
-		this.rangeToSkip=this._rangeToSkip();
-		
-		// special case - is this right?  this is needed for tuplets in 6/8
-		if (this.rangeToSkip[1] > this.rangeToSkip[0]) {
-			this.stemTicks = stemTicks;
-		} else {
-			this.stemTicks=stemTicks*2;		
-		}
-		
-		this.vexDuration=vexMusic.ticksToDuration[this.stemTicks];
+        this.durationMap = [];
+        var sum = 0.0; // 819.2
+        for (var i = 0; i < this.numNotes; ++i) {
+            this.durationMap.push(1.0);
+            sum += 1.0;
+        }
+        var stemValue = this.totalTicks / this.numNotes;
+        var stemTicks = 8192;
+
+        // The stem value is the type on the non-tuplet note, e.g. 1/8 note
+        // for a triplet.
+        while (stemValue < stemTicks) {
+            stemTicks = stemTicks / 2;
+        }
+
+        this.stemTicks = stemTicks * 2;
+        this.rangeToSkip = this._rangeToSkip();
+
+        // special case - is this right?  this is needed for tuplets in 6/8
+        if (this.rangeToSkip[1] > this.rangeToSkip[0]) {
+            this.stemTicks = stemTicks;
+        } else {
+            this.stemTicks = stemTicks * 2;
+        }
+
+        this.vexDuration = vexMusic.ticksToDuration[this.stemTicks];
         this.tuplet = [];
-		// skip notes in the original array if we are taking up
-		// multiple notes
+        // skip notes in the original array if we are taking up
+        // multiple notes
 
     }
-	_rangeToSkip() {
-		var ticks = this.measure.tickmap();
-		var accum = 0;
-		var rv = [];
-		rv.push(this.index);
-		for (var i=0;i<ticks.deltaMap.length;++i) {
-			if (i>=this.index) {
-				accum += ticks.deltaMap[i];
-			} 
-			if (accum >= this.totalTicks) {
-				rv.push(i);
-				break;
-			}
-		}
-		return rv;
-	}
+    _rangeToSkip() {
+        var ticks = this.measure.tickmap();
+        var accum = 0;
+        var rv = [];
+        rv.push(this.index);
+        for (var i = 0; i < ticks.deltaMap.length; ++i) {
+            if (i >= this.index) {
+                accum += ticks.deltaMap[i];
+            }
+            if (accum >= this.totalTicks) {
+                rv.push(i);
+                break;
+            }
+        }
+        return rv;
+    }
     transformTick(note, iterator, accidentalMap) {
-		// if our tuplet replaces this note, make sure we make it go away.
-		if (iterator.index > this.index && iterator.index <= this.rangeToSkip[1]) {
-			return [];
-		}
+        // if our tuplet replaces this note, make sure we make it go away.
+        if (iterator.index > this.index && iterator.index <= this.rangeToSkip[1]) {
+            return [];
+        }
         if (iterator.index != this.index) {
             return null;
         }
         for (var i = 0; i < this.numNotes; ++i) {
-			note = SmoNote.cloneWithDuration(note,this.vexDuration);
+            note = SmoNote.cloneWithDuration(note, this.vexDuration);
 
             this.tuplet.push(note);
         }
@@ -228,7 +223,7 @@ class SmoMakeTupletActor extends TickTransformBase {
                 ratioed: false,
                 bracketed: true,
                 startIndex: iterator.index,
-				durationMap:this.durationMap,
+                durationMap: this.durationMap,
                 location: 1
             });
         this.measure.tuplets.push(tuplet);
@@ -252,12 +247,12 @@ class SmoStretchNoteActor extends TickTransformBase {
         this.durationMap.push(this.newTicks);
 
         var mapIx = this.tickmap.durationMap.indexOf(endTick);
-		
-		var remaining = this.tickmap.deltaMap.slice(this.startIndex,this.tickmap.durationMap.length).reduce((accum,x)=>x+accum);
-		if (remaining===this.newTicks) {
-			mapIx=this.tickmap.deltaMap.length;
-		}
-		
+
+        var remaining = this.tickmap.deltaMap.slice(this.startIndex, this.tickmap.durationMap.length).reduce((accum, x) => x + accum);
+        if (remaining === this.newTicks) {
+            mapIx = this.tickmap.deltaMap.length;
+        }
+
         // If there is no tickable at the end point, try to split the next note
         /**
          *      old map:
@@ -295,7 +290,7 @@ class SmoStretchNoteActor extends TickTransformBase {
                 return [];
             }
             var vexDuration = vexMusic.ticksToDuration[ticks];
-            var note = SmoNote.cloneWithDuration(note,vexDuration);
+            var note = SmoNote.cloneWithDuration(note, vexDuration);
             return [note];
         }
         return null;

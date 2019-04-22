@@ -68,6 +68,47 @@ class suiEditor {
         this.tracker.updateMap();
         this.changed = false;
     }
+	dotDuration(keyEvent) {
+        if (this.tracker.selections.length != 1) {
+            return;
+        }
+        var selObj = this.tracker.selections[0];
+        var note = selObj.artifact.smoNote;
+        var measure = selObj.artifact.smoMeasure;
+        var nticks = vexMusic.getNextDottedLevel(note.tickCount);
+		if (nticks == note.tickCount) {
+			return;
+		}
+        var actor = new SmoStretchNoteActor({
+                startIndex: selObj.artifact.selection.tick,
+                tickmap: measure.tickmap(),
+                newTicks: nticks
+            });
+        SmoTickTransformer.applyTransform(measure, actor);
+        this.layout.render();
+        this.tracker.updateMap();		
+	}
+	
+	undotDuration(keyEvent) {
+        if (this.tracker.selections.length != 1) {
+            return;
+        }
+        var selObj = this.tracker.selections[0];
+        var note = selObj.artifact.smoNote;
+        var measure = selObj.artifact.smoMeasure;
+        var nticks = vexMusic.getPreviousDottedLevel(note.tickCount);
+		if (nticks == note.tickCount) {
+			return;
+		}
+        var actor = new SmoContractNoteActor({
+                startIndex: selObj.artifact.selection.tick,
+                tickmap: measure.tickmap(),
+                newTicks: nticks
+            });
+        SmoTickTransformer.applyTransform(measure, actor);
+        this.layout.render();
+        this.tracker.updateMap();				
+	}
 
     doubleDuration(keyEvent) {
         if (this.tracker.selections.length != 1) {

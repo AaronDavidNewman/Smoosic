@@ -84,19 +84,35 @@ class suiController {
 				action: "downOctave"
 			}, {
 				event: "keydown",
-				key: ",",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "doubleDuration"
-			}, {
-				event: "keydown",
 				key: ".",
 				ctrlKey: false,
 				altKey: false,
-				shiftKey: true,
-				action: "halveDuration"
+				shiftKey: false,
+				action: "doubleDuration"
 			}, {
+				event: "keydown",
+				key: ",",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "halveDuration"
+			},{
+				event: "keydown",
+				key: ">",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "dotDuration"
+			}, 
+			{
+				event: "keydown",
+				key: "<",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "undotDuration"
+			}, 
+			{
 				event: "keydown",
 				key: "a",
 				ctrlKey: false,
@@ -167,8 +183,7 @@ class suiController {
 				altKey: false,
 				shiftKey: false,
 				action: "addMeasure"
-			}
-			
+			}			
 		];
 	}
 	

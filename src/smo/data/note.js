@@ -311,7 +311,7 @@ class SmoBeamGroup {
 		}
         for (var i = 0; i < this.notes.length; ++i) {
             var note = this.notes[i];
-            if (VF.durationToTicks(note.duration) < 4096)
+            if (vexMusic.durationToTicks(note.duration) < 4096)
                 note.beam_group = this.attrs;
         }
     }

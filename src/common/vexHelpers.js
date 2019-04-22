@@ -65,6 +65,33 @@ class vexMusic {
         return km.scaleMap[letter];
     }
 	
+	// ### Description:
+	// Get ticks for this note with an added dot.  Return 
+	// identity if that is not a supported value.
+	static getNextDottedLevel(ticks) {
+         var ttd = vexMusic.ticksToDuration;
+		 var vals = Object.values(ttd);
+		 
+		 var ix=vals.indexOf(ttd[ticks]);
+		 if (ix >= 0 && ix<vals.length && vals[ix][0] == vals[ix+1][0]) {
+			 return vexMusic.durationToTicks(vals[ix+1]);
+		 }
+		 return ticks;
+	}
+	
+	// ### Description:
+	// Get ticks for this note with one fewer dot.  Return 
+	// identity if that is not a supported value.
+	static getPreviousDottedLevel(ticks) {
+         var ttd = vexMusic.ticksToDuration;
+		 var vals = Object.values(ttd);
+		 var ix=vals.indexOf(ttd[ticks]);
+		 if (ix > 0 && vals[ix][0] == vals[ix-1][0]) {
+			 return vexMusic.durationToTicks(vals[ix-1]);
+		 }
+		 return ticks;
+	}
+	
 	// ### ticksToDuration
 	// ### Description:
 	// Frequently we double/halve a note duration, and we want to find the vex tick duration that goes with that.
