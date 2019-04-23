@@ -194,6 +194,16 @@ class SmoTuplet {
             note.tuplet = this.attrs;
         }
     }
+	getIndexOfNote(note) {
+		var rv=-1;
+		for (var i=0;i<this.notes.length;++i) {
+			var tn=this.notes[i];
+			if (note.id === tn.id) {
+				rv = i;
+			}
+		}
+		return rv;
+	}
     split(combineIndex) {
         var multiplier = 0.5;
         var nnotes = [];
@@ -222,7 +232,7 @@ class SmoTuplet {
     }
     combine(startIndex, endIndex) {
         // can't combine in this way, too many notes
-        if (this.num_notes <= endIndex || startIndex >= endIndex) {
+        if (this.notes.length <= endIndex || startIndex >= endIndex) {
             return this;
         }
         var acc = 0.0;
@@ -243,7 +253,7 @@ class SmoTuplet {
         var nmap = [];
         var nnotes = [];
         // adjust the duration map
-        for (i = 0; i < this.num_notes; ++i) {
+        for (i = 0; i < this.notes.length; ++i) {
             var note = this.notes[i];
             // notes that don't change are unchanged
             if (i < startIndex || i > endIndex) {

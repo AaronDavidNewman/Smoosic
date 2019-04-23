@@ -315,7 +315,19 @@ class SmoMeasure {
         }
         return -1;
     }
-
+	
+    getTupletForNote(note) {
+        if (!vexMusic.isTuplet(note)) {
+            return null;
+        }
+        for (var i = 0; i < this.tuplets.length; ++i) {
+            var tuplet = this.tuplets[i];
+            if (tuplet.attrs.id === note.tuplet.id) {
+                return tuplet;
+            }
+            return null;
+        }
+    }
     removeTupletForNote(note) {
         var tuplets = [];
         for (var i = 0; i < this.tuplets.length; ++i) {
@@ -350,18 +362,7 @@ class SmoMeasure {
     setMeasureNumber(num) {
         this.measureNumber = num;
     }
-    getTupletForNote(note) {
-        if (!vexMusic.isTuplet(note)) {
-            return null;
-        }
-        for (var i = 0; i < this.tuplets.length; ++i) {
-            var tuplet = this.tuplets[i];
-            if (tuplet.attrs.id === note.tuplet.id) {
-                return tuplet;
-            }
-            return null;
-        }
-    }
+  
     getBeamGroupForNote(note) {
         for (var i = 0; i < this.beamGroups.length; ++i) {
             var bg = this.beamGroups[i];
