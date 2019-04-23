@@ -116,8 +116,15 @@ class VxMeasure {
         for (var i = 0; i < this.smoMeasure.beamGroups.length; ++i) {
             var bg = this.smoMeasure.beamGroups[i];
             var vexNotes = [];
+			var stemDirection=-1;
             for (var j = 0; j < bg.notes.length; ++j) {
                 var note = bg.notes[j];
+				var vexNote = this.noteToVexMap[note.attrs.id]
+				if (j===0) {
+					stemDirection=vexNote.getStemDirection();
+				} else {
+					vexNote.setStemDirection(stemDirection);
+				}
                 vexNotes.push(this.noteToVexMap[note.attrs.id]);
             }
             var vexBeam = new VF.Beam(vexNotes);
