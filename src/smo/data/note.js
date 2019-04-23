@@ -80,6 +80,10 @@ class SmoNote {
     get tickCount() {
         return this.ticks.numerator / this.ticks.denominator + this.ticks.remainder;
     }
+	
+	describe() {
+		return this.id+' '+this.tickCount;
+	}
 
     // ## Accidental format
     // {index:1,value:{symbol:'#',cautionary:false}}

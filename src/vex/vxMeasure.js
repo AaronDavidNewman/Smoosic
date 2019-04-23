@@ -181,8 +181,8 @@ class VxMeasure {
 		 + (this.smoMeasure.forceTimeSignature ? 16 : 0)
 		 + (this.smoMeasure.forceKeySignature ? vexMusic.keySignatureLength[this.smoMeasure.keySignature]*8 : 0);
 		
-		//console.log('measure '+JSON.stringify(this.smoMeasure.measureNumber,null,' ')+' x: ' + this.smoMeasure.staffX + ' y: '+this.smoMeasure.staffY
-		 //  + 'width: '+staffWidth);
+		console.log('measure '+JSON.stringify(this.smoMeasure.measureNumber,null,' ')+' x: ' + this.smoMeasure.staffX + ' y: '+this.smoMeasure.staffY
+		   + 'width: '+staffWidth);
         this.stave = new VF.Stave(this.smoMeasure.staffX, this.smoMeasure.staffY, staffWidth);
 
         // Add a clef and time signature.

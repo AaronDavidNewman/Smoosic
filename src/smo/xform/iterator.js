@@ -175,7 +175,7 @@ class smoTickIterator {
             this.durationMap.push(this.totalDuration);
 
             // the number of ticks for this note
-            this.delta = (note.ticks.numerator / note.ticks.denominator);
+            this.delta = (note.ticks.numerator / note.ticks.denominator) + note.ticks.remainder;
 			this.deltaMap.push(this.delta);
 
             if (note['tuplet'] && note.tuplet['attrs']) {

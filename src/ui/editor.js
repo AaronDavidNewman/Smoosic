@@ -68,7 +68,7 @@ class suiEditor {
         this.tracker.updateMap();
         this.changed = false;
     }
-	dotDuration(keyEvent) {
+    dotDuration(keyEvent) {
         if (this.tracker.selections.length != 1) {
             return;
         }
@@ -76,9 +76,9 @@ class suiEditor {
         var note = selObj.artifact.smoNote;
         var measure = selObj.artifact.smoMeasure;
         var nticks = vexMusic.getNextDottedLevel(note.tickCount);
-		if (nticks == note.tickCount) {
-			return;
-		}
+        if (nticks == note.tickCount) {
+            return;
+        }
         var actor = new SmoStretchNoteActor({
                 startIndex: selObj.artifact.selection.tick,
                 tickmap: measure.tickmap(),
@@ -86,10 +86,10 @@ class suiEditor {
             });
         SmoTickTransformer.applyTransform(measure, actor);
         this.layout.render();
-        this.tracker.updateMap();		
-	}
-	
-	undotDuration(keyEvent) {
+        this.tracker.updateMap();
+    }
+
+    undotDuration(keyEvent) {
         if (this.tracker.selections.length != 1) {
             return;
         }
@@ -97,9 +97,9 @@ class suiEditor {
         var note = selObj.artifact.smoNote;
         var measure = selObj.artifact.smoMeasure;
         var nticks = vexMusic.getPreviousDottedLevel(note.tickCount);
-		if (nticks == note.tickCount) {
-			return;
-		}
+        if (nticks == note.tickCount) {
+            return;
+        }
         var actor = new SmoContractNoteActor({
                 startIndex: selObj.artifact.selection.tick,
                 tickmap: measure.tickmap(),
@@ -107,8 +107,8 @@ class suiEditor {
             });
         SmoTickTransformer.applyTransform(measure, actor);
         this.layout.render();
-        this.tracker.updateMap();				
-	}
+        this.tracker.updateMap();
+    }
 
     doubleDuration(keyEvent) {
         if (this.tracker.selections.length != 1) {
@@ -117,6 +117,8 @@ class suiEditor {
         var selObj = this.tracker.selections[0];
         var note = selObj.artifact.smoNote;
         var measure = selObj.artifact.smoMeasure;
+		var tuplet = measure.getTupletForNote(note);
+		if (!tuplet) {
         var nticks = note.tickCount * 2;
         var actor = new SmoStretchNoteActor({
                 startIndex: selObj.artifact.selection.tick,
@@ -126,6 +128,7 @@ class suiEditor {
         SmoTickTransformer.applyTransform(measure, actor);
         this.layout.render();
         this.tracker.updateMap();
+		}
     }
     halveDuration(keyEvent) {
         if (this.tracker.selections.length != 1) {
@@ -134,15 +137,18 @@ class suiEditor {
         var selObj = this.tracker.selections[0];
         var note = selObj.artifact.smoNote;
         var measure = selObj.artifact.smoMeasure;
-        var nticks = note.tickCount / 2;
-        var actor = new SmoContractNoteActor({
-                startIndex: selObj.artifact.selection.tick,
-                tickmap: measure.tickmap(),
-                newTicks: nticks
-            });
-        SmoTickTransformer.applyTransform(measure, actor);
-        this.layout.render();
-        this.tracker.updateMap();
+		var tuplet = measure.getTupletForNote(note);
+		if (!tuplet) {
+            var nticks = note.tickCount / 2;
+            var actor = new SmoContractNoteActor({
+                    startIndex: selObj.artifact.selection.tick,
+                    tickmap: measure.tickmap(),
+                    newTicks: nticks
+                });
+            SmoTickTransformer.applyTransform(measure, actor);
+            this.layout.render();
+            this.tracker.updateMap();
+        }
     }
 
     addMeasure(keyEvent) {
@@ -152,7 +158,7 @@ class suiEditor {
         var measure = this.tracker.getFirstMeasureOfSelection();
         if (measure) {
             var nmeasure = SmoMeasure.cloneMeasure(measure);
-            this.score.addMeasure(measure.measureNumber.systemIndex,nmeasure);
+            this.score.addMeasure(measure.measureNumber.systemIndex, nmeasure);
             this.layout.render();
             this.tracker.updateMap();
         }
