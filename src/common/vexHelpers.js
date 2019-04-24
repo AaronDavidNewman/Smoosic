@@ -161,15 +161,33 @@ class vexMusic {
 
     // ### getEnharmonic(noteProp)
     // ###   cycle through the enharmonics for a note.
-    static getEnharmonic(noteProp) {
-        var key = noteProp.key.toLowerCase();
-        var intVal= VF.Music.noteValues[key].int_val;
+    static getEnharmonic(key) {
+        var intVal= VF.Music.noteValues[key.toLowerCase()].int_val;
         var ar = vexMusic.enharmonics[intVal.toString()];
         var len = ar.length;
         var ix = ar.indexOf(key);
         key = ar[(ix + 1) % len];
-        return (key + '/' + noteProp.octave);
+        return key;
     }
+	static getKeyFriendlyEnharmonic(letter,key) {
+		var rv = letter;
+		var muse = new VF.Music();
+		var scale = Object.values(muse.createScaleMap(key));
+		var prop = vexMusic.getEnharmonic(letter.toLowerCase());
+		while (prop.toLowerCase() != letter.toLowerCase()) {
+			for (var i=0;i<scale.length;++i) {
+				var skey=scale[i];
+				if ((skey[0]==prop && skey[1]=='n') ||
+				    (skey.toLowerCase() == prop.toLowerCase())) {
+						rv=skey;
+					break;
+					}
+			}
+			prop = (prop[1] =='n' ? prop[0] : prop);
+			prop=vexMusic.getEnharmonic(prop);
+		}
+		return rv;
+	}
 	
 	static noteDebugRecurse(clone, level) {
         if (!level)

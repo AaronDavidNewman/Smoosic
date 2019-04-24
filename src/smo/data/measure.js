@@ -239,13 +239,7 @@ class SmoMeasure {
         return VX.TICKMAP(this);
     }
 	
-	transpose(voice,tick,optionPitchArray,offset) {
-		var pitches = [];
-		var target = this.getSelection(voice,tick,optionPitchArray);
-		if (target) {
-			
-		}
-	}
+	
 	// {index:1,value:{symbol:'#',cautionary:false}}
 	setAccidental(voice,tick,pitch,value) {
 		var target = this.getSelection(voice,tick,[pitch]);

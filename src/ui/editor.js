@@ -26,7 +26,7 @@ class suiEditor {
             var pitchArray = [];
             var target = measure.getSelection(measure.activeVoice, selection.tick, pitchArray);
             if (target) {
-                target.note.transpose(pitchArray, offset);
+                target.note.transpose(pitchArray, offset,measure.keySignature);
                 smoModifierFactory.applyModifiers(measure);
                 this.changed = true;
             }
@@ -36,7 +36,7 @@ class suiEditor {
     transpose(offset) {
 
         this.tracker.selections.forEach((selected) => this._transpose(selected, offset));
-        this._renderAndAdvance();
+        this._render();
     }
     transposeDown() {
         this.transpose(-1);
