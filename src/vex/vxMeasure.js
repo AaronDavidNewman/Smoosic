@@ -176,14 +176,16 @@ class VxMeasure {
         group.classList.add(this.smoMeasure.attrs.id);
 
         // offset for left-hand stuff
-		var staffWidth = this.smoMeasure.staffWidth
-		 + (this.smoMeasure.forceClef ? 40 : 0) 
+		var staffMargin = (this.smoMeasure.forceClef ? 40 : 0) 
 		 + (this.smoMeasure.forceTimeSignature ? 16 : 0)
 		 + (this.smoMeasure.forceKeySignature ? vexMusic.keySignatureLength[this.smoMeasure.keySignature]*8 : 0);
+		var staffWidth = this.smoMeasure.staffWidth
+		 + staffMargin;
 		
-		// console.log('measure '+JSON.stringify(this.smoMeasure.measureNumber,null,' ')+' x: ' + this.smoMeasure.staffX + ' y: '+this.smoMeasure.staffY
-		//    + 'width: '+staffWidth);
+		console.log('measure '+JSON.stringify(this.smoMeasure.measureNumber,null,' ')+' x: ' + this.smoMeasure.staffX + ' y: '+this.smoMeasure.staffY
+		    + 'width: '+staffWidth);
         this.stave = new VF.Stave(this.smoMeasure.staffX, this.smoMeasure.staffY, staffWidth);
+		console.log('adjX is '+this.smoMeasure.adjX);
 
         // Add a clef and time signature.
         if (this.smoMeasure.forceClef) {			
@@ -216,7 +218,7 @@ class VxMeasure {
             voice.addTickables(this.vexNotes);
 			voiceAr.push(voice);
 		}
-		this.formatter = new VF.Formatter().joinVoices(voiceAr).format(voiceAr,this.smoMeasure.staffWidth);
+		this.formatter = new VF.Formatter().joinVoices(voiceAr).format(voiceAr,this.smoMeasure.staffWidth-this.smoMeasure.adjX);
 		for (var j=0;j<voiceAr.length;++j) {
 			voiceAr[j].draw(this.context, this.stave);			
 		}
@@ -230,7 +232,10 @@ class VxMeasure {
 			tuplet.setContext(self.context).draw();
 		});       
 		var box = group.getBBox();
-		this.smoMeasure.renderedSize={x:box.x,y:box.y,height:box.height,width:box.width};
+		this.smoMeasure.renderedBox={x:box.x,y:box.y,height:box.height,width:box.width};
+		this.smoMeasure.logicalBox={x:box.x,y:box.y,height:this.stave.getHeight(),width:this.stave.getWidth()};
+		this.smoMeasure.adjX=this.smoMeasure.renderedBox.width-this.smoMeasure.logicalBox.width;
+		console.log(JSON.stringify(this.smoMeasure.renderedBox,null,' '));
         this.context.closeGroup();
     }
 

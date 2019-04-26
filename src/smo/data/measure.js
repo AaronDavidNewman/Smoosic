@@ -214,6 +214,7 @@ class SmoMeasure {
             timeSignature: '4/4',
             keySignature: "C",
             staffX: 10,
+			adjX:0,
             customModifiers: [],
             staffY: 40,
             bars: [1, 1], // follows enumeration in VF.Barline

@@ -35,7 +35,7 @@ class suiSimpleLayout {
             staffWidth: 250,
             totalWidth: 250,
             leftMargin: 15,
-            topMargin: 15,			
+            topMargin: 15,
             pageWidth: 8 * 96 + 48,
             pageHeight: 11 * 96,
             font: {
@@ -53,62 +53,89 @@ class suiSimpleLayout {
     }
     render() {
         this.layout();
+        // layout a second time to adjust for issues.
+        this.layout();
     }
     unrender() {}
 
     get pageMarginWidth() {
-		return this.pageWidth - this.leftMargin*2;
-	}
-	_previousAttr(i,j,attr) {
+        return this.pageWidth - this.leftMargin * 2;
+    }
+    _previousAttr(i, j, attr) {
         var staff = this.score.staves[j];
-		var measure = staff.measures[i];
-		return (i>0 ? staff.measures[i-1][attr] : measure[attr]);
-	}
+        var measure = staff.measures[i];
+        return (i > 0 ? staff.measures[i - 1][attr] : measure[attr]);
+    }
 
     layout() {
+        // bounding box of all artifacts on the page
+        var pageBox = {};
+        // bounding box of all artifacts in a system
+        var systemBoxes = {};
+        var staffBoxes = {};
         if (!this.score.staves.length) {
             return;
         }
-        var startX = this.leftMargin;
         var topStaff = this.score.staves[0];
         if (!topStaff.measures.length) {
             return;
         }
-        var system = new VxSystem(this.context,topStaff.measures[0].staffY);
-        var ycoord = system.topY;
+        var system = new VxSystem(this.context, topStaff.measures[0].staffY);
         var systemIndex = 0;
+        var lineIndex = 0;
         for (var i = 0; i < topStaff.measures.length; ++i) {
             var staffWidth = 0;
             for (var j = 0; j < this.score.staves.length; ++j) {
                 var staff = this.score.staves[j];
                 var measure = staff.measures[i];
-				var keySigLast = this._previousAttr(i,j,'keySignature');
-				var timeSigLast = this._previousAttr(i,j,'timeSignature');
-				var clefLast = this._previousAttr(i,j,'clef');
+				measure.measureNumber.systemIndex=j;
+                if (!staffBoxes[j]) {
+                    if (j == 0) {
+                        staffBoxes[j] = svgHelpers.pointBox(this.score.staffX, this.score.staffY);
+                    } else {
+                        staffBoxes[j] = svgHelpers.pointBox(measure.staffX, staffBoxes[j - 1].y + staffBoxes[j - 1].height);
+                    }
+                }
+                if (!systemBoxes[lineIndex]) {
+                    systemBoxes[lineIndex] = svgHelpers.pointBox(this.score.staffX, this.score.staffY);
+                }
 
-				if (startX+measure.staffWidth > this.pageMarginWidth) {
-					system.cap();
-					ycoord += system.box.height + this.score.interGap;
-					measure.staffY=ycoord;
-					startX = measure.staffX = this.leftMargin;
-					system = new VxSystem(this.context,ycoord);
-					systemIndex = 0;
-				}
-				
-				measure.forceClef=(systemIndex === 0 || measure.clef !== clefLast);
-				measure.forceTimeSignature = (systemIndex === 0 || measure.timeSignature !== timeSigLast);
-				measure.forceKeySignature = (systemIndex === 0 || measure.keySignature !== keySigLast);
-				                
-                measure.staffX = startX;
-                measure.staffY = ycoord;                
+                if (!pageBox['width']) {
+                    pageBox = svgHelpers.pointBox(this.score.staffX, this.score.staffY);
+                }
+                var keySigLast = this._previousAttr(i, j, 'keySignature');
+                var timeSigLast = this._previousAttr(i, j, 'timeSignature');
+                var clefLast = this._previousAttr(i, j, 'clef');
+
+                if (j==0 && staffBoxes[lineIndex].x + staffBoxes[lineIndex].width + measure.staffWidth 
+				       > this.pageMarginWidth) {
+                    system.cap();
+                    staff.staffY = pageBox.y + pageBox.height + this.score.interGap;
+                    staffBoxes = {};
+                    staffBoxes[j] = svgHelpers.pointBox(measure.staffX, staff.staffY);
+                    system = new VxSystem(this.context, staff.staffY);
+                    systemIndex = 0;
+                    lineIndex += 1;
+                    systemBoxes[lineIndex] = svgHelpers.pointBox(measure.staffX, staff.staffY);
+                }
+
+                measure.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
+                measure.forceTimeSignature = (systemIndex === 0 || measure.timeSignature !== timeSigLast);
+                measure.forceKeySignature = (systemIndex === 0 || measure.keySignature !== keySigLast);
+
+                measure.staffX = staffBoxes[j].x+staffBoxes[j].width;
+                measure.staffY = staffBoxes[j].y;
+
+                // guess height of staff the first time
+                measure.staffHeight = (measure.logicalBox ? measure.logicalBox.height : 90);
                 measure.measureNumber.systemIndex = systemIndex;
                 smoModifierFactory.applyModifiers(measure);
-                system.renderMeasure(j, measure);
-                ycoord = system.currentY;
+                system.renderMeasure(systemIndex, measure);
+                systemBoxes[lineIndex] = svgHelpers.unionRect(systemBoxes[lineIndex], measure.logicalBox);
+                staffBoxes[j] = svgHelpers.unionRect(staffBoxes[j], measure.logicalBox);
+				pageBox = svgHelpers.unionRect(pageBox,measure.logicalBox);
             }
             ++systemIndex;
-            startX = system.box.width + system.box.x - 1;
-            ycoord = system.topY;
         }
         system.cap();
     }

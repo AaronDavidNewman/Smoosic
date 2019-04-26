@@ -2,6 +2,7 @@
     <Project name="vexEditor">
         <Folder name="common">
             <File name="src\common\vexHelpers.js" />
+            <File name="src\common\svgHelpers.js" />
         </Folder>
         <Folder name="smo">
             <Folder name="data">

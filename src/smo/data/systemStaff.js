@@ -9,27 +9,29 @@ class SmoSystemStaff {
         }
     }
     static get defaults() {
-        return {
+        return {			
             staffX: 10,
             staffY: 40,
+            adjY: 0,
             staffWidth: 1600,
+			staffHeight: 90,
             startIndex: 0,
             renumberingMap: {},
-			keySignatureMap:{},
-			instrumentInfo: {
-				instrumentName:'Treble Instrument',
-				keyOffset:'0',
-				clef:'treble'
-			},
+            keySignatureMap: {},
+            instrumentInfo: {
+                instrumentName: 'Treble Instrument',
+                keyOffset: '0',
+                clef: 'treble'
+            },
             measures: []
         };
     }
 
     static deserialize(jsonString) {
-		var jsonObj = JSON.parse(jsonString);
+        var jsonObj = JSON.parse(jsonString);
         var params = {};
         vexMusic.filteredMerge(
-            ['staffX', 'staffY', 'staffWidth', 'startIndex', 'renumberingMap', 'renumberIndex','instrumentInfo'],
+            ['staffX', 'staffY', 'staffWidth', 'startIndex', 'renumberingMap', 'renumberIndex', 'instrumentInfo'],
             jsonObj, params);
         params.measures = [];
         jsonObj.measures.forEach(function (measureObj) {
@@ -39,101 +41,104 @@ class SmoSystemStaff {
 
         return new SmoSystemStaff(params);
     }
-	
-	applyModifiers() {
-		for (var i = 0; i < this.measures.length; ++i) {
-            var measure = this.measures[i];
-			smoModifierFactory.applyModifiers(measure);
-		}		
-	}
-	
-	
-	getRenderedNote(id) {
-		for (var i = 0; i < this.measures.length; ++i) {
-            var measure = this.measures[i];
-			var note = measure.getRenderedNote(id);
-			if (note)
-				return {
-				    smoMeasure: measure,
-				    smoNote: note.smoNote,					
-				    smoSystem: this,
-					selection: {
-						measureIndex:measure.measureNumber.measureIndex,
-						voice:measure.activeVoice,
-						tick:note.tick,
-						maxTickIndex:measure.notes.length,
-						maxMeasureIndex:this.measures.length
-					},
-				    type: note.smoNote.attrs.type,
-				    id: note.smoNote.id
-				};
-		}
-		return null;
-	}
-	getMeasureAtSelection(selection) {
-		if (this.measures.length < selection.measureIndex) {
-			return null;
-		}
-		return this.measures[selection.measureIndex];		
-	}
-	
-	getNoteAtSelection(selection) {
-		if (this.measures.length < selection.measureIndex) {
-			return null;
-		}
-		var measure = this.getMeasureAtSelection(selection);
-		if (measure === null) {
-			return null;
-		}
-		if (measure.notes.length < selection.ticks) {
-			return null;
-		}
-		var smoNote = measure.notes[selection.tick];
-		
-		// If the caller increments the measure, fill in the max tick here
-		selection.maxTickIndex = measure.notes.length;
-		return {
-				    smoMeasure: measure,
-				    smoNote: measure.notes[selection.tick],
-				    smoSystem: this,
-					selection: selection,
-				    type: smoNote.attrs.type,
-				    id: smoNote.id
-				};
-	}
-	getMaxTicksMeasure(measure) {
-		if (this.measures.length < measure) {
-			return 0;
-		}
-		return this.measures[measure].notes.length;
-	}
-	addKeySignature(measureIndex,key) {
-		this.keySignatureMap[measureIndex]=key;
-		this._updateKeySignatures();
-	}
-	removeKeySignature(measureIndex) {
-		var keys=Object.keys(this.keySignatureMap);
-		var nmap={};
-		keys.forEach((key)=> {if (key !== measureIndex) {nmap[key]=this.keySignatureMap[key];}});
-		this.keySignatureMap=nmap;
-		this._updateKeySignatures();
-	}
-	_updateKeySignatures() {
-		 var currentSig = this.measures[0].keySignature;
-        
+
+    applyModifiers() {
         for (var i = 0; i < this.measures.length; ++i) {
             var measure = this.measures[i];
-            
-            var nextSig = this.keySignatureMap[i] ? this.keySignatureMap[i] : currentSig;
-			measure.setKeySignature(nextSig);
+            smoModifierFactory.applyModifiers(measure);
         }
-	}
+    }
+   
+    getRenderedNote(id) {
+        for (var i = 0; i < this.measures.length; ++i) {
+            var measure = this.measures[i];
+            var note = measure.getRenderedNote(id);
+            if (note)
+                return {
+                    smoMeasure: measure,
+                    smoNote: note.smoNote,
+                    smoSystem: this,
+                    selection: {
+                        measureIndex: measure.measureNumber.measureIndex,
+                        voice: measure.activeVoice,
+                        tick: note.tick,
+                        maxTickIndex: measure.notes.length,
+                        maxMeasureIndex: this.measures.length
+                    },
+                    type: note.smoNote.attrs.type,
+                    id: note.smoNote.id
+                };
+        }
+        return null;
+    }
+    getMeasureAtSelection(selection) {
+        if (this.measures.length < selection.measureIndex) {
+            return null;
+        }
+        return this.measures[selection.measureIndex];
+    }
+
+    getNoteAtSelection(selection) {
+        if (this.measures.length < selection.measureIndex) {
+            return null;
+        }
+        var measure = this.getMeasureAtSelection(selection);
+        if (measure === null) {
+            return null;
+        }
+        if (measure.notes.length < selection.ticks) {
+            return null;
+        }
+        var smoNote = measure.notes[selection.tick];
+
+        // If the caller increments the measure, fill in the max tick here
+        selection.maxTickIndex = measure.notes.length;
+        return {
+            smoMeasure: measure,
+            smoNote: measure.notes[selection.tick],
+            smoSystem: this,
+            selection: selection,
+            type: smoNote.attrs.type,
+            id: smoNote.id
+        };
+    }
+    getMaxTicksMeasure(measure) {
+        if (this.measures.length < measure) {
+            return 0;
+        }
+        return this.measures[measure].notes.length;
+    }
+    addKeySignature(measureIndex, key) {
+        this.keySignatureMap[measureIndex] = key;
+        this._updateKeySignatures();
+    }
+    removeKeySignature(measureIndex) {
+        var keys = Object.keys(this.keySignatureMap);
+        var nmap = {};
+        keys.forEach((key) => {
+            if (key !== measureIndex) {
+                nmap[key] = this.keySignatureMap[key];
+            }
+        });
+        this.keySignatureMap = nmap;
+        this._updateKeySignatures();
+    }
+    _updateKeySignatures() {
+        var currentSig = this.measures[0].keySignature;
+
+        for (var i = 0; i < this.measures.length; ++i) {
+            var measure = this.measures[i];
+
+            var nextSig = this.keySignatureMap[i] ? this.keySignatureMap[i] : currentSig;
+            measure.setKeySignature(nextSig);
+        }
+    }
     numberMeasures() {
         this.renumberIndex = this.startIndex;
-        
+
         for (var i = 0; i < this.measures.length; ++i) {
             var measure = this.measures[i];
-            
+
             this.renumberIndex = this.renumberingMap[i] ? this.renumberingMap[i].startIndex : this.renumberIndex;
             var localIndex = this.renumberIndex + i;
             var numberObj = {
@@ -144,27 +149,31 @@ class SmoSystemStaff {
             measure.setMeasureNumber(numberObj);
         }
     }
-	getSelection(measureNumber,voice,tick,pitches) {		
-		for (var i = 0; i < this.measures.length; ++i) {
-			var measure = this.measures[i];
-			if (measure.measureNumber.measureNumber === measureNumber) {				
-				var target = this.measures[i].getSelection(voice,tick,pitches);
-				if (!target) {					
-				    return null;
-				}				
-				return ({measure:measure,note:target.note,selection:target.selection});
-			}
-		}
-		return null;
-	}
-	
-	addDefaultMeasure(index,params) {
-		var measure = SmoMeasure.getDefaultMeasure(params);
-		this.addMeasure(index,measure);
-	}
+    getSelection(measureNumber, voice, tick, pitches) {
+        for (var i = 0; i < this.measures.length; ++i) {
+            var measure = this.measures[i];
+            if (measure.measureNumber.measureNumber === measureNumber) {
+                var target = this.measures[i].getSelection(voice, tick, pitches);
+                if (!target) {
+                    return null;
+                }
+                return ({
+                    measure: measure,
+                    note: target.note,
+                    selection: target.selection
+                });
+            }
+        }
+        return null;
+    }
+
+    addDefaultMeasure(index, params) {
+        var measure = SmoMeasure.getDefaultMeasure(params);
+        this.addMeasure(index, measure);
+    }
 
     addMeasure(index, measure) {
-		
+
         if (index === 0 && this.measures.length) {
             measure.setMeasureNumber(this.measures[0].measureNumber);
         }
@@ -178,4 +187,3 @@ class SmoSystemStaff {
         return this; // fluent interface
     }
 }
-
