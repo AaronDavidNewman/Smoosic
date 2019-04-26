@@ -20,6 +20,7 @@ class SmoNote {
 			denominator: 1,
 			remainder: 0
 		};
+		this.keys=JSON.parse(JSON.stringify(this.keys));
 		this.tupletInfo = {};
 		if (!this['attrs']) {
 			this.attrs = {
