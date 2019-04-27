@@ -169,6 +169,9 @@ class vexMusic {
         key = ar[(ix + 1) % len];
         return key;
     }
+	// ## getKeyFriendlyEnharmonic
+	// ### Description:
+	// fix the enharmonic to match the key, if possible
 	static getKeyFriendlyEnharmonic(letter,key) {
 		var rv = letter;
 		var muse = new VF.Music();

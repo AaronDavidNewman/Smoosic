@@ -32,6 +32,13 @@ class suiEditor {
             }
         }
     }
+	
+	interval(keyEvent) {
+		if (this.tracker.selections.length != 1) 
+			return;
+		
+		
+	}
 
     transpose(offset) {
 

@@ -78,7 +78,7 @@ class SmoNote {
 					letterKey = vexMusic.getKeyFriendlyEnharmonic(letterKey,keySignature);
 					nnote.key = letterKey[0];
 					if (letterKey.length < 2) {
-						nnote.accidental = '';
+						nnote.accidental = 'n';
 					} else {
 						nnote.accidental = letterKey.substring(1);
 					}
