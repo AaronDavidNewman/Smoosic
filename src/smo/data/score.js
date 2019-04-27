@@ -9,7 +9,7 @@ class SmoScore {
     }
     static get defaults() {
         return {
-            staffX: 10,
+            staffX: 30,
             staffY: 40,
             staffWidth: 1600,
             interGap: 30,

@@ -56,9 +56,12 @@ class VxSystem {
 	cap() {
 		
 		if (this.leftConnector[0] && this.leftConnector[1]) {
-			new VF.StaveConnector(this.leftConnector[0] , this.leftConnector[1]).
-            setType(VF.StaveConnector.type.SINGLE_LEFT).
-            setContext(this.context).draw();
+			var c1=new VF.StaveConnector(this.leftConnector[0] , this.leftConnector[1])
+			    .setType(VF.StaveConnector.type.BRACE);
+			var c2=new VF.StaveConnector(this.leftConnector[0] , this.leftConnector[1])
+                .setType(VF.StaveConnector.type.SINGLE);
+            c1.setContext(this.context).draw();
+			c2.setContext(this.context).draw();
 		}
 	}
 }
