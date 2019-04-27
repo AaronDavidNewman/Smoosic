@@ -20,7 +20,7 @@ class SmoNote {
 			denominator: 1,
 			remainder: 0
 		};
-		this.keys=JSON.parse(JSON.stringify(this.keys));
+		// this.keys=JSON.parse(JSON.stringify(this.keys));
 		this.tupletInfo = {};
 		if (!this['attrs']) {
 			this.attrs = {
@@ -121,7 +121,7 @@ class SmoNote {
 			var key = keys[i];
 			clone[key] = note[key];
 		}
-		return clone;
+		return JSON.parse(JSON.stringify(clone));
 	}
 	static clone(note) {
 		var clone = SmoNote._cloneParameters(note);

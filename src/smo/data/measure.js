@@ -320,8 +320,8 @@ class SmoMeasure {
             if (tuplet.attrs.id === note.tuplet.id) {
                 return tuplet;
             }
-            return null;
         }
+		return null;
     }
     removeTupletForNote(note) {
         var tuplets = [];
