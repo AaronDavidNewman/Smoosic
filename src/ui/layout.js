@@ -93,7 +93,7 @@ class suiSimpleLayout {
                     if (j == 0) {
                         staffBoxes[j] = svgHelpers.pointBox(this.score.staffX, this.score.staffY);
                     } else {
-                        staffBoxes[j] = svgHelpers.pointBox(measure.staffX, staffBoxes[j - 1].y + staffBoxes[j - 1].height);
+                        staffBoxes[j] = svgHelpers.pointBox(staffBoxes[j-1].x, staffBoxes[j - 1].y + staffBoxes[j - 1].height);
                     }
                 }
                 if (!systemBoxes[lineIndex]) {
@@ -112,7 +112,7 @@ class suiSimpleLayout {
                     system.cap();
                     staff.staffY = pageBox.y + pageBox.height + this.score.interGap;
                     staffBoxes = {};
-                    staffBoxes[j] = svgHelpers.pointBox(measure.staffX, staff.staffY);
+                    staffBoxes[j] = svgHelpers.pointBox(this.score.staffX, staff.staffY);
                     system = new VxSystem(this.context, staff.staffY);
                     systemIndex = 0;
                     lineIndex += 1;
@@ -130,7 +130,7 @@ class suiSimpleLayout {
                 measure.staffHeight = (measure.logicalBox ? measure.logicalBox.height : 90);
                 measure.measureNumber.systemIndex = systemIndex;
                 smoModifierFactory.applyModifiers(measure);
-                system.renderMeasure(systemIndex, measure);
+                system.renderMeasure(j, measure);
                 systemBoxes[lineIndex] = svgHelpers.unionRect(systemBoxes[lineIndex], measure.logicalBox);
                 staffBoxes[j] = svgHelpers.unionRect(staffBoxes[j], measure.logicalBox);
 				pageBox = svgHelpers.unionRect(pageBox,measure.logicalBox);
