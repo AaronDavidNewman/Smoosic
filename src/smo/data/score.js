@@ -123,8 +123,7 @@ class SmoScore {
 		return this.staves[selection.staffIndex].measures[selection.measureIndex];
 	}
 	
-	getMaxTicksMeasure(measure) {
-		
+	getMaxTicksMeasure(measure) {		
 		return this.staves[this.activeStaff].getMaxTicksMeasure(measure);
 	}
 	get measures() {

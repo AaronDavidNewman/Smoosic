@@ -6,15 +6,17 @@ class suiEditor {
         this.changed = false; // set to true if the score has changed.
         this.slashMode = false;
     }
-	
-	_render() {
-            this.layout.render();
-            this.tracker.updateMap();
-	}
+
+	// ## _render
+	// utility function to render the music and update the tracker map.
+    _render() {
+        this.layout.render();
+        this.tracker.updateMap();
+    }
 
     _renderAndAdvance() {
         if (this.changed) {
-			this._render();
+            this._render();
             this.tracker.moveSelectionRight();
             this.changed = false;
         }
@@ -26,19 +28,34 @@ class suiEditor {
             var pitchArray = [];
             var target = measure.getSelection(measure.activeVoice, selection.tick, pitchArray);
             if (target) {
-                target.note.transpose(pitchArray, offset,measure.keySignature);
+                target.note.transpose(pitchArray, offset, measure.keySignature);
                 smoModifierFactory.applyModifiers(measure);
                 this.changed = true;
             }
         }
     }
-	
-	interval(keyEvent) {
-		if (this.tracker.selections.length != 1) 
-			return;
-		
-		
-	}
+
+    interval(keyEvent) {
+        if (this.tracker.selections.length != 1)
+            return;
+		// code='Digit3'
+        var interval = parseInt(keyEvent.code[5])-1;
+        if (keyEvent.shiftKey) {
+            interval = -interval;
+        }
+		var selected = this.tracker.selections[0];
+        var measure = this.score.getMeasureAtSelection(selected.artifact.selection);
+        var note = this.score.getNoteAtSelection(selected.artifact.selection).smoNote;
+
+        // TODO: figure out which pitch is selected
+        var key = note.keys[0];       
+        var pitch = vexMusic.getIntervalInKey(key, measure.keySignature, interval);
+        if (pitch) {
+            note.keys.push(pitch);
+            smoModifierFactory.applyModifiers(measure);
+            this._render();
+        }
+    }
 
     transpose(offset) {
 
@@ -220,8 +237,8 @@ class suiEditor {
                 measure: measure
             });
         SmoTickTransformer.applyTransform(measure, actor);
-		this.changed=true;
-		this._render();
+        this.changed = true;
+        this._render();
     }
 
     unmakeTuplet(keyEvent) {
@@ -246,7 +263,7 @@ class suiEditor {
                 measure: measure
             });
         SmoTickTransformer.applyTransform(measure, actor);
-		this.changed=true;
-		this._render();
+        this.changed = true;
+        this._render();
     }
 }

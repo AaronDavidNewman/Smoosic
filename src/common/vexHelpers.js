@@ -172,10 +172,10 @@ class vexMusic {
 	// ## getKeyFriendlyEnharmonic
 	// ### Description:
 	// fix the enharmonic to match the key, if possible
-	static getKeyFriendlyEnharmonic(letter,key) {
+	static getKeyFriendlyEnharmonic(letter,keySignature) {
 		var rv = letter;
 		var muse = new VF.Music();
-		var scale = Object.values(muse.createScaleMap(key));
+		var scale = Object.values(muse.createScaleMap(keySignature));
 		var prop = vexMusic.getEnharmonic(letter.toLowerCase());
 		while (prop.toLowerCase() != letter.toLowerCase()) {
 			for (var i=0;i<scale.length;++i) {
@@ -190,6 +190,26 @@ class vexMusic {
 			prop=vexMusic.getEnharmonic(prop);
 		}
 		return rv;
+	}
+	
+    static getIntervalInKey(pitch,keySignature,interval) {
+		var muse = new VF.Music();
+		var letter = pitch.key;
+		var scale = Object.values(muse.createScaleMap(keySignature));
+
+		var up=interval>0 ? true : false;
+		var interval = interval<0 ? scale.length-(interval*-1) : interval;
+
+		var ix = scale.findIndex((x)=>{return x[0]==letter[0];});
+		if (ix>=0) {
+			var nletter = scale[(ix+interval)%scale.length];
+			var nkey={key:nletter[0],accidental:nletter[1],octave:pitch.octave};
+			if (up) {
+				nkey.octave += 1;
+			}
+			return nkey;
+		}
+		return letter;
 	}
 	
 	static noteDebugRecurse(clone, level) {

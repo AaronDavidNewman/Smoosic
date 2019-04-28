@@ -168,7 +168,121 @@ class suiController {
 				altKey: false,
 				shiftKey: false,
 				action: "makeTuplet"
-			}, {
+			},
+			// interval commands
+			{
+				event: "keydown",
+				key: "2",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "interval"
+			}, 
+						{
+				event: "keydown",
+				key: "3",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "interval"
+			}, 
+						{
+				event: "keydown",
+				key: "4",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "interval"
+			}, 
+			{
+				event: "keydown",
+				key: "5",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "interval"
+			}, 
+			{
+				event: "keydown",
+				key: "6",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "interval"
+			}, 
+			{
+				event: "keydown",
+				key: "7",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "interval"
+			}, 
+			{
+				event: "keydown",
+				key: "8",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "interval"
+			}, 		
+		{
+				event: "keydown",
+				key: "@",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "interval"
+			}, 
+						{
+				event: "keydown",
+				key: "#",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "interval"
+			}, 
+						{
+				event: "keydown",
+				key: "%",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "interval"
+			}, 
+			{
+				event: "keydown",
+				key: "^",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "interval"
+			}, 
+			{
+				event: "keydown",
+				key: "&",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "interval"
+			}, 
+			{
+				event: "keydown",
+				key: "*",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "interval"
+			}, 
+			{
+				event: "keydown",
+				key: "8",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "interval"
+			}, 					
+			{
 				event: "keydown",
 				key: "0",
 				ctrlKey: true,
