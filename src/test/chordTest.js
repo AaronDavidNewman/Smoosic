@@ -6,10 +6,7 @@ class ChordTest {
 		var keys = utController.createUi(document.getElementById("boo"), SmoScore.getDefaultScore());
 		var score = keys.score;
 		var layout = keys.layout;
-		var measure = score.getMeasureAtSelection({
-				staffIndex: 0,
-				measureIndex: 0
-			});
+		var measure = SmoSelection.measureSelection(score,0,0).measure;
 
 		var detach = () => {
 			keys.detach();
@@ -40,17 +37,17 @@ class ChordTest {
 		}
 		var accidentalTest = () => {
 			var pitches = [0];
-			var target = measure.getSelection(0, 1, pitches);
-			target.note.transpose(pitches, -1);
+			var target = SmoSelection.pitchSelection(score,0,0,0,1, pitches);
+			target.note.transpose(pitches, -1,'C');
 			smoModifierFactory.applyModifiers(measure);
 			layout.render();
 			return timeTest();
 		}
 
 		var intervalTest = () => {
-			var target = measure.getSelection(0, 2, [1]);
+			var target = SmoSelection.pitchSelection(score,0,0,0,2);
 			if (target) {
-				target.note.transpose([1], 4);
+				target.note.transpose([1], 4,'C');
 			}
 			layout.render();
 			return timeTest();

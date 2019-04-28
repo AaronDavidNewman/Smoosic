@@ -16,6 +16,7 @@
                 <File name="src\smo\xform\modifiers.js" />
                 <File name="src\smo\xform\tickTransform.js" />
                 <File name="src\smo\xform\tickDuration.js" />
+                <File name="src\smo\xform\selections.js" />
             </Folder>
         </Folder>
         <Folder name="vex">
