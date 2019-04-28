@@ -43,7 +43,7 @@ class StaffTest {
         }
 
         var changePitch = () => {
-            var target = layout.score.getSelection(2, 0, 1, [0]);
+            var target = SmoSelection.pitchSelection(layout.score,0,2, 0, 1,[0]);
             if (target) {
                 target.note.keys = [{
                         key: 'e',
@@ -56,7 +56,7 @@ class StaffTest {
             return timeTest();
         }
         var changePitch2 = () => {
-            var target = layout.score.getSelection(1, 0, 1, [0]);
+            var target = SmoSelection.pitchSelection(score,0,1, 0, 1, [0]);
             if (target) {
                 target.note.keys = [{
                         key: 'f',

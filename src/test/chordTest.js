@@ -82,7 +82,7 @@ class ChordTest {
 			return timeTest();
 		}
 		var setPitchTest = () => {
-			var target = measure.getSelection(0, 2, [0]);
+			var target = SmoSelection.pitchSelection(score,0,0,0,2,[0]);
 			if (target) {
 				target.note.keys = [{
 						key: 'e',
@@ -127,7 +127,7 @@ class ChordTest {
 		}
 
 		var courtesyTest = () => {
-			var target = measure.getSelection(0, 2, [1]);
+			var target = SmoSelection.pitchSelection(score,0,0,0,2,[1]);
 			target.note.addAccidental({
 				index: 1,
 				value: {

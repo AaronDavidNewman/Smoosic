@@ -40,15 +40,16 @@ class suiTracker {
 	
 	_copySelections() {
 		var rv=[];
-		this.selections.forEach((sel) => {rv.push(sel.artifact.selection)});
+		this.selections.forEach((sel) => {rv.push(sel.selector)});
 		return rv;
 	}
 	
-	_findClosestSelection(selection) {
-		var artifact=this._getClosestTick(selection.staffIndex,selection);
+	_findClosestSelection(selector) {
+		var artifact=this._getClosestTick(selector);
 		if (!artifact)
 			return;
-		if (this.selections.find((sel) => sel.artifactid === artifact.artifact.id)) {
+		if (this.selections.find((sel) => JSON.stringify(sel.selector) 
+			 === JSON.stringify(artifact.selector))) {
 			return;
 		}
 		this.selections.push(artifact);
@@ -69,13 +70,13 @@ class suiTracker {
 		this.groupObjectMap = {};
 		this.objectGroupMap = {};
 		this.objects = [];
-		var selections=this._copySelections();
-		notes.forEach((note) => this._mapNoteElementToNote(note));
+		var selCopy=this._copySelections();
+		notes.forEach((note) => this.objects.push(SmoSelection.renderedNoteSelection(this.score,note)));
 		this.selections=[];
-		if (this.objects.length && !selections.length) {
+		if (this.objects.length && !selCopy.length) {
 			this.selections = [this.objects[0]];
 		}  else {
-			selections.forEach((sel) => this._findClosestSelection(sel));
+			selCopy.forEach((sel) => this._findClosestSelection(sel));
 		}
 		this.highlightSelection();
 	}
@@ -108,61 +109,43 @@ class suiTracker {
 		}
 	}
 
-	_getClosestTick(staffIndex, selection) {
-		var measureObj = this.objects.find((e) => e.artifact.selection.measureIndex === selection.measureIndex &&
-				e.artifact.selection.staffIndex === staffIndex
-				 && e.artifact.selection.tick === 0);
-		var tickObj = this.objects.find((e) => e.artifact.selection.measureIndex === selection.measureIndex &&
-				e.artifact.selection.staffIndex === staffIndex
-				 && e.artifact.selection.tick === selection.tick);
+	_getClosestTick(selector) {
+		var measureObj = this.objects.find((e) => SmoSelector.sameMeasure(e.selector,selector)
+				 && e.selector.tick === 0);
+		var tickObj = this.objects.find((e) => SmoSelector.sameNote(e.selector,selector));
 		if (tickObj)
 			return tickObj;
 		return measureObj;
 	}
 
 	_getExtremeSelection(sign) {
-		var rv = this.selections[0].artifact.selection;
+		var rv = this.selections[0];
 		for (var i = 1; i < this.selections.length; ++i) {
-			var sa = this.selections[i].artifact.selection;
-			if (sa.measureIndex * sign > rv.measureIndex * sign) {
-				rv = sa;
-			} else if (sa.measureIndex === rv.measureIndex && sa.tick * sign > rv.tick * sign) {
-				rv = sa;
+			var sa = this.selections[i].selector;
+			if (sa.measure * sign > rv.measure * sign) {
+				rv = this.selections[i];
+			} else if (sa.measure === rv.measure && sa.tick * sign > rv.tick * sign) {
+				rv = this.selections[i];
 			}
 		}
 		return rv;
 	}
 
 	// ### _getOffsetSelection
-	// Get the selection that is the offset of the first existing selection
+	// Get the selector that is the offset of the first existing selection
 	_getOffsetSelection(offset) {
 		var increment = offset;
 		var testSelection = this._getExtremeSelection(Math.sign(offset));
-		var testTick = testSelection.tick + increment;
-		var testMeasure = testSelection.measureIndex + increment;
-		if (testSelection.maxTickIndex > testTick && testTick >= 0) {
-			return ({
-				staffIndex: testSelection.staffIndex,
-				measureIndex: testSelection.measureIndex,
-				voice: testSelection.voice,
-				tick: testTick,
-				maxTickIndex: testSelection.maxTickIndex,
-				maxMeasureIndex: testSelection.maxMeasureIndex
-			});
-		} else if (testSelection.maxMeasureIndex > testMeasure && testMeasure >= 0) {
-			// first or last tick of next measure.
-			var maxTick = this.score.getMaxTicksMeasure(testMeasure);
-			var nextTick = increment > 0 ? 0 : maxTick - 1;
-			return ({
-				staffIndex: testSelection.staffIndex,
-				measureIndex: testMeasure,
-				voice: testSelection.voice,
-				tick: nextTick,
-				maxTickIndex: maxTick, // unknown, this will get filled in
-				maxMeasureIndex: testSelection.maxMeasureIndex
-			});
+		var scopyTick = JSON.parse(JSON.stringify(testSelection.selector));
+		var scopyMeasure = JSON.parse(JSON.stringify(testSelection.selector));
+		scopyTick.tick += increment;
+		scopyMeasure.measure += increment;
+		if (testSelection.measure.notes.length > scopyTick.tick && scopyTick.tick >= 0) {
+			return scopyTick;
+		} else if (scopyMeasure.measure <testSelection.staff.measures.length && scopyMeasure.measure>= 0) {
+			return scopyMeasure;
 		}
-		return testSelection;
+		return testSelection.selector;
 	}
 
 	static unionRect(b1, b2) {
@@ -196,7 +179,7 @@ class suiTracker {
 		if (!artifact) {
 			return;
 		}
-		if (this.selections.find((sel) => sel.artifact.id === artifact.artifact.id)) {
+		if (this.selections.find((sel) => SmoSelector.sameNote(sel.selector,artifact.selector))) {
 			return;
 		}
 
@@ -211,7 +194,7 @@ class suiTracker {
 		if (!artifact) {
 			return;
 		}
-		if (this.selections.find((sel) => sel.artifact.id === artifact.artifact.id)) {
+		if (this.selections.find((sel) => SmoSelector.sameNote(sel.selector,artifact.selector))) {
 			return;
 		}
 
@@ -251,7 +234,7 @@ class suiTracker {
 	_moveSelectionMeasure(offset) {
 		var selection=this._getExtremeSelection(Math.sign(offset));
 		selection = JSON.parse(JSON.stringify(selection));
-		selection.measureIndex += offset;
+		selection.measure += offset;
 		selection.tick=0;
 		var selObj=this._getClosestTick(selection.staffIndex,selection);
 		if (selObj) {
@@ -264,9 +247,10 @@ class suiTracker {
 		if (this.selections.length == 0) {
 			return;
 		}
-		var staffIndex = this.score.incrementActiveStaff(offset);
 
-		this.selections = [this._getClosestTick(staffIndex, this.selections[0].artifact.selection)];
+		var nselector = JSON.parse(JSON.stringify(this.selections[0].selector));
+		nselector.staff=this.score.incrementActiveStaff(offset);
+		this.selections = [this._getClosestTick(nselector)];
 		this.highlightSelection();
 	}
 	moveSelectionUp() {
@@ -280,21 +264,19 @@ class suiTracker {
 		return this.selections.length > 0;
 	}
 
-	_replaceSelection(nselect) {
-		if (nselect && typeof(nselect['measureIndex']) != 'undefined') {
-			var artifact = this.score.getNoteAtSelection(nselect);
-			this.score.setActiveStaff(nselect.staffIndex);
-			var mapped = this.objects.find((el) => {
-					return el.artifact.id === artifact.id
-				});
-			this.selections = [mapped];
-			this.highlightSelection();
-		}
+	_replaceSelection(nselector) {
+		var artifact = SmoSelection.noteSelection(this.score,nselector.staff,nselector.measure,nselector.voice,nselector.tick);
+		this.score.setActiveStaff(nselector.staff);
+		var mapped = this.objects.find((el) => {
+				return SmoSelector.sameNote(el.selector,artifact.selector);
+			});
+		this.selections = [mapped];
+		this.highlightSelection();
 	}
 	
 	getFirstMeasureOfSelection() {
 		if (this.selections.length) {
-			return this.selections[0].artifact.smoMeasure;
+			return this.selections[0].artifact.measure;
 		}
 		return null;
 	}
@@ -303,7 +285,7 @@ class suiTracker {
 	iterateMeasures(callback) {
 		var set = [];
 		this.selections.forEach((sel) => {
-			var measure = this.score.getMeasureAtSelection(sel.artifact.selection);
+			var measure = SmoSelection.measureSelection(this.score,sel.selector.staff,sel.selector.measure).measure;
 			var ix = measure.measureNumber.measureIndex;
 			if (set.indexOf(ix) === -1) {
 				set.push(ix);
@@ -316,7 +298,7 @@ class suiTracker {
 			return;
 		}
 		this.selections = [this.suggestion];
-		this.score.setActiveStaff(this.selections[0].artifact.selection.staffIndex);
+		this.score.setActiveStaff(this.selections[0].selector.staff);
 		if (this.selections.length == 0)
 			return;
 		var first = this.selections[0];
@@ -367,7 +349,7 @@ class suiTracker {
 
 		// don't suggest the current selection.
 		if (this.containsArtifact(this.selections) &&
-			this.selectedArtifact.id === artifact.artifact.id) {
+			SmoSelector.sameNote(this.selectedArtifact.selector,artifact.selector)) {
 			return artifact;
 		}
 		this._drawRect(artifact.box, 'suggestion');

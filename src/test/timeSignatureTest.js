@@ -8,7 +8,7 @@ class TimeSignatureTest {
 		  SmoScore.getDefaultScore({},{timeSignature:'6/8',clef:'treble'}));
 		var score = keys.score;
 		var layout = keys.layout;
-		var measure = score.getMeasureAtSelection({measureIndex:0});
+		var measure = SmoSelection.measureSelection(score,0,0).measure;
 		
 		var detach = () => {
 			keys.detach();

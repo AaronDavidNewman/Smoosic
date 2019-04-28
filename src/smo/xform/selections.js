@@ -1,4 +1,18 @@
 
+// ## SmoSelector
+// ## Description:
+// There are 2 parts to a selection: the actual musical bits that are selected, and the
+// indices that define what was selected.  This is the latter.  The actual object does not
+// have any methods so there is no constructor.
+class SmoSelector {
+    static sameNote(sel1, sel2) {
+        return (sel1.staff == sel2.staff && sel1.measure == sel2.measure && sel1.voice == sel2.voice
+             && sel1.tick == sel2.tick);
+    }
+    static sameMeasure(sel1, sel2) {
+        return (sel1.staff == sel2.staff && sel1.measure == sel2.measure);
+    }
+}
 class SmoSelection {
     static measureSelection(score, staffIndex, measureIndex) {
         staffIndex = staffIndex ? staffIndex : score.activeStaff;
@@ -14,7 +28,7 @@ class SmoSelection {
             selector: selector,
             _staff: staff,
             _measure: measure,
-			type:'measure'
+            type: 'measure'
         });
     }
 
@@ -24,7 +38,7 @@ class SmoSelection {
         voiceIndex = voiceIndex ? voiceIndex : 0;
         var staff = score.staves[staffIndex];
         var measure = staff.measures[measureIndex];
-        var note = measure.voices[voiceIndex].notes[noteIndex];
+        var note = measure.voices[voiceIndex].notes[tickIndex];
         var selector = {
             staff: staffIndex,
             measure: measureIndex,
@@ -37,8 +51,46 @@ class SmoSelection {
             _measure: measure,
             _note: note,
             _pitches: [],
-			type:'note'
+            type: 'note'
         });
+    }
+
+    static renderedNoteSelection(score, nel) {
+        var elementId = nel.getAttribute('id');
+        for (var i = 0; i < score.staves.length; ++i) {
+            var staff = score.staves[i];
+            for (var j = 0; j < staff.measures.length; ++j) {
+                var measure = staff.measures[j];
+                for (var k = 0; k < measure.voices.length; ++k) {
+                    var voice = measure.voices[k];
+                    for (var m = 0; m < voice.notes.length; ++m) {
+                        var note = voice.notes[m];
+                        if (note.renderId === elementId) {
+                            var selector = {
+                                staff: i,
+                                measure: j,
+                                voice: k,
+                                tick: m,
+                                pitches: []
+                            };
+                            var box = document.getElementById(nel.id).getBBox();
+                            var rv = new SmoSelection({
+                                    selector: selector,
+                                    _staff: staff,
+                                    _measure: measure,
+                                    _note: note,
+                                    _pitches: [],
+                                    box: box,
+                                    type: 'rendered'
+                                });
+
+                            return rv;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     static pitchSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex, pitches) {
@@ -48,8 +100,8 @@ class SmoSelection {
         var staff = score.staves[staffIndex];
         var measure = staff.measures[measureIndex];
         var note = measure.voices[voiceIndex].notes[tickIndex];
-		pitches = pitches ? pitches : [];
-		var pa=[];
+        pitches = pitches ? pitches : [];
+        var pa = [];
         pitches.forEach((ix) => {
             pa.push(JSON.parse(JSON.stringify(note.keys[ix])));
         });
@@ -66,7 +118,7 @@ class SmoSelection {
             _measure: measure,
             _note: note,
             _pitches: pa,
-			type:'pitches'
+            type: 'pitches'
         });
     }
 
@@ -81,7 +133,7 @@ class SmoSelection {
         this._staff = null;
         this._measure = null;
         this._note = null;
-        this._pitches = [];		
+        this._pitches = [];
         this._box = svgHelpers.pointBox(0, 0);
 
         this.selectionGroup = {
@@ -106,7 +158,7 @@ class SmoSelection {
             return this._pitches;
         } else if (this._note) {
             this._pitches = JSON.parse(JSON.stringify(this.note.keys));
-			return this._pitches;
+            return this._pitches;
         }
         return [];
     }

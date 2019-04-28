@@ -9,7 +9,7 @@ class VoiceTest {
 		var score = keys.score;
 		var layout = keys.layout;
 
-		var measure = score.getMeasureAtSelection({measureIndex:0});
+		var measure = SmoSelection.measureSelection(score,0,0).measure;
 		var voice2=SmoMeasure.defaultVoice44;
 		measure.voices.push({notes:voice2});
 		
@@ -43,8 +43,7 @@ class VoiceTest {
             return timeTest();
         }
 		var accidentalTest = () => {
-			var target = measure.getSelection(
-			0,1,[0]);
+			var target = SmoSelection.pitchSelection(score,0,0,0,1,[0]);
 			if (target) {
 				target.note.transpose([0],-1);
 			}
