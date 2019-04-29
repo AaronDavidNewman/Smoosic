@@ -67,6 +67,9 @@ class SmoNote {
 	transpose(pitchArray, offset, keySignature) {
 		var keys = [];
 		this.accidentals = []; // modifiers need to be reapplied, accidentals may change
+		if (pitchArray.length == 0) {
+			this.keys.forEach((m)=>{pitchArray.push(this.keys.indexOf(m));});
+		}
 		for (var j = 0; j < pitchArray.length; ++j) {
 			var index = pitchArray[j];
 			if (index + 1 > this.keys.length) {

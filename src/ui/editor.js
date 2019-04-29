@@ -7,8 +7,8 @@ class suiEditor {
         this.slashMode = false;
     }
 
-	// ## _render
-	// utility function to render the music and update the tracker map.
+    // ## _render
+    // utility function to render the music and update the tracker map.
     _render() {
         this.layout.render();
         this.tracker.updateMap();
@@ -22,33 +22,29 @@ class suiEditor {
         }
     }
     _transpose(selected, offset) {
-        var selection = selected.artifact.selection;
-        var measure = this.score.getMeasureAtSelection(selected.artifact.selection);
-        if (measure) {
-            var pitchArray = [];
-            var target = measure.getSelection(measure.activeVoice, selection.tick, pitchArray);
-            if (target) {
-                target.note.transpose(pitchArray, offset, measure.keySignature);
-                smoModifierFactory.applyModifiers(measure);
-                this.changed = true;
-            }
+        var measure = selected.measure;
+        var note = selected.note;
+        if (measure && note) {
+            note.transpose(selected.selector.pitches, offset, measure.keySignature);
+            smoModifierFactory.applyModifiers(measure);
+            this.changed = true;
         }
     }
 
     interval(keyEvent) {
         if (this.tracker.selections.length != 1)
             return;
-		// code='Digit3'
-        var interval = parseInt(keyEvent.code[5])-1;
+        // code='Digit3'
+        var interval = parseInt(keyEvent.code[5]) - 1;
         if (keyEvent.shiftKey) {
             interval = -interval;
         }
-		var selected = this.tracker.selections[0];
-        var measure = this.score.getMeasureAtSelection(selected.artifact.selection);
-        var note = this.score.getNoteAtSelection(selected.artifact.selection).smoNote;
+        var selected = this.tracker.selections[0];
+        var measure = selected.measure;
+        var note = selected.note;
 
         // TODO: figure out which pitch is selected
-        var key = note.keys[0];       
+        var key = note.keys[0];
         var pitch = vexMusic.getIntervalInKey(key, measure.keySignature, interval);
         if (pitch) {
             note.keys.push(pitch);
@@ -76,8 +72,8 @@ class suiEditor {
     }
 
     _setPitch(selected, letter) {
-        var measure = selected.artifact.smoMeasure;
-        var note = selected.artifact.smoNote;
+        var measure = selected.measure;
+        var note = selected.note;
         var key = vexMusic.getKeySignatureKey(letter, measure.keySignature);
         var prop = {
             key: key[0],
@@ -102,14 +98,14 @@ class suiEditor {
             return;
         }
         var selObj = this.tracker.selections[0];
-        var note = selObj.artifact.smoNote;
-        var measure = selObj.artifact.smoMeasure;
+        var note = selObj.note;
+        var measure = selObj.measure;
         var nticks = vexMusic.getNextDottedLevel(note.tickCount);
         if (nticks == note.tickCount) {
             return;
         }
         var actor = new SmoStretchNoteActor({
-                startIndex: selObj.artifact.selection.tick,
+                startIndex: selObj.selector.tick,
                 tickmap: measure.tickmap(),
                 newTicks: nticks
             });
@@ -123,14 +119,14 @@ class suiEditor {
             return;
         }
         var selObj = this.tracker.selections[0];
-        var note = selObj.artifact.smoNote;
-        var measure = selObj.artifact.smoMeasure;
+        var note = selObj.note;
+        var measure = selObj.measure;
         var nticks = vexMusic.getPreviousDottedLevel(note.tickCount);
         if (nticks == note.tickCount) {
             return;
         }
         var actor = new SmoContractNoteActor({
-                startIndex: selObj.artifact.selection.tick,
+                startIndex: selObj.selector.tick,
                 tickmap: measure.tickmap(),
                 newTicks: nticks
             });
@@ -144,13 +140,13 @@ class suiEditor {
             return;
         }
         var selObj = this.tracker.selections[0];
-        var note = selObj.artifact.smoNote;
-        var measure = selObj.artifact.smoMeasure;
+        var note = selObj.note;
+        var measure = selObj.measure;
         var tuplet = measure.getTupletForNote(note);
         if (!tuplet) {
             var nticks = note.tickCount * 2;
             var actor = new SmoStretchNoteActor({
-                    startIndex: selObj.artifact.selection.tick,
+                    startIndex: selObj.selector.tick,
                     tickmap: measure.tickmap(),
                     newTicks: nticks
                 });
@@ -174,18 +170,19 @@ class suiEditor {
             this._render();
         }
     }
+	
     halveDuration(keyEvent) {
         if (this.tracker.selections.length != 1) {
             return;
         }
         var selObj = this.tracker.selections[0];
-        var note = selObj.artifact.smoNote;
-        var measure = selObj.artifact.smoMeasure;
+        var note = selObj.note;
+        var measure = selObj.measure;
         var tuplet = measure.getTupletForNote(note);
         if (!tuplet) {
             var nticks = note.tickCount / 2;
             var actor = new SmoContractNoteActor({
-                    startIndex: selObj.artifact.selection.tick,
+                    startIndex: selObj.selector.tick,
                     tickmap: measure.tickmap(),
                     newTicks: nticks
                 });
@@ -224,14 +221,14 @@ class suiEditor {
         }
         var selObj = this.tracker.selections[0];
         var numNotes = parseInt(keyEvent.key);
-        var note = selObj.artifact.smoNote;
-        var measure = selObj.artifact.smoMeasure;
+        var note = selObj.note;
+        var measure = selObj.measure;
         if (measure.getTupletForNote(note))
             return;
         var nticks = note.tickCount;
 
         var actor = new SmoMakeTupletActor({
-                index: selObj.artifact.selection.tick,
+                index: selObj.selector.tick,
                 totalTicks: nticks,
                 numNotes: numNotes,
                 measure: measure
@@ -247,8 +244,8 @@ class suiEditor {
         }
         var selObj = this.tracker.selections[0];
         var numNotes = parseInt(keyEvent.key);
-        var note = selObj.artifact.smoNote;
-        var measure = selObj.artifact.smoMeasure;
+        var note = selObj.note;
+        var measure = selObj.measure;
         if (!measure.getTupletForNote(note))
             return;
         var tuplet = measure.getTupletForNote(note);
