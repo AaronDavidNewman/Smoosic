@@ -36,43 +36,31 @@ class ChordTest {
 			return timeTest();
 		}
 		var accidentalTest = () => {
-			var pitches = [0];
-			var target = SmoSelection.pitchSelection(score,0,0,0,1, pitches);
-			target.note.transpose(pitches, -1,'C');
-			smoModifierFactory.applyModifiers(measure);
+			var selection = SmoSelection.pitchSelection(score,0,0,0,1,[0]);
+			SmoOperation.transpose(selection,-1);
 			layout.render();
 			return timeTest();
 		}
 
 		var intervalTest = () => {
-			var target = SmoSelection.pitchSelection(score,0,0,0,2);
-			if (target) {
-				target.note.transpose([1], 4,'C');
+			var selection = SmoSelection.pitchSelection(score,0,0,0,2);
+			if (selection) {
+				SmoOperation.interval(selection,4);
 			}
 			layout.render();
 			return timeTest();
 		}
 
 		var durationTest = () => {
-			var tickmap = measure.tickmap();
-			var actor = new SmoContractNoteActor({
-					startIndex: 2,
-					tickmap: tickmap,
-					newTicks: 2048
-				});
-			SmoTickTransformer.applyTransform(measure, actor);
+			var selection = SmoSelection.noteSelection(score,0,0,0,2);
+			SmoOperation.halveDuration(selection);
 			layout.render();
 			return timeTest();
 		}
 
 		var durationTest2 = () => {
-			var tickmap = measure.tickmap();
-			var actor = new SmoStretchNoteActor({
-					startIndex: 2,
-					tickmap: tickmap,
-					newTicks: 4096
-				});
-			SmoTickTransformer.applyTransform(measure, actor);
+			var selection = SmoSelection.noteSelection(score,0,0,0,2);
+			SmoOperation.doubleDuration(selection);
 			layout.render();
 			return timeTest();
 		}
