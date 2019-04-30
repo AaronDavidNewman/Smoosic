@@ -1,4 +1,8 @@
-
+/////////////////
+// Editing operations are performed on selections.  A selection can be different things, from a single pitch
+// to many notes.  These classes standardize what can be in a selection.
+//
+//
 // ## SmoSelector
 // ## Description:
 // There are 2 parts to a selection: the actual musical bits that are selected, and the
@@ -13,6 +17,13 @@ class SmoSelector {
         return (sel1.staff == sel2.staff && sel1.measure == sel2.measure);
     }
 }
+
+// ## SmoSelection
+// ## Description:
+// A selection is a selector and a set of references to musical elements, like measure etc.
+// The staff and measure are always a part of the selection, and possible a voice and note,
+// and one or more pitches.  Selections can also be made from the UI by clicking on an element
+// or navigating to an element with the keyboard.
 class SmoSelection {
     static measureSelection(score, staffIndex, measureIndex) {
         staffIndex = staffIndex ? staffIndex : score.activeStaff;
@@ -163,3 +174,4 @@ class SmoSelection {
         return [];
     }
 }
+

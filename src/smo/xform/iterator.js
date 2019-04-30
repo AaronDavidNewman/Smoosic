@@ -5,10 +5,10 @@ VX = Vex.Xform;
 
 
 // ## Description
-// This file implements an iterator through a set of notes.  This is useful when
-// redrawing the notes to transform them into something else.   E.g. changing the 
-// pitch of one note.
-//
+// This file implements an iterator through a set of notes in a single measure.  
+// This is useful when redrawing the notes to transform them into something else.   
+// E.g. changing the duration of a note in a measure.  It keeps track of accidentals,
+// ticks used etc.
 
 // ## Usage:
 // VX.ITERATE (actor, notes)
