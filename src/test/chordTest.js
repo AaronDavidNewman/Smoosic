@@ -70,9 +70,9 @@ class ChordTest {
 			return timeTest();
 		}
 		var setPitchTest = () => {
-			var target = SmoSelection.pitchSelection(score,0,0,0,2,[0]);
-			if (target) {
-				target.note.keys = [{
+			var selection = SmoSelection.noteSelection(score,0,0,0,2,[0]);
+			SmoOperation.setPitch(selection,
+			[{
 						key: 'e',
 						octave: 4,
 						accidental: 'b'
@@ -81,9 +81,7 @@ class ChordTest {
 						octave: 5,
 						accidental: ''
 					}
-				];
-			}
-			smoModifierFactory.applyModifiers(measure);
+				]);
 			layout.render();
 			return timeTest();
 		}

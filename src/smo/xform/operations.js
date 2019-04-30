@@ -3,8 +3,9 @@
 class SmoOperation {
 
     // ## doubleDuration
+	// ## Description
     // double the duration of a note in a measure, at the expense of the following
-    // note, if possible.
+    // note, if possible.  Works on tuplets also.
     static doubleDuration(selection) {
         var note = selection.note;
         var measure = selection.measure;
@@ -35,6 +36,10 @@ class SmoOperation {
 
     }
 
+    // ## halveDuration
+	// ## Description
+    // Replace the note with 2 notes of 1/2 duration, if possible
+    // Works on tuplets also.
     static halveDuration(selection) {
         var note = selection.note;
         var measure = selection.measure;
@@ -58,6 +63,9 @@ class SmoOperation {
         }
     }
 
+    // ## makeTuplet
+	// ## Description
+    // Makes a non-tuplet into a tuplet of equal value.
     static makeTuplet(selection, numNotes) {
         var note = selection.note;
         var measure = selection.measure;
@@ -75,6 +83,9 @@ class SmoOperation {
         return true;
     }
 
+    // ## unmakeTuplet
+	// ## Description
+    // Makes a tuplet into a single with the duration of the whole tuplet
     static unmakeTuplet(selection) {
         var note = selection.note;
         var measure = selection.measure;
@@ -95,6 +106,10 @@ class SmoOperation {
         return true;
     }
 
+    // ## dotDuration
+	// ## Description
+    // Add a dot to a note, if possible, and make the note ahead of it shorter
+	// to compensate.
     static dotDuration(selection) {
         var note = selection.note;
         var measure = selection.measure;
@@ -111,6 +126,10 @@ class SmoOperation {
         return true;
     }
 
+    // ## undotDuration
+	// ## Description
+    // Add the value of the last dot to the note, increasing length and
+	// reducing the number of dots.
     static undotDuration(selection) {
         var note = selection.note;
         var measure = selection.measure;
@@ -127,6 +146,9 @@ class SmoOperation {
         return true;
     }
 
+    // ## transpose
+	// ## Description
+    // Transpose the selected note, trying to find a key-signature friendly value
     static transpose(selection, offset) {
         var measure = selection.measure;
         var note = selection.note;
@@ -138,24 +160,39 @@ class SmoOperation {
         return false;
     }
 
-    static setPitch(selection, letter) {
+	// ## setPitch
+	// ## Description:
+	// pitches can be either an array, a single pitch, or a letter.  In the latter case,
+	// the letter value appropriate for the key signature is used, e.g. c in A major becomes
+	// c#
+    static setPitch(selection, pitches) {
         var measure = selection.measure;
         var note = selection.note;
-        var key = vexMusic.getKeySignatureKey(letter, measure.keySignature);
-        var prop = {
-            key: key[0],
-            accidental: '',
-            octave: note.keys[0].octave
-        };
-        if (key.length > 1) {
-            prop.accidental = key.substring(1);
-        } else {
-            prop.accidental = '';
+        // TODO allow hint for octave
+        var octave = note.keys[0].octave;
+        note.keys = [];
+        if (!Array.isArray(pitches)) {
+            pitches = [pitches];
         }
-        note.keys = [prop];
+        pitches.forEach((pitch) => {
+            var key = pitch;
+            if (typeof(pitch) === 'string') {
+                var letter = vexMusic.getKeySignatureKey(pitch[0], measure.keySignature);
+                pitch = {
+                    key: letter[0],
+                    accidental: letter.length > 1 ? key.substring(1) : '',
+                    octave: octave
+                };
+            }
+
+            note.keys.push(pitch);
+        });
         return true;
     }
 
+	// ## interval
+	// ## Description:
+	// Add a pitch at the specified interval to the chord in the selection.
     static interval(selection, interval) {
         var measure = selection.measure;
         var note = selection.note;
