@@ -1,4 +1,47 @@
 
+class SmoStaffModifier {
+    constructor(params) {
+        Vex.Merge(this, SmoSystemStaff.defaults);
+        vexMusic.filteredMerge(['position', 'xOffset', 'yOffset', 'type', 'height'], params, this);
+		this.startSelector = params.startSelector;
+		this.endSelector = params.endSelector;
+
+        if (!this['attrs']) {
+            this.attrs = {
+                id: VF.Element.newID(),
+                type: 'SmoStaffModifier'
+            };
+        } else {
+            console.log('inherit attrs');
+        }
+    }
+    static get defaults() {
+        return {
+            xOffset: -2,
+            yOffset: -15,
+            height: 10,
+            position: SmoStaffModifier.positions.BELOW,
+            type: SmoStaffModifier.types.CRESHENDO
+
+        };
+    }
+    static get positions() {
+        // matches VF.modifier
+        return {
+            LEFT: 1,
+            RIGHT: 2,
+            ABOVE: 3,
+            BELOW: 4,
+        };
+    }
+    static get types() {
+        return {
+            CRESCENDO: 1,
+            DECRESCENDO: 2
+        };
+    }
+}
+
 class SmoSystemStaff {
     constructor(params) {
         this.measures = [];
@@ -7,14 +50,22 @@ class SmoSystemStaff {
         if (this.measures.length) {
             this.numberMeasures();
         }
+        if (!this['attrs']) {
+            this.attrs = {
+                id: VF.Element.newID(),
+                type: 'SmoSystemStaff'
+            };
+        } else {
+            console.log('inherit attrs');
+        }
     }
     static get defaults() {
-        return {			
+        return {
             staffX: 10,
             staffY: 40,
             adjY: 0,
             staffWidth: 1600,
-			staffHeight: 90,
+            staffHeight: 90,
             startIndex: 0,
             renumberingMap: {},
             keySignatureMap: {},
@@ -23,7 +74,8 @@ class SmoSystemStaff {
                 keyOffset: '0',
                 clef: 'treble'
             },
-            measures: []
+            measures: [],
+            modifiers: []
         };
     }
 
@@ -42,13 +94,36 @@ class SmoSystemStaff {
         return new SmoSystemStaff(params);
     }
 
+    addStaffModifier(modifier) {
+        this.removeStaffModifier(modifier);
+        this.modifiers.push(modifier);
+    }
+
+    removeStaffModifier(modifier) {
+        var mods = [];
+        this.modifiers.forEach((mod)=> {
+            if (mod.attrs.id != modifier.id) {
+                mods.push(mod);
+            }
+        });
+        mods.push(modifier);
+        this.modifiers = mods;
+    }
+
+    getModifierMeasures(modifier) {
+        return {
+            startMeasure: this.measures.find((measure) => measure.attrs.id === modifier.startMeasure),
+            endMeasure: this.measures.find((measure) => measure.attrs.id === modifier.endMeasure),
+        }
+    }
+
     applyModifiers() {
         for (var i = 0; i < this.measures.length; ++i) {
             var measure = this.measures[i];
             smoModifierFactory.applyModifiers(measure);
         }
     }
-   
+
     getRenderedNote(id) {
         for (var i = 0; i < this.measures.length; ++i) {
             var measure = this.measures[i];

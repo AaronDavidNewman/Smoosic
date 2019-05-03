@@ -41,6 +41,16 @@ class ChordTest {
 			layout.render();
 			return timeTest();
 		}
+		
+		
+		var crescendoTest = () => {
+			var ft = SmoSelection.noteSelection(layout.score,0,0,0,0);
+			var tt = SmoSelection.noteSelection(layout.score,0,0,0,3);
+			SmoOperation.crescendo(ft,tt);
+			layout.render();
+			return timeTest();
+		}
+
 
 		var intervalTest = () => {
 			var selection = SmoSelection.pitchSelection(score,0,0,0,2);
@@ -126,7 +136,7 @@ class ChordTest {
 			return timeTest();
 		}
 
-		return drawDefaults().then(accidentalTest).then(intervalTest).then(durationTest)
+		return drawDefaults().then(accidentalTest).then(crescendoTest).then(intervalTest).then(durationTest)
 		.then(durationTest2).then(rerenderTest).then(setPitchTest).then(makeTupletTest)
 		.then(unmakeTupletTest).then(courtesyTest).then(signalComplete);
 	}

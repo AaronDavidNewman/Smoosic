@@ -67,6 +67,27 @@ class suiSimpleLayout {
         return (i > 0 ? staff.measures[i - 1][attr] : measure[attr]);
     }
 
+    _renderModifiers(system) {
+        this.score.staves.forEach((staff) => {
+            staff.modifiers.forEach((modifier) => {
+                var startNote = SmoSelection.noteSelection(this.score,
+                        modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
+                var endNote = SmoSelection.noteSelection(this.score,
+                        modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
+
+                // TODO: notes may have changed, get closest if these exact endpoints don't exist
+                system.renderModifier(modifier, startNote.note, endNote.note);
+
+                // TODO: consider staff height with these.
+                // TODO: handle dynamics split across systems.
+            });
+        });
+    }
+
+    // ## layout
+    // ## Render the music, keeping track of the bounding boxes of all the
+    // elements.  Re-render a second time to adjust measure widths to prevent notes
+    // from overlapping.  Then render all the modifiers.
     layout() {
         // bounding box of all artifacts on the page
         var pageBox = {};
@@ -88,12 +109,12 @@ class suiSimpleLayout {
             for (var j = 0; j < this.score.staves.length; ++j) {
                 var staff = this.score.staves[j];
                 var measure = staff.measures[i];
-				measure.measureNumber.systemIndex=j;
+                measure.measureNumber.systemIndex = j;
                 if (!staffBoxes[j]) {
                     if (j == 0) {
                         staffBoxes[j] = svgHelpers.pointBox(this.score.staffX, this.score.staffY);
                     } else {
-                        staffBoxes[j] = svgHelpers.pointBox(staffBoxes[j-1].x, staffBoxes[j - 1].y + staffBoxes[j - 1].height);
+                        staffBoxes[j] = svgHelpers.pointBox(staffBoxes[j - 1].x, staffBoxes[j - 1].y + staffBoxes[j - 1].height);
                     }
                 }
                 if (!systemBoxes[lineIndex]) {
@@ -107,9 +128,10 @@ class suiSimpleLayout {
                 var timeSigLast = this._previousAttr(i, j, 'timeSignature');
                 var clefLast = this._previousAttr(i, j, 'clef');
 
-                if (j==0 && staffBoxes[lineIndex].x + staffBoxes[lineIndex].width + measure.staffWidth 
-				       > this.pageMarginWidth) {
+                if (j == 0 && staffBoxes[lineIndex].x + staffBoxes[lineIndex].width + measure.staffWidth
+                     > this.pageMarginWidth) {
                     system.cap();
+                    this._renderModifiers(system);
                     staff.staffY = pageBox.y + pageBox.height + this.score.interGap;
                     staffBoxes = {};
                     staffBoxes[j] = svgHelpers.pointBox(this.score.staffX, staff.staffY);
@@ -123,7 +145,7 @@ class suiSimpleLayout {
                 measure.forceTimeSignature = (systemIndex === 0 || measure.timeSignature !== timeSigLast);
                 measure.forceKeySignature = (systemIndex === 0 || measure.keySignature !== keySigLast);
 
-                measure.staffX = staffBoxes[j].x+staffBoxes[j].width;
+                measure.staffX = staffBoxes[j].x + staffBoxes[j].width;
                 measure.staffY = staffBoxes[j].y;
 
                 // guess height of staff the first time
@@ -133,10 +155,11 @@ class suiSimpleLayout {
                 system.renderMeasure(j, measure);
                 systemBoxes[lineIndex] = svgHelpers.unionRect(systemBoxes[lineIndex], measure.logicalBox);
                 staffBoxes[j] = svgHelpers.unionRect(staffBoxes[j], measure.logicalBox);
-				pageBox = svgHelpers.unionRect(pageBox,measure.logicalBox);
+                pageBox = svgHelpers.unionRect(pageBox, measure.logicalBox);
             }
             ++systemIndex;
         }
         system.cap();
+        this._renderModifiers(system);
     }
 }

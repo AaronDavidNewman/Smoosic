@@ -41,7 +41,7 @@ class StaffTest {
             keys.render();
             return timeTest();
         }
-
+		
         var changePitch = () => {
             var target = SmoSelection.pitchSelection(layout.score,0,2, 0, 1,[0]);
             if (target) {

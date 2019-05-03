@@ -3,7 +3,7 @@
 class SmoOperation {
 
     // ## doubleDuration
-	// ## Description
+    // ## Description
     // double the duration of a note in a measure, at the expense of the following
     // note, if possible.  Works on tuplets also.
     static doubleDuration(selection) {
@@ -37,7 +37,7 @@ class SmoOperation {
     }
 
     // ## halveDuration
-	// ## Description
+    // ## Description
     // Replace the note with 2 notes of 1/2 duration, if possible
     // Works on tuplets also.
     static halveDuration(selection) {
@@ -64,7 +64,7 @@ class SmoOperation {
     }
 
     // ## makeTuplet
-	// ## Description
+    // ## Description
     // Makes a non-tuplet into a tuplet of equal value.
     static makeTuplet(selection, numNotes) {
         var note = selection.note;
@@ -84,7 +84,7 @@ class SmoOperation {
     }
 
     // ## unmakeTuplet
-	// ## Description
+    // ## Description
     // Makes a tuplet into a single with the duration of the whole tuplet
     static unmakeTuplet(selection) {
         var note = selection.note;
@@ -107,9 +107,9 @@ class SmoOperation {
     }
 
     // ## dotDuration
-	// ## Description
+    // ## Description
     // Add a dot to a note, if possible, and make the note ahead of it shorter
-	// to compensate.
+    // to compensate.
     static dotDuration(selection) {
         var note = selection.note;
         var measure = selection.measure;
@@ -127,9 +127,9 @@ class SmoOperation {
     }
 
     // ## undotDuration
-	// ## Description
+    // ## Description
     // Add the value of the last dot to the note, increasing length and
-	// reducing the number of dots.
+    // reducing the number of dots.
     static undotDuration(selection) {
         var note = selection.note;
         var measure = selection.measure;
@@ -147,7 +147,7 @@ class SmoOperation {
     }
 
     // ## transpose
-	// ## Description
+    // ## Description
     // Transpose the selected note, trying to find a key-signature friendly value
     static transpose(selection, offset) {
         var measure = selection.measure;
@@ -160,11 +160,11 @@ class SmoOperation {
         return false;
     }
 
-	// ## setPitch
-	// ## Description:
-	// pitches can be either an array, a single pitch, or a letter.  In the latter case,
-	// the letter value appropriate for the key signature is used, e.g. c in A major becomes
-	// c#
+    // ## setPitch
+    // ## Description:
+    // pitches can be either an array, a single pitch, or a letter.  In the latter case,
+    // the letter value appropriate for the key signature is used, e.g. c in A major becomes
+    // c#
     static setPitch(selection, pitches) {
         var measure = selection.measure;
         var note = selection.note;
@@ -190,9 +190,9 @@ class SmoOperation {
         return true;
     }
 
-	// ## interval
-	// ## Description:
-	// Add a pitch at the specified interval to the chord in the selection.
+    // ## interval
+    // ## Description:
+    // Add a pitch at the specified interval to the chord in the selection.
     static interval(selection, interval) {
         var measure = selection.measure;
         var note = selection.note;
@@ -206,6 +206,18 @@ class SmoOperation {
             return true;
         }
         return false;
+    }
+
+    static crescendo(fromSelection, toSelection) {
+        var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+        var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
+        var modifier = new SmoStaffModifier({
+                startSelector: fromSelector,
+                endSelector: toSelector,
+                type: SmoStaffModifier.types.CRESCENDO,
+                position: SmoStaffModifier.positions.BELOW
+            });
+        fromSelection.staff.addStaffModifier(modifier);
     }
 
 }
