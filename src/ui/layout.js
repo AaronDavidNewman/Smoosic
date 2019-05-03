@@ -101,7 +101,7 @@ class suiSimpleLayout {
         if (!topStaff.measures.length) {
             return;
         }
-        var system = new VxSystem(this.context, topStaff.measures[0].staffY);
+        var system = new VxSystem(this.context, topStaff.measures[0].staffY,lineIndex);
         var systemIndex = 0;
         var lineIndex = 0;
         for (var i = 0; i < topStaff.measures.length; ++i) {
@@ -135,7 +135,7 @@ class suiSimpleLayout {
                     staff.staffY = pageBox.y + pageBox.height + this.score.interGap;
                     staffBoxes = {};
                     staffBoxes[j] = svgHelpers.pointBox(this.score.staffX, staff.staffY);
-                    system = new VxSystem(this.context, staff.staffY);
+                    system = new VxSystem(this.context, staff.staffY,lineIndex);
                     systemIndex = 0;
                     lineIndex += 1;
                     systemBoxes[lineIndex] = svgHelpers.pointBox(measure.staffX, staff.staffY);

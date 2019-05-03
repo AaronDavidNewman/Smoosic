@@ -7,9 +7,10 @@
 //  timeSignature: '4/4',
 //  smoMeasures: []
 class VxSystem {
-    constructor(context, topY) {
+    constructor(context, topY, lineIndex) {
         this.context = context;
         this.leftConnector = [null, null];
+        this.lineIndex = lineIndex;
         this.maxStaffIndex = -1;
         this.maxSystemIndex = -1;
         this.width = -1;
@@ -40,7 +41,7 @@ class VxSystem {
     }
 
     renderModifier(modifier, startNote, endNote) {
-		$(this.context.svg).find('g.' + modifier.attrs.id).remove();
+        $(this.context.svg).find('g.' + modifier.attrs.id).remove();
         var group = this.context.openGroup();
         group.classList.add(modifier.attrs.id);
         var vxStart = this.getVxNote(startNote);
@@ -97,7 +98,9 @@ class VxSystem {
     // ## Description:
     // draw the system brackets.  I don't know why I call them a cap.
     cap() {
-
+        $(this.context.svg).find('g.lineBracket-' + this.lineIndex).remove();
+        var group = this.context.openGroup();
+        group.classList.add('lineBracket-' + this.lineIndex);
         if (this.leftConnector[0] && this.leftConnector[1]) {
             var c1 = new VF.StaveConnector(this.leftConnector[0], this.leftConnector[1])
                 .setType(VF.StaveConnector.type.BRACKET);
@@ -106,5 +109,6 @@ class VxSystem {
             c1.setContext(this.context).draw();
             c2.setContext(this.context).draw();
         }
+        this.context.closeGroup();
     }
 }
