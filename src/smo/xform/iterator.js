@@ -109,8 +109,8 @@ class smoTickIterator {
 		else {
 			sigObj = accidentalMap[iterator.index - 1];
 		}
-		for (var i = 0; i < note.keys.length; ++i) {
-			var prop = note.keys[i];
+		for (var i = 0; i < note.pitches.length; ++i) {
+			var prop = note.pitches[i];
 			var letter = prop.key.toLowerCase();
 			var sigLetter = letter+prop.accidental;
 			var sigKey = vexMusic.getKeySignatureKey(letter, keySignature);

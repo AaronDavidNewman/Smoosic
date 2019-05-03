@@ -45,7 +45,7 @@ class StaffTest {
         var changePitch = () => {
             var target = SmoSelection.pitchSelection(layout.score,0,2, 0, 1,[0]);
             if (target) {
-                target.note.keys = [{
+                target.note.pitches = [{
                         key: 'e',
                         octave: 4,
                         accidental: 'b'
@@ -58,7 +58,7 @@ class StaffTest {
         var changePitch2 = () => {
             var target = SmoSelection.pitchSelection(score,0,1, 0, 1, [0]);
             if (target) {
-                target.note.keys = [{
+                target.note.pitches = [{
                         key: 'f',
                         octave: 4,
                         accidental: '#'

@@ -39,8 +39,8 @@ class SmoNote {
 
 	toVexKeys() {
 		var rv = [];
-		for (var i = 0; i < this.keys.length; ++i) {
-			var key = this.keys[i];
+		for (var i = 0; i < this.pitches.length; ++i) {
+			var key = this.pitches[i];
 			rv.push(key.key + '/' + key.octave);
 		}
 		return rv;
@@ -50,32 +50,32 @@ class SmoNote {
 		var keyIndex = ((key) => {
 			return canon.indexOf(key.key) + key.octave * 12;
 		});
-		this.keys.sort((a, b) => {
+		this.pitches.sort((a, b) => {
 			return keyIndex(a) - keyIndex(b);
 		});
 	}
 	addPitchOffset(offset) {
-		if (this.keys.length == 0) {
+		if (this.pitches.length == 0) {
 			return this;
 		}
-		var key = this.keys[0];
-		this.keys.push(vexMusic.getKeyOffset(key, offset));
+		var key = this.pitches[0];
+		this.pitches.push(vexMusic.getKeyOffset(key, offset));
 
 		this._sortKeys();
 	}
 
 	transpose(pitchArray, offset, keySignature) {
-		var keys = [];
+		var pitches = [];
 		this.accidentals = []; // modifiers need to be reapplied, accidentals may change
 		if (pitchArray.length == 0) {
-			this.keys.forEach((m)=>{pitchArray.push(this.keys.indexOf(m));});
+			this.pitches.forEach((m)=>{pitchArray.push(this.pitches.indexOf(m));});
 		}
 		for (var j = 0; j < pitchArray.length; ++j) {
 			var index = pitchArray[j];
-			if (index + 1 > this.keys.length) {
+			if (index + 1 > this.pitches.length) {
 				this.addPitchOffset(offset);
 			} else {
-				var nnote = vexMusic.getKeyOffset(this.keys[index], offset);
+				var nnote = vexMusic.getKeyOffset(this.pitches[index], offset);
 				if (keySignature) {
 					var letterKey = nnote.key + nnote.accidental;
 					letterKey = vexMusic.getKeyFriendlyEnharmonic(letterKey,keySignature);
@@ -86,7 +86,7 @@ class SmoNote {
 						nnote.accidental = letterKey.substring(1);
 					}
 				}
-				this.keys[index] = nnote;
+				this.pitches[index] = nnote;
 			}
 		}
 		this._sortKeys();
@@ -167,7 +167,7 @@ class SmoNote {
 			beatValue: 4,
 			voice: 0,
 			duration: '4',
-			keys: [{
+			pitches: [{
 					key: 'b',
 					octave: 4,
 					accidental: ''

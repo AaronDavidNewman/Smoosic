@@ -84,8 +84,8 @@ class smoAccidentalModifier extends NoteModifierBase {
     modifyNote(iterator, note, accidentalMap) {
         var canon = VF.Music.canonical_notes;
 		canon.forEach((cc)=>{if (cc.length == 1) cc=cc+'n';});
-        for (var i = 0; i < note.keys.length; ++i) {
-            var prop = note.keys[i];
+        for (var i = 0; i < note.pitches.length; ++i) {
+            var prop = note.pitches[i];
 			var vexKey=prop.key+prop.accidental;
 			if (vexKey.length>1 && vexKey[1] == 'n') {
 				vexKey=vexKey[0];

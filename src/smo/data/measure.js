@@ -149,13 +149,13 @@ class SmoMeasure {
         if (meterNumbers[0] % 3 == 0) {
             duration = '8';
         }
-        var keys = SmoMeasure.defaultKeyForClef[params.clef];
+        var pitches = SmoMeasure.defaultKeyForClef[params.clef];
         var rv = [];
 
         for (var i = 0; i < meterNumbers[0]; ++i) {
             var note = new SmoNote({
                     clef: params.clef,
-                    keys: [keys],
+                    pitches: [pitches],
                     duration: duration,
 					timeSignature:params.timeSignature
                 });
@@ -263,14 +263,14 @@ class SmoMeasure {
 		}
 		
 		var note = this.notes[tick];
-		var pitches = note.keys;
+		var pitches = note.pitches;
 		
-		if (optionPitchArray.length > note.keys.length) {
+		if (optionPitchArray.length > note.pitches.length) {
 			return null;
 		}
 		if (!optionPitchArray.length) {
 			pitches=[];
-			for (var i=0;i<note.keys.length;++i) {
+			for (var i=0;i<note.pitches.length;++i) {
 				optionPitchArray.push(i);
 			}
 		}

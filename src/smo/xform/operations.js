@@ -169,8 +169,8 @@ class SmoOperation {
         var measure = selection.measure;
         var note = selection.note;
         // TODO allow hint for octave
-        var octave = note.keys[0].octave;
-        note.keys = [];
+        var octave = note.pitches[0].octave;
+        note.pitches = [];
         if (!Array.isArray(pitches)) {
             pitches = [pitches];
         }
@@ -185,7 +185,7 @@ class SmoOperation {
                 };
             }
 
-            note.keys.push(pitch);
+            note.pitches.push(pitch);
         });
         return true;
     }
@@ -198,10 +198,10 @@ class SmoOperation {
         var note = selection.note;
 
         // TODO: figure out which pitch is selected
-        var key = note.keys[0];
+        var key = note.pitches[0];
         var pitch = vexMusic.getIntervalInKey(key, measure.keySignature, interval);
         if (pitch) {
-            note.keys.push(pitch);
+            note.pitches.push(pitch);
             smoModifierFactory.applyModifiers(measure);
             return true;
         }

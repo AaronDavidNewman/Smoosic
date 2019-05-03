@@ -182,10 +182,10 @@ class VxMeasure {
 		var staffWidth = this.smoMeasure.staffWidth
 		 + staffMargin;
 		
-		console.log('measure '+JSON.stringify(this.smoMeasure.measureNumber,null,' ')+' x: ' + this.smoMeasure.staffX + ' y: '+this.smoMeasure.staffY
-		    + 'width: '+staffWidth);
+		//console.log('measure '+JSON.stringify(this.smoMeasure.measureNumber,null,' ')+' x: ' + this.smoMeasure.staffX + ' y: '+this.smoMeasure.staffY
+		   // + 'width: '+staffWidth);
         this.stave = new VF.Stave(this.smoMeasure.staffX, this.smoMeasure.staffY, staffWidth);
-		console.log('adjX is '+this.smoMeasure.adjX);
+		//console.log('adjX is '+this.smoMeasure.adjX);
 
         // Add a clef and time signature.
         if (this.smoMeasure.forceClef) {			
@@ -235,7 +235,7 @@ class VxMeasure {
 		this.smoMeasure.renderedBox={x:box.x,y:box.y,height:box.height,width:box.width};
 		this.smoMeasure.logicalBox={x:box.x,y:box.y,height:this.stave.getHeight(),width:this.stave.getWidth()};
 		this.smoMeasure.adjX=this.smoMeasure.renderedBox.width-this.smoMeasure.logicalBox.width;
-		console.log(JSON.stringify(this.smoMeasure.renderedBox,null,' '));
+		// console.log(JSON.stringify(this.smoMeasure.renderedBox,null,' '));
         this.context.closeGroup();
     }
 

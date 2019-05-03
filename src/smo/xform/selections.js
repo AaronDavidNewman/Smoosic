@@ -114,7 +114,7 @@ class SmoSelection {
         pitches = pitches ? pitches : [];
         var pa = [];
         pitches.forEach((ix) => {
-            pa.push(JSON.parse(JSON.stringify(note.keys[ix])));
+            pa.push(JSON.parse(JSON.stringify(note.pitches[ix])));
         });
         var selector = {
             staff: staffIndex,
@@ -168,7 +168,7 @@ class SmoSelection {
         if (this._pitches.length) {
             return this._pitches;
         } else if (this._note) {
-            this._pitches = JSON.parse(JSON.stringify(this.note.keys));
+            this._pitches = JSON.parse(JSON.stringify(this.note.pitches));
             return this._pitches;
         }
         return [];

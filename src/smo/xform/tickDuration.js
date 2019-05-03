@@ -113,7 +113,7 @@ class SmoContractNoteActor extends TickTransformBase {
             for (var i = 0; i < noteCount; ++i) {
                 notes.push(new SmoNote({
                         clef: note.clef,
-                        keys: JSON.parse(JSON.stringify(note.keys)),
+                        pitches: JSON.parse(JSON.stringify(note.pitches)),
                         duration: vexDuration
                     }));
 				remainder = remainder - this.newTicks;
@@ -123,7 +123,7 @@ class SmoContractNoteActor extends TickTransformBase {
 				vexDuration = vexMusic.ticksToDuration[remainder];
 				notes.push(new SmoNote({
                         clef: note.clef,
-                        keys: JSON.parse(JSON.stringify(note.keys)),
+                        pitches: JSON.parse(JSON.stringify(note.pitches)),
                         duration: vexDuration
                     }));
 			}
