@@ -25,7 +25,7 @@ class VxSystem {
         this.clefWidth = 70;
         this.ys = [];
         this.measures = [];
-		this.modifiers=[];
+        this.modifiers = [];
     }
 
     getVxNote(smoNote) {
@@ -40,14 +40,22 @@ class VxSystem {
     }
 
     renderModifier(modifier, startNote, endNote) {
+		$(this.context.svg).find('g.' + modifier.attrs.id).remove();
+        var group = this.context.openGroup();
+        group.classList.add(modifier.attrs.id);
         var vxStart = this.getVxNote(startNote);
         var vxEnd = this.getVxNote(endNote);
         if (modifier.type == SmoStaffModifier.types.CRESCENDO ||
             modifier.type == SmoStaffModifier.types.DECRESCENDO) {
-				var hairpin = new VF.StaveHairpin({ first_note: vxStart, last_note: vxEnd }, modifier.type);
-				hairpin.setContext(this.context).setPosition(modifier.position).draw();
-				this.modifiers.push(hairpin);
-			}
+            var hairpin = new VF.StaveHairpin({
+                    first_note: vxStart,
+                    last_note: vxEnd
+                }, modifier.type);
+            hairpin.setContext(this.context).setPosition(modifier.position).draw();
+            this.modifiers.push(hairpin);
+        }
+
+        this.context.closeGroup();
     }
 
     // ## renderMeasure
