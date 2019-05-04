@@ -136,8 +136,9 @@ class ChordTest {
 			return timeTest();
 		}
 
-		return drawDefaults().then(accidentalTest).then(crescendoTest).then(intervalTest).then(durationTest)
+		return drawDefaults().then(crescendoTest).then(signalComplete);
+		/* return drawDefaults().then(accidentalTest).then(crescendoTest).then(intervalTest).then(durationTest)
 		.then(durationTest2).then(rerenderTest).then(setPitchTest).then(makeTupletTest)
-		.then(unmakeTupletTest).then(courtesyTest).then(signalComplete);
+		.then(unmakeTupletTest).then(courtesyTest).then(signalComplete); */
 	}
 }
