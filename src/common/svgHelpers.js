@@ -13,6 +13,12 @@ class svgHelpers {
             height: height
         };
     }
+	
+	// ## Description:
+	// return a simple box object that can be serialized, copied.
+	static smoBox(box) {
+		return ({x:box.x,y:box.y,width:box.width,height:box.height});
+	}
 
     static measureBBox(b1, measure, staff) {
         if (measure.renderedBox) {

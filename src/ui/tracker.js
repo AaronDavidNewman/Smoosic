@@ -57,10 +57,6 @@ class suiTracker {
         this.selections.push(artifact);
     }
 
-    highlightSelection() {
-        this._drawRect(this._outerSelection(), 'selection');
-    }
-
     // ### updateMap
     // This should be called after rendering the score.  It updates the score to
     // graphics map and selects the first object.
@@ -76,7 +72,7 @@ class suiTracker {
         notes.forEach((note) => this.objects.push(SmoSelection.renderedNoteSelection(this.score, note)));
         this.selections = [];
         if (this.objects.length && !selCopy.length) {
-			console.log('adding selection '+this.objects[0].note.id);
+            console.log('adding selection ' + this.objects[0].note.id);
             this.selections = [this.objects[0]];
         } else {
             selCopy.forEach((sel) => this._findClosestSelection(sel));
@@ -137,8 +133,8 @@ class suiTracker {
         var scopyMeasure = JSON.parse(JSON.stringify(testSelection.selector));
         scopyTick.tick += increment;
         scopyMeasure.measure += increment;
-        var targetMeasure = SmoSelection.measureSelection(this.score, testSelection.selector.staff, 
-		   scopyMeasure.measure);
+        var targetMeasure = SmoSelection.measureSelection(this.score, testSelection.selector.staff,
+                scopyMeasure.measure);
         if (targetMeasure && targetMeasure.measure) {
             scopyMeasure.tick = (offset < 0) ? targetMeasure.measure.notes.length - 1 : 0;
         }
@@ -154,16 +150,6 @@ class suiTracker {
 
     static unionRect(b1, b2) {
         return svgHelpers.unionRect(b1, b2);
-    }
-
-    _outerSelection() {
-        if (this.selections.length == 0)
-            return null;
-        var rv = this.selections[0].box;
-        for (var i = 1; i < this.selections.length; ++i) {
-            rv = suiTracker.unionRect(rv, this.selections[i].box);
-        }
-        return rv;
     }
 
     get selectedArtifact() {
@@ -186,7 +172,7 @@ class suiTracker {
         if (this.selections.find((sel) => SmoSelector.sameNote(sel.selector, artifact.selector))) {
             return;
         }
-		console.log('adding selection '+artifact.note.id);
+        console.log('adding selection ' + artifact.note.id);
 
         this.selections.push(artifact);
         this.highlightSelection();
@@ -203,7 +189,7 @@ class suiTracker {
             return;
         }
 
-		console.log('adding selection '+artifact.note.id);
+        console.log('adding selection ' + artifact.note.id);
         this.selections.push(artifact);
         this.highlightSelection();
     }
@@ -276,7 +262,7 @@ class suiTracker {
         var mapped = this.objects.find((el) => {
                 return SmoSelector.sameNote(el.selector, artifact.selector);
             });
-		console.log('adding selection '+mapped.note.id);
+        console.log('adding selection ' + mapped.note.id);
 
         this.selections = [mapped];
         this.highlightSelection();
@@ -305,7 +291,7 @@ class suiTracker {
         if (!this.suggestion['measure']) {
             return;
         }
-		console.log('adding selection '+ this.suggestion.note.id);
+        console.log('adding selection ' + this.suggestion.note.id);
 
         this.selections = [this.suggestion];
         this.score.setActiveStaff(this.selections[0].selector.staff);
@@ -386,15 +372,52 @@ class suiTracker {
         $(this.renderElement).find('g.vf-' + stroke).remove();
     }
 
+    highlightSelection() {
+        if (this.selections.length === 1) {
+            this._drawRect(this.selections[0].box, 'selection');
+            return;
+        }
+        var sorted = this.selections.sort((a, b) => a.box.y - b.box.y);
+        var prevSel = sorted[0];
+        var curBox = svgHelpers.smoBox(prevSel.box);
+        var boxes = [];
+        for (var i = 1; i < sorted.length; ++i) {
+            var sel = sorted[i];
+            var ydiff = Math.abs(prevSel.box.y - sel.box.y);
+            if (sel.selector.staff === prevSel.selector.staff && ydiff < 1.0) {
+                curBox = svgHelpers.unionRect(curBox, sel.box);
+            } else {
+                boxes.push(curBox);
+                curBox = sel.box;
+            }
+            prevSel = sel;
+        }
+        boxes.push(curBox);
+        this._drawRect(boxes, 'selection');
+    }
+    _outerSelection() {
+        if (this.selections.length == 0)
+            return null;
+        var rv = this.selections[0].box;
+        for (var i = 1; i < this.selections.length; ++i) {
+            rv = suiTracker.unionRect(rv, this.selections[i].box);
+        }
+        return rv;
+    }
     _drawRect(bb, stroke) {
         this.eraseRect(stroke);
-        var grp = this.context.openGroup(stroke, stroke + '-');
-        var strokes = suiTracker.strokes[stroke];
-        var strokeObj = {};
-        $(Object.keys(strokes)).each(function (ix, key) {
-            strokeObj[key] = strokes[key];
+		var grp = this.context.openGroup(stroke, stroke + '-');
+        if (!Array.isArray(bb)) {
+            bb = [bb];
+        }
+        bb.forEach((box) => {
+            var strokes = suiTracker.strokes[stroke];
+            var strokeObj = {};
+            $(Object.keys(strokes)).each(function (ix, key) {
+                strokeObj[key] = strokes[key];
+            });
+            this.context.rect(box.x - 3, box.y - 3, box.width + 3, box.height + 3, strokeObj);
         });
-        this.context.rect(bb.x - 3, bb.y - 3, bb.width + 3, bb.height + 3, strokeObj);
         this.context.closeGroup(grp);
     }
 }

@@ -226,7 +226,7 @@ class SmoOperation {
         var modifier = new SmoStaffModifier({
                 startSelector: fromSelector,
                 endSelector: toSelector,
-                type: SmoStaffModifier.types.CRESCENDO,
+                type: SmoStaffModifier.types.DECRESCENDO,
                 position: SmoStaffModifier.positions.BELOW
             });
         fromSelection.staff.addStaffModifier(modifier);
