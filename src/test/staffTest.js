@@ -4,9 +4,9 @@ class StaffTest {
     static CommonTests() {
 		$('h1.testTitle').text('Staff Test');
 		var score=SmoScore.getEmptyScore();
-        score.addDefaultMeasure(0,{});
-        score.addDefaultMeasure(1,{});
-        score.addDefaultMeasure(2,{});
+        score.addDefaultMeasureWithNotes(0,{});
+        score.addDefaultMeasureWithNotes(1,{});
+        score.addDefaultMeasureWithNotes(2,{});
 		var serial = JSON.stringify(score,null,'');
 		console.log(serial);
         var keys = utController.createUi(document.getElementById("boo"),score);

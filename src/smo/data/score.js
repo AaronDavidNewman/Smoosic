@@ -28,6 +28,7 @@ class SmoScore {
 		score.addInstrument(measureDefaults);
 		var measure = SmoMeasure.getDefaultMeasure(measureDefaults);
 		score.addMeasure(0,measure);
+		measure.voices.push({notes:SmoMeasure.getDefaultNotes(measureDefaults)});
 		return score;
 	}
 	
@@ -74,6 +75,14 @@ class SmoScore {
 		}
 		this._numberStaves();
 	}
+	
+	addDefaultMeasureWithNotes(measureIndex,parameters) {
+		this.staves.forEach((staff) => {
+			var defaultMeasure = 
+				SmoMeasure.getDefaultMeasureWithNotes(parameters);
+			staff.addMeasure(measureIndex,defaultMeasure);
+		});
+	}
 	addMeasure(measureIndex,measure) {
 		for (var i=0;i<this.staves.length;++i) {
 			var staff=this.staves[i];
@@ -105,7 +114,7 @@ class SmoScore {
 			var measure=proto.measures[i];
 			vexMusic.filteredMerge(SmoMeasure.defaultAttributes, measure, newParams);
 			newParams.clef=parameters.instrumentInfo.clef;			
-			var newMeasure=new SmoMeasure(newParams);
+			var newMeasure=SmoMeasure.getDefaultMeasureWithNotes(newParams);
 			newMeasure.measureNumber = measure.measureNumber;
 			measures.push(newMeasure);
 		}

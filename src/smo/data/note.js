@@ -32,6 +32,7 @@ class SmoNote {
 		}
 		this.accidentals = [];
 		this.dots = 0;
+		console.log('created note '+this.id);
 	}
 	get id() {
 		return this.attrs.id;

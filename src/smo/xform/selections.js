@@ -26,7 +26,7 @@ class SmoSelector {
 // or navigating to an element with the keyboard.
 class SmoSelection {
     static measureSelection(score, staffIndex, measureIndex) {
-        staffIndex = staffIndex ? staffIndex : score.activeStaff;
+        staffIndex = staffIndex!=null ? staffIndex : score.activeStaff;
         var selector = {
             staff: staffIndex,
             measure: measureIndex
@@ -44,7 +44,7 @@ class SmoSelection {
     }
 
     static noteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
-        staffIndex = staffIndex ? staffIndex : score.activeStaff;
+        staffIndex = staffIndex!=null ? staffIndex : score.activeStaff;
         measureIndex = measureIndex ? measureIndex : 0;
         voiceIndex = voiceIndex ? voiceIndex : 0;
         var staff = score.staves[staffIndex];
@@ -105,7 +105,7 @@ class SmoSelection {
     }
 
     static pitchSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex, pitches) {
-        staffIndex = staffIndex ? staffIndex : score.activeStaff;
+        staffIndex = staffIndex!=null ? staffIndex : score.activeStaff;
         measureIndex = measureIndex ? measureIndex : 0;
         voiceIndex = voiceIndex ? voiceIndex : 0;
         var staff = score.staves[staffIndex];

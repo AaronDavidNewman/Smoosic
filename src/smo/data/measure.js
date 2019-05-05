@@ -144,13 +144,18 @@ class SmoMeasure {
     }
 	// Get a measure full of default notes for a given timeSignature/clef
     static getDefaultNotes(params) {
+		if (params == null) {
+			params={};
+		}
+		params.timeSignature = params.timeSignature ? params.timeSignature : '4/4';
+		params.clef = params.clef ? params.clef : 'treble';
         var meterNumbers = params.timeSignature.split('/').map(number => parseInt(number, 10));
         var duration = '4';
         if (meterNumbers[0] % 3 == 0) {
             duration = '8';
         }
         var pitches = SmoMeasure.defaultKeyForClef[params.clef];
-        var rv = [];
+		var rv = [];
 
         for (var i = 0; i < meterNumbers[0]; ++i) {
             var note = new SmoNote({
@@ -169,9 +174,13 @@ class SmoMeasure {
 		if (!params) params={};
 		Vex.Merge(obj,SmoMeasure.defaults);
 		Vex.Merge(obj, params);
-        var notes = SmoMeasure.getDefaultNotes(obj);
-		obj.voices=[{notes:notes}];
 		return new SmoMeasure(obj);
+	}
+	
+	static getDefaultMeasureWithNotes(params) {
+		var measure = SmoMeasure.getDefaultMeasure(params);
+		measure.voices.push({notes:SmoMeasure.getDefaultNotes(params)});
+		return measure;
 	}
 	
 	static _cloneParameters(measure) {
@@ -209,7 +218,7 @@ class SmoMeasure {
 		return SmoMeasure.getDefaultNotes({clef:'treble',timeSignature:'4/4'});
     }
     static get defaults() {
-        var noteDefault = SmoMeasure.defaultVoice44;
+        // var noteDefault = SmoMeasure.defaultVoice44;
         return {
             timeSignature: '4/4',
             keySignature: "C",
@@ -229,10 +238,7 @@ class SmoMeasure {
             forceClef: false,
 			forceKeySignature:false,
 			forceTimeSignature:false,
-            voices: [{
-                    notes: noteDefault
-                }
-            ],
+            voices: [  ],
             activeVoice: 0
         };
     }

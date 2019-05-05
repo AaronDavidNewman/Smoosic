@@ -76,6 +76,7 @@ class VxMeasure {
         this.applyStemDirection(noteParams);
         var vexNote = new VF.StaveNote(noteParams);
 		smoNote.renderId = 'vf-'+vexNote.attrs.id; // where does 'vf' come from?
+		console.log('rendered note '+smoNote.id+' vxId: '+smoNote.renderId);
 		// console.log('smoNote ' + smoNote.attrs.id+' = vex note '+smoNote.renderId);
 
         for (var i = 0; i < smoNote.accidentals.length; ++i) {

@@ -106,7 +106,6 @@ class SmoSystemStaff {
                 mods.push(mod);
             }
         });
-        mods.push(modifier);
         this.modifiers = mods;
     }
 

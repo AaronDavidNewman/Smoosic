@@ -43,6 +43,7 @@ class VxSystem {
     renderModifier(modifier, startNote, endNote) {
         $(this.context.svg).find('g.' + modifier.attrs.id).remove();
         var group = this.context.openGroup();
+		console.log('adding modifier note '+startNote.id);
         group.classList.add(modifier.attrs.id);
         var vxStart = this.getVxNote(startNote);
         var vxEnd = this.getVxNote(endNote);

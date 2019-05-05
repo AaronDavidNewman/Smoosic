@@ -76,6 +76,7 @@ class suiTracker {
         notes.forEach((note) => this.objects.push(SmoSelection.renderedNoteSelection(this.score, note)));
         this.selections = [];
         if (this.objects.length && !selCopy.length) {
+			console.log('adding selection '+this.objects[0].note.id);
             this.selections = [this.objects[0]];
         } else {
             selCopy.forEach((sel) => this._findClosestSelection(sel));
@@ -114,7 +115,7 @@ class suiTracker {
         return measureObj;
     }
 
-    _getExtremeSelection(sign) {
+    getExtremeSelection(sign) {
         var rv = this.selections[0];
         for (var i = 1; i < this.selections.length; ++i) {
             var sa = this.selections[i].selector;
@@ -131,7 +132,7 @@ class suiTracker {
     // Get the selector that is the offset of the first existing selection
     _getOffsetSelection(offset) {
         var increment = offset;
-        var testSelection = this._getExtremeSelection(Math.sign(offset));
+        var testSelection = this.getExtremeSelection(Math.sign(offset));
         var scopyTick = JSON.parse(JSON.stringify(testSelection.selector));
         var scopyMeasure = JSON.parse(JSON.stringify(testSelection.selector));
         scopyTick.tick += increment;
@@ -185,6 +186,7 @@ class suiTracker {
         if (this.selections.find((sel) => SmoSelector.sameNote(sel.selector, artifact.selector))) {
             return;
         }
+		console.log('adding selection '+artifact.note.id);
 
         this.selections.push(artifact);
         this.highlightSelection();
@@ -201,6 +203,7 @@ class suiTracker {
             return;
         }
 
+		console.log('adding selection '+artifact.note.id);
         this.selections.push(artifact);
         this.highlightSelection();
     }
@@ -235,7 +238,7 @@ class suiTracker {
     }
 
     _moveSelectionMeasure(offset) {
-        var selection = this._getExtremeSelection(Math.sign(offset));
+        var selection = this.getExtremeSelection(Math.sign(offset));
         selection = JSON.parse(JSON.stringify(selection));
         selection.measure += offset;
         selection.tick = 0;
@@ -273,6 +276,8 @@ class suiTracker {
         var mapped = this.objects.find((el) => {
                 return SmoSelector.sameNote(el.selector, artifact.selector);
             });
+		console.log('adding selection '+mapped.note.id);
+
         this.selections = [mapped];
         this.highlightSelection();
     }
@@ -300,6 +305,8 @@ class suiTracker {
         if (!this.suggestion['measure']) {
             return;
         }
+		console.log('adding selection '+ this.suggestion.note.id);
+
         this.selections = [this.suggestion];
         this.score.setActiveStaff(this.selections[0].selector.staff);
         if (this.selections.length == 0)

@@ -101,6 +101,20 @@
   content:"\e90d";
 }
 
+.crescHairpin:after {
+  margin-left:5px;
+  font-family:smoSprites;
+  font-size:2em;
+  content:"\e911";
+}
+
+.decrescHairpin:after {
+  margin-left:5px;
+  font-family:smoSprites;
+  font-size:2em;
+  content:"\e910";
+}
+
 .menuOption {
 	width:128px;
 	height:32px;

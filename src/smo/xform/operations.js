@@ -219,5 +219,17 @@ class SmoOperation {
             });
         fromSelection.staff.addStaffModifier(modifier);
     }
+	
+	static decrescendo(fromSelection, toSelection) {
+        var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+        var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
+        var modifier = new SmoStaffModifier({
+                startSelector: fromSelector,
+                endSelector: toSelector,
+                type: SmoStaffModifier.types.CRESCENDO,
+                position: SmoStaffModifier.positions.BELOW
+            });
+        fromSelection.staff.addStaffModifier(modifier);
+    }
 
 }

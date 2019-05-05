@@ -67,20 +67,18 @@ class suiSimpleLayout {
         return (i > 0 ? staff.measures[i - 1][attr] : measure[attr]);
     }
 
-    _renderModifiers(system) {
-        this.score.staves.forEach((staff) => {
-            staff.modifiers.forEach((modifier) => {
-                var startNote = SmoSelection.noteSelection(this.score,
-                        modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
-                var endNote = SmoSelection.noteSelection(this.score,
-                        modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
+    _renderModifiers(staff, system) {
+        staff.modifiers.forEach((modifier) => {
+            var startNote = SmoSelection.noteSelection(this.score,
+                    modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
+            var endNote = SmoSelection.noteSelection(this.score,
+                    modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
 
-                // TODO: notes may have changed, get closest if these exact endpoints don't exist
-                system.renderModifier(modifier, startNote.note, endNote.note);
+            // TODO: notes may have changed, get closest if these exact endpoints don't exist
+            system.renderModifier(modifier, startNote.note, endNote.note);
 
-                // TODO: consider staff height with these.
-                // TODO: handle dynamics split across systems.
-            });
+            // TODO: consider staff height with these.
+            // TODO: handle dynamics split across systems.
         });
     }
 
@@ -102,7 +100,7 @@ class suiSimpleLayout {
             return;
         }
         var lineIndex = 0;
-        var system = new VxSystem(this.context, topStaff.measures[0].staffY,lineIndex);
+        var system = new VxSystem(this.context, topStaff.measures[0].staffY, lineIndex);
         var systemIndex = 0;
 
         for (var i = 0; i < topStaff.measures.length; ++i) {
@@ -132,12 +130,12 @@ class suiSimpleLayout {
                 if (j == 0 && staffBoxes[lineIndex].x + staffBoxes[lineIndex].width + measure.staffWidth
                      > this.pageMarginWidth) {
                     system.cap();
-                    this._renderModifiers(system);
+                    this._renderModifiers(staff,system);
                     staff.staffY = pageBox.y + pageBox.height + this.score.interGap;
                     staffBoxes = {};
                     staffBoxes[j] = svgHelpers.pointBox(this.score.staffX, staff.staffY);
                     lineIndex += 1;
-                    system = new VxSystem(this.context, staff.staffY,lineIndex);
+                    system = new VxSystem(this.context, staff.staffY, lineIndex);
                     systemIndex = 0;
                     systemBoxes[lineIndex] = svgHelpers.pointBox(measure.staffX, staff.staffY);
                 }
@@ -161,6 +159,6 @@ class suiSimpleLayout {
             ++systemIndex;
         }
         system.cap();
-        this._renderModifiers(system);
+        this._renderModifiers(staff,system);
     }
 }
