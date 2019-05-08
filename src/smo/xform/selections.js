@@ -153,7 +153,7 @@ class SmoSelection {
 	
 	static lastNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
 		var lastTick = tickIndex - 1;
-		var lastMeasure = measureIndex + 1;
+		var lastMeasure = measureIndex - 1;
         var staff = score.staves[staffIndex];
         var measure = staff.measures[measureIndex];
 		if (tickIndex > 0) {
@@ -161,8 +161,8 @@ class SmoSelection {
 		}
 		if (measureIndex > 0) {
 			measure=staff.measures[lastMeasure];
-			noteIndex = staff.measures[lastMeasure].voices[voiceIndex].notes.length-1;
-			return SmoSelection.noteSelection(score,staffIndex,nextMeasure-1,voiceIndex,noteIndex);
+			var noteIndex = staff.measures[lastMeasure].voices[voiceIndex].notes.length-1;
+			return SmoSelection.noteSelection(score,staffIndex,lastMeasure,voiceIndex,noteIndex);
 		}
 		return null;
 		

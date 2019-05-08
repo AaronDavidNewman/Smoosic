@@ -41,10 +41,11 @@ class VxSystem {
     }
 
     renderModifier(modifier, vxStart, vxEnd) {
-        $(this.context.svg).find('g.' + modifier.attrs.id).remove();
+		var artifactId=modifier.attrs.id+'-'+this.lineIndex;
+        $(this.context.svg).find('g.' + artifactId).remove();
         var group = this.context.openGroup();
 		console.log('adding modifier note '+vxStart.attrs.id);
-        group.classList.add(modifier.attrs.id);
+        group.classList.add(artifactId);
         if (modifier.type == SmoStaffModifier.types.CRESCENDO ||
             modifier.type == SmoStaffModifier.types.DECRESCENDO) {
             var hairpin = new VF.StaveHairpin({

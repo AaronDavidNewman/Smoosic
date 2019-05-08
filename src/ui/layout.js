@@ -92,10 +92,10 @@ class suiSimpleLayout {
             }
             if (vxEnd && !vxStart) {
                 var lastNote = SmoSelection.lastNoteSelection(this.score,
-                        modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
+                        modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
                 var testNote = system.getVxNote(lastNote.note);
                 while (testNote) {
-                    vxEnd = testNote;
+                    vxStart = testNote;
                     lastNote = SmoSelection.lastNoteSelection(this.score,
                             lastNote.selector.staff, lastNote.selector.measure, lastNote.selector.voice, lastNote.selector.tick);
                     testNote = system.getVxNote(lastNote.note);
@@ -161,7 +161,9 @@ class suiSimpleLayout {
                 if (j == 0 && staffBoxes[lineIndex].x + staffBoxes[lineIndex].width + measure.staffWidth
                      > this.pageMarginWidth) {
                     system.cap();
-                    this._renderModifiers(staff, system);
+                    this.score.staves.forEach((stf) => {
+                        this._renderModifiers(stf, system);
+                    });
                     staff.staffY = pageBox.y + pageBox.height + this.score.interGap;
                     staffBoxes = {};
                     staffBoxes[j] = svgHelpers.pointBox(this.score.staffX, staff.staffY);
@@ -190,6 +192,8 @@ class suiSimpleLayout {
             ++systemIndex;
         }
         system.cap();
-        this._renderModifiers(staff, system);
+        this.score.staves.forEach((stf) => {
+            this._renderModifiers(stf, system);
+        });
     }
 }
