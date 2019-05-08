@@ -40,13 +40,11 @@ class VxSystem {
         return null;
     }
 
-    renderModifier(modifier, startNote, endNote) {
+    renderModifier(modifier, vxStart, vxEnd) {
         $(this.context.svg).find('g.' + modifier.attrs.id).remove();
         var group = this.context.openGroup();
-		console.log('adding modifier note '+startNote.id);
+		console.log('adding modifier note '+vxStart.attrs.id);
         group.classList.add(modifier.attrs.id);
-        var vxStart = this.getVxNote(startNote);
-        var vxEnd = this.getVxNote(endNote);
         if (modifier.type == SmoStaffModifier.types.CRESCENDO ||
             modifier.type == SmoStaffModifier.types.DECRESCENDO) {
             var hairpin = new VF.StaveHairpin({

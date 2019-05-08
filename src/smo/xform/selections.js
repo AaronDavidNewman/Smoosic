@@ -1,6 +1,7 @@
 /////////////////
+// # selections.js
 // Editing operations are performed on selections.  A selection can be different things, from a single pitch
-// to many notes.  These classes standardize what can be in a selection.
+// to many notes.  These classes standardize some standard selection operations.
 //
 //
 // ## SmoSelector
@@ -132,6 +133,40 @@ class SmoSelection {
             type: 'pitches'
         });
     }
+	
+	// ## nextNoteSelection
+	// ## Description:
+	// Return the next note in this measure, or the first note of the next measure, if it exists.
+	static nextNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
+		var nextTick = tickIndex + 1;
+		var nextMeasure = measureIndex + 1;
+        var staff = score.staves[staffIndex];
+        var measure = staff.measures[measureIndex];
+		if (measure.voices[voiceIndex].notes.length > nextTick) {
+			return SmoSelection.noteSelection(score,staffIndex,measureIndex,voiceIndex,nextTick);
+		}
+		if (staff.measures.length > nextMeasure) {
+			return SmoSelection.noteSelection(score,staffIndex,nextMeasure,voiceIndex,0);
+		}
+		return null;
+	}
+	
+	static lastNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
+		var lastTick = tickIndex - 1;
+		var lastMeasure = measureIndex + 1;
+        var staff = score.staves[staffIndex];
+        var measure = staff.measures[measureIndex];
+		if (tickIndex > 0) {
+			return SmoSelection.noteSelection(score,staffIndex,measureIndex,voiceIndex,lastTick);
+		}
+		if (measureIndex > 0) {
+			measure=staff.measures[lastMeasure];
+			noteIndex = staff.measures[lastMeasure].voices[voiceIndex].notes.length-1;
+			return SmoSelection.noteSelection(score,staffIndex,nextMeasure-1,voiceIndex,noteIndex);
+		}
+		return null;
+		
+	}
 
     constructor(params) {
         this.selector = {

@@ -74,8 +74,39 @@ class suiSimpleLayout {
             var endNote = SmoSelection.noteSelection(this.score,
                     modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
 
+            var vxStart = system.getVxNote(startNote.note);
+            var vxEnd = system.getVxNote(endNote.note);
+
+            // If the modifier goes to the next staff, draw what part of it we can on this staff.
+            if (vxStart && !vxEnd) {
+                var nextNote = SmoSelection.nextNoteSelection(this.score,
+                        modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
+                var testNote = system.getVxNote(nextNote.note);
+                while (testNote) {
+                    vxEnd = testNote;
+                    nextNote = SmoSelection.nextNoteSelection(this.score,
+                            nextNote.selector.staff, nextNote.selector.measure, nextNote.selector.voice, nextNote.selector.tick);
+                    testNote = system.getVxNote(nextNote.note);
+
+                }
+            }
+            if (vxEnd && !vxStart) {
+                var lastNote = SmoSelection.lastNoteSelection(this.score,
+                        modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
+                var testNote = system.getVxNote(lastNote.note);
+                while (testNote) {
+                    vxEnd = testNote;
+                    lastNote = SmoSelection.lastNoteSelection(this.score,
+                            lastNote.selector.staff, lastNote.selector.measure, lastNote.selector.voice, lastNote.selector.tick);
+                    testNote = system.getVxNote(lastNote.note);
+                }
+            }
+
+            if (!vxStart || !vxEnd)
+                return;
+
             // TODO: notes may have changed, get closest if these exact endpoints don't exist
-            system.renderModifier(modifier, startNote.note, endNote.note);
+            system.renderModifier(modifier, vxStart, vxEnd);
 
             // TODO: consider staff height with these.
             // TODO: handle dynamics split across systems.
@@ -130,7 +161,7 @@ class suiSimpleLayout {
                 if (j == 0 && staffBoxes[lineIndex].x + staffBoxes[lineIndex].width + measure.staffWidth
                      > this.pageMarginWidth) {
                     system.cap();
-                    this._renderModifiers(staff,system);
+                    this._renderModifiers(staff, system);
                     staff.staffY = pageBox.y + pageBox.height + this.score.interGap;
                     staffBoxes = {};
                     staffBoxes[j] = svgHelpers.pointBox(this.score.staffX, staff.staffY);
@@ -159,6 +190,6 @@ class suiSimpleLayout {
             ++systemIndex;
         }
         system.cap();
-        this._renderModifiers(staff,system);
+        this._renderModifiers(staff, system);
     }
 }
