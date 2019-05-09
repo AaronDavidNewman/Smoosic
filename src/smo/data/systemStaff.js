@@ -15,6 +15,9 @@ class SmoStaffModifier {
             console.log('inherit attrs');
         }
     }
+	get id() {
+		return this.attrs.id;
+	}
     static get defaults() {
         return {
             xOffset: -2,
@@ -145,37 +148,7 @@ class SmoSystemStaff {
         }
         return null;
     }
-    getMeasureAtSelection(selection) {
-        if (this.measures.length < selection.measureIndex) {
-            return null;
-        }
-        return this.measures[selection.measureIndex];
-    }
 
-    getNoteAtSelection(selection) {
-        if (this.measures.length < selection.measureIndex) {
-            return null;
-        }
-        var measure = this.getMeasureAtSelection(selection);
-        if (measure === null) {
-            return null;
-        }
-        if (measure.notes.length < selection.ticks) {
-            return null;
-        }
-        var smoNote = measure.notes[selection.tick];
-
-        // If the caller increments the measure, fill in the max tick here
-        selection.maxTickIndex = measure.notes.length;
-        return {
-            smoMeasure: measure,
-            smoNote: measure.notes[selection.tick],
-            smoSystem: this,
-            selection: selection,
-            type: smoNote.attrs.type,
-            id: smoNote.id
-        };
-    }
     getMaxTicksMeasure(measure) {
         if (this.measures.length < measure) {
             return 0;

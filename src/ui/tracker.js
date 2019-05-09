@@ -21,6 +21,8 @@ class suiTracker {
         this.objectGroupMap = {};
         this.objects = [];
         this.selections = [];
+        this.modifierTabs = {};
+        this.modifierIndex = -1;
         this.suggestion = {};
     }
 
@@ -44,6 +46,40 @@ class suiTracker {
             rv.push(sel.selector)
         });
         return rv;
+    }
+
+    _updateStaffModifiers() {
+        this.modifierTabs = [];
+        var modMap = {};
+        this.selections.forEach((selection) => {
+            selection.staff.modifiers.forEach((modifier) => {
+                if (SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
+                    if (!modMap[modifier.id]) {
+                        this.modifierTabs.push(modifier);
+                        modMap[modifier.id] = {
+                            exists: true
+                        };
+                    }
+                }
+            });
+        });
+    }
+
+    _highlightModifier() {
+        if (this.modifierIndex >= 0 && this.modifierIndex < this.modifierTabs.length) {
+            var modifier = this.modifierTabs[this.modifierIndex];
+            if (modifier.renderedBox) {
+                this._drawRect(modifier.renderedBox, 'staffModifier');
+            } 
+        }
+    }
+
+    advanceModifierSelection() {
+        if (!this.modifierTabs.length) {
+            return;
+        }
+        this.modifierIndex = (this.modifierIndex + 1) % this.modifierTabs.length;
+        this._highlightModifier();
     }
 
     _findClosestSelection(selector) {
@@ -202,6 +238,8 @@ class suiTracker {
         this._replaceSelection(nselect);
     }
 
+    selectModifier() {}
+
     moveSelectionLeft() {
         if (this.selections.length == 0) {
             return;
@@ -317,6 +355,11 @@ class suiTracker {
                 'stroke-width': 2,
                 'fill': 'none'
             },
+            'staffModifier': {
+                'stroke': '#9f9',
+                'stroke-width': 2,
+                'fill': 'none'
+            }
         }
     }
 
@@ -394,6 +437,8 @@ class suiTracker {
         }
         boxes.push(curBox);
         this._drawRect(boxes, 'selection');
+
+        this._updateStaffModifiers();
     }
     _outerSelection() {
         if (this.selections.length == 0)
@@ -406,7 +451,7 @@ class suiTracker {
     }
     _drawRect(bb, stroke) {
         this.eraseRect(stroke);
-		var grp = this.context.openGroup(stroke, stroke + '-');
+        var grp = this.context.openGroup(stroke, stroke + '-');
         if (!Array.isArray(bb)) {
             bb = [bb];
         }

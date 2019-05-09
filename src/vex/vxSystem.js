@@ -53,10 +53,10 @@ class VxSystem {
                     last_note: vxEnd
                 }, modifier.type);
             hairpin.setContext(this.context).setPosition(modifier.position).draw();
-            this.modifiers.push(hairpin);
         }
 
         this.context.closeGroup();
+		return group.getBBox();
     }
 
     // ## renderMeasure

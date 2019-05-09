@@ -106,7 +106,8 @@ class suiSimpleLayout {
                 return;
 
             // TODO: notes may have changed, get closest if these exact endpoints don't exist
-            system.renderModifier(modifier, vxStart, vxEnd);
+            modifier.renderedBox = system.renderModifier(modifier, vxStart, vxEnd);
+			
 
             // TODO: consider staff height with these.
             // TODO: handle dynamics split across systems.

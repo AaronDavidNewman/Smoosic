@@ -254,44 +254,6 @@ class SmoMeasure {
 			target.note.addAccidental(value);
 		}
 	}
-	getSelection(voice,tick,optionPitchArray) {
-		optionPitchArray = optionPitchArray === null ? [] : optionPitchArray;
-		if (this.voices.length < voice) {
-			return null;
-		}
-				
-	    this.activeVoice = voice;
-		
-		var tickmap = this.tickmap();
-		
-		if (this.notes.length < tick) {
-			return null;
-		}
-		
-		var note = this.notes[tick];
-		var pitches = note.pitches;
-		
-		if (optionPitchArray.length > note.pitches.length) {
-			return null;
-		}
-		if (!optionPitchArray.length) {
-			pitches=[];
-			for (var i=0;i<note.pitches.length;++i) {
-				optionPitchArray.push(i);
-			}
-		}
-		
-		// {tickIndex:{measure:0,voice:0,tick:0},pitches:[0,1]}
-		var pitchSelection = 		    
-			   {
-			       measure: this.measureNumber.measureNumber,
-			       voice: voice,
-			       tick: tick,
-			       pitches: pitches
-			   };
-			
-		return {note:note,selection:pitchSelection};
-	}
 	
     clearBeamGroups() {
         this.beamGroups = [];

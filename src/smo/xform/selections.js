@@ -17,6 +17,27 @@ class SmoSelector {
     static sameMeasure(sel1, sel2) {
         return (sel1.staff == sel2.staff && sel1.measure == sel2.measure);
     }
+	
+	static sameStaff(sel1,sel2) {
+		return sel1.staff === sel2.staff;
+	}
+
+	// return true if testSel is contained in the selStart to selEnd range.
+    static contains(testSel, selStart, selEnd) {
+        var geStart =
+            selStart.measure < testSel.measure ||
+            (selStart.measure === testSel.measure && selStart.tick <= testSel.tick);
+        var leEnd =
+            selEnd.measure > testSel.measure ||
+            (selEnd.measure === testSel.measure && testSel.tick <= selEnd.tick);
+
+        return geStart && leEnd;
+    }
+	
+	// create a hashmap key for a single note, used to organize modifiers
+	static selectorNoteKey(selector) {
+		return 'staff-'+selector.staff+'-measure-'+selector.measure+'-voice-'+selector.voice+'-tick-'+selector.tick;
+	}
 }
 
 // ## SmoSelection
@@ -27,7 +48,7 @@ class SmoSelector {
 // or navigating to an element with the keyboard.
 class SmoSelection {
     static measureSelection(score, staffIndex, measureIndex) {
-        staffIndex = staffIndex!=null ? staffIndex : score.activeStaff;
+        staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
         var selector = {
             staff: staffIndex,
             measure: measureIndex
@@ -45,7 +66,7 @@ class SmoSelection {
     }
 
     static noteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
-        staffIndex = staffIndex!=null ? staffIndex : score.activeStaff;
+        staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
         measureIndex = measureIndex ? measureIndex : 0;
         voiceIndex = voiceIndex ? voiceIndex : 0;
         var staff = score.staves[staffIndex];
@@ -106,7 +127,7 @@ class SmoSelection {
     }
 
     static pitchSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex, pitches) {
-        staffIndex = staffIndex!=null ? staffIndex : score.activeStaff;
+        staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
         measureIndex = measureIndex ? measureIndex : 0;
         voiceIndex = voiceIndex ? voiceIndex : 0;
         var staff = score.staves[staffIndex];
@@ -133,40 +154,39 @@ class SmoSelection {
             type: 'pitches'
         });
     }
-	
-	// ## nextNoteSelection
-	// ## Description:
-	// Return the next note in this measure, or the first note of the next measure, if it exists.
-	static nextNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
-		var nextTick = tickIndex + 1;
-		var nextMeasure = measureIndex + 1;
+
+    // ## nextNoteSelection
+    // ## Description:
+    // Return the next note in this measure, or the first note of the next measure, if it exists.
+    static nextNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
+        var nextTick = tickIndex + 1;
+        var nextMeasure = measureIndex + 1;
         var staff = score.staves[staffIndex];
         var measure = staff.measures[measureIndex];
-		if (measure.voices[voiceIndex].notes.length > nextTick) {
-			return SmoSelection.noteSelection(score,staffIndex,measureIndex,voiceIndex,nextTick);
-		}
-		if (staff.measures.length > nextMeasure) {
-			return SmoSelection.noteSelection(score,staffIndex,nextMeasure,voiceIndex,0);
-		}
-		return null;
-	}
-	
-	static lastNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
-		var lastTick = tickIndex - 1;
-		var lastMeasure = measureIndex - 1;
+        if (measure.voices[voiceIndex].notes.length > nextTick) {
+            return SmoSelection.noteSelection(score, staffIndex, measureIndex, voiceIndex, nextTick);
+        }
+        if (staff.measures.length > nextMeasure) {
+            return SmoSelection.noteSelection(score, staffIndex, nextMeasure, voiceIndex, 0);
+        }
+        return null;
+    }
+
+    static lastNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
+        var lastTick = tickIndex - 1;
+        var lastMeasure = measureIndex - 1;
         var staff = score.staves[staffIndex];
         var measure = staff.measures[measureIndex];
-		if (tickIndex > 0) {
-			return SmoSelection.noteSelection(score,staffIndex,measureIndex,voiceIndex,lastTick);
-		}
-		if (measureIndex > 0) {
-			measure=staff.measures[lastMeasure];
-			var noteIndex = staff.measures[lastMeasure].voices[voiceIndex].notes.length-1;
-			return SmoSelection.noteSelection(score,staffIndex,lastMeasure,voiceIndex,noteIndex);
-		}
-		return null;
-		
-	}
+        if (tickIndex > 0) {
+            return SmoSelection.noteSelection(score, staffIndex, measureIndex, voiceIndex, lastTick);
+        }
+        if (measureIndex > 0) {
+            measure = staff.measures[lastMeasure];
+            var noteIndex = staff.measures[lastMeasure].voices[voiceIndex].notes.length - 1;
+            return SmoSelection.noteSelection(score, staffIndex, lastMeasure, voiceIndex, noteIndex);
+        }
+        return null;
+    }
 
     constructor(params) {
         this.selector = {
@@ -209,4 +229,3 @@ class SmoSelection {
         return [];
     }
 }
-

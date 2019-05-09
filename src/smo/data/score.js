@@ -16,6 +16,7 @@ class SmoScore {
             startIndex: 0,
             renumberingMap: {},
 			keySignatureMap:{},
+			measureTickmap:[],
             staves: [],
             activeStaff: 0
         };
@@ -83,6 +84,12 @@ class SmoScore {
 			staff.addMeasure(measureIndex,defaultMeasure);
 		});
 	}
+	_updateMeasureTickmap() {
+		this.measureTickmap=[];
+		this.measures.forEach((measure) => {
+			this.measureTickmap.push(measure.tickmap());
+		});
+	}
 	addMeasure(measureIndex,measure) {
 		for (var i=0;i<this.staves.length;++i) {
 			var staff=this.staves[i];
@@ -124,14 +131,6 @@ class SmoScore {
 		this.activeStaff=this.staves.length-1;
 	}
 	
-	getNoteAtSelection(selection) {
-		return this.staves[selection.staffIndex].getNoteAtSelection(selection);
-	}
-	getMeasureAtSelection(selection) {
-		selection.staffIndex = selection['staffIndex'] ? selection['staffIndex'] : this.activeStaff;
-		return this.staves[selection.staffIndex].measures[selection.measureIndex];
-	}
-	
 	getMaxTicksMeasure(measure) {		
 		return this.staves[this.activeStaff].getMaxTicksMeasure(measure);
 	}
@@ -148,10 +147,6 @@ class SmoScore {
 		return this.activeStaff;
 	}
 	
-	getSelection(measureNumber,voice,tick,pitches) {
-		return this.staves[this.activeStaff].getSelection(measureNumber,voice,tick,pitches);
-	}
-
     static deserialize(jsonString) {
         var jsonObj = JSON.parse(jsonString);
         var params = {};
