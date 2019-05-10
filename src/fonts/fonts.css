@@ -162,8 +162,13 @@ h1 {
 	z-index:12;
 }
 
+.musicRelief {
+	background:#999;
+}
 .musicContainer {
 	position:relative;
+	border:1px solid black;
+	background:#fff;
 	z-index:1;
 }
 .menuElement {

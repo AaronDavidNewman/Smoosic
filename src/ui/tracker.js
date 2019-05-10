@@ -312,7 +312,7 @@ class suiTracker {
 
     getFirstMeasureOfSelection() {
         if (this.selections.length) {
-            return this.selections[0].artifact.measure;
+            return this.selections[0].measure;
         }
         return null;
     }
