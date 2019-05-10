@@ -75,10 +75,16 @@ class suiTracker {
     }
 
     advanceModifierSelection() {
+		this.eraseRect('staffModifier');
+
         if (!this.modifierTabs.length) {
             return;
         }
-        this.modifierIndex = (this.modifierIndex + 1) % this.modifierTabs.length;
+        this.modifierIndex = this.modifierIndex + 1;
+		if (this.modifierIndex > this.modifierTabs.length) {
+			this.modifierIndex=-1;
+			return;
+		}
         this._highlightModifier();
     }
 
@@ -236,9 +242,7 @@ class suiTracker {
         }
         var nselect = this._getOffsetSelection(1);
         this._replaceSelection(nselect);
-    }
-
-    selectModifier() {}
+    }   
 
     moveSelectionLeft() {
         if (this.selections.length == 0) {

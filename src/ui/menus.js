@@ -73,7 +73,7 @@ class suiMenuManager {
             var bu = $('<button/>');
             var textSpan = $('<span/>');
             $(sel).addClass('menuOption');
-            $(textSpan).addClass('icon ' + item.icon);
+            $(textSpan).addClass('icon icon-' + item.icon);
             $(bu).text(item.text);
             $(bu).attr('data-value', item.value);
             $(sel).append(bu);
@@ -160,55 +160,55 @@ class suiKeySignatureMenu extends suiMenuBase {
     static get defaults() {
         return {
             menuItems: [{
-                    icon: 'keySigC',
+                    icon: 'key-sig-c',
                     text: 'C Major',
                     value: 'C'
                 }, {
-                    icon: 'keySigF',
+                    icon: 'key-sig-f',
                     text: 'F Major',
                     value: 'F'
                 }, {
-                    icon: 'keySigG',
+                    icon: 'key-sig-g',
                     text: 'G Major',
                     value: 'G'
                 }, {
-                    icon: 'keySigBb',
+                    icon: 'key-sig-bb',
                     text: 'Bb Major',
                     value: 'Bb'
                 }, {
-                    icon: 'keySigD',
+                    icon: 'key-sig-d',
                     text: 'D Major',
                     value: 'D'
                 }, {
-                    icon: 'keySigEb',
+                    icon: 'key-sig-eb',
                     text: 'Eb Major',
                     value: 'Eb'
                 }, {
-                    icon: 'keySigA',
+                    icon: 'key-sig-a',
                     text: 'A Major',
                     value: 'A'
                 }, {
-                    icon: 'keySigAb',
+                    icon: 'key-sig-ab',
                     text: 'Ab Major',
                     value: 'Ab'
                 }, {
-                    icon: 'keySigE',
-                    text: 'Db Major',
+                    icon: 'key-sig-e',
+                    text: 'E Major',
                     value: 'E'
                 }, {
-                    icon: 'keySigDb',
+                    icon: 'key-sig-bd',
                     text: 'Db Major',
                     value: 'Db'
                 }, {
-                    icon: 'keySigB',
+                    icon: 'key-sig-b',
                     text: 'B Major',
                     value: 'B'
                 }, {
-                    icon: 'keySigFs',
+                    icon: 'key-sig-fs',
                     text: 'F# Major',
                     value: 'F#'
                 }, {
-                    icon: 'keySigCs',
+                    icon: 'key-sig-cs',
                     text: 'C# Major',
                     value: 'C#'
                 }
@@ -238,11 +238,11 @@ class suiStaffModifierMenu extends suiMenuBase {
     static get defaults() {
         return {
             menuItems: [{
-                    icon: 'crescHairpin',
+                    icon: 'cresc',
                     text: 'Crescendo',
                     value: 'crescendo'
                 }, {
-                    icon: 'decrescHairpin',
+                    icon: 'decresc',
                     text: 'Decrescendo',
                     value: 'decrescendo'
                 }

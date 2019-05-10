@@ -31,6 +31,9 @@ class VxSystem {
 
     getVxNote(smoNote) {
         var note;
+		if (!smoNote) {
+			return null;
+		}
         for (var i = 0; i < this.measures.length; ++i) {
             var mm = this.measures[i];
             if (mm.noteToVexMap[smoNote.id]) {

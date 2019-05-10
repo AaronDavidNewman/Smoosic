@@ -10,6 +10,10 @@ class suiSimpleLayout {
         $(this.elementId).html('');
         this.renderer = new VF.Renderer(this.elementId, VF.Renderer.Backends.SVG);
         this.renderer.resize(this.pageWidth, this.pageHeight);
+        var offset = (window.innerWidth - $(this.elementId).width()) / 2;
+        if (offset > 0) {
+            $(this.elementId).css('left', '' + offset + 'px');
+        }
         this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
         this.attrs = {
             id: VF.Element.newID(),
@@ -107,7 +111,6 @@ class suiSimpleLayout {
 
             // TODO: notes may have changed, get closest if these exact endpoints don't exist
             modifier.renderedBox = system.renderModifier(modifier, vxStart, vxEnd);
-			
 
             // TODO: consider staff height with these.
             // TODO: handle dynamics split across systems.

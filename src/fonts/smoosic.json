@@ -4,85 +4,85 @@
       "order": 12,
       "ligatures": "",
       "prevSize": 32,
-      "name": "uniE900"
+      "name": "natural"
     },
     {
       "order": 13,
       "ligatures": "",
       "prevSize": 32,
-      "name": "uniE901"
+      "name": "key-sig-f"
     },
     {
       "order": 14,
       "ligatures": "",
       "prevSize": 32,
-      "name": "uniE902"
+      "name": "key-sig-bb"
     },
     {
       "order": 15,
       "ligatures": "",
       "prevSize": 32,
-      "name": "uniE903"
+      "name": "key-sig-eb"
     },
     {
       "order": 16,
       "ligatures": "",
       "prevSize": 32,
-      "name": "uniE904"
+      "name": "key-sig-ab"
     },
     {
       "order": 17,
       "ligatures": "",
       "prevSize": 32,
-      "name": "uniE905"
+      "name": "key-sig-db"
     },
     {
       "order": 18,
       "ligatures": "",
       "prevSize": 32,
-      "name": "uniE906"
+      "name": "key-sig-gg"
     },
     {
       "order": 19,
       "ligatures": "",
       "prevSize": 32,
-      "name": "uniE907"
+      "name": "key-sig-g"
     },
     {
       "order": 20,
       "ligatures": "",
       "prevSize": 32,
-      "name": "uniE908"
+      "name": "key-sig-d"
     },
     {
       "order": 21,
       "ligatures": "",
       "prevSize": 32,
-      "name": "uniE909"
+      "name": "key-sig-a"
     },
     {
       "order": 22,
       "ligatures": "",
       "prevSize": 32,
-      "name": "uniE90A"
+      "name": "key-sig-e"
     },
     {
       "order": 23,
       "ligatures": "",
       "prevSize": 32,
-      "name": "uniE90B"
+      "name": "key-sig-b"
     },
     {
       "order": 24,
       "ligatures": "",
       "prevSize": 32,
-      "name": "uniE90C"
+      "name": "key-sig-cs"
     },
     {
       "order": 25,
       "ligatures": "",
       "prevSize": 32,
-      "name": "uniE90D"
+      "name": "key-sig-fs"
     },
     {
       "order": 11,
@@ -291,7 +291,8 @@
       "ie7": false,
       "showSelector": false,
       "showMetrics": false,
-      "showMetadata": false
+      "showMetadata": false,
+      "autoHost": true
     },
     "imagePref": {
       "prefix": "icon-",
@@ -300,12 +301,16 @@
       "color": 0,
       "bgColor": 16777215,
       "name": "icomoon",
-      "classSelector": ".icon"
+      "classSelector": ".icon",
+      "autoHost": true
     },
     "historySize": 50,
     "gridSize": 16,
     "showGrid": false,
-    "showLiga": false
+    "showLiga": false,
+    "quickUsageToken": {
+      "UntitledProject1": "YjEyOGJiMzBiMWE2MGQ5ZWMxMDllZWVkNTU5MTdjOGEjMSMxNTU3NDkzMjg5IyMj"
+    }
   },
   "IcoMoonType": "icon-set"
 }
