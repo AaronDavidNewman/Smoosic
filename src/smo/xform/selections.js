@@ -88,7 +88,7 @@ class SmoSelection {
         });
     }
 
-    static renderedNoteSelection(score, nel) {
+    static renderedNoteSelection(score, nel,box) {
         var elementId = nel.getAttribute('id');
         for (var i = 0; i < score.staves.length; ++i) {
             var staff = score.staves[i];
@@ -106,7 +106,7 @@ class SmoSelection {
                                 tick: m,
                                 pitches: []
                             };
-                            var box = document.getElementById(nel.id).getBBox();
+                            // var box = document.getElementById(nel.id).getBBox();
                             var rv = new SmoSelection({
                                     selector: selector,
                                     _staff: staff,

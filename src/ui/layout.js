@@ -9,11 +9,15 @@ class suiSimpleLayout {
         Vex.Merge(this, params);
         $(this.elementId).html('');
         this.renderer = new VF.Renderer(this.elementId, VF.Renderer.Backends.SVG);
-        this.renderer.resize(this.pageWidth, this.pageHeight);
+        // this.renderer.resize(this.pageWidth, this.pageHeight);
         var offset = (window.innerWidth - $(this.elementId).width()) / 2;
         if (offset > 0) {
             $(this.elementId).css('left', '' + offset + 'px');
         }
+		var xtranslation = Math.round(((1.0-this.svgScale)*this.pageWidth)/2);
+		var ytranslation = Math.round(((1.0-this.svgScale)*this.pageHeight)/2);
+		$(this.elementId).find('svg').css('transform','scale('+this.svgScale+','+
+		   this.svgScale+') translate(-'+xtranslation+'px,-'+ytranslation+'px)');
         this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
         this.attrs = {
             id: VF.Element.newID(),
@@ -42,6 +46,7 @@ class suiSimpleLayout {
             topMargin: 15,
             pageWidth: 8 * 96 + 48,
             pageHeight: 11 * 96,
+			svgScale:0.7,
             font: {
                 typeface: "Arial",
                 pointSize: 10,

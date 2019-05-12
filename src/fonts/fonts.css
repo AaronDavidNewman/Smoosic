@@ -166,11 +166,20 @@ h1 {
 	background:#999;
 }
 .musicContainer {
+	width:8.5in;
+	height:11in;
 	position:relative;
 	border:1px solid black;
 	background:#fff;
 	z-index:1;
 }
+
+.musicContainer svg {
+	/* transform:scale(0.7,0.7);  */
+	width:100%;
+	height:100%;
+}
+
 .menuElement {
 	position:absolute;
 	list-style:none;

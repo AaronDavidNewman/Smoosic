@@ -13,12 +13,17 @@ class svgHelpers {
             height: height
         };
     }
-	
-	// ## Description:
-	// return a simple box object that can be serialized, copied.
-	static smoBox(box) {
-		return ({x:box.x,y:box.y,width:box.width,height:box.height});
-	}
+
+    // ## Description:
+    // return a simple box object that can be serialized, copied.
+    static smoBox(box) {
+        return ({
+            x: box.x,
+            y: box.y,
+            width: box.width,
+            height: box.height
+        });
+    }
 
     static measureBBox(b1, measure, staff) {
         if (measure.renderedBox) {
@@ -41,6 +46,22 @@ class svgHelpers {
         }
     }
 
+    static stringify(box) {
+        if (box['width']) {
+			
+            return JSON.stringify({
+                x: box.x,
+                y: box.y,
+                width: box.width,
+                height: box.height
+            }, null, ' ');
+        } else {
+            return JSON.stringify({
+                x: box.x,
+			y: box.y},null,' ');
+		}
+    }
+
     static log(box) {
         if (box['width']) {
             console.log(JSON.stringify({
@@ -52,7 +73,36 @@ class svgHelpers {
         }
         console.log('{}');
     }
-	static pointBox(x,y) {
-		return {x:x,y:y,width:1,height:1};
-	}
+    static pointBox(x, y) {
+        return {
+            x: x,
+            y: y,
+            width: 1,
+            height: 1
+        };
+    }
+
+    static untransformSvgPoint(svg, point) {
+        var pt = svg.createSVGPoint();
+        pt.x = point.x;
+        pt.y = point.y;
+        return pt.matrixTransform(svg.getCTM().inverse());
+    }
+    static untransformSvgBox(svg, box) {
+        var pt = svg.createSVGPoint();
+        pt.x = box.x;
+        pt.y = box.y;
+        var endPt = svg.createSVGPoint();
+        endPt.x = pt.x + box.width;
+        endPt.y = pt.y + box.height;
+
+        var sp = pt.matrixTransform(svg.getScreenCTM().inverse());
+        var ep = endPt.matrixTransform(svg.getScreenCTM().inverse());
+        return {
+            x: sp.x,
+            y: sp.y,
+            width: ep.x - sp.x,
+            height: ep.y - sp.y
+        };
+    }
 }

@@ -111,7 +111,12 @@ class suiTracker {
         this.objectGroupMap = {};
         this.objects = [];
         var selCopy = this._copySelections();
-        notes.forEach((note) => this.objects.push(SmoSelection.renderedNoteSelection(this.score, note)));
+        notes.forEach((note) => {
+			var box = note.getBoundingClientRect();
+			// box = svgHelpers.untransformSvgBox(this.context.svg,box);
+			var selection = SmoSelection.renderedNoteSelection(this.score, note,box);
+			this.objects.push(selection);
+		});
         this.selections = [];
         if (this.objects.length && !selCopy.length) {
             console.log('adding selection ' + this.objects[0].note.id);
@@ -367,13 +372,18 @@ class suiTracker {
         }
     }
 
-    _findIntersectionArtifact(box) {
+    _findIntersectionArtifact(clientBox) {
         var obj = null;
-        box.y = box.y - this.renderElement.offsetTop;
-        box.x = box.x - this.renderElement.offsetLeft;
+		var box = clientBox; //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
+
+        // box.y = box.y - this.renderElement.offsetTop;
+        // box.x = box.x - this.renderElement.offsetLeft;
 
         $(this.objects).each(function (ix, object) {
             var i1 = box.x - object.box.x;
+			console.log('client coords: ' + svgHelpers.stringify(clientBox));
+    		console.log('find box '+svgHelpers.stringify(box));
+			console.log('examine obj: '+svgHelpers.stringify(object.box));
             var i2 = box.y - object.box.y;
             if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
                 obj = object;
@@ -465,6 +475,7 @@ class suiTracker {
             $(Object.keys(strokes)).each(function (ix, key) {
                 strokeObj[key] = strokes[key];
             });
+			box=svgHelpers.untransformSvgBox(this.context.svg,box);
             this.context.rect(box.x - 3, box.y - 3, box.width + 3, box.height + 3, strokeObj);
         });
         this.context.closeGroup(grp);
