@@ -475,7 +475,7 @@ class suiTracker {
             $(Object.keys(strokes)).each(function (ix, key) {
                 strokeObj[key] = strokes[key];
             });
-			box=svgHelpers.untransformSvgBox(this.context.svg,box);
+			box=svgHelpers.clientToLogical(this.context.svg,box);
             this.context.rect(box.x - 3, box.y - 3, box.width + 3, box.height + 3, strokeObj);
         });
         this.context.closeGroup(grp);

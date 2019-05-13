@@ -14,10 +14,10 @@ class suiSimpleLayout {
         if (offset > 0) {
             $(this.elementId).css('left', '' + offset + 'px');
         }
-		var xtranslation = Math.round(((1.0-this.svgScale)*this.pageWidth)/2);
-		var ytranslation = Math.round(((1.0-this.svgScale)*this.pageHeight)/2);
-		$(this.elementId).find('svg').css('transform','scale('+this.svgScale+','+
-		   this.svgScale+') translate(-'+xtranslation+'px,-'+ytranslation+'px)');
+        var xtranslation = Math.round(((1.0 - this.svgScale) * this.pageWidth) / 2);
+        var ytranslation = Math.round(((1.0 - this.svgScale) * this.pageHeight) / 2);
+        $(this.elementId).find('svg').css('transform', 'scale(' + this.svgScale + ',' +
+            this.svgScale + ') translate(-' + xtranslation + 'px,-' + ytranslation + 'px)');
         this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
         this.attrs = {
             id: VF.Element.newID(),
@@ -46,7 +46,7 @@ class suiSimpleLayout {
             topMargin: 15,
             pageWidth: 8 * 96 + 48,
             pageHeight: 11 * 96,
-			svgScale:0.7,
+            svgScale: 0.7,
             font: {
                 typeface: "Arial",
                 pointSize: 10,
@@ -127,6 +127,8 @@ class suiSimpleLayout {
     // elements.  Re-render a second time to adjust measure widths to prevent notes
     // from overlapping.  Then render all the modifiers.
     layout() {
+		var svg=this.context.svg;
+		
         // bounding box of all artifacts on the page
         var pageBox = {};
         // bounding box of all artifacts in a system
@@ -149,54 +151,69 @@ class suiSimpleLayout {
                 var staff = this.score.staves[j];
                 var measure = staff.measures[i];
                 measure.measureNumber.systemIndex = j;
+				
+				var logicalStaffBox = svgHelpers.pointBox(this.score.staffX, this.score.staffY);
+				var clientStaffBox=svgHelpers.logicalToClient(svg,logicalStaffBox);
+				
+				// If we are starting a new staff on the same system, offset y so it is below the first staff.
                 if (!staffBoxes[j]) {
                     if (j == 0) {
-                        staffBoxes[j] = svgHelpers.pointBox(this.score.staffX, this.score.staffY);
+                        staffBoxes[j] = svgHelpers.copyBox(clientStaffBox);
                     } else {
                         staffBoxes[j] = svgHelpers.pointBox(staffBoxes[j - 1].x, staffBoxes[j - 1].y + staffBoxes[j - 1].height);
                     }
                 }
+				
+				logicalStaffBox=svgHelpers.clientToLogical(svg,staffBoxes[j]);
+				if (j>0) {
+					measure.staffY=logicalStaffBox.y;
+				}
+				
+				measure.staffX=logicalStaffBox.x+logicalStaffBox.width;
+				
                 if (!systemBoxes[lineIndex]) {
-                    systemBoxes[lineIndex] = svgHelpers.pointBox(this.score.staffX, this.score.staffY);
+                    systemBoxes[lineIndex] = svgHelpers.copyBox(clientStaffBox);
                 }
 
                 if (!pageBox['width']) {
-                    pageBox = svgHelpers.pointBox(this.score.staffX, this.score.staffY);
+                    pageBox = svgHelpers.copyBox(clientStaffBox);
                 }
                 var keySigLast = this._previousAttr(i, j, 'keySignature');
                 var timeSigLast = this._previousAttr(i, j, 'timeSignature');
                 var clefLast = this._previousAttr(i, j, 'clef');
 
-                if (j == 0 && staffBoxes[lineIndex].x + staffBoxes[lineIndex].width + measure.staffWidth
-                     > this.pageMarginWidth) {
+                if (j == 0 && logicalStaffBox.x + logicalStaffBox.width + measure.staffWidth
+                     > this.pageMarginWidth/this.svgScale) {
                     system.cap();
                     this.score.staves.forEach((stf) => {
                         this._renderModifiers(stf, system);
                     });
-                    staff.staffY = pageBox.y + pageBox.height + this.score.interGap;
+                    var logicalPageBox = svgHelpers.clientToLogical(svg,pageBox);
+					measure.staffX=this.score.staffX;
+                    measure.staffY = logicalPageBox.y + logicalPageBox.height + this.score.interGap;
                     staffBoxes = {};
-                    staffBoxes[j] = svgHelpers.pointBox(this.score.staffX, staff.staffY);
+                    staffBoxes[j] = svgHelpers.logicalToClient(svg,
+					    svgHelpers.pointBox(this.score.staffX, staff.staffY));
                     lineIndex += 1;
                     system = new VxSystem(this.context, staff.staffY, lineIndex);
                     systemIndex = 0;
-                    systemBoxes[lineIndex] = svgHelpers.pointBox(measure.staffX, staff.staffY);
+                    systemBoxes[lineIndex] = svgHelpers.logicalToClient(svg,
+                            svgHelpers.pointBox(measure.staffX, staff.staffY));
                 }
 
                 measure.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
                 measure.forceTimeSignature = (systemIndex === 0 || measure.timeSignature !== timeSigLast);
                 measure.forceKeySignature = (systemIndex === 0 || measure.keySignature !== keySigLast);
-
-                measure.staffX = staffBoxes[j].x + staffBoxes[j].width;
-                measure.staffY = staffBoxes[j].y;
-
+								
                 // guess height of staff the first time
-                measure.staffHeight = (measure.logicalBox ? measure.logicalBox.height : 90);
                 measure.measureNumber.systemIndex = systemIndex;
                 smoModifierFactory.applyModifiers(measure);
                 system.renderMeasure(j, measure);
-                systemBoxes[lineIndex] = svgHelpers.unionRect(systemBoxes[lineIndex], measure.logicalBox);
-                staffBoxes[j] = svgHelpers.unionRect(staffBoxes[j], measure.logicalBox);
-                pageBox = svgHelpers.unionRect(pageBox, measure.logicalBox);
+				
+				// Keep a running tally of the page, system, and staff dimensions as we draw.
+                systemBoxes[lineIndex] = svgHelpers.unionRect(systemBoxes[lineIndex], measure.renderedBox);
+                staffBoxes[j] = svgHelpers.unionRect(staffBoxes[j], measure.renderedBox);
+                pageBox = svgHelpers.unionRect(pageBox, measure.renderedBox);
             }
             ++systemIndex;
         }

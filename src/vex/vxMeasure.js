@@ -231,10 +231,13 @@ class VxMeasure {
 		this.vexTuplets.forEach(function (tuplet) {
 			tuplet.setContext(self.context).draw();
 		});       
-		var box = group.getBBox();
+		var box = group.getBoundingClientRect();
 		this.smoMeasure.renderedBox={x:box.x,y:box.y,height:box.height,width:box.width};
-		this.smoMeasure.logicalBox={x:box.x,y:box.y,height:this.stave.getHeight(),width:this.stave.getWidth()};
-		this.smoMeasure.adjX=this.smoMeasure.renderedBox.width-this.smoMeasure.logicalBox.width;
+		
+		// Calculate how far off our estimated width we are
+		var svgBox=
+		   svgHelpers.clientToLogical(this.context.svg,box);
+		this.smoMeasure.adjX=svgBox.width-this.stave.getWidth();
 		// console.log(JSON.stringify(this.smoMeasure.renderedBox,null,' '));
         this.context.closeGroup();
     }

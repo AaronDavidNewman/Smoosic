@@ -81,22 +81,44 @@ class svgHelpers {
             height: 1
         };
     }
-
-    static untransformSvgPoint(svg, point) {
+	
+	static copyBox(box) {
+		return {x:box.x,y:box.y,width:box.width,height:box.height};
+	}
+	
+	
+	static logicalToClient(svg,logicalPoint) {
+		var rect = svg.getBoundingClientRect();
+		var rv = svgHelpers.copyBox(logicalPoint);
+		rv.x+=rect.x;
+		rv.y+=rect.y;		
+		return rv;
+	}
+	
+	
+	static clientToLogical(svg,clientPoint) {
+		if (clientPoint['width']) {
+			return untransformSvgBox(svg,clientPoint);
+		}
+		return untransformSvgPoint(svg,clientPoint);
+		return rv;
+	}
+    
+	// ## clientToLogical
+	// ## Description:
+	// return a box or point in svg coordintes from screen coordinates
+    static clientToLogical(svg, point) {
         var pt = svg.createSVGPoint();
         pt.x = point.x;
         pt.y = point.y;
-        return pt.matrixTransform(svg.getCTM().inverse());
-    }
-    static untransformSvgBox(svg, box) {
-        var pt = svg.createSVGPoint();
-        pt.x = box.x;
-        pt.y = box.y;
-        var endPt = svg.createSVGPoint();
-        endPt.x = pt.x + box.width;
-        endPt.y = pt.y + box.height;
-
         var sp = pt.matrixTransform(svg.getScreenCTM().inverse());
+		if (!point['width']) {
+		   return {x:sp.x,y:sp.y};
+		}
+        
+		var endPt = svg.createSVGPoint();
+        endPt.x = pt.x + point.width;
+        endPt.y = pt.y + point.height;
         var ep = endPt.matrixTransform(svg.getScreenCTM().inverse());
         return {
             x: sp.x,
@@ -105,4 +127,27 @@ class svgHelpers {
             height: ep.y - sp.y
         };
     }
+	
+	// ## logicalToClient
+	// ## Description:
+	// return a box or point in screen coordinates from svg coordinates
+	static logicalToClient(svg,point) {
+        var pt = svg.createSVGPoint();
+        pt.x = point.x;
+        pt.y = point.y;
+        var sp = pt.matrixTransform(svg.getScreenCTM());
+		if (!point['width']) {
+		   return {x:sp.x,y:sp.y};
+		}
+        var endPt = svg.createSVGPoint();
+        endPt.x = pt.x + point.width;
+        endPt.y = pt.y + point.height;
+        var ep = endPt.matrixTransform(svg.getScreenCTM());
+        return {
+            x: sp.x,
+            y: sp.y,
+            width: ep.x - sp.x,
+            height: ep.y - sp.y
+        };
+	}
 }
