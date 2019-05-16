@@ -4,6 +4,7 @@ class SmoMeasure {
     constructor(params) {
         this.tuplets = [];
         this.beamGroups = [];
+		this.changed=true;
 
         Vex.Merge(this, SmoMeasure.defaults);
         Vex.Merge(this, params);

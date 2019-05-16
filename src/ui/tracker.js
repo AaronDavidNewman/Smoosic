@@ -381,9 +381,9 @@ class suiTracker {
 
         $(this.objects).each(function (ix, object) {
             var i1 = box.x - object.box.x;
-			console.log('client coords: ' + svgHelpers.stringify(clientBox));
+			/* console.log('client coords: ' + svgHelpers.stringify(clientBox));
     		console.log('find box '+svgHelpers.stringify(box));
-			console.log('examine obj: '+svgHelpers.stringify(object.box));
+			console.log('examine obj: '+svgHelpers.stringify(object.box));  */
             var i2 = box.y - object.box.y;
             if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
                 obj = object;

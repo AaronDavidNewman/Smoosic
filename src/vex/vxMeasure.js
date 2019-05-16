@@ -233,6 +233,7 @@ class VxMeasure {
 		});       
 		var box = group.getBoundingClientRect();
 		this.smoMeasure.renderedBox={x:box.x,y:box.y,height:box.height,width:box.width};
+		this.smoMeasure.changed=false;
 		
 		// Calculate how far off our estimated width we are
 		var svgBox=

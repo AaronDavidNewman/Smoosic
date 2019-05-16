@@ -7,6 +7,14 @@ class suiSimpleLayout {
     constructor(params) {
         Vex.Merge(this, suiSimpleLayout.defaults);
         Vex.Merge(this, params);
+
+        if (this.score) {
+            this.svgScale = this.score.svgScale * this.score.zoomScale;
+            this.pageWidth = Math.round(this.score.pageWidth * this.score.zoomScale);
+            this.pageHeight = Math.round(this.score.pageHeight * this.score.zoomScale);
+            $(this.elementId).css('width', '' + this.pageWidth + 'px');
+            $(this.elementId).css('height', '' + this.pageHeight + 'px');
+        }
         $(this.elementId).html('');
         this.renderer = new VF.Renderer(this.elementId, VF.Renderer.Backends.SVG);
         // this.renderer.resize(this.pageWidth, this.pageHeight);
@@ -37,8 +45,6 @@ class suiSimpleLayout {
     }
     static get defaults() {
         return {
-            staffX: 10,
-            staffY: 40,
             clefWidth: 70,
             staffWidth: 250,
             totalWidth: 250,
@@ -61,9 +67,9 @@ class suiSimpleLayout {
         return this.renderer.elementId;
     }
     render() {
-        this.layout();
+        this.layout(false);
         // layout a second time to adjust for issues.
-        this.layout();
+        this.layout(true);
     }
     unrender() {}
 
@@ -126,9 +132,9 @@ class suiSimpleLayout {
     // ## Render the music, keeping track of the bounding boxes of all the
     // elements.  Re-render a second time to adjust measure widths to prevent notes
     // from overlapping.  Then render all the modifiers.
-    layout() {
-		var svg=this.context.svg;
-		
+    layout(drawAll) {
+        var svg = this.context.svg;
+
         // bounding box of all artifacts on the page
         var pageBox = {};
         // bounding box of all artifacts in a system
@@ -151,11 +157,11 @@ class suiSimpleLayout {
                 var staff = this.score.staves[j];
                 var measure = staff.measures[i];
                 measure.measureNumber.systemIndex = j;
-				
-				var logicalStaffBox = svgHelpers.pointBox(this.score.staffX, this.score.staffY);
-				var clientStaffBox=svgHelpers.logicalToClient(svg,logicalStaffBox);
-				
-				// If we are starting a new staff on the same system, offset y so it is below the first staff.
+
+                var logicalStaffBox = svgHelpers.pointBox(this.score.staffX, this.score.staffY);
+                var clientStaffBox = svgHelpers.logicalToClient(svg, logicalStaffBox);
+
+                // If we are starting a new staff on the same system, offset y so it is below the first staff.
                 if (!staffBoxes[j]) {
                     if (j == 0) {
                         staffBoxes[j] = svgHelpers.copyBox(clientStaffBox);
@@ -163,14 +169,14 @@ class suiSimpleLayout {
                         staffBoxes[j] = svgHelpers.pointBox(staffBoxes[j - 1].x, staffBoxes[j - 1].y + staffBoxes[j - 1].height);
                     }
                 }
-				
-				logicalStaffBox=svgHelpers.clientToLogical(svg,staffBoxes[j]);
-				if (j>0) {
-					measure.staffY=logicalStaffBox.y;
-				}
-				
-				measure.staffX=logicalStaffBox.x+logicalStaffBox.width;
-				
+
+                logicalStaffBox = svgHelpers.clientToLogical(svg, staffBoxes[j]);
+                if (j > 0) {
+                    measure.staffY = logicalStaffBox.y;
+                }
+
+                measure.staffX = logicalStaffBox.x + logicalStaffBox.width;
+
                 if (!systemBoxes[lineIndex]) {
                     systemBoxes[lineIndex] = svgHelpers.copyBox(clientStaffBox);
                 }
@@ -183,17 +189,19 @@ class suiSimpleLayout {
                 var clefLast = this._previousAttr(i, j, 'clef');
 
                 if (j == 0 && logicalStaffBox.x + logicalStaffBox.width + measure.staffWidth
-                     > this.pageMarginWidth/this.svgScale) {
-                    system.cap();
+                     > this.pageMarginWidth / this.svgScale) {
+                    if (drawAll) {
+                        system.cap();
+                    }
                     this.score.staves.forEach((stf) => {
                         this._renderModifiers(stf, system);
                     });
-                    var logicalPageBox = svgHelpers.clientToLogical(svg,pageBox);
-					measure.staffX=this.score.staffX;
+                    var logicalPageBox = svgHelpers.clientToLogical(svg, pageBox);
+                    measure.staffX = this.score.staffX + 1;
                     measure.staffY = logicalPageBox.y + logicalPageBox.height + this.score.interGap;
                     staffBoxes = {};
                     staffBoxes[j] = svgHelpers.logicalToClient(svg,
-					    svgHelpers.pointBox(this.score.staffX, staff.staffY));
+                            svgHelpers.pointBox(this.score.staffX, staff.staffY));
                     lineIndex += 1;
                     system = new VxSystem(this.context, staff.staffY, lineIndex);
                     systemIndex = 0;
@@ -204,20 +212,25 @@ class suiSimpleLayout {
                 measure.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
                 measure.forceTimeSignature = (systemIndex === 0 || measure.timeSignature !== timeSigLast);
                 measure.forceKeySignature = (systemIndex === 0 || measure.keySignature !== keySigLast);
-								
+
                 // guess height of staff the first time
                 measure.measureNumber.systemIndex = systemIndex;
-                smoModifierFactory.applyModifiers(measure);
-                system.renderMeasure(j, measure);
-				
-				// Keep a running tally of the page, system, and staff dimensions as we draw.
+                // WIP
+                if (drawAll || measure.changed) {
+                    smoModifierFactory.applyModifiers(measure);
+                    system.renderMeasure(j, measure);
+                }
+
+                // Keep a running tally of the page, system, and staff dimensions as we draw.
                 systemBoxes[lineIndex] = svgHelpers.unionRect(systemBoxes[lineIndex], measure.renderedBox);
                 staffBoxes[j] = svgHelpers.unionRect(staffBoxes[j], measure.renderedBox);
                 pageBox = svgHelpers.unionRect(pageBox, measure.renderedBox);
             }
             ++systemIndex;
         }
-        system.cap();
+        if (drawAll) {
+            system.cap();
+        }
         this.score.staves.forEach((stf) => {
             this._renderModifiers(stf, system);
         });

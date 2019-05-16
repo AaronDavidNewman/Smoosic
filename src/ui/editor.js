@@ -18,13 +18,12 @@ class suiEditor {
         if (this.changed) {
             this._render();
             this.tracker.moveSelectionRight();
-            this.changed = false;
         }
     }
 
     _selectionOperation(selection, name,parameters) {
+		selection.measure.changed=true;
         SmoOperation[name](selection, parameters);
-        this.changed = true;
         this._render();
     }
 	
