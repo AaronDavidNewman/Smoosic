@@ -59,7 +59,7 @@ class VxSystem {
         }
 
         this.context.closeGroup();
-		return group.getBBox();
+		return group.getBoundingClientRect();
     }
 
     // ## renderMeasure

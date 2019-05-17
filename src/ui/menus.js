@@ -64,27 +64,31 @@ class suiMenuManager {
     }
 
     attach(el) {
+		var b = htmlHelpers.buildDom();
+		
         $(this.menuContainer).html('');
         $(this.menuContainer).attr('z-index', '12');
-        var ul = $('<ul/>');
-        $(ul).addClass('menuElement');
+		var b = htmlHelpers.buildDom;
+		var r=b('ul').classes('menuElement').attr('size', this.menu.menuItems.length)
+		    .css('left', '' + this.menuPosition.x + 'px')
+		    .css('top', '' + this.menuPosition.y + 'px')
+			.css('height', '' + this.menu.menuItems.length * 35 + 'px');
+        // $(ul).addClass('menuElement');
         this.menu.menuItems.forEach((item) => {
-            var sel = $('<li/>');
-            var bu = $('<button/>');
-            var textSpan = $('<span/>');
-            $(sel).addClass('menuOption');
-            $(textSpan).addClass('icon icon-' + item.icon);
-            $(bu).text(item.text);
-            $(bu).attr('data-value', item.value);
-            $(sel).append(bu);
-            $(bu).append(textSpan);
-            $(ul).append(sel);
+			r.append(
+			   b('li').classes('menuOption').append(
+			      b('button')
+			       .text(item.text).attr('data-value',item.value)
+				   .append(
+				     b('span').classes('icon icon-' + item.icon)
+					 )
+				   )
+				 );
         });
-        $(ul).css('left', '' + this.menuPosition.x + 'px');
+        /* $(ul).css('left', '' + this.menuPosition.x + 'px');
         $(ul).css('top', '' + this.menuPosition.y + 'px');
-        $(ul).css('height', '' + this.menu.menuItems.length * 35 + 'px');
-        $(this.menuContainer).append(ul);
-        $(ul).attr('size', this.menu.menuItems.length);
+        $(ul).css('height', '' + this.menu.menuItems.length * 35 + 'px'); */
+        $(this.menuContainer).append(r.dom());
         $('body').addClass('modal');
         this.bindEvents();
     }
@@ -217,7 +221,7 @@ class suiKeySignatureMenu extends suiMenuBase {
         };
     }
     selection(ev) {
-        var keySig = $(ev.target).attr('data-value');
+        var keySig = $(ev.currentTarget).attr('data-value');
         var self = this;
         this.tracker.iterateMeasures((measure) => {
             this.score.addKeySignature(measure.measureNumber.measureIndex, keySig);
@@ -251,13 +255,22 @@ class suiStaffModifierMenu extends suiMenuBase {
         };
     }
     selection(ev) {
-        var op = $(ev.target).attr('data-value');
+        var op = $(ev.currentTarget).attr('data-value');
 
         var self = this;
         var ft = this.tracker.getExtremeSelection(-1);
         var tt = this.tracker.getExtremeSelection(1);
+		if (SmoSelector.sameNote(ft.selector,tt.selector)) {
+			this.complete();
+			return;
+		}
+
         SmoOperation[op](ft, tt);
         this.complete();
     }
     keydown(ev) {}
+}
+
+class SuiAttributeDialog {
+	
 }
