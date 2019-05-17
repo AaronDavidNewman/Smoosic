@@ -3,6 +3,7 @@
         <Folder name="common">
             <File name="src\common\vexHelpers.js" />
             <File name="src\common\svgHelpers.js" />
+            <File name="src\common\htmlHelpers.js" />
         </Folder>
         <Folder name="smo">
             <Folder name="data">
