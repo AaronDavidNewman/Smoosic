@@ -175,12 +175,12 @@ class SmoOperation {
             pitches = [pitches];
         }
         pitches.forEach((pitch) => {
-            var key = pitch;
+            var letter = pitch;
             if (typeof(pitch) === 'string') {
                 var letter = vexMusic.getKeySignatureKey(pitch[0], measure.keySignature);
                 pitch = {
-                    key: letter[0],
-                    accidental: letter.length > 1 ? key.substring(1) : '',
+                    letter: letter[0],
+                    accidental: letter.length > 1 ? letter.substring(1) : '',
                     octave: octave
                 };
             }
@@ -198,8 +198,8 @@ class SmoOperation {
         var note = selection.note;
 
         // TODO: figure out which pitch is selected
-        var key = note.pitches[0];
-        var pitch = vexMusic.getIntervalInKey(key, measure.keySignature, interval);
+        var pitch = note.pitches[0];
+        var pitch = vexMusic.getIntervalInKey(pitch, measure.keySignature, interval);
         if (pitch) {
             note.pitches.push(pitch);
             smoModifierFactory.applyModifiers(measure);

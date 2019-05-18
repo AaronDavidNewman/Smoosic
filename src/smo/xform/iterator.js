@@ -87,15 +87,14 @@ class smoTickIterator {
     // empty function for a default iterator (tickmap)
     static nullActor() { }
 
-	static _getAccidentalsForKey(key,map) {
+	static _getAccidentalsForKey(keySignature,map) {
 		var music = new VF.Music();
-		var keys = music.createScaleMap(key);
+		var keys = music.createScaleMap(keySignature);
 		var keyKeys=Object.keys(keys);
 		keyKeys.forEach((keyKey) => {
-			var key = keys[keyKey];
-			var newObj={};
-			if (key.length>1 && (key[1]==='b' || key[1] === '#')) {
-				map[key[0]]={key:key[0],accidental:key[1]};
+			var vexKey = keys[keyKey];
+			if (vexKey.length>1 && (vexKey[1]==='b' || vexKey[1] === '#')) {
+				map[vexKey[0]]={letter:vexKey[0],accidental:vexKey[1]};
 			}
 		});
 	}
@@ -110,31 +109,31 @@ class smoTickIterator {
 			sigObj = accidentalMap[iterator.index - 1];
 		}
 		for (var i = 0; i < note.pitches.length; ++i) {
-			var prop = note.pitches[i];
-			var letter = prop.key.toLowerCase();
-			var sigLetter = letter+prop.accidental;
+			var pitch = note.pitches[i];
+			var letter = pitch.letter.toLowerCase();
+			var sigLetter = letter+pitch.accidental;
 			var sigKey = vexMusic.getKeySignatureKey(letter, keySignature);
 			
 			if (sigObj && sigObj[letter]) {
 				var currentVal = sigObj[letter].key+sigObj[letter].accidental;
 				if (sigLetter != currentVal) {
-					newObj[letter] = prop;
+					newObj[letter] = pitch;
 				}
 			} else {
 				if (sigLetter != sigKey) {
-					newObj[letter] = prop;
+					newObj[letter] = pitch;
 				}
 			}
 		}
 		accidentalMap.push(newObj);
 	}
 	
-	static hasActiveAccidental(key, iteratorIndex, accidentalMap) {
+	static hasActiveAccidental(pitch, iteratorIndex, accidentalMap) {
 		if (iteratorIndex === 0) 
 			return false;
-	    var vexKey = key.key;
+	    var vexKey = pitch.letter;
 	    var letter = vexKey;
-	    var accidental = key.accidental.length > 0 ? key.accidental: 'n';		
+	    var accidental = pitch.accidental.length > 0 ? pitch.accidental: 'n';		
 
 	    // Back up the accidental map until we have a match, or until we run out
 	    for (var i = iteratorIndex; i > 0; --i) {
@@ -147,7 +146,7 @@ class smoTickIterator {
 	            var mapAcc = mapLetter.accidental ? mapLetter.accidental : 'n';			
 
 	            // if the letters match and the accidental...
-	            if (mapLetter.key.toLowerCase() === letter && mapAcc == accidental) {
+	            if (mapLetter.letter.toLowerCase() === letter && mapAcc == accidental) {
 	                return true;
 	            }
 	        }

@@ -13,18 +13,7 @@ class suiMenuManager {
     constructor(params) {
         Vex.Merge(this, suiMenuManager.defaults);
         Vex.Merge(this, params);
-    }
-
-    static get menuKeyBindingDefaults() {
-        return [{
-                event: "keydown",
-                key: "k",
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: "suiKeySignatureMenu"
-            }
-        ];
+        this.bound = false;
     }
 
     static get defaults() {
@@ -61,33 +50,27 @@ class suiMenuManager {
         $('body').removeClass('modal');
         $(this.menuContainer).html('');
         $('body').off('dismissMenu');
+        this.bound = false;
     }
 
     attach(el) {
-		var b = htmlHelpers.buildDom();
-		
+        var b = htmlHelpers.buildDom();
+
         $(this.menuContainer).html('');
         $(this.menuContainer).attr('z-index', '12');
-		var b = htmlHelpers.buildDom;
-		var r=b('ul').classes('menuElement').attr('size', this.menu.menuItems.length)
-		    .css('left', '' + this.menuPosition.x + 'px')
-		    .css('top', '' + this.menuPosition.y + 'px')
-			.css('height', '' + this.menu.menuItems.length * 35 + 'px');
-        // $(ul).addClass('menuElement');
+        var b = htmlHelpers.buildDom;
+        var r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length)
+            .css('left', '' + this.menuPosition.x + 'px')
+            .css('top', '' + this.menuPosition.y + 'px')
+            .css('height', '' + this.menu.menuItems.length * 35 + 'px');
         this.menu.menuItems.forEach((item) => {
-			r.append(
-			   b('li').classes('menuOption').append(
-			      b('button')
-			       .text(item.text).attr('data-value',item.value)
-				   .append(
-				     b('span').classes('icon icon-' + item.icon)
-					 )
-				   )
-				 );
+            r.append(
+                b('li').classes('menuOption').append(
+                    b('button')
+                    .text(item.text).attr('data-value', item.value)
+                    .append(
+                        b('span').classes('icon icon-' + item.icon))));
         });
-        /* $(ul).css('left', '' + this.menuPosition.x + 'px');
-        $(ul).css('top', '' + this.menuPosition.y + 'px');
-        $(ul).css('height', '' + this.menu.menuItems.length * 35 + 'px'); */
         $(this.menuContainer).append(r.dom());
         $('body').addClass('modal');
         this.bindEvents();
@@ -144,10 +127,13 @@ class suiMenuManager {
 
     bindEvents() {
         var self = this;
-        this.keydownHandler = this.handleKeydown.bind(this);
 
-        window.addEventListener("keydown", this.keydownHandler, true);
+        if (!this.bound) {
+            this.keydownHandler = this.handleKeydown.bind(this);
 
+            window.addEventListener("keydown", this.keydownHandler, true);
+            this.bound = true;
+        }
         $(this.menuContainer).find('button').off('click').on('click', function (ev) {
             self.menu.selection(ev);
         });
@@ -250,7 +236,7 @@ class suiStaffModifierMenu extends suiMenuBase {
                     text: 'Decrescendo',
                     value: 'decrescendo'
                 }
-            ], 
+            ],
             menuContainer: '.menuContainer'
         };
     }
@@ -260,10 +246,10 @@ class suiStaffModifierMenu extends suiMenuBase {
         var self = this;
         var ft = this.tracker.getExtremeSelection(-1);
         var tt = this.tracker.getExtremeSelection(1);
-		if (SmoSelector.sameNote(ft.selector,tt.selector)) {
-			this.complete();
-			return;
-		}
+        if (SmoSelector.sameNote(ft.selector, tt.selector)) {
+            this.complete();
+            return;
+        }
 
         SmoOperation[op](ft, tt);
         this.complete();
@@ -271,6 +257,4 @@ class suiStaffModifierMenu extends suiMenuBase {
     keydown(ev) {}
 }
 
-class SuiAttributeDialog {
-	
-}
+class SuiAttributeDialog {}

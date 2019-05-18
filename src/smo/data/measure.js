@@ -87,57 +87,57 @@ class SmoMeasure {
     static get defaultKeyForClef() {
         return {
             'treble': {
-                key: 'b',
+                letter: 'b',
                 accidental: '',
                 octave: 4
             },
             'bass': {
-                key: 'd',
+                letter: 'd',
                 accidental: '',
                 octave: 3
             },
             'tenor': {
-                key: 'a',
+                letter: 'a',
                 accidental: '',
                 octave: 4
             },
             'alto': {
-                key: 'a',
+                letter: 'a',
                 accidental: '',
                 octave: 3
             },
             'soprano': {
-                key: 'b',
+                letter: 'b',
                 accidental: '',
                 octave: 4
             },
             'percussion': {
-                key: 'b',
+                letter: 'b',
                 accidental: '',
                 octave: 4
             },
             'mezzo-soprano': {
-                key: 'b',
+                letter: 'b',
                 accidental: '',
                 octave: 4
             },
             'baritone-c': {
-                key: 'b',
+                letter: 'b',
                 accidental: '',
                 octave: 3
             },
             'baritone-f': {
-                key: 'e',
+                letter: 'e',
                 accidental: '',
                 octave: 3
             },
             'subbass': {
-                key: 'd',
+                letter: 'd',
                 accidental: '',
                 octave: 2
             },
             'french': {
-                key: 'b',
+                letter: 'b',
                 accidental: '',
                 octave: 4
             } // no idea
@@ -225,6 +225,7 @@ class SmoMeasure {
             keySignature: "C",
             staffX: 10,
 			adjX:0,
+			rightMargin:2,
             customModifiers: [],
             staffY: 40,
             bars: [1, 1], // follows enumeration in VF.Barline

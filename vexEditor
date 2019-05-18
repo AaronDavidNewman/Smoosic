@@ -55,6 +55,7 @@
         <Folder name="fonts">
             <File name="src\fonts\smoosic.ttf" />
             <File name="src\fonts\fonts.css" />
+            <File name="src\fonts\styles.css" />
         </Folder>
     </Project>
 </NotepadPlus>

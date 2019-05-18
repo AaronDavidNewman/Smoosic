@@ -83,11 +83,11 @@ class ChordTest {
 			var selection = SmoSelection.noteSelection(score,0,0,0,2,[0]);
 			SmoOperation.setPitch(selection,
 			[{
-						key: 'e',
+						letter: 'e',
 						octave: 4,
 						accidental: 'b'
 					}, {
-						key: 'g',
+						letter: 'g',
 						octave: 5,
 						accidental: ''
 					}
@@ -124,13 +124,7 @@ class ChordTest {
 
 		var courtesyTest = () => {
 			var target = SmoSelection.pitchSelection(score,0,0,0,2,[1]);
-			target.note.addAccidental({
-				index: 1,
-				value: {
-					symbol: 'n',
-					cautionary: true
-				}
-			});
+			target.note.pitches[1].cautionary=true;
 			smoModifierFactory.applyModifiers(measure);
 			layout.render();
 			return timeTest();

@@ -46,7 +46,7 @@ class StaffTest {
             var target = SmoSelection.pitchSelection(layout.score,0,2, 0, 1,[0]);
             if (target) {
                 target.note.pitches = [{
-                        key: 'e',
+                        letter: 'e',
                         octave: 4,
                         accidental: 'b'
                     }
@@ -59,7 +59,7 @@ class StaffTest {
             var target = SmoSelection.pitchSelection(score,0,1, 0, 1, [0]);
             if (target) {
                 target.note.pitches = [{
-                        key: 'f',
+                        letter: 'f',
                         octave: 4,
                         accidental: '#'
                     }

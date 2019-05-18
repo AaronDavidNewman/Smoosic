@@ -9,21 +9,25 @@ VX = Vex.Xform;
   **/
 class vexMusic {
 	
-    // ### getKeyOffset
-    // ### description:  given a vex noteProp and an offset, offset that number
+    // ## getKeyOffset
+    // ## Description:  given a vex noteProp and an offset, offset that number
     // of 1/2 steps.
-    static getKeyOffset(prop,offset) {
+	// ### Input:  smoPitch
+	// ### Output:  smoPitch offset, not key-adjusted.
+    static getKeyOffset(pitch,offset) {
         var canon = VF.Music.canonical_notes;
-        var key = prop.key.toLowerCase();
-		if (prop.accidental.length === 0) {
-			key=key+'n';
+		
+		// Convert to vex keys, where f# is a string like 'f#'.
+        var vexKey = pitch.letter.toLowerCase();
+		if (pitch.accidental.length === 0) {
+			vexKey=vexKey+'n';
 		} else {
-			key=key+prop.accidental;
+			vexKey=vexKey+pitch.accidental;
 		}
-		key=canon[VF.Music.noteValues[key].int_val];
-		var rootIndex = canon.indexOf(key);
+		vexKey=canon[VF.Music.noteValues[vexKey].int_val];
+		var rootIndex = canon.indexOf(vexKey);
         var index = (rootIndex + canon.length+offset) % canon.length;
-        var octave = prop.octave;
+        var octave = pitch.octave;
         if (Math.abs(offset) >= 12) {
             var octaveOffset = Math.sign(offset) * Math.round(Math.abs(offset) / 12);
             octave += octaveOffset;
@@ -35,15 +39,15 @@ class vexMusic {
         if (rootIndex + offset < 0) {
             octave -= 1;
         }
-		var rv = JSON.parse(JSON.stringify(prop));
-		key=canon[index];
-		if (key.length>1) {
-			rv.accidental=key.substring(1);
-			key=key[0];
+		var rv = JSON.parse(JSON.stringify(pitch));
+		vexKey=canon[index];
+		if (vexKey.length>1) {
+			rv.accidental=vexKey.substring(1);
+			vexKey=vexKey[0];
 		} else {
 			rv.accidental='';
 		}
-		rv.key=key;
+		rv.letter=vexKey;
 		rv.octave=octave;
         return rv;
     }
@@ -194,7 +198,7 @@ class vexMusic {
 	
     static getIntervalInKey(pitch,keySignature,interval) {
 		var muse = new VF.Music();
-		var letter = pitch.key;
+		var letter = pitch.letter;
 		var scale = Object.values(muse.createScaleMap(keySignature));
 
 		var up=interval>0 ? true : false;
@@ -203,7 +207,7 @@ class vexMusic {
 		var ix = scale.findIndex((x)=>{return x[0]==letter[0];});
 		if (ix>=0) {
 			var nletter = scale[(ix+interval)%scale.length];
-			var nkey={key:nletter[0],accidental:nletter[1],octave:pitch.octave};
+			var nkey={letter:nletter[0],accidental:nletter[1],octave:pitch.octave};
 			if (up) {
 				nkey.octave += 1;
 			}
@@ -211,39 +215,7 @@ class vexMusic {
 		}
 		return letter;
 	}
-	
-	static noteDebugRecurse(clone, level) {
-        if (!level)
-            level = 0;
 
-        if (level > 2) {
-            return '...';
-        }
-        var obj = {};
-        var keys = Object.keys(clone);
-        for (var i = 0; i < keys.length; ++i) {
-            var key = keys[i];
-            var attr = clone[key];
-            if (attr) {
-                if (key === 'glyph' || key === 'outline') {
-                    obj[key] = '...';
-                } else if (Array.isArray(attr)) {
-                    obj[key] = [];
-                    for (var j = 0; j < attr.length; ++j) {
-                        obj[key].push(noteDebugRecurse(attr[j], level + 1))
-                    }
-                } else if (typeof(attr) != 'object') {
-                    obj[key] = attr;
-                } else {
-                    obj[key] = noteDebugRecurse(attr, level + 1);
-                }
-            }
-        }
-        return obj;
-    }
-    static noteDebug (note) {
-        console.log(JSON.stringify(noteDebugRecurse(note, 0), null, ' '));
-    }
 	
 	static filteredMerge(attrs,src,dest) {
 		attrs.forEach(function(attr) {

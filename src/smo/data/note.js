@@ -30,7 +30,6 @@ class SmoNote {
 		} else {
 			console.log('inherit attrs');
 		}
-		this.accidentals = [];
 		this.dots = 0;
 		// console.log('created note '+this.id);
 	}
@@ -38,18 +37,22 @@ class SmoNote {
 		return this.attrs.id;
 	}
 
+    // ## toVexKeys
+	// ## Description:
+	// turn the array of smo note pitches into an array of vex key strings
 	toVexKeys() {
 		var rv = [];
 		for (var i = 0; i < this.pitches.length; ++i) {
-			var key = this.pitches[i];
-			rv.push(key.key + '/' + key.octave);
+			var pitch = this.pitches[i];
+			var letter = pitch.letter + pitch.accidental;
+			rv.push(letter + '/' + pitch.octave);
 		}
 		return rv;
 	}
-	_sortKeys() {
+	_sortPitches() {
 		var canon = VF.Music.canonical_notes;
-		var keyIndex = ((key) => {
-			return canon.indexOf(key.key) + key.octave * 12;
+		var keyIndex = ((pitch) => {
+			return canon.indexOf(pitch.letter) + pitch.octave * 12;
 		});
 		this.pitches.sort((a, b) => {
 			return keyIndex(a) - keyIndex(b);
@@ -59,15 +62,14 @@ class SmoNote {
 		if (this.pitches.length == 0) {
 			return this;
 		}
-		var key = this.pitches[0];
-		this.pitches.push(vexMusic.getKeyOffset(key, offset));
+		var pitch = this.pitches[0];
+		this.pitches.push(vexMusic.getKeyOffset(pitch, offset));
 
-		this._sortKeys();
+		this._sortPitches();
 	}
 
 	transpose(pitchArray, offset, keySignature) {
 		var pitches = [];
-		this.accidentals = []; // modifiers need to be reapplied, accidentals may change
 		if (pitchArray.length == 0) {
 			this.pitches.forEach((m)=>{pitchArray.push(this.pitches.indexOf(m));});
 		}
@@ -78,9 +80,9 @@ class SmoNote {
 			} else {
 				var nnote = vexMusic.getKeyOffset(this.pitches[index], offset);
 				if (keySignature) {
-					var letterKey = nnote.key + nnote.accidental;
+					var letterKey = nnote.letter + nnote.accidental;
 					letterKey = vexMusic.getKeyFriendlyEnharmonic(letterKey,keySignature);
-					nnote.key = letterKey[0];
+					nnote.letter = letterKey[0];
 					if (letterKey.length < 2) {
 						nnote.accidental = 'n';
 					} else {
@@ -90,7 +92,7 @@ class SmoNote {
 				this.pitches[index] = nnote;
 			}
 		}
-		this._sortKeys();
+		this._sortPitches();
 		return this;
 	}
 	get tickCount() {
@@ -101,19 +103,7 @@ class SmoNote {
 		return this.id + ' ' + this.tickCount;
 	}
 
-	// ## Accidental format
-	// {index:1,value:{symbol:'#',cautionary:false}}
-	addAccidental(accidental) {
-		for (var i = 0; i < this.accidentals.length; ++i) {
-			var aa = this.accidentals[i];
-			if (aa.index === accidental.index) {
-				aa.value = accidental.value;
-				return;
-			}
-		}
-		this.accidentals.push(accidental);
-		return this;
-	}
+	
 	addDots(num) {
 		this.dots = num;
 		return this;
@@ -169,12 +159,11 @@ class SmoNote {
 			voice: 0,
 			duration: '4',
 			pitches: [{
-					key: 'b',
+					letter: 'b',
 					octave: 4,
 					accidental: ''
 				}
 			],
-			accidentals: []
 		}
 	}
 }
