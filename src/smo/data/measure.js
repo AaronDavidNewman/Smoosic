@@ -172,9 +172,9 @@ class SmoMeasure {
 	
 	static getDefaultMeasure(params) {
 		var obj={};
-		if (!params) params={};
 		Vex.Merge(obj,SmoMeasure.defaults);
-		Vex.Merge(obj, params);
+		obj.keySignature = params.keySignature ? params.keySignature : obj.keySignature;
+		obj.timeSignature = params.timeSignature ? params.timeSignature : obj.timeSignature;
 		return new SmoMeasure(obj);
 	}
 	
@@ -194,7 +194,7 @@ class SmoMeasure {
 		return clone;
 	}
 	
-	static cloneMeasure(measure) {
+	/* static cloneMeasure(measure) {
 		var params = SmoMeasure._cloneParameters(measure);
 		var nmeasure = new SmoMeasure(params);
 		nmeasure.attrs={
@@ -213,7 +213,7 @@ class SmoMeasure {
 			nmeasure.voices.push({notes:notes});
 		}
 		return nmeasure;
-	}
+	}  */
 
     static get defaultVoice44() {
 		return SmoMeasure.getDefaultNotes({clef:'treble',timeSignature:'4/4'});

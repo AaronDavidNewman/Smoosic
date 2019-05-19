@@ -114,7 +114,7 @@ class suiEditor {
         }
         var measure = this.tracker.getFirstMeasureOfSelection();
         if (measure) {
-            var nmeasure = SmoMeasure.cloneMeasure(measure);
+            var nmeasure = SmoMeasure.getDefaultMeasureWithNotes(measure);
             this.score.addMeasure(measure.measureNumber.systemIndex, nmeasure);
             this.changed = true;
             this._render();

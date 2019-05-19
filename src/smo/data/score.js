@@ -94,15 +94,24 @@ class SmoScore {
 			this.measureTickmap.push(measure.tickmap());
 		});
 	}
+	// ## addMeasure
+	// ## Description:
+	// Give a measure prototype, create a new measure and add it to each staff, with the 
+	// correct settings for current time signature/clef.
 	addMeasure(measureIndex,measure) {
+		
 		for (var i=0;i<this.staves.length;++i) {
+			var protomeasure = measure;
 			var staff=this.staves[i];
-			if (this.activeStaff===i) {				
-			    staff.addMeasure(measureIndex,measure);
-			} else {
-				// TODO: find best measure for context, with key, time signature etc.				
-				staff.addMeasure(measureIndex,SmoMeasure.cloneMeasure(measure));
+			// Since this staff may already have instrument settings, use the 
+			// immediately precending or post-ceding measure if it exists.
+			if (measureIndex < staff.measures.length) {
+				protomeasure = staff.measures[measureIndex];
+			} else if (staff.measures.length) {
+				protomeasure = staff.measures[staff.measure.length-1];
 			}
+			var nmeasure = SmoMeasure.getDefaultMeasureWithNotes(protomeasure);
+			staff.addMeasure(measureIndex,nmeasure);
 		}
 		this._numberStaves();
 	}
