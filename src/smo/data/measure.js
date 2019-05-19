@@ -282,7 +282,7 @@ class SmoMeasure {
     }
 	
     getTupletForNote(note) {
-        if (!vexMusic.isTuplet(note)) {
+        if (!note.isTuplet()) {
             return null;
         }
         for (var i = 0; i < this.tuplets.length; ++i) {

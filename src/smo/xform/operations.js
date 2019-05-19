@@ -214,7 +214,7 @@ class SmoOperation {
         var modifier = new SmoStaffModifier({
                 startSelector: fromSelector,
                 endSelector: toSelector,
-                type: SmoStaffModifier.types.CRESCENDO,
+                hairpinType: SmoStaffModifier.types.CRESCENDO,
                 position: SmoStaffModifier.positions.BELOW
             });
         fromSelection.staff.addStaffModifier(modifier);
@@ -226,7 +226,7 @@ class SmoOperation {
         var modifier = new SmoStaffModifier({
                 startSelector: fromSelector,
                 endSelector: toSelector,
-                type: SmoStaffModifier.types.DECRESCENDO,
+                hairpinType: SmoStaffModifier.types.DECRESCENDO,
                 position: SmoStaffModifier.positions.BELOW
             });
         fromSelection.staff.addStaffModifier(modifier);

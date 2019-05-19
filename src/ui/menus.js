@@ -256,5 +256,3 @@ class suiStaffModifierMenu extends suiMenuBase {
     }
     keydown(ev) {}
 }
-
-class SuiAttributeDialog {}

@@ -21,12 +21,12 @@ class suiEditor {
         }
     }
 
-    _selectionOperation(selection, name,parameters) {
-		selection.measure.changed=true;
+    _selectionOperation(selection, name, parameters) {
+        selection.measure.changed = true;
         SmoOperation[name](selection, parameters);
         this._render();
     }
-	
+
     _singleSelectionOperation(name, parameters) {
         if (this.tracker.selections.length != 1) {
             return;
@@ -38,7 +38,21 @@ class suiEditor {
     }
 
     _transpose(selection, offset) {
-        this._selectionOperation(selection,'transpose', offset);
+        this._selectionOperation(selection, 'transpose', offset);
+    }
+
+    showModifierDialog(keyEvent) {
+        var modSelection = this.tracker.getSelectedModifier();
+        if (modSelection) {
+            var dbType = SuiAttributeDialog.modifierDialogMap[modSelection.modifier.type];
+            var ctor = eval(dbType);
+            return ctor.createAndDisplay({
+                staffModifier: modSelection.modifier,
+                selection: modSelection.selection,
+				context:this.tracker.context,
+				tracker:this.tracker
+            });
+        }
     }
 
     interval(keyEvent) {
@@ -49,7 +63,7 @@ class suiEditor {
         if (keyEvent.shiftKey) {
             interval = -interval;
         }
-		this._singleSelectionOperation('interval',interval);
+        this._singleSelectionOperation('interval', interval);
     }
 
     transpose(offset) {
@@ -70,7 +84,7 @@ class suiEditor {
     }
 
     _setPitch(selected, letter) {
-        this._selectionOperation(selected, 'setPitch',letter);
+        this._selectionOperation(selected, 'setPitch', letter);
     }
 
     setPitch(keyEvent) {

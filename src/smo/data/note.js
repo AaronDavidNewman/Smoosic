@@ -67,6 +67,10 @@ class SmoNote {
 
 		this._sortPitches();
 	}
+	
+	isTuplet() {
+		return this['tuplet'] && this.tuplet['id'];
+	}
 
 	transpose(pitchArray, offset, keySignature) {
 		var pitches = [];

@@ -1,8 +1,8 @@
 
 class SmoStaffModifier {
     constructor(params) {
-        Vex.Merge(this, SmoSystemStaff.defaults);
-        vexMusic.filteredMerge(['position', 'xOffset', 'yOffset', 'type', 'height'], params, this);
+        Vex.Merge(this, SmoStaffModifier.defaults);
+        vexMusic.filteredMerge(['position', 'xOffset', 'yOffset', 'hairpinType', 'height'], params, this);
 		this.startSelector = params.startSelector;
 		this.endSelector = params.endSelector;
 
@@ -18,13 +18,17 @@ class SmoStaffModifier {
 	get id() {
 		return this.attrs.id;
 	}
+	get type() {
+		return this.attrs.type;
+	}
     static get defaults() {
         return {
-            xOffset: -2,
+            xOffsetLeft: -2,
+			xOffsetRight:0,
             yOffset: -15,
             height: 10,
             position: SmoStaffModifier.positions.BELOW,
-            type: SmoStaffModifier.types.CRESHENDO
+            hairpinType: SmoStaffModifier.types.CRESCENDO
 
         };
     }
@@ -105,7 +109,7 @@ class SmoSystemStaff {
     removeStaffModifier(modifier) {
         var mods = [];
         this.modifiers.forEach((mod)=> {
-            if (mod.attrs.id != modifier.id) {
+            if (mod.id != modifier.id) {
                 mods.push(mod);
             }
         });

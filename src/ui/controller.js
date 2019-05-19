@@ -105,6 +105,13 @@ class suiController {
                 action: "dotDuration"
             }, {
                 event: "keydown",
+                key: "m",
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: "showModifierDialog"
+            }, {
+                event: "keydown",
                 key: "<",
                 ctrlKey: false,
                 altKey: false,

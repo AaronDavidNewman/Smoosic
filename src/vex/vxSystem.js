@@ -44,17 +44,25 @@ class VxSystem {
     }
 
     renderModifier(modifier, vxStart, vxEnd) {
+		// if it is split between lines, render one artifact for each line, with a common class for 
+		// both if it is removed.
 		var artifactId=modifier.attrs.id+'-'+this.lineIndex;
         $(this.context.svg).find('g.' + artifactId).remove();
-        var group = this.context.openGroup();
-		console.log('adding modifier note '+vxStart.attrs.id);
-        group.classList.add(artifactId);
-        if (modifier.type == SmoStaffModifier.types.CRESCENDO ||
-            modifier.type == SmoStaffModifier.types.DECRESCENDO) {
+		var group = this.context.openGroup();
+		group.classList.add(modifier.id);
+		group.classList.add(artifactId);
+        if ((modifier.type == 'SmoStaffModifier' && modifier.hairpinType == SmoStaffModifier.types.CRESCENDO) ||
+            (modifier.type == 'SmoStaffModifier' && modifier.hairpinType == SmoStaffModifier.types.DECRESCENDO)) {
             var hairpin = new VF.StaveHairpin({
                     first_note: vxStart,
                     last_note: vxEnd
-                }, modifier.type);
+                }, modifier.hairpinType);
+			hairpin.setRenderOptions({
+				height:modifier.height,
+				y_shift:modifier.yOffset,
+				left_shift_px:modifier.xOffsetLeft,
+				right_shift_px:modifier.xOffsetRight
+			});
             hairpin.setContext(this.context).setPosition(modifier.position).draw();
         }
 

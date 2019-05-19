@@ -107,5 +107,48 @@ body.modal .overlay {
 	top:0;
 	font-size:2em;
 }
+body.showAttributeDialog .attributeDialog {
+	display:block;
+	z-index:2;
+}
+
+.attributeDialog {
+	position:relative;
+	display:none;
+}
+
+.attributeModal {
+	position:absolute;
+	background: #fff;
+	border-style: groove;
+	border-width: 2px;
+	border-color: #9ac;
+	padding: 3px;
+}
+
+.attributeModal h2 {
+	text-align:center;
+	font-size:1.2em;
+}
+.buttonContainer {
+	text-align:center;
+	margin-top:3px;
+}
+
+.buttonContainer button {
+	margin-right:2px;
+}
+.rockerControl {
+	margin-top:3px;
+}
+
+.rockerControl button, .rockerControl input {
+	margin-right:2px;
+}
+
+
+
+
+
 
 

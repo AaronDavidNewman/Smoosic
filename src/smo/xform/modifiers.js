@@ -58,7 +58,7 @@ class smoDotModifier extends NoteModifierBase {
         return new smoDotModifier();
     }
     modifyNote(iterator, note, accidentalMap) {
-        if (vexMusic.isTuplet(note)) {
+        if (note.isTuplet()) {
             return note;
         }
         var vexDuration = vexMusic.ticksToDuration[note.tickCount];
@@ -98,7 +98,7 @@ class smoBeamModifier extends NoteModifierBase {
         this.duration += iterator.delta;
 
         // beam tuplets
-        if (vexMusic.isTuplet(note)) {
+        if (note.isTuplet()) {
             //todo: when does stack have more than 1?
             var tuplet = this.measure.getTupletForNote(note);
             var ult = tuplet.notes[tuplet.notes.length - 1];

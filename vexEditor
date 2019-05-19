@@ -31,6 +31,7 @@
             <File name="src\ui\menus.js" />
             <File name="src\ui\utController.js" />
             <File name="src\ui\controller.js" />
+            <File name="src\ui\dialog.js" />
         </Folder>
         <Folder name="test">
             <File name="src\test\systemTest.html" />

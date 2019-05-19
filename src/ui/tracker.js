@@ -55,7 +55,8 @@ class suiTracker {
             selection.staff.modifiers.forEach((modifier) => {
                 if (SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
                     if (!modMap[modifier.id]) {
-                        this.modifierTabs.push(modifier);
+                        this.modifierTabs.push({
+						modifier:modifier,selection:selection});
                         modMap[modifier.id] = {
                             exists: true
                         };
@@ -67,12 +68,24 @@ class suiTracker {
 
     _highlightModifier() {
         if (this.modifierIndex >= 0 && this.modifierIndex < this.modifierTabs.length) {
-            var modifier = this.modifierTabs[this.modifierIndex];
-            if (modifier.renderedBox) {
-                this._drawRect(modifier.renderedBox, 'staffModifier');
+            var modSelection = this.modifierTabs[this.modifierIndex];
+            if (modSelection.modifier.renderedBox) {
+                this._drawRect(modSelection.modifier.renderedBox, 'staffModifier');
             } 
         }
     }
+	
+	clearModifierSelections() {
+		this.modifierTabs=[];
+		this.modifierIndex=-1;
+		this.eraseRect('staffModifier');
+		
+	}
+	getSelectedModifier() {
+		if (this.modifierIndex >= 0) {
+			return this.modifierTabs[this.modifierIndex];
+		}
+	}
 
     advanceModifierSelection() {
 		this.eraseRect('staffModifier');
