@@ -211,11 +211,11 @@ class SmoOperation {
     static crescendo(fromSelection, toSelection) {
         var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
         var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
-        var modifier = new SmoStaffModifier({
+        var modifier = new SmoStaffHairpin({
                 startSelector: fromSelector,
                 endSelector: toSelector,
-                hairpinType: SmoStaffModifier.types.CRESCENDO,
-                position: SmoStaffModifier.positions.BELOW
+                hairpinType: SmoStaffHairpin.types.CRESCENDO,
+                position: SmoStaffHairpin.positions.BELOW
             });
         fromSelection.staff.addStaffModifier(modifier);
     }
@@ -223,11 +223,11 @@ class SmoOperation {
 	static decrescendo(fromSelection, toSelection) {
         var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
         var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
-        var modifier = new SmoStaffModifier({
+        var modifier = new SmoStaffHairpin({
                 startSelector: fromSelector,
                 endSelector: toSelector,
-                hairpinType: SmoStaffModifier.types.DECRESCENDO,
-                position: SmoStaffModifier.positions.BELOW
+                hairpinType: SmoStaffHairpin.types.DECRESCENDO,
+                position: SmoStaffHairpin.positions.BELOW
             });
         fromSelection.staff.addStaffModifier(modifier);
     }

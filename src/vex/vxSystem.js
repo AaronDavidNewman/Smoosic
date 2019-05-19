@@ -51,8 +51,8 @@ class VxSystem {
 		var group = this.context.openGroup();
 		group.classList.add(modifier.id);
 		group.classList.add(artifactId);
-        if ((modifier.type == 'SmoStaffModifier' && modifier.hairpinType == SmoStaffModifier.types.CRESCENDO) ||
-            (modifier.type == 'SmoStaffModifier' && modifier.hairpinType == SmoStaffModifier.types.DECRESCENDO)) {
+        if ((modifier.type == 'SmoStaffHairpin' && modifier.hairpinType == SmoStaffHairpin.types.CRESCENDO) ||
+            (modifier.type == 'SmoStaffHairpin' && modifier.hairpinType == SmoStaffHairpin.types.DECRESCENDO)) {
             var hairpin = new VF.StaveHairpin({
                     first_note: vxStart,
                     last_note: vxEnd

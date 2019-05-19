@@ -1,54 +1,8 @@
 
-class SmoStaffModifier {
-    constructor(params) {
-        Vex.Merge(this, SmoStaffModifier.defaults);
-        vexMusic.filteredMerge(['position', 'xOffset', 'yOffset', 'hairpinType', 'height'], params, this);
-		this.startSelector = params.startSelector;
-		this.endSelector = params.endSelector;
 
-        if (!this['attrs']) {
-            this.attrs = {
-                id: VF.Element.newID(),
-                type: 'SmoStaffModifier'
-            };
-        } else {
-            console.log('inherit attrs');
-        }
-    }
-	get id() {
-		return this.attrs.id;
-	}
-	get type() {
-		return this.attrs.type;
-	}
-    static get defaults() {
-        return {
-            xOffsetLeft: -2,
-			xOffsetRight:0,
-            yOffset: -15,
-            height: 10,
-            position: SmoStaffModifier.positions.BELOW,
-            hairpinType: SmoStaffModifier.types.CRESCENDO
-
-        };
-    }
-    static get positions() {
-        // matches VF.modifier
-        return {
-            LEFT: 1,
-            RIGHT: 2,
-            ABOVE: 3,
-            BELOW: 4,
-        };
-    }
-    static get types() {
-        return {
-            CRESCENDO: 1,
-            DECRESCENDO: 2
-        };
-    }
-}
-
+// ## SmoSystemStaff
+// ## Description:
+// A staff is a line of music that can span multiple measures.
 class SmoSystemStaff {
     constructor(params) {
         this.measures = [];
@@ -222,7 +176,10 @@ class SmoSystemStaff {
         var measure = SmoMeasure.getDefaultMeasure(params);
         this.addMeasure(index, measure);
     }
-
+	
+	// ## addMeasure
+	// ## Description:
+	// Add the measure at the specified index, splicing the array as required.
     addMeasure(index, measure) {
 
         if (index === 0 && this.measures.length) {
@@ -235,6 +192,5 @@ class SmoSystemStaff {
         }
 
         this.numberMeasures();
-        return this; // fluent interface
     }
 }

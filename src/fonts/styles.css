@@ -92,7 +92,7 @@ h1 {
 	display:none;
 }
 
-body.modal .overlay {
+body.modal .overlay,body.showAttributeDialog .overlay {
 	display:block;
 	position:absolute;
 	width:100%;
@@ -109,7 +109,7 @@ body.modal .overlay {
 }
 body.showAttributeDialog .attributeDialog {
 	display:block;
-	z-index:2;
+	z-index:3;
 }
 
 .attributeDialog {

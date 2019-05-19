@@ -35,7 +35,7 @@ class SuiAttributeDialog {
     }
 	
 	static get modifierDialogMap() {
-		return {SmoStaffModifier:'SuiHairpinAttributesDialog'};
+		return {SmoStaffHairpin:'SuiHairpinAttributesDialog'};
 	}
 }
 
