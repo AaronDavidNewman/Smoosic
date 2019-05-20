@@ -23,7 +23,11 @@ module.exports = function (grunt) {
 					'src/test/voiceTest.js', 'src/test/trackerTest.js','src/test/testAll.js'],
                 dest: 'build/smoTests.js'
 
-            } 
+            },
+			styles: {
+				src: ['src/fonts/fonts.css','src/fonts/styles.css'],
+				dest: 'build/styles.css'
+			}
         }
     });
 
