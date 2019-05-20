@@ -1,9 +1,8 @@
 {
-  "name": "smoosic",
-  "version": "0.1.0",
-  "devDependencies": {
-    "grunt": "~0.4.5",
-    "grunt-contrib-concat": "~1.0.1"
-  },
-  "dependencies": {}
+    "name": "smoosic",
+    "version": "0.1.0",
+    "devDependencies": {
+        "minimatch": ">=3.0.2"
+    },
+    "dependencies": {}
 }
