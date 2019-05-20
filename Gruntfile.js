@@ -19,7 +19,7 @@ module.exports = function (grunt) {
             },
             tests: {
                 src: ['src/test/chordTest.js', 'src/test/staffTest.js', 'src/test/timeSignatureTest.js',
-                    'src/test/tupletTest.js', 'src/test/voiceTest.js', 'src/test/testAll.js'],
+                    'src/test/tupletTest.js', 'src/test/voiceTest.js', 'src/test/trackerTest.js','src/test/testAll.js'],
                 dest: 'build/smoTests.js'
 
             } 
