@@ -217,7 +217,7 @@ class suiSimpleLayout {
                 measure.measureNumber.systemIndex = systemIndex;
                 // WIP
                 if (drawAll || measure.changed) {
-                    smoModifierFactory.applyModifiers(measure);
+                    smoBeamerFactory.applyBeams(measure);
                     system.renderMeasure(j, measure);
                 }
 

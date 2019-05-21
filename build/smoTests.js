@@ -125,7 +125,6 @@ class ChordTest {
 		var courtesyTest = () => {
 			var target = SmoSelection.pitchSelection(score,0,0,0,2,[1]);
 			target.note.pitches[1].cautionary=true;
-			smoModifierFactory.applyModifiers(measure);
 			layout.render();
 			return timeTest();
 		}
@@ -271,7 +270,6 @@ class TimeSignatureTest {
 
         var drawDefaults = () => {
             // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
-			score.applyModifiers();
             layout.render();
             return timeTest();
         }
@@ -366,7 +364,6 @@ class TupletTest {
 		
         var drawDefaults = () => {
             // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
-			smoModifierFactory.applyModifiers(measure);
             layout.render();
             return timeTest();
         }
@@ -1391,7 +1388,6 @@ class VoiceTest {
 			if (target) {
 				target.note.transpose([0],-1);
 			}
-			smoModifierFactory.applyModifiers(measure);
             layout.render();
             return timeTest();
         }

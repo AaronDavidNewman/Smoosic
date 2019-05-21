@@ -34,7 +34,6 @@ class TupletTest {
 		
         var drawDefaults = () => {
             // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
-			smoModifierFactory.applyModifiers(measure);
             layout.render();
             return timeTest();
         }

@@ -154,7 +154,6 @@ class SmoOperation {
         var note = selection.note;
         if (measure && note) {
             note.transpose(selection.selector.pitches, offset, measure.keySignature);
-            smoModifierFactory.applyModifiers(measure);
             return true;
         }
         return false;
@@ -202,7 +201,6 @@ class SmoOperation {
         var pitch = vexMusic.getIntervalInKey(pitch, measure.keySignature, interval);
         if (pitch) {
             note.pitches.push(pitch);
-            smoModifierFactory.applyModifiers(measure);
             return true;
         }
         return false;

@@ -42,10 +42,10 @@ class SmoScore {
 		score.addInstrument();
 		return score;
 	}
-	applyModifiers() {
+	applyBeamers() {
 		for (var i = 0; i < this.staves.length; ++i) {
             var stave = this.staves[i];
-			stave.applyModifiers();
+			stave.applyBeamers();
 		}
 	}
 

@@ -125,7 +125,6 @@ class ChordTest {
 		var courtesyTest = () => {
 			var target = SmoSelection.pitchSelection(score,0,0,0,2,[1]);
 			target.note.pitches[1].cautionary=true;
-			smoModifierFactory.applyModifiers(measure);
 			layout.render();
 			return timeTest();
 		}

@@ -14,7 +14,7 @@ class SmoMeasure {
                 type: 'SmoMeasure'
             };
         } else {
-            console.log('inherit attrs');
+            // inherit attrs id for deserialized 
         }		
     }
     get notes() {

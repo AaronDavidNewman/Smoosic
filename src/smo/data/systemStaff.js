@@ -17,7 +17,8 @@ class SmoSystemStaff {
                 type: 'SmoSystemStaff'
             };
         } else {
-            console.log('inherit attrs');
+            // inherit attrs id for deserialized 
+
         }
     }
     static get defaults() {
@@ -77,10 +78,10 @@ class SmoSystemStaff {
         }
     }
 
-    applyModifiers() {
+    applyBeams() {
         for (var i = 0; i < this.measures.length; ++i) {
             var measure = this.measures[i];
-            smoModifierFactory.applyModifiers(measure);
+            smoBeamerFactory.applyBeams(measure);
         }
     }
 

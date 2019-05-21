@@ -257,7 +257,7 @@ class VxMeasure {
         var svgBox =
             svgHelpers.clientToLogical(this.context.svg, box);
         this.smoMeasure.adjX = svgBox.width - this.stave.getWidth() + this.smoMeasure.rightMargin;
-		console.log('adjx is '+this.smoMeasure.adjX);
+		// console.log('adjx is '+this.smoMeasure.adjX);
         // console.log(JSON.stringify(this.smoMeasure.renderedBox,null,' '));
         this.context.closeGroup();
     }

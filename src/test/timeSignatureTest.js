@@ -34,7 +34,6 @@ class TimeSignatureTest {
 
         var drawDefaults = () => {
             // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
-			score.applyModifiers();
             layout.render();
             return timeTest();
         }

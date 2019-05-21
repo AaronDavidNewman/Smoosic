@@ -1,33 +1,18 @@
 
-class NoteModifierBase {
+class BeamModifierBase {
 	constructor(){}
-	modifyNote(note, iterator,accidentalMap) {	}
+	beamNote(note, iterator,accidentalMap) {	}
 }
 
-class smoModifierFactory {
-    static getStandardModifiers(measure) {
-        var actors = [];
-        actors.push(new smoDotModifier());       
-        actors.push(new smoBeamModifier(measure));
-        return actors;
-	}
-	
-	static applyModifiers(measure) {
-		var modifierOptions = measure.modifierOptions;
-		var modifiers = smoModifierFactory.getStandardModifiers(measure);
-        for (var i = 0; i < measure.customModifiers.length; ++i) {
-            var modifier = measure.customModifiers[i];
-            var ctor = eval(modifier.ctor);
-            var instance = new ctor(modifier.parameters);
-            modifiers.push(instance);
-        }
-		
-        var apply = new smoModifierIterator(measure, modifiers);
+class smoBeamerFactory {	
+	static applyBeams(measure) {		
+        var beamer = new smoBeamModifier(measure);
+        var apply = new smoBeamerIterator(measure, [beamer]);
         apply.run();
 	}
 }
 
-class smoModifierIterator {
+class smoBeamerIterator {
 	constructor(measure,actors) {
 		this.actors=actors;
 		this.measure=measure;		
@@ -44,31 +29,13 @@ class smoModifierIterator {
 		var iterator = new smoTickIterator(this.measure);
 		iterator.iterate((iterator,note,accidentalMap) => {
 			for (var i=0;i<self.actors.length;++i) {
-				self.actors[i].modifyNote(iterator,note,accidentalMap);
+				self.actors[i].beamNote(iterator,note,accidentalMap);
 			}
 		});
 	}
 }
 
-class smoDotModifier extends NoteModifierBase {
-    constructor() {
-        super();
-    }
-    static Create() {
-        return new smoDotModifier();
-    }
-    modifyNote(iterator, note, accidentalMap) {
-        if (note.isTuplet()) {
-            return note;
-        }
-        var vexDuration = vexMusic.ticksToDuration[note.tickCount];
-        var dots = vexDuration.split('d').length-1;
-        note.addDots(dots);
-        return note;
-    }
-}
-
-class smoBeamModifier extends NoteModifierBase {
+class smoBeamModifier extends BeamModifierBase {
     constructor(measure) {
         super();
 		this.measure=measure;
@@ -93,7 +60,7 @@ class smoBeamModifier extends NoteModifierBase {
         return this.measure.beamGroups;
     }
 
-    modifyNote(iterator, note, accidentalMap) {
+    beamNote(iterator, note, accidentalMap) {
 
         this.duration += iterator.delta;
 

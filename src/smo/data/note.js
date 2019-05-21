@@ -28,13 +28,23 @@ class SmoNote {
 				type: 'SmoNote'
 			};
 		} else {
-			console.log('inherit attrs');
+			// inherit attrs id for deserialized 
 		}
-		this.dots = 0;
-		// console.log('created note '+this.id);
 	}
 	get id() {
 		return this.attrs.id;
+	}
+	
+	get dots() {
+		if (this.isTuplet()) {
+			return 0;
+		}
+		var vexDuration = vexMusic.ticksToDuration[this.tickCount];
+		return vexDuration.split('d').length-1;
+	}
+	
+	set dots(value) {
+		// ignore - dots are a function of duration only.
 	}
 
     // ## toVexKeys
@@ -106,12 +116,7 @@ class SmoNote {
 	describe() {
 		return this.id + ' ' + this.tickCount;
 	}
-
 	
-	addDots(num) {
-		this.dots = num;
-		return this;
-	}
 	static _cloneParameters(note) {
 		var keys = Object.keys(note);
 		var clone = {};

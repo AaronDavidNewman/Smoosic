@@ -11,7 +11,7 @@ module.exports = function (grunt) {
                 src: ['src/common/vexHelpers.js', 'src/common/svgHelpers.js', 'src/common/htmlHelpers.js',
                     'src/smo/data/note.js', 'src/smo/data/measure.js', 'src/smo/data/systemStaff.js', 
 					'src/smo/data/score.js', 'src/smo/data/staffModifiers.js',
-                    'src/smo/xform/iterator.js', 'src/smo/xform/modifiers.js', 'src/smo/xform/tickDuration.js', 'src/smo/xform/selections.js',
+                    'src/smo/xform/iterator.js', 'src/smo/xform/beamers.js', 'src/smo/xform/tickDuration.js', 'src/smo/xform/selections.js',
                     'src/smo/xform/operations.js', 'src/vex/vxMeasure.js', 'src/vex/vxSystem.js',
                     'src/ui/tracker.js', 'src/ui/layout.js', 'src/ui/editor.js', 'src/ui/menus.js', 'src/ui/utController.js',
                     'src/ui/dialog.js', 'src/ui/controller.js'],

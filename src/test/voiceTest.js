@@ -47,7 +47,6 @@ class VoiceTest {
 			if (target) {
 				target.note.transpose([0],-1);
 			}
-			smoModifierFactory.applyModifiers(measure);
             layout.render();
             return timeTest();
         }
