@@ -370,7 +370,23 @@ class suiController {
         };
     }
 
+    showModifierDialog(modSelection) {
+        var dbType = SuiAttributeDialog.modifierDialogMap[modSelection.modifier.type];
+        var ctor = eval(dbType);
+        return ctor.createAndDisplay({
+            staffModifier: modSelection.modifier,
+            selection: modSelection.selection,
+            context: this.tracker.context,
+            tracker: this.tracker
+        });
+    }
+
     handleKeydown(evdata) {
+		 var self = this;
+            var rebind = function () {
+                self.render();
+                self.bindEvents();
+            }
         console.log("KeyboardEvent: key='" + event.key + "' | code='" +
             event.code + "'"
              + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
@@ -378,12 +394,18 @@ class suiController {
 
         if (evdata.key == '/') {
             window.removeEventListener("keydown", this.keydownHandler, true);
-            var self = this;
-            var rebind = function () {
-                self.render();
-                self.bindEvents();
-            }
             this.menuPromise = this.menus.slashMenuMode().then(rebind);
+        }
+
+        // TODO:  work dialogs into the scheme of things
+        if (evdata.key == 'm') {
+            var modSelection = this.tracker.getSelectedModifier();
+            if (modSelection) {
+                window.removeEventListener("keydown", this.keydownHandler, true);
+                var dialog = this.showModifierDialog(modSelection);
+                dialog.closeDialogPromise.then(rebind);
+            }
+            return;
         }
         var binding = this.keyBind.find((ev) =>
                 ev.event === 'keydown' && ev.key === evdata.key && ev.ctrlKey === evdata.ctrlKey &&

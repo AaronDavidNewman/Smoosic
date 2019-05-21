@@ -39,21 +39,7 @@ class suiEditor {
 
     _transpose(selection, offset) {
         this._selectionOperation(selection, 'transpose', offset);
-    }
-
-    showModifierDialog(keyEvent) {
-        var modSelection = this.tracker.getSelectedModifier();
-        if (modSelection) {
-            var dbType = SuiAttributeDialog.modifierDialogMap[modSelection.modifier.type];
-            var ctor = eval(dbType);
-            return ctor.createAndDisplay({
-                staffModifier: modSelection.modifier,
-                selection: modSelection.selection,
-				context:this.tracker.context,
-				tracker:this.tracker
-            });
-        }
-    }
+    }    
 
     interval(keyEvent) {
         if (this.tracker.selections.length != 1)

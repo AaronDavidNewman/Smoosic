@@ -31,7 +31,10 @@ class SuiAttributeDialog {
         $('.attributeDialog').html('');
 
         $('.attributeDialog').append(r.dom());
-        return $('.attributeDialog');
+		
+		var trapper = htmlHelpers.inputTrapper('.attributeDialog');
+		$('.attributeDialog').find('.cancel-button').focus();
+        return {element:$('.attributeDialog'),trapper:trapper};
     }
 	
 	static get modifierDialogMap() {
@@ -78,6 +81,12 @@ class SuiHairpinAttributesDialog {
         if (!this.staffModifier || !this.selection) {
             throw new Error('modifier attribute dialog must have modifier and staff');
         }
+        this.closeDialogPromise = new Promise((resolve, reject) => {
+                $('body').off('dialogDismiss').on('dialogDismiss', function () {
+                    resolve();
+                });
+
+            });
     }
 
     handleRemove() {
@@ -85,19 +94,24 @@ class SuiHairpinAttributesDialog {
 		this.selection.staff.removeStaffModifier(this.staffModifier);
 		this.tracker.clearModifierSelections();
 	}
-    _bindElements(dialog) {
-		var self=this;
-        $(dialog).find('.ok-button').off('click').on('click', function (ev) {
+	complete() {
             // todo: set values
             $('body').removeClass('showAttributeDialog');
+			$('body').trigger('dialogDismiss');
+			this.dialog.trapper.close();
+	}
+    _bindElements(dialog) {
+		var self=this;
+        $(dialog.element).find('.ok-button').off('click').on('click', function (ev) {
+			self.complete();
         });
 
-        $(dialog).find('.cancel-button').off('click').on('click', function (ev) {
-            $('body').removeClass('showAttributeDialog');
+        $(dialog.element).find('.cancel-button').off('click').on('click', function (ev) {
+			self.complete();
         });
-        $(dialog).find('.remove-button').off('click').on('click', function (ev) {
+        $(dialog.element).find('.remove-button').off('click').on('click', function (ev) {
             self.handleRemove();
-            $('body').removeClass('showAttributeDialog');
+			self.complete();
         });
     }
 
@@ -112,7 +126,7 @@ class SuiHairpinAttributesDialog {
 		
         $('body').addClass('showAttributeDialog');
 		dialogElements.forEach((de) => {
-			$(this.dialog).find('.rockerControl[data-param="'+de.parameterName+'"] input[type="text"]').val(this.staffModifier[de.smoName]);
+			$(this.dialog.element).find('.rockerControl[data-param="'+de.parameterName+'"] input[type="text"]').val(this.staffModifier[de.smoName]);
 		});
         this._bindElements(this.dialog);
     }
