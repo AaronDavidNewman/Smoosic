@@ -408,28 +408,22 @@ class svgHelpers {
 ;
 var smoDomBuilder = function (el) {}
 
+// # htmlHelpers
+// # Description:
+//  Helper functions for buildling UI elements
 class htmlHelpers {
-    /**
-     *  Helper functions for buildling DOM trees in javascript.
-     * @param {} el
-     * @returns {}
-     */
-
-    /**
-     *DOM builder for javascript.  Syntactic sugar around jquery builder.
-     * Usage:
-     * var b = htmlHelpers.buildDom();
-
-     *  var r =
-    b('tr').classes('jsSharingMember').data('entitykey', key).data('name', name).data('entitytype', entityType).append(
-    b('td').classes('noSideBorderRight').append(
-    ...
-    $(parent).append(r.dom());
-
-    Don't forget the '.dom()' !  That is the actual jquery element objet
-     * @param {} el
-     * @returns {}
-     */
+    // ## buildDom
+	// ## Description:
+	// returns an object that  lets you build a DOM in a somewhat readable way.
+	// ## Usage:
+    // var b = htmlHelpers.buildDom();
+    //  var r =
+    // b('tr').classes('jsSharingMember').data('entitykey', key).data('name', name).data('entitytype', entityType).append(
+    // b('td').classes('noSideBorderRight').append(
+    // ...
+    // $(parent).append(r.dom());
+	//
+    // Don't forget the '.dom()' !  That is the actual jquery element object
     static buildDom = function (el) {
         var smoDomBuilder = function (el) {
             this.e = $('<' + el + '/>');
@@ -465,8 +459,86 @@ class htmlHelpers {
         }
         return new smoDomBuilder(el);
     }
-	
-	
+
+    static get focusableElements() {
+        return ['a', 'input', 'select', 'textarea', 'button', 'li[tabindex]', 'div[tabindex]'];
+    }
+    static inputTrapper(selector) {
+        var trapper = function () {
+            this.parent = $(selector);
+            this.id = $(this.parent).attr('id');
+            this.parentId = $(this.parent).parent().attr('id');
+            var idstr = Math.round(Math.random() * (999999 - 1) + 1);
+            if (!this.id) {
+                $(this.parent).attr('id', idstr + '-element');
+                this.id = $(this.parent).attr('id');
+            }
+            if (!this.parentId) {
+                $(this.parent).parent().attr('id', idstr + '-parent');
+                this.parentId = $(this.parent).parent().attr('id');
+            }
+            this.modalInputs = [];
+            this.disabledInputs = [];
+            this.siblingInputs = [];
+
+            // aria-hide peers of dialog and peers of parent that are not the parent.
+            var peers = $(this.parent).parent().children().toArray();
+
+            // var ppeers = $(this.parent).parent().parent().children().toArray();
+            // peers = peers.concat(ppeers);
+            peers.forEach((node) => {
+                var ptag = $(node)[0].tagName;
+                if (ptag === 'SCRIPT' || ptag === 'LINK' || ptag === 'STYLE') { ;
+                } else if ($(node).attr('id') === this.parentId ||
+                    $(node).attr('id') === this.id) { ;
+                } else {
+                    var hidden = $(node).attr('aria-hidden');
+                    if (!hidden || hidden != 'true') {
+                        $(node).attr('aria-hidden', 'true');
+                        this.siblingInputs.push(node);
+                    }
+                }
+            });
+            htmlHelpers.focusableElements.forEach((etype) => {
+                var elements = $(etype).toArray();
+
+                elements.forEach((element) => {
+                    var tagName = $(element)[0].tagName;
+                    if ($(element).attr('id') === this.id) { ;
+                    } else if ($(element).prop('disabled')) { ;
+                    } else if ($(element).hasClass('hide')) { ;
+                    } else if ($(element).closest(selector).length) {
+                        // inside
+                        this.modalInputs.push(element);
+                    } else if ((tagName === 'A' || tagName === 'DIV' || tagName === 'LI') && $(element).attr('tabIndex') === '-1') { ;
+                    } else {
+                        this.disabledInputs.push(element);
+                        if (tagName === 'A' || tagName === 'DIV' || tagName === 'LI') {
+                            $(element).attr('tabIndex', '-1');
+                        } else {
+                            $(element).prop('disabled', true);
+                        }
+                    }
+                });
+            });
+
+            this.close = function () {
+                this.disabledInputs.forEach(function (element) {
+                    var tagName = $(element)[0].tagName;
+                    if (tagName === 'A' || tagName === 'DIV' || tagName === 'LI') {
+                        $(element).attr('tabIndex', '0');
+                    } else {
+                        $(element).prop('disabled', false);
+                    }
+                });
+                this.siblingInputs.forEach((el) => {
+                    $(el).removeAttr('aria-hidden');
+                });
+            }
+        }
+		
+		return new trapper(selector);
+    }
 }
 ;
 
@@ -4003,21 +4075,7 @@ class suiEditor {
 
     _transpose(selection, offset) {
         this._selectionOperation(selection, 'transpose', offset);
-    }
-
-    showModifierDialog(keyEvent) {
-        var modSelection = this.tracker.getSelectedModifier();
-        if (modSelection) {
-            var dbType = SuiAttributeDialog.modifierDialogMap[modSelection.modifier.type];
-            var ctor = eval(dbType);
-            return ctor.createAndDisplay({
-                staffModifier: modSelection.modifier,
-                selection: modSelection.selection,
-				context:this.tracker.context,
-				tracker:this.tracker
-            });
-        }
-    }
+    }    
 
     interval(keyEvent) {
         if (this.tracker.selections.length != 1)
@@ -4430,7 +4488,10 @@ class SuiAttributeDialog {
         $('.attributeDialog').html('');
 
         $('.attributeDialog').append(r.dom());
-        return $('.attributeDialog');
+		
+		var trapper = htmlHelpers.inputTrapper('.attributeDialog');
+		$('.attributeDialog').find('.cancel-button').focus();
+        return {element:$('.attributeDialog'),trapper:trapper};
     }
 	
 	static get modifierDialogMap() {
@@ -4477,6 +4538,12 @@ class SuiHairpinAttributesDialog {
         if (!this.staffModifier || !this.selection) {
             throw new Error('modifier attribute dialog must have modifier and staff');
         }
+        this.closeDialogPromise = new Promise((resolve, reject) => {
+                $('body').off('dialogDismiss').on('dialogDismiss', function () {
+                    resolve();
+                });
+
+            });
     }
 
     handleRemove() {
@@ -4484,19 +4551,24 @@ class SuiHairpinAttributesDialog {
 		this.selection.staff.removeStaffModifier(this.staffModifier);
 		this.tracker.clearModifierSelections();
 	}
-    _bindElements(dialog) {
-		var self=this;
-        $(dialog).find('.ok-button').off('click').on('click', function (ev) {
+	complete() {
             // todo: set values
             $('body').removeClass('showAttributeDialog');
+			$('body').trigger('dialogDismiss');
+			this.dialog.trapper.close();
+	}
+    _bindElements(dialog) {
+		var self=this;
+        $(dialog.element).find('.ok-button').off('click').on('click', function (ev) {
+			self.complete();
         });
 
-        $(dialog).find('.cancel-button').off('click').on('click', function (ev) {
-            $('body').removeClass('showAttributeDialog');
+        $(dialog.element).find('.cancel-button').off('click').on('click', function (ev) {
+			self.complete();
         });
-        $(dialog).find('.remove-button').off('click').on('click', function (ev) {
+        $(dialog.element).find('.remove-button').off('click').on('click', function (ev) {
             self.handleRemove();
-            $('body').removeClass('showAttributeDialog');
+			self.complete();
         });
     }
 
@@ -4511,7 +4583,7 @@ class SuiHairpinAttributesDialog {
 		
         $('body').addClass('showAttributeDialog');
 		dialogElements.forEach((de) => {
-			$(this.dialog).find('.rockerControl[data-param="'+de.parameterName+'"] input[type="text"]').val(this.staffModifier[de.smoName]);
+			$(this.dialog.element).find('.rockerControl[data-param="'+de.parameterName+'"] input[type="text"]').val(this.staffModifier[de.smoName]);
 		});
         this._bindElements(this.dialog);
     }
@@ -4888,7 +4960,23 @@ class suiController {
         };
     }
 
+    showModifierDialog(modSelection) {
+        var dbType = SuiAttributeDialog.modifierDialogMap[modSelection.modifier.type];
+        var ctor = eval(dbType);
+        return ctor.createAndDisplay({
+            staffModifier: modSelection.modifier,
+            selection: modSelection.selection,
+            context: this.tracker.context,
+            tracker: this.tracker
+        });
+    }
+
     handleKeydown(evdata) {
+		 var self = this;
+            var rebind = function () {
+                self.render();
+                self.bindEvents();
+            }
         console.log("KeyboardEvent: key='" + event.key + "' | code='" +
             event.code + "'"
              + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
@@ -4896,12 +4984,18 @@ class suiController {
 
         if (evdata.key == '/') {
             window.removeEventListener("keydown", this.keydownHandler, true);
-            var self = this;
-            var rebind = function () {
-                self.render();
-                self.bindEvents();
-            }
             this.menuPromise = this.menus.slashMenuMode().then(rebind);
+        }
+
+        // TODO:  work dialogs into the scheme of things
+        if (evdata.key == 'm') {
+            var modSelection = this.tracker.getSelectedModifier();
+            if (modSelection) {
+                window.removeEventListener("keydown", this.keydownHandler, true);
+                var dialog = this.showModifierDialog(modSelection);
+                dialog.closeDialogPromise.then(rebind);
+            }
+            return;
         }
         var binding = this.keyBind.find((ev) =>
                 ev.event === 'keydown' && ev.key === evdata.key && ev.ctrlKey === evdata.ctrlKey &&
