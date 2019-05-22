@@ -229,5 +229,16 @@ class SmoOperation {
             });
         fromSelection.staff.addStaffModifier(modifier);
     }
+	
+	static slur(fromSelection, toSelection) {
+        var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+        var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
+        var modifier = new SmoSlur({
+                startSelector: fromSelector,
+                endSelector: toSelector,
+                position: SmoStaffHairpin.positions.BELOW
+            });
+        fromSelection.staff.addStaffModifier(modifier);
+    }
 
 }

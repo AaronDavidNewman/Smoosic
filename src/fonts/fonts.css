@@ -1,10 +1,9 @@
-
 @font-face {
   font-family: 'smoosic';
   src:
-    url('smoosic.ttf?kmssrt') format('truetype'),
-    url('smoosic.woff?kmssrt') format('woff'),
-    url('smoosic.svg?kmssrt#smoosic') format('svg');
+    url('fonts/smoosic.ttf?i6k6vb') format('truetype'),
+    url('fonts/smoosic.woff?i6k6vb') format('woff'),
+    url('fonts/smoosic.svg?i6k6vb#smoosic') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -102,6 +101,9 @@
 .icon-new-tab:before {
   content: "\ea7e";
 }
+.icon-slur:before {
+  content: "\e90b";
+}
 .icon-natural:before {
   content: "\e900";
 }
@@ -150,5 +152,3 @@
 .icon-decresc:before {
   content: "\e910";
 }
-
-

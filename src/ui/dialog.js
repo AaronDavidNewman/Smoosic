@@ -1,9 +1,9 @@
 
 class SuiAttributeDialog {
-    static rockerControl(id, parameterName,label) {
+    static rockerControl(id, parameterName, label) {
         var b = htmlHelpers.buildDom;
-        var r = b('div').classes('rockerControl').attr('id', id).attr('data-param',parameterName)
-		.append(
+        var r = b('div').classes('rockerControl').attr('id', id).attr('data-param', parameterName)
+            .append(
                 b('button').classes('increment').append(
                     b('span').classes('icon icon-circle-up'))).append(
                 b('button').classes('decrement').append(
@@ -18,9 +18,9 @@ class SuiAttributeDialog {
         var id = parameters.id;
         var b = htmlHelpers.buildDom;
         var r = b('div').classes('attributeModal').css('top', parameters.top + 'px').css('left', parameters.left + 'px')
-		    .append(b('h2').text(parameters.label));
+            .append(b('h2').text(parameters.label));
         dialogElements.forEach((de) => {
-            r.append(SuiAttributeDialog[de.control](id + '-'+ de.parameterName, de.parameterName,de.label));
+            r.append(SuiAttributeDialog[de.control](id + '-' + de.parameterName, de.parameterName, de.label));
         });
         r.append(
             b('div').classes('buttonContainer').append(
@@ -31,39 +31,98 @@ class SuiAttributeDialog {
         $('.attributeDialog').html('');
 
         $('.attributeDialog').append(r.dom());
-		
-		var trapper = htmlHelpers.inputTrapper('.attributeDialog');
-		$('.attributeDialog').find('.cancel-button').focus();
-        return {element:$('.attributeDialog'),trapper:trapper};
-    }
-	
-	static get modifierDialogMap() {
-		return {SmoStaffHairpin:'SuiHairpinAttributesDialog'};
-	}
-}
 
-class SuiHairpinAttributesDialog {
+        var trapper = htmlHelpers.inputTrapper('.attributeDialog');
+        $('.attributeDialog').find('.cancel-button').focus();
+        return {
+            element: $('.attributeDialog'),
+            trapper: trapper
+        };
+    }
+
+    static get modifierDialogMap() {
+        return {
+            SmoStaffHairpin: 'SuiHairpinAttributesDialog'
+        };
+    }
+}
+class SuiDialogBase {
+    constructor(dialogElements, parameters) {
+        this.id = parameters.id;
+        this.closeDialogPromise = new Promise((resolve, reject) => {
+                $('body').off('dialogDismiss').on('dialogDismiss', function () {
+                    resolve();
+                });
+
+            });
+        this.dialog = SuiAttributeDialog.constructDialog(dialogElements, {
+                id: 'dialog-' + this.id,
+                top: parameters.top,
+                left: parameters.left,
+                label: parameters.label
+            });
+        this.dialogElements = dialogElements;
+    }
+    _bindrockerControl(parameter) {
+        var self = this;
+        var pid = this.parameterId(parameter);
+        var input = this.getInputElement(parameter);
+        $('#' + pid).find('button.increment').off('click').on('click',
+            function (ev) {
+            var val = self.getIntValue(parameter);
+            $(input).val(val + 1);
+        });
+        $('#' + pid).find('button.decrement').off('click').on('click',
+            function (ev) {
+            var val = self.getIntValue(parameter);
+            $(self.dialog.element).find('#' + pid).find('input').val(val - 1);
+        });
+    }
+    parameterId(parameter) {
+        return this.id + '-' + parameter.parameterName;
+    }
+    getInputElement(parameter) {
+        var pid = this.parameterId(parameter);
+        return $(this.dialog.element).find('#' + pid).find('input');
+    }
+    getIntValue(parameter) {
+        var pid = this.parameterId(parameter);
+        var val = parseInt(this.getInputElement(parameter).val());
+        val = isNaN(val) ? 0 : val;
+        return val;
+    }
+    setIntValue(parameter, val) {
+        this.getInputElement(parameter).val(val);
+    }
+    complete() {
+        // todo: set values
+        $('body').removeClass('showAttributeDialog');
+        $('body').trigger('dialogDismiss');
+        this.dialog.trapper.close();
+    }
+}
+class SuiHairpinAttributesDialog extends SuiDialogBase {
     static get dialogElements() {
         return [{
                 parameterName: 'height',
-				smoName:'height',
+                smoName: 'height',
                 defaultValue: 10,
                 control: 'rockerControl',
                 label: 'Height'
             }, {
-				smoName:'yOffset',
+                smoName: 'yOffset',
                 parameterName: 'y_shift',
                 defaultValue: 0,
                 control: 'rockerControl',
                 label: 'Y Shift'
             }, {
-				smoName:'xOffsetRight',
+                smoName: 'xOffsetRight',
                 parameterName: 'right_shift_px',
                 defaultValue: 0,
                 control: 'rockerControl',
                 label: 'Right Shift'
             }, {
-				smoName:'xOffsetLeft',
+                smoName: 'xOffsetLeft',
                 parameterName: 'left_shift_px',
                 defaultValue: 0,
                 control: 'rockerControl',
@@ -77,57 +136,64 @@ class SuiHairpinAttributesDialog {
         return dg;
     }
     constructor(parameters) {
-        Vex.Merge(this, parameters);
-        if (!this.staffModifier || !this.selection) {
+        if (!parameters.staffModifier || !parameters.selection) {
             throw new Error('modifier attribute dialog must have modifier and staff');
         }
-        this.closeDialogPromise = new Promise((resolve, reject) => {
-                $('body').off('dialogDismiss').on('dialogDismiss', function () {
-                    resolve();
-                });
 
-            });
+        super(SuiHairpinAttributesDialog.dialogElements, {
+            id: 'dialog-' + parameters.staffModifier.id,
+            top: parameters.staffModifier.renderedBox.y,
+            left: parameters.staffModifier.renderedBox.x,
+            label: 'Hairpin Properties'
+        });
+        Vex.Merge(this, parameters);
     }
 
     handleRemove() {
-		$(this.context.svg).find('g.' + this.staffModifier.id).remove();
-		this.selection.staff.removeStaffModifier(this.staffModifier);
-		this.tracker.clearModifierSelections();
-	}
-	complete() {
-            // todo: set values
-            $('body').removeClass('showAttributeDialog');
-			$('body').trigger('dialogDismiss');
-			this.dialog.trapper.close();
-	}
+        $(this.context.svg).find('g.' + this.staffModifier.id).remove();
+        this.selection.staff.removeStaffModifier(this.staffModifier);
+        this.tracker.clearModifierSelections();
+    }
+
+    _commit() {
+        this.dialogElements.forEach((de) => {
+            this.staffModifier[de.smoName] = this.getIntValue(de);
+        });
+    }
+
     _bindElements(dialog) {
-		var self=this;
+        var self = this;
         $(dialog.element).find('.ok-button').off('click').on('click', function (ev) {
-			self.complete();
+            self._commit();
+            self.complete();
         });
 
         $(dialog.element).find('.cancel-button').off('click').on('click', function (ev) {
-			self.complete();
+            self.complete();
         });
         $(dialog.element).find('.remove-button').off('click').on('click', function (ev) {
             self.handleRemove();
-			self.complete();
+            self.complete();
         });
     }
 
     display() {
-		var dialogElements = SuiHairpinAttributesDialog.dialogElements;
+        var dialogElements = SuiHairpinAttributesDialog.dialogElements;
         this.dialog = SuiAttributeDialog.constructDialog(dialogElements, {
                 id: 'dialog-' + this.staffModifier.id,
                 top: this.staffModifier.renderedBox.y,
                 left: this.staffModifier.renderedBox.x,
-				label:'Hairpin Properties'
+                label: 'Hairpin Properties'
             });
-		
+
         $('body').addClass('showAttributeDialog');
-		dialogElements.forEach((de) => {
-			$(this.dialog.element).find('.rockerControl[data-param="'+de.parameterName+'"] input[type="text"]').val(this.staffModifier[de.smoName]);
-		});
+        dialogElements.forEach((de) => {
+            var inel = this.getInputElement(de);
+            $(inel).val(
+                this.staffModifier[de.smoName]);
+            var binder = '_bind' + de.control;
+            this[binder](de);
+        });
         this._bindElements(this.dialog);
     }
 }

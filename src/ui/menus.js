@@ -235,6 +235,10 @@ class suiStaffModifierMenu extends suiMenuBase {
                     icon: 'decresc',
                     text: 'Decrescendo',
                     value: 'decrescendo'
+                }, {
+                    icon: 'slur',
+                    text: 'Slur/Tie',
+                    value: 'slur'
                 }
             ],
             menuContainer: '.menuContainer'

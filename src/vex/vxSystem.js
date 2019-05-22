@@ -64,7 +64,18 @@ class VxSystem {
 				right_shift_px:modifier.xOffsetRight
 			});
             hairpin.setContext(this.context).setPosition(modifier.position).draw();
-        }
+        } else if (modifier.type == 'SmoSlur') {
+			var curve = new VF.Curve(
+			vxStart,vxEnd,//first_indices:[0],last_indices:[0]});
+			  {
+              thickness: modifier.thickness,
+              x_shift: modifier.xOffset,
+              y_shift: modifier.yOffset,
+              cps: modifier.controlPoints,
+		});
+			curve.setContext(this.context).draw();
+			
+		}
 
         this.context.closeGroup();
 		return group.getBoundingClientRect();
