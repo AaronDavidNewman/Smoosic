@@ -378,8 +378,8 @@ class suiTracker {
                 'fill': 'none'
             },
             'staffModifier': {
-                'stroke': '#9f9',
-                'stroke-width': 2,
+                'stroke': '#c55',
+                'stroke-width': 1,
                 'fill': 'none'
             }
         }
@@ -485,11 +485,12 @@ class suiTracker {
         bb.forEach((box) => {
             var strokes = suiTracker.strokes[stroke];
             var strokeObj = {};
+			var margin=5;
             $(Object.keys(strokes)).each(function (ix, key) {
                 strokeObj[key] = strokes[key];
             });
 			box=svgHelpers.clientToLogical(this.context.svg,box);
-            this.context.rect(box.x - 3, box.y - 3, box.width + 3, box.height + 3, strokeObj);
+            this.context.rect(box.x - margin, box.y - margin, box.width + margin*2, box.height + margin*2, strokeObj);
         });
         this.context.closeGroup(grp);
     }

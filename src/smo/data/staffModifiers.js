@@ -27,6 +27,23 @@ class SmoStaffHairpin {
     get type() {
         return this.attrs.type;
     }
+
+    backupOriginal() {
+        if (!this['original']) {
+            this.original = {};
+            vexMusic.filteredMerge(
+                ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height', 'position', 'hairpinType'],
+                this, this.original);
+        }
+    }
+    restoreOriginal() {
+        if (this['original']) {
+            vexMusic.filteredMerge(
+                ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height', 'position', 'hairpinType'],
+                this.original, this);
+            this.original = null;
+        }
+    }
     static get defaults() {
         return {
             xOffsetLeft: -2,
@@ -65,11 +82,16 @@ class SmoSlur {
             position: SmoSlur.positions.HEAD,
             position_end: SmoSlur.positions.HEAD,
             invert: false,
-			controlPoints: [
-			{x:0,y:40},{x:0,y:40}
-			]
+            controlPoints: [{
+                    x: 0,
+                    y: 40
+                }, {
+                    x: 0,
+                    y: 40
+                }
+            ]
         };
-    }	
+    }
 
     // matches VF curve
     static get positions() {
@@ -78,12 +100,12 @@ class SmoSlur {
             TOP: 2
         };
     }
-	get type() {
-		return this.attrs.type;
-	}
-	get id() {
-		return this.attrs.id;
-	}
+    get type() {
+        return this.attrs.type;
+    }
+    get id() {
+        return this.attrs.id;
+    }
     constructor(params) {
         Vex.Merge(this, SmoSlur.defaults);
         vexMusic.filteredMerge(['spacing', 'thickness', 'xOffset', 'yOffset', 'position', 'invert'], params, this);

@@ -377,7 +377,8 @@ class suiController {
             staffModifier: modSelection.modifier,
             selection: modSelection.selection,
             context: this.tracker.context,
-            tracker: this.tracker
+            tracker: this.tracker,
+			layout:this.layout
         });
     }
 

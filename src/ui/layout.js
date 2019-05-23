@@ -71,6 +71,32 @@ class suiSimpleLayout {
         // layout a second time to adjust for issues.
         this.layout(true);
     }
+
+    // re-render a modifier for preview during modifier dialog
+    renderStaffModifierPreview(modifier) {
+        // get the first measure the modifier touches
+        var startSelection = SmoSelection.measureSelection(this.score, modifier.startSelector.staff, modifier.startSelector.measure);
+
+        // We can only render if we already have, or we don't know where things go.
+        if (!startSelection.measure.renderedBox) {
+            return;
+        }
+        var system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex);
+        while (startSelection && startSelection.selector.measure <= modifier.endSelector.measure) {
+            smoBeamerFactory.applyBeams(startSelection.measure);
+            system.renderMeasure(startSelection.selector.staff, startSelection.measure);
+            var nextSelection = SmoSelection.measureSelection(this.score, startSelection.selector.staff, startSelection.selector.measure + 1);
+
+            // If we go to new line, render this line part, then advance because the modifier is split
+            if (nextSelection && nextSelection.measure.lineIndex != startSelection.measure.lineIndex) {
+                this._renderModifiers(startSelection.staff, system);
+                var system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex);
+            }
+            startSelection = nextSelection;
+        }
+        this._renderModifiers(startSelection.staff, system);
+    }
+	
     unrender() {}
 
     get pageMarginWidth() {
@@ -217,6 +243,7 @@ class suiSimpleLayout {
                 measure.measureNumber.systemIndex = systemIndex;
                 // WIP
                 if (drawAll || measure.changed) {
+					measure.lineIndex = lineIndex;
                     smoBeamerFactory.applyBeams(measure);
                     system.renderMeasure(j, measure);
                 }
