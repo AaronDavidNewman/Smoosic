@@ -105,13 +105,6 @@ class suiController {
                 action: "dotDuration"
             }, {
                 event: "keydown",
-                key: "m",
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: "showModifierDialog"
-            }, {
-                event: "keydown",
                 key: "<",
                 ctrlKey: false,
                 altKey: false,
@@ -391,7 +384,7 @@ class suiController {
         }
 
         // TODO:  work dialogs into the scheme of things
-        if (evdata.key == 'm') {
+        if (evdata.key == 'p') {
             var modSelection = this.tracker.getSelectedModifier();
             if (modSelection) {
                 window.removeEventListener("keydown", this.keydownHandler, true);

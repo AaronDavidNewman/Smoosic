@@ -72,6 +72,8 @@ class VxSystem {
               x_shift: modifier.xOffset,
               y_shift: modifier.yOffset,
               cps: modifier.controlPoints,
+			  invert:modifier.invert,
+			  position:modifier.position
 		});
 			curve.setContext(this.context).draw();
 			

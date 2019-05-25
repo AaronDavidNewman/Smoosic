@@ -82,14 +82,10 @@ class SmoSlur {
             position: SmoSlur.positions.HEAD,
             position_end: SmoSlur.positions.HEAD,
             invert: false,
-            controlPoints: [{
-                    x: 0,
-                    y: 40
-                }, {
-                    x: 0,
-                    y: 40
-                }
-            ]
+            cp1x: 0,
+            cp1y: 40,
+            cp2x: 0,
+            cp2y: 40
         };
     }
 
@@ -100,37 +96,48 @@ class SmoSlur {
             TOP: 2
         };
     }
+    static get parameterArray() {
+        return ['spacing', 'xOffset', 'yOffset', 'position', 'position_end', 'invert',
+            'cp1x', 'cp1y', 'cp2x', 'cp2y'];
+    }
+    backupOriginal() {
+        if (!this['original']) {
+            this.original = {};
+            smoMusic.filteredMerge(
+                SmoSlur.parameterArray,
+                this, this.original);
+        }
+    }
+    restoreOriginal() {
+        if (this['original']) {
+            smoMusic.filteredMerge(
+                SmoSlur.parameterArray,
+                this.original, this);
+            this.original = null;
+        }
+    }
+    get controlPoints() {
+        var ar = [{
+                x: this.cp1x,
+                y: this.cp1y
+            }, {
+                x: this.cp2x,
+                y: this.cp2y
+            }
+        ];
+        return ar;
+    }
+
     get type() {
         return this.attrs.type;
     }
     get id() {
         return this.attrs.id;
     }
-	set cp1x(value) {
-		if (this.controlPoints) {
-			this.controlPoints[0].x=value;
-		}
-	}
-	set cp2x(value) {
-		if (this.controlPoints) {
-			this.controlPoints[1].x=value;
-		}
-	}
-	set cp1y(value) {
-		if (this.controlPoints) {
-			this.controlPoints[0].y=value;
-		}
-	}
-	set cp2y(value) {
-		if (this.controlPoints) {
-			this.controlPoints[1].y=value;
-		}
-	}
-
 
     constructor(params) {
         Vex.Merge(this, SmoSlur.defaults);
-        smoMusic.filteredMerge(['spacing', 'thickness', 'xOffset', 'yOffset', 'position', 'invert'], params, this);
+        smoMusic.filteredMerge(SmoSlur.parameterArray, params, this);
         this.startSelector = params.startSelector;
         this.endSelector = params.endSelector;
         if (!this['attrs']) {

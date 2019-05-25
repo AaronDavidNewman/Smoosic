@@ -1,5 +1,5 @@
 
-// ## smrfSimpleLayout
+// ## suiSimpleLayout
 // ## Description:
 // A layout maps the measures and notes to a spot on the page.  It
 // manages the flow of music as an ordinary score.
