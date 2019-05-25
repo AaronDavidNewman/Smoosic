@@ -65,7 +65,7 @@ class SmoScore {
 		Vex.Merge(rv,SmoMeasure.defaults);
 		
 		if (measureIndex < staff.measures.length) {
-			vexMusic.filteredMerge(SmoMeasure.defaultAttributes, rv, staff.measures[i]);
+			smoMusic.filteredMerge(SmoMeasure.defaultAttributes, rv, staff.measures[i]);
 		}
 		return rv;
 	}
@@ -132,7 +132,7 @@ class SmoScore {
 		for (var i=0;i<proto.measures.length;++i) {
 			var newParams = {};
 			var measure=proto.measures[i];
-			vexMusic.filteredMerge(SmoMeasure.defaultAttributes, measure, newParams);
+			smoMusic.filteredMerge(SmoMeasure.defaultAttributes, measure, newParams);
 			newParams.clef=parameters.instrumentInfo.clef;			
 			var newMeasure=SmoMeasure.getDefaultMeasureWithNotes(newParams);
 			newMeasure.measureNumber = measure.measureNumber;
@@ -164,7 +164,7 @@ class SmoScore {
         var jsonObj = JSON.parse(jsonString);
         var params = {};
 		var staves=[];
-        vexMusic.filteredMerge(
+        smoMusic.filteredMerge(
             ['staffX', 'staffY', 'staffWidth', 'startIndex', 'interGap', 'renumberingMap', 'renumberIndex'],
             jsonObj, params);
         jsonObj.staves.forEach(function (measureObj) {

@@ -5,9 +5,10 @@ Vex.Xform = (typeof(Vex.Xform) == 'undefined' ? {}
 VX = Vex.Xform;
 
 /**
+ * Build on the VX music theory routines, and other 
  * Utilities I wish were in VF.Music but aren't
  **/
-class vexMusic {
+class smoMusic {
 
     // ## getKeyOffset
     // ## Description:  given a vex noteProp and an offset, offset that number
@@ -81,7 +82,7 @@ class vexMusic {
     // given a letter pitch (a,b,c etc.), and a key signature, return the actual note
     // that you get without accidentals
     // ### Usage:
-    //   vexMusic.getKeySignatureKey('F','G'); // returns f#
+    //   smoMusic.getKeySignatureKey('F','G'); // returns f#
     // TODO: move to smoPitch
     static getKeySignatureKey(letter, keySignature) {
         var km = new VF.KeyManager(keySignature);
@@ -92,12 +93,12 @@ class vexMusic {
     // Get ticks for this note with an added dot.  Return
     // identity if that is not a supported value.
     static getNextDottedLevel(ticks) {
-        var ttd = vexMusic.ticksToDuration;
+        var ttd = smoMusic.ticksToDuration;
         var vals = Object.values(ttd);
 
         var ix = vals.indexOf(ttd[ticks]);
         if (ix >= 0 && ix < vals.length && vals[ix][0] == vals[ix + 1][0]) {
-            return vexMusic.durationToTicks(vals[ix + 1]);
+            return smoMusic.durationToTicks(vals[ix + 1]);
         }
         return ticks;
     }
@@ -106,11 +107,11 @@ class vexMusic {
     // Get ticks for this note with one fewer dot.  Return
     // identity if that is not a supported value.
     static getPreviousDottedLevel(ticks) {
-        var ttd = vexMusic.ticksToDuration;
+        var ttd = smoMusic.ticksToDuration;
         var vals = Object.values(ttd);
         var ix = vals.indexOf(ttd[ticks]);
         if (ix > 0 && vals[ix][0] == vals[ix - 1][0]) {
-            return vexMusic.durationToTicks(vals[ix - 1]);
+            return smoMusic.durationToTicks(vals[ix - 1]);
         }
         return ticks;
     }
@@ -183,7 +184,7 @@ class vexMusic {
     // ###   cycle through the enharmonics for a note.
     static getEnharmonic(key) {
         var intVal = VF.Music.noteValues[key.toLowerCase()].int_val;
-        var ar = vexMusic.enharmonics[intVal.toString()];
+        var ar = smoMusic.enharmonics[intVal.toString()];
         var len = ar.length;
         var ix = ar.indexOf(key);
         key = ar[(ix + 1) % len];
@@ -198,7 +199,7 @@ class vexMusic {
         var rv = letter;
         var muse = new VF.Music();
         var scale = Object.values(muse.createScaleMap(keySignature));
-        var prop = vexMusic.getEnharmonic(letter.toLowerCase());
+        var prop = smoMusic.getEnharmonic(letter.toLowerCase());
         while (prop.toLowerCase() != letter.toLowerCase()) {
             for (var i = 0; i < scale.length; ++i) {
                 var skey = scale[i];
@@ -209,7 +210,7 @@ class vexMusic {
                 }
             }
             prop = (prop[1] == 'n' ? prop[0] : prop);
-            prop = vexMusic.getEnharmonic(prop);
+            prop = smoMusic.getEnharmonic(prop);
         }
         return rv;
     }

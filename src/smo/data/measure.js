@@ -78,7 +78,7 @@ class SmoMeasure {
             beamGroups: beamGroups
         };
 
-        vexMusic.filteredMerge(SmoMeasure.defaultAttributes, jsonObj, params);
+        smoMusic.filteredMerge(SmoMeasure.defaultAttributes, jsonObj, params);
 
         return new SmoMeasure(params);
     }

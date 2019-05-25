@@ -113,7 +113,7 @@ class SmoOperation {
     static dotDuration(selection) {
         var note = selection.note;
         var measure = selection.measure;
-        var nticks = vexMusic.getNextDottedLevel(note.tickCount);
+        var nticks = smoMusic.getNextDottedLevel(note.tickCount);
         if (nticks == note.tickCount) {
             return;
         }
@@ -133,7 +133,7 @@ class SmoOperation {
     static undotDuration(selection) {
         var note = selection.note;
         var measure = selection.measure;
-        var nticks = vexMusic.getPreviousDottedLevel(note.tickCount);
+        var nticks = smoMusic.getPreviousDottedLevel(note.tickCount);
         if (nticks == note.tickCount) {
             return;
         }
@@ -176,7 +176,7 @@ class SmoOperation {
         pitches.forEach((pitch) => {
             var letter = pitch;
             if (typeof(pitch) === 'string') {
-                var letter = vexMusic.getKeySignatureKey(pitch[0], measure.keySignature);
+                var letter = smoMusic.getKeySignatureKey(pitch[0], measure.keySignature);
                 pitch = {
                     letter: letter[0],
                     accidental: letter.length > 1 ? letter.substring(1) : '',
@@ -198,7 +198,7 @@ class SmoOperation {
 
         // TODO: figure out which pitch is selected
         var pitch = note.pitches[0];
-        var pitch = vexMusic.getIntervalInKey(pitch, measure.keySignature, interval);
+        var pitch = smoMusic.getIntervalInKey(pitch, measure.keySignature, interval);
         if (pitch) {
             note.pitches.push(pitch);
             return true;

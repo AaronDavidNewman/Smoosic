@@ -1,7 +1,7 @@
 
 class SuiRockerComponent {
 	constructor(dialog,parameter) {
-		vexMusic.filteredMerge(
+		smoMusic.filteredMerge(
 		['parameterName','smoName','defaultValue','control','label'],parameter,this);
 		if (!this.defaultValue) {
 			this.defaultValue=0;

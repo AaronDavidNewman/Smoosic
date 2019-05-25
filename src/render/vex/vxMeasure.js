@@ -83,7 +83,7 @@ class VxMeasure {
         for (var i = 0; i < smoNote.pitches.length; ++i) {
             var pitch = smoNote.pitches[i];
 			var accidental = pitch.accidental ?  pitch.accidental : 'n';
-            var defaultAccidental = vexMusic.getKeySignatureKey(pitch.letter, this.smoMeasure.keySignature);
+            var defaultAccidental = smoMusic.getKeySignatureKey(pitch.letter, this.smoMeasure.keySignature);
             defaultAccidental = defaultAccidental.length > 1 ? defaultAccidental[1] : 'n';
 
             // was this accidental declared earlier in the measure?
@@ -191,7 +191,7 @@ class VxMeasure {
         // offset for left-hand stuff
         var staffMargin = (this.smoMeasure.forceClef ? 40 : 0)
          + (this.smoMeasure.forceTimeSignature ? 16 : 0)
-         + (this.smoMeasure.forceKeySignature ? vexMusic.keySignatureLength[this.smoMeasure.keySignature] * 8 : 0);
+         + (this.smoMeasure.forceKeySignature ? smoMusic.keySignatureLength[this.smoMeasure.keySignature] * 8 : 0);
         var staffWidth = this.smoMeasure.staffWidth
              + staffMargin;
 

@@ -14,7 +14,7 @@ class SmoNote {
 	constructor(params) {
 		Vex.Merge(this, SmoNote.defaults);
 		Vex.Merge(this, params);
-		var ticks = vexMusic.durationToTicks(this.duration);
+		var ticks = smoMusic.durationToTicks(this.duration);
 		this.ticks = {
 			numerator: ticks,
 			denominator: 1,
@@ -39,7 +39,7 @@ class SmoNote {
 		if (this.isTuplet()) {
 			return 0;
 		}
-		var vexDuration = vexMusic.ticksToDuration[this.tickCount];
+		var vexDuration = smoMusic.ticksToDuration[this.tickCount];
 		return vexDuration.split('d').length-1;
 	}
 	
@@ -73,7 +73,7 @@ class SmoNote {
 			return this;
 		}
 		var pitch = this.pitches[0];
-		this.pitches.push(vexMusic.getKeyOffset(pitch, offset));
+		this.pitches.push(smoMusic.getKeyOffset(pitch, offset));
 
 		this._sortPitches();
 	}
@@ -92,10 +92,10 @@ class SmoNote {
 			if (index + 1 > this.pitches.length) {
 				this.addPitchOffset(offset);
 			} else {
-				var nnote = vexMusic.getKeyOffset(this.pitches[index], offset);
+				var nnote = smoMusic.getKeyOffset(this.pitches[index], offset);
 				if (keySignature) {
 					var letterKey = nnote.letter + nnote.accidental;
-					letterKey = vexMusic.getKeyFriendlyEnharmonic(letterKey,keySignature);
+					letterKey = smoMusic.getKeyFriendlyEnharmonic(letterKey,keySignature);
 					nnote.letter = letterKey[0];
 					if (letterKey.length < 2) {
 						nnote.accidental = 'n';
@@ -197,7 +197,7 @@ class SmoTuplet {
 		var sum = this.durationSum;
 		for (var i = 0; i < this.notes.length; ++i) {
 			var note = this.notes[i];
-			var normTicks = vexMusic.durationToTicks(vexMusic.ticksToDuration[this.stemTicks]);
+			var normTicks = smoMusic.durationToTicks(smoMusic.ticksToDuration[this.stemTicks]);
 			// TODO:  notes_occupied needs to consider vex duration
 			var tupletBase = normTicks * this.note_ticks_occupied;
 			note.ticks.denominator = 1;
@@ -231,7 +231,7 @@ class SmoTuplet {
 				note.ticks.numerator *= multiplier;
 
 				var normalizedTicks = VF.durationToTicks(note.duration) / 2;
-				note.duration = vexMusic.ticksToDuration[normalizedTicks];
+				note.duration = smoMusic.ticksToDuration[normalizedTicks];
 
 				var onote = SmoNote.clone(note);
 				nnotes.push(note);
@@ -278,7 +278,7 @@ class SmoTuplet {
 			if (i == startIndex) {
 				note.ticks.numerator = note.ticks.numerator * acc;
 				var normTicks = VF.durationToTicks(note.duration) * multiplier;
-				note.duration = vexMusic.ticksToDuration[normTicks];
+				note.duration = smoMusic.ticksToDuration[normTicks];
 				nmap.push(acc);
 				nnotes.push(note);
 			}
@@ -339,7 +339,7 @@ class SmoBeamGroup {
 		}
 		for (var i = 0; i < this.notes.length; ++i) {
 			var note = this.notes[i];
-			if (vexMusic.durationToTicks(note.duration) < 4096)
+			if (smoMusic.durationToTicks(note.duration) < 4096)
 				note.beam_group = this.attrs;
 		}
 	}

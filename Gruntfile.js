@@ -8,7 +8,7 @@ module.exports = function (grunt) {
                 separator: ';'
             },
             dist: {
-                src: ['src/common/vexHelpers.js', 'src/common/svgHelpers.js', 'src/common/htmlHelpers.js',
+                src: ['src/common/musicHelpers.js', 'src/common/svgHelpers.js', 'src/common/htmlHelpers.js',
                     'src/smo/data/note.js', 'src/smo/data/measure.js', 'src/smo/data/systemStaff.js', 
 					'src/smo/data/score.js', 'src/smo/data/staffModifiers.js',
                     'src/smo/xform/iterator.js', 'src/smo/xform/beamers.js', 'src/smo/xform/tickDuration.js', 'src/smo/xform/selections.js',

@@ -112,7 +112,7 @@ class smoTickIterator {
 			var pitch = note.pitches[i];
 			var letter = pitch.letter.toLowerCase();
 			var sigLetter = letter+pitch.accidental;
-			var sigKey = vexMusic.getKeySignatureKey(letter, keySignature);
+			var sigKey = smoMusic.getKeySignatureKey(letter, keySignature);
 			
 			if (sigObj && sigObj[letter]) {
 				var currentVal = sigObj[letter].key+sigObj[letter].accidental;

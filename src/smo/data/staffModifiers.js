@@ -8,7 +8,7 @@
 class SmoStaffHairpin {
     constructor(params) {
         Vex.Merge(this, SmoStaffHairpin.defaults);
-        vexMusic.filteredMerge(['position', 'xOffset', 'yOffset', 'hairpinType', 'height'], params, this);
+        smoMusic.filteredMerge(['position', 'xOffset', 'yOffset', 'hairpinType', 'height'], params, this);
         this.startSelector = params.startSelector;
         this.endSelector = params.endSelector;
 
@@ -31,14 +31,14 @@ class SmoStaffHairpin {
     backupOriginal() {
         if (!this['original']) {
             this.original = {};
-            vexMusic.filteredMerge(
+            smoMusic.filteredMerge(
                 ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height', 'position', 'hairpinType'],
                 this, this.original);
         }
     }
     restoreOriginal() {
         if (this['original']) {
-            vexMusic.filteredMerge(
+            smoMusic.filteredMerge(
                 ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height', 'position', 'hairpinType'],
                 this.original, this);
             this.original = null;
@@ -130,7 +130,7 @@ class SmoSlur {
 
     constructor(params) {
         Vex.Merge(this, SmoSlur.defaults);
-        vexMusic.filteredMerge(['spacing', 'thickness', 'xOffset', 'yOffset', 'position', 'invert'], params, this);
+        smoMusic.filteredMerge(['spacing', 'thickness', 'xOffset', 'yOffset', 'position', 'invert'], params, this);
         this.startSelector = params.startSelector;
         this.endSelector = params.endSelector;
         if (!this['attrs']) {

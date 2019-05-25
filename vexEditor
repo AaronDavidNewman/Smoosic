@@ -1,9 +1,9 @@
 <NotepadPlus>
     <Project name="vexEditor">
         <Folder name="common">
-            <File name="src\common\vexHelpers.js" />
             <File name="src\common\svgHelpers.js" />
             <File name="src\common\htmlHelpers.js" />
+            <File name="src\common\musicHelpers.js" />
         </Folder>
         <Folder name="smo">
             <Folder name="data">
@@ -15,10 +15,10 @@
             </Folder>
             <Folder name="xform">
                 <File name="src\smo\xform\iterator.js" />
-                <File name="src\smo\xform\modifiers.js" />
                 <File name="src\smo\xform\tickDuration.js" />
                 <File name="src\smo\xform\selections.js" />
                 <File name="src\smo\xform\operations.js" />
+                <File name="src\smo\xform\beamers.js" />
             </Folder>
         </Folder>
         <Folder name="ui">

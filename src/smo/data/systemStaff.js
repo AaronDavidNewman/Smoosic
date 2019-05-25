@@ -44,7 +44,7 @@ class SmoSystemStaff {
     static deserialize(jsonString) {
         var jsonObj = JSON.parse(jsonString);
         var params = {};
-        vexMusic.filteredMerge(
+        smoMusic.filteredMerge(
             ['staffX', 'staffY', 'staffWidth', 'startIndex', 'renumberingMap', 'renumberIndex', 'instrumentInfo'],
             jsonObj, params);
         params.measures = [];
