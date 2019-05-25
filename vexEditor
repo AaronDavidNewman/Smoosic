@@ -21,13 +21,7 @@
                 <File name="src\smo\xform\operations.js" />
             </Folder>
         </Folder>
-        <Folder name="vex">
-            <File name="src\vex\vxSystem.js" />
-            <File name="src\vex\vxMeasure.js" />
-        </Folder>
         <Folder name="ui">
-            <File name="src\ui\tracker.js" />
-            <File name="src\ui\layout.js" />
             <File name="src\ui\editor.js" />
             <File name="src\ui\menus.js" />
             <File name="src\ui\utController.js" />
@@ -35,8 +29,6 @@
             <File name="src\ui\dialog.js" />
         </Folder>
         <Folder name="test">
-            <File name="src\test\systemTest.html" />
-            <File name="src\test\systemTest.js" />
             <File name="src\test\chordTest.js" />
             <File name="src\test\tupletTest.js" />
             <File name="src\test\tupletTest.html" />
@@ -53,11 +45,23 @@
             <File name="src\test\staffTest.html" />
             <File name="src\test\staffTest.js" />
             <File name="src\test\testAll.html" />
+            <File name="src\test\editorTest.js" />
+            <File name="src\test\editorTest.html" />
         </Folder>
         <Folder name="fonts">
             <File name="src\fonts\smoosic.ttf" />
             <File name="src\fonts\fonts.css" />
             <File name="src\fonts\styles.css" />
+        </Folder>
+        <Folder name="render">
+            <Folder name="vex">
+                <File name="src\render\vex\vxSystem.js" />
+                <File name="src\render\vex\vxMeasure.js" />
+            </Folder>
+            <Folder name="sui">
+                <File name="src\render\sui\tracker.js" />
+                <File name="src\render\sui\layout.js" />
+            </Folder>
         </Folder>
     </Project>
 </NotepadPlus>
