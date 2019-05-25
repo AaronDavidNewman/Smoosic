@@ -12,8 +12,8 @@ module.exports = function (grunt) {
                     'src/smo/data/note.js', 'src/smo/data/measure.js', 'src/smo/data/systemStaff.js', 
 					'src/smo/data/score.js', 'src/smo/data/staffModifiers.js',
                     'src/smo/xform/iterator.js', 'src/smo/xform/beamers.js', 'src/smo/xform/tickDuration.js', 'src/smo/xform/selections.js',
-                    'src/smo/xform/operations.js', 'src/vex/vxMeasure.js', 'src/vex/vxSystem.js',
-                    'src/ui/tracker.js', 'src/ui/layout.js', 'src/ui/editor.js', 'src/ui/menus.js', 'src/ui/utController.js',
+                    'src/smo/xform/operations.js', 'src/render/vex/vxMeasure.js', 'src/render/vex/vxSystem.js',
+                    'src/render/sui/tracker.js', 'src/render/sui/layout.js', 'src/ui/editor.js', 'src/ui/menus.js', 'src/ui/utController.js',
                     'src/ui/dialog.js', 'src/ui/controller.js'],
                 dest: 'build/<%= pkg.name %>.js'
             },
@@ -24,6 +24,10 @@ module.exports = function (grunt) {
                 dest: 'build/smoTests.js'
 
             },
+			editor: {
+				src:['src/test/editorTest.js'],
+				dest: 'build/editor.js'
+			},
 			styles: {
 				src: ['src/fonts/fonts.css','src/fonts/styles.css'],
 				dest: 'build/styles.css'

@@ -371,15 +371,7 @@ class suiController {
     }
 
     showModifierDialog(modSelection) {
-        var dbType = SuiAttributeDialog.modifierDialogMap[modSelection.modifier.type];
-        var ctor = eval(dbType);
-        return ctor.createAndDisplay({
-            modifier: modSelection.modifier,
-            selection: modSelection.selection,
-            context: this.tracker.context,
-            tracker: this.tracker,
-			layout:this.layout
-        });
+		return SuiDialogFactory.createDialog(modSelection,this.tracker.context,this.tracker,this.layout) 
     }
 
     handleKeydown(evdata) {

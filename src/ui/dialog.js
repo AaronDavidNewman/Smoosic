@@ -72,51 +72,27 @@ class SuiRockerComponent {
 		return this._getIntValue();
 	}
 }
-class SuiAttributeDialog {
-   
-    /* static toggleControl(id, parameterName, label) {
-        var b = htmlHelpers.buildDom;
-        var r = b('div').classes('toggleControl').attr('id', id).attr('data-param', parameterName)
-            .append(b('input').attr('type', 'text').classes('toggleInput')
-                .attr('id', id + '-input').append(
-                    b('label').attr('for', id + '-input').text(label)));
-        return r;
-    }   */
-
-    static dropdownControl(id, parameterName, label) {
+class SuiDialogFactory {
+  
+/*     static dropdownControl(id, parameterName, label) {
         var b = htmlHelpers.buildDom;
         var r = b('div').classes('dropdownControl').attr('id', id).attr('data-param', parameterName)
             .append(b('label').attr('for', id + '-input').text(label))
             .append(b('select').classes('dropdownSelect').attr('id', id + '-input'));
         return r;
-    }
-
-    /* static constructDialog(dialogElements, parameters) {
-        var id = parameters.id;
-        var b = htmlHelpers.buildDom;
-        var r = b('div').classes('attributeModal').css('top', parameters.top + 'px').css('left', parameters.left + 'px')
-            .append(b('h2').text(parameters.label));
-        dialogElements.forEach((de) => {
-            r.append(SuiAttributeDialog[de.control](id + '-' + de.parameterName, de.parameterName, de.label));
-        });
-        r.append(
-            b('div').classes('buttonContainer').append(
-                b('button').classes('ok-button').text('Ok')).append(
-                b('button').classes('cancel-button').text('Cancel')).append(
-                b('button').classes('remove-button').text('Remove').append(
-                    b('span').classes('icon icon-cancel-circle'))));
-        $('.attributeDialog').html('');
-
-        $('.attributeDialog').append(r.dom());
-
-        var trapper = htmlHelpers.inputTrapper('.attributeDialog');
-        $('.attributeDialog').find('.cancel-button').focus();
-        return {
-            element: $('.attributeDialog'),
-            trapper: trapper
-        };
     }  */
 
+	static createDialog(modSelection,context,tracker,layout) {
+	    var dbType = SuiDialogFactory.modifierDialogMap[modSelection.modifier.type];
+        var ctor = eval(dbType);
+		return ctor.createAndDisplay({
+            modifier: modSelection.modifier,
+            selection: modSelection.selection,
+            context: context,
+            tracker: tracker,
+			layout:layout
+        });
+	}
     static get modifierDialogMap() {
         return {
             SmoStaffHairpin: 'SuiHairpinAttributesDialog',

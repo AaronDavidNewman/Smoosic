@@ -1,8 +1,7 @@
 
-class SystemTest {
+class EditorTest {
    
     static CommonTests() {
-		$('h1.testTitle').text('System Test');			
 		var score=SmoScore.getEmptyScore();
         score.addDefaultMeasureWithNotes(0,{});
         score.addDefaultMeasureWithNotes(1,{});
