@@ -106,6 +106,28 @@ class SmoSlur {
     get id() {
         return this.attrs.id;
     }
+	set cp1x(value) {
+		if (this.controlPoints) {
+			this.controlPoints[0].x=value;
+		}
+	}
+	set cp2x(value) {
+		if (this.controlPoints) {
+			this.controlPoints[1].x=value;
+		}
+	}
+	set cp1y(value) {
+		if (this.controlPoints) {
+			this.controlPoints[0].y=value;
+		}
+	}
+	set cp2y(value) {
+		if (this.controlPoints) {
+			this.controlPoints[1].y=value;
+		}
+	}
+
+
     constructor(params) {
         Vex.Merge(this, SmoSlur.defaults);
         vexMusic.filteredMerge(['spacing', 'thickness', 'xOffset', 'yOffset', 'position', 'invert'], params, this);

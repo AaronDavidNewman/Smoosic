@@ -374,7 +374,7 @@ class suiController {
         var dbType = SuiAttributeDialog.modifierDialogMap[modSelection.modifier.type];
         var ctor = eval(dbType);
         return ctor.createAndDisplay({
-            staffModifier: modSelection.modifier,
+            modifier: modSelection.modifier,
             selection: modSelection.selection,
             context: this.tracker.context,
             tracker: this.tracker,
