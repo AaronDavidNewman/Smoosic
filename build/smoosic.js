@@ -543,6 +543,50 @@ class htmlHelpers {
 }
 ;
 
+class SmoDynamicText {
+	 static get defaults() {
+        return {
+            xOffset: 0,
+            fontSize: 38,
+            yOffsetLine:11,
+            text: SmoDynamicText.dynamics.MP,
+        };
+    }
+	
+	static get dynamics() {
+        // matches VF.modifier
+        return {
+			PP:'pp',
+			P:'p',
+            MP: 'mp',
+            MF: 'mf',
+            F: 'f',
+            FF: 'ff',
+			SFZ:'sfz'
+        };
+    }
+	
+	constructor(parameters) {
+		Vex.Merge(this, SmoStaffHairpin.defaults);
+        smoMusic.filteredMerge(['position', 'xOffset', 'yOffset', 'hairpinType', 'height'], params, this);
+        this.selector = params.selector;
+		
+		 if (!this['attrs']) {
+            this.attrs = {
+                id: VF.Element.newID(),
+                type: 'SmoDynamicText'
+            };
+        } else {
+            console.log('inherit attrs');
+        }
+	}
+	get id() {
+		return this.attrs.id;
+	}
+	set id(ignore) {}
+	
+}
+
 // ##Note on prefixes:
 // SMO == Serializable Music Ontology, stuff I made up
 // vx == VF == Vexflow rendering engine by https://github.com/0xfe
@@ -588,6 +632,12 @@ class SmoNote {
 	
 	set dots(value) {
 		// ignore - dots are a function of duration only.
+	}
+	
+	// ## addDynamicText
+	// sFz, mp, etc.
+	addDynamic(dynamic) {
+		this.dynamicText=dynamic;
 	}
 
     // ## toVexKeys
@@ -688,7 +738,9 @@ class SmoNote {
 	// of the note but nothing else.
 	static cloneWithDuration(note, duration) {
 		var clone = SmoNote._cloneParameters(note);
+		
 		clone.duration = duration;
+
 		// should tuplet info be cloned?
 		var rv = new SmoNote(clone);
 
@@ -888,7 +940,13 @@ class SmoBeamGroup {
 	}
 }
 ;
-
+// # SmoMeasure - data for a measure of music
+// # Description:
+// Many rules of musical engraving are enforced at a measure level, e.g. the duration of 
+// notes, accidentals, etc.  
+// # See Also:
+// Measures contain notes, tuplets, and beam groups.  So see SmoNote, etc.
+// Measures are contained in staves, see also SystemStaff.js
 class SmoMeasure {
     constructor(params) {
         this.tuplets = [];
@@ -1083,26 +1141,6 @@ class SmoMeasure {
 		return clone;
 	}
 	
-	/* static cloneMeasure(measure) {
-		var params = SmoMeasure._cloneParameters(measure);
-		var nmeasure = new SmoMeasure(params);
-		nmeasure.attrs={
-                id: VF.Element.newID(),
-                type: 'SmoMeasure'
-            };
-	    nmeasure.voices=[];
-		for (var i=0;i<measure.voices.length;++i) {
-			
-			var notes=[];
-			var voice=measure.voices[i];
-			for (var j=0;j<voice.notes.length;++j) {
-				var note = voice.notes[j];
-				notes.push(SmoNote.clone(note));
-			}
-			nmeasure.voices.push({notes:notes});
-		}
-		return nmeasure;
-	}  */
 
     static get defaultVoice44() {
 		return SmoMeasure.getDefaultNotes({clef:'treble',timeSignature:'4/4'});
@@ -1137,6 +1175,29 @@ class SmoMeasure {
         return VX.TICKMAP(this);
     }
 	
+	// ## getDynamicMap
+	// ## Description:
+	// returns the dynamic text for each tick index.  If 
+	// there are no dynamics, the empty array is returned.
+	getDynamicMap() {
+		var rv = [];
+		var hasDynamic=false;
+		this.voices.forEach((voice) => {
+			voice.notes.forEach((note) => { 
+			if (note.dynamicText) {
+				rv.push({note:note,text:note.dynamicText});
+				hasDynamic=true;
+			} else {
+				rv.push({note:note,text:''});
+			}
+			});
+		});
+		
+		if (hasDynamic) {
+			return rv;
+		}
+		return [];
+	}
 	
 	// {index:1,value:{symbol:'#',cautionary:false}}
 	setAccidental(voice,tick,pitch,value) {
@@ -2459,6 +2520,9 @@ class SmoMakeTupletActor extends TickTransformBase {
         }
         for (var i = 0; i < this.numNotes; ++i) {
             note = SmoNote.cloneWithDuration(note, this.vexDuration);
+			
+			// Don't clone modifiers, except for first one.
+			note.dynamicText = i===0 ? note.dynamicText : null;
 
             this.tuplet.push(note);
         }
@@ -2809,7 +2873,7 @@ class SmoOperation {
         }
         return true;
 
-    }
+    }	
 
     // ## halveDuration
     // ## Description
@@ -2963,6 +3027,10 @@ class SmoOperation {
         });
         return true;
     }
+	
+	static addDynamic(selection,dynamic) {
+		selection.note.addDynamic(dynamic);
+	}
 
     // ## interval
     // ## Description:
@@ -3096,12 +3164,13 @@ class VxMeasure {
         this.applyStemDirection(noteParams);
         var vexNote = new VF.StaveNote(noteParams);
         smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
-        
-		// consider accidentals in measure in earlier notes.
-        var accidentals = tickIndex === 0 ? {} : this.tickmap.accidentalMap[tickIndex-1];
+
+        // consider accidentals in measure in earlier notes.
+        var accidentals = tickIndex === 0 ? {}
+         : this.tickmap.accidentalMap[tickIndex - 1];
         for (var i = 0; i < smoNote.pitches.length; ++i) {
             var pitch = smoNote.pitches[i];
-			var accidental = pitch.accidental ?  pitch.accidental : 'n';
+            var accidental = pitch.accidental ? pitch.accidental : 'n';
             var defaultAccidental = smoMusic.getKeySignatureKey(pitch.letter, this.smoMeasure.keySignature);
             defaultAccidental = defaultAccidental.length > 1 ? defaultAccidental[1] : 'n';
 
@@ -3124,6 +3193,31 @@ class VxMeasure {
         return vexNote;
     }
 	
+	_renderNoteGlyph(smoNote,textObj) {		
+		var x = this.noteToVexMap[smoNote.id].getAbsoluteX();
+		var y=this.stave.getYForLine(textObj.location-3); // this is how vex textDynamics does it
+		var group = this.context.openGroup();
+        group.classList.add(textObj.glyphType+'-'+smoNote.id);
+		group.classList.add(textObj.glyphType);
+		textObj.text.split('').forEach((ch)=> {
+			const glyphCode = VF.TextDynamics.GLYPHS[ch];
+			const glyph=new Vex.Flow.Glyph(glyphCode.code, textObj.fontSize);
+			glyph.render(this.context, x, y);
+			x += VF.TextDynamics.GLYPHS[ch].width;
+		});
+		this.context.closeGroup();
+	}
+	
+	renderDynamics() {
+		this.smoMeasure.notes.forEach((smoNote) => {
+			if (smoNote.dynamicText) {
+				smoNote.dynamicText.glyphType='dynamics';
+				this._renderNoteGlyph(smoNote,smoNote.dynamicText);
+			}
+		});
+	}
+	
+
     // ## Description:
     // create an a array of VF.StaveNote objects to render the active voice.
     createVexNotes() {
@@ -3131,11 +3225,11 @@ class VxMeasure {
         this.noteToVexMap = {};
 
         for (var i = 0; i < this.smoMeasure.notes.length; ++i) {
-            var smoNote = this.smoMeasure.notes[i];
+            var smoNote = this.smoMeasure.notes[i];           
             var vexNote = this._createVexNote(smoNote, i);
             this.noteToVexMap[smoNote.attrs.id] = vexNote;
             this.vexNotes.push(vexNote);
-        }
+        }       
     }
 
     // ## Description:
@@ -3250,7 +3344,10 @@ class VxMeasure {
             voice.addTickables(this.vexNotes);
             voiceAr.push(voice);
         }
+		
+		// Need to format for x position, then set y position before drawing dynamics.
         this.formatter = new VF.Formatter().joinVoices(voiceAr).format(voiceAr, this.smoMeasure.staffWidth - this.smoMeasure.adjX);
+		
         for (var j = 0; j < voiceAr.length; ++j) {
             voiceAr[j].draw(this.context, this.stave);
         }
@@ -3271,12 +3368,14 @@ class VxMeasure {
             width: box.width
         };
         this.smoMeasure.changed = false;
+		
+		this.renderDynamics();
 
         // Calculate how far off our estimated width we are
         var svgBox =
             svgHelpers.clientToLogical(this.context.svg, box);
         this.smoMeasure.adjX = svgBox.width - this.stave.getWidth() + this.smoMeasure.rightMargin;
-		// console.log('adjx is '+this.smoMeasure.adjX);
+        // console.log('adjx is '+this.smoMeasure.adjX);
         // console.log(JSON.stringify(this.smoMeasure.renderedBox,null,' '));
         this.context.closeGroup();
     }
@@ -4342,6 +4441,14 @@ class suiMenuManager {
                 altKey: false,
                 shiftKey: false,
                 action: "suiStaffModifierMenu"
+            },
+			{
+                event: "keydown",
+                key: "d",
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: "SuiDynamicsMenu"
             }
         ];
     }
@@ -4439,6 +4546,60 @@ class suiMenuManager {
             self.menu.selection(ev);
         });
     }
+}
+
+class SuiDynamicsMenu extends suiMenuBase {
+	 constructor(params) {
+        params = (params ? params : {});
+        Vex.Merge(params, SuiDynamicsMenu.defaults);
+        super(params);
+    }
+	static get defaults() {
+		return {menuItems: [ 
+		{icon: 'pianissimo',
+                    text: 'Piano',
+                    value: 'pp'
+                },
+		{icon: 'piano',
+                    text: 'Piano',
+                    value: 'p'
+                },
+		{icon: 'mezzo-piano',
+                    text: 'Mezzo-piano',
+                    value: 'mp'
+                },
+		{icon: 'mezzo-forte',
+                    text: 'Mezzo-forte',
+                    value: 'mf'
+        },
+		{icon: 'forte',
+                    text: 'Forte',
+                    value: 'f'
+        },
+		{icon: 'fortissimo',
+                    text: 'Fortissimo',
+                    value: 'ff'
+        },
+		{icon: 'sfortzando',
+                    text: 'sfortzando',
+                    value: 'sfz'
+        }
+		]				
+	};
+	}
+	selection(ev) {
+        var text = $(ev.currentTarget).attr('data-value');
+
+        var self = this;
+        var ft = this.tracker.getExtremeSelection(-1);
+		if (!ft || !ft.note) {
+			return;
+		}
+
+        SmoOperation.addDynamic(ft,{text:text,location:11,fontSize:38});
+        this.complete();
+    }
+    keydown(ev) {}
 }
 
 class suiKeySignatureMenu extends suiMenuBase {
