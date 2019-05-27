@@ -105,73 +105,29 @@ class VxMeasure {
 
         return vexNote;
     }
-
-    createDynamics() {
-        var vexDynamics = [];
-        var hasDynamics = false;
-		var dynIx = 0;
-        for (var i = 0; i < this.smoMeasure.notes.length; ++i) {
-            var smoNote = this.smoMeasure.notes[i];
-			var duration = smoMusic.ticksToDuration[smoNote.tickCount];
-			
-			// If a tuplet, use the full length of the note for the first index.
-			// Skip the remaining notes.
-			if (smoNote.isTuplet()) {
-				var tuplet = this.smoMeasure.getTupletForNote(smoNote);
-				if (tuplet.getIndexOfNote(smoNote) != 0) {
-					continue;
-				}			
-				var ticks = tuplet.notes.reduce((acc,note) => {return acc + note.tickCount;},0);
-				duration = smoMusic.ticksToDuration[ticks];					
-			}
-			if (duration === null) {
-				continue;
-			}
-            if (smoNote.dynamicText) {
-                vexDynamics.push({
-                    text: smoNote.dynamicText.text,
-                    location: smoNote.dynamicText.location,
-                    duration: duration,
-					index:dynIx
-                });
-                hasDynamics = true;
-            } else {
-                vexDynamics.push({
-                    text: '',
-                    location: 0,
-                    duration: smoMusic.ticksToDuration[smoNote.tickCount],
-					index:dynIx
-                });
-            }
-			dynIx += 1;
-		}
-		
-		if (hasDynamics) {
-            this.vexDynamics = vexDynamics;
-            this.dynamicVoice =
-                new VF.Voice({
-                    num_beats: this.smoMeasure.numBeats,
-                    beat_value: this.smoMeasure.beatValue
-                }).setStrict(false);
-            var dynNotes = [];
-            vexDynamics.forEach((dynamic) => {
-                if (dynamic.text) {
-                    dynNotes.push(new VF.TextDynamics({
-                            text: dynamic.text,
-                            duration: dynamic.duration
-                        }));
-                } else {
-                    var tt = new VF.TextNote({
-                            text: ' ',
-                            duration: dynamic.duration
-                        });
-                    tt.setContext(this.context);
-                    dynNotes.push(tt);
-                }
-            });
-			this.dynamicVoice.addTickables(dynNotes);
-        }
+	
+	_renderNoteGlyph(smoNote,textObj) {		
+		var x = this.noteToVexMap[smoNote.id].getAbsoluteX();
+		var y=this.stave.getYForLine(textObj.location-3); // this is how vex textDynamics does it
+		var group = this.context.openGroup();
+        group.classList.add('mod-'+smoNote.id+'-'+textObj.text);
+		textObj.text.split('').forEach((ch)=> {
+			const glyphCode = VF.TextDynamics.GLYPHS[ch];
+			const glyph=new Vex.Flow.Glyph(glyphCode.code, textObj.fontSize);
+			glyph.render(this.context, x, y);
+			x += VF.TextDynamics.GLYPHS[ch].width;
+		});
+		this.context.closeGroup();
 	}
+	
+	renderDynamics() {
+		this.smoMeasure.notes.forEach((smoNote) => {
+			if (smoNote.dynamicText) {
+				this._renderNoteGlyph(smoNote,smoNote.dynamicText);
+			}
+		});
+	}
+	
 
     // ## Description:
     // create an a array of VF.StaveNote objects to render the active voice.
@@ -184,8 +140,7 @@ class VxMeasure {
             var vexNote = this._createVexNote(smoNote, i);
             this.noteToVexMap[smoNote.attrs.id] = vexNote;
             this.vexNotes.push(vexNote);
-        }
-        this.createDynamics();
+        }       
     }
 
     // ## Description:
@@ -300,18 +255,10 @@ class VxMeasure {
             voice.addTickables(this.vexNotes);
             voiceAr.push(voice);
         }
-		if (this.dynamicVoice) {
-			voiceAr.push(this.dynamicVoice);
-		}
 		
 		// Need to format for x position, then set y position before drawing dynamics.
         this.formatter = new VF.Formatter().joinVoices(voiceAr).format(voiceAr, this.smoMeasure.staffWidth - this.smoMeasure.adjX);
 		
-		if (this.dynamicVoice) {
-			this.vexDynamics.forEach((dynamic) => {
-				this.dynamicVoice.getTickables()[dynamic.index].setLine(dynamic.location);
-			});
-		}
         for (var j = 0; j < voiceAr.length; ++j) {
             voiceAr[j].draw(this.context, this.stave);
         }
@@ -332,6 +279,8 @@ class VxMeasure {
             width: box.width
         };
         this.smoMeasure.changed = false;
+		
+		this.renderDynamics();
 
         // Calculate how far off our estimated width we are
         var svgBox =

@@ -297,6 +297,9 @@ class SmoMakeTupletActor extends TickTransformBase {
         }
         for (var i = 0; i < this.numNotes; ++i) {
             note = SmoNote.cloneWithDuration(note, this.vexDuration);
+			
+			// Don't clone modifiers, except for first one.
+			note.dynamicText = i===0 ? note.dynamicText : null;
 
             this.tuplet.push(note);
         }

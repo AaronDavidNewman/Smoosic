@@ -151,7 +151,9 @@ class SmoNote {
 	// of the note but nothing else.
 	static cloneWithDuration(note, duration) {
 		var clone = SmoNote._cloneParameters(note);
+		
 		clone.duration = duration;
+
 		// should tuplet info be cloned?
 		var rv = new SmoNote(clone);
 

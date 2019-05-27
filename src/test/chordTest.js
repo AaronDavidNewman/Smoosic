@@ -38,7 +38,7 @@ class ChordTest {
 		var accidentalTest = () => {
 			var selection = SmoSelection.pitchSelection(score,0,0,0,1,[0]);
 			SmoOperation.transpose(selection,-1);
-			SmoOperation.addDynamic(selection,{text:'mp',location:11});
+			SmoOperation.addDynamic(selection,{text:'mp',location:11,fontSize:38});
 			layout.render();
 			return timeTest();
 		}
