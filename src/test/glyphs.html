@@ -57,8 +57,9 @@
       var canvas_height = ((counter + 1) / (800 / (60 * 2))) * 60;
       canvas.height = canvas_height;
       canvas.width = 800;
+	  var vfSvg = new Vex.Flow.Renderer(canvas, Vex.Flow.Renderer.Backends.SVG);
 
-      var ctx = canvas.getContext("2d");
+      var ctx = vfSvg.getContext();
       ctx.font = "10pt Courier";
 
       var y = 60;
@@ -83,14 +84,14 @@
         if (Vex.Flow.Font.glyphs[glyph].o) {
           g = new Vex.Flow.Glyph(glyph, 38);
           g.render(ctx, x, y);
-          ctx.save();
+          
           ctx.font = "6pt Arial";
           var metrics = g.getMetrics();
           ctx.fillText(Math.floor(g.getMetrics().width), x - 35, y - 15 );
           ctx.fillText(Math.floor(g.getMetrics().height), x - 35, y - 8 );
           // ctx.fillText(Math.floor(g.getMetrics().x_min), x - 25, y - 1 );
           // ctx.fillText(Math.floor(g.getMetrics().x_max), x - 25, y + 8 );
-          ctx.restore();
+          // ctx.restore();
         }
         x += 60;
 
@@ -110,9 +111,9 @@
       <i>Cross indicates render coordinates.</i>
     </p>
 
-  <canvas id="glyphs" width="800" height="1600">
+  <svg id="glyphs" width="800" height="1600">
     HTML5 Canvas not supported on this browser.
-  </canvas>
+  </svg>
 
   <p>
   For more information visit <a href="http://0xfe.blogspot.com">0xfe.blogspot.com</a>.

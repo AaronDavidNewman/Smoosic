@@ -77,12 +77,13 @@ class VxMeasure {
         this.applyStemDirection(noteParams);
         var vexNote = new VF.StaveNote(noteParams);
         smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
-        
-		// consider accidentals in measure in earlier notes.
-        var accidentals = tickIndex === 0 ? {} : this.tickmap.accidentalMap[tickIndex-1];
+
+        // consider accidentals in measure in earlier notes.
+        var accidentals = tickIndex === 0 ? {}
+         : this.tickmap.accidentalMap[tickIndex - 1];
         for (var i = 0; i < smoNote.pitches.length; ++i) {
             var pitch = smoNote.pitches[i];
-			var accidental = pitch.accidental ?  pitch.accidental : 'n';
+            var accidental = pitch.accidental ? pitch.accidental : 'n';
             var defaultAccidental = smoMusic.getKeySignatureKey(pitch.letter, this.smoMeasure.keySignature);
             defaultAccidental = defaultAccidental.length > 1 ? defaultAccidental[1] : 'n';
 
@@ -104,7 +105,74 @@ class VxMeasure {
 
         return vexNote;
     }
-	
+
+    createDynamics() {
+        var vexDynamics = [];
+        var hasDynamics = false;
+		var dynIx = 0;
+        for (var i = 0; i < this.smoMeasure.notes.length; ++i) {
+            var smoNote = this.smoMeasure.notes[i];
+			var duration = smoMusic.ticksToDuration[smoNote.tickCount];
+			
+			// If a tuplet, use the full length of the note for the first index.
+			// Skip the remaining notes.
+			if (smoNote.isTuplet()) {
+				var tuplet = this.smoMeasure.getTupletForNote(smoNote);
+				if (tuplet.getIndexOfNote(smoNote) != 0) {
+					continue;
+				}			
+				var ticks = tuplet.notes.reduce((acc,note) => {return acc + note.tickCount;},0);
+				duration = smoMusic.ticksToDuration[ticks];					
+			}
+			if (duration === null) {
+				continue;
+			}
+            if (smoNote.dynamicText) {
+                vexDynamics.push({
+                    text: smoNote.dynamicText.text,
+                    location: smoNote.dynamicText.location,
+                    duration: duration,
+					index:dynIx
+                });
+                hasDynamics = true;
+            } else {
+                vexDynamics.push({
+                    text: '',
+                    location: 0,
+                    duration: smoMusic.ticksToDuration[smoNote.tickCount],
+					index:dynIx
+                });
+            }
+			dynIx += 1;
+		}
+		
+		if (hasDynamics) {
+            this.vexDynamics = vexDynamics;
+            this.dynamicVoice =
+                new VF.Voice({
+                    num_beats: this.smoMeasure.numBeats,
+                    beat_value: this.smoMeasure.beatValue
+                }).setStrict(false);
+            var dynNotes = [];
+            vexDynamics.forEach((dynamic) => {
+                if (dynamic.text) {
+                    dynNotes.push(new VF.TextDynamics({
+                            text: dynamic.text,
+                            duration: dynamic.duration
+                        }));
+                } else {
+                    var tt = new VF.TextNote({
+                            text: ' ',
+                            duration: dynamic.duration
+                        });
+                    tt.setContext(this.context);
+                    dynNotes.push(tt);
+                }
+            });
+			this.dynamicVoice.addTickables(dynNotes);
+        }
+	}
+
     // ## Description:
     // create an a array of VF.StaveNote objects to render the active voice.
     createVexNotes() {
@@ -112,11 +180,12 @@ class VxMeasure {
         this.noteToVexMap = {};
 
         for (var i = 0; i < this.smoMeasure.notes.length; ++i) {
-            var smoNote = this.smoMeasure.notes[i];
+            var smoNote = this.smoMeasure.notes[i];           
             var vexNote = this._createVexNote(smoNote, i);
             this.noteToVexMap[smoNote.attrs.id] = vexNote;
             this.vexNotes.push(vexNote);
         }
+        this.createDynamics();
     }
 
     // ## Description:
@@ -231,7 +300,18 @@ class VxMeasure {
             voice.addTickables(this.vexNotes);
             voiceAr.push(voice);
         }
+		if (this.dynamicVoice) {
+			voiceAr.push(this.dynamicVoice);
+		}
+		
+		// Need to format for x position, then set y position before drawing dynamics.
         this.formatter = new VF.Formatter().joinVoices(voiceAr).format(voiceAr, this.smoMeasure.staffWidth - this.smoMeasure.adjX);
+		
+		if (this.dynamicVoice) {
+			this.vexDynamics.forEach((dynamic) => {
+				this.dynamicVoice.getTickables()[dynamic.index].setLine(dynamic.location);
+			});
+		}
         for (var j = 0; j < voiceAr.length; ++j) {
             voiceAr[j].draw(this.context, this.stave);
         }
@@ -257,7 +337,7 @@ class VxMeasure {
         var svgBox =
             svgHelpers.clientToLogical(this.context.svg, box);
         this.smoMeasure.adjX = svgBox.width - this.stave.getWidth() + this.smoMeasure.rightMargin;
-		// console.log('adjx is '+this.smoMeasure.adjX);
+        // console.log('adjx is '+this.smoMeasure.adjX);
         // console.log(JSON.stringify(this.smoMeasure.renderedBox,null,' '));
         this.context.closeGroup();
     }

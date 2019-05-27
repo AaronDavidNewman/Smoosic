@@ -292,12 +292,19 @@ body.showAttributeDialog .attributeDialog {
 .buttonContainer button {
 	margin-right:2px;
 }
-.rockerControl {
+.smoControl {
 	margin-top:3px;
 }
 
-.rockerControl button, .rockerControl input {
+.smoControl button, .smoControl input,.smoControl select {
 	margin-right:2px;
+}
+.rockerControl button {
+	width:32px;
+}
+
+.dropdownControl select {
+	margin-left:64px;
 }
 
 

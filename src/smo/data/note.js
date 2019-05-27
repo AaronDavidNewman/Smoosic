@@ -46,6 +46,12 @@ class SmoNote {
 	set dots(value) {
 		// ignore - dots are a function of duration only.
 	}
+	
+	// ## addDynamicText
+	// sFz, mp, etc.
+	addDynamic(dynamic) {
+		this.dynamicText=dynamic;
+	}
 
     // ## toVexKeys
 	// ## Description:

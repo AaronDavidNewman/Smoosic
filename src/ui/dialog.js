@@ -30,7 +30,7 @@ class SuiDialogBase {
                 });
 
             });
-        this.dialogElements = dialogElements;
+        this.dialogElements = dialogElements;		
         this.dgDom = this._constructDialog(dialogElements, {
                 id: 'dialog-' + this.id,
                 top: parameters.top,
@@ -38,6 +38,12 @@ class SuiDialogBase {
                 label: parameters.label
             });
     }
+	position(box) {
+		var y=box.y+box.height;
+		
+		// TODO: adjust if db is clipped by the browser.
+		$(this.dgDom.element).css('top',''+y+'px');
+	}
     _constructDialog(dialogElements, parameters) {
         var id = parameters.id;
         var b = htmlHelpers.buildDom;
@@ -129,7 +135,7 @@ class SuiSlurAttributesDialog extends SuiDialogBase {
                     }
                 ],
                 control: 'SuiDropdownComponent',
-                label: 'Emd Position'
+                label: 'End Position'
             }, {
                 smoName: 'invert',
                 parameterName: 'invert',
@@ -234,6 +240,7 @@ class SuiSlurAttributesDialog extends SuiDialogBase {
             component.bind();
         });
         this._bindElements();
+		this.position(this.modifier.renderedBox);
     }
 
 }
@@ -333,5 +340,6 @@ class SuiHairpinAttributesDialog extends SuiDialogBase {
             component.bind();
         });
         this._bindElements();
+		this.position(this.modifier.renderedBox);
     }
 }

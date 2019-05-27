@@ -1,5 +1,11 @@
 
-
+// # SmoMeasure - data for a measure of music
+// # Description:
+// Many rules of musical engraving are enforced at a measure level, e.g. the duration of 
+// notes, accidentals, etc.  
+// # See Also:
+// Measures contain notes, tuplets, and beam groups.  So see SmoNote, etc.
+// Measures are contained in staves, see also SystemStaff.js
 class SmoMeasure {
     constructor(params) {
         this.tuplets = [];
@@ -194,26 +200,6 @@ class SmoMeasure {
 		return clone;
 	}
 	
-	/* static cloneMeasure(measure) {
-		var params = SmoMeasure._cloneParameters(measure);
-		var nmeasure = new SmoMeasure(params);
-		nmeasure.attrs={
-                id: VF.Element.newID(),
-                type: 'SmoMeasure'
-            };
-	    nmeasure.voices=[];
-		for (var i=0;i<measure.voices.length;++i) {
-			
-			var notes=[];
-			var voice=measure.voices[i];
-			for (var j=0;j<voice.notes.length;++j) {
-				var note = voice.notes[j];
-				notes.push(SmoNote.clone(note));
-			}
-			nmeasure.voices.push({notes:notes});
-		}
-		return nmeasure;
-	}  */
 
     static get defaultVoice44() {
 		return SmoMeasure.getDefaultNotes({clef:'treble',timeSignature:'4/4'});
@@ -248,6 +234,29 @@ class SmoMeasure {
         return VX.TICKMAP(this);
     }
 	
+	// ## getDynamicMap
+	// ## Description:
+	// returns the dynamic text for each tick index.  If 
+	// there are no dynamics, the empty array is returned.
+	getDynamicMap() {
+		var rv = [];
+		var hasDynamic=false;
+		this.voices.forEach((voice) => {
+			voice.notes.forEach((note) => { 
+			if (note.dynamicText) {
+				rv.push({note:note,text:note.dynamicText});
+				hasDynamic=true;
+			} else {
+				rv.push({note:note,text:''});
+			}
+			});
+		});
+		
+		if (hasDynamic) {
+			return rv;
+		}
+		return [];
+	}
 	
 	// {index:1,value:{symbol:'#',cautionary:false}}
 	setAccidental(voice,tick,pitch,value) {

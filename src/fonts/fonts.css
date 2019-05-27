@@ -1,9 +1,9 @@
 @font-face {
   font-family: 'smoosic';
   src:
-    url('fonts/smoosic.ttf?i6k6vb') format('truetype'),
-    url('fonts/smoosic.woff?i6k6vb') format('woff'),
-    url('fonts/smoosic.svg?i6k6vb#smoosic') format('svg');
+    url('fonts/smoosic.ttf?tu0yoy') format('truetype'),
+    url('fonts/smoosic.woff?tu0yoy') format('woff'),
+    url('fonts/smoosic.svg?tu0yoy#smoosic') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -100,6 +100,15 @@
 }
 .icon-new-tab:before {
   content: "\ea7e";
+}
+.icon-piano:before {
+  content: "\e90e";
+}
+.icon-forte:before {
+  content: "\e912";
+}
+.icon-mezzo:before {
+  content: "\e913";
 }
 .icon-slur:before {
   content: "\e90b";

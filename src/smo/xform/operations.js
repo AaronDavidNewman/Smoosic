@@ -34,7 +34,7 @@ class SmoOperation {
         }
         return true;
 
-    }
+    }	
 
     // ## halveDuration
     // ## Description
@@ -188,6 +188,10 @@ class SmoOperation {
         });
         return true;
     }
+	
+	static addDynamic(selection,dynamic) {
+		selection.note.addDynamic(dynamic);
+	}
 
     // ## interval
     // ## Description:
