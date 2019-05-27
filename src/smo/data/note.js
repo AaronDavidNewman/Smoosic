@@ -1,5 +1,49 @@
 
 
+class SmoDynamicText {
+	 static get defaults() {
+        return {
+            xOffset: 0,
+            fontSize: 38,
+            yOffsetLine:11,
+            text: SmoDynamicText.dynamics.MP,
+        };
+    }
+	
+	static get dynamics() {
+        // matches VF.modifier
+        return {
+			PP:'pp',
+			P:'p',
+            MP: 'mp',
+            MF: 'mf',
+            F: 'f',
+            FF: 'ff',
+			SFZ:'sfz'
+        };
+    }
+	
+	constructor(parameters) {
+		Vex.Merge(this, SmoStaffHairpin.defaults);
+        smoMusic.filteredMerge(['position', 'xOffset', 'yOffset', 'hairpinType', 'height'], params, this);
+        this.selector = params.selector;
+		
+		 if (!this['attrs']) {
+            this.attrs = {
+                id: VF.Element.newID(),
+                type: 'SmoDynamicText'
+            };
+        } else {
+            console.log('inherit attrs');
+        }
+	}
+	get id() {
+		return this.attrs.id;
+	}
+	set id(ignore) {}
+	
+}
+
 // ##Note on prefixes:
 // SMO == Serializable Music Ontology, stuff I made up
 // vx == VF == Vexflow rendering engine by https://github.com/0xfe
