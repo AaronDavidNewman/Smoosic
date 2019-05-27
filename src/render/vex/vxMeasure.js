@@ -110,7 +110,8 @@ class VxMeasure {
 		var x = this.noteToVexMap[smoNote.id].getAbsoluteX();
 		var y=this.stave.getYForLine(textObj.location-3); // this is how vex textDynamics does it
 		var group = this.context.openGroup();
-        group.classList.add('mod-'+smoNote.id+'-'+textObj.text);
+        group.classList.add(textObj.glyphType+'-'+smoNote.id);
+		group.classList.add(textObj.glyphType);
 		textObj.text.split('').forEach((ch)=> {
 			const glyphCode = VF.TextDynamics.GLYPHS[ch];
 			const glyph=new Vex.Flow.Glyph(glyphCode.code, textObj.fontSize);
@@ -123,6 +124,7 @@ class VxMeasure {
 	renderDynamics() {
 		this.smoMeasure.notes.forEach((smoNote) => {
 			if (smoNote.dynamicText) {
+				smoNote.dynamicText.glyphType='dynamics';
 				this._renderNoteGlyph(smoNote,smoNote.dynamicText);
 			}
 		});

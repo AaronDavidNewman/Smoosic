@@ -153,6 +153,22 @@ body.showAttributeDialog .attributeDialog {
 	margin-left:64px;
 }
 
+.icon-pianissimo:before {
+	content:"\e913\e90e";
+}
+.icon-mezzo-piano:before {
+  content: "\e913\e90e";
+}
+.icon-mezzo-forte:before {
+  content: "\e913\e912";
+}
+.icon-fortissimo:before {
+  content: "\e912\e912";
+}
+.icon-sfortzando {
+	content:'sfz';
+}
+
 
 
 

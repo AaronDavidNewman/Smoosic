@@ -41,6 +41,14 @@ class suiMenuManager {
                 altKey: false,
                 shiftKey: false,
                 action: "suiStaffModifierMenu"
+            },
+			{
+                event: "keydown",
+                key: "d",
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: "SuiDynamicsMenu"
             }
         ];
     }
@@ -138,6 +146,60 @@ class suiMenuManager {
             self.menu.selection(ev);
         });
     }
+}
+
+class SuiDynamicsMenu extends suiMenuBase {
+	 constructor(params) {
+        params = (params ? params : {});
+        Vex.Merge(params, SuiDynamicsMenu.defaults);
+        super(params);
+    }
+	static get defaults() {
+		return {menuItems: [ 
+		{icon: 'pianissimo',
+                    text: 'Piano',
+                    value: 'pp'
+                },
+		{icon: 'piano',
+                    text: 'Piano',
+                    value: 'p'
+                },
+		{icon: 'mezzo-piano',
+                    text: 'Mezzo-piano',
+                    value: 'mp'
+                },
+		{icon: 'mezzo-forte',
+                    text: 'Mezzo-forte',
+                    value: 'mf'
+        },
+		{icon: 'forte',
+                    text: 'Forte',
+                    value: 'f'
+        },
+		{icon: 'fortissimo',
+                    text: 'Fortissimo',
+                    value: 'ff'
+        },
+		{icon: 'sfortzando',
+                    text: 'sfortzando',
+                    value: 'sfz'
+        }
+		]				
+	};
+	}
+	selection(ev) {
+        var text = $(ev.currentTarget).attr('data-value');
+
+        var self = this;
+        var ft = this.tracker.getExtremeSelection(-1);
+		if (!ft || !ft.note) {
+			return;
+		}
+
+        SmoOperation.addDynamic(ft,{text:text,location:11,fontSize:38});
+        this.complete();
+    }
+    keydown(ev) {}
 }
 
 class suiKeySignatureMenu extends suiMenuBase {
