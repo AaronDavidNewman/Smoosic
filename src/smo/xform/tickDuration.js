@@ -299,7 +299,7 @@ class SmoMakeTupletActor extends TickTransformBase {
             note = SmoNote.cloneWithDuration(note, this.vexDuration);
 			
 			// Don't clone modifiers, except for first one.
-			note.dynamicText = i===0 ? note.dynamicText : null;
+			note.textModifiers = i===0 ? note.textModifiers : [];
 
             this.tuplet.push(note);
         }

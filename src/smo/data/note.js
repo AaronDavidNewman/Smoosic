@@ -25,8 +25,8 @@ class SmoDynamicText {
 	
 	constructor(parameters) {
 		Vex.Merge(this, SmoStaffHairpin.defaults);
-        smoMusic.filteredMerge(['position', 'xOffset', 'yOffset', 'hairpinType', 'height'], params, this);
-        this.selector = params.selector;
+        smoMusic.filteredMerge(['xOffset', 'yOffsetLine', 'fontSize', 'text'], parameters, this);
+        this.selector = parameters.selector;
 		
 		 if (!this['attrs']) {
             this.attrs = {
@@ -94,7 +94,14 @@ class SmoNote {
 	// ## addDynamicText
 	// sFz, mp, etc.
 	addDynamic(dynamic) {
-		this.dynamicText=dynamic;
+		var tms = [];
+		this.textModifiers.forEach((tm)=> {
+			if (tm.attrs.type != dynamic.attrs.type) {
+				tms.push(tm);
+			}
+		});
+		tms.push(dynamic);
+		this.textModifiers=tms;		
 	}
 
     // ## toVexKeys
@@ -219,6 +226,7 @@ class SmoNote {
 			beatValue: 4,
 			voice: 0,
 			duration: '4',
+			textModifiers:[],
 			pitches: [{
 					letter: 'b',
 					octave: 4,

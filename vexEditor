@@ -48,6 +48,7 @@
             <File name="src\test\testAll.html" />
             <File name="src\test\editorTest.js" />
             <File name="src\test\editorTest.html" />
+            <File name="src\test\serializeTestJson.js" />
         </Folder>
         <Folder name="fonts">
             <File name="src\fonts\smoosic.ttf" />
