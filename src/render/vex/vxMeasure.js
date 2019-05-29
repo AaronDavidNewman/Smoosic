@@ -108,7 +108,8 @@ class VxMeasure {
 	
 	_renderNoteGlyph(smoNote,textObj) {		
 		var x = this.noteToVexMap[smoNote.id].getAbsoluteX();
-		var y=this.stave.getYForLine(textObj.yOffsetLine-3); // this is how vex textDynamics does it
+		// the -3 is copied from vexflow textDynamics
+		var y=this.stave.getYForLine(textObj.yOffsetLine-3) + textObj.yOffsetPixels; 
 		var group = this.context.openGroup();
         group.classList.add(textObj.id+'-'+smoNote.id);
 		group.classList.add(textObj.id);
@@ -118,6 +119,7 @@ class VxMeasure {
 			glyph.render(this.context, x, y);
 			x += VF.TextDynamics.GLYPHS[ch].width;
 		});
+		textObj.renderedBox = group.getBoundingClientRect();
 		this.context.closeGroup();
 	}
 	

@@ -6,6 +6,7 @@ class SmoDynamicText {
             xOffset: 0,
             fontSize: 38,
             yOffsetLine:11,
+			yOffsetPixels:0,
             text: SmoDynamicText.dynamics.MP,
         };
     }
@@ -24,8 +25,8 @@ class SmoDynamicText {
     }
 	
 	constructor(parameters) {
-		Vex.Merge(this, SmoStaffHairpin.defaults);
-        smoMusic.filteredMerge(['xOffset', 'yOffsetLine', 'fontSize', 'text'], parameters, this);
+		Vex.Merge(this, SmoDynamicText.defaults);
+        smoMusic.filteredMerge(['xOffset', 'yOffsetLine', 'fontSize', 'text','yOffsetPixels'], parameters, this);
         this.selector = parameters.selector;
 		
 		 if (!this['attrs']) {
@@ -41,6 +42,10 @@ class SmoDynamicText {
 		return this.attrs.id;
 	}
 	set id(ignore) {}
+	get type() {
+		return this.attrs.type;
+	}
+	set type(ignore) {}
 	
 }
 

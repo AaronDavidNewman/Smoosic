@@ -196,7 +196,7 @@ class SuiDynamicsMenu extends suiMenuBase {
 			return;
 		}
 
-        SmoOperation.addDynamic(ft,{text:text,yOffsetLine:11,fontSize:38});
+        SmoOperation.addDynamic(ft,new SmoDynamicText({text:text,yOffsetLine:11,fontSize:38}));
         this.complete();
     }
     keydown(ev) {}

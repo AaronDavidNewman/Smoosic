@@ -1,9 +1,4 @@
-VF = Vex.Flow;
-Vex.Xform = (typeof(Vex.Xform) == 'undefined' ? {}
-     : Vex.Xform);
-VX = Vex.Xform;
 
-VX.groupCounter = 1;
 
 // ## Description
 // A tracker maps the UI elements to the logical elements ,and allows the user to
@@ -63,6 +58,15 @@ class suiTracker {
                     }
                 }
             });
+			selection.note.textModifiers.forEach((modifier) => {
+				if (!modMap[modifier.id]) {
+					this.modifierTabs.push({
+						modifier:modifier,selection:selection});
+                        modMap[modifier.id] = {
+                            exists: true
+                        };
+				}
+			});
         });
     }
 
@@ -171,6 +175,8 @@ class suiTracker {
         return measureObj;
     }
 
+    // ### getExtremeSelection
+	// Get the rightmost (1) or leftmost (-1) selection
     getExtremeSelection(sign) {
         var rv = this.selections[0];
         for (var i = 1; i < this.selections.length; ++i) {
@@ -445,6 +451,7 @@ class suiTracker {
     highlightSelection() {
         if (this.selections.length === 1) {
             this._drawRect(this.selections[0].box, 'selection');
+			this._updateStaffModifiers();
             return;
         }
         var sorted = this.selections.sort((a, b) => a.box.y - b.box.y);

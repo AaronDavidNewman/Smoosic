@@ -4,6 +4,10 @@ class SuiDialogFactory {
     static createDialog(modSelection, context, tracker, layout) {
         var dbType = SuiDialogFactory.modifierDialogMap[modSelection.modifier.type];
         var ctor = eval(dbType);
+		if (!ctor) {
+			console.warn('no dialog for modifier '+modSelection.modifier.type);
+			return;
+		}
         return ctor.createAndDisplay({
             modifier: modSelection.modifier,
             selection: modSelection.selection,
@@ -15,7 +19,8 @@ class SuiDialogFactory {
     static get modifierDialogMap() {
         return {
             SmoStaffHairpin: 'SuiHairpinAttributesDialog',
-            SmoSlur: 'SuiSlurAttributesDialog'
+            SmoSlur: 'SuiSlurAttributesDialog',
+			SmoDynamicText:'SuiTextModifierDialog'
         };
     }
 }
@@ -30,7 +35,7 @@ class SuiDialogBase {
                 });
 
             });
-        this.dialogElements = dialogElements;		
+        this.dialogElements = dialogElements;
         this.dgDom = this._constructDialog(dialogElements, {
                 id: 'dialog-' + this.id,
                 top: parameters.top,
@@ -38,12 +43,12 @@ class SuiDialogBase {
                 label: parameters.label
             });
     }
-	position(box) {
-		var y=box.y+box.height;
-		
-		// TODO: adjust if db is clipped by the browser.
-		$(this.dgDom.element).css('top',''+y+'px');
-	}
+    position(box) {
+        var y = box.y + box.height;
+
+        // TODO: adjust if db is clipped by the browser.
+        $(this.dgDom.element).css('top', '' + y + 'px');
+    }
     _constructDialog(dialogElements, parameters) {
         var id = parameters.id;
         var b = htmlHelpers.buildDom;
@@ -81,7 +86,62 @@ class SuiDialogBase {
     }
 }
 
-class SuiSlurAttributesDialog extends SuiDialogBase {   
+class SuiTextModifierDialog extends SuiDialogBase {
+    static get dialogElements() {
+        return [
+		{
+                smoName: 'yOffsetLine',
+                parameterName: 'yOffsetLine',
+                defaultValue: 11,
+                control: 'SuiRockerComponent',
+                label: 'Y Line'
+            },
+			{
+                smoName: 'yOffsetPixels',
+                parameterName: 'yOffsetPixels',
+                defaultValue: 0,
+                control: 'SuiRockerComponent',
+                label: 'Y Offset Px'
+            },
+			{
+                smoName: 'xOffset',
+                parameterName: 'yOffset',
+                defaultValue: 0,
+                control: 'SuiRockerComponent',
+                label: 'X Offset'
+            },{
+                smoName: 'text',
+                parameterName: 'text',
+                defaultValue: SmoDynamicText.dynamics.P,
+                options: [{
+                        value: SmoDynamicText.dynamics.P,
+                        label: 'Piano'
+                    }, {
+                        value: SmoDynamicText.dynamics.PP,
+                        label: 'Pianissimo'
+                    }, {
+                        value: SmoDynamicText.dynamics.MP,
+                        label: 'Mezzo-Piano'
+                    }, {
+                        value: SmoDynamicText.dynamics.MF,
+                        label: 'Mezzo-Forte'
+                    }, {
+                        value: SmoDynamicText.dynamics.F,
+                        label: 'Forte'
+                    },
+					{
+                        value: SmoDynamicText.dynamics.F,
+                        label: 'Fortissimo'
+					}
+                ],
+                control: 'SuiDropdownComponent',
+                label: 'Text'
+            }
+        ];
+    }
+}
+
+class SuiSlurAttributesDialog extends SuiDialogBase {
     static get dialogElements() {
         return [{
                 parameterName: 'spacing',
@@ -121,8 +181,7 @@ class SuiSlurAttributesDialog extends SuiDialogBase {
                 ],
                 control: 'SuiDropdownComponent',
                 label: 'Start Position'
-            }, 
-			{
+            }, {
                 smoName: 'position_end',
                 parameterName: 'position_end',
                 defaultValue: SmoSlur.positions.HEAD,
@@ -240,7 +299,7 @@ class SuiSlurAttributesDialog extends SuiDialogBase {
             component.bind();
         });
         this._bindElements();
-		this.position(this.modifier.renderedBox);
+        this.position(this.modifier.renderedBox);
     }
 
 }
@@ -340,6 +399,6 @@ class SuiHairpinAttributesDialog extends SuiDialogBase {
             component.bind();
         });
         this._bindElements();
-		this.position(this.modifier.renderedBox);
+        this.position(this.modifier.renderedBox);
     }
 }
