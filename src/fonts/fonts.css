@@ -1,9 +1,10 @@
 @font-face {
   font-family: 'smoosic';
   src:
-    url('fonts/smoosic.ttf?tu0yoy') format('truetype'),
-    url('fonts/smoosic.woff?tu0yoy') format('woff'),
-    url('fonts/smoosic.svg?tu0yoy#smoosic') format('svg');
+  url('https://aarondavidnewman.github.io/Smoosic/build/smoosic.ttf?kmssrt') format('truetype'),
+    url('smoosic.ttf?kmssrt') format('truetype'),
+    url('smoosic.woff?kmssrt') format('woff'),
+    url('smoosic.svg?kmssrt#smoosic') format('svg');
   font-weight: normal;
   font-style: normal;
 }
