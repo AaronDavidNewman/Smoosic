@@ -165,7 +165,7 @@
 @font-face {
   font-family: 'smoosic';
   src:
-  url('https://aarondavidnewman.github.io/Smoosic/build/styles.css?kmssrt') format('truetype'),
+  url('https://aarondavidnewman.github.io/Smoosic/build/smoosic.ttf?kmssrt') format('truetype'),
     url('smoosic.ttf?kmssrt') format('truetype'),
     url('smoosic.woff?kmssrt') format('woff'),
     url('smoosic.svg?kmssrt#smoosic') format('svg');
