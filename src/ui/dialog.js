@@ -197,13 +197,6 @@ class SuiTextModifierDialog extends SuiDialogBase {
         this.selection.note.removeModifier(this.modifier);
         this.tracker.clearModifierSelections();
     }
-	_preview() {
-        this.modifier.backupOriginal();
-        this.components.forEach((component) => {
-            this.modifier[component.smoName] = component.getValue();
-        });
-        this.layout.renderNoteModifierPreview(this.modifier);
-    }
 	changed() {
         this.modifier.backupOriginal();
         this.components.forEach((component) => {

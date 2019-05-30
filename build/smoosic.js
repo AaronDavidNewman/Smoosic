@@ -549,6 +549,7 @@ class SmoDynamicText {
             xOffset: 0,
             fontSize: 38,
             yOffsetLine:11,
+			yOffsetPixels:0,
             text: SmoDynamicText.dynamics.MP,
         };
     }
@@ -567,9 +568,9 @@ class SmoDynamicText {
     }
 	
 	constructor(parameters) {
-		Vex.Merge(this, SmoStaffHairpin.defaults);
-        smoMusic.filteredMerge(['position', 'xOffset', 'yOffset', 'hairpinType', 'height'], params, this);
-        this.selector = params.selector;
+		Vex.Merge(this, SmoDynamicText.defaults);
+        smoMusic.filteredMerge(SmoDynamicText.attrArray, parameters, this);
+        this.selector = parameters.selector;
 		
 		 if (!this['attrs']) {
             this.attrs = {
@@ -584,7 +585,29 @@ class SmoDynamicText {
 		return this.attrs.id;
 	}
 	set id(ignore) {}
-	
+	get type() {
+		return this.attrs.type;
+	}
+	set type(ignore) {}
+	static get attrArray() {
+		return ['xOffset', 'fontSize', 'yOffsetLine', 'yOffsetPixels', 'text'];
+	}
+	backupOriginal() {
+        if (!this['original']) {
+            this.original = {};
+            smoMusic.filteredMerge(
+                SmoDynamicText.attrArray,
+                this, this.original);
+        }
+    }
+    restoreOriginal() {
+        if (this['original']) {
+            smoMusic.filteredMerge(
+                SmoDynamicText.attrArray,
+                this.original, this);
+            this.original = null;
+        }
+    }
 }
 
 // ##Note on prefixes:
@@ -636,8 +659,24 @@ class SmoNote {
 	
 	// ## addDynamicText
 	// sFz, mp, etc.
-	addDynamic(dynamic) {
-		this.dynamicText=dynamic;
+	_addModifier(dynamic,toAdd) {
+		var tms = [];
+		this.textModifiers.forEach((tm)=> {
+			if (tm.attrs.type != dynamic.attrs.type) {
+				tms.push(tm);
+			}
+		});
+		if (toAdd) {
+		    tms.push(dynamic);
+		}
+		this.textModifiers=tms;		
+	}
+	
+	addModifier(dynamic) {
+		this._addModifier(dynamic,true);
+	}
+	removeModifier(dynamic) {
+		this._addModifier(dynamic,false);
 	}
 
     // ## toVexKeys
@@ -762,6 +801,7 @@ class SmoNote {
 			beatValue: 4,
 			voice: 0,
 			duration: '4',
+			textModifiers:[],
 			pitches: [{
 					letter: 'b',
 					octave: 4,
@@ -2522,7 +2562,7 @@ class SmoMakeTupletActor extends TickTransformBase {
             note = SmoNote.cloneWithDuration(note, this.vexDuration);
 			
 			// Don't clone modifiers, except for first one.
-			note.dynamicText = i===0 ? note.dynamicText : null;
+			note.textModifiers = i===0 ? note.textModifiers : [];
 
             this.tuplet.push(note);
         }
@@ -3029,7 +3069,7 @@ class SmoOperation {
     }
 	
 	static addDynamic(selection,dynamic) {
-		selection.note.addDynamic(dynamic);
+		selection.note.addModifier(dynamic);
 	}
 
     // ## interval
@@ -3195,25 +3235,26 @@ class VxMeasure {
 	
 	_renderNoteGlyph(smoNote,textObj) {		
 		var x = this.noteToVexMap[smoNote.id].getAbsoluteX();
-		var y=this.stave.getYForLine(textObj.location-3); // this is how vex textDynamics does it
+		// the -3 is copied from vexflow textDynamics
+		var y=this.stave.getYForLine(textObj.yOffsetLine-3) + textObj.yOffsetPixels; 
 		var group = this.context.openGroup();
-        group.classList.add(textObj.glyphType+'-'+smoNote.id);
-		group.classList.add(textObj.glyphType);
+        group.classList.add(textObj.id+'-'+smoNote.id);
+		group.classList.add(textObj.id);
 		textObj.text.split('').forEach((ch)=> {
 			const glyphCode = VF.TextDynamics.GLYPHS[ch];
 			const glyph=new Vex.Flow.Glyph(glyphCode.code, textObj.fontSize);
 			glyph.render(this.context, x, y);
 			x += VF.TextDynamics.GLYPHS[ch].width;
 		});
+		textObj.renderedBox = group.getBoundingClientRect();
 		this.context.closeGroup();
 	}
 	
 	renderDynamics() {
 		this.smoMeasure.notes.forEach((smoNote) => {
-			if (smoNote.dynamicText) {
-				smoNote.dynamicText.glyphType='dynamics';
-				this._renderNoteGlyph(smoNote,smoNote.dynamicText);
-			}
+			smoNote.textModifiers.forEach((tm) => {
+				this._renderNoteGlyph(smoNote,tm);
+			});
 		});
 	}
 	
@@ -3519,12 +3560,7 @@ class VxSystem {
         this.context.closeGroup();
     }
 }
-;VF = Vex.Flow;
-Vex.Xform = (typeof(Vex.Xform) == 'undefined' ? {}
-     : Vex.Xform);
-VX = Vex.Xform;
-
-VX.groupCounter = 1;
+;
 
 // ## Description
 // A tracker maps the UI elements to the logical elements ,and allows the user to
@@ -3584,6 +3620,15 @@ class suiTracker {
                     }
                 }
             });
+			selection.note.textModifiers.forEach((modifier) => {
+				if (!modMap[modifier.id]) {
+					this.modifierTabs.push({
+						modifier:modifier,selection:selection});
+                        modMap[modifier.id] = {
+                            exists: true
+                        };
+				}
+			});
         });
     }
 
@@ -3692,6 +3737,8 @@ class suiTracker {
         return measureObj;
     }
 
+    // ### getExtremeSelection
+	// Get the rightmost (1) or leftmost (-1) selection
     getExtremeSelection(sign) {
         var rv = this.selections[0];
         for (var i = 1; i < this.selections.length; ++i) {
@@ -3966,6 +4013,7 @@ class suiTracker {
     highlightSelection() {
         if (this.selections.length === 1) {
             this._drawRect(this.selections[0].box, 'selection');
+			this._updateStaffModifiers();
             return;
         }
         var sorted = this.selections.sort((a, b) => a.box.y - b.box.y);
@@ -4089,6 +4137,15 @@ class suiSimpleLayout {
         // layout a second time to adjust for issues.
         this.layout(true);
     }
+	
+	renderNoteModifierPreview(modifier) {
+		var selection = SmoSelection.noteSelection(this.score,modifier.selector.staff,modifier.selector.measure,modifier.selector.voice,modifier.selector.tick);
+		if (!selection.measure.renderedBox) {
+            return;
+        }
+		var system = new VxSystem(this.context, selection.measure.staffY, selection.measure.lineIndex);
+		system.renderMeasure(selection.selector.staff, selection.measure);
+	}
 
     // re-render a modifier for preview during modifier dialog
     renderStaffModifierPreview(modifier) {
@@ -4557,7 +4614,7 @@ class SuiDynamicsMenu extends suiMenuBase {
 	static get defaults() {
 		return {menuItems: [ 
 		{icon: 'pianissimo',
-                    text: 'Piano',
+                    text: 'Pianissimo',
                     value: 'pp'
                 },
 		{icon: 'piano',
@@ -4596,7 +4653,7 @@ class SuiDynamicsMenu extends suiMenuBase {
 			return;
 		}
 
-        SmoOperation.addDynamic(ft,{text:text,location:11,fontSize:38});
+        SmoOperation.addDynamic(ft,new SmoDynamicText({selector:ft.selector,text:text,yOffsetLine:11,fontSize:38}));
         this.complete();
     }
     keydown(ev) {}
@@ -4774,6 +4831,10 @@ class SuiDialogFactory {
     static createDialog(modSelection, context, tracker, layout) {
         var dbType = SuiDialogFactory.modifierDialogMap[modSelection.modifier.type];
         var ctor = eval(dbType);
+		if (!ctor) {
+			console.warn('no dialog for modifier '+modSelection.modifier.type);
+			return;
+		}
         return ctor.createAndDisplay({
             modifier: modSelection.modifier,
             selection: modSelection.selection,
@@ -4785,10 +4846,12 @@ class SuiDialogFactory {
     static get modifierDialogMap() {
         return {
             SmoStaffHairpin: 'SuiHairpinAttributesDialog',
-            SmoSlur: 'SuiSlurAttributesDialog'
+            SmoSlur: 'SuiSlurAttributesDialog',
+			SmoDynamicText:'SuiTextModifierDialog'
         };
     }
 }
+
 class SuiDialogBase {
     constructor(dialogElements, parameters) {
         this.id = parameters.id;
@@ -4800,7 +4863,7 @@ class SuiDialogBase {
                 });
 
             });
-        this.dialogElements = dialogElements;		
+        this.dialogElements = dialogElements;
         this.dgDom = this._constructDialog(dialogElements, {
                 id: 'dialog-' + this.id,
                 top: parameters.top,
@@ -4808,12 +4871,12 @@ class SuiDialogBase {
                 label: parameters.label
             });
     }
-	position(box) {
-		var y=box.y+box.height;
-		
-		// TODO: adjust if db is clipped by the browser.
-		$(this.dgDom.element).css('top',''+y+'px');
-	}
+    position(box) {
+        var y = box.y + box.height;
+
+        // TODO: adjust if db is clipped by the browser.
+        $(this.dgDom.element).css('top', '' + y + 'px');
+    }
     _constructDialog(dialogElements, parameters) {
         var id = parameters.id;
         var b = htmlHelpers.buildDom;
@@ -4842,16 +4905,158 @@ class SuiDialogBase {
             trapper: trapper
         };
     }
+	
+	 _commit() {
+        this.modifier.restoreOriginal();
+        this.components.forEach((component) => {
+            this.modifier[component.smoName] = component.getValue();
+        });
+    }
 
     complete() {
-        // todo: set values
         $('body').removeClass('showAttributeDialog');
         $('body').trigger('dialogDismiss');
         this.dgDom.trapper.close();
     }
+	
+	display() {
+        $('body').addClass('showAttributeDialog');
+        this.components.forEach((component) => {
+            component.bind();
+        });
+        this._bindElements();
+        this.position(this.modifier.renderedBox);
+    }
+	
+   _bindElements() {
+        var self = this;
+        var dgDom = this.dgDom;
+        $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+            self._commit();
+            self.complete();
+        });
+
+        $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+            self.modifier.restoreOriginal();
+            self.complete();
+        });
+        $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
+            self.handleRemove();
+            self.complete();
+        });
+    }
 }
 
-class SuiSlurAttributesDialog extends SuiDialogBase {   
+class SuiTextModifierDialog extends SuiDialogBase {
+    static get dialogElements() {
+        return [
+		{
+                smoName: 'yOffsetLine',
+                parameterName: 'yOffsetLine',
+                defaultValue: 11,
+                control: 'SuiRockerComponent',
+                label: 'Y Line'
+            },
+			{
+                smoName: 'yOffsetPixels',
+                parameterName: 'yOffsetPixels',
+                defaultValue: 0,
+                control: 'SuiRockerComponent',
+                label: 'Y Offset Px'
+            },
+			{
+                smoName: 'xOffset',
+                parameterName: 'yOffset',
+                defaultValue: 0,
+                control: 'SuiRockerComponent',
+                label: 'X Offset'
+            },{
+                smoName: 'text',
+                parameterName: 'text',
+                defaultValue: SmoDynamicText.dynamics.P,
+                options: [{
+                        value: SmoDynamicText.dynamics.P,
+                        label: 'Piano'
+                    }, {
+                        value: SmoDynamicText.dynamics.PP,
+                        label: 'Pianissimo'
+                    }, {
+                        value: SmoDynamicText.dynamics.MP,
+                        label: 'Mezzo-Piano'
+                    }, {
+                        value: SmoDynamicText.dynamics.MF,
+                        label: 'Mezzo-Forte'
+                    }, {
+                        value: SmoDynamicText.dynamics.F,
+                        label: 'Forte'
+                    },
+					{
+                        value: SmoDynamicText.dynamics.F,
+                        label: 'Fortissimo'
+					}
+                ],
+                control: 'SuiDropdownComponent',
+                label: 'Text'
+            }
+        ];
+    }
+	static createAndDisplay(parameters) {
+        var dg = new SuiTextModifierDialog(parameters);
+        dg.display();
+        return dg;
+    }
+	
+	constructor(parameters) {
+        if (!parameters.modifier || !parameters.selection) {
+            throw new Error('modifier attribute dialog must have modifier and selection');
+        }
+
+        super(SuiTextModifierDialog.dialogElements, {
+            id: 'dialog-' + parameters.modifier.id,
+            top: parameters.modifier.renderedBox.y,
+            left: parameters.modifier.renderedBox.x,
+            label: 'Dynamics Properties'
+        });
+        Vex.Merge(this, parameters);
+	}
+	 handleRemove() {
+        $(this.context.svg).find('g.' + this.modifier.id).remove();
+        this.selection.note.removeModifier(this.modifier);
+        this.tracker.clearModifierSelections();
+    }
+	changed() {
+        this.modifier.backupOriginal();
+        this.components.forEach((component) => {
+            this.modifier[component.smoName] = component.getValue();
+        });
+        this.layout.renderNoteModifierPreview(this.modifier);
+    }
+}
+;class SuiStaffModifierDialog extends SuiDialogBase {
+	 handleRemove() {
+        $(this.context.svg).find('g.' + this.modifier.id).remove();
+        this.selection.staff.removeStaffModifier(this.modifier);
+        this.tracker.clearModifierSelections();
+    }
+
+    _preview() {
+        this.modifier.backupOriginal();
+        this.components.forEach((component) => {
+            this.modifier[component.smoName] = component.getValue();
+        });
+        this.layout.renderStaffModifierPreview(this.modifier)
+    }
+
+    changed() {
+        this.modifier.backupOriginal();
+        this.components.forEach((component) => {
+            this.modifier[component.smoName] = component.getValue();
+        });
+        this.layout.renderStaffModifierPreview(this.modifier);
+    }
+}
+
+class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
     static get dialogElements() {
         return [{
                 parameterName: 'spacing',
@@ -4891,8 +5096,7 @@ class SuiSlurAttributesDialog extends SuiDialogBase {
                 ],
                 control: 'SuiDropdownComponent',
                 label: 'Start Position'
-            }, 
-			{
+            }, {
                 smoName: 'position_end',
                 parameterName: 'position_end',
                 defaultValue: SmoSlur.positions.HEAD,
@@ -4957,64 +5161,9 @@ class SuiSlurAttributesDialog extends SuiDialogBase {
         });
         Vex.Merge(this, parameters);
     }
-    handleRemove() {
-        $(this.context.svg).find('g.' + this.modifier.id).remove();
-        this.selection.staff.removeStaffModifier(this.modifier);
-        this.tracker.clearModifierSelections();
-    }
-
-    _preview() {
-        this.modifier.backupOriginal();
-        this.components.forEach((component) => {
-            this.modifier[component.smoName] = component.getValue();
-        });
-        this.layout.renderStaffModifierPreview(this.modifier)
-    }
-
-    _commit() {
-        this.modifier.restoreOriginal();
-        this.components.forEach((component) => {
-            this.modifier[component.smoName] = component.getValue();
-        });
-    }
-
-    changed() {
-        this.modifier.backupOriginal();
-        this.components.forEach((component) => {
-            this.modifier[component.smoName] = component.getValue();
-        });
-        this.layout.renderStaffModifierPreview(this.modifier);
-    }
-
-    _bindElements() {
-        var self = this;
-        var dgDom = this.dgDom;
-        $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            self._commit();
-            self.complete();
-        });
-
-        $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-            self.modifier.restoreOriginal();
-            self.complete();
-        });
-        $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-            self.handleRemove();
-            self.complete();
-        });
-    }
-
-    display() {
-        $('body').addClass('showAttributeDialog');
-        this.components.forEach((component) => {
-            component.bind();
-        });
-        this._bindElements();
-		this.position(this.modifier.renderedBox);
-    }
-
 }
-class SuiHairpinAttributesDialog extends SuiDialogBase {
+
+class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
     static get label() {
         return 'Hairpin Properties';
     }
@@ -5063,54 +5212,6 @@ class SuiHairpinAttributesDialog extends SuiDialogBase {
             label: 'Hairpin Properties'
         });
         Vex.Merge(this, parameters);
-    }
-
-    handleRemove() {
-        $(this.context.svg).find('g.' + this.modifier.id).remove();
-        this.selection.staff.removeStaffModifier(this.modifier);
-        this.tracker.clearModifierSelections();
-    }
-
-    _commit() {
-        this.modifier.restoreOriginal();
-        this.components.forEach((component) => {
-            this.modifier[component.smoName] = component.getValue();
-        });
-    }
-
-    changed() {
-        this.modifier.backupOriginal();
-        this.components.forEach((component) => {
-            this.modifier[component.smoName] = component.getValue();
-        });
-        this.layout.renderStaffModifierPreview(this.modifier);
-    }
-
-    _bindElements() {
-        var self = this;
-        var dgDom = this.dgDom;
-        $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            self._commit();
-            self.complete();
-        });
-
-        $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-            self.modifier.restoreOriginal();
-            self.complete();
-        });
-        $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-            self.handleRemove();
-            self.complete();
-        });
-    }
-
-    display() {
-        $('body').addClass('showAttributeDialog');
-        this.components.forEach((component) => {
-            component.bind();
-        });
-        this._bindElements();
-		this.position(this.modifier.renderedBox);
     }
 }
 ;
