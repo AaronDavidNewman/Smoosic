@@ -154,7 +154,7 @@ body.showAttributeDialog .attributeDialog {
 }
 
 .icon-pianissimo:before {
-	content:"\e913\e90e";
+	content:"\e90e\e90e";
 }
 .icon-mezzo-piano:before {
   content: "\e913\e90e";

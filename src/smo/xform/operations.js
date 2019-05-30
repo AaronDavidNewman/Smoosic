@@ -190,7 +190,7 @@ class SmoOperation {
     }
 	
 	static addDynamic(selection,dynamic) {
-		selection.note.addDynamic(dynamic);
+		selection.note.addModifier(dynamic);
 	}
 
     // ## interval

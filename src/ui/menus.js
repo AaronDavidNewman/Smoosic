@@ -157,7 +157,7 @@ class SuiDynamicsMenu extends suiMenuBase {
 	static get defaults() {
 		return {menuItems: [ 
 		{icon: 'pianissimo',
-                    text: 'Piano',
+                    text: 'Pianissimo',
                     value: 'pp'
                 },
 		{icon: 'piano',
@@ -196,7 +196,7 @@ class SuiDynamicsMenu extends suiMenuBase {
 			return;
 		}
 
-        SmoOperation.addDynamic(ft,new SmoDynamicText({text:text,yOffsetLine:11,fontSize:38}));
+        SmoOperation.addDynamic(ft,new SmoDynamicText({selector:ft.selector,text:text,yOffsetLine:11,fontSize:38}));
         this.complete();
     }
     keydown(ev) {}

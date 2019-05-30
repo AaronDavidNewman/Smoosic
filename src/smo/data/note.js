@@ -26,7 +26,7 @@ class SmoDynamicText {
 	
 	constructor(parameters) {
 		Vex.Merge(this, SmoDynamicText.defaults);
-        smoMusic.filteredMerge(['xOffset', 'yOffsetLine', 'fontSize', 'text','yOffsetPixels'], parameters, this);
+        smoMusic.filteredMerge(SmoDynamicText.attrArray, parameters, this);
         this.selector = parameters.selector;
 		
 		 if (!this['attrs']) {
@@ -46,7 +46,25 @@ class SmoDynamicText {
 		return this.attrs.type;
 	}
 	set type(ignore) {}
-	
+	static get attrArray() {
+		return ['xOffset', 'fontSize', 'yOffsetLine', 'yOffsetPixels', 'text'];
+	}
+	backupOriginal() {
+        if (!this['original']) {
+            this.original = {};
+            smoMusic.filteredMerge(
+                SmoDynamicText.attrArray,
+                this, this.original);
+        }
+    }
+    restoreOriginal() {
+        if (this['original']) {
+            smoMusic.filteredMerge(
+                SmoDynamicText.attrArray,
+                this.original, this);
+            this.original = null;
+        }
+    }
 }
 
 // ##Note on prefixes:
@@ -98,15 +116,24 @@ class SmoNote {
 	
 	// ## addDynamicText
 	// sFz, mp, etc.
-	addDynamic(dynamic) {
+	_addModifier(dynamic,toAdd) {
 		var tms = [];
 		this.textModifiers.forEach((tm)=> {
 			if (tm.attrs.type != dynamic.attrs.type) {
 				tms.push(tm);
 			}
 		});
-		tms.push(dynamic);
+		if (toAdd) {
+		    tms.push(dynamic);
+		}
 		this.textModifiers=tms;		
+	}
+	
+	addModifier(dynamic) {
+		this._addModifier(dynamic,true);
+	}
+	removeModifier(dynamic) {
+		this._addModifier(dynamic,false);
 	}
 
     // ## toVexKeys

@@ -71,6 +71,15 @@ class suiSimpleLayout {
         // layout a second time to adjust for issues.
         this.layout(true);
     }
+	
+	renderNoteModifierPreview(modifier) {
+		var selection = SmoSelection.noteSelection(this.score,modifier.selector.staff,modifier.selector.measure,modifier.selector.voice,modifier.selector.tick);
+		if (!selection.measure.renderedBox) {
+            return;
+        }
+		var system = new VxSystem(this.context, selection.measure.staffY, selection.measure.lineIndex);
+		system.renderMeasure(selection.selector.staff, selection.measure);
+	}
 
     // re-render a modifier for preview during modifier dialog
     renderStaffModifierPreview(modifier) {
