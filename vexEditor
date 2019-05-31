@@ -50,6 +50,7 @@
             <File name="src\test\editorTest.js" />
             <File name="src\test\editorTest.html" />
             <File name="src\test\serializeTestJson.js" />
+            <File name="src\test\testAll.html" />
         </Folder>
         <Folder name="render">
             <Folder name="vex">

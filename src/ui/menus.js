@@ -164,11 +164,11 @@ class SuiDynamicsMenu extends suiMenuBase {
                     text: 'Piano',
                     value: 'p'
                 },
-		{icon: 'mezzo-piano',
+		{icon: 'mezzopiano',
                     text: 'Mezzo-piano',
                     value: 'mp'
                 },
-		{icon: 'mezzo-forte',
+		{icon: 'mezzoforte',
                     text: 'Mezzo-forte',
                     value: 'mf'
         },
@@ -180,7 +180,7 @@ class SuiDynamicsMenu extends suiMenuBase {
                     text: 'Fortissimo',
                     value: 'ff'
         },
-		{icon: 'sfortzando',
+		{icon: 'sfz',
                     text: 'sfortzando',
                     value: 'sfz'
         }

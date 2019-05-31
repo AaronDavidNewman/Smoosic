@@ -23,6 +23,30 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-tenor:before {
+  content: "\e919";
+}
+.icon-alto:before {
+  content: "\e91a";
+}
+.icon-bass:before {
+  content: "\e91b";
+}
+.icon-treble:before {
+  content: "\e91c";
+}
+.icon-fortissimo:before {
+  content: "\e915";
+}
+.icon-pianissimo:before {
+  content: "\e916";
+}
+.icon-mezzoforte:before {
+  content: "\e917";
+}
+.icon-sfz:before {
+  content: "\e918";
+}
 .icon-keyboard:before {
   content: "\e955";
 }
@@ -100,6 +124,9 @@
 }
 .icon-new-tab:before {
   content: "\ea7e";
+}
+.icon-mezzopiano:before {
+  content: "\e914";
 }
 .icon-piano:before {
   content: "\e90e";
