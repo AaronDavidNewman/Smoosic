@@ -28,6 +28,7 @@
             <File name="src\ui\controller.js" />
             <File name="src\ui\dialog.js" />
             <File name="src\ui\dialogComponents.js" />
+            <File name="src\ui\staffDialogs.js" />
         </Folder>
         <Folder name="test">
             <File name="src\test\chordTest.js" />
@@ -50,11 +51,6 @@
             <File name="src\test\editorTest.html" />
             <File name="src\test\serializeTestJson.js" />
         </Folder>
-        <Folder name="fonts">
-            <File name="src\fonts\smoosic.ttf" />
-            <File name="src\fonts\fonts.css" />
-            <File name="src\fonts\styles.css" />
-        </Folder>
         <Folder name="render">
             <Folder name="vex">
                 <File name="src\render\vex\vxSystem.js" />
@@ -64,6 +60,10 @@
                 <File name="src\render\sui\tracker.js" />
                 <File name="src\render\sui\layout.js" />
             </Folder>
+        </Folder>
+        <Folder name="styles">
+            <File name="src\styles\styles.css" />
+            <File name="src\styles\fonts.css" />
         </Folder>
     </Project>
 </NotepadPlus>

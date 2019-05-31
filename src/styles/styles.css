@@ -1,0 +1,154 @@
+
+
+
+h1 {
+	text-align:center;
+}
+
+.menuOption {
+	width:128px;
+	height:32px;
+	padding:0;
+	position:relative;
+	background:#fff;
+}
+
+.menuContainer{
+	position:relative;
+	z-index:12;
+}
+
+.musicRelief {
+	background:#999;
+}
+.musicContainer {
+	width:8.5in;
+	height:11in;
+	position:relative;
+	border:1px solid black;
+	background:#fff;
+	z-index:1;
+}
+
+.musicContainer svg {
+	/* transform:scale(0.7,0.7);  */
+	width:100%;
+	height:100%;
+	overflow:visible;
+}
+
+.menuElement {
+	position:absolute;
+	list-style:none;
+    z-index: 13;
+    background: #fff;
+	padding:0;
+}
+
+.menuOption {
+
+}
+
+.menuElement 	.menuOption button:focus-within {
+	background:#ccf;
+	border:2px green solid;
+	font-weigth: bold;
+}
+
+.menuElement .menuOption button {
+	width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+	padding:0;
+	font-size: 10px;
+    text-align: left;
+}
+
+.overlay {
+	display:none;
+}
+
+body.modal .overlay,body.showAttributeDialog .overlay {
+	display:block;
+	position:absolute;
+	width:100%;
+	height:100%;
+	z-index:2;
+	opacity:0.7;
+}
+
+.menuOption .icon {
+	position:absolute;
+	right:0;
+	top:0;
+	font-size:2em;
+}
+body.showAttributeDialog .attributeDialog {
+	display:block;
+	z-index:3;
+}
+
+.attributeDialog {
+	position:relative;
+	display:none;
+}
+
+.attributeModal {
+	position:absolute;
+	background: #fff;
+	border-style: groove;
+	border-width: 2px;
+	border-color: #9ac;
+	padding: 3px;
+}
+
+.attributeModal h2 {
+	text-align:center;
+	font-size:1.2em;
+}
+.buttonContainer {
+	text-align:center;
+	margin-top:3px;
+}
+
+.buttonContainer button {
+	margin-right:2px;
+}
+.smoControl {
+	margin-top:3px;
+}
+
+.smoControl button, .smoControl input,.smoControl select {
+	margin-right:2px;
+}
+.rockerControl button {
+	width:32px;
+}
+
+.dropdownControl select {
+	margin-left:64px;
+}
+
+.icon-pianissimo:before {
+	content:"\e90e\e90e";
+}
+.icon-mezzo-piano:before {
+  content: "\e913\e90e";
+}
+.icon-mezzo-forte:before {
+  content: "\e913\e912";
+}
+.icon-fortissimo:before {
+  content: "\e912\e912";
+}
+.icon-sfortzando {
+	content:'sfz';
+}
+
+
+
+
+
+
+
