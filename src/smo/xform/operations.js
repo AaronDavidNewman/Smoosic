@@ -82,6 +82,13 @@ class SmoOperation {
         SmoTickTransformer.applyTransform(measure, actor);
         return true;
     }
+	
+	static makeRest(selection) {
+		selection.note.makeRest();
+	}
+	static makeNote(selection) {
+		selection.note.makeNote();
+	}
 
     // ## unmakeTuplet
     // ## Description
@@ -158,7 +165,7 @@ class SmoOperation {
         }
         return false;
     }
-
+	
     // ## setPitch
     // ## Description:
     // pitches can be either an array, a single pitch, or a letter.  In the latter case,

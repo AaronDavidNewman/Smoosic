@@ -5,10 +5,32 @@ Vex.Xform = (typeof(Vex.Xform) == 'undefined' ? {}
 VX = Vex.Xform;
 
 /**
- * Build on the VX music theory routines, and other 
+ * Build on the VX music theory routines, and other
  * Utilities I wish were in VF.Music but aren't
  **/
 class smoMusic {
+
+    // return Vex canonical note enharmonic - e.g. Bb to A#
+    // Get the canonical form
+    static vexToCannonical(vexKey) {
+        return VF.Music.canonical_notes[VF.Music.noteValues[vexKey].int_val];
+    }
+	
+	// pitches are measured from c, so that b0 is higher than c0, c1 is 1 note higher etc.
+	static get letterPitchIndex() {
+		return {'c':0,'d':1,'e':2,'f':3,'g':4,'a':5,'b':6};
+	}
+	// convert {letter,octave,accidental} object to vexKey string ('f#'
+	static pitchToVexKey(smoPitch) {
+		// Convert to vex keys, where f# is a string like 'f#'.
+        var vexKey = smoPitch.letter.toLowerCase();
+        if (smoPitch.accidental.length === 0) {
+            vexKey = vexKey + 'n';
+        } else {
+            vexKey = vexKey + smoPitch.accidental;
+        }
+		return vexKey;
+	}
 
     // ## getKeyOffset
     // ## Description:  given a vex noteProp and an offset, offset that number
@@ -19,13 +41,8 @@ class smoMusic {
         var canon = VF.Music.canonical_notes;
 
         // Convert to vex keys, where f# is a string like 'f#'.
-        var vexKey = pitch.letter.toLowerCase();
-        if (pitch.accidental.length === 0) {
-            vexKey = vexKey + 'n';
-        } else {
-            vexKey = vexKey + pitch.accidental;
-        }
-        vexKey = canon[VF.Music.noteValues[vexKey].int_val];
+        var vexKey = smoMusic.pitchToVexKey(pitch);
+        vexKey = smoMusic.vexToCannonical(vexKey);
         var rootIndex = canon.indexOf(vexKey);
         var index = (rootIndex + canon.length + offset) % canon.length;
         var octave = pitch.octave;
@@ -179,7 +196,6 @@ class smoMusic {
         return rv;
     }
 
-   
     // ### getEnharmonic(noteProp)
     // ###   cycle through the enharmonics for a note.
     static getEnharmonic(key) {
@@ -193,8 +209,8 @@ class smoMusic {
     // ## getKeyFriendlyEnharmonic
     // ### Description:
     // fix the enharmonic to match the key, if possible
-	// ## Usage: 
-	// getKeyFriendlyEnharmonic('b','eb');  // returns 'bb'
+    // ## Usage:
+    // getKeyFriendlyEnharmonic('b','eb');  // returns 'bb'
     static getKeyFriendlyEnharmonic(letter, keySignature) {
         var rv = letter;
         var muse = new VF.Music();
@@ -216,9 +232,9 @@ class smoMusic {
     }
 
     // ## getIntervalInKey
-	// ## Description:
-	// give a pitch and a key signature, return another pitch at the given 
-	// diatonic interval.  Similar to getKeyOffset but diatonic.
+    // ## Description:
+    // give a pitch and a key signature, return another pitch at the given
+    // diatonic interval.  Similar to getKeyOffset but diatonic.
     static getIntervalInKey(pitch, keySignature, interval) {
         var muse = new VF.Music();
         var letter = pitch.letter;

@@ -161,6 +161,13 @@ class suiController {
                 action: "setPitch"
             }, {
                 event: "keydown",
+                key: "r",
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: "makeRest"
+            },{
+                event: "keydown",
                 key: "3",
                 ctrlKey: true,
                 altKey: false,

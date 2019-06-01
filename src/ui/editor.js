@@ -68,9 +68,34 @@ class suiEditor {
     downOctave() {
         this.transpose(-12);
     }
+	makeRest() {
+		this._singleSelectionOperation('makeRest');
+	}	
 
     _setPitch(selected, letter) {
-        this._selectionOperation(selected, 'setPitch', letter);
+		var selector = selected.selector;
+		var hintSel = SmoSelection.lastNoteSelection(this.score,
+		   selector.staff,selector.measure,selector.voice,selector.tick);
+		if (!hintSel) {
+			hintSel = SmoSelection.nextNoteSelection(this.score,
+			selector.staff,selector.measure,selector.voice,selector.tick);
+		}
+		var hintNote = hintSel.note;
+		var hpitch = hintNote.pitches[0];
+		var pitch = JSON.parse(JSON.stringify(hpitch));
+		pitch.letter = letter;
+
+		// make the octave of the new note as close to previous (or next) note as possible.
+		var upv=['bc','ac','bd','da','be','gc'];
+		var downv=['cb','ca','db','da','eb','cg'];
+		var delta = hpitch.letter+pitch.letter;
+		if (upv.indexOf(delta) >= 0) {
+			pitch.octave += 1;
+		} 
+		if (downv.indexOf(delta) >= 0) {
+			pitch.octave -= 1;
+		}
+        this._selectionOperation(selected, 'setPitch', pitch);
     }
 
     setPitch(keyEvent) {

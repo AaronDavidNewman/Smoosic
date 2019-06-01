@@ -26,6 +26,12 @@ class SmoMeasure {
     get notes() {
         return this.voices[this.activeVoice].notes;
     }
+	
+	// ## getRenderedNote
+	// ## Description:
+	// The renderer puts a mapping between rendered svg groups and 
+	// the logical notes in SMO.  The UI needs this mapping to be interactive,
+	// figure out where a note is rendered, what its bounding box is, etc.
 	getRenderedNote(id) {
         for (var j = 0; j < this.voices.length; ++j) {
             var voice = this.voices[j];
@@ -44,6 +50,7 @@ class SmoMeasure {
     get stemDirection() {
         return this.activeVoice % 2 ? -1 : 1;
     }
+		
 	static get defaultAttributes() {
 		return [
             'timeSignature', 'keySignature', 'staffX', 'staffY', 'customModifiers',

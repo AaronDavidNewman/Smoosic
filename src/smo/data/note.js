@@ -161,10 +161,19 @@ class SmoNote {
 		if (this.pitches.length == 0) {
 			return this;
 		}
+		this.noteType='n';
 		var pitch = this.pitches[0];
 		this.pitches.push(smoMusic.getKeyOffset(pitch, offset));
 
 		this._sortPitches();
+	}
+	
+	makeRest() {
+		this.noteType= (this.noteType == 'r' ? 'n' : 'r');
+	}
+	
+	makeNote() {
+		this.noteType='n';
 	}
 	
 	isTuplet() {
@@ -173,6 +182,7 @@ class SmoNote {
 
 	transpose(pitchArray, offset, keySignature) {
 		var pitches = [];
+		this.noteType='n';
 		if (pitchArray.length == 0) {
 			this.pitches.forEach((m)=>{pitchArray.push(this.pitches.indexOf(m));});
 		}

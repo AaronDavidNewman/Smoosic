@@ -73,6 +73,7 @@ class VxMeasure {
             clef: smoNote.clef,
             keys: smoNote.toVexKeys(),
             duration: smoNote.duration + smoNote.noteType
+			   + (smoNote['isRest'] ? 'r' : '')
         };
         this.applyStemDirection(noteParams);
         var vexNote = new VF.StaveNote(noteParams);
@@ -102,7 +103,7 @@ class VxMeasure {
         for (var i = 0; i < smoNote.dots; ++i) {
             vexNote.addDotToAll();
         }
-
+		
         return vexNote;
     }
 	
