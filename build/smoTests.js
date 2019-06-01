@@ -205,11 +205,15 @@ class StaffTest {
                     }
                 ]
             }
+			var selection = SmoSelection.noteSelection(score,0,1,0,2);
+			SmoOperation.makeRest(selection);
             keys.render();
             return timeTest();
         }
 		var keySigTest= () => {
 			score.addKeySignature(1,'A');
+			var selection = SmoSelection.noteSelection(score,0,1,0,2);
+			SmoOperation.makeNote(selection);
 			keys.render();
 			return timeTest();
 		}

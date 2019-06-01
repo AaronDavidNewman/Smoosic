@@ -220,8 +220,13 @@ class VxMeasure {
         var staffMargin = (this.smoMeasure.forceClef ? 40 : 0)
          + (this.smoMeasure.forceTimeSignature ? 16 : 0)
          + (this.smoMeasure.forceKeySignature ? smoMusic.keySignatureLength[this.smoMeasure.keySignature] * 8 : 0);
+
+		if (this.smoMeasure.forceKeySignature && this.smoMeasure.canceledKeySignature) {
+			staffMargin += smoMusic.keySignatureLength[this.smoMeasure.canceledKeySignature]*8;
+		}
         var staffWidth = this.smoMeasure.staffWidth
              + staffMargin;
+		
 
         //console.log('measure '+JSON.stringify(this.smoMeasure.measureNumber,null,' ')+' x: ' + this.smoMeasure.staffX + ' y: '+this.smoMeasure.staffY
         // + 'width: '+staffWidth);
@@ -233,7 +238,11 @@ class VxMeasure {
             this.stave.addClef(this.smoMeasure.clef);
         }
         if (this.smoMeasure.forceKeySignature) {
-            this.stave.addKeySignature(this.smoMeasure.keySignature);
+			var sig = new VF.KeySignature(this.smoMeasure.keySignature);
+			if (this.smoMeasure.canceledKeySignature) {
+				sig.cancelKey(this.smoMeasure.canceledKeySignature);
+			}
+            sig.addToStave(this.stave);
         }
         if (this.smoMeasure.forceTimeSignature) {
             this.stave.addTimeSignature(this.smoMeasure.timeSignature);
@@ -294,5 +303,4 @@ class VxMeasure {
         // console.log(JSON.stringify(this.smoMeasure.renderedBox,null,' '));
         this.context.closeGroup();
     }
-
 }

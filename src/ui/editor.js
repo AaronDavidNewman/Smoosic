@@ -3,7 +3,6 @@
 class suiEditor {
     constructor(params) {
         Vex.Merge(this, params);
-        this.changed = false; // set to true if the score has changed.
         this.slashMode = false;
     }
 
@@ -15,14 +14,11 @@ class suiEditor {
     }
 
     _renderAndAdvance() {
-        if (this.changed) {
-            this._render();
-            this.tracker.moveSelectionRight();
-        }
+		this._render();
+		this.tracker.moveSelectionRight();
     }
 
     _selectionOperation(selection, name, parameters) {
-        selection.measure.changed = true;
         SmoOperation[name](selection, parameters);
         this._render();
     }
@@ -33,7 +29,6 @@ class suiEditor {
         }
         var selection = this.tracker.selections[0];
         SmoOperation[name](selection, parameters);
-        this.changed = true;
         this._render();
     }
 
@@ -80,10 +75,19 @@ class suiEditor {
 			hintSel = SmoSelection.nextNoteSelection(this.score,
 			selector.staff,selector.measure,selector.voice,selector.tick);
 		}
+		
 		var hintNote = hintSel.note;
 		var hpitch = hintNote.pitches[0];
 		var pitch = JSON.parse(JSON.stringify(hpitch));
 		pitch.letter = letter;
+		
+		// Make the key 'a' make 'Ab' in the key of Eb, for instance
+		var vexKsKey = smoMusic.getKeySignatureKey(letter,selected.measure.keySignature);
+		if (vexKsKey.length > 1) {
+			pitch.accidental=vexKsKey[1];
+		} else {
+			pitch.accidental='n';
+		}
 
 		// make the octave of the new note as close to previous (or next) note as possible.
 		var upv=['bc','ac','bd','da','be','gc'];
@@ -95,12 +99,12 @@ class suiEditor {
 		if (downv.indexOf(delta) >= 0) {
 			pitch.octave -= 1;
 		}
-        this._selectionOperation(selected, 'setPitch', pitch);
+		SmoOperation['setPitch'](selected, pitch);
     }
 
     setPitch(keyEvent) {
         this.tracker.selections.forEach((selected) => this._setPitch(selected, keyEvent.key.toLowerCase()));
-        this._renderAndAdvance();
+		this._renderAndAdvance();
     }
 
     dotDuration(keyEvent) {
@@ -126,6 +130,7 @@ class suiEditor {
         var measure = this.tracker.getFirstMeasureOfSelection();
         if (measure) {
             var nmeasure = SmoMeasure.getDefaultMeasureWithNotes(measure);
+			nmeasure.measureNumber.measureIndex = measure.measureNumber.measureIndex;
             this.score.addMeasure(measure.measureNumber.systemIndex, nmeasure);
             this.changed = true;
             this._render();

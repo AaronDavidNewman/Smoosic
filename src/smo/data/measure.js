@@ -216,6 +216,7 @@ class SmoMeasure {
         return {
             timeSignature: '4/4',
             keySignature: "C",
+			canceledKeySignature:null,
             staffX: 10,
 			adjX:0,
 			rightMargin:2,

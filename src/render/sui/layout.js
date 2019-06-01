@@ -246,7 +246,12 @@ class suiSimpleLayout {
 
                 measure.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
                 measure.forceTimeSignature = (systemIndex === 0 || measure.timeSignature !== timeSigLast);
-                measure.forceKeySignature = (systemIndex === 0 || measure.keySignature !== keySigLast);
+				if (measure.keySignature !== keySigLast) {
+					measure.canceledKeySignature=keySigLast;
+					measure.forceKeySignature = true;
+				} else {
+					measure.forceKeySignature = false;
+				}
 
                 // guess height of staff the first time
                 measure.measureNumber.systemIndex = systemIndex;

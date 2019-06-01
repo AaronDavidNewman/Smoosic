@@ -5,10 +5,32 @@ Vex.Xform = (typeof(Vex.Xform) == 'undefined' ? {}
 VX = Vex.Xform;
 
 /**
- * Build on the VX music theory routines, and other 
+ * Build on the VX music theory routines, and other
  * Utilities I wish were in VF.Music but aren't
  **/
 class smoMusic {
+
+    // return Vex canonical note enharmonic - e.g. Bb to A#
+    // Get the canonical form
+    static vexToCannonical(vexKey) {
+        return VF.Music.canonical_notes[VF.Music.noteValues[vexKey].int_val];
+    }
+	
+	// pitches are measured from c, so that b0 is higher than c0, c1 is 1 note higher etc.
+	static get letterPitchIndex() {
+		return {'c':0,'d':1,'e':2,'f':3,'g':4,'a':5,'b':6};
+	}
+	// convert {letter,octave,accidental} object to vexKey string ('f#'
+	static pitchToVexKey(smoPitch) {
+		// Convert to vex keys, where f# is a string like 'f#'.
+        var vexKey = smoPitch.letter.toLowerCase();
+        if (smoPitch.accidental.length === 0) {
+            vexKey = vexKey + 'n';
+        } else {
+            vexKey = vexKey + smoPitch.accidental;
+        }
+		return vexKey;
+	}
 
     // ## getKeyOffset
     // ## Description:  given a vex noteProp and an offset, offset that number
@@ -19,13 +41,8 @@ class smoMusic {
         var canon = VF.Music.canonical_notes;
 
         // Convert to vex keys, where f# is a string like 'f#'.
-        var vexKey = pitch.letter.toLowerCase();
-        if (pitch.accidental.length === 0) {
-            vexKey = vexKey + 'n';
-        } else {
-            vexKey = vexKey + pitch.accidental;
-        }
-        vexKey = canon[VF.Music.noteValues[vexKey].int_val];
+        var vexKey = smoMusic.pitchToVexKey(pitch);
+        vexKey = smoMusic.vexToCannonical(vexKey);
         var rootIndex = canon.indexOf(vexKey);
         var index = (rootIndex + canon.length + offset) % canon.length;
         var octave = pitch.octave;
@@ -179,7 +196,6 @@ class smoMusic {
         return rv;
     }
 
-   
     // ### getEnharmonic(noteProp)
     // ###   cycle through the enharmonics for a note.
     static getEnharmonic(key) {
@@ -193,8 +209,8 @@ class smoMusic {
     // ## getKeyFriendlyEnharmonic
     // ### Description:
     // fix the enharmonic to match the key, if possible
-	// ## Usage: 
-	// getKeyFriendlyEnharmonic('b','eb');  // returns 'bb'
+    // ## Usage:
+    // getKeyFriendlyEnharmonic('b','eb');  // returns 'bb'
     static getKeyFriendlyEnharmonic(letter, keySignature) {
         var rv = letter;
         var muse = new VF.Music();
@@ -216,9 +232,9 @@ class smoMusic {
     }
 
     // ## getIntervalInKey
-	// ## Description:
-	// give a pitch and a key signature, return another pitch at the given 
-	// diatonic interval.  Similar to getKeyOffset but diatonic.
+    // ## Description:
+    // give a pitch and a key signature, return another pitch at the given
+    // diatonic interval.  Similar to getKeyOffset but diatonic.
     static getIntervalInKey(pitch, keySignature, interval) {
         var muse = new VF.Music();
         var letter = pitch.letter;
@@ -704,10 +720,19 @@ class SmoNote {
 		if (this.pitches.length == 0) {
 			return this;
 		}
+		this.noteType='n';
 		var pitch = this.pitches[0];
 		this.pitches.push(smoMusic.getKeyOffset(pitch, offset));
 
 		this._sortPitches();
+	}
+	
+	makeRest() {
+		this.noteType= (this.noteType == 'r' ? 'n' : 'r');
+	}
+	
+	makeNote() {
+		this.noteType='n';
 	}
 	
 	isTuplet() {
@@ -716,6 +741,7 @@ class SmoNote {
 
 	transpose(pitchArray, offset, keySignature) {
 		var pitches = [];
+		this.noteType='n';
 		if (pitchArray.length == 0) {
 			this.pitches.forEach((m)=>{pitchArray.push(this.pitches.indexOf(m));});
 		}
@@ -1007,6 +1033,12 @@ class SmoMeasure {
     get notes() {
         return this.voices[this.activeVoice].notes;
     }
+	
+	// ## getRenderedNote
+	// ## Description:
+	// The renderer puts a mapping between rendered svg groups and 
+	// the logical notes in SMO.  The UI needs this mapping to be interactive,
+	// figure out where a note is rendered, what its bounding box is, etc.
 	getRenderedNote(id) {
         for (var j = 0; j < this.voices.length; ++j) {
             var voice = this.voices[j];
@@ -1025,6 +1057,7 @@ class SmoMeasure {
     get stemDirection() {
         return this.activeVoice % 2 ? -1 : 1;
     }
+		
 	static get defaultAttributes() {
 		return [
             'timeSignature', 'keySignature', 'staffX', 'staffY', 'customModifiers',
@@ -2961,6 +2994,13 @@ class SmoOperation {
         SmoTickTransformer.applyTransform(measure, actor);
         return true;
     }
+	
+	static makeRest(selection) {
+		selection.note.makeRest();
+	}
+	static makeNote(selection) {
+		selection.note.makeNote();
+	}
 
     // ## unmakeTuplet
     // ## Description
@@ -3037,7 +3077,7 @@ class SmoOperation {
         }
         return false;
     }
-
+	
     // ## setPitch
     // ## Description:
     // pitches can be either an array, a single pitch, or a letter.  In the latter case,
@@ -3200,6 +3240,7 @@ class VxMeasure {
             clef: smoNote.clef,
             keys: smoNote.toVexKeys(),
             duration: smoNote.duration + smoNote.noteType
+			   + (smoNote['isRest'] ? 'r' : '')
         };
         this.applyStemDirection(noteParams);
         var vexNote = new VF.StaveNote(noteParams);
@@ -3229,7 +3270,7 @@ class VxMeasure {
         for (var i = 0; i < smoNote.dots; ++i) {
             vexNote.addDotToAll();
         }
-
+		
         return vexNote;
     }
 	
@@ -4408,9 +4449,34 @@ class suiEditor {
     downOctave() {
         this.transpose(-12);
     }
+	makeRest() {
+		this._singleSelectionOperation('makeRest');
+	}	
 
     _setPitch(selected, letter) {
-        this._selectionOperation(selected, 'setPitch', letter);
+		var selector = selected.selector;
+		var hintSel = SmoSelection.lastNoteSelection(this.score,
+		   selector.staff,selector.measure,selector.voice,selector.tick);
+		if (!hintSel) {
+			hintSel = SmoSelection.nextNoteSelection(this.score,
+			selector.staff,selector.measure,selector.voice,selector.tick);
+		}
+		var hintNote = hintSel.note;
+		var hpitch = hintNote.pitches[0];
+		var pitch = JSON.parse(JSON.stringify(hpitch));
+		pitch.letter = letter;
+
+		// make the octave of the new note as close to previous (or next) note as possible.
+		var upv=['bc','ac','bd','da','be','gc'];
+		var downv=['cb','ca','db','da','eb','cg'];
+		var delta = hpitch.letter+pitch.letter;
+		if (upv.indexOf(delta) >= 0) {
+			pitch.octave += 1;
+		} 
+		if (downv.indexOf(delta) >= 0) {
+			pitch.octave -= 1;
+		}
+        this._selectionOperation(selected, 'setPitch', pitch);
     }
 
     setPitch(keyEvent) {
@@ -5376,6 +5442,13 @@ class suiController {
                 shiftKey: false,
                 action: "setPitch"
             }, {
+                event: "keydown",
+                key: "r",
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: "makeRest"
+            },{
                 event: "keydown",
                 key: "3",
                 ctrlKey: true,
