@@ -29,6 +29,7 @@
             <File name="src\ui\dialog.js" />
             <File name="src\ui\dialogComponents.js" />
             <File name="src\ui\staffDialogs.js" />
+            <File name="src\ui\help.js" />
         </Folder>
         <Folder name="test">
             <File name="src\test\chordTest.js" />
