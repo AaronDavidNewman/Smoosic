@@ -14,7 +14,7 @@ module.exports = function (grunt) {
                     'src/smo/xform/iterator.js', 'src/smo/xform/beamers.js', 'src/smo/xform/tickDuration.js', 'src/smo/xform/selections.js',
                     'src/smo/xform/operations.js', 'src/render/vex/vxMeasure.js', 'src/render/vex/vxSystem.js',
                     'src/render/sui/tracker.js', 'src/render/sui/layout.js', 'src/ui/editor.js', 'src/ui/menus.js', 'src/ui/utController.js',
-                    'src/ui/dialog.js', 'src/ui/staffDialogs.js', 'src/ui/controller.js'],
+                    'src/ui/dialog.js', 'src/ui/staffDialogs.js', 'src/ui/help.js','src/ui/controller.js'],
                 dest: 'build/<%= pkg.name %>.js'
             },
             tests: {

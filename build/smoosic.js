@@ -1223,6 +1223,7 @@ class SmoMeasure {
         return {
             timeSignature: '4/4',
             keySignature: "C",
+			canceledKeySignature:null,
             staffX: 10,
 			adjX:0,
 			rightMargin:2,
@@ -3387,8 +3388,13 @@ class VxMeasure {
         var staffMargin = (this.smoMeasure.forceClef ? 40 : 0)
          + (this.smoMeasure.forceTimeSignature ? 16 : 0)
          + (this.smoMeasure.forceKeySignature ? smoMusic.keySignatureLength[this.smoMeasure.keySignature] * 8 : 0);
+
+		if (this.smoMeasure.forceKeySignature && this.smoMeasure.canceledKeySignature) {
+			staffMargin += smoMusic.keySignatureLength[this.smoMeasure.canceledKeySignature]*8;
+		}
         var staffWidth = this.smoMeasure.staffWidth
              + staffMargin;
+		
 
         //console.log('measure '+JSON.stringify(this.smoMeasure.measureNumber,null,' ')+' x: ' + this.smoMeasure.staffX + ' y: '+this.smoMeasure.staffY
         // + 'width: '+staffWidth);
@@ -3400,7 +3406,11 @@ class VxMeasure {
             this.stave.addClef(this.smoMeasure.clef);
         }
         if (this.smoMeasure.forceKeySignature) {
-            this.stave.addKeySignature(this.smoMeasure.keySignature);
+			var sig = new VF.KeySignature(this.smoMeasure.keySignature);
+			if (this.smoMeasure.canceledKeySignature) {
+				sig.cancelKey(this.smoMeasure.canceledKeySignature);
+			}
+            sig.addToStave(this.stave);
         }
         if (this.smoMeasure.forceTimeSignature) {
             this.stave.addTimeSignature(this.smoMeasure.timeSignature);
@@ -3461,7 +3471,6 @@ class VxMeasure {
         // console.log(JSON.stringify(this.smoMeasure.renderedBox,null,' '));
         this.context.closeGroup();
     }
-
 }
 ;// ## Description:
 //   Create a system of staves and draw music on it.
@@ -4353,7 +4362,12 @@ class suiSimpleLayout {
 
                 measure.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
                 measure.forceTimeSignature = (systemIndex === 0 || measure.timeSignature !== timeSigLast);
-                measure.forceKeySignature = (systemIndex === 0 || measure.keySignature !== keySigLast);
+				if (measure.keySignature !== keySigLast) {
+					measure.canceledKeySignature=keySigLast;
+					measure.forceKeySignature = true;
+				} else {
+					measure.forceKeySignature = false;
+				}
 
                 // guess height of staff the first time
                 measure.measureNumber.systemIndex = systemIndex;
@@ -4384,7 +4398,6 @@ class suiSimpleLayout {
 class suiEditor {
     constructor(params) {
         Vex.Merge(this, params);
-        this.changed = false; // set to true if the score has changed.
         this.slashMode = false;
     }
 
@@ -4396,14 +4409,11 @@ class suiEditor {
     }
 
     _renderAndAdvance() {
-        if (this.changed) {
-            this._render();
-            this.tracker.moveSelectionRight();
-        }
+		this._render();
+		this.tracker.moveSelectionRight();
     }
 
     _selectionOperation(selection, name, parameters) {
-        selection.measure.changed = true;
         SmoOperation[name](selection, parameters);
         this._render();
     }
@@ -4414,7 +4424,6 @@ class suiEditor {
         }
         var selection = this.tracker.selections[0];
         SmoOperation[name](selection, parameters);
-        this.changed = true;
         this._render();
     }
 
@@ -4461,10 +4470,19 @@ class suiEditor {
 			hintSel = SmoSelection.nextNoteSelection(this.score,
 			selector.staff,selector.measure,selector.voice,selector.tick);
 		}
+		
 		var hintNote = hintSel.note;
 		var hpitch = hintNote.pitches[0];
 		var pitch = JSON.parse(JSON.stringify(hpitch));
 		pitch.letter = letter;
+		
+		// Make the key 'a' make 'Ab' in the key of Eb, for instance
+		var vexKsKey = smoMusic.getKeySignatureKey(letter,selected.measure.keySignature);
+		if (vexKsKey.length > 1) {
+			pitch.accidental=vexKsKey[1];
+		} else {
+			pitch.accidental='n';
+		}
 
 		// make the octave of the new note as close to previous (or next) note as possible.
 		var upv=['bc','ac','bd','da','be','gc'];
@@ -4476,12 +4494,12 @@ class suiEditor {
 		if (downv.indexOf(delta) >= 0) {
 			pitch.octave -= 1;
 		}
-        this._selectionOperation(selected, 'setPitch', pitch);
+		SmoOperation['setPitch'](selected, pitch);
     }
 
     setPitch(keyEvent) {
         this.tracker.selections.forEach((selected) => this._setPitch(selected, keyEvent.key.toLowerCase()));
-        this._renderAndAdvance();
+		this._renderAndAdvance();
     }
 
     dotDuration(keyEvent) {
@@ -4507,6 +4525,7 @@ class suiEditor {
         var measure = this.tracker.getFirstMeasureOfSelection();
         if (measure) {
             var nmeasure = SmoMeasure.getDefaultMeasureWithNotes(measure);
+			nmeasure.measureNumber.measureIndex = measure.measureNumber.measureIndex;
             this.score.addMeasure(measure.measureNumber.systemIndex, nmeasure);
             this.changed = true;
             this._render();
@@ -5279,6 +5298,138 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
         });
         Vex.Merge(this, parameters);
     }
+}
+;
+
+class SmoHelp {
+
+	static displayHelp() {
+		$('body').addClass('showHelpDialog');
+		$('.helpDialog').html('');
+		$('.helpDialog').append(SmoHelp.navigationHtml.dom());
+		$('.helpDialog').append(SmoHelp.noteHelpHtml.dom());
+	}
+
+	static _helpButton(buttons) {
+		var b = htmlHelpers.buildDom;
+		var r = b('span').classes('keyContainer');
+		buttons.forEach((button) => {
+			button.text = (button.text ? button.text : '');
+			r.append(b('span').classes(button.icon + ' helpKey').text(button.text));
+
+		});
+		return r;
+	}
+
+	static _buttonBlock(buttons, text, id) {
+		var b = htmlHelpers.buildDom;
+		var r = b('div').classes('keyBlock').attr('id', id);
+		r.append(SmoHelp._helpButton(buttons)).append(
+			b('label').attr('for', id).text(text));
+		return r;
+	}
+
+	static _buildElements(helps) {
+		var b = htmlHelpers.buildDom;
+		var r = b('div').classes('helpLine')
+			helps.forEach((help) => {
+				r.append(SmoHelp._buttonBlock(help.keys, help.text, help.id));
+			});
+		return r;
+	}
+
+	static get navigationElements() {
+		return [{
+				keys:
+				[{
+						icon: 'icon-arrow-right'
+					}, {
+						icon: 'icon-arrow-left'
+					}
+				],
+				text: 'Move note selection left or right',
+				id: 'help1'
+			}, {
+				keys: [{
+						icon: '',
+						text: 'Ctrl'
+					}, {
+						icon: 'icon-arrow-right'
+					}, {
+						icon: '',
+						text: 'Ctrl'
+					}, {
+						icon: 'icon-arrow-left'
+					}
+				],
+				text: 'Jump selection to next/last measure',
+				id: 'selectionJumpHelp'
+			}, {
+				keys: [{
+						icon: '',
+						text: 'Shift'
+					}, {
+						icon: 'icon-arrow-right'
+					}, {
+						icon: '',
+						text: 'Shift'
+					}, {
+						icon: 'icon-arrow-left'
+					}
+				],
+				text: 'Grow selection left or right',
+				id: 'selectionGrowHelp'
+			}
+		];
+	}
+	static get noteElements() {
+		return [{
+				keys:
+				[{
+						text: 'A'
+					}, {
+						text: 'B'
+					}, {
+						text: '...'
+					}, {
+						text: 'G'
+					}
+				],
+				text: 'Enter letter note A-G at selection',
+				id: 'noteElements1'
+			}, {
+				keys:
+				[{
+						text: '-'
+					}, {
+						text: '='
+					}
+				],
+				text: 'Transpose selected notes down/up 1/2 step',
+				id: 'noteElements2'
+			}, {
+				keys: [{
+						text: 'Ctrl'
+					}, {
+						text: '-'
+					}, {
+						text: 'Ctrl'
+					}, {
+						text: '='
+					}
+				],
+				text: 'Move note up/down octave',
+				id: 'noteElements3'
+			}
+		];
+	}
+
+	static get navigationHtml() {
+		return SmoHelp._buildElements(SmoHelp.navigationElements);
+	}
+	static get noteHelpHtml() {
+		return SmoHelp._buildElements(SmoHelp.noteElements);
+	}
 }
 ;
 
