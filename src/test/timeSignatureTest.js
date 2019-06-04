@@ -39,25 +39,31 @@ class TimeSignatureTest {
         }
 		
 		var stretchTest = () => {
-            var tickmap = measure.tickmap();
+			var selection = SmoSelection.noteSelection(score,0,0,0,0);
+			SmoOperation.doubleDuration(selection);
+			var selection = SmoSelection.noteSelection(score,0,0,0,0);
+			SmoOperation.dotDuration(selection);
+            /* var tickmap = measure.tickmap();
         var actor = new SmoStretchNoteActor({
 				 startIndex: 0,
                 tickmap: tickmap,
 				newTicks:6144
 			});
-            SmoTickTransformer.applyTransform(measure,actor);
+            SmoTickTransformer.applyTransform(measure,actor);   */
             layout.render();
             return timeTest();
 		}
 		
 		var contractTest = () => {
-            var tickmap = measure.tickmap();
+			var selection = SmoSelection.noteSelection(score,0,0,0,0);
+			SmoOperation.halveDuration(selection);
+            /* var tickmap = measure.tickmap();
             var actor = new SmoContractNoteActor({
 				 startIndex: 0,
                 tickmap: tickmap,
 				newTicks:6144/3
 			});
-            SmoTickTransformer.applyTransform(measure,actor);
+            SmoTickTransformer.applyTransform(measure,actor);  */
             layout.render();
             return timeTest();
 		}

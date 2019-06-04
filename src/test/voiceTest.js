@@ -44,9 +44,10 @@ class VoiceTest {
         }
 		var accidentalTest = () => {
 			var target = SmoSelection.pitchSelection(score,0,0,0,1,[0]);
-			if (target) {
+			SmoOperation.transpose(target,-1);
+			/* if (target) {
 				target.note.transpose([0],-1);
-			}
+			}  */
             layout.render();
             return timeTest();
         }

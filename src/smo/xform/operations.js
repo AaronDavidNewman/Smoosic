@@ -33,9 +33,8 @@ class SmoOperation {
             SmoTickTransformer.applyTransform(measure, actor);
         }
         return true;
-
-    }	
-
+    }
+		
     // ## halveDuration
     // ## Description
     // Replace the note with 2 notes of 1/2 duration, if possible
@@ -44,8 +43,13 @@ class SmoOperation {
         var note = selection.note;
         var measure = selection.measure;
         var tuplet = measure.getTupletForNote(note);
+		var divisor=2;
+		if (measure.numBeats % 3 === 0 && selection.note.tickCount===6144) {
+			// special behavior, if this is dotted 1/4 in 6/8, split to 3
+			divisor=3;
+		}
         if (!tuplet) {
-            var nticks = note.tickCount / 2;
+            var nticks = note.tickCount / divisor;
             var actor = new SmoContractNoteActor({
                     startIndex: selection.selector.tick,
                     tickmap: measure.tickmap(),
@@ -195,6 +199,12 @@ class SmoOperation {
         });
         return true;
     }
+	
+	static courtesyAccidental(pitchSelection,toBe) {
+		pitchSelection.selector.pitches.forEach((pitchIx) => {
+			pitchSelection.note.pitches[pitchIx].cautionary=toBe;
+		});
+	}
 	
 	static addDynamic(selection,dynamic) {
 		selection.note.addModifier(dynamic);

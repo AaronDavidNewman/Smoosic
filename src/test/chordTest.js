@@ -101,14 +101,17 @@ class ChordTest {
         }
 
         var makeTupletTest = () => {
-            var tickmap = measure.tickmap();
+			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
+			SmoOperation.makeTuplet(selection,3);
+            /* var tickmap = measure.tickmap();
             var actor = new SmoMakeTupletActor({
+				
                     index: 1,
                     totalTicks: 4096,
                     numNotes: 3,
                     measure: measure
                 });
-            SmoTickTransformer.applyTransform(measure, actor);
+            SmoTickTransformer.applyTransform(measure, actor);   */
             layout.render();
             console.log('tuplet serialize');
             console.log(JSON.stringify(measure, null, ' '));
@@ -116,19 +119,22 @@ class ChordTest {
         }
 
         var unmakeTupletTest = () => {
-            var actor = new SmoUnmakeTupletActor({
+			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
+			SmoOperation.unmakeTuplet(selection);
+            /* var actor = new SmoUnmakeTupletActor({
                     startIndex: 1,
                     endIndex: 3,
                     measure: measure
                 });
-            SmoTickTransformer.applyTransform(measure, actor);
+            SmoTickTransformer.applyTransform(measure, actor);  */
             layout.render();
             return timeTest();
         }
 
         var courtesyTest = () => {
             var target = SmoSelection.pitchSelection(score, 0, 0, 0, 2, [1]);
-            target.note.pitches[1].cautionary = true;
+			SmoOperation.courtesyAccidental(target,true);
+            // target.note.pitches[1].cautionary = true;
             layout.render();
             return timeTest();
         }
