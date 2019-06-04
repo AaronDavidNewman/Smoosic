@@ -101,14 +101,17 @@ class ChordTest {
         }
 
         var makeTupletTest = () => {
-            var tickmap = measure.tickmap();
+			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
+			SmoOperation.makeTuplet(selection,3);
+            /* var tickmap = measure.tickmap();
             var actor = new SmoMakeTupletActor({
+				
                     index: 1,
                     totalTicks: 4096,
                     numNotes: 3,
                     measure: measure
                 });
-            SmoTickTransformer.applyTransform(measure, actor);
+            SmoTickTransformer.applyTransform(measure, actor);   */
             layout.render();
             console.log('tuplet serialize');
             console.log(JSON.stringify(measure, null, ' '));
@@ -116,19 +119,22 @@ class ChordTest {
         }
 
         var unmakeTupletTest = () => {
-            var actor = new SmoUnmakeTupletActor({
+			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
+			SmoOperation.unmakeTuplet(selection);
+            /* var actor = new SmoUnmakeTupletActor({
                     startIndex: 1,
                     endIndex: 3,
                     measure: measure
                 });
-            SmoTickTransformer.applyTransform(measure, actor);
+            SmoTickTransformer.applyTransform(measure, actor);  */
             layout.render();
             return timeTest();
         }
 
         var courtesyTest = () => {
             var target = SmoSelection.pitchSelection(score, 0, 0, 0, 2, [1]);
-            target.note.pitches[1].cautionary = true;
+			SmoOperation.courtesyAccidental(target,true);
+            // target.note.pitches[1].cautionary = true;
             layout.render();
             return timeTest();
         }
@@ -184,27 +190,31 @@ class StaffTest {
 		
         var changePitch = () => {
             var target = SmoSelection.pitchSelection(layout.score,0,2, 0, 1,[0]);
-            if (target) {
+			SmoOperation.setPitch(target,{
+                        letter: 'e',
+                        octave: 4,
+                        accidental: 'b'
+                    });
+            /* if (target) {
                 target.note.pitches = [{
                         letter: 'e',
                         octave: 4,
                         accidental: 'b'
                     }
                 ];
-            }
+            }   */
             keys.render();
             return timeTest();
         }
         var changePitch2 = () => {
             var target = SmoSelection.pitchSelection(score,0,1, 0, 1, [0]);
-            if (target) {
-                target.note.pitches = [{
-                        letter: 'f',
-                        octave: 4,
-                        accidental: '#'
-                    }
-                ]
-            }
+			SmoOperation.setPitch(target,{
+					letter: 'f',
+					octave: 4,
+					accidental: '#'
+				}
+			);
+            
 			var selection = SmoSelection.noteSelection(score,0,1,0,2);
 			SmoOperation.makeRest(selection);
             keys.render();
@@ -283,25 +293,31 @@ class TimeSignatureTest {
         }
 		
 		var stretchTest = () => {
-            var tickmap = measure.tickmap();
+			var selection = SmoSelection.noteSelection(score,0,0,0,0);
+			SmoOperation.doubleDuration(selection);
+			var selection = SmoSelection.noteSelection(score,0,0,0,0);
+			SmoOperation.dotDuration(selection);
+            /* var tickmap = measure.tickmap();
         var actor = new SmoStretchNoteActor({
 				 startIndex: 0,
                 tickmap: tickmap,
 				newTicks:6144
 			});
-            SmoTickTransformer.applyTransform(measure,actor);
+            SmoTickTransformer.applyTransform(measure,actor);   */
             layout.render();
             return timeTest();
 		}
 		
 		var contractTest = () => {
-            var tickmap = measure.tickmap();
+			var selection = SmoSelection.noteSelection(score,0,0,0,0);
+			SmoOperation.halveDuration(selection);
+            /* var tickmap = measure.tickmap();
             var actor = new SmoContractNoteActor({
 				 startIndex: 0,
                 tickmap: tickmap,
 				newTicks:6144/3
 			});
-            SmoTickTransformer.applyTransform(measure,actor);
+            SmoTickTransformer.applyTransform(measure,actor);  */
             layout.render();
             return timeTest();
 		}
@@ -1393,9 +1409,10 @@ class VoiceTest {
         }
 		var accidentalTest = () => {
 			var target = SmoSelection.pitchSelection(score,0,0,0,1,[0]);
-			if (target) {
+			SmoOperation.transpose(target,-1);
+			/* if (target) {
 				target.note.transpose([0],-1);
-			}
+			}  */
             layout.render();
             return timeTest();
         }

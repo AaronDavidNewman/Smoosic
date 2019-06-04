@@ -5,6 +5,34 @@ h1 {
 	text-align:center;
 }
 
+.testTitle {
+	height: 20px;
+	font-size:1.2em;
+}
+
+.controls {
+	position:fixed;
+	right:120px;
+	top:80px;
+	background:transparent;
+}
+
+button.help-button {
+	background:transparent;
+	/* width:50px; */
+	/* height:40px; */
+	padding:5px;
+	font-size: 1.2em;
+	border: 0;
+	/* border: black solid 1px; */
+}
+
+button.help-button:hover,button.help-button:focus {
+	border:2px blue solid;
+	border-radius:3px;
+	opacity:0.7;
+}
+
 .menuOption {
 	width:128px;
 	height:32px;
@@ -69,6 +97,14 @@ h1 {
 	display:none;
 }
 
+.separator {
+	width:15px;
+	/* text-align: center; */
+	display: inline-block;
+	font-weight: bold;
+	text-justify:center;
+}
+
 body.modal .overlay,body.showAttributeDialog .overlay,body.showHelpDialog .overlay {
 	display:block;
 	position:absolute;
@@ -82,6 +118,18 @@ body.modal .overlay,body.showAttributeDialog .overlay,body.showHelpDialog .overl
 	display:none;
 }
 
+button.icon-cross.close {
+	color:red;
+	font-weight:bold;
+	position:absolute;
+	font-size: 1.2em;
+	top:0;
+	right: 0;
+}
+
+button.icon-cross.close:focus,button.icon-cross.close:hover {
+	border:2px solid blue;
+}
 
 body.showHelpDialog .helpDialog {
 	display:block;
@@ -97,6 +145,14 @@ body.showHelpDialog .helpDialog {
 	border-radius: 5px;
 }
 
+.helpLine {
+	margin-bottom:15px;
+}
+
+.helpLine .help-title {
+	/* text-align:center; */
+	font-weight: bold;
+}
 .helpKey {
 	border:1px solid #222;
 	border-radius:5px;
@@ -108,13 +164,34 @@ body.showHelpDialog .helpDialog {
 	margin-right: 5px;
 }
 
+.help-left {
+	width:45%;
+	float:left;
+}
+
+.help-right {
+	width:45%;
+	float:right;
+}
+
 .keyBlock {
 	display: block;
 	margin-top: 5px;
 }
 
+.no-border {
+	border:0;
+}
+
+
+.helpKey.help-ellipsis {
+	margin-left: -5px;
+	border:0;
+	width: 5px;	
+}
+
 .keyContainer {
-	width:200px;
+	width: 270px;
 	display:inline-block;
 }
 
