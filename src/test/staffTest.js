@@ -44,27 +44,31 @@ class StaffTest {
 		
         var changePitch = () => {
             var target = SmoSelection.pitchSelection(layout.score,0,2, 0, 1,[0]);
-            if (target) {
+			SmoOperation.setPitch(target,{
+                        letter: 'e',
+                        octave: 4,
+                        accidental: 'b'
+                    });
+            /* if (target) {
                 target.note.pitches = [{
                         letter: 'e',
                         octave: 4,
                         accidental: 'b'
                     }
                 ];
-            }
+            }   */
             keys.render();
             return timeTest();
         }
         var changePitch2 = () => {
             var target = SmoSelection.pitchSelection(score,0,1, 0, 1, [0]);
-            if (target) {
-                target.note.pitches = [{
-                        letter: 'f',
-                        octave: 4,
-                        accidental: '#'
-                    }
-                ]
-            }
+			SmoOperation.setPitch(target,{
+					letter: 'f',
+					octave: 4,
+					accidental: '#'
+				}
+			);
+            
 			var selection = SmoSelection.noteSelection(score,0,1,0,2);
 			SmoOperation.makeRest(selection);
             keys.render();
