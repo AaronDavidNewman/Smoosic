@@ -69,32 +69,27 @@ class TimeSignatureTest {
 		}
 		
         var makeDupletTest = () => {
-            var tickmap = measure.tickmap();
+			var selection = SmoSelection.noteSelection(score,0,0,0,0);
+			SmoOperation.dotDuration(selection);
+			selection = SmoSelection.noteSelection(score,0,0,0,1);
+			SmoOperation.doubleDuration(selection);
+			selection = SmoSelection.noteSelection(score,0,0,0,1);
+			SmoOperation.dotDuration(selection);
+			
+            /* var tickmap = measure.tickmap();
             var actor = new SmoMakeTupletActor({
                     index: 0,
                     totalTicks: 6144,
                     numNotes: 2,
                     measure: measure
                 });
-            SmoTickTransformer.applyTransform(measure,actor);
+            SmoTickTransformer.applyTransform(measure,actor);  */
             layout.render();
             return timeTest();
         }
 		
-		var unmakeTupletTest = () => {
-            // maybe just need changeIndex?
-            var actor = new SmoUnmakeTupletActor({
-                    startIndex:0,
-				    endIndex:1,
-                    measure: measure
-                });
-            SmoTickTransformer.applyTransform(measure,actor);
-            layout.render();
-            return timeTest();
-        }
-
 		
-        return drawDefaults().then(stretchTest).then(contractTest).then(makeDupletTest).then(unmakeTupletTest).then(signalComplete);
+        return drawDefaults().then(stretchTest).then(contractTest).then(makeDupletTest).then(signalComplete);
 		
     }
 }
