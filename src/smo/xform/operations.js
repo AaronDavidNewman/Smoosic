@@ -1,6 +1,10 @@
 
 // An operation works on a selection or set of selections to edit the music
 class SmoOperation {
+	
+	static addKeySignature(score,selection,keySignature) {
+		score.addKeySignature(selection.selector.measure,keySignature);
+	}
 
     // ## doubleDuration
     // ## Description

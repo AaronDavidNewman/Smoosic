@@ -75,20 +75,25 @@ class StaffTest {
             return timeTest();
         }
 		var keySigTest= () => {
-			score.addKeySignature(1,'A');
+			var selection = SmoSelection.measureSelection(score,0,1);
+			SmoOperation.addKeySignature(score,selection,'A');
+			// score.addKeySignature(1,'A');
 			var selection = SmoSelection.noteSelection(score,0,1,0,2);
 			SmoOperation.makeNote(selection);
 			keys.render();
 			return timeTest();
 		}
 		var keySigTest2= () => {
-			score.addKeySignature(2,'Bb');
+			var selection = SmoSelection.measureSelection(score,0,2);
+			SmoOperation.addKeySignature(score,selection,'Bb');
 			keys.render();
 			return timeTest();
 		}
 		var keySigTest3= () => {
-			score.addKeySignature(1,'C#');
-			score.addKeySignature(2,'Cb');
+			var selection = SmoSelection.measureSelection(score,0,1);
+			SmoOperation.addKeySignature(score,selection,'C#');
+			selection = SmoSelection.measureSelection(score,0,2);
+			SmoOperation.addKeySignature(score,selection,'Cb');
 			keys.render();			
 			return timeTest();
 		}

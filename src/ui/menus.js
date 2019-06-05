@@ -271,8 +271,12 @@ class suiKeySignatureMenu extends suiMenuBase {
     selection(ev) {
         var keySig = $(ev.currentTarget).attr('data-value');
         var self = this;
-        this.tracker.iterateMeasures((measure) => {
-            this.score.addKeySignature(measure.measureNumber.measureIndex, keySig);
+		var changed = [];
+        this.tracker.selections.forEach((sel) => {
+			if (changed.indexOf(sel.selector.measure) === -1) {
+				changed.push(sel.selector.measure);
+				SmoOperation.addKeySignature(this.score,sel,keySig);
+			}
         });
         this.complete();
     }
