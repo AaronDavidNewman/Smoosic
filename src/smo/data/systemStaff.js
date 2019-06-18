@@ -17,10 +17,17 @@ class SmoSystemStaff {
                 type: 'SmoSystemStaff'
             };
         } else {
-            // inherit attrs id for deserialized 
+            // inherit attrs id for deserialized
 
         }
     }
+	
+	static get defaultParameters() {
+		return [
+		'staffX','staffY','adjY','staffWidth','staffHeight','startIndex',
+            'renumberingMap','keySignatureMap','instrumentInfo'];
+	}
+	
     static get defaults() {
         return {
             staffX: 10,
@@ -40,20 +47,45 @@ class SmoSystemStaff {
             modifiers: []
         };
     }
+	
+	serialize() {
+		var params={};
+		smoMusic.filteredMerge(SmoSystemStaff.defaultParameters,this,params);
+		params.modifiers=[];
+		params.measures=[];
+		
+		
+		this.measures.forEach((measure) => {
+			params.measures.push(measure.serialize());
+		});
+		
+		this.modifiers.forEach((modifier) => {
+			params.modifiers.push(modifier.serialize());
+		});
+		
+		return params;
+	}
 
-    static deserialize(jsonString) {
-        var jsonObj = JSON.parse(jsonString);
+    static deserialize(jsonObj) {
         var params = {};
         smoMusic.filteredMerge(
             ['staffX', 'staffY', 'staffWidth', 'startIndex', 'renumberingMap', 'renumberIndex', 'instrumentInfo'],
             jsonObj, params);
         params.measures = [];
         jsonObj.measures.forEach(function (measureObj) {
-            var measure = SmoMeasure.deserialize(JSON.stringify(measureObj));
+            var measure = SmoMeasure.deserialize(measureObj);
             params.measures.push(measure);
         });
 
-        return new SmoSystemStaff(params);
+        var rv = new SmoSystemStaff(params);
+
+        if (jsonObj.modifiers) {
+            jsonObj.modifiers.forEach((params) => {
+                var mod = StaffModifierBase.deserialize(params);
+                rv.modifiers.push(mod);
+            });
+        }
+		return rv;
     }
 
     addStaffModifier(modifier) {
@@ -63,7 +95,7 @@ class SmoSystemStaff {
 
     removeStaffModifier(modifier) {
         var mods = [];
-        this.modifiers.forEach((mod)=> {
+        this.modifiers.forEach((mod) => {
             if (mod.id != modifier.id) {
                 mods.push(mod);
             }
@@ -177,10 +209,10 @@ class SmoSystemStaff {
         var measure = SmoMeasure.getDefaultMeasure(params);
         this.addMeasure(index, measure);
     }
-	
-	// ## addMeasure
-	// ## Description:
-	// Add the measure at the specified index, splicing the array as required.
+
+    // ## addMeasure
+    // ## Description:
+    // Add the measure at the specified index, splicing the array as required.
     addMeasure(index, measure) {
 
         if (index === 0 && this.measures.length) {

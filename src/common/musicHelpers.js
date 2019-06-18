@@ -93,6 +93,16 @@ class smoMusic {
             'D': 2
         };
     }
+	
+	// ## closestVexDuration
+	// ## Description:
+	// return the closest vex duration >= to the actual number of ticks. Used in beaming
+	// triplets which aren't exactly 
+	static closestVexDuration(ticks) {
+		var durations = Object.keys(smoMusic.ticksToDuration);
+		var ix = Object.keys(smoMusic.ticksToDuration).findIndex((x) =>{return x>=ticks});
+		return smoMusic.ticksToDuration[durations[ix]];
+	}
 
     // ### getKeySignatureKey
     // ### Description:

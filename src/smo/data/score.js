@@ -26,6 +26,34 @@ class SmoScore {
         };
     }
 	
+	static get defaultAttributes() {
+		return ['staffX', 'staffY', 'staffWidth', 'startIndex', 'interGap', 'renumberingMap', 'renumberIndex'];
+	}
+	serialize() {
+		var params={};
+		smoMusic.filteredMerge(SmoScore.defaultAttributes,this,params);
+		var obj={score:params,staves:[]};
+		this.staves.forEach((staff) => {
+			obj.staves.push(staff.serialize());
+		});
+		return obj;
+	}
+	static deserialize(jsonString) {
+        var jsonObj = JSON.parse(jsonString);
+        var params = {};
+		var staves=[];
+        smoMusic.filteredMerge(
+            SmoScore.defaultAttributes,
+            jsonObj, params);
+        jsonObj.staves.forEach((staffObj) => {
+            var staff = SmoSystemStaff.deserialize(staffObj);
+            staves.push(staff);
+        });
+		params.staves=staves;
+
+        return new SmoScore(params);
+    }
+	
 	static getDefaultScore(scoreDefaults,measureDefaults) {
 		scoreDefaults = (scoreDefaults != null ? scoreDefaults : SmoScore.defaults);
 		measureDefaults = (measureDefaults != null ? measureDefaults : SmoMeasure.defaults);
@@ -115,6 +143,11 @@ class SmoScore {
 		}
 		this._numberStaves();
 	}
+	
+	replaceMeasure(selector,measure) {
+		var staff=this.staves[selector.staff];
+		staff.measures[selector.measure]=measure;
+	}
 	addKeySignature(measureIndex,key) {
 		this.staves.forEach((staff) => {staff.addKeySignature(measureIndex,key);});
 	}
@@ -160,22 +193,7 @@ class SmoScore {
 		return this.activeStaff;
 	}
 	
-    static deserialize(jsonString) {
-        var jsonObj = JSON.parse(jsonString);
-        var params = {};
-		var staves=[];
-        smoMusic.filteredMerge(
-            ['staffX', 'staffY', 'staffWidth', 'startIndex', 'interGap', 'renumberingMap', 'renumberIndex'],
-            jsonObj, params);
-        jsonObj.staves.forEach(function (measureObj) {
-            var staff = SmoSystemStaff.deserialize(JSON.stringify(measureObj));
-            staves.push(staff);
-        });
-		params.staves=staves;
-
-        return new SmoScore(params);
-    }
-	
+  
 	setActiveStaff(index) {
 		this.activeStaff=index<=this.staves.length ? index : this.activeStaff;
 	}

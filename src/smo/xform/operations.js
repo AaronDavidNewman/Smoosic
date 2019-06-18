@@ -5,6 +5,10 @@ class SmoOperation {
 	static addKeySignature(score,selection,keySignature) {
 		score.addKeySignature(selection.selector.measure,keySignature);
 	}
+	
+	static operateMeasureWithUndo(opName,selection,p1,p2) {
+		
+	}
 
     // ## doubleDuration
     // ## Description

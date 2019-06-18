@@ -66,11 +66,11 @@ class smoBeamModifier extends BeamModifierBase {
 
         // beam tuplets
         if (note.isTuplet()) {
-            //todo: when does stack have more than 1?
             var tuplet = this.measure.getTupletForNote(note);
             var ult = tuplet.notes[tuplet.notes.length - 1];
+
             // is this beamable
-            if (smoMusic.durationToTicks(note.duration) < 4096) {
+            if (note.tickCount < 4096) {
                 this.beamGroup = true;
                 this.currentGroup.push(note);
             }

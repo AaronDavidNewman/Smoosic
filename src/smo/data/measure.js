@@ -50,15 +50,38 @@ class SmoMeasure {
     get stemDirection() {
         return this.activeVoice % 2 ? -1 : 1;
     }
-		
+	
 	static get defaultAttributes() {
 		return [
             'timeSignature', 'keySignature', 'staffX', 'staffY', 'customModifiers',
              'measureNumber', 'staffWidth', 'modifierOptions',
             'activeVoice'];
 	}
-    static deserialize(jsonString) {
-        var jsonObj = JSON.parse(jsonString);
+	serialize() {
+		var params = {};
+		smoMusic.filteredMerge(SmoMeasure.defaultAttributes,this,params);
+		params.tuplets = [];
+		params.beamGroups=[];
+		params.voices=[];
+		
+		this.tuplets.forEach((tuplet) => {
+			params.tuplets.push(JSON.parse(JSON.stringify(tuplet)));
+		});
+		
+		this.beamGroups.forEach((beam) =>  {
+			params.beamGroups.push(JSON.parse(JSON.stringify(beam)));
+		});
+		
+		this.voices.forEach((voice) => {
+			var obj={notes:[]};
+			voice.notes.forEach((note) => {
+				obj.notes.push(note.serialize());
+			});
+			params.voices.push(obj);
+		});
+		return params;
+	}
+    static deserialize(jsonObj) {
         var voices = [];
         for (var j = 0; j < jsonObj.voices.length; ++j) {
             var voice = jsonObj.voices[j];
@@ -68,7 +91,7 @@ class SmoMeasure {
             });
             for (var i = 0; i < voice.notes.length; ++i) {
                 var noteParams = voice.notes[i];
-                var smoNote = new SmoNote(noteParams);
+                var smoNote = SmoNote.deserialize(noteParams);
                 notes.push(smoNote);
             }
         }
@@ -164,9 +187,9 @@ class SmoMeasure {
 		params.timeSignature = params.timeSignature ? params.timeSignature : '4/4';
 		params.clef = params.clef ? params.clef : 'treble';
         var meterNumbers = params.timeSignature.split('/').map(number => parseInt(number, 10));
-        var duration = '4';
+        var ticks = {numerator:4096,denominator:1,remainder:0};
         if (meterNumbers[0] % 3 == 0) {
-            duration = '8';
+            ticks = {numerator:2048,denominator:1,remainder:0};
         }
         var pitches = SmoMeasure.defaultKeyForClef[params.clef];
 		var rv = [];
@@ -175,7 +198,7 @@ class SmoMeasure {
             var note = new SmoNote({
                     clef: params.clef,
                     pitches: [pitches],
-                    duration: duration,
+                    ticks: ticks,
 					timeSignature:params.timeSignature
                 });
             rv.push(note);

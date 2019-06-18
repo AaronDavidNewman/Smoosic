@@ -69,12 +69,13 @@ class VxMeasure {
     // ## Description:
     // convert a smoNote into a vxNote so it can be rasterized
     _createVexNote(smoNote, tickIndex) {
+		var duration = smoMusic.closestVexDuration(smoNote.tickCount);
         var noteParams = {
             clef: smoNote.clef,
             keys: smoNote.toVexKeys(),
-            duration: smoNote.duration + smoNote.noteType
-			   + (smoNote['isRest'] ? 'r' : '')
+            duration: duration + smoNote.noteType
         };
+		
         this.applyStemDirection(noteParams);
         var vexNote = new VF.StaveNote(noteParams);
         smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?

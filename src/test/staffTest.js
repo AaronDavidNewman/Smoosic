@@ -7,7 +7,7 @@ class StaffTest {
         score.addDefaultMeasureWithNotes(0,{});
         score.addDefaultMeasureWithNotes(1,{});
         score.addDefaultMeasureWithNotes(2,{});
-		var serial = JSON.stringify(score,null,'');
+		var serial = JSON.stringify(score.serialize(),null,'');
 		console.log(serial);
         var keys = utController.createUi(document.getElementById("boo"),score);
 		var score = keys.score;
@@ -98,7 +98,7 @@ class StaffTest {
 			return timeTest();
 		}
         var serializeTest = () => {
-			var scoreJson=JSON.stringify(score);
+			var scoreJson=JSON.stringify(score.serialize());
             // score = SmoScore.deserialize(JSON.stringify(serializeTestJson.systemStaffJson));
 			score = SmoScore.deserialize(scoreJson);
             layout.unrender();

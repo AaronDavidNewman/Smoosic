@@ -2,11 +2,25 @@
 // # This file contains modifiers that might take up multiple measures, and are thus associated
 // with the staff.
 
+class StaffModifierBase {
+	constructor(ctor) {
+		this.ctor=ctor;
+	}
+	static deserialize(jsonObj) {
+		var params = JSON.parse(json)
+		var ctor = eval(dbType);
+		var rv= new ctor(jsonObj);
+		rv.attrs.id=jsonObj.attrs.id;
+		rv.attrs.type=jsonObj.attrs.type;
+
+	}
+}
 // ## SmoStaffHairpin
 // ## Descpription:
 // crescendo/decrescendo
-class SmoStaffHairpin {
+class SmoStaffHairpin extends StaffModifierBase {
     constructor(params) {
+		this.super('SmoStaffHairpin');
         Vex.Merge(this, SmoStaffHairpin.defaults);
         smoMusic.filteredMerge(['position', 'xOffset', 'yOffset', 'hairpinType', 'height'], params, this);
         this.startSelector = params.startSelector;
@@ -21,6 +35,11 @@ class SmoStaffHairpin {
             console.log('inherit attrs');
         }
     }
+	get serialize() {
+		var params={};
+		smoMusic.filteredMerge(['position', 'xOffset', 'yOffset', 'hairpinType', 'height'], this, params);
+		return params;
+	}
     get id() {
         return this.attrs.id;
     }
@@ -100,6 +119,13 @@ class SmoSlur {
         return ['spacing', 'xOffset', 'yOffset', 'position', 'position_end', 'invert',
             'cp1x', 'cp1y', 'cp2x', 'cp2y'];
     }
+	
+	get serialize() {
+		var params={};
+		smoMusic.filteredMerge(SmoSlur.parameterArray, this, params);
+		return params;
+	}
+
     backupOriginal() {
         if (!this['original']) {
             this.original = {};
@@ -136,6 +162,7 @@ class SmoSlur {
     }
 
     constructor(params) {
+		this.super('SmoSlur');
         Vex.Merge(this, SmoSlur.defaults);
         smoMusic.filteredMerge(SmoSlur.parameterArray, params, this);
         this.startSelector = params.startSelector;
