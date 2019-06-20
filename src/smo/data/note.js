@@ -282,10 +282,7 @@ class SmoTuplet {
             if (i === combineIndex) {
                 nmap.push(this.durationMap[i] * multiplier);
                 nmap.push(this.durationMap[i] * multiplier);
-                note.ticks.numerator *= multiplier;
-
-                var normalizedTicks = VF.durationToTicks(note.duration) / 2;
-                note.duration = smoMusic.ticksToDuration[normalizedTicks];
+                note.ticks.numerator *= multiplier;               
 
                 var onote = SmoNote.clone(note);
                 nnotes.push(note);
@@ -331,8 +328,6 @@ class SmoTuplet {
             // changed note with combined duration
             if (i == startIndex) {
                 note.ticks.numerator = note.ticks.numerator * acc;
-                var normTicks = VF.durationToTicks(note.duration) * multiplier;
-                note.duration = smoMusic.ticksToDuration[normTicks];
                 nmap.push(acc);
                 nnotes.push(note);
             }

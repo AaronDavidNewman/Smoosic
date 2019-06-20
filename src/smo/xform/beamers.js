@@ -69,8 +69,10 @@ class smoBeamModifier extends BeamModifierBase {
             var tuplet = this.measure.getTupletForNote(note);
             var ult = tuplet.notes[tuplet.notes.length - 1];
 
-            // is this beamable
-            if (note.tickCount < 4096) {
+            // is this beamable length-wise
+			var vexDuration=smoMusic.closestVexDuration(note.tickCount);
+			var stemTicks = VF.durationToTicks.durations[vexDuration];
+            if (stemTicks < 4096) {
                 this.beamGroup = true;
                 this.currentGroup.push(note);
             }

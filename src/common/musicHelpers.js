@@ -97,9 +97,18 @@ class smoMusic {
 	// ## closestVexDuration
 	// ## Description:
 	// return the closest vex duration >= to the actual number of ticks. Used in beaming
-	// triplets which aren't exactly 
+	// triplets which have fewer ticks then their stem would normally indicate.
 	static closestVexDuration(ticks) {
-		var durations = Object.keys(smoMusic.ticksToDuration);
+		 var stemTicks = VF.RESOLUTION;
+
+        // The stem value is the type on the non-tuplet note, e.g. 1/8 note
+        // for a triplet.
+        while (ticks <= stemTicks) {
+            stemTicks = stemTicks / 2;
+        }
+
+        stemTicks = stemTicks * 2;
+		return smoMusic.ticksToDuration[stemTicks];
 		var ix = Object.keys(smoMusic.ticksToDuration).findIndex((x) =>{return x>=ticks});
 		return smoMusic.ticksToDuration[durations[ix]];
 	}
@@ -166,6 +175,7 @@ class smoMusic {
         _ticksToDurations();
         return ticksToDuration;
     };
+	
 
     // ## durationToTicks
     // Uses VF.durationToTicks, but handles dots.
