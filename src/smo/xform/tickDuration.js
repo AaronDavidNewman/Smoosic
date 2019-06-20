@@ -222,8 +222,7 @@ class SmoUnmakeTupletActor extends TickTransformBase {
         if (iterator.index == this.startIndex) {
             var tuplet = this.measure.getTupletForNote(note);
             var ticks = tuplet.totalTicks;
-            var vexDuration = smoMusic.ticksToDuration[ticks];
-            var nn = SmoNote.cloneWithDuration(note, vexDuration);
+            var nn = SmoNote.cloneWithDuration(note, {numerator:ticks,denominator:1,remainder:0});
             nn.tuplet = {};
             this.measure.removeTupletForNote(note);
             return [nn];
@@ -296,7 +295,7 @@ class SmoMakeTupletActor extends TickTransformBase {
             return null;
         }
         for (var i = 0; i < this.numNotes; ++i) {
-            note = SmoNote.cloneWithDuration(note, this.vexDuration);
+            note = SmoNote.cloneWithDuration(note, {numerator:this.stemTicks,denominator:1,remainder:0});
 			
 			// Don't clone modifiers, except for first one.
 			note.textModifiers = i===0 ? note.textModifiers : [];
@@ -377,7 +376,7 @@ class SmoStretchNoteActor extends TickTransformBase {
                 return [];
             }
             var vexDuration = smoMusic.ticksToDuration[ticks];
-            var note = SmoNote.cloneWithDuration(note, vexDuration);
+            var note = SmoNote.cloneWithDuration(note, {numerator:ticks,denominator:1,remainder:0});
             return [note];
         }
         return null;

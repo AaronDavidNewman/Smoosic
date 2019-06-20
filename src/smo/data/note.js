@@ -14,10 +14,10 @@ class SmoNote {
     // see defaults for params format.
     constructor(params) {
         Vex.Merge(this, SmoNote.defaults);
-        smoMusic.filteredMerge(SmoNote.defaultAttributes, this, params);
+        smoMusic.filteredMerge(SmoNote.parameterArray, params, this);
 
         // this.keys=JSON.parse(JSON.stringify(this.keys));
-        this.tupletInfo = {};
+
         if (!this['attrs']) {
             this.attrs = {
                 id: VF.Element.newID(),
@@ -27,8 +27,8 @@ class SmoNote {
             // inherit attrs id for deserialized
         }
     }
-    static parameterArray() {
-        return ['ticks', 'tickCount', 'pitches', 'noteType'];
+    static get parameterArray() {
+        return ['ticks', 'tickCount', 'pitches', 'noteType','tuplet'];
     }
     get id() {
         return this.attrs.id;
@@ -177,10 +177,10 @@ class SmoNote {
     // ## Description:
     // Clone the note, but use the different duration.  Changes the length
     // of the note but nothing else.
-    static cloneWithDuration(note, duration) {
+    static cloneWithDuration(note, ticks) {
         var clone = SmoNote._cloneParameters(note);
 
-        clone.duration = duration;
+        clone.ticks = ticks;
 
         // should tuplet info be cloned?
         var rv = new SmoNote(clone);
@@ -192,15 +192,13 @@ class SmoNote {
         };
         return rv;
     }
-    static get defaultAttributes() {
-        return ['noteType', 'ticks', 'pitches'];
-    }
+
 	_serializeModifiers() {
         return JSON.parse(JSON.stringify(this.textModifiers));
     }
 	serialize()  {
 		var params={};
-		smoMusic.filteredMerge(SmoNote.defaultAttributes,this,params);
+		smoMusic.filteredMerge(SmoNote.parameterArray,this,params);
 		params.noteModifiers=this._serializeModifiers();
 		return params;
 	}
