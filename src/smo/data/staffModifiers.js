@@ -20,7 +20,7 @@ class StaffModifierBase {
 // crescendo/decrescendo
 class SmoStaffHairpin extends StaffModifierBase {
     constructor(params) {
-		this.super('SmoStaffHairpin');
+		super('SmoStaffHairpin');
         Vex.Merge(this, SmoStaffHairpin.defaults);
         smoMusic.filteredMerge(['position', 'xOffset', 'yOffset', 'hairpinType', 'height'], params, this);
         this.startSelector = params.startSelector;
@@ -91,7 +91,7 @@ class SmoStaffHairpin extends StaffModifierBase {
     }
 }
 
-class SmoSlur {
+class SmoSlur extends StaffModifierBase{
     static get defaults() {
         return {
             spacing: 2,
@@ -162,7 +162,7 @@ class SmoSlur {
     }
 
     constructor(params) {
-		this.super('SmoSlur');
+		super('SmoSlur');
         Vex.Merge(this, SmoSlur.defaults);
         smoMusic.filteredMerge(SmoSlur.parameterArray, params, this);
         this.startSelector = params.startSelector;

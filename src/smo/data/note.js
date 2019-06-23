@@ -28,7 +28,7 @@ class SmoNote {
         }
     }
     static get parameterArray() {
-        return ['ticks', 'tickCount', 'pitches', 'noteType','tuplet'];
+        return ['ticks', 'pitches', 'noteType','tuplet','attrs'];
     }
     get id() {
         return this.attrs.id;
@@ -222,6 +222,7 @@ class SmoNote {
     }
     static deserialize(jsonObj) {
 		var note = new SmoNote(jsonObj);
+		note.attrs.id=jsonObj.attrs.id;
 		jsonObj.noteModifiers.forEach((mod) => {
 			note.textModifiers.push(SmoNoteModifierBase.deserialize(mod));
 		});

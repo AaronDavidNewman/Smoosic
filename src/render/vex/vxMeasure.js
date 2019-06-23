@@ -69,7 +69,12 @@ class VxMeasure {
     // ## Description:
     // convert a smoNote into a vxNote so it can be rasterized
     _createVexNote(smoNote, tickIndex) {
-		var duration = smoMusic.closestVexDuration(smoNote.tickCount);
+		// If this is a tuplet, we only get the duration so the appropriate stem
+		// can be rendered.  Vex calculates the actual ticks later when the tuplet is made
+		var duration = 
+		   smoNote.isTuplet() ? 
+		     smoMusic.closestVexDuration(smoNote.tickCount) : 
+			 smoMusic.ticksToDuration[smoNote.tickCount];
         var noteParams = {
             clef: smoNote.clef,
             keys: smoNote.toVexKeys(),

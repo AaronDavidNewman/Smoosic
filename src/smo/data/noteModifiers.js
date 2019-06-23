@@ -39,7 +39,7 @@ class SmoDynamicText extends SmoNoteModifierBase {
     }
 	
 	constructor(parameters) {
-		this.super('SmoDynamicText');
+		super('SmoDynamicText');
 		Vex.Merge(this, SmoDynamicText.defaults);
         smoMusic.filteredMerge(SmoDynamicText.attrArray, parameters, this);
         this.selector = parameters.selector;

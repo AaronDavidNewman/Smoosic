@@ -42,6 +42,8 @@ class TupletTest {
 			var selection=SmoSelection.noteSelection(score,0,0,0,1);
 			SmoOperation.makeTuplet(selection,3);
             layout.render();
+			var measureS=SmoSelection.measureSelection(score,0,0);
+			console.log(JSON.stringify(score.serialize(),null,' '));
             return timeTest();
         }
 
