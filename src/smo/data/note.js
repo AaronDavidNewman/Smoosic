@@ -326,7 +326,7 @@ class SmoTuplet {
             }
             // changed note with combined duration
             if (i == startIndex) {
-                note.ticks.numerator = note.ticks.numerator * acc;
+                note.ticks.numerator = note.ticks.numerator * multiplier;
                 nmap.push(acc);
                 nnotes.push(note);
             }
