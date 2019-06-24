@@ -51,6 +51,7 @@ class UndoBuffer {
         } else {
             this.index -= 1;
         }
+		return buf;
     }
 
     undo(score) {
@@ -58,7 +59,8 @@ class UndoBuffer {
         if (!buf)
             return score;
         if (buf.type === 'measure') {
-            score.replaceMeasure(buf.selector, buf.measure);
+			var measure = SmoMeasure.deserialize(buf.json);
+            score.replaceMeasure(buf.selector, measure);
         } else if (buf.type === 'score') {
             score = SmoScore.deserialize(buf.json);
         } else {

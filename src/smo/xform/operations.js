@@ -130,6 +130,7 @@ class SmoOperation {
     // Add a dot to a note, if possible, and make the note ahead of it shorter
     // to compensate.
     static dotDuration(selection) {
+		
         var note = selection.note;
         var measure = selection.measure;
         var nticks = smoMusic.getNextDottedLevel(note.tickCount);

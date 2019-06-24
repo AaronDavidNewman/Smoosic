@@ -71,15 +71,15 @@ class suiSimpleLayout {
         // layout a second time to adjust for issues.
         this.layout(true);
     }
-	
-	renderNoteModifierPreview(modifier) {
-		var selection = SmoSelection.noteSelection(this.score,modifier.selector.staff,modifier.selector.measure,modifier.selector.voice,modifier.selector.tick);
-		if (!selection.measure.renderedBox) {
+
+    renderNoteModifierPreview(modifier) {
+        var selection = SmoSelection.noteSelection(this.score, modifier.selector.staff, modifier.selector.measure, modifier.selector.voice, modifier.selector.tick);
+        if (!selection.measure.renderedBox) {
             return;
         }
-		var system = new VxSystem(this.context, selection.measure.staffY, selection.measure.lineIndex);
-		system.renderMeasure(selection.selector.staff, selection.measure);
-	}
+        var system = new VxSystem(this.context, selection.measure.staffY, selection.measure.lineIndex);
+        system.renderMeasure(selection.selector.staff, selection.measure);
+    }
 
     // re-render a modifier for preview during modifier dialog
     renderStaffModifierPreview(modifier) {
@@ -105,8 +105,13 @@ class suiSimpleLayout {
         }
         this._renderModifiers(startSelection.staff, system);
     }
-	
-    unrender() {}
+
+    unrender(measure) {
+        if (!measure)
+            return;
+
+        $(this.renderer.getContext().svg).find('g.' + measure.attrs.id).remove();
+    }
 
     get pageMarginWidth() {
         return this.pageWidth - this.leftMargin * 2;
@@ -246,18 +251,18 @@ class suiSimpleLayout {
 
                 measure.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
                 measure.forceTimeSignature = (systemIndex === 0 || measure.timeSignature !== timeSigLast);
-				if (measure.keySignature !== keySigLast) {
-					measure.canceledKeySignature=keySigLast;
-					measure.forceKeySignature = true;
-				} else {
-					measure.forceKeySignature = false;
-				}
+                if (measure.keySignature !== keySigLast) {
+                    measure.canceledKeySignature = keySigLast;
+                    measure.forceKeySignature = true;
+                } else {
+                    measure.forceKeySignature = false;
+                }
 
                 // guess height of staff the first time
                 measure.measureNumber.systemIndex = systemIndex;
                 // WIP
                 if (drawAll || measure.changed) {
-					measure.lineIndex = lineIndex;
+                    measure.lineIndex = lineIndex;
                     smoBeamerFactory.applyBeams(measure);
                     system.renderMeasure(j, measure);
                 }
