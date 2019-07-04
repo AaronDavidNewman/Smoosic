@@ -8,6 +8,7 @@ class utController {
 		Vex.Merge(this, utController.defaults);
 		Vex.Merge(this, params);
 		this.bindEvents();
+		this.undoBuffer = new UndoBuffer();
 	}
 
 	static createUi(renderElement, score) {

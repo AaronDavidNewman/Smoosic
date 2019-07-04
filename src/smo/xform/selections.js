@@ -21,6 +21,18 @@ class SmoSelector {
 	static sameStaff(sel1,sel2) {
 		return sel1.staff === sel2.staff;
 	}
+	
+	// ## applyOffset
+	// ### Description:
+	// offset 'selector' the difference between src and target, return the result
+	static applyOffset(src,target,selector) {
+		var rv = JSON.parse(JSON.stringify(selector));
+		rv.staff += target.staff-src.staff;
+		rv.measure += target.measure-src.measure;
+		rv.voice+= target.voice-src.voice;
+		rv.note += target.staff-src.staff;
+		return rv;
+	}
 
 	// return true if testSel is contained in the selStart to selEnd range.
     static contains(testSel, selStart, selEnd) {

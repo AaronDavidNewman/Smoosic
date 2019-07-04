@@ -7,10 +7,11 @@ class StaffTest {
         score.addDefaultMeasureWithNotes(0,{});
         score.addDefaultMeasureWithNotes(1,{});
         score.addDefaultMeasureWithNotes(2,{});
-		var undo = new UndoBuffer();
+		
 		var serial = JSON.stringify(score.serialize(),null,'');
 		console.log(serial);
         var keys = utController.createUi(document.getElementById("boo"),score);
+		var undo = keys.undoBuffer;
 		var score = keys.score;
 		var layout = keys.layout;		
 		
@@ -63,13 +64,12 @@ class StaffTest {
             return timeTest();
         }
 		var undoTest = () => {
-			layout.unrender(SmoSelection.measureSelection(layout.score,0,2).measure);
-			undo.undo(layout.score);
-			keys.render();
+			layout.undo(undo);
             return timeTest();
 		}
         var changePitch2 = () => {
             var target = SmoSelection.pitchSelection(score,0,1, 0, 1, [0]);
+			undo.addBuffer('undo pitch change', 'measure', target.selector, target.measure.serialize());
 			SmoOperation.setPitch(target,{
 					letter: 'f',
 					octave: 4,
@@ -109,7 +109,7 @@ class StaffTest {
 			var scoreJson=JSON.stringify(score.serialize());
             // score = SmoScore.deserialize(JSON.stringify(serializeTestJson.systemStaffJson));
 			score = SmoScore.deserialize(scoreJson);
-            layout.unrender();
+            layout.unrenderAll();
 			keys.detach();
             keys = utController.createUi(document.getElementById("boo"),score);			
             keys.render();

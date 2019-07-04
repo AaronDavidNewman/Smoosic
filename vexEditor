@@ -21,6 +21,7 @@
                 <File name="src\smo\xform\operations.js" />
                 <File name="src\smo\xform\beamers.js" />
                 <File name="src\smo\xform\undo.js" />
+                <File name="src\smo\xform\copypaste.js" />
             </Folder>
         </Folder>
         <Folder name="ui">

@@ -19,6 +19,7 @@ class suiTracker {
         this.modifierTabs = {};
         this.modifierIndex = -1;
         this.suggestion = {};
+		this.pasteBuffer = new PasteBuffer();
     }
 
     // ### renderElement
@@ -83,7 +84,7 @@ class suiTracker {
 		this.modifierTabs=[];
 		this.modifierIndex=-1;
 		this.eraseRect('staffModifier');
-		
+		this.pasteBuffer.clearSelections();
 	}
 	getSelectedModifier() {
 		if (this.modifierIndex >= 0) {

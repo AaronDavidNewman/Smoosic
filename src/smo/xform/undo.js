@@ -54,12 +54,21 @@ class UndoBuffer {
 		return buf;
     }
 
+	// ## Before undoing, peek at the top action in the q
+	// so it can be re-rendered
+	peek() {
+        if (this.index < 0)
+            return null;
+        return this.buffer[this.index];		
+	}
+	
     undo(score) {
         var buf = this._pop();
         if (!buf)
             return score;
         if (buf.type === 'measure') {
 			var measure = SmoMeasure.deserialize(buf.json);
+			measure.changed = true;
             score.replaceMeasure(buf.selector, measure);
         } else if (buf.type === 'score') {
             score = SmoScore.deserialize(buf.json);

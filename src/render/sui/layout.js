@@ -72,6 +72,22 @@ class suiSimpleLayout {
         this.layout(true);
     }
 
+	undo(undoBuffer) {
+		var buffer = undoBuffer.peek();
+		// Unrender the modified music because the IDs may change and normal unrender won't work
+		if (buffer) {
+			if (buffer.type == 'measure') {
+				var sel = buffer.selector;
+				this.unrenderMeasure(SmoSelection.measureSelection(this.score,sel.staff,sel.measure).measure);
+			} else if (buffer.type ==='staff'){
+				this.unrenderStaff(SmoSelection.measureSelection(this.score,sel.staff,0).staff);
+			} else {
+				this.unrenderAll();
+			}
+		    undoBuffer.undo(this.score);
+		    this.render();
+		}
+	}
     renderNoteModifierPreview(modifier) {
         var selection = SmoSelection.noteSelection(this.score, modifier.selector.staff, modifier.selector.measure, modifier.selector.voice, modifier.selector.tick);
         if (!selection.measure.renderedBox) {
@@ -106,13 +122,24 @@ class suiSimpleLayout {
         this._renderModifiers(startSelection.staff, system);
     }
 
-    unrender(measure) {
+    unrenderMeasure(measure) {
         if (!measure)
             return;
 
         $(this.renderer.getContext().svg).find('g.' + measure.attrs.id).remove();
     }
+	
+	unrenderStaff(staff) {
+		staff.measures.forEach((measure) => {
+		    this.unrenderMeasure(measure);
+		});
+	}
 
+    unrenderAll(score) {
+		this.score.staves.forEach((staff) => {
+			this.unrenderStaff(staff);
+		});
+	}
     get pageMarginWidth() {
         return this.pageWidth - this.leftMargin * 2;
     }

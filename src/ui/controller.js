@@ -11,6 +11,8 @@ class suiController {
 		Vex.Merge(this, suiController.defaults);
 		Vex.Merge(this, params);
 		this.bindEvents();
+		this.undoBuffer = new UndoBuffer();
+		this.pasteBuffer = this.tracker.pasteBuffer;
 	}
 
 	// ## createUi
