@@ -5,7 +5,7 @@
 // # Buffer format:
 // A buffer is one of 3 things:
 // A single measure,
-// A set of measures,
+// A single staff
 // the whole score.
 // In the set of measures, the serialization is split into 2 parts:
 // staffModifiers: a set of modifiers that start or end on one the measures, and 2:
@@ -20,7 +20,7 @@ class UndoBuffer {
     }
 
     static get bufferTypes() {
-        return ['measure', 'measures','score'];
+        return ['measure', 'staff','score'];
     }
 
     addBuffer(title, type, selector, json) {
@@ -64,8 +64,9 @@ class UndoBuffer {
         } else if (buf.type === 'score') {
             score = SmoScore.deserialize(buf.json);
         } else {
-			var ar=JSON.parse(buf.json);
-			
+			// TODO: test me
+			var staff  =SmoSystemStaff.deserialize(buf.json);
+			score.replaceStaff(buf.selector.staff,staff);			
 		}
         return score;
     }

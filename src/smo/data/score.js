@@ -54,6 +54,9 @@ class SmoScore {
         return new SmoScore(params);
     }
 	
+	// ## getDefaultScore
+	// ## Description:
+	// Gets a score consisting of a single measure with all the defaults.
 	static getDefaultScore(scoreDefaults,measureDefaults) {
 		scoreDefaults = (scoreDefaults != null ? scoreDefaults : SmoScore.defaults);
 		measureDefaults = (measureDefaults != null ? measureDefaults : SmoMeasure.defaults);
@@ -65,39 +68,27 @@ class SmoScore {
 		return score;
 	}
 	
+	// ## getEmptyScore
+	// ## Description:
+	// Create a score object, but don't populate it with anything.
 	static getEmptyScore(scoreDefaults) {
 		var score = new SmoScore(scoreDefaults);
 		score.addInstrument();
 		return score;
 	}
-	applyBeamers() {
-		for (var i = 0; i < this.staves.length; ++i) {
-            var stave = this.staves[i];
-			stave.applyBeamers();
-		}
-	}
-
-    _numberStaves() {
+   	
+	// ## _numberStaves
+	// recursively renumber staffs and measures.
+	_numberStaves() {
        for (var i = 0; i < this.staves.length; ++i) {
             var stave = this.staves[i];
             stave.numberMeasures();
         }
     }
 	
-	getMeasureAtSelection(selection) {
-		return this.staves[this.activeStaff].getMeasureAtSelection(selection);
-	}
-	// If we are adding a measure, find the previous measure to get constructor parameters from it.
-	_getMeasureContext(staff,measureIndex) {
-		var rv={};
-		Vex.Merge(rv,SmoMeasure.defaults);
-		
-		if (measureIndex < staff.measures.length) {
-			smoMusic.filteredMerge(SmoMeasure.defaultAttributes, rv, staff.measures[i]);
-		}
-		return rv;
-	}
-	
+	// ## addDefaultMeasure
+	// ## Description:
+	// Add a meaure to the score with the default key signature.
 	addDefaultMeasure(measureIndex,parameters) {
 		for (var i=0;i<this.staves.length;++i) {
 			var staff=this.staves[i];
@@ -148,9 +139,27 @@ class SmoScore {
 		var staff=this.staves[selector.staff];
 		staff.measures[selector.measure]=measure;
 	}
+	// TODO: Untested
+	replaceStaff(index,staff) {
+		var staves=[];
+		for (var i=0;i<this.staves.length;++i) {
+			if (i != index) {
+				staves.push(this.staves[i]);				
+			}else {
+				staves.push(staff);
+			}
+		}
+		this.staves=staves;		
+	}
+	// ## addKeySignature
+	// ## Add a key signature at the specified index in all staves.
 	addKeySignature(measureIndex,key) {
 		this.staves.forEach((staff) => {staff.addKeySignature(measureIndex,key);});
 	}
+	
+	// ## addInstrument
+	// ## Description:
+	// add a new staff (instrument) to the score
 	addInstrument(parameters) {
 		if (this.staves.length ==0 )  {
 			this.staves.push(new SmoSystemStaff(parameters));
