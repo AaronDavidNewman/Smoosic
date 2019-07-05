@@ -36,9 +36,8 @@ class UndoBuffer {
         };
         if (this.buffer.length >= UndoBuffer.bufferMax) {
 			this.buffer.pop();
-        } else {
-            this.buffer.push(undoObj);
-        }
+        } 
+        this.buffer.push(undoObj);        
     }
 
     _pop() {
@@ -66,7 +65,8 @@ class UndoBuffer {
 			measure.changed = true;
             score.replaceMeasure(buf.selector, measure);
         } else if (buf.type === 'score') {
-            score = SmoScore.deserialize(buf.json);
+			// Score expects string, as deserialized score is how saving is done.
+            score = SmoScore.deserialize(JSON.stringify(buf.json));
         } else {
 			// TODO: test me
 			var staff  =SmoSystemStaff.deserialize(buf.json);

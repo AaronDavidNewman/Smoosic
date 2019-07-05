@@ -94,6 +94,7 @@ class StaffTest {
 		}
 		var keySigTest2= () => {
 			var selection = SmoSelection.measureSelection(score,0,2);
+			undo.addBuffer('undo key sig','score',selection.selector,score);
 			SmoOperation.addKeySignature(score,selection,'Bb');
 			keys.render();
 			return timeTest();
@@ -116,7 +117,7 @@ class StaffTest {
             keys.render();
         }
       
-        return drawDefaults().then(changePitch).then(changePitch2).then(undoTest).then(undoTest).then(keySigTest).then(undoTest).then(keySigTest2)
+        return drawDefaults().then(changePitch).then(changePitch2).then(undoTest).then(undoTest).then(keySigTest).then(undoTest).then(keySigTest2).then(undoTest)
 		    .then(keySigTest3).then(serializeTest).then(signalComplete);
     }
 }
