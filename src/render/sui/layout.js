@@ -76,8 +76,8 @@ class suiSimpleLayout {
 		var buffer = undoBuffer.peek();
 		// Unrender the modified music because the IDs may change and normal unrender won't work
 		if (buffer) {
+			var sel = buffer.selector;
 			if (buffer.type == 'measure') {
-				var sel = buffer.selector;
 				this.unrenderMeasure(SmoSelection.measureSelection(this.score,sel.staff,sel.measure).measure);
 			} else if (buffer.type ==='staff'){
 				this.unrenderStaff(SmoSelection.measureSelection(this.score,sel.staff,0).staff);

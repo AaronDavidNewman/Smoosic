@@ -46,7 +46,7 @@ class StaffTest {
 		
         var changePitch = () => {
             var target = SmoSelection.pitchSelection(layout.score,0,2, 0, 1,[0]);
-			undo.addBuffer('undo pitch change', 'measure', target.selector, target.measure.serialize());
+			undo.addBuffer('undo pitch change', 'measure', target.selector, target.measure);
 			SmoOperation.setPitch(target,{
                         letter: 'e',
                         octave: 4,
@@ -69,7 +69,7 @@ class StaffTest {
 		}
         var changePitch2 = () => {
             var target = SmoSelection.pitchSelection(score,0,1, 0, 1, [0]);
-			undo.addBuffer('undo pitch change', 'measure', target.selector, target.measure.serialize());
+			undo.addBuffer('undo pitch change', 'measure', target.selector, target.measure);
 			SmoOperation.setPitch(target,{
 					letter: 'f',
 					octave: 4,
@@ -84,6 +84,7 @@ class StaffTest {
         }
 		var keySigTest= () => {
 			var selection = SmoSelection.measureSelection(score,0,1);
+			undo.addBuffer('undo key sig','staff',selection.selector,selection.staff);
 			SmoOperation.addKeySignature(score,selection,'A');
 			// score.addKeySignature(1,'A');
 			var selection = SmoSelection.noteSelection(score,0,1,0,2);
@@ -115,7 +116,7 @@ class StaffTest {
             keys.render();
         }
       
-        return drawDefaults().then(changePitch).then(undoTest).then(changePitch2).then(keySigTest).then(keySigTest2)
+        return drawDefaults().then(changePitch).then(changePitch2).then(undoTest).then(undoTest).then(keySigTest).then(undoTest).then(keySigTest2)
 		    .then(keySigTest3).then(serializeTest).then(signalComplete);
     }
 }

@@ -1,7 +1,8 @@
 
 // # UndoBuffer
 // # Description:
-// manage a set of undo or redo operations on a score.
+// manage a set of undo or redo operations on a score.  The objects passed into 
+// undo must implement serialize()/deserialize()
 // # Buffer format:
 // A buffer is one of 3 things:
 // A single measure,
@@ -13,7 +14,6 @@
 class UndoBuffer {
     constructor() {
         this.buffer = [];
-        this.index = -1;
     }
     static get bufferMax() {
         return 100;
@@ -23,43 +23,38 @@ class UndoBuffer {
         return ['measure', 'staff','score'];
     }
 
-    addBuffer(title, type, selector, json) {
+    addBuffer(title, type, selector, obj) {
         if (UndoBuffer.bufferTypes.indexOf(type) < 0) {
             throw ('Undo failure: illegal buffer type ' + type);
         }
+		var json=obj.serialize();
         var undoObj = {
             title: title,
             type: type,
             selector: selector,
             json: json
         };
-        if (this.buffer.length < UndoBuffer.bufferMax) {
-            this.buffer.push(undoObj);
-            this.index += 1;
+        if (this.buffer.length >= UndoBuffer.bufferMax) {
+			this.buffer.pop();
         } else {
-            this.index = (this.index + 1) % this.buffer.length - 1;
-            this.buffer[this.index] = undoObj;
+            this.buffer.push(undoObj);
         }
     }
 
     _pop() {
-        if (this.index < 0)
+		
+        if (this.buffer.length < 1)
             return null;
-        var buf = this.buffer[this.index];
-        if (this.buffer.length >= UndoBuffer.bufferMax) {
-            this.index = (this.index + bufferMax - 1) % bufferMax;
-        } else {
-            this.index -= 1;
-        }
+        var buf = this.buffer.pop();
 		return buf;
     }
 
 	// ## Before undoing, peek at the top action in the q
 	// so it can be re-rendered
 	peek() {
-        if (this.index < 0)
+        if (this.buffer.length < 1)
             return null;
-        return this.buffer[this.index];		
+        return this.buffer[this.buffer.length-1];
 	}
 	
     undo(score) {
