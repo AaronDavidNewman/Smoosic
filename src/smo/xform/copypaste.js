@@ -33,6 +33,13 @@ class PasteBuffer {
 	clearSelections() {
 		this.buffer = [];
 	}
+	_getMeasureArray() {
+		var rv=[];
+		var startSel = this.buffer[0].selector;
+		this.buffer.forEach((selection) => {
+			
+		});
+	}
 	_populatePasteArray() {
 		var targetArray = [];
 		var startSel = this.buffer[0].selector;
@@ -63,7 +70,9 @@ class PasteBuffer {
 		var measureIndex = -1;
 		var measureArray = [];
 		var noteIndex = 0;
-		var startSel = this.buffer[0].selector;
+		var startSel = this.destination;
+		var endSel = SmoSelector.applyOffset(this.buffer[0].selector,this.destination,this.buffer[this.buffer.length - 1]);
+		
 		var noteArray = this._populatePasteArray();
 		for (var b = 0; b < this.buffer.length; ++b) {
 			var selection = this.buffer[b];
@@ -72,6 +81,7 @@ class PasteBuffer {
 				var targetSel = SmoSelector.applyOffset(startSel, this.destination, selection.selector);
 				measureIndex = selection.selector.measure;
 				var existing = SmoSelection.measureSelection(this.score, {staff:selector.staff,measure:selector.measure});
+				var targetSelector = 
 				var tickmap = existing.tickmap();
 				var voices = [];
 				for (var i = 0; i < existing.voices; ++i) {
@@ -80,7 +90,9 @@ class PasteBuffer {
 						notes: []
 					};
 					for (var j = 0; j < ev.notes.length; ++j) {
-						if (selection.selector.voice != i) {
+						// If this is for a different voice, or before starting, just push the note
+						if (selection.selector.voice != i || 
+						    SmoSelector.lt(targetSel,startSel) {
 							voice.notes.push(SmoNote.clone(ev.notes[j]));
 						} else {
 							var targetNote = noteArray(noteIndex);
