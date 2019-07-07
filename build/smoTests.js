@@ -153,9 +153,11 @@ class StaffTest {
         score.addDefaultMeasureWithNotes(0,{});
         score.addDefaultMeasureWithNotes(1,{});
         score.addDefaultMeasureWithNotes(2,{});
-		var serial = JSON.stringify(score,null,'');
+		
+		var serial = JSON.stringify(score.serialize(),null,'');
 		console.log(serial);
         var keys = utController.createUi(document.getElementById("boo"),score);
+		var undo = keys.undoBuffer;
 		var score = keys.score;
 		var layout = keys.layout;		
 		
@@ -190,6 +192,7 @@ class StaffTest {
 		
         var changePitch = () => {
             var target = SmoSelection.pitchSelection(layout.score,0,2, 0, 1,[0]);
+			undo.addBuffer('undo pitch change', 'measure', target.selector, target.measure);
 			SmoOperation.setPitch(target,{
                         letter: 'e',
                         octave: 4,
@@ -206,8 +209,13 @@ class StaffTest {
             keys.render();
             return timeTest();
         }
+		var undoTest = () => {
+			layout.undo(undo);
+            return timeTest();
+		}
         var changePitch2 = () => {
             var target = SmoSelection.pitchSelection(score,0,1, 0, 1, [0]);
+			undo.addBuffer('undo pitch change', 'measure', target.selector, target.measure);
 			SmoOperation.setPitch(target,{
 					letter: 'f',
 					octave: 4,
@@ -221,34 +229,41 @@ class StaffTest {
             return timeTest();
         }
 		var keySigTest= () => {
-			score.addKeySignature(1,'A');
+			var selection = SmoSelection.measureSelection(score,0,1);
+			undo.addBuffer('undo key sig','staff',selection.selector,selection.staff);
+			SmoOperation.addKeySignature(score,selection,'A');
+			// score.addKeySignature(1,'A');
 			var selection = SmoSelection.noteSelection(score,0,1,0,2);
 			SmoOperation.makeNote(selection);
 			keys.render();
 			return timeTest();
 		}
 		var keySigTest2= () => {
-			score.addKeySignature(2,'Bb');
+			var selection = SmoSelection.measureSelection(score,0,2);
+			undo.addBuffer('undo key sig','score',selection.selector,score);
+			SmoOperation.addKeySignature(score,selection,'Bb');
 			keys.render();
 			return timeTest();
 		}
 		var keySigTest3= () => {
-			score.addKeySignature(1,'C#');
-			score.addKeySignature(2,'Cb');
+			var selection = SmoSelection.measureSelection(score,0,1);
+			SmoOperation.addKeySignature(score,selection,'C#');
+			selection = SmoSelection.measureSelection(score,0,2);
+			SmoOperation.addKeySignature(score,selection,'Cb');
 			keys.render();			
 			return timeTest();
 		}
         var serializeTest = () => {
-			var scoreJson=JSON.stringify(score);
+			var scoreJson=JSON.stringify(score.serialize());
             // score = SmoScore.deserialize(JSON.stringify(serializeTestJson.systemStaffJson));
 			score = SmoScore.deserialize(scoreJson);
-            layout.unrender();
+            layout.unrenderAll();
 			keys.detach();
             keys = utController.createUi(document.getElementById("boo"),score);			
             keys.render();
         }
       
-        return drawDefaults().then(changePitch).then(changePitch2).then(keySigTest).then(keySigTest2)
+        return drawDefaults().then(changePitch).then(changePitch2).then(undoTest).then(undoTest).then(keySigTest).then(undoTest).then(keySigTest2).then(undoTest)
 		    .then(keySigTest3).then(serializeTest).then(signalComplete);
     }
 }
@@ -323,32 +338,27 @@ class TimeSignatureTest {
 		}
 		
         var makeDupletTest = () => {
-            var tickmap = measure.tickmap();
+			var selection = SmoSelection.noteSelection(score,0,0,0,0);
+			SmoOperation.dotDuration(selection);
+			selection = SmoSelection.noteSelection(score,0,0,0,1);
+			SmoOperation.doubleDuration(selection);
+			selection = SmoSelection.noteSelection(score,0,0,0,1);
+			SmoOperation.dotDuration(selection);
+			
+            /* var tickmap = measure.tickmap();
             var actor = new SmoMakeTupletActor({
                     index: 0,
                     totalTicks: 6144,
                     numNotes: 2,
                     measure: measure
                 });
-            SmoTickTransformer.applyTransform(measure,actor);
+            SmoTickTransformer.applyTransform(measure,actor);  */
             layout.render();
             return timeTest();
         }
 		
-		var unmakeTupletTest = () => {
-            // maybe just need changeIndex?
-            var actor = new SmoUnmakeTupletActor({
-                    startIndex:0,
-				    endIndex:1,
-                    measure: measure
-                });
-            SmoTickTransformer.applyTransform(measure,actor);
-            layout.render();
-            return timeTest();
-        }
-
 		
-        return drawDefaults().then(stretchTest).then(contractTest).then(makeDupletTest).then(unmakeTupletTest).then(signalComplete);
+        return drawDefaults().then(stretchTest).then(contractTest).then(makeDupletTest).then(signalComplete);
 		
     }
 }
@@ -396,6 +406,8 @@ class TupletTest {
 			var selection=SmoSelection.noteSelection(score,0,0,0,1);
 			SmoOperation.makeTuplet(selection,3);
             layout.render();
+			var measureS=SmoSelection.measureSelection(score,0,0);
+			console.log(JSON.stringify(score.serialize(),null,' '));
             return timeTest();
         }
 
@@ -453,421 +465,360 @@ class TupletTest {
 class serializeTestJson {
     static get tupletMeasure() {
         return {
-
-            "staffX": 10,
-            "staffY": 40,
-            "staffWidth": 1600,
-            "interGap": 30,
-            "startIndex": 0,
-            "renumberingMap": {},
+            "score": {
+                "staffX": 30,
+                "staffY": 40,
+                "staffWidth": 1600,
+                "interGap": 30,
+                "renumberingMap": {}
+            },
             "staves": [{
-                    "measures": [{
-                            "tuplets": [],
-                            "beamGroups": [],
-                            "timeSignature": "4/4",
-                            "keySignature": "C",
-                            "staffX": 10,
-                            "customModifiers": [],
-                            "staffY": 40,
-                            "bars": [
-                                1,
-                                1
-                            ],
-                            "drawClef": true,
-                            "measureNumber": {
-                                "measureNumber": 0,
-                                "measureIndex": 0,
-                                "systemIndex": 0
-                            },
-                            "staffWidth": 320,
-                            "noteWidth": 250,
-                            "modifierOptions": {},
-                            "clef": "treble",
-                            "forceClef": true,
-                            "voices": [{
-                                    "notes": [{
-                                            "timeSignature": "4/4",
-                                            "keySignature": "C",
-                                            "clef": "treble",
-                                            "noteType": "n",
-                                            "numBeats": 4,
-                                            "beatValue": 4,
-                                            "voice": 0,
-                                            "duration": "4",
-                                            "keys": [{
-                                                    "key": "b",
-                                                    "accidental": "",
-                                                    "octave": 4
-                                                }
-                                            ],
-                                            "accidentals": [],
-                                            "ticks": {
-                                                "numerator": 4096,
-                                                "denominator": 1,
-                                                "remainder": 0
-                                            },
-                                            "tupletInfo": {},
-                                            "attrs": {
-                                                "id": "auto1008",
-                                                "type": "SmoNote"
-                                            },
-                                            "dots": 0,
-                                            "renderId": "vf-auto1032"
-                                        }, {
-                                            "timeSignature": "4/4",
-                                            "keySignature": "C",
-                                            "clef": "treble",
-                                            "noteType": "n",
-                                            "numBeats": 4,
-                                            "beatValue": 4,
-                                            "voice": 0,
-                                            "duration": "4",
-                                            "keys": [{
-                                                    "key": "b",
-                                                    "accidental": "",
-                                                    "octave": 4
-                                                }
-                                            ],
-                                            "accidentals": [],
-                                            "ticks": {
-                                                "numerator": 4096,
-                                                "denominator": 1,
-                                                "remainder": 0
-                                            },
-                                            "tupletInfo": {},
-                                            "attrs": {
-                                                "id": "auto1009",
-                                                "type": "SmoNote"
-                                            },
-                                            "dots": 0,
-                                            "renderId": "vf-auto1038"
-                                        }, {
-                                            "timeSignature": "4/4",
-                                            "keySignature": "C",
-                                            "clef": "treble",
-                                            "noteType": "n",
-                                            "numBeats": 4,
-                                            "beatValue": 4,
-                                            "voice": 0,
-                                            "duration": "4",
-                                            "keys": [{
-                                                    "key": "b",
-                                                    "accidental": "",
-                                                    "octave": 4
-                                                }
-                                            ],
-                                            "accidentals": [],
-                                            "ticks": {
-                                                "numerator": 4096,
-                                                "denominator": 1,
-                                                "remainder": 0
-                                            },
-                                            "tupletInfo": {},
-                                            "attrs": {
-                                                "id": "auto1010",
-                                                "type": "SmoNote"
-                                            },
-                                            "dots": 0,
-                                            "renderId": "vf-auto1044"
-                                        }, {
-                                            "timeSignature": "4/4",
-                                            "keySignature": "C",
-                                            "clef": "treble",
-                                            "noteType": "n",
-                                            "numBeats": 4,
-                                            "beatValue": 4,
-                                            "voice": 0,
-                                            "duration": "4",
-                                            "keys": [{
-                                                    "key": "b",
-                                                    "accidental": "",
-                                                    "octave": 4
-                                                }
-                                            ],
-                                            "accidentals": [],
-                                            "ticks": {
-                                                "numerator": 4096,
-                                                "denominator": 1,
-                                                "remainder": 0
-                                            },
-                                            "tupletInfo": {},
-                                            "attrs": {
-                                                "id": "auto1011",
-                                                "type": "SmoNote"
-                                            },
-                                            "dots": 0,
-                                            "renderId": "vf-auto1050"
-                                        }
-                                    ]
-                                }, {
-                                    "notes": [{
-                                            "timeSignature": "4/4",
-                                            "keySignature": "C",
-                                            "clef": "treble",
-                                            "noteType": "n",
-                                            "numBeats": 4,
-                                            "beatValue": 4,
-                                            "voice": 0,
-                                            "duration": "4",
-                                            "keys": [{
-                                                    "key": "b",
-                                                    "accidental": "",
-                                                    "octave": 4
-                                                }
-                                            ],
-                                            "accidentals": [],
-                                            "ticks": {
-                                                "numerator": 4096,
-                                                "denominator": 1,
-                                                "remainder": 0
-                                            },
-                                            "tupletInfo": {},
-                                            "attrs": {
-                                                "id": "auto1018",
-                                                "type": "SmoNote"
-                                            },
-                                            "dots": 0,
-                                            "renderId": "vf-auto1077"
-                                        }, {
-                                            "timeSignature": "4/4",
-                                            "keySignature": "C",
-                                            "clef": "treble",
-                                            "noteType": "n",
-                                            "numBeats": 4,
-                                            "beatValue": 4,
-                                            "voice": 0,
-                                            "duration": "4",
-                                            "keys": [{
-                                                    "key": "b",
-                                                    "accidental": "",
-                                                    "octave": 4
-                                                }
-                                            ],
-                                            "accidentals": [],
-                                            "ticks": {
-                                                "numerator": 4096,
-                                                "denominator": 1,
-                                                "remainder": 0
-                                            },
-                                            "tupletInfo": {},
-                                            "attrs": {
-                                                "id": "auto1019",
-                                                "type": "SmoNote"
-                                            },
-                                            "dots": 0,
-                                            "renderId": "vf-auto1083"
-                                        }, {
-                                            "timeSignature": "4/4",
-                                            "keySignature": "C",
-                                            "clef": "treble",
-                                            "noteType": "n",
-                                            "numBeats": 4,
-                                            "beatValue": 4,
-                                            "voice": 0,
-                                            "duration": "4",
-                                            "keys": [{
-                                                    "key": "b",
-                                                    "accidental": "",
-                                                    "octave": 4
-                                                }
-                                            ],
-                                            "accidentals": [],
-                                            "ticks": {
-                                                "numerator": 4096,
-                                                "denominator": 1,
-                                                "remainder": 0
-                                            },
-                                            "tupletInfo": {},
-                                            "attrs": {
-                                                "id": "auto1020",
-                                                "type": "SmoNote"
-                                            },
-                                            "dots": 0,
-                                            "renderId": "vf-auto1089"
-                                        }, {
-                                            "timeSignature": "4/4",
-                                            "keySignature": "C",
-                                            "clef": "treble",
-                                            "noteType": "n",
-                                            "numBeats": 4,
-                                            "beatValue": 4,
-                                            "voice": 0,
-                                            "duration": "4",
-                                            "keys": [{
-                                                    "key": "b",
-                                                    "accidental": "",
-                                                    "octave": 4
-                                                }
-                                            ],
-                                            "accidentals": [],
-                                            "ticks": {
-                                                "numerator": 4096,
-                                                "denominator": 1,
-                                                "remainder": 0
-                                            },
-                                            "tupletInfo": {},
-                                            "attrs": {
-                                                "id": "auto1021",
-                                                "type": "SmoNote"
-                                            },
-                                            "dots": 0,
-                                            "renderId": "vf-auto1095"
-                                        }
-                                    ]
-                                }
-                            ],
-                            "activeVoice": 1,
-                            "attrs": {
-                                "id": "auto1016",
-                                "type": "SmoMeasure"
-                            }
-                        }
-                    ],
                     "staffX": 10,
                     "staffY": 40,
-                    "staffWidth": 400,
-                    "startIndex": 0,
+                    "staffWidth": 200,
+                    "staffHeight": 90,
                     "renumberingMap": {},
+                    "keySignatureMap": {},
                     "instrumentInfo": {
                         "instrumentName": "Treble Instrument",
                         "keyOffset": "0",
                         "clef": "treble"
                     },
-                    "timeSignature": "4/4",
-                    "keySignature": "C",
-                    "customModifiers": [],
-                    "bars": [
-                        1,
-                        1
-                    ],
-                    "drawClef": true,
-                    "measureNumber": {
-                        "localIndex": 0,
-                        "systemIndex": 0,
-                        "measureNumber": 0
-                    },
-                    "noteWidth": 400,
-                    "modifierOptions": {},
-                    "clef": "treble",
-                    "forceClef": false,
-                    "voices": [{
-                            "notes": [{
-                                    "timeSignature": "4/4",
-                                    "keySignature": "C",
-                                    "clef": "treble",
-                                    "noteType": "n",
-                                    "numBeats": 4,
-                                    "beatValue": 4,
-                                    "voice": 0,
-                                    "duration": "4",
-                                    "keys": [{
-                                            "key": "b",
-                                            "accidental": "",
-                                            "octave": 4
+                    "modifiers": [],
+                    "measures": [{
+                            "timeSignature": "4/4",
+                            "keySignature": "C",
+                            "staffX": 30.999984741210938,
+                            "staffY": 40,
+                            "customModifiers": [],
+                            "measureNumber": {
+                                "measureNumber": 0,
+                                "measureIndex": 0,
+                                "systemIndex": 0
+                            },
+                            "staffWidth": 200,
+                            "modifierOptions": {},
+                            "tuplets": [{
+                                    "notes": [{
+                                            "noteType": "n",
+                                            "textModifiers": [],
+                                            "ticks": {
+                                                "numerator": 1365,
+                                                "denominator": 1,
+                                                "remainder": 1
+                                            },
+                                            "pitches": [{
+                                                    "letter": "b",
+                                                    "accidental": "",
+                                                    "octave": 4
+                                                }
+                                            ],
+                                            "attrs": {
+                                                "id": "auto1122",
+                                                "type": "SmoNote"
+                                            },
+                                            "tuplet": {
+                                                "id": "auto1125",
+                                                "type": "SmoTuplet"
+                                            },
+                                            "beam_group": {
+                                                "id": "auto1126",
+                                                "type": "SmoBeamGroup"
+                                            },
+                                            "renderId": "vf-auto1142"
+                                        }, {
+                                            "noteType": "n",
+                                            "textModifiers": [],
+                                            "ticks": {
+                                                "numerator": 1365,
+                                                "denominator": 1,
+                                                "remainder": 0
+                                            },
+                                            "pitches": [{
+                                                    "letter": "b",
+                                                    "accidental": "",
+                                                    "octave": 4
+                                                }
+                                            ],
+                                            "attrs": {
+                                                "id": "auto1123",
+                                                "type": "SmoNote"
+                                            },
+                                            "tuplet": {
+                                                "id": "auto1125",
+                                                "type": "SmoTuplet"
+                                            },
+                                            "beam_group": {
+                                                "id": "auto1126",
+                                                "type": "SmoBeamGroup"
+                                            },
+                                            "renderId": "vf-auto1149"
+                                        }, {
+                                            "noteType": "n",
+                                            "textModifiers": [],
+                                            "ticks": {
+                                                "numerator": 1365,
+                                                "denominator": 1,
+                                                "remainder": 0
+                                            },
+                                            "pitches": [{
+                                                    "letter": "b",
+                                                    "accidental": "",
+                                                    "octave": 4
+                                                }
+                                            ],
+                                            "attrs": {
+                                                "id": "auto1124",
+                                                "type": "SmoNote"
+                                            },
+                                            "tuplet": {
+                                                "id": "auto1125",
+                                                "type": "SmoTuplet"
+                                            },
+                                            "beam_group": {
+                                                "id": "auto1126",
+                                                "type": "SmoBeamGroup"
+                                            },
+                                            "renderId": "vf-auto1156"
                                         }
                                     ],
-                                    "accidentals": [],
-                                    "ticks": {
-                                        "numerator": 4096,
-                                        "denominator": 1,
-                                        "remainder": 0
-                                    },
-                                    "tupletInfo": {},
+                                    "numNotes": 3,
+                                    "totalTicks": 4096,
+                                    "stemTicks": 2048,
+                                    "location": 1,
+                                    "durationMap": [
+                                        1,
+                                        1,
+                                        1
+                                    ],
+                                    "bracketed": true,
+                                    "ratioed": false,
+                                    "startIndex": 1,
                                     "attrs": {
-                                        "id": "auto1000",
-                                        "type": "SmoNote"
-                                    },
-                                    "dots": 0
-                                }, {
-                                    "timeSignature": "4/4",
-                                    "keySignature": "C",
-                                    "clef": "treble",
-                                    "noteType": "n",
-                                    "numBeats": 4,
-                                    "beatValue": 4,
-                                    "voice": 0,
-                                    "duration": "4",
-                                    "keys": [{
-                                            "key": "b",
-                                            "accidental": "",
-                                            "octave": 4
+                                        "id": "auto1125",
+                                        "type": "SmoTuplet"
+                                    }
+                                }
+                            ],
+                            "beamGroups": [{
+                                    "notes": [{
+                                            "noteType": "n",
+                                            "textModifiers": [],
+                                            "ticks": {
+                                                "numerator": 1365,
+                                                "denominator": 1,
+                                                "remainder": 1
+                                            },
+                                            "pitches": [{
+                                                    "letter": "b",
+                                                    "accidental": "",
+                                                    "octave": 4
+                                                }
+                                            ],
+                                            "attrs": {
+                                                "id": "auto1122",
+                                                "type": "SmoNote"
+                                            },
+                                            "tuplet": {
+                                                "id": "auto1125",
+                                                "type": "SmoTuplet"
+                                            },
+                                            "beam_group": {
+                                                "id": "auto1126",
+                                                "type": "SmoBeamGroup"
+                                            },
+                                            "renderId": "vf-auto1142"
+                                        }, {
+                                            "noteType": "n",
+                                            "textModifiers": [],
+                                            "ticks": {
+                                                "numerator": 1365,
+                                                "denominator": 1,
+                                                "remainder": 0
+                                            },
+                                            "pitches": [{
+                                                    "letter": "b",
+                                                    "accidental": "",
+                                                    "octave": 4
+                                                }
+                                            ],
+                                            "attrs": {
+                                                "id": "auto1123",
+                                                "type": "SmoNote"
+                                            },
+                                            "tuplet": {
+                                                "id": "auto1125",
+                                                "type": "SmoTuplet"
+                                            },
+                                            "beam_group": {
+                                                "id": "auto1126",
+                                                "type": "SmoBeamGroup"
+                                            },
+                                            "renderId": "vf-auto1149"
+                                        }, {
+                                            "noteType": "n",
+                                            "textModifiers": [],
+                                            "ticks": {
+                                                "numerator": 1365,
+                                                "denominator": 1,
+                                                "remainder": 0
+                                            },
+                                            "pitches": [{
+                                                    "letter": "b",
+                                                    "accidental": "",
+                                                    "octave": 4
+                                                }
+                                            ],
+                                            "attrs": {
+                                                "id": "auto1124",
+                                                "type": "SmoNote"
+                                            },
+                                            "tuplet": {
+                                                "id": "auto1125",
+                                                "type": "SmoTuplet"
+                                            },
+                                            "beam_group": {
+                                                "id": "auto1126",
+                                                "type": "SmoBeamGroup"
+                                            },
+                                            "renderId": "vf-auto1156"
                                         }
                                     ],
-                                    "accidentals": [],
-                                    "ticks": {
-                                        "numerator": 4096,
-                                        "denominator": 1,
-                                        "remainder": 0
-                                    },
-                                    "tupletInfo": {},
                                     "attrs": {
-                                        "id": "auto1001",
-                                        "type": "SmoNote"
-                                    },
-                                    "dots": 0
-                                }, {
-                                    "timeSignature": "4/4",
-                                    "keySignature": "C",
-                                    "clef": "treble",
-                                    "noteType": "n",
-                                    "numBeats": 4,
-                                    "beatValue": 4,
-                                    "voice": 0,
-                                    "duration": "4",
-                                    "keys": [{
-                                            "key": "b",
-                                            "accidental": "",
-                                            "octave": 4
+                                        "id": "auto1126",
+                                        "type": "SmoBeamGroup"
+                                    }
+                                }
+                            ],
+                            "voices": [{
+                                    "notes": [{
+                                            "ticks": {
+                                                "numerator": 4096,
+                                                "denominator": 1,
+                                                "remainder": 0
+                                            },
+                                            "pitches": [{
+                                                    "letter": "b",
+                                                    "accidental": "",
+                                                    "octave": 4
+                                                }
+                                            ],
+                                            "noteType": "n",
+                                            "attrs": {
+                                                "id": "auto1003",
+                                                "type": "SmoNote"
+                                            },
+                                            "noteModifiers": []
+                                        }, {
+                                            "ticks": {
+                                                "numerator": 1365,
+                                                "denominator": 1,
+                                                "remainder": 1
+                                            },
+                                            "pitches": [{
+                                                    "letter": "b",
+                                                    "accidental": "",
+                                                    "octave": 4
+                                                }
+                                            ],
+                                            "noteType": "n",
+                                            "tuplet": {
+                                                "id": "auto1125",
+                                                "type": "SmoTuplet"
+                                            },
+                                            "attrs": {
+                                                "id": "auto1122",
+                                                "type": "SmoNote"
+                                            },
+                                            "noteModifiers": []
+                                        }, {
+                                            "ticks": {
+                                                "numerator": 1365,
+                                                "denominator": 1,
+                                                "remainder": 0
+                                            },
+                                            "pitches": [{
+                                                    "letter": "b",
+                                                    "accidental": "",
+                                                    "octave": 4
+                                                }
+                                            ],
+                                            "noteType": "n",
+                                            "tuplet": {
+                                                "id": "auto1125",
+                                                "type": "SmoTuplet"
+                                            },
+                                            "attrs": {
+                                                "id": "auto1123",
+                                                "type": "SmoNote"
+                                            },
+                                            "noteModifiers": []
+                                        }, {
+                                            "ticks": {
+                                                "numerator": 1365,
+                                                "denominator": 1,
+                                                "remainder": 0
+                                            },
+                                            "pitches": [{
+                                                    "letter": "b",
+                                                    "accidental": "",
+                                                    "octave": 4
+                                                }
+                                            ],
+                                            "noteType": "n",
+                                            "tuplet": {
+                                                "id": "auto1125",
+                                                "type": "SmoTuplet"
+                                            },
+                                            "attrs": {
+                                                "id": "auto1124",
+                                                "type": "SmoNote"
+                                            },
+                                            "noteModifiers": []
+                                        }, {
+                                            "ticks": {
+                                                "numerator": 4096,
+                                                "denominator": 1,
+                                                "remainder": 0
+                                            },
+                                            "pitches": [{
+                                                    "letter": "b",
+                                                    "accidental": "",
+                                                    "octave": 4
+                                                }
+                                            ],
+                                            "noteType": "n",
+                                            "attrs": {
+                                                "id": "auto1005",
+                                                "type": "SmoNote"
+                                            },
+                                            "noteModifiers": []
+                                        }, {
+                                            "ticks": {
+                                                "numerator": 4096,
+                                                "denominator": 1,
+                                                "remainder": 0
+                                            },
+                                            "pitches": [{
+                                                    "letter": "b",
+                                                    "accidental": "",
+                                                    "octave": 4
+                                                }
+                                            ],
+                                            "noteType": "n",
+                                            "attrs": {
+                                                "id": "auto1006",
+                                                "type": "SmoNote"
+                                            },
+                                            "noteModifiers": []
                                         }
-                                    ],
-                                    "accidentals": [],
-                                    "ticks": {
-                                        "numerator": 4096,
-                                        "denominator": 1,
-                                        "remainder": 0
-                                    },
-                                    "tupletInfo": {},
-                                    "attrs": {
-                                        "id": "auto1002",
-                                        "type": "SmoNote"
-                                    },
-                                    "dots": 0
-                                }, {
-                                    "timeSignature": "4/4",
-                                    "keySignature": "C",
-                                    "clef": "treble",
-                                    "noteType": "n",
-                                    "numBeats": 4,
-                                    "beatValue": 4,
-                                    "voice": 0,
-                                    "duration": "4",
-                                    "keys": [{
-                                            "key": "b",
-                                            "accidental": "",
-                                            "octave": 4
-                                        }
-                                    ],
-                                    "accidentals": [],
-                                    "ticks": {
-                                        "numerator": 4096,
-                                        "denominator": 1,
-                                        "remainder": 0
-                                    },
-                                    "tupletInfo": {},
-                                    "attrs": {
-                                        "id": "auto1003",
-                                        "type": "SmoNote"
-                                    },
-                                    "dots": 0
+                                    ]
                                 }
                             ]
                         }
-                    ],
-                    "activeVoice": 0,
-                    "renumberIndex": 0
+                    ]
                 }
-            ],
-            "activeStaff": 0
+            ]
         }
     }
     static get systemStaffJson() {
@@ -1418,7 +1369,7 @@ class VoiceTest {
         }
 		
 		var serializeTest = () => {
-			layout.unrender();
+			layout.unrenderAll();
 			$('#boo').html('');
 			score = SmoScore.deserialize(JSON.stringify(serializeTestJson.tupletMeasure));
 			keys.detach();

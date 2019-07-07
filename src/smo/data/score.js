@@ -31,7 +31,7 @@ class SmoScore {
 	}
 	serialize() {
 		var params={};
-		smoMusic.filteredMerge(SmoScore.defaultAttributes,this,params);
+		smoMusic.serializedMerge(SmoScore.defaultAttributes,this,params);
 		var obj={score:params,staves:[]};
 		this.staves.forEach((staff) => {
 			obj.staves.push(staff.serialize());
@@ -42,7 +42,7 @@ class SmoScore {
         var jsonObj = JSON.parse(jsonString);
         var params = {};
 		var staves=[];
-        smoMusic.filteredMerge(
+        smoMusic.serializedMerge(
             SmoScore.defaultAttributes,
             jsonObj, params);
         jsonObj.staves.forEach((staffObj) => {

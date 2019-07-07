@@ -114,7 +114,7 @@ class SmoMeasure {
             beamGroups: beamGroups
         };
 
-        smoMusic.filteredMerge(SmoMeasure.defaultAttributes, jsonObj, params);
+        smoMusic.serializedMerge(SmoMeasure.defaultAttributes, jsonObj, params);
 
         return new SmoMeasure(params);
     }

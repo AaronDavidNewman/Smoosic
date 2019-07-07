@@ -157,10 +157,10 @@ body.showHelpDialog .helpDialog {
 	border:1px solid #222;
 	border-radius:5px;
 	width: 40px;
-	height: 28px;
+	height: 20px;
 	display: inline-block;
 	text-align: center;
-	padding-top: 12px;
+	padding-top: 6px;
 	margin-right: 5px;
 }
 

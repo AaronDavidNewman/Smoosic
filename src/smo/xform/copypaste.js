@@ -26,7 +26,7 @@ class PasteBuffer {
 			});
 		});
 		this.notes.sort((a, b) => {
-			return SmoSelector.gt(a.selector, , b.selector) ? 1 : -1;
+			return SmoSelector.gt(a.selector, b.selector) ? 1 : -1;
 		});
 	}
 
@@ -58,7 +58,7 @@ class PasteBuffer {
 					this.measures.push(measureSelection.measure);
 					currentDuration = selection.note.tickCount - remainder;
 				} 
-			} else if (measureSelection ! null) {
+			} else if (measureSelection != null) {
 				currentDuration += selection.note.tickCount;
 			}
 		});
@@ -168,7 +168,7 @@ class PasteBuffer {
 				voice.notes.push(SmoNote.clone(note));
 			} else {
 				var remainder = totalDuration - startTicks;
-				voice.notes.push(SmoNote.cloneWithDuration(note, {numerator:remainder,denominator:1,remainder:}));
+				voice.notes.push(SmoNote.cloneWithDuration(note, {numerator:remainder,denominator:1,remainder:0}));
 				startTicks = totalDuration;
 			}
 			endTick += 1;

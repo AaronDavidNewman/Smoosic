@@ -178,7 +178,7 @@ class SmoNote {
     }
 	serialize()  {
 		var params={};
-		smoMusic.filteredMerge(SmoNote.parameterArray,this,params);
+		smoMusic.serializedMerge(SmoNote.parameterArray,this,params);
 		params.ticks = JSON.parse(JSON.stringify(params.ticks));
 		params.noteModifiers=this._serializeModifiers();
 		return params;

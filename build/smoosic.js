@@ -1,7 +1,7 @@
 
 VF = Vex.Flow;
 Vex.Xform = (typeof(Vex.Xform) == 'undefined' ? {}
-     : Vex.Xform);
+	 : Vex.Xform);
 VX = Vex.Xform;
 
 /**
@@ -10,264 +10,305 @@ VX = Vex.Xform;
  **/
 class smoMusic {
 
-    // return Vex canonical note enharmonic - e.g. Bb to A#
-    // Get the canonical form
-    static vexToCannonical(vexKey) {
-        return VF.Music.canonical_notes[VF.Music.noteValues[vexKey].int_val];
-    }
-	
+	// return Vex canonical note enharmonic - e.g. Bb to A#
+	// Get the canonical form
+	static vexToCannonical(vexKey) {
+		return VF.Music.canonical_notes[VF.Music.noteValues[vexKey].int_val];
+	}
+
 	// pitches are measured from c, so that b0 is higher than c0, c1 is 1 note higher etc.
 	static get letterPitchIndex() {
-		return {'c':0,'d':1,'e':2,'f':3,'g':4,'a':5,'b':6};
+		return {
+			'c': 0,
+			'd': 1,
+			'e': 2,
+			'f': 3,
+			'g': 4,
+			'a': 5,
+			'b': 6
+		};
 	}
 	// convert {letter,octave,accidental} object to vexKey string ('f#'
 	static pitchToVexKey(smoPitch) {
 		// Convert to vex keys, where f# is a string like 'f#'.
-        var vexKey = smoPitch.letter.toLowerCase();
-        if (smoPitch.accidental.length === 0) {
-            vexKey = vexKey + 'n';
-        } else {
-            vexKey = vexKey + smoPitch.accidental;
-        }
+		var vexKey = smoPitch.letter.toLowerCase();
+		if (smoPitch.accidental.length === 0) {
+			vexKey = vexKey + 'n';
+		} else {
+			vexKey = vexKey + smoPitch.accidental;
+		}
 		return vexKey;
 	}
 
-    // ## getKeyOffset
-    // ## Description:  given a vex noteProp and an offset, offset that number
-    // of 1/2 steps.
-    // ### Input:  smoPitch
-    // ### Output:  smoPitch offset, not key-adjusted.
-    static getKeyOffset(pitch, offset) {
-        var canon = VF.Music.canonical_notes;
+	// ## getKeyOffset
+	// ## Description:  given a vex noteProp and an offset, offset that number
+	// of 1/2 steps.
+	// ### Input:  smoPitch
+	// ### Output:  smoPitch offset, not key-adjusted.
+	static getKeyOffset(pitch, offset) {
+		var canon = VF.Music.canonical_notes;
 
-        // Convert to vex keys, where f# is a string like 'f#'.
-        var vexKey = smoMusic.pitchToVexKey(pitch);
-        vexKey = smoMusic.vexToCannonical(vexKey);
-        var rootIndex = canon.indexOf(vexKey);
-        var index = (rootIndex + canon.length + offset) % canon.length;
-        var octave = pitch.octave;
-        if (Math.abs(offset) >= 12) {
-            var octaveOffset = Math.sign(offset) * Math.round(Math.abs(offset) / 12);
-            octave += octaveOffset;
-            offset = offset % 12;
-        }
-        if (rootIndex + offset >= canon.length) {
-            octave += 1;
-        }
-        if (rootIndex + offset < 0) {
-            octave -= 1;
-        }
-        var rv = JSON.parse(JSON.stringify(pitch));
-        vexKey = canon[index];
-        if (vexKey.length > 1) {
-            rv.accidental = vexKey.substring(1);
-            vexKey = vexKey[0];
-        } else {
-            rv.accidental = '';
-        }
-        rv.letter = vexKey;
-        rv.octave = octave;
-        return rv;
-    }
+		// Convert to vex keys, where f# is a string like 'f#'.
+		var vexKey = smoMusic.pitchToVexKey(pitch);
+		vexKey = smoMusic.vexToCannonical(vexKey);
+		var rootIndex = canon.indexOf(vexKey);
+		var index = (rootIndex + canon.length + offset) % canon.length;
+		var octave = pitch.octave;
+		if (Math.abs(offset) >= 12) {
+			var octaveOffset = Math.sign(offset) * Math.round(Math.abs(offset) / 12);
+			octave += octaveOffset;
+			offset = offset % 12;
+		}
+		if (rootIndex + offset >= canon.length) {
+			octave += 1;
+		}
+		if (rootIndex + offset < 0) {
+			octave -= 1;
+		}
+		var rv = JSON.parse(JSON.stringify(pitch));
+		vexKey = canon[index];
+		if (vexKey.length > 1) {
+			rv.accidental = vexKey.substring(1);
+			vexKey = vexKey[0];
+		} else {
+			rv.accidental = '';
+		}
+		rv.letter = vexKey;
+		rv.octave = octave;
+		return rv;
+	}
 
-    // ## keySignatureLength
-    // ## Description:
-    // return the number of sharp/flat in a key signature for sizing guess.
-    static get keySignatureLength() {
-        return {
-            'C': 0,
-            'B': 5,
-            'A': 3,
-            'F#': 6,
-            'Bb': 2,
-            'Ab': 4,
-            'Gg': 6,
-            'G': 1,
-            'F': 1,
-            'Eb': 3,
-            'Db': 5,
-            'Cb': 7,
-            'C#': 7,
-            'F#': 6,
-            'E': 4,
-            'D': 2
-        };
-    }
+	// ## keySignatureLength
+	// ## Description:
+	// return the number of sharp/flat in a key signature for sizing guess.
+	static get keySignatureLength() {
+		return {
+			'C': 0,
+			'B': 5,
+			'A': 3,
+			'F#': 6,
+			'Bb': 2,
+			'Ab': 4,
+			'Gg': 6,
+			'G': 1,
+			'F': 1,
+			'Eb': 3,
+			'Db': 5,
+			'Cb': 7,
+			'C#': 7,
+			'F#': 6,
+			'E': 4,
+			'D': 2
+		};
+	}
 
-    // ### getKeySignatureKey
-    // ### Description:
-    // given a letter pitch (a,b,c etc.), and a key signature, return the actual note
-    // that you get without accidentals
-    // ### Usage:
-    //   smoMusic.getKeySignatureKey('F','G'); // returns f#
-    // TODO: move to smoPitch
-    static getKeySignatureKey(letter, keySignature) {
-        var km = new VF.KeyManager(keySignature);
-        return km.scaleMap[letter];
-    }
+	// ## closestVexDuration
+	// ## Description:
+	// return the closest vex duration >= to the actual number of ticks. Used in beaming
+	// triplets which have fewer ticks then their stem would normally indicate.
+	static closestVexDuration(ticks) {
+		var stemTicks = VF.RESOLUTION;
 
-    // ### Description:
-    // Get ticks for this note with an added dot.  Return
-    // identity if that is not a supported value.
-    static getNextDottedLevel(ticks) {
-        var ttd = smoMusic.ticksToDuration;
-        var vals = Object.values(ttd);
+		// The stem value is the type on the non-tuplet note, e.g. 1/8 note
+		// for a triplet.
+		while (ticks <= stemTicks) {
+			stemTicks = stemTicks / 2;
+		}
 
-        var ix = vals.indexOf(ttd[ticks]);
-        if (ix >= 0 && ix < vals.length && vals[ix][0] == vals[ix + 1][0]) {
-            return smoMusic.durationToTicks(vals[ix + 1]);
-        }
-        return ticks;
-    }
+		stemTicks = stemTicks * 2;
+		return smoMusic.ticksToDuration[stemTicks];
+		var ix = Object.keys(smoMusic.ticksToDuration).findIndex((x) => {
+				return x >= ticks
+			});
+		return smoMusic.ticksToDuration[durations[ix]];
+	}
 
-    // ### Description:
-    // Get ticks for this note with one fewer dot.  Return
-    // identity if that is not a supported value.
-    static getPreviousDottedLevel(ticks) {
-        var ttd = smoMusic.ticksToDuration;
-        var vals = Object.values(ttd);
-        var ix = vals.indexOf(ttd[ticks]);
-        if (ix > 0 && vals[ix][0] == vals[ix - 1][0]) {
-            return smoMusic.durationToTicks(vals[ix - 1]);
-        }
-        return ticks;
-    }
+	// ### getKeySignatureKey
+	// ### Description:
+	// given a letter pitch (a,b,c etc.), and a key signature, return the actual note
+	// that you get without accidentals
+	// ### Usage:
+	//   smoMusic.getKeySignatureKey('F','G'); // returns f#
+	// TODO: move to smoPitch
+	static getKeySignatureKey(letter, keySignature) {
+		var km = new VF.KeyManager(keySignature);
+		return km.scaleMap[letter];
+	}
 
-    // ### ticksToDuration
-    // ### Description:
-    // Frequently we double/halve a note duration, and we want to find the vex tick duration that goes with that.
-    static get ticksToDuration() {
-        var durations = ["1/2", "1", "2", "4", "8", "16", "32", "64", "128", "256"];
-        var ticksToDuration = {};
-        var _ticksToDurations = function () {
-            for (var i = 0; i < durations.length - 1; ++i) {
-                var dots = '';
-                var ticks = 0;
+	// ### Description:
+	// Get ticks for this note with an added dot.  Return
+	// identity if that is not a supported value.
+	static getNextDottedLevel(ticks) {
+		var ttd = smoMusic.ticksToDuration;
+		var vals = Object.values(ttd);
 
-                // We support up to 4 'dots'
-                for (var j = 0; j < 4 && j + i < durations.length; ++j) {
-                    ticks += VF.durationToTicks.durations[durations[i + j]];
-                    ticksToDuration[ticks.toString()] = durations[i] + dots;
-                    dots += 'd'
-                }
-            }
-            return ticksToDuration;
-        }
-        _ticksToDurations();
-        return ticksToDuration;
-    };
+		var ix = vals.indexOf(ttd[ticks]);
+		if (ix >= 0 && ix < vals.length && vals[ix][0] == vals[ix + 1][0]) {
+			return smoMusic.durationToTicks(vals[ix + 1]);
+		}
+		return ticks;
+	}
 
-    // ## durationToTicks
-    // Uses VF.durationToTicks, but handles dots.
-    static durationToTicks(duration) {
-        var dots = duration.indexOf('d');
-        if (dots < 0) {
-            return VF.durationToTicks(duration);
-        } else {
-            var vfDuration = VF.durationToTicks(duration.substring(0, dots));
-            dots = duration.length - dots; // number of dots
-            var split = vfDuration / 2;
-            for (var i = 0; i < dots; ++i) {
-                vfDuration += split;
-                split = split / 2;
-            }
+	// ### Description:
+	// Get ticks for this note with one fewer dot.  Return
+	// identity if that is not a supported value.
+	static getPreviousDottedLevel(ticks) {
+		var ttd = smoMusic.ticksToDuration;
+		var vals = Object.values(ttd);
+		var ix = vals.indexOf(ttd[ticks]);
+		if (ix > 0 && vals[ix][0] == vals[ix - 1][0]) {
+			return smoMusic.durationToTicks(vals[ix - 1]);
+		}
+		return ticks;
+	}
 
-            return vfDuration;
-        }
-    }
+	// ### ticksToDuration
+	// ### Description:
+	// Frequently we double/halve a note duration, and we want to find the vex tick duration that goes with that.
+	static get ticksToDuration() {
+		var durations = ["1/2", "1", "2", "4", "8", "16", "32", "64", "128", "256"];
+		var ticksToDuration = {};
+		var _ticksToDurations = function () {
+			for (var i = 0; i < durations.length - 1; ++i) {
+				var dots = '';
+				var ticks = 0;
 
-    // ## enharmonics
-    // ## Description:
-    // return a map of enharmonics for choosing.  notes are in vexKey form.
-    static get enharmonics() {
-        var rv = {};
-        var keys = Object.keys(VF.Music.noteValues);
-        for (var i = 0; i < keys.length; ++i) {
-            var key = keys[i];
-            var int_val = VF.Music.noteValues[key].int_val;
-            if (typeof(rv[int_val.toString()]) == 'undefined') {
-                rv[int_val.toString()] = [];
-            }
-            // only consider natural note 1 time.  It is in the list twice for some reason.
-            if (key.indexOf('n') == -1) {
-                rv[int_val.toString()].push(key);
-            }
-        }
-        return rv;
-    }
+				// We support up to 4 'dots'
+				for (var j = 0; j < 4 && j + i < durations.length; ++j) {
+					ticks += VF.durationToTicks.durations[durations[i + j]];
+					ticksToDuration[ticks.toString()] = durations[i] + dots;
+					dots += 'd'
+				}
+			}
+			return ticksToDuration;
+		}
+		_ticksToDurations();
+		return ticksToDuration;
+	};
 
-    // ### getEnharmonic(noteProp)
-    // ###   cycle through the enharmonics for a note.
-    static getEnharmonic(key) {
-        var intVal = VF.Music.noteValues[key.toLowerCase()].int_val;
-        var ar = smoMusic.enharmonics[intVal.toString()];
-        var len = ar.length;
-        var ix = ar.indexOf(key);
-        key = ar[(ix + 1) % len];
-        return key;
-    }
-    // ## getKeyFriendlyEnharmonic
-    // ### Description:
-    // fix the enharmonic to match the key, if possible
-    // ## Usage:
-    // getKeyFriendlyEnharmonic('b','eb');  // returns 'bb'
-    static getKeyFriendlyEnharmonic(letter, keySignature) {
-        var rv = letter;
-        var muse = new VF.Music();
-        var scale = Object.values(muse.createScaleMap(keySignature));
-        var prop = smoMusic.getEnharmonic(letter.toLowerCase());
-        while (prop.toLowerCase() != letter.toLowerCase()) {
-            for (var i = 0; i < scale.length; ++i) {
-                var skey = scale[i];
-                if ((skey[0] == prop && skey[1] == 'n') ||
-                    (skey.toLowerCase() == prop.toLowerCase())) {
-                    rv = skey;
-                    break;
-                }
-            }
-            prop = (prop[1] == 'n' ? prop[0] : prop);
-            prop = smoMusic.getEnharmonic(prop);
-        }
-        return rv;
-    }
+	// ## durationToTicks
+	// Uses VF.durationToTicks, but handles dots.
+	static durationToTicks(duration) {
+		var dots = duration.indexOf('d');
+		if (dots < 0) {
+			return VF.durationToTicks(duration);
+		} else {
+			var vfDuration = VF.durationToTicks(duration.substring(0, dots));
+			dots = duration.length - dots; // number of dots
+			var split = vfDuration / 2;
+			for (var i = 0; i < dots; ++i) {
+				vfDuration += split;
+				split = split / 2;
+			}
 
-    // ## getIntervalInKey
-    // ## Description:
-    // give a pitch and a key signature, return another pitch at the given
-    // diatonic interval.  Similar to getKeyOffset but diatonic.
-    static getIntervalInKey(pitch, keySignature, interval) {
-        var muse = new VF.Music();
-        var letter = pitch.letter;
-        var scale = Object.values(muse.createScaleMap(keySignature));
+			return vfDuration;
+		}
+	}
 
-        var up = interval > 0 ? true : false;
-        var interval = interval < 0 ? scale.length - (interval * -1) : interval;
+	// ## enharmonics
+	// ## Description:
+	// return a map of enharmonics for choosing.  notes are in vexKey form.
+	static get enharmonics() {
+		var rv = {};
+		var keys = Object.keys(VF.Music.noteValues);
+		for (var i = 0; i < keys.length; ++i) {
+			var key = keys[i];
+			var int_val = VF.Music.noteValues[key].int_val;
+			if (typeof(rv[int_val.toString()]) == 'undefined') {
+				rv[int_val.toString()] = [];
+			}
+			// only consider natural note 1 time.  It is in the list twice for some reason.
+			if (key.indexOf('n') == -1) {
+				rv[int_val.toString()].push(key);
+			}
+		}
+		return rv;
+	}
 
-        var ix = scale.findIndex((x) => {
-                return x[0] == letter[0];
-            });
-        if (ix >= 0) {
-            var nletter = scale[(ix + interval) % scale.length];
-            var nkey = {
-                letter: nletter[0],
-                accidental: nletter[1],
-                octave: pitch.octave
-            };
-            if (up) {
-                nkey.octave += 1;
-            }
-            return nkey;
-        }
-        return letter;
-    }
+	// ### getEnharmonic(noteProp)
+	// ###   cycle through the enharmonics for a note.
+	static getEnharmonic(key) {
+		var intVal = VF.Music.noteValues[key.toLowerCase()].int_val;
+		var ar = smoMusic.enharmonics[intVal.toString()];
+		var len = ar.length;
+		var ix = ar.indexOf(key);
+		key = ar[(ix + 1) % len];
+		return key;
+	}
+	// ## getKeyFriendlyEnharmonic
+	// ### Description:
+	// fix the enharmonic to match the key, if possible
+	// ## Usage:
+	// getKeyFriendlyEnharmonic('b','eb');  // returns 'bb'
+	static getKeyFriendlyEnharmonic(letter, keySignature) {
+		var rv = letter;
+		var muse = new VF.Music();
+		var scale = Object.values(muse.createScaleMap(keySignature));
+		var prop = smoMusic.getEnharmonic(letter.toLowerCase());
+		while (prop.toLowerCase() != letter.toLowerCase()) {
+			for (var i = 0; i < scale.length; ++i) {
+				var skey = scale[i];
+				if ((skey[0] == prop && skey[1] == 'n') ||
+					(skey.toLowerCase() == prop.toLowerCase())) {
+					rv = skey;
+					break;
+				}
+			}
+			prop = (prop[1] == 'n' ? prop[0] : prop);
+			prop = smoMusic.getEnharmonic(prop);
+		}
+		return rv;
+	}
 
-    static filteredMerge(attrs, src, dest) {
-        attrs.forEach(function (attr) {
-            if (src[attr]) {
-                dest[attr] = src[attr];
-            }
-        });
-    }
+	// ## getIntervalInKey
+	// ## Description:
+	// give a pitch and a key signature, return another pitch at the given
+	// diatonic interval.  Similar to getKeyOffset but diatonic.
+	static getIntervalInKey(pitch, keySignature, interval) {
+		var muse = new VF.Music();
+		var letter = pitch.letter;
+		var scale = Object.values(muse.createScaleMap(keySignature));
+
+		var up = interval > 0 ? true : false;
+		var interval = interval < 0 ? scale.length - (interval * -1) : interval;
+
+		var ix = scale.findIndex((x) => {
+				return x[0] == letter[0];
+			});
+		if (ix >= 0) {
+			var nletter = scale[(ix + interval) % scale.length];
+			var nkey = {
+				letter: nletter[0],
+				accidental: nletter[1],
+				octave: pitch.octave
+			};
+			if (up) {
+				nkey.octave += 1;
+			}
+			return nkey;
+		}
+		return letter;
+	}
+
+	static filteredMerge(attrs, src, dest) {
+		attrs.forEach(function (attr) {
+			if (src[attr]) {
+				dest[attr] = src[attr];
+			}
+		});
+	}
+	// ## serialization-friendly, so merged, copied objects are deep-copied
+	static serializedMerge(attrs, src, dest) {
+		attrs.forEach(function (attr) {
+			if (src[attr]) {
+				if (typeof(src[attr]) == 'object') {
+					dest[attr] = JSON.parse(JSON.stringify(src[attr]));
+				} else {
+					dest[attr] = src[attr];
+				}
+			}
+		});
+	}
 }
 ;
 
@@ -565,72 +606,6 @@ class htmlHelpers {
 }
 ;
 
-class SmoDynamicText {
-	 static get defaults() {
-        return {
-            xOffset: 0,
-            fontSize: 38,
-            yOffsetLine:11,
-			yOffsetPixels:0,
-            text: SmoDynamicText.dynamics.MP,
-        };
-    }
-	
-	static get dynamics() {
-        // matches VF.modifier
-        return {
-			PP:'pp',
-			P:'p',
-            MP: 'mp',
-            MF: 'mf',
-            F: 'f',
-            FF: 'ff',
-			SFZ:'sfz'
-        };
-    }
-	
-	constructor(parameters) {
-		Vex.Merge(this, SmoDynamicText.defaults);
-        smoMusic.filteredMerge(SmoDynamicText.attrArray, parameters, this);
-        this.selector = parameters.selector;
-		
-		 if (!this['attrs']) {
-            this.attrs = {
-                id: VF.Element.newID(),
-                type: 'SmoDynamicText'
-            };
-        } else {
-            console.log('inherit attrs');
-        }
-	}
-	get id() {
-		return this.attrs.id;
-	}
-	set id(ignore) {}
-	get type() {
-		return this.attrs.type;
-	}
-	set type(ignore) {}
-	static get attrArray() {
-		return ['xOffset', 'fontSize', 'yOffsetLine', 'yOffsetPixels', 'text'];
-	}
-	backupOriginal() {
-        if (!this['original']) {
-            this.original = {};
-            smoMusic.filteredMerge(
-                SmoDynamicText.attrArray,
-                this, this.original);
-        }
-    }
-    restoreOriginal() {
-        if (this['original']) {
-            smoMusic.filteredMerge(
-                SmoDynamicText.attrArray,
-                this.original, this);
-            this.original = null;
-        }
-    }
-}
 
 // ##Note on prefixes:
 // SMO == Serializable Music Ontology, stuff I made up
@@ -641,375 +616,368 @@ class SmoDynamicText {
 // ## Description:
 // Basic note information.  Leaf node of the SMO dependency tree (so far)
 class SmoNote {
-	// ## Description:
-	// see defaults for params format.
-	constructor(params) {
-		Vex.Merge(this, SmoNote.defaults);
-		Vex.Merge(this, params);
-		var ticks = smoMusic.durationToTicks(this.duration);
-		this.ticks = {
-			numerator: ticks,
-			denominator: 1,
-			remainder: 0
-		};
-		// this.keys=JSON.parse(JSON.stringify(this.keys));
-		this.tupletInfo = {};
-		if (!this['attrs']) {
-			this.attrs = {
-				id: VF.Element.newID(),
-				type: 'SmoNote'
-			};
-		} else {
-			// inherit attrs id for deserialized 
-		}
-	}
-	get id() {
-		return this.attrs.id;
-	}
-	
-	get dots() {
-		if (this.isTuplet()) {
-			return 0;
-		}
-		var vexDuration = smoMusic.ticksToDuration[this.tickCount];
-		return vexDuration.split('d').length-1;
-	}
-	
-	set dots(value) {
-		// ignore - dots are a function of duration only.
-	}
-	
-	// ## addDynamicText
-	// sFz, mp, etc.
-	_addModifier(dynamic,toAdd) {
-		var tms = [];
-		this.textModifiers.forEach((tm)=> {
-			if (tm.attrs.type != dynamic.attrs.type) {
-				tms.push(tm);
-			}
-		});
-		if (toAdd) {
-		    tms.push(dynamic);
-		}
-		this.textModifiers=tms;		
-	}
-	
-	addModifier(dynamic) {
-		this._addModifier(dynamic,true);
-	}
-	removeModifier(dynamic) {
-		this._addModifier(dynamic,false);
-	}
+    // ## Description:
+    // see defaults for params format.
+    constructor(params) {
+        Vex.Merge(this, SmoNote.defaults);
+        smoMusic.filteredMerge(SmoNote.parameterArray, params, this);
+
+        // this.keys=JSON.parse(JSON.stringify(this.keys));
+
+        if (!this['attrs']) {
+            this.attrs = {
+                id: VF.Element.newID(),
+                type: 'SmoNote'
+            };
+        } else {
+            // inherit attrs id for deserialized
+        }
+    }
+    static get parameterArray() {
+        return ['ticks', 'pitches', 'noteType','tuplet','attrs'];
+    }
+    get id() {
+        return this.attrs.id;
+    }
+
+    get dots() {
+        if (this.isTuplet()) {
+            return 0;
+        }
+        var vexDuration = smoMusic.ticksToDuration[this.tickCount];
+        return vexDuration.split('d').length - 1;
+    }
+
+    set dots(value) {
+        // ignore - dots are a function of duration only.
+    }
+   
+
+    // ## _addModifier
+    // sFz, mp, etc.
+    _addModifier(dynamic, toAdd) {
+        var tms = [];
+        this.textModifiers.forEach((tm) => {
+            if (tm.attrs.type != dynamic.attrs.type) {
+                tms.push(tm);
+            }
+        });
+        if (toAdd) {
+            tms.push(dynamic);
+        }
+        this.textModifiers = tms;
+    }
+
+    addModifier(dynamic) {
+        this._addModifier(dynamic, true);
+    }
+    removeModifier(dynamic) {
+        this._addModifier(dynamic, false);
+    }
 
     // ## toVexKeys
-	// ## Description:
-	// turn the array of smo note pitches into an array of vex key strings
-	toVexKeys() {
-		var rv = [];
-		for (var i = 0; i < this.pitches.length; ++i) {
-			var pitch = this.pitches[i];
-			var letter = pitch.letter + pitch.accidental;
-			rv.push(letter + '/' + pitch.octave);
-		}
-		return rv;
+    // ## Description:
+    // turn the array of smo note pitches into an array of vex key strings
+    toVexKeys() {
+        var rv = [];
+        for (var i = 0; i < this.pitches.length; ++i) {
+            var pitch = this.pitches[i];
+            var letter = pitch.letter + pitch.accidental;
+            rv.push(letter + '/' + pitch.octave);
+        }
+        return rv;
+    }
+    _sortPitches() {
+        var canon = VF.Music.canonical_notes;
+        var keyIndex = ((pitch) => {
+            return canon.indexOf(pitch.letter) + pitch.octave * 12;
+        });
+        this.pitches.sort((a, b) => {
+            return keyIndex(a) - keyIndex(b);
+        });
+    }
+    addPitchOffset(offset) {
+        if (this.pitches.length == 0) {
+            return this;
+        }
+        this.noteType = 'n';
+        var pitch = this.pitches[0];
+        this.pitches.push(smoMusic.getKeyOffset(pitch, offset));
+
+        this._sortPitches();
+    }
+
+    makeRest() {
+        this.noteType = (this.noteType == 'r' ? 'n' : 'r');
+    }
+
+    makeNote() {
+        this.noteType = 'n';
+    }
+
+    isTuplet() {
+        return this['tuplet'] && this.tuplet['id'];
+    }
+
+    transpose(pitchArray, offset, keySignature) {
+        var pitches = [];
+        this.noteType = 'n';
+        if (pitchArray.length == 0) {
+            this.pitches.forEach((m) => {
+                pitchArray.push(this.pitches.indexOf(m));
+            });
+        }
+        for (var j = 0; j < pitchArray.length; ++j) {
+            var index = pitchArray[j];
+            if (index + 1 > this.pitches.length) {
+                this.addPitchOffset(offset);
+            } else {
+                var nnote = smoMusic.getKeyOffset(this.pitches[index], offset);
+                if (keySignature) {
+                    var letterKey = nnote.letter + nnote.accidental;
+                    letterKey = smoMusic.getKeyFriendlyEnharmonic(letterKey, keySignature);
+                    nnote.letter = letterKey[0];
+                    if (letterKey.length < 2) {
+                        nnote.accidental = 'n';
+                    } else {
+                        nnote.accidental = letterKey.substring(1);
+                    }
+                }
+                this.pitches[index] = nnote;
+            }
+        }
+        this._sortPitches();
+        return this;
+    }
+    get tickCount() {
+        return this.ticks.numerator / this.ticks.denominator + this.ticks.remainder;
+    }
+
+    describe() {
+        return this.id + ' ' + this.tickCount;
+    }
+
+    static clone(note) {
+        var rv = SmoNote.deserialize(note.serialize());
+
+        // make sure id is unique
+        rv.attrs = {
+            id: VF.Element.newID(),
+            type: 'SmoNote'
+        };
+        return rv;
+    }
+
+    // ## Description:
+    // Clone the note, but use the different duration.  Changes the length
+    // of the note but nothing else.
+    static cloneWithDuration(note, ticks) {
+        var rv = SmoNote.clone(note);
+
+        rv.ticks = ticks;
+
+        return rv;
+    }
+
+	_serializeModifiers() {
+        return JSON.parse(JSON.stringify(this.textModifiers));
+    }
+	serialize()  {
+		var params={};
+		smoMusic.serializedMerge(SmoNote.parameterArray,this,params);
+		params.ticks = JSON.parse(JSON.stringify(params.ticks));
+		params.noteModifiers=this._serializeModifiers();
+		return params;
 	}
-	_sortPitches() {
-		var canon = VF.Music.canonical_notes;
-		var keyIndex = ((pitch) => {
-			return canon.indexOf(pitch.letter) + pitch.octave * 12;
+
+    static get defaults() {
+        return {
+            noteType: 'n',
+            textModifiers: [],
+            ticks: {
+                numerator: 4096,
+                denominator: 1,
+                remainder: 0
+            },
+            pitches: [{
+                    letter: 'b',
+                    octave: 4,
+                    accidental: ''
+                }
+            ],
+        }
+    }
+    static deserialize(jsonObj) {
+		var note = new SmoNote(jsonObj);
+		note.attrs.id=jsonObj.attrs.id;
+		jsonObj.noteModifiers.forEach((mod) => {
+			note.textModifiers.push(SmoNoteModifierBase.deserialize(mod));
 		});
-		this.pitches.sort((a, b) => {
-			return keyIndex(a) - keyIndex(b);
-		});
-	}
-	addPitchOffset(offset) {
-		if (this.pitches.length == 0) {
-			return this;
-		}
-		this.noteType='n';
-		var pitch = this.pitches[0];
-		this.pitches.push(smoMusic.getKeyOffset(pitch, offset));
-
-		this._sortPitches();
-	}
-	
-	makeRest() {
-		this.noteType= (this.noteType == 'r' ? 'n' : 'r');
-	}
-	
-	makeNote() {
-		this.noteType='n';
-	}
-	
-	isTuplet() {
-		return this['tuplet'] && this.tuplet['id'];
-	}
-
-	transpose(pitchArray, offset, keySignature) {
-		var pitches = [];
-		this.noteType='n';
-		if (pitchArray.length == 0) {
-			this.pitches.forEach((m)=>{pitchArray.push(this.pitches.indexOf(m));});
-		}
-		for (var j = 0; j < pitchArray.length; ++j) {
-			var index = pitchArray[j];
-			if (index + 1 > this.pitches.length) {
-				this.addPitchOffset(offset);
-			} else {
-				var nnote = smoMusic.getKeyOffset(this.pitches[index], offset);
-				if (keySignature) {
-					var letterKey = nnote.letter + nnote.accidental;
-					letterKey = smoMusic.getKeyFriendlyEnharmonic(letterKey,keySignature);
-					nnote.letter = letterKey[0];
-					if (letterKey.length < 2) {
-						nnote.accidental = 'n';
-					} else {
-						nnote.accidental = letterKey.substring(1);
-					}
-				}
-				this.pitches[index] = nnote;
-			}
-		}
-		this._sortPitches();
-		return this;
-	}
-	get tickCount() {
-		return this.ticks.numerator / this.ticks.denominator + this.ticks.remainder;
-	}
-
-	describe() {
-		return this.id + ' ' + this.tickCount;
-	}
-	
-	static _cloneParameters(note) {
-		var keys = Object.keys(note);
-		var clone = {};
-		for (var i = 0; i < keys.length; ++i) {
-			var key = keys[i];
-			clone[key] = note[key];
-		}
-		return JSON.parse(JSON.stringify(clone));
-	}
-	static clone(note) {
-		var clone = SmoNote._cloneParameters(note);
-
-		// should tuplet info be cloned?
-		var rv = new SmoNote(clone);
-
-		// make sure id is unique
-		rv.attrs = {
-			id: VF.Element.newID(),
-			type: 'SmoNote'
-		};
-		return rv;
-	}
-
-	// ## Description:
-	// Clone the note, but use the different duration.  Changes the length
-	// of the note but nothing else.
-	static cloneWithDuration(note, duration) {
-		var clone = SmoNote._cloneParameters(note);
-		
-		clone.duration = duration;
-
-		// should tuplet info be cloned?
-		var rv = new SmoNote(clone);
-
-		// make sure id is unique
-		rv.attrs = {
-			id: VF.Element.newID(),
-			type: 'SmoNote'
-		};
-		return rv;
-	}
-
-	static get defaults() {
-		return {
-			timeSignature: '4/4',
-			keySignature: "C",
-			clef: 'treble',
-			noteType: 'n',
-			numBeats: 4,
-			beatValue: 4,
-			voice: 0,
-			duration: '4',
-			textModifiers:[],
-			pitches: [{
-					letter: 'b',
-					octave: 4,
-					accidental: ''
-				}
-			],
-		}
+		return note;
 	}
 }
-
 class SmoTuplet {
-	constructor(params) {
-		this.notes = params.notes;
-		Vex.Merge(this, SmoTuplet.defaults);
-		Vex.Merge(this, params);
-		if (!this['attrs']) {
-			this.attrs = {
-				id: VF.Element.newID(),
-				type: 'SmoTuplet'
-			};
-		} else {
-			console.log('inherit attrs');
-		}
-		this._adjustTicks();
-	}
+    constructor(params) {
+        this.notes = params.notes;
+        Vex.Merge(this, SmoTuplet.defaults);
+        Vex.Merge(this, params);
+        if (!this['attrs']) {
+            this.attrs = {
+                id: VF.Element.newID(),
+                type: 'SmoTuplet'
+            };
+        } else {
+            console.log('inherit attrs');
+        }
+        this._adjustTicks();
+    }
 
-	_adjustTicks() {
-		var sum = this.durationSum;
-		for (var i = 0; i < this.notes.length; ++i) {
-			var note = this.notes[i];
-			var normTicks = smoMusic.durationToTicks(smoMusic.ticksToDuration[this.stemTicks]);
-			// TODO:  notes_occupied needs to consider vex duration
-			var tupletBase = normTicks * this.note_ticks_occupied;
-			note.ticks.denominator = 1;
-			note.ticks.numerator = Math.floor((this.totalTicks * this.durationMap[i]) / sum);
-			// put all the remainder in the first note of the tuplet
-			note.ticks.remainder = (i == 0) ? this.totalTicks * this.durationMap[i] % sum : 0;
+    _adjustTicks() {
+        var sum = this.durationSum;
+        for (var i = 0; i < this.notes.length; ++i) {
+            var note = this.notes[i];
+            var normTicks = smoMusic.durationToTicks(smoMusic.ticksToDuration[this.stemTicks]);
+            // TODO:  notes_occupied needs to consider vex duration
+            var tupletBase = normTicks * this.note_ticks_occupied;
+            note.ticks.denominator = 1;
+            note.ticks.numerator = Math.floor((this.totalTicks * this.durationMap[i]) / sum);
+            // put all the remainder in the first note of the tuplet
+            note.ticks.remainder = (i == 0) ? this.totalTicks * this.durationMap[i] % sum : 0;
 
-			note.tuplet = this.attrs;
-		}
-	}
-	getIndexOfNote(note) {
-		var rv = -1;
-		for (var i = 0; i < this.notes.length; ++i) {
-			var tn = this.notes[i];
-			if (note.id === tn.id) {
-				rv = i;
-			}
-		}
-		return rv;
-	}
-	split(combineIndex) {
-		var multiplier = 0.5;
-		var nnotes = [];
-		var nmap = [];
+            note.tuplet = this.attrs;
+        }
+    }
+    getIndexOfNote(note) {
+        var rv = -1;
+        for (var i = 0; i < this.notes.length; ++i) {
+            var tn = this.notes[i];
+            if (note.id === tn.id) {
+                rv = i;
+            }
+        }
+        return rv;
+    }
+    split(combineIndex) {
+        var multiplier = 0.5;
+        var nnotes = [];
+        var nmap = [];
 
-		for (var i = 0; i < this.notes.length; ++i) {
-			var note = this.notes[i];
-			if (i === combineIndex) {
-				nmap.push(this.durationMap[i] * multiplier);
-				nmap.push(this.durationMap[i] * multiplier);
-				note.ticks.numerator *= multiplier;
+        for (var i = 0; i < this.notes.length; ++i) {
+            var note = this.notes[i];
+            if (i === combineIndex) {
+                nmap.push(this.durationMap[i] * multiplier);
+                nmap.push(this.durationMap[i] * multiplier);
+                note.ticks.numerator *= multiplier;               
 
-				var normalizedTicks = VF.durationToTicks(note.duration) / 2;
-				note.duration = smoMusic.ticksToDuration[normalizedTicks];
+                var onote = SmoNote.clone(note);
+                nnotes.push(note);
+                nnotes.push(onote);
+            } else {
+                nmap.push(this.durationMap[i]);
+                nnotes.push(note);
+            }
+        }
+        this.notes = nnotes;
+        this.durationMap = nmap;
+    }
+    combine(startIndex, endIndex) {
+        // can't combine in this way, too many notes
+        if (this.notes.length <= endIndex || startIndex >= endIndex) {
+            return this;
+        }
+        var acc = 0.0;
+        var i;
+        var base = 0.0;
+        for (i = startIndex; i <= endIndex; ++i) {
+            acc += this.durationMap[i];
+            if (i == startIndex) {
+                base = this.durationMap[i];
+            } else if (this.durationMap[i] != base) {
+                // Can't combine non-equal tuplet notes
+                return this;
+            }
+        }
+        // how much each combined value will be multiplied by
+        var multiplier = acc / base;
 
-				var onote = SmoNote.clone(note);
-				nnotes.push(note);
-				nnotes.push(onote);
-			} else {
-				nmap.push(this.durationMap[i]);
-				nnotes.push(note);
-			}
-		}
-		this.notes = nnotes;
-		this.durationMap = nmap;
-	}
-	combine(startIndex, endIndex) {
-		// can't combine in this way, too many notes
-		if (this.notes.length <= endIndex || startIndex >= endIndex) {
-			return this;
-		}
-		var acc = 0.0;
-		var i;
-		var base = 0.0;
-		for (i = startIndex; i <= endIndex; ++i) {
-			acc += this.durationMap[i];
-			if (i == startIndex) {
-				base = this.durationMap[i];
-			} else if (this.durationMap[i] != base) {
-				// Can't combine non-equal tuplet notes
-				return this;
-			}
-		}
-		// how much each combined value will be multiplied by
-		var multiplier = acc / base;
+        var nmap = [];
+        var nnotes = [];
+        // adjust the duration map
+        for (i = 0; i < this.notes.length; ++i) {
+            var note = this.notes[i];
+            // notes that don't change are unchanged
+            if (i < startIndex || i > endIndex) {
+                nmap.push(this.durationMap[i]);
+                nnotes.push(note);
+            }
+            // changed note with combined duration
+            if (i == startIndex) {
+                note.ticks.numerator = note.ticks.numerator * multiplier;
+                nmap.push(acc);
+                nnotes.push(note);
+            }
+            // other notes after startIndex are removed from the map.
+        }
+        this.notes = nnotes;
+        this.durationMap = nmap;
+    }
+    get durationSum() {
+        var acc = 0;
+        for (var i = 0; i < this.durationMap.length; ++i) {
+            acc += this.durationMap[i];
+        }
+        return Math.round(acc);
+    }
+    get num_notes() {
+        return this.durationSum;
+    }
+    get notes_occupied() {
+        return Math.floor(this.totalTicks / this.stemTicks);
+    }
+    get note_ticks_occupied() {
+        return this.totalTicks / this.stemTicks;
+    }
+    get tickCount() {
+        var rv = 0;
+        for (var i = 0; i < this.notes.length; ++i) {
+            var note = this.notes[i];
+            rv += (note.ticks.numerator / note.ticks.denominator) + note.ticks.remainder;
+        }
+        return rv;
+    }
 
-		var nmap = [];
-		var nnotes = [];
-		// adjust the duration map
-		for (i = 0; i < this.notes.length; ++i) {
-			var note = this.notes[i];
-			// notes that don't change are unchanged
-			if (i < startIndex || i > endIndex) {
-				nmap.push(this.durationMap[i]);
-				nnotes.push(note);
-			}
-			// changed note with combined duration
-			if (i == startIndex) {
-				note.ticks.numerator = note.ticks.numerator * acc;
-				var normTicks = VF.durationToTicks(note.duration) * multiplier;
-				note.duration = smoMusic.ticksToDuration[normTicks];
-				nmap.push(acc);
-				nnotes.push(note);
-			}
-			// other notes after startIndex are removed from the map.
-		}
-		this.notes = nnotes;
-		this.durationMap = nmap;
-	}
-	get durationSum() {
-		var acc = 0;
-		for (var i = 0; i < this.durationMap.length; ++i) {
-			acc += this.durationMap[i];
-		}
-		return Math.round(acc);
-	}
-	get num_notes() {
-		return this.durationSum;
-	}
-	get notes_occupied() {
-		return Math.floor(this.totalTicks / this.stemTicks);
-	}
-	get note_ticks_occupied() {
-		return this.totalTicks / this.stemTicks;
-	}
-	get tickCount() {
-		var rv = 0;
-		for (var i = 0; i < this.notes.length; ++i) {
-			var note = this.notes[i];
-			rv += (note.ticks.numerator / note.ticks.denominator) + note.ticks.remainder;
-		}
-		return rv;
-	}
-	static get defaults() {
-		return {
-			numNotes: 3,
-			totalTicks: 4096, // how many ticks this tuple takes up
-			stemTicks: 2048, // the stem ticks, for drawing purposes.  >16th, draw as 8th etc.
-			location: 1,
-			durationMap: [1.0, 1.0, 1.0],
-			bracketed: true,
-			ratioed: false
-		}
-	}
+    static get defaults() {
+        return {
+            numNotes: 3,
+            totalTicks: 4096, // how many ticks this tuple takes up
+            stemTicks: 2048, // the stem ticks, for drawing purposes.  >16th, draw as 8th etc.
+            location: 1,
+            durationMap: [1.0, 1.0, 1.0],
+            bracketed: true,
+            ratioed: false
+        }
+    }
 }
 
 class SmoBeamGroup {
-	constructor(params) {
-		this.notes = params.notes;
-		Vex.Merge(this, params);
+    constructor(params) {
+        this.notes = params.notes;
+        Vex.Merge(this, params);
 
-		if (!this['attrs']) {
-			this.attrs = {
-				id: VF.Element.newID(),
-				type: 'SmoBeamGroup'
-			};
-		} else {
-			console.log('inherit attrs');
-		}
-		for (var i = 0; i < this.notes.length; ++i) {
-			var note = this.notes[i];
-			if (smoMusic.durationToTicks(note.duration) < 4096)
-				note.beam_group = this.attrs;
-		}
-	}
+        if (!this['attrs']) {
+            this.attrs = {
+                id: VF.Element.newID(),
+                type: 'SmoBeamGroup'
+            };
+        } else {
+            console.log('inherit attrs');
+        }
+        for (var i = 0; i < this.notes.length; ++i) {
+            var note = this.notes[i];
+            if (note.tickCount < 4096)
+                note.beam_group = this.attrs;
+        }
+    }
 }
 ;
 // # SmoMeasure - data for a measure of music
@@ -1063,15 +1031,38 @@ class SmoMeasure {
     get stemDirection() {
         return this.activeVoice % 2 ? -1 : 1;
     }
-		
+	
 	static get defaultAttributes() {
 		return [
             'timeSignature', 'keySignature', 'staffX', 'staffY', 'customModifiers',
              'measureNumber', 'staffWidth', 'modifierOptions',
             'activeVoice'];
 	}
-    static deserialize(jsonString) {
-        var jsonObj = JSON.parse(jsonString);
+	serialize() {
+		var params = {};
+		smoMusic.filteredMerge(SmoMeasure.defaultAttributes,this,params);
+		params.tuplets = [];
+		params.beamGroups=[];
+		params.voices=[];
+		
+		this.tuplets.forEach((tuplet) => {
+			params.tuplets.push(JSON.parse(JSON.stringify(tuplet)));
+		});
+		
+		this.beamGroups.forEach((beam) =>  {
+			params.beamGroups.push(JSON.parse(JSON.stringify(beam)));
+		});
+		
+		this.voices.forEach((voice) => {
+			var obj={notes:[]};
+			voice.notes.forEach((note) => {
+				obj.notes.push(note.serialize());
+			});
+			params.voices.push(obj);
+		});
+		return params;
+	}
+    static deserialize(jsonObj) {
         var voices = [];
         for (var j = 0; j < jsonObj.voices.length; ++j) {
             var voice = jsonObj.voices[j];
@@ -1081,7 +1072,7 @@ class SmoMeasure {
             });
             for (var i = 0; i < voice.notes.length; ++i) {
                 var noteParams = voice.notes[i];
-                var smoNote = new SmoNote(noteParams);
+                var smoNote = SmoNote.deserialize(noteParams);
                 notes.push(smoNote);
             }
         }
@@ -1104,7 +1095,7 @@ class SmoMeasure {
             beamGroups: beamGroups
         };
 
-        smoMusic.filteredMerge(SmoMeasure.defaultAttributes, jsonObj, params);
+        smoMusic.serializedMerge(SmoMeasure.defaultAttributes, jsonObj, params);
 
         return new SmoMeasure(params);
     }
@@ -1177,9 +1168,9 @@ class SmoMeasure {
 		params.timeSignature = params.timeSignature ? params.timeSignature : '4/4';
 		params.clef = params.clef ? params.clef : 'treble';
         var meterNumbers = params.timeSignature.split('/').map(number => parseInt(number, 10));
-        var duration = '4';
+        var ticks = {numerator:4096,denominator:1,remainder:0};
         if (meterNumbers[0] % 3 == 0) {
-            duration = '8';
+            ticks = {numerator:2048,denominator:1,remainder:0};
         }
         var pitches = SmoMeasure.defaultKeyForClef[params.clef];
 		var rv = [];
@@ -1188,7 +1179,7 @@ class SmoMeasure {
             var note = new SmoNote({
                     clef: params.clef,
                     pitches: [pitches],
-                    duration: duration,
+                    ticks: ticks,
 					timeSignature:params.timeSignature
                 });
             rv.push(note);
@@ -1299,6 +1290,18 @@ class SmoMeasure {
             }
         }
     }
+	tupletNotes(tuplet) {
+		var notes=[];
+        for (var j = 0; j < this.voices.length; ++j) {
+            var notes = this.voices[j].notes;
+            for (var i = 0; i < notes.length; ++i) {
+                if (notes[i]['tuplet'] && notes[i].tuplet.id === tuplet.attrs.id) {
+                    notes.push(notes[i]);
+                }
+            }
+        }
+        return notes;
+    }
     tupletIndex(tuplet) {
         for (var j = 0; j < this.voices.length; ++j) {
             var notes = this.voices[j].notes;
@@ -1389,10 +1392,17 @@ class SmoSystemStaff {
                 type: 'SmoSystemStaff'
             };
         } else {
-            // inherit attrs id for deserialized 
+            // inherit attrs id for deserialized
 
         }
     }
+	
+	static get defaultParameters() {
+		return [
+		'staffX','staffY','adjY','staffWidth','staffHeight','startIndex',
+            'renumberingMap','keySignatureMap','instrumentInfo'];
+	}
+	
     static get defaults() {
         return {
             staffX: 10,
@@ -1412,20 +1422,45 @@ class SmoSystemStaff {
             modifiers: []
         };
     }
+	
+	serialize() {
+		var params={};
+		smoMusic.filteredMerge(SmoSystemStaff.defaultParameters,this,params);
+		params.modifiers=[];
+		params.measures=[];
+		
+		
+		this.measures.forEach((measure) => {
+			params.measures.push(measure.serialize());
+		});
+		
+		this.modifiers.forEach((modifier) => {
+			params.modifiers.push(modifier.serialize());
+		});
+		
+		return params;
+	}
 
-    static deserialize(jsonString) {
-        var jsonObj = JSON.parse(jsonString);
+    static deserialize(jsonObj) {
         var params = {};
-        smoMusic.filteredMerge(
+        smoMusic.serializedMerge(
             ['staffX', 'staffY', 'staffWidth', 'startIndex', 'renumberingMap', 'renumberIndex', 'instrumentInfo'],
             jsonObj, params);
         params.measures = [];
         jsonObj.measures.forEach(function (measureObj) {
-            var measure = SmoMeasure.deserialize(JSON.stringify(measureObj));
+            var measure = SmoMeasure.deserialize(measureObj);
             params.measures.push(measure);
         });
 
-        return new SmoSystemStaff(params);
+        var rv = new SmoSystemStaff(params);
+
+        if (jsonObj.modifiers) {
+            jsonObj.modifiers.forEach((params) => {
+                var mod = StaffModifierBase.deserialize(params);
+                rv.modifiers.push(mod);
+            });
+        }
+		return rv;
     }
 
     addStaffModifier(modifier) {
@@ -1435,13 +1470,23 @@ class SmoSystemStaff {
 
     removeStaffModifier(modifier) {
         var mods = [];
-        this.modifiers.forEach((mod)=> {
+        this.modifiers.forEach((mod) => {
             if (mod.id != modifier.id) {
                 mods.push(mod);
             }
         });
         this.modifiers = mods;
     }
+	
+	getModifiesrAt(selector) {
+		var rv = [];
+		this.modifiers.forEach((mod) => {
+			if (SmoSelector.sameNote(mod.startSelector,selector)) {
+				rv.push(mod);
+			}
+		});
+		return rv;
+	}
 
     getModifierMeasures(modifier) {
         return {
@@ -1549,10 +1594,10 @@ class SmoSystemStaff {
         var measure = SmoMeasure.getDefaultMeasure(params);
         this.addMeasure(index, measure);
     }
-	
-	// ## addMeasure
-	// ## Description:
-	// Add the measure at the specified index, splicing the array as required.
+
+    // ## addMeasure
+    // ## Description:
+    // Add the measure at the specified index, splicing the array as required.
     addMeasure(index, measure) {
 
         if (index === 0 && this.measures.length) {
@@ -1595,6 +1640,37 @@ class SmoScore {
         };
     }
 	
+	static get defaultAttributes() {
+		return ['staffX', 'staffY', 'staffWidth', 'startIndex', 'interGap', 'renumberingMap', 'renumberIndex'];
+	}
+	serialize() {
+		var params={};
+		smoMusic.serializedMerge(SmoScore.defaultAttributes,this,params);
+		var obj={score:params,staves:[]};
+		this.staves.forEach((staff) => {
+			obj.staves.push(staff.serialize());
+		});
+		return obj;
+	}
+	static deserialize(jsonString) {
+        var jsonObj = JSON.parse(jsonString);
+        var params = {};
+		var staves=[];
+        smoMusic.serializedMerge(
+            SmoScore.defaultAttributes,
+            jsonObj, params);
+        jsonObj.staves.forEach((staffObj) => {
+            var staff = SmoSystemStaff.deserialize(staffObj);
+            staves.push(staff);
+        });
+		params.staves=staves;
+
+        return new SmoScore(params);
+    }
+	
+	// ## getDefaultScore
+	// ## Description:
+	// Gets a score consisting of a single measure with all the defaults.
 	static getDefaultScore(scoreDefaults,measureDefaults) {
 		scoreDefaults = (scoreDefaults != null ? scoreDefaults : SmoScore.defaults);
 		measureDefaults = (measureDefaults != null ? measureDefaults : SmoMeasure.defaults);
@@ -1606,39 +1682,27 @@ class SmoScore {
 		return score;
 	}
 	
+	// ## getEmptyScore
+	// ## Description:
+	// Create a score object, but don't populate it with anything.
 	static getEmptyScore(scoreDefaults) {
 		var score = new SmoScore(scoreDefaults);
 		score.addInstrument();
 		return score;
 	}
-	applyBeamers() {
-		for (var i = 0; i < this.staves.length; ++i) {
-            var stave = this.staves[i];
-			stave.applyBeamers();
-		}
-	}
-
-    _numberStaves() {
+   	
+	// ## _numberStaves
+	// recursively renumber staffs and measures.
+	_numberStaves() {
        for (var i = 0; i < this.staves.length; ++i) {
             var stave = this.staves[i];
             stave.numberMeasures();
         }
     }
 	
-	getMeasureAtSelection(selection) {
-		return this.staves[this.activeStaff].getMeasureAtSelection(selection);
-	}
-	// If we are adding a measure, find the previous measure to get constructor parameters from it.
-	_getMeasureContext(staff,measureIndex) {
-		var rv={};
-		Vex.Merge(rv,SmoMeasure.defaults);
-		
-		if (measureIndex < staff.measures.length) {
-			smoMusic.filteredMerge(SmoMeasure.defaultAttributes, rv, staff.measures[i]);
-		}
-		return rv;
-	}
-	
+	// ## addDefaultMeasure
+	// ## Description:
+	// Add a meaure to the score with the default key signature.
 	addDefaultMeasure(measureIndex,parameters) {
 		for (var i=0;i<this.staves.length;++i) {
 			var staff=this.staves[i];
@@ -1684,9 +1748,32 @@ class SmoScore {
 		}
 		this._numberStaves();
 	}
+	
+	replaceMeasure(selector,measure) {
+		var staff=this.staves[selector.staff];
+		staff.measures[selector.measure]=measure;
+	}
+	// TODO: Untested
+	replaceStaff(index,staff) {
+		var staves=[];
+		for (var i=0;i<this.staves.length;++i) {
+			if (i != index) {
+				staves.push(this.staves[i]);				
+			}else {
+				staves.push(staff);
+			}
+		}
+		this.staves=staves;		
+	}
+	// ## addKeySignature
+	// ## Add a key signature at the specified index in all staves.
 	addKeySignature(measureIndex,key) {
 		this.staves.forEach((staff) => {staff.addKeySignature(measureIndex,key);});
 	}
+	
+	// ## addInstrument
+	// ## Description:
+	// add a new staff (instrument) to the score
 	addInstrument(parameters) {
 		if (this.staves.length ==0 )  {
 			this.staves.push(new SmoSystemStaff(parameters));
@@ -1729,22 +1816,7 @@ class SmoScore {
 		return this.activeStaff;
 	}
 	
-    static deserialize(jsonString) {
-        var jsonObj = JSON.parse(jsonString);
-        var params = {};
-		var staves=[];
-        smoMusic.filteredMerge(
-            ['staffX', 'staffY', 'staffWidth', 'startIndex', 'interGap', 'renumberingMap', 'renumberIndex'],
-            jsonObj, params);
-        jsonObj.staves.forEach(function (measureObj) {
-            var staff = SmoSystemStaff.deserialize(JSON.stringify(measureObj));
-            staves.push(staff);
-        });
-		params.staves=staves;
-
-        return new SmoScore(params);
-    }
-	
+  
 	setActiveStaff(index) {
 		this.activeStaff=index<=this.staves.length ? index : this.activeStaff;
 	}
@@ -1765,11 +1837,25 @@ class SmoScore {
 // # This file contains modifiers that might take up multiple measures, and are thus associated
 // with the staff.
 
+class StaffModifierBase {
+	constructor(ctor) {
+		this.ctor=ctor;
+	}
+	static deserialize(jsonObj) {
+		var params = JSON.parse(json)
+		var ctor = eval(dbType);
+		var rv= new ctor(jsonObj);
+		rv.attrs.id=jsonObj.attrs.id;
+		rv.attrs.type=jsonObj.attrs.type;
+
+	}
+}
 // ## SmoStaffHairpin
 // ## Descpription:
 // crescendo/decrescendo
-class SmoStaffHairpin {
+class SmoStaffHairpin extends StaffModifierBase {
     constructor(params) {
+		super('SmoStaffHairpin');
         Vex.Merge(this, SmoStaffHairpin.defaults);
         smoMusic.filteredMerge(['position', 'xOffset', 'yOffset', 'hairpinType', 'height'], params, this);
         this.startSelector = params.startSelector;
@@ -1784,6 +1870,11 @@ class SmoStaffHairpin {
             console.log('inherit attrs');
         }
     }
+	get serialize() {
+		var params={};
+		smoMusic.filteredMerge(['position', 'xOffset', 'yOffset', 'hairpinType', 'height'], this, params);
+		return params;
+	}
     get id() {
         return this.attrs.id;
     }
@@ -1835,7 +1926,7 @@ class SmoStaffHairpin {
     }
 }
 
-class SmoSlur {
+class SmoSlur extends StaffModifierBase{
     static get defaults() {
         return {
             spacing: 2,
@@ -1863,6 +1954,13 @@ class SmoSlur {
         return ['spacing', 'xOffset', 'yOffset', 'position', 'position_end', 'invert',
             'cp1x', 'cp1y', 'cp2x', 'cp2y'];
     }
+	
+	get serialize() {
+		var params={};
+		smoMusic.filteredMerge(SmoSlur.parameterArray, this, params);
+		return params;
+	}
+
     backupOriginal() {
         if (!this['original']) {
             this.original = {};
@@ -1899,6 +1997,7 @@ class SmoSlur {
     }
 
     constructor(params) {
+		super('SmoSlur');
         Vex.Merge(this, SmoSlur.defaults);
         smoMusic.filteredMerge(SmoSlur.parameterArray, params, this);
         this.startSelector = params.startSelector;
@@ -2251,11 +2350,13 @@ class smoBeamModifier extends BeamModifierBase {
 
         // beam tuplets
         if (note.isTuplet()) {
-            //todo: when does stack have more than 1?
             var tuplet = this.measure.getTupletForNote(note);
             var ult = tuplet.notes[tuplet.notes.length - 1];
-            // is this beamable
-            if (smoMusic.durationToTicks(note.duration) < 4096) {
+
+            // is this beamable length-wise
+			var vexDuration=smoMusic.closestVexDuration(note.tickCount);
+			var stemTicks = VF.durationToTicks.durations[vexDuration];
+            if (stemTicks < 4096) {
                 this.beamGroup = true;
                 this.currentGroup.push(note);
             }
@@ -2405,7 +2506,6 @@ class SmoContractNoteActor extends TickTransformBase {
             var noteCount = Math.floor(note.ticks.numerator / this.newTicks);
             var notes = [];
 			var remainder = note.ticks.numerator;
-            var vexDuration = smoMusic.ticksToDuration[this.newTicks];
             /**
              *  Replace 1 note with noteCOunt notes of newTIcks duration
              *      old map:
@@ -2417,17 +2517,16 @@ class SmoContractNoteActor extends TickTransformBase {
                 notes.push(new SmoNote({
                         clef: note.clef,
                         pitches: JSON.parse(JSON.stringify(note.pitches)),
-                        duration: vexDuration
+                        ticks: {numerator:this.newTicks,denominator:1,remainder:0}
                     }));
 				remainder = remainder - this.newTicks;
             }
 			
 			if (remainder > 0) {
-				vexDuration = smoMusic.ticksToDuration[remainder];
 				notes.push(new SmoNote({
                         clef: note.clef,
                         pitches: JSON.parse(JSON.stringify(note.pitches)),
-                        duration: vexDuration
+                        ticks: {numerator:remainder,denominator:1,remainder:0}
                     }));
 			}
             return notes;
@@ -2525,8 +2624,7 @@ class SmoUnmakeTupletActor extends TickTransformBase {
         if (iterator.index == this.startIndex) {
             var tuplet = this.measure.getTupletForNote(note);
             var ticks = tuplet.totalTicks;
-            var vexDuration = smoMusic.ticksToDuration[ticks];
-            var nn = SmoNote.cloneWithDuration(note, vexDuration);
+            var nn = SmoNote.cloneWithDuration(note, {numerator:ticks,denominator:1,remainder:0});
             nn.tuplet = {};
             this.measure.removeTupletForNote(note);
             return [nn];
@@ -2599,7 +2697,7 @@ class SmoMakeTupletActor extends TickTransformBase {
             return null;
         }
         for (var i = 0; i < this.numNotes; ++i) {
-            note = SmoNote.cloneWithDuration(note, this.vexDuration);
+            note = SmoNote.cloneWithDuration(note, {numerator:this.stemTicks,denominator:1,remainder:0});
 			
 			// Don't clone modifiers, except for first one.
 			note.textModifiers = i===0 ? note.textModifiers : [];
@@ -2625,8 +2723,6 @@ class SmoStretchNoteActor extends TickTransformBase {
     constructor(parameters) {
         super();
         Vex.Merge(this, parameters);
-        this.vexDuration = smoMusic.ticksToDuration[this.newTicks];
-        this.endIndex = this.index + 1;
         this.startTick = this.tickmap.durationMap[this.startIndex];
 
         var endTick = this.tickmap.durationMap[this.startIndex] + this.newTicks;
@@ -2680,7 +2776,7 @@ class SmoStretchNoteActor extends TickTransformBase {
                 return [];
             }
             var vexDuration = smoMusic.ticksToDuration[ticks];
-            var note = SmoNote.cloneWithDuration(note, vexDuration);
+            var note = SmoNote.cloneWithDuration(note, {numerator:ticks,denominator:1,remainder:0});
             return [note];
         }
         return null;
@@ -2698,33 +2794,69 @@ class SmoStretchNoteActor extends TickTransformBase {
 // indices that define what was selected.  This is the latter.  The actual object does not
 // have any methods so there is no constructor.
 class SmoSelector {
-    static sameNote(sel1, sel2) {
-        return (sel1.staff == sel2.staff && sel1.measure == sel2.measure && sel1.voice == sel2.voice
-             && sel1.tick == sel2.tick);
-    }
-    static sameMeasure(sel1, sel2) {
-        return (sel1.staff == sel2.staff && sel1.measure == sel2.measure);
-    }
-	
-	static sameStaff(sel1,sel2) {
+	// TODO:  tick in selector s/b tickIndex
+	static sameNote(sel1, sel2) {
+		return (sel1.staff == sel2.staff && sel1.measure == sel2.measure && sel1.voice == sel2.voice
+			 && sel1.tick == sel2.tick);
+	}
+	static sameMeasure(sel1, sel2) {
+		return (sel1.staff == sel2.staff && sel1.measure == sel2.measure);
+	}
+
+	static sameStaff(sel1, sel2) {
 		return sel1.staff === sel2.staff;
+	}
+	
+	// ## return true if sel1 > sel2.  
+	static gt(sel1, sel2) {
+		// Note: voice is not considered b/c it's more of a vertical component
+		return sel1.staff > sel2.staff ||
+			(sel1.staff == sel2.staff && sel1.measure > sel2.measure) ||
+			(sel1.staff == sel2.staff && sel1.measure == sel2.measure && sel1.tick > sel2.tick);
+	}
+	
+	static eq(sel1,sel2) {
+		return (sel1.staff == sel2.staff && sel1.measure == sel2.measure && sel1.tick == sel2.tick);
+	}
+	
+	static lt(sel1,sel2) {
+		return SmoSelector.gt(sel2,sel1);
+	}
+	
+	static gteq(sel1,sel2) {
+		return SmoSelector.gt(sel1,sel2) ||  SmoSelector.eq(sel1,sel2);
+	}
+	static lteq(sel1,sel2) {
+		return SmoSelector.lt(sel1,sel2) ||  SmoSelector.eq(sel1,sel2);
+	}
+
+	// ## applyOffset
+	// ### Description:
+	// offset 'selector' the difference between src and target, return the result
+	static applyOffset(src, target, selector) {
+		var rv = JSON.parse(JSON.stringify(selector));
+		rv.staff += target.staff - src.staff;
+		rv.measure += target.measure - src.measure;
+		rv.voice += target.voice - src.voice;
+		rv.note += target.staff - src.staff;
+		return rv;
 	}
 
 	// return true if testSel is contained in the selStart to selEnd range.
-    static contains(testSel, selStart, selEnd) {
-        var geStart =
-            selStart.measure < testSel.measure ||
-            (selStart.measure === testSel.measure && selStart.tick <= testSel.tick);
-        var leEnd =
-            selEnd.measure > testSel.measure ||
-            (selEnd.measure === testSel.measure && testSel.tick <= selEnd.tick);
+	static contains(testSel, selStart, selEnd) {
+		var geStart =
+			selStart.measure < testSel.measure ||
+			(selStart.measure === testSel.measure && selStart.tick <= testSel.tick);
+		var leEnd =
+			selEnd.measure > testSel.measure ||
+			(selEnd.measure === testSel.measure && testSel.tick <= selEnd.tick);
 
-        return geStart && leEnd;
-    }
-	
+		return geStart && leEnd;
+	}
+
 	// create a hashmap key for a single note, used to organize modifiers
 	static selectorNoteKey(selector) {
-		return 'staff-'+selector.staff+'-measure-'+selector.measure+'-voice-'+selector.voice+'-tick-'+selector.tick;
+		return 'staff-' + selector.staff + '-measure-' + selector.measure + '-voice-' + selector.voice + '-tick-' + selector.tick;
 	}
 }
 
@@ -2735,191 +2867,203 @@ class SmoSelector {
 // and one or more pitches.  Selections can also be made from the UI by clicking on an element
 // or navigating to an element with the keyboard.
 class SmoSelection {
-    static measureSelection(score, staffIndex, measureIndex) {
-        staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
-        var selector = {
-            staff: staffIndex,
-            measure: measureIndex
-        };
-        var staff = score.staves[staffIndex];
-        var measure = staff.measures[measureIndex];
+	static measureSelection(score, staffIndex, measureIndex) {
+		staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
+		var selector = {
+			staff: staffIndex,
+			measure: measureIndex
+		};
+		var staff = score.staves[staffIndex];
+		var measure = staff.measures[measureIndex];
 
-        return new SmoSelection
-        ({
-            selector: selector,
-            _staff: staff,
-            _measure: measure,
-            type: 'measure'
-        });
-    }
+		return new SmoSelection
+		({
+			selector: selector,
+			_staff: staff,
+			_measure: measure,
+			type: 'measure'
+		});
+	}
+	
+	static noteFromSelection(score,selection) {
+		return SmoSelection(score,selection.staffIndex,selection.measureIndex,selection.voiceIndex,selection.tickIndex);
+	}
 
-    static noteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
-        staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
-        measureIndex = measureIndex ? measureIndex : 0;
-        voiceIndex = voiceIndex ? voiceIndex : 0;
-        var staff = score.staves[staffIndex];
-        var measure = staff.measures[measureIndex];
-        var note = measure.voices[voiceIndex].notes[tickIndex];
-        var selector = {
-            staff: staffIndex,
-            measure: measureIndex,
-            voice: voiceIndex,
-            tick: tickIndex
-        };
-        return new SmoSelection({
-            selector: selector,
-            _staff: staff,
-            _measure: measure,
-            _note: note,
-            _pitches: [],
-            type: 'note'
-        });
-    }
+	static noteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
+		staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
+		measureIndex = measureIndex ? measureIndex : 0;
+		voiceIndex = voiceIndex ? voiceIndex : 0;
+		var staff = score.staves[staffIndex];
+		var measure = staff.measures[measureIndex];
+		var note = measure.voices[voiceIndex].notes[tickIndex];
+		var selector = {
+			staff: staffIndex,
+			measure: measureIndex,
+			voice: voiceIndex,
+			tick: tickIndex
+		};
+		return new SmoSelection({
+			selector: selector,
+			_staff: staff,
+			_measure: measure,
+			_note: note,
+			_pitches: [],
+			type: 'note'
+		});
+	}
 
-    static renderedNoteSelection(score, nel,box) {
-        var elementId = nel.getAttribute('id');
-        for (var i = 0; i < score.staves.length; ++i) {
-            var staff = score.staves[i];
-            for (var j = 0; j < staff.measures.length; ++j) {
-                var measure = staff.measures[j];
-                for (var k = 0; k < measure.voices.length; ++k) {
-                    var voice = measure.voices[k];
-                    for (var m = 0; m < voice.notes.length; ++m) {
-                        var note = voice.notes[m];
-                        if (note.renderId === elementId) {
-                            var selector = {
-                                staff: i,
-                                measure: j,
-                                voice: k,
-                                tick: m,
-                                pitches: []
-                            };
-                            // var box = document.getElementById(nel.id).getBBox();
-                            var rv = new SmoSelection({
-                                    selector: selector,
-                                    _staff: staff,
-                                    _measure: measure,
-                                    _note: note,
-                                    _pitches: [],
-                                    box: box,
-                                    type: 'rendered'
-                                });
+	static renderedNoteSelection(score, nel, box) {
+		var elementId = nel.getAttribute('id');
+		for (var i = 0; i < score.staves.length; ++i) {
+			var staff = score.staves[i];
+			for (var j = 0; j < staff.measures.length; ++j) {
+				var measure = staff.measures[j];
+				for (var k = 0; k < measure.voices.length; ++k) {
+					var voice = measure.voices[k];
+					for (var m = 0; m < voice.notes.length; ++m) {
+						var note = voice.notes[m];
+						if (note.renderId === elementId) {
+							var selector = {
+								staff: i,
+								measure: j,
+								voice: k,
+								tick: m,
+								pitches: []
+							};
+							// var box = document.getElementById(nel.id).getBBox();
+							var rv = new SmoSelection({
+									selector: selector,
+									_staff: staff,
+									_measure: measure,
+									_note: note,
+									_pitches: [],
+									box: box,
+									type: 'rendered'
+								});
 
-                            return rv;
-                        }
-                    }
-                }
-            }
-        }
-        return null;
-    }
+							return rv;
+						}
+					}
+				}
+			}
+		}
+		return null;
+	}
 
-    static pitchSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex, pitches) {
-        staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
-        measureIndex = measureIndex ? measureIndex : 0;
-        voiceIndex = voiceIndex ? voiceIndex : 0;
-        var staff = score.staves[staffIndex];
-        var measure = staff.measures[measureIndex];
-        var note = measure.voices[voiceIndex].notes[tickIndex];
-        pitches = pitches ? pitches : [];
-        var pa = [];
-        pitches.forEach((ix) => {
-            pa.push(JSON.parse(JSON.stringify(note.pitches[ix])));
-        });
-        var selector = {
-            staff: staffIndex,
-            measure: measureIndex,
-            voice: voiceIndex,
-            tick: tickIndex,
-            pitches: pitches
-        };
-        return new SmoSelection({
-            selector: selector,
-            _staff: staff,
-            _measure: measure,
-            _note: note,
-            _pitches: pa,
-            type: 'pitches'
-        });
-    }
+	static pitchSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex, pitches) {
+		staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
+		measureIndex = measureIndex ? measureIndex : 0;
+		voiceIndex = voiceIndex ? voiceIndex : 0;
+		var staff = score.staves[staffIndex];
+		var measure = staff.measures[measureIndex];
+		var note = measure.voices[voiceIndex].notes[tickIndex];
+		pitches = pitches ? pitches : [];
+		var pa = [];
+		pitches.forEach((ix) => {
+			pa.push(JSON.parse(JSON.stringify(note.pitches[ix])));
+		});
+		var selector = {
+			staff: staffIndex,
+			measure: measureIndex,
+			voice: voiceIndex,
+			tick: tickIndex,
+			pitches: pitches
+		};
+		return new SmoSelection({
+			selector: selector,
+			_staff: staff,
+			_measure: measure,
+			_note: note,
+			_pitches: pa,
+			type: 'pitches'
+		});
+	}
 
-    // ## nextNoteSelection
-    // ## Description:
-    // Return the next note in this measure, or the first note of the next measure, if it exists.
-    static nextNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
-        var nextTick = tickIndex + 1;
-        var nextMeasure = measureIndex + 1;
-        var staff = score.staves[staffIndex];
-        var measure = staff.measures[measureIndex];
-        if (measure.voices[voiceIndex].notes.length > nextTick) {
-            return SmoSelection.noteSelection(score, staffIndex, measureIndex, voiceIndex, nextTick);
-        }
-        if (staff.measures.length > nextMeasure) {
-            return SmoSelection.noteSelection(score, staffIndex, nextMeasure, voiceIndex, 0);
-        }
-        return null;
-    }
+	// ## nextNoteSelection
+	// ## Description:
+	// Return the next note in this measure, or the first note of the next measure, if it exists.
+	static nextNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
+		var nextTick = tickIndex + 1;
+		var nextMeasure = measureIndex + 1;
+		var staff = score.staves[staffIndex];
+		var measure = staff.measures[measureIndex];
+		if (measure.voices[voiceIndex].notes.length > nextTick) {
+			return SmoSelection.noteSelection(score, staffIndex, measureIndex, voiceIndex, nextTick);
+		}
+		if (staff.measures.length > nextMeasure) {
+			return SmoSelection.noteSelection(score, staffIndex, nextMeasure, voiceIndex, 0);
+		}
+		return null;
+	}
 
-    static lastNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
-        var lastTick = tickIndex - 1;
-        var lastMeasure = measureIndex - 1;
-        var staff = score.staves[staffIndex];
-        var measure = staff.measures[measureIndex];
-        if (tickIndex > 0) {
-            return SmoSelection.noteSelection(score, staffIndex, measureIndex, voiceIndex, lastTick);
-        }
-        if (measureIndex > 0) {
-            measure = staff.measures[lastMeasure];
-            var noteIndex = staff.measures[lastMeasure].voices[voiceIndex].notes.length - 1;
-            return SmoSelection.noteSelection(score, staffIndex, lastMeasure, voiceIndex, noteIndex);
-        }
-        return null;
-    }
+	static lastNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
+		var lastTick = tickIndex - 1;
+		var lastMeasure = measureIndex - 1;
+		var staff = score.staves[staffIndex];
+		var measure = staff.measures[measureIndex];
+		if (tickIndex > 0) {
+			return SmoSelection.noteSelection(score, staffIndex, measureIndex, voiceIndex, lastTick);
+		}
+		if (measureIndex > 0) {
+			measure = staff.measures[lastMeasure];
+			var noteIndex = staff.measures[lastMeasure].voices[voiceIndex].notes.length - 1;
+			return SmoSelection.noteSelection(score, staffIndex, lastMeasure, voiceIndex, noteIndex);
+		}
+		return null;
+	}
 
-    constructor(params) {
-        this.selector = {
-            staff: 0,
-            measure: 0,
-            voice: 0,
-            note: 0,
-            pitches: []
-        }
-        this._staff = null;
-        this._measure = null;
-        this._note = null;
-        this._pitches = [];
-        this._box = svgHelpers.pointBox(0, 0);
+	constructor(params) {
+		this.selector = {
+			staff: 0,
+			measure: 0,
+			voice: 0,
+			note: 0,
+			pitches: []
+		}
+		this._staff = null;
+		this._measure = null;
+		this._note = null;
+		this._pitches = [];
+		this._box = svgHelpers.pointBox(0, 0);
 
-        this.selectionGroup = {
-            id: VF.Element.newID(),
-            type: 'SmoSelection'
-        };
-        Vex.Merge(this, params);
-    }
+		this.selectionGroup = {
+			id: VF.Element.newID(),
+			type: 'SmoSelection'
+		};
+		Vex.Merge(this, params);
+	}
 
-    get staff() {
-        return this._staff;
-    }
-    get measure() {
-        return this._measure;
-    }
+	get staff() {
+		return this._staff;
+	}
+	get measure() {
+		return this._measure;
+	}
 
-    get note() {
-        return this._note;
-    }
-    get pitches() {
-        if (this._pitches.length) {
-            return this._pitches;
-        } else if (this._note) {
-            this._pitches = JSON.parse(JSON.stringify(this.note.pitches));
-            return this._pitches;
-        }
-        return [];
-    }
+	get note() {
+		return this._note;
+	}
+	get pitches() {
+		if (this._pitches.length) {
+			return this._pitches;
+		} else if (this._note) {
+			this._pitches = JSON.parse(JSON.stringify(this.note.pitches));
+			return this._pitches;
+		}
+		return [];
+	}
 }
 ;
 // An operation works on a selection or set of selections to edit the music
 class SmoOperation {
+	
+	static addKeySignature(score,selection,keySignature) {
+		score.addKeySignature(selection.selector.measure,keySignature);
+	}
+	
+	static operateMeasureWithUndo(opName,selection,p1,p2) {
+		
+	}
 
     // ## doubleDuration
     // ## Description
@@ -3041,6 +3185,7 @@ class SmoOperation {
     // Add a dot to a note, if possible, and make the note ahead of it shorter
     // to compensate.
     static dotDuration(selection) {
+		
         var note = selection.note;
         var measure = selection.measure;
         var nticks = smoMusic.getNextDottedLevel(note.tickCount);
@@ -3182,6 +3327,281 @@ class SmoOperation {
     }
 
 }
+;
+// # UndoBuffer
+// # Description:
+// manage a set of undo or redo operations on a score.  The objects passed into 
+// undo must implement serialize()/deserialize()
+// # Buffer format:
+// A buffer is one of 3 things:
+// A single measure,
+// A single staff
+// the whole score.
+// In the set of measures, the serialization is split into 2 parts:
+// staffModifiers: a set of modifiers that start or end on one the measures, and 2:
+// measures: a set of measures.
+class UndoBuffer {
+    constructor() {
+        this.buffer = [];
+    }
+    static get bufferMax() {
+        return 100;
+    }
+
+    static get bufferTypes() {
+        return ['measure', 'staff','score'];
+    }
+
+    addBuffer(title, type, selector, obj) {
+        if (UndoBuffer.bufferTypes.indexOf(type) < 0) {
+            throw ('Undo failure: illegal buffer type ' + type);
+        }
+		var json=obj.serialize();
+        var undoObj = {
+            title: title,
+            type: type,
+            selector: selector,
+            json: json
+        };
+        if (this.buffer.length >= UndoBuffer.bufferMax) {
+			this.buffer.pop();
+        } 
+        this.buffer.push(undoObj);        
+    }
+
+    _pop() {
+		
+        if (this.buffer.length < 1)
+            return null;
+        var buf = this.buffer.pop();
+		return buf;
+    }
+
+	// ## Before undoing, peek at the top action in the q
+	// so it can be re-rendered
+	peek() {
+        if (this.buffer.length < 1)
+            return null;
+        return this.buffer[this.buffer.length-1];
+	}
+	
+    undo(score) {
+        var buf = this._pop();
+        if (!buf)
+            return score;
+        if (buf.type === 'measure') {
+			var measure = SmoMeasure.deserialize(buf.json);
+			measure.changed = true;
+            score.replaceMeasure(buf.selector, measure);
+        } else if (buf.type === 'score') {
+			// Score expects string, as deserialized score is how saving is done.
+            score = SmoScore.deserialize(JSON.stringify(buf.json));
+        } else {
+			// TODO: test me
+			var staff  =SmoSystemStaff.deserialize(buf.json);
+			score.replaceStaff(buf.selector.staff,staff);			
+		}
+        return score;
+    }
+}
+;
+
+
+// ## PasteBuffer
+// ### Description:
+// Hold some music that can be pasted back to the score
+class PasteBuffer {
+	constructor() {
+		this.notes = [];
+		this.noteIndex = 0;
+		this.measures = [];
+		this.measureIndex = -1;
+		this.remainder = 0;
+	}
+
+	setSelections(score, selections) {
+		this.notes = [];
+		var measureIndex = -1;
+
+		selections.forEach((selection) => {
+			var selector = JSON.parse(JSON.stringify(selection.selector));
+			var note = SmoNote.clone(selection.note);
+			this.notes.push({
+				selector: selector,
+				note: note
+			});
+		});
+		this.notes.sort((a, b) => {
+			return SmoSelector.gt(a.selector, b.selector) ? 1 : -1;
+		});
+	}
+
+	clearSelections() {
+		this.notes = [];
+	}
+	
+	// ### _populateMeasureArray
+	// ### Description:
+	// Populate an array of existing measures from the paste destination, once we know what that is.
+	_populateMeasureArray() {
+		var measureSelection = SmoSelection.measureSelection(this.score, this.destination.staffIndex, this.destination.measureIndex);
+		var measure = measureSelection.measure;
+		this.measures.push(measure);
+		var tickmap = measure.tickmap();
+		var startSel = this.notes[0].selector;
+		var currentDuration = tickmap.durationMap[this.destination.tickIndex];
+		var rv = [];
+		this.notes.forEach((selection) => {
+			if (currentDuration + selection.note.tickCount >= tickmap.totalDuration) {
+     			// If this note will overlap the measure boundary, the note will be split in 2 with the 
+				// remainder going to the next measure.  If they line up exactly, the remainder is 0.
+				var remainder = tickmap.totalDuration - (currentDuration + selection.note.tickCount);
+								
+				measureSelection = SmoSelection.measureSelection(this.score, this.measureSelection.staffIndex, this.measureSelection.measureIndex + 1);
+				
+				// If the paste buffer overlaps the end of the score, we can't paste (TODO:  add a measure in this case)
+				if (measureSelection != null) {
+					this.measures.push(measureSelection.measure);
+					currentDuration = selection.note.tickCount - remainder;
+				} 
+			} else if (measureSelection != null) {
+				currentDuration += selection.note.tickCount;
+			}
+		});
+		return rv;
+	}
+
+	// ### _populatePre
+	// When we paste, we replace entire measures.  Populate the first measure up until the start of pasting.
+	_populatePre(voiceIndex, measure, tickmap, startTick) {
+		var voice = {
+			notes: []
+		};
+		var ticksToFill = tickmap.durationMap[startTick];
+		var filled = 0;
+		for (var i = 0; i < measure.voices[voiceIndex].notes; ++i) {
+
+			var note = measure.voices[voiceIndex].notes[i];
+			if (ticksToFill <= note.tickCount) {
+				ticksToFill -= note.tickCount;
+				voice.notes.push(SmoNote.clone(clone));
+			} else {
+				var duration = note.tickCount - ticksToFill;
+				SmoNote.cloneWithDuration(note,{numerator:duration,denominator:1,remainder:0});
+				ticksToFill = 0;
+			}
+			if (ticksToFill < 1) {
+				break;
+			}
+		}
+		return voice;
+	}
+
+	_populateVoice(voiceIndex) {
+		var measures = this.measures;
+		this.measureIndex = 0;
+		var measureVoices=[];
+		
+		var measure = measures[0];
+		var tickmap = measure.tickmap();
+		var startSelector = JSON.parse(JSON.stringify(this.destination));
+		var voice = this._populatePre(voiceIndex, measure, this.destination.tick);
+		measureVoices.push(voice);
+		while (this.measureIndex < measures.length) {
+			_populateNew(voice, voiceIndex, measure, tickmap, startSelector);			
+			if (this.noteIndex < this.notes.length && this.measureIndex < measures.length) {
+				voice = {notes:[]};
+				measureVoices.push(voice);
+				startSelector = {staff:startSelector.staff,measure:startSelector.measure,voice:voiceIndex,tick:0};
+				measure = measure[this.measureIndex];
+				tickmap = measure.tickmap();
+				this.measureIndex += 1;
+			} else {
+				break;
+			}
+		}
+		this._populatePost(voice,voiceIndex,measure,tickmap,startSelector.tick);
+	
+		return voice;
+	}
+
+	static _countTicks(voice) {
+		var voiceTicks = 0;
+		voice.notes.forEach((note) => {
+			voiceTicks += note.tickCount;
+		});
+		return voiceTicks;
+	}
+	_populateNew(voice, voiceIndex, measure, tickmap, startSelector) {
+		var currentDuration = tickMap.durationMap[startSelector.tick];
+		var duration = tickmap.totalDuration;
+		while (currentDuration < measure.tickCount && this.noteIndex < notes.length) {
+			var note = notes[this.noteIndex];
+			if (currentDuration + note.tickCount <= duration && this.remainder===0) {
+				voice.notes.push(SmoNote.clone(note));
+				currentDuration += note.tickCount;
+				this.noteIndex += 1;
+				startSelector.tick += 1;
+			} else if (this.remainder > 0) {
+				voice.notes.push(SmoNote.cloneWithDuration(note,{numerator:this.remainder,denominator:1,remainder:0}));
+				currentDuration += this.remainder;
+				this.remainder=0;
+			}
+			else {
+				// The 
+				var partial = duration - currentDuration;
+				voice.notes.push(SmoNote.cloneWithDuration(note, {numerator:partial,denominator:1,remainder:0}));
+				currentDuration += partial;
+				
+				// Set the remaining length of the current note, this will be added to the 
+				// next measure with the previous note's pitches
+				this.remainder = note.tickCount - partial;
+			}
+		}
+	}
+	
+	// ### _populatePost
+	// When we paste, we replace entire measures.  Populate the last measure from the end of paste to the
+	// end of the measure.
+	_populatePost(voice, voiceIndex, measure, tickmap, endTick) {
+		var startTicks = PasteBuffer._countTicks(voice);
+		var notes = measure.voices[voiceIndex].notes;
+		var totalDuration = tickmap.totalDuration;
+		while (startTicks < totalDuration && endTick < notes.length) {
+			var note = notes[endTick];
+			if (note.tickCount + startTicks <= totalDuration) {
+				startTicks += note.tickCount;
+				voice.notes.push(SmoNote.clone(note));
+			} else {
+				var remainder = totalDuration - startTicks;
+				voice.notes.push(SmoNote.cloneWithDuration(note, {numerator:remainder,denominator:1,remainder:0}));
+				startTicks = totalDuration;
+			}
+			endTick += 1;
+		}
+	}
+
+	pasteSelections(score, selector) {
+		if (this.buffer.length < 1) {
+			return;
+		}
+		this._populateMeasureArray();
+		this.destination = selector;
+		var startSel = this.buffer[0].selector;
+		this.buffer.forEach((selection) => {
+			var targetSel = SmoSelector.applyOffset(startSel, selector, selection.selector);
+			var existing = SmoSelection.noteSelection(score, targetSel);
+			// TODO: find closest note and adjust
+			if (existing) {
+				var note = SmoNote.deserialize(selection.note);
+				// replace pitch
+				if (note.tickCount === existing.note.tickCount) {
+					existing.note.pitches = JSON.parse(JSON.stringify(note.pitches));
+				}
+			}
+		});
+	}
+}
 ;VF = Vex.Flow;
 Vex.Xform = (typeof(Vex.Xform) == 'undefined' ? {}
      : Vex.Xform);
@@ -3253,12 +3673,18 @@ class VxMeasure {
     // ## Description:
     // convert a smoNote into a vxNote so it can be rasterized
     _createVexNote(smoNote, tickIndex) {
+		// If this is a tuplet, we only get the duration so the appropriate stem
+		// can be rendered.  Vex calculates the actual ticks later when the tuplet is made
+		var duration = 
+		   smoNote.isTuplet() ? 
+		     smoMusic.closestVexDuration(smoNote.tickCount) : 
+			 smoMusic.ticksToDuration[smoNote.tickCount];
         var noteParams = {
             clef: smoNote.clef,
             keys: smoNote.toVexKeys(),
-            duration: smoNote.duration + smoNote.noteType
-			   + (smoNote['isRest'] ? 'r' : '')
+            duration: duration + smoNote.noteType
         };
+		
         this.applyStemDirection(noteParams);
         var vexNote = new VF.StaveNote(noteParams);
         smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
@@ -3647,6 +4073,7 @@ class suiTracker {
         this.modifierTabs = {};
         this.modifierIndex = -1;
         this.suggestion = {};
+		this.pasteBuffer = new PasteBuffer();
     }
 
     // ### renderElement
@@ -3711,7 +4138,7 @@ class suiTracker {
 		this.modifierTabs=[];
 		this.modifierIndex=-1;
 		this.eraseRect('staffModifier');
-		
+		this.pasteBuffer.clearSelections();
 	}
 	getSelectedModifier() {
 		if (this.modifierIndex >= 0) {
@@ -4203,15 +4630,31 @@ class suiSimpleLayout {
         // layout a second time to adjust for issues.
         this.layout(true);
     }
-	
-	renderNoteModifierPreview(modifier) {
-		var selection = SmoSelection.noteSelection(this.score,modifier.selector.staff,modifier.selector.measure,modifier.selector.voice,modifier.selector.tick);
-		if (!selection.measure.renderedBox) {
+
+	undo(undoBuffer) {
+		var buffer = undoBuffer.peek();
+		// Unrender the modified music because the IDs may change and normal unrender won't work
+		if (buffer) {
+			var sel = buffer.selector;
+			if (buffer.type == 'measure') {
+				this.unrenderMeasure(SmoSelection.measureSelection(this.score,sel.staff,sel.measure).measure);
+			} else if (buffer.type ==='staff'){
+				this.unrenderStaff(SmoSelection.measureSelection(this.score,sel.staff,0).staff);
+			} else {
+				this.unrenderAll();
+			}
+		    undoBuffer.undo(this.score);
+		    this.render();
+		}
+	}
+    renderNoteModifierPreview(modifier) {
+        var selection = SmoSelection.noteSelection(this.score, modifier.selector.staff, modifier.selector.measure, modifier.selector.voice, modifier.selector.tick);
+        if (!selection.measure.renderedBox) {
             return;
         }
-		var system = new VxSystem(this.context, selection.measure.staffY, selection.measure.lineIndex);
-		system.renderMeasure(selection.selector.staff, selection.measure);
-	}
+        var system = new VxSystem(this.context, selection.measure.staffY, selection.measure.lineIndex);
+        system.renderMeasure(selection.selector.staff, selection.measure);
+    }
 
     // re-render a modifier for preview during modifier dialog
     renderStaffModifierPreview(modifier) {
@@ -4237,9 +4680,25 @@ class suiSimpleLayout {
         }
         this._renderModifiers(startSelection.staff, system);
     }
-	
-    unrender() {}
 
+    unrenderMeasure(measure) {
+        if (!measure)
+            return;
+
+        $(this.renderer.getContext().svg).find('g.' + measure.attrs.id).remove();
+    }
+	
+	unrenderStaff(staff) {
+		staff.measures.forEach((measure) => {
+		    this.unrenderMeasure(measure);
+		});
+	}
+
+    unrenderAll(score) {
+		this.score.staves.forEach((staff) => {
+			this.unrenderStaff(staff);
+		});
+	}
     get pageMarginWidth() {
         return this.pageWidth - this.leftMargin * 2;
     }
@@ -4378,18 +4837,18 @@ class suiSimpleLayout {
 
                 measure.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
                 measure.forceTimeSignature = (systemIndex === 0 || measure.timeSignature !== timeSigLast);
-				if (measure.keySignature !== keySigLast) {
-					measure.canceledKeySignature=keySigLast;
-					measure.forceKeySignature = true;
-				} else {
-					measure.forceKeySignature = false;
-				}
+                if (measure.keySignature !== keySigLast) {
+                    measure.canceledKeySignature = keySigLast;
+                    measure.forceKeySignature = true;
+                } else {
+                    measure.forceKeySignature = false;
+                }
 
                 // guess height of staff the first time
                 measure.measureNumber.systemIndex = systemIndex;
                 // WIP
                 if (drawAll || measure.changed) {
-					measure.lineIndex = lineIndex;
+                    measure.lineIndex = lineIndex;
                     smoBeamerFactory.applyBeams(measure);
                     system.renderMeasure(j, measure);
                 }
@@ -4829,8 +5288,12 @@ class suiKeySignatureMenu extends suiMenuBase {
     selection(ev) {
         var keySig = $(ev.currentTarget).attr('data-value');
         var self = this;
-        this.tracker.iterateMeasures((measure) => {
-            this.score.addKeySignature(measure.measureNumber.measureIndex, keySig);
+		var changed = [];
+        this.tracker.selections.forEach((sel) => {
+			if (changed.indexOf(sel.selector.measure) === -1) {
+				changed.push(sel.selector.measure);
+				SmoOperation.addKeySignature(this.score,sel,keySig);
+			}
         });
         this.complete();
     }
@@ -4890,6 +5353,7 @@ class utController {
 		Vex.Merge(this, utController.defaults);
 		Vex.Merge(this, params);
 		this.bindEvents();
+		this.undoBuffer = new UndoBuffer();
 	}
 
 	static createUi(renderElement, score) {
@@ -5694,6 +6158,8 @@ class suiController {
 		Vex.Merge(this, suiController.defaults);
 		Vex.Merge(this, params);
 		this.bindEvents();
+		this.undoBuffer = new UndoBuffer();
+		this.pasteBuffer = this.tracker.pasteBuffer;
 	}
 
 	// ## createUi

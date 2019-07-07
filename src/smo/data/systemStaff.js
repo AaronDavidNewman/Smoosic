@@ -68,7 +68,7 @@ class SmoSystemStaff {
 
     static deserialize(jsonObj) {
         var params = {};
-        smoMusic.filteredMerge(
+        smoMusic.serializedMerge(
             ['staffX', 'staffY', 'staffWidth', 'startIndex', 'renumberingMap', 'renumberIndex', 'instrumentInfo'],
             jsonObj, params);
         params.measures = [];
