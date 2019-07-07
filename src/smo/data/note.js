@@ -151,20 +151,8 @@ class SmoNote {
         return this.id + ' ' + this.tickCount;
     }
 
-    static _cloneParameters(note) {
-        var keys = Object.keys(note);
-        var clone = {};
-        for (var i = 0; i < keys.length; ++i) {
-            var key = keys[i];
-            clone[key] = note[key];
-        }
-        return JSON.parse(JSON.stringify(clone));
-    }
     static clone(note) {
-        var clone = SmoNote._cloneParameters(note);
-
-        // should tuplet info be cloned?
-        var rv = new SmoNote(clone);
+        var rv = SmoNote.deserialize(note.serialize());
 
         // make sure id is unique
         rv.attrs = {
@@ -178,18 +166,10 @@ class SmoNote {
     // Clone the note, but use the different duration.  Changes the length
     // of the note but nothing else.
     static cloneWithDuration(note, ticks) {
-        var clone = SmoNote._cloneParameters(note);
+        var rv = SmoNote.clone(note);
 
-        clone.ticks = ticks;
+        rv.ticks = ticks;
 
-        // should tuplet info be cloned?
-        var rv = new SmoNote(clone);
-
-        // make sure id is unique
-        rv.attrs = {
-            id: VF.Element.newID(),
-            type: 'SmoNote',
-        };
         return rv;
     }
 
@@ -199,6 +179,7 @@ class SmoNote {
 	serialize()  {
 		var params={};
 		smoMusic.filteredMerge(SmoNote.parameterArray,this,params);
+		params.ticks = JSON.parse(JSON.stringify(params.ticks));
 		params.noteModifiers=this._serializeModifiers();
 		return params;
 	}
@@ -229,7 +210,6 @@ class SmoNote {
 		return note;
 	}
 }
-
 class SmoTuplet {
     constructor(params) {
         this.notes = params.notes;

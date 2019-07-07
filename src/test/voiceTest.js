@@ -53,7 +53,7 @@ class VoiceTest {
         }
 		
 		var serializeTest = () => {
-			layout.unrender();
+			layout.unrenderAll();
 			$('#boo').html('');
 			score = SmoScore.deserialize(JSON.stringify(serializeTestJson.tupletMeasure));
 			keys.detach();

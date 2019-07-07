@@ -100,6 +100,10 @@ class SmoSelection {
 			type: 'measure'
 		});
 	}
+	
+	static noteFromSelection(score,selection) {
+		return SmoSelection(score,selection.staffIndex,selection.measureIndex,selection.voiceIndex,selection.tickIndex);
+	}
 
 	static noteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
 		staffIndex = staffIndex != null ? staffIndex : score.activeStaff;

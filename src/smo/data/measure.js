@@ -309,6 +309,18 @@ class SmoMeasure {
             }
         }
     }
+	tupletNotes(tuplet) {
+		var notes=[];
+        for (var j = 0; j < this.voices.length; ++j) {
+            var notes = this.voices[j].notes;
+            for (var i = 0; i < notes.length; ++i) {
+                if (notes[i]['tuplet'] && notes[i].tuplet.id === tuplet.attrs.id) {
+                    notes.push(notes[i]);
+                }
+            }
+        }
+        return notes;
+    }
     tupletIndex(tuplet) {
         for (var j = 0; j < this.voices.length; ++j) {
             var notes = this.voices[j].notes;
