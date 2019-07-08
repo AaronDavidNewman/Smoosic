@@ -16,6 +16,7 @@ class PasteBuffer {
 	setSelections(score, selections) {
 		this.notes = [];
 		var measureIndex = -1;
+		this.score = score;
 
 		selections.forEach((selection) => {
 			var selector = JSON.parse(JSON.stringify(selection.selector));
@@ -38,12 +39,13 @@ class PasteBuffer {
 	// ### Description:
 	// Populate an array of existing measures from the paste destination, once we know what that is.
 	_populateMeasureArray() {
-		var measureSelection = SmoSelection.measureSelection(this.score, this.destination.staffIndex, this.destination.measureIndex);
+		this.measures=[];
+		var measureSelection = SmoSelection.measureSelection(this.score, this.destination.staff, this.destination.measure);
 		var measure = measureSelection.measure;
 		this.measures.push(measure);
 		var tickmap = measure.tickmap();
 		var startSel = this.notes[0].selector;
-		var currentDuration = tickmap.durationMap[this.destination.tickIndex];
+		var currentDuration = tickmap.durationMap[this.destination.tick];
 		var rv = [];
 		this.notes.forEach((selection) => {
 			if (currentDuration + selection.note.tickCount >= tickmap.totalDuration) {
@@ -62,23 +64,22 @@ class PasteBuffer {
 				currentDuration += selection.note.tickCount;
 			}
 		});
-		return rv;
 	}
 
 	// ### _populatePre
 	// When we paste, we replace entire measures.  Populate the first measure up until the start of pasting.
-	_populatePre(voiceIndex, measure, tickmap, startTick) {
+	_populatePre(voiceIndex, measure, startTick,tickmap) {
 		var voice = {
 			notes: []
 		};
 		var ticksToFill = tickmap.durationMap[startTick];
 		var filled = 0;
-		for (var i = 0; i < measure.voices[voiceIndex].notes; ++i) {
+		for (var i = 0; i < measure.voices[voiceIndex].notes.length; ++i) {
 
 			var note = measure.voices[voiceIndex].notes[i];
-			if (ticksToFill <= note.tickCount) {
+			if (ticksToFill >= note.tickCount) {
 				ticksToFill -= note.tickCount;
-				voice.notes.push(SmoNote.clone(clone));
+				voice.notes.push(SmoNote.clone(note));
 			} else {
 				var duration = note.tickCount - ticksToFill;
 				SmoNote.cloneWithDuration(note,{numerator:duration,denominator:1,remainder:0});
@@ -92,6 +93,7 @@ class PasteBuffer {
 	}
 
 	_populateVoice(voiceIndex) {
+		this._populateMeasureArray();
 		var measures = this.measures;
 		this.measureIndex = 0;
 		var measureVoices=[];
@@ -99,10 +101,10 @@ class PasteBuffer {
 		var measure = measures[0];
 		var tickmap = measure.tickmap();
 		var startSelector = JSON.parse(JSON.stringify(this.destination));
-		var voice = this._populatePre(voiceIndex, measure, this.destination.tick);
+		var voice = this._populatePre(voiceIndex, measure, this.destination.tick,tickmap);
 		measureVoices.push(voice);
 		while (this.measureIndex < measures.length) {
-			_populateNew(voice, voiceIndex, measure, tickmap, startSelector);			
+			this._populateNew(voice, voiceIndex, measure, tickmap, startSelector);			
 			if (this.noteIndex < this.notes.length && this.measureIndex < measures.length) {
 				voice = {notes:[]};
 				measureVoices.push(voice);
@@ -116,7 +118,7 @@ class PasteBuffer {
 		}
 		this._populatePost(voice,voiceIndex,measure,tickmap,startSelector.tick);
 	
-		return voice;
+		return measureVoices;
 	}
 
 	static _countTicks(voice) {
@@ -127,11 +129,11 @@ class PasteBuffer {
 		return voiceTicks;
 	}
 	_populateNew(voice, voiceIndex, measure, tickmap, startSelector) {
-		var currentDuration = tickMap.durationMap[startSelector.tick];
-		var duration = tickmap.totalDuration;
-		while (currentDuration < measure.tickCount && this.noteIndex < notes.length) {
-			var note = notes[this.noteIndex];
-			if (currentDuration + note.tickCount <= duration && this.remainder===0) {
+		var currentDuration = tickmap.durationMap[startSelector.tick];
+		var totalDuration = tickmap.totalDuration;
+		while (currentDuration < totalDuration && this.noteIndex < this.notes.length) {
+			var note = this.notes[this.noteIndex].note;
+			if (currentDuration + note.tickCount <= totalDuration && this.remainder===0) {
 				voice.notes.push(SmoNote.clone(note));
 				currentDuration += note.tickCount;
 				this.noteIndex += 1;
@@ -143,7 +145,7 @@ class PasteBuffer {
 			}
 			else {
 				// The 
-				var partial = duration - currentDuration;
+				var partial = totalDuration - currentDuration;
 				voice.notes.push(SmoNote.cloneWithDuration(note, {numerator:partial,denominator:1,remainder:0}));
 				currentDuration += partial;
 				
@@ -176,23 +178,24 @@ class PasteBuffer {
 	}
 
 	pasteSelections(score, selector) {
-		if (this.buffer.length < 1) {
+		this.destination=selector;
+		if (this.notes.length < 1) {
 			return;
 		}
-		this._populateMeasureArray();
-		this.destination = selector;
-		var startSel = this.buffer[0].selector;
-		this.buffer.forEach((selection) => {
-			var targetSel = SmoSelector.applyOffset(startSel, selector, selection.selector);
-			var existing = SmoSelection.noteSelection(score, targetSel);
-			// TODO: find closest note and adjust
-			if (existing) {
-				var note = SmoNote.deserialize(selection.note);
-				// replace pitch
-				if (note.tickCount === existing.note.tickCount) {
-					existing.note.pitches = JSON.parse(JSON.stringify(note.pitches));
-				}
-			}
-		});
+		var voices = this._populateVoice(this.destination.staff);
+		var measureSel = JSON.parse(JSON.stringify(this.destination));
+		for (var i=0;i<this.measures.length;++i) {
+			var measure = this.measures[i];
+			var nvoice = voices[i];
+			var ser = measure.serialize();
+			var vobj = {notes:[]};
+			nvoice.notes.forEach((note) => {
+				vobj.notes.push(note.serialize());
+			});
+			// TODO: figure out how to do this with multiple voices
+			ser.voices=[vobj];
+			this.score.replaceMeasure(measureSel,SmoMeasure.deserialize(ser));
+			measureSel.measure += 1;
+		}
 	}
 }

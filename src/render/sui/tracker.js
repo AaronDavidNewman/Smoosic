@@ -143,6 +143,8 @@ class suiTracker {
             selCopy.forEach((sel) => this._findClosestSelection(sel));
         }
         this.highlightSelection();
+		this.pasteBuffer.clearSelections();
+		this.pasteBuffer.setSelections(this.score,this.selections);
     }
 
     static stringifyBox(box) {
