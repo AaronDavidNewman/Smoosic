@@ -19,6 +19,13 @@ class PasteBuffer {
 		var measureIndex = -1;
 		this.score = score;
 
+		if (selections.length < 1) {
+			return;
+		}
+		
+		var first = selections[0];
+		var startTuplet = first.measure(getTupletForNote(first.note));
+
 		selections.forEach((selection) => {
 			var selector = JSON.parse(JSON.stringify(selection.selector));
 			var note = SmoNote.clone(selection.note);
