@@ -15,6 +15,7 @@ class PasteBuffer {
 
 	setSelections(score, selections) {
 		this.notes = [];
+		this.noteIndex=0;
 		var measureIndex = -1;
 		this.score = score;
 
@@ -158,14 +159,18 @@ class PasteBuffer {
 	
 	// ### _populatePost
 	// When we paste, we replace entire measures.  Populate the last measure from the end of paste to the
-	// end of the measure.
+	// end of the measure with notes in the existing measure.
 	_populatePost(voice, voiceIndex, measure, tickmap, endTick) {
 		var startTicks = PasteBuffer._countTicks(voice);
 		var notes = measure.voices[voiceIndex].notes;
 		var totalDuration = tickmap.totalDuration;
-		while (startTicks < totalDuration && endTick < notes.length) {
-			var note = notes[endTick];
-			if (note.tickCount + startTicks <= totalDuration) {
+		while (startTicks < totalDuration) {
+			// Find the point in the music where the paste area runs out, or as close as we can get.
+			var existingIndex = tickmap.durationMap.indexOf(startTicks);
+			existingIndex = (existingIndex < 0) ? measure.voices[voiceIndex].length - 1 : existingIndex; 
+			var note = measure.voices[voiceIndex].notes[existingIndex];
+			var ticksLeft = totalDuration - startTicks;
+			if (ticksLeft <= note.tickCount) {
 				startTicks += note.tickCount;
 				voice.notes.push(SmoNote.clone(note));
 			} else {
@@ -173,7 +178,6 @@ class PasteBuffer {
 				voice.notes.push(SmoNote.cloneWithDuration(note, {numerator:remainder,denominator:1,remainder:0}));
 				startTicks = totalDuration;
 			}
-			endTick += 1;
 		}
 	}
 
