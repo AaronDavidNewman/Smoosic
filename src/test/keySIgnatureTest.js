@@ -47,27 +47,6 @@ class KeySignatureTest {
             return timeTest();
         }
 		
-		var copySetup = () => {
-            var target = SmoSelection.noteSelection(layout.score,0,2, 0, 1);
-			SmoOperation.setPitch(target,{
-                        letter: 'e',
-                        octave: 4,
-                        accidental: 'b'
-                    });
-			keys.render();
-			return timeTest();
-		}
-		var copyTest = () => {
-			var selections=[];
-			selections.push(SmoSelection.noteSelection(layout.score,0,2, 0, 1));
-			pasteBuffer.setSelections(keys.score,selections);
-			keys.layout.unrenderAll();
-			var pasteTarget = {staff:0,measure:1,voice:0,tick:2};
-			pasteBuffer.pasteSelections(keys.score, pasteTarget);
-			keys.render();						
-			return timeTest();
-		}
-		
         var changePitch = () => {
             var target = SmoSelection.pitchSelection(layout.score,0,2, 0, 1,[0]);
 			undo.addBuffer('undo pitch change', 'measure', target.selector, target.measure);
@@ -143,7 +122,7 @@ class KeySignatureTest {
 		
 
       
-        return drawDefaults().then(copySetup).then(copyTest).then(changePitch).then(changePitch2).then(undoTest)
+        return drawDefaults().then(changePitch).then(changePitch2).then(undoTest)
 		    .then(undoTest).then(keySigTest).then(undoTest).then(keySigTest2).then(undoTest)
 		    .then(keySigTest3).then(serializeTest).then(signalComplete);
     }
