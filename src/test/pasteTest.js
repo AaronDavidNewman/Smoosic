@@ -1,29 +1,29 @@
 
 class PasteTest {
-   
+
     static CommonTests() {
-		$('h1.testTitle').text('Staff Test');
-		var score=SmoScore.getEmptyScore();
-		
-		var pasteBuffer = new PasteBuffer();
-		
-        score.addDefaultMeasureWithNotes(0,{});
-        score.addDefaultMeasureWithNotes(1,{});
-        score.addDefaultMeasureWithNotes(2,{});
-		
-		var serial = JSON.stringify(score.serialize(),null,'');
-		console.log(serial);
-        var keys = utController.createUi(document.getElementById("boo"),score);
-		var undo = keys.undoBuffer;
-		var score = keys.score;
-		var layout = keys.layout;		
-		
-		var detach = () => {
-			keys.detach();
-			keys=null;
-			score=null;
-			layout=null;
-		}
+        $('h1.testTitle').text('Paste Test');
+        var score = SmoScore.getEmptyScore();
+
+        var pasteBuffer = new PasteBuffer();
+
+        score.addDefaultMeasureWithNotes(0, {});
+        score.addDefaultMeasureWithNotes(1, {});
+        score.addDefaultMeasureWithNotes(2, {});
+
+        var serial = JSON.stringify(score.serialize(), null, '');
+        console.log(serial);
+        var keys = utController.createUi(document.getElementById("boo"), score);
+        var undo = keys.undoBuffer;
+        var score = keys.score;
+        var layout = keys.layout;
+
+        var detach = () => {
+            keys.detach();
+            keys = null;
+            score = null;
+            layout = null;
+        }
 
         var timeTest = () => {
             const promise = new Promise((resolve, reject) => {
@@ -36,7 +36,7 @@ class PasteTest {
         }
 
         var signalComplete = () => {
-			detach();
+            detach();
             return timeTest();
         }
 
@@ -46,87 +46,122 @@ class PasteTest {
             keys.render();
             return timeTest();
         }
-		
-		var copySetup = () => {
-            SmoSelection.noteSelection(layout.score,0,2, 0, 1);
-			SmoOperation.setPitch(
-			    SmoSelection.noteSelection(layout.score,0,0, 0, 0),{
-                        letter: 'a',
-                        octave: 4,
-                        accidental: 'n'
-                    });
-			SmoOperation.setPitch(
-			    SmoSelection.noteSelection(layout.score,0,0, 0, 2),{
-                        letter: 'c',
-                        octave: 4,
-                        accidental: '#'
-                    });
-			SmoOperation.setPitch(
-			    SmoSelection.noteSelection(layout.score,0,0, 0, 3),{
-                        letter: 'd',
-                        octave: 4,
-                        accidental: 'n'
-                    });
-			SmoOperation.setPitch(
-			    SmoSelection.noteSelection(layout.score,0,0, 0, 0),{
-                        letter: 'e',
-                        octave: 4,
-                        accidental: 'n'
-                    });
-			SmoOperation.setPitch(
-			    SmoSelection.noteSelection(layout.score,0,1, 0, 1),{
-                        letter: 'f',
-                        octave: 4,
-                        accidental: 'n'
-                    });
-			SmoOperation.setPitch(
-			    SmoSelection.noteSelection(layout.score,0,1, 0, 2),{
-                        letter: 'g',
-                        octave: 4,
-                        accidental: 'n'
-                    });
-			SmoOperation.setPitch(
-			    SmoSelection.noteSelection(layout.score,0,1, 0, 3),{
-                        letter: 'c',
-                        octave: 5,
-                        accidental: 'n'
-                    });
-			keys.render();
-			return timeTest();
-		}
-		var copyTest = () => {
-			var selections=[];
-			selections.push(SmoSelection.noteSelection(layout.score,0,2, 0, 1));
-			pasteBuffer.setSelections(keys.score,selections);
-			keys.layout.unrenderAll();
-			var pasteTarget = {staff:0,measure:1,voice:0,tick:2};
-			pasteBuffer.pasteSelections(score, pasteTarget);
-			keys.render();						
-			return timeTest();
-		}
-		
-		var copyDurationSetup = () => {
-			var selection = SmoSelection.noteSelection(score, 0, 1, 0, 2);
+
+        var copySetup = () => {
+            SmoSelection.noteSelection(layout.score, 0, 2, 0, 1);
+            SmoOperation.setPitch(
+                SmoSelection.noteSelection(layout.score, 0, 0, 0, 0), {
+                letter: 'a',
+                octave: 4,
+                accidental: 'n'
+            });
+            SmoOperation.setPitch(
+                SmoSelection.noteSelection(layout.score, 0, 0, 0, 2), {
+                letter: 'c',
+                octave: 4,
+                accidental: '#'
+            });
+            SmoOperation.setPitch(
+                SmoSelection.noteSelection(layout.score, 0, 0, 0, 3), {
+                letter: 'd',
+                octave: 4,
+                accidental: 'n'
+            });
+            SmoOperation.setPitch(
+                SmoSelection.noteSelection(layout.score, 0, 0, 0, 0), {
+                letter: 'e',
+                octave: 4,
+                accidental: 'n'
+            });
+            SmoOperation.setPitch(
+                SmoSelection.noteSelection(layout.score, 0, 1, 0, 1), {
+                letter: 'f',
+                octave: 4,
+                accidental: 'n'
+            });
+            SmoOperation.setPitch(
+                SmoSelection.noteSelection(layout.score, 0, 1, 0, 2), {
+                letter: 'g',
+                octave: 4,
+                accidental: 'n'
+            });
+            SmoOperation.setPitch(
+                SmoSelection.noteSelection(layout.score, 0, 1, 0, 3), {
+                letter: 'c',
+                octave: 5,
+                accidental: 'n'
+            });
+            keys.render();
+            return timeTest();
+        }
+        var copyTest = () => {
+            var selections = [];
+            selections.push(SmoSelection.noteSelection(layout.score, 0, 2, 0, 1));
+            pasteBuffer.setSelections(keys.score, selections);
+            keys.layout.unrenderAll();
+            var pasteTarget = {
+                staff: 0,
+                measure: 1,
+                voice: 0,
+                tick: 2
+            };
+            pasteBuffer.pasteSelections(score, pasteTarget);
+            keys.render();
+            return timeTest();
+        }
+
+        var copyDurationSetup = () => {
+            var selection = SmoSelection.noteSelection(score, 0, 1, 0, 2);
             SmoOperation.halveDuration(selection);
             layout.render();
             return timeTest();
-		}
-		
-		var copyDurationChange = () => {
-			var selections=[];
-			selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 1));
-			selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 2));
-			selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 3));
-			selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 4));
-			pasteBuffer.setSelections(score,selections);
-			keys.layout.unrenderAll();
-			var pasteTarget = {staff:0,measure:2,voice:0,tick:0};
-			pasteBuffer.pasteSelections(score, pasteTarget);
-			keys.render();						
-			return timeTest();
-			
-		}
-      
-        return drawDefaults().then(copySetup).then(copyTest).then(copyDurationSetup).then(copyDurationChange).then(signalComplete);
+        }
+
+        var copyDurationChange = () => {
+            var selections = [];
+            selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 1));
+            selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 2));
+            selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 3));
+            selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 4));
+            pasteBuffer.setSelections(score, selections);
+            keys.layout.unrenderAll();
+            var pasteTarget = {
+                staff: 0,
+                measure: 2,
+                voice: 0,
+                tick: 0
+            };
+            pasteBuffer.pasteSelections(score, pasteTarget);
+            keys.render();
+            return timeTest();
+        }
+
+        var copyOverTupletSetup = () => {
+            var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
+            SmoOperation.makeTuplet(selection, 3);
+            keys.render();
+            return timeTest();
+        }
+        var copyOverTupletTest = () => {
+            var selections = [];
+            selections.push(SmoSelection.noteSelection(score, 0, 0, 0, 0));
+            selections.push(SmoSelection.noteSelection(score, 0, 0, 0, 1));
+            selections.push(SmoSelection.noteSelection(score, 0, 0, 0, 2));
+            selections.push(SmoSelection.noteSelection(score, 0, 0, 0, 3));
+
+            pasteBuffer.setSelections(score, selections);
+            keys.layout.unrenderAll();
+            var pasteTarget = {
+                staff: 0,
+                measure: 2,
+                voice: 0,
+                tick: 0
+            };
+            pasteBuffer.pasteSelections(score, pasteTarget);
+            keys.render();
+            return timeTest();
+        }
+        return drawDefaults().then(copySetup).then(copyTest).then(copyDurationSetup).then(copyDurationChange).
+        then(copyOverTupletSetup).then(copyOverTupletTest).then(signalComplete);
     }
 }

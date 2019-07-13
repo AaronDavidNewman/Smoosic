@@ -65,7 +65,7 @@ class smoBeamModifier extends BeamModifierBase {
         this.duration += iterator.delta;
 
         // beam tuplets
-        if (note.isTuplet()) {
+        if (note.isTuplet) {
             var tuplet = this.measure.getTupletForNote(note);
             var ult = tuplet.notes[tuplet.notes.length - 1];
 

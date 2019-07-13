@@ -35,7 +35,7 @@ class SmoNote {
     }
 
     get dots() {
-        if (this.isTuplet()) {
+        if (this.isTuplet) {
             return 0;
         }
         var vexDuration = smoMusic.ticksToDuration[this.tickCount];
@@ -109,7 +109,7 @@ class SmoNote {
         this.noteType = 'n';
     }
 
-    isTuplet() {
+    get isTuplet() {
         return this['tuplet'] && this.tuplet['id'];
     }
 
@@ -225,6 +225,14 @@ class SmoTuplet {
         }
         this._adjustTicks();
     }
+	
+	get clonedParams() {
+		var paramAr=['stemTicks','ticks','totalTicks','durationMap']
+		var rv = {};
+		smoMusic.serializedMerge(paramAr,this,rv);
+		return rv;
+			
+	}
 
     _adjustTicks() {
         var sum = this.durationSum;

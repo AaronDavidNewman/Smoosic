@@ -334,7 +334,7 @@ class SmoMeasure {
     }
 	
     getTupletForNote(note) {
-        if (!note.isTuplet()) {
+        if (!note.isTuplet) {
             return null;
         }
         for (var i = 0; i < this.tuplets.length; ++i) {

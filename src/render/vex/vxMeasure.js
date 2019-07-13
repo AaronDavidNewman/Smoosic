@@ -72,7 +72,7 @@ class VxMeasure {
 		// If this is a tuplet, we only get the duration so the appropriate stem
 		// can be rendered.  Vex calculates the actual ticks later when the tuplet is made
 		var duration = 
-		   smoNote.isTuplet() ? 
+		   smoNote.isTuplet ? 
 		     smoMusic.closestVexDuration(smoNote.tickCount) : 
 			 smoMusic.ticksToDuration[smoNote.tickCount];
         var noteParams = {
