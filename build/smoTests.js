@@ -150,6 +150,9 @@ class StaffTest {
     static CommonTests() {
 		$('h1.testTitle').text('Staff Test');
 		var score=SmoScore.getEmptyScore();
+		
+		var pasteBuffer = new PasteBuffer();
+		
         score.addDefaultMeasureWithNotes(0,{});
         score.addDefaultMeasureWithNotes(1,{});
         score.addDefaultMeasureWithNotes(2,{});
@@ -190,6 +193,27 @@ class StaffTest {
             return timeTest();
         }
 		
+		var copySetup = () => {
+            var target = SmoSelection.noteSelection(layout.score,0,2, 0, 1);
+			SmoOperation.setPitch(target,{
+                        letter: 'e',
+                        octave: 4,
+                        accidental: 'b'
+                    });
+			keys.render();
+			return timeTest();
+		}
+		var copyTest = () => {
+			var selections=[];
+			selections.push(SmoSelection.noteSelection(layout.score,0,2, 0, 1));
+			pasteBuffer.setSelections(keys.score,selections);
+			keys.layout.unrenderAll();
+			var pasteTarget = {staff:0,measure:1,voice:0,tick:2};
+			pasteBuffer.pasteSelections(keys.score, pasteTarget);
+			keys.render();						
+			return timeTest();
+		}
+		
         var changePitch = () => {
             var target = SmoSelection.pitchSelection(layout.score,0,2, 0, 1,[0]);
 			undo.addBuffer('undo pitch change', 'measure', target.selector, target.measure);
@@ -197,7 +221,7 @@ class StaffTest {
                         letter: 'e',
                         octave: 4,
                         accidental: 'b'
-                    });
+                    });					
             /* if (target) {
                 target.note.pitches = [{
                         letter: 'e',
@@ -262,8 +286,11 @@ class StaffTest {
             keys = utController.createUi(document.getElementById("boo"),score);			
             keys.render();
         }
+		
+
       
-        return drawDefaults().then(changePitch).then(changePitch2).then(undoTest).then(undoTest).then(keySigTest).then(undoTest).then(keySigTest2).then(undoTest)
+        return drawDefaults().then(copySetup).then(copyTest).then(changePitch).then(changePitch2).then(undoTest)
+		    .then(undoTest).then(keySigTest).then(undoTest).then(keySigTest2).then(undoTest)
 		    .then(keySigTest3).then(serializeTest).then(signalComplete);
     }
 }
@@ -360,6 +387,156 @@ class TimeSignatureTest {
 		
         return drawDefaults().then(stretchTest).then(contractTest).then(makeDupletTest).then(signalComplete);
 		
+    }
+}
+;
+class KeySignatureTest {
+   
+    static CommonTests() {
+		$('h1.testTitle').text('Key Signature Test');
+		var score=SmoScore.getEmptyScore();
+		
+		var pasteBuffer = new PasteBuffer();
+		
+        score.addDefaultMeasureWithNotes(0,{});
+        score.addDefaultMeasureWithNotes(1,{});
+        score.addDefaultMeasureWithNotes(2,{});
+		
+		var serial = JSON.stringify(score.serialize(),null,'');
+		console.log(serial);
+        var keys = utController.createUi(document.getElementById("boo"),score);
+		var undo = keys.undoBuffer;
+		var score = keys.score;
+		var layout = keys.layout;		
+		
+		var detach = () => {
+			keys.detach();
+			keys=null;
+			score=null;
+			layout=null;
+		}
+
+        var timeTest = () => {
+            const promise = new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        resolve();
+                    },
+                        500);
+                });
+            return promise;
+        }
+
+        var signalComplete = () => {
+			detach();
+            return timeTest();
+        }
+
+        var drawDefaults = () => {
+            // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
+            // measure.applyModifiers();
+            keys.render();
+            return timeTest();
+        }
+		
+		var copySetup = () => {
+            var target = SmoSelection.noteSelection(layout.score,0,2, 0, 1);
+			SmoOperation.setPitch(target,{
+                        letter: 'e',
+                        octave: 4,
+                        accidental: 'b'
+                    });
+			keys.render();
+			return timeTest();
+		}
+		var copyTest = () => {
+			var selections=[];
+			selections.push(SmoSelection.noteSelection(layout.score,0,2, 0, 1));
+			pasteBuffer.setSelections(keys.score,selections);
+			keys.layout.unrenderAll();
+			var pasteTarget = {staff:0,measure:1,voice:0,tick:2};
+			pasteBuffer.pasteSelections(keys.score, pasteTarget);
+			keys.render();						
+			return timeTest();
+		}
+		
+        var changePitch = () => {
+            var target = SmoSelection.pitchSelection(layout.score,0,2, 0, 1,[0]);
+			undo.addBuffer('undo pitch change', 'measure', target.selector, target.measure);
+			SmoOperation.setPitch(target,{
+                        letter: 'e',
+                        octave: 4,
+                        accidental: 'b'
+                    });					
+            /* if (target) {
+                target.note.pitches = [{
+                        letter: 'e',
+                        octave: 4,
+                        accidental: 'b'
+                    }
+                ];
+            }   */
+            keys.render();
+            return timeTest();
+        }
+		var undoTest = () => {
+			layout.undo(undo);
+            return timeTest();
+		}
+        var changePitch2 = () => {
+            var target = SmoSelection.pitchSelection(score,0,1, 0, 1, [0]);
+			undo.addBuffer('undo pitch change', 'measure', target.selector, target.measure);
+			SmoOperation.setPitch(target,{
+					letter: 'f',
+					octave: 4,
+					accidental: '#'
+				}
+			);
+            
+			var selection = SmoSelection.noteSelection(score,0,1,0,2);
+			SmoOperation.makeRest(selection);
+            keys.render();
+            return timeTest();
+        }
+		var keySigTest= () => {
+			var selection = SmoSelection.measureSelection(score,0,1);
+			undo.addBuffer('undo key sig','staff',selection.selector,selection.staff);
+			SmoOperation.addKeySignature(score,selection,'A');
+			// score.addKeySignature(1,'A');
+			var selection = SmoSelection.noteSelection(score,0,1,0,2);
+			SmoOperation.makeNote(selection);
+			keys.render();
+			return timeTest();
+		}
+		var keySigTest2= () => {
+			var selection = SmoSelection.measureSelection(score,0,2);
+			undo.addBuffer('undo key sig','score',selection.selector,score);
+			SmoOperation.addKeySignature(score,selection,'Bb');
+			keys.render();
+			return timeTest();
+		}
+		var keySigTest3= () => {
+			var selection = SmoSelection.measureSelection(score,0,1);
+			SmoOperation.addKeySignature(score,selection,'C#');
+			selection = SmoSelection.measureSelection(score,0,2);
+			SmoOperation.addKeySignature(score,selection,'Cb');
+			keys.render();			
+			return timeTest();
+		}
+        var serializeTest = () => {
+			var scoreJson=JSON.stringify(score.serialize());
+            // score = SmoScore.deserialize(JSON.stringify(serializeTestJson.systemStaffJson));
+			score = SmoScore.deserialize(scoreJson);
+            layout.unrenderAll();
+			keys.detach();
+            keys = utController.createUi(document.getElementById("boo"),score);			
+            keys.render();
+        }
+		
+
+      
+        return drawDefaults().then(copySetup).then(copyTest).then(changePitch).then(changePitch2).then(undoTest)
+		    .then(undoTest).then(keySigTest).then(undoTest).then(keySigTest2).then(undoTest)
+		    .then(keySigTest3).then(serializeTest).then(signalComplete);
     }
 }
 ;
@@ -1315,6 +1492,173 @@ class serializeTestJson {
     }
 }
 ;
+class PasteTest {
+
+    static CommonTests() {
+        $('h1.testTitle').text('Paste Test');
+        var score = SmoScore.getEmptyScore();
+
+        var pasteBuffer = new PasteBuffer();
+
+        score.addDefaultMeasureWithNotes(0, {});
+        score.addDefaultMeasureWithNotes(1, {});
+        score.addDefaultMeasureWithNotes(2, {});
+
+        var serial = JSON.stringify(score.serialize(), null, '');
+        console.log(serial);
+        var keys = utController.createUi(document.getElementById("boo"), score);
+        var undo = keys.undoBuffer;
+        var score = keys.score;
+        var layout = keys.layout;
+
+        var detach = () => {
+            keys.detach();
+            keys = null;
+            score = null;
+            layout = null;
+        }
+
+        var timeTest = () => {
+            const promise = new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        resolve();
+                    },
+                        500);
+                });
+            return promise;
+        }
+
+        var signalComplete = () => {
+            detach();
+            return timeTest();
+        }
+
+        var drawDefaults = () => {
+            // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
+            // measure.applyModifiers();
+            keys.render();
+            return timeTest();
+        }
+
+        var copySetup = () => {
+            SmoSelection.noteSelection(layout.score, 0, 2, 0, 1);
+            SmoOperation.setPitch(
+                SmoSelection.noteSelection(layout.score, 0, 0, 0, 0), {
+                letter: 'a',
+                octave: 4,
+                accidental: 'n'
+            });
+            SmoOperation.setPitch(
+                SmoSelection.noteSelection(layout.score, 0, 0, 0, 2), {
+                letter: 'c',
+                octave: 4,
+                accidental: '#'
+            });
+            SmoOperation.setPitch(
+                SmoSelection.noteSelection(layout.score, 0, 0, 0, 3), {
+                letter: 'd',
+                octave: 4,
+                accidental: 'n'
+            });
+            SmoOperation.setPitch(
+                SmoSelection.noteSelection(layout.score, 0, 0, 0, 0), {
+                letter: 'e',
+                octave: 4,
+                accidental: 'n'
+            });
+            SmoOperation.setPitch(
+                SmoSelection.noteSelection(layout.score, 0, 1, 0, 1), {
+                letter: 'f',
+                octave: 4,
+                accidental: 'n'
+            });
+            SmoOperation.setPitch(
+                SmoSelection.noteSelection(layout.score, 0, 1, 0, 2), {
+                letter: 'g',
+                octave: 4,
+                accidental: 'n'
+            });
+            SmoOperation.setPitch(
+                SmoSelection.noteSelection(layout.score, 0, 1, 0, 3), {
+                letter: 'c',
+                octave: 5,
+                accidental: 'n'
+            });
+            keys.render();
+            return timeTest();
+        }
+        var copyTest = () => {
+            var selections = [];
+            selections.push(SmoSelection.noteSelection(layout.score, 0, 2, 0, 1));
+            pasteBuffer.setSelections(keys.score, selections);
+            keys.layout.unrenderAll();
+            var pasteTarget = {
+                staff: 0,
+                measure: 1,
+                voice: 0,
+                tick: 2
+            };
+            pasteBuffer.pasteSelections(score, pasteTarget);
+            keys.render();
+            return timeTest();
+        }
+
+        var copyDurationSetup = () => {
+            var selection = SmoSelection.noteSelection(score, 0, 1, 0, 2);
+            SmoOperation.halveDuration(selection);
+            layout.render();
+            return timeTest();
+        }
+
+        var copyDurationChange = () => {
+            var selections = [];
+            selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 1));
+            selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 2));
+            selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 3));
+            selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 4));
+            pasteBuffer.setSelections(score, selections);
+            keys.layout.unrenderAll();
+            var pasteTarget = {
+                staff: 0,
+                measure: 2,
+                voice: 0,
+                tick: 0
+            };
+            pasteBuffer.pasteSelections(score, pasteTarget);
+            keys.render();
+            return timeTest();
+        }
+
+        var copyOverTupletSetup = () => {
+            var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
+            SmoOperation.makeTuplet(selection, 3);
+            keys.render();
+            return timeTest();
+        }
+        var copyOverTupletTest = () => {
+            var selections = [];
+            selections.push(SmoSelection.noteSelection(score, 0, 0, 0, 0));
+            selections.push(SmoSelection.noteSelection(score, 0, 0, 0, 1));
+            selections.push(SmoSelection.noteSelection(score, 0, 0, 0, 2));
+            selections.push(SmoSelection.noteSelection(score, 0, 0, 0, 3));
+
+            pasteBuffer.setSelections(score, selections);
+            keys.layout.unrenderAll();
+            var pasteTarget = {
+                staff: 0,
+                measure: 2,
+                voice: 0,
+                tick: 0
+            };
+            pasteBuffer.pasteSelections(score, pasteTarget);
+            keys.render();
+            return timeTest();
+        }
+        return drawDefaults().then(copySetup).then(copyTest).then(copyDurationSetup).then(copyDurationChange).
+        then(copyOverTupletSetup).then(copyOverTupletTest).then(signalComplete);
+    }
+}
+;
 
 class VoiceTest {
 
@@ -1471,6 +1815,6 @@ class TestAll {
 		  console.log("DOM fully loaded and parsed");
             TimeSignatureTest.CommonTests().then(
 			ChordTest.CommonTests).then(VoiceTest.CommonTests).then(TupletTest.CommonTests)
-			.then(StaffTest.CommonTests).then(TrackerTest.CommonTests);
+			.then(KeySignatureTest.CommonTests).then(TrackerTest.CommonTests).then(PasteTest.CommonTests);
 	}
 }
