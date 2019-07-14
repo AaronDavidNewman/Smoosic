@@ -20,7 +20,7 @@ module.exports = function (grunt) {
                 dest: 'build/<%= pkg.name %>.js'
             },
             tests: {
-                src: ['src/test/chordTest.js', 'src/test/staffTest.js', 'src/test/timeSignatureTest.js',
+                src: ['src/test/chordTest.js', 'src/test/undoTest.js', 'src/test/timeSignatureTest.js',
 				'src/test/keySignatureTest.js',
                     'src/test/tupletTest.js', 'src/test/serializeTestJson.js','src/test/pasteTest.js',
                     'src/test/voiceTest.js', 'src/test/trackerTest.js', 'src/test/testAll.js'],
