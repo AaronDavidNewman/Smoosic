@@ -124,47 +124,47 @@ class SmoMeasure {
         return {
             'treble': {
                 letter: 'b',
-                accidental: '',
+                accidental: 'n',
                 octave: 4
             },
             'bass': {
                 letter: 'd',
-                accidental: '',
+                accidental: 'n',
                 octave: 3
             },
             'tenor': {
                 letter: 'a',
-                accidental: '',
+                accidental: 'n',
                 octave: 4
             },
             'alto': {
                 letter: 'a',
-                accidental: '',
+                accidental: 'n',
                 octave: 3
             },
             'soprano': {
                 letter: 'b',
-                accidental: '',
+                accidental: 'n',
                 octave: 4
             },
             'percussion': {
                 letter: 'b',
-                accidental: '',
+                accidental: 'n',
                 octave: 4
             },
             'mezzo-soprano': {
                 letter: 'b',
-                accidental: '',
+                accidental: 'n',
                 octave: 4
             },
             'baritone-c': {
                 letter: 'b',
-                accidental: '',
+                accidental: 'n',
                 octave: 3
             },
             'baritone-f': {
                 letter: 'e',
-                accidental: '',
+                accidental: 'n',
                 octave: 3
             },
             'subbass': {

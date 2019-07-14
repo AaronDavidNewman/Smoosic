@@ -110,7 +110,7 @@ class suiMenuManager {
             $('body').trigger('menuDismiss');
         }
         if (this.menu) {
-            this.menu.keydown(event);
+            this.menu.keydown(event);			
         }
         if (this.tracker.selections.length == 0) {
             this.toggleMenuMode();

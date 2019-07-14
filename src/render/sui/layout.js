@@ -284,7 +284,10 @@ class suiSimpleLayout {
                 if (measure.keySignature !== keySigLast) {
                     measure.canceledKeySignature = keySigLast;
                     measure.forceKeySignature = true;
-                } else {
+                } else if (measure.measureNumber.measureIndex == 0 && measure.keySignature != 'C'){
+					measure.forceKeySignature = true;
+				}
+				else {
                     measure.forceKeySignature = false;
                 }
 
