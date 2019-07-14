@@ -3,24 +3,23 @@
 // with the staff.
 
 class StaffModifierBase {
-	constructor(ctor) {
-		this.ctor=ctor;
-	}
-	static deserialize(jsonObj) {
-		var params = JSON.parse(json)
-		var ctor = eval(dbType);
-		var rv= new ctor(jsonObj);
-		rv.attrs.id=jsonObj.attrs.id;
-		rv.attrs.type=jsonObj.attrs.type;
-
-	}
+    constructor(ctor) {
+        this.ctor = ctor;
+    }
+    static deserialize(params) {
+        var ctor = eval(params.attrs.type);
+        var rv = new ctor(params);
+        rv.attrs.id = params.attrs.id;
+        rv.attrs.type = params.attrs.type;
+		return rv;
+    }
 }
 // ## SmoStaffHairpin
 // ## Descpription:
 // crescendo/decrescendo
 class SmoStaffHairpin extends StaffModifierBase {
     constructor(params) {
-		super('SmoStaffHairpin');
+        super('SmoStaffHairpin');
         Vex.Merge(this, SmoStaffHairpin.defaults);
         smoMusic.filteredMerge(['position', 'xOffset', 'yOffset', 'hairpinType', 'height'], params, this);
         this.startSelector = params.startSelector;
@@ -35,11 +34,12 @@ class SmoStaffHairpin extends StaffModifierBase {
             console.log('inherit attrs');
         }
     }
-	get serialize() {
-		var params={};
-		smoMusic.filteredMerge(['position', 'xOffset', 'yOffset', 'hairpinType', 'height'], this, params);
-		return params;
-	}
+    serialize() {
+        var params = {};
+        smoMusic.filteredMerge(['position', 'startSelector','endSelector','attrs','xOffset', 'yOffset', 'hairpinType', 'height'], this, params);
+        params.ctor = 'SmoStaffHairpin';
+        return params;
+    }
     get id() {
         return this.attrs.id;
     }
@@ -91,7 +91,7 @@ class SmoStaffHairpin extends StaffModifierBase {
     }
 }
 
-class SmoSlur extends StaffModifierBase{
+class SmoSlur extends StaffModifierBase {
     static get defaults() {
         return {
             spacing: 2,
@@ -116,15 +116,16 @@ class SmoSlur extends StaffModifierBase{
         };
     }
     static get parameterArray() {
-        return ['spacing', 'xOffset', 'yOffset', 'position', 'position_end', 'invert',
-            'cp1x', 'cp1y', 'cp2x', 'cp2y'];
+        return ['startSelector','endSelector','spacing', 'xOffset', 'yOffset', 'position', 'position_end', 'invert',
+            'cp1x', 'cp1y', 'cp2x', 'cp2y','attrs'];
     }
-	
-	get serialize() {
-		var params={};
-		smoMusic.filteredMerge(SmoSlur.parameterArray, this, params);
-		return params;
-	}
+
+    serialize() {
+        var params = {};
+        smoMusic.filteredMerge(SmoSlur.parameterArray, this, params);
+        params.ctor = 'SmoSlur';
+        return params;
+    }
 
     backupOriginal() {
         if (!this['original']) {
@@ -162,7 +163,7 @@ class SmoSlur extends StaffModifierBase{
     }
 
     constructor(params) {
-		super('SmoSlur');
+        super('SmoSlur');
         Vex.Merge(this, SmoSlur.defaults);
         smoMusic.filteredMerge(SmoSlur.parameterArray, params, this);
         this.startSelector = params.startSelector;

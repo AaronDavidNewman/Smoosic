@@ -84,7 +84,7 @@ class suiSimpleLayout {
 			} else {
 				this.unrenderAll();
 			}
-		    undoBuffer.undo(this.score);
+		    this.score = undoBuffer.undo(this.score);
 		    this.render();
 		}
 	}
@@ -132,6 +132,9 @@ class suiSimpleLayout {
 	unrenderStaff(staff) {
 		staff.measures.forEach((measure) => {
 		    this.unrenderMeasure(measure);
+		});
+		staff.modifiers.forEach((modifier) => {
+			$(this.renderer.getContext().svg).find('g.'+modifier.attrs.id).remove();
 		});
 	}
 

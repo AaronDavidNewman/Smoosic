@@ -6,10 +6,6 @@ class SmoOperation {
 		score.addKeySignature(selection.selector.measure,keySignature);
 	}
 	
-	static operateMeasureWithUndo(opName,selection,p1,p2) {
-		
-	}
-
     // ## doubleDuration
     // ## Description
     // double the duration of a note in a measure, at the expense of the following
@@ -270,5 +266,9 @@ class SmoOperation {
             });
         fromSelection.staff.addStaffModifier(modifier);
     }
+	
+	static addInstrument(score) {
+		score.addInstrument();
+	}
 
 }

@@ -10,6 +10,12 @@ h1 {
 	font-size:1.2em;
 }
 
+.subTitle {
+	height: 14px;
+	font-size:0.8em;
+	text-align:center;
+}
+
 .controls {
 	position:fixed;
 	right:120px;

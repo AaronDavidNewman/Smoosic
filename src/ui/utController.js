@@ -14,6 +14,7 @@ class utController {
 	static createUi(renderElement, score) {
 		var params = {};
 		params.layout = suiSimpleLayout.createScoreLayout(renderElement, score);
+		params.tracker = new suiTracker(params.layout);
 		// params.tracker = new suiTracker(params.layout);
 		params.score = score;
 		// params.editor = new suiEditor(params);

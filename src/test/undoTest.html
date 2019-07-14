@@ -1,0 +1,54 @@
+﻿
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+	<link href="../styles/fonts.css" rel="stylesheet" />
+	<link href="../styles/styles.css" rel="stylesheet" />
+
+    <script type="text/javascript" src="https://npmcdn.com/vexflow/releases/vexflow-debug.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.js"
+            integrity="sha256-fNXJFIlca05BIO2Y5zh1xrShK3ME+/lYZ0j+ChxX2DA="
+			
+            crossorigin="anonymous"></script>
+<!-- link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jasmine/3.2.1/jasmine.css"  -->
+<!-- script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jasmine/3.2.1/jasmine.js"></script -->
+	<script type="text/javascript" src="../common/svgHelpers.js"></script>
+	<script type="text/javascript" src="../common/musicHelpers.js"></script>
+	<script type="text/javascript" src="../common/htmlHelpers.js"></script>
+	
+	<script type="text/javascript" src="../smo/data/noteModifiers.js"></script>
+	<script type="text/javascript" src="../smo/data/note.js"></script>
+	<script type="text/javascript" src="../smo/data/measure.js"></script>
+	<script type="text/javascript" src="../smo/data/staffModifiers.js"></script>
+	<script type="text/javascript" src="../smo/data/systemStaff.js"></script>
+	<script type="text/javascript" src="../smo/data/score.js"></script>
+    <script type="text/javascript" src="../smo/xform/iterator.js"></script>
+    <script type="text/javascript" src="../smo/xform/tickDuration.js"></script>
+    <script type="text/javascript" src="../smo/xform/beamers.js"></script>
+    <script type="text/javascript" src="../smo/xform/selections.js"></script>
+    <script type="text/javascript" src="../smo/xform/operations.js"></script>
+	<script type="text/javascript" src="../smo/xform/undo.js"></script>
+	<script type="text/javascript" src="../smo/xform/copypaste.js"></script>
+	<script type="text/javascript" src="../render/sui/layout.js"></script>
+	<script type="text/javascript" src="../render/sui/tracker.js"></script>	
+	<script type="text/javascript" src="../ui/utController.js"></script>	
+	<script type="text/javascript" src="../render/vex/vxMeasure.js"></script>
+	<script type="text/javascript" src="../render/vex/vxSystem.js"></script>	
+	<script type="text/javascript" src="undoTest.js"></script>
+    <script type="text/javascript" src="serializeTestJson.js"></script>
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function (event) {
+            UndoTest.CommonTests();
+        });
+
+    </script>
+</head>
+<body>
+<h1 class="testTitle">Undo Test </h1>
+<h2 class="subTitle"></h2>
+<div class="musicRelief">
+    <div class="musicContainer" id="boo"></div>
+</div>
+</body>
+</html>
