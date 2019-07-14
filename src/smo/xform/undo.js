@@ -127,7 +127,7 @@ class SmoUndoable {
     }
     static transpose(selection, offset, undoBuffer) {
         undoBuffer.addBuffer('transpose pitches ' + offset, 'measure', selection.selector, selection.measure);
-        SmoOperation.undotDuration(selection, offset);
+        SmoOperation.transpose(selection, offset);
     }
     static courtesyAccidental(pitchSelection, toBe, undoBuffer) {
         undoBuffer.addBuffer('courtesy accidental ', 'measure', pitchSelection.selector, pitchSelection.measure);
@@ -161,4 +161,8 @@ class SmoUndoable {
         undoBuffer.addBuffer('addKeySignature ' + keySignature, 'score', null, score);
         SmoOperation.addKeySignature(score, selection, keySignature);
     }
+	static addMeasure(score,systemIndex, nmeasure,undoBuffer) {
+        undoBuffer.addBuffer('add measure', 'score', null, score);
+		SmoOperation.addMeasure(score,systemIndex, nmeasure);
+	}
 }

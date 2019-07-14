@@ -1,11 +1,11 @@
 
 // An operation works on a selection or set of selections to edit the music
 class SmoOperation {
-	
-	static addKeySignature(score,selection,keySignature) {
-		score.addKeySignature(selection.selector.measure,keySignature);
-	}
-	
+
+    static addKeySignature(score, selection, keySignature) {
+        score.addKeySignature(selection.selector.measure, keySignature);
+    }
+
     // ## doubleDuration
     // ## Description
     // double the duration of a note in a measure, at the expense of the following
@@ -38,7 +38,7 @@ class SmoOperation {
         }
         return true;
     }
-		
+
     // ## halveDuration
     // ## Description
     // Replace the note with 2 notes of 1/2 duration, if possible
@@ -47,11 +47,11 @@ class SmoOperation {
         var note = selection.note;
         var measure = selection.measure;
         var tuplet = measure.getTupletForNote(note);
-		var divisor=2;
-		if (measure.numBeats % 3 === 0 && selection.note.tickCount===6144) {
-			// special behavior, if this is dotted 1/4 in 6/8, split to 3
-			divisor=3;
-		}
+        var divisor = 2;
+        if (measure.numBeats % 3 === 0 && selection.note.tickCount === 6144) {
+            // special behavior, if this is dotted 1/4 in 6/8, split to 3
+            divisor = 3;
+        }
         if (!tuplet) {
             var nticks = note.tickCount / divisor;
             var actor = new SmoContractNoteActor({
@@ -90,13 +90,13 @@ class SmoOperation {
         SmoTickTransformer.applyTransform(measure, actor);
         return true;
     }
-	
-	static makeRest(selection) {
-		selection.note.makeRest();
-	}
-	static makeNote(selection) {
-		selection.note.makeNote();
-	}
+
+    static makeRest(selection) {
+        selection.note.makeRest();
+    }
+    static makeNote(selection) {
+        selection.note.makeNote();
+    }
 
     // ## unmakeTuplet
     // ## Description
@@ -126,7 +126,7 @@ class SmoOperation {
     // Add a dot to a note, if possible, and make the note ahead of it shorter
     // to compensate.
     static dotDuration(selection) {
-		
+
         var note = selection.note;
         var measure = selection.measure;
         var nticks = smoMusic.getNextDottedLevel(note.tickCount);
@@ -174,7 +174,7 @@ class SmoOperation {
         }
         return false;
     }
-	
+
     // ## setPitch
     // ## Description:
     // pitches can be either an array, a single pitch, or a letter.  In the latter case,
@@ -204,16 +204,16 @@ class SmoOperation {
         });
         return true;
     }
-	
-	static courtesyAccidental(pitchSelection,toBe) {
-		pitchSelection.selector.pitches.forEach((pitchIx) => {
-			pitchSelection.note.pitches[pitchIx].cautionary=toBe;
-		});
-	}
-	
-	static addDynamic(selection,dynamic) {
-		selection.note.addModifier(dynamic);
-	}
+
+    static courtesyAccidental(pitchSelection, toBe) {
+        pitchSelection.selector.pitches.forEach((pitchIx) => {
+            pitchSelection.note.pitches[pitchIx].cautionary = toBe;
+        });
+    }
+
+    static addDynamic(selection, dynamic) {
+        selection.note.addModifier(dynamic);
+    }
 
     // ## interval
     // ## Description:
@@ -243,8 +243,8 @@ class SmoOperation {
             });
         fromSelection.staff.addStaffModifier(modifier);
     }
-	
-	static decrescendo(fromSelection, toSelection) {
+
+    static decrescendo(fromSelection, toSelection) {
         var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
         var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
         var modifier = new SmoStaffHairpin({
@@ -255,8 +255,8 @@ class SmoOperation {
             });
         fromSelection.staff.addStaffModifier(modifier);
     }
-	
-	static slur(fromSelection, toSelection) {
+
+    static slur(fromSelection, toSelection) {
         var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
         var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
         var modifier = new SmoSlur({
@@ -266,9 +266,12 @@ class SmoOperation {
             });
         fromSelection.staff.addStaffModifier(modifier);
     }
-	
-	static addInstrument(score) {
-		score.addInstrument();
-	}
 
+    static addInstrument(score) {
+        score.addInstrument();
+    }
+
+    static addMeasure(score,systemIndex, nmeasure) {
+		score.addMeasure(systemIndex, nmeasure);
+	}
 }

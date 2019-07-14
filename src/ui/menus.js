@@ -190,13 +190,12 @@ class SuiDynamicsMenu extends suiMenuBase {
 	selection(ev) {
         var text = $(ev.currentTarget).attr('data-value');
 
-        var self = this;
         var ft = this.tracker.getExtremeSelection(-1);
 		if (!ft || !ft.note) {
 			return;
 		}
 
-        SmoOperation.addDynamic(ft,new SmoDynamicText({selector:ft.selector,text:text,yOffsetLine:11,fontSize:38}));
+        SmoUndoable.addDynamic(ft,new SmoDynamicText({selector:ft.selector,text:text,yOffsetLine:11,fontSize:38}),this.editor.undoBuffer);
         this.complete();
     }
     keydown(ev) {}
@@ -270,12 +269,11 @@ class suiKeySignatureMenu extends suiMenuBase {
     }
     selection(ev) {
         var keySig = $(ev.currentTarget).attr('data-value');
-        var self = this;
 		var changed = [];
         this.tracker.selections.forEach((sel) => {
 			if (changed.indexOf(sel.selector.measure) === -1) {
 				changed.push(sel.selector.measure);
-				SmoOperation.addKeySignature(this.score,sel,keySig);
+				SmoUndoable.addKeySignature(this.score,sel,keySig,this.editor.undoBuffer);
 			}
         });
         this.complete();
@@ -313,7 +311,6 @@ class suiStaffModifierMenu extends suiMenuBase {
     selection(ev) {
         var op = $(ev.currentTarget).attr('data-value');
 
-        var self = this;
         var ft = this.tracker.getExtremeSelection(-1);
         var tt = this.tracker.getExtremeSelection(1);
         if (SmoSelector.sameNote(ft.selector, tt.selector)) {
@@ -321,7 +318,7 @@ class suiStaffModifierMenu extends suiMenuBase {
             return;
         }
 
-        SmoOperation[op](ft, tt);
+        SmoUndoable[op](ft, tt,this.editor.undoBuffer);
         this.complete();
     }
     keydown(ev) {}

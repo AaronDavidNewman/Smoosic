@@ -14,27 +14,39 @@ class suiEditor {
     }
 
     _renderAndAdvance() {
-		this._render();
-		this.tracker.moveSelectionRight();
+        this._render();
+        this.tracker.moveSelectionRight();
     }
 
     _selectionOperation(selection, name, parameters) {
-        SmoOperation[name](selection, parameters);
+        if (parameters) {
+            SmoUndoable[name](selection, parameters, this.undoBuffer);
+        } else {
+            SmoUndoable[name](selection, this.undoBuffer);
+        }
         this._render();
     }
+	
+	undo() {
+		this.layout.undo(this.undoBuffer);
+	}
 
     _singleSelectionOperation(name, parameters) {
         if (this.tracker.selections.length != 1) {
             return;
         }
         var selection = this.tracker.selections[0];
-        SmoOperation[name](selection, parameters);
+        if (parameters) {
+            SmoUndoable[name](selection, parameters, this.undoBuffer);
+        } else {
+            SmoUndoable[name](selection, this.undoBuffer);
+        }
         this._render();
     }
 
     _transpose(selection, offset) {
         this._selectionOperation(selection, 'transpose', offset);
-    }    
+    }
 
     interval(keyEvent) {
         if (this.tracker.selections.length != 1)
@@ -63,48 +75,48 @@ class suiEditor {
     downOctave() {
         this.transpose(-12);
     }
-	makeRest() {
-		this._singleSelectionOperation('makeRest');
-	}	
+    makeRest() {
+        this._singleSelectionOperation('makeRest');
+    }
 
     _setPitch(selected, letter) {
-		var selector = selected.selector;
-		var hintSel = SmoSelection.lastNoteSelection(this.score,
-		   selector.staff,selector.measure,selector.voice,selector.tick);
-		if (!hintSel) {
-			hintSel = SmoSelection.nextNoteSelection(this.score,
-			selector.staff,selector.measure,selector.voice,selector.tick);
-		}
-		
-		var hintNote = hintSel.note;
-		var hpitch = hintNote.pitches[0];
-		var pitch = JSON.parse(JSON.stringify(hpitch));
-		pitch.letter = letter;
-		
-		// Make the key 'a' make 'Ab' in the key of Eb, for instance
-		var vexKsKey = smoMusic.getKeySignatureKey(letter,selected.measure.keySignature);
-		if (vexKsKey.length > 1) {
-			pitch.accidental=vexKsKey[1];
-		} else {
-			pitch.accidental='n';
-		}
+        var selector = selected.selector;
+        var hintSel = SmoSelection.lastNoteSelection(this.score,
+                selector.staff, selector.measure, selector.voice, selector.tick);
+        if (!hintSel) {
+            hintSel = SmoSelection.nextNoteSelection(this.score,
+                    selector.staff, selector.measure, selector.voice, selector.tick);
+        }
 
-		// make the octave of the new note as close to previous (or next) note as possible.
-		var upv=['bc','ac','bd','da','be','gc'];
-		var downv=['cb','ca','db','da','eb','cg'];
-		var delta = hpitch.letter+pitch.letter;
-		if (upv.indexOf(delta) >= 0) {
-			pitch.octave += 1;
-		} 
-		if (downv.indexOf(delta) >= 0) {
-			pitch.octave -= 1;
-		}
-		SmoOperation['setPitch'](selected, pitch);
+        var hintNote = hintSel.note;
+        var hpitch = hintNote.pitches[0];
+        var pitch = JSON.parse(JSON.stringify(hpitch));
+        pitch.letter = letter;
+
+        // Make the key 'a' make 'Ab' in the key of Eb, for instance
+        var vexKsKey = smoMusic.getKeySignatureKey(letter, selected.measure.keySignature);
+        if (vexKsKey.length > 1) {
+            pitch.accidental = vexKsKey[1];
+        } else {
+            pitch.accidental = 'n';
+        }
+
+        // make the octave of the new note as close to previous (or next) note as possible.
+        var upv = ['bc', 'ac', 'bd', 'da', 'be', 'gc'];
+        var downv = ['cb', 'ca', 'db', 'da', 'eb', 'cg'];
+        var delta = hpitch.letter + pitch.letter;
+        if (upv.indexOf(delta) >= 0) {
+            pitch.octave += 1;
+        }
+        if (downv.indexOf(delta) >= 0) {
+            pitch.octave -= 1;
+        }
+        SmoUndoable['setPitch'](selected, pitch, this.undoBuffer);
     }
 
     setPitch(keyEvent) {
         this.tracker.selections.forEach((selected) => this._setPitch(selected, keyEvent.key.toLowerCase()));
-		this._renderAndAdvance();
+        this._renderAndAdvance();
     }
 
     dotDuration(keyEvent) {
@@ -130,9 +142,8 @@ class suiEditor {
         var measure = this.tracker.getFirstMeasureOfSelection();
         if (measure) {
             var nmeasure = SmoMeasure.getDefaultMeasureWithNotes(measure);
-			nmeasure.measureNumber.measureIndex = measure.measureNumber.measureIndex;
-            this.score.addMeasure(measure.measureNumber.systemIndex, nmeasure);
-            this.changed = true;
+            nmeasure.measureNumber.measureIndex = measure.measureNumber.measureIndex;
+            SmoUndoable.addMeasure(this.score, measure.measureNumber.systemIndex, nmeasure, this.undoBuffer);
             this._render();
         }
     }

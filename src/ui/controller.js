@@ -1,7 +1,7 @@
 
 
 // ## suiController
-// ### Description:
+// ## Description:
 // Manages DOM events and binds keyboard and mouse events
 // to editor and menu commands, tracker and layout manager.
 class suiController {
@@ -13,6 +13,7 @@ class suiController {
 		this.bindEvents();
 		this.undoBuffer = new UndoBuffer();
 		this.pasteBuffer = this.tracker.pasteBuffer;
+		this.editor.undoBuffer = this.undoBuffer;
 	}
 
 	// ## createUi
@@ -289,6 +290,14 @@ class suiController {
 				altKey: false,
 				shiftKey: false,
 				action: "addMeasure"
+			},
+			 {
+				event: "keydown",
+				key: "z",
+				ctrlKey: true,
+				altKey: false,
+				shiftKey: false,
+				action: "undo"
 			}
 		];
 	}
