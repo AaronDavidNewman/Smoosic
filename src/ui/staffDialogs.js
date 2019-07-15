@@ -178,5 +178,11 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
             label: 'Hairpin Properties'
         });
         Vex.Merge(this, parameters);
+		SmoStaffHairpin.editableAttributes.forEach((attr) => {
+			var comp = this.components.find((cc)=>{return cc.smoName===attr});
+			if (comp) {
+				comp.defaultValue=this.modifier[attr];
+			}
+		});
     }
 }

@@ -34,6 +34,9 @@ class SmoStaffHairpin extends StaffModifierBase {
             console.log('inherit attrs');
         }
     }
+	static get editableAttributes() {
+		return ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height'];
+	}
     serialize() {
         var params = {};
         smoMusic.filteredMerge(['position', 'startSelector','endSelector','attrs','xOffset', 'yOffset', 'hairpinType', 'height'], this, params);
