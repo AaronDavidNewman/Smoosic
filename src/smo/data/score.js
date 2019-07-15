@@ -113,6 +113,12 @@ class SmoScore {
 			this.measureTickmap.push(measure.tickmap());
 		});
 	}
+	deleteMeasure(measureIndex) {		
+		this.staves.forEach((staff) => {
+			staff.deleteMeasure(measureIndex);
+		});
+		
+	}
 	// ## addMeasure
 	// ## Description:
 	// Give a measure prototype, create a new measure and add it to each staff, with the 

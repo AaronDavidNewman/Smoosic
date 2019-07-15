@@ -331,6 +331,9 @@ class suiTracker {
         var mapped = this.objects.find((el) => {
                 return SmoSelector.sameNote(el.selector, artifact.selector);
             });
+		if (!mapped) {
+			return;
+		}
         console.log('adding selection ' + mapped.note.id);
 
         this.selections = [mapped];

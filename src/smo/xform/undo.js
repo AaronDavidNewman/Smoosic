@@ -165,4 +165,9 @@ class SmoUndoable {
         undoBuffer.addBuffer('add measure', 'score', null, score);
 		SmoOperation.addMeasure(score,systemIndex, nmeasure);
 	}
+	static deleteMeasure(score, selection,undoBuffer) {
+        undoBuffer.addBuffer('delete measure', 'score', null, score);
+		var measureIndex = selection.selector.measure;		
+		score.deleteMeasure(measureIndex);
+	}
 }

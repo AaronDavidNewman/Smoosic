@@ -290,6 +290,13 @@ class suiController {
 				altKey: false,
 				shiftKey: false,
 				action: "addMeasure"
+			}, {
+				event: "keydown",
+				key: "Delete",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "deleteMeasure"
 			},
 			 {
 				event: "keydown",

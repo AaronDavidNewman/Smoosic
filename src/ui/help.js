@@ -13,6 +13,7 @@ class SmoHelp {
         $('.helpDialog').append(r.dom());
 
         r = b('div').classes('help-right');
+		r.append(SmoHelp.generalEditHtml);
         r.append(SmoHelp.menuHelpHtml);
         r.append(SmoHelp.dialogHelpHtml);
         $('.helpDialog').append(r.dom());
@@ -40,7 +41,7 @@ class SmoHelp {
                 b('div').attr('id', 'globMode').text('Next Key Chooses Menu')).append(
                 b('div').classes('mode-subtitle').append(SmoHelp.shortMenuHelpHtml));
         $('body .controls').html('');
-        $('body .controls').append(r.dom());    
+        $('body .controls').append(r.dom());
     }
 
     static get closeButton() {
@@ -296,7 +297,49 @@ class SmoHelp {
             }
         ];
     }
-
+    static get generalEditElements() {
+        return [{
+                keys:
+                [{
+                        text: 'Ctrl',
+                        separator: '+'
+                    }, {
+                        text: 'c',
+                    }
+                ],
+                text: 'Copy selection',
+                id: 'editElements1'
+            }, {
+                keys:
+                [{
+                        text: 'Ctrl',
+                        separator: '+'
+                    }, {
+                        text: 'v'
+                    }
+                ],
+                text: 'Paste copied selection to selection target',
+                id: 'editElements2'
+            }, {
+                keys: [{
+                        text: 'Ctrl',
+                        separator: '+'
+                    }, {
+                        text: 'z',
+                    }
+                ],
+                text: 'Undo previous operation',
+                id: 'editElements3'
+            }, {
+                keys: [{
+                        text: 'Insert'
+                    }
+                ],
+                text: 'Add measure',
+                id: 'editElements4'
+            }
+        ];
+    }
     static get menuModeElements() {
         return [{
                 keys:
@@ -346,8 +389,8 @@ class SmoHelp {
             }
         ];
     }
-static get menuModeShort() {
-        return [ {
+    static get menuModeShort() {
+        return [{
                 keys:
                 [{
                         text: 'k',
@@ -412,7 +455,10 @@ static get menuModeShort() {
     static get menuHelpHtml() {
         return SmoHelp._buildElements(SmoHelp.menuModeElements, 'Menus');
     }
-	static get shortMenuHelpHtml() {
+    static get generalEditHtml() {
+        return SmoHelp._buildElements(SmoHelp.generalEditElements, 'Editing');
+    }
+    static get shortMenuHelpHtml() {
         return SmoHelp._buildElements(SmoHelp.menuModeShort, 'Menus');
     }
     static get dialogHelpHtml() {

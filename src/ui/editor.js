@@ -63,6 +63,18 @@ class suiEditor {
 		this.pasteBuffer.pasteSelections(this.score, pasteTarget);
 		this.layout.render();
 	}
+	
+	deleteMeasure() {
+		if (this.tracker.selections.length < 1) {
+			return;
+		}
+		var selection = this.tracker.selections[0];
+		this.layout.unrenderAll();
+		SmoUndoable.deleteMeasure(this.score,selection,this.undoBuffer);
+		this.tracker.selections=[];
+		this.tracker.clearModifierSelections();
+		this.layout.render();
+	}
 
     interval(keyEvent) {
         if (this.tracker.selections.length != 1)

@@ -149,6 +149,27 @@ class SmoSystemStaff {
         }
         return null;
     }
+	
+	deleteMeasure(index) {
+		if (this.measures.length < 2) {
+			return; // don't delete last measure.
+		}
+		var nm=[];
+		this.measures.forEach((measure) => {
+			if (measure.measureNumber.measureIndex != index) {
+				nm.push(measure);
+			}
+		});
+		var sm=[];
+		this.modifiers.forEach((mod)=> {
+			if (mod.fromSelection.measure != index && mod.toSelection.measure != index) {
+				sm.push(mod);
+			}
+		});
+		this.measures=nm;
+		this.modifiers=sm;
+		this.numberMeasures();
+	}
 
     getMaxTicksMeasure(measure) {
         if (this.measures.length < measure) {

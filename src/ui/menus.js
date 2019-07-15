@@ -113,7 +113,7 @@ class suiMenuManager {
             this.menu.keydown(event);			
         }
         if (this.tracker.selections.length == 0) {
-            this.toggleMenuMode();
+            this.unattach();
             return;
         }
         this.menuPosition = this.tracker.selections[0].box;

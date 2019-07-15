@@ -6,6 +6,11 @@ class SmoOperation {
         score.addKeySignature(selection.selector.measure, keySignature);
     }
 
+    static deleteMeasure(score, selection) {
+		var measureIndex = selection.selector.measure;
+		
+		score.deleteMeasure(measureIndex);
+	}
     // ## doubleDuration
     // ## Description
     // double the duration of a note in a measure, at the expense of the following
@@ -271,7 +276,7 @@ class SmoOperation {
         score.addInstrument();
     }
 
-    static addMeasure(score,systemIndex, nmeasure) {
-		score.addMeasure(systemIndex, nmeasure);
-	}
+    static addMeasure(score, systemIndex, nmeasure) {
+        score.addMeasure(systemIndex, nmeasure);
+    }
 }
