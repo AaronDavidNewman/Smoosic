@@ -303,7 +303,7 @@ class PasteBuffer {
             return;
         }
 
-        var voices = this._populateVoice(this.destination.staff);
+        var voices = this._populateVoice(this.destination.voice);
         var measureSel = JSON.parse(JSON.stringify(this.destination));
         for (var i = 0; i < this.measures.length; ++i) {
             var measure = this.measures[i];

@@ -127,6 +127,9 @@ class suiSimpleLayout {
             return;
 
         $(this.renderer.getContext().svg).find('g.' + measure.attrs.id).remove();
+		measure.staffX=SmoMeasure.defaults.staffX;
+		measure.staffY=SmoMeasure.defaults.staffY;
+		measure.changed=true;
     }
 	
 	unrenderStaff(staff) {
