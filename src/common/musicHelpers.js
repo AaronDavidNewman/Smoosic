@@ -292,7 +292,7 @@ class smoMusic {
 
 	static filteredMerge(attrs, src, dest) {
 		attrs.forEach(function (attr) {
-			if (src[attr]) {
+			if (typeof(src[attr]) != 'undefined') {
 				dest[attr] = src[attr];
 			}
 		});

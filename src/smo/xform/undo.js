@@ -135,7 +135,7 @@ class SmoUndoable {
     }
     static addDynamic(selection, dynamic, undoBuffer) {
         undoBuffer.addBuffer('add dynamic', 'measure', selection.selector, selection.measure);
-        SmoOperation.addDynamic(selection.dynamic);
+        SmoOperation.addDynamic(selection,dynamic);
     }
     static interval(selection, interval, undoBuffer) {
         undoBuffer.addBuffer('add interval ' + interval, 'measure', selection.selector, selection.measure);

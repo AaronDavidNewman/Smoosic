@@ -23,6 +23,30 @@ h1 {
 	background:transparent;
 }
 
+.menu-status {
+	position:absolute;
+	right:10px;
+	top:150px;
+	background:#fff;
+	padding:5px;
+	border:solid #fee 2px;
+	border-radius:3px;
+}
+
+.menu-status .help-title {
+	display:none;
+}
+
+.menu-status .keyBlock {
+	width:270px;
+}
+.menu-status .keyContainer {
+	width:auto;
+}
+
+.menu-status div {
+	margin:5px;
+}
 button.help-button {
 	background:transparent;
 	/* width:50px; */

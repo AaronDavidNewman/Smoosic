@@ -7,7 +7,6 @@
 class suiController {
 
 	constructor(params) {
-
 		Vex.Merge(this, suiController.defaults);
 		Vex.Merge(this, params);
 		this.bindEvents();
@@ -388,6 +387,10 @@ class suiController {
 			htmlHelpers.closeDialogPromise().then(rebind);
 		});
 	}
+	
+	menuHelp() {
+		SmoHelp.modeControls();
+	}
 
 	static get defaults() {
 		return {
@@ -418,6 +421,7 @@ class suiController {
 
 		if (evdata.key == '/') {
 			window.removeEventListener("keydown", this.keydownHandler, true);
+			this.menuHelp();
 			this.menuPromise = this.menus.slashMenuMode().then(rebind);
 		}
 

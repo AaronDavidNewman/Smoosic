@@ -191,6 +191,7 @@ class SuiTextModifierDialog extends SuiDialogBase {
             label: 'Dynamics Properties'
         });
         Vex.Merge(this, parameters);
+		this.components.find((x)=>{return x.parameterName=='text'}).defaultValue=parameters.modifier.text;
 	}
 	 handleRemove() {
         $(this.context.svg).find('g.' + this.modifier.id).remove();
