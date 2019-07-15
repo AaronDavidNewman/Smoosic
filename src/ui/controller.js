@@ -13,6 +13,7 @@ class suiController {
 		this.undoBuffer = new UndoBuffer();
 		this.pasteBuffer = this.tracker.pasteBuffer;
 		this.editor.undoBuffer = this.undoBuffer;
+		this.editor.pasteBuffer = this.pasteBuffer;
 	}
 
 	// ## createUi
@@ -297,6 +298,22 @@ class suiController {
 				altKey: false,
 				shiftKey: false,
 				action: "undo"
+			},
+			 {
+				event: "keydown",
+				key: "c",
+				ctrlKey: true,
+				altKey: false,
+				shiftKey: false,
+				action: "copy"
+			},
+			 {
+				event: "keydown",
+				key: "v",
+				ctrlKey: true,
+				altKey: false,
+				shiftKey: false,
+				action: "paste"
 			}
 		];
 	}

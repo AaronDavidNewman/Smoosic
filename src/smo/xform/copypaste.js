@@ -43,9 +43,9 @@ class PasteBuffer {
         this._populateSelectArray(selections);
 
     }
-	// ### _populateSelectArray
-	// ### Description:
-	// copy the selected notes into the paste buffer with their original locations.
+    // ### _populateSelectArray
+    // ### Description:
+    // copy the selected notes into the paste buffer with their original locations.
     _populateSelectArray(selections) {
         var currentTupletParameters = null;
         var currentTupletNotes = [];
@@ -64,10 +64,10 @@ class PasteBuffer {
                 if (index === tuplet.notes.length - 1) {
                     currentTupletParameters.notes = currentTupletNotes;
                     var ntuplet = new SmoTuplet(currentTupletParameters);
-					
-					// Create a map of the first note in the tuplet for later 
-					// when we create the measures.
-					this.tupletNoteMap[currentTupletNotes[0].id]=ntuplet;
+
+                    // Create a map of the first note in the tuplet for later
+                    // when we create the measures.
+                    this.tupletNoteMap[currentTupletNotes[0].id] = ntuplet;
                     currentTupletParameters = null;
                 }
             }
@@ -104,7 +104,9 @@ class PasteBuffer {
                 // remainder going to the next measure.  If they line up exactly, the remainder is 0.
                 var remainder = tickmap.totalDuration - (currentDuration + selection.note.tickCount);
 
-                measureSelection = SmoSelection.measureSelection(this.score, this.measureSelection.staffIndex, this.measureSelection.measureIndex + 1);
+                measureSelection = SmoSelection.measureSelection(this.score,
+                        measureSelection.selector.staff,
+                        measureSelection.selector.measure + 1);
 
                 // If the paste buffer overlaps the end of the score, we can't paste (TODO:  add a measure in this case)
                 if (measureSelection != null) {
@@ -174,7 +176,7 @@ class PasteBuffer {
                     voice: voiceIndex,
                     tick: 0
                 };
-                measure = measure[this.measureIndex];
+                measure = measures[this.measureIndex];
                 tickmap = measure.tickmap();
                 this.measureIndex += 1;
             } else {
@@ -196,8 +198,8 @@ class PasteBuffer {
 
     // ### _populateNew
     // ### Description:
-    // Start copying the paste buffer into the destination by copying the notes and working out 
-	// the measure overlap
+    // Start copying the paste buffer into the destination by copying the notes and working out
+    // the measure overlap
     _populateNew(voice, voiceIndex, measure, tickmap, startSelector) {
         var currentDuration = tickmap.durationMap[startSelector.tick];
         var totalDuration = tickmap.totalDuration;
@@ -277,7 +279,7 @@ class PasteBuffer {
         while (startTicks < totalDuration) {
             // Find the point in the music where the paste area runs out, or as close as we can get.
             var existingIndex = tickmap.durationMap.indexOf(startTicks);
-            existingIndex = (existingIndex < 0) ? measure.voices[voiceIndex].length - 1 : existingIndex;
+            existingIndex = (existingIndex < 0) ? measure.voices[voiceIndex].notes.length - 1 : existingIndex;
             var note = measure.voices[voiceIndex].notes[existingIndex];
             var ticksLeft = totalDuration - startTicks;
             if (ticksLeft >= note.tickCount) {

@@ -164,8 +164,12 @@ class SuiTextModifierDialog extends SuiDialogBase {
                         label: 'Forte'
                     },
 					{
-                        value: SmoDynamicText.dynamics.F,
+                        value: SmoDynamicText.dynamics.FF,
                         label: 'Fortissimo'
+					},
+					{
+                        value: SmoDynamicText.dynamics.SFZ,
+                        label: 'Sforzando'
 					}
                 ],
                 control: 'SuiDropdownComponent',

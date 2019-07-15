@@ -47,6 +47,22 @@ class suiEditor {
     _transpose(selection, offset) {
         this._selectionOperation(selection, 'transpose', offset);
     }
+	
+	copy() {
+		if (this.tracker.selections.length <1) {
+			return;
+		}
+		this.pasteBuffer.setSelections(this.score,this.tracker.selections);
+	}
+	paste() {
+		if (this.tracker.selections.length <1) {
+			return;
+		}
+		var pasteTarget = this.tracker.selections[0].selector;
+		this.layout.unrenderAll();
+		this.pasteBuffer.pasteSelections(this.score, pasteTarget);
+		this.layout.render();
+	}
 
     interval(keyEvent) {
         if (this.tracker.selections.length != 1)
