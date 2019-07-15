@@ -337,6 +337,14 @@ class SmoHelp {
                 ],
                 text: 'Add measure',
                 id: 'editElements4'
+            },
+			{
+                keys: [{
+                        text: 'Delete'
+                    }
+                ],
+                text: 'Delete measure',
+                id: 'editElements4'
             }
         ];
     }
