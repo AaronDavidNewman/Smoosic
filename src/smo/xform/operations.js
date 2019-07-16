@@ -219,6 +219,10 @@ class SmoOperation {
     static addDynamic(selection, dynamic) {
         selection.note.addModifier(dynamic);
     }
+	
+	static addArticulation(selection,articulation) {
+		selection.note.addArticulation(articulation);
+	}
 
     // ## interval
     // ## Description:

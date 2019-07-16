@@ -61,6 +61,19 @@ class SmoNote {
         }
         this.textModifiers = tms;
     }
+	
+	_addArticulation(articulation,toAdd) {
+        var tms = [];
+        this.articulations.forEach((tm) => {
+            if (tm.articulation  != articulation.articulation) {
+                tms.push(tm);
+            }
+        });
+        if (toAdd) {
+            tms.push(articulation);
+        }
+        this.articulations = tms;
+	}
 
     addModifier(dynamic) {
         this._addModifier(dynamic, true);
@@ -68,6 +81,14 @@ class SmoNote {
     removeModifier(dynamic) {
         this._addModifier(dynamic, false);
     }
+	
+	addArticulation(articulation) {
+		this._addArticulation(articulation,true);
+	}
+	removeArticulation(articulation) {
+		this._addArticulation(articulation,false);
+	}
+
 
     // ## toVexKeys
     // ## Description:
@@ -188,6 +209,7 @@ class SmoNote {
         return {
             noteType: 'n',
             textModifiers: [],
+			articulations:[],
             ticks: {
                 numerator: 4096,
                 denominator: 1,

@@ -138,9 +138,15 @@ class ChordTest {
             layout.render();
             return timeTest();
         }
+		var accentTest = () => {
+			var target = SmoSelection.noteSelection(score, 0, 0, 0, 2);
+			SmoOperation.addArticulation(target,new SmoArticulation({articulation:'accent',position:3}));			
+            layout.render();
+            return timeTest();
+		}
 
         return drawDefaults().then(accidentalTest).then(crescendoTest).then(intervalTest).then(durationTest)
         .then(durationTest2).then(rerenderTest).then(setPitchTest).then(makeTupletTest)
-        .then(unmakeTupletTest).then(courtesyTest).then(signalComplete);
+        .then(unmakeTupletTest).then(courtesyTest).then(accentTest).then(signalComplete);
     }
 }

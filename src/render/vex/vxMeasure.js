@@ -113,6 +113,18 @@ class VxMeasure {
         return vexNote;
     }
 	
+	_renderArticulations(smoNote,articulation) {
+		var i=0;
+		this.smoMeasure.notes.forEach((smoNote) => {
+			smoNote.articulations.forEach((art) => {
+				var vx = this.noteToVexMap[smoNote.id];
+				var vxArt=new VF.Articulation(
+				   SmoArticulation.articulationToVex[art.articulation]).setPosition(art.position);
+				vx.addArticulation(i,vxArt);
+			});
+		});		
+	}
+	
 	_renderNoteGlyph(smoNote,textObj) {		
 		var x = this.noteToVexMap[smoNote.id].getAbsoluteX();
 		// the -3 is copied from vexflow textDynamics
@@ -150,7 +162,8 @@ class VxMeasure {
             var vexNote = this._createVexNote(smoNote, i);
             this.noteToVexMap[smoNote.attrs.id] = vexNote;
             this.vexNotes.push(vexNote);
-        }       
+        }
+		this._renderArticulations();
     }
 
     // ## Description:
@@ -299,7 +312,7 @@ class VxMeasure {
         };
         this.smoMeasure.changed = false;
 		
-		this.renderDynamics();
+		this.renderDynamics();		
 
         // Calculate how far off our estimated width we are
         var svgBox =
