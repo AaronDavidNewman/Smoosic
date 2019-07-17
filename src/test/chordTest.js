@@ -38,7 +38,7 @@ class ChordTest {
         var accidentalTest = () => {
             var selection = SmoSelection.pitchSelection(score, 0, 0, 0, 1, [0]);
             SmoOperation.transpose(selection, -1);
-            SmoOperation.addDynamic(selection,new SmoDynamicText({
+            SmoOperation.addDynamic(selection, new SmoDynamicText({
                     selection: selection.selector,
                     text: SmoDynamicText.dynamics.SFZ,
                     yOffsetLine: 11,
@@ -101,16 +101,16 @@ class ChordTest {
         }
 
         var makeTupletTest = () => {
-			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
-			SmoOperation.makeTuplet(selection,3);
+            var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
+            SmoOperation.makeTuplet(selection, 3);
             /* var tickmap = measure.tickmap();
             var actor = new SmoMakeTupletActor({
-				
-                    index: 1,
-                    totalTicks: 4096,
-                    numNotes: 3,
-                    measure: measure
-                });
+
+            index: 1,
+            totalTicks: 4096,
+            numNotes: 3,
+            measure: measure
+            });
             SmoTickTransformer.applyTransform(measure, actor);   */
             layout.render();
             console.log('tuplet serialize');
@@ -119,13 +119,13 @@ class ChordTest {
         }
 
         var unmakeTupletTest = () => {
-			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
-			SmoOperation.unmakeTuplet(selection);
+            var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
+            SmoOperation.unmakeTuplet(selection);
             /* var actor = new SmoUnmakeTupletActor({
-                    startIndex: 1,
-                    endIndex: 3,
-                    measure: measure
-                });
+            startIndex: 1,
+            endIndex: 3,
+            measure: measure
+            });
             SmoTickTransformer.applyTransform(measure, actor);  */
             layout.render();
             return timeTest();
@@ -133,17 +133,20 @@ class ChordTest {
 
         var courtesyTest = () => {
             var target = SmoSelection.pitchSelection(score, 0, 0, 0, 2, [1]);
-			SmoOperation.courtesyAccidental(target,true);
+            SmoOperation.courtesyAccidental(target, true);
             // target.note.pitches[1].cautionary = true;
             layout.render();
             return timeTest();
         }
-		var accentTest = () => {
-			var target = SmoSelection.noteSelection(score, 0, 0, 0, 2);
-			SmoOperation.addArticulation(target,new SmoArticulation({articulation:'accent',position:3}));			
+        var accentTest = () => {
+            var target = SmoSelection.noteSelection(score, 0, 0, 0, 2);
+            SmoOperation.addArticulation(target, new SmoArticulation({
+                    articulation: SmoArticulation.articulations.accent,
+                    position: SmoArticulation.positions.above
+                }));
             layout.render();
             return timeTest();
-		}
+        }
 
         return drawDefaults().then(accidentalTest).then(crescendoTest).then(intervalTest).then(durationTest)
         .then(durationTest2).then(rerenderTest).then(setPitchTest).then(makeTupletTest)

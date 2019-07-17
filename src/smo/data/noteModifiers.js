@@ -24,6 +24,9 @@ class SmoArticulation extends SmoNoteModifierBase {
 
         };
     }
+	static get positions() {
+		return {above:'above',below:'below'};
+	}
     static get articulationToVex() {
         return {
             accent: 'a>',
@@ -59,7 +62,7 @@ class SmoArticulation extends SmoNoteModifierBase {
     }
     static get defaults() {
         return {
-            position: 3,
+            position: SmoArticulation.positions.above,
             articulation: SmoArticulation.articulations.accent
         };
 

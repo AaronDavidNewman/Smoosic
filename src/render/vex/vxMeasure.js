@@ -118,8 +118,9 @@ class VxMeasure {
 		this.smoMeasure.notes.forEach((smoNote) => {
 			smoNote.articulations.forEach((art) => {
 				var vx = this.noteToVexMap[smoNote.id];
-				var vxArt=new VF.Articulation(
-				   SmoArticulation.articulationToVex[art.articulation]).setPosition(art.position);
+				var position = SmoArticulation.positionToVex[art.position];
+				var vexArt = SmoArticulation.articulationToVex[art.articulation];
+				var vxArt=new VF.Articulation(vexArt).setPosition(position);
 				vx.addArticulation(i,vxArt);
 			});
 		});		
