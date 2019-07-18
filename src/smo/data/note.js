@@ -81,12 +81,13 @@ class SmoNote {
     removeModifier(dynamic) {
         this._addModifier(dynamic, false);
     }
-	
-	addArticulation(articulation) {
-		this._addArticulation(articulation,true);
-	}
-	removeArticulation(articulation) {
-		this._addArticulation(articulation,false);
+		
+	toggleArticulation(articulation) {
+		if (this.articulations.findIndex((a) => {return a.articulation===articulation.articulation;}) < 0) {
+			this._addArticulation(articulation,true);
+		} else {
+			this._addArticulation(articulation,false);
+		}
 	}
 
 

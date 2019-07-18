@@ -51,7 +51,7 @@ class SmoArticulation extends SmoNoteModifierBase {
         };
     }
     static get attrArray() {
-        return ['position', 'articuation'];
+        return ['position', 'articulation'];
     }
 
     static get positionToVex() {

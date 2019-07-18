@@ -178,9 +178,13 @@ class suiEditor {
     makeTuplet(keyEvent) {
         var numNotes = parseInt(keyEvent.key);
         this._singleSelectionOperation('makeTuplet', numNotes);
-    }
+    }	
 
     unmakeTuplet(keyEvent) {
         this._singleSelectionOperation('unmakeTuplet');
     }
+	
+	addRemoveArticulation(keyEvent) {
+		
+	}
 }
