@@ -13,7 +13,7 @@ class SmoHelp {
         $('.helpDialog').append(r.dom());
 
         r = b('div').classes('help-right');
-		r.append(SmoHelp.generalEditHtml);
+        r.append(SmoHelp.generalEditHtml);
         r.append(SmoHelp.menuHelpHtml);
         r.append(SmoHelp.dialogHelpHtml);
         $('.helpDialog').append(r.dom());
@@ -181,6 +181,37 @@ class SmoHelp {
             }, {
                 keys:
                 [{
+                        text: 'h'
+                    }, {
+                        text: '...',
+                        icon: 'help-ellipsis'
+                    }, {
+                        text: 'l',
+                        separator: ','
+                    }
+                ],
+                text: 'Various articulations',
+                id: 'noteElements1'
+            }, {
+                keys:
+                [{
+                        text: 'Shift',
+                        separator: '+'
+                    }, {
+                        text: 'h'
+                    }, {
+                        text: '...',
+                        icon: 'help-ellipsis'
+                    }, {
+                        text: 'l',
+                        separator: ','
+                    }
+                ],
+                text: 'Various articulations',
+                id: 'noteElements1'
+            }, {
+                keys:
+                [{
                         text: '-',
                         separator: ','
                     }, {
@@ -337,8 +368,7 @@ class SmoHelp {
                 ],
                 text: 'Add measure',
                 id: 'editElements4'
-            },
-			{
+            }, {
                 keys: [{
                         text: 'Delete'
                     }
