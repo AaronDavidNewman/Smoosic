@@ -321,7 +321,87 @@ class suiController {
 				altKey: false,
 				shiftKey: false,
 				action: "paste"
-			}
+			},
+			 {
+				event: "keydown",
+				key: "h",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "addRemoveArticulation"
+			},
+			 {
+				event: "keydown",
+				key: "i",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "addRemoveArticulation"
+			},
+			{
+				event: "keydown",
+				key: "j",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "addRemoveArticulation"
+			},
+			{
+				event: "keydown",
+				key: "k",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "addRemoveArticulation"
+			},
+			{
+				event: "keydown",
+				key: "l",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "addRemoveArticulation"
+			},
+			{
+				event: "keydown",
+				key: "H",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "addRemoveArticulation"
+			},
+			 {
+				event: "keydown",
+				key: "I",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "addRemoveArticulation"
+			},
+			{
+				event: "keydown",
+				key: "J",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "addRemoveArticulation"
+			},
+			{
+				event: "keydown",
+				key: "K",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "addRemoveArticulation"
+			},
+			{
+				event: "keydown",
+				key: "L",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "addRemoveArticulation"
+			}			
 		];
 	}
 

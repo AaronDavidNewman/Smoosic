@@ -26,10 +26,10 @@ class suiEditor {
         }
         this._render();
     }
-	
-	undo() {
-		this.layout.undo(this.undoBuffer);
-	}
+
+    undo() {
+        this.layout.undo(this.undoBuffer);
+    }
 
     _singleSelectionOperation(name, parameters) {
         if (this.tracker.selections.length != 1) {
@@ -47,34 +47,34 @@ class suiEditor {
     _transpose(selection, offset) {
         this._selectionOperation(selection, 'transpose', offset);
     }
-	
-	copy() {
-		if (this.tracker.selections.length <1) {
-			return;
-		}
-		this.pasteBuffer.setSelections(this.score,this.tracker.selections);
-	}
-	paste() {
-		if (this.tracker.selections.length <1) {
-			return;
-		}
-		var pasteTarget = this.tracker.selections[0].selector;
-		this.layout.unrenderAll();
-		this.pasteBuffer.pasteSelections(this.score, pasteTarget);
-		this.layout.render();
-	}
-	
-	deleteMeasure() {
-		if (this.tracker.selections.length < 1) {
-			return;
-		}
-		var selection = this.tracker.selections[0];
-		this.layout.unrenderAll();
-		SmoUndoable.deleteMeasure(this.score,selection,this.undoBuffer);
-		this.tracker.selections=[];
-		this.tracker.clearModifierSelections();
-		this.layout.render();
-	}
+
+    copy() {
+        if (this.tracker.selections.length < 1) {
+            return;
+        }
+        this.pasteBuffer.setSelections(this.score, this.tracker.selections);
+    }
+    paste() {
+        if (this.tracker.selections.length < 1) {
+            return;
+        }
+        var pasteTarget = this.tracker.selections[0].selector;
+        this.layout.unrenderAll();
+        this.pasteBuffer.pasteSelections(this.score, pasteTarget);
+        this.layout.render();
+    }
+
+    deleteMeasure() {
+        if (this.tracker.selections.length < 1) {
+            return;
+        }
+        var selection = this.tracker.selections[0];
+        this.layout.unrenderAll();
+        SmoUndoable.deleteMeasure(this.score, selection, this.undoBuffer);
+        this.tracker.selections = [];
+        this.tracker.clearModifierSelections();
+        this.layout.render();
+    }
 
     interval(keyEvent) {
         if (this.tracker.selections.length != 1)
@@ -178,13 +178,45 @@ class suiEditor {
     makeTuplet(keyEvent) {
         var numNotes = parseInt(keyEvent.key);
         this._singleSelectionOperation('makeTuplet', numNotes);
-    }	
+    }
 
     unmakeTuplet(keyEvent) {
         this._singleSelectionOperation('unmakeTuplet');
     }
-	
-	addRemoveArticulation(keyEvent) {
+
+    addRemoveArticulation(keyEvent) {
+        if (this.tracker.selections.length < 1)
+            return;
+        
+        var atyp = SmoArticulation.articulations.accent;
+
+        if (keyEvent.key.toLowerCase() === 'h') {
+            atyp = SmoArticulation.articulations.accent;
+        }
+        if (keyEvent.key.toLowerCase() === 'i') {
+            atyp = SmoArticulation.articulations.tenuto;
+        }
+        if (keyEvent.key.toLowerCase() === 'j') {
+            atyp = SmoArticulation.articulations.staccato;
+        }
+        if (keyEvent.key.toLowerCase() === 'k') {
+            atyp = SmoArticulation.articulations.marcato;
+        }
+        if (keyEvent.key.toLowerCase() === 'l') {
+            atyp = SmoArticulation.articulations.pizzicato;
+        }
+        var pos = keyEvent.shiftKey ? SmoArticulation.positions.below : SmoArticulation.positions.above;
 		
-	}
+		this.undoBuffer.addBuffer('change articulation ' + atyp,
+            'staff', this.tracker.selections[0].selector, this.tracker.selections[0].staff);
+			
+        this.tracker.selections.forEach((sel) => {
+            var articulation = new SmoArticulation({
+                    articulation: atyp,
+                    position: pos
+                });
+            SmoOperation.toggleArticulation(sel, articulation);
+        });
+        this._render();
+    }
 }
