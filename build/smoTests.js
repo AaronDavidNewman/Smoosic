@@ -38,7 +38,7 @@ class ChordTest {
         var accidentalTest = () => {
             var selection = SmoSelection.pitchSelection(score, 0, 0, 0, 1, [0]);
             SmoOperation.transpose(selection, -1);
-            SmoOperation.addDynamic(selection,new SmoDynamicText({
+            SmoOperation.addDynamic(selection, new SmoDynamicText({
                     selection: selection.selector,
                     text: SmoDynamicText.dynamics.SFZ,
                     yOffsetLine: 11,
@@ -101,16 +101,16 @@ class ChordTest {
         }
 
         var makeTupletTest = () => {
-			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
-			SmoOperation.makeTuplet(selection,3);
+            var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
+            SmoOperation.makeTuplet(selection, 3);
             /* var tickmap = measure.tickmap();
             var actor = new SmoMakeTupletActor({
-				
-                    index: 1,
-                    totalTicks: 4096,
-                    numNotes: 3,
-                    measure: measure
-                });
+
+            index: 1,
+            totalTicks: 4096,
+            numNotes: 3,
+            measure: measure
+            });
             SmoTickTransformer.applyTransform(measure, actor);   */
             layout.render();
             console.log('tuplet serialize');
@@ -119,13 +119,13 @@ class ChordTest {
         }
 
         var unmakeTupletTest = () => {
-			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
-			SmoOperation.unmakeTuplet(selection);
+            var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
+            SmoOperation.unmakeTuplet(selection);
             /* var actor = new SmoUnmakeTupletActor({
-                    startIndex: 1,
-                    endIndex: 3,
-                    measure: measure
-                });
+            startIndex: 1,
+            endIndex: 3,
+            measure: measure
+            });
             SmoTickTransformer.applyTransform(measure, actor);  */
             layout.render();
             return timeTest();
@@ -133,15 +133,115 @@ class ChordTest {
 
         var courtesyTest = () => {
             var target = SmoSelection.pitchSelection(score, 0, 0, 0, 2, [1]);
-			SmoOperation.courtesyAccidental(target,true);
+            SmoOperation.courtesyAccidental(target, true);
             // target.note.pitches[1].cautionary = true;
             layout.render();
             return timeTest();
         }
-
+        var accentTest = () => {
+            var target = SmoSelection.noteSelection(score, 0, 0, 0, 2);
+            SmoOperation.toggleArticulation(target, new SmoArticulation({
+                    articulation: SmoArticulation.articulations.accent,
+                    position: SmoArticulation.positions.above
+                }));
+            layout.render();
+            return timeTest();
+        }
+		
+		var accentTest2 = () => {
+            var target = SmoSelection.noteSelection(score, 0, 0, 0, 2);
+            SmoOperation.toggleArticulation(target, new SmoArticulation({
+                    articulation: SmoArticulation.articulations.tenuto,
+                    position: SmoArticulation.positions.above
+                }));
+            layout.render();
+            return timeTest();
+		}
+		var accentTestBelow = () => {
+            var target = SmoSelection.noteSelection(score, 0, 0, 0, 2);
+            SmoOperation.toggleArticulation(target, new SmoArticulation({
+                    articulation: SmoArticulation.articulations.tenuto,
+                    position: SmoArticulation.positions.above
+                }));
+            SmoOperation.toggleArticulation(target, new SmoArticulation({
+                    articulation: SmoArticulation.articulations.accent,
+                    position: SmoArticulation.positions.above
+                }));
+            SmoOperation.toggleArticulation(target, new SmoArticulation({
+                    articulation: SmoArticulation.articulations.accent,
+                    position: SmoArticulation.positions.below
+                }));
+            layout.render();
+            return timeTest();
+		}
+			
+		var staccatoTest = () => {
+            var target = SmoSelection.noteSelection(score, 0, 0, 0, 2);           
+            SmoOperation.toggleArticulation(target, new SmoArticulation({
+                    articulation: SmoArticulation.articulations.accent}));
+            SmoOperation.toggleArticulation(target, new SmoArticulation({
+                    articulation: SmoArticulation.articulations.staccato,
+                    position: SmoArticulation.positions.above
+                }));
+            layout.render();
+            return timeTest();
+		}
+		
+		var marcatoTest = () => {
+            var target = SmoSelection.noteSelection(score, 0, 0, 0, 2);
+            SmoOperation.toggleArticulation(target, new SmoArticulation({
+                    articulation: SmoArticulation.articulations.staccato}));
+            
+            SmoOperation.toggleArticulation(target, new SmoArticulation({
+                    articulation: SmoArticulation.articulations.marcato,
+                    position: SmoArticulation.positions.above
+                }));
+            layout.render();
+            return timeTest();
+		}
+		
+		var upStrokeTest = () => {
+            var target = SmoSelection.noteSelection(score, 0, 0, 0, 2);
+            SmoOperation.toggleArticulation(target, new SmoArticulation({
+                    articulation: SmoArticulation.articulations.marcato}));
+            
+            SmoOperation.toggleArticulation(target, new SmoArticulation({
+                    articulation: SmoArticulation.articulations.upStroke,
+                    position: SmoArticulation.positions.above
+                }));
+            layout.render();
+            return timeTest();
+		}
+		
+		var downStrokeTest = () => {
+            var target = SmoSelection.noteSelection(score, 0, 0, 0, 2);
+            SmoOperation.toggleArticulation(target, new SmoArticulation({
+                    articulation: SmoArticulation.articulations.upStroke}));
+            
+            SmoOperation.toggleArticulation(target, new SmoArticulation({
+                    articulation: SmoArticulation.articulations.downStroke,
+                    position: SmoArticulation.positions.above
+                }));
+            layout.render();
+            return timeTest();
+		}
+		var pizzicatoTest = () => {
+            var target = SmoSelection.noteSelection(score, 0, 0, 0, 2);
+            SmoOperation.toggleArticulation(target, new SmoArticulation({
+                    articulation: SmoArticulation.articulations.downStroke}));
+            
+            SmoOperation.toggleArticulation(target, new SmoArticulation({
+                    articulation: SmoArticulation.articulations.pizzicato,
+                    position: SmoArticulation.positions.above
+                }));
+            layout.render();
+            return timeTest();
+		}
         return drawDefaults().then(accidentalTest).then(crescendoTest).then(intervalTest).then(durationTest)
         .then(durationTest2).then(rerenderTest).then(setPitchTest).then(makeTupletTest)
-        .then(unmakeTupletTest).then(courtesyTest).then(signalComplete);
+        .then(unmakeTupletTest).then(courtesyTest).then(accentTest)
+		.then(accentTest2).then(accentTestBelow).then(staccatoTest).then(marcatoTest)
+		.then(upStrokeTest).then(downStrokeTest).then(pizzicatoTest).then(signalComplete);
     }
 }
 ;

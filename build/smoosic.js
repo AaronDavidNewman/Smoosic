@@ -292,7 +292,7 @@ class smoMusic {
 
 	static filteredMerge(attrs, src, dest) {
 		attrs.forEach(function (attr) {
-			if (src[attr]) {
+			if (typeof(src[attr]) != 'undefined') {
 				dest[attr] = src[attr];
 			}
 		});
@@ -667,6 +667,19 @@ class SmoNote {
         }
         this.textModifiers = tms;
     }
+	
+	_addArticulation(articulation,toAdd) {
+        var tms = [];
+        this.articulations.forEach((tm) => {
+            if (tm.articulation  != articulation.articulation) {
+                tms.push(tm);
+            }
+        });
+        if (toAdd) {
+            tms.push(articulation);
+        }
+        this.articulations = tms;
+	}
 
     addModifier(dynamic) {
         this._addModifier(dynamic, true);
@@ -674,6 +687,15 @@ class SmoNote {
     removeModifier(dynamic) {
         this._addModifier(dynamic, false);
     }
+		
+	toggleArticulation(articulation) {
+		if (this.articulations.findIndex((a) => {return a.articulation===articulation.articulation;}) < 0) {
+			this._addArticulation(articulation,true);
+		} else {
+			this._addArticulation(articulation,false);
+		}
+	}
+
 
     // ## toVexKeys
     // ## Description:
@@ -794,6 +816,7 @@ class SmoNote {
         return {
             noteType: 'n',
             textModifiers: [],
+			articulations:[],
             ticks: {
                 numerator: 4096,
                 denominator: 1,
@@ -989,51 +1012,132 @@ class SmoBeamGroup {
 }
 ;
 class SmoNoteModifierBase {
-	constructor(ctor) {
-		this.ctor=ctor;
-	}	
-	static deserialize(jsonObj) {
-		var ctor = eval(jsonObj.ctor);
-		var rv = new ctor(jsonObj);
-		rv.attrs.id=jsonObj.attrs.id;
-		rv.attrs.type=jsonObj.attrs.type;
-	}	
+    constructor(ctor) {
+        this.ctor = ctor;
+    }
+    static deserialize(jsonObj) {
+        var ctor = eval(jsonObj.ctor);
+        var rv = new ctor(jsonObj);
+        rv.attrs.id = jsonObj.attrs.id;
+        rv.attrs.type = jsonObj.attrs.type;
+    }
+}
+
+class SmoArticulation extends SmoNoteModifierBase {
+    static get articulations() {
+        return {
+            accent: 'accent',
+            staccato: 'staccato',
+            marcato: 'marcato',
+            tenuto: 'tenuto',
+            upStroke: 'upStroke',
+            downStroke: 'downStroke',
+            pizzicato: 'pizzicato',
+
+        };
+    }
+	static get positions() {
+		return {above:'above',below:'below'};
+	}
+    static get articulationToVex() {
+        return {
+            accent: 'a>',
+            staccato: 'a.',
+            marcato: 'a^',
+            tenuto: 'a-',
+            upStroke: 'a|',
+            downStroke: 'am',
+            pizzicato: 'ao'
+        };
+    }
+
+    static get vexToArticulation() {
+        return {
+            "a>": "accent",
+            "a.": "staccato",
+            "a^": "marcato",
+            "a-": "tenuto",
+            "a|": "upStroke",
+            "am": "downStroke",
+            "ao": "pizzicato"
+        };
+    }
+    static get attrArray() {
+        return ['position', 'articulation'];
+    }
+
+    static get positionToVex() {
+        return {
+            'above': 3,
+            'below': 4
+        };
+    }
+    static get defaults() {
+        return {
+            position: SmoArticulation.positions.above,
+            articulation: SmoArticulation.articulations.accent
+        };
+
+    }
+    constructor(parameters) {
+        super('SmoArticulation');
+        Vex.Merge(this, SmoArticulation.defaults);
+        smoMusic.filteredMerge(SmoArticulation.attrArray, parameters, this);
+        this.selector = parameters.selector;
+
+        if (!this['attrs']) {
+            this.attrs = {
+                id: VF.Element.newID(),
+                type: 'SmoArticulation'
+            };
+        } else {
+            console.log('inherit attrs');
+        }
+    }
+    get id() {
+        return this.attrs.id;
+    }
+    set id(ignore) {}
+    get type() {
+        return this.attrs.type;
+    }
+    set type(ignore) {}
 }
 
 // ## SmoDynamicText
 // ## Description:
 // standard dynamics text
 class SmoDynamicText extends SmoNoteModifierBase {
-	 static get defaults() {
+    static get defaults() {
         return {
             xOffset: 0,
             fontSize: 38,
-            yOffsetLine:11,
-			yOffsetPixels:0,
+            yOffsetLine: 11,
+            yOffsetPixels: 0,
             text: SmoDynamicText.dynamics.MP,
         };
     }
-	
-	static get dynamics() {
+
+    static get dynamics() {
         // matches VF.modifier
         return {
-			PP:'pp',
-			P:'p',
+            PP: 'pp',
+            P: 'p',
             MP: 'mp',
             MF: 'mf',
             F: 'f',
             FF: 'ff',
-			SFZ:'sfz'
+            SFZ: 'sfz'
         };
     }
-	
-	constructor(parameters) {
-		super('SmoDynamicText');
-		Vex.Merge(this, SmoDynamicText.defaults);
+
+    constructor(parameters) {
+        super('SmoDynamicText');
+        Vex.Merge(this, SmoDynamicText.defaults);
         smoMusic.filteredMerge(SmoDynamicText.attrArray, parameters, this);
         this.selector = parameters.selector;
-		
-		 if (!this['attrs']) {
+
+        if (!this['attrs']) {
             this.attrs = {
                 id: VF.Element.newID(),
                 type: 'SmoDynamicText'
@@ -1041,19 +1145,19 @@ class SmoDynamicText extends SmoNoteModifierBase {
         } else {
             console.log('inherit attrs');
         }
-	}
-	get id() {
-		return this.attrs.id;
-	}
-	set id(ignore) {}
-	get type() {
-		return this.attrs.type;
-	}
-	set type(ignore) {}
-	static get attrArray() {
-		return ['xOffset', 'fontSize', 'yOffsetLine', 'yOffsetPixels', 'text'];
-	}
-	backupOriginal() {
+    }
+    get id() {
+        return this.attrs.id;
+    }
+    set id(ignore) {}
+    get type() {
+        return this.attrs.type;
+    }
+    set type(ignore) {}
+    static get attrArray() {
+        return ['xOffset', 'fontSize', 'yOffsetLine', 'yOffsetPixels', 'text'];
+    }
+    backupOriginal() {
         if (!this['original']) {
             this.original = {};
             smoMusic.filteredMerge(
@@ -1069,7 +1173,8 @@ class SmoDynamicText extends SmoNoteModifierBase {
             this.original = null;
         }
     }
-};
+}
+;
 // # SmoMeasure - data for a measure of music
 // # Description:
 // Many rules of musical engraving are enforced at a measure level, e.g. the duration of 
@@ -1195,47 +1300,47 @@ class SmoMeasure {
         return {
             'treble': {
                 letter: 'b',
-                accidental: '',
+                accidental: 'n',
                 octave: 4
             },
             'bass': {
                 letter: 'd',
-                accidental: '',
+                accidental: 'n',
                 octave: 3
             },
             'tenor': {
                 letter: 'a',
-                accidental: '',
+                accidental: 'n',
                 octave: 4
             },
             'alto': {
                 letter: 'a',
-                accidental: '',
+                accidental: 'n',
                 octave: 3
             },
             'soprano': {
                 letter: 'b',
-                accidental: '',
+                accidental: 'n',
                 octave: 4
             },
             'percussion': {
                 letter: 'b',
-                accidental: '',
+                accidental: 'n',
                 octave: 4
             },
             'mezzo-soprano': {
                 letter: 'b',
-                accidental: '',
+                accidental: 'n',
                 octave: 4
             },
             'baritone-c': {
                 letter: 'b',
-                accidental: '',
+                accidental: 'n',
                 octave: 3
             },
             'baritone-f': {
                 letter: 'e',
-                accidental: '',
+                accidental: 'n',
                 octave: 3
             },
             'subbass': {
@@ -1614,6 +1719,27 @@ class SmoSystemStaff {
         }
         return null;
     }
+	
+	deleteMeasure(index) {
+		if (this.measures.length < 2) {
+			return; // don't delete last measure.
+		}
+		var nm=[];
+		this.measures.forEach((measure) => {
+			if (measure.measureNumber.measureIndex != index) {
+				nm.push(measure);
+			}
+		});
+		var sm=[];
+		this.modifiers.forEach((mod)=> {
+			if (mod.fromSelection.measure != index && mod.toSelection.measure != index) {
+				sm.push(mod);
+			}
+		});
+		this.measures=nm;
+		this.modifiers=sm;
+		this.numberMeasures();
+	}
 
     getMaxTicksMeasure(measure) {
         if (this.measures.length < measure) {
@@ -1817,6 +1943,12 @@ class SmoScore {
 			this.measureTickmap.push(measure.tickmap());
 		});
 	}
+	deleteMeasure(measureIndex) {		
+		this.staves.forEach((staff) => {
+			staff.deleteMeasure(measureIndex);
+		});
+		
+	}
 	// ## addMeasure
 	// ## Description:
 	// Give a measure prototype, create a new measure and add it to each staff, with the 
@@ -1959,6 +2091,9 @@ class SmoStaffHairpin extends StaffModifierBase {
             console.log('inherit attrs');
         }
     }
+	static get editableAttributes() {
+		return ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height'];
+	}
     serialize() {
         var params = {};
         smoMusic.filteredMerge(['position', 'startSelector','endSelector','attrs','xOffset', 'yOffset', 'hairpinType', 'height'], this, params);
@@ -3147,11 +3282,16 @@ class SmoSelection {
 ;
 // An operation works on a selection or set of selections to edit the music
 class SmoOperation {
-	
-	static addKeySignature(score,selection,keySignature) {
-		score.addKeySignature(selection.selector.measure,keySignature);
+
+    static addKeySignature(score, selection, keySignature) {
+        score.addKeySignature(selection.selector.measure, keySignature);
+    }
+
+    static deleteMeasure(score, selection) {
+		var measureIndex = selection.selector.measure;
+		
+		score.deleteMeasure(measureIndex);
 	}
-	
     // ## doubleDuration
     // ## Description
     // double the duration of a note in a measure, at the expense of the following
@@ -3184,7 +3324,7 @@ class SmoOperation {
         }
         return true;
     }
-		
+
     // ## halveDuration
     // ## Description
     // Replace the note with 2 notes of 1/2 duration, if possible
@@ -3193,11 +3333,11 @@ class SmoOperation {
         var note = selection.note;
         var measure = selection.measure;
         var tuplet = measure.getTupletForNote(note);
-		var divisor=2;
-		if (measure.numBeats % 3 === 0 && selection.note.tickCount===6144) {
-			// special behavior, if this is dotted 1/4 in 6/8, split to 3
-			divisor=3;
-		}
+        var divisor = 2;
+        if (measure.numBeats % 3 === 0 && selection.note.tickCount === 6144) {
+            // special behavior, if this is dotted 1/4 in 6/8, split to 3
+            divisor = 3;
+        }
         if (!tuplet) {
             var nticks = note.tickCount / divisor;
             var actor = new SmoContractNoteActor({
@@ -3236,13 +3376,13 @@ class SmoOperation {
         SmoTickTransformer.applyTransform(measure, actor);
         return true;
     }
-	
-	static makeRest(selection) {
-		selection.note.makeRest();
-	}
-	static makeNote(selection) {
-		selection.note.makeNote();
-	}
+
+    static makeRest(selection) {
+        selection.note.makeRest();
+    }
+    static makeNote(selection) {
+        selection.note.makeNote();
+    }
 
     // ## unmakeTuplet
     // ## Description
@@ -3272,7 +3412,7 @@ class SmoOperation {
     // Add a dot to a note, if possible, and make the note ahead of it shorter
     // to compensate.
     static dotDuration(selection) {
-		
+
         var note = selection.note;
         var measure = selection.measure;
         var nticks = smoMusic.getNextDottedLevel(note.tickCount);
@@ -3320,7 +3460,7 @@ class SmoOperation {
         }
         return false;
     }
-	
+
     // ## setPitch
     // ## Description:
     // pitches can be either an array, a single pitch, or a letter.  In the latter case,
@@ -3350,15 +3490,19 @@ class SmoOperation {
         });
         return true;
     }
-	
-	static courtesyAccidental(pitchSelection,toBe) {
-		pitchSelection.selector.pitches.forEach((pitchIx) => {
-			pitchSelection.note.pitches[pitchIx].cautionary=toBe;
-		});
-	}
-	
-	static addDynamic(selection,dynamic) {
-		selection.note.addModifier(dynamic);
+
+    static courtesyAccidental(pitchSelection, toBe) {
+        pitchSelection.selector.pitches.forEach((pitchIx) => {
+            pitchSelection.note.pitches[pitchIx].cautionary = toBe;
+        });
+    }
+
+    static addDynamic(selection, dynamic) {
+        selection.note.addModifier(dynamic);
+    }
+		
+	static toggleArticulation(selection,articulation) {
+		selection.note.toggleArticulation(articulation);
 	}
 
     // ## interval
@@ -3389,8 +3533,8 @@ class SmoOperation {
             });
         fromSelection.staff.addStaffModifier(modifier);
     }
-	
-	static decrescendo(fromSelection, toSelection) {
+
+    static decrescendo(fromSelection, toSelection) {
         var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
         var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
         var modifier = new SmoStaffHairpin({
@@ -3401,8 +3545,8 @@ class SmoOperation {
             });
         fromSelection.staff.addStaffModifier(modifier);
     }
-	
-	static slur(fromSelection, toSelection) {
+
+    static slur(fromSelection, toSelection) {
         var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
         var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
         var modifier = new SmoSlur({
@@ -3412,11 +3556,14 @@ class SmoOperation {
             });
         fromSelection.staff.addStaffModifier(modifier);
     }
-	
-	static addInstrument(score) {
-		score.addInstrument();
-	}
 
+    static addInstrument(score) {
+        score.addInstrument();
+    }
+
+    static addMeasure(score, systemIndex, nmeasure) {
+        score.addMeasure(systemIndex, nmeasure);
+    }
 }
 ;
 // ## UndoBuffer
@@ -3547,7 +3694,7 @@ class SmoUndoable {
     }
     static transpose(selection, offset, undoBuffer) {
         undoBuffer.addBuffer('transpose pitches ' + offset, 'measure', selection.selector, selection.measure);
-        SmoOperation.undotDuration(selection, offset);
+        SmoOperation.transpose(selection, offset);
     }
     static courtesyAccidental(pitchSelection, toBe, undoBuffer) {
         undoBuffer.addBuffer('courtesy accidental ', 'measure', pitchSelection.selector, pitchSelection.measure);
@@ -3555,7 +3702,7 @@ class SmoUndoable {
     }
     static addDynamic(selection, dynamic, undoBuffer) {
         undoBuffer.addBuffer('add dynamic', 'measure', selection.selector, selection.measure);
-        SmoOperation.addDynamic(selection.dynamic);
+        SmoOperation.addDynamic(selection,dynamic);
     }
     static interval(selection, interval, undoBuffer) {
         undoBuffer.addBuffer('add interval ' + interval, 'measure', selection.selector, selection.measure);
@@ -3581,6 +3728,15 @@ class SmoUndoable {
         undoBuffer.addBuffer('addKeySignature ' + keySignature, 'score', null, score);
         SmoOperation.addKeySignature(score, selection, keySignature);
     }
+	static addMeasure(score,systemIndex, nmeasure,undoBuffer) {
+        undoBuffer.addBuffer('add measure', 'score', null, score);
+		SmoOperation.addMeasure(score,systemIndex, nmeasure);
+	}
+	static deleteMeasure(score, selection,undoBuffer) {
+        undoBuffer.addBuffer('delete measure', 'score', null, score);
+		var measureIndex = selection.selector.measure;		
+		score.deleteMeasure(measureIndex);
+	}
 }
 ;
 
@@ -3627,9 +3783,9 @@ class PasteBuffer {
         this._populateSelectArray(selections);
 
     }
-	// ### _populateSelectArray
-	// ### Description:
-	// copy the selected notes into the paste buffer with their original locations.
+    // ### _populateSelectArray
+    // ### Description:
+    // copy the selected notes into the paste buffer with their original locations.
     _populateSelectArray(selections) {
         var currentTupletParameters = null;
         var currentTupletNotes = [];
@@ -3648,10 +3804,10 @@ class PasteBuffer {
                 if (index === tuplet.notes.length - 1) {
                     currentTupletParameters.notes = currentTupletNotes;
                     var ntuplet = new SmoTuplet(currentTupletParameters);
-					
-					// Create a map of the first note in the tuplet for later 
-					// when we create the measures.
-					this.tupletNoteMap[currentTupletNotes[0].id]=ntuplet;
+
+                    // Create a map of the first note in the tuplet for later
+                    // when we create the measures.
+                    this.tupletNoteMap[currentTupletNotes[0].id] = ntuplet;
                     currentTupletParameters = null;
                 }
             }
@@ -3688,7 +3844,9 @@ class PasteBuffer {
                 // remainder going to the next measure.  If they line up exactly, the remainder is 0.
                 var remainder = tickmap.totalDuration - (currentDuration + selection.note.tickCount);
 
-                measureSelection = SmoSelection.measureSelection(this.score, this.measureSelection.staffIndex, this.measureSelection.measureIndex + 1);
+                measureSelection = SmoSelection.measureSelection(this.score,
+                        measureSelection.selector.staff,
+                        measureSelection.selector.measure + 1);
 
                 // If the paste buffer overlaps the end of the score, we can't paste (TODO:  add a measure in this case)
                 if (measureSelection != null) {
@@ -3758,7 +3916,7 @@ class PasteBuffer {
                     voice: voiceIndex,
                     tick: 0
                 };
-                measure = measure[this.measureIndex];
+                measure = measures[this.measureIndex];
                 tickmap = measure.tickmap();
                 this.measureIndex += 1;
             } else {
@@ -3780,8 +3938,8 @@ class PasteBuffer {
 
     // ### _populateNew
     // ### Description:
-    // Start copying the paste buffer into the destination by copying the notes and working out 
-	// the measure overlap
+    // Start copying the paste buffer into the destination by copying the notes and working out
+    // the measure overlap
     _populateNew(voice, voiceIndex, measure, tickmap, startSelector) {
         var currentDuration = tickmap.durationMap[startSelector.tick];
         var totalDuration = tickmap.totalDuration;
@@ -3861,7 +4019,7 @@ class PasteBuffer {
         while (startTicks < totalDuration) {
             // Find the point in the music where the paste area runs out, or as close as we can get.
             var existingIndex = tickmap.durationMap.indexOf(startTicks);
-            existingIndex = (existingIndex < 0) ? measure.voices[voiceIndex].length - 1 : existingIndex;
+            existingIndex = (existingIndex < 0) ? measure.voices[voiceIndex].notes.length - 1 : existingIndex;
             var note = measure.voices[voiceIndex].notes[existingIndex];
             var ticksLeft = totalDuration - startTicks;
             if (ticksLeft >= note.tickCount) {
@@ -3885,7 +4043,7 @@ class PasteBuffer {
             return;
         }
 
-        var voices = this._populateVoice(this.destination.staff);
+        var voices = this._populateVoice(this.destination.voice);
         var measureSel = JSON.parse(JSON.stringify(this.destination));
         for (var i = 0; i < this.measures.length; ++i) {
             var measure = this.measures[i];
@@ -4026,6 +4184,19 @@ class VxMeasure {
         return vexNote;
     }
 	
+	_renderArticulations(smoNote,articulation) {
+		var i=0;
+		this.smoMeasure.notes.forEach((smoNote) => {
+			smoNote.articulations.forEach((art) => {
+				var vx = this.noteToVexMap[smoNote.id];
+				var position = SmoArticulation.positionToVex[art.position];
+				var vexArt = SmoArticulation.articulationToVex[art.articulation];
+				var vxArt=new VF.Articulation(vexArt).setPosition(position);
+				vx.addArticulation(i,vxArt);
+			});
+		});		
+	}
+	
 	_renderNoteGlyph(smoNote,textObj) {		
 		var x = this.noteToVexMap[smoNote.id].getAbsoluteX();
 		// the -3 is copied from vexflow textDynamics
@@ -4063,7 +4234,8 @@ class VxMeasure {
             var vexNote = this._createVexNote(smoNote, i);
             this.noteToVexMap[smoNote.attrs.id] = vexNote;
             this.vexNotes.push(vexNote);
-        }       
+        }
+		this._renderArticulations();
     }
 
     // ## Description:
@@ -4212,7 +4384,7 @@ class VxMeasure {
         };
         this.smoMeasure.changed = false;
 		
-		this.renderDynamics();
+		this.renderDynamics();		
 
         // Calculate how far off our estimated width we are
         var svgBox =
@@ -4694,6 +4866,9 @@ class suiTracker {
         var mapped = this.objects.find((el) => {
                 return SmoSelector.sameNote(el.selector, artifact.selector);
             });
+		if (!mapped) {
+			return;
+		}
         console.log('adding selection ' + mapped.note.id);
 
         this.selections = [mapped];
@@ -4997,6 +5172,9 @@ class suiSimpleLayout {
             return;
 
         $(this.renderer.getContext().svg).find('g.' + measure.attrs.id).remove();
+		measure.staffX=SmoMeasure.defaults.staffX;
+		measure.staffY=SmoMeasure.defaults.staffY;
+		measure.changed=true;
     }
 	
 	unrenderStaff(staff) {
@@ -5154,7 +5332,10 @@ class suiSimpleLayout {
                 if (measure.keySignature !== keySigLast) {
                     measure.canceledKeySignature = keySigLast;
                     measure.forceKeySignature = true;
-                } else {
+                } else if (measure.measureNumber.measureIndex == 0 && measure.keySignature != 'C'){
+					measure.forceKeySignature = true;
+				}
+				else {
                     measure.forceKeySignature = false;
                 }
 
@@ -5198,13 +5379,21 @@ class suiEditor {
     }
 
     _renderAndAdvance() {
-		this._render();
-		this.tracker.moveSelectionRight();
+        this._render();
+        this.tracker.moveSelectionRight();
     }
 
     _selectionOperation(selection, name, parameters) {
-        SmoOperation[name](selection, parameters);
+        if (parameters) {
+            SmoUndoable[name](selection, parameters, this.undoBuffer);
+        } else {
+            SmoUndoable[name](selection, this.undoBuffer);
+        }
         this._render();
+    }
+
+    undo() {
+        this.layout.undo(this.undoBuffer);
     }
 
     _singleSelectionOperation(name, parameters) {
@@ -5212,13 +5401,45 @@ class suiEditor {
             return;
         }
         var selection = this.tracker.selections[0];
-        SmoOperation[name](selection, parameters);
+        if (parameters) {
+            SmoUndoable[name](selection, parameters, this.undoBuffer);
+        } else {
+            SmoUndoable[name](selection, this.undoBuffer);
+        }
         this._render();
     }
 
     _transpose(selection, offset) {
         this._selectionOperation(selection, 'transpose', offset);
-    }    
+    }
+
+    copy() {
+        if (this.tracker.selections.length < 1) {
+            return;
+        }
+        this.pasteBuffer.setSelections(this.score, this.tracker.selections);
+    }
+    paste() {
+        if (this.tracker.selections.length < 1) {
+            return;
+        }
+        var pasteTarget = this.tracker.selections[0].selector;
+        this.layout.unrenderAll();
+        this.pasteBuffer.pasteSelections(this.score, pasteTarget);
+        this.layout.render();
+    }
+
+    deleteMeasure() {
+        if (this.tracker.selections.length < 1) {
+            return;
+        }
+        var selection = this.tracker.selections[0];
+        this.layout.unrenderAll();
+        SmoUndoable.deleteMeasure(this.score, selection, this.undoBuffer);
+        this.tracker.selections = [];
+        this.tracker.clearModifierSelections();
+        this.layout.render();
+    }
 
     interval(keyEvent) {
         if (this.tracker.selections.length != 1)
@@ -5247,48 +5468,48 @@ class suiEditor {
     downOctave() {
         this.transpose(-12);
     }
-	makeRest() {
-		this._singleSelectionOperation('makeRest');
-	}	
+    makeRest() {
+        this._singleSelectionOperation('makeRest');
+    }
 
     _setPitch(selected, letter) {
-		var selector = selected.selector;
-		var hintSel = SmoSelection.lastNoteSelection(this.score,
-		   selector.staff,selector.measure,selector.voice,selector.tick);
-		if (!hintSel) {
-			hintSel = SmoSelection.nextNoteSelection(this.score,
-			selector.staff,selector.measure,selector.voice,selector.tick);
-		}
-		
-		var hintNote = hintSel.note;
-		var hpitch = hintNote.pitches[0];
-		var pitch = JSON.parse(JSON.stringify(hpitch));
-		pitch.letter = letter;
-		
-		// Make the key 'a' make 'Ab' in the key of Eb, for instance
-		var vexKsKey = smoMusic.getKeySignatureKey(letter,selected.measure.keySignature);
-		if (vexKsKey.length > 1) {
-			pitch.accidental=vexKsKey[1];
-		} else {
-			pitch.accidental='n';
-		}
+        var selector = selected.selector;
+        var hintSel = SmoSelection.lastNoteSelection(this.score,
+                selector.staff, selector.measure, selector.voice, selector.tick);
+        if (!hintSel) {
+            hintSel = SmoSelection.nextNoteSelection(this.score,
+                    selector.staff, selector.measure, selector.voice, selector.tick);
+        }
 
-		// make the octave of the new note as close to previous (or next) note as possible.
-		var upv=['bc','ac','bd','da','be','gc'];
-		var downv=['cb','ca','db','da','eb','cg'];
-		var delta = hpitch.letter+pitch.letter;
-		if (upv.indexOf(delta) >= 0) {
-			pitch.octave += 1;
-		} 
-		if (downv.indexOf(delta) >= 0) {
-			pitch.octave -= 1;
-		}
-		SmoOperation['setPitch'](selected, pitch);
+        var hintNote = hintSel.note;
+        var hpitch = hintNote.pitches[0];
+        var pitch = JSON.parse(JSON.stringify(hpitch));
+        pitch.letter = letter;
+
+        // Make the key 'a' make 'Ab' in the key of Eb, for instance
+        var vexKsKey = smoMusic.getKeySignatureKey(letter, selected.measure.keySignature);
+        if (vexKsKey.length > 1) {
+            pitch.accidental = vexKsKey[1];
+        } else {
+            pitch.accidental = 'n';
+        }
+
+        // make the octave of the new note as close to previous (or next) note as possible.
+        var upv = ['bc', 'ac', 'bd', 'da', 'be', 'gc'];
+        var downv = ['cb', 'ca', 'db', 'da', 'eb', 'cg'];
+        var delta = hpitch.letter + pitch.letter;
+        if (upv.indexOf(delta) >= 0) {
+            pitch.octave += 1;
+        }
+        if (downv.indexOf(delta) >= 0) {
+            pitch.octave -= 1;
+        }
+        SmoUndoable['setPitch'](selected, pitch, this.undoBuffer);
     }
 
     setPitch(keyEvent) {
         this.tracker.selections.forEach((selected) => this._setPitch(selected, keyEvent.key.toLowerCase()));
-		this._renderAndAdvance();
+        this._renderAndAdvance();
     }
 
     dotDuration(keyEvent) {
@@ -5314,9 +5535,8 @@ class suiEditor {
         var measure = this.tracker.getFirstMeasureOfSelection();
         if (measure) {
             var nmeasure = SmoMeasure.getDefaultMeasureWithNotes(measure);
-			nmeasure.measureNumber.measureIndex = measure.measureNumber.measureIndex;
-            this.score.addMeasure(measure.measureNumber.systemIndex, nmeasure);
-            this.changed = true;
+            nmeasure.measureNumber.measureIndex = measure.measureNumber.measureIndex;
+            SmoUndoable.addMeasure(this.score, measure.measureNumber.systemIndex, nmeasure, this.undoBuffer);
             this._render();
         }
     }
@@ -5327,6 +5547,42 @@ class suiEditor {
 
     unmakeTuplet(keyEvent) {
         this._singleSelectionOperation('unmakeTuplet');
+    }
+
+    addRemoveArticulation(keyEvent) {
+        if (this.tracker.selections.length < 1)
+            return;
+        
+        var atyp = SmoArticulation.articulations.accent;
+
+        if (keyEvent.key.toLowerCase() === 'h') {
+            atyp = SmoArticulation.articulations.accent;
+        }
+        if (keyEvent.key.toLowerCase() === 'i') {
+            atyp = SmoArticulation.articulations.tenuto;
+        }
+        if (keyEvent.key.toLowerCase() === 'j') {
+            atyp = SmoArticulation.articulations.staccato;
+        }
+        if (keyEvent.key.toLowerCase() === 'k') {
+            atyp = SmoArticulation.articulations.marcato;
+        }
+        if (keyEvent.key.toLowerCase() === 'l') {
+            atyp = SmoArticulation.articulations.pizzicato;
+        }
+        var pos = keyEvent.shiftKey ? SmoArticulation.positions.below : SmoArticulation.positions.above;
+		
+		this.undoBuffer.addBuffer('change articulation ' + atyp,
+            'staff', this.tracker.selections[0].selector, this.tracker.selections[0].staff);
+			
+        this.tracker.selections.forEach((sel) => {
+            var articulation = new SmoArticulation({
+                    articulation: atyp,
+                    position: pos
+                });
+            SmoOperation.toggleArticulation(sel, articulation);
+        });
+        this._render();
     }
 }
 ;
@@ -5441,10 +5697,10 @@ class suiMenuManager {
             $('body').trigger('menuDismiss');
         }
         if (this.menu) {
-            this.menu.keydown(event);
+            this.menu.keydown(event);			
         }
         if (this.tracker.selections.length == 0) {
-            this.toggleMenuMode();
+            this.unattach();
             return;
         }
         this.menuPosition = this.tracker.selections[0].box;
@@ -5521,13 +5777,12 @@ class SuiDynamicsMenu extends suiMenuBase {
 	selection(ev) {
         var text = $(ev.currentTarget).attr('data-value');
 
-        var self = this;
         var ft = this.tracker.getExtremeSelection(-1);
 		if (!ft || !ft.note) {
 			return;
 		}
 
-        SmoOperation.addDynamic(ft,new SmoDynamicText({selector:ft.selector,text:text,yOffsetLine:11,fontSize:38}));
+        SmoUndoable.addDynamic(ft,new SmoDynamicText({selector:ft.selector,text:text,yOffsetLine:11,fontSize:38}),this.editor.undoBuffer);
         this.complete();
     }
     keydown(ev) {}
@@ -5601,12 +5856,11 @@ class suiKeySignatureMenu extends suiMenuBase {
     }
     selection(ev) {
         var keySig = $(ev.currentTarget).attr('data-value');
-        var self = this;
 		var changed = [];
         this.tracker.selections.forEach((sel) => {
 			if (changed.indexOf(sel.selector.measure) === -1) {
 				changed.push(sel.selector.measure);
-				SmoOperation.addKeySignature(this.score,sel,keySig);
+				SmoUndoable.addKeySignature(this.score,sel,keySig,this.editor.undoBuffer);
 			}
         });
         this.complete();
@@ -5644,7 +5898,6 @@ class suiStaffModifierMenu extends suiMenuBase {
     selection(ev) {
         var op = $(ev.currentTarget).attr('data-value');
 
-        var self = this;
         var ft = this.tracker.getExtremeSelection(-1);
         var tt = this.tracker.getExtremeSelection(1);
         if (SmoSelector.sameNote(ft.selector, tt.selector)) {
@@ -5652,7 +5905,7 @@ class suiStaffModifierMenu extends suiMenuBase {
             return;
         }
 
-        SmoOperation[op](ft, tt);
+        SmoUndoable[op](ft, tt,this.editor.undoBuffer);
         this.complete();
     }
     keydown(ev) {}
@@ -5871,8 +6124,12 @@ class SuiTextModifierDialog extends SuiDialogBase {
                         label: 'Forte'
                     },
 					{
-                        value: SmoDynamicText.dynamics.F,
+                        value: SmoDynamicText.dynamics.FF,
                         label: 'Fortissimo'
+					},
+					{
+                        value: SmoDynamicText.dynamics.SFZ,
+                        label: 'Sforzando'
 					}
                 ],
                 control: 'SuiDropdownComponent',
@@ -5898,6 +6155,7 @@ class SuiTextModifierDialog extends SuiDialogBase {
             label: 'Dynamics Properties'
         });
         Vex.Merge(this, parameters);
+		this.components.find((x)=>{return x.parameterName=='text'}).defaultValue=parameters.modifier.text;
 	}
 	 handleRemove() {
         $(this.context.svg).find('g.' + this.modifier.id).remove();
@@ -6092,389 +6350,535 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
             label: 'Hairpin Properties'
         });
         Vex.Merge(this, parameters);
+		SmoStaffHairpin.editableAttributes.forEach((attr) => {
+			var comp = this.components.find((cc)=>{return cc.smoName===attr});
+			if (comp) {
+				comp.defaultValue=this.modifier[attr];
+			}
+		});
     }
 }
 ;
 
 class SmoHelp {
 
-	static displayHelp() {
-		$('body').addClass('showHelpDialog');
-		$('.helpDialog').html('');
-		var b = htmlHelpers.buildDom;
-		var r = b('div').classes('help-left');
-		r.append(SmoHelp.navigationHtml);
-		r.append(SmoHelp.noteHelpHtml);
-		r.append(SmoHelp.durationHelpHtml);
-		$('.helpDialog').append(r.dom());
-		
-		r = b('div').classes('help-right');
-		r.append(SmoHelp.menuHelpHtml);
-		r.append(SmoHelp.dialogHelpHtml);		
-		$('.helpDialog').append(r.dom());
-		
-		$('.helpDialog').append(SmoHelp.closeButton.dom());
-		$('.helpDialog button.icon-cross').off('click').on('click', function () {
-			$('body').removeClass('showHelpDialog');
-			$('body').trigger('dialogDismiss');
-		});
-	}
+    static displayHelp() {
+        $('body').addClass('showHelpDialog');
+        $('.helpDialog').html('');
+        var b = htmlHelpers.buildDom;
+        var r = b('div').classes('help-left');
+        r.append(SmoHelp.navigationHtml);
+        r.append(SmoHelp.noteHelpHtml);
+        r.append(SmoHelp.durationHelpHtml);
+        $('.helpDialog').append(r.dom());
 
-	static helpControls() {
-		var b = htmlHelpers.buildDom;
-		var r = b('button').classes('help-button').append(
-				b('span').classes('icon-question helpKey').attr('id', 'globHelp')).append(
-				b('label').attr('for', 'globHelp').text('Help'));
-		$('body .controls').html('');
-		$('body .controls').append(r.dom());
-		$('.helpDialog button.icon-cross').focus();
-	}
+        r = b('div').classes('help-right');
+        r.append(SmoHelp.generalEditHtml);
+        r.append(SmoHelp.menuHelpHtml);
+        r.append(SmoHelp.dialogHelpHtml);
+        $('.helpDialog').append(r.dom());
 
-	static get closeButton() {
-		var b = htmlHelpers.buildDom;
-		var r = b('button').classes('icon-cross close');
-		return r;
-	}
+        $('.helpDialog').append(SmoHelp.closeButton.dom());
+        $('.helpDialog button.icon-cross').off('click').on('click', function () {
+            $('body').removeClass('showHelpDialog');
+            $('body').trigger('dialogDismiss');
+        });
+    }
 
-	static _helpButton(buttons) {
-		var b = htmlHelpers.buildDom;
-		var r = b('span').classes('keyContainer');
-		buttons.forEach((button) => {
-			button.text = (button.text ? button.text : '');
-			button.separator = button.separator ? button.separator : '';
-			button.icon = button.icon ? button.icon : '';
-			r.append(b('span').classes(button.icon + ' helpKey').text(button.text))
-			.append(b('span').classes('separator').text(button.separator));
-		});
-		return r;
-	}
+    static helpControls() {
+        var b = htmlHelpers.buildDom;
+        var r = b('button').classes('help-button').append(
+                b('span').classes('icon-question helpKey').attr('id', 'globHelp')).append(
+                b('label').attr('for', 'globHelp').text('Help'));
+        $('body .controls').html('');
+        $('body .controls').append(r.dom());
+        $('.helpDialog button.icon-cross').focus();
+    }
 
-	static _buttonBlock(buttons, text, id) {
-		var b = htmlHelpers.buildDom;
-		var r = b('div').classes('keyBlock').attr('id', id);
-		r.append(SmoHelp._helpButton(buttons)).append(
-			b('label').attr('for', id).text(text));
-		return r;
-	}
+    static modeControls() {
+        var b = htmlHelpers.buildDom;
+        var r = b('div').classes('menu-status').append(
+                b('div').attr('id', 'globMode').text('Next Key Chooses Menu')).append(
+                b('div').classes('mode-subtitle').append(SmoHelp.shortMenuHelpHtml));
+        $('body .controls').html('');
+        $('body .controls').append(r.dom());
+    }
 
-	static _buildElements(helps, text) {
-		var b = htmlHelpers.buildDom;
-		var r = b('div').classes('helpLine').append(
-				b('div').classes('help-title').text(text));
+    static get closeButton() {
+        var b = htmlHelpers.buildDom;
+        var r = b('button').classes('icon-cross close');
+        return r;
+    }
 
-		helps.forEach((help) => {
-			r.append(SmoHelp._buttonBlock(help.keys, help.text, help.id));
-		});
-		return r;
-	}
+    static _helpButton(buttons) {
+        var b = htmlHelpers.buildDom;
+        var r = b('span').classes('keyContainer');
+        buttons.forEach((button) => {
+            button.text = (button.text ? button.text : '');
+            button.separator = button.separator ? button.separator : '';
+            button.icon = button.icon ? button.icon : '';
+            r.append(b('span').classes(button.icon + ' helpKey').text(button.text))
+            .append(b('span').classes('separator').text(button.separator));
+        });
+        return r;
+    }
 
-	static get navigationElements() {
-		return [{
-				keys:
-				[{
-						icon: 'icon-arrow-right'
-					}, {
-						icon: 'icon-arrow-left'
-					}
-				],
-				text: 'Move note selection left or right',
-				id: 'navel1'
-			}, {
-				keys: [{
-						icon: '',
-						text: 'Ctrl',
-						separator: '+'
+    static _buttonBlock(buttons, text, id) {
+        var b = htmlHelpers.buildDom;
+        var r = b('div').classes('keyBlock').attr('id', id);
+        r.append(SmoHelp._helpButton(buttons)).append(
+            b('label').attr('for', id).text(text));
+        return r;
+    }
 
-					}, {
-						icon: 'icon-arrow-right',
-						separator: ','
-					}, {
-						icon: '',
-						text: 'Ctrl',
-						separator: '+'
-					}, {
-						icon: 'icon-arrow-left'
-					}
-				],
-				text: 'Jump selection to next/last measure',
-				id: 'navel2'
-			}, {
-				keys: [{
-						icon: '',
-						text: 'Ctrl',
-						separator: '+'
+    static _buildElements(helps, text) {
+        var b = htmlHelpers.buildDom;
+        var r = b('div').classes('helpLine').append(
+                b('div').classes('help-title').text(text));
 
-					}, {
-						icon: 'icon-arrow-down',
-						separator: ','
-					}, {
-						icon: '',
-						text: 'Ctrl',
-						separator: '+'
-					}, {
-						icon: 'icon-arrow-up'
-					}
-				],
-				text: 'Jump selection to staff above/below',
-				id: 'navel3'
-			}, {
-				keys: [{
-						icon: '',
-						text: 'Shift',
-						separator: '+'
-					}, {
-						icon: 'icon-arrow-right',
-						separator: ','
-					}, {
-						icon: '',
-						text: 'Shift',
-						separator: '+'
-					}, {
-						icon: 'icon-arrow-left'
-					}
-				],
-				text: 'Grow selection left or right',
-				id: 'navel4'
-			}, {
-				keys: [{
-						icon: '',
-						text: 'Alt',
-						separator: '+'
-					}, {
-						icon: 'icon-arrow-right',
-						separator: ''
-					}
-				],
-				text: 'Select note or staff modifier (slur, dynamic)',
-				id: 'navel5'
-			}
-		];
-	}
-	static get noteElements() {
-		return [{
-				keys:
-				[{
-						text: 'a'
-					}, {
-						text: '...',
-						icon: 'help-ellipsis'
-					}, {
-						text: 'g'
-					}
-				],
-				text: 'Enter letter note A-G at selection',
-				id: 'noteElements1'
-			}, {
-				keys:
-				[{
-						text: '-',
-						separator: ','
-					}, {
-						text: '='
-					}
-				],
-				text: 'Transpose selected notes down/up 1/2 step',
-				id: 'noteElements2'
-			}, {
-				keys: [{
-						text: 'Ctrl',
-						separator: '+'
-					}, {
-						text: '-',
-						separator: ','
-					}, {
-						text: 'Ctrl',
-						separator: '+'
-					}, {
-						text: '=',
-						separator: ''
-					}
-				],
-				text: 'Transpose note up/down octave',
-				id: 'noteElements3'
-			}, {
-				keys: [{
-						text: '2',
-						separator: ''
-					}, {
-						text: '...',
-						icon: 'help-ellipsis'
+        helps.forEach((help) => {
+            r.append(SmoHelp._buttonBlock(help.keys, help.text, help.id));
+        });
+        return r;
+    }
 
-					}, {
-						text: '7',
-						separator: ''
-					}
-				],
-				text: 'Enter interval 2nd through 7th',
-				id: 'noteElements4'
-			}, {
-				keys: [{
-						text: 'Shift',
-						separator: '+'
-					}, {
-						text: '2',
-						separator: ''
-					}, {
-						text: '...',
-						icon: 'help-ellipsis'
+    static get navigationElements() {
+        return [{
+                keys:
+                [{
+                        icon: 'icon-arrow-right'
+                    }, {
+                        icon: 'icon-arrow-left'
+                    }
+                ],
+                text: 'Move note selection left or right',
+                id: 'navel1'
+            }, {
+                keys: [{
+                        icon: '',
+                        text: 'Ctrl',
+                        separator: '+'
 
-					}, {
-						text: 'Shift',
-						separator: '+'
-					}, {
-						text: '7'
-					}
-				],
-				text: 'Enter interval down 2nd through 7th',
-				id: 'noteElements5'
-			},
-			{
-				keys: [{
-						text: 'r'
-					}
-				],
-				text: 'Toggle note/rest',
-				id: 'noteElements6'
-			}
-		];
-	}
-	static get durationElements() {
-		return [{
-				keys:
-				[{
-						text: ',',
-						separator: ','
-					}, {
-						text: '.',
-					}
-				],
-				text: 'Double/halve note duration',
-				id: 'noteDuration1'
-			}, {
-				keys:
-				[{
-						text: '<',
-						separator: ','
-					}, {
-						text: '>'
-					}
-				],
-				text: 'Remove/Add dot to note',
-				id: 'noteDuration2'
-			}, {
-				keys: [{
-						text: 'Ctrl',
-						separator: '+'
-					}, {
-						text: '3',
-					}
-				],
-				text: 'Create triplet',
-				id: 'noteDuration3'
-			}, {
-				keys: [{
-						text: 'Ctrl',
-						separator: '+'
-					}, {
-						text: '0',
-					}
-				],
-				text: 'Remove triplet',
-				id: 'noteDuration4'
-			}
-		];
-	}
-	
-	static get menuModeElements() {
-		return [{
-				keys:
-				[{
-						text: '/',
-						separator: ''
-					}
-				],
-				text: 'Next key chooses menu',
-				id: 'menuModeElements1'
-			},
-			{
-				keys:
-				[{
-						text: 'k',
-						separator: ''
-					}
-				],
-				text: 'Key signature menu',
-				id: 'menuModeElements2'
-			},
-						{
-				keys:
-				[{
-						text: 'e',
-						separator: ''
-					}
-				],
-				text: 'Expression menu (slur, hairpin dynamics)',
-				id: 'menuModeElements3'
-			},
-						{
-				keys:
-				[{
-						text: 'd',
-						separator: ''
-					}
-				],
-				text: 'Text dynamics menu',
-				id: 'menuModeElements4'
-			}
-		];
-	}
-	
-		static get dialogElements() {
-		return [{
-				keys:
-				[{
-						text: 'p',
-						separator: ''
-					}
-				],
-				text: 'Property dialog for selected modifier (see Score Navigation)',
-				id: 'menuModeElements1'
-			}
-		];
-	}
+                    }, {
+                        icon: 'icon-arrow-right',
+                        separator: ','
+                    }, {
+                        icon: '',
+                        text: 'Ctrl',
+                        separator: '+'
+                    }, {
+                        icon: 'icon-arrow-left'
+                    }
+                ],
+                text: 'Jump selection to next/last measure',
+                id: 'navel2'
+            }, {
+                keys: [{
+                        icon: '',
+                        text: 'Ctrl',
+                        separator: '+'
 
+                    }, {
+                        icon: 'icon-arrow-down',
+                        separator: ','
+                    }, {
+                        icon: '',
+                        text: 'Ctrl',
+                        separator: '+'
+                    }, {
+                        icon: 'icon-arrow-up'
+                    }
+                ],
+                text: 'Jump selection to staff above/below',
+                id: 'navel3'
+            }, {
+                keys: [{
+                        icon: '',
+                        text: 'Shift',
+                        separator: '+'
+                    }, {
+                        icon: 'icon-arrow-right',
+                        separator: ','
+                    }, {
+                        icon: '',
+                        text: 'Shift',
+                        separator: '+'
+                    }, {
+                        icon: 'icon-arrow-left'
+                    }
+                ],
+                text: 'Grow selection left or right',
+                id: 'navel4'
+            }, {
+                keys: [{
+                        icon: '',
+                        text: 'Alt',
+                        separator: '+'
+                    }, {
+                        icon: 'icon-arrow-right',
+                        separator: ''
+                    }
+                ],
+                text: 'Select note or staff modifier (slur, dynamic)',
+                id: 'navel5'
+            }
+        ];
+    }
+    static get noteElements() {
+        return [{
+                keys:
+                [{
+                        text: 'a'
+                    }, {
+                        text: '...',
+                        icon: 'help-ellipsis'
+                    }, {
+                        text: 'g'
+                    }
+                ],
+                text: 'Enter letter note A-G at selection',
+                id: 'noteElements1'
+            }, {
+                keys:
+                [{
+                        text: 'h'
+                    }, {
+                        text: '...',
+                        icon: 'help-ellipsis'
+                    }, {
+                        text: 'l',
+                        separator: ','
+                    }
+                ],
+                text: 'Various articulations',
+                id: 'noteElements1'
+            }, {
+                keys:
+                [{
+                        text: 'Shift',
+                        separator: '+'
+                    }, {
+                        text: 'h'
+                    }, {
+                        text: '...',
+                        icon: 'help-ellipsis'
+                    }, {
+                        text: 'l',
+                        separator: ','
+                    }
+                ],
+                text: 'Various articulations',
+                id: 'noteElements1'
+            }, {
+                keys:
+                [{
+                        text: '-',
+                        separator: ','
+                    }, {
+                        text: '='
+                    }
+                ],
+                text: 'Transpose selected notes down/up 1/2 step',
+                id: 'noteElements2'
+            }, {
+                keys: [{
+                        text: 'Ctrl',
+                        separator: '+'
+                    }, {
+                        text: '-',
+                        separator: ','
+                    }, {
+                        text: 'Ctrl',
+                        separator: '+'
+                    }, {
+                        text: '=',
+                        separator: ''
+                    }
+                ],
+                text: 'Transpose note up/down octave',
+                id: 'noteElements3'
+            }, {
+                keys: [{
+                        text: '2',
+                        separator: ''
+                    }, {
+                        text: '...',
+                        icon: 'help-ellipsis'
 
-	static get navigationHtml() {
-		return SmoHelp._buildElements(SmoHelp.navigationElements, 'Score Navigation');
-	}
-	static get noteHelpHtml() {
-		return SmoHelp._buildElements(SmoHelp.noteElements, 'Note Entry');
-	}
-	static get durationHelpHtml() {
-		return SmoHelp._buildElements(SmoHelp.durationElements, 'Note Duration');
-	}
-	static get menuHelpHtml() {
-		return SmoHelp._buildElements(SmoHelp.menuModeElements, 'Menus');
-	}
-	static get dialogHelpHtml() {
-		return SmoHelp._buildElements(SmoHelp.dialogElements, 'Property Dialogs');
-	}
+                    }, {
+                        text: '7',
+                        separator: ''
+                    }
+                ],
+                text: 'Enter interval 2nd through 7th',
+                id: 'noteElements4'
+            }, {
+                keys: [{
+                        text: 'Shift',
+                        separator: '+'
+                    }, {
+                        text: '2',
+                        separator: ''
+                    }, {
+                        text: '...',
+                        icon: 'help-ellipsis'
+
+                    }, {
+                        text: 'Shift',
+                        separator: '+'
+                    }, {
+                        text: '7'
+                    }
+                ],
+                text: 'Enter interval down 2nd through 7th',
+                id: 'noteElements5'
+            }, {
+                keys: [{
+                        text: 'r'
+                    }
+                ],
+                text: 'Toggle note/rest',
+                id: 'noteElements6'
+            }
+        ];
+    }
+    static get durationElements() {
+        return [{
+                keys:
+                [{
+                        text: ',',
+                        separator: ','
+                    }, {
+                        text: '.',
+                    }
+                ],
+                text: 'Double/halve note duration',
+                id: 'noteDuration1'
+            }, {
+                keys:
+                [{
+                        text: '<',
+                        separator: ','
+                    }, {
+                        text: '>'
+                    }
+                ],
+                text: 'Remove/Add dot to note',
+                id: 'noteDuration2'
+            }, {
+                keys: [{
+                        text: 'Ctrl',
+                        separator: '+'
+                    }, {
+                        text: '3',
+                    }
+                ],
+                text: 'Create triplet',
+                id: 'noteDuration3'
+            }, {
+                keys: [{
+                        text: 'Ctrl',
+                        separator: '+'
+                    }, {
+                        text: '0',
+                    }
+                ],
+                text: 'Remove triplet',
+                id: 'noteDuration4'
+            }
+        ];
+    }
+    static get generalEditElements() {
+        return [{
+                keys:
+                [{
+                        text: 'Ctrl',
+                        separator: '+'
+                    }, {
+                        text: 'c',
+                    }
+                ],
+                text: 'Copy selection',
+                id: 'editElements1'
+            }, {
+                keys:
+                [{
+                        text: 'Ctrl',
+                        separator: '+'
+                    }, {
+                        text: 'v'
+                    }
+                ],
+                text: 'Paste copied selection to selection target',
+                id: 'editElements2'
+            }, {
+                keys: [{
+                        text: 'Ctrl',
+                        separator: '+'
+                    }, {
+                        text: 'z',
+                    }
+                ],
+                text: 'Undo previous operation',
+                id: 'editElements3'
+            }, {
+                keys: [{
+                        text: 'Insert'
+                    }
+                ],
+                text: 'Add measure',
+                id: 'editElements4'
+            }, {
+                keys: [{
+                        text: 'Delete'
+                    }
+                ],
+                text: 'Delete measure',
+                id: 'editElements4'
+            }
+        ];
+    }
+    static get menuModeElements() {
+        return [{
+                keys:
+                [{
+                        text: '/',
+                        separator: ''
+                    }
+                ],
+                text: 'Next key chooses menu',
+                id: 'menuModeElements1'
+            }, {
+                keys:
+                [{
+                        text: 'k',
+                        separator: ''
+                    }
+                ],
+                text: 'Key signature menu',
+                id: 'menuModeElements2'
+            }, {
+                keys:
+                [{
+                        text: 'e',
+                        separator: ''
+                    }
+                ],
+                text: 'Expression menu (slur, hairpin dynamics)',
+                id: 'menuModeElements3'
+            }, {
+                keys:
+                [{
+                        text: 'd',
+                        separator: ''
+                    }
+                ],
+                text: 'Text dynamics menu',
+                id: 'menuModeElements4'
+            }, {
+                keys:
+                [{
+                        text: 'Esc',
+                        separator: ''
+                    }
+                ],
+                text: 'Cancel slash menu mode',
+                id: 'menuModeElements5'
+            }
+        ];
+    }
+    static get menuModeShort() {
+        return [{
+                keys:
+                [{
+                        text: 'k',
+                        separator: ''
+                    }
+                ],
+                text: 'Key signatures',
+                id: 'menuModeElements2'
+            }, {
+                keys:
+                [{
+                        text: 'e',
+                        separator: ''
+                    }
+                ],
+                text: 'Expressions',
+                id: 'menuModeElements3'
+            }, {
+                keys:
+                [{
+                        text: 'd',
+                        separator: ''
+                    }
+                ],
+                text: 'Dynamics',
+                id: 'menuModeElements4'
+            }, {
+                keys:
+                [{
+                        text: 'Esc',
+                        separator: ''
+                    }
+                ],
+                text: 'Continue Editing',
+                id: 'menuModeElements5'
+            }
+        ];
+    }
+    static get dialogElements() {
+        return [{
+                keys:
+                [{
+                        text: 'p',
+                        separator: ''
+                    }
+                ],
+                text: 'Property dialog for selected modifier (see Score Navigation)',
+                id: 'menuModeElements1'
+            }
+        ];
+    }
+
+    static get navigationHtml() {
+        return SmoHelp._buildElements(SmoHelp.navigationElements, 'Score Navigation');
+    }
+    static get noteHelpHtml() {
+        return SmoHelp._buildElements(SmoHelp.noteElements, 'Note Entry');
+    }
+    static get durationHelpHtml() {
+        return SmoHelp._buildElements(SmoHelp.durationElements, 'Note Duration');
+    }
+    static get menuHelpHtml() {
+        return SmoHelp._buildElements(SmoHelp.menuModeElements, 'Menus');
+    }
+    static get generalEditHtml() {
+        return SmoHelp._buildElements(SmoHelp.generalEditElements, 'Editing');
+    }
+    static get shortMenuHelpHtml() {
+        return SmoHelp._buildElements(SmoHelp.menuModeShort, 'Menus');
+    }
+    static get dialogHelpHtml() {
+        return SmoHelp._buildElements(SmoHelp.dialogElements, 'Property Dialogs');
+    }
 }
 ;
 
 // ## suiController
-// ### Description:
+// ## Description:
 // Manages DOM events and binds keyboard and mouse events
 // to editor and menu commands, tracker and layout manager.
 class suiController {
 
 	constructor(params) {
-
 		Vex.Merge(this, suiController.defaults);
 		Vex.Merge(this, params);
 		this.bindEvents();
 		this.undoBuffer = new UndoBuffer();
 		this.pasteBuffer = this.tracker.pasteBuffer;
+		this.editor.undoBuffer = this.undoBuffer;
+		this.editor.pasteBuffer = this.pasteBuffer;
 	}
 
 	// ## createUi
@@ -6751,7 +7155,118 @@ class suiController {
 				altKey: false,
 				shiftKey: false,
 				action: "addMeasure"
-			}
+			}, {
+				event: "keydown",
+				key: "Delete",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "deleteMeasure"
+			},
+			 {
+				event: "keydown",
+				key: "z",
+				ctrlKey: true,
+				altKey: false,
+				shiftKey: false,
+				action: "undo"
+			},
+			 {
+				event: "keydown",
+				key: "c",
+				ctrlKey: true,
+				altKey: false,
+				shiftKey: false,
+				action: "copy"
+			},
+			 {
+				event: "keydown",
+				key: "v",
+				ctrlKey: true,
+				altKey: false,
+				shiftKey: false,
+				action: "paste"
+			},
+			 {
+				event: "keydown",
+				key: "h",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "addRemoveArticulation"
+			},
+			 {
+				event: "keydown",
+				key: "i",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "addRemoveArticulation"
+			},
+			{
+				event: "keydown",
+				key: "j",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "addRemoveArticulation"
+			},
+			{
+				event: "keydown",
+				key: "k",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "addRemoveArticulation"
+			},
+			{
+				event: "keydown",
+				key: "l",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "addRemoveArticulation"
+			},
+			{
+				event: "keydown",
+				key: "H",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "addRemoveArticulation"
+			},
+			 {
+				event: "keydown",
+				key: "I",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "addRemoveArticulation"
+			},
+			{
+				event: "keydown",
+				key: "J",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "addRemoveArticulation"
+			},
+			{
+				event: "keydown",
+				key: "K",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "addRemoveArticulation"
+			},
+			{
+				event: "keydown",
+				key: "L",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "addRemoveArticulation"
+			}			
 		];
 	}
 
@@ -6841,6 +7356,10 @@ class suiController {
 			htmlHelpers.closeDialogPromise().then(rebind);
 		});
 	}
+	
+	menuHelp() {
+		SmoHelp.modeControls();
+	}
 
 	static get defaults() {
 		return {
@@ -6871,6 +7390,7 @@ class suiController {
 
 		if (evdata.key == '/') {
 			window.removeEventListener("keydown", this.keydownHandler, true);
+			this.menuHelp();
 			this.menuPromise = this.menus.slashMenuMode().then(rebind);
 		}
 
