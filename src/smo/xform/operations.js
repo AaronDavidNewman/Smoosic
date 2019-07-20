@@ -276,8 +276,8 @@ class SmoOperation {
         fromSelection.staff.addStaffModifier(modifier);
     }
 
-    static addInstrument(score) {
-        score.addInstrument();
+    static addInstrument(score,parameters) {
+        score.addInstrument(parameters);
     }
 
     static addMeasure(score, systemIndex, nmeasure) {

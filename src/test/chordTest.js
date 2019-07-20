@@ -237,10 +237,24 @@ class ChordTest {
             layout.render();
             return timeTest();
 		}
+		var fermataTest = () => {
+            var target = SmoSelection.noteSelection(score, 0, 0, 0, 2);
+            SmoOperation.toggleArticulation(target, new SmoArticulation({
+                    articulation: SmoArticulation.articulations.pizzicato}));
+            
+            SmoOperation.toggleArticulation(target, new SmoArticulation({
+                    articulation: SmoArticulation.articulations.fermata,
+                    position: SmoArticulation.positions.above
+                }));
+            layout.render();
+            return timeTest();
+		}
+		
         return drawDefaults().then(accidentalTest).then(crescendoTest).then(intervalTest).then(durationTest)
         .then(durationTest2).then(rerenderTest).then(setPitchTest).then(makeTupletTest)
         .then(unmakeTupletTest).then(courtesyTest).then(accentTest)
 		.then(accentTest2).then(accentTestBelow).then(staccatoTest).then(marcatoTest)
-		.then(upStrokeTest).then(downStrokeTest).then(pizzicatoTest).then(signalComplete);
+		.then(upStrokeTest).then(downStrokeTest).then(pizzicatoTest).
+		then(fermataTest).then(signalComplete);
     }
 }

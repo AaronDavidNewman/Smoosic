@@ -47,104 +47,17 @@ class StaffTest {
             return timeTest();
         }
 		
-		var copySetup = () => {
-            var target = SmoSelection.noteSelection(layout.score,0,2, 0, 1);
-			SmoOperation.setPitch(target,{
-                        letter: 'e',
-                        octave: 4,
-                        accidental: 'b'
-                    });
+		var bassClefTest = () => {
+			SmoOperation.addInstrument(score,{
+				instrumentInfo: {
+                instrumentName: 'Bass Instrument',
+                keyOffset: '0',
+                clef: 'bass'
+            }});
 			keys.render();
-			return timeTest();
 		}
-		var copyTest = () => {
-			var selections=[];
-			selections.push(SmoSelection.noteSelection(layout.score,0,2, 0, 1));
-			pasteBuffer.setSelections(keys.score,selections);
-			keys.layout.unrenderAll();
-			var pasteTarget = {staff:0,measure:1,voice:0,tick:2};
-			pasteBuffer.pasteSelections(keys.score, pasteTarget);
-			keys.render();						
-			return timeTest();
-		}
-		
-        var changePitch = () => {
-            var target = SmoSelection.pitchSelection(layout.score,0,2, 0, 1,[0]);
-			undo.addBuffer('undo pitch change', 'measure', target.selector, target.measure);
-			SmoOperation.setPitch(target,{
-                        letter: 'e',
-                        octave: 4,
-                        accidental: 'b'
-                    });					
-            /* if (target) {
-                target.note.pitches = [{
-                        letter: 'e',
-                        octave: 4,
-                        accidental: 'b'
-                    }
-                ];
-            }   */
-            keys.render();
-            return timeTest();
-        }
-		var undoTest = () => {
-			layout.undo(undo);
-            return timeTest();
-		}
-        var changePitch2 = () => {
-            var target = SmoSelection.pitchSelection(score,0,1, 0, 1, [0]);
-			undo.addBuffer('undo pitch change', 'measure', target.selector, target.measure);
-			SmoOperation.setPitch(target,{
-					letter: 'f',
-					octave: 4,
-					accidental: '#'
-				}
-			);
-            
-			var selection = SmoSelection.noteSelection(score,0,1,0,2);
-			SmoOperation.makeRest(selection);
-            keys.render();
-            return timeTest();
-        }
-		var keySigTest= () => {
-			var selection = SmoSelection.measureSelection(score,0,1);
-			undo.addBuffer('undo key sig','staff',selection.selector,selection.staff);
-			SmoOperation.addKeySignature(score,selection,'A');
-			// score.addKeySignature(1,'A');
-			var selection = SmoSelection.noteSelection(score,0,1,0,2);
-			SmoOperation.makeNote(selection);
-			keys.render();
-			return timeTest();
-		}
-		var keySigTest2= () => {
-			var selection = SmoSelection.measureSelection(score,0,2);
-			undo.addBuffer('undo key sig','score',selection.selector,score);
-			SmoOperation.addKeySignature(score,selection,'Bb');
-			keys.render();
-			return timeTest();
-		}
-		var keySigTest3= () => {
-			var selection = SmoSelection.measureSelection(score,0,1);
-			SmoOperation.addKeySignature(score,selection,'C#');
-			selection = SmoSelection.measureSelection(score,0,2);
-			SmoOperation.addKeySignature(score,selection,'Cb');
-			keys.render();			
-			return timeTest();
-		}
-        var serializeTest = () => {
-			var scoreJson=JSON.stringify(score.serialize());
-            // score = SmoScore.deserialize(JSON.stringify(serializeTestJson.systemStaffJson));
-			score = SmoScore.deserialize(scoreJson);
-            layout.unrenderAll();
-			keys.detach();
-            keys = utController.createUi(document.getElementById("boo"),score);			
-            keys.render();
-        }
-		
 
       
-        return drawDefaults().then(copySetup).then(copyTest).then(changePitch).then(changePitch2).then(undoTest)
-		    .then(undoTest).then(keySigTest).then(undoTest).then(keySigTest2).then(undoTest)
-		    .then(keySigTest3).then(serializeTest).then(signalComplete);
+        return drawDefaults().then(bassClefTest).then(signalComplete);
     }
 }

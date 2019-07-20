@@ -28,7 +28,7 @@ class SmoNote {
         }
     }
     static get parameterArray() {
-        return ['ticks', 'pitches', 'noteType','tuplet','attrs'];
+        return ['ticks', 'pitches', 'noteType','tuplet','attrs','clef'];
     }
     get id() {
         return this.attrs.id;

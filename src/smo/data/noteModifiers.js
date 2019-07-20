@@ -21,7 +21,7 @@ class SmoArticulation extends SmoNoteModifierBase {
             upStroke: 'upStroke',
             downStroke: 'downStroke',
             pizzicato: 'pizzicato',
-
+			fermata:'fermata'
         };
     }
 	static get positions() {
@@ -35,7 +35,8 @@ class SmoArticulation extends SmoNoteModifierBase {
             tenuto: 'a-',
             upStroke: 'a|',
             downStroke: 'am',
-            pizzicato: 'ao'
+            pizzicato: 'ao',
+			fermata:'a@a'
         };
     }
 
@@ -47,7 +48,8 @@ class SmoArticulation extends SmoNoteModifierBase {
             "a-": "tenuto",
             "a|": "upStroke",
             "am": "downStroke",
-            "ao": "pizzicato"
+            "ao": "pizzicato",
+			'a@a':"fermata"
         };
     }
     static get attrArray() {

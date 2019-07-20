@@ -55,7 +55,7 @@ class SmoMeasure {
 		return [
             'timeSignature', 'keySignature', 'staffX', 'staffY', 'customModifiers',
              'measureNumber', 'staffWidth', 'modifierOptions',
-            'activeVoice'];
+            'activeVoice','clef'];
 	}
 	serialize() {
 		var params = {};
@@ -209,8 +209,7 @@ class SmoMeasure {
 	static getDefaultMeasure(params) {
 		var obj={};
 		Vex.Merge(obj,SmoMeasure.defaults);
-		obj.keySignature = params.keySignature ? params.keySignature : obj.keySignature;
-		obj.timeSignature = params.timeSignature ? params.timeSignature : obj.timeSignature;
+		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, params,obj);
 		return new SmoMeasure(obj);
 	}
 	
