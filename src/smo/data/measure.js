@@ -135,12 +135,12 @@ class SmoMeasure {
             'tenor': {
                 letter: 'a',
                 accidental: 'n',
-                octave: 4
+                octave: 3
             },
             'alto': {
-                letter: 'a',
+                letter: 'c',
                 accidental: 'n',
-                octave: 3
+                octave: 4
             },
             'soprano': {
                 letter: 'b',

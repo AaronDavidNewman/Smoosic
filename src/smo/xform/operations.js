@@ -279,6 +279,9 @@ class SmoOperation {
     static addInstrument(score,parameters) {
         score.addInstrument(parameters);
     }
+	static removeInstrument(score,index) {
+		score.removeInstrument(index);
+	}
 
     static addMeasure(score, systemIndex, nmeasure) {
         score.addMeasure(systemIndex, nmeasure);

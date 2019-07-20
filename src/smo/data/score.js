@@ -192,6 +192,18 @@ class SmoScore {
 		this.activeStaff=this.staves.length-1;
 	}
 	
+	removeInstrument(index) {
+		var staves = [];
+		var ix=0;
+		this.staves.forEach((staff) => {
+			if (ix!=index) {
+				staves.push(staff);
+			}
+			ix += 1;
+		});
+		this.staves=staves;
+	}
+	
 	getMaxTicksMeasure(measure) {		
 		return this.staves[this.activeStaff].getMaxTicksMeasure(measure);
 	}

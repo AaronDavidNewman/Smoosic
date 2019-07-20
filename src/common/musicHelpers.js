@@ -16,6 +16,69 @@ class smoMusic {
 		return VF.Music.canonical_notes[VF.Music.noteValues[vexKey].int_val];
 	}
 
+	static get circleOfFifths() {
+		return [{
+				letter: 'c',
+				accidental: 'n'
+			}, {
+				letter: 'g',
+				accidental: 'n'
+			}, {
+				letter: 'd',
+				accidental: 'n'
+			}, {
+				letter: 'a',
+				accidental: 'n'
+			}, {
+				letter: 'e',
+				accidental: 'n'
+			}, {
+				letter: 'b',
+				accidental: 'n'
+			}, {
+				letter: 'f',
+				accidental: '#'
+			}, {
+				letter: 'c',
+				accidental: '#'
+			}, {
+				letter: 'a',
+				accidental: 'b'
+			}, {
+				letter: 'e',
+				accidental: 'b'
+			}, {
+				letter: 'b',
+				accidental: 'b'
+			}, {
+				letter: 'f',
+				accidental: 'n'
+			}
+		];
+	}
+
+	static circleOfFifthsIndex(smoPitch) {
+		var en1 = smoMusic.vexToSmoPitch(smoMusic.getEnharmonic(smoMusic.pitchToVexKey(smoPitch)));
+		var en2 = smoMusic.vexToSmoPitch(smoMusic.getEnharmonic(smoMusic.getEnharmonic(smoMusic.pitchToVexKey(smoPitch))));
+		var ix = smoMusic.circleOfFifths.findIndex((el) => {
+				return (el.letter === smoPitch.letter && el.accidental == smoPitch.accidental) ||
+				(el.letter == en1.letter && el.accidental == en1.accidental) ||
+				(el.letter == en2.letter && el.accidental == en2.accidental);
+			});
+		return ix;
+	}
+	
+	// ### Get pitch to the right in circle of fifths
+	static addSharp(smoPitch) {
+		return smoMusic.circleOfFifths[
+		   (smoMusic.circleOfFifthsIndex(smoPitch)+1) % smoMusic.circleOfFifths.length];
+	}
+	// ### Get pitch to the left in circle of fifths
+	static addFlat(smoPitch) {
+		return smoMusic.circleOfFifths[
+		   ((smoMusic.circleOfFifths.length-1) + smoMusic.circleOfFifthsIndex(smoPitch)) % smoMusic.circleOfFifths.length];
+	}
+
 	// pitches are measured from c, so that b0 is higher than c0, c1 is 1 note higher etc.
 	static get letterPitchIndex() {
 		return {
@@ -28,6 +91,16 @@ class smoMusic {
 			'b': 6
 		};
 	}
+	// ## Example:
+	// 'f#' => {letter:'f',accidental:'#'}
+	static vexToSmoPitch(vexPitch) {
+		var accidental = vexPitch.length < 2 ? 'n' : vexPitch.substring(1,vexPitch.length);
+		return {
+			letter: vexPitch[0],
+			accidental: accidental
+		};
+	}
+
 	// convert {letter,octave,accidental} object to vexKey string ('f#'
 	static pitchToVexKey(smoPitch) {
 		// Convert to vex keys, where f# is a string like 'f#'.

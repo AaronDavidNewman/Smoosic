@@ -157,6 +157,10 @@ class SmoUndoable {
         undoBuffer.addBuffer('addInstrument', 'score', null, score);
         SmoOperation.addInstrument(score);
     }
+	static removeInstrument(score,index,undoBuffer) {
+        undoBuffer.addBuffer('removeInstrument', 'score', null, score);
+        SmoOperation.removeInstrument(score,index);
+	}
     static addKeySignature(score, selection, keySignature, undoBuffer) {
         undoBuffer.addBuffer('addKeySignature ' + keySignature, 'score', null, score);
         SmoOperation.addKeySignature(score, selection, keySignature);
