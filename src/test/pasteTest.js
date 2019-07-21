@@ -24,19 +24,23 @@ class PasteTest {
             score = null;
             layout = null;
         }
+		var subTitle = (txt) => {
+			$('.subTitle').text(txt);
+		}
 
         var timeTest = () => {
             const promise = new Promise((resolve, reject) => {
                     setTimeout(() => {
                         resolve();
                     },
-                        500);
+                        200);
                 });
             return promise;
         }
 
         var signalComplete = () => {
             detach();
+			subTitle('');
             return timeTest();
         }
 
@@ -48,6 +52,7 @@ class PasteTest {
         }
 
         var copySetup = () => {
+			subTitle('copy setup');
             SmoSelection.noteSelection(layout.score, 0, 2, 0, 1);
             SmoOperation.setPitch(
                 SmoSelection.noteSelection(layout.score, 0, 0, 0, 0), {
@@ -96,6 +101,7 @@ class PasteTest {
         }
         var copyTest = () => {
             var selections = [];
+			subTitle('copy single note mm 2 beat 1');
             selections.push(SmoSelection.noteSelection(layout.score, 0, 2, 0, 1));
             pasteBuffer.setSelections(keys.score, selections);
             keys.layout.unrenderAll();
@@ -111,6 +117,7 @@ class PasteTest {
         }
 
         var copyDurationSetup = () => {
+			subTitle('copy notes with different durations setup');
             var selection = SmoSelection.noteSelection(score, 0, 1, 0, 2);
             SmoOperation.halveDuration(selection);
             layout.render();
@@ -118,6 +125,7 @@ class PasteTest {
         }
 
         var copyDurationChange = () => {
+			subTitle('copy notes with different durations');
             var selections = [];
             selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 1));
             selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 2));
@@ -137,12 +145,14 @@ class PasteTest {
         }
 
         var copyOverTupletSetup = () => {
+			subTitle('copy notes containing tuplet setup');
             var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
             SmoOperation.makeTuplet(selection, 3);
             keys.render();
             return timeTest();
         }
         var copyOverTupletTest = () => {
+			subTitle('copy notes containing tuplet');
             var selections = [];
             selections.push(SmoSelection.noteSelection(score, 0, 0, 0, 0));
             selections.push(SmoSelection.noteSelection(score, 0, 0, 0, 1));

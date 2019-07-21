@@ -22,13 +22,16 @@ class TimeSignatureTest {
                     setTimeout(() => {
                         resolve();
                     },
-                        500);
+                        200);
                 });
             return promise;
         }
-		
+		var subTitle = (txt) => {
+			$('.subTitle').text(txt);
+		}
 		var signalComplete = () => {
 			detach();
+			subTitle('');
 			return timeTest();
 		}
 
@@ -39,6 +42,7 @@ class TimeSignatureTest {
         }
 		
 		var stretchTest = () => {
+			subTitle('stretch 6/8 test');
 			var selection = SmoSelection.noteSelection(score,0,0,0,0);
 			SmoOperation.doubleDuration(selection);
 			var selection = SmoSelection.noteSelection(score,0,0,0,0);
@@ -55,6 +59,7 @@ class TimeSignatureTest {
 		}
 		
 		var contractTest = () => {
+			subTitle('contract 6/8 test');
 			var selection = SmoSelection.noteSelection(score,0,0,0,0);
 			SmoOperation.halveDuration(selection);
             /* var tickmap = measure.tickmap();
@@ -69,6 +74,7 @@ class TimeSignatureTest {
 		}
 		
         var makeDupletTest = () => {
+			subTitle('duplet 6/8 test');
 			var selection = SmoSelection.noteSelection(score,0,0,0,0);
 			SmoOperation.dotDuration(selection);
 			selection = SmoSelection.noteSelection(score,0,0,0,1);

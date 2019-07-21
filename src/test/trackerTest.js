@@ -15,12 +15,17 @@ class TrackerTest {
 					setTimeout(() => {
 						resolve();
 					},
-						500);
+						200);
 				});
 			return promise;
 		}
 
+var subTitle = (txt) => {
+			$('.subTitle').text(txt);
+		}
+		
 		var signalComplete = () => {
+			subTitle('');
 			return timeTest();
 		}
 
@@ -33,11 +38,13 @@ class TrackerTest {
 
 
 		var trackTest = () => {
+			subTitle('initialize tracker');
 			keys.tracker.updateMap();			
 			return timeTest();
 		}
 
 		var addInstrument = () => {
+			subTitle('track multiple staves');
 			score.addInstrument();
 			keys.layout.render();
 			keys.tracker.updateMap();
@@ -45,30 +52,36 @@ class TrackerTest {
 		}
 		
 		var selectionTest1 = () => {
+			subTitle('move selection right');
 			keys.tracker.moveSelectionRight();
 			return timeTest();
 		}
 
 		var selectionTest2 = () => {
+			subTitle('move selection left');
 			keys.tracker.moveSelectionLeft();
 			return timeTest();
 		}
 		var selectionTest3 = () => {
+			subTitle('move selection over 5');
 			keys.tracker.moveSelectionOffset(5);
 			return timeTest();
 		}
 		
 		var selectDown = () => {
+			subTitle('select staff below');
 			keys.tracker.moveSelectionDown();
 			return timeTest();
 		}
 		
 		var selectIncreaseRight = () => {
+			subTitle('grow selection right');
 			keys.tracker.growSelectionRight();
 			return timeTest();
 		}
 		
 		var selectIncreaseLeft = () => {
+			subTitle('grow selection left');
 			keys.tracker.growSelectionLeft();
 			return timeTest();
 		}

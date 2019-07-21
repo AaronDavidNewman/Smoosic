@@ -33,7 +33,7 @@ class UndoTest {
                     setTimeout(() => {
                         resolve();
                     },
-                        500);
+                        200);
                 });
             return promise;
         }
