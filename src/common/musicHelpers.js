@@ -93,7 +93,9 @@ class smoMusic {
 		for (var i = 1; i < distance; ++i) {
 			rv = smoMusic.addSharp(rv);
 		}
-		return JSON.parse(JSON.stringify(rv));
+		var octaveAdj= smoMusic.letterPitchIndex[smoPitch.letter] > smoMusic.letterPitchIndex[rv.letter] ? 1 : 0;
+		rv.octave += octaveAdj;
+		return rv;
 	}
 
 	static addFlats(smoPitch, distance) {
@@ -104,7 +106,9 @@ class smoMusic {
 		for (var i = 1; i < distance; ++i) {
 			rv = smoMusic.addFlat(rv);
 		}
-		return JSON.parse(JSON.stringify(rv));
+		var octaveAdj= smoMusic.letterPitchIndex[smoPitch.letter] > smoMusic.letterPitchIndex[rv.letter] ? 1 : 0;
+		rv.octave += octaveAdj;
+		return rv;
 	}
 
 	static smoPitchesToVexKeys(pitchAr, keyOffset) {
@@ -115,6 +119,17 @@ class smoMusic {
 			rv.push(smoMusic.pitchToVexKey(smoMusic[noopFunc](pitch, keyOffset)));
 		});
 		return rv;
+	}
+	
+	static vexKeySignatureTranspose(key,transposeIndex) {
+		var key = smoMusic.vexToSmoPitch(key);
+		key=smoMusic.smoPitchesToVexKeys([key],transposeIndex)[0];
+		key=smoMusic.stripVexOctave(key);
+		key = key[0].toUpperCase()+key.substring(1,key.length);
+		if (key.length > 1 && key[1]==='n') {
+			key = key[0];
+		}
+		return key;
 	}
 
 	// pitches are measured from c, so that b0 is higher than c0, c1 is 1 note higher etc.
@@ -134,7 +149,7 @@ class smoMusic {
 	static vexToSmoPitch(vexPitch) {
 		var accidental = vexPitch.length < 2 ? 'n' : vexPitch.substring(1, vexPitch.length);
 		return {
-			letter: vexPitch[0],
+			letter: vexPitch[0].toLowerCase(),
 			accidental: accidental
 		};
 	}

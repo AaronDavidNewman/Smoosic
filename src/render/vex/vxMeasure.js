@@ -75,9 +75,12 @@ class VxMeasure {
 		   smoNote.isTuplet ? 
 		     smoMusic.closestVexDuration(smoNote.tickCount) : 
 			 smoMusic.ticksToDuration[smoNote.tickCount];
+			 
+		// transpose for instrument-specific keys
+		var keys=smoMusic.smoPitchesToVexKeys(smoNote.pitches,this.smoMeasure.transposeIndex);
         var noteParams = {
             clef: smoNote.clef,
-            keys: smoMusic.smoPitchesToVexKeys(smoNote.pitches,this.smoMeasure.transposeIndex),
+            keys: keys,
             duration: duration + smoNote.noteType
         };
 		
@@ -235,14 +238,18 @@ class VxMeasure {
 
         var group = this.context.openGroup();
         group.classList.add(this.smoMeasure.attrs.id);
+		
+		var key = smoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature,this.smoMeasure.transposeIndex);
+		var canceledKey = this.smoMeasure.canceledKeySignature ? smoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature,this.smoMeasure.transposeIndex)
+		   : this.smoMeasure.canceledKeySignature;
 
         // offset for left-hand stuff
         var staffMargin = (this.smoMeasure.forceClef ? 40 : 0)
          + (this.smoMeasure.forceTimeSignature ? 16 : 0)
-         + (this.smoMeasure.forceKeySignature ? smoMusic.keySignatureLength[this.smoMeasure.keySignature] * 8 : 0);
+         + (this.smoMeasure.forceKeySignature ? smoMusic.keySignatureLength[key] * 8 : 0);
 
 		if (this.smoMeasure.forceKeySignature && this.smoMeasure.canceledKeySignature) {
-			staffMargin += smoMusic.keySignatureLength[this.smoMeasure.canceledKeySignature]*8;
+			staffMargin += smoMusic.keySignatureLength[canceledKey]*8;
 		}
         var staffWidth = this.smoMeasure.staffWidth
              + staffMargin;
@@ -258,9 +265,9 @@ class VxMeasure {
             this.stave.addClef(this.smoMeasure.clef);
         }
         if (this.smoMeasure.forceKeySignature) {
-			var sig = new VF.KeySignature(this.smoMeasure.keySignature);
+			var sig = new VF.KeySignature(key);
 			if (this.smoMeasure.canceledKeySignature) {
-				sig.cancelKey(this.smoMeasure.canceledKeySignature);
+				sig.cancelKey(canceledKey);
 			}
             sig.addToStave(this.stave);
         }

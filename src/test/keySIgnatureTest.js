@@ -102,6 +102,12 @@ class KeySignatureTest {
 			keys.render();			
 			return timeTest();
 		}
+		var keySigTest4= () => {
+			var selection = SmoSelection.measureSelection(score,0,0);
+			SmoOperation.addKeySignature(score,selection,'Bb');
+			keys.render();			
+			return timeTest();
+		}
         var serializeTest = () => {
 			var scoreJson=JSON.stringify(score.serialize());
             // score = SmoScore.deserialize(JSON.stringify(serializeTestJson.systemStaffJson));
@@ -116,6 +122,6 @@ class KeySignatureTest {
       
         return drawDefaults().then(changePitch).then(changePitch2).then(undoTest)
 		    .then(undoTest).then(keySigTest).then(undoTest).then(keySigTest2).then(undoTest)
-		    .then(keySigTest3).then(serializeTest).then(signalComplete);
+		    .then(keySigTest3).then(serializeTest).then(keySigTest4).then(signalComplete);
     }
 }

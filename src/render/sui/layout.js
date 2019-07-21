@@ -257,7 +257,8 @@ class suiSimpleLayout {
                 if (!pageBox['width']) {
                     pageBox = svgHelpers.copyBox(clientStaffBox);
                 }
-                var keySigLast = this._previousAttr(i, j, 'keySignature');
+				var measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature,measure.transposeIndex);
+                var keySigLast = smoMusic.vexKeySignatureTranspose(this._previousAttr(i, j, 'keySignature'),measure.transposeIndex);
                 var timeSigLast = this._previousAttr(i, j, 'timeSignature');
                 var clefLast = this._previousAttr(i, j, 'clef');
 
@@ -284,10 +285,10 @@ class suiSimpleLayout {
 
                 measure.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
                 measure.forceTimeSignature = (systemIndex === 0 || measure.timeSignature !== timeSigLast);
-                if (measure.keySignature !== keySigLast) {
+                if (measureKeySig !== keySigLast) {
                     measure.canceledKeySignature = keySigLast;
                     measure.forceKeySignature = true;
-                } else if (measure.measureNumber.measureIndex == 0 && measure.keySignature != 'C'){
+                } else if (measure.measureNumber.measureIndex == 0 && measureKeySig != 'C'){
 					measure.forceKeySignature = true;
 				}
 				else {
