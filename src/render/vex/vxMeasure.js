@@ -224,12 +224,6 @@ class VxMeasure {
     unrender() {
         $(this.context.svg).find('g.' + this.smoMeasure.attrs.id).remove();
     }
-    get renderedSize() {
-        if (this.smoMeasure.renderedSize) {
-            return this.smoMeasure.renderedSize;
-        }
-        return null;
-    }
 
     // ## Description:
     // Render all the notes in my smoMeasure.  All rendering logic is called from here.

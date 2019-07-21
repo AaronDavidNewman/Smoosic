@@ -120,7 +120,7 @@ class SmoMeasure {
     }
 
     // TODO: learn what all these clefs are
-    static get defaultKeyForClef() {
+    static get defaultPitchForClef() {
         return {
             'treble': {
                 letter: 'b',
@@ -191,7 +191,7 @@ class SmoMeasure {
         if (meterNumbers[0] % 3 == 0) {
             ticks = {numerator:2048,denominator:1,remainder:0};
         }
-        var pitches = SmoMeasure.defaultKeyForClef[params.clef];
+        var pitches = SmoMeasure.defaultPitchForClef[params.clef];
 		var rv = [];
 
         for (var i = 0; i < meterNumbers[0]; ++i) {

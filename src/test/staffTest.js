@@ -130,6 +130,7 @@ class StaffTest {
                 clef: 'treble'
 			}});
 			keys.render();
+			keys.layout.dumpGeometry();
 			return timeTest();	
 		}
       

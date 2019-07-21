@@ -446,4 +446,16 @@ class smoMusic {
 			}
 		});
 	}
+	
+	static stringifyAttrs(attrs,obj) {
+		var rv='';
+		attrs.forEach((attr) => {
+			if (obj[attr]) {
+				rv += attr + ':' + obj[attr] + ', ';
+			} else {
+				rv += attr + ': null,';
+			}
+		});
+		return rv;
+	}
 }
