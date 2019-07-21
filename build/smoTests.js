@@ -237,11 +237,25 @@ class ChordTest {
             layout.render();
             return timeTest();
 		}
+		var fermataTest = () => {
+            var target = SmoSelection.noteSelection(score, 0, 0, 0, 2);
+            SmoOperation.toggleArticulation(target, new SmoArticulation({
+                    articulation: SmoArticulation.articulations.pizzicato}));
+            
+            SmoOperation.toggleArticulation(target, new SmoArticulation({
+                    articulation: SmoArticulation.articulations.fermata,
+                    position: SmoArticulation.positions.above
+                }));
+            layout.render();
+            return timeTest();
+		}
+		
         return drawDefaults().then(accidentalTest).then(crescendoTest).then(intervalTest).then(durationTest)
         .then(durationTest2).then(rerenderTest).then(setPitchTest).then(makeTupletTest)
         .then(unmakeTupletTest).then(courtesyTest).then(accentTest)
 		.then(accentTest2).then(accentTestBelow).then(staccatoTest).then(marcatoTest)
-		.then(upStrokeTest).then(downStrokeTest).then(pizzicatoTest).then(signalComplete);
+		.then(upStrokeTest).then(downStrokeTest).then(pizzicatoTest).
+		then(fermataTest).then(signalComplete);
     }
 }
 ;
@@ -581,6 +595,12 @@ class KeySignatureTest {
 			keys.render();			
 			return timeTest();
 		}
+		var keySigTest4= () => {
+			var selection = SmoSelection.measureSelection(score,0,0);
+			SmoOperation.addKeySignature(score,selection,'Bb');
+			keys.render();			
+			return timeTest();
+		}
         var serializeTest = () => {
 			var scoreJson=JSON.stringify(score.serialize());
             // score = SmoScore.deserialize(JSON.stringify(serializeTestJson.systemStaffJson));
@@ -595,7 +615,7 @@ class KeySignatureTest {
       
         return drawDefaults().then(changePitch).then(changePitch2).then(undoTest)
 		    .then(undoTest).then(keySigTest).then(undoTest).then(keySigTest2).then(undoTest)
-		    .then(keySigTest3).then(serializeTest).then(signalComplete);
+		    .then(keySigTest3).then(serializeTest).then(keySigTest4).then(signalComplete);
     }
 }
 ;

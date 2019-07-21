@@ -13,7 +13,123 @@ class smoMusic {
 	// return Vex canonical note enharmonic - e.g. Bb to A#
 	// Get the canonical form
 	static vexToCannonical(vexKey) {
+		vexKey=smoMusic.stripVexOctave(vexKey);
 		return VF.Music.canonical_notes[VF.Music.noteValues[vexKey].int_val];
+	}
+
+	static get circleOfFifths() {
+		return [{
+				letter: 'c',
+				accidental: 'n'
+			}, {
+				letter: 'g',
+				accidental: 'n'
+			}, {
+				letter: 'd',
+				accidental: 'n'
+			}, {
+				letter: 'a',
+				accidental: 'n'
+			}, {
+				letter: 'e',
+				accidental: 'n'
+			}, {
+				letter: 'b',
+				accidental: 'n'
+			}, {
+				letter: 'f',
+				accidental: '#'
+			}, {
+				letter: 'c',
+				accidental: '#'
+			}, {
+				letter: 'a',
+				accidental: 'b'
+			}, {
+				letter: 'e',
+				accidental: 'b'
+			}, {
+				letter: 'b',
+				accidental: 'b'
+			}, {
+				letter: 'f',
+				accidental: 'n'
+			}
+		];
+	}
+
+	static circleOfFifthsIndex(smoPitch) {
+		var en1 = smoMusic.vexToSmoPitch(smoMusic.getEnharmonic(smoMusic.pitchToVexKey(smoPitch)));
+		var en2 = smoMusic.vexToSmoPitch(smoMusic.getEnharmonic(smoMusic.getEnharmonic(smoMusic.pitchToVexKey(smoPitch))));
+		var ix = smoMusic.circleOfFifths.findIndex((el) => {
+				return (el.letter === smoPitch.letter && el.accidental == smoPitch.accidental) ||
+				(el.letter == en1.letter && el.accidental == en1.accidental) ||
+				(el.letter == en2.letter && el.accidental == en2.accidental);
+			});
+		return ix;
+	}
+
+	// ### Get pitch to the right in circle of fifths
+	static addSharp(smoPitch) {
+		var rv = smoMusic.circleOfFifths[
+			(smoMusic.circleOfFifthsIndex(smoPitch) + 1) % smoMusic.circleOfFifths.length];
+		rv = JSON.parse(JSON.stringify(rv));
+		rv.octave=smoPitch.octave;
+		return rv;
+	}
+	// ### Get pitch to the left in circle of fifths
+	static addFlat(smoPitch) {
+		var rv = smoMusic.circleOfFifths[
+			((smoMusic.circleOfFifths.length - 1) + smoMusic.circleOfFifthsIndex(smoPitch)) % smoMusic.circleOfFifths.length];
+		rv = JSON.parse(JSON.stringify(rv));
+		rv.octave=smoPitch.octave;
+		return rv;
+	}
+	static addSharps(smoPitch, distance) {
+		if (distance == 0) {
+			return JSON.parse(JSON.stringify(smoPitch));
+		}
+		var rv = smoMusic.addSharp(smoPitch);
+		for (var i = 1; i < distance; ++i) {
+			rv = smoMusic.addSharp(rv);
+		}
+		var octaveAdj= smoMusic.letterPitchIndex[smoPitch.letter] > smoMusic.letterPitchIndex[rv.letter] ? 1 : 0;
+		rv.octave += octaveAdj;
+		return rv;
+	}
+
+	static addFlats(smoPitch, distance) {
+		if (distance == 0) {
+			return JSON.parse(JSON.stringify(smoPitch));
+		}
+		var rv = smoMusic.addFlat(smoPitch);
+		for (var i = 1; i < distance; ++i) {
+			rv = smoMusic.addFlat(rv);
+		}
+		var octaveAdj= smoMusic.letterPitchIndex[smoPitch.letter] > smoMusic.letterPitchIndex[rv.letter] ? 1 : 0;
+		rv.octave += octaveAdj;
+		return rv;
+	}
+
+	static smoPitchesToVexKeys(pitchAr, keyOffset) {
+		var noopFunc = keyOffset > 0 ? 'addSharps' : 'addFlats';
+
+		var rv = [];
+		pitchAr.forEach((pitch) => {
+			rv.push(smoMusic.pitchToVexKey(smoMusic[noopFunc](pitch, keyOffset)));
+		});
+		return rv;
+	}
+	
+	static vexKeySignatureTranspose(key,transposeIndex) {
+		var key = smoMusic.vexToSmoPitch(key);
+		key=smoMusic.smoPitchesToVexKeys([key],transposeIndex)[0];
+		key=smoMusic.stripVexOctave(key);
+		key = key[0].toUpperCase()+key.substring(1,key.length);
+		if (key.length > 1 && key[1]==='n') {
+			key = key[0];
+		}
+		return key;
 	}
 
 	// pitches are measured from c, so that b0 is higher than c0, c1 is 1 note higher etc.
@@ -28,6 +144,23 @@ class smoMusic {
 			'b': 6
 		};
 	}
+	// ## Example:
+	// 'f#' => {letter:'f',accidental:'#'}
+	static vexToSmoPitch(vexPitch) {
+		var accidental = vexPitch.length < 2 ? 'n' : vexPitch.substring(1, vexPitch.length);
+		return {
+			letter: vexPitch[0].toLowerCase(),
+			accidental: accidental
+		};
+	}
+	
+	static stripVexOctave(vexKey) {
+		if (vexKey.indexOf('/') > 0) {
+			vexKey = vexKey.substring(0,vexKey.indexOf('/'))
+		}
+		return vexKey;
+	}
+
 	// convert {letter,octave,accidental} object to vexKey string ('f#'
 	static pitchToVexKey(smoPitch) {
 		// Convert to vex keys, where f# is a string like 'f#'.
@@ -36,6 +169,9 @@ class smoMusic {
 			vexKey = vexKey + 'n';
 		} else {
 			vexKey = vexKey + smoPitch.accidental;
+		}
+		if (smoPitch['octave']) {
+			vexKey = vexKey+'/'+smoPitch.octave;
 		}
 		return vexKey;
 	}
@@ -227,13 +363,14 @@ class smoMusic {
 
 	// ### getEnharmonic(noteProp)
 	// ###   cycle through the enharmonics for a note.
-	static getEnharmonic(key) {
-		var intVal = VF.Music.noteValues[key.toLowerCase()].int_val;
+	static getEnharmonic(vexKey) {
+		vexKey=smoMusic.stripVexOctave(vexKey);
+		var intVal = VF.Music.noteValues[vexKey.toLowerCase()].int_val;
 		var ar = smoMusic.enharmonics[intVal.toString()];
 		var len = ar.length;
-		var ix = ar.indexOf(key);
-		key = ar[(ix + 1) % len];
-		return key;
+		var ix = ar.indexOf(vexKey);
+		vexKey = ar[(ix + 1) % len];
+		return vexKey;
 	}
 	// ## getKeyFriendlyEnharmonic
 	// ### Description:
@@ -308,6 +445,18 @@ class smoMusic {
 				}
 			}
 		});
+	}
+	
+	static stringifyAttrs(attrs,obj) {
+		var rv='';
+		attrs.forEach((attr) => {
+			if (obj[attr]) {
+				rv += attr + ':' + obj[attr] + ', ';
+			} else {
+				rv += attr + ': null,';
+			}
+		});
+		return rv;
 	}
 }
 ;
@@ -634,7 +783,7 @@ class SmoNote {
         }
     }
     static get parameterArray() {
-        return ['ticks', 'pitches', 'noteType','tuplet','attrs'];
+        return ['ticks', 'pitches', 'noteType','tuplet','attrs','clef'];
     }
     get id() {
         return this.attrs.id;
@@ -696,19 +845,6 @@ class SmoNote {
 		}
 	}
 
-
-    // ## toVexKeys
-    // ## Description:
-    // turn the array of smo note pitches into an array of vex key strings
-    toVexKeys() {
-        var rv = [];
-        for (var i = 0; i < this.pitches.length; ++i) {
-            var pitch = this.pitches[i];
-            var letter = pitch.letter + pitch.accidental;
-            rv.push(letter + '/' + pitch.octave);
-        }
-        return rv;
-    }
     _sortPitches() {
         var canon = VF.Music.canonical_notes;
         var keyIndex = ((pitch) => {
@@ -1033,7 +1169,7 @@ class SmoArticulation extends SmoNoteModifierBase {
             upStroke: 'upStroke',
             downStroke: 'downStroke',
             pizzicato: 'pizzicato',
-
+			fermata:'fermata'
         };
     }
 	static get positions() {
@@ -1047,7 +1183,8 @@ class SmoArticulation extends SmoNoteModifierBase {
             tenuto: 'a-',
             upStroke: 'a|',
             downStroke: 'am',
-            pizzicato: 'ao'
+            pizzicato: 'ao',
+			fermata:'a@a'
         };
     }
 
@@ -1059,7 +1196,8 @@ class SmoArticulation extends SmoNoteModifierBase {
             "a-": "tenuto",
             "a|": "upStroke",
             "am": "downStroke",
-            "ao": "pizzicato"
+            "ao": "pizzicato",
+			'a@a':"fermata"
         };
     }
     static get attrArray() {
@@ -1231,7 +1369,7 @@ class SmoMeasure {
 		return [
             'timeSignature', 'keySignature', 'staffX', 'staffY', 'customModifiers',
              'measureNumber', 'staffWidth', 'modifierOptions',
-            'activeVoice'];
+            'activeVoice','clef','transposeIndex'];
 	}
 	serialize() {
 		var params = {};
@@ -1296,7 +1434,7 @@ class SmoMeasure {
     }
 
     // TODO: learn what all these clefs are
-    static get defaultKeyForClef() {
+    static get defaultPitchForClef() {
         return {
             'treble': {
                 letter: 'b',
@@ -1311,12 +1449,12 @@ class SmoMeasure {
             'tenor': {
                 letter: 'a',
                 accidental: 'n',
-                octave: 4
+                octave: 3
             },
             'alto': {
-                letter: 'a',
+                letter: 'c',
                 accidental: 'n',
-                octave: 3
+                octave: 4
             },
             'soprano': {
                 letter: 'b',
@@ -1367,7 +1505,7 @@ class SmoMeasure {
         if (meterNumbers[0] % 3 == 0) {
             ticks = {numerator:2048,denominator:1,remainder:0};
         }
-        var pitches = SmoMeasure.defaultKeyForClef[params.clef];
+        var pitches = SmoMeasure.defaultPitchForClef[params.clef];
 		var rv = [];
 
         for (var i = 0; i < meterNumbers[0]; ++i) {
@@ -1385,8 +1523,7 @@ class SmoMeasure {
 	static getDefaultMeasure(params) {
 		var obj={};
 		Vex.Merge(obj,SmoMeasure.defaults);
-		obj.keySignature = params.keySignature ? params.keySignature : obj.keySignature;
-		obj.timeSignature = params.timeSignature ? params.timeSignature : obj.timeSignature;
+		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, params,obj);
 		return new SmoMeasure(obj);
 	}
 	
@@ -1418,6 +1555,7 @@ class SmoMeasure {
 			canceledKeySignature:null,
             staffX: 10,
 			adjX:0,
+			transposeIndex:0,
 			rightMargin:2,
             customModifiers: [],
             staffY: 40,
@@ -2011,7 +2149,8 @@ class SmoScore {
 			var newParams = {};
 			var measure=proto.measures[i];
 			smoMusic.filteredMerge(SmoMeasure.defaultAttributes, measure, newParams);
-			newParams.clef=parameters.instrumentInfo.clef;			
+			newParams.clef=parameters.instrumentInfo.clef;
+			newParams.transposeIndex = parameters.instrumentInfo.keyOffset;
 			var newMeasure=SmoMeasure.getDefaultMeasureWithNotes(newParams);
 			newMeasure.measureNumber = measure.measureNumber;
 			measures.push(newMeasure);
@@ -2020,6 +2159,18 @@ class SmoScore {
 		var staff = new SmoSystemStaff(parameters);
 		this.staves.push(staff);
 		this.activeStaff=this.staves.length-1;
+	}
+	
+	removeInstrument(index) {
+		var staves = [];
+		var ix=0;
+		this.staves.forEach((staff) => {
+			if (ix!=index) {
+				staves.push(staff);
+			}
+			ix += 1;
+		});
+		this.staves=staves;
 	}
 	
 	getMaxTicksMeasure(measure) {		
@@ -3283,287 +3434,305 @@ class SmoSelection {
 // An operation works on a selection or set of selections to edit the music
 class SmoOperation {
 
-    static addKeySignature(score, selection, keySignature) {
-        score.addKeySignature(selection.selector.measure, keySignature);
-    }
+	static addKeySignature(score, selection, keySignature) {
+		score.addKeySignature(selection.selector.measure, keySignature);
+	}
 
-    static deleteMeasure(score, selection) {
+	static deleteMeasure(score, selection) {
 		var measureIndex = selection.selector.measure;
-		
+
 		score.deleteMeasure(measureIndex);
 	}
-    // ## doubleDuration
-    // ## Description
-    // double the duration of a note in a measure, at the expense of the following
-    // note, if possible.  Works on tuplets also.
-    static doubleDuration(selection) {
-        var note = selection.note;
-        var measure = selection.measure;
-        var tuplet = measure.getTupletForNote(note);
-        if (!tuplet) {
-            var nticks = note.tickCount * 2;
-            var actor = new SmoStretchNoteActor({
-                    startIndex: selection.selector.tick,
-                    tickmap: measure.tickmap(),
-                    newTicks: nticks
-                });
-            SmoTickTransformer.applyTransform(measure, actor);
-        } else {
-            var startIndex = tuplet.getIndexOfNote(note);
-            var endIndex = startIndex + 1;
-            if (endIndex >= tuplet.notes.length) {
-                return;
-            }
-            var actor = new SmoStretchTupletActor({
-                    changeIndex: measure.tupletIndex(tuplet),
-                    startIndex: startIndex,
-                    endIndex: endIndex,
-                    measure: measure
-                });
-            SmoTickTransformer.applyTransform(measure, actor);
-        }
-        return true;
-    }
+	// ## doubleDuration
+	// ## Description
+	// double the duration of a note in a measure, at the expense of the following
+	// note, if possible.  Works on tuplets also.
+	static doubleDuration(selection) {
+		var note = selection.note;
+		var measure = selection.measure;
+		var tuplet = measure.getTupletForNote(note);
+		if (!tuplet) {
+			var nticks = note.tickCount * 2;
+			var actor = new SmoStretchNoteActor({
+					startIndex: selection.selector.tick,
+					tickmap: measure.tickmap(),
+					newTicks: nticks
+				});
+			SmoTickTransformer.applyTransform(measure, actor);
+		} else {
+			var startIndex = tuplet.getIndexOfNote(note);
+			var endIndex = startIndex + 1;
+			if (endIndex >= tuplet.notes.length) {
+				return;
+			}
+			var actor = new SmoStretchTupletActor({
+					changeIndex: measure.tupletIndex(tuplet),
+					startIndex: startIndex,
+					endIndex: endIndex,
+					measure: measure
+				});
+			SmoTickTransformer.applyTransform(measure, actor);
+		}
+		return true;
+	}
 
-    // ## halveDuration
-    // ## Description
-    // Replace the note with 2 notes of 1/2 duration, if possible
-    // Works on tuplets also.
-    static halveDuration(selection) {
-        var note = selection.note;
-        var measure = selection.measure;
-        var tuplet = measure.getTupletForNote(note);
-        var divisor = 2;
-        if (measure.numBeats % 3 === 0 && selection.note.tickCount === 6144) {
-            // special behavior, if this is dotted 1/4 in 6/8, split to 3
-            divisor = 3;
-        }
-        if (!tuplet) {
-            var nticks = note.tickCount / divisor;
-            var actor = new SmoContractNoteActor({
-                    startIndex: selection.selector.tick,
-                    tickmap: measure.tickmap(),
-                    newTicks: nticks
-                });
-            SmoTickTransformer.applyTransform(measure, actor);
+	// ## halveDuration
+	// ## Description
+	// Replace the note with 2 notes of 1/2 duration, if possible
+	// Works on tuplets also.
+	static halveDuration(selection) {
+		var note = selection.note;
+		var measure = selection.measure;
+		var tuplet = measure.getTupletForNote(note);
+		var divisor = 2;
+		if (measure.numBeats % 3 === 0 && selection.note.tickCount === 6144) {
+			// special behavior, if this is dotted 1/4 in 6/8, split to 3
+			divisor = 3;
+		}
+		if (!tuplet) {
+			var nticks = note.tickCount / divisor;
+			var actor = new SmoContractNoteActor({
+					startIndex: selection.selector.tick,
+					tickmap: measure.tickmap(),
+					newTicks: nticks
+				});
+			SmoTickTransformer.applyTransform(measure, actor);
 
-        } else {
-            var startIndex = measure.tupletIndex(tuplet) + tuplet.getIndexOfNote(note);
-            var actor = new SmoContractTupletActor({
-                    changeIndex: startIndex,
-                    measure: measure
-                });
-            SmoTickTransformer.applyTransform(measure, actor);
-        }
-    }
+		} else {
+			var startIndex = measure.tupletIndex(tuplet) + tuplet.getIndexOfNote(note);
+			var actor = new SmoContractTupletActor({
+					changeIndex: startIndex,
+					measure: measure
+				});
+			SmoTickTransformer.applyTransform(measure, actor);
+		}
+	}
 
-    // ## makeTuplet
-    // ## Description
-    // Makes a non-tuplet into a tuplet of equal value.
-    static makeTuplet(selection, numNotes) {
-        var note = selection.note;
-        var measure = selection.measure;
-        if (measure.getTupletForNote(note))
-            return;
-        var nticks = note.tickCount;
+	// ## makeTuplet
+	// ## Description
+	// Makes a non-tuplet into a tuplet of equal value.
+	static makeTuplet(selection, numNotes) {
+		var note = selection.note;
+		var measure = selection.measure;
+		if (measure.getTupletForNote(note))
+			return;
+		var nticks = note.tickCount;
 
-        var actor = new SmoMakeTupletActor({
-                index: selection.selector.tick,
-                totalTicks: nticks,
-                numNotes: numNotes,
-                measure: measure
-            });
-        SmoTickTransformer.applyTransform(measure, actor);
-        return true;
-    }
+		var actor = new SmoMakeTupletActor({
+				index: selection.selector.tick,
+				totalTicks: nticks,
+				numNotes: numNotes,
+				measure: measure
+			});
+		SmoTickTransformer.applyTransform(measure, actor);
+		return true;
+	}
 
-    static makeRest(selection) {
-        selection.note.makeRest();
-    }
-    static makeNote(selection) {
-        selection.note.makeNote();
-    }
+	static makeRest(selection) {
+		selection.note.makeRest();
+	}
+	static makeNote(selection) {
+		selection.note.makeNote();
+	}
 
-    // ## unmakeTuplet
-    // ## Description
-    // Makes a tuplet into a single with the duration of the whole tuplet
-    static unmakeTuplet(selection) {
-        var note = selection.note;
-        var measure = selection.measure;
-        if (!measure.getTupletForNote(note))
-            return;
-        var tuplet = measure.getTupletForNote(note);
-        if (tuplet === null)
-            return;
-        var startIndex = measure.tupletIndex(tuplet);
-        var endIndex = tuplet.notes.length + startIndex - 1;
+	// ## unmakeTuplet
+	// ## Description
+	// Makes a tuplet into a single with the duration of the whole tuplet
+	static unmakeTuplet(selection) {
+		var note = selection.note;
+		var measure = selection.measure;
+		if (!measure.getTupletForNote(note))
+			return;
+		var tuplet = measure.getTupletForNote(note);
+		if (tuplet === null)
+			return;
+		var startIndex = measure.tupletIndex(tuplet);
+		var endIndex = tuplet.notes.length + startIndex - 1;
 
-        var actor = new SmoUnmakeTupletActor({
-                startIndex: startIndex,
-                endIndex: endIndex,
-                measure: measure
-            });
-        SmoTickTransformer.applyTransform(measure, actor);
-        return true;
-    }
+		var actor = new SmoUnmakeTupletActor({
+				startIndex: startIndex,
+				endIndex: endIndex,
+				measure: measure
+			});
+		SmoTickTransformer.applyTransform(measure, actor);
+		return true;
+	}
 
-    // ## dotDuration
-    // ## Description
-    // Add a dot to a note, if possible, and make the note ahead of it shorter
-    // to compensate.
-    static dotDuration(selection) {
+	// ## dotDuration
+	// ## Description
+	// Add a dot to a note, if possible, and make the note ahead of it shorter
+	// to compensate.
+	static dotDuration(selection) {
 
-        var note = selection.note;
-        var measure = selection.measure;
-        var nticks = smoMusic.getNextDottedLevel(note.tickCount);
-        if (nticks == note.tickCount) {
-            return;
-        }
-        var actor = new SmoStretchNoteActor({
-                startIndex: selection.selector.tick,
-                tickmap: measure.tickmap(),
-                newTicks: nticks
-            });
-        SmoTickTransformer.applyTransform(measure, actor);
-        return true;
-    }
+		var note = selection.note;
+		var measure = selection.measure;
+		var nticks = smoMusic.getNextDottedLevel(note.tickCount);
+		if (nticks == note.tickCount) {
+			return;
+		}
+		var actor = new SmoStretchNoteActor({
+				startIndex: selection.selector.tick,
+				tickmap: measure.tickmap(),
+				newTicks: nticks
+			});
+		SmoTickTransformer.applyTransform(measure, actor);
+		return true;
+	}
 
-    // ## undotDuration
-    // ## Description
-    // Add the value of the last dot to the note, increasing length and
-    // reducing the number of dots.
-    static undotDuration(selection) {
-        var note = selection.note;
-        var measure = selection.measure;
-        var nticks = smoMusic.getPreviousDottedLevel(note.tickCount);
-        if (nticks == note.tickCount) {
-            return;
-        }
-        var actor = new SmoContractNoteActor({
-                startIndex: selection.selector.tick,
-                tickmap: measure.tickmap(),
-                newTicks: nticks
-            });
-        SmoTickTransformer.applyTransform(measure, actor);
-        return true;
-    }
+	// ## undotDuration
+	// ## Description
+	// Add the value of the last dot to the note, increasing length and
+	// reducing the number of dots.
+	static undotDuration(selection) {
+		var note = selection.note;
+		var measure = selection.measure;
+		var nticks = smoMusic.getPreviousDottedLevel(note.tickCount);
+		if (nticks == note.tickCount) {
+			return;
+		}
+		var actor = new SmoContractNoteActor({
+				startIndex: selection.selector.tick,
+				tickmap: measure.tickmap(),
+				newTicks: nticks
+			});
+		SmoTickTransformer.applyTransform(measure, actor);
+		return true;
+	}
 
-    // ## transpose
-    // ## Description
-    // Transpose the selected note, trying to find a key-signature friendly value
-    static transpose(selection, offset) {
-        var measure = selection.measure;
-        var note = selection.note;
-        if (measure && note) {
-            note.transpose(selection.selector.pitches, offset, measure.keySignature);
-            return true;
-        }
-        return false;
-    }
+	// ## transpose
+	// ## Description
+	// Transpose the selected note, trying to find a key-signature friendly value
+	static transpose(selection, offset) {
+		var measure = selection.measure;
+		var note = selection.note;
+		if (measure && note) {
+			note.transpose(selection.selector.pitches, offset, measure.keySignature);
+			return true;
+		}
+		return false;
+	}
 
-    // ## setPitch
-    // ## Description:
-    // pitches can be either an array, a single pitch, or a letter.  In the latter case,
-    // the letter value appropriate for the key signature is used, e.g. c in A major becomes
-    // c#
-    static setPitch(selection, pitches) {
-        var measure = selection.measure;
-        var note = selection.note;
-        // TODO allow hint for octave
-        var octave = note.pitches[0].octave;
-        note.pitches = [];
-        if (!Array.isArray(pitches)) {
-            pitches = [pitches];
-        }
-        pitches.forEach((pitch) => {
-            var letter = pitch;
-            if (typeof(pitch) === 'string') {
-                var letter = smoMusic.getKeySignatureKey(pitch[0], measure.keySignature);
-                pitch = {
-                    letter: letter[0],
-                    accidental: letter.length > 1 ? letter.substring(1) : '',
-                    octave: octave
-                };
-            }
+	// ## setPitch
+	// ## Description:
+	// pitches can be either an array, a single pitch, or a letter.  In the latter case,
+	// the letter value appropriate for the key signature is used, e.g. c in A major becomes
+	// c#
+	static setPitch(selection, pitches) {
+		var measure = selection.measure;
+		var note = selection.note;
+		// TODO allow hint for octave
+		var octave = note.pitches[0].octave;
+		note.pitches = [];
+		if (!Array.isArray(pitches)) {
+			pitches = [pitches];
+		}
+		pitches.forEach((pitch) => {
+			var letter = pitch;
+			if (typeof(pitch) === 'string') {
+				var letter = smoMusic.getKeySignatureKey(pitch[0], measure.keySignature);
+				pitch = {
+					letter: letter[0],
+					accidental: letter.length > 1 ? letter.substring(1) : '',
+					octave: octave
+				};
+			}
 
-            note.pitches.push(pitch);
-        });
-        return true;
-    }
+			note.pitches.push(pitch);
+		});
+		return true;
+	}
 
-    static courtesyAccidental(pitchSelection, toBe) {
-        pitchSelection.selector.pitches.forEach((pitchIx) => {
-            pitchSelection.note.pitches[pitchIx].cautionary = toBe;
-        });
-    }
+	static courtesyAccidental(pitchSelection, toBe) {
+		pitchSelection.selector.pitches.forEach((pitchIx) => {
+			pitchSelection.note.pitches[pitchIx].cautionary = toBe;
+		});
+	}
 
-    static addDynamic(selection, dynamic) {
-        selection.note.addModifier(dynamic);
-    }
-		
-	static toggleArticulation(selection,articulation) {
+	static addDynamic(selection, dynamic) {
+		selection.note.addModifier(dynamic);
+	}
+
+	static toggleArticulation(selection, articulation) {
 		selection.note.toggleArticulation(articulation);
 	}
 
-    // ## interval
-    // ## Description:
-    // Add a pitch at the specified interval to the chord in the selection.
-    static interval(selection, interval) {
-        var measure = selection.measure;
-        var note = selection.note;
+	// ## interval
+	// ## Description:
+	// Add a pitch at the specified interval to the chord in the selection.
+	static interval(selection, interval) {
+		var measure = selection.measure;
+		var note = selection.note;
 
-        // TODO: figure out which pitch is selected
-        var pitch = note.pitches[0];
-        var pitch = smoMusic.getIntervalInKey(pitch, measure.keySignature, interval);
-        if (pitch) {
-            note.pitches.push(pitch);
-            return true;
-        }
-        return false;
-    }
+		// TODO: figure out which pitch is selected
+		var pitch = note.pitches[0];
+		var pitch = smoMusic.getIntervalInKey(pitch, measure.keySignature, interval);
+		if (pitch) {
+			note.pitches.push(pitch);
+			return true;
+		}
+		return false;
+	}
 
-    static crescendo(fromSelection, toSelection) {
-        var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
-        var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
-        var modifier = new SmoStaffHairpin({
-                startSelector: fromSelector,
-                endSelector: toSelector,
-                hairpinType: SmoStaffHairpin.types.CRESCENDO,
-                position: SmoStaffHairpin.positions.BELOW
-            });
-        fromSelection.staff.addStaffModifier(modifier);
-    }
+	static crescendo(fromSelection, toSelection) {
+		var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+		var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
+		var modifier = new SmoStaffHairpin({
+				startSelector: fromSelector,
+				endSelector: toSelector,
+				hairpinType: SmoStaffHairpin.types.CRESCENDO,
+				position: SmoStaffHairpin.positions.BELOW
+			});
+		fromSelection.staff.addStaffModifier(modifier);
+	}
 
-    static decrescendo(fromSelection, toSelection) {
-        var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
-        var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
-        var modifier = new SmoStaffHairpin({
-                startSelector: fromSelector,
-                endSelector: toSelector,
-                hairpinType: SmoStaffHairpin.types.DECRESCENDO,
-                position: SmoStaffHairpin.positions.BELOW
-            });
-        fromSelection.staff.addStaffModifier(modifier);
-    }
+	static decrescendo(fromSelection, toSelection) {
+		var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+		var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
+		var modifier = new SmoStaffHairpin({
+				startSelector: fromSelector,
+				endSelector: toSelector,
+				hairpinType: SmoStaffHairpin.types.DECRESCENDO,
+				position: SmoStaffHairpin.positions.BELOW
+			});
+		fromSelection.staff.addStaffModifier(modifier);
+	}
 
-    static slur(fromSelection, toSelection) {
-        var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
-        var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
-        var modifier = new SmoSlur({
-                startSelector: fromSelector,
-                endSelector: toSelector,
-                position: SmoStaffHairpin.positions.BELOW
-            });
-        fromSelection.staff.addStaffModifier(modifier);
-    }
+	static slur(fromSelection, toSelection) {
+		var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+		var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
+		var modifier = new SmoSlur({
+				startSelector: fromSelector,
+				endSelector: toSelector,
+				position: SmoStaffHairpin.positions.BELOW
+			});
+		fromSelection.staff.addStaffModifier(modifier);
+	}
 
-    static addInstrument(score) {
-        score.addInstrument();
-    }
+	static addInstrument(score, parameters) {
+		score.addInstrument(parameters);
+	}
+	static removeInstrument(score, index) {
+		score.removeInstrument(index);
+	}
+	static changeInstrument(score, instrument, selections) {
+		var measureHash = {};
+		selections.forEach((selection) => {
+			if (!measureHash[selection.selector.measure]) {
+				measureHash[selection.selector.measure] = 1;
+				selection.measure.clef = instrument.clef;
+				selection.measure.transposeIndex = instrument.keyOffset;
+				selection.measure.voices.forEach((voice) => {
+					voice.notes.forEach((note) => {
+						note.clef = instrument.clef;
+					});
+				});
+			}
+		});
+	}
 
-    static addMeasure(score, systemIndex, nmeasure) {
-        score.addMeasure(systemIndex, nmeasure);
-    }
+	static addMeasure(score, systemIndex, nmeasure) {
+		score.addMeasure(systemIndex, nmeasure);
+	}
 }
 ;
 // ## UndoBuffer
@@ -3724,6 +3893,10 @@ class SmoUndoable {
         undoBuffer.addBuffer('addInstrument', 'score', null, score);
         SmoOperation.addInstrument(score);
     }
+	static removeInstrument(score,index,undoBuffer) {
+        undoBuffer.addBuffer('removeInstrument', 'score', null, score);
+        SmoOperation.removeInstrument(score,index);
+	}
     static addKeySignature(score, selection, keySignature, undoBuffer) {
         undoBuffer.addBuffer('addKeySignature ' + keySignature, 'score', null, score);
         SmoOperation.addKeySignature(score, selection, keySignature);
@@ -4146,9 +4319,12 @@ class VxMeasure {
 		   smoNote.isTuplet ? 
 		     smoMusic.closestVexDuration(smoNote.tickCount) : 
 			 smoMusic.ticksToDuration[smoNote.tickCount];
+			 
+		// transpose for instrument-specific keys
+		var keys=smoMusic.smoPitchesToVexKeys(smoNote.pitches,this.smoMeasure.transposeIndex);
         var noteParams = {
             clef: smoNote.clef,
-            keys: smoNote.toVexKeys(),
+            keys: keys,
             duration: duration + smoNote.noteType
         };
 		
@@ -4292,12 +4468,6 @@ class VxMeasure {
     unrender() {
         $(this.context.svg).find('g.' + this.smoMeasure.attrs.id).remove();
     }
-    get renderedSize() {
-        if (this.smoMeasure.renderedSize) {
-            return this.smoMeasure.renderedSize;
-        }
-        return null;
-    }
 
     // ## Description:
     // Render all the notes in my smoMeasure.  All rendering logic is called from here.
@@ -4306,14 +4476,18 @@ class VxMeasure {
 
         var group = this.context.openGroup();
         group.classList.add(this.smoMeasure.attrs.id);
+		
+		var key = smoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature,this.smoMeasure.transposeIndex);
+		var canceledKey = this.smoMeasure.canceledKeySignature ? smoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature,this.smoMeasure.transposeIndex)
+		   : this.smoMeasure.canceledKeySignature;
 
         // offset for left-hand stuff
         var staffMargin = (this.smoMeasure.forceClef ? 40 : 0)
          + (this.smoMeasure.forceTimeSignature ? 16 : 0)
-         + (this.smoMeasure.forceKeySignature ? smoMusic.keySignatureLength[this.smoMeasure.keySignature] * 8 : 0);
+         + (this.smoMeasure.forceKeySignature ? smoMusic.keySignatureLength[key] * 8 : 0);
 
 		if (this.smoMeasure.forceKeySignature && this.smoMeasure.canceledKeySignature) {
-			staffMargin += smoMusic.keySignatureLength[this.smoMeasure.canceledKeySignature]*8;
+			staffMargin += smoMusic.keySignatureLength[canceledKey]*8;
 		}
         var staffWidth = this.smoMeasure.staffWidth
              + staffMargin;
@@ -4329,9 +4503,9 @@ class VxMeasure {
             this.stave.addClef(this.smoMeasure.clef);
         }
         if (this.smoMeasure.forceKeySignature) {
-			var sig = new VF.KeySignature(this.smoMeasure.keySignature);
+			var sig = new VF.KeySignature(key);
 			if (this.smoMeasure.canceledKeySignature) {
-				sig.cancelKey(this.smoMeasure.canceledKeySignature);
+				sig.cancelKey(canceledKey);
 			}
             sig.addToStave(this.stave);
         }
@@ -5049,73 +5223,74 @@ class suiTracker {
 // A layout maps the measures and notes to a spot on the page.  It
 // manages the flow of music as an ordinary score.
 class suiSimpleLayout {
-    constructor(params) {
-        Vex.Merge(this, suiSimpleLayout.defaults);
-        Vex.Merge(this, params);
+	constructor(params) {
+		Vex.Merge(this, suiSimpleLayout.defaults);
+		Vex.Merge(this, params);
 
-        if (this.score) {
-            this.svgScale = this.score.svgScale * this.score.zoomScale;
-            this.pageWidth = Math.round(this.score.pageWidth * this.score.zoomScale);
-            this.pageHeight = Math.round(this.score.pageHeight * this.score.zoomScale);
-            $(this.elementId).css('width', '' + this.pageWidth + 'px');
-            $(this.elementId).css('height', '' + this.pageHeight + 'px');
-        }
-        $(this.elementId).html('');
-        this.renderer = new VF.Renderer(this.elementId, VF.Renderer.Backends.SVG);
-        // this.renderer.resize(this.pageWidth, this.pageHeight);
-        var offset = (window.innerWidth - $(this.elementId).width()) / 2;
-        if (offset > 0) {
-            $(this.elementId).css('left', '' + offset + 'px');
-        }
-        var xtranslation = Math.round(((1.0 - this.svgScale) * this.pageWidth) / 2);
-        var ytranslation = Math.round(((1.0 - this.svgScale) * this.pageHeight) / 2);
-        $(this.elementId).find('svg').css('transform', 'scale(' + this.svgScale + ',' +
-            this.svgScale + ') translate(-' + xtranslation + 'px,-' + ytranslation + 'px)');
-        this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
-        this.attrs = {
-            id: VF.Element.newID(),
-            type: 'testLayout'
-        };
-    }
-    static createScoreLayout(renderElement, score, layoutParams) {
-        var ctorObj = {
-            elementId: renderElement,
-            score: score
-        };
-        if (layoutParams) {
-            Vex.Merge(ctorObj, layoutParams);
-        }
-        var layout = new suiSimpleLayout(ctorObj);
-        return layout;
-    }
-    static get defaults() {
-        return {
-            clefWidth: 70,
-            staffWidth: 250,
-            totalWidth: 250,
-            leftMargin: 15,
-            topMargin: 15,
-            pageWidth: 8 * 96 + 48,
-            pageHeight: 11 * 96,
-            svgScale: 0.7,
-            font: {
-                typeface: "Arial",
-                pointSize: 10,
-                fillStyle: '#eed'
-            }
-        };
-    }
-    get context() {
-        return this.renderer.getContext();
-    }
-    get renderElement() {
-        return this.renderer.elementId;
-    }
-    render() {
-        this.layout(false);
-        // layout a second time to adjust for issues.
-        this.layout(true);
-    }
+		if (this.score) {
+			this.svgScale = this.score.svgScale * this.score.zoomScale;
+			this.pageWidth = Math.round(this.score.pageWidth * this.score.zoomScale);
+			this.pageHeight = Math.round(this.score.pageHeight * this.score.zoomScale);
+			$(this.elementId).css('width', '' + this.pageWidth + 'px');
+			$(this.elementId).css('height', '' + this.pageHeight + 'px');
+		}
+		$(this.elementId).html('');
+		this.renderer = new VF.Renderer(this.elementId, VF.Renderer.Backends.SVG);
+		// this.renderer.resize(this.pageWidth, this.pageHeight);
+		var offset = (window.innerWidth - $(this.elementId).width()) / 2;
+		if (offset > 0) {
+			$(this.elementId).css('left', '' + offset + 'px');
+		}
+		var xtranslation = Math.round(((1.0 - this.svgScale) * this.pageWidth) / 2);
+		var ytranslation = Math.round(((1.0 - this.svgScale) * this.pageHeight) / 2);
+		$(this.elementId).find('svg').css('transform', 'scale(' + this.svgScale + ',' +
+			this.svgScale + ') translate(-' + xtranslation + 'px,-' + ytranslation + 'px)');
+		this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
+		this.attrs = {
+			id: VF.Element.newID(),
+			type: 'testLayout'
+		};
+	}
+	static createScoreLayout(renderElement, score, layoutParams) {
+		var ctorObj = {
+			elementId: renderElement,
+			score: score
+		};
+		if (layoutParams) {
+			Vex.Merge(ctorObj, layoutParams);
+		}
+		var layout = new suiSimpleLayout(ctorObj);
+		return layout;
+	}
+	static get defaults() {
+		return {
+			clefWidth: 70,
+			staffWidth: 250,
+			totalWidth: 250,
+			leftMargin: 15,
+			topMargin: 15,
+			pageWidth: 8 * 96 + 48,
+			pageHeight: 11 * 96,
+			svgScale: 0.7,
+			font: {
+				typeface: "Arial",
+				pointSize: 10,
+				fillStyle: '#eed'
+			}
+		};
+	}
+	get context() {
+		return this.renderer.getContext();
+	}
+	get renderElement() {
+		return this.renderer.elementId;
+	}
+	render() {
+		this.layout(false);
+		// layout a second time to adjust for issues.
+		this.adjustWidths();
+		this.layout(true);
+	}
 
 	undo(undoBuffer) {
 		var buffer = undoBuffer.peek();
@@ -5123,245 +5298,290 @@ class suiSimpleLayout {
 		if (buffer) {
 			var sel = buffer.selector;
 			if (buffer.type == 'measure') {
-				this.unrenderMeasure(SmoSelection.measureSelection(this.score,sel.staff,sel.measure).measure);
-			} else if (buffer.type ==='staff'){
-				this.unrenderStaff(SmoSelection.measureSelection(this.score,sel.staff,0).staff);
+				this.unrenderMeasure(SmoSelection.measureSelection(this.score, sel.staff, sel.measure).measure);
+			} else if (buffer.type === 'staff') {
+				this.unrenderStaff(SmoSelection.measureSelection(this.score, sel.staff, 0).staff);
 			} else {
 				this.unrenderAll();
 			}
-		    this.score = undoBuffer.undo(this.score);
-		    this.render();
+			this.score = undoBuffer.undo(this.score);
+			this.render();
 		}
 	}
-    renderNoteModifierPreview(modifier) {
-        var selection = SmoSelection.noteSelection(this.score, modifier.selector.staff, modifier.selector.measure, modifier.selector.voice, modifier.selector.tick);
-        if (!selection.measure.renderedBox) {
-            return;
-        }
-        var system = new VxSystem(this.context, selection.measure.staffY, selection.measure.lineIndex);
-        system.renderMeasure(selection.selector.staff, selection.measure);
-    }
+	renderNoteModifierPreview(modifier) {
+		var selection = SmoSelection.noteSelection(this.score, modifier.selector.staff, modifier.selector.measure, modifier.selector.voice, modifier.selector.tick);
+		if (!selection.measure.renderedBox) {
+			return;
+		}
+		var system = new VxSystem(this.context, selection.measure.staffY, selection.measure.lineIndex);
+		system.renderMeasure(selection.selector.staff, selection.measure);
+	}
 
-    // re-render a modifier for preview during modifier dialog
-    renderStaffModifierPreview(modifier) {
-        // get the first measure the modifier touches
-        var startSelection = SmoSelection.measureSelection(this.score, modifier.startSelector.staff, modifier.startSelector.measure);
+	// re-render a modifier for preview during modifier dialog
+	renderStaffModifierPreview(modifier) {
+		// get the first measure the modifier touches
+		var startSelection = SmoSelection.measureSelection(this.score, modifier.startSelector.staff, modifier.startSelector.measure);
 
-        // We can only render if we already have, or we don't know where things go.
-        if (!startSelection.measure.renderedBox) {
-            return;
-        }
-        var system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex);
-        while (startSelection && startSelection.selector.measure <= modifier.endSelector.measure) {
-            smoBeamerFactory.applyBeams(startSelection.measure);
-            system.renderMeasure(startSelection.selector.staff, startSelection.measure);
-            var nextSelection = SmoSelection.measureSelection(this.score, startSelection.selector.staff, startSelection.selector.measure + 1);
+		// We can only render if we already have, or we don't know where things go.
+		if (!startSelection.measure.renderedBox) {
+			return;
+		}
+		var system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex);
+		while (startSelection && startSelection.selector.measure <= modifier.endSelector.measure) {
+			smoBeamerFactory.applyBeams(startSelection.measure);
+			system.renderMeasure(startSelection.selector.staff, startSelection.measure);
+			var nextSelection = SmoSelection.measureSelection(this.score, startSelection.selector.staff, startSelection.selector.measure + 1);
 
-            // If we go to new line, render this line part, then advance because the modifier is split
-            if (nextSelection && nextSelection.measure.lineIndex != startSelection.measure.lineIndex) {
-                this._renderModifiers(startSelection.staff, system);
-                var system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex);
-            }
-            startSelection = nextSelection;
-        }
-        this._renderModifiers(startSelection.staff, system);
-    }
+			// If we go to new line, render this line part, then advance because the modifier is split
+			if (nextSelection && nextSelection.measure.lineIndex != startSelection.measure.lineIndex) {
+				this._renderModifiers(startSelection.staff, system);
+				var system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex);
+			}
+			startSelection = nextSelection;
+		}
+		this._renderModifiers(startSelection.staff, system);
+	}
 
-    unrenderMeasure(measure) {
-        if (!measure)
-            return;
+	dumpGeometry() {
+		for (var i = 0; i < this.score.staves.length; ++i) {
+			var staff = this.score.staves[i];
+			for (var j = 0; j < staff.measures.length; ++j) {
+				var measure = staff.measures[j];
+				var log = 'staff ' + i + ' measure ' + j + ': ';
+				if (measure.renderedBox) {
+					log += svgHelpers.stringify(measure.renderedBox);
+				} else {
+					log += ' not rendered yet ';
+				}
+				log += smoMusic.stringifyAttrs(['staffX', 'staffY', 'staffWidth', 'adjX', 'rightMargin'], measure);
+				console.log(log);
+			}
+		}
+	}
+	adjustWidths() {
+		var mins = [];
+		var maxs = [];
+		for (var i = 0; i < this.score.staves.length; ++i) {
+			var staff = this.score.staves[i];
+			for (var j = 0; j < staff.measures.length; ++j) {
+				var measure = staff.measures[j];
+				var width = measure.renderedBox ? measure.renderedBox.width : measure.staffWidth;
+				if (i === 0) {
+					mins.push(width);
+					maxs.push(width);
+				} else {
 
-        $(this.renderer.getContext().svg).find('g.' + measure.attrs.id).remove();
-		measure.staffX=SmoMeasure.defaults.staffX;
-		measure.staffY=SmoMeasure.defaults.staffY;
-		measure.changed=true;
-    }
-	
+					mins[j] = mins[j] < width ? mins[j] : width;
+					maxs[j] = maxs[j] < width ? width : maxs[j];
+				}
+			}
+		}
+		for (var i = 0; i < this.score.staves.length; ++i) {
+			var staff = this.score.staves[i];
+			for (var j = 0; j < staff.measures.length; ++j) {
+				var measure = staff.measures[j];
+				if (measure.renderedBox) {
+					measure.staffWidth += maxs[j] - measure.renderedBox.width;
+				}
+			}
+		}
+	}
+
+	unrenderMeasure(measure) {
+		if (!measure)
+			return;
+
+		$(this.renderer.getContext().svg).find('g.' + measure.attrs.id).remove();
+		measure.staffX = SmoMeasure.defaults.staffX;
+		measure.staffY = SmoMeasure.defaults.staffY;
+		measure.changed = true;
+	}
+
 	unrenderStaff(staff) {
 		staff.measures.forEach((measure) => {
-		    this.unrenderMeasure(measure);
+			this.unrenderMeasure(measure);
 		});
 		staff.modifiers.forEach((modifier) => {
-			$(this.renderer.getContext().svg).find('g.'+modifier.attrs.id).remove();
+			$(this.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
 		});
 	}
 
-    unrenderAll(score) {
+	unrenderAll(score) {
 		this.score.staves.forEach((staff) => {
 			this.unrenderStaff(staff);
 		});
 	}
-    get pageMarginWidth() {
-        return this.pageWidth - this.leftMargin * 2;
-    }
-    _previousAttr(i, j, attr) {
-        var staff = this.score.staves[j];
-        var measure = staff.measures[i];
-        return (i > 0 ? staff.measures[i - 1][attr] : measure[attr]);
-    }
+	get pageMarginWidth() {
+		return this.pageWidth - this.leftMargin * 2;
+	}
+	_previousAttr(i, j, attr) {
+		var staff = this.score.staves[j];
+		var measure = staff.measures[i];
+		return (i > 0 ? staff.measures[i - 1][attr] : measure[attr]);
+	}
 
-    _renderModifiers(staff, system) {
-        staff.modifiers.forEach((modifier) => {
-            var startNote = SmoSelection.noteSelection(this.score,
-                    modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
-            var endNote = SmoSelection.noteSelection(this.score,
-                    modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
+	_renderModifiers(staff, system) {
+		staff.modifiers.forEach((modifier) => {
+			var startNote = SmoSelection.noteSelection(this.score,
+					modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
+			var endNote = SmoSelection.noteSelection(this.score,
+					modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
 
-            var vxStart = system.getVxNote(startNote.note);
-            var vxEnd = system.getVxNote(endNote.note);
+			var vxStart = system.getVxNote(startNote.note);
+			var vxEnd = system.getVxNote(endNote.note);
 
-            // If the modifier goes to the next staff, draw what part of it we can on this staff.
-            if (vxStart && !vxEnd) {
-                var nextNote = SmoSelection.nextNoteSelection(this.score,
-                        modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
-                var testNote = system.getVxNote(nextNote.note);
-                while (testNote) {
-                    vxEnd = testNote;
-                    nextNote = SmoSelection.nextNoteSelection(this.score,
-                            nextNote.selector.staff, nextNote.selector.measure, nextNote.selector.voice, nextNote.selector.tick);
-                    testNote = system.getVxNote(nextNote.note);
+			// If the modifier goes to the next staff, draw what part of it we can on this staff.
+			if (vxStart && !vxEnd) {
+				var nextNote = SmoSelection.nextNoteSelection(this.score,
+						modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
+				var testNote = system.getVxNote(nextNote.note);
+				while (testNote) {
+					vxEnd = testNote;
+					nextNote = SmoSelection.nextNoteSelection(this.score,
+							nextNote.selector.staff, nextNote.selector.measure, nextNote.selector.voice, nextNote.selector.tick);
+					testNote = system.getVxNote(nextNote.note);
 
-                }
-            }
-            if (vxEnd && !vxStart) {
-                var lastNote = SmoSelection.lastNoteSelection(this.score,
-                        modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
-                var testNote = system.getVxNote(lastNote.note);
-                while (testNote) {
-                    vxStart = testNote;
-                    lastNote = SmoSelection.lastNoteSelection(this.score,
-                            lastNote.selector.staff, lastNote.selector.measure, lastNote.selector.voice, lastNote.selector.tick);
-                    testNote = system.getVxNote(lastNote.note);
-                }
-            }
-
-            if (!vxStart || !vxEnd)
-                return;
-
-            // TODO: notes may have changed, get closest if these exact endpoints don't exist
-            modifier.renderedBox = system.renderModifier(modifier, vxStart, vxEnd);
-
-            // TODO: consider staff height with these.
-            // TODO: handle dynamics split across systems.
-        });
-    }
-
-    // ## layout
-    // ## Render the music, keeping track of the bounding boxes of all the
-    // elements.  Re-render a second time to adjust measure widths to prevent notes
-    // from overlapping.  Then render all the modifiers.
-    layout(drawAll) {
-        var svg = this.context.svg;
-
-        // bounding box of all artifacts on the page
-        var pageBox = {};
-        // bounding box of all artifacts in a system
-        var systemBoxes = {};
-        var staffBoxes = {};
-        if (!this.score.staves.length) {
-            return;
-        }
-        var topStaff = this.score.staves[0];
-        if (!topStaff.measures.length) {
-            return;
-        }
-        var lineIndex = 0;
-        var system = new VxSystem(this.context, topStaff.measures[0].staffY, lineIndex);
-        var systemIndex = 0;
-
-        for (var i = 0; i < topStaff.measures.length; ++i) {
-            var staffWidth = 0;
-            for (var j = 0; j < this.score.staves.length; ++j) {
-                var staff = this.score.staves[j];
-                var measure = staff.measures[i];
-                measure.measureNumber.systemIndex = j;
-
-                var logicalStaffBox = svgHelpers.pointBox(this.score.staffX, this.score.staffY);
-                var clientStaffBox = svgHelpers.logicalToClient(svg, logicalStaffBox);
-
-                // If we are starting a new staff on the same system, offset y so it is below the first staff.
-                if (!staffBoxes[j]) {
-                    if (j == 0) {
-                        staffBoxes[j] = svgHelpers.copyBox(clientStaffBox);
-                    } else {
-                        staffBoxes[j] = svgHelpers.pointBox(staffBoxes[j - 1].x, staffBoxes[j - 1].y + staffBoxes[j - 1].height);
-                    }
-                }
-
-                logicalStaffBox = svgHelpers.clientToLogical(svg, staffBoxes[j]);
-                if (j > 0) {
-                    measure.staffY = logicalStaffBox.y;
-                }
-
-                measure.staffX = logicalStaffBox.x + logicalStaffBox.width;
-
-                if (!systemBoxes[lineIndex]) {
-                    systemBoxes[lineIndex] = svgHelpers.copyBox(clientStaffBox);
-                }
-
-                if (!pageBox['width']) {
-                    pageBox = svgHelpers.copyBox(clientStaffBox);
-                }
-                var keySigLast = this._previousAttr(i, j, 'keySignature');
-                var timeSigLast = this._previousAttr(i, j, 'timeSignature');
-                var clefLast = this._previousAttr(i, j, 'clef');
-
-                if (j == 0 && logicalStaffBox.x + logicalStaffBox.width + measure.staffWidth
-                     > this.pageMarginWidth / this.svgScale) {
-                    if (drawAll) {
-                        system.cap();
-                    }
-                    this.score.staves.forEach((stf) => {
-                        this._renderModifiers(stf, system);
-                    });
-                    var logicalPageBox = svgHelpers.clientToLogical(svg, pageBox);
-                    measure.staffX = this.score.staffX + 1;
-                    measure.staffY = logicalPageBox.y + logicalPageBox.height + this.score.interGap;
-                    staffBoxes = {};
-                    staffBoxes[j] = svgHelpers.logicalToClient(svg,
-                            svgHelpers.pointBox(this.score.staffX, staff.staffY));
-                    lineIndex += 1;
-                    system = new VxSystem(this.context, staff.staffY, lineIndex);
-                    systemIndex = 0;
-                    systemBoxes[lineIndex] = svgHelpers.logicalToClient(svg,
-                            svgHelpers.pointBox(measure.staffX, staff.staffY));
-                }
-
-                measure.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
-                measure.forceTimeSignature = (systemIndex === 0 || measure.timeSignature !== timeSigLast);
-                if (measure.keySignature !== keySigLast) {
-                    measure.canceledKeySignature = keySigLast;
-                    measure.forceKeySignature = true;
-                } else if (measure.measureNumber.measureIndex == 0 && measure.keySignature != 'C'){
-					measure.forceKeySignature = true;
 				}
-				else {
-                    measure.forceKeySignature = false;
-                }
+			}
+			if (vxEnd && !vxStart) {
+				var lastNote = SmoSelection.lastNoteSelection(this.score,
+						modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
+				var testNote = system.getVxNote(lastNote.note);
+				while (testNote) {
+					vxStart = testNote;
+					lastNote = SmoSelection.lastNoteSelection(this.score,
+							lastNote.selector.staff, lastNote.selector.measure, lastNote.selector.voice, lastNote.selector.tick);
+					testNote = system.getVxNote(lastNote.note);
+				}
+			}
 
-                // guess height of staff the first time
-                measure.measureNumber.systemIndex = systemIndex;
-                // WIP
-                if (drawAll || measure.changed) {
-                    measure.lineIndex = lineIndex;
-                    smoBeamerFactory.applyBeams(measure);
-                    system.renderMeasure(j, measure);
-                }
+			if (!vxStart || !vxEnd)
+				return;
 
-                // Keep a running tally of the page, system, and staff dimensions as we draw.
-                systemBoxes[lineIndex] = svgHelpers.unionRect(systemBoxes[lineIndex], measure.renderedBox);
-                staffBoxes[j] = svgHelpers.unionRect(staffBoxes[j], measure.renderedBox);
-                pageBox = svgHelpers.unionRect(pageBox, measure.renderedBox);
-            }
-            ++systemIndex;
-        }
-        if (drawAll) {
-            system.cap();
-        }
-        this.score.staves.forEach((stf) => {
-            this._renderModifiers(stf, system);
-        });
-    }
+			// TODO: notes may have changed, get closest if these exact endpoints don't exist
+			modifier.renderedBox = system.renderModifier(modifier, vxStart, vxEnd);
+
+			// TODO: consider staff height with these.
+			// TODO: handle dynamics split across systems.
+		});
+	}
+
+	// ## layout
+	// ## Render the music, keeping track of the bounding boxes of all the
+	// elements.  Re-render a second time to adjust measure widths to prevent notes
+	// from overlapping.  Then render all the modifiers.
+	layout(drawAll) {
+		var svg = this.context.svg;
+
+		// bounding box of all artifacts on the page
+		var pageBox = {};
+		// bounding box of all artifacts in a system
+		var systemBoxes = {};
+		var staffBoxes = {};
+		if (!this.score.staves.length) {
+			return;
+		}
+		var topStaff = this.score.staves[0];
+		if (!topStaff.measures.length) {
+			return;
+		}
+		var lineIndex = 0;
+		var system = new VxSystem(this.context, topStaff.measures[0].staffY, lineIndex);
+		var systemIndex = 0;
+
+		for (var i = 0; i < topStaff.measures.length; ++i) {
+			var staffWidth = 0;
+			for (var j = 0; j < this.score.staves.length; ++j) {
+				var staff = this.score.staves[j];
+				var measure = staff.measures[i];
+				measure.measureNumber.systemIndex = j;
+
+				var logicalStaffBox = svgHelpers.pointBox(this.score.staffX, this.score.staffY);
+				var clientStaffBox = svgHelpers.logicalToClient(svg, logicalStaffBox);
+
+				// If we are starting a new staff on the same system, offset y so it is below the first staff.
+				if (!staffBoxes[j]) {
+					if (j == 0) {
+						staffBoxes[j] = svgHelpers.copyBox(clientStaffBox);
+					} else {
+						staffBoxes[j] = svgHelpers.pointBox(staffBoxes[j - 1].x, staffBoxes[j - 1].y + staffBoxes[j - 1].height);
+					}
+				}
+
+				logicalStaffBox = svgHelpers.clientToLogical(svg, staffBoxes[j]);
+				if (j > 0) {
+					measure.staffY = logicalStaffBox.y;
+				}
+
+				measure.staffX = logicalStaffBox.x + logicalStaffBox.width;
+
+				if (!systemBoxes[lineIndex]) {
+					systemBoxes[lineIndex] = svgHelpers.copyBox(clientStaffBox);
+				}
+
+				if (!pageBox['width']) {
+					pageBox = svgHelpers.copyBox(clientStaffBox);
+				}
+				var measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
+				var keySigLast = smoMusic.vexKeySignatureTranspose(this._previousAttr(i, j, 'keySignature'), measure.transposeIndex);
+				var timeSigLast = this._previousAttr(i, j, 'timeSignature');
+				var clefLast = this._previousAttr(i, j, 'clef');
+
+				if (j == 0 && logicalStaffBox.x + logicalStaffBox.width + measure.staffWidth
+					 > this.pageMarginWidth / this.svgScale) {
+					if (drawAll) {
+						system.cap();
+					}
+					this.score.staves.forEach((stf) => {
+						this._renderModifiers(stf, system);
+					});
+					var logicalPageBox = svgHelpers.clientToLogical(svg, pageBox);
+					measure.staffX = this.score.staffX + 1;
+					measure.staffY = logicalPageBox.y + logicalPageBox.height + this.score.interGap;
+					staffBoxes = {};
+					staffBoxes[j] = svgHelpers.logicalToClient(svg,
+							svgHelpers.pointBox(this.score.staffX, staff.staffY));
+					lineIndex += 1;
+					system = new VxSystem(this.context, staff.staffY, lineIndex);
+					systemIndex = 0;
+					systemBoxes[lineIndex] = svgHelpers.logicalToClient(svg,
+							svgHelpers.pointBox(measure.staffX, staff.staffY));
+				}
+
+				measure.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
+				measure.forceTimeSignature = (systemIndex === 0 || measure.timeSignature !== timeSigLast);
+				if (measureKeySig !== keySigLast) {
+					measure.canceledKeySignature = keySigLast;
+					measure.forceKeySignature = true;
+				} else if (measure.measureNumber.measureIndex == 0 && measureKeySig != 'C') {
+					measure.forceKeySignature = true;
+				} else {
+					measure.forceKeySignature = false;
+				}
+
+				// guess height of staff the first time
+				measure.measureNumber.systemIndex = systemIndex;
+				// WIP
+				if (drawAll || measure.changed) {
+					measure.lineIndex = lineIndex;
+					smoBeamerFactory.applyBeams(measure);
+					system.renderMeasure(j, measure);
+				}
+
+				// Keep a running tally of the page, system, and staff dimensions as we draw.
+				systemBoxes[lineIndex] = svgHelpers.unionRect(systemBoxes[lineIndex], measure.renderedBox);
+				staffBoxes[j] = svgHelpers.unionRect(staffBoxes[j], measure.renderedBox);
+				pageBox = svgHelpers.unionRect(pageBox, measure.renderedBox);
+			}
+			++systemIndex;
+		}
+		if (drawAll) {
+			system.cap();
+		}
+		this.score.staves.forEach((stf) => {
+			this._renderModifiers(stf, system);
+		});
+	}
 }
 ;
 
