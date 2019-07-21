@@ -45,17 +45,31 @@ class StaffTest {
             return timeTest();
         }
 		
+		
 		var bassClefTest = () => {
 			SmoOperation.addInstrument(score,{
 				instrumentInfo: {
                 instrumentName: 'Bass Instrument',
-                keyOffset: '0',
+                keyOffset: 0,
                 clef: 'bass'
             }});
 			keys.render();
 			return timeTest();
 		}
 		
+		var clefChangeTest = () => {
+			var instrument = {
+				instrumentName:'Treble Instrument',
+				keyOffset:0,
+				clef:'treble'
+			}
+			var sel1 = SmoSelection.measureSelection(score,1,1);
+			var sel2=SmoSelection.measureSelection(score,1,2);
+			keys.layout.unrenderAll();
+			SmoOperation.changeInstrument(score,instrument,[sel1,sel2]);
+			keys.layout.render();
+			return timeTest();
+		}
 		var bassRenderTest = () => {
 			var note = SmoSelection.pitchSelection(score,1,0,0,2);
 			SmoOperation.transpose(note,3);
@@ -134,7 +148,7 @@ class StaffTest {
 			return timeTest();	
 		}
       
-        return drawDefaults().then(bassClefTest).then(bassRenderTest).then(bassDurationTest).then(tenorClefTest)
+        return drawDefaults().then(bassClefTest).then(clefChangeTest).then(bassRenderTest).then(bassDurationTest).then(tenorClefTest)
 		   .then(altoClefTest).then(baritoneClefTest).then(baritoneClefTest2).then(trumpetClefTest).then(signalComplete);
     }
 }
