@@ -13,6 +13,7 @@ class smoMusic {
 	// return Vex canonical note enharmonic - e.g. Bb to A#
 	// Get the canonical form
 	static vexToCannonical(vexKey) {
+		vexKey=smoMusic.stripVexOctave(vexKey);
 		return VF.Music.canonical_notes[VF.Music.noteValues[vexKey].int_val];
 	}
 
@@ -67,16 +68,53 @@ class smoMusic {
 			});
 		return ix;
 	}
-	
+
 	// ### Get pitch to the right in circle of fifths
 	static addSharp(smoPitch) {
-		return smoMusic.circleOfFifths[
-		   (smoMusic.circleOfFifthsIndex(smoPitch)+1) % smoMusic.circleOfFifths.length];
+		var rv = smoMusic.circleOfFifths[
+			(smoMusic.circleOfFifthsIndex(smoPitch) + 1) % smoMusic.circleOfFifths.length];
+		rv = JSON.parse(JSON.stringify(rv));
+		rv.octave=smoPitch.octave;
+		return rv;
 	}
 	// ### Get pitch to the left in circle of fifths
 	static addFlat(smoPitch) {
-		return smoMusic.circleOfFifths[
-		   ((smoMusic.circleOfFifths.length-1) + smoMusic.circleOfFifthsIndex(smoPitch)) % smoMusic.circleOfFifths.length];
+		var rv = smoMusic.circleOfFifths[
+			((smoMusic.circleOfFifths.length - 1) + smoMusic.circleOfFifthsIndex(smoPitch)) % smoMusic.circleOfFifths.length];
+		rv = JSON.parse(JSON.stringify(rv));
+		rv.octave=smoPitch.octave;
+		return rv;
+	}
+	static addSharps(smoPitch, distance) {
+		if (distance == 0) {
+			return JSON.parse(JSON.stringify(smoPitch));
+		}
+		var rv = smoMusic.addSharp(smoPitch);
+		for (var i = 1; i < distance; ++i) {
+			rv = smoMusic.addSharp(rv);
+		}
+		return JSON.parse(JSON.stringify(rv));
+	}
+
+	static addFlats(smoPitch, distance) {
+		if (distance == 0) {
+			return JSON.parse(JSON.stringify(smoPitch));
+		}
+		var rv = smoMusic.addFlat(smoPitch);
+		for (var i = 1; i < distance; ++i) {
+			rv = smoMusic.addFlat(rv);
+		}
+		return JSON.parse(JSON.stringify(rv));
+	}
+
+	static smoPitchesToVexKeys(pitchAr, keyOffset) {
+		var noopFunc = keyOffset > 0 ? 'addSharps' : 'addFlats';
+
+		var rv = [];
+		pitchAr.forEach((pitch) => {
+			rv.push(smoMusic.pitchToVexKey(smoMusic[noopFunc](pitch, keyOffset)));
+		});
+		return rv;
 	}
 
 	// pitches are measured from c, so that b0 is higher than c0, c1 is 1 note higher etc.
@@ -94,11 +132,18 @@ class smoMusic {
 	// ## Example:
 	// 'f#' => {letter:'f',accidental:'#'}
 	static vexToSmoPitch(vexPitch) {
-		var accidental = vexPitch.length < 2 ? 'n' : vexPitch.substring(1,vexPitch.length);
+		var accidental = vexPitch.length < 2 ? 'n' : vexPitch.substring(1, vexPitch.length);
 		return {
 			letter: vexPitch[0],
 			accidental: accidental
 		};
+	}
+	
+	static stripVexOctave(vexKey) {
+		if (vexKey.indexOf('/') > 0) {
+			vexKey = vexKey.substring(0,vexKey.indexOf('/'))
+		}
+		return vexKey;
 	}
 
 	// convert {letter,octave,accidental} object to vexKey string ('f#'
@@ -109,6 +154,9 @@ class smoMusic {
 			vexKey = vexKey + 'n';
 		} else {
 			vexKey = vexKey + smoPitch.accidental;
+		}
+		if (smoPitch['octave']) {
+			vexKey = vexKey+'/'+smoPitch.octave;
 		}
 		return vexKey;
 	}
@@ -300,13 +348,14 @@ class smoMusic {
 
 	// ### getEnharmonic(noteProp)
 	// ###   cycle through the enharmonics for a note.
-	static getEnharmonic(key) {
-		var intVal = VF.Music.noteValues[key.toLowerCase()].int_val;
+	static getEnharmonic(vexKey) {
+		vexKey=smoMusic.stripVexOctave(vexKey);
+		var intVal = VF.Music.noteValues[vexKey.toLowerCase()].int_val;
 		var ar = smoMusic.enharmonics[intVal.toString()];
 		var len = ar.length;
-		var ix = ar.indexOf(key);
-		key = ar[(ix + 1) % len];
-		return key;
+		var ix = ar.indexOf(vexKey);
+		vexKey = ar[(ix + 1) % len];
+		return vexKey;
 	}
 	// ## getKeyFriendlyEnharmonic
 	// ### Description:

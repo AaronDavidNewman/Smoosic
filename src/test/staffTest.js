@@ -76,7 +76,7 @@ class StaffTest {
 			SmoOperation.addInstrument(score, {
 				instrumentInfo: {
                 instrumentName: 'Cello',
-                keyOffset: '0',
+                keyOffset: 0,
                 clef: 'tenor'
 			}});
 			keys.render();
@@ -87,7 +87,7 @@ class StaffTest {
 			SmoOperation.addInstrument(score, {
 				instrumentInfo: {
                 instrumentName: 'Viola',
-                keyOffset: '0',
+                keyOffset: 0,
                 clef: 'alto'
 			}});
 			keys.render();
@@ -100,7 +100,7 @@ class StaffTest {
 			SmoOperation.addInstrument(score, {
 				instrumentInfo: {
                 instrumentName: 'Baritone',
-                keyOffset: '0',
+                keyOffset: 0,
                 clef: 'baritone-c'
 			}});
 			keys.render();
@@ -113,7 +113,7 @@ class StaffTest {
 			SmoOperation.addInstrument(score, {
 				instrumentInfo: {
                 instrumentName: 'Baritone',
-                keyOffset: '0',
+                keyOffset: 0,
                 clef: 'baritone-f'
 			}});
 			keys.render();
@@ -126,7 +126,7 @@ class StaffTest {
 			SmoOperation.addInstrument(score, {
 				instrumentInfo: {
                 instrumentName: 'Trumpet',
-                keyOffset: '2',
+                keyOffset: 2,
                 clef: 'treble'
 			}});
 			keys.render();

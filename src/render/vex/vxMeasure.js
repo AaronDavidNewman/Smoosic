@@ -77,7 +77,7 @@ class VxMeasure {
 			 smoMusic.ticksToDuration[smoNote.tickCount];
         var noteParams = {
             clef: smoNote.clef,
-            keys: smoNote.toVexKeys(),
+            keys: smoMusic.smoPitchesToVexKeys(smoNote.pitches,this.smoMeasure.transposeIndex),
             duration: duration + smoNote.noteType
         };
 		

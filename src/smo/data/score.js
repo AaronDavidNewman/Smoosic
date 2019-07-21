@@ -181,7 +181,8 @@ class SmoScore {
 			var newParams = {};
 			var measure=proto.measures[i];
 			smoMusic.filteredMerge(SmoMeasure.defaultAttributes, measure, newParams);
-			newParams.clef=parameters.instrumentInfo.clef;			
+			newParams.clef=parameters.instrumentInfo.clef;
+			newParams.transposeIndex = parameters.instrumentInfo.keyOffset;
 			var newMeasure=SmoMeasure.getDefaultMeasureWithNotes(newParams);
 			newMeasure.measureNumber = measure.measureNumber;
 			measures.push(newMeasure);

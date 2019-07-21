@@ -90,19 +90,6 @@ class SmoNote {
 		}
 	}
 
-
-    // ## toVexKeys
-    // ## Description:
-    // turn the array of smo note pitches into an array of vex key strings
-    toVexKeys() {
-        var rv = [];
-        for (var i = 0; i < this.pitches.length; ++i) {
-            var pitch = this.pitches[i];
-            var letter = pitch.letter + pitch.accidental;
-            rv.push(letter + '/' + pitch.octave);
-        }
-        return rv;
-    }
     _sortPitches() {
         var canon = VF.Music.canonical_notes;
         var keyIndex = ((pitch) => {
