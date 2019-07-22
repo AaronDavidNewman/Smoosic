@@ -23,6 +23,15 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-pizzicato:before {
+  content: "\e91d";
+}
+.icon-fermata:before {
+  content: "\e91e";
+}
+.icon-accent:before {
+  content: "\e91f";
+}
 .icon-tenor:before {
   content: "\e919";
 }

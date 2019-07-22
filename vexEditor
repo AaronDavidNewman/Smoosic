@@ -60,6 +60,8 @@
             <File name="src\test\keySIgnatureTest.js" />
             <File name="src\test\undoTest.html" />
             <File name="src\test\undoTest.js" />
+            <File name="src\test\clefTest.html" />
+            <File name="src\test\clefTest.js" />
         </Folder>
         <Folder name="render">
             <Folder name="vex">

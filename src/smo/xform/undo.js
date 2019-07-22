@@ -174,4 +174,16 @@ class SmoUndoable {
 		var measureIndex = selection.selector.measure;		
 		score.deleteMeasure(measureIndex);
 	}
+	static addInstrument(score, parameters,undoBuffer) {
+        undoBuffer.addBuffer('add instrument', 'score', null, score);
+		SmoOperation.addInstrument(score,parameters);
+	}
+	static removeInstrument(score, index,undoBuffer) {
+        undoBuffer.addBuffer('remove instrument', 'score', null, score);
+		SmoOperation.removeInstrument(score,index);
+	}
+	static changeInstrument(score,instrument, selections,undoBuffer) {		
+		undoBuffer.addBuffer('changeInstrument', 'staff', selections[0].selector, score);
+		SmoOperation.changeInstrument(score,instrument,selections);
+	}
 }

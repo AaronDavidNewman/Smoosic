@@ -182,7 +182,7 @@ class suiEditor {
 
     unmakeTuplet(keyEvent) {
         this._singleSelectionOperation('unmakeTuplet');
-    }
+    }	
 
     addRemoveArticulation(keyEvent) {
         if (this.tracker.selections.length < 1)
