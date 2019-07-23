@@ -203,6 +203,7 @@ class SmoScore {
 			ix += 1;
 		});
 		this.staves=staves;
+		this._numberStaves();
 	}
 	
 	getMaxTicksMeasure(measure) {		

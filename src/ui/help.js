@@ -418,12 +418,21 @@ class SmoHelp {
             }, {
                 keys:
                 [{
+                        text: 's',
+                        separator: ''
+                    }
+                ],
+                text: 'Add/Remove Staff menu',
+                id: 'menuModeElements5'
+            }, {
+                keys:
+                [{
                         text: 'Esc',
                         separator: ''
                     }
                 ],
                 text: 'Cancel slash menu mode',
-                id: 'menuModeElements5'
+                id: 'menuModeElements6'
             }
         ];
     }
@@ -458,12 +467,21 @@ class SmoHelp {
             }, {
                 keys:
                 [{
+                        text: 's',
+                        separator: ''
+                    }
+                ],
+                text: 'Add/Remove Staff',
+                id: 'menuModeElements5'
+            },{
+                keys:
+                [{
                         text: 'Esc',
                         separator: ''
                     }
                 ],
                 text: 'Continue Editing',
-                id: 'menuModeElements5'
+                id: 'menuModeElements6'
             }
         ];
     }

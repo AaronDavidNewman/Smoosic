@@ -19,7 +19,7 @@ class suiTracker {
         this.modifierTabs = {};
         this.modifierIndex = -1;
         this.suggestion = {};
-		this.pasteBuffer = new PasteBuffer();
+        this.pasteBuffer = new PasteBuffer();
     }
 
     // ### renderElement
@@ -52,22 +52,26 @@ class suiTracker {
                 if (SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
                     if (!modMap[modifier.id]) {
                         this.modifierTabs.push({
-						modifier:modifier,selection:selection});
+                            modifier: modifier,
+                            selection: selection
+                        });
                         modMap[modifier.id] = {
                             exists: true
                         };
                     }
                 }
             });
-			selection.note.textModifiers.forEach((modifier) => {
-				if (!modMap[modifier.id]) {
-					this.modifierTabs.push({
-						modifier:modifier,selection:selection});
-                        modMap[modifier.id] = {
-                            exists: true
-                        };
-				}
-			});
+            selection.note.textModifiers.forEach((modifier) => {
+                if (!modMap[modifier.id]) {
+                    this.modifierTabs.push({
+                        modifier: modifier,
+                        selection: selection
+                    });
+                    modMap[modifier.id] = {
+                        exists: true
+                    };
+                }
+            });
         });
     }
 
@@ -76,33 +80,33 @@ class suiTracker {
             var modSelection = this.modifierTabs[this.modifierIndex];
             if (modSelection.modifier.renderedBox) {
                 this._drawRect(modSelection.modifier.renderedBox, 'staffModifier');
-            } 
+            }
         }
     }
-	
-	clearModifierSelections() {
-		this.modifierTabs=[];
-		this.modifierIndex=-1;
-		this.eraseRect('staffModifier');
-		this.pasteBuffer.clearSelections();
-	}
-	getSelectedModifier() {
-		if (this.modifierIndex >= 0) {
-			return this.modifierTabs[this.modifierIndex];
-		}
-	}
+
+    clearModifierSelections() {
+        this.modifierTabs = [];
+        this.modifierIndex = -1;
+        this.eraseRect('staffModifier');
+        this.pasteBuffer.clearSelections();
+    }
+    getSelectedModifier() {
+        if (this.modifierIndex >= 0) {
+            return this.modifierTabs[this.modifierIndex];
+        }
+    }
 
     advanceModifierSelection() {
-		this.eraseRect('staffModifier');
+        this.eraseRect('staffModifier');
 
         if (!this.modifierTabs.length) {
             return;
         }
         this.modifierIndex = this.modifierIndex + 1;
-		if (this.modifierIndex > this.modifierTabs.length) {
-			this.modifierIndex=-1;
-			return;
-		}
+        if (this.modifierIndex > this.modifierTabs.length) {
+            this.modifierIndex = -1;
+            return;
+        }
         this._highlightModifier();
     }
 
@@ -130,11 +134,13 @@ class suiTracker {
         this.objects = [];
         var selCopy = this._copySelections();
         notes.forEach((note) => {
-			var box = note.getBoundingClientRect();
-			// box = svgHelpers.untransformSvgBox(this.context.svg,box);
-			var selection = SmoSelection.renderedNoteSelection(this.score, note,box);
-			this.objects.push(selection);
-		});
+            var box = note.getBoundingClientRect();
+            // box = svgHelpers.untransformSvgBox(this.context.svg,box);
+            var selection = SmoSelection.renderedNoteSelection(this.score, note, box);
+            if (selection) {
+                this.objects.push(selection);
+            }
+        });
         this.selections = [];
         if (this.objects.length && !selCopy.length) {
             console.log('adding selection ' + this.objects[0].note.id);
@@ -143,8 +149,8 @@ class suiTracker {
             selCopy.forEach((sel) => this._findClosestSelection(sel));
         }
         this.highlightSelection();
-		this.pasteBuffer.clearSelections();
-		this.pasteBuffer.setSelections(this.score,this.selections);
+        this.pasteBuffer.clearSelections();
+        this.pasteBuffer.setSelections(this.score, this.selections);
     }
 
     static stringifyBox(box) {
@@ -179,7 +185,7 @@ class suiTracker {
     }
 
     // ### getExtremeSelection
-	// Get the rightmost (1) or leftmost (-1) selection
+    // Get the rightmost (1) or leftmost (-1) selection
     getExtremeSelection(sign) {
         var rv = this.selections[0];
         for (var i = 1; i < this.selections.length; ++i) {
@@ -269,7 +275,7 @@ class suiTracker {
         }
         var nselect = this._getOffsetSelection(1);
         this._replaceSelection(nselect);
-    }   
+    }
 
     moveSelectionLeft() {
         if (this.selections.length == 0) {
@@ -331,9 +337,9 @@ class suiTracker {
         var mapped = this.objects.find((el) => {
                 return SmoSelector.sameNote(el.selector, artifact.selector);
             });
-		if (!mapped) {
-			return;
-		}
+        if (!mapped) {
+            return;
+        }
         console.log('adding selection ' + mapped.note.id);
 
         this.selections = [mapped];
@@ -399,16 +405,16 @@ class suiTracker {
 
     _findIntersectionArtifact(clientBox) {
         var obj = null;
-		var box = clientBox; //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
+        var box = clientBox; //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
 
         // box.y = box.y - this.renderElement.offsetTop;
         // box.x = box.x - this.renderElement.offsetLeft;
 
         $(this.objects).each(function (ix, object) {
             var i1 = box.x - object.box.x;
-			/* console.log('client coords: ' + svgHelpers.stringify(clientBox));
-    		console.log('find box '+svgHelpers.stringify(box));
-			console.log('examine obj: '+svgHelpers.stringify(object.box));  */
+            /* console.log('client coords: ' + svgHelpers.stringify(clientBox));
+            console.log('find box '+svgHelpers.stringify(box));
+            console.log('examine obj: '+svgHelpers.stringify(object.box));  */
             var i2 = box.y - object.box.y;
             if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
                 obj = object;
@@ -457,7 +463,7 @@ class suiTracker {
     highlightSelection() {
         if (this.selections.length === 1) {
             this._drawRect(this.selections[0].box, 'selection');
-			this._updateStaffModifiers();
+            this._updateStaffModifiers();
             return;
         }
         var sorted = this.selections.sort((a, b) => a.box.y - b.box.y);
@@ -498,12 +504,12 @@ class suiTracker {
         bb.forEach((box) => {
             var strokes = suiTracker.strokes[stroke];
             var strokeObj = {};
-			var margin=5;
+            var margin = 5;
             $(Object.keys(strokes)).each(function (ix, key) {
                 strokeObj[key] = strokes[key];
             });
-			box=svgHelpers.clientToLogical(this.context.svg,box);
-            this.context.rect(box.x - margin, box.y - margin, box.width + margin*2, box.height + margin*2, strokeObj);
+            box = svgHelpers.clientToLogical(this.context.svg, box);
+            this.context.rect(box.x - margin, box.y - margin, box.width + margin * 2, box.height + margin * 2, strokeObj);
         });
         this.context.closeGroup(grp);
     }
