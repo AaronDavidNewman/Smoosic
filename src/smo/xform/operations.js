@@ -11,6 +11,10 @@ class SmoOperation {
 
 		score.deleteMeasure(measureIndex);
 	}
+	
+	static toggleBeamGroup(noteSelection) {
+	      noteSelection.note.endBeam =  !(noteSelection.note.endBeam);
+	}
 	// ## doubleDuration
 	// ## Description
 	// double the duration of a note in a measure, at the expense of the following
@@ -136,6 +140,13 @@ class SmoOperation {
 		var measure = selection.measure;
 		var nticks = smoMusic.getNextDottedLevel(note.tickCount);
 		if (nticks == note.tickCount) {
+			return;
+		}
+		if (selection.selector.tick === selection.measure.notes.length) {
+			return;
+		}
+		if (selection.measure.notes[selection.selector.tick+1].tickCount > selection.note.tickCount) {
+			console.log('too long');
 			return;
 		}
 		var actor = new SmoStretchNoteActor({

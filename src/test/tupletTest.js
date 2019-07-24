@@ -49,6 +49,22 @@ class TupletTest {
 			console.log(JSON.stringify(score.serialize(), null, ' '));
 			return timeTest();
 		}
+		
+		var breakTupletBarTest = () => {
+			subTitle('make tuplet');
+			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
+			SmoOperation.toggleBeamGroup(selection);
+			layout.render();
+			return timeTest();
+		}
+
+		var unbreakTupletBarTest = () => {
+			subTitle('make tuplet');
+			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
+			SmoOperation.toggleBeamGroup(selection);
+			layout.render();
+			return timeTest();
+		}
 
 		var stretchTupletTest = () => {
 			subTitle('stretch tuplet');
@@ -101,7 +117,8 @@ class TupletTest {
 			return timeTest();
 		}
 
-		return drawDefaults().then(makeTupletTest).then(stretchTupletTest).then(contractTupletTest)
+		return drawDefaults().then(makeTupletTest).then(breakTupletBarTest).then(unbreakTupletBarTest)
+		.then(stretchTupletTest).then(contractTupletTest)
 		.then(stretchTupletTest2).then(contractTupletTest2).then(contractTupletTest3)
 		.then(unmakeTupletTest).then(makeTupletTest2).then(signalComplete);
 	}

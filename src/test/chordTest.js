@@ -39,6 +39,34 @@ class ChordTest {
 			layout.render();
 			return timeTest();
 		}
+		
+		var preBeamTest = () => {
+			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
+			SmoOperation.halveDuration(selection);
+			selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
+			SmoOperation.halveDuration(selection);
+			selection = SmoSelection.noteSelection(score, 0, 0, 0, 3);
+			SmoOperation.halveDuration(selection);
+			layout.render();
+			return timeTest();
+		}
+		
+		var breakBeamTest = () => {
+			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
+			SmoOperation.toggleBeamGroup(selection);
+			layout.render();
+			return timeTest();			
+		}
+		
+		var undoBeamTest = () => {
+			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
+			SmoOperation.doubleDuration(selection);
+			selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
+			SmoOperation.doubleDuration(selection);
+			layout.render();
+			return timeTest();			
+		}
+		
 		var accidentalTest = () => {
 			var selection = SmoSelection.pitchSelection(score, 0, 0, 0, 1, [0]);
 			subTitle('accidental test');
@@ -278,7 +306,8 @@ class ChordTest {
 			return timeTest();
 		}
 
-		return drawDefaults().then(accidentalTest).then(crescendoTest).then(intervalTest).then(durationTest)
+		return drawDefaults().then(preBeamTest).then(breakBeamTest).then(undoBeamTest)
+		.then(accidentalTest).then(crescendoTest).then(intervalTest).then(durationTest)
 		.then(durationTest2).then(rerenderTest).then(setPitchTest).then(makeTupletTest)
 		.then(unmakeTupletTest).then(courtesyTest).then(accentTest)
 		.then(accentTest2).then(accentTestBelow).then(staccatoTest).then(marcatoTest)

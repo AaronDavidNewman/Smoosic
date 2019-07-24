@@ -63,6 +63,13 @@ class suiEditor {
         this.pasteBuffer.pasteSelections(this.score, pasteTarget);
         this.layout.render();
     }
+	toggleBeamGroup() {
+        if (this.tracker.selections.length < 1) {
+            return;
+        }
+		SmoUndoable.toggleBeamGroups(this.tracker.selections,this.undoBuffer);
+		this.layout.render();
+	}
 
     deleteMeasure() {
         if (this.tracker.selections.length < 1) {

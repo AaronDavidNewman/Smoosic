@@ -121,6 +121,16 @@ class SmoUndoable {
         undoBuffer.addBuffer('dot duration', 'measure', selection.selector, selection.measure);
         SmoOperation.dotDuration(selection);
     }
+	static toggleBeamGroups(selections,undoBuffer) {
+		var measureUndoHash={};
+		selections.forEach((selection)=> {
+			if (!measureUndoHash[selection.selector.measure]) {
+				measureUndoHash[selection.selector.measure]=true;
+				undoBuffer.addBuffer('toggleBeamGroups', 'measure', selection.selector, selection.measure);
+			}
+			SmoOperation.toggleBeamGroup(selection);
+		});
+	}
     static undotDuration(selection, undoBuffer) {
         undoBuffer.addBuffer('undot duration', 'measure', selection.selector, selection.measure);
         SmoOperation.undotDuration(selection);

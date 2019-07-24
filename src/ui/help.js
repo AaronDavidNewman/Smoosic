@@ -279,7 +279,14 @@ class SmoHelp {
                 ],
                 text: 'Toggle note/rest',
                 id: 'noteElements6'
-            }
+            }, {
+                keys: [{
+                        text: 'x'
+                    }
+                ],
+                text: 'Toggle break beam group',
+                id: 'noteElements7'
+            },
         ];
     }
     static get durationElements() {

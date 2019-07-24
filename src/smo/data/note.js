@@ -28,7 +28,7 @@ class SmoNote {
         }
     }
     static get parameterArray() {
-        return ['ticks', 'pitches', 'noteType','tuplet','attrs','clef'];
+        return ['ticks', 'pitches', 'noteType','tuplet','attrs','clef','endBeam'];
     }
     get id() {
         return this.attrs.id;
@@ -198,6 +198,7 @@ class SmoNote {
             noteType: 'n',
             textModifiers: [],
 			articulations:[],
+			endBeam:false,
             ticks: {
                 numerator: 4096,
                 denominator: 1,

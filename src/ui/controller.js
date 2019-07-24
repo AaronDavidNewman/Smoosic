@@ -314,6 +314,14 @@ class suiController {
 				shiftKey: false,
 				action: "copy"
 			},
+			{
+				event: "keydown",
+				key: "x",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "toggleBeamGroup"
+			},
 			 {
 				event: "keydown",
 				key: "v",
