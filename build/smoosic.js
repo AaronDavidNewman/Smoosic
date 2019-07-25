@@ -69,7 +69,9 @@ class smoMusic {
 		return ix;
 	}
 
-	// ### Get pitch to the right in circle of fifths
+// ## addSharp
+	// ### Description:
+	// Get pitch to the right in circle of fifths
 	static addSharp(smoPitch) {
 		var rv = smoMusic.circleOfFifths[
 			(smoMusic.circleOfFifthsIndex(smoPitch) + 1) % smoMusic.circleOfFifths.length];
@@ -753,19 +755,14 @@ class htmlHelpers {
 		});
 	}
 }
-;
-
-
-// ##Note on prefixes:
-// SMO == Serializable Music Ontology, stuff I made up
-// vx == VF == Vexflow rendering engine by https://github.com/0xfe
-// Where it makes sense, SMO uses VF conventions, e.g. ticks to store note durations
-// and identifiers for notes and things.
-//
+;// ## SmoNote
 // ## Description:
+// Data for a musical note.  THe most-contained-thing, except there can be note modifiers
 // Basic note information.  Leaf node of the SMO dependency tree (so far)
+// ## SmoNote Methods
+// ---
 class SmoNote {
-    // ## Description:
+    // ### Description:
     // see defaults for params format.
     constructor(params) {
         Vex.Merge(this, SmoNote.defaults);
@@ -783,7 +780,7 @@ class SmoNote {
         }
     }
     static get parameterArray() {
-        return ['ticks', 'pitches', 'noteType','tuplet','attrs','clef'];
+        return ['ticks', 'pitches', 'noteType','tuplet','attrs','clef','endBeam'];
     }
     get id() {
         return this.attrs.id;
@@ -802,8 +799,9 @@ class SmoNote {
     }
    
 
-    // ## _addModifier
-    // sFz, mp, etc.
+    // ### _addModifier
+	// ### Description
+    // add or remove sFz, mp, etc.
     _addModifier(dynamic, toAdd) {
         var tms = [];
         this.textModifiers.forEach((tm) => {
@@ -953,6 +951,7 @@ class SmoNote {
             noteType: 'n',
             textModifiers: [],
 			articulations:[],
+			endBeam:false,
             ticks: {
                 numerator: 4096,
                 denominator: 1,
@@ -1313,18 +1312,19 @@ class SmoDynamicText extends SmoNoteModifierBase {
     }
 }
 ;
-// # SmoMeasure - data for a measure of music
-// # Description:
-// Many rules of musical engraving are enforced at a measure level, e.g. the duration of 
-// notes, accidentals, etc.  
-// # See Also:
+// ## SmoMeasure - data for a measure of music
+// ## Description:
+// Many rules of musical engraving are enforced at a measure level, e.g. the duration of
+// notes, accidentals, etc.
+// ## See Also:
 // Measures contain notes, tuplets, and beam groups.  So see SmoNote, etc.
 // Measures are contained in staves, see also SystemStaff.js
+// ## SmoMeasure Methods:
 class SmoMeasure {
     constructor(params) {
         this.tuplets = [];
         this.beamGroups = [];
-		this.changed=true;
+        this.changed = true;
 
         Vex.Merge(this, SmoMeasure.defaults);
         Vex.Merge(this, params);
@@ -1334,67 +1334,87 @@ class SmoMeasure {
                 type: 'SmoMeasure'
             };
         } else {
-            // inherit attrs id for deserialized 
-        }		
+            // inherit attrs id for deserialized
+        }
     }
     get notes() {
         return this.voices[this.activeVoice].notes;
     }
-	
-	// ## getRenderedNote
-	// ## Description:
-	// The renderer puts a mapping between rendered svg groups and 
-	// the logical notes in SMO.  The UI needs this mapping to be interactive,
-	// figure out where a note is rendered, what its bounding box is, etc.
-	getRenderedNote(id) {
+
+    // ### getRenderedNote
+    // ### Description:
+    // The renderer puts a mapping between rendered svg groups and
+    // the logical notes in SMO.  The UI needs this mapping to be interactive,
+    // figure out where a note is rendered, what its bounding box is, etc.
+    getRenderedNote(id) {
         for (var j = 0; j < this.voices.length; ++j) {
             var voice = this.voices[j];
             for (var i = 0; i < voice.notes.length; ++i) {
-				var note = voice.notes[i];
-				if (note.renderId === id) {
-					return {smoNote:note,voice:j,tick:i};
-				}
-			}
-		}
-		return null;		
-	}
+                var note = voice.notes[i];
+                if (note.renderId === id) {
+                    return {
+                        smoNote: note,
+                        voice: j,
+                        tick: i
+                    };
+                }
+            }
+        }
+        return null;
+    }
+
     set notes(val) {
         this.voices[this.activeVoice].notes = val;
     }
     get stemDirection() {
         return this.activeVoice % 2 ? -1 : 1;
     }
-	
-	static get defaultAttributes() {
-		return [
+
+    // ### defaultAttributes
+    // ### Description:
+    // attributes that are to be serialized for a measure.
+    static get defaultAttributes() {
+        return [
             'timeSignature', 'keySignature', 'staffX', 'staffY', 'customModifiers',
-             'measureNumber', 'staffWidth', 'modifierOptions',
-            'activeVoice','clef','transposeIndex'];
-	}
-	serialize() {
-		var params = {};
-		smoMusic.filteredMerge(SmoMeasure.defaultAttributes,this,params);
-		params.tuplets = [];
-		params.beamGroups=[];
-		params.voices=[];
-		
-		this.tuplets.forEach((tuplet) => {
-			params.tuplets.push(JSON.parse(JSON.stringify(tuplet)));
-		});
-		
-		this.beamGroups.forEach((beam) =>  {
-			params.beamGroups.push(JSON.parse(JSON.stringify(beam)));
-		});
-		
-		this.voices.forEach((voice) => {
-			var obj={notes:[]};
-			voice.notes.forEach((note) => {
-				obj.notes.push(note.serialize());
-			});
-			params.voices.push(obj);
-		});
-		return params;
-	}
+            'measureNumber', 'staffWidth', 'modifierOptions',
+            'activeVoice', 'clef', 'transposeIndex'];
+    }
+
+    // ### serialize
+    // ### Description:
+    // Convert this measure object to a JSON object, recursively serializing all the notes,
+    // note modifiers, etc.
+    serialize() {
+        var params = {};
+        smoMusic.filteredMerge(SmoMeasure.defaultAttributes, this, params);
+        params.tuplets = [];
+        params.beamGroups = [];
+        params.voices = [];
+
+        this.tuplets.forEach((tuplet) => {
+            params.tuplets.push(JSON.parse(JSON.stringify(tuplet)));
+        });
+
+        this.beamGroups.forEach((beam) => {
+            params.beamGroups.push(JSON.parse(JSON.stringify(beam)));
+        });
+
+        this.voices.forEach((voice) => {
+            var obj = {
+                notes: []
+            };
+            voice.notes.forEach((note) => {
+                obj.notes.push(note.serialize());
+            });
+            params.voices.push(obj);
+        });
+        return params;
+    }
+
+    // ### deserialize
+    // ### Description:
+    // restore a serialized measure object.  Usually called as part of deserializing a score,
+    // but can also be used to restore a measure due to an undo operation.
     static deserialize(jsonObj) {
         var voices = [];
         for (var j = 0; j < jsonObj.voices.length; ++j) {
@@ -1433,7 +1453,10 @@ class SmoMeasure {
         return new SmoMeasure(params);
     }
 
-    // TODO: learn what all these clefs are
+    // ### defaultPitchForClef
+    // ### Description:
+    // Accessor for clef objects, which are set at a measure level.
+    // ### TODO: learn what all these clefs are
     static get defaultPitchForClef() {
         return {
             'treble': {
@@ -1493,70 +1516,82 @@ class SmoMeasure {
             } // no idea
         }
     }
-	// Get a measure full of default notes for a given timeSignature/clef
+    // Get a measure full of default notes for a given timeSignature/clef
     static getDefaultNotes(params) {
-		if (params == null) {
-			params={};
-		}
-		params.timeSignature = params.timeSignature ? params.timeSignature : '4/4';
-		params.clef = params.clef ? params.clef : 'treble';
+        if (params == null) {
+            params = {};
+        }
+        params.timeSignature = params.timeSignature ? params.timeSignature : '4/4';
+        params.clef = params.clef ? params.clef : 'treble';
         var meterNumbers = params.timeSignature.split('/').map(number => parseInt(number, 10));
-        var ticks = {numerator:4096,denominator:1,remainder:0};
+        var ticks = {
+            numerator: 4096,
+            denominator: 1,
+            remainder: 0
+        };
         if (meterNumbers[0] % 3 == 0) {
-            ticks = {numerator:2048,denominator:1,remainder:0};
+            ticks = {
+                numerator: 2048,
+                denominator: 1,
+                remainder: 0
+            };
         }
         var pitches = SmoMeasure.defaultPitchForClef[params.clef];
-		var rv = [];
+        var rv = [];
 
         for (var i = 0; i < meterNumbers[0]; ++i) {
             var note = new SmoNote({
                     clef: params.clef,
                     pitches: [pitches],
                     ticks: ticks,
-					timeSignature:params.timeSignature
+                    timeSignature: params.timeSignature
                 });
             rv.push(note);
         }
         return rv;
     }
-	
-	static getDefaultMeasure(params) {
-		var obj={};
-		Vex.Merge(obj,SmoMeasure.defaults);
-		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, params,obj);
-		return new SmoMeasure(obj);
-	}
-	
-	static getDefaultMeasureWithNotes(params) {
-		var measure = SmoMeasure.getDefaultMeasure(params);
-		measure.voices.push({notes:SmoMeasure.getDefaultNotes(params)});
-		return measure;
-	}
-	
-	static _cloneParameters(measure) {
+
+    static getDefaultMeasure(params) {
+        var obj = {};
+        Vex.Merge(obj, SmoMeasure.defaults);
+        smoMusic.serializedMerge(SmoMeasure.defaultAttributes, params, obj);
+        return new SmoMeasure(obj);
+    }
+
+    static getDefaultMeasureWithNotes(params) {
+        var measure = SmoMeasure.getDefaultMeasure(params);
+        measure.voices.push({
+            notes: SmoMeasure.getDefaultNotes(params)
+        });
+        return measure;
+    }
+
+    static _cloneParameters(measure) {
         var keys = Object.keys(measure);
         var clone = {};
         for (var i = 0; i < keys.length; ++i) {
             var key = keys[i];
             clone[key] = measure[key];
         }
-		return clone;
-	}
-	
+        return clone;
+    }
 
     static get defaultVoice44() {
-		return SmoMeasure.getDefaultNotes({clef:'treble',timeSignature:'4/4'});
+        return SmoMeasure.getDefaultNotes({
+            clef: 'treble',
+            timeSignature: '4/4'
+        });
     }
     static get defaults() {
         // var noteDefault = SmoMeasure.defaultVoice44;
         return {
             timeSignature: '4/4',
             keySignature: "C",
-			canceledKeySignature:null,
+            canceledKeySignature: null,
             staffX: 10,
-			adjX:0,
-			transposeIndex:0,
-			rightMargin:2,
+            adjX: 0,
+            transposeIndex: 0,
+            rightMargin: 2,
             customModifiers: [],
             staffY: 40,
             bars: [1, 1], // follows enumeration in VF.Barline
@@ -1567,50 +1602,56 @@ class SmoMeasure {
             },
             staffWidth: 200,
             modifierOptions: {},
-            clef: 'treble',            
+            clef: 'treble',
             forceClef: false,
-			forceKeySignature:false,
-			forceTimeSignature:false,
-            voices: [  ],
+            forceKeySignature: false,
+            forceTimeSignature: false,
+            voices: [],
             activeVoice: 0
         };
     }
     tickmap() {
         return VX.TICKMAP(this);
     }
-	
-	// ## getDynamicMap
-	// ## Description:
-	// returns the dynamic text for each tick index.  If 
-	// there are no dynamics, the empty array is returned.
-	getDynamicMap() {
-		var rv = [];
-		var hasDynamic=false;
-		this.voices.forEach((voice) => {
-			voice.notes.forEach((note) => { 
-			if (note.dynamicText) {
-				rv.push({note:note,text:note.dynamicText});
-				hasDynamic=true;
-			} else {
-				rv.push({note:note,text:''});
-			}
-			});
-		});
-		
-		if (hasDynamic) {
-			return rv;
-		}
-		return [];
-	}
-	
-	// {index:1,value:{symbol:'#',cautionary:false}}
-	setAccidental(voice,tick,pitch,value) {
-		var target = this.getSelection(voice,tick,[pitch]);
-		if (target) {
-			target.note.addAccidental(value);
-		}
-	}
-	
+
+    // ### getDynamicMap
+    // ### Description:
+    // returns the dynamic text for each tick index.  If
+    // there are no dynamics, the empty array is returned.
+    getDynamicMap() {
+        var rv = [];
+        var hasDynamic = false;
+        this.voices.forEach((voice) => {
+            voice.notes.forEach((note) => {
+                if (note.dynamicText) {
+                    rv.push({
+                        note: note,
+                        text: note.dynamicText
+                    });
+                    hasDynamic = true;
+                } else {
+                    rv.push({
+                        note: note,
+                        text: ''
+                    });
+                }
+            });
+        });
+
+        if (hasDynamic) {
+            return rv;
+        }
+        return [];
+    }
+
+    // {index:1,value:{symbol:'#',cautionary:false}}
+    setAccidental(voice, tick, pitch, value) {
+        var target = this.getSelection(voice, tick, [pitch]);
+        if (target) {
+            target.note.addAccidental(value);
+        }
+    }
+
     clearBeamGroups() {
         this.beamGroups = [];
     }
@@ -1623,8 +1664,8 @@ class SmoMeasure {
             }
         }
     }
-	tupletNotes(tuplet) {
-		var notes=[];
+    tupletNotes(tuplet) {
+        var notes = [];
         for (var j = 0; j < this.voices.length; ++j) {
             var notes = this.voices[j].notes;
             for (var i = 0; i < notes.length; ++i) {
@@ -1646,7 +1687,7 @@ class SmoMeasure {
         }
         return -1;
     }
-	
+
     getTupletForNote(note) {
         if (!note.isTuplet) {
             return null;
@@ -1657,7 +1698,7 @@ class SmoMeasure {
                 return tuplet;
             }
         }
-		return null;
+        return null;
     }
     removeTupletForNote(note) {
         var tuplets = [];
@@ -1675,25 +1716,25 @@ class SmoMeasure {
             parameters: parameters
         });
     }
-	get numBeats() {
-		return this.timeSignature.split('/').map(number => parseInt(number, 10))[0];
-	}
-	setKeySignature(sig) {
-		this.keySignature = sig;
-		this.voices.forEach((voice) => {
-			voice.notes.forEach((note) => {
-				note.keySignature=sig;
-			});
-		});
-	}
-	get beatValue() {
-		return this.timeSignature.split('/').map(number => parseInt(number, 10))[1];
-	}
+    get numBeats() {
+        return this.timeSignature.split('/').map(number => parseInt(number, 10))[0];
+    }
+    setKeySignature(sig) {
+        this.keySignature = sig;
+        this.voices.forEach((voice) => {
+            voice.notes.forEach((note) => {
+                note.keySignature = sig;
+            });
+        });
+    }
+    get beatValue() {
+        return this.timeSignature.split('/').map(number => parseInt(number, 10))[1];
+    }
 
     setMeasureNumber(num) {
         this.measureNumber = num;
     }
-  
+
     getBeamGroupForNote(note) {
         for (var i = 0; i < this.beamGroups.length; ++i) {
             var bg = this.beamGroups[i];
@@ -1967,6 +2008,11 @@ class SmoSystemStaff {
     }
 }
 ;
+// ## SmoScore
+// ## Description:
+// The whole score.
+// ## Score methods:
+// ---
 class SmoScore {
     constructor(params) {
         Vex.Merge(this, SmoScore.defaults);
@@ -1997,6 +2043,8 @@ class SmoScore {
 	static get defaultAttributes() {
 		return ['staffX', 'staffY', 'staffWidth', 'startIndex', 'interGap', 'renumberingMap', 'renumberIndex'];
 	}
+	
+	// ### serialize
 	serialize() {
 		var params={};
 		smoMusic.serializedMerge(SmoScore.defaultAttributes,this,params);
@@ -2171,6 +2219,7 @@ class SmoScore {
 			ix += 1;
 		});
 		this.staves=staves;
+		this._numberStaves();
 	}
 	
 	getMaxTicksMeasure(measure) {		
@@ -2207,9 +2256,15 @@ class SmoScore {
     }
 }
 ;
-// # This file contains modifiers that might take up multiple measures, and are thus associated
+// ## StaffModifiers
+// ## Description:
+// This file contains modifiers that might take up multiple measures, and are thus associated
 // with the staff.
-
+// ## Staff Modifier Classes:
+// ---
+// ## StaffModifierBase
+// ## Description:
+// Base class that mostly standardizes the interface and deals with serialization.
 class StaffModifierBase {
     constructor(ctor) {
         this.ctor = ctor;
@@ -2302,6 +2357,11 @@ class SmoStaffHairpin extends StaffModifierBase {
     }
 }
 
+// ## SmoSlur
+// ## Description:
+// slur staff modifier
+// ## SmoSlur Methods:
+// ---
 class SmoSlur extends StaffModifierBase {
     static get defaults() {
         return {
@@ -2661,59 +2721,57 @@ VX.TICKMAP = (measure) => {
 
 ;
 class BeamModifierBase {
-	constructor(){}
-	beamNote(note, iterator,accidentalMap) {	}
+    constructor() {}
+    beamNote(note, iterator, accidentalMap) {}
 }
 
-class smoBeamerFactory {	
-	static applyBeams(measure) {		
+class smoBeamerFactory {
+    static applyBeams(measure) {
         var beamer = new smoBeamModifier(measure);
         var apply = new smoBeamerIterator(measure, [beamer]);
         apply.run();
-	}
+    }
 }
 
 class smoBeamerIterator {
-	constructor(measure,actors) {
-		this.actors=actors;
-		this.measure=measure;		
-	}
-	
-	get iterator() {
-		return this._iterator;
-	}
-	
-	//  ### run
-	//  ###  Description:  start the iteration on this set of notes
-	run() {
-		var self=this;
-		var iterator = new smoTickIterator(this.measure);
-		iterator.iterate((iterator,note,accidentalMap) => {
-			for (var i=0;i<self.actors.length;++i) {
-				self.actors[i].beamNote(iterator,note,accidentalMap);
-			}
-		});
-	}
+    constructor(measure, actors) {
+        this.actors = actors;
+        this.measure = measure;
+    }
+
+    get iterator() {
+        return this._iterator;
+    }
+
+    //  ### run
+    //  ###  Description:  start the iteration on this set of notes
+    run() {
+        var self = this;
+        var iterator = new smoTickIterator(this.measure);
+        iterator.iterate((iterator, note, accidentalMap) => {
+            for (var i = 0; i < self.actors.length; ++i) {
+                self.actors[i].beamNote(iterator, note, accidentalMap);
+            }
+        });
+    }
 }
 
 class smoBeamModifier extends BeamModifierBase {
     constructor(measure) {
         super();
-		this.measure=measure;
-		this.measure.beamGroups=[];
+        this.measure = measure;
+        this.measure.beamGroups = [];
         this.duration = 0;
         this.timeSignature = measure.timeSignature;
         this.meterNumbers = this.timeSignature.split('/').map(number => parseInt(number, 10));
 
         this.duration = 0;
-        this.startRange = 0;
         // beam on 1/4 notes in most meter, triple time dotted quarter
         this.beamBeats = 2 * 2048;
         if (this.meterNumbers[0] % 3 == 0) {
             this.beamBeats = 3 * 2048;
         }
         this.skipNext = 0;
-        this.beamGroup = false;
         this.currentGroup = [];
     }
 
@@ -2721,6 +2779,19 @@ class smoBeamModifier extends BeamModifierBase {
         return this.measure.beamGroups;
     }
 
+    _completeGroup() {
+        // don't beam groups of 1
+        if (this.currentGroup.length > 1) {
+            this.measure.beamGroups.push(new SmoBeamGroup({
+                    notes: this.currentGroup
+                }));
+        }
+    }
+
+    _advanceGroup() {
+        this.currentGroup = [];
+        this.duration = 0;
+    }
     beamNote(iterator, note, accidentalMap) {
 
         this.duration += iterator.delta;
@@ -2729,52 +2800,50 @@ class smoBeamModifier extends BeamModifierBase {
         if (note.isTuplet) {
             var tuplet = this.measure.getTupletForNote(note);
             var ult = tuplet.notes[tuplet.notes.length - 1];
+            var first = tuplet.notes[0];
+
+            if (first.endBeam) {
+                this._advanceGroup();
+                return note;
+            }
 
             // is this beamable length-wise
-			var vexDuration=smoMusic.closestVexDuration(note.tickCount);
-			var stemTicks = VF.durationToTicks.durations[vexDuration];
+            var vexDuration = smoMusic.closestVexDuration(note.tickCount);
+            var stemTicks = VF.durationToTicks.durations[vexDuration];
             if (stemTicks < 4096) {
-                this.beamGroup = true;
                 this.currentGroup.push(note);
             }
             // Ultimate note in tuplet
             if (ult.attrs.id === note.attrs.id) {
-				// don't beam groups of 1
-				if (this.currentGroup.length>1) {
-					this.measure.beamGroups.push(new SmoBeamGroup({
-							notes: this.currentGroup
-						}));
-				}
-                this.currentGroup = [];
-                this.duration = 0;
-                this.startRange = iterator.index + 1;
+                this._completeGroup();
+                this._advanceGroup();
             }
             return note;
         }
 
         // don't beam > 1/4 note in 4/4 time
         if (iterator.delta >= this.beamBeats) {
-            this.duration = 0;
-            this.startRange = iterator.index + 1;
+			this._completeGroup();
+            this._advanceGroup();
             return note;
         }
 
         this.currentGroup.push(note);
+        if (note.endBeam) {
+            this._completeGroup();
+            this._advanceGroup();
+        }
+
         if (this.duration == this.beamBeats) {
-            this.measure.beamGroups.push(new SmoBeamGroup({
-                    notes: this.currentGroup
-                }));
-            this.currentGroup = [];
-            this.startRange = iterator.index + 1;
-            this.duration = 0;
+            this._completeGroup();
+            this._advanceGroup();
             return note;
         }
 
         // If this does not align on a beat, don't beam it
-        if (this.duration > this.beamBeats ||
-            ((iterator.totalDuration - this.duration) % this.beamBeats != 0)) {
-            this.duration = 0;
-            this.currentGroup = [];
+        if (this.duration > this.beamBeats) {
+			// ||            ((iterator.totalDuration - this.duration) % this.beamBeats != 0)) {
+            this._advanceGroup()
             return note;
         }
     }
@@ -3443,6 +3512,10 @@ class SmoOperation {
 
 		score.deleteMeasure(measureIndex);
 	}
+	
+	static toggleBeamGroup(noteSelection) {
+	      noteSelection.note.endBeam =  !(noteSelection.note.endBeam);
+	}
 	// ## doubleDuration
 	// ## Description
 	// double the duration of a note in a measure, at the expense of the following
@@ -3568,6 +3641,13 @@ class SmoOperation {
 		var measure = selection.measure;
 		var nticks = smoMusic.getNextDottedLevel(note.tickCount);
 		if (nticks == note.tickCount) {
+			return;
+		}
+		if (selection.selector.tick === selection.measure.notes.length) {
+			return;
+		}
+		if (selection.measure.notes[selection.selector.tick+1].tickCount > selection.note.tickCount) {
+			console.log('too long');
 			return;
 		}
 		var actor = new SmoStretchNoteActor({
@@ -3857,6 +3937,16 @@ class SmoUndoable {
         undoBuffer.addBuffer('dot duration', 'measure', selection.selector, selection.measure);
         SmoOperation.dotDuration(selection);
     }
+	static toggleBeamGroups(selections,undoBuffer) {
+		var measureUndoHash={};
+		selections.forEach((selection)=> {
+			if (!measureUndoHash[selection.selector.measure]) {
+				measureUndoHash[selection.selector.measure]=true;
+				undoBuffer.addBuffer('toggleBeamGroups', 'measure', selection.selector, selection.measure);
+			}
+			SmoOperation.toggleBeamGroup(selection);
+		});
+	}
     static undotDuration(selection, undoBuffer) {
         undoBuffer.addBuffer('undot duration', 'measure', selection.selector, selection.measure);
         SmoOperation.undotDuration(selection);
@@ -4740,7 +4830,7 @@ class suiTracker {
         this.modifierTabs = {};
         this.modifierIndex = -1;
         this.suggestion = {};
-		this.pasteBuffer = new PasteBuffer();
+        this.pasteBuffer = new PasteBuffer();
     }
 
     // ### renderElement
@@ -4773,22 +4863,26 @@ class suiTracker {
                 if (SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
                     if (!modMap[modifier.id]) {
                         this.modifierTabs.push({
-						modifier:modifier,selection:selection});
+                            modifier: modifier,
+                            selection: selection
+                        });
                         modMap[modifier.id] = {
                             exists: true
                         };
                     }
                 }
             });
-			selection.note.textModifiers.forEach((modifier) => {
-				if (!modMap[modifier.id]) {
-					this.modifierTabs.push({
-						modifier:modifier,selection:selection});
-                        modMap[modifier.id] = {
-                            exists: true
-                        };
-				}
-			});
+            selection.note.textModifiers.forEach((modifier) => {
+                if (!modMap[modifier.id]) {
+                    this.modifierTabs.push({
+                        modifier: modifier,
+                        selection: selection
+                    });
+                    modMap[modifier.id] = {
+                        exists: true
+                    };
+                }
+            });
         });
     }
 
@@ -4797,33 +4891,33 @@ class suiTracker {
             var modSelection = this.modifierTabs[this.modifierIndex];
             if (modSelection.modifier.renderedBox) {
                 this._drawRect(modSelection.modifier.renderedBox, 'staffModifier');
-            } 
+            }
         }
     }
-	
-	clearModifierSelections() {
-		this.modifierTabs=[];
-		this.modifierIndex=-1;
-		this.eraseRect('staffModifier');
-		this.pasteBuffer.clearSelections();
-	}
-	getSelectedModifier() {
-		if (this.modifierIndex >= 0) {
-			return this.modifierTabs[this.modifierIndex];
-		}
-	}
+
+    clearModifierSelections() {
+        this.modifierTabs = [];
+        this.modifierIndex = -1;
+        this.eraseRect('staffModifier');
+        this.pasteBuffer.clearSelections();
+    }
+    getSelectedModifier() {
+        if (this.modifierIndex >= 0) {
+            return this.modifierTabs[this.modifierIndex];
+        }
+    }
 
     advanceModifierSelection() {
-		this.eraseRect('staffModifier');
+        this.eraseRect('staffModifier');
 
         if (!this.modifierTabs.length) {
             return;
         }
         this.modifierIndex = this.modifierIndex + 1;
-		if (this.modifierIndex > this.modifierTabs.length) {
-			this.modifierIndex=-1;
-			return;
-		}
+        if (this.modifierIndex > this.modifierTabs.length) {
+            this.modifierIndex = -1;
+            return;
+        }
         this._highlightModifier();
     }
 
@@ -4851,11 +4945,13 @@ class suiTracker {
         this.objects = [];
         var selCopy = this._copySelections();
         notes.forEach((note) => {
-			var box = note.getBoundingClientRect();
-			// box = svgHelpers.untransformSvgBox(this.context.svg,box);
-			var selection = SmoSelection.renderedNoteSelection(this.score, note,box);
-			this.objects.push(selection);
-		});
+            var box = note.getBoundingClientRect();
+            // box = svgHelpers.untransformSvgBox(this.context.svg,box);
+            var selection = SmoSelection.renderedNoteSelection(this.score, note, box);
+            if (selection) {
+                this.objects.push(selection);
+            }
+        });
         this.selections = [];
         if (this.objects.length && !selCopy.length) {
             console.log('adding selection ' + this.objects[0].note.id);
@@ -4864,8 +4960,8 @@ class suiTracker {
             selCopy.forEach((sel) => this._findClosestSelection(sel));
         }
         this.highlightSelection();
-		this.pasteBuffer.clearSelections();
-		this.pasteBuffer.setSelections(this.score,this.selections);
+        this.pasteBuffer.clearSelections();
+        this.pasteBuffer.setSelections(this.score, this.selections);
     }
 
     static stringifyBox(box) {
@@ -4900,7 +4996,7 @@ class suiTracker {
     }
 
     // ### getExtremeSelection
-	// Get the rightmost (1) or leftmost (-1) selection
+    // Get the rightmost (1) or leftmost (-1) selection
     getExtremeSelection(sign) {
         var rv = this.selections[0];
         for (var i = 1; i < this.selections.length; ++i) {
@@ -4990,7 +5086,7 @@ class suiTracker {
         }
         var nselect = this._getOffsetSelection(1);
         this._replaceSelection(nselect);
-    }   
+    }
 
     moveSelectionLeft() {
         if (this.selections.length == 0) {
@@ -5052,9 +5148,9 @@ class suiTracker {
         var mapped = this.objects.find((el) => {
                 return SmoSelector.sameNote(el.selector, artifact.selector);
             });
-		if (!mapped) {
-			return;
-		}
+        if (!mapped) {
+            return;
+        }
         console.log('adding selection ' + mapped.note.id);
 
         this.selections = [mapped];
@@ -5120,16 +5216,16 @@ class suiTracker {
 
     _findIntersectionArtifact(clientBox) {
         var obj = null;
-		var box = clientBox; //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
+        var box = clientBox; //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
 
         // box.y = box.y - this.renderElement.offsetTop;
         // box.x = box.x - this.renderElement.offsetLeft;
 
         $(this.objects).each(function (ix, object) {
             var i1 = box.x - object.box.x;
-			/* console.log('client coords: ' + svgHelpers.stringify(clientBox));
-    		console.log('find box '+svgHelpers.stringify(box));
-			console.log('examine obj: '+svgHelpers.stringify(object.box));  */
+            /* console.log('client coords: ' + svgHelpers.stringify(clientBox));
+            console.log('find box '+svgHelpers.stringify(box));
+            console.log('examine obj: '+svgHelpers.stringify(object.box));  */
             var i2 = box.y - object.box.y;
             if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
                 obj = object;
@@ -5178,7 +5274,7 @@ class suiTracker {
     highlightSelection() {
         if (this.selections.length === 1) {
             this._drawRect(this.selections[0].box, 'selection');
-			this._updateStaffModifiers();
+            this._updateStaffModifiers();
             return;
         }
         var sorted = this.selections.sort((a, b) => a.box.y - b.box.y);
@@ -5219,12 +5315,12 @@ class suiTracker {
         bb.forEach((box) => {
             var strokes = suiTracker.strokes[stroke];
             var strokeObj = {};
-			var margin=5;
+            var margin = 5;
             $(Object.keys(strokes)).each(function (ix, key) {
                 strokeObj[key] = strokes[key];
             });
-			box=svgHelpers.clientToLogical(this.context.svg,box);
-            this.context.rect(box.x - margin, box.y - margin, box.width + margin*2, box.height + margin*2, strokeObj);
+            box = svgHelpers.clientToLogical(this.context.svg, box);
+            this.context.rect(box.x - margin, box.y - margin, box.width + margin * 2, box.height + margin * 2, strokeObj);
         });
         this.context.closeGroup(grp);
     }
@@ -5660,6 +5756,13 @@ class suiEditor {
         this.pasteBuffer.pasteSelections(this.score, pasteTarget);
         this.layout.render();
     }
+	toggleBeamGroup() {
+        if (this.tracker.selections.length < 1) {
+            return;
+        }
+		SmoUndoable.toggleBeamGroups(this.tracker.selections,this.undoBuffer);
+		this.layout.render();
+	}
 
     deleteMeasure() {
         if (this.tracker.selections.length < 1) {
@@ -5819,403 +5922,431 @@ class suiEditor {
 }
 ;
 class suiMenuBase {
-	constructor(params) {
-		Vex.Merge(this, params);
-	}
+    constructor(params) {
+        Vex.Merge(this, params);
+    }
 
-	complete() {
-		$('body').trigger('menuDismiss');
-	}
+    complete() {
+        $('body').trigger('menuDismiss');
+    }
 }
 
 class suiMenuManager {
-	constructor(params) {
-		Vex.Merge(this, suiMenuManager.defaults);
-		Vex.Merge(this, params);
-		this.bound = false;
-	}
+    constructor(params) {
+        Vex.Merge(this, suiMenuManager.defaults);
+        Vex.Merge(this, params);
+        this.bound = false;
+    }
 
-	static get defaults() {
-		return {
-			menuBind: suiMenuManager.menuKeyBindingDefaults,
-			menuContainer: '.menuContainer'
-		};
-	}
+    static get defaults() {
+        return {
+            menuBind: suiMenuManager.menuKeyBindingDefaults,
+            menuContainer: '.menuContainer'
+        };
+    }
 
-	// ### Description:
-	// slash ('/') menu key bindings.  The slash key followed by another key brings up
-	// a menu.
-	static get menuKeyBindingDefaults() {
-		return [{
-				event: "keydown",
-				key: "k",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "suiKeySignatureMenu"
-			}, {
-				event: "keydown",
-				key: "e",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "suiStaffModifierMenu"
-			}, {
-				event: "keydown",
-				key: "d",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "SuiDynamicsMenu"
-			}, {
-				event: "keydown",
-				key: "i",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "SuiAddInstrumentsMenu"
-			}
+    // ### Description:
+    // slash ('/') menu key bindings.  The slash key followed by another key brings up
+    // a menu.
+    static get menuKeyBindingDefaults() {
+        return [{
+                event: "keydown",
+                key: "k",
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: "suiKeySignatureMenu"
+            }, {
+                event: "keydown",
+                key: "e",
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: "suiStaffModifierMenu"
+            }, {
+                event: "keydown",
+                key: "d",
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: "SuiDynamicsMenu"
+            }, {
+                event: "keydown",
+                key: "s",
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: "SuiAddStaffMenu"
+            }
 
-		];
-	}
+        ];
+    }
 
-	unattach() {
-		window.removeEventListener("keydown", this.keydownHandler, true);
-		$('body').removeClass('modal');
-		$(this.menuContainer).html('');
-		$('body').off('dismissMenu');
-		this.bound = false;
-	}
+    unattach() {
+        window.removeEventListener("keydown", this.keydownHandler, true);
+        $('body').removeClass('modal');
+        $(this.menuContainer).html('');
+        $('body').off('dismissMenu');
+        this.bound = false;
+    }
 
-	attach(el) {
-		var b = htmlHelpers.buildDom();
+    attach(el) {
+        var b = htmlHelpers.buildDom();
 
-		$(this.menuContainer).html('');
-		$(this.menuContainer).attr('z-index', '12');
-		var b = htmlHelpers.buildDom;
-		var r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length)
-			.css('left', '' + this.menuPosition.x + 'px')
-			.css('top', '' + this.menuPosition.y + 'px')
-			.css('height', '' + this.menu.menuItems.length * 35 + 'px');
-		this.menu.menuItems.forEach((item) => {
-			r.append(
-				b('li').classes('menuOption').append(
-					b('button')
-					.text(item.text).attr('data-value', item.value)
-					.append(
-						b('span').classes('icon icon-' + item.icon))));
-		});
-		$(this.menuContainer).append(r.dom());
-		$('body').addClass('modal');
-		this.bindEvents();
-	}
-	slashMenuMode() {
-		var self = this;
-		this.bindEvents();
-		this.closeMenuPromise = new Promise((resolve, reject) => {
-				$('body').off('menuDismiss').on('menuDismiss', function () {
-					self.unattach();
-					resolve();
-				});
+        $(this.menuContainer).html('');
+        $(this.menuContainer).attr('z-index', '12');
+        var b = htmlHelpers.buildDom;
+        var r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length)
+            .css('left', '' + this.menuPosition.x + 'px')
+            .css('top', '' + this.menuPosition.y + 'px')
+            .css('height', '' + this.menu.menuItems.length * 35 + 'px');
+        this.menu.menuItems.forEach((item) => {
+            r.append(
+                b('li').classes('menuOption').append(
+                    b('button')
+                    .text(item.text).attr('data-value', item.value)
+                    .append(
+                        b('span').classes('icon icon-' + item.icon))));
+        });
+        $(this.menuContainer).append(r.dom());
+        $('body').addClass('modal');
+        this.bindEvents();
+    }
+    slashMenuMode() {
+        var self = this;
+        this.bindEvents();
+        this.closeMenuPromise = new Promise((resolve, reject) => {
+                $('body').off('menuDismiss').on('menuDismiss', function () {
+                    self.unattach();
+                    resolve();
+                });
 
-			});
-		return this.closeMenuPromise;
-	}
+            });
+        return this.closeMenuPromise;
+    }
 
-	handleKeydown(event) {
-		console.log("KeyboardEvent: key='" + event.key + "' | code='" +
-			event.code + "'"
-			 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
-		if (['Tab', 'Enter'].indexOf(event.code) >= 0) {
-			return;
-		}
+    handleKeydown(event) {
+        console.log("KeyboardEvent: key='" + event.key + "' | code='" +
+            event.code + "'"
+             + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
+        if (['Tab', 'Enter'].indexOf(event.code) >= 0) {
+            return;
+        }
 
-		event.preventDefault();
+        event.preventDefault();
 
-		if (event.code === 'Escape') {
-			$('body').trigger('menuDismiss');
-		}
-		if (this.menu) {
-			this.menu.keydown(event);
-		}
-		if (this.tracker.selections.length == 0) {
-			this.unattach();
-			return;
-		}
-		this.menuPosition = this.tracker.selections[0].box;
-		var binding = this.menuBind.find((ev) => {
-				return ev.key === event.key
-			});
-		if (!binding) {
-			return;
-		}
-		var ctor = eval(binding.action);
-		this.menu = new ctor({
-				position: this.menuPosition,
-				tracker: this.tracker,
-				editor: this.editor,
-				score: this.score
-			});
-		this.attach(this.menuContainer);
-	}
+        if (event.code === 'Escape') {
+            $('body').trigger('menuDismiss');
+        }
+        if (this.menu) {
+            this.menu.keydown(event);
+        }
+        if (this.tracker.selections.length == 0) {
+            this.unattach();
+            return;
+        }
+        this.menuPosition = this.tracker.selections[0].box;
+        var binding = this.menuBind.find((ev) => {
+                return ev.key === event.key
+            });
+        if (!binding) {
+            return;
+        }
+        var ctor = eval(binding.action);
+        this.menu = new ctor({
+                position: this.menuPosition,
+                tracker: this.tracker,
+                editor: this.editor,
+                score: this.score
+            });
+        this.attach(this.menuContainer);
+    }
 
-	bindEvents() {
-		var self = this;
+    bindEvents() {
+        var self = this;
 
-		if (!this.bound) {
-			this.keydownHandler = this.handleKeydown.bind(this);
+        if (!this.bound) {
+            this.keydownHandler = this.handleKeydown.bind(this);
 
-			window.addEventListener("keydown", this.keydownHandler, true);
-			this.bound = true;
-		}
-		$(this.menuContainer).find('button').off('click').on('click', function (ev) {
-			self.menu.selection(ev);
-		});
-	}
+            window.addEventListener("keydown", this.keydownHandler, true);
+            this.bound = true;
+        }
+        $(this.menuContainer).find('button').off('click').on('click', function (ev) {
+            self.menu.selection(ev);
+        });
+    }
 }
 
 class SuiDynamicsMenu extends suiMenuBase {
-	constructor(params) {
-		params = (params ? params : {});
-		Vex.Merge(params, SuiDynamicsMenu.defaults);
-		super(params);
-	}
-	static get defaults() {
-		return {
-			menuItems: [{
-					icon: 'pianissimo',
-					text: 'Pianissimo',
-					value: 'pp'
-				}, {
-					icon: 'piano',
-					text: 'Piano',
-					value: 'p'
-				}, {
-					icon: 'mezzopiano',
-					text: 'Mezzo-piano',
-					value: 'mp'
-				}, {
-					icon: 'mezzoforte',
-					text: 'Mezzo-forte',
-					value: 'mf'
-				}, {
-					icon: 'forte',
-					text: 'Forte',
-					value: 'f'
-				}, {
-					icon: 'fortissimo',
-					text: 'Fortissimo',
-					value: 'ff'
-				}, {
-					icon: 'sfz',
-					text: 'sfortzando',
-					value: 'sfz'
-				}
-			]
-		};
-	}
-	selection(ev) {
-		var text = $(ev.currentTarget).attr('data-value');
+    constructor(params) {
+        params = (params ? params : {});
+        Vex.Merge(params, SuiDynamicsMenu.defaults);
+        super(params);
+    }
+    static get defaults() {
+        return {
+            menuItems: [{
+                    icon: 'pianissimo',
+                    text: 'Pianissimo',
+                    value: 'pp'
+                }, {
+                    icon: 'piano',
+                    text: 'Piano',
+                    value: 'p'
+                }, {
+                    icon: 'mezzopiano',
+                    text: 'Mezzo-piano',
+                    value: 'mp'
+                }, {
+                    icon: 'mezzoforte',
+                    text: 'Mezzo-forte',
+                    value: 'mf'
+                }, {
+                    icon: 'forte',
+                    text: 'Forte',
+                    value: 'f'
+                }, {
+                    icon: 'fortissimo',
+                    text: 'Fortissimo',
+                    value: 'ff'
+                }, {
+                    icon: 'sfz',
+                    text: 'sfortzando',
+                    value: 'sfz'
+                }
+            ]
+        };
+    }
+    selection(ev) {
+        var text = $(ev.currentTarget).attr('data-value');
 
-		var ft = this.tracker.getExtremeSelection(-1);
-		if (!ft || !ft.note) {
-			return;
-		}
+        var ft = this.tracker.getExtremeSelection(-1);
+        if (!ft || !ft.note) {
+            return;
+        }
 
-		SmoUndoable.addDynamic(ft, new SmoDynamicText({
-				selector: ft.selector,
-				text: text,
-				yOffsetLine: 11,
-				fontSize: 38
-			}), this.editor.undoBuffer);
-		this.complete();
-	}
-	keydown(ev) {}
+        SmoUndoable.addDynamic(ft, new SmoDynamicText({
+                selector: ft.selector,
+                text: text,
+                yOffsetLine: 11,
+                fontSize: 38
+            }), this.editor.undoBuffer);
+        this.complete();
+    }
+    keydown(ev) {}
 }
 
 class suiKeySignatureMenu extends suiMenuBase {
 
-	constructor(params) {
-		params = (params ? params : {});
-		Vex.Merge(params, suiKeySignatureMenu.defaults);
-		super(params);
-	}
-	static get defaults() {
-		return {
-			menuItems: [{
-					icon: 'key-sig-c',
-					text: 'C Major',
-					value: 'C'
-				}, {
-					icon: 'key-sig-f',
-					text: 'F Major',
-					value: 'F'
-				}, {
-					icon: 'key-sig-g',
-					text: 'G Major',
-					value: 'G'
-				}, {
-					icon: 'key-sig-bb',
-					text: 'Bb Major',
-					value: 'Bb'
-				}, {
-					icon: 'key-sig-d',
-					text: 'D Major',
-					value: 'D'
-				}, {
-					icon: 'key-sig-eb',
-					text: 'Eb Major',
-					value: 'Eb'
-				}, {
-					icon: 'key-sig-a',
-					text: 'A Major',
-					value: 'A'
-				}, {
-					icon: 'key-sig-ab',
-					text: 'Ab Major',
-					value: 'Ab'
-				}, {
-					icon: 'key-sig-e',
-					text: 'E Major',
-					value: 'E'
-				}, {
-					icon: 'key-sig-bd',
-					text: 'Db Major',
-					value: 'Db'
-				}, {
-					icon: 'key-sig-b',
-					text: 'B Major',
-					value: 'B'
-				}, {
-					icon: 'key-sig-fs',
-					text: 'F# Major',
-					value: 'F#'
-				}, {
-					icon: 'key-sig-cs',
-					text: 'C# Major',
-					value: 'C#'
-				}
-			],
-			menuContainer: '.menuContainer'
-		};
-	}
-	selection(ev) {
-		var keySig = $(ev.currentTarget).attr('data-value');
-		var changed = [];
-		this.tracker.selections.forEach((sel) => {
-			if (changed.indexOf(sel.selector.measure) === -1) {
-				changed.push(sel.selector.measure);
-				SmoUndoable.addKeySignature(this.score, sel, keySig, this.editor.undoBuffer);
-			}
-		});
-		this.complete();
-	}
-	keydown(ev) {}
+    constructor(params) {
+        params = (params ? params : {});
+        Vex.Merge(params, suiKeySignatureMenu.defaults);
+        super(params);
+    }
+    static get defaults() {
+        return {
+            menuItems: [{
+                    icon: 'key-sig-c',
+                    text: 'C Major',
+                    value: 'C'
+                }, {
+                    icon: 'key-sig-f',
+                    text: 'F Major',
+                    value: 'F'
+                }, {
+                    icon: 'key-sig-g',
+                    text: 'G Major',
+                    value: 'G'
+                }, {
+                    icon: 'key-sig-bb',
+                    text: 'Bb Major',
+                    value: 'Bb'
+                }, {
+                    icon: 'key-sig-d',
+                    text: 'D Major',
+                    value: 'D'
+                }, {
+                    icon: 'key-sig-eb',
+                    text: 'Eb Major',
+                    value: 'Eb'
+                }, {
+                    icon: 'key-sig-a',
+                    text: 'A Major',
+                    value: 'A'
+                }, {
+                    icon: 'key-sig-ab',
+                    text: 'Ab Major',
+                    value: 'Ab'
+                }, {
+                    icon: 'key-sig-e',
+                    text: 'E Major',
+                    value: 'E'
+                }, {
+                    icon: 'key-sig-bd',
+                    text: 'Db Major',
+                    value: 'Db'
+                }, {
+                    icon: 'key-sig-b',
+                    text: 'B Major',
+                    value: 'B'
+                }, {
+                    icon: 'key-sig-fs',
+                    text: 'F# Major',
+                    value: 'F#'
+                }, {
+                    icon: 'key-sig-cs',
+                    text: 'C# Major',
+                    value: 'C#'
+                }
+            ],
+            menuContainer: '.menuContainer'
+        };
+    }
+    selection(ev) {
+        var keySig = $(ev.currentTarget).attr('data-value');
+        var changed = [];
+        this.tracker.selections.forEach((sel) => {
+            if (changed.indexOf(sel.selector.measure) === -1) {
+                changed.push(sel.selector.measure);
+                SmoUndoable.addKeySignature(this.score, sel, keySig, this.editor.undoBuffer);
+            }
+        });
+        this.complete();
+    }
+    keydown(ev) {}
 
 }
 
 class suiStaffModifierMenu extends suiMenuBase {
 
-	constructor(params) {
-		params = (params ? params : {});
-		Vex.Merge(params, suiStaffModifierMenu.defaults);
-		super(params);
-	}
-	static get defaults() {
-		return {
-			menuItems: [{
-					icon: 'cresc',
-					text: 'Crescendo',
-					value: 'crescendo'
-				}, {
-					icon: 'decresc',
-					text: 'Decrescendo',
-					value: 'decrescendo'
-				}, {
-					icon: 'slur',
-					text: 'Slur/Tie',
-					value: 'slur'
-				}
-			],
-			menuContainer: '.menuContainer'
-		};
-	}
-	selection(ev) {
-		var op = $(ev.currentTarget).attr('data-value');
+    constructor(params) {
+        params = (params ? params : {});
+        Vex.Merge(params, suiStaffModifierMenu.defaults);
+        super(params);
+    }
+    static get defaults() {
+        return {
+            menuItems: [{
+                    icon: 'cresc',
+                    text: 'Crescendo',
+                    value: 'crescendo'
+                }, {
+                    icon: 'decresc',
+                    text: 'Decrescendo',
+                    value: 'decrescendo'
+                }, {
+                    icon: 'slur',
+                    text: 'Slur/Tie',
+                    value: 'slur'
+                }
+            ],
+            menuContainer: '.menuContainer'
+        };
+    }
+    selection(ev) {
+        var op = $(ev.currentTarget).attr('data-value');
 
-		var ft = this.tracker.getExtremeSelection(-1);
-		var tt = this.tracker.getExtremeSelection(1);
-		if (SmoSelector.sameNote(ft.selector, tt.selector)) {
-			this.complete();
-			return;
-		}
+        var ft = this.tracker.getExtremeSelection(-1);
+        var tt = this.tracker.getExtremeSelection(1);
+        if (SmoSelector.sameNote(ft.selector, tt.selector)) {
+            this.complete();
+            return;
+        }
 
-		SmoUndoable[op](ft, tt, this.editor.undoBuffer);
-		this.complete();
-	}
-	keydown(ev) {}
+        SmoUndoable[op](ft, tt, this.editor.undoBuffer);
+        this.complete();
+    }
+    keydown(ev) {}
 }
 
-class SuiAddInstrumentsMenu extends suiMenuBase {
-	constructor(params) {
-		params = (params ? params : {});
-		Vex.Merge(params, SuiAddInstrumentsMenu.defaults);
-		super(params);
-	}
-	static get defaults() {
-		return {
-			menuItems: [{
-					icon: 'treble',
-					text: 'Treble Clef Instrument',
-					value: 'trebleInstrument'
-				}, {
-					icon: 'bass',
-					text: 'Bass Clef Instrument',
-					value: 'bassInstrument'
-				}, {
-					icon: 'alto',
-					text: 'Alto Clef Instrument',
-					value: 'altoInstrument'
-				}
-			],
-			menuContainer: '.menuContainer'
-		};
-	}
+class SuiAddStaffMenu extends suiMenuBase {
+    constructor(params) {
+        params = (params ? params : {});
+        Vex.Merge(params, SuiAddStaffMenu.defaults);
+        super(params);
+    }
+    static get defaults() {
+        return {
+            menuItems: [{
+                    icon: 'treble',
+                    text: 'Treble Clef Staff',
+                    value: 'trebleInstrument'
+                }, {
+                    icon: 'bass',
+                    text: 'Bass Clef Staff',
+                    value: 'bassInstrument'
+                }, {
+                    icon: 'alto',
+                    text: 'Alto Clef Staff',
+                    value: 'altoInstrument'
+                }, {
+                    icon: 'tenor',
+                    text: 'Tenor Clef Staff',
+                    value: 'tenorInstrument'
+                }, {
+                    icon: 'cancel-circle',
+                    text: 'Remove Staff',
+                    value: 'remove'
+                }
+            ],
+            menuContainer: '.menuContainer'
+        };
+    }
+    static get instrumentMap() {
+        return {
+            'trebleInstrument': {
+                instrumentInfo: {
+                    instrumentName: 'Treble Clef Staff',
+                    keyOffset: 0,
+                    clef: 'treble'
+                }
+            },
+            'bassInstrument': {
+                instrumentInfo: {
+                    instrumentName: 'Bass Clef Staff',
+                    keyOffset: 0,
+                    clef: 'bass'
+                }
+            },
+            'altoInstrument': {
+                instrumentInfo: {
+                    instrumentName: 'Alto Clef Staff',
+                    keyOffset: 0,
+                    clef: 'alto'
+                }
+            },
+            'tenorInstrument': {
+                instrumentInfo: {
+                    instrumentName: 'Tenor Clef Staff',
+                    keyOffset: 0,
+                    clef: 'tenor'
+                }
+            },
+            'remove': {
+                instrumentInfo: {
+                    instrumentName: 'Remove clef',
+                    keyOffset: 0,
+                    clef: 'tenor'
+                }
+            }
+        }
 
-	static get instrumentMap() {
-		return {
-			'trebleInstrument': {
-				instrumentInfo: {
-					instrumentName: 'Treble Instrument',
-					keyOffset: 0,
-					clef: 'treble'
-				}
-			},
-			'bassInstrument': {
-				instrumentInfo: {
-					instrumentName: 'Bass Instrument',
-					keyOffset: 0,
-					clef: 'bass'
-				}
-			},
-			'altoInstrument': {
-				instrumentInfo: {
-					instrumentName: 'Treble Instrument',
-					keyOffset: 0,
-					clef: 'treble'
-				}
-			}
-		}
+    }
+    selection(ev) {
+        var op = $(ev.currentTarget).attr('data-value');
+        if (op == 'remove') {
+            if (this.score.staves.length > 1 && this.tracker.selections.length > 0) {
+                SmoUndoable.removeInstrument(this.score, this.tracker.selections[0].selector.staff, this.editor.undoBuffer);
+            }
 
-	}
-	selection(ev) {
-		var op = $(ev.currentTarget).attr('data-value');
-		var instrument = SuiAddInstrumentsMenu.instrumentMap[op];
+        } else {
+            var instrument = SuiAddStaffMenu.instrumentMap[op];
 
-		SmoUndoable.addInstrument(this.score, instrument, this.editor.undoBuffer);
-		this.complete();
-	}
-	keydown(ev) {}
+            SmoUndoable.addInstrument(this.score, instrument, this.editor.undoBuffer);
+        }
+        this.complete();
+    }
+    keydown(ev) {}
 
 }
 ;
@@ -6947,7 +7078,14 @@ class SmoHelp {
                 ],
                 text: 'Toggle note/rest',
                 id: 'noteElements6'
-            }
+            }, {
+                keys: [{
+                        text: 'x'
+                    }
+                ],
+                text: 'Toggle break beam group',
+                id: 'noteElements7'
+            },
         ];
     }
     static get durationElements() {
@@ -7086,12 +7224,21 @@ class SmoHelp {
             }, {
                 keys:
                 [{
+                        text: 's',
+                        separator: ''
+                    }
+                ],
+                text: 'Add/Remove Staff menu',
+                id: 'menuModeElements5'
+            }, {
+                keys:
+                [{
                         text: 'Esc',
                         separator: ''
                     }
                 ],
                 text: 'Cancel slash menu mode',
-                id: 'menuModeElements5'
+                id: 'menuModeElements6'
             }
         ];
     }
@@ -7126,12 +7273,21 @@ class SmoHelp {
             }, {
                 keys:
                 [{
+                        text: 's',
+                        separator: ''
+                    }
+                ],
+                text: 'Add/Remove Staff',
+                id: 'menuModeElements5'
+            },{
+                keys:
+                [{
                         text: 'Esc',
                         separator: ''
                     }
                 ],
                 text: 'Continue Editing',
-                id: 'menuModeElements5'
+                id: 'menuModeElements6'
             }
         ];
     }
@@ -7486,6 +7642,14 @@ class suiController {
 				altKey: false,
 				shiftKey: false,
 				action: "copy"
+			},
+			{
+				event: "keydown",
+				key: "x",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "toggleBeamGroup"
 			},
 			 {
 				event: "keydown",

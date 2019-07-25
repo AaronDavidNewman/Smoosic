@@ -39,6 +39,34 @@ class ChordTest {
 			layout.render();
 			return timeTest();
 		}
+		
+		var preBeamTest = () => {
+			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
+			SmoOperation.halveDuration(selection);
+			selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
+			SmoOperation.halveDuration(selection);
+			selection = SmoSelection.noteSelection(score, 0, 0, 0, 3);
+			SmoOperation.halveDuration(selection);
+			layout.render();
+			return timeTest();
+		}
+		
+		var breakBeamTest = () => {
+			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
+			SmoOperation.toggleBeamGroup(selection);
+			layout.render();
+			return timeTest();			
+		}
+		
+		var undoBeamTest = () => {
+			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
+			SmoOperation.doubleDuration(selection);
+			selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
+			SmoOperation.doubleDuration(selection);
+			layout.render();
+			return timeTest();			
+		}
+		
 		var accidentalTest = () => {
 			var selection = SmoSelection.pitchSelection(score, 0, 0, 0, 1, [0]);
 			subTitle('accidental test');
@@ -278,7 +306,8 @@ class ChordTest {
 			return timeTest();
 		}
 
-		return drawDefaults().then(accidentalTest).then(crescendoTest).then(intervalTest).then(durationTest)
+		return drawDefaults().then(preBeamTest).then(breakBeamTest).then(undoBeamTest)
+		.then(accidentalTest).then(crescendoTest).then(intervalTest).then(durationTest)
 		.then(durationTest2).then(rerenderTest).then(setPitchTest).then(makeTupletTest)
 		.then(unmakeTupletTest).then(courtesyTest).then(accentTest)
 		.then(accentTest2).then(accentTestBelow).then(staccatoTest).then(marcatoTest)
@@ -433,23 +462,26 @@ class UndoTest {
 }
 ;
 class TimeSignatureTest {
-    
+
     static CommonTests() {
-		$('h1.testTitle').text('Time Signature Test');
-		
-		var keys = utController.createUi(document.getElementById("boo"),
-		  SmoScore.getDefaultScore({},{timeSignature:'6/8',clef:'treble'}));
-		var score = keys.score;
-		var layout = keys.layout;
-		var measure = SmoSelection.measureSelection(score,0,0).measure;
-		
-		var detach = () => {
-			keys.detach();
-			keys=null;
-			score=null;
-			layout=null;
-		}
-		
+        $('h1.testTitle').text('Time Signature Test');
+
+        var keys = utController.createUi(document.getElementById("boo"),
+                SmoScore.getDefaultScore({}, {
+                    timeSignature: '6/8',
+                    clef: 'treble'
+                }));
+        var score = keys.score;
+        var layout = keys.layout;
+        var measure = SmoSelection.measureSelection(score, 0, 0).measure;
+
+        var detach = () => {
+            keys.detach();
+            keys = null;
+            score = null;
+            layout = null;
+        }
+
         var timeTest = () => {
             const promise = new Promise((resolve, reject) => {
                     setTimeout(() => {
@@ -459,77 +491,103 @@ class TimeSignatureTest {
                 });
             return promise;
         }
-		var subTitle = (txt) => {
-			$('.subTitle').text(txt);
-		}
-		var signalComplete = () => {
-			detach();
-			subTitle('');
-			return timeTest();
-		}
+        var subTitle = (txt) => {
+            $('.subTitle').text(txt);
+        }
+        var signalComplete = () => {
+            detach();
+            subTitle('');
+            return timeTest();
+        }
 
         var drawDefaults = () => {
             // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
             layout.render();
             return timeTest();
         }
-		
-		var stretchTest = () => {
-			subTitle('stretch 6/8 test');
-			var selection = SmoSelection.noteSelection(score,0,0,0,0);
-			SmoOperation.doubleDuration(selection);
-			var selection = SmoSelection.noteSelection(score,0,0,0,0);
-			SmoOperation.dotDuration(selection);
+
+        var stretchTest = () => {
+            subTitle('stretch 6/8 test');
+            var selection = SmoSelection.noteSelection(score, 0, 0, 0, 0);
+            SmoOperation.doubleDuration(selection);
+            var selection = SmoSelection.noteSelection(score, 0, 0, 0, 0);
+            SmoOperation.dotDuration(selection);
             /* var tickmap = measure.tickmap();
-        var actor = new SmoStretchNoteActor({
-				 startIndex: 0,
-                tickmap: tickmap,
-				newTicks:6144
-			});
+            var actor = new SmoStretchNoteActor({
+            startIndex: 0,
+            tickmap: tickmap,
+            newTicks:6144
+            });
             SmoTickTransformer.applyTransform(measure,actor);   */
             layout.render();
             return timeTest();
-		}
-		
-		var contractTest = () => {
-			subTitle('contract 6/8 test');
-			var selection = SmoSelection.noteSelection(score,0,0,0,0);
-			SmoOperation.halveDuration(selection);
-            /* var tickmap = measure.tickmap();
-            var actor = new SmoContractNoteActor({
-				 startIndex: 0,
-                tickmap: tickmap,
-				newTicks:6144/3
-			});
-            SmoTickTransformer.applyTransform(measure,actor);  */
-            layout.render();
-            return timeTest();
-		}
-		
-        var makeDupletTest = () => {
-			subTitle('duplet 6/8 test');
-			var selection = SmoSelection.noteSelection(score,0,0,0,0);
-			SmoOperation.dotDuration(selection);
-			selection = SmoSelection.noteSelection(score,0,0,0,1);
-			SmoOperation.doubleDuration(selection);
-			selection = SmoSelection.noteSelection(score,0,0,0,1);
-			SmoOperation.dotDuration(selection);
-			
-            /* var tickmap = measure.tickmap();
-            var actor = new SmoMakeTupletActor({
-                    index: 0,
-                    totalTicks: 6144,
-                    numNotes: 2,
-                    measure: measure
-                });
-            SmoTickTransformer.applyTransform(measure,actor);  */
+        }
+
+        var breakBeamTest = () => {
+            subTitle('break beam');
+            var selection = SmoSelection.noteSelection(score, 0, 0, 0, 0);
+            SmoOperation.toggleBeamGroup(selection);
             layout.render();
             return timeTest();
         }
 		
+        var breakBeamTest2 = () => {
+            subTitle('break beam 2');
+            var selection = SmoSelection.noteSelection(score, 0, 0, 0, 0);
+            SmoOperation.toggleBeamGroup(selection);
+			selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
+			SmoOperation.toggleBeamGroup(selection);
+            layout.render();
+            return timeTest();
+        }
 		
-        return drawDefaults().then(stretchTest).then(contractTest).then(makeDupletTest).then(signalComplete);
-		
+		var unbreakBeamTest = () => {
+            subTitle('unbreak beam');
+            var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
+            SmoOperation.toggleBeamGroup(selection);
+            layout.render();
+            return timeTest();
+        }
+
+        var contractTest = () => {
+            subTitle('contract 6/8 test');
+            var selection = SmoSelection.noteSelection(score, 0, 0, 0, 0);
+            SmoOperation.halveDuration(selection);
+            /* var tickmap = measure.tickmap();
+            var actor = new SmoContractNoteActor({
+            startIndex: 0,
+            tickmap: tickmap,
+            newTicks:6144/3
+            });
+            SmoTickTransformer.applyTransform(measure,actor);  */
+            layout.render();
+            return timeTest();
+        }
+
+        var makeDupletTest = () => {
+            subTitle('duplet 6/8 test');
+            var selection = SmoSelection.noteSelection(score, 0, 0, 0, 0);
+            SmoOperation.dotDuration(selection);
+            selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
+            SmoOperation.doubleDuration(selection);
+            selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
+            SmoOperation.dotDuration(selection);
+
+            /* var tickmap = measure.tickmap();
+            var actor = new SmoMakeTupletActor({
+            index: 0,
+            totalTicks: 6144,
+            numNotes: 2,
+            measure: measure
+            });
+            SmoTickTransformer.applyTransform(measure,actor);  */
+            layout.render();
+            return timeTest();
+        }
+
+        return drawDefaults().then(breakBeamTest).then(breakBeamTest2).then(unbreakBeamTest)
+		.then(stretchTest).then(contractTest).then(makeDupletTest).then(signalComplete);
+
     }
 }
 ;
@@ -717,6 +775,22 @@ class TupletTest {
 			console.log(JSON.stringify(score.serialize(), null, ' '));
 			return timeTest();
 		}
+		
+		var breakTupletBarTest = () => {
+			subTitle('make tuplet');
+			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
+			SmoOperation.toggleBeamGroup(selection);
+			layout.render();
+			return timeTest();
+		}
+
+		var unbreakTupletBarTest = () => {
+			subTitle('make tuplet');
+			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
+			SmoOperation.toggleBeamGroup(selection);
+			layout.render();
+			return timeTest();
+		}
 
 		var stretchTupletTest = () => {
 			subTitle('stretch tuplet');
@@ -769,7 +843,8 @@ class TupletTest {
 			return timeTest();
 		}
 
-		return drawDefaults().then(makeTupletTest).then(stretchTupletTest).then(contractTupletTest)
+		return drawDefaults().then(makeTupletTest).then(breakTupletBarTest).then(unbreakTupletBarTest)
+		.then(stretchTupletTest).then(contractTupletTest)
 		.then(stretchTupletTest2).then(contractTupletTest2).then(contractTupletTest3)
 		.then(unmakeTupletTest).then(makeTupletTest2).then(signalComplete);
 	}
