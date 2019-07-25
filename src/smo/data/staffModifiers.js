@@ -1,7 +1,13 @@
 
-// # This file contains modifiers that might take up multiple measures, and are thus associated
+// ## StaffModifiers
+// ## Description:
+// This file contains modifiers that might take up multiple measures, and are thus associated
 // with the staff.
-
+// ## Staff Modifier Classes:
+// ---
+// ## StaffModifierBase
+// ## Description:
+// Base class that mostly standardizes the interface and deals with serialization.
 class StaffModifierBase {
     constructor(ctor) {
         this.ctor = ctor;
@@ -94,6 +100,11 @@ class SmoStaffHairpin extends StaffModifierBase {
     }
 }
 
+// ## SmoSlur
+// ## Description:
+// slur staff modifier
+// ## SmoSlur Methods:
+// ---
 class SmoSlur extends StaffModifierBase {
     static get defaults() {
         return {

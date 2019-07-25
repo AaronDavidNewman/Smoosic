@@ -1,4 +1,9 @@
 
+// ## SmoScore
+// ## Description:
+// The whole score.
+// ## Score methods:
+// ---
 class SmoScore {
     constructor(params) {
         Vex.Merge(this, SmoScore.defaults);
@@ -29,6 +34,8 @@ class SmoScore {
 	static get defaultAttributes() {
 		return ['staffX', 'staffY', 'staffWidth', 'startIndex', 'interGap', 'renumberingMap', 'renumberIndex'];
 	}
+	
+	// ### serialize
 	serialize() {
 		var params={};
 		smoMusic.serializedMerge(SmoScore.defaultAttributes,this,params);

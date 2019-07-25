@@ -69,7 +69,9 @@ class smoMusic {
 		return ix;
 	}
 
-	// ### Get pitch to the right in circle of fifths
+// ## addSharp
+	// ### Description:
+	// Get pitch to the right in circle of fifths
 	static addSharp(smoPitch) {
 		var rv = smoMusic.circleOfFifths[
 			(smoMusic.circleOfFifthsIndex(smoPitch) + 1) % smoMusic.circleOfFifths.length];

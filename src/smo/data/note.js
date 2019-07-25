@@ -1,16 +1,11 @@
-
-
-
-// ##Note on prefixes:
-// SMO == Serializable Music Ontology, stuff I made up
-// vx == VF == Vexflow rendering engine by https://github.com/0xfe
-// Where it makes sense, SMO uses VF conventions, e.g. ticks to store note durations
-// and identifiers for notes and things.
-//
+// ## SmoNote
 // ## Description:
+// Data for a musical note.  THe most-contained-thing, except there can be note modifiers
 // Basic note information.  Leaf node of the SMO dependency tree (so far)
+// ## SmoNote Methods
+// ---
 class SmoNote {
-    // ## Description:
+    // ### Description:
     // see defaults for params format.
     constructor(params) {
         Vex.Merge(this, SmoNote.defaults);
@@ -47,8 +42,9 @@ class SmoNote {
     }
    
 
-    // ## _addModifier
-    // sFz, mp, etc.
+    // ### _addModifier
+	// ### Description
+    // add or remove sFz, mp, etc.
     _addModifier(dynamic, toAdd) {
         var tms = [];
         this.textModifiers.forEach((tm) => {
