@@ -113,9 +113,9 @@ class UndoTest {
 			return timeTest();
 		}
 
-		var addInstrument = () => {
+		var addStaff = () => {
 			subTitle('add instrument');
-			SmoUndoable.addInstrument(score, {
+			SmoUndoable.addStaff(score, {
 				instrumentInfo: {
 					instrumentName: 'Treble Instrument',
 					keyOffset: 0,
@@ -137,7 +137,7 @@ class UndoTest {
 			return timeTest();
 		}
 		return drawDefaults().then(changePitch).then(crescendoTest).then(changePitch2)
-		.then(keySigTest).then(keySigTest2).then(addInstrument)
+		.then(keySigTest).then(keySigTest2).then(addStaff)
 		.then(keySigTest3).then(undoTest).then(undoTest).then(undoTest).then(undoTest).then(undoTest).then(undoTest)
 		.then(undoTest).then(undoTest).then(undoTest).then(undoTest)
 		then(signalComplete);

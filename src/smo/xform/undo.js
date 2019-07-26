@@ -5,9 +5,9 @@
 // undo must implement serialize()/deserialize()
 // ## Buffer format:
 // A buffer is one of 3 things:
-// A single measure,
-// A single staff
-// the whole score.
+// * A single measure,
+// * A single staff
+// * the whole score.
 class UndoBuffer {
     constructor() {
         this.buffer = [];
@@ -20,8 +20,8 @@ class UndoBuffer {
         return ['measure', 'staff', 'score'];
     }
 
-    // ## addBuffer
-    // ## Description:
+    // ### addBuffer
+    // ### Description:
     // Add the current state of the score required to undo the next operation we
     // are about to perform.  For instance, if we are adding a crescendo, we back up the
     // staff the crescendo will go on.
@@ -42,6 +42,9 @@ class UndoBuffer {
         this.buffer.push(undoObj);
     }
 
+    // ### _pop
+    // ### Description:
+    // Internal method to pop the top buffer off the stack.
     _pop() {
 
         if (this.buffer.length < 1)
@@ -86,7 +89,7 @@ class UndoBuffer {
 // ## SmoUndoable
 // ## Description:
 // Convenience functions to save the score state before operations so we can undo the operation.
-// Each undo-able knows which set of parameters the undo operation requires (measure, staff, score). 
+// Each undo-able knows which set of parameters the undo operation requires (measure, staff, score).
 class SmoUndoable {
     static setPitch(selection, pitches, undoBuffer) {
         undoBuffer.addBuffer('pitch change ' + JSON.stringify(pitches, null, ' '),
@@ -121,16 +124,16 @@ class SmoUndoable {
         undoBuffer.addBuffer('dot duration', 'measure', selection.selector, selection.measure);
         SmoOperation.dotDuration(selection);
     }
-	static toggleBeamGroups(selections,undoBuffer) {
-		var measureUndoHash={};
-		selections.forEach((selection)=> {
-			if (!measureUndoHash[selection.selector.measure]) {
-				measureUndoHash[selection.selector.measure]=true;
-				undoBuffer.addBuffer('toggleBeamGroups', 'measure', selection.selector, selection.measure);
-			}
-			SmoOperation.toggleBeamGroup(selection);
-		});
-	}
+    static toggleBeamGroups(selections, undoBuffer) {
+        var measureUndoHash = {};
+        selections.forEach((selection) => {
+            if (!measureUndoHash[selection.selector.measure]) {
+                measureUndoHash[selection.selector.measure] = true;
+                undoBuffer.addBuffer('toggleBeamGroups', 'measure', selection.selector, selection.measure);
+            }
+            SmoOperation.toggleBeamGroup(selection);
+        });
+    }
     static undotDuration(selection, undoBuffer) {
         undoBuffer.addBuffer('undot duration', 'measure', selection.selector, selection.measure);
         SmoOperation.undotDuration(selection);
@@ -145,7 +148,7 @@ class SmoUndoable {
     }
     static addDynamic(selection, dynamic, undoBuffer) {
         undoBuffer.addBuffer('add dynamic', 'measure', selection.selector, selection.measure);
-        SmoOperation.addDynamic(selection,dynamic);
+        SmoOperation.addDynamic(selection, dynamic);
     }
     static interval(selection, interval, undoBuffer) {
         undoBuffer.addBuffer('add interval ' + interval, 'measure', selection.selector, selection.measure);
@@ -167,33 +170,33 @@ class SmoUndoable {
         undoBuffer.addBuffer('addInstrument', 'score', null, score);
         SmoOperation.addInstrument(score);
     }
-	static removeInstrument(score,index,undoBuffer) {
+    static removeInstrument(score, index, undoBuffer) {
         undoBuffer.addBuffer('removeInstrument', 'score', null, score);
-        SmoOperation.removeInstrument(score,index);
-	}
+        SmoOperation.removeInstrument(score, index);
+    }
     static addKeySignature(score, selection, keySignature, undoBuffer) {
         undoBuffer.addBuffer('addKeySignature ' + keySignature, 'score', null, score);
         SmoOperation.addKeySignature(score, selection, keySignature);
     }
-	static addMeasure(score,systemIndex, nmeasure,undoBuffer) {
+    static addMeasure(score, systemIndex, nmeasure, undoBuffer) {
         undoBuffer.addBuffer('add measure', 'score', null, score);
-		SmoOperation.addMeasure(score,systemIndex, nmeasure);
-	}
-	static deleteMeasure(score, selection,undoBuffer) {
+        SmoOperation.addMeasure(score, systemIndex, nmeasure);
+    }
+    static deleteMeasure(score, selection, undoBuffer) {
         undoBuffer.addBuffer('delete measure', 'score', null, score);
-		var measureIndex = selection.selector.measure;		
-		score.deleteMeasure(measureIndex);
-	}
-	static addInstrument(score, parameters,undoBuffer) {
+        var measureIndex = selection.selector.measure;
+        score.deleteMeasure(measureIndex);
+    }
+    static addStaff(score, parameters, undoBuffer) {
         undoBuffer.addBuffer('add instrument', 'score', null, score);
-		SmoOperation.addInstrument(score,parameters);
-	}
-	static removeInstrument(score, index,undoBuffer) {
+        SmoOperation.addStaff(score, parameters);
+    }
+    static removeStaff(score, index, undoBuffer) {
         undoBuffer.addBuffer('remove instrument', 'score', null, score);
-		SmoOperation.removeInstrument(score,index);
-	}
-	static changeInstrument(score,instrument, selections,undoBuffer) {		
-		undoBuffer.addBuffer('changeInstrument', 'staff', selections[0].selector, score);
-		SmoOperation.changeInstrument(score,instrument,selections);
-	}
+        SmoOperation.removeInstrument(score, index);
+    }
+    static changeInstrument(score, instrument, selections, undoBuffer) {
+        undoBuffer.addBuffer('changeInstrument', 'staff', selections[0].selector, score);
+        SmoOperation.changeInstrument(score, instrument, selections);
+    }
 }

@@ -8,7 +8,7 @@ class EditorTest {
         score.addDefaultMeasureWithNotes(2,{});
         score.addDefaultMeasureWithNotes(3,{});
         score.addDefaultMeasureWithNotes(4,{});
-		score.addInstrument();
+		score.addStaff();
 		
 		var keys = suiController.createUi(document.getElementById("boo"),score);
 		keys.layout.render();		

@@ -52,7 +52,7 @@ class ClefTest {
 		
 		var bassClefTest = () => {
 			subTitle('bass clef test');
-			SmoOperation.addInstrument(score,{
+			SmoOperation.addStaff(score,{
 				instrumentInfo: {
                 instrumentName: 'Bass Instrument',
                 keyOffset: 0,
@@ -95,8 +95,8 @@ class ClefTest {
 		var tenorClefTest = () => {
 			subTitle('add cello clef');
 			keys.layout.unrenderAll();
-			SmoOperation.removeInstrument(score,1);
-			SmoOperation.addInstrument(score, {
+			SmoOperation.removeStaff(score,1);
+			SmoOperation.addStaff(score, {
 				instrumentInfo: {
                 instrumentName: 'Cello',
                 keyOffset: 0,
@@ -108,7 +108,7 @@ class ClefTest {
 		
 		var altoClefTest = () => {
 			subTitle('add viola clef');
-			SmoOperation.addInstrument(score, {
+			SmoOperation.addStaff(score, {
 				instrumentInfo: {
                 instrumentName: 'Viola',
                 keyOffset: 0,
@@ -121,8 +121,8 @@ class ClefTest {
 		var baritoneClefTest = () => {
 			subTitle('remove and add clef');
 			keys.layout.unrenderAll();
-			SmoOperation.removeInstrument(score,1);
-			SmoOperation.addInstrument(score, {
+			SmoOperation.removeStaff(score,1);
+			SmoOperation.addStaff(score, {
 				instrumentInfo: {
                 instrumentName: 'Baritone',
                 keyOffset: 0,
@@ -135,8 +135,8 @@ class ClefTest {
 		var baritoneClefTest2 = () => {
 			subTitle('remove and add clef 2');
 			keys.layout.unrenderAll();
-			SmoOperation.removeInstrument(score,1);
-			SmoOperation.addInstrument(score, {
+			SmoOperation.removeStaff(score,1);
+			SmoOperation.addStaff(score, {
 				instrumentInfo: {
                 instrumentName: 'Baritone',
                 keyOffset: 0,
@@ -149,8 +149,8 @@ class ClefTest {
 		var trumpetClefTest = () => {
 			subTitle('clef with instrument in different key');
 			keys.layout.unrenderAll();
-			SmoOperation.removeInstrument(score,1);
-			SmoOperation.addInstrument(score, {
+			SmoOperation.removeStaff(score,1);
+			SmoOperation.addStaff(score, {
 				instrumentInfo: {
                 instrumentName: 'Trumpet',
                 keyOffset: 2,

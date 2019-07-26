@@ -420,7 +420,7 @@ class SuiAddStaffMenu extends suiMenuBase {
         } else {
             var instrument = SuiAddStaffMenu.instrumentMap[op];
 
-            SmoUndoable.addInstrument(this.score, instrument, this.editor.undoBuffer);
+            SmoUndoable.addStaff(this.score, instrument, this.editor.undoBuffer);
         }
         this.complete();
     }

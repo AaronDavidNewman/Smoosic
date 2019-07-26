@@ -287,11 +287,11 @@ class SmoOperation {
 		fromSelection.staff.addStaffModifier(modifier);
 	}
 
-	static addInstrument(score, parameters) {
-		score.addInstrument(parameters);
+	static addStaff(score, parameters) {
+		score.addStaff(parameters);
 	}
-	static removeInstrument(score, index) {
-		score.removeInstrument(index);
+	static removeStaff(score, index) {
+		score.removeStaff(index);
 	}
 	static changeInstrument(score, instrument, selections) {
 		var measureHash = {};

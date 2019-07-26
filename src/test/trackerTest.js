@@ -45,7 +45,7 @@ var subTitle = (txt) => {
 
 		var addInstrument = () => {
 			subTitle('track multiple staves');
-			score.addInstrument();
+			score.addStaff();
 			keys.layout.render();
 			keys.tracker.updateMap();
 			return timeTest();

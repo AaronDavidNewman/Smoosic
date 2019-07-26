@@ -11,7 +11,8 @@ VX = Vex.Xform;
 // ticks used etc.
 
 // ## Usage:
-// VX.ITERATE (actor, notes)
+// `var iterator=new smoTickIterator(measure)
+// `iterator.iterate (actor)`
 // where actor is a function that is called at each tick in the voice.
 // 
 // ## iterator format:
@@ -23,9 +24,10 @@ VX = Vex.Xform;
 //      index: running index
 //
 // ## Tickmap format
-// VX.TICKMAP(notes)
+// `VX.TICKMAP(measure)`
 // Iterate through all notes and creates information about the notes, like
-// tuplet ticks, index-to-tick map.
+// tuplet ticks, index-to-tick map.  The tickmap is useful for finding things out like how much
+// time is left in a measure at a given note index.
 // 
 //     tickmap = {
 //        totalDuration: 16384,
@@ -38,17 +40,7 @@ VX = Vex.Xform;
 //
 //        
 class smoTickIterator {
-	/**
-	  measure looks like:
-	  return {
-            group: group,
-            voice: voice,
-            staff: stave,
-            notes: notes,
-            beams: this.beamGroups,
-            keySignature: this.keySignature
-        };
-    }   **/
+
     constructor(measure,options) {
 		this.notes=measure.notes;
 		this.keySignature = measure.keySignature;
