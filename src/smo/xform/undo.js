@@ -166,6 +166,9 @@ class SmoUndoable {
         undoBuffer.addBuffer('slur', 'staff', fromSelection.selector, fromSelection.staff);
         SmoOperation.slur(fromSelection, toSelection);
     }
+	static noop(score,undoBuffer) {
+        undoBuffer.addBuffer('addInstrument', 'score', null, score);		
+	}
     static addInstrument(score, undoBuffer) {
         undoBuffer.addBuffer('addInstrument', 'score', null, score);
         SmoOperation.addInstrument(score);

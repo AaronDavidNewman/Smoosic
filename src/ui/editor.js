@@ -182,6 +182,12 @@ class suiEditor {
             this._render();
         }
     }
+	rerender(keyEvent) {
+		this.layout.unrenderAll();
+		SmoUndoable.noop(this.score,this.undoBuffer);
+		this.undo();
+		this.layout.render();
+	}
     makeTuplet(keyEvent) {
         var numNotes = parseInt(keyEvent.key);
         this._singleSelectionOperation('makeTuplet', numNotes);

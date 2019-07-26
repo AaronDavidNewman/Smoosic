@@ -169,6 +169,13 @@ class suiController {
 				altKey: false,
 				shiftKey: false,
 				action: "makeRest"
+			},{
+				event: "keydown",
+				key: "r",
+				ctrlKey: true,
+				altKey: false,
+				shiftKey: false,
+				action: "rerender"
 			}, {
 				event: "keydown",
 				key: "3",
