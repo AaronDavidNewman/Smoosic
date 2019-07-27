@@ -1,468 +1,505 @@
 
 VF = Vex.Flow;
 Vex.Xform = (typeof(Vex.Xform) == 'undefined' ? {}
-	 : Vex.Xform);
+     : Vex.Xform);
 VX = Vex.Xform;
 
-/**
- * Build on the VX music theory routines, and other
- * Utilities I wish were in VF.Music but aren't
- **/
+// ## smoMusic
+// Helper functions that build on the VX music theory routines, and other
+// utilities I wish were in VF.Music but aren't
+// ### Note on pitch and duration format
+// We use some VEX music theory routines and frequently need to convert
+// formats from SMO format.
+//
+// `Smo` uses pitch JSON:
+// ``javascript``
+//  {note:'c',accidental:'#',octave:4}
+// `Vex` usually uses a canonical string:
+//  'c#/4'
+//  Depending on the operation, the octave might be omitted
+//
+// `Smo` uses a JSON for duration always:
+// ``javascript``
+// {numerator:4096,denominator:1,remainder:0}
+//
+// `VexFlow` uses a letter duration ('4' for 1/4 note) and 'd' for dot.
+// I try to indicate whether I am using vex or smo notation
+// ## smoMusic static methods:
+// ---
 class smoMusic {
 
-	// return Vex canonical note enharmonic - e.g. Bb to A#
-	// Get the canonical form
-	static vexToCannonical(vexKey) {
-		vexKey=smoMusic.stripVexOctave(vexKey);
-		return VF.Music.canonical_notes[VF.Music.noteValues[vexKey].int_val];
-	}
+    // ### vexToCannonical
+    // return Vex canonical note enharmonic - e.g. Bb to A#
+    // Get the canonical form
+    static vexToCannonical(vexKey) {
+        vexKey = smoMusic.stripVexOctave(vexKey);
+        return VF.Music.canonical_notes[VF.Music.noteValues[vexKey].int_val];
+    }
 
-	static get circleOfFifths() {
-		return [{
-				letter: 'c',
-				accidental: 'n'
-			}, {
-				letter: 'g',
-				accidental: 'n'
-			}, {
-				letter: 'd',
-				accidental: 'n'
-			}, {
-				letter: 'a',
-				accidental: 'n'
-			}, {
-				letter: 'e',
-				accidental: 'n'
-			}, {
-				letter: 'b',
-				accidental: 'n'
-			}, {
-				letter: 'f',
-				accidental: '#'
-			}, {
-				letter: 'c',
-				accidental: '#'
-			}, {
-				letter: 'a',
-				accidental: 'b'
-			}, {
-				letter: 'e',
-				accidental: 'b'
-			}, {
-				letter: 'b',
-				accidental: 'b'
-			}, {
-				letter: 'f',
-				accidental: 'n'
-			}
-		];
-	}
+    // ### circleOfFifths
+    // A note array in key-signature order
+    static get circleOfFifths() {
+        return [{
+                letter: 'c',
+                accidental: 'n'
+            }, {
+                letter: 'g',
+                accidental: 'n'
+            }, {
+                letter: 'd',
+                accidental: 'n'
+            }, {
+                letter: 'a',
+                accidental: 'n'
+            }, {
+                letter: 'e',
+                accidental: 'n'
+            }, {
+                letter: 'b',
+                accidental: 'n'
+            }, {
+                letter: 'f',
+                accidental: '#'
+            }, {
+                letter: 'c',
+                accidental: '#'
+            }, {
+                letter: 'a',
+                accidental: 'b'
+            }, {
+                letter: 'e',
+                accidental: 'b'
+            }, {
+                letter: 'b',
+                accidental: 'b'
+            }, {
+                letter: 'f',
+                accidental: 'n'
+            }
+        ];
+    }
 
-	static circleOfFifthsIndex(smoPitch) {
-		var en1 = smoMusic.vexToSmoPitch(smoMusic.getEnharmonic(smoMusic.pitchToVexKey(smoPitch)));
-		var en2 = smoMusic.vexToSmoPitch(smoMusic.getEnharmonic(smoMusic.getEnharmonic(smoMusic.pitchToVexKey(smoPitch))));
-		var ix = smoMusic.circleOfFifths.findIndex((el) => {
-				return (el.letter === smoPitch.letter && el.accidental == smoPitch.accidental) ||
-				(el.letter == en1.letter && el.accidental == en1.accidental) ||
-				(el.letter == en2.letter && el.accidental == en2.accidental);
-			});
-		return ix;
-	}
+    // ### circleOfFifthsIndex
+    // gives the index into circle-of-fifths array for a pitch, considering enharmonics.
+    static circleOfFifthsIndex(smoPitch) {
+        var en1 = smoMusic.vexToSmoPitch(smoMusic.getEnharmonic(smoMusic.pitchToVexKey(smoPitch)));
+        var en2 = smoMusic.vexToSmoPitch(smoMusic.getEnharmonic(smoMusic.getEnharmonic(smoMusic.pitchToVexKey(smoPitch))));
+        var ix = smoMusic.circleOfFifths.findIndex((el) => {
+                return (el.letter === smoPitch.letter && el.accidental == smoPitch.accidental) ||
+                (el.letter == en1.letter && el.accidental == en1.accidental) ||
+                (el.letter == en2.letter && el.accidental == en2.accidental);
+            });
+        return ix;
+    }
 
-// ## addSharp
-	// ### Description:
-	// Get pitch to the right in circle of fifths
-	static addSharp(smoPitch) {
-		var rv = smoMusic.circleOfFifths[
-			(smoMusic.circleOfFifthsIndex(smoPitch) + 1) % smoMusic.circleOfFifths.length];
-		rv = JSON.parse(JSON.stringify(rv));
-		rv.octave=smoPitch.octave;
-		return rv;
-	}
-	// ### Get pitch to the left in circle of fifths
-	static addFlat(smoPitch) {
-		var rv = smoMusic.circleOfFifths[
-			((smoMusic.circleOfFifths.length - 1) + smoMusic.circleOfFifthsIndex(smoPitch)) % smoMusic.circleOfFifths.length];
-		rv = JSON.parse(JSON.stringify(rv));
-		rv.octave=smoPitch.octave;
-		return rv;
-	}
-	static addSharps(smoPitch, distance) {
-		if (distance == 0) {
-			return JSON.parse(JSON.stringify(smoPitch));
-		}
-		var rv = smoMusic.addSharp(smoPitch);
-		for (var i = 1; i < distance; ++i) {
-			rv = smoMusic.addSharp(rv);
-		}
-		var octaveAdj= smoMusic.letterPitchIndex[smoPitch.letter] > smoMusic.letterPitchIndex[rv.letter] ? 1 : 0;
-		rv.octave += octaveAdj;
-		return rv;
-	}
+    // ### addSharp
+    // Get pitch to the right in circle of fifths
+    static addSharp(smoPitch) {
+        var rv = smoMusic.circleOfFifths[
+                (smoMusic.circleOfFifthsIndex(smoPitch) + 1) % smoMusic.circleOfFifths.length];
+        rv = JSON.parse(JSON.stringify(rv));
+        rv.octave = smoPitch.octave;
+        return rv;
+    }
 
-	static addFlats(smoPitch, distance) {
-		if (distance == 0) {
-			return JSON.parse(JSON.stringify(smoPitch));
-		}
-		var rv = smoMusic.addFlat(smoPitch);
-		for (var i = 1; i < distance; ++i) {
-			rv = smoMusic.addFlat(rv);
-		}
-		var octaveAdj= smoMusic.letterPitchIndex[smoPitch.letter] > smoMusic.letterPitchIndex[rv.letter] ? 1 : 0;
-		rv.octave += octaveAdj;
-		return rv;
-	}
+    // ### addFlat
+    // Get pitch to the left in circle of fifths
+    static addFlat(smoPitch) {
+        var rv = smoMusic.circleOfFifths[
+                ((smoMusic.circleOfFifths.length - 1) + smoMusic.circleOfFifthsIndex(smoPitch)) % smoMusic.circleOfFifths.length];
+        rv = JSON.parse(JSON.stringify(rv));
+        rv.octave = smoPitch.octave;
+        return rv;
+    }
 
-	static smoPitchesToVexKeys(pitchAr, keyOffset) {
-		var noopFunc = keyOffset > 0 ? 'addSharps' : 'addFlats';
+    // ### addSharps
+    // Add *distance* sharps/flats to given key
+    static addSharps(smoPitch, distance) {
+        if (distance == 0) {
+            return JSON.parse(JSON.stringify(smoPitch));
+        }
+        var rv = smoMusic.addSharp(smoPitch);
+        for (var i = 1; i < distance; ++i) {
+            rv = smoMusic.addSharp(rv);
+        }
+        var octaveAdj = smoMusic.letterPitchIndex[smoPitch.letter] > smoMusic.letterPitchIndex[rv.letter] ? 1 : 0;
+        rv.octave += octaveAdj;
+        return rv;
+    }
 
-		var rv = [];
-		pitchAr.forEach((pitch) => {
-			rv.push(smoMusic.pitchToVexKey(smoMusic[noopFunc](pitch, keyOffset)));
-		});
-		return rv;
-	}
-	
-	static vexKeySignatureTranspose(key,transposeIndex) {
-		var key = smoMusic.vexToSmoPitch(key);
-		key=smoMusic.smoPitchesToVexKeys([key],transposeIndex)[0];
-		key=smoMusic.stripVexOctave(key);
-		key = key[0].toUpperCase()+key.substring(1,key.length);
-		if (key.length > 1 && key[1]==='n') {
-			key = key[0];
-		}
-		return key;
-	}
+    // ### addFlats
+    // Add *distance* sharps/flats to given key
+    static addFlats(smoPitch, distance) {
+        if (distance == 0) {
+            return JSON.parse(JSON.stringify(smoPitch));
+        }
+        var rv = smoMusic.addFlat(smoPitch);
+        for (var i = 1; i < distance; ++i) {
+            rv = smoMusic.addFlat(rv);
+        }
+        var octaveAdj = smoMusic.letterPitchIndex[smoPitch.letter] > smoMusic.letterPitchIndex[rv.letter] ? 1 : 0;
+        rv.octave += octaveAdj;
+        return rv;
+    }
 
-	// pitches are measured from c, so that b0 is higher than c0, c1 is 1 note higher etc.
-	static get letterPitchIndex() {
-		return {
-			'c': 0,
-			'd': 1,
-			'e': 2,
-			'f': 3,
-			'g': 4,
-			'a': 5,
-			'b': 6
-		};
-	}
-	// ## Example:
-	// 'f#' => {letter:'f',accidental:'#'}
-	static vexToSmoPitch(vexPitch) {
-		var accidental = vexPitch.length < 2 ? 'n' : vexPitch.substring(1, vexPitch.length);
-		return {
-			letter: vexPitch[0].toLowerCase(),
-			accidental: accidental
-		};
-	}
-	
-	static stripVexOctave(vexKey) {
-		if (vexKey.indexOf('/') > 0) {
-			vexKey = vexKey.substring(0,vexKey.indexOf('/'))
-		}
-		return vexKey;
-	}
+    // ### smoPitchesToVexKeys
+    // Transpose and convert from SMO to VEX format so we can use the VexFlow tables and methods
+    static smoPitchesToVexKeys(pitchAr, keyOffset) {
+        var noopFunc = keyOffset > 0 ? 'addSharps' : 'addFlats';
 
-	// convert {letter,octave,accidental} object to vexKey string ('f#'
-	static pitchToVexKey(smoPitch) {
-		// Convert to vex keys, where f# is a string like 'f#'.
-		var vexKey = smoPitch.letter.toLowerCase();
-		if (smoPitch.accidental.length === 0) {
-			vexKey = vexKey + 'n';
-		} else {
-			vexKey = vexKey + smoPitch.accidental;
-		}
-		if (smoPitch['octave']) {
-			vexKey = vexKey+'/'+smoPitch.octave;
-		}
-		return vexKey;
-	}
+        var rv = [];
+        pitchAr.forEach((pitch) => {
+            rv.push(smoMusic.pitchToVexKey(smoMusic[noopFunc](pitch, keyOffset)));
+        });
+        return rv;
+    }
 
-	// ## getKeyOffset
-	// ## Description:  given a vex noteProp and an offset, offset that number
-	// of 1/2 steps.
-	// ### Input:  smoPitch
-	// ### Output:  smoPitch offset, not key-adjusted.
-	static getKeyOffset(pitch, offset) {
-		var canon = VF.Music.canonical_notes;
+    static vexKeySignatureTranspose(key, transposeIndex) {
+        var key = smoMusic.vexToSmoPitch(key);
+        key = smoMusic.smoPitchesToVexKeys([key], transposeIndex)[0];
+        key = smoMusic.stripVexOctave(key);
+        key = key[0].toUpperCase() + key.substring(1, key.length);
+        if (key.length > 1 && key[1] === 'n') {
+            key = key[0];
+        }
+        return key;
+    }
 
-		// Convert to vex keys, where f# is a string like 'f#'.
-		var vexKey = smoMusic.pitchToVexKey(pitch);
-		vexKey = smoMusic.vexToCannonical(vexKey);
-		var rootIndex = canon.indexOf(vexKey);
-		var index = (rootIndex + canon.length + offset) % canon.length;
-		var octave = pitch.octave;
-		if (Math.abs(offset) >= 12) {
-			var octaveOffset = Math.sign(offset) * Math.round(Math.abs(offset) / 12);
-			octave += octaveOffset;
-			offset = offset % 12;
-		}
-		if (rootIndex + offset >= canon.length) {
-			octave += 1;
-		}
-		if (rootIndex + offset < 0) {
-			octave -= 1;
-		}
-		var rv = JSON.parse(JSON.stringify(pitch));
-		vexKey = canon[index];
-		if (vexKey.length > 1) {
-			rv.accidental = vexKey.substring(1);
-			vexKey = vexKey[0];
-		} else {
-			rv.accidental = '';
-		}
-		rv.letter = vexKey;
-		rv.octave = octave;
-		return rv;
-	}
+    // ### get letterPitchIndex
+    // Used to adjust octave when transposing.
+    // Pitches are measured from c, so that b0 is higher than c0, c1 is 1 note higher etc.
+    static get letterPitchIndex() {
+        return {
+            'c': 0,
+            'd': 1,
+            'e': 2,
+            'f': 3,
+            'g': 4,
+            'a': 5,
+            'b': 6
+        };
+    }
 
-	// ## keySignatureLength
-	// ## Description:
-	// return the number of sharp/flat in a key signature for sizing guess.
-	static get keySignatureLength() {
-		return {
-			'C': 0,
-			'B': 5,
-			'A': 3,
-			'F#': 6,
-			'Bb': 2,
-			'Ab': 4,
-			'Gg': 6,
-			'G': 1,
-			'F': 1,
-			'Eb': 3,
-			'Db': 5,
-			'Cb': 7,
-			'C#': 7,
-			'F#': 6,
-			'E': 4,
-			'D': 2
-		};
-	}
+    // ### vexToSmoPitch
+    // #### Example:
+    // 'f#' => {letter:'f',accidental:'#'}
+    static vexToSmoPitch(vexPitch) {
+        var accidental = vexPitch.length < 2 ? 'n' : vexPitch.substring(1, vexPitch.length);
+        return {
+            letter: vexPitch[0].toLowerCase(),
+            accidental: accidental
+        };
+    }
 
-	// ## closestVexDuration
-	// ## Description:
-	// return the closest vex duration >= to the actual number of ticks. Used in beaming
-	// triplets which have fewer ticks then their stem would normally indicate.
-	static closestVexDuration(ticks) {
-		var stemTicks = VF.RESOLUTION;
+    static stripVexOctave(vexKey) {
+        if (vexKey.indexOf('/') > 0) {
+            vexKey = vexKey.substring(0, vexKey.indexOf('/'))
+        }
+        return vexKey;
+    }
 
-		// The stem value is the type on the non-tuplet note, e.g. 1/8 note
-		// for a triplet.
-		while (ticks <= stemTicks) {
-			stemTicks = stemTicks / 2;
-		}
+    // ### pitchToVexKey
+    // convert from SMO to VEX format so we can use the VexFlow tables and methods
+    // example:
+    // 	`{letter,octave,accidental}` object to vexKey string `'f#'`
+    static pitchToVexKey(smoPitch) {
+        // Convert to vex keys, where f# is a string like 'f#'.
+        var vexKey = smoPitch.letter.toLowerCase();
+        if (smoPitch.accidental.length === 0) {
+            vexKey = vexKey + 'n';
+        } else {
+            vexKey = vexKey + smoPitch.accidental;
+        }
+        if (smoPitch['octave']) {
+            vexKey = vexKey + '/' + smoPitch.octave;
+        }
+        return vexKey;
+    }
 
-		stemTicks = stemTicks * 2;
-		return smoMusic.ticksToDuration[stemTicks];
-		var ix = Object.keys(smoMusic.ticksToDuration).findIndex((x) => {
-				return x >= ticks
-			});
-		return smoMusic.ticksToDuration[durations[ix]];
-	}
+    // ### getKeyOffset
+    // Given a vex noteProp and an offset, offset that number
+    // of 1/2 steps.
+    // #### Input:  smoPitch
+    // #### Output:  smoPitch offset, not key-adjusted.
+    static getKeyOffset(pitch, offset) {
+        var canon = VF.Music.canonical_notes;
 
-	// ### getKeySignatureKey
-	// ### Description:
-	// given a letter pitch (a,b,c etc.), and a key signature, return the actual note
-	// that you get without accidentals
-	// ### Usage:
-	//   smoMusic.getKeySignatureKey('F','G'); // returns f#
-	// TODO: move to smoPitch
-	static getKeySignatureKey(letter, keySignature) {
-		var km = new VF.KeyManager(keySignature);
-		return km.scaleMap[letter];
-	}
+        // Convert to vex keys, where f# is a string like 'f#'.
+        var vexKey = smoMusic.pitchToVexKey(pitch);
+        vexKey = smoMusic.vexToCannonical(vexKey);
+        var rootIndex = canon.indexOf(vexKey);
+        var index = (rootIndex + canon.length + offset) % canon.length;
+        var octave = pitch.octave;
+        if (Math.abs(offset) >= 12) {
+            var octaveOffset = Math.sign(offset) * Math.round(Math.abs(offset) / 12);
+            octave += octaveOffset;
+            offset = offset % 12;
+        }
+        if (rootIndex + offset >= canon.length) {
+            octave += 1;
+        }
+        if (rootIndex + offset < 0) {
+            octave -= 1;
+        }
+        var rv = JSON.parse(JSON.stringify(pitch));
+        vexKey = canon[index];
+        if (vexKey.length > 1) {
+            rv.accidental = vexKey.substring(1);
+            vexKey = vexKey[0];
+        } else {
+            rv.accidental = '';
+        }
+        rv.letter = vexKey;
+        rv.octave = octave;
+        return rv;
+    }
 
-	// ### Description:
-	// Get ticks for this note with an added dot.  Return
-	// identity if that is not a supported value.
-	static getNextDottedLevel(ticks) {
-		var ttd = smoMusic.ticksToDuration;
-		var vals = Object.values(ttd);
+    // ### keySignatureLength
+    // return the number of sharp/flat in a key signature for sizing guess.
+    static get keySignatureLength() {
+        return {
+            'C': 0,
+            'B': 5,
+            'A': 3,
+            'F#': 6,
+            'Bb': 2,
+            'Ab': 4,
+            'Gg': 6,
+            'G': 1,
+            'F': 1,
+            'Eb': 3,
+            'Db': 5,
+            'Cb': 7,
+            'C#': 7,
+            'F#': 6,
+            'E': 4,
+            'D': 2
+        };
+    }
 
-		var ix = vals.indexOf(ttd[ticks]);
-		if (ix >= 0 && ix < vals.length && vals[ix][0] == vals[ix + 1][0]) {
-			return smoMusic.durationToTicks(vals[ix + 1]);
-		}
-		return ticks;
-	}
+    // ## closestVexDuration
+    // ## Description:
+    // return the closest vex duration >= to the actual number of ticks. Used in beaming
+    // triplets which have fewer ticks then their stem would normally indicate.
+    static closestVexDuration(ticks) {
+        var stemTicks = VF.RESOLUTION;
 
-	// ### Description:
-	// Get ticks for this note with one fewer dot.  Return
-	// identity if that is not a supported value.
-	static getPreviousDottedLevel(ticks) {
-		var ttd = smoMusic.ticksToDuration;
-		var vals = Object.values(ttd);
-		var ix = vals.indexOf(ttd[ticks]);
-		if (ix > 0 && vals[ix][0] == vals[ix - 1][0]) {
-			return smoMusic.durationToTicks(vals[ix - 1]);
-		}
-		return ticks;
-	}
+        // The stem value is the type on the non-tuplet note, e.g. 1/8 note
+        // for a triplet.
+        while (ticks <= stemTicks) {
+            stemTicks = stemTicks / 2;
+        }
 
-	// ### ticksToDuration
-	// ### Description:
-	// Frequently we double/halve a note duration, and we want to find the vex tick duration that goes with that.
-	static get ticksToDuration() {
-		var durations = ["1/2", "1", "2", "4", "8", "16", "32", "64", "128", "256"];
-		var ticksToDuration = {};
-		var _ticksToDurations = function () {
-			for (var i = 0; i < durations.length - 1; ++i) {
-				var dots = '';
-				var ticks = 0;
+        stemTicks = stemTicks * 2;
+        return smoMusic.ticksToDuration[stemTicks];
+        var ix = Object.keys(smoMusic.ticksToDuration).findIndex((x) => {
+                return x >= ticks
+            });
+        return smoMusic.ticksToDuration[durations[ix]];
+    }
 
-				// We support up to 4 'dots'
-				for (var j = 0; j < 4 && j + i < durations.length; ++j) {
-					ticks += VF.durationToTicks.durations[durations[i + j]];
-					ticksToDuration[ticks.toString()] = durations[i] + dots;
-					dots += 'd'
-				}
-			}
-			return ticksToDuration;
-		}
-		_ticksToDurations();
-		return ticksToDuration;
-	};
+    // ### getKeySignatureKey
+    // given a letter pitch (a,b,c etc.), and a key signature, return the actual note
+    // that you get without accidentals
+    // ### Usage:
+    //   smoMusic.getKeySignatureKey('F','G'); // returns f#
+    static getKeySignatureKey(letter, keySignature) {
+        var km = new VF.KeyManager(keySignature);
+        return km.scaleMap[letter];
+    }
 
-	// ## durationToTicks
-	// Uses VF.durationToTicks, but handles dots.
-	static durationToTicks(duration) {
-		var dots = duration.indexOf('d');
-		if (dots < 0) {
-			return VF.durationToTicks(duration);
-		} else {
-			var vfDuration = VF.durationToTicks(duration.substring(0, dots));
-			dots = duration.length - dots; // number of dots
-			var split = vfDuration / 2;
-			for (var i = 0; i < dots; ++i) {
-				vfDuration += split;
-				split = split / 2;
-			}
+    // ### Description:
+    // Get ticks for this note with an added dot.  Return
+    // identity if that is not a supported value.
+    static getNextDottedLevel(ticks) {
+        var ttd = smoMusic.ticksToDuration;
+        var vals = Object.values(ttd);
 
-			return vfDuration;
-		}
-	}
+        var ix = vals.indexOf(ttd[ticks]);
+        if (ix >= 0 && ix < vals.length && vals[ix][0] == vals[ix + 1][0]) {
+            return smoMusic.durationToTicks(vals[ix + 1]);
+        }
+        return ticks;
+    }
 
-	// ## enharmonics
-	// ## Description:
-	// return a map of enharmonics for choosing.  notes are in vexKey form.
-	static get enharmonics() {
-		var rv = {};
-		var keys = Object.keys(VF.Music.noteValues);
-		for (var i = 0; i < keys.length; ++i) {
-			var key = keys[i];
-			var int_val = VF.Music.noteValues[key].int_val;
-			if (typeof(rv[int_val.toString()]) == 'undefined') {
-				rv[int_val.toString()] = [];
-			}
-			// only consider natural note 1 time.  It is in the list twice for some reason.
-			if (key.indexOf('n') == -1) {
-				rv[int_val.toString()].push(key);
-			}
-		}
-		return rv;
-	}
+    // ### Description:
+    // Get ticks for this note with one fewer dot.  Return
+    // identity if that is not a supported value.
+    static getPreviousDottedLevel(ticks) {
+        var ttd = smoMusic.ticksToDuration;
+        var vals = Object.values(ttd);
+        var ix = vals.indexOf(ttd[ticks]);
+        if (ix > 0 && vals[ix][0] == vals[ix - 1][0]) {
+            return smoMusic.durationToTicks(vals[ix - 1]);
+        }
+        return ticks;
+    }
 
-	// ### getEnharmonic(noteProp)
-	// ###   cycle through the enharmonics for a note.
-	static getEnharmonic(vexKey) {
-		vexKey=smoMusic.stripVexOctave(vexKey);
-		var intVal = VF.Music.noteValues[vexKey.toLowerCase()].int_val;
-		var ar = smoMusic.enharmonics[intVal.toString()];
-		var len = ar.length;
-		var ix = ar.indexOf(vexKey);
-		vexKey = ar[(ix + 1) % len];
-		return vexKey;
-	}
-	// ## getKeyFriendlyEnharmonic
-	// ### Description:
-	// fix the enharmonic to match the key, if possible
-	// ## Usage:
-	// getKeyFriendlyEnharmonic('b','eb');  // returns 'bb'
-	static getKeyFriendlyEnharmonic(letter, keySignature) {
-		var rv = letter;
-		var muse = new VF.Music();
-		var scale = Object.values(muse.createScaleMap(keySignature));
-		var prop = smoMusic.getEnharmonic(letter.toLowerCase());
-		while (prop.toLowerCase() != letter.toLowerCase()) {
-			for (var i = 0; i < scale.length; ++i) {
-				var skey = scale[i];
-				if ((skey[0] == prop && skey[1] == 'n') ||
-					(skey.toLowerCase() == prop.toLowerCase())) {
-					rv = skey;
-					break;
-				}
-			}
-			prop = (prop[1] == 'n' ? prop[0] : prop);
-			prop = smoMusic.getEnharmonic(prop);
-		}
-		return rv;
-	}
+    // ### ticksToDuration
+    // Frequently we double/halve a note duration, and we want to find the vex tick duration that goes with that.
+    static get ticksToDuration() {
+        var durations = ["1/2", "1", "2", "4", "8", "16", "32", "64", "128", "256"];
+        var ticksToDuration = {};
+        var _ticksToDurations = function () {
+            for (var i = 0; i < durations.length - 1; ++i) {
+                var dots = '';
+                var ticks = 0;
 
-	// ## getIntervalInKey
-	// ## Description:
-	// give a pitch and a key signature, return another pitch at the given
-	// diatonic interval.  Similar to getKeyOffset but diatonic.
-	static getIntervalInKey(pitch, keySignature, interval) {
-		var muse = new VF.Music();
-		var letter = pitch.letter;
-		var scale = Object.values(muse.createScaleMap(keySignature));
+                // We support up to 4 'dots'
+                for (var j = 0; j < 4 && j + i < durations.length; ++j) {
+                    ticks += VF.durationToTicks.durations[durations[i + j]];
+                    ticksToDuration[ticks.toString()] = durations[i] + dots;
+                    dots += 'd'
+                }
+            }
+            return ticksToDuration;
+        }
+        _ticksToDurations();
+        return ticksToDuration;
+    };
 
-		var up = interval > 0 ? true : false;
-		var interval = interval < 0 ? scale.length - (interval * -1) : interval;
+    // ### durationToTicks
+    // Uses VF.durationToTicks, but handles dots.
+    static durationToTicks(duration) {
+        var dots = duration.indexOf('d');
+        if (dots < 0) {
+            return VF.durationToTicks(duration);
+        } else {
+            var vfDuration = VF.durationToTicks(duration.substring(0, dots));
+            dots = duration.length - dots; // number of dots
+            var split = vfDuration / 2;
+            for (var i = 0; i < dots; ++i) {
+                vfDuration += split;
+                split = split / 2;
+            }
 
-		var ix = scale.findIndex((x) => {
-				return x[0] == letter[0];
-			});
-		if (ix >= 0) {
-			var nletter = scale[(ix + interval) % scale.length];
-			var nkey = {
-				letter: nletter[0],
-				accidental: nletter[1],
-				octave: pitch.octave
-			};
-			if (up) {
-				nkey.octave += 1;
-			}
-			return nkey;
-		}
-		return letter;
-	}
+            return vfDuration;
+        }
+    }
 
-	static filteredMerge(attrs, src, dest) {
-		attrs.forEach(function (attr) {
-			if (typeof(src[attr]) != 'undefined') {
-				dest[attr] = src[attr];
-			}
-		});
-	}
-	// ## serialization-friendly, so merged, copied objects are deep-copied
-	static serializedMerge(attrs, src, dest) {
-		attrs.forEach(function (attr) {
-			if (src[attr]) {
-				if (typeof(src[attr]) == 'object') {
-					dest[attr] = JSON.parse(JSON.stringify(src[attr]));
-				} else {
-					dest[attr] = src[attr];
-				}
-			}
-		});
-	}
-	
-	static stringifyAttrs(attrs,obj) {
-		var rv='';
-		attrs.forEach((attr) => {
-			if (obj[attr]) {
-				rv += attr + ':' + obj[attr] + ', ';
-			} else {
-				rv += attr + ': null,';
-			}
-		});
-		return rv;
-	}
+    // ### get enharmonics
+    // return a map of enharmonics for choosing or cycling.  notes are in vexKey form.
+    static get enharmonics() {
+        var rv = {};
+        var keys = Object.keys(VF.Music.noteValues);
+        for (var i = 0; i < keys.length; ++i) {
+            var key = keys[i];
+            var int_val = VF.Music.noteValues[key].int_val;
+            if (typeof(rv[int_val.toString()]) == 'undefined') {
+                rv[int_val.toString()] = [];
+            }
+            // only consider natural note 1 time.  It is in the list twice for some reason.
+            if (key.indexOf('n') == -1) {
+                rv[int_val.toString()].push(key);
+            }
+        }
+        return rv;
+    }
+
+    // ### getEnharmonic(noteProp)
+    // cycle through the enharmonics for a note.
+    static getEnharmonic(vexKey) {
+        vexKey = smoMusic.stripVexOctave(vexKey);
+        var intVal = VF.Music.noteValues[vexKey.toLowerCase()].int_val;
+        var ar = smoMusic.enharmonics[intVal.toString()];
+        var len = ar.length;
+        var ix = ar.indexOf(vexKey);
+        vexKey = ar[(ix + 1) % len];
+        return vexKey;
+    }
+    // ### getKeyFriendlyEnharmonic
+    // fix the enharmonic to match the key, if possible
+    // `getKeyFriendlyEnharmonic('b','eb');  => returns 'bb'
+    static getKeyFriendlyEnharmonic(letter, keySignature) {
+        var rv = letter;
+        var muse = new VF.Music();
+        var scale = Object.values(muse.createScaleMap(keySignature));
+        var prop = smoMusic.getEnharmonic(letter.toLowerCase());
+        while (prop.toLowerCase() != letter.toLowerCase()) {
+            for (var i = 0; i < scale.length; ++i) {
+                var skey = scale[i];
+                if ((skey[0] == prop && skey[1] == 'n') ||
+                    (skey.toLowerCase() == prop.toLowerCase())) {
+                    rv = skey;
+                    break;
+                }
+            }
+            prop = (prop[1] == 'n' ? prop[0] : prop);
+            prop = smoMusic.getEnharmonic(prop);
+        }
+        return rv;
+    }
+
+    // ### getIntervalInKey
+    // give a pitch and a key signature, return another pitch at the given
+    // diatonic interval.  Similar to getKeyOffset but diatonic.
+    static getIntervalInKey(pitch, keySignature, interval) {
+        var muse = new VF.Music();
+        var letter = pitch.letter;
+        var scale = Object.values(muse.createScaleMap(keySignature));
+
+        var up = interval > 0 ? true : false;
+        var interval = interval < 0 ? scale.length - (interval * -1) : interval;
+
+        var ix = scale.findIndex((x) => {
+                return x[0] == letter[0];
+            });
+        if (ix >= 0) {
+            var nletter = scale[(ix + interval) % scale.length];
+            var nkey = {
+                letter: nletter[0],
+                accidental: nletter[1],
+                octave: pitch.octave
+            };
+            if (up) {
+                nkey.octave += 1;
+            }
+            return nkey;
+        }
+        return letter;
+    }
+
+    // ### filteredMerge
+    // Like vexMerge, but only for specific attributes.
+    static filteredMerge(attrs, src, dest) {
+        attrs.forEach(function (attr) {
+            if (typeof(src[attr]) != 'undefined') {
+                dest[attr] = src[attr];
+            }
+        });
+    }
+    // ### serializedMerge
+    // serialization-friendly, so merged, copied objects are deep-copied
+    static serializedMerge(attrs, src, dest) {
+        attrs.forEach(function (attr) {
+            if (src[attr]) {
+                if (typeof(src[attr]) == 'object') {
+                    dest[attr] = JSON.parse(JSON.stringify(src[attr]));
+                } else {
+                    dest[attr] = src[attr];
+                }
+            }
+        });
+    }
+
+    static stringifyAttrs(attrs, obj) {
+        var rv = '';
+        attrs.forEach((attr) => {
+            if (obj[attr]) {
+                rv += attr + ':' + obj[attr] + ', ';
+            } else {
+                rv += attr + ': null,';
+            }
+        });
+        return rv;
+    }
 }
 ;
 
+// ## svgHelpers
+// Mostly utilities for converting coordinate spaces based on transforms, etc.
+// ### static class methods:
+// ---
 class svgHelpers {
     static unionRect(b1, b2) {
         var x = Math.min(b1.x, b2.x);
@@ -477,7 +514,7 @@ class svgHelpers {
         };
     }
 
-    // ## Description:
+    // ### smoBox:
     // return a simple box object that can be serialized, copied.
     static smoBox(box) {
         return ({
@@ -487,7 +524,9 @@ class svgHelpers {
             height: box.height
         });
     }
-
+	
+	// ### measureBBox
+	// Return the bounding box of the measure
     static measureBBox(b1, measure, staff) {
         if (measure.renderedBox) {
             if (b1['width']) {
@@ -536,6 +575,9 @@ class svgHelpers {
         }
         console.log('{}');
     }
+	
+	// ### pointBox
+	// return a point-sized box at the given coordinate
     static pointBox(x, y) {
         return {
             x: x,
@@ -550,6 +592,9 @@ class svgHelpers {
 	}
 	
 	
+	// ### logicalToClient
+	// Convert a point from logical (pixels) to actual screen dimensions based on current 
+	// zoom, aspect ratio
 	static logicalToClient(svg,logicalPoint) {
 		var rect = svg.getBoundingClientRect();
 		var rv = svgHelpers.copyBox(logicalPoint);
@@ -557,18 +602,8 @@ class svgHelpers {
 		rv.y+=rect.y;		
 		return rv;
 	}
-	
-	
-	static clientToLogical(svg,clientPoint) {
-		if (clientPoint['width']) {
-			return untransformSvgBox(svg,clientPoint);
-		}
-		return untransformSvgPoint(svg,clientPoint);
-		return rv;
-	}
-    
-	// ## clientToLogical
-	// ## Description:
+	    
+	// ### clientToLogical
 	// return a box or point in svg coordintes from screen coordinates
     static clientToLogical(svg, point) {
         var pt = svg.createSVGPoint();
@@ -591,8 +626,7 @@ class svgHelpers {
         };
     }
 	
-	// ## logicalToClient
-	// ## Description:
+	// ### logicalToClient
 	// return a box or point in screen coordinates from svg coordinates
 	static logicalToClient(svg,point) {
         var pt = svg.createSVGPoint();
@@ -888,18 +922,18 @@ class SmoNote {
             if (index + 1 > this.pitches.length) {
                 this.addPitchOffset(offset);
             } else {
-                var nnote = smoMusic.getKeyOffset(this.pitches[index], offset);
+                var pitch = smoMusic.getKeyOffset(this.pitches[index], offset);
                 if (keySignature) {
-                    var letterKey = nnote.letter + nnote.accidental;
+                    var letterKey = pitch.letter + pitch.accidental;
                     letterKey = smoMusic.getKeyFriendlyEnharmonic(letterKey, keySignature);
-                    nnote.letter = letterKey[0];
+                    pitch.letter = letterKey[0];
                     if (letterKey.length < 2) {
-                        nnote.accidental = 'n';
+                        pitch.accidental = 'n';
                     } else {
-                        nnote.accidental = letterKey.substring(1);
+                        pitch.accidental = letterKey.substring(1);
                     }
                 }
-                this.pitches[index] = nnote;
+                this.pitches[index] = pitch;
             }
         }
         this._sortPitches();
@@ -1317,8 +1351,8 @@ class SmoDynamicText extends SmoNoteModifierBase {
 // Many rules of musical engraving are enforced at a measure level, e.g. the duration of
 // notes, accidentals, etc.
 // ## See Also:
-// Measures contain notes, tuplets, and beam groups.  So see SmoNote, etc.
-// Measures are contained in staves, see also SystemStaff.js
+// Measures contain *notes*, *tuplets*, and *beam groups*.  So see `SmoNote`, etc.
+// Measures are contained in staves, see also `SystemStaff.js`
 // ## SmoMeasure Methods:
 class SmoMeasure {
     constructor(params) {
@@ -1342,7 +1376,6 @@ class SmoMeasure {
     }
 
     // ### getRenderedNote
-    // ### Description:
     // The renderer puts a mapping between rendered svg groups and
     // the logical notes in SMO.  The UI needs this mapping to be interactive,
     // figure out where a note is rendered, what its bounding box is, etc.
@@ -1371,7 +1404,6 @@ class SmoMeasure {
     }
 
     // ### defaultAttributes
-    // ### Description:
     // attributes that are to be serialized for a measure.
     static get defaultAttributes() {
         return [
@@ -1381,7 +1413,6 @@ class SmoMeasure {
     }
 
     // ### serialize
-    // ### Description:
     // Convert this measure object to a JSON object, recursively serializing all the notes,
     // note modifiers, etc.
     serialize() {
@@ -1412,7 +1443,6 @@ class SmoMeasure {
     }
 
     // ### deserialize
-    // ### Description:
     // restore a serialized measure object.  Usually called as part of deserializing a score,
     // but can also be used to restore a measure due to an undo operation.
     static deserialize(jsonObj) {
@@ -1454,9 +1484,8 @@ class SmoMeasure {
     }
 
     // ### defaultPitchForClef
-    // ### Description:
     // Accessor for clef objects, which are set at a measure level.
-    // ### TODO: learn what all these clefs are
+    // #### TODO: learn what all these clefs are
     static get defaultPitchForClef() {
         return {
             'treble': {
@@ -1516,7 +1545,9 @@ class SmoMeasure {
             } // no idea
         }
     }
-    // Get a measure full of default notes for a given timeSignature/clef
+    // ### getDefaultNotes
+	// Get a measure full of default notes for a given timeSignature/clef.
+	// returns 8th notes for triple-time meters, etc.
     static getDefaultNotes(params) {
         if (params == null) {
             params = {};
@@ -1643,27 +1674,11 @@ class SmoMeasure {
         }
         return [];
     }
-
-    // {index:1,value:{symbol:'#',cautionary:false}}
-    setAccidental(voice, tick, pitch, value) {
-        var target = this.getSelection(voice, tick, [pitch]);
-        if (target) {
-            target.note.addAccidental(value);
-        }
-    }
-
+    
     clearBeamGroups() {
         this.beamGroups = [];
     }
-
-    clearAccidentals() {
-        for (var j = 0; j < this.voices.length; ++j) {
-            var notes = this.voices[j].notes;
-            for (var i = 0; i < notes.length; ++i) {
-                notes[i].accidentals = [];
-            }
-        }
-    }
+  
     tupletNotes(tuplet) {
         var notes = [];
         for (var j = 0; j < this.voices.length; ++j) {
@@ -2029,35 +2044,41 @@ class SmoScore {
             interGap: 30,
             startIndex: 0,
             renumberingMap: {},
-			keySignatureMap:{},
-			measureTickmap:[],
+            keySignatureMap: {},
+            measureTickmap: [],
             staves: [],
             activeStaff: 0,
-			pageWidth: 8 * 96 + 48,
+            pageWidth: 8 * 96 + 48,
             pageHeight: 11 * 96,
             svgScale: 0.8,
-			zoomScale:1.0
+            zoomScale: 1.0
         };
     }
-	
-	static get defaultAttributes() {
-		return ['staffX', 'staffY', 'staffWidth', 'startIndex', 'interGap', 'renumberingMap', 'renumberIndex'];
-	}
-	
-	// ### serialize
-	serialize() {
-		var params={};
-		smoMusic.serializedMerge(SmoScore.defaultAttributes,this,params);
-		var obj={score:params,staves:[]};
-		this.staves.forEach((staff) => {
-			obj.staves.push(staff.serialize());
-		});
-		return obj;
-	}
-	static deserialize(jsonString) {
+
+    static get defaultAttributes() {
+        return ['staffX', 'staffY', 'staffWidth', 'startIndex', 'interGap', 'renumberingMap', 'renumberIndex'];
+    }
+
+    // ### serialize
+    // ### Serialize the score.  The resulting JSON string will contain all the staves, measures, etc.
+    serialize() {
+        var params = {};
+        smoMusic.serializedMerge(SmoScore.defaultAttributes, this, params);
+        var obj = {
+            score: params,
+            staves: []
+        };
+        this.staves.forEach((staff) => {
+            obj.staves.push(staff.serialize());
+        });
+        return obj;
+    }
+    // ### deserialize
+    // ### Restore an earlier JSON string.  Unlike other deserialize methods, this one expects the string.
+    static deserialize(jsonString) {
         var jsonObj = JSON.parse(jsonString);
         var params = {};
-		var staves=[];
+        var staves = [];
         smoMusic.serializedMerge(
             SmoScore.defaultAttributes,
             jsonObj, params);
@@ -2065,190 +2086,189 @@ class SmoScore {
             var staff = SmoSystemStaff.deserialize(staffObj);
             staves.push(staff);
         });
-		params.staves=staves;
+        params.staves = staves;
 
         return new SmoScore(params);
     }
-	
-	// ## getDefaultScore
-	// ## Description:
-	// Gets a score consisting of a single measure with all the defaults.
-	static getDefaultScore(scoreDefaults,measureDefaults) {
-		scoreDefaults = (scoreDefaults != null ? scoreDefaults : SmoScore.defaults);
-		measureDefaults = (measureDefaults != null ? measureDefaults : SmoMeasure.defaults);
-		var score = new SmoScore(scoreDefaults);
-		score.addInstrument(measureDefaults);
-		var measure = SmoMeasure.getDefaultMeasure(measureDefaults);
-		score.addMeasure(0,measure);
-		measure.voices.push({notes:SmoMeasure.getDefaultNotes(measureDefaults)});
-		return score;
-	}
-	
-	// ## getEmptyScore
-	// ## Description:
-	// Create a score object, but don't populate it with anything.
-	static getEmptyScore(scoreDefaults) {
-		var score = new SmoScore(scoreDefaults);
-		score.addInstrument();
-		return score;
-	}
-   	
-	// ## _numberStaves
-	// recursively renumber staffs and measures.
-	_numberStaves() {
-       for (var i = 0; i < this.staves.length; ++i) {
+
+    // ### getDefaultScore
+    // ### Description:
+    // Gets a score consisting of a single measure with all the defaults.
+    static getDefaultScore(scoreDefaults, measureDefaults) {
+        scoreDefaults = (scoreDefaults != null ? scoreDefaults : SmoScore.defaults);
+        measureDefaults = (measureDefaults != null ? measureDefaults : SmoMeasure.defaults);
+        var score = new SmoScore(scoreDefaults);
+        score.addStaff(measureDefaults);
+        var measure = SmoMeasure.getDefaultMeasure(measureDefaults);
+        score.addMeasure(0, measure);
+        measure.voices.push({
+            notes: SmoMeasure.getDefaultNotes(measureDefaults)
+        });
+        return score;
+    }
+
+    // ### getEmptyScore
+    // ### Description:
+    // Create a score object, but don't populate it with anything.
+    static getEmptyScore(scoreDefaults) {
+        var score = new SmoScore(scoreDefaults);
+        score.addStaff();
+        return score;
+    }
+
+    // ### _numberStaves
+    // recursively renumber staffs and measures.
+    _numberStaves() {
+        for (var i = 0; i < this.staves.length; ++i) {
             var stave = this.staves[i];
             stave.numberMeasures();
         }
     }
+
+    // ### addDefaultMeasureWithNotes
+    // ### Description:
+    // Add a measure to the score with the supplied parameters at the supplied index.
+    // The defaults per staff may be different depending on the clef, key of the staff.
+    addDefaultMeasureWithNotes(measureIndex, parameters) {
+        this.staves.forEach((staff) => {
+            var defaultMeasure =
+                SmoMeasure.getDefaultMeasureWithNotes(parameters);
+            staff.addMeasure(measureIndex, defaultMeasure);
+        });
+    }
+
+    // ### deleteMeasure
+    // ### Description:
+    // Delete the measure at the supplied index in all the staves.
+    deleteMeasure(measureIndex) {
+        this.staves.forEach((staff) => {
+            staff.deleteMeasure(measureIndex);
+        });
+
+    }
+    // ### addMeasure
+    // ### Description:
+    // Give a measure prototype, create a new measure and add it to each staff, with the
+    // correct settings for current time signature/clef.
+    addMeasure(measureIndex, measure) {
+
+        for (var i = 0; i < this.staves.length; ++i) {
+            var protomeasure = measure;
+            var staff = this.staves[i];
+            // Since this staff may already have instrument settings, use the
+            // immediately precending or post-ceding measure if it exists.
+            if (measureIndex < staff.measures.length) {
+                protomeasure = staff.measures[measureIndex];
+            } else if (staff.measures.length) {
+                protomeasure = staff.measures[staff.measure.length - 1];
+            }
+            var nmeasure = SmoMeasure.getDefaultMeasureWithNotes(protomeasure);
+            staff.addMeasure(measureIndex, nmeasure);
+        }
+        this._numberStaves();
+    }
+
+    // ### replaceMeasure
+    // ### Description:
+    // Replace the measure at the given location.  Probably due to an undo operation or paste.
+    replaceMeasure(selector, measure) {
+        var staff = this.staves[selector.staff];
+        staff.measures[selector.measure] = measure;
+    }
 	
-	// ## addDefaultMeasure
-	// ## Description:
-	// Add a meaure to the score with the default key signature.
-	addDefaultMeasure(measureIndex,parameters) {
-		for (var i=0;i<this.staves.length;++i) {
-			var staff=this.staves[i];
-			// TODO: find best measure for context, with key, time signature etc.
-			var defaultMeasure = 
-				SmoMeasure.getDefaultMeasure(parameters);
-			staff.addMeasure(measureIndex,defaultMeasure);
-		}
-		this._numberStaves();
-	}
-	
-	addDefaultMeasureWithNotes(measureIndex,parameters) {
-		this.staves.forEach((staff) => {
-			var defaultMeasure = 
-				SmoMeasure.getDefaultMeasureWithNotes(parameters);
-			staff.addMeasure(measureIndex,defaultMeasure);
-		});
-	}
-	_updateMeasureTickmap() {
-		this.measureTickmap=[];
-		this.measures.forEach((measure) => {
-			this.measureTickmap.push(measure.tickmap());
-		});
-	}
-	deleteMeasure(measureIndex) {		
-		this.staves.forEach((staff) => {
-			staff.deleteMeasure(measureIndex);
-		});
-		
-	}
-	// ## addMeasure
-	// ## Description:
-	// Give a measure prototype, create a new measure and add it to each staff, with the 
-	// correct settings for current time signature/clef.
-	addMeasure(measureIndex,measure) {
-		
-		for (var i=0;i<this.staves.length;++i) {
-			var protomeasure = measure;
-			var staff=this.staves[i];
-			// Since this staff may already have instrument settings, use the 
-			// immediately precending or post-ceding measure if it exists.
-			if (measureIndex < staff.measures.length) {
-				protomeasure = staff.measures[measureIndex];
-			} else if (staff.measures.length) {
-				protomeasure = staff.measures[staff.measure.length-1];
-			}
-			var nmeasure = SmoMeasure.getDefaultMeasureWithNotes(protomeasure);
-			staff.addMeasure(measureIndex,nmeasure);
-		}
-		this._numberStaves();
-	}
-	
-	replaceMeasure(selector,measure) {
-		var staff=this.staves[selector.staff];
-		staff.measures[selector.measure]=measure;
-	}
-	// TODO: Untested
-	replaceStaff(index,staff) {
-		var staves=[];
-		for (var i=0;i<this.staves.length;++i) {
-			if (i != index) {
-				staves.push(this.staves[i]);				
-			}else {
-				staves.push(staff);
-			}
-		}
-		this.staves=staves;		
-	}
-	// ## addKeySignature
-	// ## Add a key signature at the specified index in all staves.
-	addKeySignature(measureIndex,key) {
-		this.staves.forEach((staff) => {staff.addKeySignature(measureIndex,key);});
-	}
-	
-	// ## addInstrument
-	// ## Description:
-	// add a new staff (instrument) to the score
-	addInstrument(parameters) {
-		if (this.staves.length ==0 )  {
-			this.staves.push(new SmoSystemStaff(parameters));
-			this.activeStaff=0;
-			return;
-		}
-		if (!parameters) {
-			parameters=SmoSystemStaff.defaults;
-		}
-		var proto=this.staves[0];
-		var measures=[];
-		for (var i=0;i<proto.measures.length;++i) {
-			var newParams = {};
-			var measure=proto.measures[i];
-			smoMusic.filteredMerge(SmoMeasure.defaultAttributes, measure, newParams);
-			newParams.clef=parameters.instrumentInfo.clef;
-			newParams.transposeIndex = parameters.instrumentInfo.keyOffset;
-			var newMeasure=SmoMeasure.getDefaultMeasureWithNotes(newParams);
-			newMeasure.measureNumber = measure.measureNumber;
-			measures.push(newMeasure);
-		}
-		parameters.measures=measures;
-		var staff = new SmoSystemStaff(parameters);
-		this.staves.push(staff);
-		this.activeStaff=this.staves.length-1;
-	}
-	
-	removeInstrument(index) {
-		var staves = [];
-		var ix=0;
-		this.staves.forEach((staff) => {
-			if (ix!=index) {
-				staves.push(staff);
-			}
-			ix += 1;
-		});
-		this.staves=staves;
-		this._numberStaves();
-	}
-	
-	getMaxTicksMeasure(measure) {		
-		return this.staves[this.activeStaff].getMaxTicksMeasure(measure);
-	}
-	get measures() {
-		if (this.staves.length === 0) return [];
-		return this.staves[this.activeStaff].measures;
-	}
-	incrementActiveStaff(offset) {
-		if (offset<0) offset = (-1*offset)+this.staves.length;
-		var nextStaff = (this.activeStaff + offset) % this.staves.length;
-		if (nextStaff >= 0 && nextStaff < this.staves.length) {
-			this.activeStaff=nextStaff;
-		}
-		return this.activeStaff;
-	}
-	
-  
-	setActiveStaff(index) {
-		this.activeStaff=index<=this.staves.length ? index : this.activeStaff;
-	}
-	
+    // ### replace staff
+	// ### Description:
+	// Probably due to an undo operation, replace the staff at the given index.
+    replaceStaff(index, staff) {
+        var staves = [];
+        for (var i = 0; i < this.staves.length; ++i) {
+            if (i != index) {
+                staves.push(this.staves[i]);
+            } else {
+                staves.push(staff);
+            }
+        }
+        this.staves = staves;
+    }
+    // ### addKeySignature
+    // ### Add a key signature at the specified index in all staves.
+    addKeySignature(measureIndex, key) {
+        this.staves.forEach((staff) => {
+            staff.addKeySignature(measureIndex, key);
+        });
+    }
+
+    // ### addInstrument
+    // ### Description:
+    // add a new staff (instrument) to the score
+    addStaff(parameters) {
+        if (this.staves.length == 0) {
+            this.staves.push(new SmoSystemStaff(parameters));
+            this.activeStaff = 0;
+            return;
+        }
+        if (!parameters) {
+            parameters = SmoSystemStaff.defaults;
+        }
+        var proto = this.staves[0];
+        var measures = [];
+        for (var i = 0; i < proto.measures.length; ++i) {
+            var newParams = {};
+            var measure = proto.measures[i];
+            smoMusic.filteredMerge(SmoMeasure.defaultAttributes, measure, newParams);
+            newParams.clef = parameters.instrumentInfo.clef;
+            newParams.transposeIndex = parameters.instrumentInfo.keyOffset;
+            var newMeasure = SmoMeasure.getDefaultMeasureWithNotes(newParams);
+            newMeasure.measureNumber = measure.measureNumber;
+            measures.push(newMeasure);
+        }
+        parameters.measures = measures;
+        var staff = new SmoSystemStaff(parameters);
+        this.staves.push(staff);
+        this.activeStaff = this.staves.length - 1;
+    }
+
+    removeStaff(index) {
+        var staves = [];
+        var ix = 0;
+        this.staves.forEach((staff) => {
+            if (ix != index) {
+                staves.push(staff);
+            }
+            ix += 1;
+        });
+        this.staves = staves;
+        this._numberStaves();
+    }
+
+    getMaxTicksMeasure(measure) {
+        return this.staves[this.activeStaff].getMaxTicksMeasure(measure);
+    }
+    get measures() {
+        if (this.staves.length === 0)
+            return [];
+        return this.staves[this.activeStaff].measures;
+    }
+    incrementActiveStaff(offset) {
+        if (offset < 0)
+            offset = (-1 * offset) + this.staves.length;
+        var nextStaff = (this.activeStaff + offset) % this.staves.length;
+        if (nextStaff >= 0 && nextStaff < this.staves.length) {
+            this.activeStaff = nextStaff;
+        }
+        return this.activeStaff;
+    }
+
+    setActiveStaff(index) {
+        this.activeStaff = index <= this.staves.length ? index : this.activeStaff;
+    }
+
     getRenderedNote(id) {
         for (var i = 0; i < this.staves.length; ++i) {
             var stave = this.staves[i];
             var note = stave.getRenderedNote(id);
             if (note) {
-				note.selection.staffIndex=i;
+                note.selection.staffIndex = i;
                 return note;
             }
         }
@@ -2453,17 +2473,18 @@ Vex.Xform = (typeof (Vex.Xform)=='undefined' ? {} : Vex.Xform);
 VX = Vex.Xform;
 
 
-// ## Description
-// This file implements an iterator through a set of notes in a single measure.  
+// ## smoTickIterator
+// This file implements over the notes in a single measure.  
 // This is useful when redrawing the notes to transform them into something else.   
 // E.g. changing the duration of a note in a measure.  It keeps track of accidentals,
 // ticks used etc.
-
-// ## Usage:
-// VX.ITERATE (actor, notes)
+// ### Usage:
+// ``javascript``
+// `var iterator=new smoTickIterator(measure)
+// `iterator.iterate (actor)`
 // where actor is a function that is called at each tick in the voice.
 // 
-// ## iterator format:
+// ### iterator format:
 //   iterator: {
 //      notes:[note1,note2...],
 //      delta: tick value of this note
@@ -2471,10 +2492,11 @@ VX = Vex.Xform;
 //      note: current note,
 //      index: running index
 //
-// ## Tickmap format
-// VX.TICKMAP(notes)
+// ### Tickmap format
+// `VX.TICKMAP(measure)`
 // Iterate through all notes and creates information about the notes, like
-// tuplet ticks, index-to-tick map.
+// tuplet ticks, index-to-tick map.  The tickmap is useful for finding things out like how much
+// time is left in a measure at a given note index (tickIndex).
 // 
 //     tickmap = {
 //        totalDuration: 16384,
@@ -2487,17 +2509,7 @@ VX = Vex.Xform;
 //
 //        
 class smoTickIterator {
-	/**
-	  measure looks like:
-	  return {
-            group: group,
-            voice: voice,
-            staff: stave,
-            notes: notes,
-            beams: this.beamGroups,
-            keySignature: this.keySignature
-        };
-    }   **/
+
     constructor(measure,options) {
 		this.notes=measure.notes;
 		this.keySignature = measure.keySignature;
@@ -2875,7 +2887,6 @@ class SmoTickTransformer {
 	// create a transform with the given actors and run it against the supplied measure
 	static applyTransform(measure,actors) {
 		var actAr = (Array.isArray(actors)) ? actors : [actors];
-    	measure.clearAccidentals();
 		measure.clearBeamGroups();
         var transformer = new SmoTickTransformer(measure, actAr);
         transformer.run();
@@ -3788,11 +3799,11 @@ class SmoOperation {
 		fromSelection.staff.addStaffModifier(modifier);
 	}
 
-	static addInstrument(score, parameters) {
-		score.addInstrument(parameters);
+	static addStaff(score, parameters) {
+		score.addStaff(parameters);
 	}
-	static removeInstrument(score, index) {
-		score.removeInstrument(index);
+	static removeStaff(score, index) {
+		score.removeStaff(index);
 	}
 	static changeInstrument(score, instrument, selections) {
 		var measureHash = {};
@@ -3821,9 +3832,9 @@ class SmoOperation {
 // undo must implement serialize()/deserialize()
 // ## Buffer format:
 // A buffer is one of 3 things:
-// A single measure,
-// A single staff
-// the whole score.
+// * A single measure,
+// * A single staff
+// * the whole score.
 class UndoBuffer {
     constructor() {
         this.buffer = [];
@@ -3836,8 +3847,8 @@ class UndoBuffer {
         return ['measure', 'staff', 'score'];
     }
 
-    // ## addBuffer
-    // ## Description:
+    // ### addBuffer
+    // ### Description:
     // Add the current state of the score required to undo the next operation we
     // are about to perform.  For instance, if we are adding a crescendo, we back up the
     // staff the crescendo will go on.
@@ -3858,6 +3869,9 @@ class UndoBuffer {
         this.buffer.push(undoObj);
     }
 
+    // ### _pop
+    // ### Description:
+    // Internal method to pop the top buffer off the stack.
     _pop() {
 
         if (this.buffer.length < 1)
@@ -3902,7 +3916,7 @@ class UndoBuffer {
 // ## SmoUndoable
 // ## Description:
 // Convenience functions to save the score state before operations so we can undo the operation.
-// Each undo-able knows which set of parameters the undo operation requires (measure, staff, score). 
+// Each undo-able knows which set of parameters the undo operation requires (measure, staff, score).
 class SmoUndoable {
     static setPitch(selection, pitches, undoBuffer) {
         undoBuffer.addBuffer('pitch change ' + JSON.stringify(pitches, null, ' '),
@@ -3937,16 +3951,16 @@ class SmoUndoable {
         undoBuffer.addBuffer('dot duration', 'measure', selection.selector, selection.measure);
         SmoOperation.dotDuration(selection);
     }
-	static toggleBeamGroups(selections,undoBuffer) {
-		var measureUndoHash={};
-		selections.forEach((selection)=> {
-			if (!measureUndoHash[selection.selector.measure]) {
-				measureUndoHash[selection.selector.measure]=true;
-				undoBuffer.addBuffer('toggleBeamGroups', 'measure', selection.selector, selection.measure);
-			}
-			SmoOperation.toggleBeamGroup(selection);
-		});
-	}
+    static toggleBeamGroups(selections, undoBuffer) {
+        var measureUndoHash = {};
+        selections.forEach((selection) => {
+            if (!measureUndoHash[selection.selector.measure]) {
+                measureUndoHash[selection.selector.measure] = true;
+                undoBuffer.addBuffer('toggleBeamGroups', 'measure', selection.selector, selection.measure);
+            }
+            SmoOperation.toggleBeamGroup(selection);
+        });
+    }
     static undotDuration(selection, undoBuffer) {
         undoBuffer.addBuffer('undot duration', 'measure', selection.selector, selection.measure);
         SmoOperation.undotDuration(selection);
@@ -3961,7 +3975,7 @@ class SmoUndoable {
     }
     static addDynamic(selection, dynamic, undoBuffer) {
         undoBuffer.addBuffer('add dynamic', 'measure', selection.selector, selection.measure);
-        SmoOperation.addDynamic(selection,dynamic);
+        SmoOperation.addDynamic(selection, dynamic);
     }
     static interval(selection, interval, undoBuffer) {
         undoBuffer.addBuffer('add interval ' + interval, 'measure', selection.selector, selection.measure);
@@ -3979,39 +3993,42 @@ class SmoUndoable {
         undoBuffer.addBuffer('slur', 'staff', fromSelection.selector, fromSelection.staff);
         SmoOperation.slur(fromSelection, toSelection);
     }
+	static noop(score,undoBuffer) {
+        undoBuffer.addBuffer('addInstrument', 'score', null, score);		
+	}
     static addInstrument(score, undoBuffer) {
         undoBuffer.addBuffer('addInstrument', 'score', null, score);
         SmoOperation.addInstrument(score);
     }
-	static removeInstrument(score,index,undoBuffer) {
+    static removeInstrument(score, index, undoBuffer) {
         undoBuffer.addBuffer('removeInstrument', 'score', null, score);
-        SmoOperation.removeInstrument(score,index);
-	}
+        SmoOperation.removeInstrument(score, index);
+    }
     static addKeySignature(score, selection, keySignature, undoBuffer) {
         undoBuffer.addBuffer('addKeySignature ' + keySignature, 'score', null, score);
         SmoOperation.addKeySignature(score, selection, keySignature);
     }
-	static addMeasure(score,systemIndex, nmeasure,undoBuffer) {
+    static addMeasure(score, systemIndex, nmeasure, undoBuffer) {
         undoBuffer.addBuffer('add measure', 'score', null, score);
-		SmoOperation.addMeasure(score,systemIndex, nmeasure);
-	}
-	static deleteMeasure(score, selection,undoBuffer) {
+        SmoOperation.addMeasure(score, systemIndex, nmeasure);
+    }
+    static deleteMeasure(score, selection, undoBuffer) {
         undoBuffer.addBuffer('delete measure', 'score', null, score);
-		var measureIndex = selection.selector.measure;		
-		score.deleteMeasure(measureIndex);
-	}
-	static addInstrument(score, parameters,undoBuffer) {
+        var measureIndex = selection.selector.measure;
+        score.deleteMeasure(measureIndex);
+    }
+    static addStaff(score, parameters, undoBuffer) {
         undoBuffer.addBuffer('add instrument', 'score', null, score);
-		SmoOperation.addInstrument(score,parameters);
-	}
-	static removeInstrument(score, index,undoBuffer) {
+        SmoOperation.addStaff(score, parameters);
+    }
+    static removeStaff(score, index, undoBuffer) {
         undoBuffer.addBuffer('remove instrument', 'score', null, score);
-		SmoOperation.removeInstrument(score,index);
-	}
-	static changeInstrument(score,instrument, selections,undoBuffer) {		
-		undoBuffer.addBuffer('changeInstrument', 'staff', selections[0].selector, score);
-		SmoOperation.changeInstrument(score,instrument,selections);
-	}
+        SmoOperation.removeInstrument(score, index);
+    }
+    static changeInstrument(score, instrument, selections, undoBuffer) {
+        undoBuffer.addBuffer('changeInstrument', 'staff', selections[0].selector, score);
+        SmoOperation.changeInstrument(score, instrument, selections);
+    }
 }
 ;
 
@@ -4811,15 +4828,18 @@ class VxSystem {
 }
 ;
 
-// ## Description
+// ## suiTracker
 // A tracker maps the UI elements to the logical elements ,and allows the user to
 // move through the score and make selections, for navigation and editing.
 //
-// ## Usage:
-// new suiTracker(layout)
+// ### Usage:
+// `` javascript ``
+// `new suiTracker(layout)`
 //
-// ## See also:
-// layout, controller, menu
+// ### See also:
+// `SuiSimpleLayout`, `controller`, `menu`
+// ### class methods:
+// ---
 class suiTracker {
     constructor(layout) {
         this.layout = layout;
@@ -5329,367 +5349,423 @@ class suiTracker {
 // ## suiSimpleLayout
 // ## Description:
 // A layout maps the measures and notes to a spot on the page.  It
-// manages the flow of music as an ordinary score.
+// manages the flow of music as an ordinary score.  We call it simple layout, because
+// there may be other layouts for parts view, or output to other media.
 class suiSimpleLayout {
-	constructor(params) {
-		Vex.Merge(this, suiSimpleLayout.defaults);
-		Vex.Merge(this, params);
+    constructor(params) {
+        Vex.Merge(this, suiSimpleLayout.defaults);
+        Vex.Merge(this, params);
 
-		if (this.score) {
-			this.svgScale = this.score.svgScale * this.score.zoomScale;
-			this.pageWidth = Math.round(this.score.pageWidth * this.score.zoomScale);
-			this.pageHeight = Math.round(this.score.pageHeight * this.score.zoomScale);
-			$(this.elementId).css('width', '' + this.pageWidth + 'px');
-			$(this.elementId).css('height', '' + this.pageHeight + 'px');
-		}
-		$(this.elementId).html('');
-		this.renderer = new VF.Renderer(this.elementId, VF.Renderer.Backends.SVG);
-		// this.renderer.resize(this.pageWidth, this.pageHeight);
-		var offset = (window.innerWidth - $(this.elementId).width()) / 2;
-		if (offset > 0) {
-			$(this.elementId).css('left', '' + offset + 'px');
-		}
-		var xtranslation = Math.round(((1.0 - this.svgScale) * this.pageWidth) / 2);
-		var ytranslation = Math.round(((1.0 - this.svgScale) * this.pageHeight) / 2);
-		$(this.elementId).find('svg').css('transform', 'scale(' + this.svgScale + ',' +
-			this.svgScale + ') translate(-' + xtranslation + 'px,-' + ytranslation + 'px)');
-		this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
-		this.attrs = {
-			id: VF.Element.newID(),
-			type: 'testLayout'
-		};
-	}
-	static createScoreLayout(renderElement, score, layoutParams) {
-		var ctorObj = {
-			elementId: renderElement,
-			score: score
-		};
-		if (layoutParams) {
-			Vex.Merge(ctorObj, layoutParams);
-		}
-		var layout = new suiSimpleLayout(ctorObj);
-		return layout;
-	}
-	static get defaults() {
-		return {
-			clefWidth: 70,
-			staffWidth: 250,
-			totalWidth: 250,
-			leftMargin: 15,
-			topMargin: 15,
-			pageWidth: 8 * 96 + 48,
-			pageHeight: 11 * 96,
-			svgScale: 0.7,
-			font: {
-				typeface: "Arial",
-				pointSize: 10,
-				fillStyle: '#eed'
-			}
-		};
-	}
-	get context() {
-		return this.renderer.getContext();
-	}
-	get renderElement() {
-		return this.renderer.elementId;
-	}
-	render() {
-		this.layout(false);
-		// layout a second time to adjust for issues.
-		this.adjustWidths();
-		this.layout(true);
-	}
+        if (this.score) {
+            this.svgScale = this.score.svgScale * this.score.zoomScale;
+            this.pageWidth = Math.round(this.score.pageWidth * this.score.zoomScale);
+            this.pageHeight = Math.round(this.score.pageHeight * this.score.zoomScale);
+            $(this.elementId).css('width', '' + this.pageWidth + 'px');
+            $(this.elementId).css('height', '' + this.pageHeight + 'px');
+        }
+        $(this.elementId).html('');
+        this.renderer = new VF.Renderer(this.elementId, VF.Renderer.Backends.SVG);
+        // this.renderer.resize(this.pageWidth, this.pageHeight);
+        var offset = (window.innerWidth - $(this.elementId).width()) / 2;
+        if (offset > 0) {
+            $(this.elementId).css('left', '' + offset + 'px');
+        }
+        var xtranslation = Math.round(((1.0 - this.svgScale) * this.pageWidth) / 2);
+        var ytranslation = Math.round(((1.0 - this.svgScale) * this.pageHeight) / 2);
+        $(this.elementId).find('svg').css('transform', 'scale(' + this.svgScale + ',' +
+            this.svgScale + ') translate(-' + xtranslation + 'px,-' + ytranslation + 'px)');
+        this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
+        this.attrs = {
+            id: VF.Element.newID(),
+            type: 'testLayout'
+        };
+    }
 
-	undo(undoBuffer) {
-		var buffer = undoBuffer.peek();
-		// Unrender the modified music because the IDs may change and normal unrender won't work
-		if (buffer) {
-			var sel = buffer.selector;
-			if (buffer.type == 'measure') {
-				this.unrenderMeasure(SmoSelection.measureSelection(this.score, sel.staff, sel.measure).measure);
-			} else if (buffer.type === 'staff') {
-				this.unrenderStaff(SmoSelection.measureSelection(this.score, sel.staff, 0).staff);
-			} else {
-				this.unrenderAll();
-			}
-			this.score = undoBuffer.undo(this.score);
-			this.render();
-		}
-	}
-	renderNoteModifierPreview(modifier) {
-		var selection = SmoSelection.noteSelection(this.score, modifier.selector.staff, modifier.selector.measure, modifier.selector.voice, modifier.selector.tick);
-		if (!selection.measure.renderedBox) {
-			return;
-		}
-		var system = new VxSystem(this.context, selection.measure.staffY, selection.measure.lineIndex);
-		system.renderMeasure(selection.selector.staff, selection.measure);
-	}
+    // ### createScoreLayout
+    // ### Description;
+    // to get the score to appear, a div and a score object are required.  The layout takes care of creating the
+    // svg element in the dom and interacting with the vex library.
+    static createScoreLayout(renderElement, score, layoutParams) {
+        var ctorObj = {
+            elementId: renderElement,
+            score: score
+        };
+        if (layoutParams) {
+            Vex.Merge(ctorObj, layoutParams);
+        }
+        var layout = new suiSimpleLayout(ctorObj);
+        return layout;
+    }
+    static get defaults() {
+        return {
+            clefWidth: 70,
+            staffWidth: 250,
+            totalWidth: 250,
+            leftMargin: 15,
+            topMargin: 15,
+            pageWidth: 8 * 96 + 48,
+            pageHeight: 11 * 96,
+            svgScale: 0.7,
+            font: {
+                typeface: "Arial",
+                pointSize: 10,
+                fillStyle: '#eed'
+            }
+        };
+    }
+    // ### get context
+    // ### Description:
+    // return the VEX renderer context.
+    get context() {
+        return this.renderer.getContext();
+    }
+    get renderElement() {
+        return this.renderer.elementId;
+    }
 
-	// re-render a modifier for preview during modifier dialog
-	renderStaffModifierPreview(modifier) {
-		// get the first measure the modifier touches
-		var startSelection = SmoSelection.measureSelection(this.score, modifier.startSelector.staff, modifier.startSelector.measure);
+    // ### render
+    // ### Description:
+    // Render the current score in the div using VEX.  Rendering is actually done twice:
+    // 1. Rendering is done just to the changed parts of the score.  THe first time, the whole score is rendered.
+    // 2. Widths and heights are adjusted for elements that may have overlapped or exceeded their expected boundary.
+    // 3. The whole score is rendered a second time with the new values.
+    render() {
+        this.layout(false);
+        // layout a second time to adjust for issues.
+        this.adjustWidths();
+        this.dumpGeometry()
+        this.layout(true);
+    }
 
-		// We can only render if we already have, or we don't know where things go.
-		if (!startSelection.measure.renderedBox) {
-			return;
-		}
-		var system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex);
-		while (startSelection && startSelection.selector.measure <= modifier.endSelector.measure) {
-			smoBeamerFactory.applyBeams(startSelection.measure);
-			system.renderMeasure(startSelection.selector.staff, startSelection.measure);
-			var nextSelection = SmoSelection.measureSelection(this.score, startSelection.selector.staff, startSelection.selector.measure + 1);
+    // ### undo
+    // ### Description:
+    // Undo is handled by the layout, because the layout has to first delete areas of the div that may have changed
+    // , then create the modified score, then render the 'new' score.
+    undo(undoBuffer) {
+        var buffer = undoBuffer.peek();
+        // Unrender the modified music because the IDs may change and normal unrender won't work
+        if (buffer) {
+            var sel = buffer.selector;
+            if (buffer.type == 'measure') {
+                this.unrenderMeasure(SmoSelection.measureSelection(this.score, sel.staff, sel.measure).measure);
+            } else if (buffer.type === 'staff') {
+                this.unrenderStaff(SmoSelection.measureSelection(this.score, sel.staff, 0).staff);
+            } else {
+                this.unrenderAll();
+            }
+            this.score = undoBuffer.undo(this.score);
+            this.render();
+        }
+    }
 
-			// If we go to new line, render this line part, then advance because the modifier is split
-			if (nextSelection && nextSelection.measure.lineIndex != startSelection.measure.lineIndex) {
-				this._renderModifiers(startSelection.staff, system);
-				var system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex);
-			}
-			startSelection = nextSelection;
-		}
-		this._renderModifiers(startSelection.staff, system);
-	}
+    // ### renderNoteModifierPreview
+    // ### Description:
+    // For dialogs that allow you to manually modify elements that are automatically rendered, we allow a preview so the
+    // changes can be undone before the buffer closes.
+    renderNoteModifierPreview(modifier) {
+        var selection = SmoSelection.noteSelection(this.score, modifier.selector.staff, modifier.selector.measure, modifier.selector.voice, modifier.selector.tick);
+        if (!selection.measure.renderedBox) {
+            return;
+        }
+        var system = new VxSystem(this.context, selection.measure.staffY, selection.measure.lineIndex);
+        system.renderMeasure(selection.selector.staff, selection.measure);
+    }
 
-	dumpGeometry() {
-		for (var i = 0; i < this.score.staves.length; ++i) {
-			var staff = this.score.staves[i];
-			for (var j = 0; j < staff.measures.length; ++j) {
-				var measure = staff.measures[j];
-				var log = 'staff ' + i + ' measure ' + j + ': ';
-				if (measure.renderedBox) {
-					log += svgHelpers.stringify(measure.renderedBox);
-				} else {
-					log += ' not rendered yet ';
-				}
-				log += smoMusic.stringifyAttrs(['staffX', 'staffY', 'staffWidth', 'adjX', 'rightMargin'], measure);
-				console.log(log);
-			}
-		}
-	}
-	adjustWidths() {
-		var mins = [];
-		var maxs = [];
-		for (var i = 0; i < this.score.staves.length; ++i) {
-			var staff = this.score.staves[i];
-			for (var j = 0; j < staff.measures.length; ++j) {
-				var measure = staff.measures[j];
-				var width = measure.renderedBox ? measure.renderedBox.width : measure.staffWidth;
-				if (i === 0) {
-					mins.push(width);
-					maxs.push(width);
-				} else {
+    // ### renderStaffModifierPreview
+    // ### Description:
+    // Similar to renderNoteModifierPreview, but lets you preveiw a change to a staff element.
+    // re-render a modifier for preview during modifier dialog
+    renderStaffModifierPreview(modifier) {
+        // get the first measure the modifier touches
+        var startSelection = SmoSelection.measureSelection(this.score, modifier.startSelector.staff, modifier.startSelector.measure);
 
-					mins[j] = mins[j] < width ? mins[j] : width;
-					maxs[j] = maxs[j] < width ? width : maxs[j];
-				}
-			}
-		}
-		for (var i = 0; i < this.score.staves.length; ++i) {
-			var staff = this.score.staves[i];
-			for (var j = 0; j < staff.measures.length; ++j) {
-				var measure = staff.measures[j];
-				if (measure.renderedBox) {
-					measure.staffWidth += maxs[j] - measure.renderedBox.width;
-				}
-			}
-		}
-	}
+        // We can only render if we already have, or we don't know where things go.
+        if (!startSelection.measure.renderedBox) {
+            return;
+        }
+        var system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex);
+        while (startSelection && startSelection.selector.measure <= modifier.endSelector.measure) {
+            smoBeamerFactory.applyBeams(startSelection.measure);
+            system.renderMeasure(startSelection.selector.staff, startSelection.measure);
+            var nextSelection = SmoSelection.measureSelection(this.score, startSelection.selector.staff, startSelection.selector.measure + 1);
 
-	unrenderMeasure(measure) {
-		if (!measure)
-			return;
+            // If we go to new line, render this line part, then advance because the modifier is split
+            if (nextSelection && nextSelection.measure.lineIndex != startSelection.measure.lineIndex) {
+                this._renderModifiers(startSelection.staff, system);
+                var system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex);
+            }
+            startSelection = nextSelection;
+        }
+        this._renderModifiers(startSelection.staff, system);
+    }
 
-		$(this.renderer.getContext().svg).find('g.' + measure.attrs.id).remove();
-		measure.staffX = SmoMeasure.defaults.staffX;
-		measure.staffY = SmoMeasure.defaults.staffY;
-		measure.changed = true;
-	}
+    dumpGeometry() {
+        for (var i = 0; i < this.score.staves.length; ++i) {
+            var staff = this.score.staves[i];
+			console.log('staff '+i+' staffY: ' +staff.staffY);
+            for (var j = 0; j < staff.measures.length; ++j) {
+                var measure = staff.measures[j];
+                var log = 'staff ' + i + ' measure ' + j + ': ';
+                if (measure.renderedBox) {
+                    log += svgHelpers.stringify(measure.renderedBox);
+                } else {
+                    log += ' not rendered yet ';
+                }
+                log += smoMusic.stringifyAttrs(['staffX', 'staffY', 'staffWidth', 'adjX', 'rightMargin'], measure);
+                console.log(log);
+            }
+        }
+    }
+    // ### adjustWidths
+    // ### Description:
+    // adjustWidths updates the expected widths of the measures based on the actual rendered widths
+    adjustWidths() {
+        var mins = [];
+        var maxs = [];
+        for (var i = 0; i < this.score.staves.length; ++i) {
+            var staff = this.score.staves[i];
+            for (var j = 0; j < staff.measures.length; ++j) {
+                var measure = staff.measures[j];
+                var width = measure.renderedBox ? measure.renderedBox.width : measure.staffWidth;
+                if (i === 0) {
+                    mins.push(width);
+                    maxs.push(width);
+                } else {
 
-	unrenderStaff(staff) {
-		staff.measures.forEach((measure) => {
-			this.unrenderMeasure(measure);
-		});
-		staff.modifiers.forEach((modifier) => {
-			$(this.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
-		});
-	}
+                    mins[j] = mins[j] < width ? mins[j] : width;
+                    maxs[j] = maxs[j] < width ? width : maxs[j];
+                }
+            }
+        }
+        for (var i = 0; i < this.score.staves.length; ++i) {
+            var staff = this.score.staves[i];
+            for (var j = 0; j < staff.measures.length; ++j) {
+                var measure = staff.measures[j];
+                if (measure.renderedBox) {
+                    measure.staffWidth += maxs[j] - measure.renderedBox.width;
+                }
+            }
+        }
+    }
 
-	unrenderAll(score) {
-		this.score.staves.forEach((staff) => {
-			this.unrenderStaff(staff);
-		});
-	}
-	get pageMarginWidth() {
-		return this.pageWidth - this.leftMargin * 2;
-	}
-	_previousAttr(i, j, attr) {
-		var staff = this.score.staves[j];
-		var measure = staff.measures[i];
-		return (i > 0 ? staff.measures[i - 1][attr] : measure[attr]);
-	}
+    // ### unrenderMeasure
+    // ### Description:
+    // All SVG elements are associated with a logical SMO element.  We need to erase any SVG element before we change a SMO
+    // element in such a way that some of the logical elements go away (e.g. when deleting a measure).
+    unrenderMeasure(measure) {
+        if (!measure)
+            return;
 
-	_renderModifiers(staff, system) {
-		staff.modifiers.forEach((modifier) => {
-			var startNote = SmoSelection.noteSelection(this.score,
-					modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
-			var endNote = SmoSelection.noteSelection(this.score,
-					modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
+        $(this.renderer.getContext().svg).find('g.' + measure.attrs.id).remove();
+        measure.staffX = SmoMeasure.defaults.staffX;
+        measure.staffY = SmoMeasure.defaults.staffY;
+        measure.changed = true;
+    }
 
-			var vxStart = system.getVxNote(startNote.note);
-			var vxEnd = system.getVxNote(endNote.note);
+    // ### unrenderStaff
+    // ### Description:
+    // See unrenderMeasure.  Like that, but with a staff.
+    unrenderStaff(staff) {
+        staff.measures.forEach((measure) => {
+            this.unrenderMeasure(measure);
+        });
+        staff.modifiers.forEach((modifier) => {
+            $(this.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
+        });
+    }
 
-			// If the modifier goes to the next staff, draw what part of it we can on this staff.
-			if (vxStart && !vxEnd) {
-				var nextNote = SmoSelection.nextNoteSelection(this.score,
-						modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
-				var testNote = system.getVxNote(nextNote.note);
-				while (testNote) {
-					vxEnd = testNote;
-					nextNote = SmoSelection.nextNoteSelection(this.score,
-							nextNote.selector.staff, nextNote.selector.measure, nextNote.selector.voice, nextNote.selector.tick);
-					testNote = system.getVxNote(nextNote.note);
+    // ### unrenderAll
+    // ### Description:
+    // Delete all the svg elements associated with the score.
+    unrenderAll(score) {
+        this.score.staves.forEach((staff) => {
+            this.unrenderStaff(staff);
+        });
+    }
+    get pageMarginWidth() {
+        return this.pageWidth - this.leftMargin * 2;
+    }
+    _previousAttr(i, j, attr) {
+        var staff = this.score.staves[j];
+        var measure = staff.measures[i];
+        return (i > 0 ? staff.measures[i - 1][attr] : measure[attr]);
+    }
 
-				}
-			}
-			if (vxEnd && !vxStart) {
-				var lastNote = SmoSelection.lastNoteSelection(this.score,
-						modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
-				var testNote = system.getVxNote(lastNote.note);
-				while (testNote) {
-					vxStart = testNote;
-					lastNote = SmoSelection.lastNoteSelection(this.score,
-							lastNote.selector.staff, lastNote.selector.measure, lastNote.selector.voice, lastNote.selector.tick);
-					testNote = system.getVxNote(lastNote.note);
-				}
-			}
+    // ### _renderModifiers
+    // ### Description:
+    // Render staff modifiers (modifiers straddle more than one measure, like a slur).  Handle cases where the destination
+    // is on a different system due to wrapping.
+    _renderModifiers(staff, system) {
+        staff.modifiers.forEach((modifier) => {
+            var startNote = SmoSelection.noteSelection(this.score,
+                    modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
+            var endNote = SmoSelection.noteSelection(this.score,
+                    modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
 
-			if (!vxStart || !vxEnd)
-				return;
+            var vxStart = system.getVxNote(startNote.note);
+            var vxEnd = system.getVxNote(endNote.note);
 
-			// TODO: notes may have changed, get closest if these exact endpoints don't exist
-			modifier.renderedBox = system.renderModifier(modifier, vxStart, vxEnd);
+            // If the modifier goes to the next staff, draw what part of it we can on this staff.
+            if (vxStart && !vxEnd) {
+                var nextNote = SmoSelection.nextNoteSelection(this.score,
+                        modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
+                var testNote = system.getVxNote(nextNote.note);
+                while (testNote) {
+                    vxEnd = testNote;
+                    nextNote = SmoSelection.nextNoteSelection(this.score,
+                            nextNote.selector.staff, nextNote.selector.measure, nextNote.selector.voice, nextNote.selector.tick);
+                    testNote = system.getVxNote(nextNote.note);
 
-			// TODO: consider staff height with these.
-			// TODO: handle dynamics split across systems.
-		});
-	}
+                }
+            }
+            if (vxEnd && !vxStart) {
+                var lastNote = SmoSelection.lastNoteSelection(this.score,
+                        modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
+                var testNote = system.getVxNote(lastNote.note);
+                while (testNote) {
+                    vxStart = testNote;
+                    lastNote = SmoSelection.lastNoteSelection(this.score,
+                            lastNote.selector.staff, lastNote.selector.measure, lastNote.selector.voice, lastNote.selector.tick);
+                    testNote = system.getVxNote(lastNote.note);
+                }
+            }
 
-	// ## layout
-	// ## Render the music, keeping track of the bounding boxes of all the
-	// elements.  Re-render a second time to adjust measure widths to prevent notes
-	// from overlapping.  Then render all the modifiers.
-	layout(drawAll) {
-		var svg = this.context.svg;
+            if (!vxStart || !vxEnd)
+                return;
 
-		// bounding box of all artifacts on the page
-		var pageBox = {};
-		// bounding box of all artifacts in a system
-		var systemBoxes = {};
-		var staffBoxes = {};
-		if (!this.score.staves.length) {
-			return;
-		}
-		var topStaff = this.score.staves[0];
-		if (!topStaff.measures.length) {
-			return;
-		}
-		var lineIndex = 0;
-		var system = new VxSystem(this.context, topStaff.measures[0].staffY, lineIndex);
-		var systemIndex = 0;
+            // TODO: notes may have changed, get closest if these exact endpoints don't exist
+            modifier.renderedBox = system.renderModifier(modifier, vxStart, vxEnd);
 
-		for (var i = 0; i < topStaff.measures.length; ++i) {
-			var staffWidth = 0;
-			for (var j = 0; j < this.score.staves.length; ++j) {
-				var staff = this.score.staves[j];
-				var measure = staff.measures[i];
-				measure.measureNumber.systemIndex = j;
+            // TODO: consider staff height with these.
+            // TODO: handle dynamics split across systems.
+        });
+    }
 
-				var logicalStaffBox = svgHelpers.pointBox(this.score.staffX, this.score.staffY);
-				var clientStaffBox = svgHelpers.logicalToClient(svg, logicalStaffBox);
+    // ### layout
+    // ### Render the music, keeping track of the bounding boxes of all the
+    // elements.  Re-render a second time to adjust measure widths to prevent notes
+    // from overlapping.  Then render all the modifiers.
+	// * drawAll is set if we are re-rendering the entire score, not just the part that changed. 
+    layout(drawAll) {
+        var svg = this.context.svg;
 
-				// If we are starting a new staff on the same system, offset y so it is below the first staff.
-				if (!staffBoxes[j]) {
-					if (j == 0) {
-						staffBoxes[j] = svgHelpers.copyBox(clientStaffBox);
-					} else {
-						staffBoxes[j] = svgHelpers.pointBox(staffBoxes[j - 1].x, staffBoxes[j - 1].y + staffBoxes[j - 1].height);
+        // bounding box of all artifacts on the page
+        var pageBox = {};
+        // bounding box of all artifacts in a system
+        var systemBoxes = {};
+        var staffBoxes = {};
+        if (!this.score.staves.length) {
+            return;
+        }
+        var topStaff = this.score.staves[0];
+		var topStaffY=topStaff.staffY;
+        if (!topStaff.measures.length) {
+            return;
+        }
+        var lineIndex = 0;
+        var system = new VxSystem(this.context, topStaff.measures[0].staffY, lineIndex);
+        var systemIndex = 0;
+
+        for (var i = 0; i < topStaff.measures.length; ++i) {
+            var staffWidth = 0;
+            for (var j = 0; j < this.score.staves.length; ++j) {
+                var staff = this.score.staves[j];
+                var measure = staff.measures[i];
+				
+                measure.measureNumber.systemIndex = j;
+
+                var logicalStaffBox = svgHelpers.pointBox(this.score.staffX, this.score.staffY);
+                var clientStaffBox = svgHelpers.logicalToClient(svg, logicalStaffBox);
+
+                // If we are starting a new staff on the same system, offset y so it is below the first staff.
+                if (!staffBoxes[j]) {
+                    if (j == 0) {
+                        staffBoxes[j] = svgHelpers.copyBox(clientStaffBox);
+                    } else {
+                        staffBoxes[j] = svgHelpers.pointBox(staffBoxes[j - 1].x, staffBoxes[j - 1].y + staffBoxes[j - 1].height);
+                    }
+                }
+
+                logicalStaffBox = svgHelpers.clientToLogical(svg, staffBoxes[j]);
+                if (j > 0) {
+                    measure.staffY = logicalStaffBox.y;
+                } else {
+					// Handle the case where a measure was added, is on the top staff.  Make sure
+					// that all staves in a line have the same Y position.
+					if (i > 0 && measure.staffY < staff.measures[i-1].staffY) {
+						measure.staffY=staff.measures[i-1].staffY;
 					}
 				}
 
-				logicalStaffBox = svgHelpers.clientToLogical(svg, staffBoxes[j]);
-				if (j > 0) {
-					measure.staffY = logicalStaffBox.y;
-				}
+                measure.staffX = logicalStaffBox.x + logicalStaffBox.width;
 
-				measure.staffX = logicalStaffBox.x + logicalStaffBox.width;
+                if (!systemBoxes[lineIndex]) {
+                    systemBoxes[lineIndex] = svgHelpers.copyBox(clientStaffBox);
+                }
 
-				if (!systemBoxes[lineIndex]) {
-					systemBoxes[lineIndex] = svgHelpers.copyBox(clientStaffBox);
-				}
+                if (!pageBox['width']) {
+                    pageBox = svgHelpers.copyBox(clientStaffBox);
+                }
+                var measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
+                var keySigLast = smoMusic.vexKeySignatureTranspose(this._previousAttr(i, j, 'keySignature'), measure.transposeIndex);
+                var timeSigLast = this._previousAttr(i, j, 'timeSignature');
+                var clefLast = this._previousAttr(i, j, 'clef');
 
-				if (!pageBox['width']) {
-					pageBox = svgHelpers.copyBox(clientStaffBox);
-				}
-				var measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
-				var keySigLast = smoMusic.vexKeySignatureTranspose(this._previousAttr(i, j, 'keySignature'), measure.transposeIndex);
-				var timeSigLast = this._previousAttr(i, j, 'timeSignature');
-				var clefLast = this._previousAttr(i, j, 'clef');
+                if (j == 0 && logicalStaffBox.x + logicalStaffBox.width + measure.staffWidth
+                     > this.pageMarginWidth / this.svgScale) {
+                    if (drawAll) {
+                        system.cap();
+                    }
+                    this.score.staves.forEach((stf) => {
+                        this._renderModifiers(stf, system);
+                    });
+                    var logicalPageBox = svgHelpers.clientToLogical(svg, pageBox);
+                    measure.staffX = this.score.staffX + 1;
+                    measure.staffY = logicalPageBox.y + logicalPageBox.height + this.score.interGap;
+                    staffBoxes = {};
+                    staffBoxes[j] = svgHelpers.logicalToClient(svg,
+                            svgHelpers.pointBox(this.score.staffX, staff.staffY));
+                    lineIndex += 1;
+                    system = new VxSystem(this.context, staff.staffY, lineIndex);
+                    systemIndex = 0;
+                    systemBoxes[lineIndex] = svgHelpers.logicalToClient(svg,
+                            svgHelpers.pointBox(measure.staffX, staff.staffY));
+                }
 
-				if (j == 0 && logicalStaffBox.x + logicalStaffBox.width + measure.staffWidth
-					 > this.pageMarginWidth / this.svgScale) {
-					if (drawAll) {
-						system.cap();
-					}
-					this.score.staves.forEach((stf) => {
-						this._renderModifiers(stf, system);
-					});
-					var logicalPageBox = svgHelpers.clientToLogical(svg, pageBox);
-					measure.staffX = this.score.staffX + 1;
-					measure.staffY = logicalPageBox.y + logicalPageBox.height + this.score.interGap;
-					staffBoxes = {};
-					staffBoxes[j] = svgHelpers.logicalToClient(svg,
-							svgHelpers.pointBox(this.score.staffX, staff.staffY));
-					lineIndex += 1;
-					system = new VxSystem(this.context, staff.staffY, lineIndex);
-					systemIndex = 0;
-					systemBoxes[lineIndex] = svgHelpers.logicalToClient(svg,
-							svgHelpers.pointBox(measure.staffX, staff.staffY));
-				}
+                measure.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
+                measure.forceTimeSignature = (systemIndex === 0 || measure.timeSignature !== timeSigLast);
+                if (measureKeySig !== keySigLast) {
+                    measure.canceledKeySignature = keySigLast;
+                    measure.forceKeySignature = true;
+                } else if (measure.measureNumber.measureIndex == 0 && measureKeySig != 'C') {
+                    measure.forceKeySignature = true;
+                } else {
+                    measure.forceKeySignature = false;
+                }
 
-				measure.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
-				measure.forceTimeSignature = (systemIndex === 0 || measure.timeSignature !== timeSigLast);
-				if (measureKeySig !== keySigLast) {
-					measure.canceledKeySignature = keySigLast;
-					measure.forceKeySignature = true;
-				} else if (measure.measureNumber.measureIndex == 0 && measureKeySig != 'C') {
-					measure.forceKeySignature = true;
-				} else {
-					measure.forceKeySignature = false;
-				}
+                // guess height of staff the first time
+                measure.measureNumber.systemIndex = systemIndex;
+                // WIP
+                if (drawAll || measure.changed) {
+                    measure.lineIndex = lineIndex;
+                    smoBeamerFactory.applyBeams(measure);
+                    system.renderMeasure(j, measure);
+                }
 
-				// guess height of staff the first time
-				measure.measureNumber.systemIndex = systemIndex;
-				// WIP
-				if (drawAll || measure.changed) {
-					measure.lineIndex = lineIndex;
-					smoBeamerFactory.applyBeams(measure);
-					system.renderMeasure(j, measure);
-				}
-
-				// Keep a running tally of the page, system, and staff dimensions as we draw.
-				systemBoxes[lineIndex] = svgHelpers.unionRect(systemBoxes[lineIndex], measure.renderedBox);
-				staffBoxes[j] = svgHelpers.unionRect(staffBoxes[j], measure.renderedBox);
-				pageBox = svgHelpers.unionRect(pageBox, measure.renderedBox);
-			}
-			++systemIndex;
-		}
-		if (drawAll) {
-			system.cap();
-		}
-		this.score.staves.forEach((stf) => {
-			this._renderModifiers(stf, system);
-		});
-	}
+                // Keep a running tally of the page, system, and staff dimensions as we draw.
+                systemBoxes[lineIndex] = svgHelpers.unionRect(systemBoxes[lineIndex], measure.renderedBox);
+                staffBoxes[j] = svgHelpers.unionRect(staffBoxes[j], measure.renderedBox);
+                pageBox = svgHelpers.unionRect(pageBox, measure.renderedBox);
+            }
+            ++systemIndex;
+        }
+        if (drawAll) {
+            system.cap();
+        }
+        this.score.staves.forEach((stf) => {
+            this._renderModifiers(stf, system);
+        });
+    }
 }
 ;
 
@@ -5875,6 +5951,12 @@ class suiEditor {
             this._render();
         }
     }
+	rerender(keyEvent) {
+		this.layout.unrenderAll();
+		SmoUndoable.noop(this.score,this.undoBuffer);
+		this.undo();
+		this.layout.render();
+	}
     makeTuplet(keyEvent) {
         var numNotes = parseInt(keyEvent.key);
         this._singleSelectionOperation('makeTuplet', numNotes);
@@ -6342,7 +6424,7 @@ class SuiAddStaffMenu extends suiMenuBase {
         } else {
             var instrument = SuiAddStaffMenu.instrumentMap[op];
 
-            SmoUndoable.addInstrument(this.score, instrument, this.editor.undoBuffer);
+            SmoUndoable.addStaff(this.score, instrument, this.editor.undoBuffer);
         }
         this.complete();
     }
@@ -7498,6 +7580,13 @@ class suiController {
 				altKey: false,
 				shiftKey: false,
 				action: "makeRest"
+			},{
+				event: "keydown",
+				key: "r",
+				ctrlKey: true,
+				altKey: false,
+				shiftKey: false,
+				action: "rerender"
 			}, {
 				event: "keydown",
 				key: "3",
