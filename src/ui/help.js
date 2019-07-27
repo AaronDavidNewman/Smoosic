@@ -54,9 +54,9 @@ class SmoHelp {
         var b = htmlHelpers.buildDom;
         var r = b('span').classes('keyContainer');
         buttons.forEach((button) => {
-            button.text = (button.text ? button.text : '');
-            button.separator = button.separator ? button.separator : '';
-            button.icon = button.icon ? button.icon : '';
+            button.text = (button.text ? button.text : ' ');
+            button.separator = button.separator ? button.separator : ' ';
+            button.icon = button.icon ? button.icon : ' ';
             r.append(b('span').classes(button.icon + ' helpKey').text(button.text))
             .append(b('span').classes('separator').text(button.separator));
         });

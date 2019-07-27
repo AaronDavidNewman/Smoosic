@@ -1,0 +1,319 @@
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta charset="utf-8">
+			<title>Smoosic Help</title>
+			<link href="https://aarondavidnewman.github.io/Smoosic/build/styles/fonts.css" rel="stylesheet">
+				<link href="https://aarondavidnewman.github.io/Smoosic/build/styles/styles.css" rel="stylesheet">
+					<script type="text/javascript" src="https://npmcdn.com/vexflow/releases/vexflow-debug.js"/>
+					<script src="https://code.jquery.com/jquery-3.3.1.slim.js" integrity="sha256-fNXJFIlca05BIO2Y5zh1xrShK3ME+/lYZ0j+ChxX2DA=" crossorigin="anonymous"/>
+					<!-- link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jasmine/3.2.1/jasmine.css"  -->
+					<!-- script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jasmine/3.2.1/jasmine.js"></script -->
+				</head>
+				<body class="showHelpDialog">
+					<div class="helpDialog">
+						<div class="help-left">
+							<div class="helpLine">
+								<div class="help-title">Score Navigation</div>
+								<div class="keyBlock" id="navel1">
+									<span class="keyContainer">
+										<span class="icon-arrow-right helpKey"> </span>
+										<span class="separator"> </span>
+										<span class="icon-arrow-left helpKey"> </span>
+										<span class="separator"> </span>
+									</span>
+									<label for="navel1">Move note selection left or right</label>
+								</div>
+								<div class="keyBlock" id="navel2">
+									<span class="keyContainer">
+										<span class="helpKey">Ctrl</span>
+										<span class="separator">+</span>
+										<span class="icon-arrow-right helpKey"> </span>
+										<span class="separator">,</span>
+										<span class="helpKey">Ctrl</span>
+										<span class="separator">+</span>
+										<span class="icon-arrow-left helpKey"> </span>
+										<span class="separator"> </span>
+									</span>
+									<label for="navel2">Jump selection to next/last measure</label>
+								</div>
+								<div class="keyBlock" id="navel3">
+									<span class="keyContainer">
+										<span class="helpKey">Ctrl</span>
+										<span class="separator">+</span>
+										<span class="icon-arrow-down helpKey"> </span>
+										<span class="separator">,</span>
+										<span class="helpKey">Ctrl</span>
+										<span class="separator">+</span>
+										<span class="icon-arrow-up helpKey"> </span>
+										<span class="separator"> </span>
+									</span>
+									<label for="navel3">Jump selection to staff above/below</label>
+								</div>
+								<div class="keyBlock" id="navel4">
+									<span class="keyContainer">
+										<span class="helpKey">Shift</span>
+										<span class="separator">+</span>
+										<span class="icon-arrow-right helpKey"> </span>
+										<span class="separator">,</span>
+										<span class="helpKey">Shift</span>
+										<span class="separator">+</span>
+										<span class="icon-arrow-left helpKey"> </span>
+										<span class="separator"> </span>
+									</span>
+									<label for="navel4">Grow selection left or right</label>
+								</div>
+								<div class="keyBlock" id="navel5">
+									<span class="keyContainer">
+										<span class="helpKey">Alt</span>
+										<span class="separator">+</span>
+										<span class="icon-arrow-right helpKey"> </span>
+										<span class="separator"> </span>
+									</span>
+									<label for="navel5">Select note or staff modifier (slur, dynamic)</label>
+								</div>
+							</div>
+							<div class="helpLine">
+								<div class="help-title">Note Entry</div>
+								<div class="keyBlock" id="noteElements1">
+									<span class="keyContainer">
+										<span class="helpKey">a</span>
+										<span class="separator"> </span>
+										<span class="help-ellipsis helpKey">...</span>
+										<span class="separator"> </span>
+										<span class="helpKey">g</span>
+										<span class="separator"> </span>
+									</span>
+									<label for="noteElements1">Enter letter note A-G at selection</label>
+								</div>
+								<div class="keyBlock" id="noteElements1">
+									<span class="keyContainer">
+										<span class="helpKey">h</span>
+										<span class="separator"> </span>
+										<span class="help-ellipsis helpKey">...</span>
+										<span class="separator"> </span>
+										<span class="helpKey">l</span>
+										<span class="separator">,</span>
+									</span>
+									<label for="noteElements1">Various articulations</label>
+								</div>
+								<div class="keyBlock" id="noteElements1">
+									<span class="keyContainer">
+										<span class="helpKey">Shift</span>
+										<span class="separator">+</span>
+										<span class="helpKey">h</span>
+										<span class="separator"> </span>
+										<span class="help-ellipsis helpKey">...</span>
+										<span class="separator"> </span>
+										<span class="helpKey">l</span>
+										<span class="separator">,</span>
+									</span>
+									<label for="noteElements1">Various articulations</label>
+								</div>
+								<div class="keyBlock" id="noteElements2">
+									<span class="keyContainer">
+										<span class="helpKey">-</span>
+										<span class="separator">,</span>
+										<span class="helpKey">=</span>
+										<span class="separator"> </span>
+									</span>
+									<label for="noteElements2">Transpose selected notes down/up 1/2 step</label>
+								</div>
+								<div class="keyBlock" id="noteElements3">
+									<span class="keyContainer">
+										<span class="helpKey">Ctrl</span>
+										<span class="separator">+</span>
+										<span class="helpKey">-</span>
+										<span class="separator">,</span>
+										<span class="helpKey">Ctrl</span>
+										<span class="separator">+</span>
+										<span class="helpKey">=</span>
+										<span class="separator"> </span>
+									</span>
+									<label for="noteElements3">Transpose note up/down octave</label>
+								</div>
+								<div class="keyBlock" id="noteElements4">
+									<span class="keyContainer">
+										<span class="helpKey">2</span>
+										<span class="separator"> </span>
+										<span class="help-ellipsis helpKey">...</span>
+										<span class="separator"> </span>
+										<span class="helpKey">7</span>
+										<span class="separator"> </span>
+									</span>
+									<label for="noteElements4">Enter interval 2nd through 7th</label>
+								</div>
+								<div class="keyBlock" id="noteElements5">
+									<span class="keyContainer">
+										<span class="helpKey">Shift</span>
+										<span class="separator">+</span>
+										<span class="helpKey">2</span>
+										<span class="separator"> </span>
+										<span class="help-ellipsis helpKey">...</span>
+										<span class="separator"> </span>
+										<span class="helpKey">Shift</span>
+										<span class="separator">+</span>
+										<span class="helpKey">7</span>
+										<span class="separator"> </span>
+									</span>
+									<label for="noteElements5">Enter interval down 2nd through 7th</label>
+								</div>
+								<div class="keyBlock" id="noteElements6">
+									<span class="keyContainer">
+										<span class="helpKey">r</span>
+										<span class="separator"> </span>
+									</span>
+									<label for="noteElements6">Toggle note/rest</label>
+								</div>
+								<div class="keyBlock" id="noteElements7">
+									<span class="keyContainer">
+										<span class="helpKey">x</span>
+										<span class="separator"> </span>
+									</span>
+									<label for="noteElements7">Toggle break beam group</label>
+								</div>
+							</div>
+							<div class="helpLine">
+								<div class="help-title">Note Duration</div>
+								<div class="keyBlock" id="noteDuration1">
+									<span class="keyContainer">
+										<span class="helpKey">,</span>
+										<span class="separator">,</span>
+										<span class="helpKey">.</span>
+										<span class="separator"> </span>
+									</span>
+									<label for="noteDuration1">Double/halve note duration</label>
+								</div>
+								<div class="keyBlock" id="noteDuration2">
+									<span class="keyContainer">
+										<span class="helpKey">&lt;</span>
+										<span class="separator">,</span>
+										<span class="helpKey">&gt;</span>
+										<span class="separator"> </span>
+									</span>
+									<label for="noteDuration2">Remove/Add dot to note</label>
+								</div>
+								<div class="keyBlock" id="noteDuration3">
+									<span class="keyContainer">
+										<span class="helpKey">Ctrl</span>
+										<span class="separator">+</span>
+										<span class="helpKey">3</span>
+										<span class="separator"> </span>
+									</span>
+									<label for="noteDuration3">Create triplet</label>
+								</div>
+								<div class="keyBlock" id="noteDuration4">
+									<span class="keyContainer">
+										<span class="helpKey">Ctrl</span>
+										<span class="separator">+</span>
+										<span class="helpKey">0</span>
+										<span class="separator"> </span>
+									</span>
+									<label for="noteDuration4">Remove triplet</label>
+								</div>
+							</div>
+						</div>
+						<div class="help-right">
+							<div class="helpLine">
+								<div class="help-title">Editing</div>
+								<div class="keyBlock" id="editElements1">
+									<span class="keyContainer">
+										<span class="helpKey">Ctrl</span>
+										<span class="separator">+</span>
+										<span class="helpKey">c</span>
+										<span class="separator"> </span>
+									</span>
+									<label for="editElements1">Copy selection</label>
+								</div>
+								<div class="keyBlock" id="editElements2">
+									<span class="keyContainer">
+										<span class="helpKey">Ctrl</span>
+										<span class="separator">+</span>
+										<span class="helpKey">v</span>
+										<span class="separator"> </span>
+									</span>
+									<label for="editElements2">Paste copied selection to selection target</label>
+								</div>
+								<div class="keyBlock" id="editElements3">
+									<span class="keyContainer">
+										<span class="helpKey">Ctrl</span>
+										<span class="separator">+</span>
+										<span class="helpKey">z</span>
+										<span class="separator"> </span>
+									</span>
+									<label for="editElements3">Undo previous operation</label>
+								</div>
+								<div class="keyBlock" id="editElements4">
+									<span class="keyContainer">
+										<span class="helpKey">Insert</span>
+										<span class="separator"> </span>
+									</span>
+									<label for="editElements4">Add measure</label>
+								</div>
+								<div class="keyBlock" id="editElements4">
+									<span class="keyContainer">
+										<span class="helpKey">Delete</span>
+										<span class="separator"> </span>
+									</span>
+									<label for="editElements4">Delete measure</label>
+								</div>
+							</div>
+							<div class="helpLine">
+								<div class="help-title">Menus</div>
+								<div class="keyBlock" id="menuModeElements1">
+									<span class="keyContainer">
+										<span class="helpKey">/</span>
+										<span class="separator"> </span>
+									</span>
+									<label for="menuModeElements1">Next key chooses menu</label>
+								</div>
+								<div class="keyBlock" id="menuModeElements2">
+									<span class="keyContainer">
+										<span class="helpKey">k</span>
+										<span class="separator"> </span>
+									</span>
+									<label for="menuModeElements2">Key signature menu</label>
+								</div>
+								<div class="keyBlock" id="menuModeElements3">
+									<span class="keyContainer">
+										<span class="helpKey">e</span>
+										<span class="separator"> </span>
+									</span>
+									<label for="menuModeElements3">Expression menu (slur, hairpin dynamics)</label>
+								</div>
+								<div class="keyBlock" id="menuModeElements4">
+									<span class="keyContainer">
+										<span class="helpKey">d</span>
+										<span class="separator"> </span>
+									</span>
+									<label for="menuModeElements4">Text dynamics menu</label>
+								</div>
+								<div class="keyBlock" id="menuModeElements5">
+									<span class="keyContainer">
+										<span class="helpKey">s</span>
+										<span class="separator"> </span>
+									</span>
+									<label for="menuModeElements5">Add/Remove Staff menu</label>
+								</div>
+								<div class="keyBlock" id="menuModeElements6">
+									<span class="keyContainer">
+										<span class="helpKey">Esc</span>
+										<span class="separator"> </span>
+									</span>
+									<label for="menuModeElements6">Cancel slash menu mode</label>
+								</div>
+							</div>
+							<div class="helpLine">
+								<div class="help-title">Property Dialogs</div>
+								<div class="keyBlock" id="menuModeElements1">
+									<span class="keyContainer">
+										<span class="helpKey">p</span>
+										<span class="separator"> </span>
+									</span>
+									<label for="menuModeElements1">Property dialog for selected modifier (see Score Navigation)</label>
+								</div>
+							</div>
+						</div>
+						<button class="icon-cross close"/>
+					</div>
+				</body>
+			</html>
