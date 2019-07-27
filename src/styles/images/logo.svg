@@ -1,0 +1,16 @@
+<svg width="580" height="400" xmlns="http://www.w3.org/2000/svg">
+ <!-- Created with Method Draw - http://github.com/duopixel/Method-Draw/ -->
+ <g>
+  <title>background</title>
+  <rect fill="#fff" id="canvas_background" height="402" width="582" y="-1" x="-1"/>
+ </g>
+ <g>
+  <title>Layer 1</title>
+  <path id="svg_3" d="m61.5,258.4375c-2,-46 7,-117 68,-151c61,-34 113,-54 140,-42c27,12 51,72 66,73c15,1 139,-71 151,-56c12,15 2,53 0,59c-2,6 -123,99 -126,103c-3,4 -80,125 -80.5,124.5625c0.5,0.4375 -79.5,-30.5625 -80,-31c0.5,0.4375 -97.5,29.4375 -98,29c0.5,0.4375 -38.5,-62.5625 -40.5,-108.5625z" fill-opacity="null" stroke-opacity="null" stroke-width="4.5" stroke="#000" fill="#fff"/>
+  <path id="svg_4" d="m465.5,159.4375c-17,-1 -37,14 -37.5,13.5625c0.5,0.4375 -0.5,17.4375 -1,17c0.5,0.4375 55.5,-29.5625 38.5,-30.5625z" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="#000000"/>
+  <ellipse ry="9.5" rx="8.5" id="svg_5" cy="80.9375" cx="480" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="#000000"/>
+  <path id="svg_6" d="m280.5,117.4375c-23,3 -42,32 -42,32" opacity="0.5" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="#000000"/>
+  <path id="svg_8" d="m-65.5,36.4375" opacity="0.5" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="#fff"/>
+  <path id="svg_9" d="m89.5,194.4375c12,28 114,109 116,109c2,0 24,14 45,-1c21,-15 28,-32 24,-44c-4,-12 -81,-142 -81,-142" opacity="0.5" fill-opacity="null" stroke-opacity="null" stroke-width="7.5" stroke="#000" fill="#fff"/>
+ </g>
+</svg>
