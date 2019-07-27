@@ -1,5 +1,9 @@
 
 
+// ## svgHelpers
+// Mostly utilities for converting coordinate spaces based on transforms, etc.
+// ### static class methods:
+// ---
 class svgHelpers {
     static unionRect(b1, b2) {
         var x = Math.min(b1.x, b2.x);
@@ -14,7 +18,7 @@ class svgHelpers {
         };
     }
 
-    // ## Description:
+    // ### smoBox:
     // return a simple box object that can be serialized, copied.
     static smoBox(box) {
         return ({
@@ -24,7 +28,9 @@ class svgHelpers {
             height: box.height
         });
     }
-
+	
+	// ### measureBBox
+	// Return the bounding box of the measure
     static measureBBox(b1, measure, staff) {
         if (measure.renderedBox) {
             if (b1['width']) {
@@ -73,6 +79,9 @@ class svgHelpers {
         }
         console.log('{}');
     }
+	
+	// ### pointBox
+	// return a point-sized box at the given coordinate
     static pointBox(x, y) {
         return {
             x: x,
@@ -87,6 +96,9 @@ class svgHelpers {
 	}
 	
 	
+	// ### logicalToClient
+	// Convert a point from logical (pixels) to actual screen dimensions based on current 
+	// zoom, aspect ratio
 	static logicalToClient(svg,logicalPoint) {
 		var rect = svg.getBoundingClientRect();
 		var rv = svgHelpers.copyBox(logicalPoint);
@@ -94,18 +106,8 @@ class svgHelpers {
 		rv.y+=rect.y;		
 		return rv;
 	}
-	
-	
-	static clientToLogical(svg,clientPoint) {
-		if (clientPoint['width']) {
-			return untransformSvgBox(svg,clientPoint);
-		}
-		return untransformSvgPoint(svg,clientPoint);
-		return rv;
-	}
-    
-	// ## clientToLogical
-	// ## Description:
+	    
+	// ### clientToLogical
 	// return a box or point in svg coordintes from screen coordinates
     static clientToLogical(svg, point) {
         var pt = svg.createSVGPoint();
@@ -128,8 +130,7 @@ class svgHelpers {
         };
     }
 	
-	// ## logicalToClient
-	// ## Description:
+	// ### logicalToClient
 	// return a box or point in screen coordinates from svg coordinates
 	static logicalToClient(svg,point) {
         var pt = svg.createSVGPoint();

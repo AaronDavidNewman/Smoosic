@@ -1,14 +1,17 @@
 
 
-// ## Description
+// ## suiTracker
 // A tracker maps the UI elements to the logical elements ,and allows the user to
 // move through the score and make selections, for navigation and editing.
 //
-// ## Usage:
-// new suiTracker(layout)
+// ### Usage:
+// `` javascript ``
+// `new suiTracker(layout)`
 //
-// ## See also:
-// layout, controller, menu
+// ### See also:
+// `SuiSimpleLayout`, `controller`, `menu`
+// ### class methods:
+// ---
 class suiTracker {
     constructor(layout) {
         this.layout = layout;

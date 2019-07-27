@@ -4,18 +4,18 @@ Vex.Xform = (typeof (Vex.Xform)=='undefined' ? {} : Vex.Xform);
 VX = Vex.Xform;
 
 
-// ## Description
-// This file implements an iterator through a set of notes in a single measure.  
+// ## smoTickIterator
+// This file implements over the notes in a single measure.  
 // This is useful when redrawing the notes to transform them into something else.   
 // E.g. changing the duration of a note in a measure.  It keeps track of accidentals,
 // ticks used etc.
-
-// ## Usage:
+// ### Usage:
+// ``javascript``
 // `var iterator=new smoTickIterator(measure)
 // `iterator.iterate (actor)`
 // where actor is a function that is called at each tick in the voice.
 // 
-// ## iterator format:
+// ### iterator format:
 //   iterator: {
 //      notes:[note1,note2...],
 //      delta: tick value of this note
@@ -23,11 +23,11 @@ VX = Vex.Xform;
 //      note: current note,
 //      index: running index
 //
-// ## Tickmap format
+// ### Tickmap format
 // `VX.TICKMAP(measure)`
 // Iterate through all notes and creates information about the notes, like
 // tuplet ticks, index-to-tick map.  The tickmap is useful for finding things out like how much
-// time is left in a measure at a given note index.
+// time is left in a measure at a given note index (tickIndex).
 // 
 //     tickmap = {
 //        totalDuration: 16384,

@@ -4,8 +4,8 @@
 // Many rules of musical engraving are enforced at a measure level, e.g. the duration of
 // notes, accidentals, etc.
 // ## See Also:
-// Measures contain notes, tuplets, and beam groups.  So see SmoNote, etc.
-// Measures are contained in staves, see also SystemStaff.js
+// Measures contain *notes*, *tuplets*, and *beam groups*.  So see `SmoNote`, etc.
+// Measures are contained in staves, see also `SystemStaff.js`
 // ## SmoMeasure Methods:
 class SmoMeasure {
     constructor(params) {
@@ -29,7 +29,6 @@ class SmoMeasure {
     }
 
     // ### getRenderedNote
-    // ### Description:
     // The renderer puts a mapping between rendered svg groups and
     // the logical notes in SMO.  The UI needs this mapping to be interactive,
     // figure out where a note is rendered, what its bounding box is, etc.
@@ -58,7 +57,6 @@ class SmoMeasure {
     }
 
     // ### defaultAttributes
-    // ### Description:
     // attributes that are to be serialized for a measure.
     static get defaultAttributes() {
         return [
@@ -68,7 +66,6 @@ class SmoMeasure {
     }
 
     // ### serialize
-    // ### Description:
     // Convert this measure object to a JSON object, recursively serializing all the notes,
     // note modifiers, etc.
     serialize() {
@@ -99,7 +96,6 @@ class SmoMeasure {
     }
 
     // ### deserialize
-    // ### Description:
     // restore a serialized measure object.  Usually called as part of deserializing a score,
     // but can also be used to restore a measure due to an undo operation.
     static deserialize(jsonObj) {
@@ -141,9 +137,8 @@ class SmoMeasure {
     }
 
     // ### defaultPitchForClef
-    // ### Description:
     // Accessor for clef objects, which are set at a measure level.
-    // ### TODO: learn what all these clefs are
+    // #### TODO: learn what all these clefs are
     static get defaultPitchForClef() {
         return {
             'treble': {
@@ -203,7 +198,9 @@ class SmoMeasure {
             } // no idea
         }
     }
-    // Get a measure full of default notes for a given timeSignature/clef
+    // ### getDefaultNotes
+	// Get a measure full of default notes for a given timeSignature/clef.
+	// returns 8th notes for triple-time meters, etc.
     static getDefaultNotes(params) {
         if (params == null) {
             params = {};
@@ -330,27 +327,11 @@ class SmoMeasure {
         }
         return [];
     }
-
-    // {index:1,value:{symbol:'#',cautionary:false}}
-    setAccidental(voice, tick, pitch, value) {
-        var target = this.getSelection(voice, tick, [pitch]);
-        if (target) {
-            target.note.addAccidental(value);
-        }
-    }
-
+    
     clearBeamGroups() {
         this.beamGroups = [];
     }
-
-    clearAccidentals() {
-        for (var j = 0; j < this.voices.length; ++j) {
-            var notes = this.voices[j].notes;
-            for (var i = 0; i < notes.length; ++i) {
-                notes[i].accidentals = [];
-            }
-        }
-    }
+  
     tupletNotes(tuplet) {
         var notes = [];
         for (var j = 0; j < this.voices.length; ++j) {

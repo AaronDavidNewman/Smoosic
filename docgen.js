@@ -1,9 +1,11 @@
 const fs = require('fs');
 const readline = require('readline');
+const util = require('util');
+const readFile = util.promisify(fs.readFile);
 
-var lines = [];
+const js = /\.js/;
 
-async function processLineByLine(filename) {
+function processLineByLine(filename) {
 
     const rl = readline.createInterface({
             input: fs.createReadStream(filename),
@@ -13,37 +15,78 @@ async function processLineByLine(filename) {
     var md = 0;
     var re = /\/\/\s+(#+.+)/;
     var cc = /\/\/(.+)/;
-    for await(const line of rl) {
+    var flines = fs.readFileSync(filename, 'utf-8')
+        .split('\n')
+        .filter(Boolean);
+    flines.forEach((line) => {
+
         if (!md) {
             if (re.test(line)) {
-
-                lines.push(line.replace(re, '$1').trimStart());
+                var output = line.replace(re, '$1').trimStart();
+                console.log(output);
                 md = 1;
             }
         } else {
             if (cc.test(line)) {
-                lines.push(line.replace(cc, '$1').trimStart());
+                // hack: decided I didn't like Description everywhere.
+                if (line.indexOf('Description') < 0) {
+                    var output = line.replace(cc, '$1').trimStart();
+                    console.log(output);
+                }
             } else {
                 md = 0;
-                lines.push('');
+                console.log('');
             }
         }
-    }
-
-    lines.forEach((xx) => {
-        console.log(xx);
-    })
+    });
 }
 
-const testFolders = ['./src/smo/data/', './src/smo/xform/', './src/common/',
-    './src/ui/', './src/render/sui/','./src/render/vex/'];
-	
-const js = /\.js/;
+function processFolder(sourceFolder) {
+    console.log('# Directory: ' + sourceFolder.name);
+    console.log(sourceFolder.header);
+    console.log('---');
 
-testFolders.forEach((testFolder) => {
-    fs.readdirSync(testFolder).forEach(file => {
+    var files = fs.readdirSync(sourceFolder.folder);
+    
+    files.forEach((file) => {
         if (js.test(file)) {
-            processLineByLine(testFolder + file);
+            processLineByLine(sourceFolder.folder + file);
         }
     });
-});
+}
+
+function docGen() {
+    const sourceFolders = [{
+            folder: './src/smo/data/',
+            header: 'Serializable Music Ontology classes and logical structure',
+            name: 'smo/data'
+        }, {
+            folder: './src/smo/xform/',
+            name: 'smo/xform',
+            header: 'Logic that transforms music according to common theory rules (e.g. accidentals, time signatures'
+        }, {
+            folder: './src/common/',
+            name: 'common',
+            header: 'Utiilities not specifically related to SMO'
+        }, {
+            folder: './src/ui/',
+            name: 'ui',
+            header: 'Menus, dialogs and all that'
+        }, {
+            folder: './src/render/sui/',
+            name: 'render/sui',
+            header: 'SMO rendering logic and UI liasons'
+        }, {
+            folder: './src/render/vex/',
+            name: 'render/vex',
+            header: 'Logic for getting VEXFlow library to render the music'
+        }
+    ];
+
+    sourceFolders.forEach((sourceFolder) => {
+        processFolder(sourceFolder);
+    });
+
+}
+
+docGen();

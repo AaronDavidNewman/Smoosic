@@ -131,18 +131,18 @@ class SmoNote {
             if (index + 1 > this.pitches.length) {
                 this.addPitchOffset(offset);
             } else {
-                var nnote = smoMusic.getKeyOffset(this.pitches[index], offset);
+                var pitch = smoMusic.getKeyOffset(this.pitches[index], offset);
                 if (keySignature) {
-                    var letterKey = nnote.letter + nnote.accidental;
+                    var letterKey = pitch.letter + pitch.accidental;
                     letterKey = smoMusic.getKeyFriendlyEnharmonic(letterKey, keySignature);
-                    nnote.letter = letterKey[0];
+                    pitch.letter = letterKey[0];
                     if (letterKey.length < 2) {
-                        nnote.accidental = 'n';
+                        pitch.accidental = 'n';
                     } else {
-                        nnote.accidental = letterKey.substring(1);
+                        pitch.accidental = letterKey.substring(1);
                     }
                 }
-                this.pitches[index] = nnote;
+                this.pitches[index] = pitch;
             }
         }
         this._sortPitches();

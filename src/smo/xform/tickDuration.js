@@ -25,7 +25,6 @@ class SmoTickTransformer {
 	// create a transform with the given actors and run it against the supplied measure
 	static applyTransform(measure,actors) {
 		var actAr = (Array.isArray(actors)) ? actors : [actors];
-    	measure.clearAccidentals();
 		measure.clearBeamGroups();
         var transformer = new SmoTickTransformer(measure, actAr);
         transformer.run();
