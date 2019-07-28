@@ -1,0 +1,42 @@
+<!DOCTYPE HTML>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+		<meta charset="utf-8">
+		<title>Smoosic Help</title>
+		<link href="https://aarondavidnewman.github.io/Smoosic/build/styles/fonts.css" rel="stylesheet">
+		<link href="https://aarondavidnewman.github.io/Smoosic/build/styles/styles.css" rel="stylesheet">
+		<script type="text/javascript" src="https://npmcdn.com/vexflow/releases/vexflow-debug.js" ></script>
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.slim.js" ></script>
+		<script type="text/javascript" src="https://aarondavidnewman.github.io/Smoosic/build/smoosic.js" ></script>
+		<script type="text/javascript"  src="https://aarondavidnewman.github.io/Smoosic/build/editor.js" ></script>
+		
+</head>
+<body>
+<script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function (event) {
+		var score=SmoScore.getEmptyScore();
+        score.addDefaultMeasureWithNotes(0,{});
+        score.addDefaultMeasureWithNotes(1,{});
+        score.addDefaultMeasureWithNotes(2,{});
+        score.addDefaultMeasureWithNotes(3,{});
+        score.addDefaultMeasureWithNotes(4,{});
+		score.addStaff();
+		
+		var keys = suiController.createUi(document.getElementById("boo"),score);
+		keys.layout.render();		
+		keys.tracker.updateMap();
+        });
+		</script>
+		
+<div class="controls"></div>
+<div class="modes"></div>
+<div class="overlay"></div>
+<div class="attributeDialog"></div>
+<div class="helpDialog"></div>
+<h1 class="testTitle"> Editor Test </h1>
+<div class="menuContainer"></div>
+<div class="musicRelief">
+    <div class="musicContainer" id="boo"></div>
+</div>
+</body>
+</html>
