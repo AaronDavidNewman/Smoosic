@@ -98,7 +98,7 @@ class smoTickIterator {
     }
 	
 	// ### updateAccidentalMap
-	// 
+	// Keep a running tally of the accidentals based on the key and previous accidentals.
     static updateAccidentalMap(note, iterator, keySignature, accidentalMap) {
         var sigObj = {};
         var newObj = {};
@@ -164,7 +164,7 @@ class smoTickIterator {
         return {};
     }
 
-    // ## _iterate
+    // ### _iterate
     // Internal callback for iterator.
     _iterate(actor) {
         this.state = 'RUNNING';

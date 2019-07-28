@@ -6,7 +6,7 @@ const docHeader = './src/autodoc_header.md'
     const js = /\.js/;
 
 function processDocsHeader() {
-    var text = fs.readFileSync(docHeader, 'utf-8');
+    var text = fs.readFileSync(docHeader, 'ascii');
     console.log(text);
 }
 function processLineByLine(filename) {
