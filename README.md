@@ -16,8 +16,8 @@ If you want to use it, a good place to start are the unit tests.  They are here:
 Instructions on how to use smoosic:
 [Editor Commands and Key Mappings](https://aarondavidnewman.github.io/Smoosic/build/docs/helpfile.html)
 
-There is a list of [available and not-yet-available functions:]
-(https://aarondavidnewman.github.io/Smoosic/build/docs/SMOFeatures.html)
+There is a list of 
+[available and not-yet-available functions:](https://aarondavidnewman.github.io/Smoosic/build/docs/SMOFeatures.html)
 
 
 
