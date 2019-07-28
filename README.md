@@ -9,7 +9,7 @@ project from [GitHub Vex Flow](https://github.com/0xfe/vexflow) for rendering
 
 You can see smoosic in action here:
 
-[Editor Demo](https://jsfiddle.net/AaronDavidNewman/b62pmzod/)
+[Editor Demo](https://aarondavidnewman.github.io/Smoosic/build/html/editor.html)
 
 ---
 
