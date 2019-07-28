@@ -96,6 +96,9 @@ class smoTickIterator {
             }
         });
     }
+	
+	// ### updateAccidentalMap
+	// 
     static updateAccidentalMap(note, iterator, keySignature, accidentalMap) {
         var sigObj = {};
         var newObj = {};
