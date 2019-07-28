@@ -488,7 +488,22 @@ class suiController {
 				altKey: false,
 				shiftKey: false,
 				action: "moveSelectionLeftMeasure"
+			},{
+				event: "keydown",
+				key: "ArrowUp",
+				ctrlKey: false,
+				altKey: true,
+				shiftKey: false,
+				action: "moveSelectionPitchUp"
+			},{
+				event: "keydown",
+				key: "ArrowDown",
+				ctrlKey: false,
+				altKey: true,
+				shiftKey: false,
+				action: "moveSelectionPitchDown"
 			}
+			// moveSelectionPitchUp
 
 		]
 	}

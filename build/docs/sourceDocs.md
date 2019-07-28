@@ -181,8 +181,8 @@ When we paste, we replace entire measures.  Populate the last measure from the e
 end of the measure with notes in the existing measure.
 
 ## smoTickIterator
-This file implements over the notes in a single measure.  
-This is useful when redrawing the notes to transform them into something else.   
+This file implements over the notes in a single measure.
+This is useful when redrawing the notes to transform them into something else.
 E.g. changing the duration of a note in a measure.  It keeps track of accidentals,
 ticks used etc.
 ### Usage:
@@ -205,25 +205,26 @@ Iterate through all notes and creates information about the notes, like
 tuplet ticks, index-to-tick map.  The tickmap is useful for finding things out like how much
 time is left in a measure at a given note index (tickIndex).
 
-tickmap = {
-totalDuration: 16384,
-accidentalMap:[{'F':'#','G':'b'},....
-durationMap:[2048,4096,..],  // A running total
-deltaMap:[2048,2048...], a map of deltas
-tupletMap: {
-noteId1: 
-{startIndex:1,endIndex:3,numNotes:3,startTick:4096,endTick:8196,durations:[1365,...],smallestDuration:2048}
+## method documentation follows
+---
 
-## Description:
-empty function for a default iterator (tickmap)
+### _getAccidentalsForKey
+Update `map` with the correct accidental based on the key signature.
 
-## todo: is promise useful here?
+### updateAccidentalMap
+Keep a running tally of the accidentals based on the key and previous accidentals.
 
-## getTickIndex
+### _iterate
+Internal callback for iterator.
+
+### iterate
+Call `actor` for each iterator tick
+
+### getTickIndex
 get the index into notes array that takes up
 duration of ticks */
 
-## skipNext
+### skipNext
 skip some number of notes in the iteration, because we want to skip over them.
 
 ## doubleDuration

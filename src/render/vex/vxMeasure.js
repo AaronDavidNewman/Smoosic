@@ -6,12 +6,12 @@ VX = Vex.Xform;
 VX.groupCounter = 1;
 
 // ## Description:
-//   Create a staff and draw music on it.
+//   Create a staff and draw music on it usinbg VexFLow rendering engine
 //
-// ##  Options:
-//  clef:'treble',
-//  num_beats:num_beats,
-//  timeSignature: '4/4'
+// ###  Options:
+//  `{measure:measure}` - The SMO measure to render
+// ### VxMeasure methods
+// ---
 class VxMeasure {
     constructor(context, options) {
         this.context = context;
@@ -170,10 +170,9 @@ class VxMeasure {
 		this._renderArticulations();
     }
 
-    // ## Description:
-    // create the VX beam groups, honoring the Smo custom modifiers
-    // ## TODO:
-    // make the Smo custom modifiers
+    // ### createVexBeamGroups
+    // create the VX beam groups. VexFlow has auto-beaming logic, but we use 
+	// our own because the user can specify stem directions, breaks etc.
     createVexBeamGroups() {
         this.vexBeamGroups = [];
         this.beamToVexMap = {};
@@ -197,7 +196,7 @@ class VxMeasure {
         }
     }
 
-    // ## Description:
+    // ### createVexTuplets
     // Create the VF tuplet objects based on the smo tuplet objects
     // that have been defined.
     createVexTuplets() {
