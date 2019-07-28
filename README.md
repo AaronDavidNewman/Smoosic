@@ -28,7 +28,7 @@ There is a list of
 [available and not-yet-available functions:](https://aarondavidnewman.github.io/Smoosic/build/docs/SMOFeatures.html).  A 0 means the function is not available.  Some features are available in the tests before they are incorporated into the UI.  A few functions are UI-only and don't have a test.  If it is not in the spreadsheet at all, it means I haven't thought of it yet.
 
 ---
-If you want to contribute or hack, there is source-code [auto-generated documentation](https://aarondavidnewman.github.io/Smoosic/build/docs/sourceDocs.md)
+If you want to contribute or hack, there is source-code [auto-generated documentation](https://github.com/AaronDavidNewman/Smoosic/wiki/Source-Documentation)
 
 
 
