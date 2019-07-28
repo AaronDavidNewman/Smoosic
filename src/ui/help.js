@@ -161,6 +161,24 @@ class SmoHelp {
                 ],
                 text: 'Select note or staff modifier (slur, dynamic)',
                 id: 'navel5'
+            }, {
+                keys: [{
+                        icon: '',
+                        text: 'Alt',
+                        separator: '+'
+                    }, {
+                        icon: 'icon-arrow-up',
+                        separator: ','
+                    }, {
+                        icon: '',
+                        text: 'Alt',
+                        separator: '+'
+                    }, {
+                        icon: 'icon-arrow-down'
+                    }
+                ],
+                text: 'Iterate through the notes of a chord',
+                id: 'navel6'
             }
         ];
     }
@@ -286,7 +304,17 @@ class SmoHelp {
                 ],
                 text: 'Toggle break beam group',
                 id: 'noteElements7'
-            },
+            },{
+                keys: [{
+                        text: 'Alt',
+						separator:'+'
+                    },{
+						text:'-'
+					}
+                ],
+                text: 'Toggle courtesy accidental',
+                id: 'noteElements8'
+            }
         ];
     }
     static get durationElements() {
