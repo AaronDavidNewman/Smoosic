@@ -86,7 +86,6 @@ class suiSimpleLayout {
         this.layout(false);
         // layout a second time to adjust for issues.
         this.adjustWidths();
-        this.dumpGeometry()
         this.layout(true);
     }
 

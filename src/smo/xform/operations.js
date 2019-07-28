@@ -220,6 +220,24 @@ class SmoOperation {
 		});
 		return true;
 	}
+	
+	static toggleCourtesyAccidental(selection) {
+		var toBe=false;
+		var i=0;
+		if (!selection.selector['pitches'] || selection.selector.pitches.length === 0) {
+			var ps=[];
+			selection.note.pitches.forEach((pitch) => {
+				var p = JSON.parse(JSON.stringify(pitch));
+				ps.push(p);
+				p.cautionary = !(pitch.cautionary);
+			});
+			selection.note.pitches=ps;
+		} else {
+			toBe = !(selection.note.pitches[selection.selector.pitches[0]].cautionary);
+		}
+		
+		SmoOperation.courtesyAccidental(selection, toBe);
+	}
 
 	static courtesyAccidental(pitchSelection, toBe) {
 		pitchSelection.selector.pitches.forEach((pitchIx) => {

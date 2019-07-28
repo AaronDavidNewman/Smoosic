@@ -85,6 +85,13 @@ class suiController {
 				altKey: false,
 				shiftKey: false,
 				action: "downOctave"
+			},{
+				event: "keydown",
+				key: "-",
+				ctrlKey: false,
+				altKey: true,
+				shiftKey: false,
+				action: "toggleCourtesyAccidental"
 			}, {
 				event: "keydown",
 				key: ".",
@@ -179,6 +186,22 @@ class suiController {
 			}, {
 				event: "keydown",
 				key: "3",
+				ctrlKey: true,
+				altKey: false,
+				shiftKey: false,
+				action: "makeTuplet"
+			},
+			{
+				event: "keydown",
+				key: "5",
+				ctrlKey: true,
+				altKey: false,
+				shiftKey: false,
+				action: "makeTuplet"
+			},
+			{
+				event: "keydown",
+				key: "7",
 				ctrlKey: true,
 				altKey: false,
 				shiftKey: false,

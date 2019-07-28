@@ -800,7 +800,7 @@ class SmoNote {
     // see defaults for params format.
     constructor(params) {
         Vex.Merge(this, SmoNote.defaults);
-        smoMusic.filteredMerge(SmoNote.parameterArray, params, this);
+        smoMusic.serializedMerge(SmoNote.parameterArray, params, this);
 
         // this.keys=JSON.parse(JSON.stringify(this.keys));
 
@@ -3742,6 +3742,24 @@ class SmoOperation {
 		});
 		return true;
 	}
+	
+	static toggleCourtesyAccidental(selection) {
+		var toBe=false;
+		var i=0;
+		if (!selection.selector['pitches'] || selection.selector.pitches.length === 0) {
+			var ps=[];
+			selection.note.pitches.forEach((pitch) => {
+				var p = JSON.parse(JSON.stringify(pitch));
+				ps.push(p);
+				p.cautionary = !(pitch.cautionary);
+			});
+			selection.note.pitches=ps;
+		} else {
+			toBe = !(selection.note.pitches[selection.selector.pitches[0]].cautionary);
+		}
+		
+		SmoOperation.courtesyAccidental(selection, toBe);
+	}
 
 	static courtesyAccidental(pitchSelection, toBe) {
 		pitchSelection.selector.pitches.forEach((pitchIx) => {
@@ -4031,6 +4049,10 @@ class SmoUndoable {
         undoBuffer.addBuffer('add instrument', 'score', null, score);
         SmoOperation.addStaff(score, parameters);
     }
+	static toggleCourtesyAccidental(selection,undoBuffer) {
+        undoBuffer.addBuffer('toggle courtesy ','measure', selection.selector, selection.measure);
+		SmoOperation.toggleCourtesyAccidental(selection);		
+	}
     static removeStaff(score, index, undoBuffer) {
         undoBuffer.addBuffer('remove instrument', 'score', null, score);
         SmoOperation.removeInstrument(score, index);
@@ -5502,7 +5524,6 @@ class suiSimpleLayout {
         this.layout(false);
         // layout a second time to adjust for issues.
         this.adjustWidths();
-        this.dumpGeometry()
         this.layout(true);
     }
 
@@ -6020,6 +6041,15 @@ class suiEditor {
             this._render();
         }
     }
+	toggleCourtesyAccidental() {
+        if (this.tracker.selections.length < 1) {
+            return;
+        }
+		this.tracker.selections.forEach((selection)=>{
+			SmoUndoable.toggleCourtesyAccidental(selection,this.undoBuffer);
+		});
+		this._render();
+	}
 	rerender(keyEvent) {
 		this.layout.unrenderAll();
 		SmoUndoable.noop(this.score,this.undoBuffer);
@@ -7565,6 +7595,13 @@ class suiController {
 				altKey: false,
 				shiftKey: false,
 				action: "downOctave"
+			},{
+				event: "keydown",
+				key: "-",
+				ctrlKey: false,
+				altKey: true,
+				shiftKey: false,
+				action: "toggleCourtesyAccidental"
 			}, {
 				event: "keydown",
 				key: ".",
@@ -7659,6 +7696,22 @@ class suiController {
 			}, {
 				event: "keydown",
 				key: "3",
+				ctrlKey: true,
+				altKey: false,
+				shiftKey: false,
+				action: "makeTuplet"
+			},
+			{
+				event: "keydown",
+				key: "5",
+				ctrlKey: true,
+				altKey: false,
+				shiftKey: false,
+				action: "makeTuplet"
+			},
+			{
+				event: "keydown",
+				key: "7",
 				ctrlKey: true,
 				altKey: false,
 				shiftKey: false,

@@ -182,6 +182,15 @@ class suiEditor {
             this._render();
         }
     }
+	toggleCourtesyAccidental() {
+        if (this.tracker.selections.length < 1) {
+            return;
+        }
+		this.tracker.selections.forEach((selection)=>{
+			SmoUndoable.toggleCourtesyAccidental(selection,this.undoBuffer);
+		});
+		this._render();
+	}
 	rerender(keyEvent) {
 		this.layout.unrenderAll();
 		SmoUndoable.noop(this.score,this.undoBuffer);

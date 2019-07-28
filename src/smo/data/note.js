@@ -9,7 +9,7 @@ class SmoNote {
     // see defaults for params format.
     constructor(params) {
         Vex.Merge(this, SmoNote.defaults);
-        smoMusic.filteredMerge(SmoNote.parameterArray, params, this);
+        smoMusic.serializedMerge(SmoNote.parameterArray, params, this);
 
         // this.keys=JSON.parse(JSON.stringify(this.keys));
 

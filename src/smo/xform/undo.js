@@ -194,6 +194,10 @@ class SmoUndoable {
         undoBuffer.addBuffer('add instrument', 'score', null, score);
         SmoOperation.addStaff(score, parameters);
     }
+	static toggleCourtesyAccidental(selection,undoBuffer) {
+        undoBuffer.addBuffer('toggle courtesy ','measure', selection.selector, selection.measure);
+		SmoOperation.toggleCourtesyAccidental(selection);		
+	}
     static removeStaff(score, index, undoBuffer) {
         undoBuffer.addBuffer('remove instrument', 'score', null, score);
         SmoOperation.removeInstrument(score, index);
