@@ -22,8 +22,13 @@ If you want to use it in your own projects, a good place to start are the unit t
 Instructions on how to use smoosic:
 [Editor Commands and Key Mappings](https://aarondavidnewman.github.io/Smoosic/build/docs/helpfile.html)
 
+---
+
 There is a list of 
 [available and not-yet-available functions:](https://aarondavidnewman.github.io/Smoosic/build/docs/SMOFeatures.html).  A 0 means the function is not available.  Some features are available in the tests before they are incorporated into the UI.  A few functions are UI-only and don't have a test.  If it is not in the spreadsheet at all, it means I haven't thought of it yet.
+
+---
+If you want to contribute or hack, there is source-code [auto-generated documentation](https://aarondavidnewman.github.io/Smoosic/build/docs/sourceDocs.html)
 
 
 
