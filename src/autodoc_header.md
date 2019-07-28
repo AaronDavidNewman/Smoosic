@@ -1,13 +1,12 @@
 # Smoosic source code
 
 Smoosic is a simple (?) but fully-functional-aspirant editor for music written in javascript.  
-The goal is to be
-like ckeditor for music, but good.  Or if you like, like Finale, but good, etc.  It uses VexFlow
-project from [GitHub Vex Flow](https://github.com/0xfe/vexflow) for rendering
+  It uses VexFlow
+project from [GitHub Vex Flow](https://github.com/0xfe/vexflow) for rendering.
 
 ## Note on prefixes:
 
- 1. SMO == Serializable Music Ontology, stuff I made up
+ 1. SMO == Serializable Music Ontology, stuff I made up. 
  2. vx == VF == Vexflow rendering engine by https://github.com/0xfe
  3. SUI == Smo User Interface.
  
@@ -22,4 +21,8 @@ project from [GitHub Vex Flow](https://github.com/0xfe/vexflow) for rendering
  * render is for rendering
  * styles contain css and svg for inline images
  * test contains the test pages
+ 
+## Smo Source Code Auto-generated Documentation:
+---
+ 
  

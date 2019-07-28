@@ -2,9 +2,13 @@ const fs = require('fs');
 const readline = require('readline');
 const util = require('util');
 const readFile = util.promisify(fs.readFile);
+const docHeader = './src/autodoc_header.md'
+    const js = /\.js/;
 
-const js = /\.js/;
-
+function processDocsHeader() {
+    var text = fs.readFileSync(docHeader, 'utf-8');
+    console.log(text);
+}
 function processLineByLine(filename) {
 
     const rl = readline.createInterface({
@@ -47,7 +51,7 @@ function processFolder(sourceFolder) {
     console.log('---');
 
     var files = fs.readdirSync(sourceFolder.folder);
-    
+
     files.forEach((file) => {
         if (js.test(file)) {
             processLineByLine(sourceFolder.folder + file);
@@ -83,6 +87,7 @@ function docGen() {
         }
     ];
 
+    processDocsHeader();
     sourceFolders.forEach((sourceFolder) => {
         processFolder(sourceFolder);
     });
