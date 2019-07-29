@@ -17,7 +17,7 @@ class htmlHelpers {
 	// $(parent).append(r.dom());
 	//
 	// Don't forget the '.dom()' !  That is the actual jquery element object
-	static buildDom = function (el) {
+	static buildDom(el) {
 		var smoDomBuilder = function (el) {
 			this.e = $('<' + el + '/>');
 			var self = this;
