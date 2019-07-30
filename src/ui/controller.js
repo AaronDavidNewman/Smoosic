@@ -179,8 +179,8 @@ class suiController {
 			},{
 				event: "keydown",
 				key: "r",
-				ctrlKey: true,
-				altKey: false,
+				ctrlKey: false,
+				altKey: true,
 				shiftKey: false,
 				action: "rerender"
 			}, {
