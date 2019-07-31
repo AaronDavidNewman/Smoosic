@@ -1,0 +1,39 @@
+<!DOCTYPE HTML>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+		<meta charset="utf-8">
+		<title>Smoosic Editor</title>
+		<link href="https://aarondavidnewman.github.io/Smoosic/build/styles/fonts.css" rel="stylesheet">
+		<link href="https://aarondavidnewman.github.io/Smoosic/build/styles/styles.css" rel="stylesheet">
+		<script type="text/javascript" src="https://npmcdn.com/vexflow/releases/vexflow-debug.js" ></script>
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.slim.js" ></script>
+		<script type="text/javascript" src="https://aarondavidnewman.github.io/Smoosic/build/smoosic.js" ></script>
+		<script type="text/javascript"  src="https://aarondavidnewman.github.io/Smoosic/build/editor.js" ></script>
+<script type="text/javascript" >
+	document.addEventListener("DOMContentLoaded", function (event) {
+	var elementId =document.getElementById("boo");
+	var renderer = new VF.Renderer(elementId, VF.Renderer.Backends.SVG);
+	var context = renderer.getContext();
+	$(elementId).find('svg').css('transform', 'scale(0.7','0.7) translate(-82px,-106px)');
+	var box1={x:30,y:40,width:800,height:108};
+	var cbox1 = svgHelpers.logicalToClient(context.svg,box1);
+	var stroke={'stroke': '#33a','stroke-width': 2,'fill': 'none'};
+	var lbox1 = svgHelpers.clientToLogical(context.svg,cbox1);
+	context.rect(lbox1.x, lbox1.y, lbox1.width, lbox1.height, stroke);
+	
+	var box2={x:30,y:260,width:800,height:108};
+	var cbox2=svgHelpers.logicalToClient(context.svg,box2);
+	var lbox2=svgHelpers.clientToLogical(context.svg,cbox2);
+	stroke.stroke='#962';
+	context.rect(lbox2.x,lbox2.y,lbox2.width,lbox2.height);
+	});
+
+</script>		
+</head>
+<body>
+<div class="musicRelief">
+    <div class="musicContainer" id="boo" style="width:916px;height:1056px;left:552px;">	
+	</div>
+</div>
+</body>
+</html>
