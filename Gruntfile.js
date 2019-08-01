@@ -16,7 +16,7 @@ module.exports = function (grunt) {
                     'src/smo/xform/operations.js', 'src/smo/xform/undo.js', 'src/smo/xform/copypaste.js',
                     'src/render/vex/vxMeasure.js', 'src/render/vex/vxSystem.js',
                     'src/render/sui/tracker.js', 'src/render/sui/layout.js', 'src/ui/editor.js', 'src/ui/menus.js', 'src/ui/utController.js',
-                    'src/ui/ribbon.hs','src/ui/dialog.js', 'src/ui/staffDialogs.js', 'src/ui/help.js', 'src/ui/controller.js'],
+                    'src/ui/ribbon.js','src/ui/dialog.js', 'src/ui/staffDialogs.js', 'src/ui/help.js', 'src/ui/controller.js'],
                 dest: 'build/<%= pkg.name %>.js'
             },
             tests: {
