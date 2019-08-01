@@ -105,13 +105,13 @@ class svgHelpers {
 	// ### logicalToClient
 	// Convert a point from logical (pixels) to actual screen dimensions based on current
 	// zoom, aspect ratio
-	static logicalToClient(svg, logicalPoint) {
+	/* static logicalToClient(svg, logicalPoint) {
 		var rect = svg.getBoundingClientRect();
 		var rv = svgHelpers.copyBox(logicalPoint);
 		rv.x += rect.x;
 		rv.y += rect.y;
 		return rv;
-	}
+	}   */
 
 	// ### clientToLogical
 	// return a box or point in svg coordintes from screen coordinates

@@ -26,7 +26,7 @@ class SmoScore {
             activeStaff: 0,
             pageWidth: 8 * 96 + 48,
             pageHeight: 11 * 96,
-            svgScale: 1.0,
+            svgScale: 0.7,
             zoomScale: 1.0
         };
     }

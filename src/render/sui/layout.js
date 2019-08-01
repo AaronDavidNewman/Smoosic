@@ -13,8 +13,8 @@ class suiSimpleLayout {
 			this.svgScale = this.score.svgScale * this.score.zoomScale;
 			this.pageWidth = Math.round(this.score.pageWidth * this.score.zoomScale);
 			this.pageHeight = Math.round(this.score.pageHeight * this.score.zoomScale);
-			$(this.elementId).css('width', '' + this.pageWidth + 'px');
-			$(this.elementId).css('height', '' + this.pageHeight + 'px');
+			$(this.elementId).css('width', '' + Math.round(this.pageWidth) + 'px');
+			$(this.elementId).css('height', '' + Math.round(this.pageHeight) + 'px');
 		}
 		$(this.elementId).html('');
 		this.renderer = new VF.Renderer(this.elementId, VF.Renderer.Backends.SVG);
@@ -23,10 +23,14 @@ class suiSimpleLayout {
 		if (offset > 0) {
 			$(this.elementId).css('left', '' + offset + 'px');
 		}
-		var xtranslation = Math.round(((1.0 - this.svgScale) * this.pageWidth) / 2);
-		var ytranslation = Math.round(((1.0 - this.svgScale) * this.pageHeight) / 2);
-		$(this.elementId).find('svg').css('transform', 'scale(' + this.svgScale + ',' +
-			this.svgScale + ') translate(-' + xtranslation + 'px,-' + ytranslation + 'px)');
+		// var xtranslation = Math.round(((1.0 - this.svgScale) * this.pageWidth) / 2);
+		// var ytranslation = Math.round(((1.0 - this.svgScale) * this.pageHeight) / 2);
+		/* $(this.elementId).find('svg').css('transform', 'scale(' + this.svgScale + ',' +
+			this.svgScale + ') translate(-' + xtranslation + 'px,-' + ytranslation + 'px)');  */
+		this.context.svg.setAttributeNS('','width',''+this.pageWidth);
+		this.context.svg.setAttributeNS('','height',''+this.pageHeight);
+		this.context.svg.setAttributeNS('','viewBox','0 0 '+Math.round(this.pageWidth/this.svgScale)+' '+
+		    Math.round(this.pageHeight/this.svgScale));
 		this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
 		this.attrs = {
 			id: VF.Element.newID(),
@@ -58,7 +62,7 @@ class suiSimpleLayout {
 			topMargin: 15,
 			pageWidth: 8 * 96 + 48,
 			pageHeight: 11 * 96,
-			svgScale: 1.0,
+			svgScale: 0.7,
 			font: {
 				typeface: "Arial",
 				pointSize: 10,
@@ -386,7 +390,7 @@ class suiSimpleLayout {
 				var clefLast = this._previousAttr(i, j, 'clef');
 
 				if (j == 0 && logicalStaffBox.x + logicalStaffBox.width + measure.staffWidth
-					 > this.pageMarginWidth / this.svgScale) {
+					 > this.pageMarginWidth/this.svgScale) {
 					if (drawAll) {
 						system.cap();
 					}
