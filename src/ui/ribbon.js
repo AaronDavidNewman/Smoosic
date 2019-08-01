@@ -7,5 +7,9 @@ class RibbonHtml {
 				b('span').classes('ribbon-button-hotkey').text(buttonKey));
 		return r.dom();
 	}
+	
+	static navigationGroup() {
+		
+	}
 
 }
