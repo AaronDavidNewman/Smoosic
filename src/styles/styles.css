@@ -50,9 +50,25 @@ h1 {
 	margin:5px;
 }
 .controls button {
-	padding:5px;
-	font-size: 1em;
+	padding: 5px 0;
+	font-size: 0.7em;
 	border: 1px #44e solid;
+	width: 75px;
+	position:relative;
+	height: 25px;
+	/* text-align: center; */
+	/* padding-bottom: 5px; */
+}
+
+.controls button span.ribbon-button-text {
+	position:absolute;
+	left:2px;
+	top:33%;
+}
+.controls button span.ribbon-button-hotkey {
+	position:absolute;
+	right:2px;
+	top:33%;
 }
 
 button.help-button:hover,button.help-button:focus {

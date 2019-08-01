@@ -7055,14 +7055,10 @@ class SmoHelp {
             $('body').trigger('dialogDismiss');
         });
     }
-
+		
     static helpControls() {
-        var b = htmlHelpers.buildDom;
-        var r = b('button').classes('help-button').append(
-                b('span').classes('icon-question helpKey').attr('id', 'globHelp')).append(
-                b('label').attr('for', 'globHelp').text('Help'));
         $('body .controls').html('');
-        $('body .controls').append(r.dom());
+        $('body .controls').append(RibbonHtml.ribbonButton('help-button','Help','?'));
         $('.helpDialog button.icon-cross').focus();
     }
 
