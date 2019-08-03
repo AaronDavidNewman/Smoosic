@@ -18,11 +18,11 @@ class defaultRibbonLayout {
 				id: 'helpDialog'
 			}, {
 				leftText: '',
-				rightText:'',
-				icon: 'treble',
-				classes:'staff-modify',
+				rightText:'/s',
+				icon: 'icon-treble',
+				classes:'staff-modify icon',
 				action: 'menu',
-				ctor: 'suiStaffModifierMenu',
+				ctor: 'SuiAddStaffMenu',
 				id: 'staffModifier'
 			}
 		];

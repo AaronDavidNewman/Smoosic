@@ -50,7 +50,7 @@ class SmoSystemStaff {
 	
 	serialize() {
 		var params={};
-		smoMusic.filteredMerge(SmoSystemStaff.defaultParameters,this,params);
+		smoMusic.serializedMerge(SmoSystemStaff.defaultParameters,this,params);
 		params.modifiers=[];
 		params.measures=[];
 		

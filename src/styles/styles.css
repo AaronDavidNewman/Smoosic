@@ -75,6 +75,9 @@ h1 {
 	left:2px;
 	top:33%;
 }
+.controls-left button.icon span.icon {
+	font-size:2em;
+}
 .controls-left button span.ribbon-button-hotkey {
 	position:absolute;
 	right:2px;

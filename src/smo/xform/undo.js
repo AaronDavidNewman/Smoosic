@@ -167,16 +167,8 @@ class SmoUndoable {
         SmoOperation.slur(fromSelection, toSelection);
     }
 	static noop(score,undoBuffer) {
-        undoBuffer.addBuffer('addInstrument', 'score', null, score);		
+        undoBuffer.addBuffer('Backup', 'score', null, score);		
 	}
-    static addInstrument(score, undoBuffer) {
-        undoBuffer.addBuffer('addInstrument', 'score', null, score);
-        SmoOperation.addInstrument(score);
-    }
-    static removeInstrument(score, index, undoBuffer) {
-        undoBuffer.addBuffer('removeInstrument', 'score', null, score);
-        SmoOperation.removeInstrument(score, index);
-    }
     static addKeySignature(score, selection, keySignature, undoBuffer) {
         undoBuffer.addBuffer('addKeySignature ' + keySignature, 'score', null, score);
         SmoOperation.addKeySignature(score, selection, keySignature);
@@ -200,7 +192,7 @@ class SmoUndoable {
 	}
     static removeStaff(score, index, undoBuffer) {
         undoBuffer.addBuffer('remove instrument', 'score', null, score);
-        SmoOperation.removeInstrument(score, index);
+        SmoOperation.removeStaff(score, index);
     }
     static changeInstrument(score, instrument, selections, undoBuffer) {
         undoBuffer.addBuffer('changeInstrument', 'staff', selections[0].selector, score);

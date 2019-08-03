@@ -40,6 +40,11 @@
                     <File name="src\ui\keyBindings\default\trackerKeys.js" />
                 </Folder>
             </Folder>
+            <Folder name="ribbonLayout">
+                <Folder name="default">
+                    <File name="src\ui\ribbonLayout\default\defaultRibbon.js" />
+                </Folder>
+            </Folder>
         </Folder>
         <Folder name="test">
             <File name="src\test\chordTest.js" />

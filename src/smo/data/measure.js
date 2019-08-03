@@ -13,8 +13,8 @@ class SmoMeasure {
         this.beamGroups = [];
         this.changed = true;
 
-        Vex.Merge(this, SmoMeasure.defaults);
-        Vex.Merge(this, params);
+		smoMusic.serializedMerge(SmoMeasure.attributeArray,SmoMeasure.defaults,this);
+        smoMusic.serializedMerge(SmoMeasure.attributeArray,params,this);
         if (!this['attrs']) {
             this.attrs = {
                 id: VF.Element.newID(),
@@ -64,13 +64,17 @@ class SmoMeasure {
             'measureNumber', 'staffWidth', 'modifierOptions',
             'activeVoice', 'clef', 'transposeIndex'];
     }
+	
+	static get attributeArray() {
+		return SmoMeasure.defaultAttributes.concat(['voices','tuplets','beamGroups','activeVoice','adjX','rightMargin']);
+	}
 
     // ### serialize
     // Convert this measure object to a JSON object, recursively serializing all the notes,
     // note modifiers, etc.
     serialize() {
         var params = {};
-        smoMusic.filteredMerge(SmoMeasure.defaultAttributes, this, params);
+        smoMusic.serializedMerge(SmoMeasure.defaultAttributes, this, params);
         params.tuplets = [];
         params.beamGroups = [];
         params.voices = [];
