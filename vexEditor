@@ -34,6 +34,12 @@
             <File name="src\ui\staffDialogs.js" />
             <File name="src\ui\help.js" />
             <File name="src\ui\ribbon.js" />
+            <Folder name="keyBindings">
+                <Folder name="default">
+                    <File name="src\ui\keyBindings\default\editorKeys.js" />
+                    <File name="src\ui\keyBindings\default\trackerKeys.js" />
+                </Folder>
+            </Folder>
         </Folder>
         <Folder name="test">
             <File name="src\test\chordTest.js" />

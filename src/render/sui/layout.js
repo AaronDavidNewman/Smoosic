@@ -10,30 +10,18 @@ class suiSimpleLayout {
         Vex.Merge(this, params);
 
         var screenWidth = window.innerWidth;
-        if (this.score) {
-            this.svgScale = this.score.svgScale * this.score.zoomScale;
-            this.pageWidth = Math.round(this.score.pageWidth * this.score.zoomScale);
-            if (screenWidth < this.score.pageWidth + 200) {
-				var coeff = screenWidth/(this.score.pageWidth + 200);
-				this.svgScale = this.svgScale*coeff;
-				this.pageWidth = this.pageWidth*coeff;
-			}
-            this.pageHeight = Math.round(this.score.pageHeight * this.score.zoomScale);
-            $(this.elementId).css('width', '' + Math.round(this.pageWidth) + 'px');
-            $(this.elementId).css('height', '' + Math.round(this.pageHeight) + 'px');
-        }
+       
+		this.svgScale = this.score.svgScale * this.score.zoomScale;
+		this.pageWidth = Math.round(this.score.pageWidth * this.score.zoomScale);            
+		this.pageHeight = Math.round(this.score.pageHeight * this.score.zoomScale);
+		$(this.elementId).css('width', '' + Math.round(this.pageWidth) + 'px');
+		$(this.elementId).css('height', '' + Math.round(this.pageHeight) + 'px');
         $(this.elementId).html('');
         this.renderer = new VF.Renderer(this.elementId, VF.Renderer.Backends.SVG);
         // this.renderer.resize(this.pageWidth, this.pageHeight);
-        var offset = (window.innerWidth - $(this.elementId).width()) / 2;
-        if (offset > 0) {
-            $(this.elementId).css('left', '' + offset + 'px');
-        }
+		
+		svgHelpers.svgViewport(this.context.svg,this.pageWidth,this.pageHeight,this.svgScale);
 
-        this.context.svg.setAttributeNS('', 'width', '' + this.pageWidth);
-        this.context.svg.setAttributeNS('', 'height', '' + this.pageHeight);
-        this.context.svg.setAttributeNS('', 'viewBox', '0 0 ' + Math.round(this.pageWidth / this.svgScale) + ' ' +
-            Math.round(this.pageHeight / this.svgScale));
         this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
         this.attrs = {
             id: VF.Element.newID(),

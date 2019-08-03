@@ -102,15 +102,24 @@ class svgHelpers {
 		};
 	}
 
+	// ### svgViewport
+	// set `svg` element to `width`,`height` and viewport `scale`
+	static svgViewport(svg, width, height, scale) {
+		svg.setAttributeNS('', 'width', '' + width);
+		svg.setAttributeNS('', 'height', '' + height);
+		svg.setAttributeNS('', 'viewBox', '0 0 ' + Math.round(width / scale) + ' ' +
+			Math.round(height / scale));
+	}
+
 	// ### logicalToClient
 	// Convert a point from logical (pixels) to actual screen dimensions based on current
 	// zoom, aspect ratio
 	/* static logicalToClient(svg, logicalPoint) {
-		var rect = svg.getBoundingClientRect();
-		var rv = svgHelpers.copyBox(logicalPoint);
-		rv.x += rect.x;
-		rv.y += rect.y;
-		return rv;
+	var rect = svg.getBoundingClientRect();
+	var rv = svgHelpers.copyBox(logicalPoint);
+	rv.x += rect.x;
+	rv.y += rect.y;
+	return rv;
 	}   */
 
 	// ### clientToLogical

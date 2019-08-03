@@ -26,8 +26,8 @@ class SmoHelp {
     }
 		
     static helpControls() {
-        $('body .controls').html('');
-        $('body .controls').append(RibbonHtml.ribbonButton('help-button','Help','?'));
+        $('body .controls-left').html('');
+        $('body .controls-left').append(RibbonHtml.ribbonButton('help-button','Help','?'));
         $('.helpDialog button.icon-cross').focus();
     }
 
@@ -36,8 +36,8 @@ class SmoHelp {
         var r = b('div').classes('menu-status').append(
                 b('div').attr('id', 'globMode').text('Next Key Chooses Menu')).append(
                 b('div').classes('mode-subtitle').append(SmoHelp.shortMenuHelpHtml));
-        $('body .controls').html('');
-        $('body .controls').append(r.dom());
+        $('body .controls-left').html('');
+        $('body .controls-left').append(r.dom());
     }
 
     static get closeButton() {

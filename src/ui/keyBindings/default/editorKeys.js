@@ -1,5 +1,5 @@
 class defaultEditorKeys {
-	
+
 	static get keys() {
 		return [{
 				event: "keydown",
@@ -29,7 +29,7 @@ class defaultEditorKeys {
 				altKey: false,
 				shiftKey: false,
 				action: "downOctave"
-			},{
+			}, {
 				event: "keydown",
 				key: "-",
 				ctrlKey: false,
@@ -120,7 +120,7 @@ class defaultEditorKeys {
 				altKey: false,
 				shiftKey: false,
 				action: "makeRest"
-			},{
+			}, {
 				event: "keydown",
 				key: "r",
 				ctrlKey: false,
@@ -134,16 +134,14 @@ class defaultEditorKeys {
 				altKey: false,
 				shiftKey: false,
 				action: "makeTuplet"
-			},
-			{
+			}, {
 				event: "keydown",
 				key: "5",
 				ctrlKey: true,
 				altKey: false,
 				shiftKey: false,
 				action: "makeTuplet"
-			},
-			{
+			}, {
 				event: "keydown",
 				key: "7",
 				ctrlKey: true,
@@ -271,119 +269,106 @@ class defaultEditorKeys {
 				altKey: false,
 				shiftKey: false,
 				action: "deleteMeasure"
-			},
-			 {
+			}, {
 				event: "keydown",
 				key: "z",
 				ctrlKey: true,
 				altKey: false,
 				shiftKey: false,
 				action: "undo"
-			},
-			 {
+			}, {
 				event: "keydown",
 				key: "c",
 				ctrlKey: true,
 				altKey: false,
 				shiftKey: false,
 				action: "copy"
-			},
-			{
+			}, {
 				event: "keydown",
 				key: "x",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: false,
 				action: "toggleBeamGroup"
-			},
-			 {
+			}, {
 				event: "keydown",
 				key: "v",
 				ctrlKey: true,
 				altKey: false,
 				shiftKey: false,
 				action: "paste"
-			},
-			 {
+			}, {
 				event: "keydown",
 				key: "h",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: false,
 				action: "addRemoveArticulation"
-			},
-			 {
+			}, {
 				event: "keydown",
 				key: "i",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: false,
 				action: "addRemoveArticulation"
-			},
-			{
+			}, {
 				event: "keydown",
 				key: "j",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: false,
 				action: "addRemoveArticulation"
-			},
-			{
+			}, {
 				event: "keydown",
 				key: "k",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: false,
 				action: "addRemoveArticulation"
-			},
-			{
+			}, {
 				event: "keydown",
 				key: "l",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: false,
 				action: "addRemoveArticulation"
-			},
-			{
+			}, {
 				event: "keydown",
 				key: "H",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: true,
 				action: "addRemoveArticulation"
-			},
-			 {
+			}, {
 				event: "keydown",
 				key: "I",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: true,
 				action: "addRemoveArticulation"
-			},
-			{
+			}, {
 				event: "keydown",
 				key: "J",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: true,
 				action: "addRemoveArticulation"
-			},
-			{
+			}, {
 				event: "keydown",
 				key: "K",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: true,
 				action: "addRemoveArticulation"
-			},
-			{
+			}, {
 				event: "keydown",
 				key: "L",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: true,
 				action: "addRemoveArticulation"
-			}		
-			];
+			},
+		];
 	}
+
 }

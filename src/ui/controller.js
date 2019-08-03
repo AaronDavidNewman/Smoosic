@@ -9,11 +9,22 @@ class suiController {
 	constructor(params) {
 		Vex.Merge(this, suiController.defaults);
 		Vex.Merge(this, params);
-		this.bindEvents();
 		this.undoBuffer = new UndoBuffer();
 		this.pasteBuffer = this.tracker.pasteBuffer;
 		this.editor.undoBuffer = this.undoBuffer;
 		this.editor.pasteBuffer = this.pasteBuffer;
+
+		this.ribbon = new RibbonButtons({
+				ribbons: defaultRibbonLayout.ribbons,
+				ribbonButtons: defaultRibbonLayout.ribbonButtons,
+				menus: this.menus,
+				editor: this.editor,
+				tracker: this.tracker,
+				score: this.score,
+				controller:this
+		});
+		
+		this.bindEvents();
 	}
 
 	// ## createUi
@@ -56,7 +67,7 @@ class suiController {
 	// ## editorKeyBindingDefaults
 	// ## Description:
 	// execute a simple command on the editor, based on a keystroke.
-	static get editorKeyBindingDefaults() {			
+	static get editorKeyBindingDefaults() {
 		return defaultEditorKeys.keys;
 	}
 
@@ -74,14 +85,14 @@ class suiController {
 			self.render();
 			self.bindEvents();
 		}
-		SmoHelp.helpControls();		
-		$('.controls button.help-button').off('click').on('click', function () {
-    		window.removeEventListener("keydown", self.keydownHandler, true);
-			SmoHelp.displayHelp();
-			htmlHelpers.closeDialogPromise().then(rebind);
-		});
+		/* SmoHelp.helpControls();
+		$('.controls-left button.help-button').off('click').on('click', function () {
+		window.removeEventListener("keydown", self.keydownHandler, true);
+		SmoHelp.displayHelp();
+		htmlHelpers.closeDialogPromise().then(rebind);
+		});   */
 	}
-	
+
 	menuHelp() {
 		SmoHelp.modeControls();
 	}
@@ -170,6 +181,7 @@ class suiController {
 		this.helpControls();
 
 		window.addEventListener("keydown", this.keydownHandler, true);
+		this.ribbon.display();
 	}
 
 }
