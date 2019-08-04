@@ -23,51 +23,8 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-logo .path1:before {
+.icon-articulation:before {
   content: "\e900";
-  color: rgb(255, 255, 255);
-}
-.icon-logo .path2:before {
-  content: "\e901";
-  margin-left: -1.392578125em;
-  color: rgb(0, 0, 0);
-}
-.icon-logo .path3:before {
-  content: "\e902";
-  margin-left: -1.392578125em;
-  color: rgb(0, 0, 0);
-}
-.icon-logo .path4:before {
-  content: "\e903";
-  margin-left: -1.392578125em;
-  color: rgb(0, 0, 0);
-}
-.icon-logo .path5:before {
-  content: "\e904";
-  margin-left: -1.392578125em;
-  color: rgb(0, 0, 0);
-  opacity: 0.5;
-}
-.icon-logo .path6:before {
-  content: "\e905";
-  margin-left: -1.392578125em;
-  color: rgb(0, 0, 0);
-  opacity: 0.5;
-}
-.icon-logo .path7:before {
-  content: "\e906";
-  margin-left: -1.392578125em;
-  color: rgb(0, 0, 0);
-}
-.icon-logo .path8:before {
-  content: "\e907";
-  margin-left: -1.392578125em;
-  color: rgb(0, 0, 0);
-}
-.icon-logo .path9:before {
-  content: "\e908";
-  margin-left: -1.392578125em;
-  color: rgb(0, 0, 0);
 }
 .icon-note:before {
   content: "\e909";

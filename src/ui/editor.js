@@ -204,7 +204,21 @@ class suiEditor {
 
     unmakeTuplet(keyEvent) {
         this._singleSelectionOperation('unmakeTuplet');
-    }	
+    }
+	
+	toggleArticulationCommand(articulation,position) {
+		this.undoBuffer.addBuffer('change articulation ' + articulation,
+            'staff', this.tracker.selections[0].selector, this.tracker.selections[0].staff);
+			
+        this.tracker.selections.forEach((sel) => {
+            var aa = new SmoArticulation({
+                    articulation: articulation,
+                    position: position
+                });
+            SmoOperation.toggleArticulation(sel, aa);
+        });
+        this._render();
+	}
 
     addRemoveArticulation(keyEvent) {
         if (this.tracker.selections.length < 1)
@@ -228,17 +242,7 @@ class suiEditor {
             atyp = SmoArticulation.articulations.pizzicato;
         }
         var pos = keyEvent.shiftKey ? SmoArticulation.positions.below : SmoArticulation.positions.above;
+		this.toggleArticulationCommand(atyp,pos);
 		
-		this.undoBuffer.addBuffer('change articulation ' + atyp,
-            'staff', this.tracker.selections[0].selector, this.tracker.selections[0].staff);
-			
-        this.tracker.selections.forEach((sel) => {
-            var articulation = new SmoArticulation({
-                    articulation: atyp,
-                    position: pos
-                });
-            SmoOperation.toggleArticulation(sel, articulation);
-        });
-        this._render();
     }
 }

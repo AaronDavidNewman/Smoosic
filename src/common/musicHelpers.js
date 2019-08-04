@@ -474,7 +474,8 @@ class smoMusic {
 		attrs.forEach(function (attr) {
 			if (typeof(src[attr]) != 'undefined') {
 				// copy the number 0
-				if (typeof(src[attr]) == 'number') {
+				if (typeof(src[attr]) === 'number' || 
+				    typeof(src[attr]) === 'boolean') {
 					dest[attr] = src[attr];
 					// copy the empty array
 				} else if (Array.isArray(src[attr])) {

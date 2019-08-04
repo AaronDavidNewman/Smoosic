@@ -75,13 +75,30 @@ h1 {
 	left:2px;
 	top:33%;
 }
+
 .controls-left button.icon span.icon {
-	font-size:2em;
+	top:10%;
+}
+
+.controls-left button.icon span.icon:before {
+	font-size:1.6em;
 }
 .controls-left button span.ribbon-button-hotkey {
 	position:absolute;
 	right:2px;
 	top:33%;
+}
+
+.controls-left .articulations button span.ribbon-button-text {
+	font-size:2em;
+}
+
+.collapsed {
+	display:none;
+}
+
+.expanded {
+	display:block;
 }
 
 button.help-button:hover,button.help-button:focus {
