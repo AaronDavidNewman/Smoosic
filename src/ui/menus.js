@@ -374,6 +374,11 @@ class SuiAddStaffMenu extends suiMenuBase {
 					icon: 'cancel-circle',
 					text: 'Remove Staff',
 					value: 'remove'
+				},
+				 {
+					icon: '',
+					text: 'Cancel',
+					value: 'cancel'
 				}
 			],
 			menuContainer: '.menuContainer'
@@ -427,7 +432,9 @@ class SuiAddStaffMenu extends suiMenuBase {
 				SmoUndoable.removeStaff(this.score, this.tracker.selections[0].selector.staff, this.editor.undoBuffer);
 			}
 
-		} else {
+		} else if (op === 'cancel') {
+			this.complete();
+		}else {
 			var instrument = SuiAddStaffMenu.instrumentMap[op];
 
 			SmoUndoable.addStaff(this.score, instrument, this.editor.undoBuffer);

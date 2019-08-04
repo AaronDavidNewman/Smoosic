@@ -4,7 +4,7 @@ class defaultRibbonLayout {
 
 	static get ribbons() {
 		return {
-			left: ['helpDialog','staffModifier']
+			left: ['helpDialog','staffModifier','addDynamic','keySignature']
 		};
 	}
 	static get ribbonButtons() {
@@ -17,13 +17,29 @@ class defaultRibbonLayout {
 				ctor: 'helpModal',
 				id: 'helpDialog'
 			}, {
-				leftText: '',
+				leftText: 'Staves',
 				rightText:'/s',
-				icon: 'icon-treble',
-				classes:'staff-modify icon',
+				icon: '',
+				classes:'staff-modify',
 				action: 'menu',
 				ctor: 'SuiAddStaffMenu',
 				id: 'staffModifier'
+			}, {
+				leftText: 'Dynamics',
+				rightText:'/d',
+				icon: '',
+				classes:'note-modify',
+				action: 'menu',
+				ctor: 'SuiDynamicsMenu',
+				id: 'addDynamic'
+			}, {
+				leftText: 'Key',
+				rightText:'/k',
+				icon: '',
+				classes:'note-modify',
+				action: 'menu',
+				ctor: 'suiKeySignatureMenu',
+				id: 'keySignature'
 			}
 		];
 	}

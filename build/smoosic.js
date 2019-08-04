@@ -1393,8 +1393,11 @@ class SmoMeasure {
 		this.beamGroups = [];
 		this.changed = true;
 
-		smoMusic.serializedMerge(SmoMeasure.attributeArray, SmoMeasure.defaults, this);
-		smoMusic.serializedMerge(SmoMeasure.attributeArray, params, this);
+		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, SmoMeasure.defaults, this);
+		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, params, this);
+		this.voices=params.voices ? params.voices : [];
+		this.tuplets=params.tuplets ? params.tuplets : [];
+		
 		if (!this['attrs']) {
 			this.attrs = {
 				id: VF.Element.newID(),
@@ -1442,7 +1445,7 @@ class SmoMeasure {
 		return [
 			'timeSignature', 'keySignature', 'staffX', 'staffY', 'customModifiers',
 			'measureNumber', 'staffWidth', 'modifierOptions',
-			'activeVoice', 'clef', 'transposeIndex'];
+			'activeVoice', 'clef', 'transposeIndex','activeVoice','adjX','rightMargin'];
 	}
 
 	static get attributeArray() {
@@ -1622,7 +1625,7 @@ class SmoMeasure {
 	static getDefaultMeasure(params) {
 		var obj = {};
 		smoMusic.serializedMerge(SmoMeasure.defaultAttributes,SmoMeasure.defaults,obj);
-		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, obj, params);
+		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, params,obj);
 		return new SmoMeasure(obj);
 	}
 
@@ -6540,6 +6543,11 @@ class SuiAddStaffMenu extends suiMenuBase {
 					icon: 'cancel-circle',
 					text: 'Remove Staff',
 					value: 'remove'
+				},
+				 {
+					icon: '',
+					text: 'Cancel',
+					value: 'cancel'
 				}
 			],
 			menuContainer: '.menuContainer'
@@ -6593,7 +6601,9 @@ class SuiAddStaffMenu extends suiMenuBase {
 				SmoUndoable.removeStaff(this.score, this.tracker.selections[0].selector.staff, this.editor.undoBuffer);
 			}
 
-		} else {
+		} else if (op === 'cancel') {
+			this.complete();
+		}else {
 			var instrument = SuiAddStaffMenu.instrumentMap[op];
 
 			SmoUndoable.addStaff(this.score, instrument, this.editor.undoBuffer);
@@ -7110,6 +7120,52 @@ class defaultTrackerKeys {
 			];
 	}
 };
+
+class defaultRibbonLayout {
+
+	static get ribbons() {
+		return {
+			left: ['helpDialog','staffModifier','addDynamic','keySignature']
+		};
+	}
+	static get ribbonButtons() {
+		return [{
+				icon: '',
+				leftText:'Help',
+				rightText:'?',
+				classes:'help-button',
+				action: 'modal',
+				ctor: 'helpModal',
+				id: 'helpDialog'
+			}, {
+				leftText: 'Staves',
+				rightText:'/s',
+				icon: '',
+				classes:'staff-modify',
+				action: 'menu',
+				ctor: 'SuiAddStaffMenu',
+				id: 'staffModifier'
+			}, {
+				leftText: 'Dynamics',
+				rightText:'/d',
+				icon: '',
+				classes:'note-modify',
+				action: 'menu',
+				ctor: 'SuiDynamicsMenu',
+				id: 'addDynamic'
+			}, {
+				leftText: 'Key',
+				rightText:'/k',
+				icon: '',
+				classes:'note-modify',
+				action: 'menu',
+				ctor: 'suiKeySignatureMenu',
+				id: 'keySignature'
+			}
+		];
+	}
+}
+;
 class RibbonHtml {
 	static ribbonButton(buttonId, buttonClass, buttonText, buttonIcon, buttonKey) {
 		var b = htmlHelpers.buildDom;

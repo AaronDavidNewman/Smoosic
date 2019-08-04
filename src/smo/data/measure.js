@@ -13,8 +13,11 @@ class SmoMeasure {
 		this.beamGroups = [];
 		this.changed = true;
 
-		smoMusic.serializedMerge(SmoMeasure.attributeArray, SmoMeasure.defaults, this);
-		smoMusic.serializedMerge(SmoMeasure.attributeArray, params, this);
+		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, SmoMeasure.defaults, this);
+		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, params, this);
+		this.voices=params.voices ? params.voices : [];
+		this.tuplets=params.tuplets ? params.tuplets : [];
+		
 		if (!this['attrs']) {
 			this.attrs = {
 				id: VF.Element.newID(),
@@ -62,7 +65,7 @@ class SmoMeasure {
 		return [
 			'timeSignature', 'keySignature', 'staffX', 'staffY', 'customModifiers',
 			'measureNumber', 'staffWidth', 'modifierOptions',
-			'activeVoice', 'clef', 'transposeIndex'];
+			'activeVoice', 'clef', 'transposeIndex','activeVoice','adjX','rightMargin'];
 	}
 
 	static get attributeArray() {
@@ -242,7 +245,7 @@ class SmoMeasure {
 	static getDefaultMeasure(params) {
 		var obj = {};
 		smoMusic.serializedMerge(SmoMeasure.defaultAttributes,SmoMeasure.defaults,obj);
-		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, obj, params);
+		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, params,obj);
 		return new SmoMeasure(obj);
 	}
 
