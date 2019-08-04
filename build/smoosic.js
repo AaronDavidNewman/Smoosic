@@ -474,7 +474,8 @@ class smoMusic {
 		attrs.forEach(function (attr) {
 			if (typeof(src[attr]) != 'undefined') {
 				// copy the number 0
-				if (typeof(src[attr]) == 'number') {
+				if (typeof(src[attr]) === 'number' || 
+				    typeof(src[attr]) === 'boolean') {
 					dest[attr] = src[attr];
 					// copy the empty array
 				} else if (Array.isArray(src[attr])) {
@@ -2430,7 +2431,7 @@ class SmoSlur extends StaffModifierBase {
             spacing: 2,
             thickness: 2,
             xOffset: 0,
-            yOffset: 10,
+            yOffset: 10,			
             position: SmoSlur.positions.HEAD,
             position_end: SmoSlur.positions.HEAD,
             invert: false,
@@ -2450,7 +2451,7 @@ class SmoSlur extends StaffModifierBase {
     }
     static get parameterArray() {
         return ['startSelector','endSelector','spacing', 'xOffset', 'yOffset', 'position', 'position_end', 'invert',
-            'cp1x', 'cp1y', 'cp2x', 'cp2y','attrs'];
+            'cp1x', 'cp1y', 'cp2x', 'cp2y','attrs','thickness'];
     }
 
     serialize() {
@@ -2487,7 +2488,7 @@ class SmoSlur extends StaffModifierBase {
         ];
         return ar;
     }
-
+		
     get type() {
         return this.attrs.type;
     }
@@ -2497,8 +2498,10 @@ class SmoSlur extends StaffModifierBase {
 
     constructor(params) {
         super('SmoSlur');
-        Vex.Merge(this, SmoSlur.defaults);
-        smoMusic.filteredMerge(SmoSlur.parameterArray, params, this);
+        smoMusic.serializedMerge(SmoSlur.parameterArray,SmoSlur.defaults,this);
+		Vex.Merge(this,SmoSlur.defaults);
+		smoMusic.filteredMerge(SmoSlur.parameterArray,params,this);
+        smoMusic.serializedMerge(SmoSlur.parameterArray, params, this);
         this.startSelector = params.startSelector;
         this.endSelector = params.endSelector;
         if (!this['attrs']) {
@@ -6129,7 +6132,21 @@ class suiEditor {
 
     unmakeTuplet(keyEvent) {
         this._singleSelectionOperation('unmakeTuplet');
-    }	
+    }
+	
+	toggleArticulationCommand(articulation,position) {
+		this.undoBuffer.addBuffer('change articulation ' + articulation,
+            'staff', this.tracker.selections[0].selector, this.tracker.selections[0].staff);
+			
+        this.tracker.selections.forEach((sel) => {
+            var aa = new SmoArticulation({
+                    articulation: articulation,
+                    position: position
+                });
+            SmoOperation.toggleArticulation(sel, aa);
+        });
+        this._render();
+	}
 
     addRemoveArticulation(keyEvent) {
         if (this.tracker.selections.length < 1)
@@ -6153,18 +6170,8 @@ class suiEditor {
             atyp = SmoArticulation.articulations.pizzicato;
         }
         var pos = keyEvent.shiftKey ? SmoArticulation.positions.below : SmoArticulation.positions.above;
+		this.toggleArticulationCommand(atyp,pos);
 		
-		this.undoBuffer.addBuffer('change articulation ' + atyp,
-            'staff', this.tracker.selections[0].selector, this.tracker.selections[0].staff);
-			
-        this.tracker.selections.forEach((sel) => {
-            var articulation = new SmoArticulation({
-                    articulation: atyp,
-                    position: pos
-                });
-            SmoOperation.toggleArticulation(sel, articulation);
-        });
-        this._render();
     }
 }
 ;
@@ -7125,43 +7132,124 @@ class defaultRibbonLayout {
 
 	static get ribbons() {
 		return {
-			left: ['helpDialog','staffModifier','addDynamic','keySignature']
+			left: ['helpDialog', 'addStaffMenu', 'dynamicsMenu', 'keyMenu', 'staffModifierMenu', 'staffModifierMenu2',
+			'articulationButtons','accentButton','tenutoButton','staccatoButton','marcatoButton','pizzicatoButton']
 		};
 	}
 	static get ribbonButtons() {
 		return [{
 				icon: '',
-				leftText:'Help',
-				rightText:'?',
-				classes:'help-button',
+				leftText: 'Help',
+				rightText: '?',
+				classes: 'help-button',
 				action: 'modal',
 				ctor: 'helpModal',
+				group:'scoreEdit',
 				id: 'helpDialog'
 			}, {
 				leftText: 'Staves',
-				rightText:'/s',
+				rightText: '/s',
 				icon: '',
-				classes:'staff-modify',
+				classes: 'staff-modify',
 				action: 'menu',
 				ctor: 'SuiAddStaffMenu',
-				id: 'staffModifier'
+				group:'scoreEdit',
+				id: 'addStaffMenu'
 			}, {
 				leftText: 'Dynamics',
-				rightText:'/d',
+				rightText: '/d',
 				icon: '',
-				classes:'note-modify',
+				classes: 'note-modify',
 				action: 'menu',
 				ctor: 'SuiDynamicsMenu',
-				id: 'addDynamic'
+				group:'scoreEdit',
+				id: 'dynamicsMenu'
 			}, {
 				leftText: 'Key',
-				rightText:'/k',
+				rightText: '/k',
 				icon: '',
-				classes:'note-modify',
+				classes: 'note-modify',
 				action: 'menu',
 				ctor: 'suiKeySignatureMenu',
-				id: 'keySignature'
-			}
+				group:'scoreEdit',
+				id: 'keyMenu'
+			}, {
+				leftText: '',
+				rightText: '/e',
+				icon: 'icon-slur',
+				classes: 'icon note-modify',
+				action: 'menu',
+				ctor: 'suiStaffModifierMenu',
+				group:'scoreEdit',
+				id: 'staffModifierMenu'
+			}, {
+				leftText: '',
+				rightText: '/e',
+				icon: 'icon-cresc',
+				classes: 'icon note-modify',
+				action: 'menu',
+				ctor: 'suiStaffModifierMenu',
+				group:'scoreEdit',
+				id: 'staffModifierMenu2'
+			},
+			{
+				leftText:'etc.',
+				rightText:'',
+				icon:'icon-articulation',
+				classes:'icon collapseParent',
+				action:'collapseParent',
+				ctor:'CollapseRibbonControl',
+				group:'articulations',
+				id:'articulationButtons'
+			},
+			{
+				leftText:'Accent',
+				rightText:'h',
+				icon:'icon-accent',
+				classes:'icon collapsed',
+				action:'collapseChild',
+				ctor:'ArticulationButtons',
+				group:'articulations',
+				id:'accentButton'
+			},
+			{
+				leftText:'Tenuto',
+				rightText:'i',
+				icon:'',
+				classes:'icon collapsed',
+				action:'collapseChild',
+				ctor:'ArticulationButtons',
+				group:'articulations',
+				id:'tenutoButton'
+			},	{
+				leftText:'Staccato',
+				rightText:'j',
+				icon:'',
+				classes:'icon collapsed',
+				action:'collapseChild',
+				ctor:'ArticulationButtons',
+				group:'articulations',
+				id:'staccatoButton'
+			},
+			{
+				leftText:'Marcato',
+				rightText:'k',
+				icon:'',
+				classes:'icon collapsed',
+				action:'collapseChild',
+				ctor:'ArticulationButtons',
+				group:'articulations',
+				id:'marcatoButton'
+			},{
+				leftText:'Pizzicato',
+				rightText:'l',
+				icon:'',
+				classes:'icon collapsed',
+				action:'collapseChild',
+				ctor:'ArticulationButtons',
+				group:'articulations',
+				id:'pizzicattoButton'
+			}			
 		];
 	}
 }
@@ -7176,6 +7264,11 @@ class RibbonHtml {
 	}
 }
 
+// ## RibbonButtons
+// Render the ribbon buttons based on group, function, and underlying UI handler.
+// Also handles UI events.
+// ## RibbonButton methods
+// ---
 class RibbonButtons {
 	static get paramArray() {
 		return ['ribbonButtons', 'ribbons', 'editor', 'controller', 'tracker', 'menus'];
@@ -7184,19 +7277,33 @@ class RibbonButtons {
 		smoMusic.filteredMerge(RibbonButtons.paramArray, parameters, this);
 		this.ribbonButtons = parameters.ribbonButtons;
 		this.ribbons = parameters.ribbons;
+		this.collapsables = [];
 	}
 	_executeButtonModal(buttonElement, buttonData) {
 		var ctor = eval(buttonData.ctor);
 		ctor.createAndDisplay(buttonElement, buttonData);
 	}
 	_executeButtonMenu(buttonElement, buttonData) {
-		var self=this;
-		var rebind = function() {
+		var self = this;
+		var rebind = function () {
 			self._rebindController();
 		}
 		this.menuPromise = this.menus.slashMenuMode().then(rebind);
 		this.menus.createMenu(buttonData.ctor);
 	}
+	_bindCollapsibleAction(buttonElement, buttonData) {
+		// collapseParent
+		this.collapsables.push(new CollapseRibbonControl({
+				ribbonButtons: this.ribbonButtons,
+				menus: this.menus,
+				tracker: this.tracker,
+				controller: this.controller,
+				editor: this.editor,
+				buttonElement: buttonElement,
+				buttonData: buttonData
+			}));
+	}
+
 	_rebindController() {
 		this.controller.render();
 		this.controller.bindEvents();
@@ -7228,10 +7335,99 @@ class RibbonButtons {
 				});
 			if (b) {
 				var buttonHtml = RibbonHtml.ribbonButton(b.id, b.classes, b.leftText, b.icon, b.rightText);
+				$(buttonHtml).attr('data-group', b.group);
 				$('body .controls-left').append(buttonHtml);
 				var el = $('body .controls-left').find('#' + b.id);
 				this._bindButton(el, b);
+				if (b.action == 'collapseParent') {
+					this._bindCollapsibleAction(el, b);
+				}
 			}
+		});
+		this.collapsables.forEach((cb) => {
+			cb.bind();
+		});
+	}
+}
+
+class ArticulationButtons {
+	static get articulationIdMap() {
+		return {
+			accentButton: SmoArticulation.articulations.accent,
+			tenutoButton: SmoArticulation.articulations.tenuto,
+			staccatoButton: SmoArticulation.articulations.staccato,
+			marcatoButton: SmoArticulation.articulations.marcato,
+			pizzicatoButton: SmoArticulation.articulations.pizzicato,
+			fermataButton: SmoArticulation.articulations.fermata
+		};
+	}
+	constructor(parameters) {
+		this.buttonElement = parameters.buttonElement;
+		this.buttonData = parameters.buttonData;
+		this.editor = parameters.editor;
+		this.articulation = ArticulationButtons.articulationIdMap[this.buttonData.id];
+		this.shiftState = false;
+		this.showState = false;
+	}
+	_toggleArticulation() {
+		this.showState = !this.showState;
+
+		// fake editor key, not sure if this is best...
+		this.editor.toggleArticulationCommand(this.articulation, this.shiftState ? SmoArticulation.positions.below : SmoArticulation.positions.above);
+
+		// toggle above and below
+		if (!this.showState) {
+			this.shiftState = !this.shiftState;
+		}
+	}
+	bind() {
+		var self = this;
+		$(this.buttonElement).off('click').on('click', function () {
+			self._toggleArticulation();
+		});
+	}
+}
+
+class CollapseRibbonControl {
+	static get paramArray() {
+		return ['ribbonButtons', 'editor', 'controller', 'tracker', 'menus', 'buttonData', 'buttonElement'];
+	}
+	constructor(parameters) {
+		smoMusic.filteredMerge(CollapseRibbonControl.paramArray, parameters, this);
+		this.childButtons = parameters.ribbonButtons.filter((cb) => {
+				return cb.group === this.buttonData.group && cb.action === 'collapseChild';
+			});
+	}
+	_toggleExpand() {
+		this.childButtons.forEach((cb) => {
+
+			var el = $('#' + cb.id);
+			$(el).toggleClass('collapsed');
+			$(el).toggleClass('expanded');
+		});
+		this.buttonElement.toggleClass('expandedChildren');
+		if (this.buttonElement.hasClass('expandedChildren')) {
+			$(this.buttonElement).addClass('icon-arrow-left');
+		} else {
+			$(this.buttonElement).removeClass('icon-arrow-left');
+		}
+	}
+	bind() {
+		var self = this;
+		$('#' + this.buttonData.id).off('click').on('click', function () {
+			self._toggleExpand();
+		});
+		this.childButtons.forEach((cb) => {
+			var ctor = eval(cb.ctor);
+			var el = $('#' + cb.id);
+			var btn = new ctor({
+					buttonData: cb,
+					buttonElement: el,
+					editor: this.editor,
+					tracker: this.tracker,
+					controller: this.controller
+				});
+			btn.bind();
 		});
 	}
 }
