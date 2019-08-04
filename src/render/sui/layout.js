@@ -239,10 +239,11 @@ class suiSimpleLayout {
     // ### unrenderAll
     // ### Description:
     // Delete all the svg elements associated with the score.
-    unrenderAll(score) {
+    unrenderAll() {
         this.score.staves.forEach((staff) => {
             this.unrenderStaff(staff);
         });
+		$(this.renderer.getContext().svg).find('g.lineBracket').remove();
     }
     get pageMarginWidth() {
         return this.pageWidth - this.leftMargin * 2;

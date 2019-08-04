@@ -1,7 +1,7 @@
 
 VF = Vex.Flow;
 Vex.Xform = (typeof(Vex.Xform) == 'undefined' ? {}
-     : Vex.Xform);
+	 : Vex.Xform);
 VX = Vex.Xform;
 
 // ## smoMusic
@@ -28,471 +28,483 @@ VX = Vex.Xform;
 // ---
 class smoMusic {
 
-    // ### vexToCannonical
-    // return Vex canonical note enharmonic - e.g. Bb to A#
-    // Get the canonical form
-    static vexToCannonical(vexKey) {
-        vexKey = smoMusic.stripVexOctave(vexKey);
-        return VF.Music.canonical_notes[VF.Music.noteValues[vexKey].int_val];
-    }
+	// ### vexToCannonical
+	// return Vex canonical note enharmonic - e.g. Bb to A#
+	// Get the canonical form
+	static vexToCannonical(vexKey) {
+		vexKey = smoMusic.stripVexOctave(vexKey);
+		return VF.Music.canonical_notes[VF.Music.noteValues[vexKey].int_val];
+	}
 
-    // ### circleOfFifths
-    // A note array in key-signature order
-    static get circleOfFifths() {
-        return [{
-                letter: 'c',
-                accidental: 'n'
-            }, {
-                letter: 'g',
-                accidental: 'n'
-            }, {
-                letter: 'd',
-                accidental: 'n'
-            }, {
-                letter: 'a',
-                accidental: 'n'
-            }, {
-                letter: 'e',
-                accidental: 'n'
-            }, {
-                letter: 'b',
-                accidental: 'n'
-            }, {
-                letter: 'f',
-                accidental: '#'
-            }, {
-                letter: 'c',
-                accidental: '#'
-            }, {
-                letter: 'a',
-                accidental: 'b'
-            }, {
-                letter: 'e',
-                accidental: 'b'
-            }, {
-                letter: 'b',
-                accidental: 'b'
-            }, {
-                letter: 'f',
-                accidental: 'n'
-            }
-        ];
-    }
+	// ### circleOfFifths
+	// A note array in key-signature order
+	static get circleOfFifths() {
+		return [{
+				letter: 'c',
+				accidental: 'n'
+			}, {
+				letter: 'g',
+				accidental: 'n'
+			}, {
+				letter: 'd',
+				accidental: 'n'
+			}, {
+				letter: 'a',
+				accidental: 'n'
+			}, {
+				letter: 'e',
+				accidental: 'n'
+			}, {
+				letter: 'b',
+				accidental: 'n'
+			}, {
+				letter: 'f',
+				accidental: '#'
+			}, {
+				letter: 'c',
+				accidental: '#'
+			}, {
+				letter: 'a',
+				accidental: 'b'
+			}, {
+				letter: 'e',
+				accidental: 'b'
+			}, {
+				letter: 'b',
+				accidental: 'b'
+			}, {
+				letter: 'f',
+				accidental: 'n'
+			}
+		];
+	}
 
-    // ### circleOfFifthsIndex
-    // gives the index into circle-of-fifths array for a pitch, considering enharmonics.
-    static circleOfFifthsIndex(smoPitch) {
-        var en1 = smoMusic.vexToSmoPitch(smoMusic.getEnharmonic(smoMusic.pitchToVexKey(smoPitch)));
-        var en2 = smoMusic.vexToSmoPitch(smoMusic.getEnharmonic(smoMusic.getEnharmonic(smoMusic.pitchToVexKey(smoPitch))));
-        var ix = smoMusic.circleOfFifths.findIndex((el) => {
-                return (el.letter === smoPitch.letter && el.accidental == smoPitch.accidental) ||
-                (el.letter == en1.letter && el.accidental == en1.accidental) ||
-                (el.letter == en2.letter && el.accidental == en2.accidental);
-            });
-        return ix;
-    }
+	// ### circleOfFifthsIndex
+	// gives the index into circle-of-fifths array for a pitch, considering enharmonics.
+	static circleOfFifthsIndex(smoPitch) {
+		var en1 = smoMusic.vexToSmoPitch(smoMusic.getEnharmonic(smoMusic.pitchToVexKey(smoPitch)));
+		var en2 = smoMusic.vexToSmoPitch(smoMusic.getEnharmonic(smoMusic.getEnharmonic(smoMusic.pitchToVexKey(smoPitch))));
+		var ix = smoMusic.circleOfFifths.findIndex((el) => {
+				return (el.letter === smoPitch.letter && el.accidental == smoPitch.accidental) ||
+				(el.letter == en1.letter && el.accidental == en1.accidental) ||
+				(el.letter == en2.letter && el.accidental == en2.accidental);
+			});
+		return ix;
+	}
 
-    // ### addSharp
-    // Get pitch to the right in circle of fifths
-    static addSharp(smoPitch) {
-        var rv = smoMusic.circleOfFifths[
-                (smoMusic.circleOfFifthsIndex(smoPitch) + 1) % smoMusic.circleOfFifths.length];
-        rv = JSON.parse(JSON.stringify(rv));
-        rv.octave = smoPitch.octave;
-        return rv;
-    }
+	// ### addSharp
+	// Get pitch to the right in circle of fifths
+	static addSharp(smoPitch) {
+		var rv = smoMusic.circleOfFifths[
+				(smoMusic.circleOfFifthsIndex(smoPitch) + 1) % smoMusic.circleOfFifths.length];
+		rv = JSON.parse(JSON.stringify(rv));
+		rv.octave = smoPitch.octave;
+		return rv;
+	}
 
-    // ### addFlat
-    // Get pitch to the left in circle of fifths
-    static addFlat(smoPitch) {
-        var rv = smoMusic.circleOfFifths[
-                ((smoMusic.circleOfFifths.length - 1) + smoMusic.circleOfFifthsIndex(smoPitch)) % smoMusic.circleOfFifths.length];
-        rv = JSON.parse(JSON.stringify(rv));
-        rv.octave = smoPitch.octave;
-        return rv;
-    }
+	// ### addFlat
+	// Get pitch to the left in circle of fifths
+	static addFlat(smoPitch) {
+		var rv = smoMusic.circleOfFifths[
+				((smoMusic.circleOfFifths.length - 1) + smoMusic.circleOfFifthsIndex(smoPitch)) % smoMusic.circleOfFifths.length];
+		rv = JSON.parse(JSON.stringify(rv));
+		rv.octave = smoPitch.octave;
+		return rv;
+	}
 
-    // ### addSharps
-    // Add *distance* sharps/flats to given key
-    static addSharps(smoPitch, distance) {
-        if (distance == 0) {
-            return JSON.parse(JSON.stringify(smoPitch));
-        }
-        var rv = smoMusic.addSharp(smoPitch);
-        for (var i = 1; i < distance; ++i) {
-            rv = smoMusic.addSharp(rv);
-        }
-        var octaveAdj = smoMusic.letterPitchIndex[smoPitch.letter] > smoMusic.letterPitchIndex[rv.letter] ? 1 : 0;
-        rv.octave += octaveAdj;
-        return rv;
-    }
+	// ### addSharps
+	// Add *distance* sharps/flats to given key
+	static addSharps(smoPitch, distance) {
+		if (distance == 0) {
+			return JSON.parse(JSON.stringify(smoPitch));
+		}
+		var rv = smoMusic.addSharp(smoPitch);
+		for (var i = 1; i < distance; ++i) {
+			rv = smoMusic.addSharp(rv);
+		}
+		var octaveAdj = smoMusic.letterPitchIndex[smoPitch.letter] > smoMusic.letterPitchIndex[rv.letter] ? 1 : 0;
+		rv.octave += octaveAdj;
+		return rv;
+	}
 
-    // ### addFlats
-    // Add *distance* sharps/flats to given key
-    static addFlats(smoPitch, distance) {
-        if (distance == 0) {
-            return JSON.parse(JSON.stringify(smoPitch));
-        }
-        var rv = smoMusic.addFlat(smoPitch);
-        for (var i = 1; i < distance; ++i) {
-            rv = smoMusic.addFlat(rv);
-        }
-        var octaveAdj = smoMusic.letterPitchIndex[smoPitch.letter] > smoMusic.letterPitchIndex[rv.letter] ? 1 : 0;
-        rv.octave += octaveAdj;
-        return rv;
-    }
+	// ### addFlats
+	// Add *distance* sharps/flats to given key
+	static addFlats(smoPitch, distance) {
+		if (distance == 0) {
+			return JSON.parse(JSON.stringify(smoPitch));
+		}
+		var rv = smoMusic.addFlat(smoPitch);
+		for (var i = 1; i < distance; ++i) {
+			rv = smoMusic.addFlat(rv);
+		}
+		var octaveAdj = smoMusic.letterPitchIndex[smoPitch.letter] > smoMusic.letterPitchIndex[rv.letter] ? 1 : 0;
+		rv.octave += octaveAdj;
+		return rv;
+	}
 
-    // ### smoPitchesToVexKeys
-    // Transpose and convert from SMO to VEX format so we can use the VexFlow tables and methods
-    static smoPitchesToVexKeys(pitchAr, keyOffset) {
-        var noopFunc = keyOffset > 0 ? 'addSharps' : 'addFlats';
+	// ### smoPitchesToVexKeys
+	// Transpose and convert from SMO to VEX format so we can use the VexFlow tables and methods
+	static smoPitchesToVexKeys(pitchAr, keyOffset) {
+		var noopFunc = keyOffset > 0 ? 'addSharps' : 'addFlats';
 
-        var rv = [];
-        pitchAr.forEach((pitch) => {
-            rv.push(smoMusic.pitchToVexKey(smoMusic[noopFunc](pitch, keyOffset)));
-        });
-        return rv;
-    }
+		var rv = [];
+		pitchAr.forEach((pitch) => {
+			rv.push(smoMusic.pitchToVexKey(smoMusic[noopFunc](pitch, keyOffset)));
+		});
+		return rv;
+	}
 
-    static vexKeySignatureTranspose(key, transposeIndex) {
-        var key = smoMusic.vexToSmoPitch(key);
-        key = smoMusic.smoPitchesToVexKeys([key], transposeIndex)[0];
-        key = smoMusic.stripVexOctave(key);
-        key = key[0].toUpperCase() + key.substring(1, key.length);
-        if (key.length > 1 && key[1] === 'n') {
-            key = key[0];
-        }
-        return key;
-    }
+	static vexKeySignatureTranspose(key, transposeIndex) {
+		var key = smoMusic.vexToSmoPitch(key);
+		key = smoMusic.smoPitchesToVexKeys([key], transposeIndex)[0];
+		key = smoMusic.stripVexOctave(key);
+		key = key[0].toUpperCase() + key.substring(1, key.length);
+		if (key.length > 1 && key[1] === 'n') {
+			key = key[0];
+		}
+		return key;
+	}
 
-    // ### get letterPitchIndex
-    // Used to adjust octave when transposing.
-    // Pitches are measured from c, so that b0 is higher than c0, c1 is 1 note higher etc.
-    static get letterPitchIndex() {
-        return {
-            'c': 0,
-            'd': 1,
-            'e': 2,
-            'f': 3,
-            'g': 4,
-            'a': 5,
-            'b': 6
-        };
-    }
+	// ### get letterPitchIndex
+	// Used to adjust octave when transposing.
+	// Pitches are measured from c, so that b0 is higher than c0, c1 is 1 note higher etc.
+	static get letterPitchIndex() {
+		return {
+			'c': 0,
+			'd': 1,
+			'e': 2,
+			'f': 3,
+			'g': 4,
+			'a': 5,
+			'b': 6
+		};
+	}
 
-    // ### vexToSmoPitch
-    // #### Example:
-    // 'f#' => {letter:'f',accidental:'#'}
-    static vexToSmoPitch(vexPitch) {
-        var accidental = vexPitch.length < 2 ? 'n' : vexPitch.substring(1, vexPitch.length);
-        return {
-            letter: vexPitch[0].toLowerCase(),
-            accidental: accidental
-        };
-    }
+	// ### vexToSmoPitch
+	// #### Example:
+	// 'f#' => {letter:'f',accidental:'#'}
+	static vexToSmoPitch(vexPitch) {
+		var accidental = vexPitch.length < 2 ? 'n' : vexPitch.substring(1, vexPitch.length);
+		return {
+			letter: vexPitch[0].toLowerCase(),
+			accidental: accidental
+		};
+	}
 
-    static stripVexOctave(vexKey) {
-        if (vexKey.indexOf('/') > 0) {
-            vexKey = vexKey.substring(0, vexKey.indexOf('/'))
-        }
-        return vexKey;
-    }
+	static stripVexOctave(vexKey) {
+		if (vexKey.indexOf('/') > 0) {
+			vexKey = vexKey.substring(0, vexKey.indexOf('/'))
+		}
+		return vexKey;
+	}
 
-    // ### pitchToVexKey
-    // convert from SMO to VEX format so we can use the VexFlow tables and methods
-    // example:
-    // 	`{letter,octave,accidental}` object to vexKey string `'f#'`
-    static pitchToVexKey(smoPitch) {
-        // Convert to vex keys, where f# is a string like 'f#'.
-        var vexKey = smoPitch.letter.toLowerCase();
-        if (smoPitch.accidental.length === 0) {
-            vexKey = vexKey + 'n';
-        } else {
-            vexKey = vexKey + smoPitch.accidental;
-        }
-        if (smoPitch['octave']) {
-            vexKey = vexKey + '/' + smoPitch.octave;
-        }
-        return vexKey;
-    }
+	// ### pitchToVexKey
+	// convert from SMO to VEX format so we can use the VexFlow tables and methods
+	// example:
+	// 	`{letter,octave,accidental}` object to vexKey string `'f#'`
+	static pitchToVexKey(smoPitch) {
+		// Convert to vex keys, where f# is a string like 'f#'.
+		var vexKey = smoPitch.letter.toLowerCase();
+		if (smoPitch.accidental.length === 0) {
+			vexKey = vexKey + 'n';
+		} else {
+			vexKey = vexKey + smoPitch.accidental;
+		}
+		if (smoPitch['octave']) {
+			vexKey = vexKey + '/' + smoPitch.octave;
+		}
+		return vexKey;
+	}
 
-    // ### getKeyOffset
-    // Given a vex noteProp and an offset, offset that number
-    // of 1/2 steps.
-    // #### Input:  smoPitch
-    // #### Output:  smoPitch offset, not key-adjusted.
-    static getKeyOffset(pitch, offset) {
-        var canon = VF.Music.canonical_notes;
+	// ### getKeyOffset
+	// Given a vex noteProp and an offset, offset that number
+	// of 1/2 steps.
+	// #### Input:  smoPitch
+	// #### Output:  smoPitch offset, not key-adjusted.
+	static getKeyOffset(pitch, offset) {
+		var canon = VF.Music.canonical_notes;
 
-        // Convert to vex keys, where f# is a string like 'f#'.
-        var vexKey = smoMusic.pitchToVexKey(pitch);
-        vexKey = smoMusic.vexToCannonical(vexKey);
-        var rootIndex = canon.indexOf(vexKey);
-        var index = (rootIndex + canon.length + offset) % canon.length;
-        var octave = pitch.octave;
-        if (Math.abs(offset) >= 12) {
-            var octaveOffset = Math.sign(offset) * Math.round(Math.abs(offset) / 12);
-            octave += octaveOffset;
-            offset = offset % 12;
-        }
-        if (rootIndex + offset >= canon.length) {
-            octave += 1;
-        }
-        if (rootIndex + offset < 0) {
-            octave -= 1;
-        }
-        var rv = JSON.parse(JSON.stringify(pitch));
-        vexKey = canon[index];
-        if (vexKey.length > 1) {
-            rv.accidental = vexKey.substring(1);
-            vexKey = vexKey[0];
-        } else {
-            rv.accidental = '';
-        }
-        rv.letter = vexKey;
-        rv.octave = octave;
-        return rv;
-    }
+		// Convert to vex keys, where f# is a string like 'f#'.
+		var vexKey = smoMusic.pitchToVexKey(pitch);
+		vexKey = smoMusic.vexToCannonical(vexKey);
+		var rootIndex = canon.indexOf(vexKey);
+		var index = (rootIndex + canon.length + offset) % canon.length;
+		var octave = pitch.octave;
+		if (Math.abs(offset) >= 12) {
+			var octaveOffset = Math.sign(offset) * Math.round(Math.abs(offset) / 12);
+			octave += octaveOffset;
+			offset = offset % 12;
+		}
+		if (rootIndex + offset >= canon.length) {
+			octave += 1;
+		}
+		if (rootIndex + offset < 0) {
+			octave -= 1;
+		}
+		var rv = JSON.parse(JSON.stringify(pitch));
+		vexKey = canon[index];
+		if (vexKey.length > 1) {
+			rv.accidental = vexKey.substring(1);
+			vexKey = vexKey[0];
+		} else {
+			rv.accidental = '';
+		}
+		rv.letter = vexKey;
+		rv.octave = octave;
+		return rv;
+	}
 
-    // ### keySignatureLength
-    // return the number of sharp/flat in a key signature for sizing guess.
-    static get keySignatureLength() {
-        return {
-            'C': 0,
-            'B': 5,
-            'A': 3,
-            'F#': 6,
-            'Bb': 2,
-            'Ab': 4,
-            'Gg': 6,
-            'G': 1,
-            'F': 1,
-            'Eb': 3,
-            'Db': 5,
-            'Cb': 7,
-            'C#': 7,
-            'F#': 6,
-            'E': 4,
-            'D': 2
-        };
-    }
+	// ### keySignatureLength
+	// return the number of sharp/flat in a key signature for sizing guess.
+	static get keySignatureLength() {
+		return {
+			'C': 0,
+			'B': 5,
+			'A': 3,
+			'F#': 6,
+			'Bb': 2,
+			'Ab': 4,
+			'Gg': 6,
+			'G': 1,
+			'F': 1,
+			'Eb': 3,
+			'Db': 5,
+			'Cb': 7,
+			'C#': 7,
+			'F#': 6,
+			'E': 4,
+			'D': 2
+		};
+	}
 
-    // ## closestVexDuration
-    // ## Description:
-    // return the closest vex duration >= to the actual number of ticks. Used in beaming
-    // triplets which have fewer ticks then their stem would normally indicate.
-    static closestVexDuration(ticks) {
-        var stemTicks = VF.RESOLUTION;
+	// ## closestVexDuration
+	// ## Description:
+	// return the closest vex duration >= to the actual number of ticks. Used in beaming
+	// triplets which have fewer ticks then their stem would normally indicate.
+	static closestVexDuration(ticks) {
+		var stemTicks = VF.RESOLUTION;
 
-        // The stem value is the type on the non-tuplet note, e.g. 1/8 note
-        // for a triplet.
-        while (ticks <= stemTicks) {
-            stemTicks = stemTicks / 2;
-        }
+		// The stem value is the type on the non-tuplet note, e.g. 1/8 note
+		// for a triplet.
+		while (ticks <= stemTicks) {
+			stemTicks = stemTicks / 2;
+		}
 
-        stemTicks = stemTicks * 2;
-        return smoMusic.ticksToDuration[stemTicks];
-        var ix = Object.keys(smoMusic.ticksToDuration).findIndex((x) => {
-                return x >= ticks
-            });
-        return smoMusic.ticksToDuration[durations[ix]];
-    }
+		stemTicks = stemTicks * 2;
+		return smoMusic.ticksToDuration[stemTicks];
+		var ix = Object.keys(smoMusic.ticksToDuration).findIndex((x) => {
+				return x >= ticks
+			});
+		return smoMusic.ticksToDuration[durations[ix]];
+	}
 
-    // ### getKeySignatureKey
-    // given a letter pitch (a,b,c etc.), and a key signature, return the actual note
-    // that you get without accidentals
-    // ### Usage:
-    //   smoMusic.getKeySignatureKey('F','G'); // returns f#
-    static getKeySignatureKey(letter, keySignature) {
-        var km = new VF.KeyManager(keySignature);
-        return km.scaleMap[letter];
-    }
+	// ### getKeySignatureKey
+	// given a letter pitch (a,b,c etc.), and a key signature, return the actual note
+	// that you get without accidentals
+	// ### Usage:
+	//   smoMusic.getKeySignatureKey('F','G'); // returns f#
+	static getKeySignatureKey(letter, keySignature) {
+		var km = new VF.KeyManager(keySignature);
+		return km.scaleMap[letter];
+	}
 
-    // ### Description:
-    // Get ticks for this note with an added dot.  Return
-    // identity if that is not a supported value.
-    static getNextDottedLevel(ticks) {
-        var ttd = smoMusic.ticksToDuration;
-        var vals = Object.values(ttd);
+	// ### Description:
+	// Get ticks for this note with an added dot.  Return
+	// identity if that is not a supported value.
+	static getNextDottedLevel(ticks) {
+		var ttd = smoMusic.ticksToDuration;
+		var vals = Object.values(ttd);
 
-        var ix = vals.indexOf(ttd[ticks]);
-        if (ix >= 0 && ix < vals.length && vals[ix][0] == vals[ix + 1][0]) {
-            return smoMusic.durationToTicks(vals[ix + 1]);
-        }
-        return ticks;
-    }
+		var ix = vals.indexOf(ttd[ticks]);
+		if (ix >= 0 && ix < vals.length && vals[ix][0] == vals[ix + 1][0]) {
+			return smoMusic.durationToTicks(vals[ix + 1]);
+		}
+		return ticks;
+	}
 
-    // ### Description:
-    // Get ticks for this note with one fewer dot.  Return
-    // identity if that is not a supported value.
-    static getPreviousDottedLevel(ticks) {
-        var ttd = smoMusic.ticksToDuration;
-        var vals = Object.values(ttd);
-        var ix = vals.indexOf(ttd[ticks]);
-        if (ix > 0 && vals[ix][0] == vals[ix - 1][0]) {
-            return smoMusic.durationToTicks(vals[ix - 1]);
-        }
-        return ticks;
-    }
+	// ### Description:
+	// Get ticks for this note with one fewer dot.  Return
+	// identity if that is not a supported value.
+	static getPreviousDottedLevel(ticks) {
+		var ttd = smoMusic.ticksToDuration;
+		var vals = Object.values(ttd);
+		var ix = vals.indexOf(ttd[ticks]);
+		if (ix > 0 && vals[ix][0] == vals[ix - 1][0]) {
+			return smoMusic.durationToTicks(vals[ix - 1]);
+		}
+		return ticks;
+	}
 
-    // ### ticksToDuration
-    // Frequently we double/halve a note duration, and we want to find the vex tick duration that goes with that.
-    static get ticksToDuration() {
-        var durations = ["1/2", "1", "2", "4", "8", "16", "32", "64", "128", "256"];
-        var ticksToDuration = {};
-        var _ticksToDurations = function () {
-            for (var i = 0; i < durations.length - 1; ++i) {
-                var dots = '';
-                var ticks = 0;
+	// ### ticksToDuration
+	// Frequently we double/halve a note duration, and we want to find the vex tick duration that goes with that.
+	static get ticksToDuration() {
+		var durations = ["1/2", "1", "2", "4", "8", "16", "32", "64", "128", "256"];
+		var ticksToDuration = {};
+		var _ticksToDurations = function () {
+			for (var i = 0; i < durations.length - 1; ++i) {
+				var dots = '';
+				var ticks = 0;
 
-                // We support up to 4 'dots'
-                for (var j = 0; j < 4 && j + i < durations.length; ++j) {
-                    ticks += VF.durationToTicks.durations[durations[i + j]];
-                    ticksToDuration[ticks.toString()] = durations[i] + dots;
-                    dots += 'd'
-                }
-            }
-            return ticksToDuration;
-        }
-        _ticksToDurations();
-        return ticksToDuration;
-    };
+				// We support up to 4 'dots'
+				for (var j = 0; j < 4 && j + i < durations.length; ++j) {
+					ticks += VF.durationToTicks.durations[durations[i + j]];
+					ticksToDuration[ticks.toString()] = durations[i] + dots;
+					dots += 'd'
+				}
+			}
+			return ticksToDuration;
+		}
+		_ticksToDurations();
+		return ticksToDuration;
+	};
 
-    // ### durationToTicks
-    // Uses VF.durationToTicks, but handles dots.
-    static durationToTicks(duration) {
-        var dots = duration.indexOf('d');
-        if (dots < 0) {
-            return VF.durationToTicks(duration);
-        } else {
-            var vfDuration = VF.durationToTicks(duration.substring(0, dots));
-            dots = duration.length - dots; // number of dots
-            var split = vfDuration / 2;
-            for (var i = 0; i < dots; ++i) {
-                vfDuration += split;
-                split = split / 2;
-            }
+	// ### durationToTicks
+	// Uses VF.durationToTicks, but handles dots.
+	static durationToTicks(duration) {
+		var dots = duration.indexOf('d');
+		if (dots < 0) {
+			return VF.durationToTicks(duration);
+		} else {
+			var vfDuration = VF.durationToTicks(duration.substring(0, dots));
+			dots = duration.length - dots; // number of dots
+			var split = vfDuration / 2;
+			for (var i = 0; i < dots; ++i) {
+				vfDuration += split;
+				split = split / 2;
+			}
 
-            return vfDuration;
-        }
-    }
+			return vfDuration;
+		}
+	}
 
-    // ### get enharmonics
-    // return a map of enharmonics for choosing or cycling.  notes are in vexKey form.
-    static get enharmonics() {
-        var rv = {};
-        var keys = Object.keys(VF.Music.noteValues);
-        for (var i = 0; i < keys.length; ++i) {
-            var key = keys[i];
-            var int_val = VF.Music.noteValues[key].int_val;
-            if (typeof(rv[int_val.toString()]) == 'undefined') {
-                rv[int_val.toString()] = [];
-            }
-            // only consider natural note 1 time.  It is in the list twice for some reason.
-            if (key.indexOf('n') == -1) {
-                rv[int_val.toString()].push(key);
-            }
-        }
-        return rv;
-    }
+	// ### get enharmonics
+	// return a map of enharmonics for choosing or cycling.  notes are in vexKey form.
+	static get enharmonics() {
+		var rv = {};
+		var keys = Object.keys(VF.Music.noteValues);
+		for (var i = 0; i < keys.length; ++i) {
+			var key = keys[i];
+			var int_val = VF.Music.noteValues[key].int_val;
+			if (typeof(rv[int_val.toString()]) == 'undefined') {
+				rv[int_val.toString()] = [];
+			}
+			// only consider natural note 1 time.  It is in the list twice for some reason.
+			if (key.indexOf('n') == -1) {
+				rv[int_val.toString()].push(key);
+			}
+		}
+		return rv;
+	}
 
-    // ### getEnharmonic(noteProp)
-    // cycle through the enharmonics for a note.
-    static getEnharmonic(vexKey) {
-        vexKey = smoMusic.stripVexOctave(vexKey);
-        var intVal = VF.Music.noteValues[vexKey.toLowerCase()].int_val;
-        var ar = smoMusic.enharmonics[intVal.toString()];
-        var len = ar.length;
-        var ix = ar.indexOf(vexKey);
-        vexKey = ar[(ix + 1) % len];
-        return vexKey;
-    }
-    // ### getKeyFriendlyEnharmonic
-    // fix the enharmonic to match the key, if possible
-    // `getKeyFriendlyEnharmonic('b','eb');  => returns 'bb'
-    static getKeyFriendlyEnharmonic(letter, keySignature) {
-        var rv = letter;
-        var muse = new VF.Music();
-        var scale = Object.values(muse.createScaleMap(keySignature));
-        var prop = smoMusic.getEnharmonic(letter.toLowerCase());
-        while (prop.toLowerCase() != letter.toLowerCase()) {
-            for (var i = 0; i < scale.length; ++i) {
-                var skey = scale[i];
-                if ((skey[0] == prop && skey[1] == 'n') ||
-                    (skey.toLowerCase() == prop.toLowerCase())) {
-                    rv = skey;
-                    break;
-                }
-            }
-            prop = (prop[1] == 'n' ? prop[0] : prop);
-            prop = smoMusic.getEnharmonic(prop);
-        }
-        return rv;
-    }
+	// ### getEnharmonic(noteProp)
+	// cycle through the enharmonics for a note.
+	static getEnharmonic(vexKey) {
+		vexKey = smoMusic.stripVexOctave(vexKey);
+		var intVal = VF.Music.noteValues[vexKey.toLowerCase()].int_val;
+		var ar = smoMusic.enharmonics[intVal.toString()];
+		var len = ar.length;
+		var ix = ar.indexOf(vexKey);
+		vexKey = ar[(ix + 1) % len];
+		return vexKey;
+	}
+	// ### getKeyFriendlyEnharmonic
+	// fix the enharmonic to match the key, if possible
+	// `getKeyFriendlyEnharmonic('b','eb');  => returns 'bb'
+	static getKeyFriendlyEnharmonic(letter, keySignature) {
+		var rv = letter;
+		var muse = new VF.Music();
+		var scale = Object.values(muse.createScaleMap(keySignature));
+		var prop = smoMusic.getEnharmonic(letter.toLowerCase());
+		while (prop.toLowerCase() != letter.toLowerCase()) {
+			for (var i = 0; i < scale.length; ++i) {
+				var skey = scale[i];
+				if ((skey[0] == prop && skey[1] == 'n') ||
+					(skey.toLowerCase() == prop.toLowerCase())) {
+					rv = skey;
+					break;
+				}
+			}
+			prop = (prop[1] == 'n' ? prop[0] : prop);
+			prop = smoMusic.getEnharmonic(prop);
+		}
+		return rv;
+	}
 
-    // ### getIntervalInKey
-    // give a pitch and a key signature, return another pitch at the given
-    // diatonic interval.  Similar to getKeyOffset but diatonic.
-    static getIntervalInKey(pitch, keySignature, interval) {
-        var muse = new VF.Music();
-        var letter = pitch.letter;
-        var scale = Object.values(muse.createScaleMap(keySignature));
+	// ### getIntervalInKey
+	// give a pitch and a key signature, return another pitch at the given
+	// diatonic interval.  Similar to getKeyOffset but diatonic.
+	static getIntervalInKey(pitch, keySignature, interval) {
+		var muse = new VF.Music();
+		var letter = pitch.letter;
+		var scale = Object.values(muse.createScaleMap(keySignature));
 
-        var up = interval > 0 ? true : false;
-        var interval = interval < 0 ? scale.length - (interval * -1) : interval;
+		var up = interval > 0 ? true : false;
+		var interval = interval < 0 ? scale.length - (interval * -1) : interval;
 
-        var ix = scale.findIndex((x) => {
-                return x[0] == letter[0];
-            });
-        if (ix >= 0) {
-            var nletter = scale[(ix + interval) % scale.length];
-            var nkey = {
-                letter: nletter[0],
-                accidental: nletter[1],
-                octave: pitch.octave
-            };
-            if (up) {
-                nkey.octave += 1;
-            }
-            return nkey;
-        }
-        return letter;
-    }
+		var ix = scale.findIndex((x) => {
+				return x[0] == letter[0];
+			});
+		if (ix >= 0) {
+			var nletter = scale[(ix + interval) % scale.length];
+			var nkey = {
+				letter: nletter[0],
+				accidental: nletter[1],
+				octave: pitch.octave
+			};
+			if (up) {
+				nkey.octave += 1;
+			}
+			return nkey;
+		}
+		return letter;
+	}
 
-    // ### filteredMerge
-    // Like vexMerge, but only for specific attributes.
-    static filteredMerge(attrs, src, dest) {
-        attrs.forEach(function (attr) {
-            if (typeof(src[attr]) != 'undefined') {
-                dest[attr] = src[attr];
-            }
-        });
-    }
-    // ### serializedMerge
-    // serialization-friendly, so merged, copied objects are deep-copied
-    static serializedMerge(attrs, src, dest) {
-        attrs.forEach(function (attr) {
-            if (src[attr]) {
-                if (typeof(src[attr]) == 'object') {
-                    dest[attr] = JSON.parse(JSON.stringify(src[attr]));
-                } else {
-                    dest[attr] = src[attr];
-                }
-            }
-        });
-    }
+	// ### filteredMerge
+	// Like vexMerge, but only for specific attributes.
+	static filteredMerge(attrs, src, dest) {
+		attrs.forEach(function (attr) {
+			if (typeof(src[attr]) != 'undefined') {
+				dest[attr] = src[attr];
+			}
+		});
+	}
+	// ### serializedMerge
+	// serialization-friendly, so merged, copied objects are deep-copied
+	static serializedMerge(attrs, src, dest) {
+		attrs.forEach(function (attr) {
+			if (typeof(src[attr]) != 'undefined') {
+				// copy the number 0
+				if (typeof(src[attr]) == 'number') {
+					dest[attr] = src[attr];
+					// copy the empty array
+				} else if (Array.isArray(src[attr])) {
+					dest[attr]=JSON.parse(JSON.stringify(src[attr]));
+				}
+				else {
+					// but don't copy empty/null objects
+					if (src[attr]) {
+						if (typeof(src[attr]) == 'object') {
+							dest[attr] = JSON.parse(JSON.stringify(src[attr]));
+						} else {
+							dest[attr] = src[attr];
+						}
+					}
+				}
+			}
+		});
+	}
 
-    static stringifyAttrs(attrs, obj) {
-        var rv = '';
-        attrs.forEach((attr) => {
-            if (obj[attr]) {
-                rv += attr + ':' + obj[attr] + ', ';
-            } else {
-                rv += attr + ': null,';
-            }
-        });
-        return rv;
-    }
+	static stringifyAttrs(attrs, obj) {
+		var rv = '';
+		attrs.forEach((attr) => {
+			if (obj[attr]) {
+				rv += attr + ':' + obj[attr] + ', ';
+			} else {
+				rv += attr + ': null,';
+			}
+		});
+		return rv;
+	}
 }
 ;
 
@@ -598,15 +610,24 @@ class svgHelpers {
 		};
 	}
 
+	// ### svgViewport
+	// set `svg` element to `width`,`height` and viewport `scale`
+	static svgViewport(svg, width, height, scale) {
+		svg.setAttributeNS('', 'width', '' + width);
+		svg.setAttributeNS('', 'height', '' + height);
+		svg.setAttributeNS('', 'viewBox', '0 0 ' + Math.round(width / scale) + ' ' +
+			Math.round(height / scale));
+	}
+
 	// ### logicalToClient
 	// Convert a point from logical (pixels) to actual screen dimensions based on current
 	// zoom, aspect ratio
 	/* static logicalToClient(svg, logicalPoint) {
-		var rect = svg.getBoundingClientRect();
-		var rv = svgHelpers.copyBox(logicalPoint);
-		rv.x += rect.x;
-		rv.y += rect.y;
-		return rv;
+	var rect = svg.getBoundingClientRect();
+	var rv = svgHelpers.copyBox(logicalPoint);
+	rv.x += rect.x;
+	rv.y += rect.y;
+	return rv;
 	}   */
 
 	// ### clientToLogical
@@ -1367,412 +1388,418 @@ class SmoDynamicText extends SmoNoteModifierBase {
 // Measures are contained in staves, see also `SystemStaff.js`
 // ## SmoMeasure Methods:
 class SmoMeasure {
-    constructor(params) {
-        this.tuplets = [];
-        this.beamGroups = [];
-        this.changed = true;
+	constructor(params) {
+		this.tuplets = [];
+		this.beamGroups = [];
+		this.changed = true;
 
-        Vex.Merge(this, SmoMeasure.defaults);
-        Vex.Merge(this, params);
-        if (!this['attrs']) {
-            this.attrs = {
-                id: VF.Element.newID(),
-                type: 'SmoMeasure'
-            };
-        } else {
-            // inherit attrs id for deserialized
-        }
-    }
-    get notes() {
-        return this.voices[this.activeVoice].notes;
-    }
+		smoMusic.serializedMerge(SmoMeasure.attributeArray, SmoMeasure.defaults, this);
+		smoMusic.serializedMerge(SmoMeasure.attributeArray, params, this);
+		if (!this['attrs']) {
+			this.attrs = {
+				id: VF.Element.newID(),
+				type: 'SmoMeasure'
+			};
+		} else {
+			// inherit attrs id for deserialized
+		}
+	}
+	get notes() {
+		return this.voices[this.activeVoice].notes;
+	}
 
-    // ### getRenderedNote
-    // The renderer puts a mapping between rendered svg groups and
-    // the logical notes in SMO.  The UI needs this mapping to be interactive,
-    // figure out where a note is rendered, what its bounding box is, etc.
-    getRenderedNote(id) {
-        for (var j = 0; j < this.voices.length; ++j) {
-            var voice = this.voices[j];
-            for (var i = 0; i < voice.notes.length; ++i) {
-                var note = voice.notes[i];
-                if (note.renderId === id) {
-                    return {
-                        smoNote: note,
-                        voice: j,
-                        tick: i
-                    };
-                }
-            }
-        }
-        return null;
-    }
+	// ### getRenderedNote
+	// The renderer puts a mapping between rendered svg groups and
+	// the logical notes in SMO.  The UI needs this mapping to be interactive,
+	// figure out where a note is rendered, what its bounding box is, etc.
+	getRenderedNote(id) {
+		for (var j = 0; j < this.voices.length; ++j) {
+			var voice = this.voices[j];
+			for (var i = 0; i < voice.notes.length; ++i) {
+				var note = voice.notes[i];
+				if (note.renderId === id) {
+					return {
+						smoNote: note,
+						voice: j,
+						tick: i
+					};
+				}
+			}
+		}
+		return null;
+	}
 
-    set notes(val) {
-        this.voices[this.activeVoice].notes = val;
-    }
-    get stemDirection() {
-        return this.activeVoice % 2 ? -1 : 1;
-    }
+	set notes(val) {
+		this.voices[this.activeVoice].notes = val;
+	}
+	get stemDirection() {
+		return this.activeVoice % 2 ? -1 : 1;
+	}
 
-    // ### defaultAttributes
-    // attributes that are to be serialized for a measure.
-    static get defaultAttributes() {
-        return [
-            'timeSignature', 'keySignature', 'staffX', 'staffY', 'customModifiers',
-            'measureNumber', 'staffWidth', 'modifierOptions',
-            'activeVoice', 'clef', 'transposeIndex'];
-    }
+	// ### defaultAttributes
+	// attributes that are to be serialized for a measure.
+	static get defaultAttributes() {
+		return [
+			'timeSignature', 'keySignature', 'staffX', 'staffY', 'customModifiers',
+			'measureNumber', 'staffWidth', 'modifierOptions',
+			'activeVoice', 'clef', 'transposeIndex'];
+	}
 
-    // ### serialize
-    // Convert this measure object to a JSON object, recursively serializing all the notes,
-    // note modifiers, etc.
-    serialize() {
-        var params = {};
-        smoMusic.filteredMerge(SmoMeasure.defaultAttributes, this, params);
-        params.tuplets = [];
-        params.beamGroups = [];
-        params.voices = [];
+	static get attributeArray() {
+		return SmoMeasure.defaultAttributes.concat(['voices', 'tuplets', 'beamGroups', 'activeVoice', 'adjX', 'rightMargin']);
+	}
 
-        this.tuplets.forEach((tuplet) => {
-            params.tuplets.push(JSON.parse(JSON.stringify(tuplet)));
-        });
+	// ### serialize
+	// Convert this measure object to a JSON object, recursively serializing all the notes,
+	// note modifiers, etc.
+	serialize() {
+		var params = {};
+		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, this, params);
+		params.tuplets = [];
+		params.beamGroups = [];
+		params.voices = [];
 
-        this.beamGroups.forEach((beam) => {
-            params.beamGroups.push(JSON.parse(JSON.stringify(beam)));
-        });
+		this.tuplets.forEach((tuplet) => {
+			params.tuplets.push(JSON.parse(JSON.stringify(tuplet)));
+		});
 
-        this.voices.forEach((voice) => {
-            var obj = {
-                notes: []
-            };
-            voice.notes.forEach((note) => {
-                obj.notes.push(note.serialize());
-            });
-            params.voices.push(obj);
-        });
-        return params;
-    }
+		this.beamGroups.forEach((beam) => {
+			params.beamGroups.push(JSON.parse(JSON.stringify(beam)));
+		});
 
-    // ### deserialize
-    // restore a serialized measure object.  Usually called as part of deserializing a score,
-    // but can also be used to restore a measure due to an undo operation.
-    static deserialize(jsonObj) {
-        var voices = [];
-        for (var j = 0; j < jsonObj.voices.length; ++j) {
-            var voice = jsonObj.voices[j];
-            var notes = [];
-            voices.push({
-                notes: notes
-            });
-            for (var i = 0; i < voice.notes.length; ++i) {
-                var noteParams = voice.notes[i];
-                var smoNote = SmoNote.deserialize(noteParams);
-                notes.push(smoNote);
-            }
-        }
+		this.voices.forEach((voice) => {
+			var obj = {
+				notes: []
+			};
+			voice.notes.forEach((note) => {
+				obj.notes.push(note.serialize());
+			});
+			params.voices.push(obj);
+		});
+		return params;
+	}
 
-        var tuplets = [];
-        for (j = 0; j < jsonObj.tuplets.length; ++j) {
-            var tuplet = new SmoTuplet(jsonObj.tuplets[j]);
-            tuplets.push(tuplet);
-        }
+	// ### deserialize
+	// restore a serialized measure object.  Usually called as part of deserializing a score,
+	// but can also be used to restore a measure due to an undo operation.
+	static deserialize(jsonObj) {
+		var voices = [];
+		for (var j = 0; j < jsonObj.voices.length; ++j) {
+			var voice = jsonObj.voices[j];
+			var notes = [];
+			voices.push({
+				notes: notes
+			});
+			for (var i = 0; i < voice.notes.length; ++i) {
+				var noteParams = voice.notes[i];
+				var smoNote = SmoNote.deserialize(noteParams);
+				notes.push(smoNote);
+			}
+		}
 
-        var beamGroups = [];
-        for (j = 0; j < jsonObj.beamGroups.length; ++j) {
-            var smoBeam = new SmoBeamGroup(jsonObj.beamGroups[j]);
-            beamGroups.push(smoBeam);
-        }
+		var tuplets = [];
+		for (j = 0; j < jsonObj.tuplets.length; ++j) {
+			var tuplet = new SmoTuplet(jsonObj.tuplets[j]);
+			tuplets.push(tuplet);
+		}
 
-        var params = {
-            voices: voices,
-            tuplets: tuplets,
-            beamGroups: beamGroups
-        };
+		var beamGroups = [];
+		for (j = 0; j < jsonObj.beamGroups.length; ++j) {
+			var smoBeam = new SmoBeamGroup(jsonObj.beamGroups[j]);
+			beamGroups.push(smoBeam);
+		}
 
-        smoMusic.serializedMerge(SmoMeasure.defaultAttributes, jsonObj, params);
+		var params = {
+			voices: voices,
+			tuplets: tuplets,
+			beamGroups: beamGroups
+		};
 
-        return new SmoMeasure(params);
-    }
+		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, jsonObj, params);
 
-    // ### defaultPitchForClef
-    // Accessor for clef objects, which are set at a measure level.
-    // #### TODO: learn what all these clefs are
-    static get defaultPitchForClef() {
-        return {
-            'treble': {
-                letter: 'b',
-                accidental: 'n',
-                octave: 4
-            },
-            'bass': {
-                letter: 'd',
-                accidental: 'n',
-                octave: 3
-            },
-            'tenor': {
-                letter: 'a',
-                accidental: 'n',
-                octave: 3
-            },
-            'alto': {
-                letter: 'c',
-                accidental: 'n',
-                octave: 4
-            },
-            'soprano': {
-                letter: 'b',
-                accidental: 'n',
-                octave: 4
-            },
-            'percussion': {
-                letter: 'b',
-                accidental: 'n',
-                octave: 4
-            },
-            'mezzo-soprano': {
-                letter: 'b',
-                accidental: 'n',
-                octave: 4
-            },
-            'baritone-c': {
-                letter: 'b',
-                accidental: 'n',
-                octave: 3
-            },
-            'baritone-f': {
-                letter: 'e',
-                accidental: 'n',
-                octave: 3
-            },
-            'subbass': {
-                letter: 'd',
-                accidental: '',
-                octave: 2
-            },
-            'french': {
-                letter: 'b',
-                accidental: '',
-                octave: 4
-            } // no idea
-        }
-    }
-    // ### getDefaultNotes
+		return new SmoMeasure(params);
+	}
+
+	// ### defaultPitchForClef
+	// Accessor for clef objects, which are set at a measure level.
+	// #### TODO: learn what all these clefs are
+	static get defaultPitchForClef() {
+		return {
+			'treble': {
+				letter: 'b',
+				accidental: 'n',
+				octave: 4
+			},
+			'bass': {
+				letter: 'd',
+				accidental: 'n',
+				octave: 3
+			},
+			'tenor': {
+				letter: 'a',
+				accidental: 'n',
+				octave: 3
+			},
+			'alto': {
+				letter: 'c',
+				accidental: 'n',
+				octave: 4
+			},
+			'soprano': {
+				letter: 'b',
+				accidental: 'n',
+				octave: 4
+			},
+			'percussion': {
+				letter: 'b',
+				accidental: 'n',
+				octave: 4
+			},
+			'mezzo-soprano': {
+				letter: 'b',
+				accidental: 'n',
+				octave: 4
+			},
+			'baritone-c': {
+				letter: 'b',
+				accidental: 'n',
+				octave: 3
+			},
+			'baritone-f': {
+				letter: 'e',
+				accidental: 'n',
+				octave: 3
+			},
+			'subbass': {
+				letter: 'd',
+				accidental: '',
+				octave: 2
+			},
+			'french': {
+				letter: 'b',
+				accidental: '',
+				octave: 4
+			} // no idea
+		}
+	}
+	// ### getDefaultNotes
 	// Get a measure full of default notes for a given timeSignature/clef.
 	// returns 8th notes for triple-time meters, etc.
-    static getDefaultNotes(params) {
-        if (params == null) {
-            params = {};
-        }
-        params.timeSignature = params.timeSignature ? params.timeSignature : '4/4';
-        params.clef = params.clef ? params.clef : 'treble';
-        var meterNumbers = params.timeSignature.split('/').map(number => parseInt(number, 10));
-        var ticks = {
-            numerator: 4096,
-            denominator: 1,
-            remainder: 0
-        };
-        if (meterNumbers[0] % 3 == 0) {
-            ticks = {
-                numerator: 2048,
-                denominator: 1,
-                remainder: 0
-            };
-        }
-        var pitches = SmoMeasure.defaultPitchForClef[params.clef];
-        var rv = [];
+	static getDefaultNotes(params) {
+		if (params == null) {
+			params = {};
+		}
+		params.timeSignature = params.timeSignature ? params.timeSignature : '4/4';
+		params.clef = params.clef ? params.clef : 'treble';
+		var meterNumbers = params.timeSignature.split('/').map(number => parseInt(number, 10));
+		var ticks = {
+			numerator: 4096,
+			denominator: 1,
+			remainder: 0
+		};
+		if (meterNumbers[0] % 3 == 0) {
+			ticks = {
+				numerator: 2048,
+				denominator: 1,
+				remainder: 0
+			};
+		}
+		var pitches = SmoMeasure.defaultPitchForClef[params.clef];
+		var rv = [];
 
-        for (var i = 0; i < meterNumbers[0]; ++i) {
-            var note = new SmoNote({
-                    clef: params.clef,
-                    pitches: [pitches],
-                    ticks: ticks,
-                    timeSignature: params.timeSignature
-                });
-            rv.push(note);
-        }
-        return rv;
-    }
+		for (var i = 0; i < meterNumbers[0]; ++i) {
+			var note = new SmoNote({
+					clef: params.clef,
+					pitches: [pitches],
+					ticks: ticks,
+					timeSignature: params.timeSignature
+				});
+			rv.push(note);
+		}
+		return rv;
+	}
 
-    static getDefaultMeasure(params) {
-        var obj = {};
-        Vex.Merge(obj, SmoMeasure.defaults);
-        smoMusic.serializedMerge(SmoMeasure.defaultAttributes, params, obj);
-        return new SmoMeasure(obj);
-    }
+	static getDefaultMeasure(params) {
+		var obj = {};
+		smoMusic.serializedMerge(SmoMeasure.defaultAttributes,SmoMeasure.defaults,obj);
+		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, obj, params);
+		return new SmoMeasure(obj);
+	}
 
-    static getDefaultMeasureWithNotes(params) {
-        var measure = SmoMeasure.getDefaultMeasure(params);
-        measure.voices.push({
-            notes: SmoMeasure.getDefaultNotes(params)
-        });
-        return measure;
-    }
+	// ### SmoMeasure.getDefaultMeasureWithNotes
+	// Get a new measure with the appropriate notes for the supplied clef, instrument
+	static getDefaultMeasureWithNotes(params) {
+		var measure = SmoMeasure.getDefaultMeasure(params);
+		measure.voices.push({
+			notes: SmoMeasure.getDefaultNotes(params)
+		});
+		return measure;
+	}
 
-    static _cloneParameters(measure) {
-        var keys = Object.keys(measure);
-        var clone = {};
-        for (var i = 0; i < keys.length; ++i) {
-            var key = keys[i];
-            clone[key] = measure[key];
-        }
-        return clone;
-    }
+	static _cloneParameters(measure) {
+		var keys = Object.keys(measure);
+		var clone = {};
+		for (var i = 0; i < keys.length; ++i) {
+			var key = keys[i];
+			clone[key] = measure[key];
+		}
+		return clone;
+	}
 
-    static get defaultVoice44() {
-        return SmoMeasure.getDefaultNotes({
-            clef: 'treble',
-            timeSignature: '4/4'
-        });
-    }
-    static get defaults() {
-        // var noteDefault = SmoMeasure.defaultVoice44;
-        return {
-            timeSignature: '4/4',
-            keySignature: "C",
-            canceledKeySignature: null,
-            staffX: 10,
-            adjX: 0,
-            transposeIndex: 0,
-            rightMargin: 2,
-            customModifiers: [],
-            staffY: 40,
-            bars: [1, 1], // follows enumeration in VF.Barline
-            measureNumber: {
-                localIndex: 0,
-                systemIndex: 0,
-                measureNumber: 0
-            },
-            staffWidth: 200,
-            modifierOptions: {},
-            clef: 'treble',
-            forceClef: false,
-            forceKeySignature: false,
-            forceTimeSignature: false,
-            voices: [],
-            activeVoice: 0
-        };
-    }
-    tickmap() {
-        return VX.TICKMAP(this);
-    }
+	static get defaultVoice44() {
+		return SmoMeasure.getDefaultNotes({
+			clef: 'treble',
+			timeSignature: '4/4'
+		});
+	}
+	static get defaults() {
+		// var noteDefault = SmoMeasure.defaultVoice44;
+		return {
+			timeSignature: '4/4',
+			keySignature: "C",
+			canceledKeySignature: null,
+			staffX: 10,
+			adjX: 0,
+			transposeIndex: 0,
+			rightMargin: 2,
+			customModifiers: [],
+			staffY: 40,
+			bars: [1, 1], // follows enumeration in VF.Barline
+			measureNumber: {
+				localIndex: 0,
+				systemIndex: 0,
+				measureNumber: 0
+			},
+			staffWidth: 200,
+			modifierOptions: {},
+			clef: 'treble',
+			forceClef: false,
+			forceKeySignature: false,
+			forceTimeSignature: false,
+			voices: [],
+			activeVoice: 0
+		};
+	}
+	tickmap() {
+		return VX.TICKMAP(this);
+	}
 
-    // ### getDynamicMap
-    // ### Description:
-    // returns the dynamic text for each tick index.  If
-    // there are no dynamics, the empty array is returned.
-    getDynamicMap() {
-        var rv = [];
-        var hasDynamic = false;
-        this.voices.forEach((voice) => {
-            voice.notes.forEach((note) => {
-                if (note.dynamicText) {
-                    rv.push({
-                        note: note,
-                        text: note.dynamicText
-                    });
-                    hasDynamic = true;
-                } else {
-                    rv.push({
-                        note: note,
-                        text: ''
-                    });
-                }
-            });
-        });
+	// ### getDynamicMap
+	// ### Description:
+	// returns the dynamic text for each tick index.  If
+	// there are no dynamics, the empty array is returned.
+	getDynamicMap() {
+		var rv = [];
+		var hasDynamic = false;
+		this.voices.forEach((voice) => {
+			voice.notes.forEach((note) => {
+				if (note.dynamicText) {
+					rv.push({
+						note: note,
+						text: note.dynamicText
+					});
+					hasDynamic = true;
+				} else {
+					rv.push({
+						note: note,
+						text: ''
+					});
+				}
+			});
+		});
 
-        if (hasDynamic) {
-            return rv;
-        }
-        return [];
-    }
-    
-    clearBeamGroups() {
-        this.beamGroups = [];
-    }
-  
-    tupletNotes(tuplet) {
-        var notes = [];
-        for (var j = 0; j < this.voices.length; ++j) {
-            var notes = this.voices[j].notes;
-            for (var i = 0; i < notes.length; ++i) {
-                if (notes[i]['tuplet'] && notes[i].tuplet.id === tuplet.attrs.id) {
-                    notes.push(notes[i]);
-                }
-            }
-        }
-        return notes;
-    }
-    tupletIndex(tuplet) {
-        for (var j = 0; j < this.voices.length; ++j) {
-            var notes = this.voices[j].notes;
-            for (var i = 0; i < notes.length; ++i) {
-                if (notes[i]['tuplet'] && notes[i].tuplet.id === tuplet.attrs.id) {
-                    return i;
-                }
-            }
-        }
-        return -1;
-    }
+		if (hasDynamic) {
+			return rv;
+		}
+		return [];
+	}
 
-    getTupletForNote(note) {
-        if (!note.isTuplet) {
-            return null;
-        }
-        for (var i = 0; i < this.tuplets.length; ++i) {
-            var tuplet = this.tuplets[i];
-            if (tuplet.attrs.id === note.tuplet.id) {
-                return tuplet;
-            }
-        }
-        return null;
-    }
-    removeTupletForNote(note) {
-        var tuplets = [];
-        for (var i = 0; i < this.tuplets.length; ++i) {
-            var tuplet = this.tuplets[i];
-            if (note.tuplet.id !== tuplet.attrs.id) {
-                tuplets.push(tuplet);
-            }
-        }
-        this.tuplets = tuplets;
-    }
-    addCustomModifier(ctor, parameters) {
-        this.customModifiers.push({
-            ctor: ctor,
-            parameters: parameters
-        });
-    }
-    get numBeats() {
-        return this.timeSignature.split('/').map(number => parseInt(number, 10))[0];
-    }
-    setKeySignature(sig) {
-        this.keySignature = sig;
-        this.voices.forEach((voice) => {
-            voice.notes.forEach((note) => {
-                note.keySignature = sig;
-            });
-        });
-    }
-    get beatValue() {
-        return this.timeSignature.split('/').map(number => parseInt(number, 10))[1];
-    }
+	clearBeamGroups() {
+		this.beamGroups = [];
+	}
 
-    setMeasureNumber(num) {
-        this.measureNumber = num;
-    }
+	tupletNotes(tuplet) {
+		var notes = [];
+		for (var j = 0; j < this.voices.length; ++j) {
+			var notes = this.voices[j].notes;
+			for (var i = 0; i < notes.length; ++i) {
+				if (notes[i]['tuplet'] && notes[i].tuplet.id === tuplet.attrs.id) {
+					notes.push(notes[i]);
+				}
+			}
+		}
+		return notes;
+	}
+	tupletIndex(tuplet) {
+		for (var j = 0; j < this.voices.length; ++j) {
+			var notes = this.voices[j].notes;
+			for (var i = 0; i < notes.length; ++i) {
+				if (notes[i]['tuplet'] && notes[i].tuplet.id === tuplet.attrs.id) {
+					return i;
+				}
+			}
+		}
+		return -1;
+	}
 
-    getBeamGroupForNote(note) {
-        for (var i = 0; i < this.beamGroups.length; ++i) {
-            var bg = this.beamGroups[i];
-            for (var j = 0; j < bg.notes.length; ++j) {
-                if (bg.notes[j].attrs.id === note.attrs.id) {
-                    return bg;
-                }
-            }
-        }
-        return null;
-    }
+	getTupletForNote(note) {
+		if (!note.isTuplet) {
+			return null;
+		}
+		for (var i = 0; i < this.tuplets.length; ++i) {
+			var tuplet = this.tuplets[i];
+			if (tuplet.attrs.id === note.tuplet.id) {
+				return tuplet;
+			}
+		}
+		return null;
+	}
+	removeTupletForNote(note) {
+		var tuplets = [];
+		for (var i = 0; i < this.tuplets.length; ++i) {
+			var tuplet = this.tuplets[i];
+			if (note.tuplet.id !== tuplet.attrs.id) {
+				tuplets.push(tuplet);
+			}
+		}
+		this.tuplets = tuplets;
+	}
+	addCustomModifier(ctor, parameters) {
+		this.customModifiers.push({
+			ctor: ctor,
+			parameters: parameters
+		});
+	}
+	get numBeats() {
+		return this.timeSignature.split('/').map(number => parseInt(number, 10))[0];
+	}
+	setKeySignature(sig) {
+		this.keySignature = sig;
+		this.voices.forEach((voice) => {
+			voice.notes.forEach((note) => {
+				note.keySignature = sig;
+			});
+		});
+	}
+	get beatValue() {
+		return this.timeSignature.split('/').map(number => parseInt(number, 10))[1];
+	}
+
+	setMeasureNumber(num) {
+		this.measureNumber = num;
+	}
+
+	getBeamGroupForNote(note) {
+		for (var i = 0; i < this.beamGroups.length; ++i) {
+			var bg = this.beamGroups[i];
+			for (var j = 0; j < bg.notes.length; ++j) {
+				if (bg.notes[j].attrs.id === note.attrs.id) {
+					return bg;
+				}
+			}
+		}
+		return null;
+	}
 }
 ;
 
@@ -1826,7 +1853,7 @@ class SmoSystemStaff {
 	
 	serialize() {
 		var params={};
-		smoMusic.filteredMerge(SmoSystemStaff.defaultParameters,this,params);
+		smoMusic.serializedMerge(SmoSystemStaff.defaultParameters,this,params);
 		params.modifiers=[];
 		params.measures=[];
 		
@@ -2227,7 +2254,7 @@ class SmoScore {
         for (var i = 0; i < proto.measures.length; ++i) {
             var newParams = {};
             var measure = proto.measures[i];
-            smoMusic.filteredMerge(SmoMeasure.defaultAttributes, measure, newParams);
+            smoMusic.serializedMerge(SmoMeasure.defaultAttributes, measure, newParams);
             newParams.clef = parameters.instrumentInfo.clef;
             newParams.transposeIndex = parameters.instrumentInfo.keyOffset;
             var newMeasure = SmoMeasure.getDefaultMeasureWithNotes(newParams);
@@ -4034,16 +4061,8 @@ class SmoUndoable {
         SmoOperation.slur(fromSelection, toSelection);
     }
 	static noop(score,undoBuffer) {
-        undoBuffer.addBuffer('addInstrument', 'score', null, score);		
+        undoBuffer.addBuffer('Backup', 'score', null, score);		
 	}
-    static addInstrument(score, undoBuffer) {
-        undoBuffer.addBuffer('addInstrument', 'score', null, score);
-        SmoOperation.addInstrument(score);
-    }
-    static removeInstrument(score, index, undoBuffer) {
-        undoBuffer.addBuffer('removeInstrument', 'score', null, score);
-        SmoOperation.removeInstrument(score, index);
-    }
     static addKeySignature(score, selection, keySignature, undoBuffer) {
         undoBuffer.addBuffer('addKeySignature ' + keySignature, 'score', null, score);
         SmoOperation.addKeySignature(score, selection, keySignature);
@@ -4067,7 +4086,7 @@ class SmoUndoable {
 	}
     static removeStaff(score, index, undoBuffer) {
         undoBuffer.addBuffer('remove instrument', 'score', null, score);
-        SmoOperation.removeInstrument(score, index);
+        SmoOperation.removeStaff(score, index);
     }
     static changeInstrument(score, instrument, selections, undoBuffer) {
         undoBuffer.addBuffer('changeInstrument', 'staff', selections[0].selector, score);
@@ -4858,6 +4877,7 @@ class VxSystem {
         $(this.context.svg).find('g.lineBracket-' + this.lineIndex).remove();
         var group = this.context.openGroup();
         group.classList.add('lineBracket-' + this.lineIndex);
+		group.classList.add('lineBracket');
         if (this.leftConnector[0] && this.leftConnector[1]) {
             var c1 = new VF.StaveConnector(this.leftConnector[0], this.leftConnector[1])
                 .setType(VF.StaveConnector.type.BRACKET);
@@ -5058,9 +5078,9 @@ class suiTracker {
 		var measureObj = this.objects.find((e) => SmoSelector.sameMeasure(e.selector, selector)
 				 && e.selector.tick === 0);
 		var tickObj = this.objects.find((e) => SmoSelector.sameNote(e.selector, selector));
-		if (tickObj)
-			return tickObj;
-		return measureObj;
+		var firstObj = this.objects[0];
+		return (tickObj) ? tickObj: 
+		    (measureObj ? measureObj : firstObj);
 	}
 
 	// ### getExtremeSelection
@@ -5460,30 +5480,18 @@ class suiSimpleLayout {
         Vex.Merge(this, params);
 
         var screenWidth = window.innerWidth;
-        if (this.score) {
-            this.svgScale = this.score.svgScale * this.score.zoomScale;
-            this.pageWidth = Math.round(this.score.pageWidth * this.score.zoomScale);
-            if (screenWidth < this.score.pageWidth + 200) {
-				var coeff = screenWidth/(this.score.pageWidth + 200);
-				this.svgScale = this.svgScale*coeff;
-				this.pageWidth = this.pageWidth*coeff;
-			}
-            this.pageHeight = Math.round(this.score.pageHeight * this.score.zoomScale);
-            $(this.elementId).css('width', '' + Math.round(this.pageWidth) + 'px');
-            $(this.elementId).css('height', '' + Math.round(this.pageHeight) + 'px');
-        }
+       
+		this.svgScale = this.score.svgScale * this.score.zoomScale;
+		this.pageWidth = Math.round(this.score.pageWidth * this.score.zoomScale);            
+		this.pageHeight = Math.round(this.score.pageHeight * this.score.zoomScale);
+		$(this.elementId).css('width', '' + Math.round(this.pageWidth) + 'px');
+		$(this.elementId).css('height', '' + Math.round(this.pageHeight) + 'px');
         $(this.elementId).html('');
         this.renderer = new VF.Renderer(this.elementId, VF.Renderer.Backends.SVG);
         // this.renderer.resize(this.pageWidth, this.pageHeight);
-        var offset = (window.innerWidth - $(this.elementId).width()) / 2;
-        if (offset > 0) {
-            $(this.elementId).css('left', '' + offset + 'px');
-        }
+		
+		svgHelpers.svgViewport(this.context.svg,this.pageWidth,this.pageHeight,this.svgScale);
 
-        this.context.svg.setAttributeNS('', 'width', '' + this.pageWidth);
-        this.context.svg.setAttributeNS('', 'height', '' + this.pageHeight);
-        this.context.svg.setAttributeNS('', 'viewBox', '0 0 ' + Math.round(this.pageWidth / this.svgScale) + ' ' +
-            Math.round(this.pageHeight / this.svgScale));
         this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
         this.attrs = {
             id: VF.Element.newID(),
@@ -5701,10 +5709,11 @@ class suiSimpleLayout {
     // ### unrenderAll
     // ### Description:
     // Delete all the svg elements associated with the score.
-    unrenderAll(score) {
+    unrenderAll() {
         this.score.staves.forEach((staff) => {
             this.unrenderStaff(staff);
         });
+		$(this.renderer.getContext().svg).find('g.lineBracket').remove();
     }
     get pageMarginWidth() {
         return this.pageWidth - this.leftMargin * 2;
@@ -6157,431 +6166,441 @@ class suiEditor {
 }
 ;
 class suiMenuBase {
-    constructor(params) {
-        Vex.Merge(this, params);
-    }
+	constructor(params) {
+		Vex.Merge(this, params);
+	}
 
-    complete() {
-        $('body').trigger('menuDismiss');
-    }
+	complete() {
+		$('body').trigger('menuDismiss');
+	}
 }
 
 class suiMenuManager {
-    constructor(params) {
-        Vex.Merge(this, suiMenuManager.defaults);
-        Vex.Merge(this, params);
-        this.bound = false;
-    }
+	constructor(params) {
+		Vex.Merge(this, suiMenuManager.defaults);
+		Vex.Merge(this, params);
+		this.bound = false;
+	}
 
-    static get defaults() {
-        return {
-            menuBind: suiMenuManager.menuKeyBindingDefaults,
-            menuContainer: '.menuContainer'
-        };
-    }
+	static get defaults() {
+		return {
+			menuBind: suiMenuManager.menuKeyBindingDefaults,
+			menuContainer: '.menuContainer'
+		};
+	}
 
-    // ### Description:
-    // slash ('/') menu key bindings.  The slash key followed by another key brings up
-    // a menu.
-    static get menuKeyBindingDefaults() {
-        return [{
-                event: "keydown",
-                key: "k",
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: "suiKeySignatureMenu"
-            }, {
-                event: "keydown",
-                key: "e",
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: "suiStaffModifierMenu"
-            }, {
-                event: "keydown",
-                key: "d",
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: "SuiDynamicsMenu"
-            }, {
-                event: "keydown",
-                key: "s",
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: "SuiAddStaffMenu"
-            }
+	// ### Description:
+	// slash ('/') menu key bindings.  The slash key followed by another key brings up
+	// a menu.
+	static get menuKeyBindingDefaults() {
+		return [{
+				event: "keydown",
+				key: "k",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "suiKeySignatureMenu"
+			}, {
+				event: "keydown",
+				key: "e",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "suiStaffModifierMenu"
+			}, {
+				event: "keydown",
+				key: "d",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "SuiDynamicsMenu"
+			}, {
+				event: "keydown",
+				key: "s",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "SuiAddStaffMenu"
+			}
 
-        ];
-    }
+		];
+	}
 
-    unattach() {
-        window.removeEventListener("keydown", this.keydownHandler, true);
-        $('body').removeClass('modal');
-        $(this.menuContainer).html('');
-        $('body').off('dismissMenu');
-        this.bound = false;
-    }
+	get menuBindings() {
+		return this.menuBind;
+	}
 
-    attach(el) {
-        var b = htmlHelpers.buildDom();
+	unattach() {
+		window.removeEventListener("keydown", this.keydownHandler, true);
+		$('body').removeClass('modal');
+		$(this.menuContainer).html('');
+		$('body').off('dismissMenu');
+		this.bound = false;
+	}
 
-        $(this.menuContainer).html('');
-        $(this.menuContainer).attr('z-index', '12');
-        var b = htmlHelpers.buildDom;
-        var r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length)
-            .css('left', '' + this.menuPosition.x + 'px')
-            .css('top', '' + this.menuPosition.y + 'px')
-            .css('height', '' + this.menu.menuItems.length * 35 + 'px');
-        this.menu.menuItems.forEach((item) => {
-            r.append(
-                b('li').classes('menuOption').append(
-                    b('button')
-                    .text(item.text).attr('data-value', item.value)
-                    .append(
-                        b('span').classes('icon icon-' + item.icon))));
-        });
-        $(this.menuContainer).append(r.dom());
-        $('body').addClass('modal');
-        this.bindEvents();
-    }
-    slashMenuMode() {
-        var self = this;
-        this.bindEvents();
-        this.closeMenuPromise = new Promise((resolve, reject) => {
-                $('body').off('menuDismiss').on('menuDismiss', function () {
-                    self.unattach();
-                    resolve();
-                });
+	attach(el) {
+		var b = htmlHelpers.buildDom();
 
-            });
-        return this.closeMenuPromise;
-    }
+		$(this.menuContainer).html('');
+		$(this.menuContainer).attr('z-index', '12');
+		var b = htmlHelpers.buildDom;
+		var r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length)
+			.css('left', '' + this.menuPosition.x + 'px')
+			.css('top', '' + this.menuPosition.y + 'px')
+			.css('height', '' + this.menu.menuItems.length * 35 + 'px');
+		this.menu.menuItems.forEach((item) => {
+			r.append(
+				b('li').classes('menuOption').append(
+					b('button')
+					.text(item.text).attr('data-value', item.value)
+					.append(
+						b('span').classes('icon icon-' + item.icon))));
+		});
+		$(this.menuContainer).append(r.dom());
+		$('body').addClass('modal');
+		this.bindEvents();
+	}
+	slashMenuMode() {
+		var self = this;
+		this.bindEvents();
+		this.closeMenuPromise = new Promise((resolve, reject) => {
+				$('body').off('menuDismiss').on('menuDismiss', function () {
+					self.unattach();
+					resolve();
+				});
 
-    handleKeydown(event) {
-        console.log("KeyboardEvent: key='" + event.key + "' | code='" +
-            event.code + "'"
-             + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
-        if (['Tab', 'Enter'].indexOf(event.code) >= 0) {
-            return;
-        }
+			});
+		return this.closeMenuPromise;
+	}
 
-        event.preventDefault();
+	createMenu(action) {
+		this.menuPosition = this.tracker.selections[0].box;
+		var ctor = eval(action);
+		this.menu = new ctor({
+				position: this.menuPosition,
+				tracker: this.tracker,
+				editor: this.editor,
+				score: this.score
+			});
+		this.attach(this.menuContainer);
+	}
 
-        if (event.code === 'Escape') {
-            $('body').trigger('menuDismiss');
-        }
-        if (this.menu) {
-            this.menu.keydown(event);
-        }
-        if (this.tracker.selections.length == 0) {
-            this.unattach();
-            return;
-        }
-        this.menuPosition = this.tracker.selections[0].box;
-        var binding = this.menuBind.find((ev) => {
-                return ev.key === event.key
-            });
-        if (!binding) {
-            return;
-        }
-        var ctor = eval(binding.action);
-        this.menu = new ctor({
-                position: this.menuPosition,
-                tracker: this.tracker,
-                editor: this.editor,
-                score: this.score
-            });
-        this.attach(this.menuContainer);
-    }
+	handleKeydown(event) {
+		console.log("KeyboardEvent: key='" + event.key + "' | code='" +
+			event.code + "'"
+			 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
+		if (['Tab', 'Enter'].indexOf(event.code) >= 0) {
+			return;
+		}
 
-    bindEvents() {
-        var self = this;
+		event.preventDefault();
 
-        if (!this.bound) {
-            this.keydownHandler = this.handleKeydown.bind(this);
+		if (event.code === 'Escape') {
+			$('body').trigger('menuDismiss');
+		}
+		if (this.menu) {
+			this.menu.keydown(event);
+		}
+		if (this.tracker.selections.length == 0) {
+			this.unattach();
+			return;
+		}
+		
+		var binding = this.menuBind.find((ev) => {
+				return ev.key === event.key
+			});
+		if (!binding) {
+			return;
+		}
+		this.createMenu(binding.action);
+	}
 
-            window.addEventListener("keydown", this.keydownHandler, true);
-            this.bound = true;
-        }
-        $(this.menuContainer).find('button').off('click').on('click', function (ev) {
-            self.menu.selection(ev);
-        });
-    }
+	bindEvents() {
+		var self = this;
+
+		if (!this.bound) {
+			this.keydownHandler = this.handleKeydown.bind(this);
+
+			window.addEventListener("keydown", this.keydownHandler, true);
+			this.bound = true;
+		}
+		$(this.menuContainer).find('button').off('click').on('click', function (ev) {
+			self.menu.selection(ev);
+		});
+	}
 }
 
 class SuiDynamicsMenu extends suiMenuBase {
-    constructor(params) {
-        params = (params ? params : {});
-        Vex.Merge(params, SuiDynamicsMenu.defaults);
-        super(params);
-    }
-    static get defaults() {
-        return {
-            menuItems: [{
-                    icon: 'pianissimo',
-                    text: 'Pianissimo',
-                    value: 'pp'
-                }, {
-                    icon: 'piano',
-                    text: 'Piano',
-                    value: 'p'
-                }, {
-                    icon: 'mezzopiano',
-                    text: 'Mezzo-piano',
-                    value: 'mp'
-                }, {
-                    icon: 'mezzoforte',
-                    text: 'Mezzo-forte',
-                    value: 'mf'
-                }, {
-                    icon: 'forte',
-                    text: 'Forte',
-                    value: 'f'
-                }, {
-                    icon: 'fortissimo',
-                    text: 'Fortissimo',
-                    value: 'ff'
-                }, {
-                    icon: 'sfz',
-                    text: 'sfortzando',
-                    value: 'sfz'
-                }
-            ]
-        };
-    }
-    selection(ev) {
-        var text = $(ev.currentTarget).attr('data-value');
+	constructor(params) {
+		params = (params ? params : {});
+		Vex.Merge(params, SuiDynamicsMenu.defaults);
+		super(params);
+	}
+	static get defaults() {
+		return {
+			menuItems: [{
+					icon: 'pianissimo',
+					text: 'Pianissimo',
+					value: 'pp'
+				}, {
+					icon: 'piano',
+					text: 'Piano',
+					value: 'p'
+				}, {
+					icon: 'mezzopiano',
+					text: 'Mezzo-piano',
+					value: 'mp'
+				}, {
+					icon: 'mezzoforte',
+					text: 'Mezzo-forte',
+					value: 'mf'
+				}, {
+					icon: 'forte',
+					text: 'Forte',
+					value: 'f'
+				}, {
+					icon: 'fortissimo',
+					text: 'Fortissimo',
+					value: 'ff'
+				}, {
+					icon: 'sfz',
+					text: 'sfortzando',
+					value: 'sfz'
+				}
+			]
+		};
+	}
+	selection(ev) {
+		var text = $(ev.currentTarget).attr('data-value');
 
-        var ft = this.tracker.getExtremeSelection(-1);
-        if (!ft || !ft.note) {
-            return;
-        }
+		var ft = this.tracker.getExtremeSelection(-1);
+		if (!ft || !ft.note) {
+			return;
+		}
 
-        SmoUndoable.addDynamic(ft, new SmoDynamicText({
-                selector: ft.selector,
-                text: text,
-                yOffsetLine: 11,
-                fontSize: 38
-            }), this.editor.undoBuffer);
-        this.complete();
-    }
-    keydown(ev) {}
+		SmoUndoable.addDynamic(ft, new SmoDynamicText({
+				selector: ft.selector,
+				text: text,
+				yOffsetLine: 11,
+				fontSize: 38
+			}), this.editor.undoBuffer);
+		this.complete();
+	}
+	keydown(ev) {}
 }
 
 class suiKeySignatureMenu extends suiMenuBase {
 
-    constructor(params) {
-        params = (params ? params : {});
-        Vex.Merge(params, suiKeySignatureMenu.defaults);
-        super(params);
-    }
-    static get defaults() {
-        return {
-            menuItems: [{
-                    icon: 'key-sig-c',
-                    text: 'C Major',
-                    value: 'C'
-                }, {
-                    icon: 'key-sig-f',
-                    text: 'F Major',
-                    value: 'F'
-                }, {
-                    icon: 'key-sig-g',
-                    text: 'G Major',
-                    value: 'G'
-                }, {
-                    icon: 'key-sig-bb',
-                    text: 'Bb Major',
-                    value: 'Bb'
-                }, {
-                    icon: 'key-sig-d',
-                    text: 'D Major',
-                    value: 'D'
-                }, {
-                    icon: 'key-sig-eb',
-                    text: 'Eb Major',
-                    value: 'Eb'
-                }, {
-                    icon: 'key-sig-a',
-                    text: 'A Major',
-                    value: 'A'
-                }, {
-                    icon: 'key-sig-ab',
-                    text: 'Ab Major',
-                    value: 'Ab'
-                }, {
-                    icon: 'key-sig-e',
-                    text: 'E Major',
-                    value: 'E'
-                }, {
-                    icon: 'key-sig-bd',
-                    text: 'Db Major',
-                    value: 'Db'
-                }, {
-                    icon: 'key-sig-b',
-                    text: 'B Major',
-                    value: 'B'
-                }, {
-                    icon: 'key-sig-fs',
-                    text: 'F# Major',
-                    value: 'F#'
-                }, {
-                    icon: 'key-sig-cs',
-                    text: 'C# Major',
-                    value: 'C#'
-                }
-            ],
-            menuContainer: '.menuContainer'
-        };
-    }
-    selection(ev) {
-        var keySig = $(ev.currentTarget).attr('data-value');
-        var changed = [];
-        this.tracker.selections.forEach((sel) => {
-            if (changed.indexOf(sel.selector.measure) === -1) {
-                changed.push(sel.selector.measure);
-                SmoUndoable.addKeySignature(this.score, sel, keySig, this.editor.undoBuffer);
-            }
-        });
-        this.complete();
-    }
-    keydown(ev) {}
+	constructor(params) {
+		params = (params ? params : {});
+		Vex.Merge(params, suiKeySignatureMenu.defaults);
+		super(params);
+	}
+	static get defaults() {
+		return {
+			menuItems: [{
+					icon: 'key-sig-c',
+					text: 'C Major',
+					value: 'C'
+				}, {
+					icon: 'key-sig-f',
+					text: 'F Major',
+					value: 'F'
+				}, {
+					icon: 'key-sig-g',
+					text: 'G Major',
+					value: 'G'
+				}, {
+					icon: 'key-sig-bb',
+					text: 'Bb Major',
+					value: 'Bb'
+				}, {
+					icon: 'key-sig-d',
+					text: 'D Major',
+					value: 'D'
+				}, {
+					icon: 'key-sig-eb',
+					text: 'Eb Major',
+					value: 'Eb'
+				}, {
+					icon: 'key-sig-a',
+					text: 'A Major',
+					value: 'A'
+				}, {
+					icon: 'key-sig-ab',
+					text: 'Ab Major',
+					value: 'Ab'
+				}, {
+					icon: 'key-sig-e',
+					text: 'E Major',
+					value: 'E'
+				}, {
+					icon: 'key-sig-bd',
+					text: 'Db Major',
+					value: 'Db'
+				}, {
+					icon: 'key-sig-b',
+					text: 'B Major',
+					value: 'B'
+				}, {
+					icon: 'key-sig-fs',
+					text: 'F# Major',
+					value: 'F#'
+				}, {
+					icon: 'key-sig-cs',
+					text: 'C# Major',
+					value: 'C#'
+				}
+			],
+			menuContainer: '.menuContainer'
+		};
+	}
+	selection(ev) {
+		var keySig = $(ev.currentTarget).attr('data-value');
+		var changed = [];
+		this.tracker.selections.forEach((sel) => {
+			if (changed.indexOf(sel.selector.measure) === -1) {
+				changed.push(sel.selector.measure);
+				SmoUndoable.addKeySignature(this.score, sel, keySig, this.editor.undoBuffer);
+			}
+		});
+		this.complete();
+	}
+	keydown(ev) {}
 
 }
 
 class suiStaffModifierMenu extends suiMenuBase {
 
-    constructor(params) {
-        params = (params ? params : {});
-        Vex.Merge(params, suiStaffModifierMenu.defaults);
-        super(params);
-    }
-    static get defaults() {
-        return {
-            menuItems: [{
-                    icon: 'cresc',
-                    text: 'Crescendo',
-                    value: 'crescendo'
-                }, {
-                    icon: 'decresc',
-                    text: 'Decrescendo',
-                    value: 'decrescendo'
-                }, {
-                    icon: 'slur',
-                    text: 'Slur/Tie',
-                    value: 'slur'
-                }
-            ],
-            menuContainer: '.menuContainer'
-        };
-    }
-    selection(ev) {
-        var op = $(ev.currentTarget).attr('data-value');
+	constructor(params) {
+		params = (params ? params : {});
+		Vex.Merge(params, suiStaffModifierMenu.defaults);
+		super(params);
+	}
+	static get defaults() {
+		return {
+			menuItems: [{
+					icon: 'cresc',
+					text: 'Crescendo',
+					value: 'crescendo'
+				}, {
+					icon: 'decresc',
+					text: 'Decrescendo',
+					value: 'decrescendo'
+				}, {
+					icon: 'slur',
+					text: 'Slur/Tie',
+					value: 'slur'
+				}
+			],
+			menuContainer: '.menuContainer'
+		};
+	}
+	selection(ev) {
+		var op = $(ev.currentTarget).attr('data-value');
 
-        var ft = this.tracker.getExtremeSelection(-1);
-        var tt = this.tracker.getExtremeSelection(1);
-        if (SmoSelector.sameNote(ft.selector, tt.selector)) {
-            this.complete();
-            return;
-        }
+		var ft = this.tracker.getExtremeSelection(-1);
+		var tt = this.tracker.getExtremeSelection(1);
+		if (SmoSelector.sameNote(ft.selector, tt.selector)) {
+			this.complete();
+			return;
+		}
 
-        SmoUndoable[op](ft, tt, this.editor.undoBuffer);
-        this.complete();
-    }
-    keydown(ev) {}
+		SmoUndoable[op](ft, tt, this.editor.undoBuffer);
+		this.complete();
+	}
+	keydown(ev) {}
 }
 
 class SuiAddStaffMenu extends suiMenuBase {
-    constructor(params) {
-        params = (params ? params : {});
-        Vex.Merge(params, SuiAddStaffMenu.defaults);
-        super(params);
-    }
-    static get defaults() {
-        return {
-            menuItems: [{
-                    icon: 'treble',
-                    text: 'Treble Clef Staff',
-                    value: 'trebleInstrument'
-                }, {
-                    icon: 'bass',
-                    text: 'Bass Clef Staff',
-                    value: 'bassInstrument'
-                }, {
-                    icon: 'alto',
-                    text: 'Alto Clef Staff',
-                    value: 'altoInstrument'
-                }, {
-                    icon: 'tenor',
-                    text: 'Tenor Clef Staff',
-                    value: 'tenorInstrument'
-                }, {
-                    icon: 'cancel-circle',
-                    text: 'Remove Staff',
-                    value: 'remove'
-                }
-            ],
-            menuContainer: '.menuContainer'
-        };
-    }
-    static get instrumentMap() {
-        return {
-            'trebleInstrument': {
-                instrumentInfo: {
-                    instrumentName: 'Treble Clef Staff',
-                    keyOffset: 0,
-                    clef: 'treble'
-                }
-            },
-            'bassInstrument': {
-                instrumentInfo: {
-                    instrumentName: 'Bass Clef Staff',
-                    keyOffset: 0,
-                    clef: 'bass'
-                }
-            },
-            'altoInstrument': {
-                instrumentInfo: {
-                    instrumentName: 'Alto Clef Staff',
-                    keyOffset: 0,
-                    clef: 'alto'
-                }
-            },
-            'tenorInstrument': {
-                instrumentInfo: {
-                    instrumentName: 'Tenor Clef Staff',
-                    keyOffset: 0,
-                    clef: 'tenor'
-                }
-            },
-            'remove': {
-                instrumentInfo: {
-                    instrumentName: 'Remove clef',
-                    keyOffset: 0,
-                    clef: 'tenor'
-                }
-            }
-        }
+	constructor(params) {
+		params = (params ? params : {});
+		Vex.Merge(params, SuiAddStaffMenu.defaults);
+		super(params);
+	}
+	static get defaults() {
+		return {
+			menuItems: [{
+					icon: 'treble',
+					text: 'Treble Clef Staff',
+					value: 'trebleInstrument'
+				}, {
+					icon: 'bass',
+					text: 'Bass Clef Staff',
+					value: 'bassInstrument'
+				}, {
+					icon: 'alto',
+					text: 'Alto Clef Staff',
+					value: 'altoInstrument'
+				}, {
+					icon: 'tenor',
+					text: 'Tenor Clef Staff',
+					value: 'tenorInstrument'
+				}, {
+					icon: 'cancel-circle',
+					text: 'Remove Staff',
+					value: 'remove'
+				}
+			],
+			menuContainer: '.menuContainer'
+		};
+	}
+	static get instrumentMap() {
+		return {
+			'trebleInstrument': {
+				instrumentInfo: {
+					instrumentName: 'Treble Clef Staff',
+					keyOffset: 0,
+					clef: 'treble'
+				}
+			},
+			'bassInstrument': {
+				instrumentInfo: {
+					instrumentName: 'Bass Clef Staff',
+					keyOffset: 0,
+					clef: 'bass'
+				}
+			},
+			'altoInstrument': {
+				instrumentInfo: {
+					instrumentName: 'Alto Clef Staff',
+					keyOffset: 0,
+					clef: 'alto'
+				}
+			},
+			'tenorInstrument': {
+				instrumentInfo: {
+					instrumentName: 'Tenor Clef Staff',
+					keyOffset: 0,
+					clef: 'tenor'
+				}
+			},
+			'remove': {
+				instrumentInfo: {
+					instrumentName: 'Remove clef',
+					keyOffset: 0,
+					clef: 'tenor'
+				}
+			}
+		}
 
-    }
-    selection(ev) {
-        var op = $(ev.currentTarget).attr('data-value');
-        if (op == 'remove') {
-            if (this.score.staves.length > 1 && this.tracker.selections.length > 0) {
-                SmoUndoable.removeInstrument(this.score, this.tracker.selections[0].selector.staff, this.editor.undoBuffer);
-            }
+	}
+	selection(ev) {
+		var op = $(ev.currentTarget).attr('data-value');
+		if (op == 'remove') {
+			if (this.score.staves.length > 1 && this.tracker.selections.length > 0) {
+				this.tracker.layout.unrenderAll();
+				SmoUndoable.removeStaff(this.score, this.tracker.selections[0].selector.staff, this.editor.undoBuffer);
+			}
 
-        } else {
-            var instrument = SuiAddStaffMenu.instrumentMap[op];
+		} else {
+			var instrument = SuiAddStaffMenu.instrumentMap[op];
 
-            SmoUndoable.addStaff(this.score, instrument, this.editor.undoBuffer);
-        }
-        this.complete();
-    }
-    keydown(ev) {}
+			SmoUndoable.addStaff(this.score, instrument, this.editor.undoBuffer);
+		}
+		this.complete();
+	}
+	keydown(ev) {}
 
 }
 ;
@@ -6633,7 +6652,7 @@ class utController {
 
 }
 ;class defaultEditorKeys {
-	
+
 	static get keys() {
 		return [{
 				event: "keydown",
@@ -6663,7 +6682,7 @@ class utController {
 				altKey: false,
 				shiftKey: false,
 				action: "downOctave"
-			},{
+			}, {
 				event: "keydown",
 				key: "-",
 				ctrlKey: false,
@@ -6754,7 +6773,7 @@ class utController {
 				altKey: false,
 				shiftKey: false,
 				action: "makeRest"
-			},{
+			}, {
 				event: "keydown",
 				key: "r",
 				ctrlKey: false,
@@ -6768,16 +6787,14 @@ class utController {
 				altKey: false,
 				shiftKey: false,
 				action: "makeTuplet"
-			},
-			{
+			}, {
 				event: "keydown",
 				key: "5",
 				ctrlKey: true,
 				altKey: false,
 				shiftKey: false,
 				action: "makeTuplet"
-			},
-			{
+			}, {
 				event: "keydown",
 				key: "7",
 				ctrlKey: true,
@@ -6905,122 +6922,110 @@ class utController {
 				altKey: false,
 				shiftKey: false,
 				action: "deleteMeasure"
-			},
-			 {
+			}, {
 				event: "keydown",
 				key: "z",
 				ctrlKey: true,
 				altKey: false,
 				shiftKey: false,
 				action: "undo"
-			},
-			 {
+			}, {
 				event: "keydown",
 				key: "c",
 				ctrlKey: true,
 				altKey: false,
 				shiftKey: false,
 				action: "copy"
-			},
-			{
+			}, {
 				event: "keydown",
 				key: "x",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: false,
 				action: "toggleBeamGroup"
-			},
-			 {
+			}, {
 				event: "keydown",
 				key: "v",
 				ctrlKey: true,
 				altKey: false,
 				shiftKey: false,
 				action: "paste"
-			},
-			 {
+			}, {
 				event: "keydown",
 				key: "h",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: false,
 				action: "addRemoveArticulation"
-			},
-			 {
+			}, {
 				event: "keydown",
 				key: "i",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: false,
 				action: "addRemoveArticulation"
-			},
-			{
+			}, {
 				event: "keydown",
 				key: "j",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: false,
 				action: "addRemoveArticulation"
-			},
-			{
+			}, {
 				event: "keydown",
 				key: "k",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: false,
 				action: "addRemoveArticulation"
-			},
-			{
+			}, {
 				event: "keydown",
 				key: "l",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: false,
 				action: "addRemoveArticulation"
-			},
-			{
+			}, {
 				event: "keydown",
 				key: "H",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: true,
 				action: "addRemoveArticulation"
-			},
-			 {
+			}, {
 				event: "keydown",
 				key: "I",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: true,
 				action: "addRemoveArticulation"
-			},
-			{
+			}, {
 				event: "keydown",
 				key: "J",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: true,
 				action: "addRemoveArticulation"
-			},
-			{
+			}, {
 				event: "keydown",
 				key: "K",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: true,
 				action: "addRemoveArticulation"
-			},
-			{
+			}, {
 				event: "keydown",
 				key: "L",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: true,
 				action: "addRemoveArticulation"
-			}		
-			];
+			},
+		];
 	}
-};
+
+}
+;
 class defaultTrackerKeys {
 	
 	static get keys() {
@@ -7106,229 +7111,290 @@ class defaultTrackerKeys {
 	}
 };
 class RibbonHtml {
-	static ribbonButton(buttonClass,buttonText,buttonKey) {
-        var b = htmlHelpers.buildDom;
-        var r = b('button').classes(buttonClass).append(
-                b('span').classes('ribbon-button-text').text(buttonText)).append(
-				b('span').classes('ribbon-button-hotkey').text(buttonKey));
+	static ribbonButton(buttonId, buttonClass, buttonText, buttonIcon, buttonKey) {
+		var b = htmlHelpers.buildDom;
+		var r = b('div').append(b('button').attr('id', buttonId).classes(buttonClass).append(
+					b('span').classes('ribbon-button-text icon ' + buttonIcon).text(buttonText)).append(
+					b('span').classes('ribbon-button-hotkey').text(buttonKey)));
 		return r.dom();
 	}
-	
-	static navigationGroup() {
-		
+}
+
+class RibbonButtons {
+	static get paramArray() {
+		return ['ribbonButtons', 'ribbons', 'editor', 'controller', 'tracker', 'menus'];
 	}
-
-};
-class SuiDialogFactory {
-
-    static createDialog(modSelection, context, tracker, layout) {
-        var dbType = SuiDialogFactory.modifierDialogMap[modSelection.modifier.type];
-        var ctor = eval(dbType);
-		if (!ctor) {
-			console.warn('no dialog for modifier '+modSelection.modifier.type);
+	constructor(parameters) {
+		smoMusic.filteredMerge(RibbonButtons.paramArray, parameters, this);
+		this.ribbonButtons = parameters.ribbonButtons;
+		this.ribbons = parameters.ribbons;
+	}
+	_executeButtonModal(buttonElement, buttonData) {
+		var ctor = eval(buttonData.ctor);
+		ctor.createAndDisplay(buttonElement, buttonData);
+	}
+	_executeButtonMenu(buttonElement, buttonData) {
+		var self=this;
+		var rebind = function() {
+			self._rebindController();
+		}
+		this.menuPromise = this.menus.slashMenuMode().then(rebind);
+		this.menus.createMenu(buttonData.ctor);
+	}
+	_rebindController() {
+		this.controller.render();
+		this.controller.bindEvents();
+	}
+	_executeButton(buttonElement, buttonData) {
+		if (buttonData.action === 'modal') {
+			this._executeButtonModal(buttonElement, buttonData);
 			return;
 		}
-        return ctor.createAndDisplay({
-            modifier: modSelection.modifier,
-            selection: modSelection.selection,
-            context: context,
-            tracker: tracker,
-            layout: layout
-        });
-    }
-    static get modifierDialogMap() {
-        return {
-            SmoStaffHairpin: 'SuiHairpinAttributesDialog',
-            SmoSlur: 'SuiSlurAttributesDialog',
-			SmoDynamicText:'SuiTextModifierDialog'
-        };
-    }
+		if (buttonData.action === 'menu') {
+			this._executeButtonMenu(buttonElement, buttonData);
+			return;
+		}
+	}
+
+	_bindButton(buttonElement, buttonData) {
+		var self = this;
+		$(buttonElement).off('click').on('click', function () {
+			self._executeButton(buttonElement, buttonData);
+		});
+	}
+	display() {
+		$('body .controls-left').html('');
+
+		var buttonAr = this.ribbons['left'];
+		buttonAr.forEach((buttonId) => {
+			var b = this.ribbonButtons.find((e) => {
+					return e.id === buttonId;
+				});
+			if (b) {
+				var buttonHtml = RibbonHtml.ribbonButton(b.id, b.classes, b.leftText, b.icon, b.rightText);
+				$('body .controls-left').append(buttonHtml);
+				var el = $('body .controls-left').find('#' + b.id);
+				this._bindButton(el, b);
+			}
+		});
+	}
+}
+;
+class SuiDialogFactory {
+
+	static createDialog(modSelection, context, tracker, layout) {
+		var dbType = SuiDialogFactory.modifierDialogMap[modSelection.modifier.type];
+		var ctor = eval(dbType);
+		if (!ctor) {
+			console.warn('no dialog for modifier ' + modSelection.modifier.type);
+			return;
+		}
+		return ctor.createAndDisplay({
+			modifier: modSelection.modifier,
+			selection: modSelection.selection,
+			context: context,
+			tracker: tracker,
+			layout: layout
+		});
+	}
+	static get modifierDialogMap() {
+		return {
+			SmoStaffHairpin: 'SuiHairpinAttributesDialog',
+			SmoSlur: 'SuiSlurAttributesDialog',
+			SmoDynamicText: 'SuiTextModifierDialog'
+		};
+	}
 }
 
 class SuiDialogBase {
-    constructor(dialogElements, parameters) {
-        this.id = parameters.id;
-        this.components = [];
-        this.layout = parameters.layout;
-        this.closeDialogPromise = new Promise((resolve, reject) => {
-                $('body').off('dialogDismiss').on('dialogDismiss', function () {
-                    resolve();
-                });
+	constructor(dialogElements, parameters) {
+		this.id = parameters.id;
+		this.components = [];
+		this.layout = parameters.layout;
+		this.closeDialogPromise = new Promise((resolve, reject) => {
+				$('body').off('dialogDismiss').on('dialogDismiss', function () {
+					resolve();
+				});
 
-            });
-        this.dialogElements = dialogElements;
-        this.dgDom = this._constructDialog(dialogElements, {
-                id: 'dialog-' + this.id,
-                top: parameters.top,
-                left: parameters.left,
-                label: parameters.label
-            });
-    }
-    position(box) {
-        var y = box.y + box.height;
+			});
+		this.dialogElements = dialogElements;
+		this.dgDom = this._constructDialog(dialogElements, {
+				id: 'dialog-' + this.id,
+				top: parameters.top,
+				left: parameters.left,
+				label: parameters.label
+			});
+	}
+	position(box) {
+		var y = box.y + box.height;
 
-        // TODO: adjust if db is clipped by the browser.
-        $(this.dgDom.element).css('top', '' + y + 'px');
-    }
-    _constructDialog(dialogElements, parameters) {
-        var id = parameters.id;
-        var b = htmlHelpers.buildDom;
-        var r = b('div').classes('attributeModal').css('top', parameters.top + 'px').css('left', parameters.left + 'px')
-            .append(b('h2').text(parameters.label));
-        dialogElements.forEach((de) => {
-            var ctor = eval(de.control);
-            var control = new ctor(this, de);
-            this.components.push(control);
-            r.append(control.html);
-        });
-        r.append(
-            b('div').classes('buttonContainer').append(
-                b('button').classes('ok-button').text('Ok')).append(
-                b('button').classes('cancel-button').text('Cancel')).append(
-                b('button').classes('remove-button').text('Remove').append(
-                    b('span').classes('icon icon-cancel-circle'))));
-        $('.attributeDialog').html('');
+		// TODO: adjust if db is clipped by the browser.
+		$(this.dgDom.element).css('top', '' + y + 'px');
+	}
+	_constructDialog(dialogElements, parameters) {
+		var id = parameters.id;
+		var b = htmlHelpers.buildDom;
+		var r = b('div').classes('attributeModal').css('top', parameters.top + 'px').css('left', parameters.left + 'px')
+			.append(b('h2').text(parameters.label));
+		dialogElements.forEach((de) => {
+			var ctor = eval(de.control);
+			var control = new ctor(this, de);
+			this.components.push(control);
+			r.append(control.html);
+		});
+		r.append(
+			b('div').classes('buttonContainer').append(
+				b('button').classes('ok-button').text('Ok')).append(
+				b('button').classes('cancel-button').text('Cancel')).append(
+				b('button').classes('remove-button').text('Remove').append(
+					b('span').classes('icon icon-cancel-circle'))));
+		$('.attributeDialog').html('');
 
-        $('.attributeDialog').append(r.dom());
+		$('.attributeDialog').append(r.dom());
 
-        var trapper = htmlHelpers.inputTrapper('.attributeDialog');
-        $('.attributeDialog').find('.cancel-button').focus();
-        return {
-            element: $('.attributeDialog'),
-            trapper: trapper
-        };
-    }
-	
-	 _commit() {
-        this.modifier.restoreOriginal();
-        this.components.forEach((component) => {
-            this.modifier[component.smoName] = component.getValue();
-        });
-    }
+		var trapper = htmlHelpers.inputTrapper('.attributeDialog');
+		$('.attributeDialog').find('.cancel-button').focus();
+		return {
+			element: $('.attributeDialog'),
+			trapper: trapper
+		};
+	}
 
-    complete() {
-        $('body').removeClass('showAttributeDialog');
-        $('body').trigger('dialogDismiss');
-        this.dgDom.trapper.close();
-    }
-	
+	_commit() {
+		this.modifier.restoreOriginal();
+		this.components.forEach((component) => {
+			this.modifier[component.smoName] = component.getValue();
+		});
+	}
+
+	complete() {
+		$('body').removeClass('showAttributeDialog');
+		$('body').trigger('dialogDismiss');
+		this.dgDom.trapper.close();
+	}
+
 	display() {
-        $('body').addClass('showAttributeDialog');
-        this.components.forEach((component) => {
-            component.bind();
-        });
-        this._bindElements();
-        this.position(this.modifier.renderedBox);
-    }
-	
-   _bindElements() {
-        var self = this;
-        var dgDom = this.dgDom;
-        $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            self._commit();
-            self.complete();
-        });
+		$('body').addClass('showAttributeDialog');
+		this.components.forEach((component) => {
+			component.bind();
+		});
+		this._bindElements();
+		this.position(this.modifier.renderedBox);
+	}
 
-        $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-            self.modifier.restoreOriginal();
-            self.complete();
-        });
-        $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-            self.handleRemove();
-            self.complete();
-        });
-    }
+	_bindElements() {
+		var self = this;
+		var dgDom = this.dgDom;
+		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+			self._commit();
+			self.complete();
+		});
+
+		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+			self.modifier.restoreOriginal();
+			self.complete();
+		});
+		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
+			self.handleRemove();
+			self.complete();
+		});
+	}
 }
 
 class SuiTextModifierDialog extends SuiDialogBase {
-    static get dialogElements() {
-        return [
-		{
-                smoName: 'yOffsetLine',
-                parameterName: 'yOffsetLine',
-                defaultValue: 11,
-                control: 'SuiRockerComponent',
-                label: 'Y Line'
-            },
-			{
-                smoName: 'yOffsetPixels',
-                parameterName: 'yOffsetPixels',
-                defaultValue: 0,
-                control: 'SuiRockerComponent',
-                label: 'Y Offset Px'
-            },
-			{
-                smoName: 'xOffset',
-                parameterName: 'yOffset',
-                defaultValue: 0,
-                control: 'SuiRockerComponent',
-                label: 'X Offset'
-            },{
-                smoName: 'text',
-                parameterName: 'text',
-                defaultValue: SmoDynamicText.dynamics.P,
-                options: [{
-                        value: SmoDynamicText.dynamics.P,
-                        label: 'Piano'
-                    }, {
-                        value: SmoDynamicText.dynamics.PP,
-                        label: 'Pianissimo'
-                    }, {
-                        value: SmoDynamicText.dynamics.MP,
-                        label: 'Mezzo-Piano'
-                    }, {
-                        value: SmoDynamicText.dynamics.MF,
-                        label: 'Mezzo-Forte'
-                    }, {
-                        value: SmoDynamicText.dynamics.F,
-                        label: 'Forte'
-                    },
-					{
-                        value: SmoDynamicText.dynamics.FF,
-                        label: 'Fortissimo'
-					},
-					{
-                        value: SmoDynamicText.dynamics.SFZ,
-                        label: 'Sforzando'
+	static get dialogElements() {
+		return [{
+				smoName: 'yOffsetLine',
+				parameterName: 'yOffsetLine',
+				defaultValue: 11,
+				control: 'SuiRockerComponent',
+				label: 'Y Line'
+			}, {
+				smoName: 'yOffsetPixels',
+				parameterName: 'yOffsetPixels',
+				defaultValue: 0,
+				control: 'SuiRockerComponent',
+				label: 'Y Offset Px'
+			}, {
+				smoName: 'xOffset',
+				parameterName: 'yOffset',
+				defaultValue: 0,
+				control: 'SuiRockerComponent',
+				label: 'X Offset'
+			}, {
+				smoName: 'text',
+				parameterName: 'text',
+				defaultValue: SmoDynamicText.dynamics.P,
+				options: [{
+						value: SmoDynamicText.dynamics.P,
+						label: 'Piano'
+					}, {
+						value: SmoDynamicText.dynamics.PP,
+						label: 'Pianissimo'
+					}, {
+						value: SmoDynamicText.dynamics.MP,
+						label: 'Mezzo-Piano'
+					}, {
+						value: SmoDynamicText.dynamics.MF,
+						label: 'Mezzo-Forte'
+					}, {
+						value: SmoDynamicText.dynamics.F,
+						label: 'Forte'
+					}, {
+						value: SmoDynamicText.dynamics.FF,
+						label: 'Fortissimo'
+					}, {
+						value: SmoDynamicText.dynamics.SFZ,
+						label: 'Sforzando'
 					}
-                ],
-                control: 'SuiDropdownComponent',
-                label: 'Text'
-            }
-        ];
-    }
-	static createAndDisplay(parameters) {
-        var dg = new SuiTextModifierDialog(parameters);
-        dg.display();
-        return dg;
-    }
-	
-	constructor(parameters) {
-        if (!parameters.modifier || !parameters.selection) {
-            throw new Error('modifier attribute dialog must have modifier and selection');
-        }
-
-        super(SuiTextModifierDialog.dialogElements, {
-            id: 'dialog-' + parameters.modifier.id,
-            top: parameters.modifier.renderedBox.y,
-            left: parameters.modifier.renderedBox.x,
-            label: 'Dynamics Properties'
-        });
-        Vex.Merge(this, parameters);
-		this.components.find((x)=>{return x.parameterName=='text'}).defaultValue=parameters.modifier.text;
+				],
+				control: 'SuiDropdownComponent',
+				label: 'Text'
+			}
+		];
 	}
-	 handleRemove() {
-        $(this.context.svg).find('g.' + this.modifier.id).remove();
-        this.selection.note.removeModifier(this.modifier);
-        this.tracker.clearModifierSelections();
-    }
+	static createAndDisplay(parameters) {
+		var dg = new SuiTextModifierDialog(parameters);
+		dg.display();
+		return dg;
+	}
+
+	constructor(parameters) {
+		if (!parameters.modifier || !parameters.selection) {
+			throw new Error('modifier attribute dialog must have modifier and selection');
+		}
+
+		super(SuiTextModifierDialog.dialogElements, {
+			id: 'dialog-' + parameters.modifier.id,
+			top: parameters.modifier.renderedBox.y,
+			left: parameters.modifier.renderedBox.x,
+			label: 'Dynamics Properties'
+		});
+		Vex.Merge(this, parameters);
+		this.components.find((x) => {
+			return x.parameterName == 'text'
+		}).defaultValue = parameters.modifier.text;
+	}
+	handleRemove() {
+		$(this.context.svg).find('g.' + this.modifier.id).remove();
+		this.selection.note.removeModifier(this.modifier);
+		this.tracker.clearModifierSelections();
+	}
 	changed() {
-        this.modifier.backupOriginal();
-        this.components.forEach((component) => {
-            this.modifier[component.smoName] = component.getValue();
-        });
-        this.layout.renderNoteModifierPreview(this.modifier);
-    }
+		this.modifier.backupOriginal();
+		this.components.forEach((component) => {
+			this.modifier[component.smoName] = component.getValue();
+		});
+		this.layout.renderNoteModifierPreview(this.modifier);
+	}
+}
+
+class helpModal {
+	constructor() {}
+	static createAndDisplay() {
+		SmoHelp.displayHelp();
+		return htmlHelpers.closeDialogPromise();
+	}
 }
 ;class SuiStaffModifierDialog extends SuiDialogBase {
 	 handleRemove() {
@@ -7546,8 +7612,8 @@ class SmoHelp {
     }
 		
     static helpControls() {
-        $('body .controls').html('');
-        $('body .controls').append(RibbonHtml.ribbonButton('help-button','Help','?'));
+        $('body .controls-left').html('');
+        $('body .controls-left').append(RibbonHtml.ribbonButton('help-button','Help','?'));
         $('.helpDialog button.icon-cross').focus();
     }
 
@@ -7556,8 +7622,8 @@ class SmoHelp {
         var r = b('div').classes('menu-status').append(
                 b('div').attr('id', 'globMode').text('Next Key Chooses Menu')).append(
                 b('div').classes('mode-subtitle').append(SmoHelp.shortMenuHelpHtml));
-        $('body .controls').html('');
-        $('body .controls').append(r.dom());
+        $('body .controls-left').html('');
+        $('body .controls-left').append(r.dom());
     }
 
     static get closeButton() {
@@ -8083,11 +8149,22 @@ class suiController {
 	constructor(params) {
 		Vex.Merge(this, suiController.defaults);
 		Vex.Merge(this, params);
-		this.bindEvents();
 		this.undoBuffer = new UndoBuffer();
 		this.pasteBuffer = this.tracker.pasteBuffer;
 		this.editor.undoBuffer = this.undoBuffer;
 		this.editor.pasteBuffer = this.pasteBuffer;
+
+		this.ribbon = new RibbonButtons({
+				ribbons: defaultRibbonLayout.ribbons,
+				ribbonButtons: defaultRibbonLayout.ribbonButtons,
+				menus: this.menus,
+				editor: this.editor,
+				tracker: this.tracker,
+				score: this.score,
+				controller:this
+		});
+		
+		this.bindEvents();
 	}
 
 	// ## createUi
@@ -8130,7 +8207,7 @@ class suiController {
 	// ## editorKeyBindingDefaults
 	// ## Description:
 	// execute a simple command on the editor, based on a keystroke.
-	static get editorKeyBindingDefaults() {			
+	static get editorKeyBindingDefaults() {
 		return defaultEditorKeys.keys;
 	}
 
@@ -8148,14 +8225,14 @@ class suiController {
 			self.render();
 			self.bindEvents();
 		}
-		SmoHelp.helpControls();		
-		$('.controls button.help-button').off('click').on('click', function () {
-    		window.removeEventListener("keydown", self.keydownHandler, true);
-			SmoHelp.displayHelp();
-			htmlHelpers.closeDialogPromise().then(rebind);
-		});
+		/* SmoHelp.helpControls();
+		$('.controls-left button.help-button').off('click').on('click', function () {
+		window.removeEventListener("keydown", self.keydownHandler, true);
+		SmoHelp.displayHelp();
+		htmlHelpers.closeDialogPromise().then(rebind);
+		});   */
 	}
-	
+
 	menuHelp() {
 		SmoHelp.modeControls();
 	}
@@ -8244,6 +8321,7 @@ class suiController {
 		this.helpControls();
 
 		window.addEventListener("keydown", this.keydownHandler, true);
+		this.ribbon.display();
 	}
 
 }

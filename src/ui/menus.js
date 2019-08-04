@@ -423,6 +423,7 @@ class SuiAddStaffMenu extends suiMenuBase {
 		var op = $(ev.currentTarget).attr('data-value');
 		if (op == 'remove') {
 			if (this.score.staves.length > 1 && this.tracker.selections.length > 0) {
+				this.tracker.layout.unrenderAll();
 				SmoUndoable.removeStaff(this.score, this.tracker.selections[0].selector.staff, this.editor.undoBuffer);
 			}
 

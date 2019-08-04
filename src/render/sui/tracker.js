@@ -187,9 +187,9 @@ class suiTracker {
 		var measureObj = this.objects.find((e) => SmoSelector.sameMeasure(e.selector, selector)
 				 && e.selector.tick === 0);
 		var tickObj = this.objects.find((e) => SmoSelector.sameNote(e.selector, selector));
-		if (tickObj)
-			return tickObj;
-		return measureObj;
+		var firstObj = this.objects[0];
+		return (tickObj) ? tickObj: 
+		    (measureObj ? measureObj : firstObj);
 	}
 
 	// ### getExtremeSelection

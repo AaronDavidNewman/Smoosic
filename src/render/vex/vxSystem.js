@@ -125,6 +125,7 @@ class VxSystem {
         $(this.context.svg).find('g.lineBracket-' + this.lineIndex).remove();
         var group = this.context.openGroup();
         group.classList.add('lineBracket-' + this.lineIndex);
+		group.classList.add('lineBracket');
         if (this.leftConnector[0] && this.leftConnector[1]) {
             var c1 = new VF.StaveConnector(this.leftConnector[0], this.leftConnector[1])
                 .setType(VF.StaveConnector.type.BRACKET);
