@@ -72,6 +72,7 @@ class RibbonButtons {
 	}
 	display() {
 		$('body .controls-left').html('');
+		$('body .controls-top').html('');
 
 		var buttonAr = this.ribbons['left'];
 		buttonAr.forEach((buttonId) => {
@@ -89,8 +90,42 @@ class RibbonButtons {
 				}
 			}
 		});
+		
+		buttonAr = this.ribbons['top'];
+		buttonAr.forEach((buttonId) => {
+			var b = this.ribbonButtons.find((e) => {
+					return e.id === buttonId;
+				});
+			if (b) {
+				var buttonHtml = RibbonHtml.ribbonButton(b.id, b.classes, b.leftText, b.icon, b.rightText);
+				$(buttonHtml).attr('data-group', b.group);
+				$('body .controls-top').append(buttonHtml);
+				var el = $('body .controls-top').find('#' + b.id);
+				this._bindButton(el, b);
+				if (b.action == 'collapseParent') {
+					this._bindCollapsibleAction(el, b);
+				}
+			}
+		});
 		this.collapsables.forEach((cb) => {
 			cb.bind();
+		});		
+	}
+}
+
+class NoteButtons {
+	constructor(parameters) {
+		this.buttonElement = parameters.buttonElement;
+		this.buttonData = parameters.buttonData;
+		this.editor = parameters.editor;
+	}
+	setPitch() {
+		this.editor.setPitchCommand(this.buttonData.rightText);
+	}
+	bind() {
+		var self = this;
+		$(this.buttonElement).off('click').on('click', function () {
+			self.setPitch();
 		});
 	}
 }

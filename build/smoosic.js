@@ -6076,10 +6076,14 @@ class suiEditor {
         }
         SmoUndoable['setPitch'](selected, pitch, this.undoBuffer);
     }
+	
+	setPitchCommand(letter) {
+		this.tracker.selections.forEach((selected) => this._setPitch(selected, letter));
+		this._renderAndAdvance();
+	}
 
     setPitch(keyEvent) {
-        this.tracker.selections.forEach((selected) => this._setPitch(selected, keyEvent.key.toLowerCase()));
-        this._renderAndAdvance();
+		setPitchCommand(keyEvent.key.toLowerCase());
     }
 
     dotDuration(keyEvent) {
@@ -7133,8 +7137,10 @@ class defaultRibbonLayout {
 	static get ribbons() {
 		return {
 			left: ['helpDialog', 'addStaffMenu', 'dynamicsMenu', 'keyMenu', 'staffModifierMenu', 'staffModifierMenu2',
-			'articulationButtons','accentButton','tenutoButton','staccatoButton','marcatoButton','pizzicatoButton']
-		};
+			'articulationButtons','accentButton','tenutoButton','staccatoButton','marcatoButton','pizzicatoButton'],
+		
+		
+		top:['NoteButtons','ANoteButton','BNoteButton','CNoteButton','DNoteButton','ENoteButton','FNoteButton','GNoteButton']};
 	}
 	static get ribbonButtons() {
 		return [{
@@ -7249,7 +7255,81 @@ class defaultRibbonLayout {
 				ctor:'ArticulationButtons',
 				group:'articulations',
 				id:'pizzicattoButton'
-			}			
+			}, {
+				leftText:'',				
+				rightText:'A-G',
+				classes:'icon  collapseParent',
+				icon:'icon-note',
+				action:'collapseParent',
+				ctor:'CollapseRibbonControl',
+				group:'notes',
+				id:'NoteButtons'
+			}, {
+				leftText:'A',
+				rightText:'a',
+				icon:'',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NoteButtons',
+				group:'notes',
+				id:'ANoteButton'
+			},
+			{
+				leftText:'B',
+				rightText:'b',
+				icon:'',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NoteButtons',
+				group:'notes',
+				id:'BNoteButton'
+			},{
+				leftText:'C',
+				rightText:'c',
+				icon:'',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NoteButtons',
+				group:'notes',
+				id:'CNoteButton'
+			},{
+				leftText:'D',
+				rightText:'d',
+				icon:'',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NoteButtons',
+				group:'notes',
+				id:'DNoteButton'
+			},{
+				leftText:'E',
+				rightText:'e',
+				icon:'',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NoteButtons',
+				group:'notes',
+				id:'ENoteButton'
+			},{
+				leftText:'E',
+				rightText:'f',
+				icon:'',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NoteButtons',
+				group:'notes',
+				id:'FNoteButton'
+			},{
+				leftText:'G',
+				rightText:'g',
+				icon:'',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NoteButtons',
+				group:'notes',
+				id:'GNoteButton'
+			}
+			
 		];
 	}
 }
@@ -7327,6 +7407,7 @@ class RibbonButtons {
 	}
 	display() {
 		$('body .controls-left').html('');
+		$('body .controls-top').html('');
 
 		var buttonAr = this.ribbons['left'];
 		buttonAr.forEach((buttonId) => {
@@ -7344,8 +7425,42 @@ class RibbonButtons {
 				}
 			}
 		});
+		
+		buttonAr = this.ribbons['top'];
+		buttonAr.forEach((buttonId) => {
+			var b = this.ribbonButtons.find((e) => {
+					return e.id === buttonId;
+				});
+			if (b) {
+				var buttonHtml = RibbonHtml.ribbonButton(b.id, b.classes, b.leftText, b.icon, b.rightText);
+				$(buttonHtml).attr('data-group', b.group);
+				$('body .controls-top').append(buttonHtml);
+				var el = $('body .controls-top').find('#' + b.id);
+				this._bindButton(el, b);
+				if (b.action == 'collapseParent') {
+					this._bindCollapsibleAction(el, b);
+				}
+			}
+		});
 		this.collapsables.forEach((cb) => {
 			cb.bind();
+		});		
+	}
+}
+
+class NoteButtons {
+	constructor(parameters) {
+		this.buttonElement = parameters.buttonElement;
+		this.buttonData = parameters.buttonData;
+		this.editor = parameters.editor;
+	}
+	setPitch() {
+		this.editor.setPitchCommand(this.buttonData.rightText);
+	}
+	bind() {
+		var self = this;
+		$(this.buttonElement).off('click').on('click', function () {
+			self.setPitch();
 		});
 	}
 }

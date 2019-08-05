@@ -5,8 +5,10 @@ class defaultRibbonLayout {
 	static get ribbons() {
 		return {
 			left: ['helpDialog', 'addStaffMenu', 'dynamicsMenu', 'keyMenu', 'staffModifierMenu', 'staffModifierMenu2',
-			'articulationButtons','accentButton','tenutoButton','staccatoButton','marcatoButton','pizzicatoButton']
-		};
+			'articulationButtons','accentButton','tenutoButton','staccatoButton','marcatoButton','pizzicatoButton'],
+		
+		
+		top:['NoteButtons','ANoteButton','BNoteButton','CNoteButton','DNoteButton','ENoteButton','FNoteButton','GNoteButton']};
 	}
 	static get ribbonButtons() {
 		return [{
@@ -121,7 +123,81 @@ class defaultRibbonLayout {
 				ctor:'ArticulationButtons',
 				group:'articulations',
 				id:'pizzicattoButton'
-			}			
+			}, {
+				leftText:'',				
+				rightText:'A-G',
+				classes:'icon  collapseParent',
+				icon:'icon-note',
+				action:'collapseParent',
+				ctor:'CollapseRibbonControl',
+				group:'notes',
+				id:'NoteButtons'
+			}, {
+				leftText:'A',
+				rightText:'a',
+				icon:'',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NoteButtons',
+				group:'notes',
+				id:'ANoteButton'
+			},
+			{
+				leftText:'B',
+				rightText:'b',
+				icon:'',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NoteButtons',
+				group:'notes',
+				id:'BNoteButton'
+			},{
+				leftText:'C',
+				rightText:'c',
+				icon:'',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NoteButtons',
+				group:'notes',
+				id:'CNoteButton'
+			},{
+				leftText:'D',
+				rightText:'d',
+				icon:'',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NoteButtons',
+				group:'notes',
+				id:'DNoteButton'
+			},{
+				leftText:'E',
+				rightText:'e',
+				icon:'',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NoteButtons',
+				group:'notes',
+				id:'ENoteButton'
+			},{
+				leftText:'E',
+				rightText:'f',
+				icon:'',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NoteButtons',
+				group:'notes',
+				id:'FNoteButton'
+			},{
+				leftText:'G',
+				rightText:'g',
+				icon:'',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NoteButtons',
+				group:'notes',
+				id:'GNoteButton'
+			}
+			
 		];
 	}
 }

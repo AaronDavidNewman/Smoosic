@@ -148,10 +148,14 @@ class suiEditor {
         }
         SmoUndoable['setPitch'](selected, pitch, this.undoBuffer);
     }
+	
+	setPitchCommand(letter) {
+		this.tracker.selections.forEach((selected) => this._setPitch(selected, letter));
+		this._renderAndAdvance();
+	}
 
     setPitch(keyEvent) {
-        this.tracker.selections.forEach((selected) => this._setPitch(selected, keyEvent.key.toLowerCase()));
-        this._renderAndAdvance();
+		setPitchCommand(keyEvent.key.toLowerCase());
     }
 
     dotDuration(keyEvent) {
