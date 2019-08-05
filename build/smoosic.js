@@ -6339,6 +6339,10 @@ class suiMenuManager {
 			this.bound = true;
 		}
 		$(this.menuContainer).find('button').off('click').on('click', function (ev) {
+			if ($(ev.currentTarget).attr('data-value') == 'cancel') {
+				self.menu.complete();
+				return;
+			}
 			self.menu.selection(ev);
 		});
 	}
@@ -6380,6 +6384,11 @@ class SuiDynamicsMenu extends suiMenuBase {
 					icon: 'sfz',
 					text: 'sfortzando',
 					value: 'sfz'
+				},
+				 {
+					icon: '',
+					text: 'Cancel',
+					value: 'cancel'
 				}
 			]
 		};
@@ -6464,6 +6473,11 @@ class suiKeySignatureMenu extends suiMenuBase {
 					icon: 'key-sig-cs',
 					text: 'C# Major',
 					value: 'C#'
+				},
+				 {
+					icon: '',
+					text: 'Cancel',
+					value: 'cancel'
 				}
 			],
 			menuContainer: '.menuContainer'
@@ -6505,6 +6519,11 @@ class suiStaffModifierMenu extends suiMenuBase {
 					icon: 'slur',
 					text: 'Slur/Tie',
 					value: 'slur'
+				},				
+				 {
+					icon: '',
+					text: 'Cancel',
+					value: 'cancel'
 				}
 			],
 			menuContainer: '.menuContainer'
@@ -7365,6 +7384,7 @@ class RibbonButtons {
 	}
 	_executeButtonMenu(buttonElement, buttonData) {
 		var self = this;
+		this.controller.detach();
 		var rebind = function () {
 			self._rebindController();
 		}
@@ -8659,9 +8679,9 @@ class suiController {
 
 	detach() {
 		window.removeEventListener("keydown", this.keydownHandler, true);
-		this.layout = null;
+		/* this.layout = null;
 		this.tracker = null;
-		this.editor = null;
+		this.editor = null;  */
 	}
 
 	render() {

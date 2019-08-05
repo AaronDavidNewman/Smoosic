@@ -152,9 +152,9 @@ class suiController {
 
 	detach() {
 		window.removeEventListener("keydown", this.keydownHandler, true);
-		this.layout = null;
+		/* this.layout = null;
 		this.tracker = null;
-		this.editor = null;
+		this.editor = null;  */
 	}
 
 	render() {

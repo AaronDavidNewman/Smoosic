@@ -30,6 +30,7 @@ class RibbonButtons {
 	}
 	_executeButtonMenu(buttonElement, buttonData) {
 		var self = this;
+		this.controller.detach();
 		var rebind = function () {
 			self._rebindController();
 		}
