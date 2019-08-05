@@ -131,6 +131,33 @@ class NoteButtons {
 	}
 }
 
+class NavigationButtons {
+	static get directionsTrackerMap() {
+		return {
+			navLeftButton:'moveSelectionLeft',
+			navRightButton:'moveSelectionRight',
+			navUpButton:'moveSelectionUp',
+			navDownButton:'moveSelectionDown',
+			navFastForward:'moveSelectionRightMeasure',
+			navRewind:'moveSelectionLeftMeasure'
+		};
+	}
+	constructor(parameters) {
+		this.buttonElement = parameters.buttonElement;
+		this.buttonData = parameters.buttonData;
+		this.tracker = parameters.tracker;
+	}
+	
+	_moveTracker() {
+		this.tracker[NavigationButtons.directionsTrackerMap[this.buttonData.id]]();
+	}
+	bind() {
+		var self = this;
+		$(this.buttonElement).off('click').on('click', function () {
+			self._moveTracker();
+		});
+	}	
+}
 class ArticulationButtons {
 	static get articulationIdMap() {
 		return {
@@ -188,9 +215,9 @@ class CollapseRibbonControl {
 		});
 		this.buttonElement.toggleClass('expandedChildren');
 		if (this.buttonElement.hasClass('expandedChildren')) {
-			$(this.buttonElement).addClass('icon-arrow-left');
+			$(this.buttonElement).closest('div').addClass('icon icon-circle-left');
 		} else {
-			$(this.buttonElement).removeClass('icon-arrow-left');
+			$(this.buttonElement).closest('div').removeClass('icon-circle-left');
 		}
 	}
 	bind() {

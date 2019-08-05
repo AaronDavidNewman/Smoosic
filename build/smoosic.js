@@ -5205,7 +5205,7 @@ class suiTracker {
 
 	_moveSelectionMeasure(offset) {
 		var selection = this.getExtremeSelection(Math.sign(offset));
-		selection = JSON.parse(JSON.stringify(selection));
+		selection = JSON.parse(JSON.stringify(selection.selector));
 		selection.measure += offset;
 		selection.tick = 0;
 		var selObj = this._getClosestTick(selection);
@@ -7159,7 +7159,8 @@ class defaultRibbonLayout {
 			'articulationButtons','accentButton','tenutoButton','staccatoButton','marcatoButton','pizzicatoButton'],
 		
 		
-		top:['NoteButtons','ANoteButton','BNoteButton','CNoteButton','DNoteButton','ENoteButton','FNoteButton','GNoteButton']};
+		top:['NoteButtons','ANoteButton','BNoteButton','CNoteButton','DNoteButton','ENoteButton','FNoteButton','GNoteButton'
+		     ,'NavigationButtons','navLeftButton','navRightButton','navUpButton','navDownButton','navFastForward','navRewind']};
 	}
 	static get ribbonButtons() {
 		return [{
@@ -7273,7 +7274,7 @@ class defaultRibbonLayout {
 				action:'collapseChild',
 				ctor:'ArticulationButtons',
 				group:'articulations',
-				id:'pizzicattoButton'
+				id:'pizzicatoButton'
 			}, {
 				leftText:'',				
 				rightText:'A-G',
@@ -7347,7 +7348,70 @@ class defaultRibbonLayout {
 				ctor:'NoteButtons',
 				group:'notes',
 				id:'GNoteButton'
-			}
+			},{
+				leftText:'',				
+				rightText:'CursorKeys',
+				classes:'icon  collapseParent',
+				icon:'icon-navigate',
+				action:'collapseParent',
+				ctor:'CollapseRibbonControl',
+				group:'navigation',
+				id:'NavigationButtons'
+			},{
+				leftText:'',
+				rightText:'',
+				icon:'icon-arrow-left',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NavigationButtons',
+				group:'navigation',
+				id:'navLeftButton'
+			},{
+				leftText:'',
+				rightText:'',
+				icon:'icon-arrow-right',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NavigationButtons',
+				group:'navigation',
+				id:'navRightButton'
+			},{
+				leftText:'',
+				rightText:'',
+				icon:'icon-arrow-up',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NavigationButtons',
+				group:'navigation',
+				id:'navUpButton'
+			},{
+				leftText:'',
+				rightText:'',
+				icon:'icon-arrow-down',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NavigationButtons',
+				group:'navigation',
+				id:'navDownButton'
+			},{
+				leftText:'',
+				rightText:'',
+				icon:'icon-fforward',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NavigationButtons',
+				group:'navigation',
+				id:'navFastForward'
+			},	{
+				leftText:'',
+				rightText:'',
+				icon:'icon-rewind',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NavigationButtons',
+				group:'navigation',
+				id:'navRewind'
+			}			
 			
 		];
 	}
@@ -7485,6 +7549,33 @@ class NoteButtons {
 	}
 }
 
+class NavigationButtons {
+	static get directionsTrackerMap() {
+		return {
+			navLeftButton:'moveSelectionLeft',
+			navRightButton:'moveSelectionRight',
+			navUpButton:'moveSelectionUp',
+			navDownButton:'moveSelectionDown',
+			navFastForward:'moveSelectionRightMeasure',
+			navRewind:'moveSelectionLeftMeasure'
+		};
+	}
+	constructor(parameters) {
+		this.buttonElement = parameters.buttonElement;
+		this.buttonData = parameters.buttonData;
+		this.tracker = parameters.tracker;
+	}
+	
+	_moveTracker() {
+		this.tracker[NavigationButtons.directionsTrackerMap[this.buttonData.id]]();
+	}
+	bind() {
+		var self = this;
+		$(this.buttonElement).off('click').on('click', function () {
+			self._moveTracker();
+		});
+	}	
+}
 class ArticulationButtons {
 	static get articulationIdMap() {
 		return {
@@ -7542,9 +7633,9 @@ class CollapseRibbonControl {
 		});
 		this.buttonElement.toggleClass('expandedChildren');
 		if (this.buttonElement.hasClass('expandedChildren')) {
-			$(this.buttonElement).addClass('icon-arrow-left');
+			$(this.buttonElement).closest('div').addClass('icon icon-circle-left');
 		} else {
-			$(this.buttonElement).removeClass('icon-arrow-left');
+			$(this.buttonElement).closest('div').removeClass('icon-circle-left');
 		}
 	}
 	bind() {

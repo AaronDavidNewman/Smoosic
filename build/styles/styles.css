@@ -23,6 +23,8 @@ h1 {
 	background-color: #eee;
 	/* top:35px; */
 	background:transparent;
+	display:flex;
+	flex-direction:column;
 }
 
 .controls-top {	
@@ -31,6 +33,8 @@ h1 {
 	background-color: #eee;
 	/* top:35px; */
 	background:transparent;
+	display:flex;
+	flex-direction:row;
 }
 
 

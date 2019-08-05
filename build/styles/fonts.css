@@ -23,6 +23,18 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-rewind:before {
+  content: "\e903";
+}
+.icon-fforward:before {
+  content: "\e904";
+}
+.icon-navigate:before {
+  content: "\e901";
+}
+.icon-note_select:before {
+  content: "\e902";
+}
 .icon-articulation:before {
   content: "\e900";
 }
@@ -203,3 +215,4 @@
 .icon-decresc:before {
   content: "\e929";
 }
+

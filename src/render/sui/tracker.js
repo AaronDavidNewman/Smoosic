@@ -308,7 +308,7 @@ class suiTracker {
 
 	_moveSelectionMeasure(offset) {
 		var selection = this.getExtremeSelection(Math.sign(offset));
-		selection = JSON.parse(JSON.stringify(selection));
+		selection = JSON.parse(JSON.stringify(selection.selector));
 		selection.measure += offset;
 		selection.tick = 0;
 		var selObj = this._getClosestTick(selection);
