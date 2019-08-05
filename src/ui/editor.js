@@ -155,7 +155,7 @@ class suiEditor {
 	}
 
     setPitch(keyEvent) {
-		setPitchCommand(keyEvent.key.toLowerCase());
+		this.setPitchCommand(keyEvent.key.toLowerCase());
     }
 
     dotDuration(keyEvent) {
