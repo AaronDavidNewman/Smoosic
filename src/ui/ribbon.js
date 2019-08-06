@@ -91,7 +91,7 @@ class RibbonButtons {
 				}
 			}
 		});
-		
+
 		buttonAr = this.ribbons['top'];
 		buttonAr.forEach((buttonId) => {
 			var b = this.ribbonButtons.find((e) => {
@@ -110,7 +110,7 @@ class RibbonButtons {
 		});
 		this.collapsables.forEach((cb) => {
 			cb.bind();
-		});		
+		});
 	}
 }
 
@@ -121,7 +121,18 @@ class NoteButtons {
 		this.editor = parameters.editor;
 	}
 	setPitch() {
-		this.editor.setPitchCommand(this.buttonData.rightText);
+		if (this.buttonData.id === 'UpNoteButton') {
+			this.editor.transposeUp();
+		} else if (this.buttonData.id === 'DownNoteButton') {
+			this.editor.transposeDown();
+		} else if (this.buttonData.id === 'UpOctaveButton') {
+			this.editor.upOctave();
+		} else if (this.buttonData.id === 'DownOctaveButton') {
+			this.editor.downOctave();
+		}
+		else {
+			this.editor.setPitchCommand(this.buttonData.rightText);
+		}
 	}
 	bind() {
 		var self = this;
@@ -134,12 +145,12 @@ class NoteButtons {
 class NavigationButtons {
 	static get directionsTrackerMap() {
 		return {
-			navLeftButton:'moveSelectionLeft',
-			navRightButton:'moveSelectionRight',
-			navUpButton:'moveSelectionUp',
-			navDownButton:'moveSelectionDown',
-			navFastForward:'moveSelectionRightMeasure',
-			navRewind:'moveSelectionLeftMeasure'
+			navLeftButton: 'moveSelectionLeft',
+			navRightButton: 'moveSelectionRight',
+			navUpButton: 'moveSelectionUp',
+			navDownButton: 'moveSelectionDown',
+			navFastForward: 'moveSelectionRightMeasure',
+			navRewind: 'moveSelectionLeftMeasure'
 		};
 	}
 	constructor(parameters) {
@@ -147,7 +158,7 @@ class NavigationButtons {
 		this.buttonData = parameters.buttonData;
 		this.tracker = parameters.tracker;
 	}
-	
+
 	_moveTracker() {
 		this.tracker[NavigationButtons.directionsTrackerMap[this.buttonData.id]]();
 	}
@@ -156,7 +167,7 @@ class NavigationButtons {
 		$(this.buttonElement).off('click').on('click', function () {
 			self._moveTracker();
 		});
-	}	
+	}
 }
 class ArticulationButtons {
 	static get articulationIdMap() {
@@ -215,13 +226,20 @@ class CollapseRibbonControl {
 		});
 		this.buttonElement.toggleClass('expandedChildren');
 		if (this.buttonElement.hasClass('expandedChildren')) {
-			$(this.buttonElement).closest('div').addClass('icon icon-circle-left');
+			var leftSpan = $(this.buttonElement).find('.ribbon-button-text');
+			$(leftSpan).text('');
+			$(leftSpan).removeClass(this.buttonData.icon);
+			$(this.buttonElement).addClass('icon icon-circle-left');
 		} else {
-			$(this.buttonElement).closest('div').removeClass('icon-circle-left');
+			$(this.buttonElement).removeClass('icon-circle-left');
+			var leftSpan = $(this.buttonElement).find('.ribbon-button-text');
+			$(leftSpan).addClass(this.buttonData.icon);
+			$(leftSpan).text(this.buttonData.leftText);
 		}
 	}
 	bind() {
 		var self = this;
+		$(this.buttonElement).closest('div').addClass('collapseContainer');
 		$('#' + this.buttonData.id).off('click').on('click', function () {
 			self._toggleExpand();
 		});

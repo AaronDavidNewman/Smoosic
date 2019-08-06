@@ -23,6 +23,12 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-sharp:before {
+  content: "\e905";
+}
+.icon-flat:before {
+  content: "\e906";
+}
 .icon-rewind:before {
   content: "\e903";
 }
@@ -215,4 +221,3 @@
 .icon-decresc:before {
   content: "\e929";
 }
-

@@ -40,14 +40,14 @@ class defaultTrackerKeys {
 			}, {
 				event: "keydown",
 				key: "ArrowUp",
-				ctrlKey: true,
+				ctrlKey: false,
 				altKey: false,
 				shiftKey: false,
 				action: "moveSelectionUp"
 			}, {
 				event: "keydown",
 				key: "ArrowDown",
-				ctrlKey: true,
+				ctrlKey: false,
 				altKey: false,
 				shiftKey: false,
 				action: "moveSelectionDown"

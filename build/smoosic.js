@@ -7107,14 +7107,14 @@ class defaultTrackerKeys {
 			}, {
 				event: "keydown",
 				key: "ArrowUp",
-				ctrlKey: true,
+				ctrlKey: false,
 				altKey: false,
 				shiftKey: false,
 				action: "moveSelectionUp"
 			}, {
 				event: "keydown",
 				key: "ArrowDown",
-				ctrlKey: true,
+				ctrlKey: false,
 				altKey: false,
 				shiftKey: false,
 				action: "moveSelectionDown"
@@ -7159,125 +7159,16 @@ class defaultRibbonLayout {
 			'articulationButtons','accentButton','tenutoButton','staccatoButton','marcatoButton','pizzicatoButton'],
 		
 		
-		top:['NoteButtons','ANoteButton','BNoteButton','CNoteButton','DNoteButton','ENoteButton','FNoteButton','GNoteButton'
+		top:['NoteButtons','ANoteButton','BNoteButton','CNoteButton','DNoteButton','ENoteButton','FNoteButton','GNoteButton','UpNoteButton','DownNoteButton'
+		   ,'UpOctaveButton','DownOctaveButton'
 		     ,'NavigationButtons','navLeftButton','navRightButton','navUpButton','navDownButton','navFastForward','navRewind']};
 	}
-	static get ribbonButtons() {
-		return [{
-				icon: '',
-				leftText: 'Help',
-				rightText: '?',
-				classes: 'help-button',
-				action: 'modal',
-				ctor: 'helpModal',
-				group:'scoreEdit',
-				id: 'helpDialog'
-			}, {
-				leftText: 'Staves',
-				rightText: '/s',
-				icon: '',
-				classes: 'staff-modify',
-				action: 'menu',
-				ctor: 'SuiAddStaffMenu',
-				group:'scoreEdit',
-				id: 'addStaffMenu'
-			}, {
-				leftText: 'Dynamics',
-				rightText: '/d',
-				icon: '',
-				classes: 'note-modify',
-				action: 'menu',
-				ctor: 'SuiDynamicsMenu',
-				group:'scoreEdit',
-				id: 'dynamicsMenu'
-			}, {
-				leftText: 'Key',
-				rightText: '/k',
-				icon: '',
-				classes: 'note-modify',
-				action: 'menu',
-				ctor: 'suiKeySignatureMenu',
-				group:'scoreEdit',
-				id: 'keyMenu'
-			}, {
-				leftText: '',
-				rightText: '/e',
-				icon: 'icon-slur',
-				classes: 'icon note-modify',
-				action: 'menu',
-				ctor: 'suiStaffModifierMenu',
-				group:'scoreEdit',
-				id: 'staffModifierMenu'
-			}, {
-				leftText: '',
-				rightText: '/e',
-				icon: 'icon-cresc',
-				classes: 'icon note-modify',
-				action: 'menu',
-				ctor: 'suiStaffModifierMenu',
-				group:'scoreEdit',
-				id: 'staffModifierMenu2'
-			},
-			{
-				leftText:'etc.',
-				rightText:'',
-				icon:'icon-articulation',
-				classes:'icon collapseParent',
-				action:'collapseParent',
-				ctor:'CollapseRibbonControl',
-				group:'articulations',
-				id:'articulationButtons'
-			},
-			{
-				leftText:'Accent',
-				rightText:'h',
-				icon:'icon-accent',
-				classes:'icon collapsed',
-				action:'collapseChild',
-				ctor:'ArticulationButtons',
-				group:'articulations',
-				id:'accentButton'
-			},
-			{
-				leftText:'Tenuto',
-				rightText:'i',
-				icon:'',
-				classes:'icon collapsed',
-				action:'collapseChild',
-				ctor:'ArticulationButtons',
-				group:'articulations',
-				id:'tenutoButton'
-			},	{
-				leftText:'Staccato',
-				rightText:'j',
-				icon:'',
-				classes:'icon collapsed',
-				action:'collapseChild',
-				ctor:'ArticulationButtons',
-				group:'articulations',
-				id:'staccatoButton'
-			},
-			{
-				leftText:'Marcato',
-				rightText:'k',
-				icon:'',
-				classes:'icon collapsed',
-				action:'collapseChild',
-				ctor:'ArticulationButtons',
-				group:'articulations',
-				id:'marcatoButton'
-			},{
-				leftText:'Pizzicato',
-				rightText:'l',
-				icon:'',
-				classes:'icon collapsed',
-				action:'collapseChild',
-				ctor:'ArticulationButtons',
-				group:'articulations',
-				id:'pizzicatoButton'
-			}, {
+	
+	static get noteRibbonButtons() {
+		return [
+		 {
 				leftText:'',				
-				rightText:'A-G',
+				rightText:'',
 				classes:'icon  collapseParent',
 				icon:'icon-note',
 				action:'collapseParent',
@@ -7331,7 +7222,7 @@ class defaultRibbonLayout {
 				group:'notes',
 				id:'ENoteButton'
 			},{
-				leftText:'E',
+				leftText:'F',
 				rightText:'f',
 				icon:'',
 				classes:'collapsed',
@@ -7348,9 +7239,53 @@ class defaultRibbonLayout {
 				ctor:'NoteButtons',
 				group:'notes',
 				id:'GNoteButton'
+			},
+			{
+				leftText:'',
+				rightText:'-',
+				icon:'icon-sharp',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NoteButtons',
+				group:'notes',
+				id:'UpNoteButton'
+			},
+			{
+				leftText:'',
+				rightText:'=',
+				icon:'icon-flat',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NoteButtons',
+				group:'notes',
+				id:'DownNoteButton'
 			},{
+				leftText:'8va',
+				rightText:'Ctrl=',
+				icon:'',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NoteButtons',
+				group:'notes',
+				id:'UpOctaveButton'
+			},{
+				leftText:'8vb',
+				rightText:'Ctrl=',
+				icon:'',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NoteButtons',
+				group:'notes',
+				id:'DownOctaveButton'
+			}
+			
+			];
+	}
+	static get navigationButtons() {
+		return [
+		{
 				leftText:'',				
-				rightText:'CursorKeys',
+				rightText:'',
 				classes:'icon  collapseParent',
 				icon:'icon-navigate',
 				action:'collapseParent',
@@ -7411,7 +7346,126 @@ class defaultRibbonLayout {
 				ctor:'NavigationButtons',
 				group:'navigation',
 				id:'navRewind'
-			}			
+			}
+			];
+	}
+	static get ribbonButtons() {
+		return defaultRibbonLayout.leftRibbonButtons.concat(defaultRibbonLayout.navigationButtons).concat(defaultRibbonLayout.noteRibbonButtons);
+	}
+	static get leftRibbonButtons() {
+		return [{
+				icon: '',
+				leftText: 'Help',
+				rightText: '?',
+				classes: 'help-button',
+				action: 'modal',
+				ctor: 'helpModal',
+				group:'scoreEdit',
+				id: 'helpDialog'
+			}, {
+				leftText: 'Staves',
+				rightText: '/s',
+				icon: '',
+				classes: 'staff-modify',
+				action: 'menu',
+				ctor: 'SuiAddStaffMenu',
+				group:'scoreEdit',
+				id: 'addStaffMenu'
+			}, {
+				leftText: 'Dynamics',
+				rightText: '/d',
+				icon: '',
+				classes: 'note-modify',
+				action: 'menu',
+				ctor: 'SuiDynamicsMenu',
+				group:'scoreEdit',
+				id: 'dynamicsMenu'
+			}, {
+				leftText: 'Key',
+				rightText: '/k',
+				icon: '',
+				classes: 'note-modify',
+				action: 'menu',
+				ctor: 'suiKeySignatureMenu',
+				group:'scoreEdit',
+				id: 'keyMenu'
+			}, {
+				leftText: '',
+				rightText: '/e',
+				icon: 'icon-slur',
+				classes: 'icon note-modify',
+				action: 'menu',
+				ctor: 'suiStaffModifierMenu',
+				group:'scoreEdit',
+				id: 'staffModifierMenu'
+			}, {
+				leftText: '',
+				rightText: '/e',
+				icon: 'icon-cresc',
+				classes: 'icon note-modify',
+				action: 'menu',
+				ctor: 'suiStaffModifierMenu',
+				group:'scoreEdit',
+				id: 'staffModifierMenu2'
+			},
+			{
+				leftText:'Articulations',
+				rightText:'',
+				icon:'',
+				classes:'icon collapseParent',
+				action:'collapseParent',
+				ctor:'CollapseRibbonControl',
+				group:'articulations',
+				id:'articulationButtons'
+			},
+			{
+				leftText:'Accent',
+				rightText:'h',
+				icon:'icon-accent',
+				classes:'icon collapsed',
+				action:'collapseChild',
+				ctor:'ArticulationButtons',
+				group:'articulations',
+				id:'accentButton'
+			},
+			{
+				leftText:'Tenuto',
+				rightText:'i',
+				icon:'',
+				classes:'icon collapsed',
+				action:'collapseChild',
+				ctor:'ArticulationButtons',
+				group:'articulations',
+				id:'tenutoButton'
+			},	{
+				leftText:'Staccato',
+				rightText:'j',
+				icon:'',
+				classes:'icon collapsed',
+				action:'collapseChild',
+				ctor:'ArticulationButtons',
+				group:'articulations',
+				id:'staccatoButton'
+			},
+			{
+				leftText:'Marcato',
+				rightText:'k',
+				icon:'',
+				classes:'icon collapsed',
+				action:'collapseChild',
+				ctor:'ArticulationButtons',
+				group:'articulations',
+				id:'marcatoButton'
+			},{
+				leftText:'Pizzicato',
+				rightText:'l',
+				icon:'',
+				classes:'icon collapsed',
+				action:'collapseChild',
+				ctor:'ArticulationButtons',
+				group:'articulations',
+				id:'pizzicatoButton'
+			},	
 			
 		];
 	}
@@ -7509,7 +7563,7 @@ class RibbonButtons {
 				}
 			}
 		});
-		
+
 		buttonAr = this.ribbons['top'];
 		buttonAr.forEach((buttonId) => {
 			var b = this.ribbonButtons.find((e) => {
@@ -7528,7 +7582,7 @@ class RibbonButtons {
 		});
 		this.collapsables.forEach((cb) => {
 			cb.bind();
-		});		
+		});
 	}
 }
 
@@ -7539,7 +7593,18 @@ class NoteButtons {
 		this.editor = parameters.editor;
 	}
 	setPitch() {
-		this.editor.setPitchCommand(this.buttonData.rightText);
+		if (this.buttonData.id === 'UpNoteButton') {
+			this.editor.transposeUp();
+		} else if (this.buttonData.id === 'DownNoteButton') {
+			this.editor.transposeDown();
+		} else if (this.buttonData.id === 'UpOctaveButton') {
+			this.editor.upOctave();
+		} else if (this.buttonData.id === 'DownOctaveButton') {
+			this.editor.downOctave();
+		}
+		else {
+			this.editor.setPitchCommand(this.buttonData.rightText);
+		}
 	}
 	bind() {
 		var self = this;
@@ -7552,12 +7617,12 @@ class NoteButtons {
 class NavigationButtons {
 	static get directionsTrackerMap() {
 		return {
-			navLeftButton:'moveSelectionLeft',
-			navRightButton:'moveSelectionRight',
-			navUpButton:'moveSelectionUp',
-			navDownButton:'moveSelectionDown',
-			navFastForward:'moveSelectionRightMeasure',
-			navRewind:'moveSelectionLeftMeasure'
+			navLeftButton: 'moveSelectionLeft',
+			navRightButton: 'moveSelectionRight',
+			navUpButton: 'moveSelectionUp',
+			navDownButton: 'moveSelectionDown',
+			navFastForward: 'moveSelectionRightMeasure',
+			navRewind: 'moveSelectionLeftMeasure'
 		};
 	}
 	constructor(parameters) {
@@ -7565,7 +7630,7 @@ class NavigationButtons {
 		this.buttonData = parameters.buttonData;
 		this.tracker = parameters.tracker;
 	}
-	
+
 	_moveTracker() {
 		this.tracker[NavigationButtons.directionsTrackerMap[this.buttonData.id]]();
 	}
@@ -7574,7 +7639,7 @@ class NavigationButtons {
 		$(this.buttonElement).off('click').on('click', function () {
 			self._moveTracker();
 		});
-	}	
+	}
 }
 class ArticulationButtons {
 	static get articulationIdMap() {
@@ -7633,13 +7698,20 @@ class CollapseRibbonControl {
 		});
 		this.buttonElement.toggleClass('expandedChildren');
 		if (this.buttonElement.hasClass('expandedChildren')) {
-			$(this.buttonElement).closest('div').addClass('icon icon-circle-left');
+			var leftSpan = $(this.buttonElement).find('.ribbon-button-text');
+			$(leftSpan).text('');
+			$(leftSpan).removeClass(this.buttonData.icon);
+			$(this.buttonElement).addClass('icon icon-circle-left');
 		} else {
-			$(this.buttonElement).closest('div').removeClass('icon-circle-left');
+			$(this.buttonElement).removeClass('icon-circle-left');
+			var leftSpan = $(this.buttonElement).find('.ribbon-button-text');
+			$(leftSpan).addClass(this.buttonData.icon);
+			$(leftSpan).text(this.buttonData.leftText);
 		}
 	}
 	bind() {
 		var self = this;
+		$(this.buttonElement).closest('div').addClass('collapseContainer');
 		$('#' + this.buttonData.id).off('click').on('click', function () {
 			self._toggleExpand();
 		});
