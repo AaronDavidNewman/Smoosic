@@ -179,6 +179,20 @@ class smoMusic {
 			'b': 6
 		};
 	}
+	
+	// ### letterChangedOctave
+	// Indicate if a change from letter note 'one' to 'two' needs us to adjust the 
+	// octave due to the `smoMusic.letterPitchIndex` (b0 is higher than c0)
+	static letterChangedOctave(one,two) {
+		var p1=smoMusic.letterPitchIndex[one];
+		var p2=smoMusic.letterPitchIndex[two];
+		if (p1 < p2 && p2-p1 > 2)
+			return -1;
+		if (p1 > p2 && p1-p2 > 2)
+			return 1;
+		return 0;
+		
+	}
 
 	// ### vexToSmoPitch
 	// #### Example:
@@ -403,6 +417,8 @@ class smoMusic {
 		var intVal = VF.Music.noteValues[vexKey.toLowerCase()].int_val;
 		var ar = smoMusic.enharmonics[intVal.toString()];
 		var len = ar.length;
+		// 'n' for natural in key but not in value
+		vexKey = vexKey.length>1 && vexKey[1] ==='n' ? vexKey[0] : vexKey;
 		var ix = ar.indexOf(vexKey);
 		vexKey = ar[(ix + 1) % len];
 		return vexKey;
@@ -3811,6 +3827,22 @@ class SmoOperation {
 			pitchSelection.note.pitches[pitchIx].cautionary = toBe;
 		});
 	}
+	
+	static toggleEnharmonic(pitchSelection) {
+		if (pitchSelection.selector.pitches.length===0) {
+			pitchSelection.selector.pitches.push(0);
+		}
+		var pitch = pitchSelection.note.pitches[pitchSelection.selector.pitches[0]];
+		var lastLetter=pitch.letter;
+		var vexPitch = smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch));
+		vexPitch = smoMusic.getEnharmonic(vexPitch);
+
+		pitch.letter=vexPitch[0];
+		pitch.accidental = vexPitch.length > 1 ? 
+		   vexPitch.substring(1,vexPitch.length) : 'n';
+		pitch.octave += smoMusic.letterChangedOctave(lastLetter,pitch.letter);
+       
+	}
 
 	static addDynamic(selection, dynamic) {
 		selection.note.addModifier(dynamic);
@@ -4050,6 +4082,10 @@ class SmoUndoable {
         undoBuffer.addBuffer('add dynamic', 'measure', selection.selector, selection.measure);
         SmoOperation.addDynamic(selection, dynamic);
     }
+	static toggleEnharmonic(pitchSelection,undoBuffer) {
+	     undoBuffer.addBuffer('toggle enharmonic', 'measure', pitchSelection.selector, pitchSelection.measure);
+		 SmoOperation.toggleEnharmonic(pitchSelection)
+	}
     static interval(selection, interval, undoBuffer) {
         undoBuffer.addBuffer('add interval ' + interval, 'measure', selection.selector, selection.measure);
         SmoOperation.interval(selection, interval);
@@ -6021,7 +6057,7 @@ class suiEditor {
         }
         this._singleSelectionOperation('interval', interval);
     }
-
+	
     transpose(offset) {
         this.tracker.selections.forEach((selected) => this._transpose(selected, offset));
         this._render();
@@ -6123,6 +6159,11 @@ class suiEditor {
 		});
 		this._render();
 	}
+	toggleEnharmonic() {
+		this.tracker.selections.forEach((selected) => this._selectionOperation(selected,'toggleEnharmonic'));
+		this._render();
+	}
+
 	rerender(keyEvent) {
 		this.layout.unrenderAll();
 		SmoUndoable.noop(this.score,this.undoBuffer);
@@ -7060,7 +7101,14 @@ class utController {
 				altKey: false,
 				shiftKey: true,
 				action: "addRemoveArticulation"
-			},
+			},{
+				event: "keydown",
+				key: "E",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "toggleEnharmonic"
+			}
 		];
 	}
 

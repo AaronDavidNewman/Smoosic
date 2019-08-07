@@ -179,6 +179,24 @@ class ChordTest {
 			layout.render();
 			return timeTest();
 		}
+		
+		var enharmonicTest1 = () => {
+			subTitle('courtesy accidental test');
+			var target = SmoSelection.pitchSelection(score, 0, 0, 0, 2, [1]);
+			SmoOperation.toggleEnharmonic(target);
+			// target.note.pitches[1].cautionary = true;
+			layout.render();
+			return timeTest();			
+		}
+		var enharmonicTest2 = () => {
+			subTitle('courtesy accidental test');
+			var target = SmoSelection.pitchSelection(score, 0, 0, 0, 2, [1]);
+			SmoOperation.toggleEnharmonic(target);
+			// target.note.pitches[1].cautionary = true;
+			layout.render();
+			return timeTest();			
+		}
+
 		var accentTest = () => {
 			subTitle('accent  test');
 			var target = SmoSelection.noteSelection(score, 0, 0, 0, 2);
@@ -309,7 +327,7 @@ class ChordTest {
 		return drawDefaults().then(preBeamTest).then(breakBeamTest).then(undoBeamTest)
 		.then(accidentalTest).then(crescendoTest).then(intervalTest).then(durationTest)
 		.then(durationTest2).then(rerenderTest).then(setPitchTest).then(makeTupletTest)
-		.then(unmakeTupletTest).then(courtesyTest).then(accentTest)
+		.then(unmakeTupletTest).then(courtesyTest).then(enharmonicTest1).then(enharmonicTest2).then(accentTest)
 		.then(accentTest2).then(accentTestBelow).then(staccatoTest).then(marcatoTest)
 		.then(upStrokeTest).then(downStrokeTest).then(pizzicatoTest).
 		then(fermataTest).then(signalComplete);
