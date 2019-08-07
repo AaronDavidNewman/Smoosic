@@ -367,7 +367,14 @@ class defaultEditorKeys {
 				altKey: false,
 				shiftKey: true,
 				action: "addRemoveArticulation"
-			},
+			},{
+				event: "keydown",
+				key: "E",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "toggleEnharmonic"
+			}
 		];
 	}
 

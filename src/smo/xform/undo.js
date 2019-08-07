@@ -150,6 +150,10 @@ class SmoUndoable {
         undoBuffer.addBuffer('add dynamic', 'measure', selection.selector, selection.measure);
         SmoOperation.addDynamic(selection, dynamic);
     }
+	static toggleEnharmonic(pitchSelection,undoBuffer) {
+	     undoBuffer.addBuffer('toggle enharmonic', 'measure', pitchSelection.selector, pitchSelection.measure);
+		 SmoOperation.toggleEnharmonic(pitchSelection)
+	}
     static interval(selection, interval, undoBuffer) {
         undoBuffer.addBuffer('add interval ' + interval, 'measure', selection.selector, selection.measure);
         SmoOperation.interval(selection, interval);

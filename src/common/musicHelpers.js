@@ -179,6 +179,20 @@ class smoMusic {
 			'b': 6
 		};
 	}
+	
+	// ### letterChangedOctave
+	// Indicate if a change from letter note 'one' to 'two' needs us to adjust the 
+	// octave due to the `smoMusic.letterPitchIndex` (b0 is higher than c0)
+	static letterChangedOctave(one,two) {
+		var p1=smoMusic.letterPitchIndex[one];
+		var p2=smoMusic.letterPitchIndex[two];
+		if (p1 < p2 && p2-p1 > 2)
+			return -1;
+		if (p1 > p2 && p1-p2 > 2)
+			return 1;
+		return 0;
+		
+	}
 
 	// ### vexToSmoPitch
 	// #### Example:
@@ -403,6 +417,8 @@ class smoMusic {
 		var intVal = VF.Music.noteValues[vexKey.toLowerCase()].int_val;
 		var ar = smoMusic.enharmonics[intVal.toString()];
 		var len = ar.length;
+		// 'n' for natural in key but not in value
+		vexKey = vexKey.length>1 && vexKey[1] ==='n' ? vexKey[0] : vexKey;
 		var ix = ar.indexOf(vexKey);
 		vexKey = ar[(ix + 1) % len];
 		return vexKey;

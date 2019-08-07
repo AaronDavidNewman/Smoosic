@@ -93,7 +93,7 @@ class suiEditor {
         }
         this._singleSelectionOperation('interval', interval);
     }
-
+	
     transpose(offset) {
         this.tracker.selections.forEach((selected) => this._transpose(selected, offset));
         this._render();
@@ -195,6 +195,11 @@ class suiEditor {
 		});
 		this._render();
 	}
+	toggleEnharmonic() {
+		this.tracker.selections.forEach((selected) => this._selectionOperation(selected,'toggleEnharmonic'));
+		this._render();
+	}
+
 	rerender(keyEvent) {
 		this.layout.unrenderAll();
 		SmoUndoable.noop(this.score,this.undoBuffer);

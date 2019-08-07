@@ -244,6 +244,22 @@ class SmoOperation {
 			pitchSelection.note.pitches[pitchIx].cautionary = toBe;
 		});
 	}
+	
+	static toggleEnharmonic(pitchSelection) {
+		if (pitchSelection.selector.pitches.length===0) {
+			pitchSelection.selector.pitches.push(0);
+		}
+		var pitch = pitchSelection.note.pitches[pitchSelection.selector.pitches[0]];
+		var lastLetter=pitch.letter;
+		var vexPitch = smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch));
+		vexPitch = smoMusic.getEnharmonic(vexPitch);
+
+		pitch.letter=vexPitch[0];
+		pitch.accidental = vexPitch.length > 1 ? 
+		   vexPitch.substring(1,vexPitch.length) : 'n';
+		pitch.octave += smoMusic.letterChangedOctave(lastLetter,pitch.letter);
+       
+	}
 
 	static addDynamic(selection, dynamic) {
 		selection.note.addModifier(dynamic);
