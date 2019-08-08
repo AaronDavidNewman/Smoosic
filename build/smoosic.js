@@ -7208,7 +7208,7 @@ class defaultRibbonLayout {
 		
 		
 		top:['NoteButtons','ANoteButton','BNoteButton','CNoteButton','DNoteButton','ENoteButton','FNoteButton','GNoteButton','UpNoteButton','DownNoteButton'
-		   ,'UpOctaveButton','DownOctaveButton'
+		   ,'UpOctaveButton','DownOctaveButton','ToggleAccidental','ToggleCourtesy'
 		     ,'NavigationButtons','navLeftButton','navRightButton','navUpButton','navDownButton','navFastForward','navRewind']};
 	}
 	
@@ -7325,7 +7325,26 @@ class defaultRibbonLayout {
 				ctor:'NoteButtons',
 				group:'notes',
 				id:'DownOctaveButton'
+			},{
+				leftText:'',
+				rightText:'ShiftE',
+				icon:'icon-accident',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NoteButtons',
+				group:'notes',
+				id:'ToggleAccidental'
+			},{
+				leftText:'',
+				rightText:'ShiftE',
+				icon:'icon-courtesy',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NoteButtons',
+				group:'notes',
+				id:'ToggleCourtesy'
 			}
+			
 			
 			];
 	}
@@ -7649,6 +7668,10 @@ class NoteButtons {
 			this.editor.upOctave();
 		} else if (this.buttonData.id === 'DownOctaveButton') {
 			this.editor.downOctave();
+		}else if (this.buttonData.id === 'ToggleAccidental') {
+			this.editor.toggleEnharmonic();
+		}else if (this.buttonData.id === 'ToggleCourtesy') {
+			this.editor.toggleCourtesyAccidental();
 		}
 		else {
 			this.editor.setPitchCommand(this.buttonData.rightText);

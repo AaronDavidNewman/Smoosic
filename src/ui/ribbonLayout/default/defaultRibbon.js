@@ -9,7 +9,7 @@ class defaultRibbonLayout {
 		
 		
 		top:['NoteButtons','ANoteButton','BNoteButton','CNoteButton','DNoteButton','ENoteButton','FNoteButton','GNoteButton','UpNoteButton','DownNoteButton'
-		   ,'UpOctaveButton','DownOctaveButton'
+		   ,'UpOctaveButton','DownOctaveButton','ToggleAccidental','ToggleCourtesy'
 		     ,'NavigationButtons','navLeftButton','navRightButton','navUpButton','navDownButton','navFastForward','navRewind']};
 	}
 	
@@ -126,7 +126,26 @@ class defaultRibbonLayout {
 				ctor:'NoteButtons',
 				group:'notes',
 				id:'DownOctaveButton'
+			},{
+				leftText:'',
+				rightText:'ShiftE',
+				icon:'icon-accident',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NoteButtons',
+				group:'notes',
+				id:'ToggleAccidental'
+			},{
+				leftText:'',
+				rightText:'ShiftE',
+				icon:'icon-courtesy',
+				classes:'collapsed',
+				action:'collapseChild',
+				ctor:'NoteButtons',
+				group:'notes',
+				id:'ToggleCourtesy'
 			}
+			
 			
 			];
 	}

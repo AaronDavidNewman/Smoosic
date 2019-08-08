@@ -23,6 +23,21 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-note_select_right:before {
+  content: "\e907";
+}
+.icon-chords:before {
+  content: "\e908";
+}
+.icon-note_select_left:before {
+  content: "\e91a";
+}
+.icon-courtesy:before {
+  content: "\e91b";
+}
+.icon-accident:before {
+  content: "\e92a";
+}
 .icon-sharp:before {
   content: "\e905";
 }
@@ -58,12 +73,6 @@
 }
 .icon-tenor:before {
   content: "\e919";
-}
-.icon-alto:before {
-  content: "\e91a";
-}
-.icon-bass:before {
-  content: "\e91b";
 }
 .icon-treble:before {
   content: "\e91c";

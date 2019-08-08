@@ -129,6 +129,10 @@ class NoteButtons {
 			this.editor.upOctave();
 		} else if (this.buttonData.id === 'DownOctaveButton') {
 			this.editor.downOctave();
+		}else if (this.buttonData.id === 'ToggleAccidental') {
+			this.editor.toggleEnharmonic();
+		}else if (this.buttonData.id === 'ToggleCourtesy') {
+			this.editor.toggleCourtesyAccidental();
 		}
 		else {
 			this.editor.setPitchCommand(this.buttonData.rightText);

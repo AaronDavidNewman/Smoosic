@@ -20,8 +20,7 @@ h1 {
 	position: absolute;
 	left:20px;
 	margin-top: 33px;
-	background-color: #eee;
-	/* top:35px; */
+	background-color: #fff;
 	background:transparent;
 	display:flex;
 	flex-direction:column;
@@ -30,13 +29,15 @@ h1 {
 .controls-top {	
 	width:100%;
 	height:50px;
-	background-color: #eee;
-	/* top:35px; */
+	background-color: #fff;
 	background:transparent;
 	display:flex;
 	flex-direction:row;
 }
 
+.controls-left button,.controls-top button {
+	background-color:#fff;
+}
 
 .menu-status {
 	position:absolute;
@@ -109,6 +110,13 @@ h1 {
 #UpOctaveButton,#DownOctaveButton {
 	width:50px;
 	font-size:0.6em;
+}
+#ToggleAccidental ,#ToggleCourtesy {
+	font-size:1em;
+	width:60px;
+}
+#ToggleAccidental .ribbon-button-hotkey,#ToggleCourtesy .ribbon-button-hotkey  {
+	font-size:0.7em;
 }
 
 .controls-left button.icon span.icon,
