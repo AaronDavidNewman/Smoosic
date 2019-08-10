@@ -96,6 +96,24 @@ h1 {
 	font-size:2em;
 }
 
+#articulationButtons  .icon-articulation{
+	left:30%;
+}
+#ArticulationButtons .icon-articulation:before {
+	font-size:2.4em;
+}
+
+.controls-top button.articulation {
+	width:50px;
+}
+
+.controls-top button.articulation span.ribbon-button-text.icon {
+	top:30%;
+}
+
+.controls-top button.articulation span.ribbon-button-text.icon:before {
+	font-size:1.8em;
+}
 #NavigationButtons {
 	width:55px;
 	font-size:1.7em;

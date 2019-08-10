@@ -176,12 +176,34 @@ class NavigationButtons {
 class ArticulationButtons {
 	static get articulationIdMap() {
 		return {
-			accentButton: SmoArticulation.articulations.accent,
-			tenutoButton: SmoArticulation.articulations.tenuto,
-			staccatoButton: SmoArticulation.articulations.staccato,
-			marcatoButton: SmoArticulation.articulations.marcato,
-			pizzicatoButton: SmoArticulation.articulations.pizzicato,
-			fermataButton: SmoArticulation.articulations.fermata
+			accentAboveButton: SmoArticulation.articulations.accent,
+			accentBelowButton: SmoArticulation.articulations.accent,
+			tenutoAboveButton: SmoArticulation.articulations.tenuto,
+			tenutoBelowButton: SmoArticulation.articulations.tenuto,
+			staccatoAboveButton: SmoArticulation.articulations.staccato,
+			staccatoBelowButton: SmoArticulation.articulations.staccato,
+			marcatoAboveButton: SmoArticulation.articulations.marcato,
+			marcatoBelowButton: SmoArticulation.articulations.marcato,
+			pizzicatoAboveButton: SmoArticulation.articulations.pizzicato,
+			pizzicatoBelowButton: SmoArticulation.articulations.pizzicato,
+			fermataAboveButton: SmoArticulation.articulations.fermata,
+			fermataBelowButton: SmoArticulation.articulations.fermata
+		};
+	}
+	static get placementIdMap() {
+		return {
+			accentAboveButton: SmoArticulation.positions.above,
+			accentBelowButton: SmoArticulation.positions.below,
+			tenutoAboveButton: SmoArticulation.positions.above,
+			tenutoBelowButton: SmoArticulation.positions.below,
+			staccatoAboveButton: SmoArticulation.positions.above,
+			staccatoBelowButton: SmoArticulation.positions.below,
+			marcatoAboveButton: SmoArticulation.positions.above,
+			marcatoBelowButton: SmoArticulation.positions.below,
+			pizzicatoAboveButton: SmoArticulation.positions.above,
+			pizzicatoBelowButton: SmoArticulation.positions.below,
+			fermataAboveButton: SmoArticulation.positions.above,
+			fermataBelowButton: SmoArticulation.positions.below
 		};
 	}
 	constructor(parameters) {
@@ -189,19 +211,13 @@ class ArticulationButtons {
 		this.buttonData = parameters.buttonData;
 		this.editor = parameters.editor;
 		this.articulation = ArticulationButtons.articulationIdMap[this.buttonData.id];
-		this.shiftState = false;
-		this.showState = false;
+		this.placement = ArticulationButtons.placementIdMap[this.buttonData.id];
 	}
 	_toggleArticulation() {
 		this.showState = !this.showState;
 
 		// fake editor key, not sure if this is best...
-		this.editor.toggleArticulationCommand(this.articulation, this.shiftState ? SmoArticulation.positions.below : SmoArticulation.positions.above);
-
-		// toggle above and below
-		if (!this.showState) {
-			this.shiftState = !this.shiftState;
-		}
+		this.editor.toggleArticulationCommand(this.articulation, this.placement);
 	}
 	bind() {
 		var self = this;

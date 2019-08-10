@@ -23,6 +23,37 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+
+.icon-pitz_below:before {
+  content: "\e92c";
+}
+.icon-pitz_above:before {
+  content: "\e92b";
+}
+.icon-marcato_above:before {
+  content: "\e93d";
+}
+.icon-marcato_below:before {
+  content: "\e93e";
+}
+.icon-staccato_above:before {
+  content: "\e903";
+}
+.icon-staccato_below:before {
+  content: "\e904";
+}
+.icon-accent_above:before {
+  content: "\e935";
+}
+.icon-accent_below:before {
+  content: "\e936";
+}
+.icon-tenuto_below:before {
+  content: "\e937";
+}
+.icon-tenuto_above:before {
+  content: "\e938";
+}
 .icon-note_select_right:before {
   content: "\e907";
 }
@@ -45,10 +76,10 @@
   content: "\e906";
 }
 .icon-rewind:before {
-  content: "\e903";
+  content: "\e939";
 }
 .icon-fforward:before {
-  content: "\e904";
+  content: "\e93a";
 }
 .icon-navigate:before {
   content: "\e901";
@@ -73,6 +104,12 @@
 }
 .icon-tenor:before {
   content: "\e919";
+}
+.icon-alto:before {
+  content: "\e93c";
+}
+.icon-bass:before {
+  content: "\e93b";
 }
 .icon-treble:before {
   content: "\e91c";
@@ -230,3 +267,4 @@
 .icon-decresc:before {
   content: "\e929";
 }
+
