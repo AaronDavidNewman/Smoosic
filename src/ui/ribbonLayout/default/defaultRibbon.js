@@ -6,11 +6,12 @@ class defaultRibbonLayout {
 		return {
 			left: ['helpDialog', 'addStaffMenu', 'dynamicsMenu', 'keyMenu', 'staffModifierMenu', 'staffModifierMenu2'],
 
-			top: ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton', 
-			       'UpNoteButton', 'DownNoteButton', 'UpOctaveButton', 'DownOctaveButton', 'ToggleAccidental', 'ToggleCourtesy', 
-				   'NavigationButtons', 'navLeftButton', 'navRightButton', 'navUpButton', 'navDownButton', 'navFastForward', 'navRewind',
-				'articulationButtons', 'accentAboveButton','accentBelowButton', 'tenutoAboveButton', 'tenutoBelowButton',
-				'staccatoAboveButton','staccatoBelowButton',  'marcatoAboveButton', 'marcatoBelowButton', 'pizzicatoAboveButton','pizzicatoBelowButton']
+			top: ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton',
+				'UpNoteButton', 'DownNoteButton', 'UpOctaveButton', 'DownOctaveButton', 'ToggleAccidental', 'ToggleCourtesy',
+				'NavigationButtons', 'navLeftButton', 'navRightButton', 'navUpButton', 'navDownButton', 'navFastForward', 'navRewind',
+				'navGrowLeft', 'navGrowRight',
+				'articulationButtons', 'accentAboveButton', 'accentBelowButton', 'tenutoAboveButton', 'tenutoBelowButton',
+				'staccatoAboveButton', 'staccatoBelowButton', 'marcatoAboveButton', 'marcatoBelowButton', 'pizzicatoAboveButton', 'pizzicatoBelowButton']
 		};
 	}
 
@@ -191,7 +192,7 @@ class defaultRibbonLayout {
 				ctor: 'ArticulationButtons',
 				group: 'articulations',
 				id: 'tenutoBelowButton'
-			},{
+			}, {
 				leftText: '',
 				rightText: 'j',
 				icon: 'icon-staccato_above',
@@ -200,7 +201,7 @@ class defaultRibbonLayout {
 				ctor: 'ArticulationButtons',
 				group: 'articulations',
 				id: 'staccatoAboveButton'
-			},{
+			}, {
 				leftText: '',
 				rightText: 'J',
 				icon: 'icon-staccato_below',
@@ -218,7 +219,7 @@ class defaultRibbonLayout {
 				ctor: 'ArticulationButtons',
 				group: 'articulations',
 				id: 'marcatoAboveButton'
-			},{
+			}, {
 				leftText: '',
 				rightText: 'K',
 				icon: 'icon-marcato_below',
@@ -236,8 +237,7 @@ class defaultRibbonLayout {
 				ctor: 'ArticulationButtons',
 				group: 'articulations',
 				id: 'pizzicatoAboveButton'
-			},
-			{
+			}, {
 				leftText: '',
 				rightText: 'L',
 				icon: 'icon-pitz_below',
@@ -313,6 +313,24 @@ class defaultRibbonLayout {
 				ctor: 'NavigationButtons',
 				group: 'navigation',
 				id: 'navRewind'
+			}, {
+				leftText: '',
+				rightText: '',
+				icon: 'icon-note_select_left',
+				classes: 'collapsed selection-icon',
+				action: 'collapseChild',
+				ctor: 'NavigationButtons',
+				group: 'navigation',
+				id: 'navGrowLeft'
+			}, {
+				leftText: '',
+				rightText: '',
+				icon: 'icon-note_select_right',
+				classes: 'collapsed selection-icon',
+				action: 'collapseChild',
+				ctor: 'NavigationButtons',
+				group: 'navigation',
+				id: 'navGrowRight'
 			}
 		];
 	}
@@ -376,6 +394,20 @@ class defaultRibbonLayout {
 				id: 'staffModifierMenu2'
 			}
 
+		];
+	}
+
+	static get chordButtons() {
+		return [{
+				icon: 'icon-chords',
+				leftText: '',
+				rightText: '',
+				classes: 'help-button',
+				action: 'modal',
+				ctor: 'helpModal',
+				group: 'scoreEdit',
+				id: 'helpDialog'
+			}
 		];
 	}
 }

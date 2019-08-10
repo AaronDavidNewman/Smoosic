@@ -146,6 +146,10 @@ class NoteButtons {
 	}
 }
 
+class ChordButtons {
+	
+}
+
 class NavigationButtons {
 	static get directionsTrackerMap() {
 		return {
@@ -154,7 +158,9 @@ class NavigationButtons {
 			navUpButton: 'moveSelectionUp',
 			navDownButton: 'moveSelectionDown',
 			navFastForward: 'moveSelectionRightMeasure',
-			navRewind: 'moveSelectionLeftMeasure'
+			navRewind: 'moveSelectionLeftMeasure',
+			navGrowLeft: 'growSelectionLeft',
+			navGrowRight: 'growSelectionRight'
 		};
 	}
 	constructor(parameters) {
