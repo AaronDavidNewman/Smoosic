@@ -82,16 +82,27 @@ class suiEditor {
         this.tracker.clearModifierSelections();
         this.layout.render();
     }
+	
+	collapseChord() {
+		SmoUndoable.noop(this.score,this.undoBuffer);
+		this.tracker.selections.forEach((selection) => {
+			var p=selection.note.pitches[0];
+			p=JSON.parse(JSON.stringify(p));
+			selection.note.pitches=[p];
+		});
+		this.layout.render();
+	}
+	
+	intervalAdd(interval,direction) {		
+		this._singleSelectionOperation('interval', direction*interval);
+	}
 
     interval(keyEvent) {
         if (this.tracker.selections.length != 1)
             return;
         // code='Digit3'
         var interval = parseInt(keyEvent.code[5]) - 1;
-        if (keyEvent.shiftKey) {
-            interval = -interval;
-        }
-        this._singleSelectionOperation('interval', interval);
+        this.intervalAdd(interval,keyEvent.shiftKey ? -1 : 1);
     }
 	
     transpose(offset) {

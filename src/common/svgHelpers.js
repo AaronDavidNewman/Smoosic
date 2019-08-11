@@ -5,6 +5,8 @@
 // ### static class methods:
 // ---
 class svgHelpers {
+	// ### unionRect
+	// grow the bounding box two objects to include both.
 	static unionRect(b1, b2) {
 		var x = Math.min(b1.x, b2.x);
 		var y = Math.min(b1.y, b2.y);
@@ -18,16 +20,6 @@ class svgHelpers {
 		};
 	}
 
-	// ### smoBox:
-	// return a simple box object that can be serialized, copied.
-	static smoBox(box) {
-		return ({
-			x: box.x,
-			y: box.y,
-			width: box.width,
-			height: box.height
-		});
-	}
 
 	// ### measureBBox
 	// Return the bounding box of the measure
@@ -91,6 +83,18 @@ class svgHelpers {
 			width: 1,
 			height: 1
 		};
+	}
+
+	// ### smoBox:
+	// return a simple box object that can be serialized, copied
+	// (from svg DOM box)
+	static smoBox(box) {
+		return ({
+			x: box.x,
+			y: box.y,
+			width: box.width,
+			height: box.height
+		});
 	}
 
 	static copyBox(box) {

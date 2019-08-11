@@ -3,16 +3,37 @@
 class defaultRibbonLayout {
 
 	static get ribbons() {
+		var left = defaultRibbonLayout.leftRibbonIds;
+		var top = defaultRibbonLayout.noteButtonIds.concat(defaultRibbonLayout.navigateButtonIds).concat(defaultRibbonLayout.articulateButtonIds)
+		    .concat(defaultRibbonLayout.intervalIds);
+			
 		return {
-			left: ['helpDialog', 'addStaffMenu', 'dynamicsMenu', 'keyMenu', 'staffModifierMenu', 'staffModifierMenu2'],
-
-			top: ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton',
-				'UpNoteButton', 'DownNoteButton', 'UpOctaveButton', 'DownOctaveButton', 'ToggleAccidental', 'ToggleCourtesy',
-				'NavigationButtons', 'navLeftButton', 'navRightButton', 'navUpButton', 'navDownButton', 'navFastForward', 'navRewind',
-				'navGrowLeft', 'navGrowRight',
-				'articulationButtons', 'accentAboveButton', 'accentBelowButton', 'tenutoAboveButton', 'tenutoBelowButton',
-				'staccatoAboveButton', 'staccatoBelowButton', 'marcatoAboveButton', 'marcatoBelowButton', 'pizzicatoAboveButton', 'pizzicatoBelowButton']
+			left: left,
+			top:top
 		};
+	}
+	
+	static get leftRibbonIds() {
+		return ['helpDialog', 'addStaffMenu', 'dynamicsMenu', 'keyMenu', 'staffModifierMenu', 'staffModifierMenu2'];
+	}
+	static get noteButtonIds() {
+		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton',
+				'UpNoteButton', 'DownNoteButton', 'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
+	}	
+	static get navigateButtonIds()  {
+		return ['NavigationButtons', 'navLeftButton', 'navRightButton', 'navUpButton', 'navDownButton', 'navFastForward', 'navRewind',
+				'navGrowLeft', 'navGrowRight'];
+	}
+	
+	static get articulateButtonIds()  {
+		return ['articulationButtons', 'accentAboveButton', 'accentBelowButton', 'tenutoAboveButton', 'tenutoBelowButton',
+				'staccatoAboveButton', 'staccatoBelowButton', 'marcatoAboveButton', 'marcatoBelowButton', 'pizzicatoAboveButton', 'pizzicatoBelowButton'];
+	}
+	
+	static get intervalIds()  {
+		return ['CreateChordButtons', 'SecondUpButton', 'SecondDownButton', 'ThirdUpButton', 'ThirdDownButton', 'FourthUpButton', 'FourthDownButton',
+				'FifthUpButton', 'FifthDownButton','SixthUpButton', 'SixthDownButton'
+				,'SeventhUpButton', 'SeventhDownButton','OctaveUpButton','OctaveDownButton','CollapseChordButton'];
 	}
 
 	static get noteRibbonButtons() {
@@ -106,6 +127,15 @@ class defaultRibbonLayout {
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'DownNoteButton'
+			}, {
+				leftText: '',
+				rightText: 'r',
+				icon: 'icon-rest',
+				classes: 'collapsed',
+				action: 'collapseChild',
+				ctor: 'NoteButtons',
+				group: 'notes',
+				id: 'ToggleRestButton'
 			}, {
 				leftText: '8va',
 				rightText: 'Ctrl=',
@@ -334,8 +364,217 @@ class defaultRibbonLayout {
 			}
 		];
 	}
+	static get chordButtons() {
+		return [{
+				icon: 'icon-chords',
+				leftText: '',
+				rightText: '',
+				classes: 'icon collapseParent',
+				action: 'collapseParent',
+				ctor: 'CollapseRibbonControl',
+				group: 'chords',
+				id: 'CreateChordButtons'
+			}, {
+				icon: 'icon-arrow-up',
+				leftText: '2nd',
+				rightText: '2',
+				classes: 'collapsed addChord',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '1',
+					direction: '1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'SecondUpButton'
+			}, {
+				icon: 'icon-arrow-down',
+				leftText: '2nd',
+				rightText: 'Shift 2',
+				classes: 'collapsed addChord dirdown',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '1',
+					direction: '1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'SecondDownButton'
+			}, {
+				icon: 'icon-arrow-up',
+				leftText: '3rd',
+				rightText: '3',
+				classes: 'collapsed addChord',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '2',
+					direction: '1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'ThirdUpButton'
+			}, {
+				icon: 'icon-arrow-down',
+				leftText: '3rd',
+				rightText: 'Shift 3',
+				classes: 'collapsed addChord dirdown',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '2',
+					direction: '-1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'ThirdDownButton'
+			}, {
+				icon: 'icon-arrow-up',
+				leftText: '4th',
+				rightText: '4',
+				classes: 'collapsed addChord',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '3',
+					direction: '1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'FourthUpButton'
+			}, {
+				icon: 'icon-arrow-down',
+				leftText: '4th',
+				rightText: 'Shift 4',
+				classes: 'collapsed addChord dirdown',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '3',
+					direction: '-1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'FourthDownButton'
+			}, {
+				icon: 'icon-arrow-up',
+				leftText: '5th',
+				rightText: '5',
+				classes: 'collapsed addChord dirdown',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '4',
+					direction: '1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'FifthUpButton'
+			}, {
+				icon: 'icon-arrow-down',
+				leftText: '5th',
+				rightText: 'Shift 5',
+				classes: 'collapsed addChord dirdown',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '4',
+					direction: '-1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'FifthDownButton'
+			}, {
+				icon: 'icon-arrow-up',
+				leftText: '6th',
+				rightText: '6',
+				classes: 'collapsed addChord dirdown',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '5',
+					direction: '1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'SixthUpButton'
+			}, {
+				icon: 'icon-arrow-down',
+				leftText: '6th',
+				rightText: 'Shift 6',
+				classes: 'collapsed addChord dirdown',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '5',
+					direction: '-1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'SixthDownButton'
+			}, {
+				icon: 'icon-arrow-up',
+				leftText: '7th',
+				rightText: '7',
+				classes: 'collapsed addChord dirdown',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '6',
+					direction: '1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'SeventhUpButton'
+			}, {
+				icon: 'icon-arrow-down',
+				leftText: '7th',
+				rightText: 'Shift 7',
+				classes: 'collapsed addChord dirdown',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '6',
+					direction: '-1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'SeventhDownButton'
+			}, {
+				icon: 'icon-arrow-up',
+				leftText: '8va',
+				rightText: '8',
+				classes: 'collapsed addChord dirdown',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '7',
+					direction: '1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'OctaveUpButton'
+			}, {
+				icon: 'icon-arrow-down',
+				leftText: '7th',
+				rightText: 'Shift 7',
+				classes: 'collapsed addChord dirdown',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '7',
+					direction: '-1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'OctaveDownButton'
+			}, {
+				icon: '',
+				leftText: 'Collapse',
+				rightText: '',
+				classes: 'collapsed addChord dirdown',
+				action: 'collapseChild',
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'CollapseChordButton'
+			}
+		];
+	}
+
 	static get ribbonButtons() {
-		return defaultRibbonLayout.leftRibbonButtons.concat(defaultRibbonLayout.navigationButtons).concat(defaultRibbonLayout.noteRibbonButtons).concat(defaultRibbonLayout.articulationButtons);
+		return defaultRibbonLayout.leftRibbonButtons.concat(
+			defaultRibbonLayout.navigationButtons).concat(
+			defaultRibbonLayout.noteRibbonButtons).concat(
+			defaultRibbonLayout.articulationButtons).concat(
+			defaultRibbonLayout.chordButtons);
 	}
 	static get leftRibbonButtons() {
 		return [{
@@ -392,21 +631,6 @@ class defaultRibbonLayout {
 				ctor: 'suiStaffModifierMenu',
 				group: 'scoreEdit',
 				id: 'staffModifierMenu2'
-			}
-
-		];
-	}
-
-	static get chordButtons() {
-		return [{
-				icon: 'icon-chords',
-				leftText: '',
-				rightText: '',
-				classes: 'help-button',
-				action: 'modal',
-				ctor: 'helpModal',
-				group: 'scoreEdit',
-				id: 'helpDialog'
 			}
 		];
 	}

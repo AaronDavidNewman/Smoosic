@@ -153,6 +153,12 @@ class smoMusic {
 		});
 		return rv;
 	}
+	
+	static smoPitchToInt(pitch) {
+		var intVal=VF.Music.noteValues[
+		    smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch))].int_val;
+		return (pitch.octave-1)*8+intVal;
+	}
 
 	static vexKeySignatureTranspose(key, transposeIndex) {
 		var key = smoMusic.vexToSmoPitch(key);
@@ -530,6 +536,8 @@ class smoMusic {
 // ### static class methods:
 // ---
 class svgHelpers {
+	// ### unionRect
+	// grow the bounding box two objects to include both.
 	static unionRect(b1, b2) {
 		var x = Math.min(b1.x, b2.x);
 		var y = Math.min(b1.y, b2.y);
@@ -543,16 +551,6 @@ class svgHelpers {
 		};
 	}
 
-	// ### smoBox:
-	// return a simple box object that can be serialized, copied.
-	static smoBox(box) {
-		return ({
-			x: box.x,
-			y: box.y,
-			width: box.width,
-			height: box.height
-		});
-	}
 
 	// ### measureBBox
 	// Return the bounding box of the measure
@@ -616,6 +614,18 @@ class svgHelpers {
 			width: 1,
 			height: 1
 		};
+	}
+
+	// ### smoBox:
+	// return a simple box object that can be serialized, copied
+	// (from svg DOM box)
+	static smoBox(box) {
+		return ({
+			x: box.x,
+			y: box.y,
+			width: box.width,
+			height: box.height
+		});
 	}
 
 	static copyBox(box) {
@@ -3864,6 +3874,7 @@ class SmoOperation {
 		var pitch = smoMusic.getIntervalInKey(pitch, measure.keySignature, interval);
 		if (pitch) {
 			note.pitches.push(pitch);
+			note.pitches.sort((x,y) => {return smoMusic.smoPitchToInt(x) - smoMusic.smoPitchToInt(y); });
 			return true;
 		}
 		return false;
@@ -5664,7 +5675,7 @@ class suiSimpleLayout {
             var nextSelection = SmoSelection.measureSelection(this.score, startSelection.selector.staff, startSelection.selector.measure + 1);
 
             // If we go to new line, render this line part, then advance because the modifier is split
-            if (nextSelection && nextSelection.measure.lineIndex != startSelection.measure.lineIndex) {
+            if (nextSelection && nextSelection.measure && nextSelection.measure.lineIndex != startSelection.measure.lineIndex) {
                 this._renderModifiers(startSelection.staff, system);
                 var system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex);
             }
@@ -6046,16 +6057,27 @@ class suiEditor {
         this.tracker.clearModifierSelections();
         this.layout.render();
     }
+	
+	collapseChord() {
+		SmoUndoable.noop(this.score,this.undoBuffer);
+		this.tracker.selections.forEach((selection) => {
+			var p=selection.note.pitches[0];
+			p=JSON.parse(JSON.stringify(p));
+			selection.note.pitches=[p];
+		});
+		this.layout.render();
+	}
+	
+	intervalAdd(interval,direction) {		
+		this._singleSelectionOperation('interval', direction*interval);
+	}
 
     interval(keyEvent) {
         if (this.tracker.selections.length != 1)
             return;
         // code='Digit3'
         var interval = parseInt(keyEvent.code[5]) - 1;
-        if (keyEvent.shiftKey) {
-            interval = -interval;
-        }
-        this._singleSelectionOperation('interval', interval);
+        this.intervalAdd(interval,keyEvent.shiftKey ? -1 : 1);
     }
 	
     transpose(offset) {
@@ -7202,16 +7224,37 @@ class defaultTrackerKeys {
 class defaultRibbonLayout {
 
 	static get ribbons() {
+		var left = defaultRibbonLayout.leftRibbonIds;
+		var top = defaultRibbonLayout.noteButtonIds.concat(defaultRibbonLayout.navigateButtonIds).concat(defaultRibbonLayout.articulateButtonIds)
+		    .concat(defaultRibbonLayout.intervalIds);
+			
 		return {
-			left: ['helpDialog', 'addStaffMenu', 'dynamicsMenu', 'keyMenu', 'staffModifierMenu', 'staffModifierMenu2'],
-
-			top: ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton',
-				'UpNoteButton', 'DownNoteButton', 'UpOctaveButton', 'DownOctaveButton', 'ToggleAccidental', 'ToggleCourtesy',
-				'NavigationButtons', 'navLeftButton', 'navRightButton', 'navUpButton', 'navDownButton', 'navFastForward', 'navRewind',
-				'navGrowLeft', 'navGrowRight',
-				'articulationButtons', 'accentAboveButton', 'accentBelowButton', 'tenutoAboveButton', 'tenutoBelowButton',
-				'staccatoAboveButton', 'staccatoBelowButton', 'marcatoAboveButton', 'marcatoBelowButton', 'pizzicatoAboveButton', 'pizzicatoBelowButton']
+			left: left,
+			top:top
 		};
+	}
+	
+	static get leftRibbonIds() {
+		return ['helpDialog', 'addStaffMenu', 'dynamicsMenu', 'keyMenu', 'staffModifierMenu', 'staffModifierMenu2'];
+	}
+	static get noteButtonIds() {
+		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton',
+				'UpNoteButton', 'DownNoteButton', 'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
+	}	
+	static get navigateButtonIds()  {
+		return ['NavigationButtons', 'navLeftButton', 'navRightButton', 'navUpButton', 'navDownButton', 'navFastForward', 'navRewind',
+				'navGrowLeft', 'navGrowRight'];
+	}
+	
+	static get articulateButtonIds()  {
+		return ['articulationButtons', 'accentAboveButton', 'accentBelowButton', 'tenutoAboveButton', 'tenutoBelowButton',
+				'staccatoAboveButton', 'staccatoBelowButton', 'marcatoAboveButton', 'marcatoBelowButton', 'pizzicatoAboveButton', 'pizzicatoBelowButton'];
+	}
+	
+	static get intervalIds()  {
+		return ['CreateChordButtons', 'SecondUpButton', 'SecondDownButton', 'ThirdUpButton', 'ThirdDownButton', 'FourthUpButton', 'FourthDownButton',
+				'FifthUpButton', 'FifthDownButton','SixthUpButton', 'SixthDownButton'
+				,'SeventhUpButton', 'SeventhDownButton','OctaveUpButton','OctaveDownButton','CollapseChordButton'];
 	}
 
 	static get noteRibbonButtons() {
@@ -7305,6 +7348,15 @@ class defaultRibbonLayout {
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'DownNoteButton'
+			}, {
+				leftText: '',
+				rightText: 'r',
+				icon: 'icon-rest',
+				classes: 'collapsed',
+				action: 'collapseChild',
+				ctor: 'NoteButtons',
+				group: 'notes',
+				id: 'ToggleRestButton'
 			}, {
 				leftText: '8va',
 				rightText: 'Ctrl=',
@@ -7533,8 +7585,217 @@ class defaultRibbonLayout {
 			}
 		];
 	}
+	static get chordButtons() {
+		return [{
+				icon: 'icon-chords',
+				leftText: '',
+				rightText: '',
+				classes: 'icon collapseParent',
+				action: 'collapseParent',
+				ctor: 'CollapseRibbonControl',
+				group: 'chords',
+				id: 'CreateChordButtons'
+			}, {
+				icon: 'icon-arrow-up',
+				leftText: '2nd',
+				rightText: '2',
+				classes: 'collapsed addChord',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '1',
+					direction: '1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'SecondUpButton'
+			}, {
+				icon: 'icon-arrow-down',
+				leftText: '2nd',
+				rightText: 'Shift 2',
+				classes: 'collapsed addChord dirdown',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '1',
+					direction: '1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'SecondDownButton'
+			}, {
+				icon: 'icon-arrow-up',
+				leftText: '3rd',
+				rightText: '3',
+				classes: 'collapsed addChord',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '2',
+					direction: '1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'ThirdUpButton'
+			}, {
+				icon: 'icon-arrow-down',
+				leftText: '3rd',
+				rightText: 'Shift 3',
+				classes: 'collapsed addChord dirdown',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '2',
+					direction: '-1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'ThirdDownButton'
+			}, {
+				icon: 'icon-arrow-up',
+				leftText: '4th',
+				rightText: '4',
+				classes: 'collapsed addChord',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '3',
+					direction: '1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'FourthUpButton'
+			}, {
+				icon: 'icon-arrow-down',
+				leftText: '4th',
+				rightText: 'Shift 4',
+				classes: 'collapsed addChord dirdown',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '3',
+					direction: '-1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'FourthDownButton'
+			}, {
+				icon: 'icon-arrow-up',
+				leftText: '5th',
+				rightText: '5',
+				classes: 'collapsed addChord dirdown',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '4',
+					direction: '1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'FifthUpButton'
+			}, {
+				icon: 'icon-arrow-down',
+				leftText: '5th',
+				rightText: 'Shift 5',
+				classes: 'collapsed addChord dirdown',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '4',
+					direction: '-1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'FifthDownButton'
+			}, {
+				icon: 'icon-arrow-up',
+				leftText: '6th',
+				rightText: '6',
+				classes: 'collapsed addChord dirdown',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '5',
+					direction: '1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'SixthUpButton'
+			}, {
+				icon: 'icon-arrow-down',
+				leftText: '6th',
+				rightText: 'Shift 6',
+				classes: 'collapsed addChord dirdown',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '5',
+					direction: '-1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'SixthDownButton'
+			}, {
+				icon: 'icon-arrow-up',
+				leftText: '7th',
+				rightText: '7',
+				classes: 'collapsed addChord dirdown',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '6',
+					direction: '1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'SeventhUpButton'
+			}, {
+				icon: 'icon-arrow-down',
+				leftText: '7th',
+				rightText: 'Shift 7',
+				classes: 'collapsed addChord dirdown',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '6',
+					direction: '-1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'SeventhDownButton'
+			}, {
+				icon: 'icon-arrow-up',
+				leftText: '8va',
+				rightText: '8',
+				classes: 'collapsed addChord dirdown',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '7',
+					direction: '1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'OctaveUpButton'
+			}, {
+				icon: 'icon-arrow-down',
+				leftText: '7th',
+				rightText: 'Shift 7',
+				classes: 'collapsed addChord dirdown',
+				action: 'collapseChild',
+				dataElements: {
+					interval: '7',
+					direction: '-1'
+				},
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'OctaveDownButton'
+			}, {
+				icon: '',
+				leftText: 'Collapse',
+				rightText: '',
+				classes: 'collapsed addChord dirdown',
+				action: 'collapseChild',
+				ctor: 'ChordButtons',
+				group: 'chords',
+				id: 'CollapseChordButton'
+			}
+		];
+	}
+
 	static get ribbonButtons() {
-		return defaultRibbonLayout.leftRibbonButtons.concat(defaultRibbonLayout.navigationButtons).concat(defaultRibbonLayout.noteRibbonButtons).concat(defaultRibbonLayout.articulationButtons);
+		return defaultRibbonLayout.leftRibbonButtons.concat(
+			defaultRibbonLayout.navigationButtons).concat(
+			defaultRibbonLayout.noteRibbonButtons).concat(
+			defaultRibbonLayout.articulationButtons).concat(
+			defaultRibbonLayout.chordButtons);
 	}
 	static get leftRibbonButtons() {
 		return [{
@@ -7592,34 +7853,10 @@ class defaultRibbonLayout {
 				group: 'scoreEdit',
 				id: 'staffModifierMenu2'
 			}
-
-		];
-	}
-
-	static get chordButtons() {
-		return [{
-				icon: 'icon-chords',
-				leftText: '',
-				rightText: '',
-				classes: 'help-button',
-				action: 'modal',
-				ctor: 'helpModal',
-				group: 'scoreEdit',
-				id: 'helpDialog'
-			}
 		];
 	}
 }
 ;
-class RibbonHtml {
-	static ribbonButton(buttonId, buttonClass, buttonText, buttonIcon, buttonKey) {
-		var b = htmlHelpers.buildDom;
-		var r = b('div').append(b('button').attr('id', buttonId).classes(buttonClass).append(
-					b('span').classes('ribbon-button-text icon ' + buttonIcon).text(buttonText)).append(
-					b('span').classes('ribbon-button-hotkey').text(buttonKey)));
-		return r.dom();
-	}
-}
 
 // ## RibbonButtons
 // Render the ribbon buttons based on group, function, and underlying UI handler.
@@ -7630,11 +7867,19 @@ class RibbonButtons {
 	static get paramArray() {
 		return ['ribbonButtons', 'ribbons', 'editor', 'controller', 'tracker', 'menus'];
 	}
+	static ribbonButton(buttonId, buttonClass, buttonText, buttonIcon, buttonKey) {
+		var b = htmlHelpers.buildDom;
+		var r = b('div').classes('ribbonButtonContainer').append(b('button').attr('id', buttonId).classes(buttonClass).append(
+					b('span').classes('ribbon-button-text icon ' + buttonIcon).text(buttonText)).append(
+					b('span').classes('ribbon-button-hotkey').text(buttonKey)));
+		return r.dom();
+	}
 	constructor(parameters) {
 		smoMusic.filteredMerge(RibbonButtons.paramArray, parameters, this);
 		this.ribbonButtons = parameters.ribbonButtons;
 		this.ribbons = parameters.ribbons;
 		this.collapsables = [];
+		this.collapseChildren=[];
 	}
 	_executeButtonModal(buttonElement, buttonData) {
 		var ctor = eval(buttonData.ctor);
@@ -7683,46 +7928,55 @@ class RibbonButtons {
 			self._executeButton(buttonElement, buttonData);
 		});
 	}
+	_createButtonHtml(buttonAr,selector) {
+		buttonAr.forEach((buttonId) => {
+			var b = this.ribbonButtons.find((e) => {
+					return e.id === buttonId;
+				});
+			if (b) {
+				if (b.action === 'collapseChild') {
+					this.collapseChildren.push(b);
+				} else {
+
+				var buttonHtml = RibbonButtons.ribbonButton(b.id, b.classes, b.leftText, b.icon, b.rightText);
+				$(buttonHtml).attr('data-group', b.group);
+				if (b.dataElements) {
+					var bkeys = Object.keys(b.dataElements);
+					bkeys.forEach((bkey) => {
+						var de = b.dataElements[bkey];
+						$(buttonHtml).find('button').attr('data-'+bkey,de);
+					});
+				}
+				$(selector).append(buttonHtml);
+				var el = $(selector).find('#' + b.id);
+				this._bindButton(el, b);
+				if (b.action == 'collapseParent') {
+					$(buttonHtml).addClass('collapseContainer');
+					this._bindCollapsibleAction(el, b);
+				}
+			}
+			}
+		});
+		this.collapseChildren.forEach((b) => {
+			var buttonHtml = RibbonButtons.ribbonButton(b.id, b.classes, b.leftText, b.icon, b.rightText);
+			var parent = $(selector).find('.collapseContainer[data-group="'+b.group+'"]');
+			$(parent).append(buttonHtml);
+			var el = $(selector).find('#' + b.id);
+			this._bindButton(el, b);
+		});
+		this.collapsables.forEach((cb) => {
+			cb.bind();
+		});
+	}
 	display() {
 		$('body .controls-left').html('');
 		$('body .controls-top').html('');
 
 		var buttonAr = this.ribbons['left'];
-		buttonAr.forEach((buttonId) => {
-			var b = this.ribbonButtons.find((e) => {
-					return e.id === buttonId;
-				});
-			if (b) {
-				var buttonHtml = RibbonHtml.ribbonButton(b.id, b.classes, b.leftText, b.icon, b.rightText);
-				$(buttonHtml).attr('data-group', b.group);
-				$('body .controls-left').append(buttonHtml);
-				var el = $('body .controls-left').find('#' + b.id);
-				this._bindButton(el, b);
-				if (b.action == 'collapseParent') {
-					this._bindCollapsibleAction(el, b);
-				}
-			}
-		});
+		this._createButtonHtml(buttonAr,'body .controls-left');
 
 		buttonAr = this.ribbons['top'];
-		buttonAr.forEach((buttonId) => {
-			var b = this.ribbonButtons.find((e) => {
-					return e.id === buttonId;
-				});
-			if (b) {
-				var buttonHtml = RibbonHtml.ribbonButton(b.id, b.classes, b.leftText, b.icon, b.rightText);
-				$(buttonHtml).attr('data-group', b.group);
-				$('body .controls-top').append(buttonHtml);
-				var el = $('body .controls-top').find('#' + b.id);
-				this._bindButton(el, b);
-				if (b.action == 'collapseParent') {
-					this._bindCollapsibleAction(el, b);
-				}
-			}
-		});
-		this.collapsables.forEach((cb) => {
-			cb.bind();
-		});
+		this._createButtonHtml(buttonAr,'body .controls-top');
 	}
 }
 
@@ -7745,6 +7999,8 @@ class NoteButtons {
 			this.editor.toggleEnharmonic();
 		}else if (this.buttonData.id === 'ToggleCourtesy') {
 			this.editor.toggleCourtesyAccidental();
+		} else if (this.buttonData.id === 'ToggleRestButton') {
+			this.editor.makeRest();
 		}
 		else {
 			this.editor.setPitchCommand(this.buttonData.rightText);
@@ -7759,7 +8015,37 @@ class NoteButtons {
 }
 
 class ChordButtons {
-	
+	constructor(parameters) {
+		this.buttonElement = parameters.buttonElement;
+		this.buttonData = parameters.buttonData;
+		this.editor = parameters.editor;
+		this.tracker = parameters.tracker;
+		this.score=parameters.score;
+		this.interval=parseInt($(this.buttonElement).attr('data-interval'));
+		this.direction=parseInt($(this.buttonElement).attr('data-direction'));
+	}
+	static get direction() {
+		return {up:1,down:-1}
+	}
+	static get intervalButtonMap() {
+		
+	}
+	collapseChord() {
+		this.editor.collapseChord();
+	}
+	setInterval() {
+		this.editor.intervalAdd(this.interval,this.direction);
+	}
+	bind() {
+		var self = this;
+		$(this.buttonElement).off('click').on('click', function () {
+			if ($(self.buttonElement).attr('id')==='CollapseChordButton') {
+				self.collapseChord();
+				return;
+			}
+			self.setInterval();
+		});
+	}
 }
 
 class NavigationButtons {

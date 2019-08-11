@@ -1,13 +1,4 @@
 
-class RibbonHtml {
-	static ribbonButton(buttonId, buttonClass, buttonText, buttonIcon, buttonKey) {
-		var b = htmlHelpers.buildDom;
-		var r = b('div').append(b('button').attr('id', buttonId).classes(buttonClass).append(
-					b('span').classes('ribbon-button-text icon ' + buttonIcon).text(buttonText)).append(
-					b('span').classes('ribbon-button-hotkey').text(buttonKey)));
-		return r.dom();
-	}
-}
 
 // ## RibbonButtons
 // Render the ribbon buttons based on group, function, and underlying UI handler.
@@ -18,11 +9,19 @@ class RibbonButtons {
 	static get paramArray() {
 		return ['ribbonButtons', 'ribbons', 'editor', 'controller', 'tracker', 'menus'];
 	}
+	static ribbonButton(buttonId, buttonClass, buttonText, buttonIcon, buttonKey) {
+		var b = htmlHelpers.buildDom;
+		var r = b('div').classes('ribbonButtonContainer').append(b('button').attr('id', buttonId).classes(buttonClass).append(
+					b('span').classes('ribbon-button-text icon ' + buttonIcon).text(buttonText)).append(
+					b('span').classes('ribbon-button-hotkey').text(buttonKey)));
+		return r.dom();
+	}
 	constructor(parameters) {
 		smoMusic.filteredMerge(RibbonButtons.paramArray, parameters, this);
 		this.ribbonButtons = parameters.ribbonButtons;
 		this.ribbons = parameters.ribbons;
 		this.collapsables = [];
+		this.collapseChildren=[];
 	}
 	_executeButtonModal(buttonElement, buttonData) {
 		var ctor = eval(buttonData.ctor);
@@ -71,46 +70,55 @@ class RibbonButtons {
 			self._executeButton(buttonElement, buttonData);
 		});
 	}
+	_createButtonHtml(buttonAr,selector) {
+		buttonAr.forEach((buttonId) => {
+			var b = this.ribbonButtons.find((e) => {
+					return e.id === buttonId;
+				});
+			if (b) {
+				if (b.action === 'collapseChild') {
+					this.collapseChildren.push(b);
+				} else {
+
+				var buttonHtml = RibbonButtons.ribbonButton(b.id, b.classes, b.leftText, b.icon, b.rightText);
+				$(buttonHtml).attr('data-group', b.group);
+				if (b.dataElements) {
+					var bkeys = Object.keys(b.dataElements);
+					bkeys.forEach((bkey) => {
+						var de = b.dataElements[bkey];
+						$(buttonHtml).find('button').attr('data-'+bkey,de);
+					});
+				}
+				$(selector).append(buttonHtml);
+				var el = $(selector).find('#' + b.id);
+				this._bindButton(el, b);
+				if (b.action == 'collapseParent') {
+					$(buttonHtml).addClass('collapseContainer');
+					this._bindCollapsibleAction(el, b);
+				}
+			}
+			}
+		});
+		this.collapseChildren.forEach((b) => {
+			var buttonHtml = RibbonButtons.ribbonButton(b.id, b.classes, b.leftText, b.icon, b.rightText);
+			var parent = $(selector).find('.collapseContainer[data-group="'+b.group+'"]');
+			$(parent).append(buttonHtml);
+			var el = $(selector).find('#' + b.id);
+			this._bindButton(el, b);
+		});
+		this.collapsables.forEach((cb) => {
+			cb.bind();
+		});
+	}
 	display() {
 		$('body .controls-left').html('');
 		$('body .controls-top').html('');
 
 		var buttonAr = this.ribbons['left'];
-		buttonAr.forEach((buttonId) => {
-			var b = this.ribbonButtons.find((e) => {
-					return e.id === buttonId;
-				});
-			if (b) {
-				var buttonHtml = RibbonHtml.ribbonButton(b.id, b.classes, b.leftText, b.icon, b.rightText);
-				$(buttonHtml).attr('data-group', b.group);
-				$('body .controls-left').append(buttonHtml);
-				var el = $('body .controls-left').find('#' + b.id);
-				this._bindButton(el, b);
-				if (b.action == 'collapseParent') {
-					this._bindCollapsibleAction(el, b);
-				}
-			}
-		});
+		this._createButtonHtml(buttonAr,'body .controls-left');
 
 		buttonAr = this.ribbons['top'];
-		buttonAr.forEach((buttonId) => {
-			var b = this.ribbonButtons.find((e) => {
-					return e.id === buttonId;
-				});
-			if (b) {
-				var buttonHtml = RibbonHtml.ribbonButton(b.id, b.classes, b.leftText, b.icon, b.rightText);
-				$(buttonHtml).attr('data-group', b.group);
-				$('body .controls-top').append(buttonHtml);
-				var el = $('body .controls-top').find('#' + b.id);
-				this._bindButton(el, b);
-				if (b.action == 'collapseParent') {
-					this._bindCollapsibleAction(el, b);
-				}
-			}
-		});
-		this.collapsables.forEach((cb) => {
-			cb.bind();
-		});
+		this._createButtonHtml(buttonAr,'body .controls-top');
 	}
 }
 
@@ -133,6 +141,8 @@ class NoteButtons {
 			this.editor.toggleEnharmonic();
 		}else if (this.buttonData.id === 'ToggleCourtesy') {
 			this.editor.toggleCourtesyAccidental();
+		} else if (this.buttonData.id === 'ToggleRestButton') {
+			this.editor.makeRest();
 		}
 		else {
 			this.editor.setPitchCommand(this.buttonData.rightText);
@@ -147,7 +157,37 @@ class NoteButtons {
 }
 
 class ChordButtons {
-	
+	constructor(parameters) {
+		this.buttonElement = parameters.buttonElement;
+		this.buttonData = parameters.buttonData;
+		this.editor = parameters.editor;
+		this.tracker = parameters.tracker;
+		this.score=parameters.score;
+		this.interval=parseInt($(this.buttonElement).attr('data-interval'));
+		this.direction=parseInt($(this.buttonElement).attr('data-direction'));
+	}
+	static get direction() {
+		return {up:1,down:-1}
+	}
+	static get intervalButtonMap() {
+		
+	}
+	collapseChord() {
+		this.editor.collapseChord();
+	}
+	setInterval() {
+		this.editor.intervalAdd(this.interval,this.direction);
+	}
+	bind() {
+		var self = this;
+		$(this.buttonElement).off('click').on('click', function () {
+			if ($(self.buttonElement).attr('id')==='CollapseChordButton') {
+				self.collapseChord();
+				return;
+			}
+			self.setInterval();
+		});
+	}
 }
 
 class NavigationButtons {

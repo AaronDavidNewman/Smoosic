@@ -152,7 +152,7 @@ class suiSimpleLayout {
             var nextSelection = SmoSelection.measureSelection(this.score, startSelection.selector.staff, startSelection.selector.measure + 1);
 
             // If we go to new line, render this line part, then advance because the modifier is split
-            if (nextSelection && nextSelection.measure.lineIndex != startSelection.measure.lineIndex) {
+            if (nextSelection && nextSelection.measure && nextSelection.measure.lineIndex != startSelection.measure.lineIndex) {
                 this._renderModifiers(startSelection.staff, system);
                 var system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex);
             }

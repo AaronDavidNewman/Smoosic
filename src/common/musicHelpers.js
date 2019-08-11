@@ -153,6 +153,12 @@ class smoMusic {
 		});
 		return rv;
 	}
+	
+	static smoPitchToInt(pitch) {
+		var intVal=VF.Music.noteValues[
+		    smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch))].int_val;
+		return (pitch.octave-1)*8+intVal;
+	}
 
 	static vexKeySignatureTranspose(key, transposeIndex) {
 		var key = smoMusic.vexToSmoPitch(key);

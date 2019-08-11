@@ -32,7 +32,7 @@ h1 {
 	background-color: #fff;
 	background:transparent;
 	display:flex;
-	flex-direction:row;
+	flex-flow:row wrap;
 }
 
 .controls-left button,.controls-top button {
@@ -125,6 +125,24 @@ h1 {
 .controls-top button.selection-icon span.ribbon-button-text.icon:before {
 	font-size: 2.2em;
 }
+
+.controls-top button.addChord {
+	width:55px;
+}
+
+.controls-top button.addChord.dirdown {
+	width:70px;
+}
+
+#CreateChordButtons {
+	width:50px;	
+	font-size:1em;
+}
+#CreateChordButtons span.ribbon-button-text {
+	position:absolute;
+	left:30%;
+	top:30%;
+}
 #NavigationButtons {
 	width:55px;
 	font-size:1.7em;
@@ -176,7 +194,7 @@ h1 {
 .controls-top .collapseContainer .expandedChildren {
 	font-size: 1.2em;
 	height: 55px;
-	top: -5px;
+	top: -15px;
 }
 
 .controls-left .collapseContainer .expandedChildren {

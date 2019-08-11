@@ -281,6 +281,7 @@ class SmoOperation {
 		var pitch = smoMusic.getIntervalInKey(pitch, measure.keySignature, interval);
 		if (pitch) {
 			note.pitches.push(pitch);
+			note.pitches.sort((x,y) => {return smoMusic.smoPitchToInt(x) - smoMusic.smoPitchToInt(y); });
 			return true;
 		}
 		return false;
