@@ -82,13 +82,7 @@ class RibbonButtons {
 
 				var buttonHtml = RibbonButtons.ribbonButton(b.id, b.classes, b.leftText, b.icon, b.rightText);
 				$(buttonHtml).attr('data-group', b.group);
-				if (b.dataElements) {
-					var bkeys = Object.keys(b.dataElements);
-					bkeys.forEach((bkey) => {
-						var de = b.dataElements[bkey];
-						$(buttonHtml).find('button').attr('data-'+bkey,de);
-					});
-				}
+				
 				$(selector).append(buttonHtml);
 				var el = $(selector).find('#' + b.id);
 				this._bindButton(el, b);
@@ -101,6 +95,13 @@ class RibbonButtons {
 		});
 		this.collapseChildren.forEach((b) => {
 			var buttonHtml = RibbonButtons.ribbonButton(b.id, b.classes, b.leftText, b.icon, b.rightText);
+			if (b.dataElements) {
+				var bkeys = Object.keys(b.dataElements);
+				bkeys.forEach((bkey) => {
+					var de = b.dataElements[bkey];
+					$(buttonHtml).find('button').attr('data-'+bkey,de);
+				});
+			}
 			var parent = $(selector).find('.collapseContainer[data-group="'+b.group+'"]');
 			$(parent).append(buttonHtml);
 			var el = $(selector).find('#' + b.id);

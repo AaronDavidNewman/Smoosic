@@ -153,11 +153,135 @@ class smoMusic {
 		});
 		return rv;
 	}
-	
+
+	static get scaleIntervals() {
+		return {
+			up: [2, 2, 1, 2, 2, 2, 1],
+			down: [1, 2, 2, 2, 1, 2, 2]
+		};
+	}
+
+	// ### smoScalePitchMatch
+	// return true if the pitches match, but maybe not in same octave
+	static smoScalePitchMatch(p1, p2) {
+		var pp1 = JSON.parse(JSON.stringify(p1));
+		var pp2 = JSON.parse(JSON.stringify(p2));
+		pp1.octave = 0;
+		pp2.octave = 0;
+
+		return smoMusic.smoPitchToInt(pp1) == smoMusic.smoPitchToInt(pp2);
+	}
+
 	static smoPitchToInt(pitch) {
-		var intVal=VF.Music.noteValues[
-		    smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch))].int_val;
-		return (pitch.octave-1)*8+intVal;
+		var intVal = VF.Music.noteValues[
+				smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch))].int_val;
+		return pitch.octave * 12 + intVal;
+	}
+
+	static smoIntToPitch(intValue) {
+		var letterInt = intValue % 12;
+		var noteKey = Object.keys(VF.Music.noteValues).find((key) => {
+				return VF.Music.noteValues[key].int_val === letterInt;
+			});
+		var octave = Math.floor(intValue / 12);
+		return {
+			letter: noteKey[0],
+			accidental: noteKey.substring(1, noteKey.length),
+			octave: octave
+		};
+	}
+
+	// ### get enharmonics
+	// return a map of enharmonics for choosing or cycling.  notes are in vexKey form.
+	static get enharmonics() {
+		var rv = {};
+		var keys = Object.keys(VF.Music.noteValues);
+		for (var i = 0; i < keys.length; ++i) {
+			var key = keys[i];
+			var int_val = VF.Music.noteValues[key].int_val;
+			if (typeof(rv[int_val.toString()]) == 'undefined') {
+				rv[int_val.toString()] = [];
+			}
+			// only consider natural note 1 time.  It is in the list twice for some reason.
+			if (key.indexOf('n') == -1) {
+				rv[int_val.toString()].push(key);
+			}
+		}
+		return rv;
+	}
+
+	static getEnharmonics(vexKey) {
+		var proto = smoMusic.stripVexOctave(vexKey);
+		var rv = [];
+		var ne = smoMusic.getEnharmonic(vexKey);
+		rv.push(proto);
+		while (ne != proto) {
+			rv.push(ne);
+			ne = smoMusic.getEnharmonic(ne);
+		}
+		return rv;
+	}
+	static closestTonic(smoPitch, vexKey, direction) {
+		direction = Math.sign(direction) < 0 ? -1 : 1;
+		var tonic = smoMusic.vexToSmoPitch(vexKey);
+		tonic.octave=smoPitch.octave;
+		var iix = smoMusic.smoPitchToInt(smoPitch);
+		var smint=smoMusic.smoPitchToInt(tonic);
+		if (Math.sign(smint - iix) != direction) {
+			tonic.octave += direction
+		}
+		return tonic;
+	}
+
+	static getEnharmonicInKey(smoPitch, keySignature) {
+		var ar = smoMusic.getEnharmonics(smoMusic.pitchToVexKey(smoPitch));
+		var rv = smoMusic.stripVexOctave(smoMusic.pitchToVexKey(smoPitch));
+		var scaleMap = new VF.Music().createScaleMap(keySignature);
+		ar.forEach((vexKey) => {
+			if (vexKey.length === 1) {
+				vexKey += 'n';
+			}
+			if (vexKey === scaleMap[vexKey[0]]) {
+				rv = vexKey;
+			}
+		});
+		var smoRv = smoMusic.vexToSmoPitch(rv);
+		smoRv.octave = smoPitch.octave;
+		var rvi = smoMusic.smoPitchToInt(smoRv);
+		var ori = smoMusic.smoPitchToInt(smoPitch);
+		// handle the case of c0 < b0, pitch-wise
+		smoRv.octave += Math.sign(ori - rvi);
+		return smoRv;
+	}
+	
+	// ### getIntervalInKey
+	// give a pitch and a key signature, return another pitch at the given
+	// diatonic interval.  Similar to getKeyOffset but diatonic.
+	static getIntervalInKey(pitch, keySignature, interval) {
+		if (interval === 0)
+			return JSON.parse(JSON.stringify(pitch));
+
+		var delta = interval > 0 ? 1 : -1;
+		var inv = -1 * delta;
+		var tonic = smoMusic.closestTonic(pitch, keySignature, inv);
+		var intervals = delta > 0 ? smoMusic.scaleIntervals.up : smoMusic.scaleIntervals.down;
+		var pitchInt = smoMusic.smoPitchToInt(pitch);
+		var scaleIx = 0;
+		var diatonicIx=0;
+
+		var nkey = tonic;
+		var nkeyInt = smoMusic.smoPitchToInt(nkey);
+		while (Math.sign(nkeyInt - pitchInt) != delta && Math.sign(nkeyInt - pitchInt) != 0) {
+			nkey = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(nkey) + delta * intervals[scaleIx]);
+			scaleIx = (scaleIx + 1) % 7;
+			nkeyInt = smoMusic.smoPitchToInt(nkey);
+		}
+		while (diatonicIx != interval) {
+			nkey = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(nkey) + delta * intervals[scaleIx]);
+			scaleIx = (scaleIx + 1) % 7;
+			diatonicIx += delta;
+		}
+		return smoMusic.getEnharmonicInKey(nkey,keySignature);
 	}
 
 	static vexKeySignatureTranspose(key, transposeIndex) {
@@ -185,19 +309,19 @@ class smoMusic {
 			'b': 6
 		};
 	}
-	
+
 	// ### letterChangedOctave
-	// Indicate if a change from letter note 'one' to 'two' needs us to adjust the 
+	// Indicate if a change from letter note 'one' to 'two' needs us to adjust the
 	// octave due to the `smoMusic.letterPitchIndex` (b0 is higher than c0)
-	static letterChangedOctave(one,two) {
-		var p1=smoMusic.letterPitchIndex[one];
-		var p2=smoMusic.letterPitchIndex[two];
-		if (p1 < p2 && p2-p1 > 2)
+	static letterChangedOctave(one, two) {
+		var p1 = smoMusic.letterPitchIndex[one];
+		var p2 = smoMusic.letterPitchIndex[two];
+		if (p1 < p2 && p2 - p1 > 2)
 			return -1;
-		if (p1 > p2 && p1-p2 > 2)
+		if (p1 > p2 && p1 - p2 > 2)
 			return 1;
 		return 0;
-		
+
 	}
 
 	// ### vexToSmoPitch
@@ -251,7 +375,7 @@ class smoMusic {
 		var index = (rootIndex + canon.length + offset) % canon.length;
 		var octave = pitch.octave;
 		if (Math.abs(offset) >= 12) {
-			var octaveOffset = Math.sign(offset) * Math.round(Math.abs(offset) / 12);
+			var octaveOffset = Math.sign(offset) * Math.floor(Math.abs(offset) / 12);
 			octave += octaveOffset;
 			offset = offset % 12;
 		}
@@ -397,24 +521,6 @@ class smoMusic {
 		}
 	}
 
-	// ### get enharmonics
-	// return a map of enharmonics for choosing or cycling.  notes are in vexKey form.
-	static get enharmonics() {
-		var rv = {};
-		var keys = Object.keys(VF.Music.noteValues);
-		for (var i = 0; i < keys.length; ++i) {
-			var key = keys[i];
-			var int_val = VF.Music.noteValues[key].int_val;
-			if (typeof(rv[int_val.toString()]) == 'undefined') {
-				rv[int_val.toString()] = [];
-			}
-			// only consider natural note 1 time.  It is in the list twice for some reason.
-			if (key.indexOf('n') == -1) {
-				rv[int_val.toString()].push(key);
-			}
-		}
-		return rv;
-	}
 
 	// ### getEnharmonic(noteProp)
 	// cycle through the enharmonics for a note.
@@ -424,7 +530,7 @@ class smoMusic {
 		var ar = smoMusic.enharmonics[intVal.toString()];
 		var len = ar.length;
 		// 'n' for natural in key but not in value
-		vexKey = vexKey.length>1 && vexKey[1] ==='n' ? vexKey[0] : vexKey;
+		vexKey = vexKey.length > 1 && vexKey[1] === 'n' ? vexKey[0] : vexKey;
 		var ix = ar.indexOf(vexKey);
 		vexKey = ar[(ix + 1) % len];
 		return vexKey;
@@ -452,35 +558,6 @@ class smoMusic {
 		return rv;
 	}
 
-	// ### getIntervalInKey
-	// give a pitch and a key signature, return another pitch at the given
-	// diatonic interval.  Similar to getKeyOffset but diatonic.
-	static getIntervalInKey(pitch, keySignature, interval) {
-		var muse = new VF.Music();
-		var letter = pitch.letter;
-		var scale = Object.values(muse.createScaleMap(keySignature));
-
-		var up = interval > 0 ? true : false;
-		var interval = interval < 0 ? scale.length - (interval * -1) : interval;
-
-		var ix = scale.findIndex((x) => {
-				return x[0] == letter[0];
-			});
-		if (ix >= 0) {
-			var nletter = scale[(ix + interval) % scale.length];
-			var nkey = {
-				letter: nletter[0],
-				accidental: nletter[1],
-				octave: pitch.octave
-			};
-			if (up) {
-				nkey.octave += 1;
-			}
-			return nkey;
-		}
-		return letter;
-	}
-
 	// ### filteredMerge
 	// Like vexMerge, but only for specific attributes.
 	static filteredMerge(attrs, src, dest) {
@@ -496,14 +573,13 @@ class smoMusic {
 		attrs.forEach(function (attr) {
 			if (typeof(src[attr]) != 'undefined') {
 				// copy the number 0
-				if (typeof(src[attr]) === 'number' || 
-				    typeof(src[attr]) === 'boolean') {
+				if (typeof(src[attr]) === 'number' ||
+					typeof(src[attr]) === 'boolean') {
 					dest[attr] = src[attr];
 					// copy the empty array
 				} else if (Array.isArray(src[attr])) {
-					dest[attr]=JSON.parse(JSON.stringify(src[attr]));
-				}
-				else {
+					dest[attr] = JSON.parse(JSON.stringify(src[attr]));
+				} else {
 					// but don't copy empty/null objects
 					if (src[attr]) {
 						if (typeof(src[attr]) == 'object') {
