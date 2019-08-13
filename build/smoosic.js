@@ -5142,7 +5142,7 @@ class suiTracker {
 				 === JSON.stringify(artifact.selector))) {
 			return;
 		}
-		if (selector.pitches && selector.pitches.length) {
+		if (selector.pitches && selector.pitches.length && selector.pitches.length <= artifact.note.pitches.length) {
 			// If the old selection had only a single pitch, try to recreate that.
 			artifact.selector.pitches = JSON.parse(JSON.stringify(selector.pitches));
 		}
