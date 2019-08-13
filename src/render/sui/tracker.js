@@ -511,6 +511,9 @@ class suiTracker {
 		this.eraseAllSelections();
 		var noteDiv = $(this.renderElement).find('#' + note.renderId);
 		var heads = noteDiv.find('.vf-notehead');
+		if (!heads.length) {
+			return;
+		}
 		var headEl = heads[index];
 		var box = headEl.getBoundingClientRect();
 		this._drawRect(box, 'staffModifier');

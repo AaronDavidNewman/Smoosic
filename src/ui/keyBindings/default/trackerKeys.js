@@ -69,15 +69,15 @@ class defaultTrackerKeys {
 				event: "keydown",
 				key: "ArrowUp",
 				ctrlKey: false,
-				altKey: true,
-				shiftKey: false,
+				altKey: false,
+				shiftKey: true,
 				action: "moveSelectionPitchUp"
 			},{
 				event: "keydown",
 				key: "ArrowDown",
 				ctrlKey: false,
-				altKey: true,
-				shiftKey: false,
+				altKey: false,
+				shiftKey: true,
 				action: "moveSelectionPitchDown"
 			}
 			];
