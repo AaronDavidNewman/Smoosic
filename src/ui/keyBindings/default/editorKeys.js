@@ -208,6 +208,13 @@ class defaultEditorKeys {
 				action: "interval"
 			}, {
 				event: "keydown",
+				key: "$",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "interval"
+			}, {
+				event: "keydown",
 				key: "#",
 				ctrlKey: false,
 				altKey: false,

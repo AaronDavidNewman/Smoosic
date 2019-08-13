@@ -215,7 +215,7 @@ class smoMusic {
 		var rv = [];
 		var ne = smoMusic.getEnharmonic(vexKey);
 		rv.push(proto);
-		while (ne != proto) {
+		while (ne[0] != proto[0]) {
 			rv.push(ne);
 			ne = smoMusic.getEnharmonic(ne);
 		}
