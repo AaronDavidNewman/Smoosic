@@ -5531,6 +5531,9 @@ class suiTracker {
 		this.eraseAllSelections();
 		var noteDiv = $(this.renderElement).find('#' + note.renderId);
 		var heads = noteDiv.find('.vf-notehead');
+		if (!heads.length) {
+			return;
+		}
 		var headEl = heads[index];
 		var box = headEl.getBoundingClientRect();
 		this._drawRect(box, 'staffModifier');
@@ -7289,15 +7292,15 @@ class defaultTrackerKeys {
 				event: "keydown",
 				key: "ArrowUp",
 				ctrlKey: false,
-				altKey: true,
-				shiftKey: false,
+				altKey: false,
+				shiftKey: true,
 				action: "moveSelectionPitchUp"
 			},{
 				event: "keydown",
 				key: "ArrowDown",
 				ctrlKey: false,
-				altKey: true,
-				shiftKey: false,
+				altKey: false,
+				shiftKey: true,
 				action: "moveSelectionPitchDown"
 			}
 			];
