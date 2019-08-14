@@ -32,6 +32,14 @@ class StaffTest {
                 });
             return promise;
         }
+		
+		var dumpGeometry = () => {
+            const promise = new Promise((resolve, reject) => {
+                    keys.layout.dumpGeometry();
+                        resolve();
+                });
+            return promise;
+		}
 
         var signalComplete = () => {
 			detach();
@@ -41,20 +49,18 @@ class StaffTest {
         var drawDefaults = () => {
             // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
             // measure.applyModifiers();
-            keys.render();
-            return timeTest();
+            return keys.render().then(timeTest);
         }
 		
 		
 		var bassClefTest = () => {
-			SmoOperation.addInstrument(score,{
+			SmoOperation.addStaff(score,{
 				instrumentInfo: {
                 instrumentName: 'Bass Instrument',
                 keyOffset: 0,
                 clef: 'bass'
             }});
-			keys.render();
-			return timeTest();
+            return keys.render().then(timeTest);
 		}
 		
 		var clefChangeTest = () => {
@@ -67,85 +73,76 @@ class StaffTest {
 			var sel2=SmoSelection.measureSelection(score,1,2);
 			keys.layout.unrenderAll();
 			SmoOperation.changeInstrument(score,instrument,[sel1,sel2]);
-			keys.layout.render();
-			return timeTest();
+			return keys.layout.render().then(timeTest);
 		}
 		var bassRenderTest = () => {
 			var note = SmoSelection.pitchSelection(score,1,0,0,2);
 			SmoOperation.transpose(note,3);
-			keys.render();
-			return timeTest();
+            return keys.render().then(timeTest);
 		}
 		
 		var bassDurationTest = () => {
 			var note = SmoSelection.noteSelection(score,1,0,0,1);
 			SmoOperation.makeTuplet(note,3);
-			keys.render();
-			return timeTest();
+            return keys.render().then(timeTest);
 		}
 		
 		var tenorClefTest = () => {
 			keys.layout.unrenderAll();
-			SmoOperation.removeInstrument(score,1);
-			SmoOperation.addInstrument(score, {
+			SmoOperation.removeStaff(score,1);
+			SmoOperation.addStaff(score, {
 				instrumentInfo: {
                 instrumentName: 'Cello',
                 keyOffset: 0,
                 clef: 'tenor'
 			}});
-			keys.render();
-			return timeTest();
+            return keys.render().then(timeTest);
 		}
 		
 		var altoClefTest = () => {
-			SmoOperation.addInstrument(score, {
+			SmoOperation.addStaff(score, {
 				instrumentInfo: {
                 instrumentName: 'Viola',
                 keyOffset: 0,
                 clef: 'alto'
 			}});
-			keys.render();
-			return timeTest();
+            return keys.render().then(timeTest);
 		}
 		
 		var baritoneClefTest = () => {
 			keys.layout.unrenderAll();
-			SmoOperation.removeInstrument(score,1);
-			SmoOperation.addInstrument(score, {
+			SmoOperation.removeStaff(score,1);
+			SmoOperation.addStaff(score, {
 				instrumentInfo: {
                 instrumentName: 'Baritone',
                 keyOffset: 0,
                 clef: 'baritone-c'
 			}});
-			keys.render();
-			return timeTest();
+            return keys.render().then(timeTest);
 		}
 		
 		var baritoneClefTest2 = () => {
 			keys.layout.unrenderAll();
-			SmoOperation.removeInstrument(score,1);
-			SmoOperation.addInstrument(score, {
+			SmoOperation.removeStaff(score,1);
+			SmoOperation.addStaff(score, {
 				instrumentInfo: {
                 instrumentName: 'Baritone',
                 keyOffset: 0,
                 clef: 'baritone-f'
 			}});
-			keys.render();
-			return timeTest();
+            return keys.render().then(timeTest);
 		}
 		
 		var trumpetClefTest = () => {
 			keys.layout.unrenderAll();
-			SmoOperation.removeInstrument(score,1);
-			SmoOperation.addInstrument(score, {
+			SmoOperation.removeStaff(score,1);
+			SmoOperation.addStaff(score, {
 				instrumentInfo: {
                 instrumentName: 'Trumpet',
                 keyOffset: 2,
                 clef: 'treble'
 			}});
-			keys.render();
-			keys.layout.dumpGeometry();
-			return timeTest();	
+			return keys.render().then(dumpGeometry).then(timeTest);
 		}
       
         return drawDefaults().then(bassClefTest).then(clefChangeTest).then(bassRenderTest).then(bassDurationTest).then(tenorClefTest)

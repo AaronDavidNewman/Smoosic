@@ -13,6 +13,7 @@ class suiController {
 		this.pasteBuffer = this.tracker.pasteBuffer;
 		this.editor.undoBuffer = this.undoBuffer;
 		this.editor.pasteBuffer = this.pasteBuffer;
+		this.resizing=false;
 
 		this.ribbon = new RibbonButtons({
 				ribbons: defaultRibbonLayout.ribbons,
@@ -21,10 +22,28 @@ class suiController {
 				editor: this.editor,
 				tracker: this.tracker,
 				score: this.score,
-				controller:this
-		});
-		
+				controller: this
+			});
+
 		this.bindEvents();
+		this.bindResize();
+	}
+
+	bindResize() {
+		var self = this;
+		var remap = function () {
+			return self.tracker.updateMap();
+		}
+		window.addEventListener('resize', function () {
+			if (this.resizing)
+				return;
+			setTimeout(function () {
+				console.log('resizing');
+				self.resizing = false;
+				self.layout.setViewport();
+				self.layout.render().then(remap);
+			}, 500);
+		});
 	}
 
 	// ## createUi
@@ -39,6 +58,23 @@ class suiController {
 		params.menus = new suiMenuManager(params);
 		var controller = new suiController(params);
 		return controller;
+	}
+
+	static start() {
+		var score = SmoScore.getEmptyScore();
+		score.addDefaultMeasureWithNotes(0, {});
+		score.addDefaultMeasureWithNotes(1, {});
+		score.addDefaultMeasureWithNotes(2, {});
+		score.addDefaultMeasureWithNotes(3, {});
+		score.addDefaultMeasureWithNotes(4, {});
+		score.addStaff();
+
+		var controller = suiController.createUi(document.getElementById("boo"), score);
+		var remap = function () {
+			return controller.tracker.updateMap();
+		}
+		controller.layout.render().then(remap);
+
 	}
 
 	// ### renderElement
@@ -158,7 +194,11 @@ class suiController {
 	}
 
 	render() {
-		this.layout.render();
+		var controller = this;
+		var remap = function () {
+			return controller.tracker.updateMap();
+		}
+		this.layout.render().then(remap)
 	}
 
 	bindEvents() {

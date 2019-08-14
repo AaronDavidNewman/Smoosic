@@ -15,7 +15,6 @@
 class suiTracker {
 	constructor(layout) {
 		this.layout = layout;
-		this.layout.setNotifier(this);
 		this.groupObjectMap = {};
 		this.objectGroupMap = {};
 		this.objects = [];
@@ -130,10 +129,6 @@ class suiTracker {
 		this.selections.push(artifact);
 	}
 	
-	notifyRedraw() {
-		this._updateMap();
-	}
-
 	// ### updateMap
 	// This should be called after rendering the score.  It updates the score to
 	// graphics map and selects the first object.
@@ -164,6 +159,14 @@ class suiTracker {
 		this.highlightSelection();
 		this.pasteBuffer.clearSelections();
 		this.pasteBuffer.setSelections(this.score, this.selections);
+	}
+	
+	updateMap() {
+		const promise = new Promise((resolve, reject) => {
+             this._updateMap();
+			 resolve();
+                });
+            return promise;
 	}
 
 	static stringifyBox(box) {

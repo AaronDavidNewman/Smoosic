@@ -40,8 +40,7 @@ class TimeSignatureTest {
 
         var drawDefaults = () => {
             // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
-            layout.render();
-            return timeTest();
+            return layout.render().then(timeTest);
         }
 
         var stretchTest = () => {
@@ -57,16 +56,14 @@ class TimeSignatureTest {
             newTicks:6144
             });
             SmoTickTransformer.applyTransform(measure,actor);   */
-            layout.render();
-            return timeTest();
+            return layout.render().then(timeTest);
         }
 
         var breakBeamTest = () => {
             subTitle('break beam');
             var selection = SmoSelection.noteSelection(score, 0, 0, 0, 0);
             SmoOperation.toggleBeamGroup(selection);
-            layout.render();
-            return timeTest();
+            return layout.render().then(timeTest);
         }
 		
         var breakBeamTest2 = () => {
@@ -75,16 +72,14 @@ class TimeSignatureTest {
             SmoOperation.toggleBeamGroup(selection);
 			selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
 			SmoOperation.toggleBeamGroup(selection);
-            layout.render();
-            return timeTest();
+            return layout.render().then(timeTest);
         }
 		
 		var unbreakBeamTest = () => {
             subTitle('unbreak beam');
             var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
             SmoOperation.toggleBeamGroup(selection);
-            layout.render();
-            return timeTest();
+            return layout.render().then(timeTest);
         }
 
         var contractTest = () => {
@@ -98,8 +93,7 @@ class TimeSignatureTest {
             newTicks:6144/3
             });
             SmoTickTransformer.applyTransform(measure,actor);  */
-            layout.render();
-            return timeTest();
+            return layout.render().then(timeTest);
         }
 
         var makeDupletTest = () => {
@@ -119,8 +113,7 @@ class TimeSignatureTest {
             measure: measure
             });
             SmoTickTransformer.applyTransform(measure,actor);  */
-            layout.render();
-            return timeTest();
+            return layout.render().then(timeTest);
         }
 
         return drawDefaults().then(breakBeamTest).then(breakBeamTest2).then(unbreakBeamTest)

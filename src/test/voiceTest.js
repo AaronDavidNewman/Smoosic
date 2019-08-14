@@ -45,9 +45,7 @@ class VoiceTest {
 			// measure.applyModifiers();
 			subTitle('notes in 2 voices');
 
-			layout.render();
-			console.log(JSON.stringify(score, null, ' '));
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 		var accidentalTest = () => {
 			var target = SmoSelection.pitchSelection(score, 0, 0, 0, 1, [0]);
@@ -56,22 +54,17 @@ class VoiceTest {
 			/* if (target) {
 			target.note.transpose([0],-1);
 			}  */
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 
 		var serializeTest = () => {
 			subTitle('serialize test');
 			layout.unrenderAll();
 			$('#boo').html('');
-			score = SmoScore.deserialize(JSON.stringify(serializeTestJson.tupletMeasure));
+			score = SmoScore.deserialize(JSON.stringify(score.serialize()));
 			keys.detach();
 			keys = utController.createUi(document.getElementById("boo"), score);
-			keys.layout.render();
-		}
-		var serialize = () => {
-			console.log(JSON.stringify(score, null, ' '));
-			return timeTest();
+			return keys.layout.render().then(timeTest);
 		}
 
 		return drawDefaults().then(accidentalTest).then(serializeTest).then(signalComplete);

@@ -36,8 +36,7 @@ class ChordTest {
 		var drawDefaults = () => {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
 			// measure.applyModifiers();
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 		
 		var preBeamTest = () => {
@@ -47,15 +46,13 @@ class ChordTest {
 			SmoOperation.halveDuration(selection);
 			selection = SmoSelection.noteSelection(score, 0, 0, 0, 3);
 			SmoOperation.halveDuration(selection);
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 		
 		var breakBeamTest = () => {
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
 			SmoOperation.toggleBeamGroup(selection);
-			layout.render();
-			return timeTest();			
+			return layout.render().then(timeTest);
 		}
 		
 		var undoBeamTest = () => {
@@ -63,8 +60,7 @@ class ChordTest {
 			SmoOperation.doubleDuration(selection);
 			selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
 			SmoOperation.doubleDuration(selection);
-			layout.render();
-			return timeTest();			
+			return layout.render().then(timeTest);
 		}
 		
 		var accidentalTest = () => {
@@ -77,8 +73,7 @@ class ChordTest {
 					yOffsetLine: 11,
 					fontSize: 38
 				}));
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 
 		var crescendoTest = () => {
@@ -86,8 +81,7 @@ class ChordTest {
 			var ft = SmoSelection.noteSelection(layout.score, 0, 0, 0, 0);
 			var tt = SmoSelection.noteSelection(layout.score, 0, 0, 0, 3);
 			SmoOperation.crescendo(ft, tt);
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 
 		var intervalTest = () => {
@@ -96,29 +90,25 @@ class ChordTest {
 			if (selection) {
 				SmoOperation.interval(selection, 4);
 			}
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 
 		var durationTest = () => {
 			subTitle('duration reduce test');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
 			SmoOperation.halveDuration(selection);
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 
 		var durationTest2 = () => {
 			subTitle('duration increase test');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
 			SmoOperation.doubleDuration(selection);
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 
 		var rerenderTest = () => {
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 		var setPitchTest = () => {
 			subTitle('set pitch test');
@@ -134,8 +124,7 @@ class ChordTest {
 						accidental: ''
 					}
 				]);
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 
 		var makeTupletTest = () => {
@@ -151,10 +140,9 @@ class ChordTest {
 			measure: measure
 			});
 			SmoTickTransformer.applyTransform(measure, actor);   */
-			layout.render();
 			console.log('tuplet serialize');
 			console.log(JSON.stringify(measure, null, ' '));
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 
 		var unmakeTupletTest = () => {
@@ -167,8 +155,7 @@ class ChordTest {
 			measure: measure
 			});
 			SmoTickTransformer.applyTransform(measure, actor);  */
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 
 		var courtesyTest = () => {
@@ -176,8 +163,7 @@ class ChordTest {
 			var target = SmoSelection.pitchSelection(score, 0, 0, 0, 2, [1]);
 			SmoOperation.courtesyAccidental(target, true);
 			// target.note.pitches[1].cautionary = true;
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 		
 		var enharmonicTest1 = () => {
@@ -185,16 +171,14 @@ class ChordTest {
 			var target = SmoSelection.pitchSelection(score, 0, 0, 0, 2, [1]);
 			SmoOperation.toggleEnharmonic(target);
 			// target.note.pitches[1].cautionary = true;
-			layout.render();
-			return timeTest();			
+			return layout.render().then(timeTest);
 		}
 		var enharmonicTest2 = () => {
 			subTitle('courtesy accidental test');
 			var target = SmoSelection.pitchSelection(score, 0, 0, 0, 2, [1]);
 			SmoOperation.toggleEnharmonic(target);
 			// target.note.pitches[1].cautionary = true;
-			layout.render();
-			return timeTest();			
+			return layout.render().then(timeTest);
 		}
 
 		var accentTest = () => {
@@ -204,8 +188,7 @@ class ChordTest {
 					articulation: SmoArticulation.articulations.accent,
 					position: SmoArticulation.positions.above
 				}));
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 
 		var accentTest2 = () => {
@@ -215,8 +198,7 @@ class ChordTest {
 					articulation: SmoArticulation.articulations.tenuto,
 					position: SmoArticulation.positions.above
 				}));
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 		var accentTestBelow = () => {
 			subTitle('accent  test below');
@@ -233,8 +215,7 @@ class ChordTest {
 					articulation: SmoArticulation.articulations.accent,
 					position: SmoArticulation.positions.below
 				}));
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 
 		var staccatoTest = () => {
@@ -247,8 +228,7 @@ class ChordTest {
 					articulation: SmoArticulation.articulations.staccato,
 					position: SmoArticulation.positions.above
 				}));
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 
 		var marcatoTest = () => {
@@ -262,8 +242,7 @@ class ChordTest {
 					articulation: SmoArticulation.articulations.marcato,
 					position: SmoArticulation.positions.above
 				}));
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 
 		var upStrokeTest = () => {
@@ -277,8 +256,7 @@ class ChordTest {
 					articulation: SmoArticulation.articulations.upStroke,
 					position: SmoArticulation.positions.above
 				}));
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 
 		var downStrokeTest = () => {
@@ -292,8 +270,7 @@ class ChordTest {
 					articulation: SmoArticulation.articulations.downStroke,
 					position: SmoArticulation.positions.above
 				}));
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 		var pizzicatoTest = () => {
 			subTitle('pizzicato test');
@@ -306,8 +283,7 @@ class ChordTest {
 					articulation: SmoArticulation.articulations.pizzicato,
 					position: SmoArticulation.positions.above
 				}));
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 		var fermataTest = () => {
 			subTitle('fermata test');
@@ -320,8 +296,7 @@ class ChordTest {
 					articulation: SmoArticulation.articulations.fermata,
 					position: SmoArticulation.positions.above
 				}));
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 
 		return drawDefaults().then(preBeamTest).then(breakBeamTest).then(undoBeamTest)
@@ -381,8 +356,7 @@ class UndoTest {
 		var drawDefaults = () => {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
 			// measure.applyModifiers();
-			keys.render();
-			return timeTest();
+			return keys.render().then(timeTest);
 		}
 
 		var changePitch = () => {
@@ -401,8 +375,7 @@ class UndoTest {
 			}
 			];
 			}   */
-			keys.render();
-			return timeTest();
+			return keys.render().then(timeTest);
 		}
 		var undoTest = () => {
 			var buf = undo.peek();
@@ -420,8 +393,7 @@ class UndoTest {
 			}, undo);
 
 			SmoUndoable.makeRest(SmoSelection.noteSelection(score, 0, 1, 0, 2), undo);
-			keys.render();
-			return timeTest();
+			return keys.render().then(timeTest);
 		}
 		var keySigTest = () => {
 			subTitle('key sig to A');
@@ -430,22 +402,19 @@ class UndoTest {
 			// score.addKeySignature(1,'A');
 			var selection = SmoSelection.noteSelection(score, 0, 1, 0, 2);
 			SmoUndoable.makeNote(selection, undo);
-			keys.render();
-			return timeTest();
+			return keys.render().then(timeTest);
 		}
 		var crescendoTest = () => {
 			var ft = SmoSelection.noteSelection(layout.score, 0, 0, 0, 0);
 			var tt = SmoSelection.noteSelection(layout.score, 0, 0, 0, 3);
 			SmoUndoable.crescendo(ft, tt, undo);
-			layout.render();
-			return timeTest();
+			return keys.render().then(timeTest);
 		}
 		var keySigTest2 = () => {
 			subTitle('key sig to Bb');
 			var selection = SmoSelection.measureSelection(score, 0, 2);
 			SmoUndoable.addKeySignature(score, selection, 'Bb', undo);
-			keys.render();
-			return timeTest();
+			return keys.render().then(timeTest);
 		}
 
 		var addStaff = () => {
@@ -458,8 +427,7 @@ class UndoTest {
 				}
 			},
 				undo);
-			keys.layout.render();
-			return timeTest();
+			return keys.render().then(timeTest);
 		}
 		var keySigTest3 = () => {
 			subTitle('key sig change to f#');
@@ -467,8 +435,7 @@ class UndoTest {
 			SmoUndoable.addKeySignature(score, selection, 'C#', undo);
 			selection = SmoSelection.measureSelection(score, 0, 2);
 			SmoUndoable.addKeySignature(score, selection, 'Cb', undo);
-			keys.render();
-			return timeTest();
+			return keys.render().then(timeTest);
 		}
 		return drawDefaults().then(changePitch).then(crescendoTest).then(changePitch2)
 		.then(keySigTest).then(keySigTest2).then(addStaff)
@@ -519,8 +486,7 @@ class TimeSignatureTest {
 
         var drawDefaults = () => {
             // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
-            layout.render();
-            return timeTest();
+            return layout.render().then(timeTest);
         }
 
         var stretchTest = () => {
@@ -536,16 +502,14 @@ class TimeSignatureTest {
             newTicks:6144
             });
             SmoTickTransformer.applyTransform(measure,actor);   */
-            layout.render();
-            return timeTest();
+            return layout.render().then(timeTest);
         }
 
         var breakBeamTest = () => {
             subTitle('break beam');
             var selection = SmoSelection.noteSelection(score, 0, 0, 0, 0);
             SmoOperation.toggleBeamGroup(selection);
-            layout.render();
-            return timeTest();
+            return layout.render().then(timeTest);
         }
 		
         var breakBeamTest2 = () => {
@@ -554,16 +518,14 @@ class TimeSignatureTest {
             SmoOperation.toggleBeamGroup(selection);
 			selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
 			SmoOperation.toggleBeamGroup(selection);
-            layout.render();
-            return timeTest();
+            return layout.render().then(timeTest);
         }
 		
 		var unbreakBeamTest = () => {
             subTitle('unbreak beam');
             var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
             SmoOperation.toggleBeamGroup(selection);
-            layout.render();
-            return timeTest();
+            return layout.render().then(timeTest);
         }
 
         var contractTest = () => {
@@ -577,8 +539,7 @@ class TimeSignatureTest {
             newTicks:6144/3
             });
             SmoTickTransformer.applyTransform(measure,actor);  */
-            layout.render();
-            return timeTest();
+            return layout.render().then(timeTest);
         }
 
         var makeDupletTest = () => {
@@ -598,8 +559,7 @@ class TimeSignatureTest {
             measure: measure
             });
             SmoTickTransformer.applyTransform(measure,actor);  */
-            layout.render();
-            return timeTest();
+            return layout.render().then(timeTest);
         }
 
         return drawDefaults().then(breakBeamTest).then(breakBeamTest2).then(unbreakBeamTest)
@@ -655,8 +615,7 @@ class KeySignatureTest {
 		var drawDefaults = () => {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
 			// measure.applyModifiers();
-			keys.render();
-			return timeTest();
+			return keys.render().then(timeTest);
 		}
 
 		var changePitch = () => {
@@ -668,8 +627,7 @@ class KeySignatureTest {
 				octave: 4,
 				accidental: 'b'
 			});
-			keys.render();
-			return timeTest();
+			return keys.render().then(timeTest);
 		}
 		var undoTest = () => {
 			layout.undo(undo);
@@ -687,8 +645,7 @@ class KeySignatureTest {
 
 			var selection = SmoSelection.noteSelection(score, 0, 1, 0, 2);
 			SmoOperation.makeRest(selection);
-			keys.render();
-			return timeTest();
+			return keys.render().then(timeTest);
 		}
 		var keySigTest = () => {
 			subTitle('key sig to C to A');
@@ -698,16 +655,14 @@ class KeySignatureTest {
 			// score.addKeySignature(1,'A');
 			var selection = SmoSelection.noteSelection(score, 0, 1, 0, 2);
 			SmoOperation.makeNote(selection);
-			keys.render();
-			return timeTest();
+			return keys.render().then(timeTest);
 		}
 		var keySigTest2 = () => {
 			subTitle('key sig to Bb');
 			var selection = SmoSelection.measureSelection(score, 0, 2);
 			undo.addBuffer('undo key sig', 'score', selection.selector, score);
 			SmoOperation.addKeySignature(score, selection, 'Bb');
-			keys.render();
-			return timeTest();
+			return keys.render().then(timeTest);
 		}
 		var keySigTest3 = () => {
 			subTitle('key sig to c# canceled to cb');
@@ -715,15 +670,13 @@ class KeySignatureTest {
 			SmoOperation.addKeySignature(score, selection, 'C#');
 			selection = SmoSelection.measureSelection(score, 0, 2);
 			SmoOperation.addKeySignature(score, selection, 'Cb');
-			keys.render();
-			return timeTest();
+			return keys.render().then(timeTest);
 		}
 		var keySigTest4 = () => {
 			subTitle('key sig to Bb 1st mesure');
 			var selection = SmoSelection.measureSelection(score, 0, 0);
 			SmoOperation.addKeySignature(score, selection, 'Bb');
-			keys.render();
-			return timeTest();
+			return keys.render().then(timeTest);
 		}
 		var serializeTest = () => {
 			subTitle('serialize');
@@ -733,7 +686,7 @@ class KeySignatureTest {
 			layout.unrenderAll();
 			keys.detach();
 			keys = utController.createUi(document.getElementById("boo"), score);
-			keys.render();
+			return keys.render().then(timeTest);
 		}
 
 		return drawDefaults().then(changePitch).then(changePitch2).then(undoTest)
@@ -779,66 +732,58 @@ class TupletTest {
 
 		var drawDefaults = () => {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 
 		var makeTupletTest = () => {
 			subTitle('make tuplet');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
 			SmoOperation.makeTuplet(selection, 3);
-			layout.render();
-			var measureS = SmoSelection.measureSelection(score, 0, 0);
+     		var measureS = SmoSelection.measureSelection(score, 0, 0);
 			console.log(JSON.stringify(score.serialize(), null, ' '));
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 		
 		var breakTupletBarTest = () => {
 			subTitle('make tuplet');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
 			SmoOperation.toggleBeamGroup(selection);
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 
 		var unbreakTupletBarTest = () => {
 			subTitle('make tuplet');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
 			SmoOperation.toggleBeamGroup(selection);
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 
 		var stretchTupletTest = () => {
 			subTitle('stretch tuplet');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
 			SmoOperation.doubleDuration(selection);
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 
 		var contractTupletTest = () => {
 			subTitle('contract tuplet');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
 			SmoOperation.halveDuration(selection);
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 
 		var stretchTupletTest2 = () => {
 			subTitle('stretch tuplet 2');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 3);
 			SmoOperation.doubleDuration(selection);
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 		var contractTupletTest2 = () => {
 			// maybe just need changeIndex?
 			subTitle('contract tuplet 2');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
 			SmoOperation.halveDuration(selection);
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 		var contractTupletTest3 = () => {
 			return timeTest();
@@ -848,16 +793,14 @@ class TupletTest {
 			subTitle('unmake tuplet');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
 			SmoOperation.unmakeTuplet(selection);
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 
 		var makeTupletTest2 = () => {
 			subTitle('make tuplet 5-let');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 3);
 			SmoOperation.makeTuplet(selection, 5);
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 
 		return drawDefaults().then(makeTupletTest).then(breakTupletBarTest).then(unbreakTupletBarTest)
@@ -1722,179 +1665,172 @@ class serializeTestJson {
 ;
 class PasteTest {
 
-    static CommonTests() {
-        $('h1.testTitle').text('Paste Test');
-        var score = SmoScore.getEmptyScore();
+	static CommonTests() {
+		$('h1.testTitle').text('Paste Test');
+		var score = SmoScore.getEmptyScore();
 
-        var pasteBuffer = new PasteBuffer();
+		var pasteBuffer = new PasteBuffer();
 
-        score.addDefaultMeasureWithNotes(0, {});
-        score.addDefaultMeasureWithNotes(1, {});
-        score.addDefaultMeasureWithNotes(2, {});
+		score.addDefaultMeasureWithNotes(0, {});
+		score.addDefaultMeasureWithNotes(1, {});
+		score.addDefaultMeasureWithNotes(2, {});
 
-        var serial = JSON.stringify(score.serialize(), null, '');
-        console.log(serial);
-        var keys = utController.createUi(document.getElementById("boo"), score);
-        var undo = keys.undoBuffer;
-        var score = keys.score;
-        var layout = keys.layout;
+		var serial = JSON.stringify(score.serialize(), null, '');
+		console.log(serial);
+		var keys = utController.createUi(document.getElementById("boo"), score);
+		var undo = keys.undoBuffer;
+		var score = keys.score;
+		var layout = keys.layout;
 
-        var detach = () => {
-            keys.detach();
-            keys = null;
-            score = null;
-            layout = null;
-        }
+		var detach = () => {
+			keys.detach();
+			keys = null;
+			score = null;
+			layout = null;
+		}
 		var subTitle = (txt) => {
 			$('.subTitle').text(txt);
 		}
 
-        var timeTest = () => {
-            const promise = new Promise((resolve, reject) => {
-                    setTimeout(() => {
-                        resolve();
-                    },
-                        200);
-                });
-            return promise;
-        }
+		var timeTest = () => {
+			const promise = new Promise((resolve, reject) => {
+					setTimeout(() => {
+						resolve();
+					},
+						200);
+				});
+			return promise;
+		}
 
-        var signalComplete = () => {
-            detach();
+		var signalComplete = () => {
+			detach();
 			subTitle('');
-            return timeTest();
-        }
+			return timeTest();
+		}
 
-        var drawDefaults = () => {
-            // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
-            // measure.applyModifiers();
-            keys.render();
-            return timeTest();
-        }
+		var drawDefaults = () => {
+			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
+			// measure.applyModifiers();
+			return keys.render().then(timeTest);
+		}
 
-        var copySetup = () => {
+		var copySetup = () => {
 			subTitle('copy setup');
-            SmoSelection.noteSelection(layout.score, 0, 2, 0, 1);
-            SmoOperation.setPitch(
-                SmoSelection.noteSelection(layout.score, 0, 0, 0, 0), {
-                letter: 'a',
-                octave: 4,
-                accidental: 'n'
-            });
-            SmoOperation.setPitch(
-                SmoSelection.noteSelection(layout.score, 0, 0, 0, 2), {
-                letter: 'c',
-                octave: 4,
-                accidental: '#'
-            });
-            SmoOperation.setPitch(
-                SmoSelection.noteSelection(layout.score, 0, 0, 0, 3), {
-                letter: 'd',
-                octave: 4,
-                accidental: 'n'
-            });
-            SmoOperation.setPitch(
-                SmoSelection.noteSelection(layout.score, 0, 0, 0, 0), {
-                letter: 'e',
-                octave: 4,
-                accidental: 'n'
-            });
-            SmoOperation.setPitch(
-                SmoSelection.noteSelection(layout.score, 0, 1, 0, 1), {
-                letter: 'f',
-                octave: 4,
-                accidental: 'n'
-            });
-            SmoOperation.setPitch(
-                SmoSelection.noteSelection(layout.score, 0, 1, 0, 2), {
-                letter: 'g',
-                octave: 4,
-                accidental: 'n'
-            });
-            SmoOperation.setPitch(
-                SmoSelection.noteSelection(layout.score, 0, 1, 0, 3), {
-                letter: 'c',
-                octave: 5,
-                accidental: 'n'
-            });
-            keys.render();
-            return timeTest();
-        }
-        var copyTest = () => {
-            var selections = [];
+			SmoSelection.noteSelection(layout.score, 0, 2, 0, 1);
+			SmoOperation.setPitch(
+				SmoSelection.noteSelection(layout.score, 0, 0, 0, 0), {
+				letter: 'a',
+				octave: 4,
+				accidental: 'n'
+			});
+			SmoOperation.setPitch(
+				SmoSelection.noteSelection(layout.score, 0, 0, 0, 2), {
+				letter: 'c',
+				octave: 4,
+				accidental: '#'
+			});
+			SmoOperation.setPitch(
+				SmoSelection.noteSelection(layout.score, 0, 0, 0, 3), {
+				letter: 'd',
+				octave: 4,
+				accidental: 'n'
+			});
+			SmoOperation.setPitch(
+				SmoSelection.noteSelection(layout.score, 0, 0, 0, 0), {
+				letter: 'e',
+				octave: 4,
+				accidental: 'n'
+			});
+			SmoOperation.setPitch(
+				SmoSelection.noteSelection(layout.score, 0, 1, 0, 1), {
+				letter: 'f',
+				octave: 4,
+				accidental: 'n'
+			});
+			SmoOperation.setPitch(
+				SmoSelection.noteSelection(layout.score, 0, 1, 0, 2), {
+				letter: 'g',
+				octave: 4,
+				accidental: 'n'
+			});
+			SmoOperation.setPitch(
+				SmoSelection.noteSelection(layout.score, 0, 1, 0, 3), {
+				letter: 'c',
+				octave: 5,
+				accidental: 'n'
+			});
+			return keys.render().then(timeTest);
+		}
+		var copyTest = () => {
+			var selections = [];
 			subTitle('copy single note mm 2 beat 1');
-            selections.push(SmoSelection.noteSelection(layout.score, 0, 2, 0, 1));
-            pasteBuffer.setSelections(keys.score, selections);
-            keys.layout.unrenderAll();
-            var pasteTarget = {
-                staff: 0,
-                measure: 1,
-                voice: 0,
-                tick: 2
-            };
-            pasteBuffer.pasteSelections(score, pasteTarget);
-            keys.render();
-            return timeTest();
-        }
+			selections.push(SmoSelection.noteSelection(layout.score, 0, 2, 0, 1));
+			pasteBuffer.setSelections(keys.score, selections);
+			keys.layout.unrenderAll();
+			var pasteTarget = {
+				staff: 0,
+				measure: 1,
+				voice: 0,
+				tick: 2
+			};
+			pasteBuffer.pasteSelections(score, pasteTarget);
+			return keys.render().then(timeTest);
+		}
 
-        var copyDurationSetup = () => {
+		var copyDurationSetup = () => {
 			subTitle('copy notes with different durations setup');
-            var selection = SmoSelection.noteSelection(score, 0, 1, 0, 2);
-            SmoOperation.halveDuration(selection);
-            layout.render();
-            return timeTest();
-        }
+			var selection = SmoSelection.noteSelection(score, 0, 1, 0, 2);
+			SmoOperation.halveDuration(selection);
+			return layout.render().then(timeTest);
+		}
 
-        var copyDurationChange = () => {
+		var copyDurationChange = () => {
 			subTitle('copy notes with different durations');
-            var selections = [];
-            selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 1));
-            selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 2));
-            selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 3));
-            selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 4));
-            pasteBuffer.setSelections(score, selections);
-            keys.layout.unrenderAll();
-            var pasteTarget = {
-                staff: 0,
-                measure: 2,
-                voice: 0,
-                tick: 0
-            };
-            pasteBuffer.pasteSelections(score, pasteTarget);
-            keys.render();
-            return timeTest();
-        }
+			var selections = [];
+			selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 1));
+			selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 2));
+			selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 3));
+			selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 4));
+			pasteBuffer.setSelections(score, selections);
+			keys.layout.unrenderAll();
+			var pasteTarget = {
+				staff: 0,
+				measure: 2,
+				voice: 0,
+				tick: 0
+			};
+			pasteBuffer.pasteSelections(score, pasteTarget);
+			return keys.render().then(timeTest);
+		}
 
-        var copyOverTupletSetup = () => {
+		var copyOverTupletSetup = () => {
 			subTitle('copy notes containing tuplet setup');
-            var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
-            SmoOperation.makeTuplet(selection, 3);
-            keys.render();
-            return timeTest();
-        }
-        var copyOverTupletTest = () => {
+			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
+			SmoOperation.makeTuplet(selection, 3);
+			return keys.render().then(timeTest);
+		}
+		var copyOverTupletTest = () => {
 			subTitle('copy notes containing tuplet');
-            var selections = [];
-            selections.push(SmoSelection.noteSelection(score, 0, 0, 0, 0));
-            selections.push(SmoSelection.noteSelection(score, 0, 0, 0, 1));
-            selections.push(SmoSelection.noteSelection(score, 0, 0, 0, 2));
-            selections.push(SmoSelection.noteSelection(score, 0, 0, 0, 3));
+			var selections = [];
+			selections.push(SmoSelection.noteSelection(score, 0, 0, 0, 0));
+			selections.push(SmoSelection.noteSelection(score, 0, 0, 0, 1));
+			selections.push(SmoSelection.noteSelection(score, 0, 0, 0, 2));
+			selections.push(SmoSelection.noteSelection(score, 0, 0, 0, 3));
 
-            pasteBuffer.setSelections(score, selections);
-            keys.layout.unrenderAll();
-            var pasteTarget = {
-                staff: 0,
-                measure: 2,
-                voice: 0,
-                tick: 0
-            };
-            pasteBuffer.pasteSelections(score, pasteTarget);
-            keys.render();
-            return timeTest();
-        }
-        return drawDefaults().then(copySetup).then(copyTest).then(copyDurationSetup).then(copyDurationChange).
-        then(copyOverTupletSetup).then(copyOverTupletTest).then(signalComplete);
-    }
+			pasteBuffer.setSelections(score, selections);
+			keys.layout.unrenderAll();
+			var pasteTarget = {
+				staff: 0,
+				measure: 2,
+				voice: 0,
+				tick: 0
+			};
+			pasteBuffer.pasteSelections(score, pasteTarget);
+			return keys.render().then(timeTest);
+		}
+		return drawDefaults().then(copySetup).then(copyTest).then(copyDurationSetup).then(copyDurationChange).
+		then(copyOverTupletSetup).then(copyOverTupletTest).then(signalComplete);
+	}
 }
 ;
 
@@ -1943,9 +1879,7 @@ class VoiceTest {
 			// measure.applyModifiers();
 			subTitle('notes in 2 voices');
 
-			layout.render();
-			console.log(JSON.stringify(score, null, ' '));
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 		var accidentalTest = () => {
 			var target = SmoSelection.pitchSelection(score, 0, 0, 0, 1, [0]);
@@ -1954,22 +1888,17 @@ class VoiceTest {
 			/* if (target) {
 			target.note.transpose([0],-1);
 			}  */
-			layout.render();
-			return timeTest();
+			return layout.render().then(timeTest);
 		}
 
 		var serializeTest = () => {
 			subTitle('serialize test');
 			layout.unrenderAll();
 			$('#boo').html('');
-			score = SmoScore.deserialize(JSON.stringify(serializeTestJson.tupletMeasure));
+			score = SmoScore.deserialize(JSON.stringify(score.serialize()));
 			keys.detach();
 			keys = utController.createUi(document.getElementById("boo"), score);
-			keys.layout.render();
-		}
-		var serialize = () => {
-			console.log(JSON.stringify(score, null, ' '));
-			return timeTest();
+			return keys.layout.render().then(timeTest);
 		}
 
 		return drawDefaults().then(accidentalTest).then(serializeTest).then(signalComplete);
@@ -1980,13 +1909,14 @@ class TrackerTest {
 
 	static CommonTests() {
 		$('h1.testTitle').text('Tracker Test');
-		
+
 		var score = SmoScore.getEmptyScore();
 
 		score.addDefaultMeasureWithNotes(0, {});
 		score.addDefaultMeasureWithNotes(1, {});
 		score.addDefaultMeasureWithNotes(2, {});
-		var keys = suiController.createUi(document.getElementById("boo"),score);
+		var keys = suiController.createUi(document.getElementById("boo"), score);
+		var layout = keys.layout;
 		var timeTest = () => {
 			const promise = new Promise((resolve, reject) => {
 					setTimeout(() => {
@@ -1997,22 +1927,25 @@ class TrackerTest {
 			return promise;
 		}
 
-var subTitle = (txt) => {
+		var subTitle = (txt) => {
 			$('.subTitle').text(txt);
 		}
-		
+
 		var signalComplete = () => {
 			subTitle('');
 			return timeTest();
+		}
+		
+		var remap = function() {
+				return keys.tracker.updateMap();
 		}
 
 		var drawDefaults = () => {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
 			// measure.applyModifiers();
-			keys.layout.render();
-			return timeTest();
+			
+			return layout.render().then(remap).then(timeTest);
 		}
-
 
 		var trackTest = () => {
 			subTitle('initialize tracker');
@@ -2022,13 +1955,12 @@ var subTitle = (txt) => {
 		var addInstrument = () => {
 			subTitle('track multiple staves');
 			score.addStaff();
-			keys.layout.render();
-			return timeTest();
+			return layout.render().then(remap).then(timeTest);
 		}
-		
+
 		var selectionTest1 = () => {
 			subTitle('move selection right');
-			keys.tracker.moveSelectionRight();
+			keys.tracker.moveSelectionRight()
 			return timeTest();
 		}
 
@@ -2042,19 +1974,19 @@ var subTitle = (txt) => {
 			keys.tracker.moveSelectionOffset(5);
 			return timeTest();
 		}
-		
+
 		var selectDown = () => {
 			subTitle('select staff below');
 			keys.tracker.moveSelectionDown();
 			return timeTest();
 		}
-		
+
 		var selectIncreaseRight = () => {
 			subTitle('grow selection right');
 			keys.tracker.growSelectionRight();
 			return timeTest();
 		}
-		
+
 		var selectIncreaseLeft = () => {
 			subTitle('grow selection left');
 			keys.tracker.growSelectionLeft();
@@ -2113,8 +2045,7 @@ class ClefTest {
         var drawDefaults = () => {
             // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
             // measure.applyModifiers();
-            keys.render();
-            return timeTest();
+            return keys.render().then(timeTest);
         }
 		
 		
@@ -2126,8 +2057,7 @@ class ClefTest {
                 keyOffset: 0,
                 clef: 'bass'
             }});
-			keys.render();
-			return timeTest();
+            return keys.render().then(timeTest);
 		}
 		
 		var clefChangeTest = () => {
@@ -2141,23 +2071,20 @@ class ClefTest {
 			var sel2=SmoSelection.measureSelection(score,1,2);
 			keys.layout.unrenderAll();
 			SmoOperation.changeInstrument(score,instrument,[sel1,sel2]);
-			keys.layout.render();
-			return timeTest();
+            return keys.render().then(timeTest);
 		}
 		var bassRenderTest = () => {
 			subTitle('change pitch in bass clef');
 			var note = SmoSelection.pitchSelection(score,1,0,0,2);
 			SmoOperation.transpose(note,3);
-			keys.render();
-			return timeTest();
+            return keys.render().then(timeTest);
 		}
 		
 		var bassDurationTest = () => {
 			subTitle('change duration in bass clef');
 			var note = SmoSelection.noteSelection(score,1,0,0,1);
 			SmoOperation.makeTuplet(note,3);
-			keys.render();
-			return timeTest();
+            return keys.render().then(timeTest);
 		}
 		
 		var tenorClefTest = () => {
@@ -2170,8 +2097,7 @@ class ClefTest {
                 keyOffset: 0,
                 clef: 'tenor'
 			}});
-			keys.render();
-			return timeTest();
+            return keys.render().then(timeTest);
 		}
 		
 		var altoClefTest = () => {
@@ -2182,8 +2108,7 @@ class ClefTest {
                 keyOffset: 0,
                 clef: 'alto'
 			}});
-			keys.render();
-			return timeTest();
+            return keys.render().then(timeTest);
 		}
 		
 		var baritoneClefTest = () => {
@@ -2196,8 +2121,7 @@ class ClefTest {
                 keyOffset: 0,
                 clef: 'baritone-c'
 			}});
-			keys.render();
-			return timeTest();
+            return keys.render().then(timeTest);
 		}
 		
 		var baritoneClefTest2 = () => {
@@ -2210,8 +2134,7 @@ class ClefTest {
                 keyOffset: 0,
                 clef: 'baritone-f'
 			}});
-			keys.render();
-			return timeTest();
+            return keys.render().then(timeTest);
 		}
 		
 		var trumpetClefTest = () => {
@@ -2224,9 +2147,7 @@ class ClefTest {
                 keyOffset: 2,
                 clef: 'treble'
 			}});
-			keys.render();
-			keys.layout.dumpGeometry();
-			return timeTest();	
+            return keys.render().then(timeTest);
 		}
       
         return drawDefaults().then(bassClefTest).then(clefChangeTest).then(bassRenderTest).then(bassDurationTest).then(tenorClefTest)

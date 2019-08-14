@@ -46,8 +46,7 @@ class UndoTest {
 		var drawDefaults = () => {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
 			// measure.applyModifiers();
-			keys.render();
-			return timeTest();
+			return keys.render().then(timeTest);
 		}
 
 		var changePitch = () => {
@@ -66,8 +65,7 @@ class UndoTest {
 			}
 			];
 			}   */
-			keys.render();
-			return timeTest();
+			return keys.render().then(timeTest);
 		}
 		var undoTest = () => {
 			var buf = undo.peek();
@@ -85,8 +83,7 @@ class UndoTest {
 			}, undo);
 
 			SmoUndoable.makeRest(SmoSelection.noteSelection(score, 0, 1, 0, 2), undo);
-			keys.render();
-			return timeTest();
+			return keys.render().then(timeTest);
 		}
 		var keySigTest = () => {
 			subTitle('key sig to A');
@@ -95,22 +92,19 @@ class UndoTest {
 			// score.addKeySignature(1,'A');
 			var selection = SmoSelection.noteSelection(score, 0, 1, 0, 2);
 			SmoUndoable.makeNote(selection, undo);
-			keys.render();
-			return timeTest();
+			return keys.render().then(timeTest);
 		}
 		var crescendoTest = () => {
 			var ft = SmoSelection.noteSelection(layout.score, 0, 0, 0, 0);
 			var tt = SmoSelection.noteSelection(layout.score, 0, 0, 0, 3);
 			SmoUndoable.crescendo(ft, tt, undo);
-			layout.render();
-			return timeTest();
+			return keys.render().then(timeTest);
 		}
 		var keySigTest2 = () => {
 			subTitle('key sig to Bb');
 			var selection = SmoSelection.measureSelection(score, 0, 2);
 			SmoUndoable.addKeySignature(score, selection, 'Bb', undo);
-			keys.render();
-			return timeTest();
+			return keys.render().then(timeTest);
 		}
 
 		var addStaff = () => {
@@ -123,8 +117,7 @@ class UndoTest {
 				}
 			},
 				undo);
-			keys.layout.render();
-			return timeTest();
+			return keys.render().then(timeTest);
 		}
 		var keySigTest3 = () => {
 			subTitle('key sig change to f#');
@@ -132,8 +125,7 @@ class UndoTest {
 			SmoUndoable.addKeySignature(score, selection, 'C#', undo);
 			selection = SmoSelection.measureSelection(score, 0, 2);
 			SmoUndoable.addKeySignature(score, selection, 'Cb', undo);
-			keys.render();
-			return timeTest();
+			return keys.render().then(timeTest);
 		}
 		return drawDefaults().then(changePitch).then(crescendoTest).then(changePitch2)
 		.then(keySigTest).then(keySigTest2).then(addStaff)

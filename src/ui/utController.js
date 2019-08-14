@@ -38,7 +38,7 @@ class utController {
 	}
 
 	render() {
-		this.layout.render();
+		return this.layout.render();
 	}	
 	
 	bindEvents() {

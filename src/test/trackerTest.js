@@ -3,13 +3,14 @@ class TrackerTest {
 
 	static CommonTests() {
 		$('h1.testTitle').text('Tracker Test');
-		
+
 		var score = SmoScore.getEmptyScore();
 
 		score.addDefaultMeasureWithNotes(0, {});
 		score.addDefaultMeasureWithNotes(1, {});
 		score.addDefaultMeasureWithNotes(2, {});
-		var keys = suiController.createUi(document.getElementById("boo"),score);
+		var keys = suiController.createUi(document.getElementById("boo"), score);
+		var layout = keys.layout;
 		var timeTest = () => {
 			const promise = new Promise((resolve, reject) => {
 					setTimeout(() => {
@@ -20,22 +21,25 @@ class TrackerTest {
 			return promise;
 		}
 
-var subTitle = (txt) => {
+		var subTitle = (txt) => {
 			$('.subTitle').text(txt);
 		}
-		
+
 		var signalComplete = () => {
 			subTitle('');
 			return timeTest();
+		}
+		
+		var remap = function() {
+				return keys.tracker.updateMap();
 		}
 
 		var drawDefaults = () => {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
 			// measure.applyModifiers();
-			keys.layout.render();
-			return timeTest();
+			
+			return layout.render().then(remap).then(timeTest);
 		}
-
 
 		var trackTest = () => {
 			subTitle('initialize tracker');
@@ -45,13 +49,12 @@ var subTitle = (txt) => {
 		var addInstrument = () => {
 			subTitle('track multiple staves');
 			score.addStaff();
-			keys.layout.render();
-			return timeTest();
+			return layout.render().then(remap).then(timeTest);
 		}
-		
+
 		var selectionTest1 = () => {
 			subTitle('move selection right');
-			keys.tracker.moveSelectionRight();
+			keys.tracker.moveSelectionRight()
 			return timeTest();
 		}
 
@@ -65,19 +68,19 @@ var subTitle = (txt) => {
 			keys.tracker.moveSelectionOffset(5);
 			return timeTest();
 		}
-		
+
 		var selectDown = () => {
 			subTitle('select staff below');
 			keys.tracker.moveSelectionDown();
 			return timeTest();
 		}
-		
+
 		var selectIncreaseRight = () => {
 			subTitle('grow selection right');
 			keys.tracker.growSelectionRight();
 			return timeTest();
 		}
-		
+
 		var selectIncreaseLeft = () => {
 			subTitle('grow selection left');
 			keys.tracker.growSelectionLeft();
