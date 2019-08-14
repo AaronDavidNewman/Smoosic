@@ -142,7 +142,8 @@ class SmoOperation {
 		if (nticks == note.tickCount) {
 			return;
 		}
-		if (selection.selector.tick === selection.measure.notes.length) {
+		// If this is the ultimate note in the measure, we can't increase the length
+		if (selection.selector.tick+1 === selection.measure.notes.length) {
 			return;
 		}
 		if (selection.measure.notes[selection.selector.tick+1].tickCount > selection.note.tickCount) {

@@ -11,7 +11,6 @@ class EditorTest {
 		score.addStaff();
 		
 		var keys = suiController.createUi(document.getElementById("boo"),score);
-		keys.layout.render();		
-		keys.tracker.updateMap();		
+		keys.layout.render();				
     }
 }

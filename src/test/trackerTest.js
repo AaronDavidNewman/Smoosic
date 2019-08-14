@@ -39,7 +39,6 @@ var subTitle = (txt) => {
 
 		var trackTest = () => {
 			subTitle('initialize tracker');
-			keys.tracker.updateMap();			
 			return timeTest();
 		}
 
@@ -47,7 +46,6 @@ var subTitle = (txt) => {
 			subTitle('track multiple staves');
 			score.addStaff();
 			keys.layout.render();
-			keys.tracker.updateMap();
 			return timeTest();
 		}
 		

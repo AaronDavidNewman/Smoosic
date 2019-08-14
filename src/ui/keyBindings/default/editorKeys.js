@@ -17,17 +17,17 @@ class defaultEditorKeys {
 				action: "transposeDown"
 			}, {
 				event: "keydown",
-				key: "=",
-				ctrlKey: true,
+				key: "+",
+				ctrlKey: false,
 				altKey: false,
-				shiftKey: false,
+				shiftKey: true,
 				action: "upOctave"
 			}, {
 				event: "keydown",
-				key: "-",
-				ctrlKey: true,
+				key: "_",
+				ctrlKey:false,
 				altKey: false,
-				shiftKey: false,
+				shiftKey: true,
 				action: "downOctave"
 			}, {
 				event: "keydown",

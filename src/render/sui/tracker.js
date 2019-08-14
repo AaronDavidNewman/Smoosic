@@ -15,6 +15,7 @@
 class suiTracker {
 	constructor(layout) {
 		this.layout = layout;
+		this.layout.setNotifier(this);
 		this.groupObjectMap = {};
 		this.objectGroupMap = {};
 		this.objects = [];
@@ -128,6 +129,10 @@ class suiTracker {
 		}
 		this.selections.push(artifact);
 	}
+	
+	notifyRedraw() {
+		this._updateMap();
+	}
 
 	// ### updateMap
 	// This should be called after rendering the score.  It updates the score to
@@ -135,7 +140,7 @@ class suiTracker {
 	//
 	// ### TODO:
 	// try to preserve the previous selection
-	updateMap() {
+	_updateMap() {
 		var notes = [].slice.call(this.renderElement.getElementsByClassName('vf-stavenote'));
 		this.groupObjectMap = {};
 		this.objectGroupMap = {};

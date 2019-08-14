@@ -10,11 +10,11 @@ class suiEditor {
     // utility function to render the music and update the tracker map.
     _render() {
         this.layout.render();
-        this.tracker.updateMap();
     }
 
     _renderAndAdvance() {
         this._render();
+		// TODO: make this promise-based
         this.tracker.moveSelectionRight();
     }
 

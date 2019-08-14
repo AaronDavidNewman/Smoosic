@@ -924,6 +924,7 @@ class htmlHelpers {
 			});
 		});
 	}
+
 }
 ;// ## SmoNote
 // ## Description:
@@ -3811,7 +3812,8 @@ class SmoOperation {
 		if (nticks == note.tickCount) {
 			return;
 		}
-		if (selection.selector.tick === selection.measure.notes.length) {
+		// If this is the ultimate note in the measure, we can't increase the length
+		if (selection.selector.tick+1 === selection.measure.notes.length) {
 			return;
 		}
 		if (selection.measure.notes[selection.selector.tick+1].tickCount > selection.note.tickCount) {
@@ -5035,6 +5037,7 @@ class VxSystem {
 class suiTracker {
 	constructor(layout) {
 		this.layout = layout;
+		this.layout.setNotifier(this);
 		this.groupObjectMap = {};
 		this.objectGroupMap = {};
 		this.objects = [];
@@ -5148,6 +5151,10 @@ class suiTracker {
 		}
 		this.selections.push(artifact);
 	}
+	
+	notifyRedraw() {
+		this._updateMap();
+	}
 
 	// ### updateMap
 	// This should be called after rendering the score.  It updates the score to
@@ -5155,7 +5162,7 @@ class suiTracker {
 	//
 	// ### TODO:
 	// try to preserve the previous selection
-	updateMap() {
+	_updateMap() {
 		var notes = [].slice.call(this.renderElement.getElementsByClassName('vf-stavenote'));
 		this.groupObjectMap = {};
 		this.objectGroupMap = {};
@@ -5611,6 +5618,30 @@ class suiSimpleLayout {
         Vex.Merge(this, suiSimpleLayout.defaults);
         Vex.Merge(this, params);
 
+this.setViewport();
+this.notifyChain=[];
+
+        this.attrs = {
+            id: VF.Element.newID(),
+            type: 'testLayout'
+        };
+		this.bindResize();
+    }
+	bindResize() {
+		var self=this;
+		window.addEventListener('resize',function() {
+			if (this.resizing)
+				return;
+			setTimeout(function() {
+			console.log('resizing');
+			self.setViewport();
+			self.render();
+			self.resizing=false;
+			},500);
+		});
+	}
+	
+	setViewport() {
         var screenWidth = window.innerWidth;
        
 		this.svgScale = this.score.svgScale * this.score.zoomScale;
@@ -5625,11 +5656,12 @@ class suiSimpleLayout {
 		svgHelpers.svgViewport(this.context.svg,this.pageWidth,this.pageHeight,this.svgScale);
 
         this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
-        this.attrs = {
-            id: VF.Element.newID(),
-            type: 'testLayout'
-        };
-    }
+		var self=this;
+		this.resizing=false;
+			
+	}
+	
+	
 
     // ### createScoreLayout
     // ### Description;
@@ -5681,7 +5713,14 @@ class suiSimpleLayout {
     get renderElement() {
         return this.renderer.elementId;
     }
-
+	
+	setNotifier(notifyObj) {
+		this.notifyChain.push(notifyObj);
+	}
+	
+	renderAndAdvance() {
+		this.render();		
+	}
     // ### render
     // ### Description:
     // Render the current score in the div using VEX.  Rendering is actually done twice:
@@ -5699,6 +5738,9 @@ class suiSimpleLayout {
         if (suiSimpleLayout.debugLayout) {
             this.dumpGeometry();
         }
+		this.notifyChain.forEach((notifee) => {
+			notifee.notifyRedraw();
+		});
     }
 
     // ### undo
@@ -6064,11 +6106,11 @@ class suiEditor {
     // utility function to render the music and update the tracker map.
     _render() {
         this.layout.render();
-        this.tracker.updateMap();
     }
 
     _renderAndAdvance() {
         this._render();
+		// TODO: make this promise-based
         this.tracker.moveSelectionRight();
     }
 
@@ -6852,17 +6894,17 @@ class utController {
 				action: "transposeDown"
 			}, {
 				event: "keydown",
-				key: "=",
-				ctrlKey: true,
+				key: "+",
+				ctrlKey: false,
 				altKey: false,
-				shiftKey: false,
+				shiftKey: true,
 				action: "upOctave"
 			}, {
 				event: "keydown",
-				key: "-",
-				ctrlKey: true,
+				key: "_",
+				ctrlKey:false,
 				altKey: false,
-				shiftKey: false,
+				shiftKey: true,
 				action: "downOctave"
 			}, {
 				event: "keydown",
@@ -9388,7 +9430,6 @@ class suiController {
 
 	render() {
 		this.layout.render();
-		this.tracker.updateMap();
 	}
 
 	bindEvents() {

@@ -159,7 +159,6 @@ class suiController {
 
 	render() {
 		this.layout.render();
-		this.tracker.updateMap();
 	}
 
 	bindEvents() {

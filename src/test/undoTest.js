@@ -124,7 +124,6 @@ class UndoTest {
 			},
 				undo);
 			keys.layout.render();
-			keys.tracker.updateMap();
 			return timeTest();
 		}
 		var keySigTest3 = () => {
