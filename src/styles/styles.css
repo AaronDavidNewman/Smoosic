@@ -111,6 +111,10 @@ div.ribbonButtonContainer.expanded {
 	width:65px;
 }
 
+
+.controls-top button.duration.expanded.tuplet span.ribbon-button-hotkey  {
+	font-size:1em;
+}
 .controls-top button.duration.expanded span.ribbon-button-text.icon {
 	font-size:2.2em;
 	top:25%;
@@ -133,6 +137,14 @@ div.ribbonButtonContainer.expanded {
 #LessDuration .ribbon-button-hotkey {
 	font-size:3em;
 	top:0;
+}
+
+#SeptupletButton {
+	width:90px;
+}
+
+#QuintupletButton {
+	width:75px;
 }
 
 .controls-top button.articulation {

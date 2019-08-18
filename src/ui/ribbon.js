@@ -130,14 +130,22 @@ class DurationButtons {
 		this.editor = parameters.editor;
 	}
 	setDuration() {
-		if (this.buttonData.rightText === ',') {
+		if (this.buttonData.id === 'GrowDuration') {
 			this.editor.doubleDuration();
-		} else if (this.buttonData.rightText === '.') {
+		} else if (this.buttonData.id === 'LessDuration') {
 			this.editor.halveDuration();
-		} else if (this.buttonData.rightText === '>') {
+		} else if (this.buttonData.id === 'GrowDurationDot') {
 			this.editor.dotDuration();
-		} else if (this.buttonData.rightText === '<') {
+		} else if (this.buttonData.id === 'LessDurationDot') {
 			this.editor.undotDuration();
+		} else if (this.buttonData.id === 'TripletButton') {
+			this.editor.makeTupletCommand(3);
+		} else if (this.buttonData.id === 'QuintupletButton') {
+			this.editor.makeTupletCommand(5);
+		} else if (this.buttonData.id === 'SeptupletButton') {
+			this.editor.makeTupletCommand(7);
+		} else if (this.buttonData.id === 'NoTupletButton') {
+			this.editor.unmakeTuplet();
 		}
 	}
 	bind() {

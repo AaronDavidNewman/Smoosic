@@ -36,7 +36,7 @@ class defaultRibbonLayout {
 				,'SeventhUpButton', 'SeventhDownButton','OctaveUpButton','OctaveDownButton','CollapseChordButton'];
 	}
 	static get durationIds() {
-		return ['DurationButtons','GrowDuration','LessDuration','GrowDurationDot','LessDurationDot'];
+		return ['DurationButtons','GrowDuration','LessDuration','GrowDurationDot','LessDurationDot','TripletButton','QuintupletButton','SeptupletButton','NoTupletButton'];
 	}
 	
 	static get durationRibbonButtons() {
@@ -85,6 +85,43 @@ class defaultRibbonLayout {
 				ctor: 'DurationButtons',
 				group: 'duration',
 				id: 'LessDurationDot'
+			},{
+				leftText: '',
+				rightText: 'Ctrl-3',
+				icon: 'icon-triplet',
+				classes: 'collapsed duration tuplet',
+				action: 'collapseChild',
+				ctor: 'DurationButtons',
+				group: 'duration',
+				id: 'TripletButton'
+			},{
+				leftText: '',
+				rightText: 'Ctrl-5',
+				icon: 'icon-quint',
+				classes: 'collapsed duration tuplet',
+				action: 'collapseChild',
+				ctor: 'DurationButtons',
+				group: 'duration',
+				id: 'QuintupletButton'
+			},{
+				leftText: '',
+				rightText: 'Ctrl-7',
+				icon: 'icon-septuplet',
+				classes: 'collapsed duration tuplet',
+				action: 'collapseChild',
+				ctor: 'DurationButtons',
+				group: 'duration',
+				id: 'SeptupletButton'
+			},
+			{
+				leftText: '',
+				rightText: 'Ctrl-0',
+				icon: 'icon-no_tuplet',
+				classes: 'collapsed duration tuplet',
+				action: 'collapseChild',
+				ctor: 'DurationButtons',
+				group: 'duration',
+				id: 'NoTupletButton'
 			}
 			];
 	}

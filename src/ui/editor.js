@@ -227,9 +227,12 @@ class suiEditor {
 		this.undo();
 		this.layout.render();
 	}
+	makeTupletCommand(numNotes) {
+        this._singleSelectionOperation('makeTuplet', numNotes);
+	}
     makeTuplet(keyEvent) {
         var numNotes = parseInt(keyEvent.key);
-        this._singleSelectionOperation('makeTuplet', numNotes);
+		this.makeTupletCommand(numNotes);
     }
 
     unmakeTuplet(keyEvent) {
