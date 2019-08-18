@@ -5,7 +5,7 @@ class defaultRibbonLayout {
 	static get ribbons() {
 		var left = defaultRibbonLayout.leftRibbonIds;
 		var top = defaultRibbonLayout.noteButtonIds.concat(defaultRibbonLayout.navigateButtonIds).concat(defaultRibbonLayout.articulateButtonIds)
-		    .concat(defaultRibbonLayout.intervalIds);
+		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds);
 			
 		return {
 			left: left,
@@ -34,6 +34,59 @@ class defaultRibbonLayout {
 		return ['CreateChordButtons', 'SecondUpButton', 'SecondDownButton', 'ThirdUpButton', 'ThirdDownButton', 'FourthUpButton', 'FourthDownButton',
 				'FifthUpButton', 'FifthDownButton','SixthUpButton', 'SixthDownButton'
 				,'SeventhUpButton', 'SeventhDownButton','OctaveUpButton','OctaveDownButton','CollapseChordButton'];
+	}
+	static get durationIds() {
+		return ['DurationButtons','GrowDuration','LessDuration','GrowDurationDot','LessDurationDot'];
+	}
+	
+	static get durationRibbonButtons() {
+		return [{
+				leftText: '',
+				rightText: '',
+				classes: 'icon  collapseParent duration',
+				icon: 'icon-duration',
+				action: 'collapseParent',
+				ctor: 'CollapseRibbonControl',
+				group: 'duration',
+				id: 'DurationButtons'
+			},{
+				leftText: '',
+				rightText: '.',
+				icon: 'icon-duration_grow',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'DurationButtons',
+				group: 'duration',
+				id: 'GrowDuration'
+			},{
+				leftText: '',
+				rightText: ',',
+				icon: 'icon-duration_less',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'DurationButtons',
+				group: 'duration',
+				id: 'LessDuration'
+			},{
+				leftText: '',
+				rightText: '>',
+				icon: 'icon-duration_grow_dot',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'DurationButtons',
+				group: 'duration',
+				id: 'GrowDurationDot'
+			},{
+				leftText: '',
+				rightText: '<',
+				icon: 'icon-duration_less_dot',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'DurationButtons',
+				group: 'duration',
+				id: 'LessDurationDot'
+			}
+			];
 	}
 
 	static get noteRibbonButtons() {
@@ -574,7 +627,8 @@ class defaultRibbonLayout {
 			defaultRibbonLayout.navigationButtons).concat(
 			defaultRibbonLayout.noteRibbonButtons).concat(
 			defaultRibbonLayout.articulationButtons).concat(
-			defaultRibbonLayout.chordButtons);
+			defaultRibbonLayout.chordButtons).concat(
+			defaultRibbonLayout.durationRibbonButtons);
 	}
 	static get leftRibbonButtons() {
 		return [{

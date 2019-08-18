@@ -7,13 +7,13 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="97.450943"
-   height="84.52549"
+   width="91.43383"
+   height="84.441971"
    version="1.1"
    id="svg12"
-   sodipodi:docname="duration_grow.svg"
+   sodipodi:docname="duration_less.svg"
    inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
-   viewBox="8 9 76.568599 63.778323">
+   viewBox="8 9 71.840868 63.715304">
   <metadata
      id="metadata18">
     <rdf:RDF>
@@ -42,8 +42,8 @@
      id="namedview14"
      showgrid="false"
      inkscape:zoom="9.5526172"
-     inkscape:cx="45.427944"
-     inkscape:cy="67.416079"
+     inkscape:cx="23.419068"
+     inkscape:cy="39.508078"
      inkscape:window-x="1912"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
@@ -57,7 +57,7 @@
      fit-margin-bottom="0" />
   <g
      id="g870"
-     transform="translate(-23.80446,17.978959)">
+     transform="translate(30.00902,18.092524)">
     <g
        transform="matrix(1.5,0,0,1.5347397,-1028.6959,-130.8125)"
        class="vf-stem"
@@ -77,7 +77,7 @@
   </g>
   <g
      id="g860"
-     transform="matrix(1,0,0,0.94811321,-8.012321,19.556436)">
+     transform="matrix(1,0,0,0.94811321,-66.55399,19.340996)">
     <g
        id="g865"
        transform="translate(9.8880148)">
@@ -95,7 +95,7 @@
     </g>
   </g>
   <path
-     d="m 65.962272,39.573834 -15.483874,14.71698 v -8.83019 H 33.962264 v -11.77358 h 16.516134 v -8.83019 z"
+     d="m 62.035405,39.522897 -15.483874,14.71698 v -8.83019 H 30.035397 v -11.77358 h 16.516134 v -8.83019 z"
      id="path14"
      inkscape:connector-curvature="0"
      style="fill:#000000;stroke:none;stroke-width:0.00943472;stroke-dasharray:none" />

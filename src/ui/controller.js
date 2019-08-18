@@ -28,21 +28,27 @@ class suiController {
 		this.bindEvents();
 		this.bindResize();
 	}
-
-	bindResize() {
-		var self = this;
+	
+	resizeEvent() {
+		var self=this;
 		var remap = function () {
 			return self.tracker.updateMap();
 		}
-		window.addEventListener('resize', function () {
-			if (this.resizing)
-				return;
+		if (this.resizing)
+			return;
+		this.resizing=true;
 			setTimeout(function () {
 				console.log('resizing');
 				self.resizing = false;
 				self.layout.setViewport();
 				self.layout.render().then(remap);
 			}, 500);
+	}
+
+	bindResize() {
+		var self = this;
+		window.addEventListener('resize', function () {
+			self.resizeEvent();
 		});
 	}
 

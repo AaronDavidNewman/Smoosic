@@ -21,7 +21,7 @@ class RibbonButtons {
 		this.ribbonButtons = parameters.ribbonButtons;
 		this.ribbons = parameters.ribbons;
 		this.collapsables = [];
-		this.collapseChildren=[];
+		this.collapseChildren = [];
 	}
 	_executeButtonModal(buttonElement, buttonData) {
 		var ctor = eval(buttonData.ctor);
@@ -70,7 +70,7 @@ class RibbonButtons {
 			self._executeButton(buttonElement, buttonData);
 		});
 	}
-	_createButtonHtml(buttonAr,selector) {
+	_createButtonHtml(buttonAr, selector) {
 		buttonAr.forEach((buttonId) => {
 			var b = this.ribbonButtons.find((e) => {
 					return e.id === buttonId;
@@ -80,17 +80,17 @@ class RibbonButtons {
 					this.collapseChildren.push(b);
 				} else {
 
-				var buttonHtml = RibbonButtons.ribbonButton(b.id, b.classes, b.leftText, b.icon, b.rightText);
-				$(buttonHtml).attr('data-group', b.group);
-				
-				$(selector).append(buttonHtml);
-				var el = $(selector).find('#' + b.id);
-				this._bindButton(el, b);
-				if (b.action == 'collapseParent') {
-					$(buttonHtml).addClass('collapseContainer');
-					this._bindCollapsibleAction(el, b);
+					var buttonHtml = RibbonButtons.ribbonButton(b.id, b.classes, b.leftText, b.icon, b.rightText);
+					$(buttonHtml).attr('data-group', b.group);
+
+					$(selector).append(buttonHtml);
+					var el = $(selector).find('#' + b.id);
+					this._bindButton(el, b);
+					if (b.action == 'collapseParent') {
+						$(buttonHtml).addClass('collapseContainer');
+						this._bindCollapsibleAction(el, b);
+					}
 				}
-			}
 			}
 		});
 		this.collapseChildren.forEach((b) => {
@@ -99,10 +99,10 @@ class RibbonButtons {
 				var bkeys = Object.keys(b.dataElements);
 				bkeys.forEach((bkey) => {
 					var de = b.dataElements[bkey];
-					$(buttonHtml).find('button').attr('data-'+bkey,de);
+					$(buttonHtml).find('button').attr('data-' + bkey, de);
 				});
 			}
-			var parent = $(selector).find('.collapseContainer[data-group="'+b.group+'"]');
+			var parent = $(selector).find('.collapseContainer[data-group="' + b.group + '"]');
 			$(parent).append(buttonHtml);
 			var el = $(selector).find('#' + b.id);
 			this._bindButton(el, b);
@@ -116,10 +116,35 @@ class RibbonButtons {
 		$('body .controls-top').html('');
 
 		var buttonAr = this.ribbons['left'];
-		this._createButtonHtml(buttonAr,'body .controls-left');
+		this._createButtonHtml(buttonAr, 'body .controls-left');
 
 		buttonAr = this.ribbons['top'];
-		this._createButtonHtml(buttonAr,'body .controls-top');
+		this._createButtonHtml(buttonAr, 'body .controls-top');
+	}
+}
+
+class DurationButtons {
+	constructor(parameters) {
+		this.buttonElement = parameters.buttonElement;
+		this.buttonData = parameters.buttonData;
+		this.editor = parameters.editor;
+	}
+	setDuration() {
+		if (this.buttonData.rightText === ',') {
+			this.editor.doubleDuration();
+		} else if (this.buttonData.rightText === '.') {
+			this.editor.halveDuration();
+		} else if (this.buttonData.rightText === '>') {
+			this.editor.dotDuration();
+		} else if (this.buttonData.rightText === '<') {
+			this.editor.undotDuration();
+		}
+	}
+	bind() {
+		var self = this;
+		$(this.buttonElement).off('click').on('click', function () {
+			self.setDuration();
+		});
 	}
 }
 
@@ -138,14 +163,13 @@ class NoteButtons {
 			this.editor.upOctave();
 		} else if (this.buttonData.id === 'DownOctaveButton') {
 			this.editor.downOctave();
-		}else if (this.buttonData.id === 'ToggleAccidental') {
+		} else if (this.buttonData.id === 'ToggleAccidental') {
 			this.editor.toggleEnharmonic();
-		}else if (this.buttonData.id === 'ToggleCourtesy') {
+		} else if (this.buttonData.id === 'ToggleCourtesy') {
 			this.editor.toggleCourtesyAccidental();
 		} else if (this.buttonData.id === 'ToggleRestButton') {
 			this.editor.makeRest();
-		}
-		else {
+		} else {
 			this.editor.setPitchCommand(this.buttonData.rightText);
 		}
 	}
@@ -163,26 +187,27 @@ class ChordButtons {
 		this.buttonData = parameters.buttonData;
 		this.editor = parameters.editor;
 		this.tracker = parameters.tracker;
-		this.score=parameters.score;
-		this.interval=parseInt($(this.buttonElement).attr('data-interval'));
-		this.direction=parseInt($(this.buttonElement).attr('data-direction'));
+		this.score = parameters.score;
+		this.interval = parseInt($(this.buttonElement).attr('data-interval'));
+		this.direction = parseInt($(this.buttonElement).attr('data-direction'));
 	}
 	static get direction() {
-		return {up:1,down:-1}
+		return {
+			up: 1,
+			down: -1
+		}
 	}
-	static get intervalButtonMap() {
-		
-	}
+	static get intervalButtonMap() {}
 	collapseChord() {
 		this.editor.collapseChord();
 	}
 	setInterval() {
-		this.editor.intervalAdd(this.interval,this.direction);
+		this.editor.intervalAdd(this.interval, this.direction);
 	}
 	bind() {
 		var self = this;
 		$(this.buttonElement).off('click').on('click', function () {
-			if ($(self.buttonElement).attr('id')==='CollapseChordButton') {
+			if ($(self.buttonElement).attr('id') === 'CollapseChordButton') {
 				self.collapseChord();
 				return;
 			}
@@ -263,7 +288,6 @@ class ArticulationButtons {
 	_toggleArticulation() {
 		this.showState = !this.showState;
 
-		// fake editor key, not sure if this is best...
 		this.editor.toggleArticulationCommand(this.articulation, this.placement);
 	}
 	bind() {
@@ -291,6 +315,8 @@ class CollapseRibbonControl {
 			$(el).toggleClass('collapsed');
 			$(el).toggleClass('expanded');
 		});
+
+		this.buttonElement.closest('div').toggleClass('expanded');
 		this.buttonElement.toggleClass('expandedChildren');
 		if (this.buttonElement.hasClass('expandedChildren')) {
 			var leftSpan = $(this.buttonElement).find('.ribbon-button-text');
@@ -303,6 +329,9 @@ class CollapseRibbonControl {
 			$(leftSpan).addClass(this.buttonData.icon);
 			$(leftSpan).text(this.buttonData.leftText);
 		}
+		
+		// Expand may change music dom, redraw
+		this.controller.resizeEvent();
 	}
 	bind() {
 		var self = this;
