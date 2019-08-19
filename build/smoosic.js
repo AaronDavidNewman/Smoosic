@@ -3421,7 +3421,7 @@ class SmoSelector {
 	static sameStaff(sel1, sel2) {
 		return sel1.staff === sel2.staff;
 	}
-	
+		
 	// ## return true if sel1 > sel2.  
 	static gt(sel1, sel2) {
 		// Note: voice is not considered b/c it's more of a vertical component
@@ -3611,6 +3611,7 @@ class SmoSelection {
 		return null;
 	}
 
+
 	static lastNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
 		var lastTick = tickIndex - 1;
 		var lastMeasure = measureIndex - 1;
@@ -3626,6 +3627,36 @@ class SmoSelection {
 		}
 		return null;
 	}
+	
+	// ### selectionsSameMeasure
+	// Return true if the selections are all in the same measure.  Used to determine what
+	// type of undo we need.
+	static selectionsSameMeasure(selections) {
+		if (selections.length < 2) {
+			return true;
+		}
+		var sel1=selections[0].selector;
+		for (var i=1;i<selections.length;++i) {
+			if (!SmoSelector.sameMeasure(sel1,selections[i].selector)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	static selectionsSameStaff(selections) {
+		if (selections.length < 2) {
+			return true;
+		}
+		var sel1=selections[0].selector;
+		for (var i=1;i<selections.length;++i) {
+			if (!SmoSelector.sameStaff(sel1,selections[i].selector)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 
 	constructor(params) {
 		this.selector = {
@@ -3685,6 +3716,18 @@ class SmoOperation {
 	static toggleBeamGroup(noteSelection) {
 	      noteSelection.note.endBeam =  !(noteSelection.note.endBeam);
 	}
+	
+	/* WIP static batchSelectionOperation(score,selections,operation) {
+		var selar = [];
+		selections.forEach((selection) => {
+			selar.push(JSON.parse(JSON.stringify(selection.selector)));
+		});
+		
+		var selar.forEach((selector) => {
+			
+		});
+		
+	}  */
 	// ## doubleDuration
 	// ## Description
 	// double the duration of a note in a measure, at the expense of the following
@@ -6118,7 +6161,7 @@ class suiEditor {
         }
         this._render();
     }
-
+		
     undo() {
         this.layout.undo(this.undoBuffer);
     }
@@ -6309,9 +6352,12 @@ class suiEditor {
 		this.undo();
 		this.layout.render();
 	}
+	makeTupletCommand(numNotes) {
+        this._singleSelectionOperation('makeTuplet', numNotes);
+	}
     makeTuplet(keyEvent) {
         var numNotes = parseInt(keyEvent.key);
-        this._singleSelectionOperation('makeTuplet', numNotes);
+		this.makeTupletCommand(numNotes);
     }
 
     unmakeTuplet(keyEvent) {
@@ -7350,7 +7396,7 @@ class defaultRibbonLayout {
 	static get ribbons() {
 		var left = defaultRibbonLayout.leftRibbonIds;
 		var top = defaultRibbonLayout.noteButtonIds.concat(defaultRibbonLayout.navigateButtonIds).concat(defaultRibbonLayout.articulateButtonIds)
-		    .concat(defaultRibbonLayout.intervalIds);
+		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds);
 			
 		return {
 			left: left,
@@ -7379,6 +7425,96 @@ class defaultRibbonLayout {
 		return ['CreateChordButtons', 'SecondUpButton', 'SecondDownButton', 'ThirdUpButton', 'ThirdDownButton', 'FourthUpButton', 'FourthDownButton',
 				'FifthUpButton', 'FifthDownButton','SixthUpButton', 'SixthDownButton'
 				,'SeventhUpButton', 'SeventhDownButton','OctaveUpButton','OctaveDownButton','CollapseChordButton'];
+	}
+	static get durationIds() {
+		return ['DurationButtons','GrowDuration','LessDuration','GrowDurationDot','LessDurationDot','TripletButton','QuintupletButton','SeptupletButton','NoTupletButton'];
+	}
+	
+	static get durationRibbonButtons() {
+		return [{
+				leftText: '',
+				rightText: '',
+				classes: 'icon  collapseParent duration',
+				icon: 'icon-duration',
+				action: 'collapseParent',
+				ctor: 'CollapseRibbonControl',
+				group: 'duration',
+				id: 'DurationButtons'
+			},{
+				leftText: '',
+				rightText: '.',
+				icon: 'icon-duration_grow',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'DurationButtons',
+				group: 'duration',
+				id: 'GrowDuration'
+			},{
+				leftText: '',
+				rightText: ',',
+				icon: 'icon-duration_less',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'DurationButtons',
+				group: 'duration',
+				id: 'LessDuration'
+			},{
+				leftText: '',
+				rightText: '>',
+				icon: 'icon-duration_grow_dot',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'DurationButtons',
+				group: 'duration',
+				id: 'GrowDurationDot'
+			},{
+				leftText: '',
+				rightText: '<',
+				icon: 'icon-duration_less_dot',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'DurationButtons',
+				group: 'duration',
+				id: 'LessDurationDot'
+			},{
+				leftText: '',
+				rightText: 'Ctrl-3',
+				icon: 'icon-triplet',
+				classes: 'collapsed duration tuplet',
+				action: 'collapseChild',
+				ctor: 'DurationButtons',
+				group: 'duration',
+				id: 'TripletButton'
+			},{
+				leftText: '',
+				rightText: 'Ctrl-5',
+				icon: 'icon-quint',
+				classes: 'collapsed duration tuplet',
+				action: 'collapseChild',
+				ctor: 'DurationButtons',
+				group: 'duration',
+				id: 'QuintupletButton'
+			},{
+				leftText: '',
+				rightText: 'Ctrl-7',
+				icon: 'icon-septuplet',
+				classes: 'collapsed duration tuplet',
+				action: 'collapseChild',
+				ctor: 'DurationButtons',
+				group: 'duration',
+				id: 'SeptupletButton'
+			},
+			{
+				leftText: '',
+				rightText: 'Ctrl-0',
+				icon: 'icon-no_tuplet',
+				classes: 'collapsed duration tuplet',
+				action: 'collapseChild',
+				ctor: 'DurationButtons',
+				group: 'duration',
+				id: 'NoTupletButton'
+			}
+			];
 	}
 
 	static get noteRibbonButtons() {
@@ -7919,7 +8055,8 @@ class defaultRibbonLayout {
 			defaultRibbonLayout.navigationButtons).concat(
 			defaultRibbonLayout.noteRibbonButtons).concat(
 			defaultRibbonLayout.articulationButtons).concat(
-			defaultRibbonLayout.chordButtons);
+			defaultRibbonLayout.chordButtons).concat(
+			defaultRibbonLayout.durationRibbonButtons);
 	}
 	static get leftRibbonButtons() {
 		return [{
@@ -8003,7 +8140,7 @@ class RibbonButtons {
 		this.ribbonButtons = parameters.ribbonButtons;
 		this.ribbons = parameters.ribbons;
 		this.collapsables = [];
-		this.collapseChildren=[];
+		this.collapseChildren = [];
 	}
 	_executeButtonModal(buttonElement, buttonData) {
 		var ctor = eval(buttonData.ctor);
@@ -8052,7 +8189,7 @@ class RibbonButtons {
 			self._executeButton(buttonElement, buttonData);
 		});
 	}
-	_createButtonHtml(buttonAr,selector) {
+	_createButtonHtml(buttonAr, selector) {
 		buttonAr.forEach((buttonId) => {
 			var b = this.ribbonButtons.find((e) => {
 					return e.id === buttonId;
@@ -8062,17 +8199,17 @@ class RibbonButtons {
 					this.collapseChildren.push(b);
 				} else {
 
-				var buttonHtml = RibbonButtons.ribbonButton(b.id, b.classes, b.leftText, b.icon, b.rightText);
-				$(buttonHtml).attr('data-group', b.group);
-				
-				$(selector).append(buttonHtml);
-				var el = $(selector).find('#' + b.id);
-				this._bindButton(el, b);
-				if (b.action == 'collapseParent') {
-					$(buttonHtml).addClass('collapseContainer');
-					this._bindCollapsibleAction(el, b);
+					var buttonHtml = RibbonButtons.ribbonButton(b.id, b.classes, b.leftText, b.icon, b.rightText);
+					$(buttonHtml).attr('data-group', b.group);
+
+					$(selector).append(buttonHtml);
+					var el = $(selector).find('#' + b.id);
+					this._bindButton(el, b);
+					if (b.action == 'collapseParent') {
+						$(buttonHtml).addClass('collapseContainer');
+						this._bindCollapsibleAction(el, b);
+					}
 				}
-			}
 			}
 		});
 		this.collapseChildren.forEach((b) => {
@@ -8081,10 +8218,10 @@ class RibbonButtons {
 				var bkeys = Object.keys(b.dataElements);
 				bkeys.forEach((bkey) => {
 					var de = b.dataElements[bkey];
-					$(buttonHtml).find('button').attr('data-'+bkey,de);
+					$(buttonHtml).find('button').attr('data-' + bkey, de);
 				});
 			}
-			var parent = $(selector).find('.collapseContainer[data-group="'+b.group+'"]');
+			var parent = $(selector).find('.collapseContainer[data-group="' + b.group + '"]');
 			$(parent).append(buttonHtml);
 			var el = $(selector).find('#' + b.id);
 			this._bindButton(el, b);
@@ -8098,10 +8235,43 @@ class RibbonButtons {
 		$('body .controls-top').html('');
 
 		var buttonAr = this.ribbons['left'];
-		this._createButtonHtml(buttonAr,'body .controls-left');
+		this._createButtonHtml(buttonAr, 'body .controls-left');
 
 		buttonAr = this.ribbons['top'];
-		this._createButtonHtml(buttonAr,'body .controls-top');
+		this._createButtonHtml(buttonAr, 'body .controls-top');
+	}
+}
+
+class DurationButtons {
+	constructor(parameters) {
+		this.buttonElement = parameters.buttonElement;
+		this.buttonData = parameters.buttonData;
+		this.editor = parameters.editor;
+	}
+	setDuration() {
+		if (this.buttonData.id === 'GrowDuration') {
+			this.editor.doubleDuration();
+		} else if (this.buttonData.id === 'LessDuration') {
+			this.editor.halveDuration();
+		} else if (this.buttonData.id === 'GrowDurationDot') {
+			this.editor.dotDuration();
+		} else if (this.buttonData.id === 'LessDurationDot') {
+			this.editor.undotDuration();
+		} else if (this.buttonData.id === 'TripletButton') {
+			this.editor.makeTupletCommand(3);
+		} else if (this.buttonData.id === 'QuintupletButton') {
+			this.editor.makeTupletCommand(5);
+		} else if (this.buttonData.id === 'SeptupletButton') {
+			this.editor.makeTupletCommand(7);
+		} else if (this.buttonData.id === 'NoTupletButton') {
+			this.editor.unmakeTuplet();
+		}
+	}
+	bind() {
+		var self = this;
+		$(this.buttonElement).off('click').on('click', function () {
+			self.setDuration();
+		});
 	}
 }
 
@@ -8120,14 +8290,13 @@ class NoteButtons {
 			this.editor.upOctave();
 		} else if (this.buttonData.id === 'DownOctaveButton') {
 			this.editor.downOctave();
-		}else if (this.buttonData.id === 'ToggleAccidental') {
+		} else if (this.buttonData.id === 'ToggleAccidental') {
 			this.editor.toggleEnharmonic();
-		}else if (this.buttonData.id === 'ToggleCourtesy') {
+		} else if (this.buttonData.id === 'ToggleCourtesy') {
 			this.editor.toggleCourtesyAccidental();
 		} else if (this.buttonData.id === 'ToggleRestButton') {
 			this.editor.makeRest();
-		}
-		else {
+		} else {
 			this.editor.setPitchCommand(this.buttonData.rightText);
 		}
 	}
@@ -8145,26 +8314,27 @@ class ChordButtons {
 		this.buttonData = parameters.buttonData;
 		this.editor = parameters.editor;
 		this.tracker = parameters.tracker;
-		this.score=parameters.score;
-		this.interval=parseInt($(this.buttonElement).attr('data-interval'));
-		this.direction=parseInt($(this.buttonElement).attr('data-direction'));
+		this.score = parameters.score;
+		this.interval = parseInt($(this.buttonElement).attr('data-interval'));
+		this.direction = parseInt($(this.buttonElement).attr('data-direction'));
 	}
 	static get direction() {
-		return {up:1,down:-1}
+		return {
+			up: 1,
+			down: -1
+		}
 	}
-	static get intervalButtonMap() {
-		
-	}
+	static get intervalButtonMap() {}
 	collapseChord() {
 		this.editor.collapseChord();
 	}
 	setInterval() {
-		this.editor.intervalAdd(this.interval,this.direction);
+		this.editor.intervalAdd(this.interval, this.direction);
 	}
 	bind() {
 		var self = this;
 		$(this.buttonElement).off('click').on('click', function () {
-			if ($(self.buttonElement).attr('id')==='CollapseChordButton') {
+			if ($(self.buttonElement).attr('id') === 'CollapseChordButton') {
 				self.collapseChord();
 				return;
 			}
@@ -8245,7 +8415,6 @@ class ArticulationButtons {
 	_toggleArticulation() {
 		this.showState = !this.showState;
 
-		// fake editor key, not sure if this is best...
 		this.editor.toggleArticulationCommand(this.articulation, this.placement);
 	}
 	bind() {
@@ -8273,6 +8442,8 @@ class CollapseRibbonControl {
 			$(el).toggleClass('collapsed');
 			$(el).toggleClass('expanded');
 		});
+
+		this.buttonElement.closest('div').toggleClass('expanded');
 		this.buttonElement.toggleClass('expandedChildren');
 		if (this.buttonElement.hasClass('expandedChildren')) {
 			var leftSpan = $(this.buttonElement).find('.ribbon-button-text');
@@ -8285,6 +8456,9 @@ class CollapseRibbonControl {
 			$(leftSpan).addClass(this.buttonData.icon);
 			$(leftSpan).text(this.buttonData.leftText);
 		}
+		
+		// Expand may change music dom, redraw
+		this.controller.resizeEvent();
 	}
 	bind() {
 		var self = this;
@@ -9295,21 +9469,27 @@ class suiController {
 		this.bindEvents();
 		this.bindResize();
 	}
-
-	bindResize() {
-		var self = this;
+	
+	resizeEvent() {
+		var self=this;
 		var remap = function () {
 			return self.tracker.updateMap();
 		}
-		window.addEventListener('resize', function () {
-			if (this.resizing)
-				return;
+		if (this.resizing)
+			return;
+		this.resizing=true;
 			setTimeout(function () {
 				console.log('resizing');
 				self.resizing = false;
 				self.layout.setViewport();
 				self.layout.render().then(remap);
 			}, 500);
+	}
+
+	bindResize() {
+		var self = this;
+		window.addEventListener('resize', function () {
+			self.resizeEvent();
 		});
 	}
 

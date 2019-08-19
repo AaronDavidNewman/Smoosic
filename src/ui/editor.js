@@ -36,7 +36,7 @@ class suiEditor {
         }
         this._render();
     }
-
+		
     undo() {
         this.layout.undo(this.undoBuffer);
     }

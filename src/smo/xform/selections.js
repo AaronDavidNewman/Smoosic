@@ -22,7 +22,7 @@ class SmoSelector {
 	static sameStaff(sel1, sel2) {
 		return sel1.staff === sel2.staff;
 	}
-	
+		
 	// ## return true if sel1 > sel2.  
 	static gt(sel1, sel2) {
 		// Note: voice is not considered b/c it's more of a vertical component
@@ -212,6 +212,7 @@ class SmoSelection {
 		return null;
 	}
 
+
 	static lastNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
 		var lastTick = tickIndex - 1;
 		var lastMeasure = measureIndex - 1;
@@ -227,6 +228,36 @@ class SmoSelection {
 		}
 		return null;
 	}
+	
+	// ### selectionsSameMeasure
+	// Return true if the selections are all in the same measure.  Used to determine what
+	// type of undo we need.
+	static selectionsSameMeasure(selections) {
+		if (selections.length < 2) {
+			return true;
+		}
+		var sel1=selections[0].selector;
+		for (var i=1;i<selections.length;++i) {
+			if (!SmoSelector.sameMeasure(sel1,selections[i].selector)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	static selectionsSameStaff(selections) {
+		if (selections.length < 2) {
+			return true;
+		}
+		var sel1=selections[0].selector;
+		for (var i=1;i<selections.length;++i) {
+			if (!SmoSelector.sameStaff(sel1,selections[i].selector)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 
 	constructor(params) {
 		this.selector = {

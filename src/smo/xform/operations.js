@@ -15,6 +15,18 @@ class SmoOperation {
 	static toggleBeamGroup(noteSelection) {
 	      noteSelection.note.endBeam =  !(noteSelection.note.endBeam);
 	}
+	
+	/* WIP static batchSelectionOperation(score,selections,operation) {
+		var selar = [];
+		selections.forEach((selection) => {
+			selar.push(JSON.parse(JSON.stringify(selection.selector)));
+		});
+		
+		var selar.forEach((selector) => {
+			
+		});
+		
+	}  */
 	// ## doubleDuration
 	// ## Description
 	// double the duration of a note in a measure, at the expense of the following

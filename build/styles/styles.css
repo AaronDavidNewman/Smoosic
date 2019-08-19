@@ -64,6 +64,10 @@ h1 {
 .menu-status div {
 	margin:5px;
 }
+div.ribbonButtonContainer.expanded {
+	margin-right:5px;
+}
+
 .controls-left button,
 .controls-top button 
  {
@@ -101,6 +105,46 @@ h1 {
 }
 #ArticulationButtons .icon-articulation:before {
 	font-size:2.4em;
+}
+
+.controls-top button.duration {
+	width:65px;
+}
+
+
+.controls-top button.duration.expanded.tuplet span.ribbon-button-hotkey  {
+	font-size:1em;
+}
+.controls-top button.duration.expanded span.ribbon-button-text.icon {
+	font-size:2.2em;
+	top:25%;
+}
+
+.controls-top button.duration span.ribbon-button-text {
+	font-size:1.6em;
+}
+
+.controls-top button.duration span.ribbon-button-hotkey {
+	font-size:1.6em;
+}
+
+#DurationButtons span.ribbon-button-text {
+	left:7px;
+	font-size:1.6em;
+}
+
+#GrowDuration .ribbon-button-hotkey ,
+#LessDuration .ribbon-button-hotkey {
+	font-size:3em;
+	top:0;
+}
+
+#SeptupletButton {
+	width:90px;
+}
+
+#QuintupletButton {
+	width:75px;
 }
 
 .controls-top button.articulation {
