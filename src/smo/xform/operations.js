@@ -16,17 +16,20 @@ class SmoOperation {
 	      noteSelection.note.endBeam =  !(noteSelection.note.endBeam);
 	}
 	
-	/* WIP static batchSelectionOperation(score,selections,operation) {
-		var selar = [];
+	static batchSelectionOperation(score,selections,operation) {
+		var measureTicks = [];
 		selections.forEach((selection) => {
-			selar.push(JSON.parse(JSON.stringify(selection.selector)));
+			var measureSel = {staff:selection.selector.staff,measure:selection.selector.measure};
+			if (!measureTicks[measureSel]) {
+				var tm = selection.measure.tickmap();
+				var tickOffset=tm.durationMap[selector.selector.tick];
+				var selector = JSON.parse(JSON.stringify(selection.selector));
+				measureTicks.push({selector:selector,tickOffset:tickOffset});
+			}
 		});
 		
-		var selar.forEach((selector) => {
-			
-		});
-		
-	}  */
+	
+	}
 	// ## doubleDuration
 	// ## Description
 	// double the duration of a note in a measure, at the expense of the following
