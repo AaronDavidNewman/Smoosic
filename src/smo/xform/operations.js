@@ -19,16 +19,23 @@ class SmoOperation {
 	static batchSelectionOperation(score,selections,operation) {
 		var measureTicks = [];
 		selections.forEach((selection) => {
-			var measureSel = {staff:selection.selector.staff,measure:selection.selector.measure};
+			var measureSel = {staff:selection.selector.staff,measure:selection.selector.measure,voice:selection.selector.voice};
 			if (!measureTicks[measureSel]) {
 				var tm = selection.measure.tickmap();
-				var tickOffset=tm.durationMap[selector.selector.tick];
+				var tickOffset=tm.durationMap[selection.selector.tick];
 				var selector = JSON.parse(JSON.stringify(selection.selector));
 				measureTicks.push({selector:selector,tickOffset:tickOffset});
 			}
 		});
-		selections.forEach((selection) => {
-			
+		measureTicks.forEach((measureTick) => {
+			var selection = SmoSelection.measureSelection(score,measureTick.selector.staff,measureTick.selector.measure);
+			var tickmap = selection.measure.tickmap();
+			var ix = tickmap.durationMap.indexOf(measureTick.tickOffset);
+			if (ix >= 0) {
+				var nsel = SmoSelection.noteSelection(score,measureTick.selector.staff,measureTick.selector.measure,
+				    measureTick.selector.voice,ix);
+				SmoOperation[operation](nsel);
+			}
 		});
 	}
 	// ## doubleDuration

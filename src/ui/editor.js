@@ -27,6 +27,10 @@ class suiEditor {
         this.layout.render().then(remap).then(mover);
 		// TODO: make this promise-based
     }
+	_batchDurationOperation(operation) {
+		SmoUndoable.batchDurationOperation(this.score,this.tracker.selections,operation,this.undoBuffer);
+		this._render();
+	}
 
     _selectionOperation(selection, name, parameters) {
         if (parameters) {
@@ -180,19 +184,19 @@ class suiEditor {
     }
 
     dotDuration(keyEvent) {
-        this._singleSelectionOperation('dotDuration');
+        this._batchDurationOperation('dotDuration');
     }
 
     undotDuration(keyEvent) {
-        this._singleSelectionOperation('undotDuration');
+        this._batchDurationOperation('undotDuration');
     }
 
     doubleDuration(keyEvent) {
-        this._singleSelectionOperation('doubleDuration');
+        this._batchDurationOperation('doubleDuration');
     }
 
     halveDuration(keyEvent) {
-        this._singleSelectionOperation('halveDuration');
+        this._batchDurationOperation('halveDuration');
     }
 
     addMeasure(keyEvent) {
