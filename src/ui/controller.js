@@ -160,10 +160,8 @@ class suiController {
 			 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
 		event.preventDefault();
 
-		if (evdata.key == '?') {
-			window.removeEventListener("keydown", this.keydownHandler, true);
-			SmoHelp.displayHelp();
-			htmlHelpers.closeDialogPromise().then(rebind);
+		if (evdata.key == '?') {			
+			SmoHelp.displayHelp();			
 		}
 
 		if (evdata.key == '/') {

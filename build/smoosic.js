@@ -3717,17 +3717,28 @@ class SmoOperation {
 	      noteSelection.note.endBeam =  !(noteSelection.note.endBeam);
 	}
 	
-	/* WIP static batchSelectionOperation(score,selections,operation) {
-		var selar = [];
+	static batchSelectionOperation(score,selections,operation) {
+		var measureTicks = [];
 		selections.forEach((selection) => {
-			selar.push(JSON.parse(JSON.stringify(selection.selector)));
+			var measureSel = {staff:selection.selector.staff,measure:selection.selector.measure,voice:selection.selector.voice};
+			if (!measureTicks[measureSel]) {
+				var tm = selection.measure.tickmap();
+				var tickOffset=tm.durationMap[selection.selector.tick];
+				var selector = JSON.parse(JSON.stringify(selection.selector));
+				measureTicks.push({selector:selector,tickOffset:tickOffset});
+			}
 		});
-		
-		var selar.forEach((selector) => {
-			
+		measureTicks.forEach((measureTick) => {
+			var selection = SmoSelection.measureSelection(score,measureTick.selector.staff,measureTick.selector.measure);
+			var tickmap = selection.measure.tickmap();
+			var ix = tickmap.durationMap.indexOf(measureTick.tickOffset);
+			if (ix >= 0) {
+				var nsel = SmoSelection.noteSelection(score,measureTick.selector.staff,measureTick.selector.measure,
+				    measureTick.selector.voice,ix);
+				SmoOperation[operation](nsel);
+			}
 		});
-		
-	}  */
+	}
 	// ## doubleDuration
 	// ## Description
 	// double the duration of a note in a measure, at the expense of the following
@@ -4155,6 +4166,33 @@ class UndoBuffer {
 // Convenience functions to save the score state before operations so we can undo the operation.
 // Each undo-able knows which set of parameters the undo operation requires (measure, staff, score).
 class SmoUndoable {
+	// Add the measure/staff/score that will cover this list of selections
+	static batchDurationOperation(score,selections,operation,undoBuffer) {
+	    var staffUndo = false;
+		var scoreUndo = false;
+		if (!selections.length)
+			return;
+		var measure=selections[0].selector.measure;
+		var staff = selections[0].selector.staff;
+		for (var i=0;i<selections.length;++i) {
+			var sel = selections[i];
+			if (sel.selector.measure != measure) {
+				staffUndo = true;
+			} else if (sel.selector.staff != staff) {
+				scoreUndo = true;
+				break;
+			}
+		}
+		if (scoreUndo) {
+			undoBuffer.addBuffer('score backup for '+operation, 'score', null, score);
+		} else if (staffUndo) {
+			undoBuffer.addBuffer('staff backup for '+operation, 'staff', selections[0].selector, score);
+		} else {
+			undoBuffer.addBuffer('measure backup for '+operation, 'measure', selections[0].selector, selections[0].measure);
+		}
+		
+		SmoOperation.batchSelectionOperation(score,selections,operation);
+	}
     static setPitch(selection, pitches, undoBuffer) {
         undoBuffer.addBuffer('pitch change ' + JSON.stringify(pitches, null, ' '),
             'measure', selection.selector, selection.measure);
@@ -6152,6 +6190,10 @@ class suiEditor {
         this.layout.render().then(remap).then(mover);
 		// TODO: make this promise-based
     }
+	_batchDurationOperation(operation) {
+		SmoUndoable.batchDurationOperation(this.score,this.tracker.selections,operation,this.undoBuffer);
+		this._render();
+	}
 
     _selectionOperation(selection, name, parameters) {
         if (parameters) {
@@ -6305,19 +6347,19 @@ class suiEditor {
     }
 
     dotDuration(keyEvent) {
-        this._singleSelectionOperation('dotDuration');
+        this._batchDurationOperation('dotDuration');
     }
 
     undotDuration(keyEvent) {
-        this._singleSelectionOperation('undotDuration');
+        this._batchDurationOperation('undotDuration');
     }
 
     doubleDuration(keyEvent) {
-        this._singleSelectionOperation('doubleDuration');
+        this._batchDurationOperation('doubleDuration');
     }
 
     halveDuration(keyEvent) {
-        this._singleSelectionOperation('halveDuration');
+        this._batchDurationOperation('halveDuration');
     }
 
     addMeasure(keyEvent) {
@@ -8906,9 +8948,13 @@ class SmoHelp {
         $('.helpDialog').append(r.dom());
 
         $('.helpDialog').append(SmoHelp.closeButton.dom());
+		$('button.help-title').off('click').on('click',function(ev) {
+			$(this).closest('div.helpLine').toggleClass('showSection');
+			$(this).find('span.icon').toggleClass('icon-plus');
+			$(this).find('span.icon').toggleClass('icon-minus');
+		});
         $('.helpDialog button.icon-cross').off('click').on('click', function () {
             $('body').removeClass('showHelpDialog');
-            $('body').trigger('dialogDismiss');
         });
     }
 		
@@ -8957,7 +9003,9 @@ class SmoHelp {
     static _buildElements(helps, text) {
         var b = htmlHelpers.buildDom;
         var r = b('div').classes('helpLine').append(
-                b('div').classes('help-title').text(text));
+				b('button').append(
+				b('span').classes('icon icon-plus'))
+				.classes('help-title').text(text));
 
         helps.forEach((help) => {
             r.append(SmoHelp._buttonBlock(help.keys, help.text, help.id));
@@ -9601,10 +9649,8 @@ class suiController {
 			 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
 		event.preventDefault();
 
-		if (evdata.key == '?') {
-			window.removeEventListener("keydown", this.keydownHandler, true);
-			SmoHelp.displayHelp();
-			htmlHelpers.closeDialogPromise().then(rebind);
+		if (evdata.key == '?') {			
+			SmoHelp.displayHelp();			
 		}
 
 		if (evdata.key == '/') {

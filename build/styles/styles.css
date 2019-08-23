@@ -366,25 +366,47 @@ button.icon-cross.close:focus,button.icon-cross.close:hover {
 
 body.showHelpDialog .helpDialog {
 	display:block;
-	width:90%;
-	height:90%;
 	position:absolute;
 	z-index: 5;
 	background: #eef;
-	left: 4%;
+	right:0;
 	margin: 8px;
+	min-width:350px;
+	top: 35px;
 	padding: 10px;
-	border: 3px solid #334;
-	border-radius: 5px;
+	border: 1px dashed #334;
+	/* border-radius: 5px; */
 }
 
 .helpLine {
 	margin-bottom:15px;
 }
 
+.help-title span.icon {
+	font-size:.6em;
+	position:absolute;
+	left: 3px;
+	border: 1px black solid;
+}
+
+button.help-title:focus {
+	outline:none;	
+}
+
+.helpLine .keyBlock {
+	display:none;
+}
+
+.helpLine.showSection .keyBlock {
+	display:block;
+}
+
 .helpLine .help-title {
-	/* text-align:center; */
-	font-weight: bold;
+	background: #eef;
+	text-align: left;
+	border: none;
+	width: 80%;
+	border-bottom: 1px black dotted;
 }
 .helpKey {
     border: 1px solid #222;
@@ -397,18 +419,7 @@ body.showHelpDialog .helpDialog {
     margin-right: 5px;
 }
 
-.help-left {
-	width:45%;
-	float:left;
-}
-
-.help-right {
-	width:45%;
-	float:right;
-}
-
 .keyBlock {
-	display: block;
 	margin-top: 5px;
 }
 

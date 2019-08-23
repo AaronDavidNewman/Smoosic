@@ -19,9 +19,13 @@ class SmoHelp {
         $('.helpDialog').append(r.dom());
 
         $('.helpDialog').append(SmoHelp.closeButton.dom());
+		$('button.help-title').off('click').on('click',function(ev) {
+			$(this).closest('div.helpLine').toggleClass('showSection');
+			$(this).find('span.icon').toggleClass('icon-plus');
+			$(this).find('span.icon').toggleClass('icon-minus');
+		});
         $('.helpDialog button.icon-cross').off('click').on('click', function () {
             $('body').removeClass('showHelpDialog');
-            $('body').trigger('dialogDismiss');
         });
     }
 		
@@ -70,7 +74,9 @@ class SmoHelp {
     static _buildElements(helps, text) {
         var b = htmlHelpers.buildDom;
         var r = b('div').classes('helpLine').append(
-                b('div').classes('help-title').text(text));
+				b('button').append(
+				b('span').classes('icon icon-plus'))
+				.classes('help-title').text(text));
 
         helps.forEach((help) => {
             r.append(SmoHelp._buttonBlock(help.keys, help.text, help.id));
