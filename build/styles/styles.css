@@ -338,7 +338,7 @@ div.ribbonButtonContainer.expanded {
 	text-justify:center;
 }
 
-body.modal .overlay,body.showAttributeDialog .overlay,body.showHelpDialog .overlay {
+body.modal .overlay,body.showAttributeDialog .overlay {
 	display:block;
 	position:absolute;
 	width:100%;
