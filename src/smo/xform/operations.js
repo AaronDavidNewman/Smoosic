@@ -26,7 +26,10 @@ class SmoOperation {
 				var selector = JSON.parse(JSON.stringify(selection.selector));
 				measureTicks.push({selector:selector,tickOffset:tickOffset});
 			}
-		});			
+		});
+		selections.forEach((selection) => {
+			
+		});
 	}
 	// ## doubleDuration
 	// ## Description
