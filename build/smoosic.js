@@ -4166,8 +4166,7 @@ class UndoBuffer {
 // Convenience functions to save the score state before operations so we can undo the operation.
 // Each undo-able knows which set of parameters the undo operation requires (measure, staff, score).
 class SmoUndoable {
-	// Add the measure/staff/score that will cover this list of selections
-	static batchDurationOperation(score,selections,operation,undoBuffer) {
+	static undoForSelections(selections,undoBuffer,operation) {
 	    var staffUndo = false;
 		var scoreUndo = false;
 		if (!selections.length)
@@ -4191,6 +4190,10 @@ class SmoUndoable {
 			undoBuffer.addBuffer('measure backup for '+operation, 'measure', selections[0].selector, selections[0].measure);
 		}
 		
+	}
+	// Add the measure/staff/score that will cover this list of selections
+	static batchDurationOperation(score,selections,operation,undoBuffer) {		
+	    SmoUndoable.undoForSelections(selections,undoBuffer);
 		SmoOperation.batchSelectionOperation(score,selections,operation);
 	}
     static setPitch(selection, pitches, undoBuffer) {
@@ -4304,6 +4307,11 @@ class SmoUndoable {
         undoBuffer.addBuffer('changeInstrument', 'staff', selections[0].selector, score);
         SmoOperation.changeInstrument(score, instrument, selections);
     }
+	static pasteBuffer(score,pasteBuffer,selections,undoBuffer,operation) {
+		SmoUndoable.undoForSelections(selections,undoBuffer,operation);
+		var pasteTarget = selections[0].selector;
+        pasteBuffer.pasteSelections(this.score, pasteTarget);
+	}
 }
 ;
 
@@ -6235,9 +6243,8 @@ class suiEditor {
         if (this.tracker.selections.length < 1) {
             return;
         }
-        var pasteTarget = this.tracker.selections[0].selector;
         this.layout.unrenderAll();
-        this.pasteBuffer.pasteSelections(this.score, pasteTarget);
+		SmoUndoable.pasteBuffer(this.score,this.pasteBuffer,this.tracker.selections,this.undoBuffer,'paste')
         this.layout.render();
     }
 	toggleBeamGroup() {
@@ -9502,7 +9509,7 @@ class suiController {
 		this.pasteBuffer = this.tracker.pasteBuffer;
 		this.editor.undoBuffer = this.undoBuffer;
 		this.editor.pasteBuffer = this.pasteBuffer;
-		this.resizing=false;
+		this.resizing = false;
 
 		this.ribbon = new RibbonButtons({
 				ribbons: defaultRibbonLayout.ribbons,
@@ -9517,21 +9524,21 @@ class suiController {
 		this.bindEvents();
 		this.bindResize();
 	}
-	
+
 	resizeEvent() {
-		var self=this;
+		var self = this;
 		var remap = function () {
 			return self.tracker.updateMap();
 		}
 		if (this.resizing)
 			return;
-		this.resizing=true;
-			setTimeout(function () {
-				console.log('resizing');
-				self.resizing = false;
-				self.layout.setViewport();
-				self.layout.render().then(remap);
-			}, 500);
+		this.resizing = true;
+		setTimeout(function () {
+			console.log('resizing');
+			self.resizing = false;
+			self.layout.setViewport();
+			self.layout.render().then(remap);
+		}, 500);
 	}
 
 	bindResize() {
@@ -9623,6 +9630,85 @@ class suiController {
 		htmlHelpers.closeDialogPromise().then(rebind);
 		});   */
 	}
+	static set reentry(value) {
+		suiController._reentry = value;
+	}
+	static get reentry() {
+		if (typeof(suiController['_reentry']) == 'undefined') {
+			suiController._reentry = false;
+		}
+		return suiController._reentry;
+	}
+
+	exceptionHandler(e) {
+		var self = this;
+		if (suiController.reentry) {
+			return;
+		}
+		suiController.reentry = true;
+		var scoreString = 'Could not serialize score.';
+		try {
+			scoreString = this.score.serialize();
+		} catch (e) {
+			scoreString += ' ' + e.message;
+		}
+		var message = e.message;
+		var stack = 'No stack trace available';
+
+		try {
+			if (e.error && e.error.stack) {
+				stack = e.error.stack;
+			}
+		} catch (e) {
+			stack = 'Error with stack: ' + e.message;
+		}
+		var doing = 'Last operation not available.';
+
+		var lastOp = this.undoBuffer.peek();
+		if (lastOp) {
+			doing = lastOp.title;
+		}
+		var url = 'https://github.com/AaronDavidNewman/Smoosic/issues';
+		var bodyObject = JSON.stringify({
+				message: message,
+				stack: stack,
+				lastOperation: doing,
+				scoreString: scoreString
+			}, null, ' ');
+
+		var b = htmlHelpers.buildDom;
+		var r = b('div').classes('bug-modal').append(
+				b('img').attr('src', '../styles/images/logo.png').classes('bug-logo'))
+			.append(b('button').classes('icon icon-cross bug-dismiss-button'))
+			.append(b('span').classes('bug-title').text('oh nooooo!  You\'ve found a bug'))
+			.append(b('p').text('It would be helpful if you would submit a bug report, and copy the data below into an issue'))
+			.append(b('div')
+				.append(b('textarea').attr('id', 'bug-text-area').text(bodyObject))
+				.append(
+					b('div').classes('button-container').append(b('button').classes('bug-submit-button').text('Submit Report'))));
+
+		$('.bugDialog').html('');
+		$('.bugDialog').append(r.dom());
+
+		$('.bug-dismiss-button').off('click').on('click', function () {
+			$('body').removeClass('bugReport');
+			if (lastOp) {
+				self.undoBuffer.undo(self.score);
+				self.layout.render();
+			}
+		});
+		$('.bug-submit-button').off('click').on('click', function () {
+			var data = {
+				title: "automated bug report",
+				body: encodeURIComponent(bodyObject)
+			};
+			$('#bug-text-area').select();
+			document.execCommand('copy');
+			window.open(url,'Report Smoosic issues');
+		});
+		$('body').addClass('bugReport');
+
+	}
 
 	menuHelp() {
 		SmoHelp.modeControls();
@@ -9649,8 +9735,8 @@ class suiController {
 			 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
 		event.preventDefault();
 
-		if (evdata.key == '?') {			
-			SmoHelp.displayHelp();			
+		if (evdata.key == '?') {
+			SmoHelp.displayHelp();
 		}
 
 		if (evdata.key == '/') {
@@ -9714,6 +9800,10 @@ class suiController {
 
 		window.addEventListener("keydown", this.keydownHandler, true);
 		this.ribbon.display();
+
+		window.addEventListener('error', function (e) {
+			self.exceptionHandler(e);
+		});
 	}
 
 }

@@ -72,9 +72,8 @@ class suiEditor {
         if (this.tracker.selections.length < 1) {
             return;
         }
-        var pasteTarget = this.tracker.selections[0].selector;
         this.layout.unrenderAll();
-        this.pasteBuffer.pasteSelections(this.score, pasteTarget);
+		SmoUndoable.pasteBuffer(this.score,this.pasteBuffer,this.tracker.selections,this.undoBuffer,'paste')
         this.layout.render();
     }
 	toggleBeamGroup() {

@@ -14,25 +14,18 @@
 <body>
 <script type="text/javascript">
   document.addEventListener("DOMContentLoaded", function (event) {
-		var score=SmoScore.getEmptyScore();
-        score.addDefaultMeasureWithNotes(0,{});
-        score.addDefaultMeasureWithNotes(1,{});
-        score.addDefaultMeasureWithNotes(2,{});
-        score.addDefaultMeasureWithNotes(3,{});
-        score.addDefaultMeasureWithNotes(4,{});
-		score.addStaff();
+            console.log("DOM fully loaded and parsed");
 		
-		var keys = suiController.createUi(document.getElementById("boo"),score);
-		keys.layout.render();		
-        });
+            suiController.start();
+			});
 		</script>
-		
 <div class="modes"></div>
 <div class="overlay"></div>
 <div class="attributeDialog"></div>
 <div class="helpDialog"></div>
+<div class="bugDialog"></div>
 <div class="menuContainer"></div>
-<h1 class="testTitle"> Smoosic Editor </h1>
+<h1 class="testTitle"> Editor Test </h1>
 <div class="workspace">
     <div class="controls-top"></div>
     <div class="controls-left"></div>
@@ -42,5 +35,4 @@
 </div>
 </div>
 </body>
-
 </html>

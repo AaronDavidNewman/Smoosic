@@ -230,6 +230,56 @@ div.ribbonButtonContainer.expanded {
 	font-size:2em;
 }
 
+.bugDialog {
+	position:absolute;
+	width:80%;
+	height:70%;
+	background: #fff;
+	z-index: 9;
+	border: 1px red dashed;
+	display:none;
+}
+
+.button-container {
+	margin-left:10px;	
+}
+.bug-dismiss-button {
+	position:absolute;
+	right:0px;
+	top:0px;
+	color:red;
+}
+#bug-text-area {
+    display: block;
+    width: 80%;
+    height: 60%;
+    border: block solid 1px;
+    font-family: monospace;
+    border: black solid 1px;
+    margin: 10px;
+	overflow-y: scroll;
+}
+
+.bug-submit-report {
+	margin-left:10px;
+}
+
+.bug-modal {
+	width:100%;
+	height:100%;
+	margin:10px;
+	
+}
+body.bugReport .bugDialog {
+	display:block;
+}
+.bug-logo {
+	width:64px;
+	height:64px;
+	display:inline-block;
+	
+}
+
 .controls-left .collapseParent ,
 .controls-top .collapseParent {
 	border-left:4px inset #44e;
