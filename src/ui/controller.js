@@ -199,6 +199,7 @@ class suiController {
 			if (lastOp) {
 				self.undoBuffer.undo(self.score);
 				self.layout.render();
+				suiController.reentry = false;
 			}
 		});
 		$('.bug-submit-button').off('click').on('click', function () {

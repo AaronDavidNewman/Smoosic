@@ -99,7 +99,7 @@ class PasteBuffer {
         var currentDuration = tickmap.durationMap[this.destination.tick];
         var rv = [];
         this.notes.forEach((selection) => {
-            if (currentDuration + selection.note.tickCount >= tickmap.totalDuration) {
+            if (currentDuration + selection.note.tickCount >= tickmap.totalDuration && measureSelection != null) {
                 // If this note will overlap the measure boundary, the note will be split in 2 with the
                 // remainder going to the next measure.  If they line up exactly, the remainder is 0.
                 var remainder = tickmap.totalDuration - (currentDuration + selection.note.tickCount);
