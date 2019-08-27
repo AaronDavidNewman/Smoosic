@@ -98,10 +98,11 @@ class suiSimpleLayout {
 	// 2. Widths and heights are adjusted for elements that may have overlapped or exceeded their expected boundary.
 	// 3. The whole score is rendered a second time with the new values.
 	render() {
-		const promise = new Promise((resolve, reject) => {
+		const promise = new Promise((resolve, reject) => {			
 				this._render();
-				resolve();
+				resolve();			
 			});
+		
 		return promise;
 	}
 	_render() {

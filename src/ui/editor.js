@@ -13,7 +13,10 @@ class suiEditor {
 		var remap = function() {
 			return self.tracker.updateMap();
 		}
-        this.layout.render().then(remap);
+        this.layout.render().catch(function(e) {
+			setTimeout(function() {throw(e);},1);
+			})
+			.then(remap);
     }
 
     _renderAndAdvance() {
@@ -74,14 +77,14 @@ class suiEditor {
         }
         this.layout.unrenderAll();
 		SmoUndoable.pasteBuffer(this.score,this.pasteBuffer,this.tracker.selections,this.undoBuffer,'paste')
-        this.layout.render();
+        this._render();
     }
 	toggleBeamGroup() {
         if (this.tracker.selections.length < 1) {
             return;
         }
 		SmoUndoable.toggleBeamGroups(this.tracker.selections,this.undoBuffer);
-		this.layout.render();
+		this._render();
 	}
 
     deleteMeasure() {
@@ -93,7 +96,7 @@ class suiEditor {
         SmoUndoable.deleteMeasure(this.score, selection, this.undoBuffer);
         this.tracker.selections = [];
         this.tracker.clearModifierSelections();
-        this.layout.render();
+        this._render();
     }
 	
 	collapseChord() {
@@ -103,7 +106,7 @@ class suiEditor {
 			p=JSON.parse(JSON.stringify(p));
 			selection.note.pitches=[p];
 		});
-		this.layout.render();
+		this._render();
 	}
 	
 	intervalAdd(interval,direction) {		
@@ -228,7 +231,7 @@ class suiEditor {
 		this.layout.unrenderAll();
 		SmoUndoable.noop(this.score,this.undoBuffer);
 		this.undo();
-		this.layout.render();
+		this._render();
 	}
 	makeTupletCommand(numNotes) {
         this._singleSelectionOperation('makeTuplet', numNotes);
