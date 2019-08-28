@@ -240,6 +240,40 @@ class SmoTuplet {
 		return rv;
 			
 	}
+	
+	static cloneTuplet(tuplet,noteAr) {
+		var durationMap = tuplet.durationMap.flat(1); // deep copy array
+		var totalTicks = noteAr.reduce((acc,nn) => {return acc+nn.tickCount;});
+		var numNotes = noteAr.length;
+		var stemValue = totalTicks / numNotes;
+        var stemTicks = 8192;
+
+        // The stem value is the type on the non-tuplet note, e.g. 1/8 note
+        // for a triplet.
+        while (stemValue < stemTicks) {
+            stemTicks = stemTicks / 2;
+        }
+		var tupletNotes=[];
+
+        this.stemTicks = stemTicks * 2;
+		noteAr.forEach((note) => {
+            note = SmoNote.cloneWithDuration(note, {numerator:stemTicks,denominator:1,remainder:0});
+			
+			// Don't clone modifiers, except for first one.
+			note.textModifiers = i===0 ? note.textModifiers : [];
+
+            tupletNotes.push(note);
+		});
+        var rv = new SmoTuplet({
+                notes: tupletNotes,
+                stemTicks: stemTicks,
+                totalTicks:totalTicks,
+                ratioed: false,
+                bracketed: true,
+                startIndex: tuplet.startIndex,
+                durationMap: durationMap
+            });
+	}
 
     _adjustTicks() {
         var sum = this.durationSum;
@@ -360,7 +394,6 @@ class SmoTuplet {
             numNotes: 3,
             totalTicks: 4096, // how many ticks this tuple takes up
             stemTicks: 2048, // the stem ticks, for drawing purposes.  >16th, draw as 8th etc.
-            location: 1,
             durationMap: [1.0, 1.0, 1.0],
             bracketed: true,
             ratioed: false

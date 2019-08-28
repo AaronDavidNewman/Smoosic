@@ -121,16 +121,23 @@ class PasteBuffer {
 
     // ### _populatePre
     // When we paste, we replace entire measures.  Populate the first measure up until the start of pasting.
-    _populatePre(voiceIndex, measure, startTick, tickmap) {
+    _populatePre(voiceIndex, measure, startTick, tickmap,measureTuplets) {
         var voice = {
             notes: []
         };
         var ticksToFill = tickmap.durationMap[startTick];
         var filled = 0;
+		var measureTuplets=[];
 		// TODO: bug here, need to handle tuplets in pre-part, create new tuplet
         for (var i = 0; i < measure.voices[voiceIndex].notes.length; ++i) {
 
             var note = measure.voices[voiceIndex].notes[i];
+			if (note.isTuplet) {			
+				var tuplet = measure.getTupletForNote(note);
+				// if (tupl
+				var ntuplet = SmoTuplet.cloneTuplet(tuplet);
+				measureTuplets.push(ntuplet);
+			}
             if (ticksToFill >= note.tickCount) {
                 ticksToFill -= note.tickCount;
                 voice.notes.push(SmoNote.clone(note));
@@ -162,7 +169,8 @@ class PasteBuffer {
         var measure = measures[0];
         var tickmap = measure.tickmap();
         var startSelector = JSON.parse(JSON.stringify(this.destination));
-        var voice = this._populatePre(voiceIndex, measure, this.destination.tick, tickmap);
+		var measureTuplets = [];
+        var voice = this._populatePre(voiceIndex, measure, this.destination.tick, tickmap,measureT);
         measureVoices.push(voice);
         while (this.measureIndex < measures.length) {
 			measure = measures[this.measureIndex];
