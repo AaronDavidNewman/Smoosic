@@ -951,7 +951,7 @@ class SmoNote {
         }
     }
     static get parameterArray() {
-        return ['ticks', 'pitches', 'noteType','tuplet','attrs','clef','endBeam'];
+        return ['ticks', 'pitches', 'noteType', 'tuplet', 'attrs', 'clef', 'endBeam'];
     }
     get id() {
         return this.attrs.id;
@@ -968,10 +968,9 @@ class SmoNote {
     set dots(value) {
         // ignore - dots are a function of duration only.
     }
-   
 
     // ### _addModifier
-	// ### Description
+    // ### Description
     // add or remove sFz, mp, etc.
     _addModifier(dynamic, toAdd) {
         var tms = [];
@@ -985,11 +984,11 @@ class SmoNote {
         }
         this.textModifiers = tms;
     }
-	
-	_addArticulation(articulation,toAdd) {
+
+    _addArticulation(articulation, toAdd) {
         var tms = [];
         this.articulations.forEach((tm) => {
-            if (tm.articulation  != articulation.articulation) {
+            if (tm.articulation != articulation.articulation) {
                 tms.push(tm);
             }
         });
@@ -997,7 +996,7 @@ class SmoNote {
             tms.push(articulation);
         }
         this.articulations = tms;
-	}
+    }
 
     addModifier(dynamic) {
         this._addModifier(dynamic, true);
@@ -1005,14 +1004,16 @@ class SmoNote {
     removeModifier(dynamic) {
         this._addModifier(dynamic, false);
     }
-		
-	toggleArticulation(articulation) {
-		if (this.articulations.findIndex((a) => {return a.articulation===articulation.articulation;}) < 0) {
-			this._addArticulation(articulation,true);
-		} else {
-			this._addArticulation(articulation,false);
-		}
-	}
+
+    toggleArticulation(articulation) {
+        if (this.articulations.findIndex((a) => {
+                return a.articulation === articulation.articulation;
+            }) < 0) {
+            this._addArticulation(articulation, true);
+        } else {
+            this._addArticulation(articulation, false);
+        }
+    }
 
     _sortPitches() {
         var canon = VF.Music.canonical_notes;
@@ -1106,23 +1107,23 @@ class SmoNote {
         return rv;
     }
 
-	_serializeModifiers() {
+    _serializeModifiers() {
         return JSON.parse(JSON.stringify(this.textModifiers));
     }
-	serialize()  {
-		var params={};
-		smoMusic.serializedMerge(SmoNote.parameterArray,this,params);
-		params.ticks = JSON.parse(JSON.stringify(params.ticks));
-		params.noteModifiers=this._serializeModifiers();
-		return params;
-	}
+    serialize() {
+        var params = {};
+        smoMusic.serializedMerge(SmoNote.parameterArray, this, params);
+        params.ticks = JSON.parse(JSON.stringify(params.ticks));
+        params.noteModifiers = this._serializeModifiers();
+        return params;
+    }
 
     static get defaults() {
         return {
             noteType: 'n',
             textModifiers: [],
-			articulations:[],
-			endBeam:false,
+            articulations: [],
+            endBeam: false,
             ticks: {
                 numerator: 4096,
                 denominator: 1,
@@ -1137,13 +1138,13 @@ class SmoNote {
         }
     }
     static deserialize(jsonObj) {
-		var note = new SmoNote(jsonObj);
-		note.attrs.id=jsonObj.attrs.id;
-		jsonObj.noteModifiers.forEach((mod) => {
-			note.textModifiers.push(SmoNoteModifierBase.deserialize(mod));
-		});
-		return note;
-	}
+        var note = new SmoNote(jsonObj);
+        note.attrs.id = jsonObj.attrs.id;
+        jsonObj.noteModifiers.forEach((mod) => {
+            note.textModifiers.push(SmoNoteModifierBase.deserialize(mod));
+        });
+        return note;
+    }
 }
 class SmoTuplet {
     constructor(params) {
@@ -1160,14 +1161,64 @@ class SmoTuplet {
         }
         this._adjustTicks();
     }
-	
-	get clonedParams() {
-		var paramAr=['stemTicks','ticks','totalTicks','durationMap']
-		var rv = {};
-		smoMusic.serializedMerge(paramAr,this,rv);
-		return rv;
-			
-	}
+
+    get clonedParams() {
+        var paramAr = ['stemTicks', 'ticks', 'totalTicks', 'durationMap']
+        var rv = {};
+        smoMusic.serializedMerge(paramAr, this, rv);
+        return rv;
+
+    }
+
+    static cloneTuplet(tuplet) {
+        var noteAr = tuplet.notes;
+        var durationMap = tuplet.durationMap.flat(1); // deep copy array
+        var totalTicks = noteAr.map((nn) => nn.tickCount).reduce((acc, nn) => acc+nn);
+        var numNotes = noteAr.length;
+        var stemValue = totalTicks / numNotes;
+        var stemTicks = 8192;
+
+        // The stem value is the type on the non-tuplet note, e.g. 1/8 note
+        // for a triplet.
+        while (stemValue < stemTicks) {
+            stemTicks = stemTicks / 2;
+        }
+        var tupletNotes = [];
+
+        this.stemTicks = stemTicks * 2;
+        var i = 0;
+        noteAr.forEach((note) => {
+            var textModifiers = note.textModifiers;
+            note = SmoNote.cloneWithDuration(note, {
+                    numerator: stemTicks,
+                    denominator: 1,
+                    remainder: 0
+                });
+
+            // Don't clone modifiers, except for first one.
+            if (i === 0) {
+                var ntmAr = [];
+                textModifiers.forEach((tm) => {
+                    ntm = SmoNoteModifierBase.deserialize(JSON.stringify(tm));
+                    ntmAr.push(ntm);
+                });
+                note.textModifiers = ntmAr;
+            }
+            i += 1;
+
+            tupletNotes.push(note);
+        });
+        var rv = new SmoTuplet({
+                notes: tupletNotes,
+                stemTicks: stemTicks,
+                totalTicks: totalTicks,
+                ratioed: false,
+                bracketed: true,
+                startIndex: tuplet.startIndex,
+                durationMap: durationMap
+            });
+        return rv;
+    }
 
     _adjustTicks() {
         var sum = this.durationSum;
@@ -1204,7 +1255,7 @@ class SmoTuplet {
             if (i === combineIndex) {
                 nmap.push(this.durationMap[i] * multiplier);
                 nmap.push(this.durationMap[i] * multiplier);
-                note.ticks.numerator *= multiplier;               
+                note.ticks.numerator *= multiplier;
 
                 var onote = SmoNote.clone(note);
                 nnotes.push(note);
@@ -1288,7 +1339,6 @@ class SmoTuplet {
             numNotes: 3,
             totalTicks: 4096, // how many ticks this tuple takes up
             stemTicks: 2048, // the stem ticks, for drawing purposes.  >16th, draw as 8th etc.
-            location: 1,
             durationMap: [1.0, 1.0, 1.0],
             bracketed: true,
             ratioed: false
@@ -4418,10 +4468,11 @@ class PasteBuffer {
         var currentDuration = tickmap.durationMap[this.destination.tick];
         var rv = [];
         this.notes.forEach((selection) => {
-            if (currentDuration + selection.note.tickCount >= tickmap.totalDuration && measureSelection != null) {
+            if (currentDuration + selection.note.tickCount > tickmap.totalDuration && measureSelection != null) {
                 // If this note will overlap the measure boundary, the note will be split in 2 with the
                 // remainder going to the next measure.  If they line up exactly, the remainder is 0.
-                var remainder = tickmap.totalDuration - (currentDuration + selection.note.tickCount);
+                var remainder = (currentDuration + selection.note.tickCount) - tickmap.totalDuration;
+                currentDuration = remainder;
 
                 measureSelection = SmoSelection.measureSelection(this.score,
                         measureSelection.selector.staff,
@@ -4430,7 +4481,6 @@ class PasteBuffer {
                 // If the paste buffer overlaps the end of the score, we can't paste (TODO:  add a measure in this case)
                 if (measureSelection != null) {
                     this.measures.push(measureSelection.measure);
-                    currentDuration = selection.note.tickCount - remainder;
                 }
             } else if (measureSelection != null) {
                 currentDuration += selection.note.tickCount;
@@ -4440,15 +4490,25 @@ class PasteBuffer {
 
     // ### _populatePre
     // When we paste, we replace entire measures.  Populate the first measure up until the start of pasting.
-    _populatePre(voiceIndex, measure, startTick, tickmap) {
+    _populatePre(voiceIndex, measure, startTick, tickmap, measureTuplets) {
         var voice = {
             notes: []
         };
         var ticksToFill = tickmap.durationMap[startTick];
         var filled = 0;
+        var measureTuplets = [];
+        // TODO: bug here, need to handle tuplets in pre-part, create new tuplet
         for (var i = 0; i < measure.voices[voiceIndex].notes.length; ++i) {
 
             var note = measure.voices[voiceIndex].notes[i];
+            if (note.isTuplet) {
+                var tuplet = measure.getTupletForNote(note);
+                // create a new tuplet array for the new measure.
+                if (tuplet.getIndexOfNote(note) === 0) {
+                    var ntuplet = SmoTuplet.cloneTuplet(tuplet);
+                    measureTuplets.push(ntuplet);
+                }
+            }
             if (ticksToFill >= note.tickCount) {
                 ticksToFill -= note.tickCount;
                 voice.notes.push(SmoNote.clone(note));
@@ -4480,9 +4540,13 @@ class PasteBuffer {
         var measure = measures[0];
         var tickmap = measure.tickmap();
         var startSelector = JSON.parse(JSON.stringify(this.destination));
-        var voice = this._populatePre(voiceIndex, measure, this.destination.tick, tickmap);
+        var measureTuplets = [];
+        var voice = this._populatePre(voiceIndex, measure, this.destination.tick, tickmap, measureTuplets);
         measureVoices.push(voice);
+		measure.tuplets=measureTuplets;
         while (this.measureIndex < measures.length) {
+            measure = measures[this.measureIndex];
+            tickmap = measure.tickmap();
             this._populateNew(voice, voiceIndex, measure, tickmap, startSelector);
             if (this.noteIndex < this.notes.length && this.measureIndex < measures.length) {
                 voice = {
@@ -4495,8 +4559,6 @@ class PasteBuffer {
                     voice: voiceIndex,
                     tick: 0
                 };
-                measure = measures[this.measureIndex];
-                tickmap = measure.tickmap();
                 this.measureIndex += 1;
             } else {
                 break;
@@ -4536,6 +4598,7 @@ class PasteBuffer {
                             voice.notes.push(tnote);
                         });
                         this.noteIndex += tuplet.notes.length;
+                        measure.tuplets.push(tuplet);
                         startSelector.tick += tuplet.notes.length;
                     } else {
                         // The tuplet won't fit.  There is no way to split up a tuplet, we
@@ -5803,10 +5866,11 @@ class suiSimpleLayout {
 	// 2. Widths and heights are adjusted for elements that may have overlapped or exceeded their expected boundary.
 	// 3. The whole score is rendered a second time with the new values.
 	render() {
-		const promise = new Promise((resolve, reject) => {
+		const promise = new Promise((resolve, reject) => {			
 				this._render();
-				resolve();
+				resolve();			
 			});
+		
 		return promise;
 	}
 	_render() {
@@ -6184,28 +6248,33 @@ class suiEditor {
     // ## _render
     // utility function to render the music and update the tracker map.
     _render() {
-		var self=this;
-		var remap = function() {
-			return self.tracker.updateMap();
-		}
-        this.layout.render().then(remap);
+        var self = this;
+        var remap = function () {
+            return self.tracker.updateMap();
+        }
+        this.layout.render().catch(function (e) {
+            // make to non-promise exception format
+            e.error = e;
+            SuiExceptionHandler.instance.exceptionHandler(e);
+        })
+        .then(remap);
     }
 
     _renderAndAdvance() {
-		var self=this;
-		var remap = function() {
-			return self.tracker.updateMap();
-		}
-		var mover = function() {
+        var self = this;
+        var remap = function () {
+            return self.tracker.updateMap();
+        }
+        var mover = function () {
             return self.tracker.moveSelectionRight();
-		}
+        }
         this.layout.render().then(remap).then(mover);
-		// TODO: make this promise-based
+        // TODO: make this promise-based
     }
-	_batchDurationOperation(operation) {
-		SmoUndoable.batchDurationOperation(this.score,this.tracker.selections,operation,this.undoBuffer);
-		this._render();
-	}
+    _batchDurationOperation(operation) {
+        SmoUndoable.batchDurationOperation(this.score, this.tracker.selections, operation, this.undoBuffer);
+        this._render();
+    }
 
     _selectionOperation(selection, name, parameters) {
         if (parameters) {
@@ -6215,7 +6284,7 @@ class suiEditor {
         }
         this._render();
     }
-		
+
     undo() {
         this.layout.undo(this.undoBuffer);
     }
@@ -6248,16 +6317,16 @@ class suiEditor {
             return;
         }
         this.layout.unrenderAll();
-		SmoUndoable.pasteBuffer(this.score,this.pasteBuffer,this.tracker.selections,this.undoBuffer,'paste')
-        this.layout.render();
+        SmoUndoable.pasteBuffer(this.score, this.pasteBuffer, this.tracker.selections, this.undoBuffer, 'paste')
+        this._render();
     }
-	toggleBeamGroup() {
+    toggleBeamGroup() {
         if (this.tracker.selections.length < 1) {
             return;
         }
-		SmoUndoable.toggleBeamGroups(this.tracker.selections,this.undoBuffer);
-		this.layout.render();
-	}
+        SmoUndoable.toggleBeamGroups(this.tracker.selections, this.undoBuffer);
+        this._render();
+    }
 
     deleteMeasure() {
         if (this.tracker.selections.length < 1) {
@@ -6268,31 +6337,31 @@ class suiEditor {
         SmoUndoable.deleteMeasure(this.score, selection, this.undoBuffer);
         this.tracker.selections = [];
         this.tracker.clearModifierSelections();
-        this.layout.render();
+        this._render();
     }
-	
-	collapseChord() {
-		SmoUndoable.noop(this.score,this.undoBuffer);
-		this.tracker.selections.forEach((selection) => {
-			var p=selection.note.pitches[0];
-			p=JSON.parse(JSON.stringify(p));
-			selection.note.pitches=[p];
-		});
-		this.layout.render();
-	}
-	
-	intervalAdd(interval,direction) {		
-		this._singleSelectionOperation('interval', direction*interval);
-	}
+
+    collapseChord() {
+        SmoUndoable.noop(this.score, this.undoBuffer);
+        this.tracker.selections.forEach((selection) => {
+            var p = selection.note.pitches[0];
+            p = JSON.parse(JSON.stringify(p));
+            selection.note.pitches = [p];
+        });
+        this._render();
+    }
+
+    intervalAdd(interval, direction) {
+        this._singleSelectionOperation('interval', direction * interval);
+    }
 
     interval(keyEvent) {
         if (this.tracker.selections.length != 1)
             return;
         // code='Digit3'
         var interval = parseInt(keyEvent.code[5]) - 1;
-        this.intervalAdd(interval,keyEvent.shiftKey ? -1 : 1);
+        this.intervalAdd(interval, keyEvent.shiftKey ? -1 : 1);
     }
-	
+
     transpose(offset) {
         this.tracker.selections.forEach((selected) => this._transpose(selected, offset));
         this._render();
@@ -6347,14 +6416,14 @@ class suiEditor {
         }
         SmoUndoable['setPitch'](selected, pitch, this.undoBuffer);
     }
-	
-	setPitchCommand(letter) {
-		this.tracker.selections.forEach((selected) => this._setPitch(selected, letter));
-		this._renderAndAdvance();
-	}
+
+    setPitchCommand(letter) {
+        this.tracker.selections.forEach((selected) => this._setPitch(selected, letter));
+        this._renderAndAdvance();
+    }
 
     setPitch(keyEvent) {
-		this.setPitchCommand(keyEvent.key.toLowerCase());
+        this.setPitchCommand(keyEvent.key.toLowerCase());
     }
 
     dotDuration(keyEvent) {
@@ -6385,42 +6454,42 @@ class suiEditor {
             this._render();
         }
     }
-	toggleCourtesyAccidental() {
+    toggleCourtesyAccidental() {
         if (this.tracker.selections.length < 1) {
             return;
         }
-		this.tracker.selections.forEach((selection)=>{
-			SmoUndoable.toggleCourtesyAccidental(selection,this.undoBuffer);
-		});
-		this._render();
-	}
-	toggleEnharmonic() {
-		this.tracker.selections.forEach((selected) => this._selectionOperation(selected,'toggleEnharmonic'));
-		this._render();
-	}
+        this.tracker.selections.forEach((selection) => {
+            SmoUndoable.toggleCourtesyAccidental(selection, this.undoBuffer);
+        });
+        this._render();
+    }
+    toggleEnharmonic() {
+        this.tracker.selections.forEach((selected) => this._selectionOperation(selected, 'toggleEnharmonic'));
+        this._render();
+    }
 
-	rerender(keyEvent) {
-		this.layout.unrenderAll();
-		SmoUndoable.noop(this.score,this.undoBuffer);
-		this.undo();
-		this.layout.render();
-	}
-	makeTupletCommand(numNotes) {
+    rerender(keyEvent) {
+        this.layout.unrenderAll();
+        SmoUndoable.noop(this.score, this.undoBuffer);
+        this.undo();
+        this._render();
+    }
+    makeTupletCommand(numNotes) {
         this._singleSelectionOperation('makeTuplet', numNotes);
-	}
+    }
     makeTuplet(keyEvent) {
         var numNotes = parseInt(keyEvent.key);
-		this.makeTupletCommand(numNotes);
+        this.makeTupletCommand(numNotes);
     }
 
     unmakeTuplet(keyEvent) {
         this._singleSelectionOperation('unmakeTuplet');
     }
-	
-	toggleArticulationCommand(articulation,position) {
-		this.undoBuffer.addBuffer('change articulation ' + articulation,
+
+    toggleArticulationCommand(articulation, position) {
+        this.undoBuffer.addBuffer('change articulation ' + articulation,
             'staff', this.tracker.selections[0].selector, this.tracker.selections[0].staff);
-			
+
         this.tracker.selections.forEach((sel) => {
             var aa = new SmoArticulation({
                     articulation: articulation,
@@ -6429,12 +6498,12 @@ class suiEditor {
             SmoOperation.toggleArticulation(sel, aa);
         });
         this._render();
-	}
+    }
 
     addRemoveArticulation(keyEvent) {
         if (this.tracker.selections.length < 1)
             return;
-        
+
         var atyp = SmoArticulation.articulations.accent;
 
         if (keyEvent.key.toLowerCase() === 'h') {
@@ -6453,8 +6522,8 @@ class suiEditor {
             atyp = SmoArticulation.articulations.pizzicato;
         }
         var pos = keyEvent.shiftKey ? SmoArticulation.positions.below : SmoArticulation.positions.above;
-		this.toggleArticulationCommand(atyp,pos);
-		
+        this.toggleArticulationCommand(atyp, pos);
+
     }
 }
 ;
@@ -6969,6 +7038,88 @@ class utController {
 
 	}
 
+}
+;
+class SuiExceptionHandler {
+    constructor(params) {
+        this.tracker = params.tracker;
+        this.layout = params.layout;
+        this.score = params.score;
+        this.undoBuffer = params.undoBuffer;
+		SuiExceptionHandler._instance = this;
+    }
+	static get instance() {
+		return SuiExceptionHandler._instance;
+	}
+    exceptionHandler(e) {
+        var self = this;
+        if (suiController.reentry) {
+            return;
+        }
+        suiController.reentry = true;
+        var scoreString = 'Could not serialize score.';
+        try {
+            scoreString = this.score.serialize();
+        } catch (e) {
+            scoreString += ' ' + e.message;
+        }
+        var message = e.message;
+        var stack = 'No stack trace available';
+
+        try {
+            if (e.error && e.error.stack) {
+                stack = e.error.stack;
+            }
+        } catch (e) {
+            stack = 'Error with stack: ' + e.message;
+        }
+        var doing = 'Last operation not available.';
+
+        var lastOp = this.undoBuffer.peek();
+        if (lastOp) {
+            doing = lastOp.title;
+        }
+        var url = 'https://github.com/AaronDavidNewman/Smoosic/issues';
+        var bodyObject = JSON.stringify({
+                message: message,
+                stack: stack,
+                lastOperation: doing,
+                scoreString: scoreString
+            }, null, ' ');
+
+        var b = htmlHelpers.buildDom;
+        var r = b('div').classes('bug-modal').append(
+                b('img').attr('src', '../styles/images/logo.png').classes('bug-logo'))
+            .append(b('button').classes('icon icon-cross bug-dismiss-button'))
+            .append(b('span').classes('bug-title').text('oh nooooo!  You\'ve found a bug'))
+            .append(b('p').text('It would be helpful if you would submit a bug report, and copy the data below into an issue'))
+            .append(b('div')
+                .append(b('textarea').attr('id', 'bug-text-area').text(bodyObject))
+                .append(
+                    b('div').classes('button-container').append(b('button').classes('bug-submit-button').text('Submit Report'))));
+
+        $('.bugDialog').html('');
+        $('.bugDialog').append(r.dom());
+
+        $('.bug-dismiss-button').off('click').on('click', function () {
+            $('body').removeClass('bugReport');
+            if (lastOp) {
+                self.undoBuffer.undo(self.score);
+                self.layout.render();
+                suiController.reentry = false;
+            }
+        });
+        $('.bug-submit-button').off('click').on('click', function () {
+            var data = {
+                title: "automated bug report",
+                body: encodeURIComponent(bodyObject)
+            };
+            $('#bug-text-area').select();
+            document.execCommand('copy');
+            window.open(url, 'Report Smoosic issues');
+        });
+        $('body').addClass('bugReport');
+    }
 }
 ;class defaultEditorKeys {
 
@@ -9525,6 +9676,9 @@ class suiController {
 				controller: this
 			});
 
+		// create globbal exception instance
+		new SuiExceptionHandler(this);
+
 		this.bindEvents();
 		this.bindResize();
 	}
@@ -9644,77 +9798,6 @@ class suiController {
 		return suiController._reentry;
 	}
 
-	exceptionHandler(e) {
-		var self = this;
-		if (suiController.reentry) {
-			return;
-		}
-		suiController.reentry = true;
-		var scoreString = 'Could not serialize score.';
-		try {
-			scoreString = this.score.serialize();
-		} catch (e) {
-			scoreString += ' ' + e.message;
-		}
-		var message = e.message;
-		var stack = 'No stack trace available';
-
-		try {
-			if (e.error && e.error.stack) {
-				stack = e.error.stack;
-			}
-		} catch (e) {
-			stack = 'Error with stack: ' + e.message;
-		}
-		var doing = 'Last operation not available.';
-
-		var lastOp = this.undoBuffer.peek();
-		if (lastOp) {
-			doing = lastOp.title;
-		}
-		var url = 'https://github.com/AaronDavidNewman/Smoosic/issues';
-		var bodyObject = JSON.stringify({
-				message: message,
-				stack: stack,
-				lastOperation: doing,
-				scoreString: scoreString
-			}, null, ' ');
-
-		var b = htmlHelpers.buildDom;
-		var r = b('div').classes('bug-modal').append(
-				b('img').attr('src', '../styles/images/logo.png').classes('bug-logo'))
-			.append(b('button').classes('icon icon-cross bug-dismiss-button'))
-			.append(b('span').classes('bug-title').text('oh nooooo!  You\'ve found a bug'))
-			.append(b('p').text('It would be helpful if you would submit a bug report, and copy the data below into an issue'))
-			.append(b('div')
-				.append(b('textarea').attr('id', 'bug-text-area').text(bodyObject))
-				.append(
-					b('div').classes('button-container').append(b('button').classes('bug-submit-button').text('Submit Report'))));
-
-		$('.bugDialog').html('');
-		$('.bugDialog').append(r.dom());
-
-		$('.bug-dismiss-button').off('click').on('click', function () {
-			$('body').removeClass('bugReport');
-			if (lastOp) {
-				self.undoBuffer.undo(self.score);
-				self.layout.render();
-				suiController.reentry = false;
-			}
-		});
-		$('.bug-submit-button').off('click').on('click', function () {
-			var data = {
-				title: "automated bug report",
-				body: encodeURIComponent(bodyObject)
-			};
-			$('#bug-text-area').select();
-			document.execCommand('copy');
-			window.open(url,'Report Smoosic issues');
-		});
-		$('body').addClass('bugReport');
-
-	}
-
 	menuHelp() {
 		SmoHelp.modeControls();
 	}
@@ -9807,7 +9890,7 @@ class suiController {
 		this.ribbon.display();
 
 		window.addEventListener('error', function (e) {
-			self.exceptionHandler(e);
+			SuiExceptionHandler.instance.exceptionHandler(e);
 		});
 	}
 

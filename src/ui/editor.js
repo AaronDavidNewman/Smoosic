@@ -9,31 +9,33 @@ class suiEditor {
     // ## _render
     // utility function to render the music and update the tracker map.
     _render() {
-		var self=this;
-		var remap = function() {
-			return self.tracker.updateMap();
-		}
-        this.layout.render().catch(function(e) {
-			setTimeout(function() {throw(e);},1);
-			})
-			.then(remap);
+        var self = this;
+        var remap = function () {
+            return self.tracker.updateMap();
+        }
+        this.layout.render().catch(function (e) {
+            // make to non-promise exception format
+            e.error = e;
+            SuiExceptionHandler.instance.exceptionHandler(e);
+        })
+        .then(remap);
     }
 
     _renderAndAdvance() {
-		var self=this;
-		var remap = function() {
-			return self.tracker.updateMap();
-		}
-		var mover = function() {
+        var self = this;
+        var remap = function () {
+            return self.tracker.updateMap();
+        }
+        var mover = function () {
             return self.tracker.moveSelectionRight();
-		}
+        }
         this.layout.render().then(remap).then(mover);
-		// TODO: make this promise-based
+        // TODO: make this promise-based
     }
-	_batchDurationOperation(operation) {
-		SmoUndoable.batchDurationOperation(this.score,this.tracker.selections,operation,this.undoBuffer);
-		this._render();
-	}
+    _batchDurationOperation(operation) {
+        SmoUndoable.batchDurationOperation(this.score, this.tracker.selections, operation, this.undoBuffer);
+        this._render();
+    }
 
     _selectionOperation(selection, name, parameters) {
         if (parameters) {
@@ -43,7 +45,7 @@ class suiEditor {
         }
         this._render();
     }
-		
+
     undo() {
         this.layout.undo(this.undoBuffer);
     }
@@ -76,16 +78,16 @@ class suiEditor {
             return;
         }
         this.layout.unrenderAll();
-		SmoUndoable.pasteBuffer(this.score,this.pasteBuffer,this.tracker.selections,this.undoBuffer,'paste')
+        SmoUndoable.pasteBuffer(this.score, this.pasteBuffer, this.tracker.selections, this.undoBuffer, 'paste')
         this._render();
     }
-	toggleBeamGroup() {
+    toggleBeamGroup() {
         if (this.tracker.selections.length < 1) {
             return;
         }
-		SmoUndoable.toggleBeamGroups(this.tracker.selections,this.undoBuffer);
-		this._render();
-	}
+        SmoUndoable.toggleBeamGroups(this.tracker.selections, this.undoBuffer);
+        this._render();
+    }
 
     deleteMeasure() {
         if (this.tracker.selections.length < 1) {
@@ -98,29 +100,29 @@ class suiEditor {
         this.tracker.clearModifierSelections();
         this._render();
     }
-	
-	collapseChord() {
-		SmoUndoable.noop(this.score,this.undoBuffer);
-		this.tracker.selections.forEach((selection) => {
-			var p=selection.note.pitches[0];
-			p=JSON.parse(JSON.stringify(p));
-			selection.note.pitches=[p];
-		});
-		this._render();
-	}
-	
-	intervalAdd(interval,direction) {		
-		this._singleSelectionOperation('interval', direction*interval);
-	}
+
+    collapseChord() {
+        SmoUndoable.noop(this.score, this.undoBuffer);
+        this.tracker.selections.forEach((selection) => {
+            var p = selection.note.pitches[0];
+            p = JSON.parse(JSON.stringify(p));
+            selection.note.pitches = [p];
+        });
+        this._render();
+    }
+
+    intervalAdd(interval, direction) {
+        this._singleSelectionOperation('interval', direction * interval);
+    }
 
     interval(keyEvent) {
         if (this.tracker.selections.length != 1)
             return;
         // code='Digit3'
         var interval = parseInt(keyEvent.code[5]) - 1;
-        this.intervalAdd(interval,keyEvent.shiftKey ? -1 : 1);
+        this.intervalAdd(interval, keyEvent.shiftKey ? -1 : 1);
     }
-	
+
     transpose(offset) {
         this.tracker.selections.forEach((selected) => this._transpose(selected, offset));
         this._render();
@@ -175,14 +177,14 @@ class suiEditor {
         }
         SmoUndoable['setPitch'](selected, pitch, this.undoBuffer);
     }
-	
-	setPitchCommand(letter) {
-		this.tracker.selections.forEach((selected) => this._setPitch(selected, letter));
-		this._renderAndAdvance();
-	}
+
+    setPitchCommand(letter) {
+        this.tracker.selections.forEach((selected) => this._setPitch(selected, letter));
+        this._renderAndAdvance();
+    }
 
     setPitch(keyEvent) {
-		this.setPitchCommand(keyEvent.key.toLowerCase());
+        this.setPitchCommand(keyEvent.key.toLowerCase());
     }
 
     dotDuration(keyEvent) {
@@ -213,42 +215,42 @@ class suiEditor {
             this._render();
         }
     }
-	toggleCourtesyAccidental() {
+    toggleCourtesyAccidental() {
         if (this.tracker.selections.length < 1) {
             return;
         }
-		this.tracker.selections.forEach((selection)=>{
-			SmoUndoable.toggleCourtesyAccidental(selection,this.undoBuffer);
-		});
-		this._render();
-	}
-	toggleEnharmonic() {
-		this.tracker.selections.forEach((selected) => this._selectionOperation(selected,'toggleEnharmonic'));
-		this._render();
-	}
+        this.tracker.selections.forEach((selection) => {
+            SmoUndoable.toggleCourtesyAccidental(selection, this.undoBuffer);
+        });
+        this._render();
+    }
+    toggleEnharmonic() {
+        this.tracker.selections.forEach((selected) => this._selectionOperation(selected, 'toggleEnharmonic'));
+        this._render();
+    }
 
-	rerender(keyEvent) {
-		this.layout.unrenderAll();
-		SmoUndoable.noop(this.score,this.undoBuffer);
-		this.undo();
-		this._render();
-	}
-	makeTupletCommand(numNotes) {
+    rerender(keyEvent) {
+        this.layout.unrenderAll();
+        SmoUndoable.noop(this.score, this.undoBuffer);
+        this.undo();
+        this._render();
+    }
+    makeTupletCommand(numNotes) {
         this._singleSelectionOperation('makeTuplet', numNotes);
-	}
+    }
     makeTuplet(keyEvent) {
         var numNotes = parseInt(keyEvent.key);
-		this.makeTupletCommand(numNotes);
+        this.makeTupletCommand(numNotes);
     }
 
     unmakeTuplet(keyEvent) {
         this._singleSelectionOperation('unmakeTuplet');
     }
-	
-	toggleArticulationCommand(articulation,position) {
-		this.undoBuffer.addBuffer('change articulation ' + articulation,
+
+    toggleArticulationCommand(articulation, position) {
+        this.undoBuffer.addBuffer('change articulation ' + articulation,
             'staff', this.tracker.selections[0].selector, this.tracker.selections[0].staff);
-			
+
         this.tracker.selections.forEach((sel) => {
             var aa = new SmoArticulation({
                     articulation: articulation,
@@ -257,12 +259,12 @@ class suiEditor {
             SmoOperation.toggleArticulation(sel, aa);
         });
         this._render();
-	}
+    }
 
     addRemoveArticulation(keyEvent) {
         if (this.tracker.selections.length < 1)
             return;
-        
+
         var atyp = SmoArticulation.articulations.accent;
 
         if (keyEvent.key.toLowerCase() === 'h') {
@@ -281,7 +283,7 @@ class suiEditor {
             atyp = SmoArticulation.articulations.pizzicato;
         }
         var pos = keyEvent.shiftKey ? SmoArticulation.positions.below : SmoArticulation.positions.above;
-		this.toggleArticulationCommand(atyp,pos);
-		
+        this.toggleArticulationCommand(atyp, pos);
+
     }
 }

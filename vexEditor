@@ -45,6 +45,7 @@
                     <File name="src\ui\ribbonLayout\default\defaultRibbon.js" />
                 </Folder>
             </Folder>
+            <File name="src\ui\exceptions.js" />
         </Folder>
         <Folder name="test">
             <File name="src\test\chordTest.js" />

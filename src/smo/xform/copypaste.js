@@ -103,7 +103,7 @@ class PasteBuffer {
                 // If this note will overlap the measure boundary, the note will be split in 2 with the
                 // remainder going to the next measure.  If they line up exactly, the remainder is 0.
                 var remainder = (currentDuration + selection.note.tickCount) - tickmap.totalDuration;
-				currentDuration = remainder;
+                currentDuration = remainder;
 
                 measureSelection = SmoSelection.measureSelection(this.score,
                         measureSelection.selector.staff,
@@ -121,23 +121,25 @@ class PasteBuffer {
 
     // ### _populatePre
     // When we paste, we replace entire measures.  Populate the first measure up until the start of pasting.
-    _populatePre(voiceIndex, measure, startTick, tickmap,measureTuplets) {
+    _populatePre(voiceIndex, measure, startTick, tickmap, measureTuplets) {
         var voice = {
             notes: []
         };
         var ticksToFill = tickmap.durationMap[startTick];
         var filled = 0;
-		var measureTuplets=[];
-		// TODO: bug here, need to handle tuplets in pre-part, create new tuplet
+        var measureTuplets = [];
+        // TODO: bug here, need to handle tuplets in pre-part, create new tuplet
         for (var i = 0; i < measure.voices[voiceIndex].notes.length; ++i) {
 
             var note = measure.voices[voiceIndex].notes[i];
-			if (note.isTuplet) {			
-				var tuplet = measure.getTupletForNote(note);
-				// if (tupl
-				var ntuplet = SmoTuplet.cloneTuplet(tuplet);
-				measureTuplets.push(ntuplet);
-			}
+            if (note.isTuplet) {
+                var tuplet = measure.getTupletForNote(note);
+                // create a new tuplet array for the new measure.
+                if (tuplet.getIndexOfNote(note) === 0) {
+                    var ntuplet = SmoTuplet.cloneTuplet(tuplet);
+                    measureTuplets.push(ntuplet);
+                }
+            }
             if (ticksToFill >= note.tickCount) {
                 ticksToFill -= note.tickCount;
                 voice.notes.push(SmoNote.clone(note));
@@ -169,12 +171,13 @@ class PasteBuffer {
         var measure = measures[0];
         var tickmap = measure.tickmap();
         var startSelector = JSON.parse(JSON.stringify(this.destination));
-		var measureTuplets = [];
-        var voice = this._populatePre(voiceIndex, measure, this.destination.tick, tickmap,measureT);
+        var measureTuplets = [];
+        var voice = this._populatePre(voiceIndex, measure, this.destination.tick, tickmap, measureTuplets);
         measureVoices.push(voice);
+		measure.tuplets=measureTuplets;
         while (this.measureIndex < measures.length) {
-			measure = measures[this.measureIndex];
-			tickmap = measure.tickmap();
+            measure = measures[this.measureIndex];
+            tickmap = measure.tickmap();
             this._populateNew(voice, voiceIndex, measure, tickmap, startSelector);
             if (this.noteIndex < this.notes.length && this.measureIndex < measures.length) {
                 voice = {
@@ -187,7 +190,7 @@ class PasteBuffer {
                     voice: voiceIndex,
                     tick: 0
                 };
-				this.measureIndex += 1;
+                this.measureIndex += 1;
             } else {
                 break;
             }
@@ -226,7 +229,7 @@ class PasteBuffer {
                             voice.notes.push(tnote);
                         });
                         this.noteIndex += tuplet.notes.length;
-						measure.tuplets.push(tuplet);
+                        measure.tuplets.push(tuplet);
                         startSelector.tick += tuplet.notes.length;
                     } else {
                         // The tuplet won't fit.  There is no way to split up a tuplet, we

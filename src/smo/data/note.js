@@ -23,7 +23,7 @@ class SmoNote {
         }
     }
     static get parameterArray() {
-        return ['ticks', 'pitches', 'noteType','tuplet','attrs','clef','endBeam'];
+        return ['ticks', 'pitches', 'noteType', 'tuplet', 'attrs', 'clef', 'endBeam'];
     }
     get id() {
         return this.attrs.id;
@@ -40,10 +40,9 @@ class SmoNote {
     set dots(value) {
         // ignore - dots are a function of duration only.
     }
-   
 
     // ### _addModifier
-	// ### Description
+    // ### Description
     // add or remove sFz, mp, etc.
     _addModifier(dynamic, toAdd) {
         var tms = [];
@@ -57,11 +56,11 @@ class SmoNote {
         }
         this.textModifiers = tms;
     }
-	
-	_addArticulation(articulation,toAdd) {
+
+    _addArticulation(articulation, toAdd) {
         var tms = [];
         this.articulations.forEach((tm) => {
-            if (tm.articulation  != articulation.articulation) {
+            if (tm.articulation != articulation.articulation) {
                 tms.push(tm);
             }
         });
@@ -69,7 +68,7 @@ class SmoNote {
             tms.push(articulation);
         }
         this.articulations = tms;
-	}
+    }
 
     addModifier(dynamic) {
         this._addModifier(dynamic, true);
@@ -77,14 +76,16 @@ class SmoNote {
     removeModifier(dynamic) {
         this._addModifier(dynamic, false);
     }
-		
-	toggleArticulation(articulation) {
-		if (this.articulations.findIndex((a) => {return a.articulation===articulation.articulation;}) < 0) {
-			this._addArticulation(articulation,true);
-		} else {
-			this._addArticulation(articulation,false);
-		}
-	}
+
+    toggleArticulation(articulation) {
+        if (this.articulations.findIndex((a) => {
+                return a.articulation === articulation.articulation;
+            }) < 0) {
+            this._addArticulation(articulation, true);
+        } else {
+            this._addArticulation(articulation, false);
+        }
+    }
 
     _sortPitches() {
         var canon = VF.Music.canonical_notes;
@@ -178,23 +179,23 @@ class SmoNote {
         return rv;
     }
 
-	_serializeModifiers() {
+    _serializeModifiers() {
         return JSON.parse(JSON.stringify(this.textModifiers));
     }
-	serialize()  {
-		var params={};
-		smoMusic.serializedMerge(SmoNote.parameterArray,this,params);
-		params.ticks = JSON.parse(JSON.stringify(params.ticks));
-		params.noteModifiers=this._serializeModifiers();
-		return params;
-	}
+    serialize() {
+        var params = {};
+        smoMusic.serializedMerge(SmoNote.parameterArray, this, params);
+        params.ticks = JSON.parse(JSON.stringify(params.ticks));
+        params.noteModifiers = this._serializeModifiers();
+        return params;
+    }
 
     static get defaults() {
         return {
             noteType: 'n',
             textModifiers: [],
-			articulations:[],
-			endBeam:false,
+            articulations: [],
+            endBeam: false,
             ticks: {
                 numerator: 4096,
                 denominator: 1,
@@ -209,13 +210,13 @@ class SmoNote {
         }
     }
     static deserialize(jsonObj) {
-		var note = new SmoNote(jsonObj);
-		note.attrs.id=jsonObj.attrs.id;
-		jsonObj.noteModifiers.forEach((mod) => {
-			note.textModifiers.push(SmoNoteModifierBase.deserialize(mod));
-		});
-		return note;
-	}
+        var note = new SmoNote(jsonObj);
+        note.attrs.id = jsonObj.attrs.id;
+        jsonObj.noteModifiers.forEach((mod) => {
+            note.textModifiers.push(SmoNoteModifierBase.deserialize(mod));
+        });
+        return note;
+    }
 }
 class SmoTuplet {
     constructor(params) {
@@ -232,20 +233,21 @@ class SmoTuplet {
         }
         this._adjustTicks();
     }
-	
-	get clonedParams() {
-		var paramAr=['stemTicks','ticks','totalTicks','durationMap']
-		var rv = {};
-		smoMusic.serializedMerge(paramAr,this,rv);
-		return rv;
-			
-	}
-	
-	static cloneTuplet(tuplet,noteAr) {
-		var durationMap = tuplet.durationMap.flat(1); // deep copy array
-		var totalTicks = noteAr.reduce((acc,nn) => {return acc+nn.tickCount;});
-		var numNotes = noteAr.length;
-		var stemValue = totalTicks / numNotes;
+
+    get clonedParams() {
+        var paramAr = ['stemTicks', 'ticks', 'totalTicks', 'durationMap']
+        var rv = {};
+        smoMusic.serializedMerge(paramAr, this, rv);
+        return rv;
+
+    }
+
+    static cloneTuplet(tuplet) {
+        var noteAr = tuplet.notes;
+        var durationMap = tuplet.durationMap.flat(1); // deep copy array
+        var totalTicks = noteAr.map((nn) => nn.tickCount).reduce((acc, nn) => acc+nn);
+        var numNotes = noteAr.length;
+        var stemValue = totalTicks / numNotes;
         var stemTicks = 8192;
 
         // The stem value is the type on the non-tuplet note, e.g. 1/8 note
@@ -253,27 +255,42 @@ class SmoTuplet {
         while (stemValue < stemTicks) {
             stemTicks = stemTicks / 2;
         }
-		var tupletNotes=[];
+        var tupletNotes = [];
 
         this.stemTicks = stemTicks * 2;
-		noteAr.forEach((note) => {
-            note = SmoNote.cloneWithDuration(note, {numerator:stemTicks,denominator:1,remainder:0});
-			
-			// Don't clone modifiers, except for first one.
-			note.textModifiers = i===0 ? note.textModifiers : [];
+        var i = 0;
+        noteAr.forEach((note) => {
+            var textModifiers = note.textModifiers;
+            note = SmoNote.cloneWithDuration(note, {
+                    numerator: stemTicks,
+                    denominator: 1,
+                    remainder: 0
+                });
+
+            // Don't clone modifiers, except for first one.
+            if (i === 0) {
+                var ntmAr = [];
+                textModifiers.forEach((tm) => {
+                    ntm = SmoNoteModifierBase.deserialize(JSON.stringify(tm));
+                    ntmAr.push(ntm);
+                });
+                note.textModifiers = ntmAr;
+            }
+            i += 1;
 
             tupletNotes.push(note);
-		});
+        });
         var rv = new SmoTuplet({
                 notes: tupletNotes,
                 stemTicks: stemTicks,
-                totalTicks:totalTicks,
+                totalTicks: totalTicks,
                 ratioed: false,
                 bracketed: true,
                 startIndex: tuplet.startIndex,
                 durationMap: durationMap
             });
-	}
+        return rv;
+    }
 
     _adjustTicks() {
         var sum = this.durationSum;
@@ -310,7 +327,7 @@ class SmoTuplet {
             if (i === combineIndex) {
                 nmap.push(this.durationMap[i] * multiplier);
                 nmap.push(this.durationMap[i] * multiplier);
-                note.ticks.numerator *= multiplier;               
+                note.ticks.numerator *= multiplier;
 
                 var onote = SmoNote.clone(note);
                 nnotes.push(note);
