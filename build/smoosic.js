@@ -1161,6 +1161,10 @@ class SmoTuplet {
         }
         this._adjustTicks();
     }
+	
+	static get longestTuplet() {
+		return 8192;
+	}
 
     get clonedParams() {
         var paramAr = ['stemTicks', 'ticks', 'totalTicks', 'durationMap']
@@ -1169,25 +1173,32 @@ class SmoTuplet {
         return rv;
 
     }
-
-    static cloneTuplet(tuplet) {
-        var noteAr = tuplet.notes;
-        var durationMap = tuplet.durationMap.flat(1); // deep copy array
-        var totalTicks = noteAr.map((nn) => nn.tickCount).reduce((acc, nn) => acc+nn);
-		// Add any remainders for oddlets
-		totalTicks = noteAr.map((nn) => nn.ticks.numerator+nn.ticks.remainder).reduce((acc, nn) => acc+nn);
-        var numNotes = tuplet.numNotes;
+	
+	static calculateStemTicks(totalTicks,numNotes) {
         var stemValue = totalTicks / numNotes;
-        var stemTicks = 8192;
+        var stemTicks = SmoTuplet.longestTuplet;
 
         // The stem value is the type on the non-tuplet note, e.g. 1/8 note
         // for a triplet.
         while (stemValue < stemTicks) {
             stemTicks = stemTicks / 2;
         }
+		return stemTicks * 2;
+	}
+
+    static cloneTuplet(tuplet) {
+        var noteAr = tuplet.notes;
+        var durationMap = tuplet.durationMap.flat(1); // deep copy array
+
+		// Add any remainders for oddlets
+		var totalTicks = noteAr.map((nn) => nn.ticks.numerator+nn.ticks.remainder).reduce((acc, nn) => acc+nn);
+		
+        var numNotes = tuplet.numNotes;
+        var stemValue = totalTicks / numNotes;
+        var stemTicks = SmoTuplet.calculateStemTicks(totalTicks,numNotes);
+
         var tupletNotes = [];
 
-        stemTicks = stemTicks * 2;
         var i = 0;
         noteAr.forEach((note) => {
             var textModifiers = note.textModifiers;
@@ -3319,7 +3330,8 @@ class SmoMakeTupletActor extends TickTransformBase {
             this.durationMap.push(1.0);
             sum += 1.0;
         }
-        var stemValue = this.totalTicks / this.numNotes;
+		/* 
+		var stemValue = this.totalTicks / this.numNotes;
         var stemTicks = 8192;
 
         // The stem value is the type on the non-tuplet note, e.g. 1/8 note
@@ -3328,15 +3340,18 @@ class SmoMakeTupletActor extends TickTransformBase {
             stemTicks = stemTicks / 2;
         }
 
-        this.stemTicks = stemTicks * 2;
+        this.stemTicks = stemTicks * 2;   
+		*/
+        this.stemTicks = SmoTuplet.calculateStemTicks(this.totalTicks ,this.numNotes);
+       
         this.rangeToSkip = this._rangeToSkip();
 
         // special case - is this right?  this is needed for tuplets in 6/8
-        if (this.rangeToSkip[1] > this.rangeToSkip[0]) {
+        /* if (this.rangeToSkip[1] > this.rangeToSkip[0]) {
             this.stemTicks = stemTicks;
         } else {
             this.stemTicks = stemTicks * 2;
-        }
+        }  */
 
         this.vexDuration = smoMusic.ticksToDuration[this.stemTicks];
         this.tuplet = [];
