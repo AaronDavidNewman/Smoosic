@@ -9706,8 +9706,23 @@ class suiController {
 
 		this.bindEvents();
 		this.bindResize();
+		this.splash();
 	}
-
+	
+	splash() {
+		 var b = htmlHelpers.buildDom;
+		 var r = b('div').classes('bug-modal').append(
+                b('img').attr('src', '../styles/images/logo.png').classes('splash-logo'))
+            .append(b('button').classes('icon icon-cross bug-dismiss-button'))
+            .append(b('span').classes('splash-title').text('Sm'))
+			.append(b('span').classes('splash-shine').text('ooooooooo'))
+			.append(b('span').classes('splash-title').text('sic'));
+         $('.bugDialog').append(r.dom());
+		 $('body').addClass('splashScreen modal');
+		 setTimeout(function() {
+			 $('body').removeClass('splashScreen modal');
+		 },1000);
+	}
 	resizeEvent() {
 		var self = this;
 		var remap = function () {
