@@ -246,7 +246,9 @@ class SmoTuplet {
         var noteAr = tuplet.notes;
         var durationMap = tuplet.durationMap.flat(1); // deep copy array
         var totalTicks = noteAr.map((nn) => nn.tickCount).reduce((acc, nn) => acc+nn);
-        var numNotes = noteAr.length;
+		// Add any remainders for oddlets
+		totalTicks = noteAr.map((nn) => nn.ticks.numerator+nn.ticks.remainder).reduce((acc, nn) => acc+nn);
+        var numNotes = tuplet.numNotes;
         var stemValue = totalTicks / numNotes;
         var stemTicks = 8192;
 
@@ -257,12 +259,12 @@ class SmoTuplet {
         }
         var tupletNotes = [];
 
-        this.stemTicks = stemTicks * 2;
+        stemTicks = stemTicks * 2;
         var i = 0;
         noteAr.forEach((note) => {
             var textModifiers = note.textModifiers;
             note = SmoNote.cloneWithDuration(note, {
-                    numerator: stemTicks,
+                    numerator: stemTicks*tuplet.durationMap[i],
                     denominator: 1,
                     remainder: 0
                 });
@@ -301,11 +303,14 @@ class SmoTuplet {
             var tupletBase = normTicks * this.note_ticks_occupied;
             note.ticks.denominator = 1;
             note.ticks.numerator = Math.floor((this.totalTicks * this.durationMap[i]) / sum);
-            // put all the remainder in the first note of the tuplet
-            note.ticks.remainder = (i == 0) ? this.totalTicks * this.durationMap[i] % sum : 0;
 
             note.tuplet = this.attrs;
         }
+		
+		// put all the remainder in the first note of the tuplet
+		var noteTicks = this.notes.map((nn) => {return nn.tickCount;}).reduce((acc,dd) => {return acc+dd;});
+		this.notes[0].ticks.remainder = this.totalTicks-noteTicks;
+
     }
     getIndexOfNote(note) {
         var rv = -1;
@@ -330,6 +335,8 @@ class SmoTuplet {
                 note.ticks.numerator *= multiplier;
 
                 var onote = SmoNote.clone(note);
+				// remainder is for the whole tuplet, so don't duplicate that.
+				onote.ticks.remainder=0;
                 nnotes.push(note);
                 nnotes.push(onote);
             } else {
