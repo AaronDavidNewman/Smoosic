@@ -7873,6 +7873,402 @@ class defaultTrackerKeys {
 			];
 	}
 };
+class SuiDialogFactory {
+
+	static createDialog(modSelection, context, tracker, layout) {
+		var dbType = SuiDialogFactory.modifierDialogMap[modSelection.modifier.type];
+		var ctor = eval(dbType);
+		if (!ctor) {
+			console.warn('no dialog for modifier ' + modSelection.modifier.type);
+			return;
+		}
+		return ctor.createAndDisplay({
+			modifier: modSelection.modifier,
+			selection: modSelection.selection,
+			context: context,
+			tracker: tracker,
+			layout: layout
+		});
+	}
+	static get modifierDialogMap() {
+		return {
+			SmoStaffHairpin: 'SuiHairpinAttributesDialog',
+			SmoSlur: 'SuiSlurAttributesDialog',
+			SmoDynamicText: 'SuiTextModifierDialog'
+		};
+	}
+}
+
+class SuiDialogBase {
+	constructor(dialogElements, parameters) {
+		this.id = parameters.id;
+		this.components = [];
+		this.layout = parameters.layout;
+		this.closeDialogPromise = new Promise((resolve, reject) => {
+				$('body').off('dialogDismiss').on('dialogDismiss', function () {
+					resolve();
+				});
+
+			});
+		this.dialogElements = dialogElements;
+		this.dgDom = this._constructDialog(dialogElements, {
+				id: 'dialog-' + this.id,
+				top: parameters.top,
+				left: parameters.left,
+				label: parameters.label
+			});
+	}
+	position(box) {
+		var y = box.y + box.height;
+
+		// TODO: adjust if db is clipped by the browser.
+		$(this.dgDom.element).css('top', '' + y + 'px');
+	}
+	_constructDialog(dialogElements, parameters) {
+		var id = parameters.id;
+		var b = htmlHelpers.buildDom;
+		var r = b('div').classes('attributeModal').css('top', parameters.top + 'px').css('left', parameters.left + 'px')
+			.append(b('h2').text(parameters.label));
+		dialogElements.forEach((de) => {
+			var ctor = eval(de.control);
+			var control = new ctor(this, de);
+			this.components.push(control);
+			r.append(control.html);
+		});
+		r.append(
+			b('div').classes('buttonContainer').append(
+				b('button').classes('ok-button').text('Ok')).append(
+				b('button').classes('cancel-button').text('Cancel')).append(
+				b('button').classes('remove-button').text('Remove').append(
+					b('span').classes('icon icon-cancel-circle'))));
+		$('.attributeDialog').html('');
+
+		$('.attributeDialog').append(r.dom());
+
+		var trapper = htmlHelpers.inputTrapper('.attributeDialog');
+		$('.attributeDialog').find('.cancel-button').focus();
+		return {
+			element: $('.attributeDialog'),
+			trapper: trapper
+		};
+	}
+
+	_commit() {
+		this.modifier.restoreOriginal();
+		this.components.forEach((component) => {
+			this.modifier[component.smoName] = component.getValue();
+		});
+	}
+
+	complete() {
+		$('body').removeClass('showAttributeDialog');
+		$('body').trigger('dialogDismiss');
+		this.dgDom.trapper.close();
+	}
+
+	display() {
+		$('body').addClass('showAttributeDialog');
+		this.components.forEach((component) => {
+			component.bind();
+		});
+		this._bindElements();
+		this.position(this.modifier.renderedBox);
+	}
+
+	_bindElements() {
+		var self = this;
+		var dgDom = this.dgDom;
+		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+			self._commit();
+			self.complete();
+		});
+
+		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+			self.modifier.restoreOriginal();
+			self.complete();
+		});
+		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
+			self.handleRemove();
+			self.complete();
+		});
+	}
+}
+
+class SuiTextModifierDialog extends SuiDialogBase {
+	static get dialogElements() {
+		return [{
+				smoName: 'yOffsetLine',
+				parameterName: 'yOffsetLine',
+				defaultValue: 11,
+				control: 'SuiRockerComponent',
+				label: 'Y Line'
+			}, {
+				smoName: 'yOffsetPixels',
+				parameterName: 'yOffsetPixels',
+				defaultValue: 0,
+				control: 'SuiRockerComponent',
+				label: 'Y Offset Px'
+			}, {
+				smoName: 'xOffset',
+				parameterName: 'yOffset',
+				defaultValue: 0,
+				control: 'SuiRockerComponent',
+				label: 'X Offset'
+			}, {
+				smoName: 'text',
+				parameterName: 'text',
+				defaultValue: SmoDynamicText.dynamics.P,
+				options: [{
+						value: SmoDynamicText.dynamics.P,
+						label: 'Piano'
+					}, {
+						value: SmoDynamicText.dynamics.PP,
+						label: 'Pianissimo'
+					}, {
+						value: SmoDynamicText.dynamics.MP,
+						label: 'Mezzo-Piano'
+					}, {
+						value: SmoDynamicText.dynamics.MF,
+						label: 'Mezzo-Forte'
+					}, {
+						value: SmoDynamicText.dynamics.F,
+						label: 'Forte'
+					}, {
+						value: SmoDynamicText.dynamics.FF,
+						label: 'Fortissimo'
+					}, {
+						value: SmoDynamicText.dynamics.SFZ,
+						label: 'Sforzando'
+					}
+				],
+				control: 'SuiDropdownComponent',
+				label: 'Text'
+			}
+		];
+	}
+	static createAndDisplay(parameters) {
+		var dg = new SuiTextModifierDialog(parameters);
+		dg.display();
+		return dg;
+	}
+
+	constructor(parameters) {
+		if (!parameters.modifier || !parameters.selection) {
+			throw new Error('modifier attribute dialog must have modifier and selection');
+		}
+
+		super(SuiTextModifierDialog.dialogElements, {
+			id: 'dialog-' + parameters.modifier.id,
+			top: parameters.modifier.renderedBox.y,
+			left: parameters.modifier.renderedBox.x,
+			label: 'Dynamics Properties'
+		});
+		Vex.Merge(this, parameters);
+		this.components.find((x) => {
+			return x.parameterName == 'text'
+		}).defaultValue = parameters.modifier.text;
+	}
+	handleRemove() {
+		$(this.context.svg).find('g.' + this.modifier.id).remove();
+		this.selection.note.removeModifier(this.modifier);
+		this.tracker.clearModifierSelections();
+	}
+	changed() {
+		this.modifier.backupOriginal();
+		this.components.forEach((component) => {
+			this.modifier[component.smoName] = component.getValue();
+		});
+		this.layout.renderNoteModifierPreview(this.modifier);
+	}
+}
+
+class helpModal {
+	constructor() {}
+	static createAndDisplay() {
+		SmoHelp.displayHelp();
+		return htmlHelpers.closeDialogPromise();
+	}
+}
+;// # dbComponents - components of modal dialogs.
+
+// ## SuiRockerComponent
+// ## An integer input box with +- buttons.
+class SuiRockerComponent {
+    constructor(dialog, parameter) {
+        smoMusic.filteredMerge(
+            ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
+        if (!this.defaultValue) {
+            this.defaultValue = 0;
+        }
+        this.dialog = dialog;
+    }
+
+    get html() {
+        var b = htmlHelpers.buildDom;
+        var id = this.parameterId;
+        var r = b('div').classes('rockerControl smoControl').attr('id', id).attr('data-param', this.parameterName)
+            .append(
+                b('button').classes('increment').append(
+                    b('span').classes('icon icon-circle-up'))).append(
+                b('button').classes('decrement').append(
+                    b('span').classes('icon icon-circle-down'))).append(
+                b('input').attr('type', 'text').classes('rockerInput')
+                .attr('id', id + '-input')).append(
+                b('label').attr('for', id + '-input').text(this.label));
+        return r;
+    }
+
+    get parameterId() {
+        return this.dialog.id + '-' + this.parameterName;
+    }
+
+    bind() {
+        var dialog = this.dialog;
+        var pid = this.parameterId;
+        var input = this._getInputElement();
+        this.setValue(this.defaultValue);
+        var self = this;
+        $('#' + pid).find('button.increment').off('click').on('click',
+            function (ev) {
+            var val = self._getIntValue();
+            $(input).val(val + 1);
+            dialog.changed();
+        });
+        $('#' + pid).find('button.decrement').off('click').on('click',
+            function (ev) {
+            var val = self._getIntValue();
+            $(input).val(val - 1);
+            dialog.changed();
+        });
+        $(input).off('blur').on('blur',
+            function (ev) {
+            dialog.changed();
+        });
+    }
+
+    _getInputElement() {
+        var pid = this.parameterId;
+        return $(this.dialog.dgDom.element).find('#' + pid).find('input');
+    }
+    _getIntValue() {
+        var pid = this.parameterId;
+        var val = parseInt(this._getInputElement().val());
+        val = isNaN(val) ? 0 : val;
+        return val;
+    }
+    _setIntValue(val) {
+        this._getInputElement().val(val);
+    }
+    setValue(value) {
+        this._setIntValue(value);
+    }
+    getValue() {
+        return this._getIntValue();
+    }
+}
+
+class SuiToggleComponent {
+    constructor(dialog, parameter) {
+        smoMusic.filteredMerge(
+            ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
+        if (!this.defaultValue) {
+            this.defaultValue = 0;
+        }
+        this.dialog = dialog;
+    }
+    get html() {
+        var b = htmlHelpers.buildDom;
+        var id = this.parameterId;
+        var r = b('div').classes('toggleControl smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+            .append(b('input').attr('type', 'checkbox').classes('toggleInput')
+                .attr('id', id + '-input')).append(
+                b('label').attr('for', id + '-input').text(this.label));
+        return r;
+    }
+    _getInputElement() {
+        var pid = this.parameterId;
+        return $(this.dialog.dgDom.element).find('#' + pid).find('input');
+    }
+    get parameterId() {
+        return this.dialog.id + '-' + this.parameterName;
+    }
+
+    setValue(value) {
+        $(this._getInputElement()).prop('checked', value);
+    }
+    getValue() {
+        return $(this._getInputElement()).prop('checked');
+    }
+
+    bind() {
+        var dialog = this.dialog;
+        var pid = this.parameterId;
+        var input = this._getInputElement();
+        this.setValue(this.defaultValue);
+        var self = this;
+        $(input).off('change').on('change',
+            function (ev) {
+            dialog.changed();
+        });
+    }
+}
+
+class SuiDropdownComponent {
+    constructor(dialog, parameter) {
+        smoMusic.filteredMerge(
+            ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label'], parameter, this);
+        if (!this.defaultValue) {
+            this.defaultValue = 0;
+        }
+        this.dialog = dialog;
+    }
+
+    get parameterId() {
+        return this.dialog.id + '-' + this.parameterName;
+    }
+
+    get html() {
+        var b = htmlHelpers.buildDom;
+        var id = this.parameterId;
+        var r = b('div').classes('dropdownControl smoControl').attr('id', id).attr('data-param', this.parameterName);
+        var s = b('select');
+        this.options.forEach((option) => {
+            s.append(
+                b('option').attr('value', option.value).text(option.label));
+        });
+        r.append(s).append(
+            b('label').attr('for', id + '-input').text(this.label));
+
+        return r;
+    }
+
+    _getInputElement() {
+        var pid = this.parameterId;
+        return $(this.dialog.dgDom.element).find('#' + pid).find('select');
+    }
+    getValue() {
+        var input = this._getInputElement();
+        var option = this._getInputElement().find('option:selected');
+        return $(option).val();
+    }
+    setValue(value) {
+        var input = this._getInputElement();
+        $(input).val(value);
+    }
+
+    bind() {
+        var dialog = this.dialog;
+        var pid = this.parameterId;
+        var input = this._getInputElement();
+        this.setValue(this.defaultValue);
+        var self = this;
+        $(input).off('change').on('change',
+            function (ev) {
+            dialog.changed();
+        });
+    }
+}
+;
 
 class defaultRibbonLayout {
 
@@ -8971,223 +9367,6 @@ class CollapseRibbonControl {
 				});
 			btn.bind();
 		});
-	}
-}
-;
-class SuiDialogFactory {
-
-	static createDialog(modSelection, context, tracker, layout) {
-		var dbType = SuiDialogFactory.modifierDialogMap[modSelection.modifier.type];
-		var ctor = eval(dbType);
-		if (!ctor) {
-			console.warn('no dialog for modifier ' + modSelection.modifier.type);
-			return;
-		}
-		return ctor.createAndDisplay({
-			modifier: modSelection.modifier,
-			selection: modSelection.selection,
-			context: context,
-			tracker: tracker,
-			layout: layout
-		});
-	}
-	static get modifierDialogMap() {
-		return {
-			SmoStaffHairpin: 'SuiHairpinAttributesDialog',
-			SmoSlur: 'SuiSlurAttributesDialog',
-			SmoDynamicText: 'SuiTextModifierDialog'
-		};
-	}
-}
-
-class SuiDialogBase {
-	constructor(dialogElements, parameters) {
-		this.id = parameters.id;
-		this.components = [];
-		this.layout = parameters.layout;
-		this.closeDialogPromise = new Promise((resolve, reject) => {
-				$('body').off('dialogDismiss').on('dialogDismiss', function () {
-					resolve();
-				});
-
-			});
-		this.dialogElements = dialogElements;
-		this.dgDom = this._constructDialog(dialogElements, {
-				id: 'dialog-' + this.id,
-				top: parameters.top,
-				left: parameters.left,
-				label: parameters.label
-			});
-	}
-	position(box) {
-		var y = box.y + box.height;
-
-		// TODO: adjust if db is clipped by the browser.
-		$(this.dgDom.element).css('top', '' + y + 'px');
-	}
-	_constructDialog(dialogElements, parameters) {
-		var id = parameters.id;
-		var b = htmlHelpers.buildDom;
-		var r = b('div').classes('attributeModal').css('top', parameters.top + 'px').css('left', parameters.left + 'px')
-			.append(b('h2').text(parameters.label));
-		dialogElements.forEach((de) => {
-			var ctor = eval(de.control);
-			var control = new ctor(this, de);
-			this.components.push(control);
-			r.append(control.html);
-		});
-		r.append(
-			b('div').classes('buttonContainer').append(
-				b('button').classes('ok-button').text('Ok')).append(
-				b('button').classes('cancel-button').text('Cancel')).append(
-				b('button').classes('remove-button').text('Remove').append(
-					b('span').classes('icon icon-cancel-circle'))));
-		$('.attributeDialog').html('');
-
-		$('.attributeDialog').append(r.dom());
-
-		var trapper = htmlHelpers.inputTrapper('.attributeDialog');
-		$('.attributeDialog').find('.cancel-button').focus();
-		return {
-			element: $('.attributeDialog'),
-			trapper: trapper
-		};
-	}
-
-	_commit() {
-		this.modifier.restoreOriginal();
-		this.components.forEach((component) => {
-			this.modifier[component.smoName] = component.getValue();
-		});
-	}
-
-	complete() {
-		$('body').removeClass('showAttributeDialog');
-		$('body').trigger('dialogDismiss');
-		this.dgDom.trapper.close();
-	}
-
-	display() {
-		$('body').addClass('showAttributeDialog');
-		this.components.forEach((component) => {
-			component.bind();
-		});
-		this._bindElements();
-		this.position(this.modifier.renderedBox);
-	}
-
-	_bindElements() {
-		var self = this;
-		var dgDom = this.dgDom;
-		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-			self._commit();
-			self.complete();
-		});
-
-		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-			self.modifier.restoreOriginal();
-			self.complete();
-		});
-		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-			self.handleRemove();
-			self.complete();
-		});
-	}
-}
-
-class SuiTextModifierDialog extends SuiDialogBase {
-	static get dialogElements() {
-		return [{
-				smoName: 'yOffsetLine',
-				parameterName: 'yOffsetLine',
-				defaultValue: 11,
-				control: 'SuiRockerComponent',
-				label: 'Y Line'
-			}, {
-				smoName: 'yOffsetPixels',
-				parameterName: 'yOffsetPixels',
-				defaultValue: 0,
-				control: 'SuiRockerComponent',
-				label: 'Y Offset Px'
-			}, {
-				smoName: 'xOffset',
-				parameterName: 'yOffset',
-				defaultValue: 0,
-				control: 'SuiRockerComponent',
-				label: 'X Offset'
-			}, {
-				smoName: 'text',
-				parameterName: 'text',
-				defaultValue: SmoDynamicText.dynamics.P,
-				options: [{
-						value: SmoDynamicText.dynamics.P,
-						label: 'Piano'
-					}, {
-						value: SmoDynamicText.dynamics.PP,
-						label: 'Pianissimo'
-					}, {
-						value: SmoDynamicText.dynamics.MP,
-						label: 'Mezzo-Piano'
-					}, {
-						value: SmoDynamicText.dynamics.MF,
-						label: 'Mezzo-Forte'
-					}, {
-						value: SmoDynamicText.dynamics.F,
-						label: 'Forte'
-					}, {
-						value: SmoDynamicText.dynamics.FF,
-						label: 'Fortissimo'
-					}, {
-						value: SmoDynamicText.dynamics.SFZ,
-						label: 'Sforzando'
-					}
-				],
-				control: 'SuiDropdownComponent',
-				label: 'Text'
-			}
-		];
-	}
-	static createAndDisplay(parameters) {
-		var dg = new SuiTextModifierDialog(parameters);
-		dg.display();
-		return dg;
-	}
-
-	constructor(parameters) {
-		if (!parameters.modifier || !parameters.selection) {
-			throw new Error('modifier attribute dialog must have modifier and selection');
-		}
-
-		super(SuiTextModifierDialog.dialogElements, {
-			id: 'dialog-' + parameters.modifier.id,
-			top: parameters.modifier.renderedBox.y,
-			left: parameters.modifier.renderedBox.x,
-			label: 'Dynamics Properties'
-		});
-		Vex.Merge(this, parameters);
-		this.components.find((x) => {
-			return x.parameterName == 'text'
-		}).defaultValue = parameters.modifier.text;
-	}
-	handleRemove() {
-		$(this.context.svg).find('g.' + this.modifier.id).remove();
-		this.selection.note.removeModifier(this.modifier);
-		this.tracker.clearModifierSelections();
-	}
-	changed() {
-		this.modifier.backupOriginal();
-		this.components.forEach((component) => {
-			this.modifier[component.smoName] = component.getValue();
-		});
-		this.layout.renderNoteModifierPreview(this.modifier);
-	}
-}
-
-class helpModal {
-	constructor() {}
-	static createAndDisplay() {
-		SmoHelp.displayHelp();
-		return htmlHelpers.closeDialogPromise();
 	}
 }
 ;class SuiStaffModifierDialog extends SuiDialogBase {

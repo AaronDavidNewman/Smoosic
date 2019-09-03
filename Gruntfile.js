@@ -19,6 +19,7 @@ module.exports = function (grunt) {
 					'src/ui/editor.js', 'src/ui/menus.js', 'src/ui/utController.js',
 					'src/ui/exceptions.js',
 					'src/ui/keyBindings/default/editorKeys.js','src/ui/keyBindings/default/trackerKeys.js',
+					'src/ui/dialog.js','src/ui/dialogComponents.js',
 					'src/ui/ribbonLayout/default/defaultRibbon.js',
                     'src/ui/ribbon.js','src/ui/dialog.js', 'src/ui/staffDialogs.js', 'src/ui/help.js', 'src/ui/controller.js'],
                 dest: 'build/<%= pkg.name %>.js'
