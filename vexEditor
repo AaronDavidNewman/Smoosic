@@ -84,11 +84,13 @@
             <Folder name="sui">
                 <File name="src\render\sui\tracker.js" />
                 <File name="src\render\sui\layout.js" />
+                <File name="src\render\sui\piano.js" />
             </Folder>
         </Folder>
         <Folder name="styles">
             <File name="src\styles\styles.css" />
             <File name="src\styles\fonts.css" />
         </Folder>
+        <File name="Gruntfile.js" />
     </Project>
 </NotepadPlus>

@@ -1,4 +1,6 @@
 
+class TrackerBase {
+}
 
 // ## suiTracker
 // A tracker maps the UI elements to the logical elements ,and allows the user to
@@ -450,27 +452,7 @@ class suiTracker {
 			}
 		}
 	}
-
-	_findIntersectionArtifact(clientBox) {
-		var obj = null;
-		var box = clientBox; //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
-
-		// box.y = box.y - this.renderElement.offsetTop;
-		// box.x = box.x - this.renderElement.offsetLeft;
-
-		$(this.objects).each(function (ix, object) {
-			var i1 = box.x - object.box.x;
-			/* console.log('client coords: ' + svgHelpers.stringify(clientBox));
-			console.log('find box '+svgHelpers.stringify(box));
-			console.log('examine obj: '+svgHelpers.stringify(object.box));  */
-			var i2 = box.y - object.box.y;
-			if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
-				obj = object;
-				return false;
-			}
-		});
-		return obj;
-	}
+	
 
 	_setArtifactAsSuggestion(bb, artifact) {
 		if (this['suggestFadeTimer']) {
@@ -497,10 +479,12 @@ class suiTracker {
 	}
 
 	intersectingArtifact(bb) {
-		var artifact = this._findIntersectionArtifact(bb);
-		if (artifact) {
-			this._setArtifactAsSuggestion(bb, artifact);
+		var artifacts = svgHelpers.findIntersectingArtifact(bb,this.objects);
+		if (!artifacts.length) {
+			return null;
 		}
+		var artifact = artifacts[0];
+		this._setArtifactAsSuggestion(bb, artifact);
 		return artifact;
 	}
 

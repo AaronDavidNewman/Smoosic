@@ -21,6 +21,99 @@ class svgHelpers {
 	}
 
 
+    static get namespace() 	{
+		return "http://www.w3.org/2000/svg";
+	}
+	
+	static buildSvg(el) {
+
+		var smoSvgBuilder = function (el) {
+			var ns = svgHelpers.namespace;
+			this.e = document.createElementNS(ns,el);
+			var self = this;
+			this.classes = function (cl) {
+				self.e.setAttributeNS('','class',cl);				
+				return self;
+			}
+			this.attr = function (name, value) {
+				self.e.setAttributeNS('',name, value);
+				return self;
+			}
+			this.text = function(x,y,classes,text) {
+				x = typeof(x) == 'string' ? x : x.toString();
+				y = typeof(y) == 'string' ? y : y.toString();
+				this.e.setAttributeNS('','class',classes);
+				this.e.setAttributeNS('','x',x);
+				this.e.setAttributeNS('','y',y);
+				this.e.textContent=text;
+				return this;
+			}
+			this.rect = function(x,y,width,height,classes) {
+				x = typeof(x) == 'string' ? x : x.toString();
+				y = typeof(y) == 'string' ? y : y.toString();
+				width = typeof(width) == 'string' ? width : width.toString();
+				height = typeof(height) == 'string' ? height : height.toString();
+				this.e.setAttributeNS('','x',x);
+				this.e.setAttributeNS('','y',y);
+				this.e.setAttributeNS('','width',width);
+				this.e.setAttributeNS('','height',height);				
+				if (classes) {
+					this.e.setAttributeNS('','class',classes);
+				}
+				return this;
+			}
+			this.append = function (el) {
+				self.e.appendChild(el.e);
+				return self;
+			}
+			this.dom = function () {
+				return self.e;
+			}
+			return this;
+		}
+		return new smoSvgBuilder(el);
+	}
+		
+
+	// ### findIntersectionArtifact
+	// find all object that intersect with the rectangle
+	static findIntersectingArtifact(clientBox,objects) {
+		var obj = null;
+		var box = clientBox; //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
+
+		// box.y = box.y - this.renderElement.offsetTop;
+		// box.x = box.x - this.renderElement.offsetLeft;
+		var rv = [];
+		objects.forEach((object) => {
+			var i1 = box.x - object.box.x;
+			/* console.log('client coords: ' + svgHelpers.stringify(clientBox));
+			console.log('find box '+svgHelpers.stringify(box));
+			console.log('examine obj: '+svgHelpers.stringify(object.box));  */
+			var i2 = box.y - object.box.y;
+			if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
+				rv.push(object);
+			}			
+		});
+
+		return rv;
+	}
+	static findSmallestIntersection(clientBox,objects) {
+		var ar = svgHelpers.findIntersectingArtifact(clientBox,objects);
+		if (!ar.length) {
+			return null;
+		}
+		var rv=ar[0];
+		var min=ar[0].box.width*ar[0].box.height;
+		ar.forEach((obj) => {
+			var tst = obj.box.width*obj.box.height;
+			if (tst < min) {
+				rv = obj;
+				min=tst;
+			}
+		});
+		return rv;
+	}
+
 	// ### measureBBox
 	// Return the bounding box of the measure
 	static measureBBox(b1, measure, staff) {

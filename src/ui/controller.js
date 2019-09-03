@@ -31,21 +31,25 @@ class suiController {
 		this.bindEvents();
 		this.bindResize();
 		this.splash();
+		this.piano();
 	}
-	
+
 	splash() {
-		 var b = htmlHelpers.buildDom;
-		 var r = b('div').classes('bug-modal').append(
-                b('img').attr('src', '../styles/images/logo.png').classes('splash-logo'))
-            .append(b('button').classes('icon icon-cross bug-dismiss-button'))
-            .append(b('span').classes('splash-title').text('Sm'))
+		var b = htmlHelpers.buildDom;
+		var r = b('div').classes('bug-modal').append(
+				b('img').attr('src', '../styles/images/logo.png').classes('splash-logo'))
+			.append(b('button').classes('icon icon-cross bug-dismiss-button'))
+			.append(b('span').classes('splash-title').text('Sm'))
 			.append(b('span').classes('splash-shine').text('ooooooooo'))
 			.append(b('span').classes('splash-title').text('sic'));
-         $('.bugDialog').append(r.dom());
-		 $('body').addClass('splashScreen modal');
-		 setTimeout(function() {
-			 $('body').removeClass('splashScreen modal');
-		 },1000);
+		$('.bugDialog').append(r.dom());
+		$('body').addClass('splashScreen modal');
+		setTimeout(function () {
+			$('body').removeClass('splashScreen modal');
+		}, 1000);
+	}
+	piano() {
+		this.piano = new suiPiano({elementId:'piano-svg'});
 	}
 	resizeEvent() {
 		var self = this;
@@ -229,7 +233,7 @@ class suiController {
 		var remap = function () {
 			return controller.tracker.updateMap();
 		}
-		this.layout.render().then(remap)
+		this.layout.render().then(remap);
 	}
 
 	bindEvents() {
@@ -244,6 +248,13 @@ class suiController {
 
 		$(this.renderElement).off('click').on('click', function (ev) {
 			tracker.selectSuggestion();
+		});
+		$('body').off('smo-piano-key').on('smo-piano-key',function(ev,obj) {
+			obj=obj.selections;
+			self.tracker.selections.forEach((sel) => {
+				sel.note.pitches=JSON.parse(JSON.stringify(obj));
+			});
+			self.render();
 		});
 
 		this.keydownHandler = this.handleKeydown.bind(this);

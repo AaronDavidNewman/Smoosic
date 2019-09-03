@@ -9,7 +9,7 @@ class htmlHelpers {
 	// ## Description:
 	// returns an object that  lets you build a DOM in a somewhat readable way.
 	// ## Usage:
-	// var b = htmlHelpers.buildDom();
+	// var b = htmlHelpers.buildDom;
 	//  var r =
 	// b('tr').classes('jsSharingMember').data('entitykey', key).data('name', name).data('entitytype', entityType).append(
 	// b('td').classes('noSideBorderRight').append(

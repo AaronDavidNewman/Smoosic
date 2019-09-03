@@ -628,6 +628,99 @@ class svgHelpers {
 	}
 
 
+    static get namespace() 	{
+		return "http://www.w3.org/2000/svg";
+	}
+	
+	static buildSvg(el) {
+
+		var smoSvgBuilder = function (el) {
+			var ns = svgHelpers.namespace;
+			this.e = document.createElementNS(ns,el);
+			var self = this;
+			this.classes = function (cl) {
+				self.e.setAttributeNS('','class',cl);				
+				return self;
+			}
+			this.attr = function (name, value) {
+				self.e.setAttributeNS('',name, value);
+				return self;
+			}
+			this.text = function(x,y,classes,text) {
+				x = typeof(x) == 'string' ? x : x.toString();
+				y = typeof(y) == 'string' ? y : y.toString();
+				this.e.setAttributeNS('','class',classes);
+				this.e.setAttributeNS('','x',x);
+				this.e.setAttributeNS('','y',y);
+				this.e.textContent=text;
+				return this;
+			}
+			this.rect = function(x,y,width,height,classes) {
+				x = typeof(x) == 'string' ? x : x.toString();
+				y = typeof(y) == 'string' ? y : y.toString();
+				width = typeof(width) == 'string' ? width : width.toString();
+				height = typeof(height) == 'string' ? height : height.toString();
+				this.e.setAttributeNS('','x',x);
+				this.e.setAttributeNS('','y',y);
+				this.e.setAttributeNS('','width',width);
+				this.e.setAttributeNS('','height',height);				
+				if (classes) {
+					this.e.setAttributeNS('','class',classes);
+				}
+				return this;
+			}
+			this.append = function (el) {
+				self.e.appendChild(el.e);
+				return self;
+			}
+			this.dom = function () {
+				return self.e;
+			}
+			return this;
+		}
+		return new smoSvgBuilder(el);
+	}
+		
+
+	// ### findIntersectionArtifact
+	// find all object that intersect with the rectangle
+	static findIntersectingArtifact(clientBox,objects) {
+		var obj = null;
+		var box = clientBox; //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
+
+		// box.y = box.y - this.renderElement.offsetTop;
+		// box.x = box.x - this.renderElement.offsetLeft;
+		var rv = [];
+		objects.forEach((object) => {
+			var i1 = box.x - object.box.x;
+			/* console.log('client coords: ' + svgHelpers.stringify(clientBox));
+			console.log('find box '+svgHelpers.stringify(box));
+			console.log('examine obj: '+svgHelpers.stringify(object.box));  */
+			var i2 = box.y - object.box.y;
+			if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
+				rv.push(object);
+			}			
+		});
+
+		return rv;
+	}
+	static findSmallestIntersection(clientBox,objects) {
+		var ar = svgHelpers.findIntersectingArtifact(clientBox,objects);
+		if (!ar.length) {
+			return null;
+		}
+		var rv=ar[0];
+		var min=ar[0].box.width*ar[0].box.height;
+		ar.forEach((obj) => {
+			var tst = obj.box.width*obj.box.height;
+			if (tst < min) {
+				rv = obj;
+				min=tst;
+			}
+		});
+		return rv;
+	}
+
 	// ### measureBBox
 	// Return the bounding box of the measure
 	static measureBBox(b1, measure, staff) {
@@ -795,7 +888,7 @@ class htmlHelpers {
 	// ## Description:
 	// returns an object that  lets you build a DOM in a somewhat readable way.
 	// ## Usage:
-	// var b = htmlHelpers.buildDom();
+	// var b = htmlHelpers.buildDom;
 	//  var r =
 	// b('tr').classes('jsSharingMember').data('entitykey', key).data('name', name).data('entitytype', entityType).append(
 	// b('td').classes('noSideBorderRight').append(
@@ -3554,6 +3647,9 @@ class SmoSelector {
 // and one or more pitches.  Selections can also be made from the UI by clicking on an element
 // or navigating to an element with the keyboard.
 class SmoSelection {
+
+	// ### measureSelection
+	// A selection that does not contain a specific note
 	static measureSelection(score, staffIndex, measureIndex) {
 		staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
 		var selector = {
@@ -3565,7 +3661,7 @@ class SmoSelection {
 		}
 		var staff = score.staves[staffIndex];
 		if (staff.measures.length <= measureIndex) {
-			return null;	
+			return null;
 		}
 		var measure = staff.measures[measureIndex];
 
@@ -3582,6 +3678,8 @@ class SmoSelection {
 		return SmoSelection(score, selection.staffIndex, selection.measureIndex, selection.voiceIndex, selection.tickIndex);
 	}
 
+	// ### noteSelection
+	// a selection that specifies a note in the score
 	static noteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
 		staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
 		measureIndex = measureIndex ? measureIndex : 0;
@@ -3605,6 +3703,9 @@ class SmoSelection {
 		});
 	}
 
+	// ### renderedNoteSelection
+	// this is a special selection that we associated with all he rendered notes, so that we
+	// can map from a place in the display to a place in the score.
 	static renderedNoteSelection(score, nel, box) {
 		var elementId = nel.getAttribute('id');
 		for (var i = 0; i < score.staves.length; ++i) {
@@ -5202,6 +5303,8 @@ class VxSystem {
     }
 }
 ;
+class TrackerBase {
+}
 
 // ## suiTracker
 // A tracker maps the UI elements to the logical elements ,and allows the user to
@@ -5653,27 +5756,7 @@ class suiTracker {
 			}
 		}
 	}
-
-	_findIntersectionArtifact(clientBox) {
-		var obj = null;
-		var box = clientBox; //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
-
-		// box.y = box.y - this.renderElement.offsetTop;
-		// box.x = box.x - this.renderElement.offsetLeft;
-
-		$(this.objects).each(function (ix, object) {
-			var i1 = box.x - object.box.x;
-			/* console.log('client coords: ' + svgHelpers.stringify(clientBox));
-			console.log('find box '+svgHelpers.stringify(box));
-			console.log('examine obj: '+svgHelpers.stringify(object.box));  */
-			var i2 = box.y - object.box.y;
-			if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
-				obj = object;
-				return false;
-			}
-		});
-		return obj;
-	}
+	
 
 	_setArtifactAsSuggestion(bb, artifact) {
 		if (this['suggestFadeTimer']) {
@@ -5700,10 +5783,12 @@ class suiTracker {
 	}
 
 	intersectingArtifact(bb) {
-		var artifact = this._findIntersectionArtifact(bb);
-		if (artifact) {
-			this._setArtifactAsSuggestion(bb, artifact);
+		var artifacts = svgHelpers.findIntersectingArtifact(bb,this.objects);
+		if (!artifacts.length) {
+			return null;
 		}
+		var artifact = artifacts[0];
+		this._setArtifactAsSuggestion(bb, artifact);
 		return artifact;
 	}
 
@@ -6260,6 +6345,175 @@ class suiSimpleLayout {
 		this.score.staves.forEach((stf) => {
 			this._renderModifiers(stf, system);
 		});
+	}
+}
+;
+class suiPiano {
+	constructor(parameters) {
+		this.elementId = parameters.elementId;
+		this.renderElement = document.getElementById('piano-svg')
+		this.selections=[];
+		this.render();
+	}
+	
+	static createAndDisplay(parms) {
+		$('body').toggleClass('show-piano');
+	}
+	_mapKeys() {
+		this.objects = [];
+		var keys = [].slice.call(this.renderElement.getElementsByClassName('piano-key'));
+		keys.forEach((key) => {
+			var rect = key.getBoundingClientRect();
+			var id = key.getAttributeNS('', 'id');
+			var artifact = {
+				keyElement: key,
+				box: rect,
+				id: id
+			};
+			this.objects.push(artifact);
+		});
+	}
+	_removeClass(classes) {
+		Array.from(this.renderElement.getElementsByClassName('piano-key')).forEach((el) => {
+			$(el).removeClass(classes);
+		});
+	}
+	_removeGlow() {
+		this._removeClass('glow-key');
+	}
+	bind() {
+		var self = this;
+		$(this.renderElement).off('mousemove').on('mousemove', function (ev) {
+			var keyPressed = svgHelpers.findSmallestIntersection({
+					x: ev.clientX,
+					y: ev.clientY
+				}, self.objects);
+			if (!keyPressed) {
+				return;
+			}
+			var el = self.renderElement.getElementById(keyPressed.id);
+			if ($(el).hasClass('glow-key')) {
+				return;
+			}
+			self._removeGlow();
+			$(el).addClass('glow-key');
+
+		});
+		$(this.renderElement).off('click').on('click', function (ev) {
+			self._updateSelections(ev);
+		});
+		
+		$('.close-piano').off('click').on('click',function() {
+			$('body').removeClass('show-piano');
+		});
+	}
+	_updateSelections(ev) {
+		var keyPressed = svgHelpers.findSmallestIntersection({
+				x: ev.clientX,
+				y: ev.clientY
+			}, this.objects);
+		if (!keyPressed) {
+			return;
+		}
+		if (!ev.shiftKey) {
+			this.selections = [];
+			this._removeClass('glow-key pressed-key');
+		} else {
+			var el = this.renderElement.getElementById(keyPressed.id);
+			$(el).addClass('pressed-key');
+		}
+		var key = keyPressed.id.substr(6, keyPressed.id.length - 6);
+		var pitch = {
+			letter: key[0].toLowerCase(),
+			octave: parseInt(key[key.length - 1]),
+			accidental: key.length == 3 ? key[1] : 'n'
+		};
+		this.selections.push(pitch);
+		$('body').trigger('smo-piano-key', {selections:JSON.parse(JSON.stringify(this.selections))});
+	}
+	_renderclose() {
+		var b = htmlHelpers.buildDom;
+		var r = b('button').classes('icon icon-cross close close-piano');
+		$(this.renderElement).closest('div').append(r.dom());
+	}
+	render() {
+		$('body').addClass('show-piano');
+		var b = svgHelpers.buildSvg;
+		var keyAr = [];
+		var xwhite = [{
+				note: 'C',
+				x: 0
+			}, {
+				note: 'D',
+				x: 23
+			}, {
+				note: 'E',
+				x: 46
+			}, {
+				note: 'F',
+				x: 69
+			}, {
+				note: 'G',
+				x: 92
+			}, {
+				note: 'A',
+				x: 115
+			}, {
+				note: 'B',
+				x: 138
+			}
+		];
+		var xblack = [{
+				note: 'Db',
+				x: 14.333
+			}, {
+				note: 'Eb',
+				x: 41.6666
+			}, {
+				note: 'Gb',
+				x: 82.25
+			}, {
+				note: 'Ab',
+				x: 108.25
+			}, {
+				note: 'Bb',
+				x: 134.75
+			}
+		];
+		var wwidth = 23;
+		var bwidth = 13;
+		var wheight = 120;
+		var bheight = 80;
+		var owidth = 7 * 23;
+		var x = 0;
+		var y = 0;
+		var r = b('g');
+		for (var i = 0; i < 7; ++i) {
+			x = i * owidth;
+			xwhite.forEach((key) => {
+				var nt = key.note + (i + 1).toString();
+				var classes = 'piano-key white-key';
+				if (nt == 'C4') {
+					classes += ' middle-c';
+				}
+				var rect = b('rect').attr('id', 'keyId-' + nt).rect(x + key.x, y, wwidth, wheight, classes);
+				r.append(rect);
+
+				var tt = b('text').text(x + key.x + (wwidth / 5), bheight + 16, 'note-text', nt);
+				r.append(tt);
+			});
+			xblack.forEach((key) => {
+				var nt = key.note + (i + 1).toString();
+				var classes = 'piano-key black-key';
+				var rect = b('rect').attr('id', 'keyId-' + nt).rect(x + key.x, 0, bwidth, bheight, classes);
+				r.append(rect);
+			});
+		}
+		var el = document.getElementById(this.elementId);
+		el.appendChild(r.dom());
+		this._renderclose();
+		this._mapKeys();
+		this.bind();
 	}
 }
 ;
@@ -7634,7 +7888,7 @@ class defaultRibbonLayout {
 	}
 	
 	static get leftRibbonIds() {
-		return ['helpDialog', 'addStaffMenu', 'dynamicsMenu', 'keyMenu', 'staffModifierMenu', 'staffModifierMenu2'];
+		return ['helpDialog', 'addStaffMenu', 'dynamicsMenu', 'keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoMenu'];
 	}
 	static get noteButtonIds() {
 		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton',
@@ -8342,6 +8596,16 @@ class defaultRibbonLayout {
 				ctor: 'suiStaffModifierMenu',
 				group: 'scoreEdit',
 				id: 'staffModifierMenu2'
+			},
+			 {
+				leftText: 'Piano',
+				rightText: '',
+				icon: '',
+				classes: 'icon keyboard',
+				action: 'modal',
+				ctor: 'suiPiano',
+				group: 'scoreEdit',
+				id: 'pianoMenu'
 			}
 		];
 	}
@@ -9707,21 +9971,25 @@ class suiController {
 		this.bindEvents();
 		this.bindResize();
 		this.splash();
+		this.piano();
 	}
-	
+
 	splash() {
-		 var b = htmlHelpers.buildDom;
-		 var r = b('div').classes('bug-modal').append(
-                b('img').attr('src', '../styles/images/logo.png').classes('splash-logo'))
-            .append(b('button').classes('icon icon-cross bug-dismiss-button'))
-            .append(b('span').classes('splash-title').text('Sm'))
+		var b = htmlHelpers.buildDom;
+		var r = b('div').classes('bug-modal').append(
+				b('img').attr('src', '../styles/images/logo.png').classes('splash-logo'))
+			.append(b('button').classes('icon icon-cross bug-dismiss-button'))
+			.append(b('span').classes('splash-title').text('Sm'))
 			.append(b('span').classes('splash-shine').text('ooooooooo'))
 			.append(b('span').classes('splash-title').text('sic'));
-         $('.bugDialog').append(r.dom());
-		 $('body').addClass('splashScreen modal');
-		 setTimeout(function() {
-			 $('body').removeClass('splashScreen modal');
-		 },1000);
+		$('.bugDialog').append(r.dom());
+		$('body').addClass('splashScreen modal');
+		setTimeout(function () {
+			$('body').removeClass('splashScreen modal');
+		}, 1000);
+	}
+	piano() {
+		this.piano = new suiPiano({elementId:'piano-svg'});
 	}
 	resizeEvent() {
 		var self = this;
@@ -9905,7 +10173,7 @@ class suiController {
 		var remap = function () {
 			return controller.tracker.updateMap();
 		}
-		this.layout.render().then(remap)
+		this.layout.render().then(remap);
 	}
 
 	bindEvents() {
@@ -9920,6 +10188,13 @@ class suiController {
 
 		$(this.renderElement).off('click').on('click', function (ev) {
 			tracker.selectSuggestion();
+		});
+		$('body').off('smo-piano-key').on('smo-piano-key',function(ev,obj) {
+			obj=obj.selections;
+			self.tracker.selections.forEach((sel) => {
+				sel.note.pitches=JSON.parse(JSON.stringify(obj));
+			});
+			self.render();
 		});
 
 		this.keydownHandler = this.handleKeydown.bind(this);

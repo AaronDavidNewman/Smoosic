@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="piano-svg" xml:space="preserve" width="128" height="121" viewBox="0 0 128 121">
+	<g>
+		<rect style="fill:#fff;stroke:#000" x="0" y="0" width="23" height="120"/>
+		<rect style="fill:#fff;stroke:#000" x="23" y="0" width="23" height="120"/>
+		<rect style="fill:white;stroke:black" x="46" y="0" width="23" height="120"/>
+		<rect style="fill:white;stroke:black" x="69" y="0" width="23" height="120"/>
+		<rect style="fill:white;stroke:black" x="92" y="0" width="23" height="120"/>
+		<rect style="fill:white;stroke:black" x="115" y="0" width="23" height="120"/>
+		<rect style="fill:white;stroke:black" x="138" y="0" width="23" height="120"/>
+		<rect style="fill:black;stroke:black" x="14.3333" y="0" width="13" height="80"/>
+	</g>
+</svg>

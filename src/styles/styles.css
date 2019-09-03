@@ -39,6 +39,45 @@ h1 {
 	background-color:#fff;
 }
 
+.piano-keys {
+	height:141px;
+	width: 1127px;
+	overflow-x:auto;
+	overflow-y:hidden;
+	padding-top: 20px;
+	border: black 1px solid;
+	position:relative;
+	display:none;
+}
+
+body.show-piano .piano-keys {
+	display:block;
+}
+
+.black-key {
+	fill:#000;
+	stroke:#000;
+}
+
+.white-key {
+	fill:#fff;
+	stroke:#000;
+}
+.white-key.glow-key {
+	fill:#aad;
+}
+.white-key.pressed-key {
+	fill:#33d;
+}
+.black-key.pressed-key {
+	fill:#bbd;
+}
+.black-key.glow-key {
+	fill:#aad;
+}
+.note-text {
+	font-size:.7em;
+}
 .menu-status {
 	position:absolute;
 	/* right:10px; */

@@ -83,6 +83,9 @@ class SmoSelector {
 // and one or more pitches.  Selections can also be made from the UI by clicking on an element
 // or navigating to an element with the keyboard.
 class SmoSelection {
+
+	// ### measureSelection
+	// A selection that does not contain a specific note
 	static measureSelection(score, staffIndex, measureIndex) {
 		staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
 		var selector = {
@@ -94,7 +97,7 @@ class SmoSelection {
 		}
 		var staff = score.staves[staffIndex];
 		if (staff.measures.length <= measureIndex) {
-			return null;	
+			return null;
 		}
 		var measure = staff.measures[measureIndex];
 
@@ -111,6 +114,8 @@ class SmoSelection {
 		return SmoSelection(score, selection.staffIndex, selection.measureIndex, selection.voiceIndex, selection.tickIndex);
 	}
 
+	// ### noteSelection
+	// a selection that specifies a note in the score
 	static noteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
 		staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
 		measureIndex = measureIndex ? measureIndex : 0;
@@ -134,6 +139,9 @@ class SmoSelection {
 		});
 	}
 
+	// ### renderedNoteSelection
+	// this is a special selection that we associated with all he rendered notes, so that we
+	// can map from a place in the display to a place in the score.
 	static renderedNoteSelection(score, nel, box) {
 		var elementId = nel.getAttribute('id');
 		for (var i = 0; i < score.staves.length; ++i) {

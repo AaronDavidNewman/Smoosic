@@ -14,7 +14,7 @@ class defaultRibbonLayout {
 	}
 	
 	static get leftRibbonIds() {
-		return ['helpDialog', 'addStaffMenu', 'dynamicsMenu', 'keyMenu', 'staffModifierMenu', 'staffModifierMenu2'];
+		return ['helpDialog', 'addStaffMenu', 'dynamicsMenu', 'keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoMenu'];
 	}
 	static get noteButtonIds() {
 		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton',
@@ -722,6 +722,16 @@ class defaultRibbonLayout {
 				ctor: 'suiStaffModifierMenu',
 				group: 'scoreEdit',
 				id: 'staffModifierMenu2'
+			},
+			 {
+				leftText: 'Piano',
+				rightText: '',
+				icon: '',
+				classes: 'icon keyboard',
+				action: 'modal',
+				ctor: 'suiPiano',
+				group: 'scoreEdit',
+				id: 'pianoMenu'
 			}
 		];
 	}
