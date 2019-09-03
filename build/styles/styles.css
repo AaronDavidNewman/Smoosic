@@ -50,6 +50,10 @@ h1 {
 	display:none;
 }
 
+body.show-piano #pianoModal {
+	display:none;
+}
+
 body.show-piano .piano-keys {
 	display:block;
 }
