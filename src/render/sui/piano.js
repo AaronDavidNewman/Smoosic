@@ -56,6 +56,8 @@ class suiPiano {
 		
 		$('.close-piano').off('click').on('click',function() {
 			$('body').removeClass('show-piano');
+			// resize the work area.
+			window.dispatchEvent(new Event('resize'));
 		});
 	}
 	_updateSelections(ev) {
