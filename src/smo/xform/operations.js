@@ -275,6 +275,8 @@ class SmoOperation {
 			pitchSelection.note.pitches[pitchIx].cautionary = toBe;
 		});
 	}
+	
+	
 
 	static toggleEnharmonic(pitchSelection) {
 		if (pitchSelection.selector.pitches.length === 0) {

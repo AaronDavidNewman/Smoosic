@@ -13,6 +13,7 @@
                 <File name="src\smo\data\score.js" />
                 <File name="src\smo\data\staffModifiers.js" />
                 <File name="src\smo\data\noteModifiers.js" />
+                <File name="src\smo\data\measureModifiers.js" />
             </Folder>
             <Folder name="xform">
                 <File name="src\smo\xform\iterator.js" />
