@@ -11,29 +11,36 @@ class SmoOperation {
 
 		score.deleteMeasure(measureIndex);
 	}
-	
+
 	static toggleBeamGroup(noteSelection) {
-	      noteSelection.note.endBeam =  !(noteSelection.note.endBeam);
+		noteSelection.note.endBeam = !(noteSelection.note.endBeam);
 	}
-	
-	static batchSelectionOperation(score,selections,operation) {
+
+	static batchSelectionOperation(score, selections, operation) {
 		var measureTicks = [];
 		selections.forEach((selection) => {
-			var measureSel = {staff:selection.selector.staff,measure:selection.selector.measure,voice:selection.selector.voice};
+			var measureSel = {
+				staff: selection.selector.staff,
+				measure: selection.selector.measure,
+				voice: selection.selector.voice
+			};
 			if (!measureTicks[measureSel]) {
 				var tm = selection.measure.tickmap();
-				var tickOffset=tm.durationMap[selection.selector.tick];
+				var tickOffset = tm.durationMap[selection.selector.tick];
 				var selector = JSON.parse(JSON.stringify(selection.selector));
-				measureTicks.push({selector:selector,tickOffset:tickOffset});
+				measureTicks.push({
+					selector: selector,
+					tickOffset: tickOffset
+				});
 			}
 		});
 		measureTicks.forEach((measureTick) => {
-			var selection = SmoSelection.measureSelection(score,measureTick.selector.staff,measureTick.selector.measure);
+			var selection = SmoSelection.measureSelection(score, measureTick.selector.staff, measureTick.selector.measure);
 			var tickmap = selection.measure.tickmap();
 			var ix = tickmap.durationMap.indexOf(measureTick.tickOffset);
 			if (ix >= 0) {
-				var nsel = SmoSelection.noteSelection(score,measureTick.selector.staff,measureTick.selector.measure,
-				    measureTick.selector.voice,ix);
+				var nsel = SmoSelection.noteSelection(score, measureTick.selector.staff, measureTick.selector.measure,
+						measureTick.selector.voice, ix);
 				SmoOperation[operation](nsel);
 			}
 		});
@@ -166,10 +173,10 @@ class SmoOperation {
 			return;
 		}
 		// If this is the ultimate note in the measure, we can't increase the length
-		if (selection.selector.tick+1 === selection.measure.notes.length) {
+		if (selection.selector.tick + 1 === selection.measure.notes.length) {
 			return;
 		}
-		if (selection.measure.notes[selection.selector.tick+1].tickCount > selection.note.tickCount) {
+		if (selection.measure.notes[selection.selector.tick + 1].tickCount > selection.note.tickCount) {
 			console.log('too long');
 			return;
 		}
@@ -244,22 +251,22 @@ class SmoOperation {
 		});
 		return true;
 	}
-	
+
 	static toggleCourtesyAccidental(selection) {
-		var toBe=false;
-		var i=0;
+		var toBe = false;
+		var i = 0;
 		if (!selection.selector['pitches'] || selection.selector.pitches.length === 0) {
-			var ps=[];
+			var ps = [];
 			selection.note.pitches.forEach((pitch) => {
 				var p = JSON.parse(JSON.stringify(pitch));
 				ps.push(p);
 				p.cautionary = !(pitch.cautionary);
 			});
-			selection.note.pitches=ps;
+			selection.note.pitches = ps;
 		} else {
 			toBe = !(selection.note.pitches[selection.selector.pitches[0]].cautionary);
 		}
-		
+
 		SmoOperation.courtesyAccidental(selection, toBe);
 	}
 
@@ -268,21 +275,21 @@ class SmoOperation {
 			pitchSelection.note.pitches[pitchIx].cautionary = toBe;
 		});
 	}
-	
+
 	static toggleEnharmonic(pitchSelection) {
-		if (pitchSelection.selector.pitches.length===0) {
+		if (pitchSelection.selector.pitches.length === 0) {
 			pitchSelection.selector.pitches.push(0);
 		}
 		var pitch = pitchSelection.note.pitches[pitchSelection.selector.pitches[0]];
-		var lastLetter=pitch.letter;
+		var lastLetter = pitch.letter;
 		var vexPitch = smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch));
 		vexPitch = smoMusic.getEnharmonic(vexPitch);
 
-		pitch.letter=vexPitch[0];
-		pitch.accidental = vexPitch.length > 1 ? 
-		   vexPitch.substring(1,vexPitch.length) : 'n';
-		pitch.octave += smoMusic.letterChangedOctave(lastLetter,pitch.letter);
-       
+		pitch.letter = vexPitch[0];
+		pitch.accidental = vexPitch.length > 1 ?
+			vexPitch.substring(1, vexPitch.length) : 'n';
+		pitch.octave += smoMusic.letterChangedOctave(lastLetter, pitch.letter);
+
 	}
 
 	static addDynamic(selection, dynamic) {
@@ -302,10 +309,15 @@ class SmoOperation {
 
 		// TODO: figure out which pitch is selected
 		var pitch = note.pitches[0];
+		if (interval > 0) {
+			pitch = note.pitches[note.pitches.length - 1];
+		}
 		var pitch = smoMusic.getIntervalInKey(pitch, measure.keySignature, interval);
 		if (pitch) {
 			note.pitches.push(pitch);
-			note.pitches.sort((x,y) => {return smoMusic.smoPitchToInt(x) - smoMusic.smoPitchToInt(y); });
+			note.pitches.sort((x, y) => {
+				return smoMusic.smoPitchToInt(x) - smoMusic.smoPitchToInt(y);
+			});
 			return true;
 		}
 		return false;
