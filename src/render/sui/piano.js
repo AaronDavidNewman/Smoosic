@@ -8,7 +8,10 @@ class suiPiano {
 	}
 	
 	static createAndDisplay(parms) {
+		// Called by ribbon button.
 		$('body').toggleClass('show-piano');
+		// handle resize work area.
+		window.dispatchEvent(new Event('resize'));
 	}
 	_mapKeys() {
 		this.objects = [];
