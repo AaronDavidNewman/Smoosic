@@ -277,6 +277,9 @@ class SmoMeasure {
 	}
 	static get defaults() {
 		// var noteDefault = SmoMeasure.defaultVoice44;
+		const barlines = [];
+		barlines.push(new SmoBarline({position:SmoBarline.positions.start,barline:SmoBarline.barlines.singleBar}));
+		barlines.push(new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.singleBar}));
 		return {
 			timeSignature: '4/4',
 			keySignature: "C",
@@ -285,6 +288,8 @@ class SmoMeasure {
 			adjX: 0,
 			transposeIndex: 0,
 			rightMargin: 2,
+			barLines: [
+			
 			customModifiers: [],
 			staffY: 40,
 			bars: [1, 1], // follows enumeration in VF.Barline
