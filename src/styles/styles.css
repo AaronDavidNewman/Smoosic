@@ -404,6 +404,9 @@ body.splashScreen .bugDialog {
 .musicRelief {
 	background:#999;
 }
+.workspaceContainer {
+	background:#999;
+}
 .workspace {
 	padding-top: 30px;
 	position:relative;

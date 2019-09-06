@@ -93,5 +93,8 @@
             <File name="src\styles\fonts.css" />
         </Folder>
         <File name="Gruntfile.js" />
+        <Folder name="html">
+            <File name="html\editor.html" />
+        </Folder>
     </Project>
 </NotepadPlus>

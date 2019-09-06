@@ -27,7 +27,7 @@ class SmoBarline {
 
 	constructor(parameters) {
 		parameters = parameters ? parameters : {};
-		smoMusic.serializedMerge(['position', 'barline'], defaults, this);
+		smoMusic.serializedMerge(['position', 'barline'], SmoBarline.defaults, this);
 		smoMusic.serializedMerge(['position', 'barline'], parameters, this);
 	}
 

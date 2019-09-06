@@ -10,7 +10,7 @@ module.exports = function (grunt) {
             dist: {
                 src: ['src/common/musicHelpers.js', 'src/common/svgHelpers.js', 'src/common/htmlHelpers.js',
                     'src/smo/data/note.js', 'src/smo/data/noteModifiers.js',
-                    'src/smo/data/measure.js', 'src/smo/data/systemStaff.js',
+                    'src/smo/data/measure.js', 'src/smo/data/measureModifiers.js', 'src/smo/data/systemStaff.js',
                     'src/smo/data/score.js', 'src/smo/data/staffModifiers.js',
                     'src/smo/xform/iterator.js', 'src/smo/xform/beamers.js', 'src/smo/xform/tickDuration.js', 'src/smo/xform/selections.js',
                     'src/smo/xform/operations.js', 'src/smo/xform/undo.js', 'src/smo/xform/copypaste.js',

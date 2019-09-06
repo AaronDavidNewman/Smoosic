@@ -288,7 +288,7 @@ class SmoMeasure {
 			adjX: 0,
 			transposeIndex: 0,
 			rightMargin: 2,
-			barLines: [
+			barLines: barlines,
 			
 			customModifiers: [],
 			staffY: 40,
