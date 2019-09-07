@@ -4184,6 +4184,28 @@ class SmoOperation {
 		});
 		return true;
 	}
+	
+	// ## addPitch
+	// add a pitch to a note chord, avoiding duplicates.
+	static addPitch(selection,pitches) {
+		var toAdd=[];
+		pitches.forEach((pitch) => {
+			var found=false;
+			toAdd.forEach((np)=> {
+				if (np.accidental === pitch.accidental && np.letter===pitch.letter && np.octave === pitch.octave) {
+					found=true;
+				}
+			});
+			if (!found) {
+				toAdd.push(pitch);
+			}
+		});
+		toAdd.sort(function(a,b) {
+			return smoMusic.smoPitchToInt(a)-
+			smoMusic.smoPitchToInt(b);
+			});
+		selection.note.pitches=JSON.parse(JSON.stringify(toAdd));
+	}
 
 	static toggleCourtesyAccidental(selection) {
 		var toBe = false;
@@ -10539,7 +10561,8 @@ class suiController {
 		$('body').off('smo-piano-key').on('smo-piano-key',function(ev,obj) {
 			obj=obj.selections;
 			self.tracker.selections.forEach((sel) => {
-				sel.note.pitches=JSON.parse(JSON.stringify(obj));
+				SmoOperation.addPitch(sel,obj);
+				// sel.note.pitches=JSON.parse(JSON.stringify(obj));
 			});
 			self.render();
 		});
