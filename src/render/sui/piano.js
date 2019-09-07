@@ -3,10 +3,22 @@ class suiPiano {
 	constructor(parameters) {
 		this.elementId = parameters.elementId;
 		this.renderElement = document.getElementById('piano-svg')
-		this.selections=[];
+			this.selections = [];
 		this.render();
 	}
-	
+
+	static get dimensions() {
+		return {
+			wwidth: 23,
+			bwidth: 13,
+			wheight: 120,
+			bheight: 80
+		};
+	}
+	static get owidth() {
+		return suiPiano.dimensions.wwidth * 7;
+	}
+
 	static createAndDisplay(parms) {
 		// Called by ribbon button.
 		$('body').toggleClass('show-piano');
@@ -35,6 +47,15 @@ class suiPiano {
 	_removeGlow() {
 		this._removeClass('glow-key');
 	}
+	_fadeGlow(el) {
+		if (this['suggestFadeTimer']) {
+			clearTimeout(this.suggestFadeTimer);
+		}
+		// Make selection fade if there is a selection.
+		this.suggestFadeTimer = setTimeout(function () {
+				$(el).removeClass('glow-key');
+			}, 1000);
+	}
 	bind() {
 		var self = this;
 		$(this.renderElement).off('mousemove').on('mousemove', function (ev) {
@@ -51,13 +72,17 @@ class suiPiano {
 			}
 			self._removeGlow();
 			$(el).addClass('glow-key');
+			self._fadeGlow(el);
 
+		});
+		$(this.renderElement).off('blur').on('blur',function(ev) {
+			self._removeGlow();
 		});
 		$(this.renderElement).off('click').on('click', function (ev) {
 			self._updateSelections(ev);
 		});
-		
-		$('.close-piano').off('click').on('click',function() {
+
+		$('.close-piano').off('click').on('click', function () {
 			$('body').removeClass('show-piano');
 			// resize the work area.
 			window.dispatchEvent(new Event('resize'));
@@ -85,55 +110,74 @@ class suiPiano {
 			accidental: key.length == 3 ? key[1] : 'n'
 		};
 		this.selections.push(pitch);
-		$('body').trigger('smo-piano-key', {selections:JSON.parse(JSON.stringify(this.selections))});
+		$('body').trigger('smo-piano-key', {
+			selections: JSON.parse(JSON.stringify(this.selections))
+		});
 	}
 	_renderclose() {
 		var b = htmlHelpers.buildDom;
 		var r = b('button').classes('icon icon-cross close close-piano');
 		$(this.renderElement).closest('div').append(r.dom());
 	}
+	handleResize() {
+		this._updateOffsets();
+		this._mapKeys();
+	}
+	_updateOffsets() {
+		var padding = Math.round(window.innerWidth - suiPiano.owidth*7)/2;
+		$(this.renderElement).closest('div').css('margin-left',''+padding+'px');
+	}
 	render() {
 		$('body').addClass('show-piano');
 		var b = svgHelpers.buildSvg;
+		var d = suiPiano.dimensions;
+		// https://www.mathpages.com/home/kmath043.htm
+		
+		// Width of white key at back for C,D,E
+		var b1off = d.wwidth - (d.bwidth * 2 / 3);
+		
+		// Width of other white keys at the back.
+		var b2off=d.wwidth-(d.bwidth*3)/4;
+		
 		var keyAr = [];
 		var xwhite = [{
 				note: 'C',
 				x: 0
 			}, {
 				note: 'D',
-				x: 23
+				x: d.wwidth
 			}, {
 				note: 'E',
-				x: 46
+				x: 2 * d.wwidth
 			}, {
 				note: 'F',
-				x: 69
+				x: 3 * d.wwidth
 			}, {
 				note: 'G',
-				x: 92
+				x: 4 * d.wwidth
 			}, {
 				note: 'A',
-				x: 115
+				x: 5 * d.wwidth
 			}, {
 				note: 'B',
-				x: 138
+				x: 6 * d.wwidth
 			}
 		];
 		var xblack = [{
 				note: 'Db',
-				x: 14.333
+				x: b1off
 			}, {
 				note: 'Eb',
-				x: 41.6666
+				x: 2*b1off+d.bwidth
 			}, {
 				note: 'Gb',
-				x: 82.25
+				x: 3*d.wwidth+b2off
 			}, {
 				note: 'Ab',
-				x: 108.25
+				x: (3*d.wwidth+b2off)+b2off+d.bwidth
 			}, {
 				note: 'Bb',
-				x: 134.75
+				x: suiPiano.owidth-(b2off+d.bwidth)
 			}
 		];
 		var wwidth = 23;
@@ -168,6 +212,7 @@ class suiPiano {
 		var el = document.getElementById(this.elementId);
 		el.appendChild(r.dom());
 		this._renderclose();
+		this._updateOffsets();
 		this._mapKeys();
 		this.bind();
 	}

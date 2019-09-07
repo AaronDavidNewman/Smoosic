@@ -1922,6 +1922,9 @@ class SmoMeasure {
 	}
 	static get defaults() {
 		// var noteDefault = SmoMeasure.defaultVoice44;
+		const barlines = [];
+		barlines.push(new SmoBarline({position:SmoBarline.positions.start,barline:SmoBarline.barlines.singleBar}));
+		barlines.push(new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.singleBar}));
 		return {
 			timeSignature: '4/4',
 			keySignature: "C",
@@ -1930,6 +1933,8 @@ class SmoMeasure {
 			adjX: 0,
 			transposeIndex: 0,
 			rightMargin: 2,
+			barLines: barlines,
+			
 			customModifiers: [],
 			staffY: 40,
 			bars: [1, 1], // follows enumeration in VF.Barline
@@ -2068,6 +2073,56 @@ class SmoMeasure {
 		}
 		return null;
 	}
+}
+;
+class SmoBarline {
+	static get positions() {
+		return {
+			start: 0,
+			end: 1
+		}
+	};
+
+	static get barlines() {
+		return {
+			singleBar: 0,
+			doubleBar: 1,
+			endBar: 2,
+			startRepeat: 3,
+			endRepeat: 4,
+			none: 5
+		}
+	}
+
+	static get defaults() {
+		return {
+			position: SmoBarline.positions.end,
+			barline: SmoBarline.barlines.singleBar
+		};
+	}
+
+	constructor(parameters) {
+		parameters = parameters ? parameters : {};
+		smoMusic.serializedMerge(['position', 'barline'], SmoBarline.defaults, this);
+		smoMusic.serializedMerge(['position', 'barline'], parameters, this);
+	}
+
+	static get toVexBarline() {
+		return [VF.Barline.type.SINGLE, VF.Barline.type.DOUBLE, VF.Barline.type.END,
+			VF.Barline.type.REPEAT_BEGIN, VF.Barline.type.REPEAT_END, VF.Barline.type.NONE];
+
+	}
+	static get toVexPosition() {
+		return [VF.StaveModifier.BEGIN,VF.StaveModifier.END];
+	}
+	
+	toVexBarline() {
+		return SmoBarline.barlines[this.barline];
+	}
+	toVexPosition() {
+		return SmoBarline.positions[this.position];
+	}
+
 }
 ;
 
@@ -3889,29 +3944,36 @@ class SmoOperation {
 
 		score.deleteMeasure(measureIndex);
 	}
-	
+
 	static toggleBeamGroup(noteSelection) {
-	      noteSelection.note.endBeam =  !(noteSelection.note.endBeam);
+		noteSelection.note.endBeam = !(noteSelection.note.endBeam);
 	}
-	
-	static batchSelectionOperation(score,selections,operation) {
+
+	static batchSelectionOperation(score, selections, operation) {
 		var measureTicks = [];
 		selections.forEach((selection) => {
-			var measureSel = {staff:selection.selector.staff,measure:selection.selector.measure,voice:selection.selector.voice};
+			var measureSel = {
+				staff: selection.selector.staff,
+				measure: selection.selector.measure,
+				voice: selection.selector.voice
+			};
 			if (!measureTicks[measureSel]) {
 				var tm = selection.measure.tickmap();
-				var tickOffset=tm.durationMap[selection.selector.tick];
+				var tickOffset = tm.durationMap[selection.selector.tick];
 				var selector = JSON.parse(JSON.stringify(selection.selector));
-				measureTicks.push({selector:selector,tickOffset:tickOffset});
+				measureTicks.push({
+					selector: selector,
+					tickOffset: tickOffset
+				});
 			}
 		});
 		measureTicks.forEach((measureTick) => {
-			var selection = SmoSelection.measureSelection(score,measureTick.selector.staff,measureTick.selector.measure);
+			var selection = SmoSelection.measureSelection(score, measureTick.selector.staff, measureTick.selector.measure);
 			var tickmap = selection.measure.tickmap();
 			var ix = tickmap.durationMap.indexOf(measureTick.tickOffset);
 			if (ix >= 0) {
-				var nsel = SmoSelection.noteSelection(score,measureTick.selector.staff,measureTick.selector.measure,
-				    measureTick.selector.voice,ix);
+				var nsel = SmoSelection.noteSelection(score, measureTick.selector.staff, measureTick.selector.measure,
+						measureTick.selector.voice, ix);
 				SmoOperation[operation](nsel);
 			}
 		});
@@ -4044,10 +4106,10 @@ class SmoOperation {
 			return;
 		}
 		// If this is the ultimate note in the measure, we can't increase the length
-		if (selection.selector.tick+1 === selection.measure.notes.length) {
+		if (selection.selector.tick + 1 === selection.measure.notes.length) {
 			return;
 		}
-		if (selection.measure.notes[selection.selector.tick+1].tickCount > selection.note.tickCount) {
+		if (selection.measure.notes[selection.selector.tick + 1].tickCount > selection.note.tickCount) {
 			console.log('too long');
 			return;
 		}
@@ -4122,22 +4184,22 @@ class SmoOperation {
 		});
 		return true;
 	}
-	
+
 	static toggleCourtesyAccidental(selection) {
-		var toBe=false;
-		var i=0;
+		var toBe = false;
+		var i = 0;
 		if (!selection.selector['pitches'] || selection.selector.pitches.length === 0) {
-			var ps=[];
+			var ps = [];
 			selection.note.pitches.forEach((pitch) => {
 				var p = JSON.parse(JSON.stringify(pitch));
 				ps.push(p);
 				p.cautionary = !(pitch.cautionary);
 			});
-			selection.note.pitches=ps;
+			selection.note.pitches = ps;
 		} else {
 			toBe = !(selection.note.pitches[selection.selector.pitches[0]].cautionary);
 		}
-		
+
 		SmoOperation.courtesyAccidental(selection, toBe);
 	}
 
@@ -4147,20 +4209,22 @@ class SmoOperation {
 		});
 	}
 	
+	
+
 	static toggleEnharmonic(pitchSelection) {
-		if (pitchSelection.selector.pitches.length===0) {
+		if (pitchSelection.selector.pitches.length === 0) {
 			pitchSelection.selector.pitches.push(0);
 		}
 		var pitch = pitchSelection.note.pitches[pitchSelection.selector.pitches[0]];
-		var lastLetter=pitch.letter;
+		var lastLetter = pitch.letter;
 		var vexPitch = smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch));
 		vexPitch = smoMusic.getEnharmonic(vexPitch);
 
-		pitch.letter=vexPitch[0];
-		pitch.accidental = vexPitch.length > 1 ? 
-		   vexPitch.substring(1,vexPitch.length) : 'n';
-		pitch.octave += smoMusic.letterChangedOctave(lastLetter,pitch.letter);
-       
+		pitch.letter = vexPitch[0];
+		pitch.accidental = vexPitch.length > 1 ?
+			vexPitch.substring(1, vexPitch.length) : 'n';
+		pitch.octave += smoMusic.letterChangedOctave(lastLetter, pitch.letter);
+
 	}
 
 	static addDynamic(selection, dynamic) {
@@ -4180,10 +4244,15 @@ class SmoOperation {
 
 		// TODO: figure out which pitch is selected
 		var pitch = note.pitches[0];
+		if (interval > 0) {
+			pitch = note.pitches[note.pitches.length - 1];
+		}
 		var pitch = smoMusic.getIntervalInKey(pitch, measure.keySignature, interval);
 		if (pitch) {
 			note.pitches.push(pitch);
-			note.pitches.sort((x,y) => {return smoMusic.smoPitchToInt(x) - smoMusic.smoPitchToInt(y); });
+			note.pitches.sort((x, y) => {
+				return smoMusic.smoPitchToInt(x) - smoMusic.smoPitchToInt(y);
+			});
 			return true;
 		}
 		return false;
@@ -5896,7 +5965,7 @@ class suiSimpleLayout {
 	}
 
 	setViewport() {
-		var screenWidth = window.innerWidth;
+		this.screenWidth = window.innerWidth;
 
 		this.svgScale = this.score.svgScale * this.score.zoomScale;
 		this.pageWidth = Math.round(this.score.pageWidth * this.score.zoomScale);
@@ -5982,6 +6051,18 @@ class suiSimpleLayout {
 			});
 		
 		return promise;
+	}
+	redraw() {
+		const promise = new Promise((resolve, reject) => {			
+				this._redraw();
+				resolve();			
+			});
+		
+		return promise;
+	}
+	_redraw() {
+		this.unrenderAll();
+		this._render();
 	}
 	_render() {
 		this.layout(false);
@@ -6352,12 +6433,27 @@ class suiPiano {
 	constructor(parameters) {
 		this.elementId = parameters.elementId;
 		this.renderElement = document.getElementById('piano-svg')
-		this.selections=[];
+			this.selections = [];
 		this.render();
 	}
-	
+
+	static get dimensions() {
+		return {
+			wwidth: 23,
+			bwidth: 13,
+			wheight: 120,
+			bheight: 80
+		};
+	}
+	static get owidth() {
+		return suiPiano.dimensions.wwidth * 7;
+	}
+
 	static createAndDisplay(parms) {
+		// Called by ribbon button.
 		$('body').toggleClass('show-piano');
+		// handle resize work area.
+		window.dispatchEvent(new Event('resize'));
 	}
 	_mapKeys() {
 		this.objects = [];
@@ -6381,6 +6477,15 @@ class suiPiano {
 	_removeGlow() {
 		this._removeClass('glow-key');
 	}
+	_fadeGlow(el) {
+		if (this['suggestFadeTimer']) {
+			clearTimeout(this.suggestFadeTimer);
+		}
+		// Make selection fade if there is a selection.
+		this.suggestFadeTimer = setTimeout(function () {
+				$(el).removeClass('glow-key');
+			}, 1000);
+	}
 	bind() {
 		var self = this;
 		$(this.renderElement).off('mousemove').on('mousemove', function (ev) {
@@ -6397,14 +6502,20 @@ class suiPiano {
 			}
 			self._removeGlow();
 			$(el).addClass('glow-key');
+			self._fadeGlow(el);
 
+		});
+		$(this.renderElement).off('blur').on('blur',function(ev) {
+			self._removeGlow();
 		});
 		$(this.renderElement).off('click').on('click', function (ev) {
 			self._updateSelections(ev);
 		});
-		
-		$('.close-piano').off('click').on('click',function() {
+
+		$('.close-piano').off('click').on('click', function () {
 			$('body').removeClass('show-piano');
+			// resize the work area.
+			window.dispatchEvent(new Event('resize'));
 		});
 	}
 	_updateSelections(ev) {
@@ -6429,55 +6540,74 @@ class suiPiano {
 			accidental: key.length == 3 ? key[1] : 'n'
 		};
 		this.selections.push(pitch);
-		$('body').trigger('smo-piano-key', {selections:JSON.parse(JSON.stringify(this.selections))});
+		$('body').trigger('smo-piano-key', {
+			selections: JSON.parse(JSON.stringify(this.selections))
+		});
 	}
 	_renderclose() {
 		var b = htmlHelpers.buildDom;
 		var r = b('button').classes('icon icon-cross close close-piano');
 		$(this.renderElement).closest('div').append(r.dom());
 	}
+	handleResize() {
+		this._updateOffsets();
+		this._mapKeys();
+	}
+	_updateOffsets() {
+		var padding = Math.round(window.innerWidth - suiPiano.owidth*7)/2;
+		$(this.renderElement).closest('div').css('margin-left',''+padding+'px');
+	}
 	render() {
 		$('body').addClass('show-piano');
 		var b = svgHelpers.buildSvg;
+		var d = suiPiano.dimensions;
+		// https://www.mathpages.com/home/kmath043.htm
+		
+		// Width of white key at back for C,D,E
+		var b1off = d.wwidth - (d.bwidth * 2 / 3);
+		
+		// Width of other white keys at the back.
+		var b2off=d.wwidth-(d.bwidth*3)/4;
+		
 		var keyAr = [];
 		var xwhite = [{
 				note: 'C',
 				x: 0
 			}, {
 				note: 'D',
-				x: 23
+				x: d.wwidth
 			}, {
 				note: 'E',
-				x: 46
+				x: 2 * d.wwidth
 			}, {
 				note: 'F',
-				x: 69
+				x: 3 * d.wwidth
 			}, {
 				note: 'G',
-				x: 92
+				x: 4 * d.wwidth
 			}, {
 				note: 'A',
-				x: 115
+				x: 5 * d.wwidth
 			}, {
 				note: 'B',
-				x: 138
+				x: 6 * d.wwidth
 			}
 		];
 		var xblack = [{
 				note: 'Db',
-				x: 14.333
+				x: b1off
 			}, {
 				note: 'Eb',
-				x: 41.6666
+				x: 2*b1off+d.bwidth
 			}, {
 				note: 'Gb',
-				x: 82.25
+				x: 3*d.wwidth+b2off
 			}, {
 				note: 'Ab',
-				x: 108.25
+				x: (3*d.wwidth+b2off)+b2off+d.bwidth
 			}, {
 				note: 'Bb',
-				x: 134.75
+				x: suiPiano.owidth-(b2off+d.bwidth)
 			}
 		];
 		var wwidth = 23;
@@ -6512,6 +6642,7 @@ class suiPiano {
 		var el = document.getElementById(this.elementId);
 		el.appendChild(r.dom());
 		this._renderclose();
+		this._updateOffsets();
 		this._mapKeys();
 		this.bind();
 	}
@@ -10151,6 +10282,7 @@ class suiController {
 		this.bindResize();
 		this.splash();
 		this.piano();
+		this.updateOffsets();
 	}
 
 	splash() {
@@ -10170,6 +10302,11 @@ class suiController {
 	piano() {
 		this.piano = new suiPiano({elementId:'piano-svg'});
 	}
+	updateOffsets() {
+		// the 100 is for the control offsets
+		var padding =  Math.round((this.layout.screenWidth-this.layout.pageWidth)/2)-100;
+		$('.workspace-container').css('padding-left',''+padding+'px');
+	}
 	resizeEvent() {
 		var self = this;
 		var remap = function () {
@@ -10182,7 +10319,10 @@ class suiController {
 			console.log('resizing');
 			self.resizing = false;
 			self.layout.setViewport();
-			self.layout.render().then(remap);
+			self.piano.handleResize();
+			self.updateOffsets();
+			self.layout.redraw().then(remap);
+			
 		}, 500);
 	}
 
@@ -10191,6 +10331,33 @@ class suiController {
 		window.addEventListener('resize', function () {
 			self.resizeEvent();
 		});
+	}
+	
+	static createDom() {
+		 var b = htmlHelpers.buildDom;
+		 var r=b('div').classes('dom-container')
+			 .append(b('div').classes('modes'))
+			 .append(b('div').classes('overlay'))
+			 .append(b('div').classes('attributeDialog'))
+			 .append(b('div').classes('helpDialog'))
+			 .append(b('div').classes('menuContainer'))
+			 .append(b('h1').classes('testTitle').text('Smoosic'))
+			 .append(b('div').classes('piano-container')
+			     .append(b('div').classes('piano-keys')))
+		     .append(b('div').classes('workspace-container')
+			    .append(b('div').classes('workspace')
+				    .append(b('div').classes('controls-top'))
+					.append(b('div').classes('controls-left'))
+					.append(b('div').classes('musicRelief')
+					   .append(b('div').classes('musicContainer').attr('id','boo')))));
+	    $('#smoo').append(r.dom());
+		var pianoDom=$('.piano-keys')[0];
+		var svg=document.createElementNS(svgHelpers.namespace,'svg');
+		svg.id='piano-svg';
+		svg.setAttributeNS('','width',''+suiPiano.owidth*7);
+		svg.setAttributeNS('','height',''+suiPiano.dimensions.wheight);
+		svg.setAttributeNS('','viewBox','0 0 '+suiPiano.owidth*7+' '+suiPiano.dimensions.wheight);
+		pianoDom.appendChild(svg);
 	}
 
 	// ## createUi
@@ -10208,6 +10375,7 @@ class suiController {
 	}
 
 	static start() {
+		suiController.createDom();
 		var score = SmoScore.getEmptyScore();
 		score.addDefaultMeasureWithNotes(0, {});
 		score.addDefaultMeasureWithNotes(1, {});

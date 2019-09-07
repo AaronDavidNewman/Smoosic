@@ -32,6 +32,7 @@ class suiController {
 		this.bindResize();
 		this.splash();
 		this.piano();
+		this.updateOffsets();
 	}
 
 	splash() {
@@ -51,6 +52,11 @@ class suiController {
 	piano() {
 		this.piano = new suiPiano({elementId:'piano-svg'});
 	}
+	updateOffsets() {
+		// the 100 is for the control offsets
+		var padding =  Math.round((this.layout.screenWidth-this.layout.pageWidth)/2)-100;
+		$('.workspace-container').css('padding-left',''+padding+'px');
+	}
 	resizeEvent() {
 		var self = this;
 		var remap = function () {
@@ -63,7 +69,10 @@ class suiController {
 			console.log('resizing');
 			self.resizing = false;
 			self.layout.setViewport();
-			self.layout.render().then(remap);
+			self.piano.handleResize();
+			self.updateOffsets();
+			self.layout.redraw().then(remap);
+			
 		}, 500);
 	}
 
@@ -72,6 +81,33 @@ class suiController {
 		window.addEventListener('resize', function () {
 			self.resizeEvent();
 		});
+	}
+	
+	static createDom() {
+		 var b = htmlHelpers.buildDom;
+		 var r=b('div').classes('dom-container')
+			 .append(b('div').classes('modes'))
+			 .append(b('div').classes('overlay'))
+			 .append(b('div').classes('attributeDialog'))
+			 .append(b('div').classes('helpDialog'))
+			 .append(b('div').classes('menuContainer'))
+			 .append(b('h1').classes('testTitle').text('Smoosic'))
+			 .append(b('div').classes('piano-container')
+			     .append(b('div').classes('piano-keys')))
+		     .append(b('div').classes('workspace-container')
+			    .append(b('div').classes('workspace')
+				    .append(b('div').classes('controls-top'))
+					.append(b('div').classes('controls-left'))
+					.append(b('div').classes('musicRelief')
+					   .append(b('div').classes('musicContainer').attr('id','boo')))));
+	    $('#smoo').append(r.dom());
+		var pianoDom=$('.piano-keys')[0];
+		var svg=document.createElementNS(svgHelpers.namespace,'svg');
+		svg.id='piano-svg';
+		svg.setAttributeNS('','width',''+suiPiano.owidth*7);
+		svg.setAttributeNS('','height',''+suiPiano.dimensions.wheight);
+		svg.setAttributeNS('','viewBox','0 0 '+suiPiano.owidth*7+' '+suiPiano.dimensions.wheight);
+		pianoDom.appendChild(svg);
 	}
 
 	// ## createUi
@@ -89,6 +125,7 @@ class suiController {
 	}
 
 	static start() {
+		suiController.createDom();
 		var score = SmoScore.getEmptyScore();
 		score.addDefaultMeasureWithNotes(0, {});
 		score.addDefaultMeasureWithNotes(1, {});

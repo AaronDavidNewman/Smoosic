@@ -38,13 +38,24 @@ h1 {
 .controls-left button,.controls-top button {
 	background-color:#fff;
 }
-
+.piano-container {
+	position:relative;
+}
+#keyId-C4 {
+	fill:#ddffee;
+}
+#keyId-C4.glow-key {
+	fill:#33ccaa;
+}
 .piano-keys {
 	height:141px;
 	width: 1127px;
 	overflow-x:auto;
 	overflow-y:hidden;
-	padding-top: 20px;
+	padding-top: 35px;
+	padding-left:15px;
+	padding-right:15px;
+	padding-bottom:3px;
 	border: black 1px solid;
 	position:relative;
 	display:none;
@@ -402,6 +413,9 @@ body.splashScreen .bugDialog {
 
 
 .musicRelief {
+	background:#999;
+}
+.workspace-container {
 	background:#999;
 }
 .workspace {

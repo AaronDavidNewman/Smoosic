@@ -18,7 +18,7 @@ class suiSimpleLayout {
 	}
 
 	setViewport() {
-		var screenWidth = window.innerWidth;
+		this.screenWidth = window.innerWidth;
 
 		this.svgScale = this.score.svgScale * this.score.zoomScale;
 		this.pageWidth = Math.round(this.score.pageWidth * this.score.zoomScale);
@@ -104,6 +104,18 @@ class suiSimpleLayout {
 			});
 		
 		return promise;
+	}
+	redraw() {
+		const promise = new Promise((resolve, reject) => {			
+				this._redraw();
+				resolve();			
+			});
+		
+		return promise;
+	}
+	_redraw() {
+		this.unrenderAll();
+		this._render();
 	}
 	_render() {
 		this.layout(false);
