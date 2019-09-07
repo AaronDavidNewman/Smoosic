@@ -5,6 +5,9 @@ h1 {
 	text-align:center;
 }
 
+.dom-container {
+	background-color:#999;
+}
 .testTitle {
 	height: 20px;
 	font-size:1.2em;
@@ -56,7 +59,8 @@ h1 {
 	padding-left:15px;
 	padding-right:15px;
 	padding-bottom:3px;
-	border: black 1px solid;
+	border: #336 3px solid;
+	border-radius:5px;
 	position:relative;
 	display:none;
 }

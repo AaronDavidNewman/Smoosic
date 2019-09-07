@@ -289,7 +289,8 @@ class suiController {
 		$('body').off('smo-piano-key').on('smo-piano-key',function(ev,obj) {
 			obj=obj.selections;
 			self.tracker.selections.forEach((sel) => {
-				sel.note.pitches=JSON.parse(JSON.stringify(obj));
+				SmoOperation.addPitch(sel,obj);
+				// sel.note.pitches=JSON.parse(JSON.stringify(obj));
 			});
 			self.render();
 		});
