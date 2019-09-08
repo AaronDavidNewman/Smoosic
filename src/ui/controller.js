@@ -105,9 +105,9 @@ class suiController {
 		var pianoDom=$('.piano-keys')[0];
 		var svg=document.createElementNS(svgHelpers.namespace,'svg');
 		svg.id='piano-svg';
-		svg.setAttributeNS('','width',''+suiPiano.owidth*7);
+		svg.setAttributeNS('','width',''+suiPiano.owidth*suiPiano.dimensions.octaves);
 		svg.setAttributeNS('','height',''+suiPiano.dimensions.wheight);
-		svg.setAttributeNS('','viewBox','0 0 '+suiPiano.owidth*7+' '+suiPiano.dimensions.wheight);
+		svg.setAttributeNS('','viewBox','0 0 '+suiPiano.owidth*suiPiano.dimensions.octaves+' '+suiPiano.dimensions.wheight);
 		pianoDom.appendChild(svg);
 	}
 

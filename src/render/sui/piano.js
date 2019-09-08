@@ -12,11 +12,16 @@ class suiPiano {
 			wwidth: 23,
 			bwidth: 13,
 			wheight: 120,
-			bheight: 80
+			bheight: 80,
+			octaves:5
 		};
 	}
+		// 7 white keys per octave
+	static get wkeysPerOctave() {
+		return 7;
+	}
 	static get owidth() {
-		return suiPiano.dimensions.wwidth * 7;
+		return suiPiano.dimensions.wwidth * suiPiano.wkeysPerOctave;
 	}
 
 	static createAndDisplay(parms) {
@@ -124,7 +129,7 @@ class suiPiano {
 		this._mapKeys();
 	}
 	_updateOffsets() {
-		var padding = Math.round(window.innerWidth - suiPiano.owidth*7)/2;
+		var padding = Math.round(window.innerWidth - suiPiano.owidth*suiPiano.dimensions.octaves)/2;
 		$(this.renderElement).closest('div').css('margin-left',''+padding+'px');
 	}
 	render() {
@@ -180,18 +185,22 @@ class suiPiano {
 				x: suiPiano.owidth-(b2off+d.bwidth)
 			}
 		];
-		var wwidth = 23;
-		var bwidth = 13;
-		var wheight = 120;
-		var bheight = 80;
-		var owidth = 7 * 23;
+		var wwidth = d.wwidth;
+		var bwidth = d.bwidth;
+		var wheight = d.wheight;
+		var bheight = d.bheight;
+		var owidth = suiPiano.wkeysPerOctave * wwidth;
+		
+		// Start on C2 to C6 to reduce space
+		var octaveOff = 7-d.octaves;
+		
 		var x = 0;
 		var y = 0;
 		var r = b('g');
-		for (var i = 0; i < 7; ++i) {
+		for (var i = 0; i < d.octaves; ++i) {
 			x = i * owidth;
 			xwhite.forEach((key) => {
-				var nt = key.note + (i + 1).toString();
+				var nt = key.note + (octaveOff + i + 1).toString();
 				var classes = 'piano-key white-key';
 				if (nt == 'C4') {
 					classes += ' middle-c';
@@ -203,7 +212,7 @@ class suiPiano {
 				r.append(tt);
 			});
 			xblack.forEach((key) => {
-				var nt = key.note + (i + 1).toString();
+				var nt = key.note + (octaveOff + i + 1).toString();
 				var classes = 'piano-key black-key';
 				var rect = b('rect').attr('id', 'keyId-' + nt).rect(x + key.x, 0, bwidth, bheight, classes);
 				r.append(rect);
