@@ -323,6 +323,10 @@ class SmoOperation {
 	static toggleArticulation(selection, articulation) {
 		selection.note.toggleArticulation(articulation);
 	}
+	
+	static setMeasureBarline(selection,barline) {
+		selection.measure.setBarline(barline);
+	}
 
 	// ## interval
 	// ## Description:

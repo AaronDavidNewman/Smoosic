@@ -268,7 +268,14 @@ class VxMeasure {
             this.stave.addTimeSignature(this.smoMeasure.timeSignature);
         }
         // Connect it to the rendering context and draw!
-        this.stave.setContext(this.context).draw();
+        this.stave.setContext(this.context);
+		if (this.smoMeasure.forceClef || this.smoMeasure.barlines[0].barline != SmoBarline.barlines.singleBar) {
+		    this.stave.setBegBarType(this.smoMeasure.barlines[0].toVexBarline());
+		}
+		if (this.smoMeasure.barlines[1].barline != SmoBarline.barlines.singleBar) {
+			this.stave.setEndBarType(this.smoMeasure.barlines[1].toVexBarline());
+		}
+		this.stave.draw();
 
         var voiceAr = [];
 

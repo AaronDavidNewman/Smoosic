@@ -41,10 +41,10 @@ class SmoBarline {
 	}
 	
 	toVexBarline() {
-		return SmoBarline.barlines[this.barline];
+		return SmoBarline.toVexBarline[this.barline];
 	}
 	toVexPosition() {
-		return SmoBarline.positions[this.position];
+		return SmoBarline.toVexPosition[this.position];
 	}
 
 }

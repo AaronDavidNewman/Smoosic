@@ -12,11 +12,13 @@ class SmoMeasure {
 		this.tuplets = [];
 		this.beamGroups = [];
 		this.changed = true;
+		var defaults = SmoMeasure.defaults;
 
-		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, SmoMeasure.defaults, this);
+		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, defaults, this);
 		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, params, this);
 		this.voices=params.voices ? params.voices : [];
 		this.tuplets=params.tuplets ? params.tuplets : [];
+		this.barlines = params.barlines ? params.barlines:defaults.barlines;
 		
 		if (!this['attrs']) {
 			this.attrs = {
@@ -69,7 +71,7 @@ class SmoMeasure {
 	}
 
 	static get attributeArray() {
-		return SmoMeasure.defaultAttributes.concat(['voices', 'tuplets', 'beamGroups', 'activeVoice', 'adjX', 'rightMargin']);
+		return SmoMeasure.defaultAttributes.concat(['voices', 'tuplets', 'beamGroups', 'activeVoice', 'barlines','adjX', 'rightMargin']);
 	}
 
 	// ### serialize
@@ -287,12 +289,11 @@ class SmoMeasure {
 			staffX: 10,
 			adjX: 0,
 			transposeIndex: 0,
-			rightMargin: 2,
-			barLines: barlines,
-			
+			barlines:barlines,
+			rightMargin: 2,						
 			customModifiers: [],
 			staffY: 40,
-			bars: [1, 1], // follows enumeration in VF.Barline
+			// bars: [1, 1], // follows enumeration in VF.Barline
 			measureNumber: {
 				localIndex: 0,
 				systemIndex: 0,
@@ -369,6 +370,11 @@ class SmoMeasure {
 		}
 		return -1;
 	}
+    setBarline(barline) {
+		var ix = barline.position === SmoBarline.positions.start ? 0 : 1;
+		this.barlines[ix]=barline;
+    }
+
 
 	getTupletForNote(note) {
 		if (!note.isTuplet) {
