@@ -90,6 +90,7 @@ class suiController {
 			 .append(b('div').classes('overlay'))
 			 .append(b('div').classes('attributeDialog'))
 			 .append(b('div').classes('helpDialog'))
+			 .append(b('div').classes('bugDialog'))
 			 .append(b('div').classes('menuContainer'))
 			 .append(b('h1').classes('testTitle').text('Smoosic'))
 			 .append(b('div').classes('piano-container')
