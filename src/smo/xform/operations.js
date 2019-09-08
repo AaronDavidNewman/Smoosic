@@ -298,8 +298,6 @@ class SmoOperation {
 		});
 	}
 	
-	
-
 	static toggleEnharmonic(pitchSelection) {
 		if (pitchSelection.selector.pitches.length === 0) {
 			pitchSelection.selector.pitches.push(0);
@@ -324,8 +322,15 @@ class SmoOperation {
 		selection.note.toggleArticulation(articulation);
 	}
 	
-	static setMeasureBarline(selection,barline) {
-		selection.measure.setBarline(barline);
+	static setMeasureBarline(score,selection,barline) {
+		var mm = selection.selector.measure;
+		var ix=0;
+		score.staves.forEach((staff) => {
+			var s2 = SmoSelection.measureSelection(score,ix,mm);
+			s2.measure.setBarline(barline);
+			ix += 1;
+		});
+
 	}
 
 	// ## interval

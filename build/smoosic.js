@@ -2128,7 +2128,21 @@ class SmoBarline {
 	toVexPosition() {
 		return SmoBarline.toVexPosition[this.position];
 	}
+}
 
+class SmoRepeatSymbol {
+	static get symbols() {
+		return {None:0,Coda:1,Segno:2,Dc:3,DcAlCoda:4,DcAlFine:5,Ds:6,DsAlCoda:7,DsAlFine:8,Fine:9};
+	}
+	static get defaults() {
+		return {
+			symbol:SmoRepeatSymbol.Coda,xOffset:-25,yOffset:5
+		}
+	}
+	static get SmoToVexSymbol() {
+		return [VF.Repetition.NONE,VF.Repetition.CODA_LEFT,VF.Repetition.SEGNO_LEFT,VF.Repetition.DC,
+		VF.Repetition.DC_AL_CODA,VF.Repetition.DC_AL_FINE,VF.Repetition.DS,VF.Repetition.DS_AL_CODA,VF.Repetition.DS_AL_FINE,VF.Repetition.FINE];
+	}
 }
 ;
 
@@ -4241,8 +4255,6 @@ class SmoOperation {
 		});
 	}
 	
-	
-
 	static toggleEnharmonic(pitchSelection) {
 		if (pitchSelection.selector.pitches.length === 0) {
 			pitchSelection.selector.pitches.push(0);
@@ -4267,8 +4279,15 @@ class SmoOperation {
 		selection.note.toggleArticulation(articulation);
 	}
 	
-	static setMeasureBarline(selection,barline) {
-		selection.measure.setBarline(barline);
+	static setMeasureBarline(score,selection,barline) {
+		var mm = selection.selector.measure;
+		var ix=0;
+		score.staves.forEach((staff) => {
+			var s2 = SmoSelection.measureSelection(score,ix,mm);
+			s2.measure.setBarline(barline);
+			ix += 1;
+		});
+
 	}
 
 	// ## interval
