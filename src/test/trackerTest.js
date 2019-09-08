@@ -2,14 +2,13 @@
 class TrackerTest {
 
 	static CommonTests() {
-		$('h1.testTitle').text('Tracker Test');
 
 		var score = SmoScore.getEmptyScore();
 
 		score.addDefaultMeasureWithNotes(0, {});
 		score.addDefaultMeasureWithNotes(1, {});
 		score.addDefaultMeasureWithNotes(2, {});
-		var keys = suiController.createUi(document.getElementById("boo"), score);
+		var keys = suiController.createUi(score);
 		var layout = keys.layout;
 		var timeTest = () => {
 			const promise = new Promise((resolve, reject) => {

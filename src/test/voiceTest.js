@@ -3,7 +3,7 @@
 class VoiceTest {
 
 	static CommonTests() {
-		var keys = utController.createUi(document.getElementById("boo"), SmoScore.getDefaultScore());
+		var keys = utController.createUi( SmoScore.getDefaultScore());
 		$('h1.testTitle').text('Voice Test');
 
 		var score = keys.score;
@@ -63,7 +63,7 @@ class VoiceTest {
 			$('#boo').html('');
 			score = SmoScore.deserialize(JSON.stringify(score.serialize()));
 			keys.detach();
-			keys = utController.createUi(document.getElementById("boo"), score);
+			keys = utController.createUi(score,'Serializer Test');
 			return keys.layout.render().then(timeTest);
 		}
 

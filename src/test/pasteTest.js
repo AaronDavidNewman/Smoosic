@@ -2,7 +2,6 @@
 class PasteTest {
 
 	static CommonTests() {
-		$('h1.testTitle').text('Paste Test');
 		var score = SmoScore.getEmptyScore();
 
 		var pasteBuffer = new PasteBuffer();
@@ -13,7 +12,7 @@ class PasteTest {
 
 		var serial = JSON.stringify(score.serialize(), null, '');
 		console.log(serial);
-		var keys = utController.createUi(document.getElementById("boo"), score);
+		var keys = utController.createUi(score,'Paste Test');
 		var undo = keys.undoBuffer;
 		var score = keys.score;
 		var layout = keys.layout;

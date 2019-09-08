@@ -76,6 +76,8 @@
             <File name="src\test\undoTest.js" />
             <File name="src\test\clefTest.html" />
             <File name="src\test\clefTest.js" />
+            <File name="src\test\measureTest.html" />
+            <File name="src\test\measureTest.js" />
         </Folder>
         <Folder name="render">
             <Folder name="vex">

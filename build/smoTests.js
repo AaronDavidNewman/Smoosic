@@ -2,8 +2,7 @@
 class ChordTest {
 
 	static CommonTests() {
-		$('h1.testTitle').text('Chord Test');
-		var keys = utController.createUi(document.getElementById("boo"), SmoScore.getDefaultScore());
+		var keys = utController.createUi(SmoScore.getDefaultScore(),'Chord Test');
 		var score = keys.score;
 		var layout = keys.layout;
 		var measure = SmoSelection.measureSelection(score, 0, 0).measure;
@@ -312,7 +311,6 @@ class ChordTest {
 class UndoTest {
 
 	static CommonTests() {
-		$('h1.testTitle').text('Undo Test');
 		var score = SmoScore.getEmptyScore();
 
 		var pasteBuffer = new PasteBuffer();
@@ -323,7 +321,7 @@ class UndoTest {
 
 		var serial = JSON.stringify(score.serialize(), null, '');
 		console.log(serial);
-		var keys = utController.createUi(document.getElementById("boo"), score);
+		var keys = utController.createUi(score,'Undo Test');
 		var undo = keys.undoBuffer;
 		var score = keys.score;
 		var layout = keys.layout;
@@ -448,13 +446,12 @@ class UndoTest {
 class TimeSignatureTest {
 
     static CommonTests() {
-        $('h1.testTitle').text('Time Signature Test');
 
-        var keys = utController.createUi(document.getElementById("boo"),
-                SmoScore.getDefaultScore({}, {
+        var keys = utController.createUi(SmoScore.getDefaultScore({}, {
                     timeSignature: '6/8',
                     clef: 'treble'
                 }));
+        $('h1.testTitle').text('Time Signature Test');
         var score = keys.score;
         var layout = keys.layout;
         var measure = SmoSelection.measureSelection(score, 0, 0).measure;
@@ -571,7 +568,6 @@ class TimeSignatureTest {
 class KeySignatureTest {
 
 	static CommonTests() {
-		$('h1.testTitle').text('Key Signature Test');
 		var score = SmoScore.getEmptyScore();
 
 		var pasteBuffer = new PasteBuffer();
@@ -582,7 +578,7 @@ class KeySignatureTest {
 
 		var serial = JSON.stringify(score.serialize(), null, '');
 		console.log(serial);
-		var keys = utController.createUi(document.getElementById("boo"), score);
+		var keys = utController.createUi(score,'Key Signature Test');
 		var undo = keys.undoBuffer;
 		var score = keys.score;
 		var layout = keys.layout;
@@ -685,7 +681,7 @@ class KeySignatureTest {
 			score = SmoScore.deserialize(scoreJson);
 			layout.unrenderAll();
 			keys.detach();
-			keys = utController.createUi(document.getElementById("boo"), score);
+			keys = utController.createUi(score,'Key Signature Test');
 			return keys.render().then(timeTest);
 		}
 
@@ -699,8 +695,8 @@ class KeySignatureTest {
 class TupletTest {
 
 	static CommonTests() {
-		$('h1.testTitle').text('Tuplet Test');
-		var keys = utController.createUi(document.getElementById("boo"), SmoScore.getDefaultScore());
+		$('h1.testTitle').text();
+		var keys = utController.createUi( SmoScore.getDefaultScore(),'Tuplet Test');
 		var score = keys.score;
 		var layout = keys.layout;
 		var measure = SmoSelection.measureSelection(score, 0, 0).measure;
@@ -1666,7 +1662,6 @@ class serializeTestJson {
 class PasteTest {
 
 	static CommonTests() {
-		$('h1.testTitle').text('Paste Test');
 		var score = SmoScore.getEmptyScore();
 
 		var pasteBuffer = new PasteBuffer();
@@ -1677,7 +1672,7 @@ class PasteTest {
 
 		var serial = JSON.stringify(score.serialize(), null, '');
 		console.log(serial);
-		var keys = utController.createUi(document.getElementById("boo"), score);
+		var keys = utController.createUi(score,'Paste Test');
 		var undo = keys.undoBuffer;
 		var score = keys.score;
 		var layout = keys.layout;
@@ -1837,7 +1832,7 @@ class PasteTest {
 class VoiceTest {
 
 	static CommonTests() {
-		var keys = utController.createUi(document.getElementById("boo"), SmoScore.getDefaultScore());
+		var keys = utController.createUi( SmoScore.getDefaultScore());
 		$('h1.testTitle').text('Voice Test');
 
 		var score = keys.score;
@@ -1897,7 +1892,7 @@ class VoiceTest {
 			$('#boo').html('');
 			score = SmoScore.deserialize(JSON.stringify(score.serialize()));
 			keys.detach();
-			keys = utController.createUi(document.getElementById("boo"), score);
+			keys = utController.createUi(score,'Serializer Test');
 			return keys.layout.render().then(timeTest);
 		}
 
@@ -1908,14 +1903,13 @@ class VoiceTest {
 class TrackerTest {
 
 	static CommonTests() {
-		$('h1.testTitle').text('Tracker Test');
 
 		var score = SmoScore.getEmptyScore();
 
 		score.addDefaultMeasureWithNotes(0, {});
 		score.addDefaultMeasureWithNotes(1, {});
 		score.addDefaultMeasureWithNotes(2, {});
-		var keys = suiController.createUi(document.getElementById("boo"), score);
+		var keys = suiController.createUi(score);
 		var layout = keys.layout;
 		var timeTest = () => {
 			const promise = new Promise((resolve, reject) => {
@@ -2011,7 +2005,7 @@ class ClefTest {
         score.addDefaultMeasureWithNotes(1,{});
         score.addDefaultMeasureWithNotes(2,{});
 		
-        var keys = utController.createUi(document.getElementById("boo"),score);
+        var keys = utController.createUi(score,'Clef tests');
 		var undo = keys.undoBuffer;
 		var score = keys.score;
 		var layout = keys.layout;		
@@ -2035,7 +2029,7 @@ class ClefTest {
 
         var signalComplete = () => {
 			detach();
-			subTitle('');
+			subTitle('All done!');
             return timeTest();
         }
 		var subTitle = (txt) => {
@@ -2152,6 +2146,88 @@ class ClefTest {
       
         return drawDefaults().then(bassClefTest).then(clefChangeTest).then(bassRenderTest).then(bassDurationTest).then(tenorClefTest)
 		   .then(altoClefTest).then(baritoneClefTest).then(baritoneClefTest2).then(trumpetClefTest).then(signalComplete);
+    }
+}
+;
+class MeasureTest {
+  static CommonTests() {
+		var keys = utController.createUi(SmoScore.getDefaultScore(),'Measure Test');
+		var score = keys.score;
+		var layout = keys.layout;
+        score.addDefaultMeasureWithNotes(0,{});
+        score.addDefaultMeasureWithNotes(1,{});
+        score.addDefaultMeasureWithNotes(2,{});
+		// var measure = SmoSelection.measureSelection(score, 0, 0).measure;
+		
+		var detach = () => {
+			keys.detach();
+			keys = null;
+			score = null;
+			layout = null;
+		}
+		var timeTest = () => {
+			const promise = new Promise((resolve, reject) => {
+					setTimeout(() => {
+						resolve();
+					},
+						200);
+				});
+			return promise;
+		}
+		var subTitle = (txt) => {
+			$('.subTitle').text(txt);
+		}
+		var signalComplete = () => {
+			detach();
+			subTitle('');
+
+			return timeTest();
+		}
+
+		var drawDefaults = () => {
+			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
+			// measure.applyModifiers();
+			return layout.render().then(timeTest);
+		}
+		
+		var startRepeatTest = () => {
+			var selection = SmoSelection.measureSelection(score, 0, 0);
+			SmoOperation.setMeasureBarline(selection,new SmoBarline({position:SmoBarline.positions.start,barline:SmoBarline.barlines.startRepeat}));
+			return layout.render().then(timeTest);
+		}
+		
+		var endRepeatTest = () => {
+			var selection = SmoSelection.measureSelection(score, 0, 0);
+			SmoOperation.setMeasureBarline(selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.endRepeat}));
+			SmoOperation.setMeasureBarline(selection,new SmoBarline({position:SmoBarline.positions.start,barline:SmoBarline.barlines.singleBar}));
+			return layout.render().then(timeTest);
+		}	
+
+		var endRepeatTest = () => {
+			var selection = SmoSelection.measureSelection(score, 0, 3);
+			SmoOperation.setMeasureBarline(selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.endRepeat}));
+			selection = SmoSelection.measureSelection(score, 0, 0);
+			SmoOperation.setMeasureBarline(selection,new SmoBarline({position:SmoBarline.positions.start,barline:SmoBarline.barlines.singleBar}));
+			return layout.render().then(timeTest);
+		}
+		
+		var doubleEndTest = () => {
+			var selection = SmoSelection.measureSelection(score, 0, 3);
+			SmoOperation.setMeasureBarline(selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.doubleBar}));
+			return layout.render().then(timeTest);
+		}	
+		var endEndTest = () => {
+			var selection = SmoSelection.measureSelection(score, 0, 3);
+			SmoOperation.setMeasureBarline(selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.endBar}));
+			return layout.render().then(timeTest);
+		}	
+		var noneEndTest = () => {
+			var selection = SmoSelection.measureSelection(score, 0, 3);
+			SmoOperation.setMeasureBarline(selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.none}));
+			return layout.render().then(timeTest);
+		}	
+      
+        return drawDefaults().then(startRepeatTest).then(endRepeatTest).then(doubleEndTest).then(endEndTest).then(noneEndTest).then(signalComplete);
     }
 }
 ;

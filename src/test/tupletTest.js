@@ -3,8 +3,8 @@
 class TupletTest {
 
 	static CommonTests() {
-		$('h1.testTitle').text('Tuplet Test');
-		var keys = utController.createUi(document.getElementById("boo"), SmoScore.getDefaultScore());
+		$('h1.testTitle').text();
+		var keys = utController.createUi( SmoScore.getDefaultScore(),'Tuplet Test');
 		var score = keys.score;
 		var layout = keys.layout;
 		var measure = SmoSelection.measureSelection(score, 0, 0).measure;

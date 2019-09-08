@@ -19,7 +19,7 @@
 	
 	<script type="text/javascript" src="../smo/data/noteModifiers.js"></script>
 	<script type="text/javascript" src="../smo/data/note.js"></script>
-	<script type="text/javascript" src="../smo/data/measureModifiers.js"></script>	
+	<script type="text/javascript" src="../smo/data/measureModifiers.js"></script>
 	<script type="text/javascript" src="../smo/data/measure.js"></script>
 	<script type="text/javascript" src="../smo/data/staffModifiers.js"></script>
 	<script type="text/javascript" src="../smo/data/systemStaff.js"></script>
@@ -32,20 +32,23 @@
 	<script type="text/javascript" src="../smo/xform/undo.js"></script>
 	<script type="text/javascript" src="../smo/xform/copypaste.js"></script>
 	<script type="text/javascript" src="../render/sui/layout.js"></script>
-	<script type="text/javascript" src="../render/sui/tracker.js"></script>	
+	<script type="text/javascript" src="../render/sui/tracker.js"></script>
 	<script type="text/javascript" src="../ui/utController.js"></script>	
 	<script type="text/javascript" src="../render/vex/vxMeasure.js"></script>
 	<script type="text/javascript" src="../render/vex/vxSystem.js"></script>	
-	<script type="text/javascript" src="undoTest.js"></script>
+	<script type="text/javascript" src="measureTest.js"></script>
     <script type="text/javascript" src="serializeTestJson.js"></script>
     <script type="text/javascript">
         document.addEventListener("DOMContentLoaded", function (event) {
-            UndoTest.CommonTests();
+            MeasureTest.CommonTests();
         });
 
     </script>
 </head>
 <body>
-<div id="smoo"></div>
+<h1 class="testTitle">Staff Test </h1>
+<div class="musicRelief">
+    <div class="musicContainer" id="boo"></div>
+</div>
 </body>
 </html>

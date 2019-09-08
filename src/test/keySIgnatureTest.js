@@ -2,7 +2,6 @@
 class KeySignatureTest {
 
 	static CommonTests() {
-		$('h1.testTitle').text('Key Signature Test');
 		var score = SmoScore.getEmptyScore();
 
 		var pasteBuffer = new PasteBuffer();
@@ -13,7 +12,7 @@ class KeySignatureTest {
 
 		var serial = JSON.stringify(score.serialize(), null, '');
 		console.log(serial);
-		var keys = utController.createUi(document.getElementById("boo"), score);
+		var keys = utController.createUi(score,'Key Signature Test');
 		var undo = keys.undoBuffer;
 		var score = keys.score;
 		var layout = keys.layout;
@@ -116,7 +115,7 @@ class KeySignatureTest {
 			score = SmoScore.deserialize(scoreJson);
 			layout.unrenderAll();
 			keys.detach();
-			keys = utController.createUi(document.getElementById("boo"), score);
+			keys = utController.createUi(score,'Key Signature Test');
 			return keys.render().then(timeTest);
 		}
 

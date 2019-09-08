@@ -2,7 +2,6 @@
 class UndoTest {
 
 	static CommonTests() {
-		$('h1.testTitle').text('Undo Test');
 		var score = SmoScore.getEmptyScore();
 
 		var pasteBuffer = new PasteBuffer();
@@ -13,7 +12,7 @@ class UndoTest {
 
 		var serial = JSON.stringify(score.serialize(), null, '');
 		console.log(serial);
-		var keys = utController.createUi(document.getElementById("boo"), score);
+		var keys = utController.createUi(score,'Undo Test');
 		var undo = keys.undoBuffer;
 		var score = keys.score;
 		var layout = keys.layout;

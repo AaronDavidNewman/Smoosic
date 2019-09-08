@@ -1657,11 +1657,13 @@ class SmoMeasure {
 		this.tuplets = [];
 		this.beamGroups = [];
 		this.changed = true;
+		var defaults = SmoMeasure.defaults;
 
-		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, SmoMeasure.defaults, this);
+		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, defaults, this);
 		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, params, this);
 		this.voices=params.voices ? params.voices : [];
 		this.tuplets=params.tuplets ? params.tuplets : [];
+		this.barlines = params.barlines ? params.barlines:defaults.barlines;
 		
 		if (!this['attrs']) {
 			this.attrs = {
@@ -1714,7 +1716,7 @@ class SmoMeasure {
 	}
 
 	static get attributeArray() {
-		return SmoMeasure.defaultAttributes.concat(['voices', 'tuplets', 'beamGroups', 'activeVoice', 'adjX', 'rightMargin']);
+		return SmoMeasure.defaultAttributes.concat(['voices', 'tuplets', 'beamGroups', 'activeVoice', 'barlines','adjX', 'rightMargin']);
 	}
 
 	// ### serialize
@@ -1932,12 +1934,11 @@ class SmoMeasure {
 			staffX: 10,
 			adjX: 0,
 			transposeIndex: 0,
-			rightMargin: 2,
-			barLines: barlines,
-			
+			barlines:barlines,
+			rightMargin: 2,						
 			customModifiers: [],
 			staffY: 40,
-			bars: [1, 1], // follows enumeration in VF.Barline
+			// bars: [1, 1], // follows enumeration in VF.Barline
 			measureNumber: {
 				localIndex: 0,
 				systemIndex: 0,
@@ -2014,6 +2015,11 @@ class SmoMeasure {
 		}
 		return -1;
 	}
+    setBarline(barline) {
+		var ix = barline.position === SmoBarline.positions.start ? 0 : 1;
+		this.barlines[ix]=barline;
+    }
+
 
 	getTupletForNote(note) {
 		if (!note.isTuplet) {
@@ -2117,10 +2123,10 @@ class SmoBarline {
 	}
 	
 	toVexBarline() {
-		return SmoBarline.barlines[this.barline];
+		return SmoBarline.toVexBarline[this.barline];
 	}
 	toVexPosition() {
-		return SmoBarline.positions[this.position];
+		return SmoBarline.toVexPosition[this.position];
 	}
 
 }
@@ -4256,6 +4262,10 @@ class SmoOperation {
 	static toggleArticulation(selection, articulation) {
 		selection.note.toggleArticulation(articulation);
 	}
+	
+	static setMeasureBarline(selection,barline) {
+		selection.measure.setBarline(barline);
+	}
 
 	// ## interval
 	// ## Description:
@@ -5198,7 +5208,14 @@ class VxMeasure {
             this.stave.addTimeSignature(this.smoMeasure.timeSignature);
         }
         // Connect it to the rendering context and draw!
-        this.stave.setContext(this.context).draw();
+        this.stave.setContext(this.context);
+		if (this.smoMeasure.forceClef || this.smoMeasure.barlines[0].barline != SmoBarline.barlines.singleBar) {
+		    this.stave.setBegBarType(this.smoMeasure.barlines[0].toVexBarline());
+		}
+		if (this.smoMeasure.barlines[1].barline != SmoBarline.barlines.singleBar) {
+			this.stave.setEndBarType(this.smoMeasure.barlines[1].toVexBarline());
+		}
+		this.stave.draw();
 
         var voiceAr = [];
 
@@ -7436,9 +7453,13 @@ class utController {
 		this.undoBuffer = new UndoBuffer();
 	}
 
-	static createUi(renderElement, score) {
+	static createUi(score, title) {
+		utController.createDom();
+		if (title) {
+			$('h1.testTitle').text(title);
+		}
 		var params = {};
-		params.layout = suiSimpleLayout.createScoreLayout(renderElement, score);
+		params.layout = suiSimpleLayout.createScoreLayout($('#boo')[0], score);
 		params.tracker = new suiTracker(params.layout);
 		// params.tracker = new suiTracker(params.layout);
 		params.score = score;
@@ -7448,27 +7469,45 @@ class utController {
 		return keys;
 	}
 
+	static createDom() {
+		var b = htmlHelpers.buildDom;
+		$('#smoo').html('');
+		var r = b('div').classes('dom-container')
+			.append(b('div').classes('modes'))
+			.append(b('div').classes('overlay'))
+			.append(b('div').classes('attributeDialog'))
+			.append(b('div').classes('helpDialog'))
+			.append(b('div').classes('menuContainer'))
+			.append(b('h1').classes('testTitle').text('Smoosic'))
+			.append(b('h2').classes('subTitle'))
+			.append(b('div').classes('piano-container')
+				.append(b('div').classes('piano-keys')))
+			.append(b('div').classes('workspace-container')
+				.append(b('div').classes('workspace')
+					.append(b('div').classes('controls-top'))
+					.append(b('div').classes('controls-left'))
+					.append(b('div').classes('musicRelief')
+						.append(b('div').classes('musicContainer').attr('id', 'boo')))));
+		$('#smoo').append(r.dom());
+	}
+
 	get renderElement() {
 		return this.layout.renderElement;
 	}
-	
 
 	static get defaults() {
-		return {			
-		};
+		return {};
 	}
 
 	detach() {
-		this.layout = null;		
+		this.layout = null;
 	}
 
 	render() {
 		return this.layout.render();
-	}	
-	
-	bindEvents() {
-
 	}
+
+	bindEvents() {}
 
 }
 ;
@@ -10385,9 +10424,10 @@ class suiController {
 	// ## createUi
 	// ### Description:
 	// Convenience constructor, taking a renderElement and a score.
-	static createUi(renderElement, score) {
+	static createUi(score) {
+		suiController.createDom();
 		var params = suiController.keyBindingDefaults;
-		params.layout = suiSimpleLayout.createScoreLayout(renderElement, score);
+		params.layout = suiSimpleLayout.createScoreLayout(document.getElementById("boo"), score);
 		params.tracker = new suiTracker(params.layout);
 		params.score = score;
 		params.editor = new suiEditor(params);
@@ -10397,7 +10437,6 @@ class suiController {
 	}
 
 	static start() {
-		suiController.createDom();
 		var score = SmoScore.getEmptyScore();
 		score.addDefaultMeasureWithNotes(0, {});
 		score.addDefaultMeasureWithNotes(1, {});
@@ -10406,7 +10445,7 @@ class suiController {
 		score.addDefaultMeasureWithNotes(4, {});
 		score.addStaff();
 
-		var controller = suiController.createUi(document.getElementById("boo"), score);
+		var controller = suiController.createUi(score);
 		var remap = function () {
 			return controller.tracker.updateMap();
 		}

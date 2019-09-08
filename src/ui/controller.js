@@ -113,9 +113,10 @@ class suiController {
 	// ## createUi
 	// ### Description:
 	// Convenience constructor, taking a renderElement and a score.
-	static createUi(renderElement, score) {
+	static createUi(score) {
+		suiController.createDom();
 		var params = suiController.keyBindingDefaults;
-		params.layout = suiSimpleLayout.createScoreLayout(renderElement, score);
+		params.layout = suiSimpleLayout.createScoreLayout(document.getElementById("boo"), score);
 		params.tracker = new suiTracker(params.layout);
 		params.score = score;
 		params.editor = new suiEditor(params);
@@ -125,7 +126,6 @@ class suiController {
 	}
 
 	static start() {
-		suiController.createDom();
 		var score = SmoScore.getEmptyScore();
 		score.addDefaultMeasureWithNotes(0, {});
 		score.addDefaultMeasureWithNotes(1, {});
@@ -134,7 +134,7 @@ class suiController {
 		score.addDefaultMeasureWithNotes(4, {});
 		score.addStaff();
 
-		var controller = suiController.createUi(document.getElementById("boo"), score);
+		var controller = suiController.createUi(score);
 		var remap = function () {
 			return controller.tracker.updateMap();
 		}

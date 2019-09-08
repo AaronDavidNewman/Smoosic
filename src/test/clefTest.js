@@ -11,7 +11,7 @@ class ClefTest {
         score.addDefaultMeasureWithNotes(1,{});
         score.addDefaultMeasureWithNotes(2,{});
 		
-        var keys = utController.createUi(document.getElementById("boo"),score);
+        var keys = utController.createUi(score,'Clef tests');
 		var undo = keys.undoBuffer;
 		var score = keys.score;
 		var layout = keys.layout;		
@@ -35,7 +35,7 @@ class ClefTest {
 
         var signalComplete = () => {
 			detach();
-			subTitle('');
+			subTitle('All done!');
             return timeTest();
         }
 		var subTitle = (txt) => {

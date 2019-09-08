@@ -2,13 +2,12 @@
 class TimeSignatureTest {
 
     static CommonTests() {
-        $('h1.testTitle').text('Time Signature Test');
 
-        var keys = utController.createUi(document.getElementById("boo"),
-                SmoScore.getDefaultScore({}, {
+        var keys = utController.createUi(SmoScore.getDefaultScore({}, {
                     timeSignature: '6/8',
                     clef: 'treble'
                 }));
+        $('h1.testTitle').text('Time Signature Test');
         var score = keys.score;
         var layout = keys.layout;
         var measure = SmoSelection.measureSelection(score, 0, 0).measure;
