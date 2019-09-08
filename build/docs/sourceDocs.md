@@ -62,6 +62,9 @@ Accessor for clef objects, which are set at a measure level.
 Get a measure full of default notes for a given timeSignature/clef.
 returns 8th notes for triple-time meters, etc.
 
+### SmoMeasure.getDefaultMeasureWithNotes
+Get a new measure with the appropriate notes for the supplied clef, instrument
+
 ### getDynamicMap
 returns the dynamic text for each tick index.  If
 there are no dynamics, the empty array is returned.
@@ -257,6 +260,9 @@ pitches can be either an array, a single pitch, or a letter.  In the latter case
 the letter value appropriate for the key signature is used, e.g. c in A major becomes
 c#
 
+## addPitch
+add a pitch to a note chord, avoiding duplicates.
+
 ## interval
 Add a pitch at the specified interval to the chord in the selection.
 
@@ -269,7 +275,7 @@ There are 2 parts to a selection: the actual musical bits that are selected, and
 indices that define what was selected.  This is the latter.  The actual object does not
 have any methods so there is no constructor.
 
-## return true if sel1 > sel2.  
+## return true if sel1 > sel2.
 
 ## applyOffset
 offset 'selector' the difference between src and target, return the result
@@ -280,8 +286,22 @@ The staff and measure are always a part of the selection, and possible a voice a
 and one or more pitches.  Selections can also be made from the UI by clicking on an element
 or navigating to an element with the keyboard.
 
+### measureSelection
+A selection that does not contain a specific note
+
+### noteSelection
+a selection that specifies a note in the score
+
+### renderedNoteSelection
+this is a special selection that we associated with all he rendered notes, so that we
+can map from a place in the display to a place in the score.
+
 ## nextNoteSelection
 Return the next note in this measure, or the first note of the next measure, if it exists.
+
+### selectionsSameMeasure
+Return true if the selections are all in the same measure.  Used to determine what
+type of undo we need.
 
 ## SmoTickTransformer
 Base class for duration transformations.  I call them transformations because this can
@@ -359,7 +379,7 @@ Helper functions for buildling UI elements
 ## buildDom
 returns an object that  lets you build a DOM in a somewhat readable way.
 ## Usage:
-var b = htmlHelpers.buildDom();
+var b = htmlHelpers.buildDom;
 var r =
 b('tr').classes('jsSharingMember').data('entitykey', key).data('name', name).data('entitytype', entityType).append(
 b('td').classes('noSideBorderRight').append(
@@ -401,9 +421,23 @@ Add *distance* sharps/flats to given key
 ### smoPitchesToVexKeys
 Transpose and convert from SMO to VEX format so we can use the VexFlow tables and methods
 
+### smoScalePitchMatch
+return true if the pitches match, but maybe not in same octave
+
+### get enharmonics
+return a map of enharmonics for choosing or cycling.  notes are in vexKey form.
+
+### getIntervalInKey
+give a pitch and a key signature, return another pitch at the given
+diatonic interval.  Similar to getKeyOffset but diatonic.
+
 ### get letterPitchIndex
 Used to adjust octave when transposing.
 Pitches are measured from c, so that b0 is higher than c0, c1 is 1 note higher etc.
+
+### letterChangedOctave
+Indicate if a change from letter note 'one' to 'two' needs us to adjust the
+octave due to the `smoMusic.letterPitchIndex` (b0 is higher than c0)
 
 ### vexToSmoPitch
 #### Example:
@@ -447,19 +481,12 @@ Frequently we double/halve a note duration, and we want to find the vex tick dur
 ### durationToTicks
 Uses VF.durationToTicks, but handles dots.
 
-### get enharmonics
-return a map of enharmonics for choosing or cycling.  notes are in vexKey form.
-
 ### getEnharmonic(noteProp)
 cycle through the enharmonics for a note.
 
 ### getKeyFriendlyEnharmonic
 fix the enharmonic to match the key, if possible
 `getKeyFriendlyEnharmonic('b','eb');  => returns 'bb'
-
-### getIntervalInKey
-give a pitch and a key signature, return another pitch at the given
-diatonic interval.  Similar to getKeyOffset but diatonic.
 
 ### filteredMerge
 Like vexMerge, but only for specific attributes.
@@ -472,8 +499,11 @@ Mostly utilities for converting coordinate spaces based on transforms, etc.
 ### static class methods:
 ---
 
-### smoBox:
-return a simple box object that can be serialized, copied.
+### unionRect
+grow the bounding box two objects to include both.
+
+### findIntersectionArtifact
+find all object that intersect with the rectangle
 
 ### measureBBox
 Return the bounding box of the measure
@@ -481,8 +511,15 @@ Return the bounding box of the measure
 ### pointBox
 return a point-sized box at the given coordinate
 
+### smoBox:
+return a simple box object that can be serialized, copied
+(from svg DOM box)
+
+### svgViewport
+set `svg` element to `width`,`height` and viewport `scale`
+
 ### logicalToClient
-Convert a point from logical (pixels) to actual screen dimensions based on current 
+Convert a point from logical (pixels) to actual screen dimensions based on current
 zoom, aspect ratio
 
 ### clientToLogical
@@ -532,6 +569,12 @@ utility function to render the music and update the tracker map.
 ### Description:
 slash ('/') menu key bindings.  The slash key followed by another key brings up
 a menu.
+
+## RibbonButtons
+Render the ribbon buttons based on group, function, and underlying UI handler.
+Also handles UI events.
+## RibbonButton methods
+---
 
 ## utController
 a simple controller object to render the unit test cases.
@@ -590,7 +633,7 @@ is on a different system due to wrapping.
 ### Render the music, keeping track of the bounding boxes of all the
 elements.  Re-render a second time to adjust measure widths to prevent notes
 from overlapping.  Then render all the modifiers.
-* drawAll is set if we are re-rendering the entire score, not just the part that changed. 
+* drawAll is set if we are re-rendering the entire score, not just the part that changed.
 
 ## suiTracker
 A tracker maps the UI elements to the logical elements ,and allows the user to
@@ -624,18 +667,21 @@ Get the rightmost (1) or leftmost (-1) selection
 ### _getOffsetSelection
 Get the selector that is the offset of the first existing selection
 
+### _moveSelectionPitch
+Suggest a specific pitch in a chord, so we can transpose just the one note vs. the whole chord.
+
 ## measureIterator
 
 # Directory: render/vex
 Logic for getting VEXFlow library to render the music
 ---
 ## Description:
-Create a staff and draw music on it.
+Create a staff and draw music on it usinbg VexFLow rendering engine
 
-##  Options:
-clef:'treble',
-num_beats:num_beats,
-timeSignature: '4/4'
+###  Options:
+`{measure:measure}` - The SMO measure to render
+### VxMeasure methods
+---
 
 ## Description:
 decide whether to force stem direction for multi-voice, or use the default.
@@ -649,12 +695,11 @@ convert a smoNote into a vxNote so it can be rasterized
 ## Description:
 create an a array of VF.StaveNote objects to render the active voice.
 
-## Description:
-create the VX beam groups, honoring the Smo custom modifiers
-## TODO:
-make the Smo custom modifiers
+### createVexBeamGroups
+create the VX beam groups. VexFlow has auto-beaming logic, but we use 
+our own because the user can specify stem directions, breaks etc.
 
-## Description:
+### createVexTuplets
 Create the VF tuplet objects based on the smo tuplet objects
 that have been defined.
 

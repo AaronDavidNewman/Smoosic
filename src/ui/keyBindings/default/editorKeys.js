@@ -31,10 +31,10 @@ class defaultEditorKeys {
 				action: "downOctave"
 			}, {
 				event: "keydown",
-				key: "-",
+				key: "F",
 				ctrlKey: false,
-				altKey: true,
-				shiftKey: false,
+				altKey: false,
+				shiftKey: true,
 				action: "toggleCourtesyAccidental"
 			}, {
 				event: "keydown",

@@ -12,6 +12,9 @@ class SmoScore {
             this._numberStaves();
         }
     }
+	static get zoomModes() {
+		return {fitWidth:0,wholePage:1,zoomScale:2}
+	}
     static get defaults() {
         return {
             staffX: 30,
@@ -27,12 +30,13 @@ class SmoScore {
             pageWidth: 8 * 96 + 48,
             pageHeight: 11 * 96,
             svgScale: 0.7,
-            zoomScale: 1.0
+            zoomScale: 1.0,
+			zoomMode:SmoScore.zoomModes.fitWidth
         };
     }
 
     static get defaultAttributes() {
-        return ['staffX', 'staffY', 'staffWidth', 'startIndex', 'interGap', 'renumberingMap', 'renumberIndex'];
+        return ['staffX', 'staffY', 'staffWidth', 'startIndex', 'interGap', 'renumberingMap', 'renumberIndex','zoomScale','zoomMode'];
     }
 
     // ### serialize

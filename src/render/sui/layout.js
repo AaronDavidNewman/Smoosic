@@ -19,10 +19,12 @@ class suiSimpleLayout {
 
 	setViewport() {
 		this.screenWidth = window.innerWidth;
+		var zoomScale = this.score.zoomMode === SmoScore.zoomModes.zoomScale ? 
+		    score.zoomScale : (window.innerWidth - 200) / this.score.pageWidth;
 
-		this.svgScale = this.score.svgScale * this.score.zoomScale;
-		this.pageWidth = Math.round(this.score.pageWidth * this.score.zoomScale);
-		this.pageHeight = Math.round(this.score.pageHeight * this.score.zoomScale);
+		this.svgScale = this.score.svgScale * zoomScale;
+		this.pageWidth = Math.round(this.score.pageWidth * zoomScale);
+		this.pageHeight = Math.round(this.score.pageHeight * zoomScale);
 		$(this.elementId).css('width', '' + Math.round(this.pageWidth) + 'px');
 		$(this.elementId).css('height', '' + Math.round(this.pageHeight) + 'px');
 		$(this.elementId).html('');

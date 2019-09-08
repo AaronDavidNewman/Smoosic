@@ -2404,6 +2404,9 @@ class SmoScore {
             this._numberStaves();
         }
     }
+	static get zoomModes() {
+		return {fitWidth:0,wholePage:1,zoomScale:2}
+	}
     static get defaults() {
         return {
             staffX: 30,
@@ -2419,12 +2422,13 @@ class SmoScore {
             pageWidth: 8 * 96 + 48,
             pageHeight: 11 * 96,
             svgScale: 0.7,
-            zoomScale: 1.0
+            zoomScale: 1.0,
+			zoomMode:SmoScore.zoomModes.fitWidth
         };
     }
 
     static get defaultAttributes() {
-        return ['staffX', 'staffY', 'staffWidth', 'startIndex', 'interGap', 'renumberingMap', 'renumberIndex'];
+        return ['staffX', 'staffY', 'staffWidth', 'startIndex', 'interGap', 'renumberingMap', 'renumberIndex','zoomScale','zoomMode'];
     }
 
     // ### serialize
@@ -6005,10 +6009,12 @@ class suiSimpleLayout {
 
 	setViewport() {
 		this.screenWidth = window.innerWidth;
+		var zoomScale = this.score.zoomMode === SmoScore.zoomModes.zoomScale ? 
+		    score.zoomScale : (window.innerWidth - 200) / this.score.pageWidth;
 
-		this.svgScale = this.score.svgScale * this.score.zoomScale;
-		this.pageWidth = Math.round(this.score.pageWidth * this.score.zoomScale);
-		this.pageHeight = Math.round(this.score.pageHeight * this.score.zoomScale);
+		this.svgScale = this.score.svgScale * zoomScale;
+		this.pageWidth = Math.round(this.score.pageWidth * zoomScale);
+		this.pageHeight = Math.round(this.score.pageHeight * zoomScale);
 		$(this.elementId).css('width', '' + Math.round(this.pageWidth) + 'px');
 		$(this.elementId).css('height', '' + Math.round(this.pageHeight) + 'px');
 		$(this.elementId).html('');
@@ -7634,10 +7640,10 @@ class SuiExceptionHandler {
 				action: "downOctave"
 			}, {
 				event: "keydown",
-				key: "-",
+				key: "F",
 				ctrlKey: false,
-				altKey: true,
-				shiftKey: false,
+				altKey: false,
+				shiftKey: true,
 				action: "toggleCourtesyAccidental"
 			}, {
 				event: "keydown",
@@ -8699,7 +8705,7 @@ class defaultRibbonLayout {
 				id: 'ToggleRestButton'
 			}, {
 				leftText: '8va',
-				rightText: 'Ctrl=',
+				rightText: 'Shift=',
 				icon: '',
 				classes: 'collapsed',
 				action: 'collapseChild',
@@ -8708,7 +8714,7 @@ class defaultRibbonLayout {
 				id: 'UpOctaveButton'
 			}, {
 				leftText: '8vb',
-				rightText: 'Ctrl=',
+				rightText: 'Shift-',
 				icon: '',
 				classes: 'collapsed',
 				action: 'collapseChild',
@@ -8726,7 +8732,7 @@ class defaultRibbonLayout {
 				id: 'ToggleAccidental'
 			}, {
 				leftText: '',
-				rightText: 'ShiftE',
+				rightText: 'ShiftF',
 				icon: 'icon-courtesy',
 				classes: 'collapsed',
 				action: 'collapseChild',
@@ -9875,18 +9881,8 @@ class SmoHelp {
                 text: 'Jump selection to next/last measure',
                 id: 'navel2'
             }, {
-                keys: [{
-                        icon: '',
-                        text: 'Ctrl',
-                        separator: '+'
-
-                    }, {
+                keys: [ {
                         icon: 'icon-arrow-down',
-                        separator: ','
-                    }, {
-                        icon: '',
-                        text: 'Ctrl',
-                        separator: '+'
                     }, {
                         icon: 'icon-arrow-up'
                     }
@@ -9926,14 +9922,14 @@ class SmoHelp {
             }, {
                 keys: [{
                         icon: '',
-                        text: 'Alt',
+                        text: 'Shift',
                         separator: '+'
                     }, {
                         icon: 'icon-arrow-up',
                         separator: ','
                     }, {
                         icon: '',
-                        text: 'Alt',
+                        text: 'Shift',
                         separator: '+'
                     }, {
                         icon: 'icon-arrow-down'

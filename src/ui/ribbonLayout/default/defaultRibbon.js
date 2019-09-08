@@ -228,7 +228,7 @@ class defaultRibbonLayout {
 				id: 'ToggleRestButton'
 			}, {
 				leftText: '8va',
-				rightText: 'Ctrl=',
+				rightText: 'Shift=',
 				icon: '',
 				classes: 'collapsed',
 				action: 'collapseChild',
@@ -237,7 +237,7 @@ class defaultRibbonLayout {
 				id: 'UpOctaveButton'
 			}, {
 				leftText: '8vb',
-				rightText: 'Ctrl=',
+				rightText: 'Shift-',
 				icon: '',
 				classes: 'collapsed',
 				action: 'collapseChild',
@@ -255,7 +255,7 @@ class defaultRibbonLayout {
 				id: 'ToggleAccidental'
 			}, {
 				leftText: '',
-				rightText: 'ShiftE',
+				rightText: 'ShiftF',
 				icon: 'icon-courtesy',
 				classes: 'collapsed',
 				action: 'collapseChild',

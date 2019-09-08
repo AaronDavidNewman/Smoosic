@@ -115,18 +115,8 @@ class SmoHelp {
                 text: 'Jump selection to next/last measure',
                 id: 'navel2'
             }, {
-                keys: [{
-                        icon: '',
-                        text: 'Ctrl',
-                        separator: '+'
-
-                    }, {
+                keys: [ {
                         icon: 'icon-arrow-down',
-                        separator: ','
-                    }, {
-                        icon: '',
-                        text: 'Ctrl',
-                        separator: '+'
                     }, {
                         icon: 'icon-arrow-up'
                     }
@@ -166,14 +156,14 @@ class SmoHelp {
             }, {
                 keys: [{
                         icon: '',
-                        text: 'Alt',
+                        text: 'Shift',
                         separator: '+'
                     }, {
                         icon: 'icon-arrow-up',
                         separator: ','
                     }, {
                         icon: '',
-                        text: 'Alt',
+                        text: 'Shift',
                         separator: '+'
                     }, {
                         icon: 'icon-arrow-down'
