@@ -1656,6 +1656,7 @@ class SmoMeasure {
 	constructor(params) {
 		this.tuplets = [];
 		this.beamGroups = [];
+		this.modifiers=[];
 		this.changed = true;
 		var defaults = SmoMeasure.defaults;
 
@@ -1663,7 +1664,7 @@ class SmoMeasure {
 		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, params, this);
 		this.voices=params.voices ? params.voices : [];
 		this.tuplets=params.tuplets ? params.tuplets : [];
-		this.barlines = params.barlines ? params.barlines:defaults.barlines;
+		this.modifiers = params.modifiers ? params.modifiers:defaults.modifiers;		
 		
 		if (!this['attrs']) {
 			this.attrs = {
@@ -1711,13 +1712,15 @@ class SmoMeasure {
 	static get defaultAttributes() {
 		return [
 			'timeSignature', 'keySignature', 'staffX', 'staffY', 'customModifiers',
-			'measureNumber', 'staffWidth', 'modifierOptions',
+			'measureNumber', 'staffWidth',
 			'activeVoice', 'clef', 'transposeIndex','activeVoice','adjX','rightMargin'];
 	}
 
 	static get attributeArray() {
 		return SmoMeasure.defaultAttributes.concat(['voices', 'tuplets', 'beamGroups', 'activeVoice', 'barlines','adjX', 'rightMargin']);
 	}
+	
+	
 
 	// ### serialize
 	// Convert this measure object to a JSON object, recursively serializing all the notes,
@@ -1736,7 +1739,7 @@ class SmoMeasure {
 		this.beamGroups.forEach((beam) => {
 			params.beamGroups.push(JSON.parse(JSON.stringify(beam)));
 		});
-
+		
 		this.voices.forEach((voice) => {
 			var obj = {
 				notes: []
@@ -1924,9 +1927,11 @@ class SmoMeasure {
 	}
 	static get defaults() {
 		// var noteDefault = SmoMeasure.defaultVoice44;
-		const barlines = [];
-		barlines.push(new SmoBarline({position:SmoBarline.positions.start,barline:SmoBarline.barlines.singleBar}));
-		barlines.push(new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.singleBar}));
+		const modifiers = [];
+		modifiers.push(new SmoBarline({position:SmoBarline.positions.start,barline:SmoBarline.barlines.singleBar}));
+		modifiers.push(new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.singleBar}));
+		modifiers.push(new SmoRepeatSymbol({position:SmoRepeatSymbol.positions.start,symbol:SmoRepeatSymbol.symbols.None}));
+		// modifiers.push(new SmoRepeatSymbol({symbol:SmoRepeatSymbol.symbols.None});
 		return {
 			timeSignature: '4/4',
 			keySignature: "C",
@@ -1934,7 +1939,7 @@ class SmoMeasure {
 			staffX: 10,
 			adjX: 0,
 			transposeIndex: 0,
-			barlines:barlines,
+			modifiers:modifiers,
 			rightMargin: 2,						
 			customModifiers: [],
 			staffY: 40,
@@ -1945,7 +1950,6 @@ class SmoMeasure {
 				measureNumber: 0
 			},
 			staffWidth: 200,
-			modifierOptions: {},
 			clef: 'treble',
 			forceClef: false,
 			forceKeySignature: false,
@@ -2015,10 +2019,46 @@ class SmoMeasure {
 		}
 		return -1;
 	}
+	setRepeatSymbol(rs) {
+		var ar = [];
+		this.modifiers.forEach((modifier) => {
+			if (modifier.ctor  != 'SmoRepeatSymbol') {
+				ar.push(modifier);
+			}
+		});
+		this.modifiers=ar;
+		ar.push(rs);		
+	}
+	getRepeatSymbol() {
+		var rv = this.modifiers.filter(obj => obj.ctor==='SmoRepeatSymbol');
+		return rv.length ? rv[0] : null;
+	}
     setBarline(barline) {
-		var ix = barline.position === SmoBarline.positions.start ? 0 : 1;
-		this.barlines[ix]=barline;
+		var ar = [];
+		this.modifiers.forEach((modifier) => {
+			if (modifier.ctor  != 'SmoBarline' || modifier.position != barline.position) {
+				ar.push(modifier);
+			}
+		});
+		this.modifiers=ar;
+		ar.push(barline);
     }
+	
+	_getBarline(pos) {
+		var rv = null;
+		this.modifiers.forEach((modifier) => {
+			if (modifier.ctor  === 'SmoBarline' && modifier.position === pos) {
+				rv = modifier;
+			}
+		});
+		return rv;
+	}
+	getEndBarline() {
+		return this._getBarline(SmoBarline.positions.end);
+	}
+	getStartBarline() {
+		return this._getBarline(SmoBarline.positions.start);
+	}
 
 
 	getTupletForNote(note) {
@@ -2081,7 +2121,19 @@ class SmoMeasure {
 	}
 }
 ;
-class SmoBarline {
+class SmoMeasureModifierBase {
+	 constructor(ctor) {
+        this.ctor = ctor;
+    }
+    static deserialize(jsonObj) {
+        var ctor = eval(jsonObj.ctor);
+        var rv = new ctor(jsonObj);
+        rv.attrs.id = jsonObj.attrs.id;
+        rv.attrs.type = jsonObj.attrs.type;
+    }
+}
+
+class SmoBarline extends SmoMeasureModifierBase{
 	static get positions() {
 		return {
 			start: 0,
@@ -2106,11 +2158,24 @@ class SmoBarline {
 			barline: SmoBarline.barlines.singleBar
 		};
 	}
+	
+	static get attributes() {
+		return ['position','barline'];
+	}
 
 	constructor(parameters) {
+		super('SmoBarline');
 		parameters = parameters ? parameters : {};
 		smoMusic.serializedMerge(['position', 'barline'], SmoBarline.defaults, this);
 		smoMusic.serializedMerge(['position', 'barline'], parameters, this);
+        if (!this['attrs']) {
+            this.attrs = {
+                id: VF.Element.newID(),
+                type: 'SmoArticulation'
+            };
+        } else {
+            console.log('inherit attrs');
+        }
 	}
 
 	static get toVexBarline() {
@@ -2130,18 +2195,42 @@ class SmoBarline {
 	}
 }
 
-class SmoRepeatSymbol {
+class SmoRepeatSymbol  extends SmoMeasureModifierBase{
 	static get symbols() {
 		return {None:0,Coda:1,Segno:2,Dc:3,DcAlCoda:4,DcAlFine:5,Ds:6,DsAlCoda:7,DsAlFine:8,Fine:9};
 	}
+	static get positions() {
+		return {
+			start: 0,
+			end: 1
+		}
+	};
 	static get defaults() {
 		return {
-			symbol:SmoRepeatSymbol.Coda,xOffset:-25,yOffset:5
+			symbol:SmoRepeatSymbol.Coda,xOffset:0,yOffset:30,position:SmoRepeatSymbol.positions.end
 		}
 	}
-	static get SmoToVexSymbol() {
-		return [VF.Repetition.NONE,VF.Repetition.CODA_LEFT,VF.Repetition.SEGNO_LEFT,VF.Repetition.DC,
-		VF.Repetition.DC_AL_CODA,VF.Repetition.DC_AL_FINE,VF.Repetition.DS,VF.Repetition.DS_AL_CODA,VF.Repetition.DS_AL_FINE,VF.Repetition.FINE];
+	static get toVexSymbol() {
+		return [VF.Repetition.type.NONE,VF.Repetition.type.CODA_LEFT,VF.Repetition.type.SEGNO_LEFT,VF.Repetition.type.DC,
+		VF.Repetition.type.DC_AL_CODA,VF.Repetition.type.DC_AL_FINE,VF.Repetition.type.DS,VF.Repetition.type.DS_AL_CODA,VF.Repetition.type.DS_AL_FINE,VF.Repetition.type.FINE];
+	}
+	static get attributes() {
+		return ['symbol','xOffset','yOffset','position'];
+	}
+	toVexSymbol() {
+		return SmoRepeatSymbol.toVexSymbol[this.symbol];
+	}
+	constructor(parameters) {
+		super('SmoRepeatSymbol');
+		smoMusic.serializedMerge(SmoRepeatSymbol.attributes, SmoRepeatSymbol.defaults, this);
+		smoMusic.serializedMerge(SmoRepeatSymbol.attributes, parameters, this);
+	}
+}
+
+class SmoVolta extends SmoMeasureModifierBase {
+	constructor(parameters) {
+		this.startBar=parameters.startBar;
+		this.endBar = parameters.endBar;
 	}
 }
 ;
@@ -2308,7 +2397,7 @@ class SmoSystemStaff {
 		});
 		var sm=[];
 		this.modifiers.forEach((mod)=> {
-			if (mod.fromSelection.measure != index && mod.toSelection.measure != index) {
+			if (mod.startSelector.measure != index && mod.endSelector.measure != index) {
 				sm.push(mod);
 			}
 		});
@@ -2484,7 +2573,7 @@ class SmoScore {
         scoreDefaults = (scoreDefaults != null ? scoreDefaults : SmoScore.defaults);
         measureDefaults = (measureDefaults != null ? measureDefaults : SmoMeasure.defaults);
         var score = new SmoScore(scoreDefaults);
-        score.addStaff(measureDefaults);
+        score.addStaff({measureDefaults:measureDefaults});
         var measure = SmoMeasure.getDefaultMeasure(measureDefaults);
         score.addMeasure(0, measure);
         measure.voices.push({
@@ -3868,6 +3957,25 @@ class SmoSelection {
 		}
 		return null;
 	}
+	
+	// ### getMeasureList
+	// Gets the list of measures in an array from the selections
+	static getMeasureList(selections) {
+		var rv = [];
+		if (!selections.length) {
+			return rv;
+		}
+		var cur = selections;
+		rv.push(cur.measure);
+		for (var i=1;i<selections.length;++i) {
+			var sel = selections[i];
+			if (sel.selector.measure != cur.selector.measure) {
+				rv.push(sel.measure);
+				cur=sel;
+			}
+		}
+		return rv;
+	}
 
 	static lastNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
 		var lastTick = tickIndex - 1;
@@ -4287,8 +4395,17 @@ class SmoOperation {
 			s2.measure.setBarline(barline);
 			ix += 1;
 		});
-
 	}
+	
+	static setRepeatSymbol(score,selection,sym) {
+		var mm = selection.selector.measure;
+		var ix=0;
+		score.staves.forEach((staff) => {
+			var s2 = SmoSelection.measureSelection(score,ix,mm);
+			s2.measure.setRepeatSymbol(sym);
+			ix += 1;
+		});
+	}	
 
 	// ## interval
 	// ## Description:
@@ -5186,6 +5303,23 @@ class VxMeasure {
     unrender() {
         $(this.context.svg).find('g.' + this.smoMeasure.attrs.id).remove();
     }
+	
+	handleMeasureModifiers() {
+		var sb = this.smoMeasure.getStartBarline();
+		var eb = this.smoMeasure.getEndBarline();
+		var sym = this.smoMeasure.getRepeatSymbol();
+
+		if (this.smoMeasure.forceClef || sb.barline != SmoBarline.barlines.singleBar) {
+		    this.stave.setBegBarType(sb.toVexBarline());
+		}
+		if (eb.barline != SmoBarline.barlines.singleBar) {
+			this.stave.setEndBarType(eb.toVexBarline());
+		}
+		if (sym && sym.symbol != SmoRepeatSymbol.symbols.None) {
+			var rep = new VF.Repetition(sym.toVexSymbol(),sym.xOffset+this.smoMeasure.staffX,sym.yOffset);
+			this.stave.modifiers.push(rep);
+		}
+	}
 
     // ## Description:
     // Render all the notes in my smoMeasure.  All rendering logic is called from here.
@@ -5232,12 +5366,8 @@ class VxMeasure {
         }
         // Connect it to the rendering context and draw!
         this.stave.setContext(this.context);
-		if (this.smoMeasure.forceClef || this.smoMeasure.barlines[0].barline != SmoBarline.barlines.singleBar) {
-		    this.stave.setBegBarType(this.smoMeasure.barlines[0].toVexBarline());
-		}
-		if (this.smoMeasure.barlines[1].barline != SmoBarline.barlines.singleBar) {
-			this.stave.setEndBarType(this.smoMeasure.barlines[1].toVexBarline());
-		}
+		
+		this.handleMeasureModifiers();
 		this.stave.draw();
 
         var voiceAr = [];
@@ -7574,7 +7704,9 @@ class SuiExceptionHandler {
         try {
             if (e.error && e.error.stack) {
                 stack = e.error.stack;
-            }
+            } else if (e['stack']) {
+				stack = e.stack;
+			}
         } catch (e) {
             stack = 'Error with stack: ' + e.message;
         }
@@ -10361,7 +10493,7 @@ class suiController {
 			});
 
 		// create globbal exception instance
-		new SuiExceptionHandler(this);
+		this.exhandler = new SuiExceptionHandler(this);
 
 		this.bindEvents();
 		this.bindResize();
@@ -10590,7 +10722,11 @@ class suiController {
 				ev.altKey === evdata.altKey && evdata.shiftKey === ev.shiftKey);
 
 		if (binding) {
+			try {
 			this[binding.module][binding.action](evdata);
+			} catch (e) {
+				this.exhandler.exceptionHandler(e);
+			}
 		}
 	}
 
@@ -10638,8 +10774,11 @@ class suiController {
 		window.addEventListener("keydown", this.keydownHandler, true);
 		this.ribbon.display();
 
-		window.addEventListener('error', function (e) {
+		window.addEventListener('error', function (e,o1,o2) {
 			SuiExceptionHandler.instance.exceptionHandler(e);
+			if (o1) {
+				console.log('o1 exists');
+			}
 		});
 	}
 

@@ -11,6 +11,7 @@ class SmoMeasure {
 	constructor(params) {
 		this.tuplets = [];
 		this.beamGroups = [];
+		this.modifiers=[];
 		this.changed = true;
 		var defaults = SmoMeasure.defaults;
 
@@ -18,7 +19,7 @@ class SmoMeasure {
 		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, params, this);
 		this.voices=params.voices ? params.voices : [];
 		this.tuplets=params.tuplets ? params.tuplets : [];
-		this.barlines = params.barlines ? params.barlines:defaults.barlines;
+		this.modifiers = params.modifiers ? params.modifiers:defaults.modifiers;		
 		
 		if (!this['attrs']) {
 			this.attrs = {
@@ -66,13 +67,15 @@ class SmoMeasure {
 	static get defaultAttributes() {
 		return [
 			'timeSignature', 'keySignature', 'staffX', 'staffY', 'customModifiers',
-			'measureNumber', 'staffWidth', 'modifierOptions',
+			'measureNumber', 'staffWidth',
 			'activeVoice', 'clef', 'transposeIndex','activeVoice','adjX','rightMargin'];
 	}
 
 	static get attributeArray() {
 		return SmoMeasure.defaultAttributes.concat(['voices', 'tuplets', 'beamGroups', 'activeVoice', 'barlines','adjX', 'rightMargin']);
 	}
+	
+	
 
 	// ### serialize
 	// Convert this measure object to a JSON object, recursively serializing all the notes,
@@ -91,7 +94,7 @@ class SmoMeasure {
 		this.beamGroups.forEach((beam) => {
 			params.beamGroups.push(JSON.parse(JSON.stringify(beam)));
 		});
-
+		
 		this.voices.forEach((voice) => {
 			var obj = {
 				notes: []
@@ -279,9 +282,11 @@ class SmoMeasure {
 	}
 	static get defaults() {
 		// var noteDefault = SmoMeasure.defaultVoice44;
-		const barlines = [];
-		barlines.push(new SmoBarline({position:SmoBarline.positions.start,barline:SmoBarline.barlines.singleBar}));
-		barlines.push(new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.singleBar}));
+		const modifiers = [];
+		modifiers.push(new SmoBarline({position:SmoBarline.positions.start,barline:SmoBarline.barlines.singleBar}));
+		modifiers.push(new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.singleBar}));
+		modifiers.push(new SmoRepeatSymbol({position:SmoRepeatSymbol.positions.start,symbol:SmoRepeatSymbol.symbols.None}));
+		// modifiers.push(new SmoRepeatSymbol({symbol:SmoRepeatSymbol.symbols.None});
 		return {
 			timeSignature: '4/4',
 			keySignature: "C",
@@ -289,7 +294,7 @@ class SmoMeasure {
 			staffX: 10,
 			adjX: 0,
 			transposeIndex: 0,
-			barlines:barlines,
+			modifiers:modifiers,
 			rightMargin: 2,						
 			customModifiers: [],
 			staffY: 40,
@@ -300,7 +305,6 @@ class SmoMeasure {
 				measureNumber: 0
 			},
 			staffWidth: 200,
-			modifierOptions: {},
 			clef: 'treble',
 			forceClef: false,
 			forceKeySignature: false,
@@ -370,10 +374,46 @@ class SmoMeasure {
 		}
 		return -1;
 	}
+	setRepeatSymbol(rs) {
+		var ar = [];
+		this.modifiers.forEach((modifier) => {
+			if (modifier.ctor  != 'SmoRepeatSymbol') {
+				ar.push(modifier);
+			}
+		});
+		this.modifiers=ar;
+		ar.push(rs);		
+	}
+	getRepeatSymbol() {
+		var rv = this.modifiers.filter(obj => obj.ctor==='SmoRepeatSymbol');
+		return rv.length ? rv[0] : null;
+	}
     setBarline(barline) {
-		var ix = barline.position === SmoBarline.positions.start ? 0 : 1;
-		this.barlines[ix]=barline;
+		var ar = [];
+		this.modifiers.forEach((modifier) => {
+			if (modifier.ctor  != 'SmoBarline' || modifier.position != barline.position) {
+				ar.push(modifier);
+			}
+		});
+		this.modifiers=ar;
+		ar.push(barline);
     }
+	
+	_getBarline(pos) {
+		var rv = null;
+		this.modifiers.forEach((modifier) => {
+			if (modifier.ctor  === 'SmoBarline' && modifier.position === pos) {
+				rv = modifier;
+			}
+		});
+		return rv;
+	}
+	getEndBarline() {
+		return this._getBarline(SmoBarline.positions.end);
+	}
+	getStartBarline() {
+		return this._getBarline(SmoBarline.positions.start);
+	}
 
 
 	getTupletForNote(note) {

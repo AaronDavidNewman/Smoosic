@@ -26,7 +26,7 @@ class suiController {
 			});
 
 		// create globbal exception instance
-		new SuiExceptionHandler(this);
+		this.exhandler = new SuiExceptionHandler(this);
 
 		this.bindEvents();
 		this.bindResize();
@@ -255,7 +255,11 @@ class suiController {
 				ev.altKey === evdata.altKey && evdata.shiftKey === ev.shiftKey);
 
 		if (binding) {
+			try {
 			this[binding.module][binding.action](evdata);
+			} catch (e) {
+				this.exhandler.exceptionHandler(e);
+			}
 		}
 	}
 
@@ -303,8 +307,11 @@ class suiController {
 		window.addEventListener("keydown", this.keydownHandler, true);
 		this.ribbon.display();
 
-		window.addEventListener('error', function (e) {
+		window.addEventListener('error', function (e,o1,o2) {
 			SuiExceptionHandler.instance.exceptionHandler(e);
+			if (o1) {
+				console.log('o1 exists');
+			}
 		});
 	}
 

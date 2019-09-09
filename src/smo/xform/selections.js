@@ -225,6 +225,25 @@ class SmoSelection {
 		}
 		return null;
 	}
+	
+	// ### getMeasureList
+	// Gets the list of measures in an array from the selections
+	static getMeasureList(selections) {
+		var rv = [];
+		if (!selections.length) {
+			return rv;
+		}
+		var cur = selections;
+		rv.push(cur.measure);
+		for (var i=1;i<selections.length;++i) {
+			var sel = selections[i];
+			if (sel.selector.measure != cur.selector.measure) {
+				rv.push(sel.measure);
+				cur=sel;
+			}
+		}
+		return rv;
+	}
 
 	static lastNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
 		var lastTick = tickIndex - 1;

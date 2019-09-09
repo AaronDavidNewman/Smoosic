@@ -162,7 +162,7 @@ class SmoSystemStaff {
 		});
 		var sm=[];
 		this.modifiers.forEach((mod)=> {
-			if (mod.fromSelection.measure != index && mod.toSelection.measure != index) {
+			if (mod.startSelector.measure != index && mod.endSelector.measure != index) {
 				sm.push(mod);
 			}
 		});

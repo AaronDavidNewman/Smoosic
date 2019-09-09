@@ -28,7 +28,9 @@ class SuiExceptionHandler {
         try {
             if (e.error && e.error.stack) {
                 stack = e.error.stack;
-            }
+            } else if (e['stack']) {
+				stack = e.stack;
+			}
         } catch (e) {
             stack = 'Error with stack: ' + e.message;
         }

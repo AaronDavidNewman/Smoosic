@@ -330,8 +330,17 @@ class SmoOperation {
 			s2.measure.setBarline(barline);
 			ix += 1;
 		});
-
 	}
+	
+	static setRepeatSymbol(score,selection,sym) {
+		var mm = selection.selector.measure;
+		var ix=0;
+		score.staves.forEach((staff) => {
+			var s2 = SmoSelection.measureSelection(score,ix,mm);
+			s2.measure.setRepeatSymbol(sym);
+			ix += 1;
+		});
+	}	
 
 	// ## interval
 	// ## Description:

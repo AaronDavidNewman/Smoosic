@@ -223,6 +223,23 @@ class VxMeasure {
     unrender() {
         $(this.context.svg).find('g.' + this.smoMeasure.attrs.id).remove();
     }
+	
+	handleMeasureModifiers() {
+		var sb = this.smoMeasure.getStartBarline();
+		var eb = this.smoMeasure.getEndBarline();
+		var sym = this.smoMeasure.getRepeatSymbol();
+
+		if (this.smoMeasure.forceClef || sb.barline != SmoBarline.barlines.singleBar) {
+		    this.stave.setBegBarType(sb.toVexBarline());
+		}
+		if (eb.barline != SmoBarline.barlines.singleBar) {
+			this.stave.setEndBarType(eb.toVexBarline());
+		}
+		if (sym && sym.symbol != SmoRepeatSymbol.symbols.None) {
+			var rep = new VF.Repetition(sym.toVexSymbol(),sym.xOffset+this.smoMeasure.staffX,sym.yOffset);
+			this.stave.modifiers.push(rep);
+		}
+	}
 
     // ## Description:
     // Render all the notes in my smoMeasure.  All rendering logic is called from here.
@@ -269,12 +286,8 @@ class VxMeasure {
         }
         // Connect it to the rendering context and draw!
         this.stave.setContext(this.context);
-		if (this.smoMeasure.forceClef || this.smoMeasure.barlines[0].barline != SmoBarline.barlines.singleBar) {
-		    this.stave.setBegBarType(this.smoMeasure.barlines[0].toVexBarline());
-		}
-		if (this.smoMeasure.barlines[1].barline != SmoBarline.barlines.singleBar) {
-			this.stave.setEndBarType(this.smoMeasure.barlines[1].toVexBarline());
-		}
+		
+		this.handleMeasureModifiers();
 		this.stave.draw();
 
         var voiceAr = [];

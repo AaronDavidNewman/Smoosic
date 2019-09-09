@@ -78,7 +78,7 @@ class SmoScore {
         scoreDefaults = (scoreDefaults != null ? scoreDefaults : SmoScore.defaults);
         measureDefaults = (measureDefaults != null ? measureDefaults : SmoMeasure.defaults);
         var score = new SmoScore(scoreDefaults);
-        score.addStaff(measureDefaults);
+        score.addStaff({measureDefaults:measureDefaults});
         var measure = SmoMeasure.getDefaultMeasure(measureDefaults);
         score.addMeasure(0, measure);
         measure.voices.push({
