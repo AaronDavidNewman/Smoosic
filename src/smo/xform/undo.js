@@ -113,8 +113,7 @@ class SmoUndoable {
 			undoBuffer.addBuffer('staff backup for '+operation, 'staff', selections[0].selector, score);
 		} else {
 			undoBuffer.addBuffer('measure backup for '+operation, 'measure', selections[0].selector, selections[0].measure);
-		}
-		
+		}		
 	}
 	// Add the measure/staff/score that will cover this list of selections
 	static batchDurationOperation(score,selections,operation,undoBuffer) {		
@@ -203,6 +202,12 @@ class SmoUndoable {
 	static noop(score,undoBuffer) {
         undoBuffer.addBuffer('Backup', 'score', null, score);		
 	}
+	
+	static scoreSelectionOp(score,selection,op,params,undoBuffer,description) {
+        undoBuffer.addBuffer(description, 'score', null, score);
+		SmoOperation[op](score,selection,params);
+	}
+
     static addKeySignature(score, selection, keySignature, undoBuffer) {
         undoBuffer.addBuffer('addKeySignature ' + keySignature, 'score', null, score);
         SmoOperation.addKeySignature(score, selection, keySignature);

@@ -4,6 +4,7 @@ class MeasureTest {
 		var keys = utController.createUi(SmoScore.getDefaultScore(),'Measure Test');
 		var score = keys.score;
 		var layout = keys.layout;
+		var undoBuffer = keys.undoBuffer;
         score.addDefaultMeasureWithNotes(0,{});
         score.addDefaultMeasureWithNotes(1,{});
         score.addDefaultMeasureWithNotes(2,{});
@@ -61,9 +62,11 @@ class MeasureTest {
 
 		var endRepeatTest = () => {
 			var selection = SmoSelection.measureSelection(score, 0, 1);
-			SmoOperation.setMeasureBarline(score,selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.endRepeat}));
+			SmoUndoable.scoreSelectionOp(score,selection,'setMeasureBarline',new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.endRepeat}),
+			    undoBuffer,'set barline');
 			selection = SmoSelection.measureSelection(score, 0, 0);
-			SmoOperation.setMeasureBarline(score,selection,new SmoBarline({position:SmoBarline.positions.start,barline:SmoBarline.barlines.singleBar}));
+			SmoUndoable.scoreSelectionOp(score,selection,'setMeasureBarline',new SmoBarline({position:SmoBarline.positions.start,barline:SmoBarline.barlines.singleBar}),
+			    undoBuffer,'set barline');
 			return layout.render().then(timeTest);
 		}
 		
@@ -122,13 +125,13 @@ class MeasureTest {
 		
 		var voltaTest1 = () => {
 			var selection = SmoSelection.measureSelection(score, 0,3);
-			SmoOperation.setMeasureBarline(score,selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.endRepeat}));
+			SmoOperation.addEnding(score,new SmoVolta({startBar:1,endBar:3,number:1}));
 			SmoOperation.setRepeatSymbol(score,selection,new SmoRepeatSymbol({position:SmoRepeatSymbol.positions.end,symbol:SmoRepeatSymbol.symbols.Fine}));
 			return layout.render().then(timeTest);
 		}
 
       
-        return drawDefaults().then(startRepeatTest).then(endRepeatTest).then(doubleEndTest).then(endEndTest).then(noneEndTest)
+        return drawDefaults().then(startRepeatTest).then(endRepeatTest).then(voltaTest1).then(doubleEndTest).then(endEndTest).then(noneEndTest)
 		    .then(symbolTest1).then(symbolTest2).then(symbolTest3).then(symbolTest4).then(symbolTest5).then(symbolTest6)
 			.then(signalComplete);
     }

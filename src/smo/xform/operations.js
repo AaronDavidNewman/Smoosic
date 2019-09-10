@@ -311,7 +311,6 @@ class SmoOperation {
 		pitch.accidental = vexPitch.length > 1 ?
 			vexPitch.substring(1, vexPitch.length) : 'n';
 		pitch.octave += smoMusic.letterChangedOctave(lastLetter, pitch.letter);
-
 	}
 
 	static addDynamic(selection, dynamic) {
@@ -320,6 +319,18 @@ class SmoOperation {
 
 	static toggleArticulation(selection, articulation) {
 		selection.note.toggleArticulation(articulation);
+	}
+	
+	static addEnding(score,parameters) {
+		var startMeasure = parameters.startBar;
+		var endMeasure = parameters.endBar;
+		score.staves.forEach((staff) => {
+			for (var i=startMeasure;i<=endMeasure;++i) {
+				var measure = staff.measures[i];
+				var ending = new SmoVolta(JSON.parse(JSON.stringify(parameters)));
+				measure.addNthEnding(ending);
+			}
+		});
 	}
 	
 	static setMeasureBarline(score,selection,barline) {

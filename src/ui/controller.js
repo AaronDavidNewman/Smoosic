@@ -4,6 +4,13 @@
 // ## Description:
 // Manages DOM events and binds keyboard and mouse events
 // to editor and menu commands, tracker and layout manager.
+// ### Event model:
+// Events can come from the following sources:
+// 1. menus or dialogs can send dialogDismiss or menuDismiss event, indicating a modal has been dismissed.
+// 2. window resize events
+// 3. keyboard, when in editor mode.  When modals or dialogs are active, wait for dismiss event 
+// 4. svg piano key events smo-piano-key
+// 5. tracker change events tracker-selection
 class suiController {
 
 	constructor(params) {
@@ -56,6 +63,9 @@ class suiController {
 		// the 100 is for the control offsets
 		var padding =  Math.round((this.layout.screenWidth-this.layout.pageWidth)/2)-100;
 		$('.workspace-container').css('padding-left',''+padding+'px');
+		
+		// Keep track of the scroll bar so we can adjust the map
+		this.scrollPosition = $('body')[0].scrollTop;
 	}
 	resizeEvent() {
 		var self = this;
@@ -74,6 +84,14 @@ class suiController {
 			self.layout.redraw().then(remap);
 			
 		}, 500);
+	}
+	
+	trackerChangeEvent() {
+		var scroll =  $('body')[0].scrollTop;
+		if (scroll != this.scrollPosition && !this.resizing) {
+			this.scrollPosition = $('body')[0].scrollTop;
+			this.resizeEvent();
+		}
 	}
 
 	bindResize() {
@@ -299,6 +317,9 @@ class suiController {
 			});
 			self.render();
 		});
+		$('body').off('tracker-selection').on('tracker-selection',function(ev) {
+			self.trackerChangeEvent(ev);
+		});
 
 		this.keydownHandler = this.handleKeydown.bind(this);
 
@@ -307,11 +328,8 @@ class suiController {
 		window.addEventListener("keydown", this.keydownHandler, true);
 		this.ribbon.display();
 
-		window.addEventListener('error', function (e,o1,o2) {
+		window.addEventListener('error', function (e) {
 			SuiExceptionHandler.instance.exceptionHandler(e);
-			if (o1) {
-				console.log('o1 exists');
-			}
 		});
 	}
 

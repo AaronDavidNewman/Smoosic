@@ -65,6 +65,33 @@ class VxMeasure {
             vxParams.stem_direction = 1;
         }
     }
+		
+	_createAccidentals(smoNote,vexNote,tickIndex) {
+		// keep a map of accidentals already set
+		var accidentals = tickIndex === 0 ? {}
+           : this.tickmap.accidentalMap[tickIndex - 1];
+        for (var i = 0; i < smoNote.pitches.length; ++i) {
+            var pitch = smoNote.pitches[i];
+            var accidental = pitch.accidental ? pitch.accidental : 'n';
+            var defaultAccidental = smoMusic.getKeySignatureKey(pitch.letter, this.smoMeasure.keySignature);
+            defaultAccidental = defaultAccidental.length > 1 ? defaultAccidental[1] : 'n';
+
+            // was this accidental declared earlier in the measure?
+            var declared = accidentals[pitch.letter] && accidentals[pitch.letter].accidental === pitch.accidental;
+
+            if ((accidental != defaultAccidental && !declared) || pitch.cautionary) {
+                var acc = new VF.Accidental(accidental);
+
+                if (pitch.cautionary) {
+                    acc.setAsCautionary();
+                }
+                vexNote.addAccidental(i, acc);
+            }
+        }
+        for (var i = 0; i < smoNote.dots; ++i) {
+            vexNote.addDotToAll();
+        }	
+	}
 
     // ## Description:
     // convert a smoNote into a vxNote so it can be rasterized
@@ -88,30 +115,7 @@ class VxMeasure {
         var vexNote = new VF.StaveNote(noteParams);
         smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
 
-        // consider accidentals in measure in earlier notes.
-        var accidentals = tickIndex === 0 ? {}
-         : this.tickmap.accidentalMap[tickIndex - 1];
-        for (var i = 0; i < smoNote.pitches.length; ++i) {
-            var pitch = smoNote.pitches[i];
-            var accidental = pitch.accidental ? pitch.accidental : 'n';
-            var defaultAccidental = smoMusic.getKeySignatureKey(pitch.letter, this.smoMeasure.keySignature);
-            defaultAccidental = defaultAccidental.length > 1 ? defaultAccidental[1] : 'n';
-
-            // was this accidental declared earlier in the measure?
-            var declared = accidentals[pitch.letter] && accidentals[pitch.letter].accidental === pitch.accidental;
-
-            if ((accidental != defaultAccidental && !declared) || pitch.cautionary) {
-                var acc = new VF.Accidental(accidental);
-
-                if (pitch.cautionary) {
-                    acc.setAsCautionary();
-                }
-                vexNote.addAccidental(i, acc);
-            }
-        }
-        for (var i = 0; i < smoNote.dots; ++i) {
-            vexNote.addDotToAll();
-        }
+		this._createAccidentals(smoNote,vexNote,tickIndex);
 		
         return vexNote;
     }
@@ -239,6 +243,14 @@ class VxMeasure {
 			var rep = new VF.Repetition(sym.toVexSymbol(),sym.xOffset+this.smoMeasure.staffX,sym.yOffset);
 			this.stave.modifiers.push(rep);
 		}
+		
+		var mods = this.smoMeasure.getNthEndings();
+		mods.forEach((mod) => {
+			var vtype = mod.toVexVolta(this.smoMeasure.measureNumber.systemIndex);
+			var vxVolta = new VF.Volta(vtype,mod.number,this.smoMeasure.staffX+mod.xOffsetStart,mod.yOffset);
+			this.stave.modifiers.push(vxVolta);
+			// this.stave.setVoltaType(vtype,''+mod.number,this.smoMeasure.staffX+mod.xOffsetStart,this.smoMeasure.yOffset);
+		});
 	}
 
     // ## Description:

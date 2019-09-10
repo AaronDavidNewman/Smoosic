@@ -135,8 +135,25 @@ class SmoVolta extends SmoMeasureModifierBase {
             endBar: 1,
             xOffsetStart: 0,
             xOffsetEnd: 0,
-            yOffset: 0,
+            yOffset: 10,
             number: 1
         }
     }
+	
+	toVexVolta(measureNumber) {
+		if (this.startBar === measureNumber && this.startBar === this.endBar) {
+			return VF.Volta.type.BEGIN_END;
+		}
+		if (this.startBar === measureNumber) {
+			return VF.Volta.type.BEGIN;
+		} 
+		if (this.endBar === measureNumber) {
+			return VF.Volta.type.END;
+		}
+		if (this.startBar < measureNumber && this.endBar > measureNumber) {
+			return VF.Volta.type.MID;
+		}
+		return VF.Volta.type.NONE;
+	}
+	
 }

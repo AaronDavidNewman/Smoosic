@@ -159,6 +159,7 @@ class suiTracker {
 			selCopy.forEach((sel) => this._findClosestSelection(sel));
 		}
 		this.highlightSelection();
+		this.triggerSelection();
 		this.pasteBuffer.clearSelections();
 		this.pasteBuffer.setSelections(this.score, this.selections);
 	}
@@ -269,6 +270,7 @@ class suiTracker {
 
 		this.selections.push(artifact);
 		this.highlightSelection();
+		this.triggerSelection();
 	}
 
 	growSelectionLeft() {
@@ -285,6 +287,7 @@ class suiTracker {
 		console.log('adding selection ' + artifact.note.id);
 		this.selections.push(artifact);
 		this.highlightSelection();
+		this.triggerSelection();
 	}
 
 	moveSelectionRight() {
@@ -326,6 +329,7 @@ class suiTracker {
 			this.selections = [selObj];
 		}
 		this.highlightSelection();
+		this.triggerSelection();
 	}
 
 	_moveStaffOffset(offset) {
@@ -337,6 +341,7 @@ class suiTracker {
 		nselector.staff = this.score.incrementActiveStaff(offset);
 		this.selections = [this._getClosestTick(nselector)];
 		this.highlightSelection();
+		this.triggerSelection();
 	}
 
 	// ### _moveSelectionPitch
@@ -394,6 +399,7 @@ class suiTracker {
 
 		this.selections = [mapped];
 		this.highlightSelection();
+		this.triggerSelection();
 	}
 
 	getFirstMeasureOfSelection() {
@@ -430,6 +436,7 @@ class suiTracker {
 			var selection = this.selections[i];
 			this.highlightSelection();
 		}
+		this.triggerSelection();
 	}
 
 	static get strokes() {
@@ -509,6 +516,9 @@ class suiTracker {
 		var headEl = heads[index];
 		var box = headEl.getBoundingClientRect();
 		this._drawRect(box, 'staffModifier');
+	}
+	triggerSelection() {
+		$('body').trigger('tracker-selection');
 	}
 
 	highlightSelection() {

@@ -421,11 +421,31 @@ class SmoMeasure {
     getStartBarline() {
         return this._getBarline(SmoBarline.positions.start);
     }
+	
+	addNthEnding(ending) {
+		var mods = [];
+		this.modifiers.forEach((modifier) => {
+			if (modifier.ctor != 'SmoVolta' || modifier.startBar != ending.startBar || modifier.endBar != ending.endBar) {
+				mods.push(modifier);
+			}
+		});
+		mods.push(ending);
+		this.modifiers = mods;
+	}
+	
+	removeNthEnding(number) {
+		var mods=[];
+		this.modifiers.forEach((modifier) => {
+			if (modifier.ctor != 'SmoVolta' || modifier.number != ending.number) {
+			}
+		});
+		this.modifiers=mods;
+	}
 
-    getStartEndings() {
+    getNthEndings() {
         var rv = [];
         this.modifiers.forEach((modifier) => {
-            if (modifier.ctor === 'SmoVolta' && modifier.startBar === this.measureNumber.systemIndex) {
+            if (modifier.ctor === 'SmoVolta') {
                 rv.push(modifier);
             }
         });
