@@ -246,7 +246,7 @@ class VxMeasure {
 		
 		var mods = this.smoMeasure.getNthEndings();
 		mods.forEach((mod) => {
-			var vtype = mod.toVexVolta(this.smoMeasure.measureNumber.systemIndex);
+			var vtype = mod.toVexVolta(this.smoMeasure.measureNumber.measureIndex);
 			var vxVolta = new VF.Volta(vtype,mod.number,this.smoMeasure.staffX+mod.xOffsetStart,mod.yOffset);
 			this.stave.modifiers.push(vxVolta);
 			// this.stave.setVoltaType(vtype,''+mod.number,this.smoMeasure.staffX+mod.xOffsetStart,this.smoMeasure.yOffset);
