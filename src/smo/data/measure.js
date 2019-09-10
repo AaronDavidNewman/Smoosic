@@ -20,6 +20,7 @@ class SmoMeasure {
         this.voices = params.voices ? params.voices : [];
         this.tuplets = params.tuplets ? params.tuplets : [];
         this.modifiers = params.modifiers ? params.modifiers : defaults.modifiers;
+		this.adjY=0;
 
         if (!this['attrs']) {
             this.attrs = {

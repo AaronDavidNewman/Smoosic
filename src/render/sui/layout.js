@@ -211,36 +211,58 @@ class suiSimpleLayout {
 			}
 		}
 	}
+	
 	// ### adjustWidths
-	// ### Description:
 	// adjustWidths updates the expected widths of the measures based on the actual rendered widths
 	adjustWidths() {
-		var mins = [];
-		var maxs = [];
+		var xmins = [];
+		var xmaxs = [];
+		var ymins=[];
+		var ymaxs = [];
+		var svg = this.context.svg;
 		for (var i = 0; i < this.score.staves.length; ++i) {
 			var staff = this.score.staves[i];
+			// vertical index of the current staff on the page
+			var six = staff.lineIndex*this.score.staves.length+i;
 			for (var j = 0; j < staff.measures.length; ++j) {
 				var measure = staff.measures[j];
 				var width = measure.renderedBox ? measure.renderedBox.width : measure.staffWidth;
+				
+				var curY=measure.renderedBox.height+measure.renderedBox.y;
 				if (i === 0) {
-					mins.push(width);
-					maxs.push(width);
+					xmins.push(width);
+					xmaxs.push(width);
 				} else {
 
-					mins[j] = mins[j] < width ? mins[j] : width;
-					maxs[j] = maxs[j] < width ? width : maxs[j];
+					xmins[j] = xmins[j] < width ? xmins[j] : width;
+					xmaxs[j] = xmaxs[j] < width ? width : xmaxs[j];
+				}
+				if (ymaxs.length <= six) {
+					ymaxs.push(curY);
+					ymins.push(measure.renderedBox.y);
+				} else {
+					ymaxs[six] = ymaxs[six] < curY? curY : ymaxs[six];
+				    ymins[six] = ymins[six] > measure.renderedBox.y ? measure.renderedBox.y : ymins[six]; 
 				}
 			}
 		}
 		for (var i = 0; i < this.score.staves.length; ++i) {
 			var staff = this.score.staves[i];
+			// vertical index of the current staff on the page
+			var six = staff.lineIndex*this.score.staves.length+i;
 			for (var j = 0; j < staff.measures.length; ++j) {
 				var measure = staff.measures[j];
-				if (measure.renderedBox) {
-					measure.staffWidth += maxs[j] - measure.renderedBox.width;
+				measure.staffWidth += xmaxs[j] - measure.renderedBox.width;
+				if (six > 0) {
+					var ny = ymaxs[six-1]-ymins[six];
+					var nbox = svgHelpers.pointBox(measure.staffX,ny);
+					nbox = svgHelpers.clientToLogical(svg,nbox);
+					measure.adjY=nbox.y;
 				}
 			}
 		}
+		console.log('ymax: ' + JSON.stringify(ymaxs,null,' '));
+		console.log('ymin: ' + JSON.stringify(ymins,null,' '));
 	}
 
 	// ### unrenderMeasure
@@ -254,6 +276,7 @@ class suiSimpleLayout {
 		$(this.renderer.getContext().svg).find('g.' + measure.attrs.id).remove();
 		measure.staffX = SmoMeasure.defaults.staffX;
 		measure.staffY = SmoMeasure.defaults.staffY;
+		measure.adjY=0;
 		measure.changed = true;
 	}
 
@@ -358,6 +381,9 @@ class suiSimpleLayout {
 		if (!topStaff.measures.length) {
 			return;
 		}
+		
+		// Note: line index is index of this line on a page
+		// System index is index of current measure from the left of the system
 		var lineIndex = 0;
 		var system = new VxSystem(this.context, topStaff.measures[0].staffY, lineIndex);
 		var systemIndex = 0;
@@ -368,7 +394,7 @@ class suiSimpleLayout {
 				var staff = this.score.staves[j];
 				var measure = staff.measures[i];
 
-				measure.measureNumber.systemIndex = j;
+				// measure.measureNumber.systemIndex = j;
 
 				var logicalStaffBox = svgHelpers.pointBox(this.score.staffX, this.score.staffY);
 				var clientStaffBox = svgHelpers.logicalToClient(svg, logicalStaffBox);
@@ -390,7 +416,7 @@ class suiSimpleLayout {
 				}
 
 				logicalStaffBox = svgHelpers.clientToLogical(svg, staffBoxes[j]);
-				if (j > 0) {
+				if (j > 0 && systemIndex === 0) {
 					measure.staffY = logicalStaffBox.y;
 				} else {
 					// Handle the case where a measure was added, is on the top staff.  Make sure
@@ -451,6 +477,7 @@ class suiSimpleLayout {
 				// WIP
 				if (drawAll || measure.changed) {
 					measure.lineIndex = lineIndex;
+					staff.lineIndex = lineIndex;
 					smoBeamerFactory.applyBeams(measure);
 					system.renderMeasure(j, measure);
 				}
