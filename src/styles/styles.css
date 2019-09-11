@@ -355,6 +355,22 @@ div.ribbonButtonContainer.expanded {
 	margin:10px;	
 }
 
+.svg-debug-box {
+	font-size:0.55em;
+	fill:#99e;
+}
+.measure-render-dbg text {
+	fill:#e99;
+}
+.measure-place-dbg line {
+	stroke:#cce;
+	stroke-width:2;
+}
+.measure-render-dbg line{
+	stroke:#e99;
+	stroke-width:2;
+}
+
 body.bugReport .bugDialog {
 	display:block;
 }

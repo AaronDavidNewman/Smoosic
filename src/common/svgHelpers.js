@@ -62,6 +62,21 @@ class svgHelpers {
 				}
 				return this;
 			}
+			this.line = function(x1,y1,x2,y2,classes) {
+				x1 = typeof(x1) == 'string' ? x1 : x1.toString();
+				y1 = typeof(y1) == 'string' ? y1: y1.toString();
+				x2 = typeof(x2) == 'string' ? x2 : x2.toString();
+				y2 = typeof(y2) == 'string' ? y2: y2.toString();
+				
+				this.e.setAttributeNS('','x1',x1);
+				this.e.setAttributeNS('','y1',y1);
+				this.e.setAttributeNS('','x2',x2);
+				this.e.setAttributeNS('','y2',y2);
+				if (classes) {
+					this.e.setAttributeNS('','class',classes);
+				}
+				return this;
+			}
 			this.append = function (el) {
 				self.e.appendChild(el.e);
 				return self;
@@ -74,6 +89,30 @@ class svgHelpers {
 		return new smoSvgBuilder(el);
 	}
 		
+
+	static debugBox(svg,box,classes,xtext) {
+		classes=classes ? classes : '';
+		classes += ' svg-debug-box';
+		var b = svgHelpers.buildSvg;
+		var mid = box.x+box.width/2;
+		var xtext = 'x: '+Math.round(box.x);
+		var wtext = 'w: '+Math.round(box.width);
+		
+		var r = b('g').classes(classes)
+		.append(
+		  b('text').text(box.x+20,box.y-14,'svg-debug-text',xtext))
+		.append(
+		  b('text').text(mid-20,box.y-14,'svg-debug-text',wtext))
+		.append(
+		  b('line').line(box.x,box.y-2,box.x+box.width,box.y-2))
+		.append(
+		  b('line').line(box.x,box.y-8,box.x,box.y+5))
+		  .append(
+		  b('line').line(box.x+box.width,box.y-8,box.x+box.width,box.y+5));
+		 
+		 svg.appendChild(r.dom());
+		
+	}		
 
 	// ### findIntersectionArtifact
 	// find all object that intersect with the rectangle
@@ -189,6 +228,15 @@ class svgHelpers {
 			height: box.height
 		});
 	}
+	
+	static boxPoints(x,y,w,h) {
+		return ({
+			x: x,
+			y: y,
+			width: w,
+			height: h
+		});
+	}
 
 	static copyBox(box) {
 		return {
@@ -197,7 +245,7 @@ class svgHelpers {
 			width: box.width,
 			height: box.height
 		};
-	}
+	}	
 
 	// ### svgViewport
 	// set `svg` element to `width`,`height` and viewport `scale`
