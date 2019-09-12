@@ -2154,6 +2154,7 @@ class MeasureTest {
 		var keys = utController.createUi(SmoScore.getDefaultScore(),'Measure Test');
 		var score = keys.score;
 		var layout = keys.layout;
+		suiSimpleLayout.debugLayout=true;
 		var undoBuffer = keys.undoBuffer;
         score.addDefaultMeasureWithNotes(0,{});
         score.addDefaultMeasureWithNotes(1,{});

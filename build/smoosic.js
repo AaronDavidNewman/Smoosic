@@ -627,45 +627,59 @@ class svgHelpers {
 		};
 	}
 
-
-    static get namespace() 	{
+	static get namespace() {
 		return "http://www.w3.org/2000/svg";
 	}
-	
+
 	static buildSvg(el) {
 
 		var smoSvgBuilder = function (el) {
 			var ns = svgHelpers.namespace;
-			this.e = document.createElementNS(ns,el);
+			this.e = document.createElementNS(ns, el);
 			var self = this;
 			this.classes = function (cl) {
-				self.e.setAttributeNS('','class',cl);				
+				self.e.setAttributeNS('', 'class', cl);
 				return self;
 			}
 			this.attr = function (name, value) {
-				self.e.setAttributeNS('',name, value);
+				self.e.setAttributeNS('', name, value);
 				return self;
 			}
-			this.text = function(x,y,classes,text) {
+			this.text = function (x, y, classes, text) {
 				x = typeof(x) == 'string' ? x : x.toString();
 				y = typeof(y) == 'string' ? y : y.toString();
-				this.e.setAttributeNS('','class',classes);
-				this.e.setAttributeNS('','x',x);
-				this.e.setAttributeNS('','y',y);
-				this.e.textContent=text;
+				this.e.setAttributeNS('', 'class', classes);
+				this.e.setAttributeNS('', 'x', x);
+				this.e.setAttributeNS('', 'y', y);
+				this.e.textContent = text;
 				return this;
 			}
-			this.rect = function(x,y,width,height,classes) {
+			this.rect = function (x, y, width, height, classes) {
 				x = typeof(x) == 'string' ? x : x.toString();
 				y = typeof(y) == 'string' ? y : y.toString();
 				width = typeof(width) == 'string' ? width : width.toString();
 				height = typeof(height) == 'string' ? height : height.toString();
-				this.e.setAttributeNS('','x',x);
-				this.e.setAttributeNS('','y',y);
-				this.e.setAttributeNS('','width',width);
-				this.e.setAttributeNS('','height',height);				
+				this.e.setAttributeNS('', 'x', x);
+				this.e.setAttributeNS('', 'y', y);
+				this.e.setAttributeNS('', 'width', width);
+				this.e.setAttributeNS('', 'height', height);
 				if (classes) {
-					this.e.setAttributeNS('','class',classes);
+					this.e.setAttributeNS('', 'class', classes);
+				}
+				return this;
+			}
+			this.line = function (x1, y1, x2, y2, classes) {
+				x1 = typeof(x1) == 'string' ? x1 : x1.toString();
+				y1 = typeof(y1) == 'string' ? y1 : y1.toString();
+				x2 = typeof(x2) == 'string' ? x2 : x2.toString();
+				y2 = typeof(y2) == 'string' ? y2 : y2.toString();
+
+				this.e.setAttributeNS('', 'x1', x1);
+				this.e.setAttributeNS('', 'y1', y1);
+				this.e.setAttributeNS('', 'x2', x2);
+				this.e.setAttributeNS('', 'y2', y2);
+				if (classes) {
+					this.e.setAttributeNS('', 'class', classes);
 				}
 				return this;
 			}
@@ -680,11 +694,52 @@ class svgHelpers {
 		}
 		return new smoSvgBuilder(el);
 	}
-		
+
+	static debugBox(svg, box, classes, voffset) {
+		voffset = voffset ? voffset : 0;
+		classes = classes ? classes : '';
+		classes += ' svg-debug-box';
+		var b = svgHelpers.buildSvg;
+		var mid = box.x + box.width / 2;
+		var xtext = 'x1: ' + Math.round(box.x);
+		var wtext = 'x2: ' + Math.round(box.width+box.x);
+		var ytext = 'y1: ' + Math.round(box.y);
+		var htext = 'y2: ' + Math.round(box.height+box.y);
+		var ytextp = Math.round(box.y+box.height);
+		var ytextp2 = Math.round(box.y+box.height-30);
+
+		var r = b('g').classes(classes)
+			.append(
+				b('text').text(box.x + 20, box.y - 14+voffset, 'svg-debug-text', xtext))
+			.append(
+				b('text').text(mid - 20, box.y - 14+voffset, 'svg-debug-text', wtext))
+			.append(
+				b('line').line(box.x, box.y - 2, box.x + box.width, box.y - 2))
+			.append(
+				b('line').line(box.x, box.y - 8, box.x, box.y + 5))
+			.append(
+				b('line').line(box.x + box.width, box.y - 8, box.x + box.width, box.y + 5));
+		if (box.height > 2) {
+			r.append(
+				b('text').text(Math.round(box.x-14+voffset), ytextp, 'svg-vdebug-text', ytext)
+				  .attr('transform','rotate(-90,'+Math.round(box.x-14+voffset)+','+ytextp+')'))
+			  .append(
+				b('text').text(Math.round(box.x-14+voffset), ytextp2, 'svg-vdebug-text', htext)
+				  .attr('transform','rotate(-90,'+Math.round(box.x-14+voffset)+','+(ytextp2)+')'))
+				  .append(
+				b('line').line(Math.round(box.x-2), Math.round(box.y +box.height),box.x-2,box.y))
+				  .append(
+				b('line').line(Math.round(box.x-8), Math.round(box.y +box.height),box.x+6,Math.round(box.y+box.height)))
+				  .append(
+				b('line').line(Math.round(box.x-8), Math.round(box.y),Math.round(box.x+6),Math.round(box.y)));				  
+		}
+		svg.appendChild(r.dom());
+
+	}
 
 	// ### findIntersectionArtifact
 	// find all object that intersect with the rectangle
-	static findIntersectingArtifact(clientBox,objects) {
+	static findIntersectingArtifact(clientBox, objects) {
 		var obj = null;
 		var box = clientBox; //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
 
@@ -699,23 +754,23 @@ class svgHelpers {
 			var i2 = box.y - object.box.y;
 			if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
 				rv.push(object);
-			}			
+			}
 		});
 
 		return rv;
 	}
-	static findSmallestIntersection(clientBox,objects) {
-		var ar = svgHelpers.findIntersectingArtifact(clientBox,objects);
+	static findSmallestIntersection(clientBox, objects) {
+		var ar = svgHelpers.findIntersectingArtifact(clientBox, objects);
 		if (!ar.length) {
 			return null;
 		}
-		var rv=ar[0];
-		var min=ar[0].box.width*ar[0].box.height;
+		var rv = ar[0];
+		var min = ar[0].box.width * ar[0].box.height;
 		ar.forEach((obj) => {
-			var tst = obj.box.width*obj.box.height;
+			var tst = obj.box.width * obj.box.height;
 			if (tst < min) {
 				rv = obj;
-				min=tst;
+				min = tst;
 			}
 		});
 		return rv;
@@ -794,6 +849,15 @@ class svgHelpers {
 			y: box.y,
 			width: box.width,
 			height: box.height
+		});
+	}
+
+	static boxPoints(x, y, w, h) {
+		return ({
+			x: x,
+			y: y,
+			width: w,
+			height: h
 		});
 	}
 
@@ -1665,6 +1729,7 @@ class SmoMeasure {
         this.voices = params.voices ? params.voices : [];
         this.tuplets = params.tuplets ? params.tuplets : [];
         this.modifiers = params.modifiers ? params.modifiers : defaults.modifiers;
+		this.adjY=0;
 
         if (!this['attrs']) {
             this.attrs = {
@@ -4180,6 +4245,7 @@ class SmoOperation {
 	}
 
 	static toggleBeamGroup(noteSelection) {
+		noteSelection.measure.changed = true;
 		noteSelection.note.endBeam = !(noteSelection.note.endBeam);
 	}
 
@@ -4191,6 +4257,7 @@ class SmoOperation {
 				measure: selection.selector.measure,
 				voice: selection.selector.voice
 			};
+			selection.measure.changed = true;
 			if (!measureTicks[measureSel]) {
 				var tm = selection.measure.tickmap();
 				var tickOffset = tm.durationMap[selection.selector.tick];
@@ -4242,6 +4309,7 @@ class SmoOperation {
 				});
 			SmoTickTransformer.applyTransform(measure, actor);
 		}
+		selection.measure.changed = true;
 		return true;
 	}
 
@@ -4275,6 +4343,7 @@ class SmoOperation {
 				});
 			SmoTickTransformer.applyTransform(measure, actor);
 		}
+		selection.measure.changed = true;
 	}
 
 	// ## makeTuplet
@@ -4294,13 +4363,17 @@ class SmoOperation {
 				measure: measure
 			});
 		SmoTickTransformer.applyTransform(measure, actor);
+		selection.measure.changed = true;
+		
 		return true;
 	}
 
 	static makeRest(selection) {
+		selection.measure.changed = true;
 		selection.note.makeRest();
 	}
 	static makeNote(selection) {
+		selection.measure.changed = true;
 		selection.note.makeNote();
 	}
 
@@ -4324,6 +4397,7 @@ class SmoOperation {
 				measure: measure
 			});
 		SmoTickTransformer.applyTransform(measure, actor);
+		measure.changed = true;
 		return true;
 	}
 
@@ -4353,6 +4427,7 @@ class SmoOperation {
 				newTicks: nticks
 			});
 		SmoTickTransformer.applyTransform(measure, actor);
+		measure.changed = true;
 		return true;
 	}
 
@@ -4373,6 +4448,7 @@ class SmoOperation {
 				newTicks: nticks
 			});
 		SmoTickTransformer.applyTransform(measure, actor);
+		selection.measure.changed = true;		
 		return true;
 	}
 
@@ -4384,6 +4460,7 @@ class SmoOperation {
 		var note = selection.note;
 		if (measure && note) {
 			note.transpose(selection.selector.pitches, offset, measure.keySignature);
+			measure.changed = true;
 			return true;
 		}
 		return false;
@@ -4397,6 +4474,7 @@ class SmoOperation {
 	static setPitch(selection, pitches) {
 		var measure = selection.measure;
 		var note = selection.note;
+		measure.changed = true;
 		// TODO allow hint for octave
 		var octave = note.pitches[0].octave;
 		note.pitches = [];
@@ -4439,6 +4517,7 @@ class SmoOperation {
 			smoMusic.smoPitchToInt(b);
 			});
 		selection.note.pitches=JSON.parse(JSON.stringify(toAdd));
+		selection.measure.changed = true;
 	}
 
 	static toggleCourtesyAccidental(selection) {
@@ -4457,12 +4536,14 @@ class SmoOperation {
 		}
 
 		SmoOperation.courtesyAccidental(selection, toBe);
+		selection.measure.changed = true;
 	}
 
 	static courtesyAccidental(pitchSelection, toBe) {
 		pitchSelection.selector.pitches.forEach((pitchIx) => {
 			pitchSelection.note.pitches[pitchIx].cautionary = toBe;
 		});
+		pitchSelection.measure.changed = true;
 	}
 	
 	static toggleEnharmonic(pitchSelection) {
@@ -4478,14 +4559,17 @@ class SmoOperation {
 		pitch.accidental = vexPitch.length > 1 ?
 			vexPitch.substring(1, vexPitch.length) : 'n';
 		pitch.octave += smoMusic.letterChangedOctave(lastLetter, pitch.letter);
+		pitchSelection.measure.changed = true;
 	}
 
 	static addDynamic(selection, dynamic) {
 		selection.note.addModifier(dynamic);
+		selection.measure.changed = true;
 	}
 
 	static toggleArticulation(selection, articulation) {
 		selection.note.toggleArticulation(articulation);
+		selection.measure.changed = true;
 	}
 	
 	static addEnding(score,parameters) {
@@ -4496,6 +4580,7 @@ class SmoOperation {
 				var measure = staff.measures[i];
 				var ending = new SmoVolta(JSON.parse(JSON.stringify(parameters)));
 				measure.addNthEnding(ending);
+				measure.changed = true;
 			}
 		});
 	}
@@ -4506,6 +4591,7 @@ class SmoOperation {
 		score.staves.forEach((staff) => {
 			var s2 = SmoSelection.measureSelection(score,ix,mm);
 			s2.measure.setBarline(barline);
+			s2.measure.changed = true;
 			ix += 1;
 		});
 	}
@@ -4516,6 +4602,7 @@ class SmoOperation {
 		score.staves.forEach((staff) => {
 			var s2 = SmoSelection.measureSelection(score,ix,mm);
 			s2.measure.setRepeatSymbol(sym);
+			s2.measure.changed = true;
 			ix += 1;
 		});
 	}	
@@ -4526,6 +4613,7 @@ class SmoOperation {
 	static interval(selection, interval) {
 		var measure = selection.measure;
 		var note = selection.note;
+		selection.measure.changed = true;
 
 		// TODO: figure out which pitch is selected
 		var pitch = note.pitches[0];
@@ -4590,6 +4678,7 @@ class SmoOperation {
 			if (!measureHash[selection.selector.measure]) {
 				measureHash[selection.selector.measure] = 1;
 				selection.measure.clef = instrument.clef;
+				selection.measure.changed = true;
 				selection.measure.transposeIndex = instrument.keyOffset;
 				selection.measure.voices.forEach((voice) => {
 					voice.notes.forEach((note) => {
@@ -5444,7 +5533,7 @@ class VxMeasure {
 		
 		var mods = this.smoMeasure.getNthEndings();
 		mods.forEach((mod) => {
-			var vtype = mod.toVexVolta(this.smoMeasure.measureNumber.systemIndex);
+			var vtype = mod.toVexVolta(this.smoMeasure.measureNumber.measureIndex);
 			var vxVolta = new VF.Volta(vtype,mod.number,this.smoMeasure.staffX+mod.xOffsetStart,mod.yOffset);
 			this.stave.modifiers.push(vxVolta);
 			// this.stave.setVoltaType(vtype,''+mod.number,this.smoMeasure.staffX+mod.xOffsetStart,this.smoMeasure.yOffset);
@@ -5471,8 +5560,8 @@ class VxMeasure {
 		if (this.smoMeasure.forceKeySignature && this.smoMeasure.canceledKeySignature) {
 			staffMargin += smoMusic.keySignatureLength[canceledKey]*8;
 		}
-        var staffWidth = this.smoMeasure.staffWidth
-             + staffMargin;
+        var staffWidth = this.smoMeasure.staffWidth;
+           + this.smoMeasure.adjX;
 		
 
         //console.log('measure '+JSON.stringify(this.smoMeasure.measureNumber,null,' ')+' x: ' + this.smoMeasure.staffX + ' y: '+this.smoMeasure.staffY
@@ -5520,7 +5609,7 @@ class VxMeasure {
         }
 		
 		// Need to format for x position, then set y position before drawing dynamics.
-        this.formatter = new VF.Formatter().joinVoices(voiceAr).format(voiceAr, this.smoMeasure.staffWidth - this.smoMeasure.adjX);
+        this.formatter = new VF.Formatter().joinVoices(voiceAr).format(voiceAr, this.smoMeasure.staffWidth-(this.smoMeasure.adjX+2));
 		
         for (var j = 0; j < voiceAr.length; ++j) {
             voiceAr[j].draw(this.context, this.stave);
@@ -5534,6 +5623,10 @@ class VxMeasure {
         this.vexTuplets.forEach(function (tuplet) {
             tuplet.setContext(self.context).draw();
         });
+		this.renderDynamics();
+		this.smoMeasure.adjX = this.stave.start_x - (this.smoMeasure.staffX);
+
+        this.context.closeGroup();
         var box = group.getBoundingClientRect();
         this.smoMeasure.renderedBox = {
             x: box.x,
@@ -5543,15 +5636,6 @@ class VxMeasure {
         };
         this.smoMeasure.changed = false;
 		
-		this.renderDynamics();		
-
-        // Calculate how far off our estimated width we are
-        var svgBox =
-            svgHelpers.clientToLogical(this.context.svg, box);
-        this.smoMeasure.adjX = svgBox.width - this.stave.getWidth() + this.smoMeasure.rightMargin;
-        // console.log('adjx is '+this.smoMeasure.adjX);
-        // console.log(JSON.stringify(this.smoMeasure.renderedBox,null,' '));
-        this.context.closeGroup();
     }
 }
 ;// ## Description:
@@ -6298,8 +6382,8 @@ class suiSimpleLayout {
 
 	setViewport() {
 		this.screenWidth = window.innerWidth;
-		var zoomScale = this.score.zoomMode === SmoScore.zoomModes.zoomScale ? 
-		    score.zoomScale : (window.innerWidth - 200) / this.score.pageWidth;
+		var zoomScale = this.score.zoomMode === SmoScore.zoomModes.zoomScale ?
+			score.zoomScale : (window.innerWidth - 200) / this.score.pageWidth;
 
 		this.svgScale = this.score.svgScale * zoomScale;
 		this.pageWidth = Math.round(this.score.pageWidth * zoomScale);
@@ -6368,7 +6452,7 @@ class suiSimpleLayout {
 	get renderElement() {
 		return this.renderer.elementId;
 	}
-	
+
 	renderAndAdvance() {
 		this.render();
 	}
@@ -6379,19 +6463,19 @@ class suiSimpleLayout {
 	// 2. Widths and heights are adjusted for elements that may have overlapped or exceeded their expected boundary.
 	// 3. The whole score is rendered a second time with the new values.
 	render() {
-		const promise = new Promise((resolve, reject) => {			
+		const promise = new Promise((resolve, reject) => {
 				this._render();
-				resolve();			
+				resolve();
 			});
-		
+
 		return promise;
 	}
 	redraw() {
-		const promise = new Promise((resolve, reject) => {			
+		const promise = new Promise((resolve, reject) => {
 				this._redraw();
-				resolve();			
+				resolve();
 			});
-		
+
 		return promise;
 	}
 	_redraw() {
@@ -6490,36 +6574,54 @@ class suiSimpleLayout {
 			}
 		}
 	}
+
 	// ### adjustWidths
-	// ### Description:
 	// adjustWidths updates the expected widths of the measures based on the actual rendered widths
 	adjustWidths() {
-		var mins = [];
-		var maxs = [];
+		var xmaxs = {};
+		var ymaxs = [];
+		if (suiSimpleLayout.debugLayout) {
+			$(this.renderer.getContext().svg).find('g.measure-adjust-dbg').remove();
+		}
+		var svg = this.context.svg;
 		for (var i = 0; i < this.score.staves.length; ++i) {
 			var staff = this.score.staves[i];
+			// vertical index of the current staff on the page
+			var six = staff.lineIndex * this.score.staves.length + i;
 			for (var j = 0; j < staff.measures.length; ++j) {
 				var measure = staff.measures[j];
-				var width = measure.renderedBox ? measure.renderedBox.width : measure.staffWidth;
-				if (i === 0) {
-					mins.push(width);
-					maxs.push(width);
+				var hix = ''+staff.lineIndex+'-'+measure.measureNumber.systemIndex;
+				var lbox = svgHelpers.clientToLogical(svg,measure.renderedBox);
+				var width = lbox.width;
+				if (!xmaxs[hix]) {
+					xmaxs[hix]=Math.round(lbox.width-1);
 				} else {
-
-					mins[j] = mins[j] < width ? mins[j] : width;
-					maxs[j] = maxs[j] < width ? width : maxs[j];
+					xmaxs[hix] = xmaxs[hix] < Math.round(lbox.width-1) ? Math.round(lbox.width-1) : xmaxs[hix];
+				}
+				var curY=lbox.y+lbox.height;
+				if (ymaxs.length <= six) {
+					ymaxs.push(curY);
+				} else {
+					ymaxs[six] = ymaxs[six] < curY ? curY : ymaxs[six];
 				}
 			}
 		}
 		for (var i = 0; i < this.score.staves.length; ++i) {
 			var staff = this.score.staves[i];
+			// vertical index of the current staff on the page
+			var six = staff.lineIndex * this.score.staves.length + i;
 			for (var j = 0; j < staff.measures.length; ++j) {
 				var measure = staff.measures[j];
-				if (measure.renderedBox) {
-					measure.staffWidth += maxs[j] - measure.renderedBox.width;
+				var hix = ''+staff.lineIndex+'-'+measure.measureNumber.systemIndex;
+				var lbox = svgHelpers.clientToLogical(svg,measure.renderedBox);
+				if (suiSimpleLayout.debugLayout) {
+					var dbgBox = svgHelpers.boxPoints(lbox.x,lbox.y,xmaxs[hix],ymaxs[six]-lbox.y);
+					svgHelpers.debugBox(svg, dbgBox,'measure-adjust-dbg',10);
 				}
+				measure.staffWidth = Math.round(xmaxs[hix]);
 			}
 		}
+
 	}
 
 	// ### unrenderMeasure
@@ -6533,6 +6635,8 @@ class suiSimpleLayout {
 		$(this.renderer.getContext().svg).find('g.' + measure.attrs.id).remove();
 		measure.staffX = SmoMeasure.defaults.staffX;
 		measure.staffY = SmoMeasure.defaults.staffY;
+		measure.staffWidth = SmoMeasure.defaults.staffWidth;
+		measure.adjY = 0;
 		measure.changed = true;
 	}
 
@@ -6624,6 +6728,11 @@ class suiSimpleLayout {
 	layout(drawAll) {
 		var svg = this.context.svg;
 
+		if (suiSimpleLayout.debugLayout) {
+			$(this.renderer.getContext().svg).find('g.measure-place-dbg').remove();
+			$(this.renderer.getContext().svg).find('g.measure-render-dbg').remove();
+		}
+
 		// bounding box of all artifacts on the page
 		var pageBox = {};
 		// bounding box of all artifacts in a system
@@ -6637,6 +6746,9 @@ class suiSimpleLayout {
 		if (!topStaff.measures.length) {
 			return;
 		}
+
+		// Note: line index is index of this line on a page
+		// System index is index of current measure from the left of the system
 		var lineIndex = 0;
 		var system = new VxSystem(this.context, topStaff.measures[0].staffY, lineIndex);
 		var systemIndex = 0;
@@ -6647,30 +6759,24 @@ class suiSimpleLayout {
 				var staff = this.score.staves[j];
 				var measure = staff.measures[i];
 
-				measure.measureNumber.systemIndex = j;
+				// measure.measureNumber.systemIndex = j;
 
-				var logicalStaffBox = svgHelpers.pointBox(this.score.staffX, this.score.staffY);
-				var clientStaffBox = svgHelpers.logicalToClient(svg, logicalStaffBox);
+				// The SVG X,Y of this staff.  Set it initially to the UL corner of page.  Width,height filled in later.
+				var staffBox = svgHelpers.pointBox(this.score.staffX, this.score.staffY);
 
-				if (suiSimpleLayout.debugLayout) {
-					console.log('@@ staff position before adj logical:');
-					svgHelpers.log(logicalStaffBox);
-					console.log('@@ client position:');
-					svgHelpers.log(clientStaffBox);
-				}
-
-				// If we are starting a new staff on the same system, offset y so it is below the first staff.
+				// The left-most measure sets the y for the row, top measure sets the x for the column.
+				// Other measures get the x, y from previous measure on this row.
 				if (!staffBoxes[j]) {
 					if (j == 0) {
-						staffBoxes[j] = svgHelpers.copyBox(clientStaffBox);
+						staffBoxes[j] = svgHelpers.copyBox(staffBox);
 					} else {
 						staffBoxes[j] = svgHelpers.pointBox(staffBoxes[j - 1].x, staffBoxes[j - 1].y + staffBoxes[j - 1].height);
 					}
 				}
 
-				logicalStaffBox = svgHelpers.clientToLogical(svg, staffBoxes[j]);
-				if (j > 0) {
-					measure.staffY = logicalStaffBox.y;
+				staffBox = staffBoxes[j];
+				if (j > 0 && systemIndex === 0) {
+					measure.staffY = staffBox.y;
 				} else {
 					// Handle the case where a measure was added, is on the top staff.  Make sure
 					// that all staves in a line have the same Y position.
@@ -6679,21 +6785,22 @@ class suiSimpleLayout {
 					}
 				}
 
-				measure.staffX = logicalStaffBox.x + logicalStaffBox.width;
+				measure.staffX = staffBox.x + staffBox.width;
 
 				if (!systemBoxes[lineIndex]) {
-					systemBoxes[lineIndex] = svgHelpers.copyBox(clientStaffBox);
+					systemBoxes[lineIndex] = svgHelpers.copyBox(staffBox);
 				}
 
 				if (!pageBox['width']) {
-					pageBox = svgHelpers.copyBox(clientStaffBox);
+					pageBox = svgHelpers.copyBox(staffBox);
 				}
 				var measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
 				var keySigLast = smoMusic.vexKeySignatureTranspose(this._previousAttr(i, j, 'keySignature'), measure.transposeIndex);
 				var timeSigLast = this._previousAttr(i, j, 'timeSignature');
 				var clefLast = this._previousAttr(i, j, 'clef');
 
-				if (j == 0 && logicalStaffBox.x + logicalStaffBox.width + measure.staffWidth
+				// Do we need to start a new line?
+				if (j == 0 && staffBox.x + staffBox.width + measure.staffWidth
 					 > this.pageMarginWidth / this.svgScale) {
 					if (drawAll) {
 						system.cap();
@@ -6701,17 +6808,14 @@ class suiSimpleLayout {
 					this.score.staves.forEach((stf) => {
 						this._renderModifiers(stf, system);
 					});
-					var logicalPageBox = svgHelpers.clientToLogical(svg, pageBox);
 					measure.staffX = this.score.staffX + 1;
-					measure.staffY = logicalPageBox.y + logicalPageBox.height + this.score.interGap;
+					measure.staffY = pageBox.y + pageBox.height + this.score.interGap;
 					staffBoxes = {};
-					staffBoxes[j] = svgHelpers.logicalToClient(svg,
-							svgHelpers.pointBox(this.score.staffX, staff.staffY));
+					staffBoxes[j] = svgHelpers.pointBox(this.score.staffX, staff.staffY);
 					lineIndex += 1;
 					system = new VxSystem(this.context, staff.staffY, lineIndex);
 					systemIndex = 0;
-					systemBoxes[lineIndex] = svgHelpers.logicalToClient(svg,
-							svgHelpers.pointBox(measure.staffX, staff.staffY));
+					systemBoxes[lineIndex] = svgHelpers.pointBox(measure.staffX, staff.staffY);
 				}
 
 				measure.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
@@ -6727,30 +6831,30 @@ class suiSimpleLayout {
 
 				// guess height of staff the first time
 				measure.measureNumber.systemIndex = systemIndex;
+
+				if (suiSimpleLayout.debugLayout) {
+					svgHelpers.debugBox(
+						svg, svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, 1), 'measure-place-dbg');
+				}
 				// WIP
 				if (drawAll || measure.changed) {
 					measure.lineIndex = lineIndex;
+					staff.lineIndex = lineIndex;
 					smoBeamerFactory.applyBeams(measure);
 					system.renderMeasure(j, measure);
+
+					if (suiSimpleLayout.debugLayout) {
+						svgHelpers.debugBox(svg, svgHelpers.clientToLogical(svg, measure.renderedBox), 'measure-render-dbg');
+					}
+					measure.changed=false;
 				}
+				// Rendered box is in client coordinates, convert it to SVG
+				var logicalRenderedBox = svgHelpers.clientToLogical(svg, measure.renderedBox);
 
 				// Keep a running tally of the page, system, and staff dimensions as we draw.
-				systemBoxes[lineIndex] = svgHelpers.unionRect(systemBoxes[lineIndex], measure.renderedBox);
-				staffBoxes[j] = svgHelpers.unionRect(staffBoxes[j], measure.renderedBox);
-				pageBox = svgHelpers.unionRect(pageBox, measure.renderedBox);
-
-				if (suiSimpleLayout.debugLayout) {
-					console.log('@@after m ' + i + ' staff ' + j + ' line ' + lineIndex + ' staff logical:');
-					console.log(smoMusic.stringifyAttrs(['staffX', 'staffY', 'staffWidth', 'adjX'], measure));
-					console.log('measure box');
-					svgHelpers.log(measure.renderedBox);
-					console.log('system box');
-					svgHelpers.log(systemBoxes[lineIndex]);
-					console.log('staff box');
-					svgHelpers.log(staffBoxes[j]);
-					console.log('page box');
-					svgHelpers.log(pageBox);
-				}
+				systemBoxes[lineIndex] = svgHelpers.unionRect(systemBoxes[lineIndex], logicalRenderedBox);
+				staffBoxes[j] = svgHelpers.unionRect(staffBoxes[j], logicalRenderedBox);
+				pageBox = svgHelpers.unionRect(pageBox, logicalRenderedBox);
 			}
 			++systemIndex;
 		}
@@ -10743,6 +10847,7 @@ class suiController {
 		suiController.createDom();
 		var params = suiController.keyBindingDefaults;
 		params.layout = suiSimpleLayout.createScoreLayout(document.getElementById("boo"), score);
+		// suiSimpleLayout.debugLayout=true;
 		params.tracker = new suiTracker(params.layout);
 		params.score = score;
 		params.editor = new suiEditor(params);
