@@ -215,9 +215,7 @@ class suiSimpleLayout {
 	// ### adjustWidths
 	// adjustWidths updates the expected widths of the measures based on the actual rendered widths
 	adjustWidths() {
-		var xmins = [];
-		var xmaxs = [];
-		var ymins = [];
+		var xmaxs = {};
 		var ymaxs = [];
 		if (suiSimpleLayout.debugLayout) {
 			$(this.renderer.getContext().svg).find('g.measure-adjust-dbg').remove();
@@ -229,24 +227,19 @@ class suiSimpleLayout {
 			var six = staff.lineIndex * this.score.staves.length + i;
 			for (var j = 0; j < staff.measures.length; ++j) {
 				var measure = staff.measures[j];
+				var hix = ''+staff.lineIndex+'-'+measure.measureNumber.systemIndex;
 				var lbox = svgHelpers.clientToLogical(svg,measure.renderedBox);
 				var width = lbox.width;
-
-				var curY = lbox.height + lbox.y;
-				if (i === 0) {
-					xmins.push(width);
-					xmaxs.push(width);
+				if (!xmaxs[hix]) {
+					xmaxs[hix]=lbox.width;
 				} else {
-
-					xmins[j] = xmins[j] < width ? xmins[j] : width;
-					xmaxs[j] = xmaxs[j] < width ? width : xmaxs[j];
+					xmaxs[hix] = xmaxs[hix] < lbox.width ? lbox.width : xmaxs[hix];
 				}
+				var curY=lbox.y+lbox.height;
 				if (ymaxs.length <= six) {
 					ymaxs.push(curY);
-					ymins.push(lbox.y);
 				} else {
 					ymaxs[six] = ymaxs[six] < curY ? curY : ymaxs[six];
-					ymins[six] = ymins[six] > lbox.y ? lbox.y : ymins[six];
 				}
 			}
 		}
@@ -256,19 +249,16 @@ class suiSimpleLayout {
 			var six = staff.lineIndex * this.score.staves.length + i;
 			for (var j = 0; j < staff.measures.length; ++j) {
 				var measure = staff.measures[j];
+				var hix = ''+staff.lineIndex+'-'+measure.measureNumber.systemIndex;
 				var lbox = svgHelpers.clientToLogical(svg,measure.renderedBox);
-				var dbgBox = svgHelpers.boxPoints(lbox.x,lbox.y,xmaxs[j] - lbox.width,lbox.height);
-				svgHelpers.debugBox(svg, dbgBox,'measure-adjust-dbg');
-				measure.staffWidth += xmaxs[j] - lbox.width;
-				if (six > 0) {
-					var ny = ymaxs[six - 1] - ymins[six];
-					var nbox = svgHelpers.pointBox(measure.staffX, ny);
-					measure.adjY = lbox.y;
+				if (suiSimpleLayout.debugLayout) {
+					var dbgBox = svgHelpers.boxPoints(lbox.x,lbox.y,xmaxs[hix],ymaxs[six]-lbox.y);
+					svgHelpers.debugBox(svg, dbgBox,'measure-adjust-dbg',10);
 				}
+				measure.staffWidth = xmaxs[hix];
 			}
 		}
-		console.log('ymax: ' + JSON.stringify(ymaxs, null, ' '));
-		console.log('ymin: ' + JSON.stringify(ymins, null, ' '));
+
 	}
 
 	// ### unrenderMeasure
@@ -492,6 +482,7 @@ class suiSimpleLayout {
 					if (suiSimpleLayout.debugLayout) {
 						svgHelpers.debugBox(svg, svgHelpers.clientToLogical(svg, measure.renderedBox), 'measure-render-dbg');
 					}
+					measure.changed=false;
 				}
 				// Rendered box is in client coordinates, convert it to SVG
 				var logicalRenderedBox = svgHelpers.clientToLogical(svg, measure.renderedBox);

@@ -88,7 +88,8 @@ class svgHelpers {
 		return new smoSvgBuilder(el);
 	}
 
-	static debugBox(svg, box, classes, xtext) {
+	static debugBox(svg, box, classes, voffset) {
+		voffset = voffset ? voffset : 0;
 		classes = classes ? classes : '';
 		classes += ' svg-debug-box';
 		var b = svgHelpers.buildSvg;
@@ -102,9 +103,9 @@ class svgHelpers {
 
 		var r = b('g').classes(classes)
 			.append(
-				b('text').text(box.x + 20, box.y - 14, 'svg-debug-text', xtext))
+				b('text').text(box.x + 20, box.y - 14+voffset, 'svg-debug-text', xtext))
 			.append(
-				b('text').text(mid - 20, box.y - 14, 'svg-debug-text', wtext))
+				b('text').text(mid - 20, box.y - 14+voffset, 'svg-debug-text', wtext))
 			.append(
 				b('line').line(box.x, box.y - 2, box.x + box.width, box.y - 2))
 			.append(
@@ -113,11 +114,11 @@ class svgHelpers {
 				b('line').line(box.x + box.width, box.y - 8, box.x + box.width, box.y + 5));
 		if (box.height > 2) {
 			r.append(
-				b('text').text(Math.round(box.x-14), ytextp, 'svg-vdebug-text', ytext)
-				  .attr('transform','rotate(-90,'+Math.round(box.x-14)+','+ytextp+')'))
+				b('text').text(Math.round(box.x-14+voffset), ytextp, 'svg-vdebug-text', ytext)
+				  .attr('transform','rotate(-90,'+Math.round(box.x-14+voffset)+','+ytextp+')'))
 			  .append(
-				b('text').text(Math.round(box.x-14), ytextp2, 'svg-vdebug-text', htext)
-				  .attr('transform','rotate(-90,'+Math.round(box.x-14)+','+(ytextp2)+')'))
+				b('text').text(Math.round(box.x-14+voffset), ytextp2, 'svg-vdebug-text', htext)
+				  .attr('transform','rotate(-90,'+Math.round(box.x-14+voffset)+','+(ytextp2)+')'))
 				  .append(
 				b('line').line(Math.round(box.x-2), Math.round(box.y +box.height),box.x-2,box.y))
 				  .append(
