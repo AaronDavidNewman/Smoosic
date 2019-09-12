@@ -359,15 +359,29 @@ div.ribbonButtonContainer.expanded {
 	font-size:0.55em;
 	fill:#99e;
 }
+.measure-adjust-dbg text {
+	fill:#492;
+	font-size:1em;
+}
+.measure-adjust-dbg line {
+	stroke:#492;
+	stroke-width:2;
+}
 .measure-render-dbg text {
-	fill:#e99;
+	fill:#933;
+	font-size:1em;
 }
 .measure-place-dbg line {
-	stroke:#cce;
-	stroke-width:2;
+	stroke:#9d9dee;
+	stroke-width:1;
 }
 .measure-render-dbg line{
 	stroke:#e99;
+	stroke-width:2;
+}
+
+.measure-adjust-dbg line {
+	stroke:#cfc;
 	stroke-width:2;
 }
 

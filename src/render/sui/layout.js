@@ -219,6 +219,9 @@ class suiSimpleLayout {
 		var xmaxs = [];
 		var ymins = [];
 		var ymaxs = [];
+		if (suiSimpleLayout.debugLayout) {
+			$(this.renderer.getContext().svg).find('g.measure-adjust-dbg').remove();
+		}
 		var svg = this.context.svg;
 		for (var i = 0; i < this.score.staves.length; ++i) {
 			var staff = this.score.staves[i];
@@ -226,9 +229,10 @@ class suiSimpleLayout {
 			var six = staff.lineIndex * this.score.staves.length + i;
 			for (var j = 0; j < staff.measures.length; ++j) {
 				var measure = staff.measures[j];
-				var width = measure.renderedBox ? measure.renderedBox.width : measure.staffWidth;
+				var lbox = svgHelpers.clientToLogical(svg,measure.renderedBox);
+				var width = lbox.width;
 
-				var curY = measure.renderedBox.height + measure.renderedBox.y;
+				var curY = lbox.height + lbox.y;
 				if (i === 0) {
 					xmins.push(width);
 					xmaxs.push(width);
@@ -239,10 +243,10 @@ class suiSimpleLayout {
 				}
 				if (ymaxs.length <= six) {
 					ymaxs.push(curY);
-					ymins.push(measure.renderedBox.y);
+					ymins.push(lbox.y);
 				} else {
 					ymaxs[six] = ymaxs[six] < curY ? curY : ymaxs[six];
-					ymins[six] = ymins[six] > measure.renderedBox.y ? measure.renderedBox.y : ymins[six];
+					ymins[six] = ymins[six] > lbox.y ? lbox.y : ymins[six];
 				}
 			}
 		}
@@ -252,12 +256,14 @@ class suiSimpleLayout {
 			var six = staff.lineIndex * this.score.staves.length + i;
 			for (var j = 0; j < staff.measures.length; ++j) {
 				var measure = staff.measures[j];
-				measure.staffWidth += xmaxs[j] - measure.renderedBox.width;
+				var lbox = svgHelpers.clientToLogical(svg,measure.renderedBox);
+				var dbgBox = svgHelpers.boxPoints(lbox.x,lbox.y,xmaxs[j] - lbox.width,lbox.height);
+				svgHelpers.debugBox(svg, dbgBox,'measure-adjust-dbg');
+				measure.staffWidth += xmaxs[j] - lbox.width;
 				if (six > 0) {
 					var ny = ymaxs[six - 1] - ymins[six];
 					var nbox = svgHelpers.pointBox(measure.staffX, ny);
-					nbox = svgHelpers.clientToLogical(svg, nbox);
-					measure.adjY = nbox.y;
+					measure.adjY = lbox.y;
 				}
 			}
 		}
@@ -401,7 +407,7 @@ class suiSimpleLayout {
 
 				// measure.measureNumber.systemIndex = j;
 
-				// The SVG X,Y of this staff.  Set it initially to the default value.  Width,height filled in later.
+				// The SVG X,Y of this staff.  Set it initially to the UL corner of page.  Width,height filled in later.
 				var staffBox = svgHelpers.pointBox(this.score.staffX, this.score.staffY);
 
 				// The left-most measure sets the y for the row, top measure sets the x for the column.

@@ -20,60 +20,59 @@ class svgHelpers {
 		};
 	}
 
-
-    static get namespace() 	{
+	static get namespace() {
 		return "http://www.w3.org/2000/svg";
 	}
-	
+
 	static buildSvg(el) {
 
 		var smoSvgBuilder = function (el) {
 			var ns = svgHelpers.namespace;
-			this.e = document.createElementNS(ns,el);
+			this.e = document.createElementNS(ns, el);
 			var self = this;
 			this.classes = function (cl) {
-				self.e.setAttributeNS('','class',cl);				
+				self.e.setAttributeNS('', 'class', cl);
 				return self;
 			}
 			this.attr = function (name, value) {
-				self.e.setAttributeNS('',name, value);
+				self.e.setAttributeNS('', name, value);
 				return self;
 			}
-			this.text = function(x,y,classes,text) {
+			this.text = function (x, y, classes, text) {
 				x = typeof(x) == 'string' ? x : x.toString();
 				y = typeof(y) == 'string' ? y : y.toString();
-				this.e.setAttributeNS('','class',classes);
-				this.e.setAttributeNS('','x',x);
-				this.e.setAttributeNS('','y',y);
-				this.e.textContent=text;
+				this.e.setAttributeNS('', 'class', classes);
+				this.e.setAttributeNS('', 'x', x);
+				this.e.setAttributeNS('', 'y', y);
+				this.e.textContent = text;
 				return this;
 			}
-			this.rect = function(x,y,width,height,classes) {
+			this.rect = function (x, y, width, height, classes) {
 				x = typeof(x) == 'string' ? x : x.toString();
 				y = typeof(y) == 'string' ? y : y.toString();
 				width = typeof(width) == 'string' ? width : width.toString();
 				height = typeof(height) == 'string' ? height : height.toString();
-				this.e.setAttributeNS('','x',x);
-				this.e.setAttributeNS('','y',y);
-				this.e.setAttributeNS('','width',width);
-				this.e.setAttributeNS('','height',height);				
+				this.e.setAttributeNS('', 'x', x);
+				this.e.setAttributeNS('', 'y', y);
+				this.e.setAttributeNS('', 'width', width);
+				this.e.setAttributeNS('', 'height', height);
 				if (classes) {
-					this.e.setAttributeNS('','class',classes);
+					this.e.setAttributeNS('', 'class', classes);
 				}
 				return this;
 			}
-			this.line = function(x1,y1,x2,y2,classes) {
+			this.line = function (x1, y1, x2, y2, classes) {
 				x1 = typeof(x1) == 'string' ? x1 : x1.toString();
-				y1 = typeof(y1) == 'string' ? y1: y1.toString();
+				y1 = typeof(y1) == 'string' ? y1 : y1.toString();
 				x2 = typeof(x2) == 'string' ? x2 : x2.toString();
-				y2 = typeof(y2) == 'string' ? y2: y2.toString();
-				
-				this.e.setAttributeNS('','x1',x1);
-				this.e.setAttributeNS('','y1',y1);
-				this.e.setAttributeNS('','x2',x2);
-				this.e.setAttributeNS('','y2',y2);
+				y2 = typeof(y2) == 'string' ? y2 : y2.toString();
+
+				this.e.setAttributeNS('', 'x1', x1);
+				this.e.setAttributeNS('', 'y1', y1);
+				this.e.setAttributeNS('', 'x2', x2);
+				this.e.setAttributeNS('', 'y2', y2);
 				if (classes) {
-					this.e.setAttributeNS('','class',classes);
+					this.e.setAttributeNS('', 'class', classes);
 				}
 				return this;
 			}
@@ -88,35 +87,51 @@ class svgHelpers {
 		}
 		return new smoSvgBuilder(el);
 	}
-		
 
-	static debugBox(svg,box,classes,xtext) {
-		classes=classes ? classes : '';
+	static debugBox(svg, box, classes, xtext) {
+		classes = classes ? classes : '';
 		classes += ' svg-debug-box';
 		var b = svgHelpers.buildSvg;
-		var mid = box.x+box.width/2;
-		var xtext = 'x: '+Math.round(box.x);
-		var wtext = 'w: '+Math.round(box.width);
-		
+		var mid = box.x + box.width / 2;
+		var xtext = 'x1: ' + Math.round(box.x);
+		var wtext = 'x2: ' + Math.round(box.width+box.x);
+		var ytext = 'y1: ' + Math.round(box.y);
+		var htext = 'y2: ' + Math.round(box.height+box.y);
+		var ytextp = Math.round(box.y+box.height);
+		var ytextp2 = Math.round(box.y+box.height-30);
+
 		var r = b('g').classes(classes)
-		.append(
-		  b('text').text(box.x+20,box.y-14,'svg-debug-text',xtext))
-		.append(
-		  b('text').text(mid-20,box.y-14,'svg-debug-text',wtext))
-		.append(
-		  b('line').line(box.x,box.y-2,box.x+box.width,box.y-2))
-		.append(
-		  b('line').line(box.x,box.y-8,box.x,box.y+5))
-		  .append(
-		  b('line').line(box.x+box.width,box.y-8,box.x+box.width,box.y+5));
-		 
-		 svg.appendChild(r.dom());
-		
-	}		
+			.append(
+				b('text').text(box.x + 20, box.y - 14, 'svg-debug-text', xtext))
+			.append(
+				b('text').text(mid - 20, box.y - 14, 'svg-debug-text', wtext))
+			.append(
+				b('line').line(box.x, box.y - 2, box.x + box.width, box.y - 2))
+			.append(
+				b('line').line(box.x, box.y - 8, box.x, box.y + 5))
+			.append(
+				b('line').line(box.x + box.width, box.y - 8, box.x + box.width, box.y + 5));
+		if (box.height > 2) {
+			r.append(
+				b('text').text(Math.round(box.x-14), ytextp, 'svg-vdebug-text', ytext)
+				  .attr('transform','rotate(-90,'+Math.round(box.x-14)+','+ytextp+')'))
+			  .append(
+				b('text').text(Math.round(box.x-14), ytextp2, 'svg-vdebug-text', htext)
+				  .attr('transform','rotate(-90,'+Math.round(box.x-14)+','+(ytextp2)+')'))
+				  .append(
+				b('line').line(Math.round(box.x-2), Math.round(box.y +box.height),box.x-2,box.y))
+				  .append(
+				b('line').line(Math.round(box.x-8), Math.round(box.y +box.height),box.x+6,Math.round(box.y+box.height)))
+				  .append(
+				b('line').line(Math.round(box.x-8), Math.round(box.y),Math.round(box.x+6),Math.round(box.y)));				  
+		}
+		svg.appendChild(r.dom());
+
+	}
 
 	// ### findIntersectionArtifact
 	// find all object that intersect with the rectangle
-	static findIntersectingArtifact(clientBox,objects) {
+	static findIntersectingArtifact(clientBox, objects) {
 		var obj = null;
 		var box = clientBox; //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
 
@@ -131,23 +146,23 @@ class svgHelpers {
 			var i2 = box.y - object.box.y;
 			if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
 				rv.push(object);
-			}			
+			}
 		});
 
 		return rv;
 	}
-	static findSmallestIntersection(clientBox,objects) {
-		var ar = svgHelpers.findIntersectingArtifact(clientBox,objects);
+	static findSmallestIntersection(clientBox, objects) {
+		var ar = svgHelpers.findIntersectingArtifact(clientBox, objects);
 		if (!ar.length) {
 			return null;
 		}
-		var rv=ar[0];
-		var min=ar[0].box.width*ar[0].box.height;
+		var rv = ar[0];
+		var min = ar[0].box.width * ar[0].box.height;
 		ar.forEach((obj) => {
-			var tst = obj.box.width*obj.box.height;
+			var tst = obj.box.width * obj.box.height;
 			if (tst < min) {
 				rv = obj;
-				min=tst;
+				min = tst;
 			}
 		});
 		return rv;
@@ -228,8 +243,8 @@ class svgHelpers {
 			height: box.height
 		});
 	}
-	
-	static boxPoints(x,y,w,h) {
+
+	static boxPoints(x, y, w, h) {
 		return ({
 			x: x,
 			y: y,
@@ -245,7 +260,7 @@ class svgHelpers {
 			width: box.width,
 			height: box.height
 		};
-	}	
+	}
 
 	// ### svgViewport
 	// set `svg` element to `width`,`height` and viewport `scale`
