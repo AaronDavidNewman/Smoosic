@@ -274,7 +274,7 @@ class VxMeasure {
 			staffMargin += smoMusic.keySignatureLength[canceledKey]*8;
 		}
         var staffWidth = this.smoMeasure.staffWidth;
-           - staffMargin;
+           + this.smoMeasure.adjX;
 		
 
         //console.log('measure '+JSON.stringify(this.smoMeasure.measureNumber,null,' ')+' x: ' + this.smoMeasure.staffX + ' y: '+this.smoMeasure.staffY
@@ -322,7 +322,7 @@ class VxMeasure {
         }
 		
 		// Need to format for x position, then set y position before drawing dynamics.
-        this.formatter = new VF.Formatter().joinVoices(voiceAr).format(voiceAr, this.smoMeasure.staffWidth);
+        this.formatter = new VF.Formatter().joinVoices(voiceAr).format(voiceAr, this.smoMeasure.staffWidth-(this.smoMeasure.adjX+2));
 		
         for (var j = 0; j < voiceAr.length; ++j) {
             voiceAr[j].draw(this.context, this.stave);
@@ -336,6 +336,10 @@ class VxMeasure {
         this.vexTuplets.forEach(function (tuplet) {
             tuplet.setContext(self.context).draw();
         });
+		this.renderDynamics();
+		this.smoMeasure.adjX = this.stave.start_x - (this.smoMeasure.staffX);
+
+        this.context.closeGroup();
         var box = group.getBoundingClientRect();
         this.smoMeasure.renderedBox = {
             x: box.x,
@@ -345,14 +349,5 @@ class VxMeasure {
         };
         this.smoMeasure.changed = false;
 		
-		this.renderDynamics();		
-
-        // Calculate how far off our estimated width we are
-        // var svgBox =
-        //     svgHelpers.clientToLogical(this.context.svg, box);
-        // this.smoMeasure.adjX = svgBox.width - this.stave.getWidth() + this.smoMeasure.rightMargin;
-        // console.log('adjx is '+this.smoMeasure.adjX);
-        // console.log(JSON.stringify(this.smoMeasure.renderedBox,null,' '));
-        this.context.closeGroup();
     }
 }

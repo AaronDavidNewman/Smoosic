@@ -231,9 +231,9 @@ class suiSimpleLayout {
 				var lbox = svgHelpers.clientToLogical(svg,measure.renderedBox);
 				var width = lbox.width;
 				if (!xmaxs[hix]) {
-					xmaxs[hix]=lbox.width;
+					xmaxs[hix]=Math.round(lbox.width-1);
 				} else {
-					xmaxs[hix] = xmaxs[hix] < lbox.width ? lbox.width : xmaxs[hix];
+					xmaxs[hix] = xmaxs[hix] < Math.round(lbox.width-1) ? Math.round(lbox.width-1) : xmaxs[hix];
 				}
 				var curY=lbox.y+lbox.height;
 				if (ymaxs.length <= six) {
@@ -255,7 +255,7 @@ class suiSimpleLayout {
 					var dbgBox = svgHelpers.boxPoints(lbox.x,lbox.y,xmaxs[hix],ymaxs[six]-lbox.y);
 					svgHelpers.debugBox(svg, dbgBox,'measure-adjust-dbg',10);
 				}
-				measure.staffWidth = xmaxs[hix];
+				measure.staffWidth = Math.round(xmaxs[hix]);
 			}
 		}
 
