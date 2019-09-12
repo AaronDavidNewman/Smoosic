@@ -272,6 +272,7 @@ class suiSimpleLayout {
 		$(this.renderer.getContext().svg).find('g.' + measure.attrs.id).remove();
 		measure.staffX = SmoMeasure.defaults.staffX;
 		measure.staffY = SmoMeasure.defaults.staffY;
+		measure.staffWidth = SmoMeasure.defaults.staffWidth;
 		measure.adjY = 0;
 		measure.changed = true;
 	}
