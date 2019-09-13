@@ -111,12 +111,12 @@ class svgHelpers {
 			.append(
 				b('line').line(box.x, box.y - 8, box.x, box.y + 5))
 			.append(
-				b('line').line(box.x + box.width, box.y - 8, box.x + box.width, box.y + 5));
+				b('line').line(box.x + box.width, box.y - 8, box.x + box.width, box.y + 5))
+			.append(
+				b('text').text(Math.round(box.x-14+voffset), ytextp, 'svg-vdebug-text', ytext)
+				  .attr('transform','rotate(-90,'+Math.round(box.x-14+voffset)+','+ytextp+')'));
 		if (box.height > 2) {
 			r.append(
-				b('text').text(Math.round(box.x-14+voffset), ytextp, 'svg-vdebug-text', ytext)
-				  .attr('transform','rotate(-90,'+Math.round(box.x-14+voffset)+','+ytextp+')'))
-			  .append(
 				b('text').text(Math.round(box.x-14+voffset), ytextp2, 'svg-vdebug-text', htext)
 				  .attr('transform','rotate(-90,'+Math.round(box.x-14+voffset)+','+(ytextp2)+')'))
 				  .append(

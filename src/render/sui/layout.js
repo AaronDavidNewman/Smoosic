@@ -215,14 +215,19 @@ class suiSimpleLayout {
 	// ### adjustWidths
 	// adjustWidths updates the expected widths of the measures based on the actual rendered widths
 	adjustWidths() {
+		// Max width per measure column in a system
 		var xmaxs = {};
+		// Max y+height in a system
 		var ymaxs = [];
+		// Max y value in a system
+		var ytopmaxs = [];
 		if (suiSimpleLayout.debugLayout) {
 			$(this.renderer.getContext().svg).find('g.measure-adjust-dbg').remove();
 		}
 		var svg = this.context.svg;
 		for (var i = 0; i < this.score.staves.length; ++i) {
 			var staff = this.score.staves[i];
+			
 			// vertical index of the current staff on the page
 			var six = staff.lineIndex * this.score.staves.length + i;
 			for (var j = 0; j < staff.measures.length; ++j) {
@@ -238,8 +243,10 @@ class suiSimpleLayout {
 				var curY=lbox.y+lbox.height;
 				if (ymaxs.length <= six) {
 					ymaxs.push(curY);
+					ytopmaxs.push(lbox.y);
 				} else {
 					ymaxs[six] = ymaxs[six] < curY ? curY : ymaxs[six];
+					ytopmaxs[six] = ytopmaxs[six] < lbox.y ? lbox.y : ytopmaxs[six];
 				}
 			}
 		}
@@ -251,11 +258,17 @@ class suiSimpleLayout {
 				var measure = staff.measures[j];
 				var hix = ''+staff.lineIndex+'-'+measure.measureNumber.systemIndex;
 				var lbox = svgHelpers.clientToLogical(svg,measure.renderedBox);
+				var ystart = six > 0 ? this.score.interGap+ ymaxs[six-1] : this.score.staffY;
 				if (suiSimpleLayout.debugLayout) {
-					var dbgBox = svgHelpers.boxPoints(lbox.x,lbox.y,xmaxs[hix],ymaxs[six]-lbox.y);
+					var dbgBox = svgHelpers.boxPoints(lbox.x,ystart,xmaxs[hix],lbox.height);
 					svgHelpers.debugBox(svg, dbgBox,'measure-adjust-dbg',10);
 				}
 				measure.staffWidth = Math.round(xmaxs[hix]);
+				measure.staffY=ystart;
+				if (six > 0) {
+					var ystart = ymaxs[six-1];
+					
+				}
 			}
 		}
 
@@ -412,15 +425,9 @@ class suiSimpleLayout {
 				}
 
 				staffBox = staffBoxes[j];
-				if (j > 0 && systemIndex === 0) {
+				if (j > 0)  { // && systemIndex === 0) {
 					measure.staffY = staffBox.y;
-				} else {
-					// Handle the case where a measure was added, is on the top staff.  Make sure
-					// that all staves in a line have the same Y position.
-					if (i > 0 && measure.staffY < staff.measures[i - 1].staffY) {
-						measure.staffY = staff.measures[i - 1].staffY;
-					}
-				}
+				} 
 
 				measure.staffX = staffBox.x + staffBox.width;
 
