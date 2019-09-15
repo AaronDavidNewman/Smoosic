@@ -189,6 +189,36 @@ class suiSimpleLayout {
 		}
 		this._renderModifiers(startSelection.staff, system);
 	}
+	adjustWidths2() {
+		var topStaff = this.score.staves[0];
+		var maxLine = topStaff.measures[topStaff.measures.length-1].lineIndex;
+		var svg = this.context.svg;
+
+		
+		for (var i=0;i<=maxLine;++i) {
+			for (var j=0;j<this.score.staves.length;++j) {
+				var staff = this.score.staves[j];
+				var measures = this.staff.measures.filter((mm) => {return mm.lineIndex === i});
+				var maxX={};
+				for (var k=0;k<measures.length;++k) {
+					var measure = measures[k];
+					var lbox = svgHelpers.clientToLogical(svg,measure.renderedBox);
+
+					var si = measure.measureNumber.systemIndex;
+					var w = Math.round(lbox.width-1);
+					if (!maxX[si]) {
+						maxX[si] = w;
+					} else {
+						maxX[si] = maxX[si] < w ? w : maxX[si];
+					}
+				}
+				for (var k=0;k<measure.length;++k) {
+					var measure = measures[k];
+					measure.staffWidth = maxX[measure.measureNumber.systemIndex];
+				}
+			}
+		}
+	}
 
 	// ### adjustWidths
 	// adjustWidths updates the expected widths of the measures based on the actual rendered widths
