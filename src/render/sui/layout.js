@@ -124,6 +124,7 @@ class suiSimpleLayout {
 		
 		// layout a second time to adjust for issues.
 		this.adjustWidths();
+		this.adjustWidths();
 		this.layout(true);
 	}
 
@@ -238,12 +239,12 @@ class suiSimpleLayout {
 				var hix = ''+measure.lineIndex+'-'+measure.measureNumber.systemIndex;
 				var lbox = svgHelpers.clientToLogical(svg,measure.renderedBox);
 				
-				// ystart is the line of the measure above me.
+				// ystart is the end of the measure above me.
 				var ystart = six > 0 ? ymaxs[six-1] : lbox.y;
 				// ytop is the top of the highest measure on this line.
 				var ytop = six > 0 ? ytopmaxs[six] : ystart;
 				
-				var adjY = ystart - ytop;
+				var adjY = ystart - ytop; // +(this.score.interGap*measure.lineIndex);
 				if (suiSimpleLayout.debugLayout) {
 					var dbgBox = svgHelpers.boxPoints(lbox.x,ystart,lbox.y+adjY,lbox.height);
 					svgHelpers.debugBox(svg, dbgBox,'measure-adjust-dbg',10);
@@ -251,6 +252,7 @@ class suiSimpleLayout {
 				measure.staffWidth = Math.round(xmaxs[hix]);
 				// the y of the staff may be different than what we ask, so we check for a collision and adjust it
 				// rather than try to calculate.
+				// TODO:  /2 is fudge factor, need to handle inter-score gap.
 				measure.adjY = Math.round(adjY/2);
 				
 			}
@@ -355,11 +357,12 @@ class suiSimpleLayout {
 	}
 
 	// ### layout
-	// ### Render the music, keeping track of the bounding boxes of all the
+	//  Render the music, keeping track of the bounding boxes of all the
 	// elements.  Re-render a second time to adjust measure widths to prevent notes
 	// from overlapping.  Then render all the modifiers.
-	// * drawAll is set if we are re-rendering the entire score, not just the part that changed.
-	layout(drawAll) {
+	// * useAdjusted is false if we are dynamically rendering the score, and we use other
+	// measures to find our sweet spot.  If true, we assume the coordinates are correct and we use those.
+	layout(useAdjusted) {
 		var svg = this.context.svg;
 
 		if (suiSimpleLayout.debugLayout) {
@@ -394,6 +397,11 @@ class suiSimpleLayout {
 				var measure = staff.measures[i];
 
 				measure.lineIndex = lineIndex;
+				
+				// If we are calculating the measures' location dynamically, remove any adjustments.
+				if (!useAdjusted) {
+					measure.adjY=0;
+				}
 
 				// The SVG X,Y of this staff.  Set it initially to the UL corner of page.  Width,height filled in later.
 				var staffBox = svgHelpers.pointBox(this.score.staffX, this.score.staffY);
@@ -409,13 +417,15 @@ class suiSimpleLayout {
 				}
 
 				staffBox = staffBoxes[j];
-				if (j > 0 && !drawAll)  { // && systemIndex === 0) {
+				
+				// If we are calculating the measures' location dynamically, always update the y 
+				if (!useAdjusted)  { // && systemIndex === 0) {
 					measure.staffY = staffBox.y;
 				} 
 
 				measure.staffX = staffBox.x + staffBox.width;
 
-				if (!systemBoxes[lineIndex]) {
+				if (!systemBoxes[lineIndex] || j > 0) {
 					systemBoxes[lineIndex] = svgHelpers.copyBox(staffBox);
 				}
 
@@ -430,14 +440,14 @@ class suiSimpleLayout {
 				// Do we need to start a new line?
 				if (j == 0 && staffBox.x + staffBox.width + measure.staffWidth
 					 > this.pageMarginWidth / this.svgScale) {
-					if (drawAll) {
+					if (useAdjusted) {
 						system.cap();
 					}
 					this.score.staves.forEach((stf) => {
 						this._renderModifiers(stf, system);
 					});
 					measure.staffX = this.score.staffX + 1;
-					if (!drawAll) {
+					if (!useAdjusted) {
 					    measure.staffY = pageBox.y + pageBox.height+this.score.interGap;
 					}
 					staffBoxes = {};
@@ -468,7 +478,7 @@ class suiSimpleLayout {
 						svg, svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, 1), 'measure-place-dbg');
 				}
 				// WIP
-				if (drawAll || measure.changed) {
+				if (useAdjusted || measure.changed) {
 					smoBeamerFactory.applyBeams(measure);
 					system.renderMeasure(j, measure);
 
@@ -495,7 +505,7 @@ class suiSimpleLayout {
 			}
 			++systemIndex;
 		}
-		if (drawAll) {
+		if (useAdjusted) {
 			system.cap();
 		}
 		this.score.staves.forEach((stf) => {
