@@ -201,15 +201,16 @@ class suiSimpleLayout {
 		if (suiSimpleLayout.debugLayout) {
 			$(this.renderer.getContext().svg).find('g.measure-adjust-dbg').remove();
 		}
+		var topStaff = this.score.staves[0];
 		var svg = this.context.svg;
-		for (var i = 0; i < this.score.staves.length; ++i) {
-			var staff = this.score.staves[i];
+		for (var i = 0; i < topStaff.measures.length; ++i) {
+			for (var j = 0; j < this.score.staves.length; ++j) {
+			var staff = this.score.staves[j];
+			var measure = staff.measures[i];
 			
 			// vertical index of the current staff on the page
-			for (var j = 0; j < staff.measures.length; ++j) {
-				var measure = staff.measures[j];
 				measure.adjY=0;
-				var six = measure.lineIndex * this.score.staves.length + i;
+				var six = measure.lineIndex * this.score.staves.length + j;
 				var hix = ''+measure.lineIndex+'-'+measure.measureNumber.systemIndex;
 				var lbox = svgHelpers.clientToLogical(svg,measure.renderedBox);
 				var width = lbox.width;
@@ -228,17 +229,17 @@ class suiSimpleLayout {
 				}
 			}
 		}
-		for (var i = 0; i < this.score.staves.length; ++i) {
-			var staff = this.score.staves[i];
-			// vertical index of the current staff on the page
-			for (var j = 0; j < staff.measures.length; ++j) {
-				var measure = staff.measures[j];
-    			var six = measure.lineIndex * this.score.staves.length + i;
+		for (var i = 0; i < topStaff.measures.length; ++i) {
+			for (var j = 0; j < this.score.staves.length; ++j) {
+    			var staff = this.score.staves[j];
+				var measure = staff.measures[i];
+			    // vertical index of the current staff on the page
+    			var six = measure.lineIndex * this.score.staves.length + j;
 				var hix = ''+measure.lineIndex+'-'+measure.measureNumber.systemIndex;
 				var lbox = svgHelpers.clientToLogical(svg,measure.renderedBox);
 				
 				// ystart is the line of the measure above me.
-				var ystart = six > 0 ? this.score.interGap+ ymaxs[six-1] : this.score.staffY;
+				var ystart = six > 0 ? ymaxs[six-1] : lbox.y;
 				// ytop is the top of the highest measure on this line.
 				var ytop = six > 0 ? ytopmaxs[six] : ystart;
 				
@@ -250,11 +251,8 @@ class suiSimpleLayout {
 				measure.staffWidth = Math.round(xmaxs[hix]);
 				// the y of the staff may be different than what we ask, so we check for a collision and adjust it
 				// rather than try to calculate.
-				measure.adjY = adjY;
-				if (six > 0) {
-					var ystart = ymaxs[six-1];
-					
-				}
+				measure.adjY = Math.round(adjY/2);
+				
 			}
 		}
 
@@ -395,7 +393,7 @@ class suiSimpleLayout {
 				var staff = this.score.staves[j];
 				var measure = staff.measures[i];
 
-				// measure.measureNumber.systemIndex = j;
+				measure.lineIndex = lineIndex;
 
 				// The SVG X,Y of this staff.  Set it initially to the UL corner of page.  Width,height filled in later.
 				var staffBox = svgHelpers.pointBox(this.score.staffX, this.score.staffY);
@@ -411,7 +409,7 @@ class suiSimpleLayout {
 				}
 
 				staffBox = staffBoxes[j];
-				if (j > 0)  { // && systemIndex === 0) {
+				if (j > 0 && !drawAll)  { // && systemIndex === 0) {
 					measure.staffY = staffBox.y;
 				} 
 
@@ -439,13 +437,16 @@ class suiSimpleLayout {
 						this._renderModifiers(stf, system);
 					});
 					measure.staffX = this.score.staffX + 1;
-					measure.staffY = pageBox.y + pageBox.height + this.score.interGap;
+					if (!drawAll) {
+					    measure.staffY = pageBox.y + pageBox.height+this.score.interGap;
+					}
 					staffBoxes = {};
-					staffBoxes[j] = svgHelpers.pointBox(this.score.staffX, staff.staffY);
+					staffBoxes[j] = svgHelpers.boxPoints(this.score.staffX, measure.staffY,1,1);
 					lineIndex += 1;
+					measure.lineIndex = lineIndex;
 					system = new VxSystem(this.context, staff.staffY, lineIndex);
 					systemIndex = 0;
-					systemBoxes[lineIndex] = svgHelpers.pointBox(measure.staffX, staff.staffY);
+					systemBoxes[lineIndex] = staffBoxes[j];
 				}
 
 				measure.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
@@ -468,7 +469,6 @@ class suiSimpleLayout {
 				}
 				// WIP
 				if (drawAll || measure.changed) {
-					measure.lineIndex = lineIndex;
 					smoBeamerFactory.applyBeams(measure);
 					system.renderMeasure(j, measure);
 

@@ -216,6 +216,8 @@ class SmoSystemStaff {
                 systemIndex: i
             }
             measure.setMeasureNumber(numberObj);
+			// If we are renumbering measures, we assume we want to redo the layout so set measures to changed.
+			measure.changed=true;
         }
     }
     getSelection(measureNumber, voice, tick, pitches) {

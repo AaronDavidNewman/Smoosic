@@ -43,7 +43,6 @@ class suiEditor {
         } else {
             SmoUndoable[name](selection, this.undoBuffer);
         }
-        this._render();
     }
 
     undo() {
@@ -124,7 +123,7 @@ class suiEditor {
     }
 
     transpose(offset) {
-        this.tracker.selections.forEach((selected) => this._transpose(selected, offset));
+        this.tracker.selections.forEach((selected) => this._transpose(selected, offset,false));
         this._render();
     }
     transposeDown() {

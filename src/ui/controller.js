@@ -37,7 +37,7 @@ class suiController {
 
 		this.bindEvents();
 		this.bindResize();
-		// this.splash();
+		this.splash();
 		this.piano();
 		this.updateOffsets();
 	}
@@ -136,7 +136,7 @@ class suiController {
 		suiController.createDom();
 		var params = suiController.keyBindingDefaults;
 		params.layout = suiSimpleLayout.createScoreLayout(document.getElementById("boo"), score);
-		suiSimpleLayout.debugLayout=true;
+		// suiSimpleLayout.debugLayout=true;
 		params.tracker = new suiTracker(params.layout);
 		params.score = score;
 		params.editor = new suiEditor(params);

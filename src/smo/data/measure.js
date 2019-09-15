@@ -314,6 +314,7 @@ class SmoMeasure {
             },
             staffWidth: 200,
             clef: 'treble',
+			changed:true,
             forceClef: false,
             forceKeySignature: false,
             forceTimeSignature: false,
