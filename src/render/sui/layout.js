@@ -219,6 +219,49 @@ class suiSimpleLayout {
 			}
 		}
 	}
+	
+	adjustHeight() {
+		var topStaff = this.score.staves[0];
+		var maxLine = topStaff.measures[topStaff.measures.length-1].lineIndex;
+		var svg = this.context.svg;
+		var maxY= [];
+		var minY = [];
+		var absLine = 0;
+		var accum = 0;
+		for (var i=0;i<=maxLine;++i) {
+			for (var j=0;j<this.score.staves.length;++j) {
+				var staff = this.score.staves[j];
+				var measures = this.staff.measures.filter((mm) => {return mm.lineIndex === i});
+				var max = measures.reduce((a,b) => { 
+				    return 
+					   a.renderedBox.y+a.renderedBox.height > 
+					      b.renderedBox.y+b.renderedBox.height ? a : b;
+				});
+				var min = measures.reduce((a,b) => {
+					return a.renderedBox.y < b.renderedBox.y ? a : b;
+				});
+				
+				var lbox = svgHelpers.clientToLogical(svg,max.renderedBox);
+				maxY.push(lbox.y+lbox.height);	
+				
+				if (absLine == 0) {
+					accum = this.score.staffY-lbox.y;
+					measures.forEach((measure) => {
+						var ll = svgHelpers.clientToLogical(svg,measure.renderedBox);
+						measure.adjY=ll.y + accum;
+					});
+				} else {
+					var my = maxY[absLine - 1];
+					var delta = my-this.lbox.y;
+                    measures.forEach((measure) => {
+						var ll = svgHelpers.clientToLogical(svg,measure.renderedBox);
+						measure.adjY=ll.y + accum;
+					});				}
+
+				
+			}
+		}
+	}
 
 	// ### adjustWidths
 	// adjustWidths updates the expected widths of the measures based on the actual rendered widths
