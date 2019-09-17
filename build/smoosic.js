@@ -5569,7 +5569,7 @@ class VxMeasure {
 
         //console.log('measure '+JSON.stringify(this.smoMeasure.measureNumber,null,' ')+' x: ' + this.smoMeasure.staffX + ' y: '+this.smoMeasure.staffY
         // + 'width: '+staffWidth);
-        this.stave = new VF.Stave(this.smoMeasure.staffX, this.smoMeasure.staffY+this.smoMeasure.adjY, staffWidth);
+        this.stave = new VF.Stave(this.smoMeasure.staffX, this.smoMeasure.staffY, staffWidth);
 		
 		this.stave.options.space_above_staff_ln=0; // don't let vex place the staff, we want to.
         //console.log('adjX is '+this.smoMeasure.adjX);
@@ -5633,12 +5633,14 @@ class VxMeasure {
 
         this.context.closeGroup();
         var box = group.getBoundingClientRect();
+		var lbox = svgHelpers.clientToLogical(this.context.svg,box);
         this.smoMeasure.renderedBox = {
             x: box.x,
             y: box.y,
             height: box.height,
             width: box.width
         };
+		this.smoMeasure.logicalBox = lbox;
         this.smoMeasure.changed = false;
 		
     }
@@ -6491,7 +6493,10 @@ class suiSimpleLayout {
 		this.layout(false);
 		
 		// layout a second time to adjust for issues.
-		this.adjustWidths();
+		// this.adjustWidths();
+		// this.adjustWidths();
+		this.adjustWidths2();
+		this.adjustHeight();
 		this.layout(true);
 	}
 
@@ -6556,6 +6561,97 @@ class suiSimpleLayout {
 		}
 		this._renderModifiers(startSelection.staff, system);
 	}
+	adjustWidths2() {
+		var topStaff = this.score.staves[0];
+		var maxLine = topStaff.measures[topStaff.measures.length-1].lineIndex;
+		var svg = this.context.svg;
+
+		
+		for (var i=0;i<=maxLine;++i) {
+			for (var j=0;j<this.score.staves.length;++j) {
+				var staff = this.score.staves[j];
+				var measures = staff.measures.filter((mm) => {return mm.lineIndex === i});
+				var maxX={};
+				for (var k=0;k<measures.length;++k) {
+					var measure = measures[k];
+					var lbox = svgHelpers.clientToLogical(svg,measure.renderedBox);
+
+					var si = measure.measureNumber.systemIndex;
+					var w = Math.round(lbox.width-1);
+					if (!maxX[si]) {
+						maxX[si] = w;
+					} else {
+						maxX[si] = maxX[si] < w ? w : maxX[si];
+					}
+				}
+				for (var k=0;k<measure.length;++k) {
+					var measure = measures[k];
+					measure.staffWidth = maxX[measure.measureNumber.systemIndex];
+				}
+			}
+		}
+	}
+	
+	adjustHeight() {
+		var topStaff = this.score.staves[0];
+		var maxLine = topStaff.measures[topStaff.measures.length-1].lineIndex;
+		var svg = this.context.svg;
+		var maxY= [];
+		var minY = [];
+		
+		if (suiSimpleLayout.debugLayout) {
+			$(this.renderer.getContext().svg).find('g.measure-adjust-dbg').remove();
+		}
+		var accum = 0;
+		for (var i=0;i<=maxLine;++i) {
+			for (var j=0;j<this.score.staves.length;++j) {
+				var absLine = this.score.staves.length*i+j;
+				var staff = this.score.staves[j];
+				var measures = staff.measures.filter((mm) => {return mm.lineIndex === i});
+				var max = measures.reduce((a,b) => { 
+				    if (a.logicalBox.y+a.logicalBox.height +a.adjY > 
+					      b.logicalBox.y+b.logicalBox.height+b.adjY) {
+							  return a; 
+					}
+					return b;
+				});
+				var min = measures.reduce((a,b) => {
+					return a.logicalBox.y+a.adjY < b.logicalBox.y+b.adjY ? a : b;
+				});
+				
+				var lbox = max.logicalBox;
+				maxY.push(max);;	
+				
+				if (absLine == 0) {
+					accum = this.score.staffY-lbox.y;
+					/* measures.forEach((measure) => {
+						var ll = measure.logicalBox;
+						measure.adjY=accum;
+						if (suiSimpleLayout.debugLayout) {
+							var dbgBox = svgHelpers.boxPoints(measure.staffX,measure.staffY+measure.adjY,measure.staffWidth,lbox.height);
+							svgHelpers.debugBox(svg, dbgBox,'measure-adjust-dbg',10);
+						}
+					});   */
+				} else {
+					var maxM = maxY[absLine - 1];
+					var my = maxM.logicalBox.y+maxM.logicalBox.height ;
+					var delta = (my-min.logicalBox.y)/2;
+					if (maxM.lineIndex < min.lineIndex) {
+						delta += this.score.interGap;
+					}
+					accum += delta;
+                    measures.forEach((measure) => {
+						var ll = measures.logicalBox;
+						measure.staffY += accum;
+						if (suiSimpleLayout.debugLayout) {
+							var dbgBox = svgHelpers.boxPoints(measure.staffX,measure.staffY,measure.staffWidth,lbox.height);
+							svgHelpers.debugBox(svg, dbgBox,'measure-adjust-dbg',10);
+						}
+					});				
+				}
+			}
+		}
+	}
 
 	// ### adjustWidths
 	// adjustWidths updates the expected widths of the measures based on the actual rendered widths
@@ -6606,20 +6702,21 @@ class suiSimpleLayout {
 				var hix = ''+measure.lineIndex+'-'+measure.measureNumber.systemIndex;
 				var lbox = svgHelpers.clientToLogical(svg,measure.renderedBox);
 				
-				// ystart is the line of the measure above me.
+				// ystart is the end of the measure above me.
 				var ystart = six > 0 ? ymaxs[six-1] : lbox.y;
 				// ytop is the top of the highest measure on this line.
 				var ytop = six > 0 ? ytopmaxs[six] : ystart;
 				
-				var adjY = ystart - ytop;
-				if (suiSimpleLayout.debugLayout) {
-					var dbgBox = svgHelpers.boxPoints(lbox.x,ystart,lbox.y+adjY,lbox.height);
-					svgHelpers.debugBox(svg, dbgBox,'measure-adjust-dbg',10);
-				}
+				var adjY = ystart - ytop; // +(this.score.interGap*measure.lineIndex);
 				measure.staffWidth = Math.round(xmaxs[hix]);
 				// the y of the staff may be different than what we ask, so we check for a collision and adjust it
 				// rather than try to calculate.
+				// TODO:  /2 is fudge factor, need to handle inter-score gap.
 				measure.adjY = Math.round(adjY/2);
+				if (suiSimpleLayout.debugLayout) {
+					var dbgBox = svgHelpers.boxPoints(lbox.x,lbox.y+adjY,lbox.width,lbox.height);
+					svgHelpers.debugBox(svg, dbgBox,'measure-adjust-dbg',10);
+				}
 				
 			}
 		}
@@ -6723,11 +6820,12 @@ class suiSimpleLayout {
 	}
 
 	// ### layout
-	// ### Render the music, keeping track of the bounding boxes of all the
+	//  Render the music, keeping track of the bounding boxes of all the
 	// elements.  Re-render a second time to adjust measure widths to prevent notes
 	// from overlapping.  Then render all the modifiers.
-	// * drawAll is set if we are re-rendering the entire score, not just the part that changed.
-	layout(drawAll) {
+	// * useAdjusted is false if we are dynamically rendering the score, and we use other
+	// measures to find our sweet spot.  If true, we assume the coordinates are correct and we use those.
+	layout(useAdjusted) {
 		var svg = this.context.svg;
 
 		if (suiSimpleLayout.debugLayout) {
@@ -6762,6 +6860,11 @@ class suiSimpleLayout {
 				var measure = staff.measures[i];
 
 				measure.lineIndex = lineIndex;
+				
+				// If we are calculating the measures' location dynamically, remove any adjustments.
+				if (!useAdjusted) {
+					measure.adjY=0;
+				}
 
 				// The SVG X,Y of this staff.  Set it initially to the UL corner of page.  Width,height filled in later.
 				var staffBox = svgHelpers.pointBox(this.score.staffX, this.score.staffY);
@@ -6777,13 +6880,15 @@ class suiSimpleLayout {
 				}
 
 				staffBox = staffBoxes[j];
-				if (j > 0 && !drawAll)  { // && systemIndex === 0) {
+				
+				// If we are calculating the measures' location dynamically, always update the y 
+				if (!useAdjusted)  { // && systemIndex === 0) {
 					measure.staffY = staffBox.y;
 				} 
 
 				measure.staffX = staffBox.x + staffBox.width;
 
-				if (!systemBoxes[lineIndex]) {
+				if (!systemBoxes[lineIndex] || j > 0) {
 					systemBoxes[lineIndex] = svgHelpers.copyBox(staffBox);
 				}
 
@@ -6798,14 +6903,14 @@ class suiSimpleLayout {
 				// Do we need to start a new line?
 				if (j == 0 && staffBox.x + staffBox.width + measure.staffWidth
 					 > this.pageMarginWidth / this.svgScale) {
-					if (drawAll) {
+					if (useAdjusted) {
 						system.cap();
 					}
 					this.score.staves.forEach((stf) => {
 						this._renderModifiers(stf, system);
 					});
 					measure.staffX = this.score.staffX + 1;
-					if (!drawAll) {
+					if (!useAdjusted) {
 					    measure.staffY = pageBox.y + pageBox.height+this.score.interGap;
 					}
 					staffBoxes = {};
@@ -6836,7 +6941,7 @@ class suiSimpleLayout {
 						svg, svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, 1), 'measure-place-dbg');
 				}
 				// WIP
-				if (drawAll || measure.changed) {
+				if (useAdjusted || measure.changed) {
 					smoBeamerFactory.applyBeams(measure);
 					system.renderMeasure(j, measure);
 
@@ -6863,7 +6968,7 @@ class suiSimpleLayout {
 			}
 			++systemIndex;
 		}
-		if (drawAll) {
+		if (useAdjusted) {
 			system.cap();
 		}
 		this.score.staves.forEach((stf) => {
@@ -10752,7 +10857,7 @@ class suiController {
 
 		this.bindEvents();
 		this.bindResize();
-		this.splash();
+		// this.splash();
 		this.piano();
 		this.updateOffsets();
 	}
@@ -10851,7 +10956,7 @@ class suiController {
 		suiController.createDom();
 		var params = suiController.keyBindingDefaults;
 		params.layout = suiSimpleLayout.createScoreLayout(document.getElementById("boo"), score);
-		// suiSimpleLayout.debugLayout=true;
+		suiSimpleLayout.debugLayout=true;
 		params.tracker = new suiTracker(params.layout);
 		params.score = score;
 		params.editor = new suiEditor(params);
