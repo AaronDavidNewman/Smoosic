@@ -279,7 +279,7 @@ class VxMeasure {
 
         //console.log('measure '+JSON.stringify(this.smoMeasure.measureNumber,null,' ')+' x: ' + this.smoMeasure.staffX + ' y: '+this.smoMeasure.staffY
         // + 'width: '+staffWidth);
-        this.stave = new VF.Stave(this.smoMeasure.staffX, this.smoMeasure.staffY+this.smoMeasure.adjY, staffWidth);
+        this.stave = new VF.Stave(this.smoMeasure.staffX, this.smoMeasure.staffY, staffWidth);
 		
 		this.stave.options.space_above_staff_ln=0; // don't let vex place the staff, we want to.
         //console.log('adjX is '+this.smoMeasure.adjX);
@@ -343,12 +343,14 @@ class VxMeasure {
 
         this.context.closeGroup();
         var box = group.getBoundingClientRect();
+		var lbox = svgHelpers.clientToLogical(this.context.svg,box);
         this.smoMeasure.renderedBox = {
             x: box.x,
             y: box.y,
             height: box.height,
             width: box.width
         };
+		this.smoMeasure.logicalBox = lbox;
         this.smoMeasure.changed = false;
 		
     }

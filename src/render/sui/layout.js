@@ -123,8 +123,10 @@ class suiSimpleLayout {
 		this.layout(false);
 		
 		// layout a second time to adjust for issues.
-		this.adjustWidths();
-		this.adjustWidths();
+		// this.adjustWidths();
+		// this.adjustWidths();
+		this.adjustWidths2();
+		this.adjustHeight();
 		this.layout(true);
 	}
 
@@ -198,7 +200,7 @@ class suiSimpleLayout {
 		for (var i=0;i<=maxLine;++i) {
 			for (var j=0;j<this.score.staves.length;++j) {
 				var staff = this.score.staves[j];
-				var measures = this.staff.measures.filter((mm) => {return mm.lineIndex === i});
+				var measures = staff.measures.filter((mm) => {return mm.lineIndex === i});
 				var maxX={};
 				for (var k=0;k<measures.length;++k) {
 					var measure = measures[k];
@@ -226,39 +228,57 @@ class suiSimpleLayout {
 		var svg = this.context.svg;
 		var maxY= [];
 		var minY = [];
-		var absLine = 0;
+		
+		if (suiSimpleLayout.debugLayout) {
+			$(this.renderer.getContext().svg).find('g.measure-adjust-dbg').remove();
+		}
 		var accum = 0;
 		for (var i=0;i<=maxLine;++i) {
 			for (var j=0;j<this.score.staves.length;++j) {
+				var absLine = this.score.staves.length*i+j;
 				var staff = this.score.staves[j];
-				var measures = this.staff.measures.filter((mm) => {return mm.lineIndex === i});
+				var measures = staff.measures.filter((mm) => {return mm.lineIndex === i});
 				var max = measures.reduce((a,b) => { 
-				    return 
-					   a.renderedBox.y+a.renderedBox.height > 
-					      b.renderedBox.y+b.renderedBox.height ? a : b;
+				    if (a.logicalBox.y+a.logicalBox.height +a.adjY > 
+					      b.logicalBox.y+b.logicalBox.height+b.adjY) {
+							  return a; 
+					}
+					return b;
 				});
 				var min = measures.reduce((a,b) => {
-					return a.renderedBox.y < b.renderedBox.y ? a : b;
+					return a.logicalBox.y+a.adjY < b.logicalBox.y+b.adjY ? a : b;
 				});
 				
-				var lbox = svgHelpers.clientToLogical(svg,max.renderedBox);
-				maxY.push(lbox.y+lbox.height);	
+				var lbox = max.logicalBox;
+				maxY.push(max);;	
 				
 				if (absLine == 0) {
 					accum = this.score.staffY-lbox.y;
-					measures.forEach((measure) => {
-						var ll = svgHelpers.clientToLogical(svg,measure.renderedBox);
-						measure.adjY=ll.y + accum;
-					});
+					/* measures.forEach((measure) => {
+						var ll = measure.logicalBox;
+						measure.adjY=accum;
+						if (suiSimpleLayout.debugLayout) {
+							var dbgBox = svgHelpers.boxPoints(measure.staffX,measure.staffY+measure.adjY,measure.staffWidth,lbox.height);
+							svgHelpers.debugBox(svg, dbgBox,'measure-adjust-dbg',10);
+						}
+					});   */
 				} else {
-					var my = maxY[absLine - 1];
-					var delta = my-this.lbox.y;
+					var maxM = maxY[absLine - 1];
+					var my = maxM.logicalBox.y+maxM.logicalBox.height ;
+					var delta = (my-min.logicalBox.y)/2;
+					if (maxM.lineIndex < min.lineIndex) {
+						delta += this.score.interGap;
+					}
+					accum += delta;
                     measures.forEach((measure) => {
-						var ll = svgHelpers.clientToLogical(svg,measure.renderedBox);
-						measure.adjY=ll.y + accum;
-					});				}
-
-				
+						var ll = measures.logicalBox;
+						measure.staffY += accum;
+						if (suiSimpleLayout.debugLayout) {
+							var dbgBox = svgHelpers.boxPoints(measure.staffX,measure.staffY,measure.staffWidth,lbox.height);
+							svgHelpers.debugBox(svg, dbgBox,'measure-adjust-dbg',10);
+						}
+					});				
+				}
 			}
 		}
 	}
@@ -318,15 +338,15 @@ class suiSimpleLayout {
 				var ytop = six > 0 ? ytopmaxs[six] : ystart;
 				
 				var adjY = ystart - ytop; // +(this.score.interGap*measure.lineIndex);
-				if (suiSimpleLayout.debugLayout) {
-					var dbgBox = svgHelpers.boxPoints(lbox.x,ystart,lbox.y+adjY,lbox.height);
-					svgHelpers.debugBox(svg, dbgBox,'measure-adjust-dbg',10);
-				}
 				measure.staffWidth = Math.round(xmaxs[hix]);
 				// the y of the staff may be different than what we ask, so we check for a collision and adjust it
 				// rather than try to calculate.
 				// TODO:  /2 is fudge factor, need to handle inter-score gap.
 				measure.adjY = Math.round(adjY/2);
+				if (suiSimpleLayout.debugLayout) {
+					var dbgBox = svgHelpers.boxPoints(lbox.x,lbox.y+adjY,lbox.width,lbox.height);
+					svgHelpers.debugBox(svg, dbgBox,'measure-adjust-dbg',10);
+				}
 				
 			}
 		}
