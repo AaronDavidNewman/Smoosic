@@ -37,7 +37,9 @@ class suiController {
 
 		this.bindEvents();
 		this.bindResize();
-		this.splash();
+		if (!suiSimpleLayout.debugLayout) {
+			this.splash();
+		}
 		this.piano();
 		this.updateOffsets();
 	}
@@ -136,7 +138,19 @@ class suiController {
 		suiController.createDom();
 		var params = suiController.keyBindingDefaults;
 		params.layout = suiSimpleLayout.createScoreLayout(document.getElementById("boo"), score);
-		// suiSimpleLayout.debugLayout=true;
+		params.tracker = new suiTracker(params.layout);
+		params.score = score;
+		params.editor = new suiEditor(params);
+		params.menus = new suiMenuManager(params);
+		var controller = new suiController(params);
+		return controller;
+	}
+	
+	static createDebugUi(score) {
+		suiController.createDom();
+		var params = suiController.keyBindingDefaults;
+		params.layout = suiSimpleLayout.createScoreLayout(document.getElementById("boo"), score);
+		suiSimpleLayout.debugLayout=true;
 		params.tracker = new suiTracker(params.layout);
 		params.score = score;
 		params.editor = new suiEditor(params);
@@ -145,7 +159,7 @@ class suiController {
 		return controller;
 	}
 
-	static start() {
+	static start(debug) {
 		var score = SmoScore.getEmptyScore();
 		score.addDefaultMeasureWithNotes(0, {});
 		score.addDefaultMeasureWithNotes(1, {});
@@ -154,7 +168,7 @@ class suiController {
 		score.addDefaultMeasureWithNotes(4, {});
 		score.addStaff();
 
-		var controller = suiController.createUi(score);
+		var controller = debug ? suiController.createDebugUi(score) : suiController.createUi(score);
 		var remap = function () {
 			return controller.tracker.updateMap();
 		}

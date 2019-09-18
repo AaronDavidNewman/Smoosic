@@ -6495,7 +6495,7 @@ class suiSimpleLayout {
 		// layout a second time to adjust for issues.
 		// this.adjustWidths();
 		// this.adjustWidths();
-		this.adjustWidths2();
+		this.adjustWidths();
 		this.adjustHeight();
 		this.layout(true);
 	}
@@ -6561,7 +6561,7 @@ class suiSimpleLayout {
 		}
 		this._renderModifiers(startSelection.staff, system);
 	}
-	adjustWidths2() {
+	adjustWidths() {
 		var topStaff = this.score.staves[0];
 		var maxLine = topStaff.measures[topStaff.measures.length-1].lineIndex;
 		var svg = this.context.svg;
@@ -6574,7 +6574,7 @@ class suiSimpleLayout {
 				var maxX={};
 				for (var k=0;k<measures.length;++k) {
 					var measure = measures[k];
-					var lbox = svgHelpers.clientToLogical(svg,measure.renderedBox);
+					var lbox = measure.logicalBox;
 
 					var si = measure.measureNumber.systemIndex;
 					var w = Math.round(lbox.width-1);
@@ -6608,6 +6608,8 @@ class suiSimpleLayout {
 				var absLine = this.score.staves.length*i+j;
 				var staff = this.score.staves[j];
 				var measures = staff.measures.filter((mm) => {return mm.lineIndex === i});
+				
+				// Max is measure on this line with y closest to bottom of page (max y point)
 				var max = measures.reduce((a,b) => { 
 				    if (a.logicalBox.y+a.logicalBox.height +a.adjY > 
 					      b.logicalBox.y+b.logicalBox.height+b.adjY) {
@@ -6615,36 +6617,37 @@ class suiSimpleLayout {
 					}
 					return b;
 				});
+				// min is measure on this line with y closest to top of the page
 				var min = measures.reduce((a,b) => {
 					return a.logicalBox.y+a.adjY < b.logicalBox.y+b.adjY ? a : b;
 				});
 				
-				var lbox = max.logicalBox;
-				maxY.push(max);;	
+				maxY.push(max);
 				
 				if (absLine == 0) {
-					accum = this.score.staffY-lbox.y;
-					/* measures.forEach((measure) => {
-						var ll = measure.logicalBox;
-						measure.adjY=accum;
+					accum = this.score.staffY-min.logicalBox.y;
+					var staffY = min.staffY+accum;
+					measures.forEach((measure) => {
+						measure.staffY = staffY;
 						if (suiSimpleLayout.debugLayout) {
-							var dbgBox = svgHelpers.boxPoints(measure.staffX,measure.staffY+measure.adjY,measure.staffWidth,lbox.height);
+							var dbgBox = svgHelpers.boxPoints(measure.staffX,measure.staffY,measure.staffWidth,measure.logicalBox.height);
 							svgHelpers.debugBox(svg, dbgBox,'measure-adjust-dbg',10);
 						}
-					});   */
+					});  
 				} else {
 					var maxM = maxY[absLine - 1];
 					var my = maxM.logicalBox.y+maxM.logicalBox.height ;
-					var delta = (my-min.logicalBox.y)/2;
+					var delta = my-min.logicalBox.y;
 					if (maxM.lineIndex < min.lineIndex) {
 						delta += this.score.interGap;
 					}
 					accum += delta;
+					var staffY = min.staffY + accum;
                     measures.forEach((measure) => {
 						var ll = measures.logicalBox;
-						measure.staffY += accum;
+						measure.staffY = staffY;
 						if (suiSimpleLayout.debugLayout) {
-							var dbgBox = svgHelpers.boxPoints(measure.staffX,measure.staffY,measure.staffWidth,lbox.height);
+							var dbgBox = svgHelpers.boxPoints(measure.staffX,measure.staffY,measure.staffWidth,measure.logicalBox.height);
 							svgHelpers.debugBox(svg, dbgBox,'measure-adjust-dbg',10);
 						}
 					});				
@@ -6653,75 +6656,6 @@ class suiSimpleLayout {
 		}
 	}
 
-	// ### adjustWidths
-	// adjustWidths updates the expected widths of the measures based on the actual rendered widths
-	adjustWidths() {
-		// Max width per measure column in a system
-		var xmaxs = {};
-		// Max y+height in a system
-		var ymaxs = {};
-		// Max y value in a system
-		var ytopmaxs = {};
-		if (suiSimpleLayout.debugLayout) {
-			$(this.renderer.getContext().svg).find('g.measure-adjust-dbg').remove();
-		}
-		var topStaff = this.score.staves[0];
-		var svg = this.context.svg;
-		for (var i = 0; i < topStaff.measures.length; ++i) {
-			for (var j = 0; j < this.score.staves.length; ++j) {
-			var staff = this.score.staves[j];
-			var measure = staff.measures[i];
-			
-			// vertical index of the current staff on the page
-				measure.adjY=0;
-				var six = measure.lineIndex * this.score.staves.length + j;
-				var hix = ''+measure.lineIndex+'-'+measure.measureNumber.systemIndex;
-				var lbox = svgHelpers.clientToLogical(svg,measure.renderedBox);
-				var width = lbox.width;
-				if (!xmaxs[hix]) {
-					xmaxs[hix]=Math.round(lbox.width-1);
-				} else {
-					xmaxs[hix] = xmaxs[hix] < Math.round(lbox.width-1) ? Math.round(lbox.width-1) : xmaxs[hix];
-				}
-				var curY=lbox.y+lbox.height;
-				if (!ymaxs[six]) {
-					ymaxs[six] = curY;
-					ytopmaxs[six] = lbox.y;
-				} else {
-					ymaxs[six] = ymaxs[six] < curY ? curY : ymaxs[six];
-					ytopmaxs[six] = ytopmaxs[six] > lbox.y ? lbox.y : ytopmaxs[six];
-				}
-			}
-		}
-		for (var i = 0; i < topStaff.measures.length; ++i) {
-			for (var j = 0; j < this.score.staves.length; ++j) {
-    			var staff = this.score.staves[j];
-				var measure = staff.measures[i];
-			    // vertical index of the current staff on the page
-    			var six = measure.lineIndex * this.score.staves.length + j;
-				var hix = ''+measure.lineIndex+'-'+measure.measureNumber.systemIndex;
-				var lbox = svgHelpers.clientToLogical(svg,measure.renderedBox);
-				
-				// ystart is the end of the measure above me.
-				var ystart = six > 0 ? ymaxs[six-1] : lbox.y;
-				// ytop is the top of the highest measure on this line.
-				var ytop = six > 0 ? ytopmaxs[six] : ystart;
-				
-				var adjY = ystart - ytop; // +(this.score.interGap*measure.lineIndex);
-				measure.staffWidth = Math.round(xmaxs[hix]);
-				// the y of the staff may be different than what we ask, so we check for a collision and adjust it
-				// rather than try to calculate.
-				// TODO:  /2 is fudge factor, need to handle inter-score gap.
-				measure.adjY = Math.round(adjY/2);
-				if (suiSimpleLayout.debugLayout) {
-					var dbgBox = svgHelpers.boxPoints(lbox.x,lbox.y+adjY,lbox.width,lbox.height);
-					svgHelpers.debugBox(svg, dbgBox,'measure-adjust-dbg',10);
-				}
-				
-			}
-		}
-
-	}
 
 	// ### unrenderMeasure
 	// ### Description:
@@ -6861,11 +6795,6 @@ class suiSimpleLayout {
 
 				measure.lineIndex = lineIndex;
 				
-				// If we are calculating the measures' location dynamically, remove any adjustments.
-				if (!useAdjusted) {
-					measure.adjY=0;
-				}
-
 				// The SVG X,Y of this staff.  Set it initially to the UL corner of page.  Width,height filled in later.
 				var staffBox = svgHelpers.pointBox(this.score.staffX, this.score.staffY);
 
@@ -6882,7 +6811,7 @@ class suiSimpleLayout {
 				staffBox = staffBoxes[j];
 				
 				// If we are calculating the measures' location dynamically, always update the y 
-				if (!useAdjusted)  { // && systemIndex === 0) {
+				if (!useAdjusted && measure.changed)  { // && systemIndex === 0) {
 					measure.staffY = staffBox.y;
 				} 
 
@@ -6910,7 +6839,7 @@ class suiSimpleLayout {
 						this._renderModifiers(stf, system);
 					});
 					measure.staffX = this.score.staffX + 1;
-					if (!useAdjusted) {
+					if (!useAdjusted && measure.changed) {
 					    measure.staffY = pageBox.y + pageBox.height+this.score.interGap;
 					}
 					staffBoxes = {};
@@ -6951,7 +6880,7 @@ class suiSimpleLayout {
 					measure.changed=false;
 				}
 				// Rendered box is in client coordinates, convert it to SVG
-				var logicalRenderedBox = svgHelpers.clientToLogical(svg, measure.renderedBox);
+				var logicalRenderedBox = measure.logicalBox;
 
 				// Keep a running tally of the page, system, and staff dimensions as we draw.
 				systemBoxes[lineIndex] = svgHelpers.unionRect(systemBoxes[lineIndex], logicalRenderedBox);
@@ -10857,7 +10786,9 @@ class suiController {
 
 		this.bindEvents();
 		this.bindResize();
-		// this.splash();
+		if (!suiSimpleLayout.debugLayout) {
+			this.splash();
+		}
 		this.piano();
 		this.updateOffsets();
 	}
@@ -10956,6 +10887,18 @@ class suiController {
 		suiController.createDom();
 		var params = suiController.keyBindingDefaults;
 		params.layout = suiSimpleLayout.createScoreLayout(document.getElementById("boo"), score);
+		params.tracker = new suiTracker(params.layout);
+		params.score = score;
+		params.editor = new suiEditor(params);
+		params.menus = new suiMenuManager(params);
+		var controller = new suiController(params);
+		return controller;
+	}
+	
+	static createDebugUi(score) {
+		suiController.createDom();
+		var params = suiController.keyBindingDefaults;
+		params.layout = suiSimpleLayout.createScoreLayout(document.getElementById("boo"), score);
 		suiSimpleLayout.debugLayout=true;
 		params.tracker = new suiTracker(params.layout);
 		params.score = score;
@@ -10965,7 +10908,7 @@ class suiController {
 		return controller;
 	}
 
-	static start() {
+	static start(debug) {
 		var score = SmoScore.getEmptyScore();
 		score.addDefaultMeasureWithNotes(0, {});
 		score.addDefaultMeasureWithNotes(1, {});
@@ -10974,7 +10917,7 @@ class suiController {
 		score.addDefaultMeasureWithNotes(4, {});
 		score.addStaff();
 
-		var controller = suiController.createUi(score);
+		var controller = debug ? suiController.createDebugUi(score) : suiController.createUi(score);
 		var remap = function () {
 			return controller.tracker.updateMap();
 		}
