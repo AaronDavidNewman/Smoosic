@@ -120,16 +120,16 @@ class suiSimpleLayout {
         this._render();
     }
     _render() {
-        this.layout(false,false);
+        this.layout(false, false);
 
         // layout a second time to adjust for issues.
         // this.adjustWidths();
         // this.adjustWidths();
         this.adjustWidths();
-		this.layout(false,false);
-		this.justifyWidths();
+        this.layout(false, false);
+        this.justifyWidths();
         this.adjustHeight();
-        this.layout(true,false);
+        this.layout(true, true);
     }
 
     // ### undo
@@ -193,37 +193,48 @@ class suiSimpleLayout {
         }
         this._renderModifiers(startSelection.staff, system);
     }
-	
-	justifyWidths() {
-		var topStaff = this.score.staves[0];
+
+    justifyWidths() {
+		var svg = this.context.svg;
+        if (suiSimpleLayout.debugLayout) {
+            $(this.renderer.getContext().svg).find('g.measure-adjust-dbg').remove();
+        }
+        var topStaff = this.score.staves[0];
         var maxLine = topStaff.measures[topStaff.measures.length - 1].lineIndex - 1;
         for (var i = 0; i <= maxLine; ++i) {
             var systemIndex = 0;
-            
-			this.score.staves.forEach((staff) => {
-				 var measures = staff.measures.filter((mm) => {
+
+            this.score.staves.forEach((staff) => {
+                var measures = staff.measures.filter((mm) => {
                         return mm.lineIndex === i
-                 });
-				 if (measures.length > 0) {
-					 var width = measures.map((mm) => {
-						 return mm.staffWidth;
-						 }).reduce((a,b) => {return a+b});
-				     width += measures[0].staffX + this.score.staffX;
-					 var just = Math.round(((this.pageMarginWidth / this.svgScale)-width)/measures.length)-1;
-					 if (just > 0) {
-						 var accum = 0;
-						 measures.forEach((mm) => {
-							 mm.staffWidth += just;
-							 mm.staffX += accum;
-							 accum += just-1;
-						 });
-					 }
-				 }
-			});
-		}
-	}
-	// ### adjustWidths
-	// Set the width of each measure in a system to the max width for that column so the measures are aligned.
+                    });
+                if (measures.length > 0) {
+                    var width = measures.map((mm) => {
+                            return mm.staffWidth;
+                        }).reduce((a, b) => {
+                            return a + b
+                        });
+                    width += measures[0].staffX + this.score.staffX;
+                    var just = Math.round(((this.pageMarginWidth / this.svgScale) - width) / measures.length) - 1;
+                    if (just > 0) {
+                        var accum = 0;
+                        measures.forEach((mm) => {
+                            mm.staffWidth += just;
+                            mm.staffX += accum;
+                            accum += just;
+                            if (suiSimpleLayout.debugLayout) {
+                                var dbgBox = svgHelpers.boxPoints(
+								   mm.staffX, mm.staffY, mm.staffWidth, mm.logicalBox.height);
+                                svgHelpers.debugBox(svg, dbgBox, 'measure-adjust-dbg', 10);
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    }
+    // ### adjustWidths
+    // Set the width of each measure in a system to the max width for that column so the measures are aligned.
     adjustWidths() {
         var topStaff = this.score.staves[0];
         var maxLine = topStaff.measures[topStaff.measures.length - 1].lineIndex;
@@ -252,7 +263,7 @@ class suiSimpleLayout {
                         });
                     measures.forEach((measure) => {
                         measure.staffWidth = widest;
-						measure.changed = true;
+                        measure.changed = true;
                     });
                 }
                 if (!measures.length)
@@ -267,10 +278,10 @@ class suiSimpleLayout {
                 if (last && measure.measureNumber.systemIndex > 0) {
                     measure.staffX = last.staffX + last.staffWidth;
                 }
-				if (suiSimpleLayout.debugLayout) {
-                            var dbgBox = svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height);
-                            svgHelpers.debugBox(svg, dbgBox, 'measure-adjust-dbg', 10);
-                        }
+                if (suiSimpleLayout.debugLayout) {
+                    var dbgBox = svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height);
+                    svgHelpers.debugBox(svg, dbgBox, 'measure-adjust-dbg', 10);
+                }
                 last = measure;
             });
         });
@@ -445,7 +456,7 @@ class suiSimpleLayout {
     // from overlapping.  Then render all the modifiers.
     // * useAdjustedY is false if we are dynamically rendering the score, and we use other
     // measures to find our sweet spot.  If true, we assume the coordinates are correct and we use those.
-    layout(useAdjustedY,useAdjustedX) {
+    layout(useAdjustedY, useAdjustedX) {
         var svg = this.context.svg;
 
         if (suiSimpleLayout.debugLayout) {
@@ -495,17 +506,17 @@ class suiSimpleLayout {
                 }
 
                 staffBox = staffBoxes[j];
-				if (!useAdjustedX) {
-					measure.staffX = staffBox.x + staffBox.width;
-					
-					if (measure.staffWidth < 18*measure.notes.length) {
-							measure.staffWidth = 18*measure.notes.length;
-					}
-				}
+                if (!useAdjustedX) {
+                    measure.staffX = staffBox.x + staffBox.width;
+
+                    if (measure.staffWidth < 20 * measure.notes.length) {
+                        measure.staffWidth = 20 * measure.notes.length;
+                    }
+                }
                 // If we are calculating the measures' location dynamically, always update the y
                 if (!useAdjustedY && measure.changed) { // && systemIndex === 0) {
                     measure.staffY = staffBox.y;
-                    
+
                 }
 
                 if (!systemBoxes[lineIndex] || j > 0) {
@@ -529,9 +540,9 @@ class suiSimpleLayout {
                     this.score.staves.forEach((stf) => {
                         this._renderModifiers(stf, system);
                     });
-					if (!useAdjustedX) {
-					    measure.staffX = this.score.staffX + 1;
-					}
+                    if (!useAdjustedX) {
+                        measure.staffX = this.score.staffX + 1;
+                    }
                     if (!useAdjustedY && measure.changed) {
                         measure.staffY = pageBox.y + pageBox.height + this.score.interGap;
                     }

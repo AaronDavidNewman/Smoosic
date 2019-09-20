@@ -28,6 +28,14 @@ class VxMeasure {
         this.vexBeamGroups = [];
         this.vexTuplets = [];
     }
+	
+	static get adjLeftPixels() {
+		return 5;
+	}
+	
+	static get adjRightPixels() {
+		return 5;
+	}
 
     static get defaults() {
         // var defaultLayout = new smrfSimpleLayout();
@@ -324,7 +332,8 @@ class VxMeasure {
         }
 		
 		// Need to format for x position, then set y position before drawing dynamics.
-        this.formatter = new VF.Formatter().joinVoices(voiceAr).format(voiceAr, this.smoMeasure.staffWidth-(this.smoMeasure.adjX+2));
+        this.formatter = new VF.Formatter().joinVoices(voiceAr).format(voiceAr, this.smoMeasure.staffWidth-
+		    (this.smoMeasure.adjX+VxMeasure.adjRightPixels));
 		
         for (var j = 0; j < voiceAr.length; ++j) {
             voiceAr[j].draw(this.context, this.stave);

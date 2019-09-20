@@ -40,9 +40,9 @@ class suiController {
 		this.bindResize();
 		if (!suiSimpleLayout.debugLayout) {
 			this.splash();
-
+		    this.pollRedraw();
 		}
-		this.pollRedraw();
+
 		this.piano();
 		this.updateOffsets();
 	}
