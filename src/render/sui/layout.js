@@ -120,14 +120,16 @@ class suiSimpleLayout {
         this._render();
     }
     _render() {
-        this.layout(false);
+        this.layout(false,false);
 
         // layout a second time to adjust for issues.
         // this.adjustWidths();
         // this.adjustWidths();
         this.adjustWidths();
+		this.layout(false,false);
+		this.justifyWidths();
         this.adjustHeight();
-        this.layout(true);
+        this.layout(true,false);
     }
 
     // ### undo
@@ -191,6 +193,37 @@ class suiSimpleLayout {
         }
         this._renderModifiers(startSelection.staff, system);
     }
+	
+	justifyWidths() {
+		var topStaff = this.score.staves[0];
+        var maxLine = topStaff.measures[topStaff.measures.length - 1].lineIndex - 1;
+        for (var i = 0; i <= maxLine; ++i) {
+            var systemIndex = 0;
+            
+			this.score.staves.forEach((staff) => {
+				 var measures = staff.measures.filter((mm) => {
+                        return mm.lineIndex === i
+                 });
+				 if (measures.length > 0) {
+					 var width = measures.map((mm) => {
+						 return mm.staffWidth;
+						 }).reduce((a,b) => {return a+b});
+				     width += measures[0].staffX + this.score.staffX;
+					 var just = Math.round(((this.pageMarginWidth / this.svgScale)-width)/measures.length)-1;
+					 if (just > 0) {
+						 var accum = 0;
+						 measures.forEach((mm) => {
+							 mm.staffWidth += just;
+							 mm.staffX += accum;
+							 accum += just-1;
+						 });
+					 }
+				 }
+			});
+		}
+	}
+	// ### adjustWidths
+	// Set the width of each measure in a system to the max width for that column so the measures are aligned.
     adjustWidths() {
         var topStaff = this.score.staves[0];
         var maxLine = topStaff.measures[topStaff.measures.length - 1].lineIndex;
@@ -219,6 +252,7 @@ class suiSimpleLayout {
                         });
                     measures.forEach((measure) => {
                         measure.staffWidth = widest;
+						measure.changed = true;
                     });
                 }
                 if (!measures.length)
@@ -409,9 +443,9 @@ class suiSimpleLayout {
     //  Render the music, keeping track of the bounding boxes of all the
     // elements.  Re-render a second time to adjust measure widths to prevent notes
     // from overlapping.  Then render all the modifiers.
-    // * useAdjusted is false if we are dynamically rendering the score, and we use other
+    // * useAdjustedY is false if we are dynamically rendering the score, and we use other
     // measures to find our sweet spot.  If true, we assume the coordinates are correct and we use those.
-    layout(useAdjusted) {
+    layout(useAdjustedY,useAdjustedX) {
         var svg = this.context.svg;
 
         if (suiSimpleLayout.debugLayout) {
@@ -461,12 +495,15 @@ class suiSimpleLayout {
                 }
 
                 staffBox = staffBoxes[j];
-				measure.staffX = staffBox.x + staffBox.width;
-					if (measure.staffWidth < 25*measure.notes.length) {
-						measure.staffWidth = 25*measure.notes.length;
+				if (!useAdjustedX) {
+					measure.staffX = staffBox.x + staffBox.width;
+					
+					if (measure.staffWidth < 18*measure.notes.length) {
+							measure.staffWidth = 18*measure.notes.length;
+					}
 				}
                 // If we are calculating the measures' location dynamically, always update the y
-                if (!useAdjusted && measure.changed) { // && systemIndex === 0) {
+                if (!useAdjustedY && measure.changed) { // && systemIndex === 0) {
                     measure.staffY = staffBox.y;
                     
                 }
@@ -486,15 +523,16 @@ class suiSimpleLayout {
                 // Do we need to start a new line?
                 if (j == 0 && staffBox.x + staffBox.width + measure.staffWidth
                      > this.pageMarginWidth / this.svgScale) {
-                    if (useAdjusted) {
+                    if (useAdjustedY) {
                         system.cap();
                     }
                     this.score.staves.forEach((stf) => {
                         this._renderModifiers(stf, system);
                     });
-					measure.staffX = this.score.staffX + 1;
-                    if (!useAdjusted && measure.changed) {
-                        
+					if (!useAdjustedX) {
+					    measure.staffX = this.score.staffX + 1;
+					}
+                    if (!useAdjustedY && measure.changed) {
                         measure.staffY = pageBox.y + pageBox.height + this.score.interGap;
                     }
                     staffBoxes = {};
@@ -525,7 +563,7 @@ class suiSimpleLayout {
                         svg, svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, 1), 'measure-place-dbg');
                 }
                 // WIP
-                if (useAdjusted || measure.changed) {
+                if (useAdjustedY || useAdjustedX || measure.changed) {
                     smoBeamerFactory.applyBeams(measure);
                     system.renderMeasure(j, measure);
 
@@ -552,7 +590,7 @@ class suiSimpleLayout {
             }
             ++systemIndex;
         }
-        if (useAdjusted) {
+        if (useAdjustedY) {
             system.cap();
         }
         this.score.staves.forEach((stf) => {

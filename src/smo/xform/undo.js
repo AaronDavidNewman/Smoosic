@@ -91,7 +91,7 @@ class UndoBuffer {
 // Convenience functions to save the score state before operations so we can undo the operation.
 // Each undo-able knows which set of parameters the undo operation requires (measure, staff, score).
 class SmoUndoable {
-	static undoForSelections(selections,undoBuffer,operation) {
+	static undoForSelections(score,selections,undoBuffer,operation) {
 	    var staffUndo = false;
 		var scoreUndo = false;
 		if (!selections.length)
@@ -117,7 +117,7 @@ class SmoUndoable {
 	}
 	// Add the measure/staff/score that will cover this list of selections
 	static batchDurationOperation(score,selections,operation,undoBuffer) {		
-	    SmoUndoable.undoForSelections(selections,undoBuffer);
+	    SmoUndoable.undoForSelections(score,selections,undoBuffer,operation);
 		SmoOperation.batchSelectionOperation(score,selections,operation);
 	}
     static setPitch(selection, pitches, undoBuffer) {
@@ -238,7 +238,7 @@ class SmoUndoable {
         SmoOperation.changeInstrument(score, instrument, selections);
     }
 	static pasteBuffer(score,pasteBuffer,selections,undoBuffer,operation) {
-		SmoUndoable.undoForSelections(selections,undoBuffer,operation);
+		SmoUndoable.undoForSelections(score,selections,undoBuffer,operation);
 		var pasteTarget = selections[0].selector;
         pasteBuffer.pasteSelections(this.score, pasteTarget);
 	}

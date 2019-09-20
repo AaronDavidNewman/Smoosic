@@ -21,6 +21,7 @@ class suiController {
 		this.editor.undoBuffer = this.undoBuffer;
 		this.editor.pasteBuffer = this.pasteBuffer;
 		this.resizing = false;
+		this.undoStatus=0;
 
 		this.ribbon = new RibbonButtons({
 				ribbons: defaultRibbonLayout.ribbons,
@@ -39,9 +40,22 @@ class suiController {
 		this.bindResize();
 		if (!suiSimpleLayout.debugLayout) {
 			this.splash();
+
 		}
+		this.pollRedraw();
 		this.piano();
 		this.updateOffsets();
+	}
+	
+	pollRedraw() {
+		var self=this;
+		setTimeout(function() {
+			if (self.undoStatus != self.undoBuffer.buffer.length) {
+				self.undoStatus = self.undoBuffer.buffer.length;
+				self.resizeEvent();
+			}
+			self.pollRedraw();
+		},10000);
 	}
 
 	splash() {
