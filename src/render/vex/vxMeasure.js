@@ -81,13 +81,11 @@ class VxMeasure {
         for (var i = 0; i < smoNote.pitches.length; ++i) {
             var pitch = smoNote.pitches[i];
             var accidental = pitch.accidental ? pitch.accidental : 'n';
-            var defaultAccidental = smoMusic.getKeySignatureKey(pitch.letter, this.smoMeasure.keySignature);
-            defaultAccidental = defaultAccidental.length > 1 ? defaultAccidental[1] : 'n';
 
             // was this accidental declared earlier in the measure?
-            var declared = accidentals[pitch.letter] && accidentals[pitch.letter].accidental === pitch.accidental;
+            var declared = smoTickIterator.getActiveAccidental(pitch,tickIndex,this.tickmap.accidentalMap,this.smoMeasure.keySignature);
 
-            if ((accidental != defaultAccidental && !declared) || pitch.cautionary) {
+            if (accidental != declared || pitch.cautionary) {
                 var acc = new VF.Accidental(accidental);
 
                 if (pitch.cautionary) {

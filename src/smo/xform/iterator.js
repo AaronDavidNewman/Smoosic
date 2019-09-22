@@ -128,12 +128,15 @@ class smoTickIterator {
         accidentalMap.push(newObj);
     }
 
-    static hasActiveAccidental(pitch, iteratorIndex, accidentalMap) {
+	// ### getActiveAccidental
+	// return the active accidental for the given note
+    static getActiveAccidental(pitch, iteratorIndex, accidentalMap,keySignature) {
+		var defaultAccidental = smoMusic.getKeySignatureKey(pitch.letter, keySignature);
+		defaultAccidental = defaultAccidental.length > 1 ? defaultAccidental[1] : 'n';
         if (iteratorIndex === 0)
-            return false;
-        var vexKey = pitch.letter;
-        var letter = vexKey;
+            return defaultAccidental;
         var accidental = pitch.accidental.length > 0 ? pitch.accidental : 'n';
+		var letter = pitch.letter;
 
         // Back up the accidental map until we have a match, or until we run out
         for (var i = iteratorIndex; i > 0; --i) {
@@ -146,12 +149,12 @@ class smoTickIterator {
                 var mapAcc = mapLetter.accidental ? mapLetter.accidental : 'n';
 
                 // if the letters match and the accidental...
-                if (mapLetter.letter.toLowerCase() === letter && mapAcc == accidental) {
-                    return true;
+                if (mapLetter.letter.toLowerCase() === letter) {
+                    return mapAcc;
                 }
             }
         }
-        return false;
+        return defaultAccidental;
     }
     getTupletInfo(index) {
         var tuplets = Object.keys(this.tupletMap);
