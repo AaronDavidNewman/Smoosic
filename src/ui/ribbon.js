@@ -12,7 +12,9 @@ class RibbonButtons {
 	static ribbonButton(buttonId, buttonClass, buttonText, buttonIcon, buttonKey) {
 		var b = htmlHelpers.buildDom;
 		var r = b('div').classes('ribbonButtonContainer').append(b('button').attr('id', buttonId).classes(buttonClass).append(
-					b('span').classes('ribbon-button-text icon ' + buttonIcon).text(buttonText)).append(
+					b('span').classes('left-text').append(
+					    b('span').classes('text-span').text(buttonText)).append(
+					b('span').classes('ribbon-button-text icon ' + buttonIcon))).append(
 					b('span').classes('ribbon-button-hotkey').text(buttonKey)));
 		return r.dom();
 	}
@@ -220,6 +222,67 @@ class ChordButtons {
 				return;
 			}
 			self.setInterval();
+		});
+	}
+}
+class MeasureButtons {
+	constructor(parameters) {
+		this.buttonElement = parameters.buttonElement;
+		this.buttonData = parameters.buttonData;
+		this.tracker = parameters.tracker;
+		this.editor = parameters.editor;
+		this.score = this.editor.score;
+	}
+	/* 
+	 static get barlines() {
+        return {
+            singleBar: 0,
+            doubleBar: 1,
+            endBar: 2,
+            startRepeat: 3,
+            endRepeat: 4,
+            none: 5
+        }
+    }*/
+	setBarline(selection,position,barline,description) {
+		var selection = this.tracker.selections[this.tracker.selections.length - 1];
+		this.editor.scoreSelectionOperation(selection, 'setMeasureBarline', new SmoBarline({position:position,barline:barline})
+		    ,description);
+	}
+	endRepeat() {
+		var selection = this.tracker.selections[this.tracker.selections.length - 1];
+		this.setBarline(selection,SmoBarline.positions.end,SmoBarline.barlines.endRepeat,'add repeat');
+	}
+	startRepeat() {
+		var selection = this.tracker.selections[0];
+		this.setBarline(selection,SmoBarline.positions.start,SmoBarline.barlines.startRepeat,'add start repeat');
+	}
+	singleBarStart() {
+		var selection = this.tracker.selections[0];
+		this.setBarline(selection,SmoBarline.positions.start,SmoBarline.barlines.singleBar,'single start bar');
+	}
+    singleBarEnd() {
+		var selection = this.tracker.selections[this.tracker.selections.length - 1];
+		this.setBarline(selection,SmoBarline.positions.end,SmoBarline.barlines.singleBar,'single  bar');
+	}
+
+	doubleBar() {
+		var selection = this.tracker.selections[this.tracker.selections.length - 1];
+		this.setBarline(selection,SmoBarline.positions.end,SmoBarline.barlines.doubleBar,'double  bar');
+	}
+	endBar() {
+		var selection = this.tracker.selections[this.tracker.selections.length - 1];
+		this.setBarline(selection,SmoBarline.positions.end,SmoBarline.barlines.endBar,'final  bar');
+	}
+	
+	bind() {
+		var self = this;
+		$(this.buttonElement).off('click').on('click', function (ev) {
+			var id = self.buttonData.id;
+			if (typeof(self[id]) === 'function') {
+				self[id]();
+			}
+			 console.log('couch');
 		});
 	}
 }

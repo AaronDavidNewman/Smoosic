@@ -2280,11 +2280,17 @@ class MeasureTest {
 			SmoOperation.setRepeatSymbol(score,selection,new SmoRepeatSymbol({position:SmoRepeatSymbol.positions.end,symbol:SmoRepeatSymbol.symbols.Fine}));
 			return layout.render().then(timeTest);
 		}
-
-      
-        return drawDefaults().then(startRepeatTest).then(endRepeatTest).then(voltaTest1).then(doubleEndTest).then(endEndTest).then(noneEndTest)
+		
+		var voltaTest2 = () => {
+			var selection = SmoSelection.measureSelection(score, 0,3);
+			SmoOperation.addEnding(score,new SmoVolta({startBar:2,endBar:3,number:2}));
+			SmoOperation.setRepeatSymbol(score,selection,new SmoRepeatSymbol({position:SmoRepeatSymbol.positions.end,symbol:SmoRepeatSymbol.symbols.Fine}));
+			return layout.render().then(timeTest);
+		}      	       
+        
+        return drawDefaults().then(startRepeatTest).then(endRepeatTest).then(voltaTest1).then(voltaTest2).then(doubleEndTest).then(endEndTest).then(noneEndTest)
 		    .then(symbolTest1).then(symbolTest2).then(symbolTest3).then(symbolTest4).then(symbolTest5).then(symbolTest6)
-			.then(signalComplete);
+			.then(signalComplete); 
     }
 }
 ;

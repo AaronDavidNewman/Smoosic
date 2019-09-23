@@ -1,9 +1,9 @@
 @font-face {
   font-family: 'smoosic';
   src:
-    url('fonts/smoosic.ttf?gmew1q') format('truetype'),
-    url('fonts/smoosic.woff?gmew1q') format('woff'),
-    url('fonts/smoosic.svg?gmew1q#smoosic') format('svg');
+    url('fonts/smoosic.ttf?anuaae') format('truetype'),
+    url('fonts/smoosic.woff?anuaae') format('woff'),
+    url('fonts/smoosic.svg?anuaae#smoosic') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -24,6 +24,24 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-double_bar:before {
+  content: "\e946";
+}
+.icon-single_bar_start:before {
+  content: "\e947";
+}
+.icon-single_bar:before {
+  content: "\e94c";
+}
+.icon-end_bar:before {
+  content: "\e94d";
+}
+.icon-start_rpt:before {
+  content: "\e94e";
+}
+.icon-end_rpt:before {
+  content: "\e943";
+}
 .icon-articulation:before {
   content: "\e909";
 }
@@ -32,12 +50,6 @@
 }
 .icon-ending:before {
   content: "\e941";
-}
-.icon-start_rpt:before {
-  content: "\e942";
-}
-.icon-end_rpt:before {
-  content: "\e943";
 }
 .icon-coda:before {
   content: "\e944";

@@ -22,7 +22,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -41,10 +41,10 @@
      inkscape:window-height="1017"
      id="namedview14"
      showgrid="false"
-     inkscape:zoom="3.0341309"
-     inkscape:cx="-119.49843"
-     inkscape:cy="39.240663"
-     inkscape:window-x="-8"
+     inkscape:zoom="12.136524"
+     inkscape:cx="24.118186"
+     inkscape:cy="32.64899"
+     inkscape:window-x="1912"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
      inkscape:current-layer="g10"
@@ -61,17 +61,6 @@
      pointer-events="bounding-box"
      id="g10">
     <g
-       class="vf-stem"
-       pointer-events="bounding-box"
-       id="g4"
-       transform="matrix(1.764375,0,0,0.80045193,-549.40794,22.948028)">
-      <path
-         style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:medium;line-height:normal;font-family:sans-serif;font-variant-ligatures:normal;font-variant-position:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-alternates:normal;font-feature-settings:normal;text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;text-decoration-style:solid;text-decoration-color:#000000;letter-spacing:normal;word-spacing:normal;text-transform:none;writing-mode:lr-tb;direction:ltr;text-orientation:mixed;dominant-baseline:auto;baseline-shift:baseline;text-anchor:start;white-space:normal;shape-padding:0;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;vector-effect:none;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
-         d="M 717.76758,78.482422 V 115 h 1 V 78.482422 Z"
-         id="path2"
-         inkscape:connector-curvature="0" />
-    </g>
-    <g
        class="vf-notehead"
        pointer-events="bounding-box"
        id="g8">
@@ -81,5 +70,12 @@
          inkscape:connector-curvature="0"
          style="fill:#000000;stroke:none;stroke-width:0.30000001;stroke-dasharray:none" />
     </g>
+    <rect
+       style="opacity:1;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:0.05127964;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect819"
+       width="2.7899687"
+       height="27.980259"
+       x="716.16919"
+       y="86.676216" />
   </g>
 </svg>

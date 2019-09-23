@@ -3244,12 +3244,15 @@ class smoTickIterator {
         accidentalMap.push(newObj);
     }
 
-    static hasActiveAccidental(pitch, iteratorIndex, accidentalMap) {
+	// ### getActiveAccidental
+	// return the active accidental for the given note
+    static getActiveAccidental(pitch, iteratorIndex, accidentalMap,keySignature) {
+		var defaultAccidental = smoMusic.getKeySignatureKey(pitch.letter, keySignature);
+		defaultAccidental = defaultAccidental.length > 1 ? defaultAccidental[1] : 'n';
         if (iteratorIndex === 0)
-            return false;
-        var vexKey = pitch.letter;
-        var letter = vexKey;
+            return defaultAccidental;
         var accidental = pitch.accidental.length > 0 ? pitch.accidental : 'n';
+		var letter = pitch.letter;
 
         // Back up the accidental map until we have a match, or until we run out
         for (var i = iteratorIndex; i > 0; --i) {
@@ -3262,12 +3265,12 @@ class smoTickIterator {
                 var mapAcc = mapLetter.accidental ? mapLetter.accidental : 'n';
 
                 // if the letters match and the accidental...
-                if (mapLetter.letter.toLowerCase() === letter && mapAcc == accidental) {
-                    return true;
+                if (mapLetter.letter.toLowerCase() === letter) {
+                    return mapAcc;
                 }
             }
         }
-        return false;
+        return defaultAccidental;
     }
     getTupletInfo(index) {
         var tuplets = Object.keys(this.tupletMap);
@@ -5371,13 +5374,11 @@ class VxMeasure {
         for (var i = 0; i < smoNote.pitches.length; ++i) {
             var pitch = smoNote.pitches[i];
             var accidental = pitch.accidental ? pitch.accidental : 'n';
-            var defaultAccidental = smoMusic.getKeySignatureKey(pitch.letter, this.smoMeasure.keySignature);
-            defaultAccidental = defaultAccidental.length > 1 ? defaultAccidental[1] : 'n';
 
             // was this accidental declared earlier in the measure?
-            var declared = accidentals[pitch.letter] && accidentals[pitch.letter].accidental === pitch.accidental;
+            var declared = smoTickIterator.getActiveAccidental(pitch,tickIndex,this.tickmap.accidentalMap,this.smoMeasure.keySignature);
 
-            if ((accidental != defaultAccidental && !declared) || pitch.cautionary) {
+            if (accidental != declared || pitch.cautionary) {
                 var acc = new VF.Accidental(accidental);
 
                 if (pitch.cautionary) {
@@ -7254,6 +7255,13 @@ class suiEditor {
         SmoUndoable.batchDurationOperation(this.score, this.tracker.selections, operation, this.undoBuffer);
         this._render();
     }
+	
+	scoreSelectionOperation(selection,name,parameters,description) {
+		SmoUndoable.scoreSelectionOp(this.score,selection,name,parameters,
+			    this.undoBuffer,description);
+		this._render();
+				
+	}
 
     _selectionOperation(selection, name, parameters) {
         if (parameters) {
@@ -8998,12 +9006,22 @@ class defaultRibbonLayout {
 	static get ribbons() {
 		var left = defaultRibbonLayout.leftRibbonIds;
 		var top = defaultRibbonLayout.noteButtonIds.concat(defaultRibbonLayout.navigateButtonIds).concat(defaultRibbonLayout.articulateButtonIds)
-		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds);
+		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds).concat(defaultRibbonLayout.measureIds);
 			
 		return {
 			left: left,
 			top:top
 		};
+	}
+	
+	static get ribbonButtons() {
+		return defaultRibbonLayout.leftRibbonButtons.concat(
+			defaultRibbonLayout.navigationButtons).concat(
+			defaultRibbonLayout.noteRibbonButtons).concat(
+			defaultRibbonLayout.articulationButtons).concat(
+			defaultRibbonLayout.chordButtons).concat(
+			defaultRibbonLayout.durationRibbonButtons).concat(
+			defaultRibbonLayout.measureRibbonButtons);
 	}
 	
 	static get leftRibbonIds() {
@@ -9030,6 +9048,172 @@ class defaultRibbonLayout {
 	}
 	static get durationIds() {
 		return ['DurationButtons','GrowDuration','LessDuration','GrowDurationDot','LessDurationDot','TripletButton','QuintupletButton','SeptupletButton','NoTupletButton'];
+	}
+	static get measureIds() {
+		return ['MeasureButtons','endRepeat','startRepeat','nthEnding','dcAlCoda','dsAlCoda','dcAlFine','dsAlFine','coda','toCoda','segno','toSegno','endBar','doubleBar','singleBarEnd','singleBarStart'];
+	}
+	
+	static get measureRibbonButtons() {
+		return [{
+			leftText: '',
+				rightText: '',
+				classes: 'icon  collapseParent measure',
+				icon: 'icon-end_rpt',
+				action: 'collapseParent',
+				ctor: 'CollapseRibbonControl',
+				group: 'measure',
+				id: 'MeasureButtons'			
+		},{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-end_rpt',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'endRepeat'
+			},
+			{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-start_rpt',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'startRepeat'
+			},
+			{
+				leftText: 'Nth',
+				rightText: '',
+				icon: 'icon-ending',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'nthEnding'
+			},
+			{
+				leftText: 'DC Al Coda',
+				rightText: '',
+				icon: '',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'dcAlCoda'
+			},
+			{
+				leftText: 'DS Al Coda',
+				rightText: '',
+				icon: '',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'dsAlCoda'
+			},
+			{
+				leftText: 'DC Al Fine',
+				rightText: '',
+				icon: '',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'dcAlFine'
+			},
+			{
+				leftText: 'DS Al Fine',
+				rightText: '',
+				icon: '',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'dsAlFine'
+			},
+			{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-coda',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'coda'
+			},
+			{
+				leftText: 'to ',
+				rightText: '',
+				icon: 'icon-coda',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'toCoda'
+			},
+			{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-segno',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'segno'
+			},
+						{
+				leftText: 'to',
+				rightText: '',
+				icon: 'icon-segno',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'toSegno'
+			},
+			{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-end_bar',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'endBar'
+			},
+			{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-double_bar',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'doubleBar'
+			},
+			{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-single_bar',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'singleBarEnd'
+			},			
+			{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-single_bar_start',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'singleBarStart'
+			}
+		];
 	}
 	
 	static get durationRibbonButtons() {
@@ -9652,14 +9836,6 @@ class defaultRibbonLayout {
 		];
 	}
 
-	static get ribbonButtons() {
-		return defaultRibbonLayout.leftRibbonButtons.concat(
-			defaultRibbonLayout.navigationButtons).concat(
-			defaultRibbonLayout.noteRibbonButtons).concat(
-			defaultRibbonLayout.articulationButtons).concat(
-			defaultRibbonLayout.chordButtons).concat(
-			defaultRibbonLayout.durationRibbonButtons);
-	}
 	static get leftRibbonButtons() {
 		return [{
 				icon: '',
@@ -9743,7 +9919,9 @@ class RibbonButtons {
 	static ribbonButton(buttonId, buttonClass, buttonText, buttonIcon, buttonKey) {
 		var b = htmlHelpers.buildDom;
 		var r = b('div').classes('ribbonButtonContainer').append(b('button').attr('id', buttonId).classes(buttonClass).append(
-					b('span').classes('ribbon-button-text icon ' + buttonIcon).text(buttonText)).append(
+					b('span').classes('left-text').append(
+					    b('span').classes('text-span').text(buttonText)).append(
+					b('span').classes('ribbon-button-text icon ' + buttonIcon))).append(
 					b('span').classes('ribbon-button-hotkey').text(buttonKey)));
 		return r.dom();
 	}
@@ -9951,6 +10129,67 @@ class ChordButtons {
 				return;
 			}
 			self.setInterval();
+		});
+	}
+}
+class MeasureButtons {
+	constructor(parameters) {
+		this.buttonElement = parameters.buttonElement;
+		this.buttonData = parameters.buttonData;
+		this.tracker = parameters.tracker;
+		this.editor = parameters.editor;
+		this.score = this.editor.score;
+	}
+	/* 
+	 static get barlines() {
+        return {
+            singleBar: 0,
+            doubleBar: 1,
+            endBar: 2,
+            startRepeat: 3,
+            endRepeat: 4,
+            none: 5
+        }
+    }*/
+	setBarline(selection,position,barline,description) {
+		var selection = this.tracker.selections[this.tracker.selections.length - 1];
+		this.editor.scoreSelectionOperation(selection, 'setMeasureBarline', new SmoBarline({position:position,barline:barline})
+		    ,description);
+	}
+	endRepeat() {
+		var selection = this.tracker.selections[this.tracker.selections.length - 1];
+		this.setBarline(selection,SmoBarline.positions.end,SmoBarline.barlines.endRepeat,'add repeat');
+	}
+	startRepeat() {
+		var selection = this.tracker.selections[0];
+		this.setBarline(selection,SmoBarline.positions.start,SmoBarline.barlines.startRepeat,'add start repeat');
+	}
+	singleBarStart() {
+		var selection = this.tracker.selections[0];
+		this.setBarline(selection,SmoBarline.positions.start,SmoBarline.barlines.singleBar,'single start bar');
+	}
+    singleBarEnd() {
+		var selection = this.tracker.selections[this.tracker.selections.length - 1];
+		this.setBarline(selection,SmoBarline.positions.end,SmoBarline.barlines.singleBar,'single  bar');
+	}
+
+	doubleBar() {
+		var selection = this.tracker.selections[this.tracker.selections.length - 1];
+		this.setBarline(selection,SmoBarline.positions.end,SmoBarline.barlines.doubleBar,'double  bar');
+	}
+	endBar() {
+		var selection = this.tracker.selections[this.tracker.selections.length - 1];
+		this.setBarline(selection,SmoBarline.positions.end,SmoBarline.barlines.endBar,'final  bar');
+	}
+	
+	bind() {
+		var self = this;
+		$(this.buttonElement).off('click').on('click', function (ev) {
+			var id = self.buttonData.id;
+			if (typeof(self[id]) === 'function') {
+				self[id]();
+			}
+			 console.log('couch');
 		});
 	}
 }
@@ -10879,12 +11118,28 @@ class suiController {
 		this.updateOffsets();
 	}
 	
+	// ### pollIdleRedraw
+	// redraw after the user has been idle for some period
+	pollIdleRedraw() {
+		var self=this;
+		setTimeout(function() {
+			if (self.undoStatus == self.undoBuffer.buffer.length) {				
+				self.resizeEvent();
+				self.pollRedraw();
+			}
+			self.undoStatus = self.undoBuffer.buffer.length;
+			self.pollIdleRedraw();
+		},10000);
+	}
+	
+	// ### pollRedraw
+	// if anything has changed over some period, prepare to redraw everything.
 	pollRedraw() {
 		var self=this;
 		setTimeout(function() {
 			if (self.undoStatus != self.undoBuffer.buffer.length) {
 				self.undoStatus = self.undoBuffer.buffer.length;
-				self.resizeEvent();
+				self.pollIdleRedraw();
 			}
 			self.pollRedraw();
 		},10000);

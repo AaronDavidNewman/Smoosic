@@ -47,12 +47,28 @@ class suiController {
 		this.updateOffsets();
 	}
 	
+	// ### pollIdleRedraw
+	// redraw after the user has been idle for some period
+	pollIdleRedraw() {
+		var self=this;
+		setTimeout(function() {
+			if (self.undoStatus == self.undoBuffer.buffer.length) {				
+				self.resizeEvent();
+				self.pollRedraw();
+			}
+			self.undoStatus = self.undoBuffer.buffer.length;
+			self.pollIdleRedraw();
+		},10000);
+	}
+	
+	// ### pollRedraw
+	// if anything has changed over some period, prepare to redraw everything.
 	pollRedraw() {
 		var self=this;
 		setTimeout(function() {
 			if (self.undoStatus != self.undoBuffer.buffer.length) {
 				self.undoStatus = self.undoBuffer.buffer.length;
-				self.resizeEvent();
+				self.pollIdleRedraw();
 			}
 			self.pollRedraw();
 		},10000);

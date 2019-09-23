@@ -5,12 +5,22 @@ class defaultRibbonLayout {
 	static get ribbons() {
 		var left = defaultRibbonLayout.leftRibbonIds;
 		var top = defaultRibbonLayout.noteButtonIds.concat(defaultRibbonLayout.navigateButtonIds).concat(defaultRibbonLayout.articulateButtonIds)
-		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds);
+		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds).concat(defaultRibbonLayout.measureIds);
 			
 		return {
 			left: left,
 			top:top
 		};
+	}
+	
+	static get ribbonButtons() {
+		return defaultRibbonLayout.leftRibbonButtons.concat(
+			defaultRibbonLayout.navigationButtons).concat(
+			defaultRibbonLayout.noteRibbonButtons).concat(
+			defaultRibbonLayout.articulationButtons).concat(
+			defaultRibbonLayout.chordButtons).concat(
+			defaultRibbonLayout.durationRibbonButtons).concat(
+			defaultRibbonLayout.measureRibbonButtons);
 	}
 	
 	static get leftRibbonIds() {
@@ -37,6 +47,172 @@ class defaultRibbonLayout {
 	}
 	static get durationIds() {
 		return ['DurationButtons','GrowDuration','LessDuration','GrowDurationDot','LessDurationDot','TripletButton','QuintupletButton','SeptupletButton','NoTupletButton'];
+	}
+	static get measureIds() {
+		return ['MeasureButtons','endRepeat','startRepeat','nthEnding','dcAlCoda','dsAlCoda','dcAlFine','dsAlFine','coda','toCoda','segno','toSegno','endBar','doubleBar','singleBarEnd','singleBarStart'];
+	}
+	
+	static get measureRibbonButtons() {
+		return [{
+			leftText: '',
+				rightText: '',
+				classes: 'icon  collapseParent measure',
+				icon: 'icon-end_rpt',
+				action: 'collapseParent',
+				ctor: 'CollapseRibbonControl',
+				group: 'measure',
+				id: 'MeasureButtons'			
+		},{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-end_rpt',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'endRepeat'
+			},
+			{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-start_rpt',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'startRepeat'
+			},
+			{
+				leftText: 'Nth',
+				rightText: '',
+				icon: 'icon-ending',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'nthEnding'
+			},
+			{
+				leftText: 'DC Al Coda',
+				rightText: '',
+				icon: '',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'dcAlCoda'
+			},
+			{
+				leftText: 'DS Al Coda',
+				rightText: '',
+				icon: '',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'dsAlCoda'
+			},
+			{
+				leftText: 'DC Al Fine',
+				rightText: '',
+				icon: '',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'dcAlFine'
+			},
+			{
+				leftText: 'DS Al Fine',
+				rightText: '',
+				icon: '',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'dsAlFine'
+			},
+			{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-coda',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'coda'
+			},
+			{
+				leftText: 'to ',
+				rightText: '',
+				icon: 'icon-coda',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'toCoda'
+			},
+			{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-segno',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'segno'
+			},
+						{
+				leftText: 'to',
+				rightText: '',
+				icon: 'icon-segno',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'toSegno'
+			},
+			{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-end_bar',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'endBar'
+			},
+			{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-double_bar',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'doubleBar'
+			},
+			{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-single_bar',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'singleBarEnd'
+			},			
+			{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-single_bar_start',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'singleBarStart'
+			}
+		];
 	}
 	
 	static get durationRibbonButtons() {
@@ -659,14 +835,6 @@ class defaultRibbonLayout {
 		];
 	}
 
-	static get ribbonButtons() {
-		return defaultRibbonLayout.leftRibbonButtons.concat(
-			defaultRibbonLayout.navigationButtons).concat(
-			defaultRibbonLayout.noteRibbonButtons).concat(
-			defaultRibbonLayout.articulationButtons).concat(
-			defaultRibbonLayout.chordButtons).concat(
-			defaultRibbonLayout.durationRibbonButtons);
-	}
 	static get leftRibbonButtons() {
 		return [{
 				icon: '',

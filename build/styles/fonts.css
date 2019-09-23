@@ -1,11 +1,12 @@
 @font-face {
   font-family: 'smoosic';
   src:
-    url('fonts/smoosic.ttf?hhyfrv') format('truetype'),
-    url('fonts/smoosic.woff?hhyfrv') format('woff'),
-    url('fonts/smoosic.svg?hhyfrv#smoosic') format('svg');
+    url('fonts/smoosic.ttf?anuaae') format('truetype'),
+    url('fonts/smoosic.woff?anuaae') format('woff'),
+    url('fonts/smoosic.svg?anuaae#smoosic') format('svg');
   font-weight: normal;
   font-style: normal;
+  font-display: block;
 }
 
 [class^="icon-"], [class*=" icon-"] {
@@ -23,6 +24,39 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-double_bar:before {
+  content: "\e946";
+}
+.icon-single_bar_start:before {
+  content: "\e947";
+}
+.icon-single_bar:before {
+  content: "\e94c";
+}
+.icon-end_bar:before {
+  content: "\e94d";
+}
+.icon-start_rpt:before {
+  content: "\e94e";
+}
+.icon-end_rpt:before {
+  content: "\e943";
+}
+.icon-articulation:before {
+  content: "\e909";
+}
+.icon-note:before {
+  content: "\e900";
+}
+.icon-ending:before {
+  content: "\e941";
+}
+.icon-coda:before {
+  content: "\e944";
+}
+.icon-segno:before {
+  content: "\e945";
+}
 .icon-no_tuplet:before {
   content: "\e940";
 }
@@ -115,12 +149,6 @@
 }
 .icon-note_select:before {
   content: "\e902";
-}
-.icon-articulation:before {
-  content: "\e900";
-}
-.icon-note:before {
-  content: "\e909";
 }
 .icon-pizzicato:before {
   content: "\e90a";

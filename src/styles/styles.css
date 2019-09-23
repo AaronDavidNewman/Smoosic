@@ -165,7 +165,7 @@ div.ribbonButtonContainer.expanded {
 	font-size:2.4em;
 }
 
-.controls-top button.duration {
+.controls-top button.duration,.controls-top button.measure {
 	width:65px;
 }
 
@@ -186,7 +186,19 @@ div.ribbonButtonContainer.expanded {
 	font-size:1.6em;
 }
 
-#DurationButtons span.ribbon-button-text {
+
+.controls-top .text-span {
+	position:absolute;
+	top: 30%;
+	left: 0;
+}
+
+button.addChord .left-text .icon {
+	left:2em;
+}
+
+#DurationButtons span.ribbon-button-text,
+#MeasureButtons span.ribbon-button-text {
 	left:7px;
 	font-size:1.6em;
 }

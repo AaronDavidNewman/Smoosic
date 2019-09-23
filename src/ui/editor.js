@@ -36,6 +36,13 @@ class suiEditor {
         SmoUndoable.batchDurationOperation(this.score, this.tracker.selections, operation, this.undoBuffer);
         this._render();
     }
+	
+	scoreSelectionOperation(selection,name,parameters,description) {
+		SmoUndoable.scoreSelectionOp(this.score,selection,name,parameters,
+			    this.undoBuffer,description);
+		this._render();
+				
+	}
 
     _selectionOperation(selection, name, parameters) {
         if (parameters) {
