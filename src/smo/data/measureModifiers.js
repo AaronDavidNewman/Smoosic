@@ -81,6 +81,7 @@ class SmoRepeatSymbol extends SmoMeasureModifierBase {
             Coda: 1,
             Segno: 2,
             Dc: 3,
+			ToCoda:1,
             DcAlCoda: 4,
             DcAlFine: 5,
             Ds: 6,

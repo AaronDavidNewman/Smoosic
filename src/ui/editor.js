@@ -43,6 +43,10 @@ class suiEditor {
 		this._render();
 				
 	}
+	scoreOperation(name,parameters,description) {
+		SmoUndoable.scoreOp(this.score,name,parameters,this.undoBuffer,description);
+		this._render();
+	}
 
     _selectionOperation(selection, name, parameters) {
         if (parameters) {

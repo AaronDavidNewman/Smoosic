@@ -49,7 +49,7 @@ class defaultRibbonLayout {
 		return ['DurationButtons','GrowDuration','LessDuration','GrowDurationDot','LessDurationDot','TripletButton','QuintupletButton','SeptupletButton','NoTupletButton'];
 	}
 	static get measureIds() {
-		return ['MeasureButtons','endRepeat','startRepeat','nthEnding','dcAlCoda','dsAlCoda','dcAlFine','dsAlFine','coda','toCoda','segno','toSegno','endBar','doubleBar','singleBarEnd','singleBarStart'];
+		return ['MeasureButtons','endRepeat','startRepeat','endBar','doubleBar','singleBarEnd','singleBarStart','nthEnding','dcAlCoda','dsAlCoda','dcAlFine','dsAlFine','coda','toCoda','segno','toSegno','fine'];
 	}
 	
 	static get measureRibbonButtons() {
@@ -81,6 +81,47 @@ class defaultRibbonLayout {
 				ctor: 'MeasureButtons',
 				group: 'measure',
 				id: 'startRepeat'
+			}
+			,
+			{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-end_bar',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'endBar'
+			},
+			{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-double_bar',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'doubleBar'
+			},
+			{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-single_bar',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'singleBarEnd'
+			},			
+			{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-single_bar_start',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'singleBarStart'
 			},
 			{
 				leftText: 'Nth',
@@ -162,55 +203,15 @@ class defaultRibbonLayout {
 				group: 'measure',
 				id: 'segno'
 			},
-						{
-				leftText: 'to',
-				rightText: '',
-				icon: 'icon-segno',
-				classes: 'collapsed duration',
-				action: 'collapseChild',
-				ctor: 'MeasureButtons',
-				group: 'measure',
-				id: 'toSegno'
-			},
 			{
-				leftText: '',
+				leftText: 'Fine',
 				rightText: '',
-				icon: 'icon-end_bar',
+				icon: '',
 				classes: 'collapsed duration',
 				action: 'collapseChild',
 				ctor: 'MeasureButtons',
 				group: 'measure',
-				id: 'endBar'
-			},
-			{
-				leftText: '',
-				rightText: '',
-				icon: 'icon-double_bar',
-				classes: 'collapsed duration',
-				action: 'collapseChild',
-				ctor: 'MeasureButtons',
-				group: 'measure',
-				id: 'doubleBar'
-			},
-			{
-				leftText: '',
-				rightText: '',
-				icon: 'icon-single_bar',
-				classes: 'collapsed duration',
-				action: 'collapseChild',
-				ctor: 'MeasureButtons',
-				group: 'measure',
-				id: 'singleBarEnd'
-			},			
-			{
-				leftText: '',
-				rightText: '',
-				icon: 'icon-single_bar_start',
-				classes: 'collapsed duration',
-				action: 'collapseChild',
-				ctor: 'MeasureButtons',
-				group: 'measure',
-				id: 'singleBarStart'
+				id: 'fine'
 			}
 		];
 	}

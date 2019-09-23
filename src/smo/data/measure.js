@@ -385,18 +385,34 @@ class SmoMeasure {
     }
     setRepeatSymbol(rs) {
         var ar = [];
+		var toAdd = true;
+		var exSymbol = this.getRepeatSymbol();
+		if (exSymbol && exSymbol.symbol === rs.symbol) {
+			toAdd = false;
+		}
         this.modifiers.forEach((modifier) => {
             if (modifier.ctor != 'SmoRepeatSymbol') {
                 ar.push(modifier);
             }
         });
         this.modifiers = ar;
-        ar.push(rs);
+		if (toAdd) {
+           ar.push(rs);
+		}
     }
     getRepeatSymbol() {
         var rv = this.modifiers.filter(obj => obj.ctor === 'SmoRepeatSymbol');
         return rv.length ? rv[0] : null;
     }
+	clearRepeatSymbols() {
+        var ar = [];
+        this.modifiers.forEach((modifier) => {
+            if (modifier.ctor != 'SmoRepeatSymbol') {
+                ar.push(modifier);
+            }
+        });
+		this.modifiers = ar;
+	}
     setBarline(barline) {
         var ar = [];
         this.modifiers.forEach((modifier) => {

@@ -207,6 +207,10 @@ class SmoUndoable {
         undoBuffer.addBuffer(description, 'score', null, score);
 		SmoOperation[op](score,selection,params);
 	}
+	static scoreOp(score,op,params,undoBuffer,description) {
+		undoBuffer.addBuffer(description, 'score', null, score);
+		SmoOperation[op](score,params);
+	}
 
     static addKeySignature(score, selection, keySignature, undoBuffer) {
         undoBuffer.addBuffer('addKeySignature ' + keySignature, 'score', null, score);

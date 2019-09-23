@@ -58,7 +58,7 @@ class suiController {
 			}
 			self.undoStatus = self.undoBuffer.buffer.length;
 			self.pollIdleRedraw();
-		},10000);
+		},5000);
 	}
 	
 	// ### pollRedraw
@@ -71,7 +71,7 @@ class suiController {
 				self.pollIdleRedraw();
 			}
 			self.pollRedraw();
-		},10000);
+		},1000);
 	}
 
 	splash() {

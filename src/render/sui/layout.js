@@ -306,6 +306,10 @@ class suiSimpleLayout {
                 var measures = staff.measures.filter((mm) => {
                         return mm.lineIndex === i
                     });
+					
+				if (measures.length === 0) {
+					continue;
+				}
 
                 // Max is measure on this line with y closest to bottom of page (max y point)
                 var max = measures.reduce((a, b) => {
