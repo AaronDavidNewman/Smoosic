@@ -90,6 +90,10 @@ class SmoRepeatSymbol extends SmoMeasureModifierBase {
             Fine: 9
         };
     }
+	
+	static get defaultXOffset() {
+		return [0,0,0,-20,-60,-60,-50,-60,-50,-40];
+	}
     static get positions() {
         return {
             start: 0,
@@ -117,6 +121,7 @@ class SmoRepeatSymbol extends SmoMeasureModifierBase {
     constructor(parameters) {
         super('SmoRepeatSymbol');
         smoMusic.serializedMerge(SmoRepeatSymbol.attributes, SmoRepeatSymbol.defaults, this);
+		this.xOffset = SmoRepeatSymbol.defaultXOffset[parameters.symbol];
         smoMusic.serializedMerge(SmoRepeatSymbol.attributes, parameters, this);
     }
 }

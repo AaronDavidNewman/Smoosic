@@ -55,6 +55,7 @@ class suiController {
 			if (self.undoStatus == self.undoBuffer.buffer.length) {				
 				self.resizeEvent();
 				self.pollRedraw();
+				return;
 			}
 			self.undoStatus = self.undoBuffer.buffer.length;
 			self.pollIdleRedraw();

@@ -8,6 +8,7 @@ class SmoNoteModifierBase {
         var rv = new ctor(jsonObj);
         rv.attrs.id = jsonObj.attrs.id;
         rv.attrs.type = jsonObj.attrs.type;
+		return rv;
     }
 }
 

@@ -315,7 +315,7 @@ class MeasureButtons {
 	nthEnding() {
 		var startSel = this.tracker.getExtremeSelection(-1);
 		var endSel = this.tracker.getExtremeSelection(1);
-		this.setEnding(startSel.selector.measure,endSel.measure.selector,1);
+		this.setEnding(startSel.selector.measure,endSel.selector.measure,1);
 	}
 	
 	bind() {

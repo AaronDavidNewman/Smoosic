@@ -280,7 +280,7 @@ class VxMeasure {
 			staffMargin += smoMusic.keySignatureLength[canceledKey]*8;
 		}
         var staffWidth = this.smoMeasure.staffWidth;
-           + this.smoMeasure.adjX;
+           + this.smoMeasure.adjX+this.smoMeasure.padRight;
 		
 
         //console.log('measure '+JSON.stringify(this.smoMeasure.measureNumber,null,' ')+' x: ' + this.smoMeasure.staffX + ' y: '+this.smoMeasure.staffY
@@ -331,7 +331,7 @@ class VxMeasure {
 		
 		// Need to format for x position, then set y position before drawing dynamics.
         this.formatter = new VF.Formatter().joinVoices(voiceAr).format(voiceAr, this.smoMeasure.staffWidth-
-		    (this.smoMeasure.adjX+VxMeasure.adjRightPixels));
+		    (this.smoMeasure.adjX+this.smoMeasure.padRight));
 		
         for (var j = 0; j < voiceAr.length; ++j) {
             voiceAr[j].draw(this.context, this.stave);

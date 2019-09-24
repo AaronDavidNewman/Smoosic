@@ -69,11 +69,11 @@ class SmoMeasure {
         return [
             'timeSignature', 'keySignature', 'staffX', 'staffY', 'customModifiers',
             'measureNumber', 'staffWidth',
-            'activeVoice', 'clef', 'transposeIndex', 'activeVoice', 'adjX', 'rightMargin'];
+            'activeVoice', 'clef', 'transposeIndex', 'activeVoice', 'adjX', 'padRight','rightMargin'];
     }
 
     static get attributeArray() {
-        return SmoMeasure.defaultAttributes.concat(['voices', 'tuplets', 'beamGroups', 'activeVoice', 'barlines', 'adjX', 'rightMargin']);
+        return SmoMeasure.defaultAttributes.concat(['voices', 'tuplets', 'beamGroups', 'activeVoice', 'barlines', 'adjX', 'padRight','rightMargin']);
     }
 
     // ### serialize
@@ -301,6 +301,7 @@ class SmoMeasure {
             canceledKeySignature: null,
             staffX: 10,
             adjX: 0,
+			padRight:10,
             transposeIndex: 0,
             modifiers: modifiers,
             rightMargin: 2,
