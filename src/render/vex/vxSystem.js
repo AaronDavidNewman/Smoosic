@@ -15,6 +15,7 @@ class VxSystem {
         this.maxSystemIndex = -1;
         this.width = -1;
         this.endcaps = [];
+		this.endings=[];
         this.box = {
             x: -1,
             y: -1,
@@ -82,6 +83,18 @@ class VxSystem {
         this.context.closeGroup();
 		return group.getBoundingClientRect();
     }
+	
+	getEnds(smoMeasure) {
+		smoMeasure.endData=[];
+		smoMeasure.getNthEndings().forEach((end) => {
+			this.endings.push(end);
+		});
+		this.endings.forEach((end)=> {
+			if (smoMeasure.measureNumber.systemIndex >= end.startBar && smoMeasure.measureNumber.systemIndex <= end.endBar) {
+				smoMeasure.endData.push(new SmoVolta(JSON.parse(JSON.stringify(end))));
+			}
+		});
+	}
 
     // ## renderMeasure
     // ## Description:
@@ -89,6 +102,10 @@ class VxSystem {
     // groups
     renderMeasure(staffIndex, smoMeasure) {
         var systemIndex = smoMeasure.measureNumber.systemIndex;
+		
+		// Handle nth endings.
+		this.getEnds(smoMeasure);
+		
 
         var vxMeasure = new VxMeasure(this.context, {
                 smoMeasure: smoMeasure

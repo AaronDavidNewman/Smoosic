@@ -20,7 +20,8 @@ class SuiDialogFactory {
 		return {
 			SmoStaffHairpin: 'SuiHairpinAttributesDialog',
 			SmoSlur: 'SuiSlurAttributesDialog',
-			SmoDynamicText: 'SuiTextModifierDialog'
+			SmoDynamicText: 'SuiTextModifierDialog',
+			SmoVolta:'SuiVoltaAttributeDialog'
 		};
 	}
 }

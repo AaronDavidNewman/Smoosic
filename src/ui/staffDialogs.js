@@ -129,6 +129,72 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
     }
 }
 
+class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
+	 static get dialogElements() {
+        return [{
+                parameterName: 'number',
+                smoName: 'number',
+                defaultValue: 1,
+                control: 'SuiRockerComponent',
+                label: 'number'
+            }, {
+                smoName: 'xOffsetStart',
+                parameterName: 'xOffsetStart',
+                defaultValue: 0,
+                control: 'SuiRockerComponent',
+                label: 'X1 Offset'
+            }, {
+                smoName: 'xOffsetEnd',
+                parameterName: 'xOffsetEnd',
+                defaultValue: 0,
+                control: 'SuiRockerComponent',
+                label: 'X2 Offset'
+            }, {
+                smoName: 'yOffset',
+                parameterName: 'yOffset',
+                defaultValue: 0,
+                control: 'SuiRockerComponent',
+                label: 'Y Offset'
+            }, {
+                smoName: 'startBar',
+                parameterName: 'startBar',
+                defaultValue: 1,
+                control: 'SuiRockerComponent',
+                label: 'Start Bar'
+            }, {
+                smoName: 'endBar',
+                parameterName: 'endBar',
+                defaultValue: 0,
+                control: 'SuiRockerComponent',
+                label: 'End Bar'
+            }
+        ];
+	 }
+	 static createAndDisplay(parameters) {
+        var dg = new SuiVoltaAttributeDialog(parameters);
+        dg.display();
+        return dg;
+    }
+    constructor(parameters) {
+        if (!parameters.modifier || !parameters.selection) {
+            throw new Error('modifier attribute dialog must have modifier and staff');
+        }
+
+        super(SuiVoltaAttributeDialog.dialogElements, {
+            id: 'dialog-' + parameters.modifier.id,
+            top: parameters.modifier.renderedBox.y,
+            left: parameters.modifier.renderedBox.x,
+            label: 'Hairpin Properties'
+        });
+        Vex.Merge(this, parameters);
+		SmoVolta.editableAttributes.forEach((attr) => {
+			var comp = this.components.find((cc)=>{return cc.smoName===attr});
+			if (comp) {
+				comp.defaultValue=this.modifier[attr];
+			}
+		});
+    }
+}
 class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
     static get label() {
         return 'Hairpin Properties';

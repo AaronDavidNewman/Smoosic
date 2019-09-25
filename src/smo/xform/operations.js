@@ -132,7 +132,7 @@ class SmoOperation {
 			});
 		SmoTickTransformer.applyTransform(measure, actor);
 		selection.measure.changed = true;
-		
+
 		return true;
 	}
 
@@ -216,7 +216,7 @@ class SmoOperation {
 				newTicks: nticks
 			});
 		SmoTickTransformer.applyTransform(measure, actor);
-		selection.measure.changed = true;		
+		selection.measure.changed = true;
 		return true;
 	}
 
@@ -264,27 +264,27 @@ class SmoOperation {
 		});
 		return true;
 	}
-	
+
 	// ## addPitch
 	// add a pitch to a note chord, avoiding duplicates.
-	static addPitch(selection,pitches) {
-		var toAdd=[];
+	static addPitch(selection, pitches) {
+		var toAdd = [];
 		pitches.forEach((pitch) => {
-			var found=false;
-			toAdd.forEach((np)=> {
-				if (np.accidental === pitch.accidental && np.letter===pitch.letter && np.octave === pitch.octave) {
-					found=true;
+			var found = false;
+			toAdd.forEach((np) => {
+				if (np.accidental === pitch.accidental && np.letter === pitch.letter && np.octave === pitch.octave) {
+					found = true;
 				}
 			});
 			if (!found) {
 				toAdd.push(pitch);
 			}
 		});
-		toAdd.sort(function(a,b) {
-			return smoMusic.smoPitchToInt(a)-
+		toAdd.sort(function (a, b) {
+			return smoMusic.smoPitchToInt(a) -
 			smoMusic.smoPitchToInt(b);
-			});
-		selection.note.pitches=JSON.parse(JSON.stringify(toAdd));
+		});
+		selection.note.pitches = JSON.parse(JSON.stringify(toAdd));
 		selection.measure.changed = true;
 	}
 
@@ -313,7 +313,7 @@ class SmoOperation {
 		});
 		pitchSelection.measure.changed = true;
 	}
-	
+
 	static toggleEnharmonic(pitchSelection) {
 		if (pitchSelection.selector.pitches.length === 0) {
 			pitchSelection.selector.pitches.push(0);
@@ -339,41 +339,55 @@ class SmoOperation {
 		selection.note.toggleArticulation(articulation);
 		selection.measure.changed = true;
 	}
-	
-	static addEnding(score,parameters) {
+
+	static addEnding(score, parameters) {
 		var startMeasure = parameters.startBar;
 		var endMeasure = parameters.endBar;
+		var s = 0;
 		score.staves.forEach((staff) => {
-			for (var i=startMeasure;i<=endMeasure;++i) {
-				var measure = staff.measures[i];
-				var ending = new SmoVolta(JSON.parse(JSON.stringify(parameters)));
-				measure.addNthEnding(ending);
+			var m = 0;
+			staff.measures.forEach((measure) => {
+				if (m === startMeasure) {
+					var pp = JSON.parse(JSON.stringify(parameters));
+					pp.startSelector = {
+						staff: s,
+						measure: startMeasure
+					};
+					pp.endSelector = {
+						staff: s,
+						measure: endMeasure
+					};
+					var ending = new SmoVolta(pp);
+					measure.addNthEnding(ending);
+				}
 				measure.changed = true;
-			}
+				m += 1;
+			});
+			s += 1;
 		});
 	}
-	
-	static setMeasureBarline(score,selection,barline) {
+
+	static setMeasureBarline(score, selection, barline) {
 		var mm = selection.selector.measure;
-		var ix=0;
+		var ix = 0;
 		score.staves.forEach((staff) => {
-			var s2 = SmoSelection.measureSelection(score,ix,mm);
+			var s2 = SmoSelection.measureSelection(score, ix, mm);
 			s2.measure.setBarline(barline);
 			s2.measure.changed = true;
 			ix += 1;
 		});
 	}
-	
-	static setRepeatSymbol(score,selection,sym) {
+
+	static setRepeatSymbol(score, selection, sym) {
 		var mm = selection.selector.measure;
-		var ix=0;
+		var ix = 0;
 		score.staves.forEach((staff) => {
-			var s2 = SmoSelection.measureSelection(score,ix,mm);
+			var s2 = SmoSelection.measureSelection(score, ix, mm);
 			s2.measure.setRepeatSymbol(sym);
 			s2.measure.changed = true;
 			ix += 1;
 		});
-	}	
+	}
 
 	// ## interval
 	// ## Description:

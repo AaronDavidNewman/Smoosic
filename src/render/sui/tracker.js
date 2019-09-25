@@ -67,6 +67,17 @@ class suiTracker {
 					}
 				}
 			});
+			selection.measure.modifiers.forEach((modifier) => {
+				if (modifier.id && !modMap[modifier.id]) {
+					this.modifierTabs.push({
+						modifier: modifier,
+						selection: selection
+					});
+					modMap[modifier.id] = {
+						exists: true
+					};
+				}
+			});
 			selection.note.textModifiers.forEach((modifier) => {
 				if (!modMap[modifier.id]) {
 					this.modifierTabs.push({

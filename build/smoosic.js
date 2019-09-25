@@ -1551,6 +1551,7 @@ class SmoNoteModifierBase {
         var rv = new ctor(jsonObj);
         rv.attrs.id = jsonObj.attrs.id;
         rv.attrs.type = jsonObj.attrs.type;
+		return rv;
     }
 }
 
@@ -1778,11 +1779,11 @@ class SmoMeasure {
         return [
             'timeSignature', 'keySignature', 'staffX', 'staffY', 'customModifiers',
             'measureNumber', 'staffWidth',
-            'activeVoice', 'clef', 'transposeIndex', 'activeVoice', 'adjX', 'rightMargin'];
+            'activeVoice', 'clef', 'transposeIndex', 'activeVoice', 'adjX', 'padRight','rightMargin'];
     }
 
     static get attributeArray() {
-        return SmoMeasure.defaultAttributes.concat(['voices', 'tuplets', 'beamGroups', 'activeVoice', 'barlines', 'adjX', 'rightMargin']);
+        return SmoMeasure.defaultAttributes.concat(['voices', 'tuplets', 'beamGroups', 'activeVoice', 'barlines', 'adjX', 'padRight','rightMargin']);
     }
 
     // ### serialize
@@ -2010,6 +2011,7 @@ class SmoMeasure {
             canceledKeySignature: null,
             staffX: 10,
             adjX: 0,
+			padRight:10,
             transposeIndex: 0,
             modifiers: modifiers,
             rightMargin: 2,
@@ -2094,18 +2096,34 @@ class SmoMeasure {
     }
     setRepeatSymbol(rs) {
         var ar = [];
+		var toAdd = true;
+		var exSymbol = this.getRepeatSymbol();
+		if (exSymbol && exSymbol.symbol === rs.symbol) {
+			toAdd = false;
+		}
         this.modifiers.forEach((modifier) => {
             if (modifier.ctor != 'SmoRepeatSymbol') {
                 ar.push(modifier);
             }
         });
         this.modifiers = ar;
-        ar.push(rs);
+		if (toAdd) {
+           ar.push(rs);
+		}
     }
     getRepeatSymbol() {
         var rv = this.modifiers.filter(obj => obj.ctor === 'SmoRepeatSymbol');
         return rv.length ? rv[0] : null;
     }
+	clearRepeatSymbols() {
+        var ar = [];
+        this.modifiers.forEach((modifier) => {
+            if (modifier.ctor != 'SmoRepeatSymbol') {
+                ar.push(modifier);
+            }
+        });
+		this.modifiers = ar;
+	}
     setBarline(barline) {
         var ar = [];
         this.modifiers.forEach((modifier) => {
@@ -2325,6 +2343,7 @@ class SmoRepeatSymbol extends SmoMeasureModifierBase {
             Coda: 1,
             Segno: 2,
             Dc: 3,
+			ToCoda:1,
             DcAlCoda: 4,
             DcAlFine: 5,
             Ds: 6,
@@ -2333,6 +2352,10 @@ class SmoRepeatSymbol extends SmoMeasureModifierBase {
             Fine: 9
         };
     }
+	
+	static get defaultXOffset() {
+		return [0,0,0,-20,-60,-60,-50,-60,-50,-40];
+	}
     static get positions() {
         return {
             start: 0,
@@ -2360,6 +2383,7 @@ class SmoRepeatSymbol extends SmoMeasureModifierBase {
     constructor(parameters) {
         super('SmoRepeatSymbol');
         smoMusic.serializedMerge(SmoRepeatSymbol.attributes, SmoRepeatSymbol.defaults, this);
+		this.xOffset = SmoRepeatSymbol.defaultXOffset[parameters.symbol];
         smoMusic.serializedMerge(SmoRepeatSymbol.attributes, parameters, this);
     }
 }
@@ -2367,12 +2391,33 @@ class SmoRepeatSymbol extends SmoMeasureModifierBase {
 class SmoVolta extends SmoMeasureModifierBase {
     constructor(parameters) {
         super('SmoVolta');
+		this.original={};
+
+		if (!this['attrs']) {
+            this.attrs = {
+                id: VF.Element.newID(),
+                type: 'SmoVolta'
+            };
+        } else {
+            console.log('inherit attrs');
+        }
         smoMusic.serializedMerge(SmoVolta.attributes, SmoVolta.defaults, this);
 		smoMusic.serializedMerge(SmoVolta.attributes, parameters, this);
     }
+	get id() {
+		return this.attrs.id;		
+	}
+	
+	get type() {
+		return this.attrs.type;
+	}
     static get attributes() {
-        return ['startBar', 'endBar', 'xOffsetStart', 'xOffsetEnd', 'yOffset', 'number'];
+        return ['startBar', 'endBar', 'startSelector','endSelector','xOffsetStart', 'xOffsetEnd', 'yOffset', 'number'];
     }
+	static get editableAttributes() {
+		return ['startBar','endBar','xOffsetStart','xOffsetEnd','yOffset','number'];	
+	}
+	
     static get defaults() {
         return {
             startBar: 1,
@@ -2381,6 +2426,23 @@ class SmoVolta extends SmoMeasureModifierBase {
             xOffsetEnd: 0,
             yOffset: 10,
             number: 1
+        }
+    }
+	
+	 backupOriginal() {
+        if (!this['original']) {
+            this.original = {};
+            smoMusic.filteredMerge(
+                SmoVolta.attributes,
+                this, this.original);
+        }
+    }
+    restoreOriginal() {
+        if (this['original']) {
+            smoMusic.filteredMerge(
+                SmoVolta.attributes,
+                this.original, this);
+            this.original = null;
         }
     }
 	
@@ -4370,7 +4432,7 @@ class SmoOperation {
 			});
 		SmoTickTransformer.applyTransform(measure, actor);
 		selection.measure.changed = true;
-		
+
 		return true;
 	}
 
@@ -4454,7 +4516,7 @@ class SmoOperation {
 				newTicks: nticks
 			});
 		SmoTickTransformer.applyTransform(measure, actor);
-		selection.measure.changed = true;		
+		selection.measure.changed = true;
 		return true;
 	}
 
@@ -4502,27 +4564,27 @@ class SmoOperation {
 		});
 		return true;
 	}
-	
+
 	// ## addPitch
 	// add a pitch to a note chord, avoiding duplicates.
-	static addPitch(selection,pitches) {
-		var toAdd=[];
+	static addPitch(selection, pitches) {
+		var toAdd = [];
 		pitches.forEach((pitch) => {
-			var found=false;
-			toAdd.forEach((np)=> {
-				if (np.accidental === pitch.accidental && np.letter===pitch.letter && np.octave === pitch.octave) {
-					found=true;
+			var found = false;
+			toAdd.forEach((np) => {
+				if (np.accidental === pitch.accidental && np.letter === pitch.letter && np.octave === pitch.octave) {
+					found = true;
 				}
 			});
 			if (!found) {
 				toAdd.push(pitch);
 			}
 		});
-		toAdd.sort(function(a,b) {
-			return smoMusic.smoPitchToInt(a)-
+		toAdd.sort(function (a, b) {
+			return smoMusic.smoPitchToInt(a) -
 			smoMusic.smoPitchToInt(b);
-			});
-		selection.note.pitches=JSON.parse(JSON.stringify(toAdd));
+		});
+		selection.note.pitches = JSON.parse(JSON.stringify(toAdd));
 		selection.measure.changed = true;
 	}
 
@@ -4551,7 +4613,7 @@ class SmoOperation {
 		});
 		pitchSelection.measure.changed = true;
 	}
-	
+
 	static toggleEnharmonic(pitchSelection) {
 		if (pitchSelection.selector.pitches.length === 0) {
 			pitchSelection.selector.pitches.push(0);
@@ -4577,41 +4639,55 @@ class SmoOperation {
 		selection.note.toggleArticulation(articulation);
 		selection.measure.changed = true;
 	}
-	
-	static addEnding(score,parameters) {
+
+	static addEnding(score, parameters) {
 		var startMeasure = parameters.startBar;
 		var endMeasure = parameters.endBar;
+		var s = 0;
 		score.staves.forEach((staff) => {
-			for (var i=startMeasure;i<=endMeasure;++i) {
-				var measure = staff.measures[i];
-				var ending = new SmoVolta(JSON.parse(JSON.stringify(parameters)));
-				measure.addNthEnding(ending);
+			var m = 0;
+			staff.measures.forEach((measure) => {
+				if (m === startMeasure) {
+					var pp = JSON.parse(JSON.stringify(parameters));
+					pp.startSelector = {
+						staff: s,
+						measure: startMeasure
+					};
+					pp.endSelector = {
+						staff: s,
+						measure: endMeasure
+					};
+					var ending = new SmoVolta(pp);
+					measure.addNthEnding(ending);
+				}
 				measure.changed = true;
-			}
+				m += 1;
+			});
+			s += 1;
 		});
 	}
-	
-	static setMeasureBarline(score,selection,barline) {
+
+	static setMeasureBarline(score, selection, barline) {
 		var mm = selection.selector.measure;
-		var ix=0;
+		var ix = 0;
 		score.staves.forEach((staff) => {
-			var s2 = SmoSelection.measureSelection(score,ix,mm);
+			var s2 = SmoSelection.measureSelection(score, ix, mm);
 			s2.measure.setBarline(barline);
 			s2.measure.changed = true;
 			ix += 1;
 		});
 	}
-	
-	static setRepeatSymbol(score,selection,sym) {
+
+	static setRepeatSymbol(score, selection, sym) {
 		var mm = selection.selector.measure;
-		var ix=0;
+		var ix = 0;
 		score.staves.forEach((staff) => {
-			var s2 = SmoSelection.measureSelection(score,ix,mm);
+			var s2 = SmoSelection.measureSelection(score, ix, mm);
 			s2.measure.setRepeatSymbol(sym);
 			s2.measure.changed = true;
 			ix += 1;
 		});
-	}	
+	}
 
 	// ## interval
 	// ## Description:
@@ -4907,6 +4983,10 @@ class SmoUndoable {
 	static scoreSelectionOp(score,selection,op,params,undoBuffer,description) {
         undoBuffer.addBuffer(description, 'score', null, score);
 		SmoOperation[op](score,selection,params);
+	}
+	static scoreOp(score,op,params,undoBuffer,description) {
+		undoBuffer.addBuffer(description, 'score', null, score);
+		SmoOperation[op](score,params);
 	}
 
     static addKeySignature(score, selection, keySignature, undoBuffer) {
@@ -5543,8 +5623,8 @@ class VxMeasure {
 			this.stave.modifiers.push(rep);
 		}
 		
-		var mods = this.smoMeasure.getNthEndings();
-		mods.forEach((mod) => {
+		
+		this.smoMeasure.endData.forEach((mod) => {
 			var vtype = mod.toVexVolta(this.smoMeasure.measureNumber.measureIndex);
 			var vxVolta = new VF.Volta(vtype,mod.number,this.smoMeasure.staffX+mod.xOffsetStart,mod.yOffset);
 			this.stave.modifiers.push(vxVolta);
@@ -5573,7 +5653,7 @@ class VxMeasure {
 			staffMargin += smoMusic.keySignatureLength[canceledKey]*8;
 		}
         var staffWidth = this.smoMeasure.staffWidth;
-           + this.smoMeasure.adjX;
+           + this.smoMeasure.adjX+this.smoMeasure.padRight;
 		
 
         //console.log('measure '+JSON.stringify(this.smoMeasure.measureNumber,null,' ')+' x: ' + this.smoMeasure.staffX + ' y: '+this.smoMeasure.staffY
@@ -5624,7 +5704,7 @@ class VxMeasure {
 		
 		// Need to format for x position, then set y position before drawing dynamics.
         this.formatter = new VF.Formatter().joinVoices(voiceAr).format(voiceAr, this.smoMeasure.staffWidth-
-		    (this.smoMeasure.adjX+VxMeasure.adjRightPixels));
+		    (this.smoMeasure.adjX+this.smoMeasure.padRight));
 		
         for (var j = 0; j < voiceAr.length; ++j) {
             voiceAr[j].draw(this.context, this.stave);
@@ -5650,6 +5730,15 @@ class VxMeasure {
             height: box.height,
             width: box.width
         };
+		
+		var endings = this.smoMeasure.getNthEndings();
+		if (endings && endings.length) {
+			// We don't know the exact y of nth ending.
+			// TODO:  spacing.
+			endings[0].renderedBox = {
+				x:box.x,y:box.y,height:20,width:box.width
+			};
+		}
 		this.smoMeasure.logicalBox = lbox;
         this.smoMeasure.changed = false;
 		
@@ -5672,6 +5761,7 @@ class VxSystem {
         this.maxSystemIndex = -1;
         this.width = -1;
         this.endcaps = [];
+		this.endings=[];
         this.box = {
             x: -1,
             y: -1,
@@ -5739,6 +5829,18 @@ class VxSystem {
         this.context.closeGroup();
 		return group.getBoundingClientRect();
     }
+	
+	getEnds(smoMeasure) {
+		smoMeasure.endData=[];
+		smoMeasure.getNthEndings().forEach((end) => {
+			this.endings.push(end);
+		});
+		this.endings.forEach((end)=> {
+			if (smoMeasure.measureNumber.systemIndex >= end.startBar && smoMeasure.measureNumber.systemIndex <= end.endBar) {
+				smoMeasure.endData.push(new SmoVolta(JSON.parse(JSON.stringify(end))));
+			}
+		});
+	}
 
     // ## renderMeasure
     // ## Description:
@@ -5746,6 +5848,10 @@ class VxSystem {
     // groups
     renderMeasure(staffIndex, smoMeasure) {
         var systemIndex = smoMeasure.measureNumber.systemIndex;
+		
+		// Handle nth endings.
+		this.getEnds(smoMeasure);
+		
 
         var vxMeasure = new VxMeasure(this.context, {
                 smoMeasure: smoMeasure
@@ -5861,6 +5967,17 @@ class suiTracker {
 							exists: true
 						};
 					}
+				}
+			});
+			selection.measure.modifiers.forEach((modifier) => {
+				if (modifier.id && !modMap[modifier.id]) {
+					this.modifierTabs.push({
+						modifier: modifier,
+						selection: selection
+					});
+					modMap[modifier.id] = {
+						exists: true
+					};
 				}
 			});
 			selection.note.textModifiers.forEach((modifier) => {
@@ -6686,6 +6803,10 @@ class suiSimpleLayout {
                 var measures = staff.measures.filter((mm) => {
                         return mm.lineIndex === i
                     });
+					
+				if (measures.length === 0) {
+					continue;
+				}
 
                 // Max is measure on this line with y closest to bottom of page (max y point)
                 var max = measures.reduce((a, b) => {
@@ -6779,6 +6900,27 @@ class suiSimpleLayout {
         var measure = staff.measures[i];
         return (i > 0 ? staff.measures[i - 1][attr] : measure[attr]);
     }
+	
+	_handleMeasureModifiers(staff) {
+		var endings=[];
+		staff.measures.forEach((measure) => {
+			var endings = measure.getNthEndings();
+		    endings.forEach((ending) => {
+				var measures = staff.measures.filter((mm) => {return mm.measureNumber.measureNumber==ending.startBar || 
+				    mm.measureNumber.measureNumber === ending.endBar;});
+				if (measures.length) {
+					var mm = measures[0];
+					ending.renderedBox = svgHelpers.boxPoints(mm.renderedBox.x,mm.renderedBox.y,mm.renderedBox.width,20);
+					
+					if (measures.length > 0) {
+						mm=measures[1];
+						ending.renderedBox = 
+						   svgHelpers.unionRect(ending.renderedBox,svgHelpers.boxPoints(mm.renderedBox.x,mm.renderedBox.y,mm.renderedBox.width,20));
+					}
+				}
+			});
+		});
+	}
 
     // ### _renderModifiers
     // ### Description:
@@ -6828,6 +6970,7 @@ class suiSimpleLayout {
             // TODO: consider staff height with these.
             // TODO: handle dynamics split across systems.
         });
+		this._handleMeasureModifiers(staff);
     }
 
     // ### layout
@@ -7261,6 +7404,10 @@ class suiEditor {
 			    this.undoBuffer,description);
 		this._render();
 				
+	}
+	scoreOperation(name,parameters,description) {
+		SmoUndoable.scoreOp(this.score,name,parameters,this.undoBuffer,description);
+		this._render();
 	}
 
     _selectionOperation(selection, name, parameters) {
@@ -8625,7 +8772,8 @@ class SuiDialogFactory {
 		return {
 			SmoStaffHairpin: 'SuiHairpinAttributesDialog',
 			SmoSlur: 'SuiSlurAttributesDialog',
-			SmoDynamicText: 'SuiTextModifierDialog'
+			SmoDynamicText: 'SuiTextModifierDialog',
+			SmoVolta:'SuiVoltaAttributeDialog'
 		};
 	}
 }
@@ -9050,7 +9198,7 @@ class defaultRibbonLayout {
 		return ['DurationButtons','GrowDuration','LessDuration','GrowDurationDot','LessDurationDot','TripletButton','QuintupletButton','SeptupletButton','NoTupletButton'];
 	}
 	static get measureIds() {
-		return ['MeasureButtons','endRepeat','startRepeat','nthEnding','dcAlCoda','dsAlCoda','dcAlFine','dsAlFine','coda','toCoda','segno','toSegno','endBar','doubleBar','singleBarEnd','singleBarStart'];
+		return ['MeasureButtons','endRepeat','startRepeat','endBar','doubleBar','singleBarEnd','singleBarStart','nthEnding','dcAlCoda','dsAlCoda','dcAlFine','dsAlFine','coda','toCoda','segno','toSegno','fine'];
 	}
 	
 	static get measureRibbonButtons() {
@@ -9082,6 +9230,47 @@ class defaultRibbonLayout {
 				ctor: 'MeasureButtons',
 				group: 'measure',
 				id: 'startRepeat'
+			}
+			,
+			{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-end_bar',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'endBar'
+			},
+			{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-double_bar',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'doubleBar'
+			},
+			{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-single_bar',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'singleBarEnd'
+			},			
+			{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-single_bar_start',
+				classes: 'collapsed duration',
+				action: 'collapseChild',
+				ctor: 'MeasureButtons',
+				group: 'measure',
+				id: 'singleBarStart'
 			},
 			{
 				leftText: 'Nth',
@@ -9163,55 +9352,15 @@ class defaultRibbonLayout {
 				group: 'measure',
 				id: 'segno'
 			},
-						{
-				leftText: 'to',
-				rightText: '',
-				icon: 'icon-segno',
-				classes: 'collapsed duration',
-				action: 'collapseChild',
-				ctor: 'MeasureButtons',
-				group: 'measure',
-				id: 'toSegno'
-			},
 			{
-				leftText: '',
+				leftText: 'Fine',
 				rightText: '',
-				icon: 'icon-end_bar',
+				icon: '',
 				classes: 'collapsed duration',
 				action: 'collapseChild',
 				ctor: 'MeasureButtons',
 				group: 'measure',
-				id: 'endBar'
-			},
-			{
-				leftText: '',
-				rightText: '',
-				icon: 'icon-double_bar',
-				classes: 'collapsed duration',
-				action: 'collapseChild',
-				ctor: 'MeasureButtons',
-				group: 'measure',
-				id: 'doubleBar'
-			},
-			{
-				leftText: '',
-				rightText: '',
-				icon: 'icon-single_bar',
-				classes: 'collapsed duration',
-				action: 'collapseChild',
-				ctor: 'MeasureButtons',
-				group: 'measure',
-				id: 'singleBarEnd'
-			},			
-			{
-				leftText: '',
-				rightText: '',
-				icon: 'icon-single_bar_start',
-				classes: 'collapsed duration',
-				action: 'collapseChild',
-				ctor: 'MeasureButtons',
-				group: 'measure',
-				id: 'singleBarStart'
+				id: 'fine'
 			}
 		];
 	}
@@ -10151,35 +10300,78 @@ class MeasureButtons {
             none: 5
         }
     }*/
+	setEnding(startBar,endBar,number) {
+		this.editor.scoreOperation('addEnding',new SmoVolta({startBar:startBar,endBar:endBar,number:number}));
+	}
 	setBarline(selection,position,barline,description) {
-		var selection = this.tracker.selections[this.tracker.selections.length - 1];
 		this.editor.scoreSelectionOperation(selection, 'setMeasureBarline', new SmoBarline({position:position,barline:barline})
 		    ,description);
 	}
+	setSymbol(selection,position,symbol,description) {
+		this.editor.scoreSelectionOperation(selection, 'setRepeatSymbol', new SmoRepeatSymbol({position:position,symbol:symbol})
+		    ,description);
+	}
 	endRepeat() {
-		var selection = this.tracker.selections[this.tracker.selections.length - 1];
+		var selection = this.tracker.getExtremeSelection(1);
 		this.setBarline(selection,SmoBarline.positions.end,SmoBarline.barlines.endRepeat,'add repeat');
 	}
 	startRepeat() {
-		var selection = this.tracker.selections[0];
+		var selection = this.tracker.getExtremeSelection(-1);
 		this.setBarline(selection,SmoBarline.positions.start,SmoBarline.barlines.startRepeat,'add start repeat');
 	}
 	singleBarStart() {
-		var selection = this.tracker.selections[0];
+		var selection = this.tracker.getExtremeSelection(-1);
 		this.setBarline(selection,SmoBarline.positions.start,SmoBarline.barlines.singleBar,'single start bar');
 	}
     singleBarEnd() {
-		var selection = this.tracker.selections[this.tracker.selections.length - 1];
+		var selection = this.tracker.getExtremeSelection(1);
 		this.setBarline(selection,SmoBarline.positions.end,SmoBarline.barlines.singleBar,'single  bar');
 	}
 
 	doubleBar() {
-		var selection = this.tracker.selections[this.tracker.selections.length - 1];
+		var selection = this.tracker.getExtremeSelection(1);
 		this.setBarline(selection,SmoBarline.positions.end,SmoBarline.barlines.doubleBar,'double  bar');
 	}
 	endBar() {
-		var selection = this.tracker.selections[this.tracker.selections.length - 1];
+		var selection = this.tracker.getExtremeSelection(1);
 		this.setBarline(selection,SmoBarline.positions.end,SmoBarline.barlines.endBar,'final  bar');
+	}
+	coda() {
+		var selection = this.tracker.getExtremeSelection(1);
+		this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.Coda);
+	}
+	toCoda() {
+		var selection = this.tracker.getExtremeSelection(1);
+		this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.ToCoda);
+	}
+	segno() {
+		var selection = this.tracker.getExtremeSelection(1);
+		this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.Segno);
+	}
+	dsAlCoda() {
+		var selection = this.tracker.getExtremeSelection(1);
+		this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.DsAlCoda);
+	}
+	dcAlCoda() {
+		var selection = this.tracker.getExtremeSelection(1);
+		this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.DcAlCoda);
+	}
+	dsAlFine() {
+		var selection = this.tracker.getExtremeSelection(1);
+		this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.DsAlFine);
+	}
+	dcAlFine() {
+		var selection = this.tracker.getExtremeSelection(1);
+		this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.DcAlFine);
+	}
+	fine() {
+		var selection = this.tracker.getExtremeSelection(1);
+		this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.Fine);
+	}
+	nthEnding() {
+		var startSel = this.tracker.getExtremeSelection(-1);
+		var endSel = this.tracker.getExtremeSelection(1);
+		this.setEnding(startSel.selector.measure,endSel.selector.measure,1);
 	}
 	
 	bind() {
@@ -10462,6 +10654,72 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
     }
 }
 
+class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
+	 static get dialogElements() {
+        return [{
+                parameterName: 'number',
+                smoName: 'number',
+                defaultValue: 1,
+                control: 'SuiRockerComponent',
+                label: 'number'
+            }, {
+                smoName: 'xOffsetStart',
+                parameterName: 'xOffsetStart',
+                defaultValue: 0,
+                control: 'SuiRockerComponent',
+                label: 'X1 Offset'
+            }, {
+                smoName: 'xOffsetEnd',
+                parameterName: 'xOffsetEnd',
+                defaultValue: 0,
+                control: 'SuiRockerComponent',
+                label: 'X2 Offset'
+            }, {
+                smoName: 'yOffset',
+                parameterName: 'yOffset',
+                defaultValue: 0,
+                control: 'SuiRockerComponent',
+                label: 'Y Offset'
+            }, {
+                smoName: 'startBar',
+                parameterName: 'startBar',
+                defaultValue: 1,
+                control: 'SuiRockerComponent',
+                label: 'Start Bar'
+            }, {
+                smoName: 'endBar',
+                parameterName: 'endBar',
+                defaultValue: 0,
+                control: 'SuiRockerComponent',
+                label: 'End Bar'
+            }
+        ];
+	 }
+	 static createAndDisplay(parameters) {
+        var dg = new SuiVoltaAttributeDialog(parameters);
+        dg.display();
+        return dg;
+    }
+    constructor(parameters) {
+        if (!parameters.modifier || !parameters.selection) {
+            throw new Error('modifier attribute dialog must have modifier and staff');
+        }
+
+        super(SuiVoltaAttributeDialog.dialogElements, {
+            id: 'dialog-' + parameters.modifier.id,
+            top: parameters.modifier.renderedBox.y,
+            left: parameters.modifier.renderedBox.x,
+            label: 'Hairpin Properties'
+        });
+        Vex.Merge(this, parameters);
+		SmoVolta.editableAttributes.forEach((attr) => {
+			var comp = this.components.find((cc)=>{return cc.smoName===attr});
+			if (comp) {
+				comp.defaultValue=this.modifier[attr];
+			}
+		});
+    }
+}
 class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
     static get label() {
         return 'Hairpin Properties';
@@ -11126,10 +11384,11 @@ class suiController {
 			if (self.undoStatus == self.undoBuffer.buffer.length) {				
 				self.resizeEvent();
 				self.pollRedraw();
+				return;
 			}
 			self.undoStatus = self.undoBuffer.buffer.length;
 			self.pollIdleRedraw();
-		},10000);
+		},5000);
 	}
 	
 	// ### pollRedraw
@@ -11142,7 +11401,7 @@ class suiController {
 				self.pollIdleRedraw();
 			}
 			self.pollRedraw();
-		},10000);
+		},1000);
 	}
 
 	splash() {

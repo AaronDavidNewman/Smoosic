@@ -250,8 +250,8 @@ class VxMeasure {
 			this.stave.modifiers.push(rep);
 		}
 		
-		var mods = this.smoMeasure.getNthEndings();
-		mods.forEach((mod) => {
+		
+		this.smoMeasure.endData.forEach((mod) => {
 			var vtype = mod.toVexVolta(this.smoMeasure.measureNumber.measureIndex);
 			var vxVolta = new VF.Volta(vtype,mod.number,this.smoMeasure.staffX+mod.xOffsetStart,mod.yOffset);
 			this.stave.modifiers.push(vxVolta);
@@ -357,6 +357,15 @@ class VxMeasure {
             height: box.height,
             width: box.width
         };
+		
+		var endings = this.smoMeasure.getNthEndings();
+		if (endings && endings.length) {
+			// We don't know the exact y of nth ending.
+			// TODO:  spacing.
+			endings[0].renderedBox = {
+				x:box.x,y:box.y,height:20,width:box.width
+			};
+		}
 		this.smoMeasure.logicalBox = lbox;
         this.smoMeasure.changed = false;
 		

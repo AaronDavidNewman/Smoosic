@@ -129,12 +129,33 @@ class SmoRepeatSymbol extends SmoMeasureModifierBase {
 class SmoVolta extends SmoMeasureModifierBase {
     constructor(parameters) {
         super('SmoVolta');
+		this.original={};
+
+		if (!this['attrs']) {
+            this.attrs = {
+                id: VF.Element.newID(),
+                type: 'SmoVolta'
+            };
+        } else {
+            console.log('inherit attrs');
+        }
         smoMusic.serializedMerge(SmoVolta.attributes, SmoVolta.defaults, this);
 		smoMusic.serializedMerge(SmoVolta.attributes, parameters, this);
     }
+	get id() {
+		return this.attrs.id;		
+	}
+	
+	get type() {
+		return this.attrs.type;
+	}
     static get attributes() {
-        return ['startBar', 'endBar', 'xOffsetStart', 'xOffsetEnd', 'yOffset', 'number'];
+        return ['startBar', 'endBar', 'startSelector','endSelector','xOffsetStart', 'xOffsetEnd', 'yOffset', 'number'];
     }
+	static get editableAttributes() {
+		return ['startBar','endBar','xOffsetStart','xOffsetEnd','yOffset','number'];	
+	}
+	
     static get defaults() {
         return {
             startBar: 1,
@@ -143,6 +164,23 @@ class SmoVolta extends SmoMeasureModifierBase {
             xOffsetEnd: 0,
             yOffset: 10,
             number: 1
+        }
+    }
+	
+	 backupOriginal() {
+        if (!this['original']) {
+            this.original = {};
+            smoMusic.filteredMerge(
+                SmoVolta.attributes,
+                this, this.original);
+        }
+    }
+    restoreOriginal() {
+        if (this['original']) {
+            smoMusic.filteredMerge(
+                SmoVolta.attributes,
+                this.original, this);
+            this.original = null;
         }
     }
 	
