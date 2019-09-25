@@ -2165,7 +2165,8 @@ class SmoMeasure {
 	removeNthEnding(number) {
 		var mods=[];
 		this.modifiers.forEach((modifier) => {
-			if (modifier.ctor != 'SmoVolta' || modifier.number != ending.number) {
+			if (modifier.ctor != 'SmoVolta' || modifier.number != number) {
+				mods.push(modifier);
 			}
 		});
 		this.modifiers=mods;
@@ -10699,6 +10700,33 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
         var dg = new SuiVoltaAttributeDialog(parameters);
         dg.display();
         return dg;
+    }
+	handleRemove() {
+		this.layout.score.staves.forEach((staff) => {
+			staff.measures.forEach((measure) => {
+				if (measure.measureNumber.measureNumber === this.modifier.startBar) {
+					measure.removeNthEnding(this.modifier.number);
+				}
+			});
+		});
+        $(this.context.svg).find('g.' + this.modifier.id).remove();
+        this.selection.staff.removeStaffModifier(this.modifier);
+        this.tracker.clearModifierSelections();
+    }
+	changed() {
+        this.modifier.backupOriginal();
+		this.layout.score.staves.forEach((staff) => {
+			staff.measures.forEach((measure) => {
+				if (measure.measureNumber.measureNumber === this.modifier.startBar) {
+					/* measure.getNthEnding();
+					 this.components.forEach((component) => {
+                        this.modifier[component.smoName] = component.getValue();
+                     });   */
+				}
+			});
+		});
+       
+        this.layout.renderStaffModifierPreview(this.modifier);
     }
     constructor(parameters) {
         if (!parameters.modifier || !parameters.selection) {

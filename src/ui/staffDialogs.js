@@ -175,6 +175,33 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
         dg.display();
         return dg;
     }
+	handleRemove() {
+		this.layout.score.staves.forEach((staff) => {
+			staff.measures.forEach((measure) => {
+				if (measure.measureNumber.measureNumber === this.modifier.startBar) {
+					measure.removeNthEnding(this.modifier.number);
+				}
+			});
+		});
+        $(this.context.svg).find('g.' + this.modifier.id).remove();
+        this.selection.staff.removeStaffModifier(this.modifier);
+        this.tracker.clearModifierSelections();
+    }
+	changed() {
+        this.modifier.backupOriginal();
+		this.layout.score.staves.forEach((staff) => {
+			staff.measures.forEach((measure) => {
+				if (measure.measureNumber.measureNumber === this.modifier.startBar) {
+					/* measure.getNthEnding();
+					 this.components.forEach((component) => {
+                        this.modifier[component.smoName] = component.getValue();
+                     });   */
+				}
+			});
+		});
+       
+        this.layout.renderStaffModifierPreview(this.modifier);
+    }
     constructor(parameters) {
         if (!parameters.modifier || !parameters.selection) {
             throw new Error('modifier attribute dialog must have modifier and staff');

@@ -455,7 +455,8 @@ class SmoMeasure {
 	removeNthEnding(number) {
 		var mods=[];
 		this.modifiers.forEach((modifier) => {
-			if (modifier.ctor != 'SmoVolta' || modifier.number != ending.number) {
+			if (modifier.ctor != 'SmoVolta' || modifier.number != number) {
+				mods.push(modifier);
 			}
 		});
 		this.modifiers=mods;
