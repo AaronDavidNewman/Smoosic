@@ -187,15 +187,22 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
         this.selection.staff.removeStaffModifier(this.modifier);
         this.tracker.clearModifierSelections();
     }
-	changed() {
-        this.modifier.backupOriginal();
+	_commit() {
+        this.modifier.restoreOriginal();
 		this.layout.score.staves.forEach((staff) => {
 			staff.measures.forEach((measure) => {
 				if (measure.measureNumber.measureNumber === this.modifier.startBar) {
-					/* measure.getNthEnding();
-					 this.components.forEach((component) => {
-                        this.modifier[component.smoName] = component.getValue();
-                     });   */
+					 var endings = measure.getNthEndings().filter((mm) => {
+						 return mm.startBar === this.modifier.startBar && mm.endBar === this.modifier.endBar
+						     && mm.number === this.modifier.number;
+					 });
+					 if (endings.length) {
+						 endings.forEach((ending) => {
+							 this.components.forEach((component) => {
+								ending[component.smoName] = component.getValue();
+							 }); 
+						 });
+					 }
 				}
 			});
 		});
