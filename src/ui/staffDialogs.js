@@ -155,18 +155,6 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
                 defaultValue: 0,
                 control: 'SuiRockerComponent',
                 label: 'Y Offset'
-            }, {
-                smoName: 'startBar',
-                parameterName: 'startBar',
-                defaultValue: 1,
-                control: 'SuiRockerComponent',
-                label: 'Start Bar'
-            }, {
-                smoName: 'endBar',
-                parameterName: 'endBar',
-                defaultValue: 0,
-                control: 'SuiRockerComponent',
-                label: 'End Bar'
             }
         ];
 	 }
@@ -193,8 +181,7 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
 			staff.measures.forEach((measure) => {
 				if (measure.measureNumber.measureNumber === this.modifier.startBar) {
 					 var endings = measure.getNthEndings().filter((mm) => {
-						 return mm.startBar === this.modifier.startBar && mm.endBar === this.modifier.endBar
-						     && mm.number === this.modifier.number;
+						 return mm.endingId === this.modifier.endingId;
 					 });
 					 if (endings.length) {
 						 endings.forEach((ending) => {

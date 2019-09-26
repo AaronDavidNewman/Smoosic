@@ -344,6 +344,9 @@ class SmoOperation {
 		var startMeasure = parameters.startBar;
 		var endMeasure = parameters.endBar;
 		var s = 0;
+		
+		// Ending ID ties all the instances of an ending across staves
+		parameters.endingId=VF.Element.newID();
 		score.staves.forEach((staff) => {
 			var m = 0;
 			staff.measures.forEach((measure) => {

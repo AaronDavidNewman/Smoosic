@@ -150,10 +150,10 @@ class SmoVolta extends SmoMeasureModifierBase {
 		return this.attrs.type;
 	}
     static get attributes() {
-        return ['startBar', 'endBar', 'startSelector','endSelector','xOffsetStart', 'xOffsetEnd', 'yOffset', 'number'];
+        return ['startBar', 'endBar', 'endingId','startSelector','endSelector','xOffsetStart', 'xOffsetEnd', 'yOffset', 'number'];
     }
 	static get editableAttributes() {
-		return ['startBar','endBar','xOffsetStart','xOffsetEnd','yOffset','number'];	
+		return ['xOffsetStart','xOffsetEnd','yOffset','number'];	
 	}
 	
     static get defaults() {
