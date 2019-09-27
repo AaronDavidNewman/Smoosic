@@ -104,6 +104,7 @@ class VxSystem {
 			endings.forEach((ending) => {
 				$(this.context.svg).find('g.' + ending.attrs.id).remove();
 				var group = this.context.openGroup(null,ending.attrs.id);
+				var voAr=[];
 				group.classList.add(ending.attrs.id);
 
 				for (var i = ending.startBar; i <= ending.endBar; ++i) {
@@ -111,6 +112,7 @@ class VxSystem {
 					if (!endMeasure) {
 						continue;
 					}
+					voAr.push(endMeasure);
 					var vxMeasure = this.getVxMeasure(endMeasure);
 					var vtype = ending.toVexVolta(endMeasure.measureNumber.measureNumber);
 					var vxVolta = new VF.Volta(vtype, ending.number,ending.xOffsetStart, ending.yOffset);
@@ -120,6 +122,11 @@ class VxSystem {
 				this.context.closeGroup();
 				ending.renderedBox = group.getBoundingClientRect();
 				ending.logicalBox = svgHelpers.clientToLogical(this.context.svg, ending.renderedBox);
+				
+				// Adjust real height of measure to match volta height
+				voAr.forEach((mm) => {
+					mm.logicalBox.y = mm.logicalBox.y < ending.logicalBox.y ? mm.logicalBox.y : ending.logicalBox.y;
+				});
 			});
 		});
 	}
