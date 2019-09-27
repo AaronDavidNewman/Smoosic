@@ -194,6 +194,8 @@ class suiSimpleLayout {
         this._renderModifiers(startSelection.staff, system);
     }
 
+    // ### justifyWidths
+	// After we adjust widths so each staff has enough room, evenly distribute the remainder widths to the measures.
     justifyWidths() {
 		var svg = this.context.svg;
         if (suiSimpleLayout.debugLayout) {
@@ -405,27 +407,6 @@ class suiSimpleLayout {
         var measure = staff.measures[i];
         return (i > 0 ? staff.measures[i - 1][attr] : measure[attr]);
     }
-	
-	_handleMeasureModifiers(staff) {
-		var endings=[];
-		staff.measures.forEach((measure) => {
-			var endings = measure.getNthEndings();
-		    endings.forEach((ending) => {
-				var measures = staff.measures.filter((mm) => {return mm.measureNumber.measureNumber==ending.startBar || 
-				    mm.measureNumber.measureNumber === ending.endBar;});
-				if (measures.length) {
-					var mm = measures[0];
-					ending.renderedBox = svgHelpers.boxPoints(mm.renderedBox.x,mm.renderedBox.y,mm.renderedBox.width,20);
-					
-					if (measures.length > 0) {
-						mm=measures[1];
-						ending.renderedBox = 
-						   svgHelpers.unionRect(ending.renderedBox,svgHelpers.boxPoints(mm.renderedBox.x,mm.renderedBox.y,mm.renderedBox.width,20));
-					}
-				}
-			});
-		});
-	}
 
     // ### _renderModifiers
     // ### Description:
@@ -475,7 +456,6 @@ class suiSimpleLayout {
             // TODO: consider staff height with these.
             // TODO: handle dynamics split across systems.
         });
-		// this._handleMeasureModifiers(staff);
     }
 
     // ### layout
