@@ -2021,7 +2021,8 @@ class SmoMeasure {
             measureNumber: {
                 localIndex: 0,
                 systemIndex: 0,
-                measureNumber: 0
+                measureNumber: 0,
+				staffId:0
             },
             staffWidth: 200,
             clef: 'treble',
@@ -2413,10 +2414,10 @@ class SmoVolta extends SmoMeasureModifierBase {
 		return this.attrs.type;
 	}
     static get attributes() {
-        return ['startBar', 'endBar', 'startSelector','endSelector','xOffsetStart', 'xOffsetEnd', 'yOffset', 'number'];
+        return ['startBar', 'endBar', 'endingId','startSelector','endSelector','xOffsetStart', 'xOffsetEnd', 'yOffset', 'number'];
     }
 	static get editableAttributes() {
-		return ['startBar','endBar','xOffsetStart','xOffsetEnd','yOffset','number'];	
+		return ['xOffsetStart','xOffsetEnd','yOffset','number'];	
 	}
 	
     static get defaults() {
@@ -2425,7 +2426,7 @@ class SmoVolta extends SmoMeasureModifierBase {
             endBar: 1,
             xOffsetStart: 0,
             xOffsetEnd: 0,
-            yOffset: 10,
+            yOffset: 20,
             number: 1
         }
     }
@@ -2490,7 +2491,7 @@ class SmoSystemStaff {
 	
 	static get defaultParameters() {
 		return [
-		'staffX','staffY','adjY','staffWidth','staffHeight','startIndex',
+		'staffId','staffX','staffY','adjY','staffWidth','staffHeight','startIndex',
             'renumberingMap','keySignatureMap','instrumentInfo'];
 	}
 	
@@ -2502,6 +2503,7 @@ class SmoSystemStaff {
             staffWidth: 1600,
             staffHeight: 90,
             startIndex: 0,
+			staffId:0,
             renumberingMap: {},
             keySignatureMap: {},
             instrumentInfo: {
@@ -2535,7 +2537,7 @@ class SmoSystemStaff {
     static deserialize(jsonObj) {
         var params = {};
         smoMusic.serializedMerge(
-            ['staffX', 'staffY', 'staffWidth', 'startIndex', 'renumberingMap', 'renumberIndex', 'instrumentInfo'],
+            ['staffId','staffX', 'staffY', 'staffWidth', 'startIndex', 'renumberingMap', 'renumberIndex', 'instrumentInfo'],
             jsonObj, params);
         params.measures = [];
         jsonObj.measures.forEach(function (measureObj) {
@@ -2679,7 +2681,8 @@ class SmoSystemStaff {
             var numberObj = {
                 measureNumber: localIndex,
                 measureIndex: i + this.startIndex,
-                systemIndex: i
+                systemIndex: i,
+				staffId:this.staffId
             }
             measure.setMeasureNumber(numberObj);
 			// If we are renumbering measures, we assume we want to redo the layout so set measures to changed.
@@ -2829,6 +2832,7 @@ class SmoScore {
     _numberStaves() {
         for (var i = 0; i < this.staves.length; ++i) {
             var stave = this.staves[i];
+			stave.staffId=i;
             stave.numberMeasures();
         }
     }
@@ -2934,6 +2938,7 @@ class SmoScore {
         var staff = new SmoSystemStaff(parameters);
         this.staves.push(staff);
         this.activeStaff = this.staves.length - 1;
+		this._numberStaves();
     }
 
     removeStaff(index) {
@@ -4645,6 +4650,9 @@ class SmoOperation {
 		var startMeasure = parameters.startBar;
 		var endMeasure = parameters.endBar;
 		var s = 0;
+		
+		// Ending ID ties all the instances of an ending across staves
+		parameters.endingId=VF.Element.newID();
 		score.staves.forEach((staff) => {
 			var m = 0;
 			staff.measures.forEach((measure) => {
@@ -5624,13 +5632,13 @@ class VxMeasure {
 			this.stave.modifiers.push(rep);
 		}
 		
-		
+		/* 
 		this.smoMeasure.endData.forEach((mod) => {
 			var vtype = mod.toVexVolta(this.smoMeasure.measureNumber.measureIndex);
 			var vxVolta = new VF.Volta(vtype,mod.number,this.smoMeasure.staffX+mod.xOffsetStart,mod.yOffset);
 			this.stave.modifiers.push(vxVolta);
 			// this.stave.setVoltaType(vtype,''+mod.number,this.smoMeasure.staffX+mod.xOffsetStart,this.smoMeasure.yOffset);
-		});
+		});   */
 	}
 
     // ## Description:
@@ -5640,6 +5648,7 @@ class VxMeasure {
 
         var group = this.context.openGroup();
         group.classList.add(this.smoMeasure.attrs.id);
+		group.id=this.smoMeasure.attrs.id;
 		
 		var key = smoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature,this.smoMeasure.transposeIndex);
 		var canceledKey = this.smoMeasure.canceledKeySignature ? smoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature,this.smoMeasure.transposeIndex)
@@ -5732,14 +5741,6 @@ class VxMeasure {
             width: box.width
         };
 		
-		var endings = this.smoMeasure.getNthEndings();
-		if (endings && endings.length) {
-			// We don't know the exact y of nth ending.
-			// TODO:  spacing.
-			endings[0].renderedBox = {
-				x:box.x,y:box.y,height:20,width:box.width
-			};
-		}
 		this.smoMeasure.logicalBox = lbox;
         this.smoMeasure.changed = false;
 		
@@ -5754,152 +5755,188 @@ class VxMeasure {
 //  timeSignature: '4/4',
 //  smoMeasures: []
 class VxSystem {
-    constructor(context, topY, lineIndex) {
-        this.context = context;
-        this.leftConnector = [null, null];
-        this.lineIndex = lineIndex;
-        this.maxStaffIndex = -1;
-        this.maxSystemIndex = -1;
-        this.width = -1;
-        this.endcaps = [];
-		this.endings=[];
-        this.box = {
-            x: -1,
-            y: -1,
-            width: 0,
-            height: 0
-        };
-        this.currentY = 0;
-        this.topY = topY;
-        this.clefWidth = 70;
-        this.ys = [];
-        this.measures = [];
-        this.modifiers = [];
-    }
+	constructor(context, topY, lineIndex) {
+		this.context = context;
+		this.leftConnector = [null, null];
+		this.lineIndex = lineIndex;
+		this.maxStaffIndex = -1;
+		this.maxSystemIndex = -1;
+		this.width = -1;
+		this.smoMeasures = [];
+		this.vxMeasures = [];
+		this.endcaps = [];
+		this.endings = [];
+		this.box = {
+			x: -1,
+			y: -1,
+			width: 0,
+			height: 0
+		};
+		this.currentY = 0;
+		this.topY = topY;
+		this.clefWidth = 70;
+		this.ys = [];
+		this.measures = [];
+		this.modifiers = [];
+	}
 
-    getVxNote(smoNote) {
-        var note;
+	getVxMeasure(smoMeasure) {
+		for (var i = 0; i < this.vxMeasures.length; ++i) {
+			var vm = this.vxMeasures[i];
+			if (vm.smoMeasure.attrs.id === smoMeasure.attrs.id) {
+				return vm;
+			}
+		}
+
+		return null;
+	}
+
+	getVxNote(smoNote) {
+		var note;
 		if (!smoNote) {
 			return null;
 		}
-        for (var i = 0; i < this.measures.length; ++i) {
-            var mm = this.measures[i];
-            if (mm.noteToVexMap[smoNote.id]) {
-                return mm.noteToVexMap[smoNote.id];
-            }
-        }
-        return null;
-    }
+		for (var i = 0; i < this.measures.length; ++i) {
+			var mm = this.measures[i];
+			if (mm.noteToVexMap[smoNote.id]) {
+				return mm.noteToVexMap[smoNote.id];
+			}
+		}
+		return null;
+	}
 
-    renderModifier(modifier, vxStart, vxEnd) {
-		// if it is split between lines, render one artifact for each line, with a common class for 
+	renderModifier(modifier, vxStart, vxEnd) {
+		// if it is split between lines, render one artifact for each line, with a common class for
 		// both if it is removed.
-		var artifactId=modifier.attrs.id+'-'+this.lineIndex;
-        $(this.context.svg).find('g.' + artifactId).remove();
+		var artifactId = modifier.attrs.id + '-' + this.lineIndex;
+		$(this.context.svg).find('g.' + artifactId).remove();
 		var group = this.context.openGroup();
 		group.classList.add(modifier.id);
 		group.classList.add(artifactId);
-        if ((modifier.type == 'SmoStaffHairpin' && modifier.hairpinType == SmoStaffHairpin.types.CRESCENDO) ||
-            (modifier.type == 'SmoStaffHairpin' && modifier.hairpinType == SmoStaffHairpin.types.DECRESCENDO)) {
-            var hairpin = new VF.StaveHairpin({
-                    first_note: vxStart,
-                    last_note: vxEnd
-                }, modifier.hairpinType);
+		if ((modifier.type == 'SmoStaffHairpin' && modifier.hairpinType == SmoStaffHairpin.types.CRESCENDO) ||
+			(modifier.type == 'SmoStaffHairpin' && modifier.hairpinType == SmoStaffHairpin.types.DECRESCENDO)) {
+			var hairpin = new VF.StaveHairpin({
+					first_note: vxStart,
+					last_note: vxEnd
+				}, modifier.hairpinType);
 			hairpin.setRenderOptions({
-				height:modifier.height,
-				y_shift:modifier.yOffset,
-				left_shift_px:modifier.xOffsetLeft,
-				right_shift_px:modifier.xOffsetRight
+				height: modifier.height,
+				y_shift: modifier.yOffset,
+				left_shift_px: modifier.xOffsetLeft,
+				right_shift_px: modifier.xOffsetRight
 			});
-            hairpin.setContext(this.context).setPosition(modifier.position).draw();
-        } else if (modifier.type == 'SmoSlur') {
+			hairpin.setContext(this.context).setPosition(modifier.position).draw();
+		} else if (modifier.type == 'SmoSlur') {
 			var curve = new VF.Curve(
-			vxStart,vxEnd,//first_indices:[0],last_indices:[0]});
-			  {
-              thickness: modifier.thickness,
-              x_shift: modifier.xOffset,
-              y_shift: modifier.yOffset,
-              cps: modifier.controlPoints,
-			  invert:modifier.invert,
-			  position:modifier.position
-		});
+					vxStart, vxEnd, //first_indices:[0],last_indices:[0]});
+				{
+					thickness: modifier.thickness,
+					x_shift: modifier.xOffset,
+					y_shift: modifier.yOffset,
+					cps: modifier.controlPoints,
+					invert: modifier.invert,
+					position: modifier.position
+				});
 			curve.setContext(this.context).draw();
-			
+
 		}
 
-        this.context.closeGroup();
+		this.context.closeGroup();
 		return group.getBoundingClientRect();
-    }
-	
-	getEnds(smoMeasure) {
-		smoMeasure.endData=[];
-		smoMeasure.getNthEndings().forEach((end) => {
-			this.endings.push(end);
-		});
-		this.endings.forEach((end)=> {
-			if (smoMeasure.measureNumber.systemIndex >= end.startBar && smoMeasure.measureNumber.systemIndex <= end.endBar) {
-				smoMeasure.endData.push(new SmoVolta(JSON.parse(JSON.stringify(end))));
-			}
+	}
+
+	renderEndings() {
+		this.smoMeasures.forEach((smoMeasure) => {
+			var staffId = smoMeasure.measureNumber.staffId;
+			var endings = smoMeasure.getNthEndings();
+			endings.forEach((ending) => {
+				$(this.context.svg).find('g.' + ending.attrs.id).remove();
+				var group = this.context.openGroup(null,ending.attrs.id);
+				group.classList.add(ending.attrs.id);
+
+				for (var i = ending.startBar; i <= ending.endBar; ++i) {
+					var endMeasure = this.getMeasureByIndex(i,staffId);
+					if (!endMeasure) {
+						continue;
+					}
+					var vxMeasure = this.getVxMeasure(endMeasure);
+					var vtype = ending.toVexVolta(endMeasure.measureNumber.measureNumber);
+					var vxVolta = new VF.Volta(vtype, ending.number,ending.xOffsetStart, ending.yOffset);
+					vxMeasure.stave.modifiers.push(vxVolta);
+					vxVolta.setContext(this.context).draw(vxMeasure.stave, endMeasure.staffX);
+				}
+				this.context.closeGroup();
+				ending.renderedBox = group.getBoundingClientRect();
+				ending.logicalBox = svgHelpers.clientToLogical(this.context.svg, ending.renderedBox);
+			});
 		});
 	}
 
-    // ## renderMeasure
-    // ## Description:
-    // Create the graphical (VX) notes and render them on svg.  Also render the tuplets and beam
-    // groups
-    renderMeasure(staffIndex, smoMeasure) {
-        var systemIndex = smoMeasure.measureNumber.systemIndex;
-		
-		// Handle nth endings.
-		this.getEnds(smoMeasure);
-		
+	getMeasureByIndex(measureIndex,staffId) {
+		for (var i = 0; i < this.smoMeasures.length; ++i) {
+			var mm = this.smoMeasures[i];
+			if (measureIndex === mm.measureNumber.measureNumber && staffId === mm.measureNumber.staffId) {
+				return mm;
+			}
+		}
+		return null;
+	}
 
-        var vxMeasure = new VxMeasure(this.context, {
-                smoMeasure: smoMeasure
-            });
+	// ## renderMeasure
+	// ## Description:
+	// Create the graphical (VX) notes and render them on svg.  Also render the tuplets and beam
+	// groups
+	renderMeasure(staffIndex, smoMeasure) {
+		var systemIndex = smoMeasure.measureNumber.systemIndex;
+		this.smoMeasures.push(smoMeasure);
 
-        vxMeasure.render();
+		var vxMeasure = new VxMeasure(this.context, {
+				smoMeasure: smoMeasure
+			});
 
-        // Keep track of the y coordinate for the nth staff
+		vxMeasure.render();
+		this.vxMeasures.push(vxMeasure);
+
+		// Keep track of the y coordinate for the nth staff
 
 
-        // keep track of left-hand side for system connectors
-        if (systemIndex === 0) {
-            if (staffIndex === 0) {
-                this.leftConnector[0] = vxMeasure.stave;
-            } else if (staffIndex > this.maxStaffIndex) {
-                this.maxStaffIndex = staffIndex;
-                this.leftConnector[1] = vxMeasure.stave;
-            }
-        } else if (smoMeasure.measureNumber.systemIndex > this.maxSystemIndex) {
-            this.endcaps = [];
-            this.endcaps.push(vxMeasure.stave);
-            this.maxSystemIndex = smoMeasure.measureNumber.systemIndex;
-        } else if (smoMeasure.measureNumber.systemIndex === this.maxSystemIndex) {
-            this.endcaps.push(vxMeasure.stave);
-        }
-        this.measures.push(vxMeasure);
-        // this._adjustBox(vxMeasure.renderedSize);
-    }
+		// keep track of left-hand side for system connectors
+		if (systemIndex === 0) {
+			if (staffIndex === 0) {
+				this.leftConnector[0] = vxMeasure.stave;
+			} else if (staffIndex > this.maxStaffIndex) {
+				this.maxStaffIndex = staffIndex;
+				this.leftConnector[1] = vxMeasure.stave;
+			}
+		} else if (smoMeasure.measureNumber.systemIndex > this.maxSystemIndex) {
+			this.endcaps = [];
+			this.endcaps.push(vxMeasure.stave);
+			this.maxSystemIndex = smoMeasure.measureNumber.systemIndex;
+		} else if (smoMeasure.measureNumber.systemIndex === this.maxSystemIndex) {
+			this.endcaps.push(vxMeasure.stave);
+		}
+		this.measures.push(vxMeasure);
+		// this._adjustBox(vxMeasure.renderedSize);
+	}
 
-    // ## cap
-    // ## Description:
-    // draw the system brackets.  I don't know why I call them a cap.
-    cap() {
-        $(this.context.svg).find('g.lineBracket-' + this.lineIndex).remove();
-        var group = this.context.openGroup();
-        group.classList.add('lineBracket-' + this.lineIndex);
+	// ## cap
+	// ## Description:
+	// draw the system brackets.  I don't know why I call them a cap.
+	cap() {
+		$(this.context.svg).find('g.lineBracket-' + this.lineIndex).remove();
+		var group = this.context.openGroup();
+		group.classList.add('lineBracket-' + this.lineIndex);
 		group.classList.add('lineBracket');
-        if (this.leftConnector[0] && this.leftConnector[1]) {
-            var c1 = new VF.StaveConnector(this.leftConnector[0], this.leftConnector[1])
-                .setType(VF.StaveConnector.type.BRACKET);
-            var c2 = new VF.StaveConnector(this.leftConnector[0], this.leftConnector[1])
-                .setType(VF.StaveConnector.type.SINGLE);
-            c1.setContext(this.context).draw();
-            c2.setContext(this.context).draw();
-        }
-        this.context.closeGroup();
-    }
+		if (this.leftConnector[0] && this.leftConnector[1]) {
+			var c1 = new VF.StaveConnector(this.leftConnector[0], this.leftConnector[1])
+				.setType(VF.StaveConnector.type.BRACKET);
+			var c2 = new VF.StaveConnector(this.leftConnector[0], this.leftConnector[1])
+				.setType(VF.StaveConnector.type.SINGLE);
+			c1.setContext(this.context).draw();
+			c2.setContext(this.context).draw();
+		}
+		this.context.closeGroup();
+	}
 }
 ;
 class TrackerBase {
@@ -6811,15 +6848,15 @@ class suiSimpleLayout {
 
                 // Max is measure on this line with y closest to bottom of page (max y point)
                 var max = measures.reduce((a, b) => {
-                        if (a.logicalBox.y + a.logicalBox.height + a.adjY >
-                            b.logicalBox.y + b.logicalBox.height + b.adjY) {
+                        if (a.logicalBox.y + a.logicalBox.height >
+                            b.logicalBox.y + b.logicalBox.height) {
                             return a;
                         }
                         return b;
                     });
                 // min is measure on this line with y closest to top of the page
                 var min = measures.reduce((a, b) => {
-                        return a.logicalBox.y + a.adjY < b.logicalBox.y + b.adjY ? a : b;
+                        return a.logicalBox.y < b.logicalBox.y ? a : b;
                     });
 
                 maxY.push(max);
@@ -6971,7 +7008,7 @@ class suiSimpleLayout {
             // TODO: consider staff height with these.
             // TODO: handle dynamics split across systems.
         });
-		this._handleMeasureModifiers(staff);
+		// this._handleMeasureModifiers(staff);
     }
 
     // ### layout
@@ -7058,6 +7095,7 @@ class suiSimpleLayout {
                 // Do we need to start a new line?
                 if (j == 0 && staffBox.x + staffBox.width + measure.staffWidth
                      > this.pageMarginWidth / this.svgScale) {
+					system.renderEndings();
                     if (useAdjustedY) {
                         system.cap();
                     }
@@ -7125,12 +7163,11 @@ class suiSimpleLayout {
             }
             ++systemIndex;
         }
+		system.renderEndings();
+
         if (useAdjustedY) {
             system.cap();
         }
-        this.score.staves.forEach((stf) => {
-            this._renderModifiers(stf, system);
-        });
     }
 }
 ;
@@ -10681,18 +10718,6 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
                 defaultValue: 0,
                 control: 'SuiRockerComponent',
                 label: 'Y Offset'
-            }, {
-                smoName: 'startBar',
-                parameterName: 'startBar',
-                defaultValue: 1,
-                control: 'SuiRockerComponent',
-                label: 'Start Bar'
-            }, {
-                smoName: 'endBar',
-                parameterName: 'endBar',
-                defaultValue: 0,
-                control: 'SuiRockerComponent',
-                label: 'End Bar'
             }
         ];
 	 }
@@ -10713,15 +10738,21 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
         this.selection.staff.removeStaffModifier(this.modifier);
         this.tracker.clearModifierSelections();
     }
-	changed() {
-        this.modifier.backupOriginal();
+	_commit() {
+        this.modifier.restoreOriginal();
 		this.layout.score.staves.forEach((staff) => {
 			staff.measures.forEach((measure) => {
 				if (measure.measureNumber.measureNumber === this.modifier.startBar) {
-					/* measure.getNthEnding();
-					 this.components.forEach((component) => {
-                        this.modifier[component.smoName] = component.getValue();
-                     });   */
+					 var endings = measure.getNthEndings().filter((mm) => {
+						 return mm.endingId === this.modifier.endingId;
+					 });
+					 if (endings.length) {
+						 endings.forEach((ending) => {
+							 this.components.forEach((component) => {
+								ending[component.smoName] = component.getValue();
+							 }); 
+						 });
+					 }
 				}
 			});
 		});

@@ -313,15 +313,15 @@ class suiSimpleLayout {
 
                 // Max is measure on this line with y closest to bottom of page (max y point)
                 var max = measures.reduce((a, b) => {
-                        if (a.logicalBox.y + a.logicalBox.height + a.adjY >
-                            b.logicalBox.y + b.logicalBox.height + b.adjY) {
+                        if (a.logicalBox.y + a.logicalBox.height >
+                            b.logicalBox.y + b.logicalBox.height) {
                             return a;
                         }
                         return b;
                     });
                 // min is measure on this line with y closest to top of the page
                 var min = measures.reduce((a, b) => {
-                        return a.logicalBox.y + a.adjY < b.logicalBox.y + b.adjY ? a : b;
+                        return a.logicalBox.y < b.logicalBox.y ? a : b;
                     });
 
                 maxY.push(max);
@@ -473,7 +473,7 @@ class suiSimpleLayout {
             // TODO: consider staff height with these.
             // TODO: handle dynamics split across systems.
         });
-		this._handleMeasureModifiers(staff);
+		// this._handleMeasureModifiers(staff);
     }
 
     // ### layout
@@ -560,6 +560,7 @@ class suiSimpleLayout {
                 // Do we need to start a new line?
                 if (j == 0 && staffBox.x + staffBox.width + measure.staffWidth
                      > this.pageMarginWidth / this.svgScale) {
+					system.renderEndings();
                     if (useAdjustedY) {
                         system.cap();
                     }
@@ -627,11 +628,10 @@ class suiSimpleLayout {
             }
             ++systemIndex;
         }
+		system.renderEndings();
+
         if (useAdjustedY) {
             system.cap();
         }
-        this.score.staves.forEach((stf) => {
-            this._renderModifiers(stf, system);
-        });
     }
 }

@@ -101,6 +101,7 @@ class SmoScore {
     _numberStaves() {
         for (var i = 0; i < this.staves.length; ++i) {
             var stave = this.staves[i];
+			stave.staffId=i;
             stave.numberMeasures();
         }
     }
@@ -206,6 +207,7 @@ class SmoScore {
         var staff = new SmoSystemStaff(parameters);
         this.staves.push(staff);
         this.activeStaff = this.staves.length - 1;
+		this._numberStaves();
     }
 
     removeStaff(index) {

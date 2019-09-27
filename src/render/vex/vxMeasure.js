@@ -250,13 +250,13 @@ class VxMeasure {
 			this.stave.modifiers.push(rep);
 		}
 		
-		
+		/* 
 		this.smoMeasure.endData.forEach((mod) => {
 			var vtype = mod.toVexVolta(this.smoMeasure.measureNumber.measureIndex);
 			var vxVolta = new VF.Volta(vtype,mod.number,this.smoMeasure.staffX+mod.xOffsetStart,mod.yOffset);
 			this.stave.modifiers.push(vxVolta);
 			// this.stave.setVoltaType(vtype,''+mod.number,this.smoMeasure.staffX+mod.xOffsetStart,this.smoMeasure.yOffset);
-		});
+		});   */
 	}
 
     // ## Description:
@@ -266,6 +266,7 @@ class VxMeasure {
 
         var group = this.context.openGroup();
         group.classList.add(this.smoMeasure.attrs.id);
+		group.id=this.smoMeasure.attrs.id;
 		
 		var key = smoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature,this.smoMeasure.transposeIndex);
 		var canceledKey = this.smoMeasure.canceledKeySignature ? smoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature,this.smoMeasure.transposeIndex)
@@ -358,14 +359,6 @@ class VxMeasure {
             width: box.width
         };
 		
-		var endings = this.smoMeasure.getNthEndings();
-		if (endings && endings.length) {
-			// We don't know the exact y of nth ending.
-			// TODO:  spacing.
-			endings[0].renderedBox = {
-				x:box.x,y:box.y,height:20,width:box.width
-			};
-		}
 		this.smoMeasure.logicalBox = lbox;
         this.smoMeasure.changed = false;
 		

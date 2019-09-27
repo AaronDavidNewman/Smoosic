@@ -24,7 +24,7 @@ class SmoSystemStaff {
 	
 	static get defaultParameters() {
 		return [
-		'staffX','staffY','adjY','staffWidth','staffHeight','startIndex',
+		'staffId','staffX','staffY','adjY','staffWidth','staffHeight','startIndex',
             'renumberingMap','keySignatureMap','instrumentInfo'];
 	}
 	
@@ -36,6 +36,7 @@ class SmoSystemStaff {
             staffWidth: 1600,
             staffHeight: 90,
             startIndex: 0,
+			staffId:0,
             renumberingMap: {},
             keySignatureMap: {},
             instrumentInfo: {
@@ -69,7 +70,7 @@ class SmoSystemStaff {
     static deserialize(jsonObj) {
         var params = {};
         smoMusic.serializedMerge(
-            ['staffX', 'staffY', 'staffWidth', 'startIndex', 'renumberingMap', 'renumberIndex', 'instrumentInfo'],
+            ['staffId','staffX', 'staffY', 'staffWidth', 'startIndex', 'renumberingMap', 'renumberIndex', 'instrumentInfo'],
             jsonObj, params);
         params.measures = [];
         jsonObj.measures.forEach(function (measureObj) {
@@ -213,7 +214,8 @@ class SmoSystemStaff {
             var numberObj = {
                 measureNumber: localIndex,
                 measureIndex: i + this.startIndex,
-                systemIndex: i
+                systemIndex: i,
+				staffId:this.staffId
             }
             measure.setMeasureNumber(numberObj);
 			// If we are renumbering measures, we assume we want to redo the layout so set measures to changed.

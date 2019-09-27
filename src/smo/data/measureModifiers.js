@@ -162,7 +162,7 @@ class SmoVolta extends SmoMeasureModifierBase {
             endBar: 1,
             xOffsetStart: 0,
             xOffsetEnd: 0,
-            yOffset: 10,
+            yOffset: 20,
             number: 1
         }
     }

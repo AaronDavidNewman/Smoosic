@@ -311,7 +311,8 @@ class SmoMeasure {
             measureNumber: {
                 localIndex: 0,
                 systemIndex: 0,
-                measureNumber: 0
+                measureNumber: 0,
+				staffId:0
             },
             staffWidth: 200,
             clef: 'treble',
