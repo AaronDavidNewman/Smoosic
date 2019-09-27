@@ -6830,6 +6830,8 @@ class suiSimpleLayout {
 
     }
 
+    // ### adjustHeight
+	// Handle measure bumping into each other, vertically.
     adjustHeight() {
         var topStaff = this.score.staves[0];
         var maxLine = topStaff.measures[topStaff.measures.length - 1].lineIndex;
@@ -7171,7 +7173,9 @@ class suiSimpleLayout {
             ++systemIndex;
         }
 		system.renderEndings();
-
+		this.score.staves.forEach((stf) => {
+            this._renderModifiers(stf, system);
+        });
         if (useAdjustedY) {
             system.cap();
         }
