@@ -15,6 +15,7 @@ class VxSystem {
         this.maxSystemIndex = -1;
         this.width = -1;
 		this.smoMeasures=[];
+		this.vxMeasures=[];
         this.endcaps = [];
 		this.endings=[];
         this.box = {
@@ -30,6 +31,17 @@ class VxSystem {
         this.measures = [];
         this.modifiers = [];
     }
+	
+	getVxMeasure(smoMeasure) {
+		for (var i=0;i<this.vxMeasures;++i) {
+			var vm = this.vxMeasures[i];
+			if (vm.smoMeasure.id === smoMeasure.id) {
+				return vm;
+			}
+		}
+		
+		return null;
+	}
 
     getVxNote(smoNote) {
         var note;
