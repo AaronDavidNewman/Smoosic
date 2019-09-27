@@ -106,6 +106,7 @@ class VxSystem {
 				var group = this.context.openGroup(null,ending.attrs.id);
 				var voAr=[];
 				group.classList.add(ending.attrs.id);
+				group.classList.add(ending.endingId);
 
 				for (var i = ending.startBar; i <= ending.endBar; ++i) {
 					var endMeasure = this.getMeasureByIndex(i,staffId);
@@ -125,7 +126,11 @@ class VxSystem {
 				
 				// Adjust real height of measure to match volta height
 				voAr.forEach((mm) => {
-					mm.logicalBox.y = mm.logicalBox.y < ending.logicalBox.y ? mm.logicalBox.y : ending.logicalBox.y;
+					var delta =  mm.logicalBox.y - ending.logicalBox.y;
+					if (delta > 0) {
+						mm.logicalBox.y -= delta;
+						mm.logicalBox.height += delta;
+					}
 				});
 			});
 		});

@@ -171,7 +171,7 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
 				}
 			});
 		});
-        $(this.context.svg).find('g.' + this.modifier.id).remove();
+        $(this.context.svg).find('g.' + this.modifier.endingId).remove();
         this.selection.staff.removeStaffModifier(this.modifier);
         this.tracker.clearModifierSelections();
     }
