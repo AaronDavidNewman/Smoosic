@@ -139,6 +139,7 @@ class suiController {
 		 var r=b('div').classes('dom-container')
 			 .append(b('div').classes('modes'))
 			 .append(b('div').classes('overlay'))
+			 .append(b('div').classes('draganime hide'))
 			 .append(b('div').classes('attributeDialog'))
 			 .append(b('div').classes('helpDialog'))
 			 .append(b('div').classes('bugDialog'))

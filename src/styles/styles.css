@@ -13,6 +13,16 @@ h1 {
 	font-size:1.2em;
 }
 
+.draganime.hide {
+	display:none;
+}
+
+.draganime {
+	display:block;
+	border:blue 2px solid;
+	position:absolute;
+	z-index:11;
+}
 .subTitle {
 	height: 14px;
 	font-size:0.8em;

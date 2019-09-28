@@ -995,6 +995,9 @@ class htmlHelpers {
 		}
 		return new smoDomBuilder(el);
 	}
+	static draggable(parameters) {
+		return new draggable(parameters);
+	}
 
 	static get focusableElements() {
 		return ['a', 'input', 'select', 'textarea', 'button', 'li[tabindex]', 'div[tabindex]'];
@@ -1019,7 +1022,7 @@ class htmlHelpers {
 
 			// aria-hide peers of dialog and peers of parent that are not the parent.
 			var peers = $(this.parent).parent().children().toArray();
-			
+
 			peers.forEach((node) => {
 				var ptag = $(node)[0].tagName;
 				if (ptag === 'SCRIPT' || ptag === 'LINK' || ptag === 'STYLE') { ;
@@ -1081,7 +1084,87 @@ class htmlHelpers {
 			});
 		});
 	}
+}
 
+class draggable {
+	static get animeClass() {
+		return '.draganime';
+	}
+	constructor(parameters) {
+
+		this.parent = parameters.parent;
+		this.handle = parameters.handle;
+		this.svg=parameters['svg'];
+		this.width = $(this.parent).outerWidth();
+		this.height = $(this.parent).outerHeight();
+		this.lastX = $(this.handle).offset().left;
+		this.lastY = $(this.handle).offset().top;
+		this.cb = parameters.cb;
+		this.moveParent = parameters.moveParent;
+
+		var self = this;
+
+		// $('.itemMenu input[name="itemTitle"]').css('width','60%');
+		$(this.handle)
+		.off('mousedown').on('mousedown',
+			function (e) {
+			self.mousedown(e);
+		});
+		$(document)
+		.on('mousemove',
+			function (e) {
+			self.mousemove(e);
+
+		})
+		.on('mouseup',
+			function (e) {
+			self.mouseup(e);
+		});
+	}
+	_animate(e) {
+		this.lastX = e.clientX;
+		this.lastY = e.clientY;
+		console.log(e.clientY);
+		$(draggable.animeClass).css('left', this.lastX);
+		$(draggable.animeClass).css('top', this.lastY);
+	}
+	mousedown(e) {
+		if (!this.dragging) {
+			$(draggable.animeClass).removeClass('hide');
+
+			$(draggable.animeClass).css('width', this.width);
+			$(draggable.animeClass).css('height', this.height);
+		}
+
+		this.dragging = true;
+		this._animate(e);
+	}
+	enddrag(e) {
+
+		if (this.moveParent) {
+			$(this.parent).css('left', this.lastX + 'px');
+			$(this.parent).css('top', this.lastY + 'px');
+		}
+		$(draggable.animeClass).addClass('hide');
+		this.cb(this.lastX, this.lastY);
+	}
+
+	mouseup(e) {
+		// stop resizing
+		if (this.dragging) {
+			this.dragging = false;
+			this.lastX = e.clientX;
+			this.lastY = e.clientY;
+
+			this.enddrag();
+		}
+	}
+	mousemove(e) {
+		// we don't want to do anything if we aren't resizing.
+		if (!this.dragging)
+			return;
+		this._animate(e);
+	}
 }
 ;// ## SmoNote
 // ## Description:
@@ -5854,6 +5937,7 @@ class VxSystem {
 				var group = this.context.openGroup(null,ending.attrs.id);
 				var voAr=[];
 				group.classList.add(ending.attrs.id);
+				group.classList.add(ending.endingId);
 
 				for (var i = ending.startBar; i <= ending.endBar; ++i) {
 					var endMeasure = this.getMeasureByIndex(i,staffId);
@@ -5873,7 +5957,11 @@ class VxSystem {
 				
 				// Adjust real height of measure to match volta height
 				voAr.forEach((mm) => {
-					mm.logicalBox.y = mm.logicalBox.y < ending.logicalBox.y ? mm.logicalBox.y : ending.logicalBox.y;
+					var delta =  mm.logicalBox.y - ending.logicalBox.y;
+					if (delta > 0) {
+						mm.logicalBox.y -= delta;
+						mm.logicalBox.height += delta;
+					}
 				});
 			});
 		});
@@ -6777,6 +6865,22 @@ class suiSimpleLayout {
             });
         }
     }
+	_spaceNotes(smoMeasure) {
+		var g = this.context.svg.getElementById(smoMeasure.attrs.id);
+		var notes = Array.from(g.getElementsByClassName('vf-stavenote'));
+		var acc=0;
+		for (var i=1;i<notes.length;++i) {
+			var b1 = notes[i-1].getBBox();
+			var b2 = notes[i].getBBox();
+		    var dif =b2.x-(b1.x+b1.width);
+			if (dif < 10) {
+				acc += 10-dif;
+			}
+			
+		}
+		smoMeasure.logicalBox.width += acc;
+	}
+	
     // ### adjustWidths
     // Set the width of each measure in a system to the max width for that column so the measures are aligned.
     adjustWidths() {
@@ -6799,6 +6903,9 @@ class suiSimpleLayout {
                         measures.push(staff.measures[ix]);
                     }
                 });
+				// Make sure each note head is not squishing
+				measures.forEach((mm) => {this._spaceNotes(mm);});
+				
                 if (measures.length) {
                     var widest = measures.map((x) => {
                             return x.logicalBox.width;
@@ -8830,12 +8937,13 @@ class SuiDialogBase {
 		var y = box.y + box.height;
 
 		// TODO: adjust if db is clipped by the browser.
-		$(this.dgDom.element).css('top', '' + y + 'px');
+		$(this.dgDom.element).find('.attributeDialog').css('top', '' + y + 'px');
 	}
 	_constructDialog(dialogElements, parameters) {
 		var id = parameters.id;
 		var b = htmlHelpers.buildDom;
 		var r = b('div').classes('attributeModal').css('top', parameters.top + 'px').css('left', parameters.left + 'px')
+		    .append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move')))
 			.append(b('h2').text(parameters.label));
 		dialogElements.forEach((de) => {
 			var ctor = eval(de.control);
@@ -8852,7 +8960,7 @@ class SuiDialogBase {
 		$('.attributeDialog').html('');
 
 		$('.attributeDialog').append(r.dom());
-
+		
 		var trapper = htmlHelpers.inputTrapper('.attributeDialog');
 		$('.attributeDialog').find('.cancel-button').focus();
 		return {
@@ -8881,11 +8989,21 @@ class SuiDialogBase {
 		});
 		this._bindElements();
 		this.position(this.modifier.renderedBox);
+		
+		var cb = function(x,y) {
+		}
+		htmlHelpers.draggable( {
+			parent:$(this.dgDom.element).find('.attributeModal'),
+			handle:$(this.dgDom.element).find('.icon-move'),
+			cb:cb,
+			moveParent:true
+		});
 	}
 
 	_bindElements() {
 		var self = this;
-		var dgDom = this.dgDom;
+		var dgDom = this.dgDom;		
+		
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
 			self._commit();
 			self.complete();
@@ -10725,7 +10843,7 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
 				}
 			});
 		});
-        $(this.context.svg).find('g.' + this.modifier.id).remove();
+        $(this.context.svg).find('g.' + this.modifier.endingId).remove();
         this.selection.staff.removeStaffModifier(this.modifier);
         this.tracker.clearModifierSelections();
     }
@@ -11518,6 +11636,7 @@ class suiController {
 		 var r=b('div').classes('dom-container')
 			 .append(b('div').classes('modes'))
 			 .append(b('div').classes('overlay'))
+			 .append(b('div').classes('draganime hide'))
 			 .append(b('div').classes('attributeDialog'))
 			 .append(b('div').classes('helpDialog'))
 			 .append(b('div').classes('bugDialog'))

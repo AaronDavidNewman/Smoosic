@@ -52,6 +52,9 @@ class htmlHelpers {
 		}
 		return new smoDomBuilder(el);
 	}
+	static draggable(parameters) {
+		return new draggable(parameters);
+	}
 
 	static get focusableElements() {
 		return ['a', 'input', 'select', 'textarea', 'button', 'li[tabindex]', 'div[tabindex]'];
@@ -76,7 +79,7 @@ class htmlHelpers {
 
 			// aria-hide peers of dialog and peers of parent that are not the parent.
 			var peers = $(this.parent).parent().children().toArray();
-			
+
 			peers.forEach((node) => {
 				var ptag = $(node)[0].tagName;
 				if (ptag === 'SCRIPT' || ptag === 'LINK' || ptag === 'STYLE') { ;
@@ -138,5 +141,85 @@ class htmlHelpers {
 			});
 		});
 	}
+}
 
+class draggable {
+	static get animeClass() {
+		return '.draganime';
+	}
+	constructor(parameters) {
+
+		this.parent = parameters.parent;
+		this.handle = parameters.handle;
+		this.svg=parameters['svg'];
+		this.width = $(this.parent).outerWidth();
+		this.height = $(this.parent).outerHeight();
+		this.lastX = $(this.handle).offset().left;
+		this.lastY = $(this.handle).offset().top;
+		this.cb = parameters.cb;
+		this.moveParent = parameters.moveParent;
+
+		var self = this;
+
+		// $('.itemMenu input[name="itemTitle"]').css('width','60%');
+		$(this.handle)
+		.off('mousedown').on('mousedown',
+			function (e) {
+			self.mousedown(e);
+		});
+		$(document)
+		.on('mousemove',
+			function (e) {
+			self.mousemove(e);
+
+		})
+		.on('mouseup',
+			function (e) {
+			self.mouseup(e);
+		});
+	}
+	_animate(e) {
+		this.lastX = e.clientX;
+		this.lastY = e.clientY;
+		console.log(e.clientY);
+		$(draggable.animeClass).css('left', this.lastX);
+		$(draggable.animeClass).css('top', this.lastY);
+	}
+	mousedown(e) {
+		if (!this.dragging) {
+			$(draggable.animeClass).removeClass('hide');
+
+			$(draggable.animeClass).css('width', this.width);
+			$(draggable.animeClass).css('height', this.height);
+		}
+
+		this.dragging = true;
+		this._animate(e);
+	}
+	enddrag(e) {
+
+		if (this.moveParent) {
+			$(this.parent).css('left', this.lastX + 'px');
+			$(this.parent).css('top', this.lastY + 'px');
+		}
+		$(draggable.animeClass).addClass('hide');
+		this.cb(this.lastX, this.lastY);
+	}
+
+	mouseup(e) {
+		// stop resizing
+		if (this.dragging) {
+			this.dragging = false;
+			this.lastX = e.clientX;
+			this.lastY = e.clientY;
+
+			this.enddrag();
+		}
+	}
+	mousemove(e) {
+		// we don't want to do anything if we aren't resizing.
+		if (!this.dragging)
+			return;
+		this._animate(e);
+	}
 }

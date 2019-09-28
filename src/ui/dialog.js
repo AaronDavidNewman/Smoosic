@@ -49,12 +49,13 @@ class SuiDialogBase {
 		var y = box.y + box.height;
 
 		// TODO: adjust if db is clipped by the browser.
-		$(this.dgDom.element).css('top', '' + y + 'px');
+		$(this.dgDom.element).find('.attributeDialog').css('top', '' + y + 'px');
 	}
 	_constructDialog(dialogElements, parameters) {
 		var id = parameters.id;
 		var b = htmlHelpers.buildDom;
 		var r = b('div').classes('attributeModal').css('top', parameters.top + 'px').css('left', parameters.left + 'px')
+		    .append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move')))
 			.append(b('h2').text(parameters.label));
 		dialogElements.forEach((de) => {
 			var ctor = eval(de.control);
@@ -71,7 +72,7 @@ class SuiDialogBase {
 		$('.attributeDialog').html('');
 
 		$('.attributeDialog').append(r.dom());
-
+		
 		var trapper = htmlHelpers.inputTrapper('.attributeDialog');
 		$('.attributeDialog').find('.cancel-button').focus();
 		return {
@@ -100,11 +101,21 @@ class SuiDialogBase {
 		});
 		this._bindElements();
 		this.position(this.modifier.renderedBox);
+		
+		var cb = function(x,y) {
+		}
+		htmlHelpers.draggable( {
+			parent:$(this.dgDom.element).find('.attributeModal'),
+			handle:$(this.dgDom.element).find('.icon-move'),
+			cb:cb,
+			moveParent:true
+		});
 	}
 
 	_bindElements() {
 		var self = this;
-		var dgDom = this.dgDom;
+		var dgDom = this.dgDom;		
+		
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
 			self._commit();
 			self.complete();
