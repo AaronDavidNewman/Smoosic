@@ -235,6 +235,22 @@ class suiSimpleLayout {
             });
         }
     }
+	_spaceNotes(smoMeasure) {
+		var g = this.context.svg.getElementById(smoMeasure.attrs.id);
+		var notes = Array.from(g.getElementsByClassName('vf-stavenote'));
+		var acc=0;
+		for (var i=1;i<notes.length;++i) {
+			var b1 = notes[i-1].getBBox();
+			var b2 = notes[i].getBBox();
+		    var dif =b2.x-(b1.x+b1.width);
+			if (dif < 10) {
+				acc += 10-dif;
+			}
+			
+		}
+		smoMeasure.logicalBox.width += acc;
+	}
+	
     // ### adjustWidths
     // Set the width of each measure in a system to the max width for that column so the measures are aligned.
     adjustWidths() {
@@ -257,6 +273,9 @@ class suiSimpleLayout {
                         measures.push(staff.measures[ix]);
                     }
                 });
+				// Make sure each note head is not squishing
+				measures.forEach((mm) => {this._spaceNotes(mm);});
+				
                 if (measures.length) {
                     var widest = measures.map((x) => {
                             return x.logicalBox.width;
