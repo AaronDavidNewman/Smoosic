@@ -2843,7 +2843,7 @@ class SmoScore {
             activeStaff: 0,
             pageWidth: 8 * 96 + 48,
             pageHeight: 11 * 96,
-            svgScale: 0.7,
+            svgScale: 1.0,
             zoomScale: 1.0,
 			zoomMode:SmoScore.zoomModes.fitWidth
         };
@@ -3397,7 +3397,7 @@ class smoTickIterator {
 
 	// ### getActiveAccidental
 	// return the active accidental for the given note
-    static getActiveAccidental(pitch, iteratorIndex, accidentalMap,keySignature) {
+    getActiveAccidental(pitch, iteratorIndex, keySignature) {
 		var defaultAccidental = smoMusic.getKeySignatureKey(pitch.letter, keySignature);
 		defaultAccidental = defaultAccidental.length > 1 ? defaultAccidental[1] : 'n';
         if (iteratorIndex === 0)
@@ -3407,7 +3407,7 @@ class smoTickIterator {
 
         // Back up the accidental map until we have a match, or until we run out
         for (var i = iteratorIndex; i > 0; --i) {
-            var map = accidentalMap[i - 1];
+            var map = this.accidentalMap[i - 1];
             var mapKeys = Object.keys(map);
             for (var j = 0; j < mapKeys.length; ++j) {
                 var mapKey = mapKeys[j];
@@ -4880,6 +4880,7 @@ class SmoOperation {
 class UndoBuffer {
     constructor() {
         this.buffer = [];
+		this.opCount = 0;
     }
     static get bufferMax() {
         return 100;
@@ -4906,8 +4907,9 @@ class UndoBuffer {
             json: json
         };
         if (this.buffer.length >= UndoBuffer.bufferMax) {
-            this.buffer.pop();
+            this.buffer.splice(0,1);
         }
+		this.opCount += 1;
         this.buffer.push(undoObj);
     }
 
@@ -5539,16 +5541,13 @@ class VxMeasure {
         }
     }
 		
-	_createAccidentals(smoNote,vexNote,tickIndex) {
-		// keep a map of accidentals already set
-		var accidentals = tickIndex === 0 ? {}
-           : this.tickmap.accidentalMap[tickIndex - 1];
+	_createAccidentals(smoNote,vexNote,tickIndex) {		
         for (var i = 0; i < smoNote.pitches.length; ++i) {
             var pitch = smoNote.pitches[i];
             var accidental = pitch.accidental ? pitch.accidental : 'n';
 
             // was this accidental declared earlier in the measure?
-            var declared = smoTickIterator.getActiveAccidental(pitch,tickIndex,this.tickmap.accidentalMap,this.smoMeasure.keySignature);
+            var declared = this.tickmap.getActiveAccidental(pitch,tickIndex,this.smoMeasure.keySignature);
 
             if (accidental != declared || pitch.cautionary) {
                 var acc = new VF.Accidental(accidental);
@@ -5704,8 +5703,11 @@ class VxMeasure {
 		var eb = this.smoMeasure.getEndBarline();
 		var sym = this.smoMeasure.getRepeatSymbol();
 
-		if (this.smoMeasure.forceClef || sb.barline != SmoBarline.barlines.singleBar) {
-		    this.stave.setBegBarType(sb.toVexBarline());
+        // don't create a begin bar for any but the 1st measure.
+		if (this.smoMeasure.measureNumber.systeIndex != 0 && sb.barline === SmoBarline.barlines.singleBar) {
+		    this.stave.setBegBarType(VF.Barline.type.NONE);
+		} else {
+			this.stave.setBegBarType(sb.toVexBarline());
 		}
 		if (eb.barline != SmoBarline.barlines.singleBar) {
 			this.stave.setEndBarType(eb.toVexBarline());
@@ -5713,15 +5715,7 @@ class VxMeasure {
 		if (sym && sym.symbol != SmoRepeatSymbol.symbols.None) {
 			var rep = new VF.Repetition(sym.toVexSymbol(),sym.xOffset+this.smoMeasure.staffX,sym.yOffset);
 			this.stave.modifiers.push(rep);
-		}
-		
-		/* 
-		this.smoMeasure.endData.forEach((mod) => {
-			var vtype = mod.toVexVolta(this.smoMeasure.measureNumber.measureIndex);
-			var vxVolta = new VF.Volta(vtype,mod.number,this.smoMeasure.staffX+mod.xOffsetStart,mod.yOffset);
-			this.stave.modifiers.push(vxVolta);
-			// this.stave.setVoltaType(vtype,''+mod.number,this.smoMeasure.staffX+mod.xOffsetStart,this.smoMeasure.yOffset);
-		});   */
+		}			
 	}
 
     // ## Description:
@@ -6650,7 +6644,7 @@ class suiSimpleLayout {
     setViewport() {
         this.screenWidth = window.innerWidth;
         var zoomScale = this.score.zoomMode === SmoScore.zoomModes.zoomScale ?
-            score.zoomScale : (window.innerWidth - 200) / this.score.pageWidth;
+            this.score.zoomScale : (window.innerWidth - 200) / this.score.pageWidth;
 
         this.svgScale = this.score.svgScale * zoomScale;
         this.pageWidth = Math.round(this.score.pageWidth * zoomScale);
@@ -6938,6 +6932,25 @@ class suiSimpleLayout {
         });
 
     }
+	
+	estimateMusicWidth(smoMeasure) {
+	    var width=0;
+		var tm = smoMeasure.tickmap();
+		this.smoMeasure.voices.forEach((voice) => {
+			var tickIndex = 0;
+			voice.notes.forEach((note) => {
+				width += vexGlyph.dimensions.noteHead.width + vexGlyph.dimensions.noteHead.spacingRight;
+				width += vexGlyph.dimensions.dot.width*note.dots + vexGlyph.dimensions.dot.spacingRight*note.dots;
+				note.pitches.forEach((pitch) => {
+					if (tm.getActiveAccidental(pitch,tickIndex,smoMeasure.keySignature)) {
+						width += vexGlyph.accidental(pitch.accidental);
+					}					
+				});
+				tickIndex += 1;
+			});
+		});
+	}
+	
 
     // ### adjustHeight
 	// Handle measure bumping into each other, vertically.
@@ -7833,7 +7846,7 @@ class suiMenuManager {
 				action: "suiKeySignatureMenu"
 			}, {
 				event: "keydown",
-				key: "e",
+				key: "l",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: false,
@@ -8136,6 +8149,10 @@ class suiStaffModifierMenu extends suiMenuBase {
 					icon: 'slur',
 					text: 'Slur/Tie',
 					value: 'slur'
+				}, {
+					icon: 'ending',
+					text: 'nth ending',
+					value: 'ending'
 				},				
 				 {
 					icon: '',
@@ -8151,6 +8168,13 @@ class suiStaffModifierMenu extends suiMenuBase {
 
 		var ft = this.tracker.getExtremeSelection(-1);
 		var tt = this.tracker.getExtremeSelection(1);
+		
+		if (op === 'ending') {
+           SmoUndoable.scoreOp(this.score,'addEnding',
+		       new SmoVolta({startBar:ft.selector.measure,endBar:tt.selector.measure,number:1}),this.editor.undoBuffer,'add ending');
+		    this.complete();
+			return;
+		}
 		if (SmoSelector.sameNote(ft.selector, tt.selector)) {
 			this.complete();
 			return;
@@ -9420,7 +9444,7 @@ class defaultRibbonLayout {
 				id: 'singleBarStart'
 			},
 			{
-				leftText: 'Nth',
+				leftText: '',
 				rightText: '',
 				icon: 'icon-ending',
 				classes: 'collapsed duration',
@@ -9433,7 +9457,7 @@ class defaultRibbonLayout {
 				leftText: 'DC Al Coda',
 				rightText: '',
 				icon: '',
-				classes: 'collapsed duration',
+				classes: 'collapsed repetext',
 				action: 'collapseChild',
 				ctor: 'MeasureButtons',
 				group: 'measure',
@@ -9443,7 +9467,7 @@ class defaultRibbonLayout {
 				leftText: 'DS Al Coda',
 				rightText: '',
 				icon: '',
-				classes: 'collapsed duration',
+				classes: 'collapsed repetext',
 				action: 'collapseChild',
 				ctor: 'MeasureButtons',
 				group: 'measure',
@@ -9453,7 +9477,7 @@ class defaultRibbonLayout {
 				leftText: 'DC Al Fine',
 				rightText: '',
 				icon: '',
-				classes: 'collapsed duration',
+				classes: 'collapsed repetext',
 				action: 'collapseChild',
 				ctor: 'MeasureButtons',
 				group: 'measure',
@@ -9463,7 +9487,7 @@ class defaultRibbonLayout {
 				leftText: 'DS Al Fine',
 				rightText: '',
 				icon: '',
-				classes: 'collapsed duration',
+				classes: 'collapsed repetext',
 				action: 'collapseChild',
 				ctor: 'MeasureButtons',
 				group: 'measure',
@@ -9503,7 +9527,7 @@ class defaultRibbonLayout {
 				leftText: 'Fine',
 				rightText: '',
 				icon: '',
-				classes: 'collapsed duration',
+				classes: 'collapsed repetext',
 				action: 'collapseChild',
 				ctor: 'MeasureButtons',
 				group: 'measure',
@@ -10170,23 +10194,14 @@ class defaultRibbonLayout {
 				group: 'scoreEdit',
 				id: 'keyMenu'
 			}, {
-				leftText: '',
-				rightText: '/e',
-				icon: 'icon-slur',
+				leftText: 'Lines',
+				rightText: '/l',
+				icon: '',
 				classes: 'icon note-modify',
 				action: 'menu',
 				ctor: 'suiStaffModifierMenu',
 				group: 'scoreEdit',
 				id: 'staffModifierMenu'
-			}, {
-				leftText: '',
-				rightText: '/e',
-				icon: 'icon-cresc',
-				classes: 'icon note-modify',
-				action: 'menu',
-				ctor: 'suiStaffModifierMenu',
-				group: 'scoreEdit',
-				id: 'staffModifierMenu2'
 			},
 			 {
 				leftText: 'Piano',
@@ -10199,6 +10214,127 @@ class defaultRibbonLayout {
 				id: 'pianoModal'
 			}
 		];
+	}
+}
+;
+
+class vexGlyph {
+	static accidental(a) {
+       return vexGlyph.accidentals[a];				    
+	}
+	static get accidentals() {
+		return {
+		'b':vexGlyph.dimensions.flat,
+		'#':vexGlyph.dimensions.sharp,
+		'bb':vexGlyph.dimensions.doubleFlat,
+		'##':vexGlyph.dimensions.doubleSharp,
+		'n':vexGlyph.dimensions.natural
+		};
+	}
+	static get timeSignature() {
+		return vexGlyph.dimensions['timeSignature'];
+	}
+	static get dot() {
+		return vexGlyph.dimensions['dot'];
+	}
+	
+	static clef(c) {
+		var key = c.toLowerCase()+'Clef';
+		return vexGlyph.dimensions[key];
+	}
+	static get dimensions() {
+		return {
+			singleBar: {
+				width:1,
+				height:41,
+				spacingRight:0
+			},
+			endBar: {
+				width:5.22,
+				height:40.99,
+				spacingRight:0
+			},			
+			doubleBar: {
+				width:3.22,
+				height:40.99,
+				spacingRight:0
+			},
+			endRepeat: {
+				width:6,
+				height:40.99,
+				spacingRight:0,
+			},
+			startRepeat: {
+				width:6,
+				height:40.99,
+				spacingRight:5,
+			}
+			noteHead: {
+				width:12.02,
+				height:10.48,
+				spacingRight:10,
+			},
+			dot: {
+				width:5,
+				height:5,
+				spacingRight:2
+			},
+			trebleClef: {
+				width: 24.43,
+				height: 68.32,
+				spacingRight: 10,
+			},
+			bassClef: {
+				width: 25.92,
+				height: 31.88,
+				spacingRight: 5,
+			},
+			altoClef: {
+				width: 41,
+				height: 85.5,
+				spacingRight: 10
+			},
+			tenorClef: {
+				width: 29.89,
+				height: 41,
+				spacingRight: 10
+			},
+			timeSignature: {
+				width: 13.48,
+				height: 85,
+				spacingRight: 5
+			},
+			flat: {
+				width: 7.44,
+				height: 23.55,
+				spacingRight: 2
+			},
+			keySignature: {
+				width: 0,
+				height: 85.5,
+				spacingRight: 10
+			},
+			sharp: {
+				width: 8.84,
+				height: 62,
+				spacingRight: 2
+			},
+			natural: {
+				width: 6.54,
+				height: 53.35,
+				spacingRight: 2
+			},
+			doubleSharp: {
+				height: 10.04,
+				width: 21.63,
+				spacingRight: 2
+			},
+			doubleFlat: {
+				width: 13.79,
+				height: 49.65,
+				spacingRight:2
+			}
+		};
 	}
 }
 ;
@@ -11549,12 +11685,12 @@ class suiController {
 	pollIdleRedraw() {
 		var self=this;
 		setTimeout(function() {
-			if (self.undoStatus == self.undoBuffer.buffer.length) {				
+			if (self.undoStatus == self.undoBuffer.opCount) {				
 				self.resizeEvent();
 				self.pollRedraw();
 				return;
 			}
-			self.undoStatus = self.undoBuffer.buffer.length;
+			self.undoStatus = self.undoBuffer.opCount;
 			self.pollIdleRedraw();
 		},5000);
 	}
@@ -11564,8 +11700,8 @@ class suiController {
 	pollRedraw() {
 		var self=this;
 		setTimeout(function() {
-			if (self.undoStatus != self.undoBuffer.buffer.length) {
-				self.undoStatus = self.undoBuffer.buffer.length;
+			if (self.undoStatus != self.undoBuffer.opCount) {
+				self.undoStatus = self.undoBuffer.opCount;
 				self.pollIdleRedraw();
 			}
 			self.pollRedraw();

@@ -20,7 +20,7 @@ class suiSimpleLayout {
     setViewport() {
         this.screenWidth = window.innerWidth;
         var zoomScale = this.score.zoomMode === SmoScore.zoomModes.zoomScale ?
-            score.zoomScale : (window.innerWidth - 200) / this.score.pageWidth;
+            this.score.zoomScale : (window.innerWidth - 200) / this.score.pageWidth;
 
         this.svgScale = this.score.svgScale * zoomScale;
         this.pageWidth = Math.round(this.score.pageWidth * zoomScale);
@@ -308,6 +308,25 @@ class suiSimpleLayout {
         });
 
     }
+	
+	estimateMusicWidth(smoMeasure) {
+	    var width=0;
+		var tm = smoMeasure.tickmap();
+		this.smoMeasure.voices.forEach((voice) => {
+			var tickIndex = 0;
+			voice.notes.forEach((note) => {
+				width += vexGlyph.dimensions.noteHead.width + vexGlyph.dimensions.noteHead.spacingRight;
+				width += vexGlyph.dimensions.dot.width*note.dots + vexGlyph.dimensions.dot.spacingRight*note.dots;
+				note.pitches.forEach((pitch) => {
+					if (tm.getActiveAccidental(pitch,tickIndex,smoMeasure.keySignature)) {
+						width += vexGlyph.accidental(pitch.accidental);
+					}					
+				});
+				tickIndex += 1;
+			});
+		});
+	}
+	
 
     // ### adjustHeight
 	// Handle measure bumping into each other, vertically.

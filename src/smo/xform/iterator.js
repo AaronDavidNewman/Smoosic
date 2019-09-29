@@ -130,7 +130,7 @@ class smoTickIterator {
 
 	// ### getActiveAccidental
 	// return the active accidental for the given note
-    static getActiveAccidental(pitch, iteratorIndex, accidentalMap,keySignature) {
+    getActiveAccidental(pitch, iteratorIndex, keySignature) {
 		var defaultAccidental = smoMusic.getKeySignatureKey(pitch.letter, keySignature);
 		defaultAccidental = defaultAccidental.length > 1 ? defaultAccidental[1] : 'n';
         if (iteratorIndex === 0)
@@ -140,7 +140,7 @@ class smoTickIterator {
 
         // Back up the accidental map until we have a match, or until we run out
         for (var i = iteratorIndex; i > 0; --i) {
-            var map = accidentalMap[i - 1];
+            var map = this.accidentalMap[i - 1];
             var mapKeys = Object.keys(map);
             for (var j = 0; j < mapKeys.length; ++j) {
                 var mapKey = mapKeys[j];

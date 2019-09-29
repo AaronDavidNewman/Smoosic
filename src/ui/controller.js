@@ -52,12 +52,12 @@ class suiController {
 	pollIdleRedraw() {
 		var self=this;
 		setTimeout(function() {
-			if (self.undoStatus == self.undoBuffer.buffer.length) {				
+			if (self.undoStatus == self.undoBuffer.opCount) {				
 				self.resizeEvent();
 				self.pollRedraw();
 				return;
 			}
-			self.undoStatus = self.undoBuffer.buffer.length;
+			self.undoStatus = self.undoBuffer.opCount;
 			self.pollIdleRedraw();
 		},5000);
 	}
@@ -67,8 +67,8 @@ class suiController {
 	pollRedraw() {
 		var self=this;
 		setTimeout(function() {
-			if (self.undoStatus != self.undoBuffer.buffer.length) {
-				self.undoStatus = self.undoBuffer.buffer.length;
+			if (self.undoStatus != self.undoBuffer.opCount) {
+				self.undoStatus = self.undoBuffer.opCount;
 				self.pollIdleRedraw();
 			}
 			self.pollRedraw();

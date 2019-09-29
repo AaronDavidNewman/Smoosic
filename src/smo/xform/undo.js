@@ -11,6 +11,7 @@
 class UndoBuffer {
     constructor() {
         this.buffer = [];
+		this.opCount = 0;
     }
     static get bufferMax() {
         return 100;
@@ -37,8 +38,9 @@ class UndoBuffer {
             json: json
         };
         if (this.buffer.length >= UndoBuffer.bufferMax) {
-            this.buffer.pop();
+            this.buffer.splice(0,1);
         }
+		this.opCount += 1;
         this.buffer.push(undoObj);
     }
 

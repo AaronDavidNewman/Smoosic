@@ -36,7 +36,7 @@ class suiMenuManager {
 				action: "suiKeySignatureMenu"
 			}, {
 				event: "keydown",
-				key: "e",
+				key: "l",
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: false,
@@ -339,6 +339,10 @@ class suiStaffModifierMenu extends suiMenuBase {
 					icon: 'slur',
 					text: 'Slur/Tie',
 					value: 'slur'
+				}, {
+					icon: 'ending',
+					text: 'nth ending',
+					value: 'ending'
 				},				
 				 {
 					icon: '',
@@ -354,6 +358,13 @@ class suiStaffModifierMenu extends suiMenuBase {
 
 		var ft = this.tracker.getExtremeSelection(-1);
 		var tt = this.tracker.getExtremeSelection(1);
+		
+		if (op === 'ending') {
+           SmoUndoable.scoreOp(this.score,'addEnding',
+		       new SmoVolta({startBar:ft.selector.measure,endBar:tt.selector.measure,number:1}),this.editor.undoBuffer,'add ending');
+		    this.complete();
+			return;
+		}
 		if (SmoSelector.sameNote(ft.selector, tt.selector)) {
 			this.complete();
 			return;

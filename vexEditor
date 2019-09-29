@@ -78,11 +78,13 @@
             <File name="src\test\clefTest.js" />
             <File name="src\test\measureTest.html" />
             <File name="src\test\measureTest.js" />
+            <File name="src\test\debugTest.html" />
         </Folder>
         <Folder name="render">
             <Folder name="vex">
                 <File name="src\render\vex\vxSystem.js" />
                 <File name="src\render\vex\vxMeasure.js" />
+                <File name="src\render\vex\glyphDimensions.js" />
             </Folder>
             <Folder name="sui">
                 <File name="src\render\sui\tracker.js" />

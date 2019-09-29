@@ -74,16 +74,13 @@ class VxMeasure {
         }
     }
 		
-	_createAccidentals(smoNote,vexNote,tickIndex) {
-		// keep a map of accidentals already set
-		var accidentals = tickIndex === 0 ? {}
-           : this.tickmap.accidentalMap[tickIndex - 1];
+	_createAccidentals(smoNote,vexNote,tickIndex) {		
         for (var i = 0; i < smoNote.pitches.length; ++i) {
             var pitch = smoNote.pitches[i];
             var accidental = pitch.accidental ? pitch.accidental : 'n';
 
             // was this accidental declared earlier in the measure?
-            var declared = smoTickIterator.getActiveAccidental(pitch,tickIndex,this.tickmap.accidentalMap,this.smoMeasure.keySignature);
+            var declared = this.tickmap.getActiveAccidental(pitch,tickIndex,this.smoMeasure.keySignature);
 
             if (accidental != declared || pitch.cautionary) {
                 var acc = new VF.Accidental(accidental);
@@ -239,8 +236,11 @@ class VxMeasure {
 		var eb = this.smoMeasure.getEndBarline();
 		var sym = this.smoMeasure.getRepeatSymbol();
 
-		if (this.smoMeasure.forceClef || sb.barline != SmoBarline.barlines.singleBar) {
-		    this.stave.setBegBarType(sb.toVexBarline());
+        // don't create a begin bar for any but the 1st measure.
+		if (this.smoMeasure.measureNumber.systeIndex != 0 && sb.barline === SmoBarline.barlines.singleBar) {
+		    this.stave.setBegBarType(VF.Barline.type.NONE);
+		} else {
+			this.stave.setBegBarType(sb.toVexBarline());
 		}
 		if (eb.barline != SmoBarline.barlines.singleBar) {
 			this.stave.setEndBarType(eb.toVexBarline());
@@ -248,15 +248,7 @@ class VxMeasure {
 		if (sym && sym.symbol != SmoRepeatSymbol.symbols.None) {
 			var rep = new VF.Repetition(sym.toVexSymbol(),sym.xOffset+this.smoMeasure.staffX,sym.yOffset);
 			this.stave.modifiers.push(rep);
-		}
-		
-		/* 
-		this.smoMeasure.endData.forEach((mod) => {
-			var vtype = mod.toVexVolta(this.smoMeasure.measureNumber.measureIndex);
-			var vxVolta = new VF.Volta(vtype,mod.number,this.smoMeasure.staffX+mod.xOffsetStart,mod.yOffset);
-			this.stave.modifiers.push(vxVolta);
-			// this.stave.setVoltaType(vtype,''+mod.number,this.smoMeasure.staffX+mod.xOffsetStart,this.smoMeasure.yOffset);
-		});   */
+		}			
 	}
 
     // ## Description:

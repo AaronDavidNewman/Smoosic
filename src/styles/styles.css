@@ -42,6 +42,7 @@ h1 {
 .controls-top {	
 	width:100%;
 	min-height:50px;
+	margin-bottom:3px;
 	background-color: #fff;
 	background:transparent;
 	display:flex;
@@ -175,7 +176,7 @@ div.ribbonButtonContainer.expanded {
 	font-size:2.4em;
 }
 
-.controls-top button.duration,.controls-top button.measure {
+.controls-top button.duration,.controls-top button.measure, .controls-top button.repetext {
 	width:65px;
 }
 
@@ -188,10 +189,14 @@ div.ribbonButtonContainer.expanded {
 	top:25%;
 }
 
-.controls-top button.duration span.ribbon-button-text {
-	font-size:1.6em;
+.controls-top button.duration span.ribbon-button-text,
+.controls-top button.repetext span.ribbon-button-text {
+	font-size:1.6em;	
 }
 
+.controls-top button.repetext {
+	font-style:italic;
+}
 .controls-top button.duration span.ribbon-button-hotkey {
 	font-size:1.6em;
 }
@@ -225,6 +230,10 @@ button.addChord .left-text .icon {
 
 #QuintupletButton {
 	width:75px;
+}
+
+#toCoda .icon  {
+	left:10px;
 }
 
 .controls-top button.articulation {
