@@ -10312,6 +10312,9 @@ class vexGlyph {
 	
 	static clef(c) {
 		var key = c.toLowerCase()+'Clef';
+		if (!vexGlyph.dimensions[key]) {
+			return vexGlyph.dimensions['tenorClef'];
+		}
 		return vexGlyph.dimensions[key];
 	}
 	static get dimensions() {

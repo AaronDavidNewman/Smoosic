@@ -120,7 +120,7 @@ class ChordTest {
 					}, {
 						letter: 'g',
 						octave: 5,
-						accidental: ''
+						accidental: 'n'
 					}
 				]);
 			return layout.render().then(timeTest);
