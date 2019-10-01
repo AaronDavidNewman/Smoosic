@@ -398,6 +398,14 @@ button.addChord .left-text .icon {
 	stroke:#492;
 	stroke-width:2;
 }
+.measure-note-dbg line {
+	stroke:#fc9;
+	stroke-width:1;
+}
+.measure-note-dbg text {
+	display:none;
+	fill:#774422;
+}
 .measure-render-dbg text {
 	fill:#933;
 	font-size:1em;
