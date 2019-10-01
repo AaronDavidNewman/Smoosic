@@ -10344,7 +10344,7 @@ class vexGlyph {
 			noteHead: {
 				width:12.02,
 				height:10.48,
-				spacingRight:10,
+				spacingRight:15,
 			},
 			dot: {
 				width:5,
@@ -10352,22 +10352,22 @@ class vexGlyph {
 				spacingRight:2
 			},
 			trebleClef: {
-				width: 51.5,
+				width: 25.5,
 				height: 68.32,
 				spacingRight: 10,
 			},
 			bassClef: {
-				width: 64.64,
+				width: 32.32,
 				height: 31.88,
 				spacingRight: 5,
 			},
 			altoClef: {
-				width: 63,
+				width: 31.5,
 				height: 85.5,
 				spacingRight: 10
 			},
 			tenorClef: {
-				width: 63,
+				width: 31.5,
 				height: 41,
 				spacingRight: 10
 			},
