@@ -34,9 +34,16 @@ class SmoBarline extends SmoMeasureModifierBase {
             endBar: 2,
             startRepeat: 3,
             endRepeat: 4,
-            none: 5
+            noBar: 5
         }
     }
+	
+	static get _barlineToString() {
+		return  ['singleBar','doubleBar','endBar','startRepeat','endRepeat','noBar'];		
+	}
+	static barlineString(inst) {
+		return SmoBarline._barlineToString[inst.barline];
+	}
 
     static get defaults() {
         return {

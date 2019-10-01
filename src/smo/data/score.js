@@ -31,7 +31,7 @@ class SmoScore {
             pageHeight: 11 * 96,
             svgScale: 1.0,
             zoomScale: 1.0,
-			zoomMode:SmoScore.zoomModes.fitWidth
+			zoomMode:SmoScore.zoomModes.zoomScale
         };
     }
 

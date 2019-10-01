@@ -4,6 +4,11 @@ class vexGlyph {
 	static accidental(a) {
        return vexGlyph.accidentals[a];				    
 	}
+	static barWidth(b) {
+		var str = SmoBarline.barlineString(b);
+		var cc = vexGlyph.dimensions[str];
+		return cc.width+cc.spacingRight;
+	}
 	static get accidentals() {
 		return {
 		'b':vexGlyph.dimensions.flat,
@@ -29,12 +34,12 @@ class vexGlyph {
 			singleBar: {
 				width:1,
 				height:41,
-				spacingRight:0
+				spacingRight:10
 			},
 			endBar: {
 				width:5.22,
 				height:40.99,
-				spacingRight:0
+				spacingRight:10
 			},			
 			doubleBar: {
 				width:3.22,
@@ -50,7 +55,7 @@ class vexGlyph {
 				width:6,
 				height:40.99,
 				spacingRight:5,
-			}
+			},
 			noteHead: {
 				width:12.02,
 				height:10.48,
@@ -62,22 +67,22 @@ class vexGlyph {
 				spacingRight:2
 			},
 			trebleClef: {
-				width: 24.43,
+				width: 51.5,
 				height: 68.32,
 				spacingRight: 10,
 			},
 			bassClef: {
-				width: 25.92,
+				width: 64.64,
 				height: 31.88,
 				spacingRight: 5,
 			},
 			altoClef: {
-				width: 41,
+				width: 63,
 				height: 85.5,
 				spacingRight: 10
 			},
 			tenorClef: {
-				width: 29.89,
+				width: 63,
 				height: 41,
 				spacingRight: 10
 			},
