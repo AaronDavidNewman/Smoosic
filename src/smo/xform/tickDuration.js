@@ -351,7 +351,8 @@ class SmoStretchNoteActor extends TickTransformBase {
         if (mapIx < 0) {
             var npos = this.tickmap.durationMap[this.startIndex + 1];
             var ndelta = this.tickmap.deltaMap[this.startIndex + 1];
-			var exp = ndelta/currentTicks;
+			var needed = this.newTicks - currentTicks;
+			var exp = ndelta/needed;
 									
 			// Next tick does not divide evenly into this, or next tick is shorter than this
 			if (Math.round(ndelta/exp)-ndelta/exp != 0 || currentTicks>ndelta) {
