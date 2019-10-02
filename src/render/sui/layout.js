@@ -199,7 +199,7 @@ class suiSimpleLayout {
 	justifyWidths() {
 		var svg = this.context.svg;
 		if (suiSimpleLayout.debugLayout) {
-			$(this.renderer.getContext().svg).find('g.measure-adjust-dbg').remove();
+			$(this.context.svg).find('g.measure-adjust-dbg').remove();
 		}
 		var topStaff = this.score.staves[0];
 		var maxLine = topStaff.measures[topStaff.measures.length - 1].lineIndex - 1;
@@ -604,7 +604,6 @@ class suiSimpleLayout {
 				// If we are calculating the measures' location dynamically, always update the y
 				if (!useAdjustedY && measure.changed) { // && systemIndex === 0) {
 					measure.staffY = staffBox.y;
-
 				}
 
 				if (!systemBoxes[lineIndex] || j > 0) {

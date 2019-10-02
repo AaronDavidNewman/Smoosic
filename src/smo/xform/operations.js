@@ -56,6 +56,9 @@ class SmoOperation {
 		var measure = selection.measure;
 		var tuplet = measure.getTupletForNote(note);
 		if (!tuplet) {
+			if (selection.note.dots > 0) {
+				return;
+			}
 			var nticks = note.tickCount * 2;
 			var actor = new SmoStretchNoteActor({
 					startIndex: selection.selector.tick,
@@ -96,6 +99,9 @@ class SmoOperation {
 		}
 		if (!tuplet) {
 			var nticks = note.tickCount / divisor;
+			if (!smoMusic.ticksToDuration[nticks]) {
+				return;
+			}
 			var actor = new SmoContractNoteActor({
 					startIndex: selection.selector.tick,
 					tickmap: measure.tickmap(),
@@ -187,6 +193,10 @@ class SmoOperation {
 		}
 		if (selection.measure.notes[selection.selector.tick + 1].tickCount > selection.note.tickCount) {
 			console.log('too long');
+			return;
+		}
+		// is dot too short?
+		if (!smoMusic.ticksToDuration[selection.measure.notes[selection.selector.tick + 1].tickCount/2]) {
 			return;
 		}
 		var actor = new SmoStretchNoteActor({

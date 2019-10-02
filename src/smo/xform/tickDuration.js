@@ -323,6 +323,7 @@ class SmoStretchNoteActor extends TickTransformBase {
         super();
         Vex.Merge(this, parameters);
         this.startTick = this.tickmap.durationMap[this.startIndex];
+		var currentTicks = this.tickmap.deltaMap[this.startIndex];
 
         var endTick = this.tickmap.durationMap[this.startIndex] + this.newTicks;
         this.divisor = -1;
@@ -350,12 +351,17 @@ class SmoStretchNoteActor extends TickTransformBase {
         if (mapIx < 0) {
             var npos = this.tickmap.durationMap[this.startIndex + 1];
             var ndelta = this.tickmap.deltaMap[this.startIndex + 1];
-            if (ndelta / 2 + this.startTick + this.newTicks <= this.tickmap.totalDuration) {
-                this.durationMap.push(ndelta / 2);
+			var exp = ndelta/currentTicks;
+									
+			// Next tick does not divide evenly into this, or next tick is shorter than this
+			if (Math.round(ndelta/exp)-ndelta/exp != 0 || currentTicks>ndelta) {
+				this.durationMap = [];
+			}
+            else if (ndelta / exp + this.startTick + this.newTicks <= this.tickmap.totalDuration) {
+                this.durationMap.push(ndelta - (ndelta / exp));
             } else {
                 // there is no way to do this...
-                this.durationMap = [];
-
+				this.durationMap = [];                
             }
         } else {
             // If this note now takes up the space of other notes, remove those notes
