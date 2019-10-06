@@ -228,8 +228,8 @@ class svgHelpers {
 		return {
 			x: x,
 			y: y,
-			width: 1,
-			height: 1
+			width: 0,
+			height: 0
 		};
 	}
 

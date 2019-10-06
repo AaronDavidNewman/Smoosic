@@ -641,7 +641,7 @@ class suiSimpleLayout {
 					if (useAdjustedX && measure.measureNumber.systemIndex != 0) {
 						useAdjustedX = params.useX = false;
     				}
-					measure.staffX = this.score.staffX + 1;
+					measure.staffX = this.score.staffX;
 
 					this.score.staves.forEach((stf) => {
 						this._renderModifiers(stf, system);

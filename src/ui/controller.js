@@ -194,11 +194,13 @@ class suiController {
 	static start(debug) {
 		var score = SmoScore.getEmptyScore();
 		score.addDefaultMeasureWithNotes(0, {});
-		score.addDefaultMeasureWithNotes(1, {});
-		score.addDefaultMeasureWithNotes(2, {});
-		score.addDefaultMeasureWithNotes(3, {});
-		score.addDefaultMeasureWithNotes(4, {});
-		score.addStaff();
+		if (!debug) {
+			score.addDefaultMeasureWithNotes(1, {});
+			score.addDefaultMeasureWithNotes(2, {});
+			score.addDefaultMeasureWithNotes(3, {});
+			score.addDefaultMeasureWithNotes(4, {});
+			score.addStaff();
+		}
 
 		var controller = debug ? suiController.createDebugUi(score) : suiController.createUi(score);
 		var remap = function () {
