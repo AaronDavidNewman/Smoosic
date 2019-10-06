@@ -27,7 +27,7 @@ class RibbonButtons {
 	}
 	_executeButtonModal(buttonElement, buttonData) {
 		var ctor = eval(buttonData.ctor);
-		ctor.createAndDisplay(buttonElement, buttonData);
+		ctor.createAndDisplay(buttonElement, buttonData,this.controller);
 	}
 	_executeButtonMenu(buttonElement, buttonData) {
 		var self = this;

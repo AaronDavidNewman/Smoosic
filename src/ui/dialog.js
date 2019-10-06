@@ -30,7 +30,6 @@ class SuiDialogBase {
 	constructor(dialogElements, parameters) {
 		this.id = parameters.id;
 		this.components = [];
-		this.layout = parameters.layout;
 		this.closeDialogPromise = new Promise((resolve, reject) => {
 				$('body').off('dialogDismiss').on('dialogDismiss', function () {
 					resolve();
@@ -129,6 +128,145 @@ class SuiDialogBase {
 			self.handleRemove();
 			self.complete();
 		});
+	}
+}
+
+class SuiLayoutDialog extends SuiDialogBase {
+	static get attributes() {
+		return ['pageWidth','pageHeight','staffX','staffY','interGap','intraGap','zoomScale','svgScale'];
+	}
+	static get dialogElements() {
+		return [{
+				smoName: 'pageWidth',
+				parameterName: 'pageWidth',
+				defaultValue: SmoScore.defaults.pageWidth,
+				control: 'SuiRockerComponent',
+				label: 'Page Width (px)'
+			},
+			{
+				smoName: 'pageHeight',
+				parameterName: 'pageHeight',
+				defaultValue: SmoScore.defaults.pageHeight,
+				control: 'SuiRockerComponent',
+				label: 'Page Height (px)'
+			},
+			{
+				smoName: 'staffX',
+				parameterName: 'staffX',
+				defaultValue: SmoScore.defaults.staffX,
+				control: 'SuiRockerComponent',
+				label: 'Side Margin (px)'
+			},
+			{
+				smoName: 'staffY',
+				parameterName: 'staffY',
+				defaultValue:  SmoScore.defaults.staffY,
+				control: 'SuiRockerComponent',
+				label: 'Top Margin (px)'
+			},
+			{
+				smoName: 'interGap',
+				parameterName: 'interGap',
+				defaultValue:  SmoScore.defaults.interGap,
+				control: 'SuiRockerComponent',
+				label: 'Inter-System Margin'
+			},
+			{	
+				smoName: 'intraGap',
+				parameterName: 'intraGap',
+				defaultValue:  SmoScore.defaults.intraGap,
+				control: 'SuiRockerComponent',
+				label: 'Intra-System Margin'
+			},
+			{	
+				smoName: 'zoomScale',
+				parameterName: 'zoomScale',
+				defaultValue:  SmoScore.defaults.zoomScale,
+				control: 'SuiRockerComponent',
+				label: 'Zoom'
+			},
+			{	
+				smoName: 'svgScale',
+				parameterName: 'svgScale',
+				defaultValue:  SmoScore.defaults.svgScale,
+				control: 'SuiRockerComponent',
+				label: 'Note size'
+			}
+			];
+	}
+	backupOriginal() {
+		this.backup={};
+		SuiLayoutDialog.attributes.forEach((attr) => {
+			this.backup[attr]=this.score[attr];
+		});
+	}
+	display() {
+		$('body').addClass('showAttributeDialog');
+		this.components.forEach((component) => {
+			component.bind();
+		});
+		this._bindElements();
+		
+		var cb = function(x,y) {
+		}
+		htmlHelpers.draggable( {
+			parent:$(this.dgDom.element).find('.attributeModal'),
+			handle:$(this.dgDom.element).find('.icon-move'),
+			cb:cb,
+			moveParent:true
+		});
+	}
+	_bindElements() {
+		var self = this;
+		var dgDom = this.dgDom;		
+		
+		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+			self.layout.setViewport();
+            self.controller.resizeEvent();
+			self.complete();
+		});
+
+		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+			SuiLayoutDialog.attributes.forEach((attr) => {
+			    self.score[attr]=self.backup[attr];
+    		});
+			self.layout.setViewport();
+			self.controller.resizeEvent();
+			self.complete();
+		});
+		
+		$(dgDom.element).find('.remove-button').remove();
+	}
+	changed() {
+		// this.modifier.backupOriginal();
+		this.components.forEach((component) => {
+			this.score[component.smoName] = component.getValue();
+		});
+		this.layout.setViewport();
+		this.controller.resizeEvent();
+	}
+	static createAndDisplay(buttonElement,buttonData,controller) {
+		var dg = new SuiLayoutDialog({
+		score:controller.score,layout:controller.layout,controller:controller});
+		dg.display();
+	}
+	constructor(parameters) {
+		if (!parameters.score) {
+			throw new Error('layout  dialog must have score');
+		}
+		var p=parameters;
+
+		super(SuiLayoutDialog.dialogElements, {
+			id: 'dialog-layout',
+			top: (p.score.pageWidth/2)-200,
+			left: (p.score.pageHeight/2)-200,
+			label: 'Score Layout'
+		});
+		this.score=p.score;
+		this.layout=p.layout;
+		this.controller=p.controller;
+		Vex.Merge(this, parameters);
+		this.backupOriginal();
 	}
 }
 
