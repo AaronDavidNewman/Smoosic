@@ -21,6 +21,7 @@ class SmoScore {
             staffY: 40,
             staffWidth: 1600,
             interGap: 30,
+			intraGap:10,
             startIndex: 0,
             renumberingMap: {},
             keySignatureMap: {},
@@ -36,7 +37,7 @@ class SmoScore {
     }
 
     static get defaultAttributes() {
-        return ['staffX', 'staffY', 'staffWidth', 'startIndex', 'interGap', 'renumberingMap', 'renumberIndex','zoomScale','zoomMode'];
+        return ['staffX', 'staffY', 'intraGap','staffWidth', 'startIndex', 'interGap', 'renumberingMap', 'renumberIndex','zoomScale','zoomMode'];
     }
 
     // ### serialize

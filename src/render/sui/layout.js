@@ -371,7 +371,7 @@ class suiSimpleLayout {
 				maxY.push(max);
 
 				if (absLine == 0) {
-					accum = this.score.staffY - min.logicalBox.y;
+					accum = this.score.staffY - min.logicalBox.y;					
 					var staffY = min.staffY + accum;
 					measures.forEach((measure) => {
 						measure.staffY = staffY;
@@ -382,7 +382,7 @@ class suiSimpleLayout {
 					});
 				} else {
 					var maxM = maxY[absLine - 1];
-					var my = maxM.logicalBox.y + maxM.logicalBox.height;
+					var my = maxM.logicalBox.y + maxM.logicalBox.height + this.score.intraGap;
 					var delta = my - min.logicalBox.y;
 					if (maxM.lineIndex < min.lineIndex) {
 						delta += this.score.interGap;
@@ -591,16 +591,18 @@ class suiSimpleLayout {
 				var staffBox = svgHelpers.pointBox(this.score.staffX, this.score.staffY);
 
 				// The left-most measure sets the y for the row, top measure sets the x for the column.
-				// Other measures get the x, y from previous measure on this row.
+				// Other measures get the x, y from previous measure on this row.  Once the music is rendered we will adjust
+				// based on actual rendered dimensions.
 				if (!staffBoxes[j]) {
 					if (j == 0) {
 						staffBoxes[j] = svgHelpers.copyBox(staffBox);
 					} else {
-						staffBoxes[j] = svgHelpers.pointBox(staffBoxes[j - 1].x, staffBoxes[j - 1].y + staffBoxes[j - 1].height + measure.adjY);
+						staffBoxes[j] = svgHelpers.pointBox(staffBoxes[j - 1].x, staffBoxes[j - 1].y + staffBoxes[j - 1].height + this.score.intraGap);
 					}
 				}
 
 				staffBox = staffBoxes[j];
+				
 				// If we are calculating the measures' location dynamically, always update the y
 				if (!useAdjustedY && measure.changed) { // && systemIndex === 0) {
 					measure.staffY = staffBox.y;
