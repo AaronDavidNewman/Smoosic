@@ -8,8 +8,8 @@ class suiSimpleLayout {
 	constructor(params) {
 		Vex.Merge(this, suiSimpleLayout.defaults);
 		Vex.Merge(this, params);
-
-		this.setViewport();
+		
+		this.setViewport(true);
 
 		this.attrs = {
 			id: VF.Element.newID(),
@@ -17,18 +17,23 @@ class suiSimpleLayout {
 		};
 	}
 
-	setViewport() {
+	setViewport(reset) {
 		this.screenWidth = window.innerWidth;
-		var zoomScale = this.score.zoomMode === SmoScore.zoomModes.zoomScale ?
-			this.score.zoomScale : (window.innerWidth - 200) / this.score.pageWidth;
+		var layout = this.score.layout;
+		var zoomScale = layout.zoomMode === SmoScore.zoomModes.zoomScale ?
+			layout.zoomScale : (window.innerWidth - 200) / layout.pageWidth;
 
-		this.svgScale = this.score.svgScale * zoomScale;
-		this.pageWidth = Math.round(this.score.pageWidth * zoomScale);
-		this.pageHeight = Math.round(this.score.pageHeight * zoomScale);
+		this.svgScale = layout.svgScale * zoomScale;
+		this.pageWidth = Math.round(layout.pageWidth * zoomScale);
+		this.pageHeight = Math.round(layout.pageHeight * zoomScale);
+		this.leftMargin=this.score.layout.leftMargin;
+        this.rightMargin = this.score.layout.rightMargin;
 		$(this.elementId).css('width', '' + Math.round(this.pageWidth) + 'px');
-		$(this.elementId).css('height', '' + Math.round(this.pageHeight) + 'px');
-		$(this.elementId).html('');
-		this.renderer = new VF.Renderer(this.elementId, VF.Renderer.Backends.SVG);
+		$(this.elementId).css('height', '' + Math.round(this.pageHeight+99) + 'px');
+		if (reset) {
+		    $(this.elementId).html('');
+    		this.renderer = new VF.Renderer(this.elementId, VF.Renderer.Backends.SVG);
+		}
 		// this.renderer.resize(this.pageWidth, this.pageHeight);
 
 		svgHelpers.svgViewport(this.context.svg, this.pageWidth, this.pageHeight, this.svgScale);
@@ -150,7 +155,7 @@ class suiSimpleLayout {
 		var system = new VxSystem(this.context, selection.measure.staffY, selection.measure.lineIndex);
 		system.renderMeasure(selection.selector.staff, selection.measure);
 	}
-
+	
 	// ### renderStaffModifierPreview
 	// ### Description:
 	// Similar to renderNoteModifierPreview, but lets you preveiw a change to a staff element.
@@ -216,7 +221,7 @@ class suiSimpleLayout {
 						}).reduce((a, b) => {
 							return a + b
 						});
-					width += measures[0].staffX + this.score.staffX;
+					width += measures[0].staffX + this.score.layout.leftMargin;
 					var just = Math.round(((this.pageMarginWidth / this.svgScale) - width) / measures.length) - 1;
 					if (just > 0) {
 						var accum = 0;
@@ -371,7 +376,7 @@ class suiSimpleLayout {
 				maxY.push(max);
 
 				if (absLine == 0) {
-					accum = this.score.staffY - min.logicalBox.y;					
+					accum = this.score.layout.topMargin - min.logicalBox.y;					
 					var staffY = min.staffY + accum;
 					measures.forEach((measure) => {
 						measure.staffY = staffY;
@@ -382,10 +387,10 @@ class suiSimpleLayout {
 					});
 				} else {
 					var maxM = maxY[absLine - 1];
-					var my = maxM.logicalBox.y + maxM.logicalBox.height + this.score.intraGap;
+					var my = maxM.logicalBox.y + maxM.logicalBox.height + this.score.layout.intraGap;
 					var delta = my - min.logicalBox.y;
 					if (maxM.lineIndex < min.lineIndex) {
-						delta += this.score.interGap;
+						delta += this.score.layout.interGap;
 					}
 					accum += delta;
 					var staffY = min.staffY + accum;
@@ -440,7 +445,7 @@ class suiSimpleLayout {
 		$(this.renderer.getContext().svg).find('g.lineBracket').remove();
 	}
 	get pageMarginWidth() {
-		return this.pageWidth - this.leftMargin * 2;
+		return this.pageWidth - this.rightMargin * 2;
 	}
 	_previousAttr(i, j, attr) {
 		var staff = this.score.staves[j];
@@ -588,7 +593,7 @@ class suiSimpleLayout {
 				measure.lineIndex = lineIndex;
 
 				// The SVG X,Y of this staff.  Set it initially to the UL corner of page.  Width,height filled in later.
-				var staffBox = svgHelpers.pointBox(this.score.staffX, this.score.staffY);
+				var staffBox = svgHelpers.pointBox(this.score.layout.leftMargin, this.score.layout.topMargin);
 
 				// The left-most measure sets the y for the row, top measure sets the x for the column.
 				// Other measures get the x, y from previous measure on this row.  Once the music is rendered we will adjust
@@ -597,7 +602,7 @@ class suiSimpleLayout {
 					if (j == 0) {
 						staffBoxes[j] = svgHelpers.copyBox(staffBox);
 					} else {
-						staffBoxes[j] = svgHelpers.pointBox(staffBoxes[j - 1].x, staffBoxes[j - 1].y + staffBoxes[j - 1].height + this.score.intraGap);
+						staffBoxes[j] = svgHelpers.pointBox(staffBoxes[j - 1].x, staffBoxes[j - 1].y + staffBoxes[j - 1].height + this.score.layout.intraGap);
 					}
 				}
 
@@ -643,16 +648,16 @@ class suiSimpleLayout {
 					if (useAdjustedX && measure.measureNumber.systemIndex != 0) {
 						useAdjustedX = params.useX = false;
     				}
-					measure.staffX = this.score.staffX;
+					measure.staffX = this.score.layout.leftMargin;
 
 					this.score.staves.forEach((stf) => {
 						this._renderModifiers(stf, system);
 					});
 					if (!useAdjustedY && measure.changed) {
-						measure.staffY = pageBox.y + pageBox.height + this.score.interGap;
+						measure.staffY = pageBox.y + pageBox.height + this.score.layout.interGap;
 					}
 					staffBoxes = {};
-					staffBoxes[j] = svgHelpers.boxPoints(this.score.staffX, measure.staffY, 1, 1);
+					staffBoxes[j] = svgHelpers.boxPoints(this.score.layout.leftMargin, measure.staffY, 1, 1);
 					lineIndex += 1;
 					measure.lineIndex = lineIndex;
 					system = new VxSystem(this.context, staff.staffY, lineIndex);

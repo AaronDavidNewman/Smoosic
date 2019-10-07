@@ -111,7 +111,7 @@ class suiController {
 		setTimeout(function () {
 			console.log('resizing');
 			self.resizing = false;
-			self.layout.setViewport();
+			self.layout.setViewport(true);
 			self.piano.handleResize();
 			self.updateOffsets();
 			self.layout.redraw().then(remap);
@@ -284,13 +284,20 @@ class suiController {
 	showModifierDialog(modSelection) {
 		return SuiDialogFactory.createDialog(modSelection, this.tracker.context, this.tracker, this.layout)
 	}
-
-	handleKeydown(evdata) {
-		var self = this;
+	
+	unbindKeyboardForDialog(dialog) {
+		var self=this;
 		var rebind = function () {
 			self.render();
 			self.bindEvents();
 		}
+		window.removeEventListener("keydown", this.keydownHandler, true);
+		dialog.closeDialogPromise.then(rebind);		
+	}
+
+	handleKeydown(evdata) {
+		var self = this;
+
 		console.log("KeyboardEvent: key='" + event.key + "' | code='" +
 			event.code + "'"
 			 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
@@ -303,6 +310,10 @@ class suiController {
 		if (evdata.key == '/') {
 			window.removeEventListener("keydown", this.keydownHandler, true);
 			this.menuHelp();
+			var rebind = function () {
+				self.render();
+				self.bindEvents();
+            }
 			this.menuPromise = this.menus.slashMenuMode().then(rebind);
 		}
 
@@ -312,7 +323,7 @@ class suiController {
 			if (modSelection) {
 				window.removeEventListener("keydown", this.keydownHandler, true);
 				var dialog = this.showModifierDialog(modSelection);
-				dialog.closeDialogPromise.then(rebind);
+				this.unbindKeyboardForDialog(dialog);
 			}
 			return;
 		}

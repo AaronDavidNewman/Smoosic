@@ -21,7 +21,7 @@ class SuiDialogFactory {
 			SmoStaffHairpin: 'SuiHairpinAttributesDialog',
 			SmoSlur: 'SuiSlurAttributesDialog',
 			SmoDynamicText: 'SuiTextModifierDialog',
-			SmoVolta:'SuiVoltaAttributeDialog'
+			SmoVolta: 'SuiVoltaAttributeDialog'
 		};
 	}
 }
@@ -54,7 +54,7 @@ class SuiDialogBase {
 		var id = parameters.id;
 		var b = htmlHelpers.buildDom;
 		var r = b('div').classes('attributeModal').css('top', parameters.top + 'px').css('left', parameters.left + 'px')
-		    .append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move')))
+			.append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move')))
 			.append(b('h2').text(parameters.label));
 		dialogElements.forEach((de) => {
 			var ctor = eval(de.control);
@@ -71,7 +71,7 @@ class SuiDialogBase {
 		$('.attributeDialog').html('');
 
 		$('.attributeDialog').append(r.dom());
-		
+
 		var trapper = htmlHelpers.inputTrapper('.attributeDialog');
 		$('.attributeDialog').find('.cancel-button').focus();
 		return {
@@ -100,21 +100,20 @@ class SuiDialogBase {
 		});
 		this._bindElements();
 		this.position(this.modifier.renderedBox);
-		
-		var cb = function(x,y) {
-		}
-		htmlHelpers.draggable( {
-			parent:$(this.dgDom.element).find('.attributeModal'),
-			handle:$(this.dgDom.element).find('.icon-move'),
-			cb:cb,
-			moveParent:true
+
+		var cb = function (x, y) {}
+		htmlHelpers.draggable({
+			parent: $(this.dgDom.element).find('.attributeModal'),
+			handle: $(this.dgDom.element).find('.icon-move'),
+			cb: cb,
+			moveParent: true
 		});
 	}
 
 	_bindElements() {
 		var self = this;
-		var dgDom = this.dgDom;		
-		
+		var dgDom = this.dgDom;
+
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
 			self._commit();
 			self.complete();
@@ -133,71 +132,92 @@ class SuiDialogBase {
 
 class SuiLayoutDialog extends SuiDialogBase {
 	static get attributes() {
-		return ['pageWidth','pageHeight','staffX','staffY','interGap','intraGap','zoomScale','svgScale'];
+		return ['pageWidth', 'pageHeight', 'leftMargin', 'topMargin', 'rightMargin', 'interGap', 'intraGap', 'zoomScale', 'svgScale'];
 	}
 	static get dialogElements() {
 		return [{
+				smoName: 'pageSize',
+				parameterName: 'pageSize',
+				defaultValue: SmoScore.pageSizes.letter,
+				control: 'SuiDropdownComponent',
+				label:'Page Size',
+				options: [{
+						value: 'letter',
+						label: 'Letter'
+					}, {
+						value: 'tabloid',
+						label: 'Tabloid (11x17)'
+					}, {
+						value: 'A4',
+						label: 'A4'
+					}, {
+						value: 'custom',
+						label: 'Custom'
+					}
+				]
+			}, {
 				smoName: 'pageWidth',
 				parameterName: 'pageWidth',
-				defaultValue: SmoScore.defaults.pageWidth,
+				defaultValue: SmoScore.defaults.layout.pageWidth,
 				control: 'SuiRockerComponent',
 				label: 'Page Width (px)'
-			},
-			{
+			}, {
 				smoName: 'pageHeight',
 				parameterName: 'pageHeight',
-				defaultValue: SmoScore.defaults.pageHeight,
+				defaultValue: SmoScore.defaults.layout.pageHeight,
 				control: 'SuiRockerComponent',
 				label: 'Page Height (px)'
-			},
-			{
-				smoName: 'staffX',
-				parameterName: 'staffX',
-				defaultValue: SmoScore.defaults.staffX,
+			}, {
+				smoName: 'leftMargin',
+				parameterName: 'leftMargin',
+				defaultValue: SmoScore.defaults.layout.leftMargin,
 				control: 'SuiRockerComponent',
-				label: 'Side Margin (px)'
-			},
-			{
-				smoName: 'staffY',
-				parameterName: 'staffY',
-				defaultValue:  SmoScore.defaults.staffY,
+				label: 'Left Margin (px)'
+			}, {
+				smoName: 'rightMargin',
+				parameterName: 'rightMargin',
+				defaultValue: SmoScore.defaults.layout.rightMargin,
+				control: 'SuiRockerComponent',
+				label: 'Right Margin (px)'
+			}, {
+				smoName: 'topMargin',
+				parameterName: 'topMargin',
+				defaultValue: SmoScore.defaults.layout.topMargin,
 				control: 'SuiRockerComponent',
 				label: 'Top Margin (px)'
-			},
-			{
+			}, {
 				smoName: 'interGap',
 				parameterName: 'interGap',
-				defaultValue:  SmoScore.defaults.interGap,
+				defaultValue: SmoScore.defaults.layout.interGap,
 				control: 'SuiRockerComponent',
 				label: 'Inter-System Margin'
-			},
-			{	
+			}, {
 				smoName: 'intraGap',
 				parameterName: 'intraGap',
-				defaultValue:  SmoScore.defaults.intraGap,
+				defaultValue: SmoScore.defaults.layout.intraGap,
 				control: 'SuiRockerComponent',
 				label: 'Intra-System Margin'
-			},
-			{	
+			}, {
 				smoName: 'zoomScale',
 				parameterName: 'zoomScale',
-				defaultValue:  SmoScore.defaults.zoomScale,
+				defaultValue: SmoScore.defaults.layout.zoomScale,
 				control: 'SuiRockerComponent',
-				label: 'Zoom'
-			},
-			{	
+				label: '% Zoom',
+				type: 'percent'
+			}, {
 				smoName: 'svgScale',
 				parameterName: 'svgScale',
-				defaultValue:  SmoScore.defaults.svgScale,
+				defaultValue: SmoScore.defaults.layout.svgScale,
 				control: 'SuiRockerComponent',
-				label: 'Note size'
+				label: '% Note size',
+				type: 'percent'
 			}
-			];
+		];
 	}
 	backupOriginal() {
-		this.backup={};
+		this.backup = {};
 		SuiLayoutDialog.attributes.forEach((attr) => {
-			this.backup[attr]=this.score[attr];
+			this.backup[attr] = this.modifier[attr];
 		});
 	}
 	display() {
@@ -205,67 +225,108 @@ class SuiLayoutDialog extends SuiDialogBase {
 		this.components.forEach((component) => {
 			component.bind();
 		});
-		this._bindElements();
-		
-		var cb = function(x,y) {
-		}
-		htmlHelpers.draggable( {
-			parent:$(this.dgDom.element).find('.attributeModal'),
-			handle:$(this.dgDom.element).find('.icon-move'),
-			cb:cb,
-			moveParent:true
+		this.components.forEach((component) => {
+			var val = this.modifier[component.parameterName];
+			component.setValue(val);
 		});
+		this._setPageSizeDefault();
+		this._bindElements();
+
+		var cb = function (x, y) {}
+		htmlHelpers.draggable({
+			parent: $(this.dgDom.element).find('.attributeModal'),
+			handle: $(this.dgDom.element).find('.icon-move'),
+			cb: cb,
+			moveParent: true
+		});
+		this.controller.unbindKeyboardForDialog(this);
+
 	}
 	_bindElements() {
 		var self = this;
-		var dgDom = this.dgDom;		
-		
+		var dgDom = this.dgDom;
+
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
 			self.layout.setViewport();
-            self.controller.resizeEvent();
-			self.complete();
+			var complete = function () {
+				self.complete();
+			}
+			self.layout.render().then(complete);
 		});
 
 		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
 			SuiLayoutDialog.attributes.forEach((attr) => {
-			    self.score[attr]=self.backup[attr];
-    		});
+				self.modifier[attr] = self.backup[attr];
+			});
 			self.layout.setViewport();
-			self.controller.resizeEvent();
-			self.complete();
+			var complete = function () {
+				self.complete();
+			}
+			self.layout.redraw().then(complete);
 		});
-		
+
 		$(dgDom.element).find('.remove-button').remove();
+	}
+	_setPageSizeDefault() {
+		var value = 'custom';
+		var scoreDims = this.score.layout;
+		SmoScore.pageSizes.forEach((sz) => {
+			var dim = SmoScore.pageDimensions[sz];
+			if (scoreDims.pageWidth === dim.width && scoreDims.pageHeight === dim.height) {
+				value = sz;
+			} else if (scoreDims.pageHeight === dim.width && scoreDims.pageWidth === dim.height) {
+				value = sz;
+			}
+		});
+		this.components.find((x)=>{return x.parameterName==='pageSize'}).setValue(value);
+	}
+	_handlePageSizeChange() {
+		var pageSizeComp = this.components.find((x)=>{return x.parameterName==='pageSize'});
+		var sel = pageSizeComp.getValue();
+		if (sel === 'custom') {
+			$('.attributeModal').addClass('customPage');			
+		} else {
+			$('.attributeModal').removeClass('customPage');
+			var dim = SmoScore.pageDimensions[sel];
+			var hComp = this.components.find((x)=>{return x.parameterName==='pageHeight'});
+			var wComp = this.components.find((x)=>{return x.parameterName==='pageWidth'});
+			hComp.setValue(dim.height);
+			wComp.setValue(dim.width);			
+		}		
 	}
 	changed() {
 		// this.modifier.backupOriginal();
+		this._handlePageSizeChange();
 		this.components.forEach((component) => {
-			this.score[component.smoName] = component.getValue();
+			this.score.layout[component.smoName] = component.getValue();
 		});
 		this.layout.setViewport();
-		this.controller.resizeEvent();
+		this.layout.render();
 	}
-	static createAndDisplay(buttonElement,buttonData,controller) {
+	static createAndDisplay(buttonElement, buttonData, controller) {
 		var dg = new SuiLayoutDialog({
-		score:controller.score,layout:controller.layout,controller:controller});
+				score: controller.score,
+				layout: controller.layout,
+				controller: controller
+			});
 		dg.display();
 	}
 	constructor(parameters) {
-		if (!parameters.score) {
+		if (!(parameters.score && parameters.layout && parameters.controller)) {
 			throw new Error('layout  dialog must have score');
 		}
-		var p=parameters;
+		var p = parameters;
 
 		super(SuiLayoutDialog.dialogElements, {
 			id: 'dialog-layout',
-			top: (p.score.pageWidth/2)-200,
-			left: (p.score.pageHeight/2)-200,
+			top: (p.score.layout.pageWidth / 2) - 200,
+			left: (p.score.layout.pageHeight / 2) - 200,
 			label: 'Score Layout'
 		});
-		this.score=p.score;
-		this.layout=p.layout;
-		this.controller=p.controller;
-		Vex.Merge(this, parameters);
+		this.score = p.score;
+		this.modifier = this.score.layout;
+		this.layout = p.layout;
+		this.controller = p.controller;
 		this.backupOriginal();
 	}
 }

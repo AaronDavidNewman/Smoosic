@@ -3,12 +3,32 @@
 // ## SuiRockerComponent
 // ## An integer input box with +- buttons.
 class SuiRockerComponent {
+	static get dataTypes() {
+		return ['int','float','percent'];
+	}
+	static get increments() {
+		return {'int':1,'float':0.1,percent:1}
+	}
+	static get parsers() {
+		return {'int':'_getIntValue','float':'_getFloatValue','percent':'_getPercentValue'};
+	}
     constructor(dialog, parameter) {
         smoMusic.filteredMerge(
-            ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
+            ['parameterName', 'smoName', 'defaultValue', 'control', 'label','scale','type'], parameter, this);
         if (!this.defaultValue) {
             this.defaultValue = 0;
         }
+		if (!this.type) {
+			this.type='int';
+		}
+		if (SuiRockerComponent.dataTypes.indexOf(this.type) < 0) {
+			throw new Error('dialog element invalid type '+this.type);
+		}
+		this.increment = SuiRockerComponent.increments[this.type];
+		if (this.type === 'percent') {
+			this.defaultValue = 100*this.defaultValue;
+		}
+		this.parser=SuiRockerComponent.parsers[this.type];
         this.dialog = dialog;
     }
 
@@ -39,14 +59,14 @@ class SuiRockerComponent {
         var self = this;
         $('#' + pid).find('button.increment').off('click').on('click',
             function (ev) {
-            var val = self._getIntValue();
-            $(input).val(val + 1);
+            var val = self[self.parser]();
+            $(input).val(val + self.increment);
             dialog.changed();
         });
         $('#' + pid).find('button.decrement').off('click').on('click',
             function (ev) {
-            var val = self._getIntValue();
-            $(input).val(val - 1);
+            var val = self[self.parser]();
+            $(input).val(val - self.increment);
             dialog.changed();
         });
         $(input).off('blur').on('blur',
@@ -65,14 +85,29 @@ class SuiRockerComponent {
         val = isNaN(val) ? 0 : val;
         return val;
     }
+	 _getFloatValue() {
+        var pid = this.parameterId;
+        var val = parseFloat(this._getInputElement().val());
+        val = isNaN(val) ? 1.0 : val;
+        return val;
+    }
+	_getPercentValue() {
+        var pid = this.parameterId;
+        var val = parseFloat(this._getInputElement().val());
+        val = isNaN(val) ? 1 : val;
+        return val/100;
+	}
     _setIntValue(val) {
         this._getInputElement().val(val);
     }
     setValue(value) {
+		if (this.type === 'percent') {
+			value = value * 100;
+		}
         this._setIntValue(value);
     }
     getValue() {
-        return this._getIntValue();
+        return this[this.parser]();
     }
 }
 

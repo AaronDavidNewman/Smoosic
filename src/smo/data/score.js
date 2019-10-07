@@ -17,27 +17,47 @@ class SmoScore {
 	}
     static get defaults() {
         return {
-            staffX: 30,
-            staffY: 40,
+			layout :{
+				leftMargin:30,
+				rightMargin:30,
+				topMargin:40,
+				bottomMargin:40,
+				pageWidth: 8 * 96 + 48,
+				pageHeight: 11 * 96,
+				interGap: 30,
+				intraGap:10,
+				svgScale: 1.0,
+				zoomScale: 2.0,
+				zoomMode:SmoScore.zoomModes.zoomScale
+			},
             staffWidth: 1600,
-            interGap: 30,
-			intraGap:10,
             startIndex: 0,
             renumberingMap: {},
             keySignatureMap: {},
             measureTickmap: [],
             staves: [],
             activeStaff: 0,
-            pageWidth: 8 * 96 + 48,
-            pageHeight: 11 * 96,
-            svgScale: 1.0,
-            zoomScale: 2.0,
-			zoomMode:SmoScore.zoomModes.zoomScale
         };
     }
-
+	
+	static get pageSizes() {
+		return ['letter','tabloid','A4','custom'];
+	}
+	static get pageDimensions() {
+		return {
+			'letter':{width:8*96+48,height:11*96},			
+			'tabloid':{width:1056,height:1632},
+			'A4':{width:794,height:1122},
+			'custom':{width:1,height:1}
+		}
+	}
+	
+	static get orientations() {
+		return ['portrait','landscape'];
+	}
+	
     static get defaultAttributes() {
-        return ['staffX', 'staffY', 'intraGap','staffWidth', 'startIndex', 'interGap', 'renumberingMap', 'renumberIndex','zoomScale','zoomMode'];
+        return ['layout' ,'startIndex',  'renumberingMap', 'renumberIndex'];
     }
 
     // ### serialize
