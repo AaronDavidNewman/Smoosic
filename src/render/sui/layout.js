@@ -323,7 +323,7 @@ class suiSimpleLayout {
 	estimateSymbolWidth(smoMeasure) {
 		var width = 0;
 		if (smoMeasure.forceKeySignature) {
-			if ( smoMeasure.forceKeySignature.canceledKeySignature) {
+			if ( smoMeasure.canceledKeySignature) {
 			    width += vexGlyph.keySignatureLength(smoMeasure.canceledKeySignature);
 			}			
             width += vexGlyph.keySignatureLength(smoMeasure.keySignature);
@@ -515,6 +515,7 @@ class suiSimpleLayout {
 		measure.forceTimeSignature = (systemIndex === 0 || measure.timeSignature !== timeSigLast);
 		if (measureKeySig !== keySigLast) {
 			measure.canceledKeySignature = keySigLast;
+			measure.changed=true;
 			measure.forceKeySignature = true;
 		} else if (measure.measureNumber.measureIndex == 0 && measureKeySig != 'C') {
 			measure.forceKeySignature = true;

@@ -180,7 +180,9 @@ class SmoSystemStaff {
     }
     addKeySignature(measureIndex, key) {
         this.keySignatureMap[measureIndex] = key;
-        this._updateKeySignatures();
+		var target = this.measures[measureIndex];
+		target.keySignature = key;		
+        // this._updateKeySignatures();
     }
     removeKeySignature(measureIndex) {
         var keys = Object.keys(this.keySignatureMap);
