@@ -18,6 +18,11 @@ class vexGlyph {
 		'n':vexGlyph.dimensions.natural
 		};
 	}
+	static keySignatureLength(key) {
+		return smoMusic.getSharpsInKeySignature(key)*vexGlyph.dimensions['sharp'].width + 
+		    smoMusic.getFlatsInKeySignature(key)*vexGlyph.dimensions['flat'].width + 
+			vexGlyph.dimensions['keySignature'].spacingRight;
+	}
 	static get timeSignature() {
 		return vexGlyph.dimensions['timeSignature'];
 	}

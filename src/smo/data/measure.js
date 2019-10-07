@@ -514,6 +514,7 @@ class SmoMeasure {
 	}
 	setKeySignature(sig) {
 		this.keySignature = sig;
+		this.changed=true;
 		this.voices.forEach((voice) => {
 			voice.notes.forEach((note) => {
 				note.keySignature = sig;

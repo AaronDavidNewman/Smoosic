@@ -29,7 +29,7 @@ class suiSimpleLayout {
 		this.leftMargin=this.score.layout.leftMargin;
         this.rightMargin = this.score.layout.rightMargin;
 		$(this.elementId).css('width', '' + Math.round(this.pageWidth) + 'px');
-		$(this.elementId).css('height', '' + Math.round(this.pageHeight+99) + 'px');
+		$(this.elementId).css('height', '' + Math.round(this.pageHeight) + 'px');
 		if (reset) {
 		    $(this.elementId).html('');
     		this.renderer = new VF.Renderer(this.elementId, VF.Renderer.Backends.SVG);
@@ -322,6 +322,12 @@ class suiSimpleLayout {
 
 	estimateSymbolWidth(smoMeasure) {
 		var width = 0;
+		if (smoMeasure.forceKeySignature) {
+			if ( smoMeasure.forceKeySignature.canceledKeySignature) {
+			    width += vexGlyph.keySignatureLength(smoMeasure.canceledKeySignature);
+			}			
+            width += vexGlyph.keySignatureLength(smoMeasure.keySignature);
+		}
 		if (smoMeasure.forceClef) {
 			width += vexGlyph.clef(smoMeasure.clef).width + vexGlyph.clef(smoMeasure.clef).spacingRight;
 		}

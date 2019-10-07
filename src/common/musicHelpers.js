@@ -420,7 +420,22 @@ class smoMusic {
 			'D': 2
 		};
 	}
+	
+	static getSharpsInKeySignature(key) {
+		var sharpKeys = ['B','G','D','A','E','B','F#','C#'];
+		if (sharpKeys.indexOf[key] < 0) {
+			return 0;
+		}
+		return smoMusic.keySignatureLength[key];
+	}
 
+	static getFlatsInKeySignature(key) {
+		var flatKeys = ['F','Bb','Eb','Ab','Db','Gb','Cb'];
+		if (flatKeys.indexOf[key] < 0) {
+			return 0;
+		}
+		return smoMusic.keySignatureLength[key];
+	}
 	// ## closestVexDuration
 	// ## Description:
 	// return the closest vex duration >= to the actual number of ticks. Used in beaming
