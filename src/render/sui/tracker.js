@@ -52,6 +52,7 @@ class suiTracker {
 
 	_updateStaffModifiers() {
 		this.modifierTabs = [];
+		this.modifierBoxes = [];
 		var modMap = {};
 		this.selections.forEach((selection) => {
 			selection.staff.modifiers.forEach((modifier) => {
@@ -59,7 +60,8 @@ class suiTracker {
 					if (!modMap[modifier.id]) {
 						this.modifierTabs.push({
 							modifier: modifier,
-							selection: selection
+							selection: selection,
+							box:modifier.renderedBox
 						});
 						modMap[modifier.id] = {
 							exists: true
@@ -71,7 +73,8 @@ class suiTracker {
 				if (modifier.id && !modMap[modifier.id]) {
 					this.modifierTabs.push({
 						modifier: modifier,
-						selection: selection
+						selection: selection,
+						box:modifier.renderedBox
 					});
 					modMap[modifier.id] = {
 						exists: true
@@ -82,13 +85,18 @@ class suiTracker {
 				if (!modMap[modifier.id]) {
 					this.modifierTabs.push({
 						modifier: modifier,
-						selection: selection
+						selection: selection,
+						box:modifier.renderedBox
 					});
 					modMap[modifier.id] = {
 						exists: true
 					};
 				}
 			});
+		});
+		
+		this.modifierTabs.forEach((mod) => {
+			
 		});
 	}
 
@@ -120,7 +128,7 @@ class suiTracker {
 			return;
 		}
 		this.modifierIndex = this.modifierIndex + 1;
-		if (this.modifierIndex > this.modifierTabs.length) {
+		if (this.modifierIndex >= this.modifierTabs.length) {
 			this.modifierIndex = -1;
 			return;
 		}
@@ -499,6 +507,7 @@ class suiTracker {
 	intersectingArtifact(bb) {
 		var artifacts = svgHelpers.findIntersectingArtifact(bb,this.objects);
 		if (!artifacts.length) {
+			// svgHelpers.findIntersectingArtifact(bb,this.modifierTabs);
 			return null;
 		}
 		var artifact = artifacts[0];

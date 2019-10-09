@@ -340,6 +340,16 @@ class suiSimpleLayout {
 		}
 		return width;
 	}
+	
+	_minMaxYModifier(staff,minY,maxY) {
+		staff.modifiers.forEach((modifier) => {
+			minY = modifier.logicalBox.y < minY ? modifier.logicalBox.y : minY;
+			var max = modifier.logicalBox.y + modifier.logicalBox.height;
+			maxY = max > maxY ? max : maxY;	 
+			});
+
+		return {minY:minY,maxY:maxY};
+	}
 
 	// ### adjustHeight
 	// Handle measure bumping into each other, vertically.
@@ -347,8 +357,9 @@ class suiSimpleLayout {
 		var topStaff = this.score.staves[0];
 		var maxLine = topStaff.measures[topStaff.measures.length - 1].lineIndex;
 		var svg = this.context.svg;
-		var maxY = [];
-		var minY = [];
+		// array of the max Y measure per line, used to space next line down
+		var maxYPerLine = [];
+		var lineIndexPerLine = [];
 
 		if (suiSimpleLayout.debugLayout) {
 			$(this.renderer.getContext().svg).find('g.measure-adjust-dbg').remove();
@@ -366,24 +377,33 @@ class suiSimpleLayout {
 					continue;
 				}
 
-				// Max is measure on this line with y closest to bottom of page (max y point)
-				var max = measures.reduce((a, b) => {
+				// maxYMeasure is measure on this line with y closest to bottom of page (maxYMeasure y point)
+				var maxYMeasure = measures.reduce((a, b) => {
 						if (a.logicalBox.y + a.logicalBox.height >
 							b.logicalBox.y + b.logicalBox.height) {
 							return a;
 						}
 						return b;
 					});
-				// min is measure on this line with y closest to top of the page
-				var min = measures.reduce((a, b) => {
+				// minYMeasure is measure on this line with y closest to top of the page
+				var minYMeasure = measures.reduce((a, b) => {
 						return a.logicalBox.y < b.logicalBox.y ? a : b;
 					});
+					
+				var minYRenderedY = minYMeasure.logicalBox.y;
+				var minYStaffY = minYMeasure.staffY;
+				
+				var thisLineMaxY = maxYMeasure.logicalBox.y + maxYMeasure.logicalBox.height;
 
-				maxY.push(max);
+				maxYPerLine.push(thisLineMaxY);
+				lineIndexPerLine.push(maxYMeasure.lineIndex);
 
 				if (absLine == 0) {
-					accum = this.score.layout.topMargin - min.logicalBox.y;					
-					var staffY = min.staffY + accum;
+					accum = this.score.layout.topMargin - minYRenderedY;					
+					var staffY = minYStaffY+ accum;
+					if (isNaN(staffY)) {
+						throw ('nan y');
+					}
 					measures.forEach((measure) => {
 						measure.staffY = staffY;
 						if (suiSimpleLayout.debugLayout) {
@@ -392,14 +412,16 @@ class suiSimpleLayout {
 						}
 					});
 				} else {
-					var maxM = maxY[absLine - 1];
-					var my = maxM.logicalBox.y + maxM.logicalBox.height + this.score.layout.intraGap;
-					var delta = my - min.logicalBox.y;
-					if (maxM.lineIndex < min.lineIndex) {
+					var my = maxYPerLine[absLine - 1]  + this.score.layout.intraGap;
+					var delta = my - minYRenderedY;
+					if (lineIndexPerLine[absLine - 1] < minYMeasure.lineIndex) {
 						delta += this.score.layout.interGap;
 					}
 					accum += delta;
-					var staffY = min.staffY + accum;
+					var staffY = minYStaffY + accum;
+					if (isNaN(staffY)) {
+						throw ('nan y');
+					}
 					measures.forEach((measure) => {
 						var ll = measures.logicalBox;
 						measure.staffY = staffY;
@@ -464,6 +486,7 @@ class suiSimpleLayout {
 	// Render staff modifiers (modifiers straddle more than one measure, like a slur).  Handle cases where the destination
 	// is on a different system due to wrapping.
 	_renderModifiers(staff, system) {
+		var svg = this.context.svg;
 		staff.modifiers.forEach((modifier) => {
 			var startNote = SmoSelection.noteSelection(this.score,
 					modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
@@ -503,6 +526,7 @@ class suiSimpleLayout {
 
 			// TODO: notes may have changed, get closest if these exact endpoints don't exist
 			modifier.renderedBox = system.renderModifier(modifier, vxStart, vxEnd);
+			modifier.logicalBox = svgHelpers.clientToLogical(svg,modifier.renderedBox);
 
 			// TODO: consider staff height with these.
 			// TODO: handle dynamics split across systems.
@@ -618,6 +642,9 @@ class suiSimpleLayout {
 				// If we are calculating the measures' location dynamically, always update the y
 				if (!useAdjustedY && measure.changed) { // && systemIndex === 0) {
 					measure.staffY = staffBox.y;
+						if (isNaN(measure.staffY)) {
+							throw ("nan measure ");
+						}
 				}
 
 				if (!systemBoxes[lineIndex] || j > 0) {
@@ -643,8 +670,8 @@ class suiSimpleLayout {
 					measure.staffWidth += measure.adjX;
 				}
 
-				// Do we need to start a new line?
-				if (j == 0 && staffBox.x + staffBox.width + measure.staffWidth + measure.adjX
+				// Do we need to start a new line?  Don't start a new line on the first measure in a line...
+				if (j == 0 && systemIndex > 0 && staffBox.x + staffBox.width + measure.staffWidth
 					 > this.pageMarginWidth / this.svgScale) {
 					system.renderEndings();
 					if (useAdjustedY) {
@@ -662,6 +689,9 @@ class suiSimpleLayout {
 					});
 					if (!useAdjustedY && measure.changed) {
 						measure.staffY = pageBox.y + pageBox.height + this.score.layout.interGap;
+						if (isNaN(measure.staffY)) {
+							throw ("nan measure ");
+						}
 					}
 					staffBoxes = {};
 					staffBoxes[j] = svgHelpers.boxPoints(this.score.layout.leftMargin, measure.staffY, 1, 1);
