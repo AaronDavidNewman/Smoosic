@@ -394,6 +394,11 @@ class suiSimpleLayout {
 				var minYStaffY = minYMeasure.staffY;
 				
 				var thisLineMaxY = maxYMeasure.logicalBox.y + maxYMeasure.logicalBox.height;
+				
+				var modAdj = this._minMaxYModifier(staff,minYRenderedY,thisLineMaxY);
+				console.log(JSON.stringify(modAdj,null,' '));
+				minYRenderedY=modAdj.minY;
+				thisLineMaxY=modAdj.maxY;
 
 				maxYPerLine.push(thisLineMaxY);
 				lineIndexPerLine.push(maxYMeasure.lineIndex);
