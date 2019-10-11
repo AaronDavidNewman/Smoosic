@@ -688,6 +688,82 @@ body.showAttributeDialog .attributeDialog {
 	padding: 3px;
 }
 
+.attributeModal .buttonContainer {
+	margin:10px;
+}
+
+.attributeModal .buttonContainer .button-left {
+	margin-right:5px;
+}
+.attributeModal .buttonContainer .button-center {
+	margin-right:5px;
+	margin-left:5px;
+}
+
+.attributeModal .buttonContainer .button-right {
+	margin-left:5px;
+}
+
+
+.attributeModal .buttonContainer button {
+	border-radius:3px;
+	padding: 2px 4px;
+	width:100px;
+	height:25px;
+}
+
+.attributeModal .buttonContainer .ok-button {
+	border:#9cee9d 1px ridge;
+}
+
+.attributeModal .buttonContainer .ok-button:hover {
+	background:#334488;
+	color: #fff;
+	transition-duration: 0.5s;
+	transition-timing-function:ease;
+}
+
+.attributeModal .buttonContainer .cancel-button:hover {
+	background:#884433;
+	color: #fff;
+	transition-duration: 0.5s;
+	transition-timing-function:ease;
+}
+
+.attributeModal .buttonContainer .remove-button:hover {
+	background:#664433;
+	color: #ded;
+	transition-duration: 0.5s;
+	transition-timing-function:ease;
+}
+
+.attributeModal .buttonContainer .remove-button:hover .icon-cancel-circle  {
+	background:#664433;
+	color: #ded;
+}
+
+.attributeModal .buttonContainer .remove-button .icon-cancel-circle {
+	float:left;
+	color:#933;
+}
+
+.attributeModal .buttonContainer .ok-button:hover {
+	background:#334488;
+	color: #fff;
+	transition-duration: 0.5s;
+	transition-timing-function:ease;
+}
+
+
+.attributeModal .buttonContainer .cancel-button {
+	border:#dc8899 1px ridge;
+}
+
+.attributeModal .buttonContainer .remove-button {
+	border:#dc8899 1px ridge;
+}
+
+
 .attributeModal h2 {
 	text-align:center;
 	font-size:1.2em;
@@ -715,21 +791,33 @@ body.showAttributeDialog .attributeDialog {
 }
 
 .buttonContainer button {
-	margin-right:2px;
+	margin-right:5px;
 }
 .smoControl {
-	margin-top:3px;
+	margin-top:5px;
+	margin-bottom:5px;
 }
 
 .smoControl button, .smoControl input,.smoControl select {
 	margin-right:2px;
+	height: 30px;
+	border-radius: 5%;
+	border: 1px solid #52ba73;
 }
+
 .rockerControl button {
 	width:32px;
 }
 
+.rockerControl button.decrement {
+	margin-right:5px;
+}
+
 .dropdownControl select {
-	margin-left:64px;
+	margin-left: 68px;
+	height: 30px;
+	border-radius: 5%;
+	border: 1px solid #52ba73;
 }
 
 

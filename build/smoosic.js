@@ -9212,9 +9212,9 @@ class SuiDialogBase {
 		});
 		r.append(
 			b('div').classes('buttonContainer').append(
-				b('button').classes('ok-button').text('Ok')).append(
-				b('button').classes('cancel-button').text('Cancel')).append(
-				b('button').classes('remove-button').text('Remove').append(
+				b('button').classes('ok-button button-left').text('OK')).append(
+				b('button').classes('cancel-button button-center').text('Cancel')).append(
+				b('button').classes('remove-button button-right').text('Remove').append(
 					b('span').classes('icon icon-cancel-circle'))));
 		$('.attributeDialog').html('');
 
