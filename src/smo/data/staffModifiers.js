@@ -76,7 +76,7 @@ class SmoStaffHairpin extends StaffModifierBase {
         return {
             xOffsetLeft: -2,
             xOffsetRight: 0,
-            yOffset: -15,
+            yOffset: -50,
             height: 10,
             position: SmoStaffHairpin.positions.BELOW,
             hairpinType: SmoStaffHairpin.types.CRESCENDO

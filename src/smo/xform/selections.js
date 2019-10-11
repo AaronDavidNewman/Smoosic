@@ -34,6 +34,9 @@ class SmoSelector {
 	static eq(sel1, sel2) {
 		return (sel1.staff == sel2.staff && sel1.measure == sel2.measure && sel1.tick == sel2.tick);
 	}
+	static neq(sel1,sel2) {
+		return !(SmoSelector.eq(sel1,sel2));
+	}
 
 	static lt(sel1, sel2) {
 		return SmoSelector.gt(sel2, sel1);

@@ -396,7 +396,6 @@ class suiSimpleLayout {
 				var thisLineMaxY = maxYMeasure.logicalBox.y + maxYMeasure.logicalBox.height;
 				
 				var modAdj = this._minMaxYModifier(staff,minYRenderedY,thisLineMaxY);
-				console.log(JSON.stringify(modAdj,null,' '));
 				minYRenderedY=modAdj.minY;
 				thisLineMaxY=modAdj.maxY;
 
@@ -405,10 +404,7 @@ class suiSimpleLayout {
 
 				if (absLine == 0) {
 					accum = this.score.layout.topMargin - minYRenderedY;					
-					var staffY = minYStaffY+ accum;
-					if (isNaN(staffY)) {
-						throw ('nan y');
-					}
+					var staffY = minYStaffY+ accum;					
 					measures.forEach((measure) => {
 						measure.staffY = staffY;
 						if (suiSimpleLayout.debugLayout) {
@@ -423,10 +419,7 @@ class suiSimpleLayout {
 						delta += this.score.layout.interGap;
 					}
 					accum += delta;
-					var staffY = minYStaffY + accum;
-					if (isNaN(staffY)) {
-						throw ('nan y');
-					}
+					var staffY = minYStaffY + accum;					
 					measures.forEach((measure) => {
 						var ll = measures.logicalBox;
 						measure.staffY = staffY;

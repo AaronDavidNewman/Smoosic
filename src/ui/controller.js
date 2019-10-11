@@ -126,6 +126,16 @@ class suiController {
 			this.resizeEvent();
 		}
 	}
+	
+	trackerModifierSelect() {
+		var modSelection = this.tracker.getSelectedModifier();
+		if (modSelection) {
+			window.removeEventListener("keydown", this.keydownHandler, true);
+			var dialog = this.showModifierDialog(modSelection);
+			this.unbindKeyboardForDialog(dialog);
+		}
+		return;
+	}
 
 	bindResize() {
 		var self = this;
@@ -319,13 +329,7 @@ class suiController {
 
 		// TODO:  work dialogs into the scheme of things
 		if (evdata.key == 'p') {
-			var modSelection = this.tracker.getSelectedModifier();
-			if (modSelection) {
-				window.removeEventListener("keydown", this.keydownHandler, true);
-				var dialog = this.showModifierDialog(modSelection);
-				this.unbindKeyboardForDialog(dialog);
-			}
-			return;
+			self.trackerModifierSelect(evdata);
 		}
 
 		var binding = this.keyBind.find((ev) =>
@@ -367,7 +371,7 @@ class suiController {
 		});
 
 		$(this.renderElement).off('click').on('click', function (ev) {
-			tracker.selectSuggestion();
+			tracker.selectSuggestion(ev);
 		});
 		$('body').off('smo-piano-key').on('smo-piano-key',function(ev,obj) {
 			obj=obj.selections;
@@ -379,6 +383,10 @@ class suiController {
 		});
 		$('body').off('tracker-selection').on('tracker-selection',function(ev) {
 			self.trackerChangeEvent(ev);
+		});
+				
+		$('body').off('tracker-select-modifier').on('tracker-select-modifier',function(ev) {
+			self.trackerModifierSelect(ev);
 		});
 
 		this.keydownHandler = this.handleKeydown.bind(this);

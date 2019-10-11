@@ -23,6 +23,7 @@ class suiTracker {
 		this.selections = [];
 		this.modifierTabs = {};
 		this.modifierIndex = -1;
+		this.modifierSuggestion=-1;
 		this.suggestion = {};
 		this.pitchIndex = -1;
 		this.pasteBuffer = new PasteBuffer();
@@ -50,19 +51,22 @@ class suiTracker {
 		return rv;
 	}
 
-	_updateStaffModifiers() {
+	_updateModifiers() {
 		this.modifierTabs = [];
 		this.modifierBoxes = [];
 		var modMap = {};
-		this.selections.forEach((selection) => {
+		var ix=0;
+		this.objects.forEach((selection) => {
 			selection.staff.modifiers.forEach((modifier) => {
 				if (SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
 					if (!modMap[modifier.id]) {
 						this.modifierTabs.push({
 							modifier: modifier,
 							selection: selection,
-							box:modifier.renderedBox
+							box:modifier.renderedBox,
+							index:ix
 						});
+						ix += 1;
 						modMap[modifier.id] = {
 							exists: true
 						};
@@ -74,8 +78,10 @@ class suiTracker {
 					this.modifierTabs.push({
 						modifier: modifier,
 						selection: selection,
-						box:modifier.renderedBox
+						box:modifier.renderedBox,
+						index:ix
 					});
+					ix += 1;
 					modMap[modifier.id] = {
 						exists: true
 					};
@@ -86,8 +92,10 @@ class suiTracker {
 					this.modifierTabs.push({
 						modifier: modifier,
 						selection: selection,
-						box:modifier.renderedBox
+						box:modifier.renderedBox,
+						index:ix
 					});
+					ix += 1;
 					modMap[modifier.id] = {
 						exists: true
 					};
@@ -170,6 +178,7 @@ class suiTracker {
 				this.objects.push(selection);
 			}
 		});
+		this._updateModifiers();
 		this.selections = [];
 		if (this.objects.length && !selCopy.length) {
 			console.log('adding selection ' + this.objects[0].note.id);
@@ -440,11 +449,56 @@ class suiTracker {
 			}
 		});
 	}
-	selectSuggestion() {
+	
+	_selectFromToInStaff(sel1,sel2) {
+		this.selections=[];
+		this.objects.forEach((obj) => {
+			if (SmoSelector.gteq(obj.selector,sel1.selector) && SmoSelector.lteq(obj.selector,sel2.selector)) {
+				this.selections.push(obj);
+			}
+		});
+	}
+	_addSelection(selection) {
+		var ar=this.selections.filter((sel) => {
+			return SmoSelector.neq(sel.selector,selection.selector);
+		});
+		ar.push(selection);
+		this.selections=ar;
+	}
+	
+	selectSuggestion(ev) {
 		if (!this.suggestion['measure']) {
 			return;
 		}
 		console.log('adding selection ' + this.suggestion.note.id);
+		
+		if (this.modifierSuggestion >= 0) {
+			if (this['suggestFadeTimer']) {
+			   clearTimeout(this.suggestFadeTimer);
+    		}	
+			this.modifierIndex = this.modifierSuggestion;
+			this.modifierSuggestion = -1;
+			console.log('ms -1');
+			this._highlightModifier();
+			$('body').trigger('tracker-select-modifier');
+			return;
+		}
+		if (ev.shiftKey) {
+			var sel1 = this.getExtremeSelection(-1);
+			if (sel1.selector.staff === this.suggestion.selector.staff) {
+				var min = SmoSelector.gt(sel1.selector,this.suggestion.selector)  ? this.suggestion : sel1;
+				var max = SmoSelector.lt(min.selector,this.suggestion.selector) ? this.suggestion : sel1;
+				this._selectFromToInStaff(min,max);
+				this.highlightSelection();
+				return;
+			}
+		}
+		
+		if (ev.ctrlKey) {
+			this._addSelection(this.suggestion);
+			this.highlightSelection();
+			return;
+		}
 
 		this.selections = [this.suggestion];
 		this.score.setActiveStaff(this.selections[0].selector.staff);
@@ -479,40 +533,61 @@ class suiTracker {
 		}
 	}
 	
-
-	_setArtifactAsSuggestion(bb, artifact) {
+	_setFadeTimer() {
 		if (this['suggestFadeTimer']) {
 			clearTimeout(this.suggestFadeTimer);
 		}
+		var tracker=this;
+		this.suggestFadeTimer = setTimeout(function () {
+				if (tracker.containsArtifact()) {
+					tracker.eraseRect('suggestion');
+					console.log('ms -1');
+					tracker.modifierSuggestion=-1;
+				}
+			}, 1000);
+	}
+	
+
+    _setModifierAsSuggestion(bb,artifact) {
+		
+		this.modifierSuggestion = artifact.index;
+		console.log('ms '+ artifact.index);
+
+		this._drawRect(artifact.box, 'suggestion');
+		this._setFadeTimer();
+	}
+	_setArtifactAsSuggestion(bb, artifact) {
 		var self = this;
 
 		var sameSel =
 			this.selections.find((ss) => SmoSelector.sameNote(ss.selector, artifact.selector));
 
 		if (sameSel) {
-			return artifact;
+			return ;
 		}
+		
+		this.modifierSuggestion = -1;
+		console.log('ms -1');
 
 		this.suggestion = artifact;
 		this._drawRect(artifact.box, 'suggestion');
-
-		// Make selection fade if there is a selection.
-		this.suggestFadeTimer = setTimeout(function () {
-				if (self.containsArtifact()) {
-					self.eraseRect('suggestion');
-				}
-			}, 1000);
+		this._setFadeTimer();
 	}
 
 	intersectingArtifact(bb) {
 		var artifacts = svgHelpers.findIntersectingArtifact(bb,this.objects);
+		// TODO: handle overlapping suggestions
 		if (!artifacts.length) {
-			// svgHelpers.findIntersectingArtifact(bb,this.modifierTabs);
-			return null;
+			var sel = svgHelpers.findIntersectingArtifact(bb,this.modifierTabs);
+			if (sel.length) {
+				sel = sel[0];
+				this._setModifierAsSuggestion(bb, sel);
+			}
+			return;
 		}
 		var artifact = artifacts[0];
 		this._setArtifactAsSuggestion(bb, artifact);
-		return artifact;
+		return;
 	}
 
 	eraseAllSelections() {
@@ -550,8 +625,7 @@ class suiTracker {
 		this.pitchIndex = -1;
 		this.eraseAllSelections();
 		if (this.selections.length === 1) {
-			this._drawRect(this.selections[0].box, 'selection');
-			this._updateStaffModifiers();
+			this._drawRect(this.selections[0].box, 'selection');			
 			return;
 		}
 		var sorted = this.selections.sort((a, b) => a.box.y - b.box.y);
@@ -571,8 +645,6 @@ class suiTracker {
 		}
 		boxes.push(curBox);
 		this._drawRect(boxes, 'selection');
-
-		this._updateStaffModifiers();
 	}
 	_outerSelection() {
 		if (this.selections.length == 0)
