@@ -112,6 +112,7 @@ class suiController {
 			console.log('resizing');
 			self.resizing = false;
 			self.layout.setViewport(true);
+			$('.musicRelief').height(window.innerHeight - $('.musicRelief').offset().top);
 			self.piano.handleResize();
 			self.updateOffsets();
 			self.layout.redraw().then(remap);
@@ -139,6 +140,7 @@ class suiController {
 
 	bindResize() {
 		var self = this;
+		$('.musicRelief').height(window.innerHeight - $('.musicRelief').offset().top);
 		window.addEventListener('resize', function () {
 			self.resizeEvent();
 		});
