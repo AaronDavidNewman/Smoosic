@@ -1876,7 +1876,7 @@ class SmoMeasure {
 		return [
 			'timeSignature', 'keySignature', 'staffX', 'staffY', 'customModifiers',
 			'measureNumber', 'staffWidth',
-			'activeVoice', 'clef', 'transposeIndex', 'activeVoice', 'adjX', 'padRight', 'rightMargin'];
+			'activeVoice', 'clef', 'transposeIndex', 'activeVoice', 'adjX','adjRight', 'padRight', 'rightMargin'];
 	}
 
 	// ### serialize
@@ -2097,6 +2097,7 @@ class SmoMeasure {
 			canceledKeySignature: null,
 			staffX: 10,
 			adjX: 0,
+			adjRight:0,
 			padRight: 10,
 			transposeIndex: 0,
 			modifiers: modifiers,
@@ -5785,16 +5786,7 @@ class VxMeasure {
 		var canceledKey = this.smoMeasure.canceledKeySignature ? smoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature,this.smoMeasure.transposeIndex)
 		   : this.smoMeasure.canceledKeySignature;
 
-        // offset for left-hand stuff
-        var staffMargin = (this.smoMeasure.forceClef ? 40 : 0)
-         + (this.smoMeasure.forceTimeSignature ? 16 : 0)
-         + (this.smoMeasure.forceKeySignature ? smoMusic.keySignatureLength[key] * 8 : 0);
-
-		if (this.smoMeasure.forceKeySignature && this.smoMeasure.canceledKeySignature) {
-			staffMargin += smoMusic.keySignatureLength[canceledKey]*8;
-		}
         var staffWidth = this.smoMeasure.staffWidth;
-        //    + this.smoMeasure.adjX+this.smoMeasure.padRight;
 		
 
         //console.log('measure '+JSON.stringify(this.smoMeasure.measureNumber,null,' ')+' x: ' + this.smoMeasure.staffX + ' y: '+this.smoMeasure.staffY
@@ -5845,7 +5837,7 @@ class VxMeasure {
 		
 		// Need to format for x position, then set y position before drawing dynamics.
         this.formatter = new VF.Formatter().joinVoices(voiceAr).format(voiceAr, this.smoMeasure.staffWidth-
-		    this.smoMeasure.adjX);
+		    (this.smoMeasure.adjX + this.smoMeasure.adjRight));
 		
         for (var j = 0; j < voiceAr.length; ++j) {
             voiceAr[j].draw(this.context, this.stave);
@@ -7079,7 +7071,7 @@ class suiSimpleLayout {
 		return width;
 	}
 
-	estimateSymbolWidth(smoMeasure) {
+	estimateStartSymbolWidth(smoMeasure) {
 		var width = 0;
 		if (smoMeasure.forceKeySignature) {
 			if ( smoMeasure.canceledKeySignature) {
@@ -7093,7 +7085,16 @@ class suiSimpleLayout {
 		if (smoMeasure.forceTimeSignature) {
 			width += vexGlyph.dimensions.timeSignature.width + vexGlyph.dimensions.timeSignature.spacingRight;
 		}
-		var ends = smoMeasure.getEndBarline();
+		var starts = smoMeasure.getStartBarline();
+		if (starts) {
+			width += vexGlyph.barWidth(starts);
+		}
+		return width;
+	}
+	
+	estimateEndSymbolWidth(smoMeasure) {
+		var width = 0;
+		var ends  = smoMeasure.getEndBarline();
 		if (ends) {
 			width += vexGlyph.barWidth(ends);
 		}
@@ -7423,8 +7424,9 @@ class suiSimpleLayout {
 	
                 	// Calculate the existing staff width, based on the notes and what we expect to be rendered.
 					measure.staffWidth = this.estimateMusicWidth(measure);
-					measure.adjX = this.estimateSymbolWidth(measure);
-					measure.staffWidth += measure.adjX;
+					measure.adjX = this.estimateStartSymbolWidth(measure);
+					measure.adjRight = this.estimateEndSymbolWidth(measure);
+					measure.staffWidth = measure.staffWidth  + measure.adjX + measure.adjRight;
 				}
 
 				// Do we need to start a new line?  Don't start a new line on the first measure in a line...
@@ -7462,7 +7464,9 @@ class suiSimpleLayout {
 					this.calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast);
 					if (!useAdjustedX) {
 						measure.staffWidth = this.estimateMusicWidth(measure);
-						measure.adjX = this.estimateSymbolWidth(measure);
+						measure.adjX = this.estimateStartSymbolWidth(measure);
+						measure.adjRight = this.estimateEndSymbolWidth(measure);
+						measure.staffWidth = measure.staffWidth + measure.adjX + measure.adjRight;
 					}
 				}
 

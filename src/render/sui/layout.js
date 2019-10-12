@@ -320,7 +320,7 @@ class suiSimpleLayout {
 		return width;
 	}
 
-	estimateSymbolWidth(smoMeasure) {
+	estimateStartSymbolWidth(smoMeasure) {
 		var width = 0;
 		if (smoMeasure.forceKeySignature) {
 			if ( smoMeasure.canceledKeySignature) {
@@ -334,7 +334,16 @@ class suiSimpleLayout {
 		if (smoMeasure.forceTimeSignature) {
 			width += vexGlyph.dimensions.timeSignature.width + vexGlyph.dimensions.timeSignature.spacingRight;
 		}
-		var ends = smoMeasure.getEndBarline();
+		var starts = smoMeasure.getStartBarline();
+		if (starts) {
+			width += vexGlyph.barWidth(starts);
+		}
+		return width;
+	}
+	
+	estimateEndSymbolWidth(smoMeasure) {
+		var width = 0;
+		var ends  = smoMeasure.getEndBarline();
 		if (ends) {
 			width += vexGlyph.barWidth(ends);
 		}
@@ -664,8 +673,9 @@ class suiSimpleLayout {
 	
                 	// Calculate the existing staff width, based on the notes and what we expect to be rendered.
 					measure.staffWidth = this.estimateMusicWidth(measure);
-					measure.adjX = this.estimateSymbolWidth(measure);
-					measure.staffWidth += measure.adjX;
+					measure.adjX = this.estimateStartSymbolWidth(measure);
+					measure.adjRight = this.estimateEndSymbolWidth(measure);
+					measure.staffWidth = measure.staffWidth  + measure.adjX + measure.adjRight;
 				}
 
 				// Do we need to start a new line?  Don't start a new line on the first measure in a line...
@@ -703,7 +713,9 @@ class suiSimpleLayout {
 					this.calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast);
 					if (!useAdjustedX) {
 						measure.staffWidth = this.estimateMusicWidth(measure);
-						measure.adjX = this.estimateSymbolWidth(measure);
+						measure.adjX = this.estimateStartSymbolWidth(measure);
+						measure.adjRight = this.estimateEndSymbolWidth(measure);
+						measure.staffWidth = measure.staffWidth + measure.adjX + measure.adjRight;
 					}
 				}
 

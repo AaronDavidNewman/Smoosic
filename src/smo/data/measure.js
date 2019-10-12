@@ -68,7 +68,7 @@ class SmoMeasure {
 		return [
 			'timeSignature', 'keySignature', 'staffX', 'staffY', 'customModifiers',
 			'measureNumber', 'staffWidth',
-			'activeVoice', 'clef', 'transposeIndex', 'activeVoice', 'adjX', 'padRight', 'rightMargin'];
+			'activeVoice', 'clef', 'transposeIndex', 'activeVoice', 'adjX','adjRight', 'padRight', 'rightMargin'];
 	}
 
 	// ### serialize
@@ -289,6 +289,7 @@ class SmoMeasure {
 			canceledKeySignature: null,
 			staffX: 10,
 			adjX: 0,
+			adjRight:0,
 			padRight: 10,
 			transposeIndex: 0,
 			modifiers: modifiers,
