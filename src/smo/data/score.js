@@ -24,6 +24,7 @@ class SmoScore {
 				bottomMargin:40,
 				pageWidth: 8 * 96 + 48,
 				pageHeight: 11 * 96,
+				orientation:SmoScore.orientations.portrait,
 				interGap: 30,
 				intraGap:10,
 				svgScale: 1.0,
@@ -39,7 +40,6 @@ class SmoScore {
             activeStaff: 0,
         };
     }
-	
 	static get pageSizes() {
 		return ['letter','tabloid','A4','custom'];
 	}
@@ -52,8 +52,11 @@ class SmoScore {
 		}
 	}
 	
-	static get orientations() {
+	static get orientationLabels() {
 		return ['portrait','landscape'];
+	}
+	static get orientations() {
+		return {'portrait':0,'landscape':1};
 	}
 	
     static get defaultAttributes() {

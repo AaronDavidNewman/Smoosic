@@ -24,8 +24,12 @@ class suiSimpleLayout {
 			layout.zoomScale : (window.innerWidth - 200) / layout.pageWidth;
 
 		this.svgScale = layout.svgScale * zoomScale;
-		this.pageWidth = Math.round(layout.pageWidth * zoomScale);
-		this.pageHeight = Math.round(layout.pageHeight * zoomScale);
+		this.orientation = this.score.layout.orientation;
+		var w = Math.round(layout.pageWidth * zoomScale) ;
+		var h = Math.round(layout.pageHeight * zoomScale);
+		this.pageWidth =  (this.orientation  === SmoScore.orientations.portrait) ? w: h;
+		this.pageHeight = (this.orientation  === SmoScore.orientations.portrait) ? h : w;
+		
 		this.leftMargin=this.score.layout.leftMargin;
         this.rightMargin = this.score.layout.rightMargin;
 		$(this.elementId).css('width', '' + Math.round(this.pageWidth) + 'px');

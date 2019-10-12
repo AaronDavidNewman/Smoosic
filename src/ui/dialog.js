@@ -168,6 +168,20 @@ class SuiLayoutDialog extends SuiDialogBase {
 				control: 'SuiRockerComponent',
 				label: 'Page Height (px)'
 			}, {
+				smoName: 'orientation',
+				parameterName: 'orientation',
+				defaultValue: SmoScore.orientations.portrait,
+				control: 'SuiDropdownComponent',
+				label: 'Orientation',
+				dataType:'int',
+				options:[{
+					value:SmoScore.orientations.portrait,
+					label:'Portrait'
+				}, {
+					value:SmoScore.orientations.landscape,
+					label:'Landscape'
+				}]
+			}, {
 				smoName: 'leftMargin',
 				parameterName: 'leftMargin',
 				defaultValue: SmoScore.defaults.layout.leftMargin,
@@ -215,10 +229,7 @@ class SuiLayoutDialog extends SuiDialogBase {
 		];
 	}
 	backupOriginal() {
-		this.backup = {};
-		SuiLayoutDialog.attributes.forEach((attr) => {
-			this.backup[attr] = this.modifier[attr];
-		});
+		this.backup = JSON.parse(JSON.stringify(this.modifier));;
 	}
 	display() {
 		$('body').addClass('showAttributeDialog');
@@ -242,6 +253,15 @@ class SuiLayoutDialog extends SuiDialogBase {
 		this.controller.unbindKeyboardForDialog(this);
 
 	}
+	_handleCancel() {
+		this.score.layout = this.backup;
+		this.layout.setViewport();
+		var self = this;
+		var complete = function () {
+			self.complete();
+		}
+		this.layout.redraw().then(complete);	
+	}
 	_bindElements() {
 		var self = this;
 		var dgDom = this.dgDom;
@@ -255,14 +275,7 @@ class SuiLayoutDialog extends SuiDialogBase {
 		});
 
 		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-			SuiLayoutDialog.attributes.forEach((attr) => {
-				self.modifier[attr] = self.backup[attr];
-			});
-			self.layout.setViewport();
-			var complete = function () {
-				self.complete();
-			}
-			self.layout.redraw().then(complete);
+			self._handleCancel();	
 		});
 
 		$(dgDom.element).find('.remove-button').remove();

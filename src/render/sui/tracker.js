@@ -478,7 +478,6 @@ class suiTracker {
     		}	
 			this.modifierIndex = this.modifierSuggestion;
 			this.modifierSuggestion = -1;
-			console.log('ms -1');
 			this._highlightModifier();
 			$('body').trigger('tracker-select-modifier');
 			return;
@@ -541,7 +540,6 @@ class suiTracker {
 		this.suggestFadeTimer = setTimeout(function () {
 				if (tracker.containsArtifact()) {
 					tracker.eraseRect('suggestion');
-					console.log('ms -1');
 					tracker.modifierSuggestion=-1;
 				}
 			}, 1000);
@@ -551,7 +549,6 @@ class suiTracker {
     _setModifierAsSuggestion(bb,artifact) {
 		
 		this.modifierSuggestion = artifact.index;
-		console.log('ms '+ artifact.index);
 
 		this._drawRect(artifact.box, 'suggestion');
 		this._setFadeTimer();
@@ -567,7 +564,6 @@ class suiTracker {
 		}
 		
 		this.modifierSuggestion = -1;
-		console.log('ms -1');
 
 		this.suggestion = artifact;
 		this._drawRect(artifact.box, 'suggestion');

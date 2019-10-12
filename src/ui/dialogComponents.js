@@ -7,24 +7,27 @@ class SuiRockerComponent {
 		return ['int','float','percent'];
 	}
 	static get increments() {
-		return {'int':1,'float':0.1,percent:1}
+		return {'int':1,'float':0.1,'percent':10}
 	}
 	static get parsers() {
 		return {'int':'_getIntValue','float':'_getFloatValue','percent':'_getPercentValue'};
 	}
     constructor(dialog, parameter) {
         smoMusic.filteredMerge(
-            ['parameterName', 'smoName', 'defaultValue', 'control', 'label','scale','type'], parameter, this);
+            ['parameterName', 'smoName', 'defaultValue', 'control', 'label','increment','type'], parameter, this);
         if (!this.defaultValue) {
             this.defaultValue = 0;
         }
 		if (!this.type) {
 			this.type='int';
 		}
+		if (!this.increment) {
+		    this.increment = SuiRockerComponent.increments[this.type];	
+		}
 		if (SuiRockerComponent.dataTypes.indexOf(this.type) < 0) {
 			throw new Error('dialog element invalid type '+this.type);
 		}
-		this.increment = SuiRockerComponent.increments[this.type];
+		
 		if (this.type === 'percent') {
 			this.defaultValue = 100*this.defaultValue;
 		}
@@ -60,12 +63,18 @@ class SuiRockerComponent {
         $('#' + pid).find('button.increment').off('click').on('click',
             function (ev) {
             var val = self[self.parser]();
+			if (self.type === 'percent') {
+			    val = 100*val;
+     		}
             $(input).val(val + self.increment);
             dialog.changed();
         });
         $('#' + pid).find('button.decrement').off('click').on('click',
             function (ev) {
             var val = self[self.parser]();
+			if (self.type === 'percent') {
+			    val = 100*val;
+     		}
             $(input).val(val - self.increment);
             dialog.changed();
         });
@@ -160,10 +169,14 @@ class SuiToggleComponent {
 class SuiDropdownComponent {
     constructor(dialog, parameter) {
         smoMusic.filteredMerge(
-            ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label'], parameter, this);
+            ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label','dataType'], parameter, this);
         if (!this.defaultValue) {
             this.defaultValue = 0;
         }
+		if (!this.dataType) {
+			this.dataType = 'string';
+		}
+
         this.dialog = dialog;
     }
 
@@ -193,7 +206,10 @@ class SuiDropdownComponent {
     getValue() {
         var input = this._getInputElement();
         var option = this._getInputElement().find('option:selected');
-        return $(option).val();
+		var val = $(option).val();
+		val = (this.dataType.toLowerCase() === 'int') ?	parseInt(val) : val;
+		val = (this.dataType.toLowerCase() === 'float') ?	parseFloat(val) : val;
+        return val;
     }
     setValue(value) {
         var input = this._getInputElement();
