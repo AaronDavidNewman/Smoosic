@@ -22,6 +22,8 @@ class suiController {
 		this.editor.pasteBuffer = this.pasteBuffer;
 		this.resizing = false;
 		this.undoStatus=0;
+		this.scrollRedrawStatus=0;
+		this.trackScrolling = false;
 
 		this.ribbon = new RibbonButtons({
 				ribbons: defaultRibbonLayout.ribbons,
@@ -62,12 +64,17 @@ class suiController {
 		},5000);
 	}
 	
+	static get scrollable() {
+		return '.musicRelief';
+	}
+	
 	// ### pollRedraw
 	// if anything has changed over some period, prepare to redraw everything.
 	pollRedraw() {
 		var self=this;
 		setTimeout(function() {
-			if (self.undoStatus != self.undoBuffer.opCount) {
+			if (self.undoStatus != self.undoBuffer.opCount || self.scrollRedrawStatus) {
+				self.scrollRedrawStatus = false;
 				self.undoStatus = self.undoBuffer.opCount;
 				self.pollIdleRedraw();
 			}
@@ -120,14 +127,13 @@ class suiController {
 		}, 500);
 	}
 	
+	// No action at present when cursor selection changes
 	trackerChangeEvent() {
-		var scroll =  $('body')[0].scrollTop;
-		if (scroll != this.scrollPosition && !this.resizing) {
-			this.scrollPosition = $('body')[0].scrollTop;
-			this.resizeEvent();
-		}
+		
 	}
 	
+	// If the user has selected a modifier via the mouse/touch, bring up mod dialog
+	// for that modifier
 	trackerModifierSelect() {
 		var modSelection = this.tracker.getSelectedModifier();
 		if (modSelection) {
@@ -138,12 +144,31 @@ class suiController {
 		return;
 	}
 
+    // ### bindResize
+	// This handles both resizing of the music area (scrolling) and resizing of the window.
+	// The latter results in a redraw, the former just resets the client/logical map of elements
+	// in the tracker.
 	bindResize() {
 		var self = this;
-		$('.musicRelief').height(window.innerHeight - $('.musicRelief').offset().top);
+		var el = $(suiController.scrollable)[0];
+		$(suiController.scrollable).height(window.innerHeight - $('.musicRelief').offset().top);
+		
 		window.addEventListener('resize', function () {
 			self.resizeEvent();
 		});
+				
+		let scrollCallback = (el) => {
+			if (self.trackScrolling) {
+				return;
+			}
+			self.trackScrolling = true;
+			setTimeout(function() {
+				// self.scrollRedrawStatus = true;
+				self.trackScrolling = false;
+				self.tracker.updateMap();
+			},500);
+		};
+		el.onscroll = scrollCallback;
 	}
 	
 	static createDom() {
