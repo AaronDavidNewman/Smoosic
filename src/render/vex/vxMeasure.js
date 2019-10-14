@@ -237,7 +237,7 @@ class VxMeasure {
 		var sym = this.smoMeasure.getRepeatSymbol();
 
         // don't create a begin bar for any but the 1st measure.
-		if (this.smoMeasure.measureNumber.systeIndex != 0 && sb.barline === SmoBarline.barlines.singleBar) {
+		if (this.smoMeasure.measureNumber.systemIndex != 0 && sb.barline === SmoBarline.barlines.singleBar) {
 		    this.stave.setBegBarType(VF.Barline.type.NONE);
 		} else {
 			this.stave.setBegBarType(sb.toVexBarline());
