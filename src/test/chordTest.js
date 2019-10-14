@@ -130,17 +130,6 @@ class ChordTest {
 			subTitle('make tuplet test');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
 			SmoOperation.makeTuplet(selection, 3);
-			/* var tickmap = measure.tickmap();
-			var actor = new SmoMakeTupletActor({
-
-			index: 1,
-			totalTicks: 4096,
-			numNotes: 3,
-			measure: measure
-			});
-			SmoTickTransformer.applyTransform(measure, actor);   */
-			console.log('tuplet serialize');
-			console.log(JSON.stringify(measure, null, ' '));
 			return layout.render().then(timeTest);
 		}
 
@@ -148,12 +137,6 @@ class ChordTest {
 			subTitle('unmake tuplet test');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
 			SmoOperation.unmakeTuplet(selection);
-			/* var actor = new SmoUnmakeTupletActor({
-			startIndex: 1,
-			endIndex: 3,
-			measure: measure
-			});
-			SmoTickTransformer.applyTransform(measure, actor);  */
 			return layout.render().then(timeTest);
 		}
 

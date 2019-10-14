@@ -225,6 +225,12 @@ class SmoScore {
             newParams.transposeIndex = parameters.instrumentInfo.keyOffset;
             var newMeasure = SmoMeasure.getDefaultMeasureWithNotes(newParams);
             newMeasure.measureNumber = measure.measureNumber;
+			newMeasure.modifiers=[];
+			measure.modifiers.forEach((modifier) => {
+				var ctor = eval(modifier.ctor);
+                var nmod = new ctor(modifier);
+				newMeasure.modifiers.push(nmod);
+			});
             measures.push(newMeasure);
         }
         parameters.measures = measures;

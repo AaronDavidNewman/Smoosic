@@ -22,7 +22,7 @@ class SmoScoreModifierBase {
 class SmoScoreText extends SmoScoreModifierBase {	
 
     static get paginations() {
-		return ['first','every','even','odd','title']
+		return ['every','even','odd','once']
 	}
 	static get positions() {
 		return ['title','copyright','footer','header','system','custom'];
@@ -32,7 +32,7 @@ class SmoScoreText extends SmoScoreModifierBase {
             box: {x:15,y:15,width:100,height:75},
             text: 'Smo',
 			pagination:'every',
-			position:'custom'
+			position:'once'
         };
     }
 
@@ -42,26 +42,8 @@ class SmoScoreText extends SmoScoreModifierBase {
 
     constructor(parameters) {
         super('SmoBarline');
-        parameters = parameters ? parameters : {};
-        smoMusic.serializedMerge(['position', 'barline'], SmoBarline.defaults, this);
-        smoMusic.serializedMerge(['position', 'barline'], parameters, this);       
-    }
-
-    static get toVexBarline() {
-        return [VF.Barline.type.SINGLE, VF.Barline.type.DOUBLE, VF.Barline.type.END,
-            VF.Barline.type.REPEAT_BEGIN, VF.Barline.type.REPEAT_END, VF.Barline.type.NONE];
-
-    }
-    static get toVexPosition() {
-        return [VF.StaveModifier.BEGIN, VF.StaveModifier.END];
-    }
-
-    toVexBarline() {
-        return SmoBarline.toVexBarline[this.barline];
-    }
-    toVexPosition() {
-        return SmoBarline.toVexPosition[this.position];
-    }
+        parameters = parameters ? parameters : {};       
+    }  
 }
 	
 

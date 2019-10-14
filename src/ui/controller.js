@@ -151,6 +151,10 @@ class suiController {
 	bindResize() {
 		var self = this;
 		var el = $(suiController.scrollable)[0];
+		// unit test programs don't have resize html
+		if (!el) {
+			return;
+		}
 		$(suiController.scrollable).height(window.innerHeight - $('.musicRelief').offset().top);
 		
 		window.addEventListener('resize', function () {
@@ -203,8 +207,11 @@ class suiController {
 	// ## createUi
 	// ### Description:
 	// Convenience constructor, taking a renderElement and a score.
-	static createUi(score) {
+	static createUi(score,title) {
 		suiController.createDom();
+		if (title) {
+			$('h1.testTitle').text(title);
+		}
 		var params = suiController.keyBindingDefaults;
 		params.layout = suiSimpleLayout.createScoreLayout(document.getElementById("boo"), score);
 		params.tracker = new suiTracker(params.layout);

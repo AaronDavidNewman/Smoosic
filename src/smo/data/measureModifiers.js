@@ -55,6 +55,12 @@ class SmoBarline extends SmoMeasureModifierBase {
     static get attributes() {
         return ['position', 'barline'];
     }
+	serialize() {
+        var params = {};
+        smoMusic.filteredMerge(SmoBarline.attributes, this, params);
+        params.ctor = 'SmoBarline';
+        return params;    
+	}
 
     constructor(parameters) {
         super('SmoBarline');
@@ -125,6 +131,12 @@ class SmoRepeatSymbol extends SmoMeasureModifierBase {
     toVexSymbol() {
         return SmoRepeatSymbol.toVexSymbol[this.symbol];
     }
+	serialize() {
+        var params = {};
+        smoMusic.filteredMerge(SmoRepeatSymbol.attributes, this, params);
+        params.ctor = 'SmoRepeatSymbol';
+        return params;    
+	}
     constructor(parameters) {
         super('SmoRepeatSymbol');
         smoMusic.serializedMerge(SmoRepeatSymbol.attributes, SmoRepeatSymbol.defaults, this);
@@ -161,6 +173,13 @@ class SmoVolta extends SmoMeasureModifierBase {
     }
 	static get editableAttributes() {
 		return ['xOffsetStart','xOffsetEnd','yOffset','number'];	
+	}
+	
+	serialize() {
+        var params = {};
+        smoMusic.filteredMerge(SmoVolta.attributes, this, params);
+        params.ctor = 'SmoVolta';
+        return params;    
 	}
 	
     static get defaults() {

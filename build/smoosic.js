@@ -1874,7 +1874,7 @@ class SmoMeasure {
 	// attributes that are to be serialized for a measure.
 	static get defaultAttributes() {
 		return [
-			'timeSignature', 'keySignature', 'staffX', 'staffY', 'customModifiers',
+			'timeSignature', 'keySignature', 'staffX', 'staffY',
 			'measureNumber', 'staffWidth',
 			'activeVoice', 'clef', 'transposeIndex', 'activeVoice', 'adjX','adjRight', 'padRight', 'rightMargin'];
 	}
@@ -1888,6 +1888,7 @@ class SmoMeasure {
 		params.tuplets = [];
 		params.beamGroups = [];
 		params.voices = [];
+		params.modifiers=[];
 
 		this.tuplets.forEach((tuplet) => {
 			params.tuplets.push(JSON.parse(JSON.stringify(tuplet)));
@@ -1905,6 +1906,10 @@ class SmoMeasure {
 				obj.notes.push(note.serialize());
 			});
 			params.voices.push(obj);
+		});
+		
+		this.modifiers.forEach((modifier) => {
+			params.modifiers.push(modifier.serialize());
 		});
 		return params;
 	}
@@ -1938,11 +1943,20 @@ class SmoMeasure {
 			var smoBeam = new SmoBeamGroup(jsonObj.beamGroups[j]);
 			beamGroups.push(smoBeam);
 		}
+		
+		var modifiers = [];
+		jsonObj.modifiers.forEach((modParams) => {
+			var ctor = eval(modParams.ctor);
+			var modifier = new ctor(modParams);
+			modifiers.push(modifier);
+		});
+		
 
 		var params = {
 			voices: voices,
 			tuplets: tuplets,
-			beamGroups: beamGroups
+			beamGroups: beamGroups,
+			modifiers:modifiers
 		};
 
 		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, jsonObj, params);
@@ -2102,7 +2116,6 @@ class SmoMeasure {
 			transposeIndex: 0,
 			modifiers: modifiers,
 			rightMargin: 2,
-			customModifiers: [],
 			staffY: 40,
 			// bars: [1, 1], // follows enumeration in VF.Barline
 			measureNumber: {
@@ -2312,12 +2325,7 @@ class SmoMeasure {
 		}
 		this.tuplets = tuplets;
 	}
-	addCustomModifier(ctor, parameters) {
-		this.customModifiers.push({
-			ctor: ctor,
-			parameters: parameters
-		});
-	}
+	
 	get numBeats() {
 		return this.timeSignature.split('/').map(number => parseInt(number, 10))[0];
 	}
@@ -2407,6 +2415,12 @@ class SmoBarline extends SmoMeasureModifierBase {
     static get attributes() {
         return ['position', 'barline'];
     }
+	serialize() {
+        var params = {};
+        smoMusic.filteredMerge(SmoBarline.attributes, this, params);
+        params.ctor = 'SmoBarline';
+        return params;    
+	}
 
     constructor(parameters) {
         super('SmoBarline');
@@ -2477,6 +2491,12 @@ class SmoRepeatSymbol extends SmoMeasureModifierBase {
     toVexSymbol() {
         return SmoRepeatSymbol.toVexSymbol[this.symbol];
     }
+	serialize() {
+        var params = {};
+        smoMusic.filteredMerge(SmoRepeatSymbol.attributes, this, params);
+        params.ctor = 'SmoRepeatSymbol';
+        return params;    
+	}
     constructor(parameters) {
         super('SmoRepeatSymbol');
         smoMusic.serializedMerge(SmoRepeatSymbol.attributes, SmoRepeatSymbol.defaults, this);
@@ -2513,6 +2533,13 @@ class SmoVolta extends SmoMeasureModifierBase {
     }
 	static get editableAttributes() {
 		return ['xOffsetStart','xOffsetEnd','yOffset','number'];	
+	}
+	
+	serialize() {
+        var params = {};
+        smoMusic.filteredMerge(SmoVolta.attributes, this, params);
+        params.ctor = 'SmoVolta';
+        return params;    
 	}
 	
     static get defaults() {
@@ -2852,6 +2879,7 @@ class SmoScore {
 				bottomMargin:40,
 				pageWidth: 8 * 96 + 48,
 				pageHeight: 11 * 96,
+				orientation:SmoScore.orientations.portrait,
 				interGap: 30,
 				intraGap:10,
 				svgScale: 1.0,
@@ -2867,7 +2895,6 @@ class SmoScore {
             activeStaff: 0,
         };
     }
-	
 	static get pageSizes() {
 		return ['letter','tabloid','A4','custom'];
 	}
@@ -2880,8 +2907,11 @@ class SmoScore {
 		}
 	}
 	
-	static get orientations() {
+	static get orientationLabels() {
 		return ['portrait','landscape'];
+	}
+	static get orientations() {
+		return {'portrait':0,'landscape':1};
 	}
 	
     static get defaultAttributes() {
@@ -3050,6 +3080,12 @@ class SmoScore {
             newParams.transposeIndex = parameters.instrumentInfo.keyOffset;
             var newMeasure = SmoMeasure.getDefaultMeasureWithNotes(newParams);
             newMeasure.measureNumber = measure.measureNumber;
+			newMeasure.modifiers=[];
+			measure.modifiers.forEach((modifier) => {
+				var ctor = eval(modifier.ctor);
+                var nmod = new ctor(modifier);
+				newMeasure.modifiers.push(nmod);
+			});
             measures.push(newMeasure);
         }
         parameters.measures = measures;
@@ -6553,7 +6589,6 @@ class suiTracker {
     		}	
 			this.modifierIndex = this.modifierSuggestion;
 			this.modifierSuggestion = -1;
-			console.log('ms -1');
 			this._highlightModifier();
 			$('body').trigger('tracker-select-modifier');
 			return;
@@ -6616,7 +6651,6 @@ class suiTracker {
 		this.suggestFadeTimer = setTimeout(function () {
 				if (tracker.containsArtifact()) {
 					tracker.eraseRect('suggestion');
-					console.log('ms -1');
 					tracker.modifierSuggestion=-1;
 				}
 			}, 1000);
@@ -6626,7 +6660,6 @@ class suiTracker {
     _setModifierAsSuggestion(bb,artifact) {
 		
 		this.modifierSuggestion = artifact.index;
-		console.log('ms '+ artifact.index);
 
 		this._drawRect(artifact.box, 'suggestion');
 		this._setFadeTimer();
@@ -6642,7 +6675,6 @@ class suiTracker {
 		}
 		
 		this.modifierSuggestion = -1;
-		console.log('ms -1');
 
 		this.suggestion = artifact;
 		this._drawRect(artifact.box, 'suggestion');
@@ -6775,8 +6807,12 @@ class suiSimpleLayout {
 			layout.zoomScale : (window.innerWidth - 200) / layout.pageWidth;
 
 		this.svgScale = layout.svgScale * zoomScale;
-		this.pageWidth = Math.round(layout.pageWidth * zoomScale);
-		this.pageHeight = Math.round(layout.pageHeight * zoomScale);
+		this.orientation = this.score.layout.orientation;
+		var w = Math.round(layout.pageWidth * zoomScale) ;
+		var h = Math.round(layout.pageHeight * zoomScale);
+		this.pageWidth =  (this.orientation  === SmoScore.orientations.portrait) ? w: h;
+		this.pageHeight = (this.orientation  === SmoScore.orientations.portrait) ? h : w;
+		
 		this.leftMargin=this.score.layout.leftMargin;
         this.rightMargin = this.score.layout.rightMargin;
 		$(this.elementId).css('width', '' + Math.round(this.pageWidth) + 'px');
@@ -9320,6 +9356,20 @@ class SuiLayoutDialog extends SuiDialogBase {
 				control: 'SuiRockerComponent',
 				label: 'Page Height (px)'
 			}, {
+				smoName: 'orientation',
+				parameterName: 'orientation',
+				defaultValue: SmoScore.orientations.portrait,
+				control: 'SuiDropdownComponent',
+				label: 'Orientation',
+				dataType:'int',
+				options:[{
+					value:SmoScore.orientations.portrait,
+					label:'Portrait'
+				}, {
+					value:SmoScore.orientations.landscape,
+					label:'Landscape'
+				}]
+			}, {
 				smoName: 'leftMargin',
 				parameterName: 'leftMargin',
 				defaultValue: SmoScore.defaults.layout.leftMargin,
@@ -9367,10 +9417,7 @@ class SuiLayoutDialog extends SuiDialogBase {
 		];
 	}
 	backupOriginal() {
-		this.backup = {};
-		SuiLayoutDialog.attributes.forEach((attr) => {
-			this.backup[attr] = this.modifier[attr];
-		});
+		this.backup = JSON.parse(JSON.stringify(this.modifier));;
 	}
 	display() {
 		$('body').addClass('showAttributeDialog');
@@ -9394,6 +9441,15 @@ class SuiLayoutDialog extends SuiDialogBase {
 		this.controller.unbindKeyboardForDialog(this);
 
 	}
+	_handleCancel() {
+		this.score.layout = this.backup;
+		this.layout.setViewport();
+		var self = this;
+		var complete = function () {
+			self.complete();
+		}
+		this.layout.redraw().then(complete);	
+	}
 	_bindElements() {
 		var self = this;
 		var dgDom = this.dgDom;
@@ -9407,14 +9463,7 @@ class SuiLayoutDialog extends SuiDialogBase {
 		});
 
 		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-			SuiLayoutDialog.attributes.forEach((attr) => {
-				self.modifier[attr] = self.backup[attr];
-			});
-			self.layout.setViewport();
-			var complete = function () {
-				self.complete();
-			}
-			self.layout.redraw().then(complete);
+			self._handleCancel();	
 		});
 
 		$(dgDom.element).find('.remove-button').remove();
@@ -9587,24 +9636,27 @@ class SuiRockerComponent {
 		return ['int','float','percent'];
 	}
 	static get increments() {
-		return {'int':1,'float':0.1,percent:1}
+		return {'int':1,'float':0.1,'percent':10}
 	}
 	static get parsers() {
 		return {'int':'_getIntValue','float':'_getFloatValue','percent':'_getPercentValue'};
 	}
     constructor(dialog, parameter) {
         smoMusic.filteredMerge(
-            ['parameterName', 'smoName', 'defaultValue', 'control', 'label','scale','type'], parameter, this);
+            ['parameterName', 'smoName', 'defaultValue', 'control', 'label','increment','type'], parameter, this);
         if (!this.defaultValue) {
             this.defaultValue = 0;
         }
 		if (!this.type) {
 			this.type='int';
 		}
+		if (!this.increment) {
+		    this.increment = SuiRockerComponent.increments[this.type];	
+		}
 		if (SuiRockerComponent.dataTypes.indexOf(this.type) < 0) {
 			throw new Error('dialog element invalid type '+this.type);
 		}
-		this.increment = SuiRockerComponent.increments[this.type];
+		
 		if (this.type === 'percent') {
 			this.defaultValue = 100*this.defaultValue;
 		}
@@ -9640,12 +9692,18 @@ class SuiRockerComponent {
         $('#' + pid).find('button.increment').off('click').on('click',
             function (ev) {
             var val = self[self.parser]();
+			if (self.type === 'percent') {
+			    val = 100*val;
+     		}
             $(input).val(val + self.increment);
             dialog.changed();
         });
         $('#' + pid).find('button.decrement').off('click').on('click',
             function (ev) {
             var val = self[self.parser]();
+			if (self.type === 'percent') {
+			    val = 100*val;
+     		}
             $(input).val(val - self.increment);
             dialog.changed();
         });
@@ -9740,10 +9798,14 @@ class SuiToggleComponent {
 class SuiDropdownComponent {
     constructor(dialog, parameter) {
         smoMusic.filteredMerge(
-            ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label'], parameter, this);
+            ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label','dataType'], parameter, this);
         if (!this.defaultValue) {
             this.defaultValue = 0;
         }
+		if (!this.dataType) {
+			this.dataType = 'string';
+		}
+
         this.dialog = dialog;
     }
 
@@ -9773,7 +9835,10 @@ class SuiDropdownComponent {
     getValue() {
         var input = this._getInputElement();
         var option = this._getInputElement().find('option:selected');
-        return $(option).val();
+		var val = $(option).val();
+		val = (this.dataType.toLowerCase() === 'int') ?	parseInt(val) : val;
+		val = (this.dataType.toLowerCase() === 'float') ?	parseFloat(val) : val;
+        return val;
     }
     setValue(value) {
         var input = this._getInputElement();
@@ -12152,6 +12217,8 @@ class suiController {
 		this.editor.pasteBuffer = this.pasteBuffer;
 		this.resizing = false;
 		this.undoStatus=0;
+		this.scrollRedrawStatus=0;
+		this.trackScrolling = false;
 
 		this.ribbon = new RibbonButtons({
 				ribbons: defaultRibbonLayout.ribbons,
@@ -12192,12 +12259,17 @@ class suiController {
 		},5000);
 	}
 	
+	static get scrollable() {
+		return '.musicRelief';
+	}
+	
 	// ### pollRedraw
 	// if anything has changed over some period, prepare to redraw everything.
 	pollRedraw() {
 		var self=this;
 		setTimeout(function() {
-			if (self.undoStatus != self.undoBuffer.opCount) {
+			if (self.undoStatus != self.undoBuffer.opCount || self.scrollRedrawStatus) {
+				self.scrollRedrawStatus = false;
 				self.undoStatus = self.undoBuffer.opCount;
 				self.pollIdleRedraw();
 			}
@@ -12250,14 +12322,13 @@ class suiController {
 		}, 500);
 	}
 	
+	// No action at present when cursor selection changes
 	trackerChangeEvent() {
-		var scroll =  $('body')[0].scrollTop;
-		if (scroll != this.scrollPosition && !this.resizing) {
-			this.scrollPosition = $('body')[0].scrollTop;
-			this.resizeEvent();
-		}
+		
 	}
 	
+	// If the user has selected a modifier via the mouse/touch, bring up mod dialog
+	// for that modifier
 	trackerModifierSelect() {
 		var modSelection = this.tracker.getSelectedModifier();
 		if (modSelection) {
@@ -12268,12 +12339,35 @@ class suiController {
 		return;
 	}
 
+    // ### bindResize
+	// This handles both resizing of the music area (scrolling) and resizing of the window.
+	// The latter results in a redraw, the former just resets the client/logical map of elements
+	// in the tracker.
 	bindResize() {
 		var self = this;
-		$('.musicRelief').height(window.innerHeight - $('.musicRelief').offset().top);
+		var el = $(suiController.scrollable)[0];
+		// unit test programs don't have resize html
+		if (!el) {
+			return;
+		}
+		$(suiController.scrollable).height(window.innerHeight - $('.musicRelief').offset().top);
+		
 		window.addEventListener('resize', function () {
 			self.resizeEvent();
 		});
+				
+		let scrollCallback = (el) => {
+			if (self.trackScrolling) {
+				return;
+			}
+			self.trackScrolling = true;
+			setTimeout(function() {
+				// self.scrollRedrawStatus = true;
+				self.trackScrolling = false;
+				self.tracker.updateMap();
+			},500);
+		};
+		el.onscroll = scrollCallback;
 	}
 	
 	static createDom() {
@@ -12308,8 +12402,11 @@ class suiController {
 	// ## createUi
 	// ### Description:
 	// Convenience constructor, taking a renderElement and a score.
-	static createUi(score) {
+	static createUi(score,title) {
 		suiController.createDom();
+		if (title) {
+			$('h1.testTitle').text(title);
+		}
 		var params = suiController.keyBindingDefaults;
 		params.layout = suiSimpleLayout.createScoreLayout(document.getElementById("boo"), score);
 		params.tracker = new suiTracker(params.layout);

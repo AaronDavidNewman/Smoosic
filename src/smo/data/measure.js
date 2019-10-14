@@ -66,7 +66,7 @@ class SmoMeasure {
 	// attributes that are to be serialized for a measure.
 	static get defaultAttributes() {
 		return [
-			'timeSignature', 'keySignature', 'staffX', 'staffY', 'customModifiers',
+			'timeSignature', 'keySignature', 'staffX', 'staffY',
 			'measureNumber', 'staffWidth',
 			'activeVoice', 'clef', 'transposeIndex', 'activeVoice', 'adjX','adjRight', 'padRight', 'rightMargin'];
 	}
@@ -80,6 +80,7 @@ class SmoMeasure {
 		params.tuplets = [];
 		params.beamGroups = [];
 		params.voices = [];
+		params.modifiers=[];
 
 		this.tuplets.forEach((tuplet) => {
 			params.tuplets.push(JSON.parse(JSON.stringify(tuplet)));
@@ -97,6 +98,10 @@ class SmoMeasure {
 				obj.notes.push(note.serialize());
 			});
 			params.voices.push(obj);
+		});
+		
+		this.modifiers.forEach((modifier) => {
+			params.modifiers.push(modifier.serialize());
 		});
 		return params;
 	}
@@ -130,11 +135,20 @@ class SmoMeasure {
 			var smoBeam = new SmoBeamGroup(jsonObj.beamGroups[j]);
 			beamGroups.push(smoBeam);
 		}
+		
+		var modifiers = [];
+		jsonObj.modifiers.forEach((modParams) => {
+			var ctor = eval(modParams.ctor);
+			var modifier = new ctor(modParams);
+			modifiers.push(modifier);
+		});
+		
 
 		var params = {
 			voices: voices,
 			tuplets: tuplets,
-			beamGroups: beamGroups
+			beamGroups: beamGroups,
+			modifiers:modifiers
 		};
 
 		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, jsonObj, params);
@@ -294,7 +308,6 @@ class SmoMeasure {
 			transposeIndex: 0,
 			modifiers: modifiers,
 			rightMargin: 2,
-			customModifiers: [],
 			staffY: 40,
 			// bars: [1, 1], // follows enumeration in VF.Barline
 			measureNumber: {
@@ -504,12 +517,7 @@ class SmoMeasure {
 		}
 		this.tuplets = tuplets;
 	}
-	addCustomModifier(ctor, parameters) {
-		this.customModifiers.push({
-			ctor: ctor,
-			parameters: parameters
-		});
-	}
+	
 	get numBeats() {
 		return this.timeSignature.split('/').map(number => parseInt(number, 10))[0];
 	}
