@@ -5795,7 +5795,7 @@ class VxMeasure {
 		var sym = this.smoMeasure.getRepeatSymbol();
 
         // don't create a begin bar for any but the 1st measure.
-		if (this.smoMeasure.measureNumber.systeIndex != 0 && sb.barline === SmoBarline.barlines.singleBar) {
+		if (this.smoMeasure.measureNumber.systemIndex != 0 && sb.barline === SmoBarline.barlines.singleBar) {
 		    this.stave.setBegBarType(VF.Barline.type.NONE);
 		} else {
 			this.stave.setBegBarType(sb.toVexBarline());
@@ -6161,6 +6161,16 @@ class suiTracker {
 		});
 		return rv;
 	}
+	
+	_getTicksFromSelections() {
+		var rv = 0;
+		this.selections.forEach((sel) => {
+			if (sel.note) {
+				rv += sel.note.tickCount;
+			}
+		});
+		return rv;		
+	}
 
 	_updateModifiers() {
 		this.modifierTabs = [];
@@ -6281,6 +6291,8 @@ class suiTracker {
 		this.objectGroupMap = {};
 		this.objects = [];
 		var selCopy = this._copySelections();
+		var ticksSelectedCopy = this._getTicksFromSelections();
+		var firstSelection = this.getExtremeSelection(-1);
 		notes.forEach((note) => {
 			var box = note.getBoundingClientRect();
 			// box = svgHelpers.untransformSvgBox(this.context.svg,box);
@@ -6295,7 +6307,17 @@ class suiTracker {
 			console.log('adding selection ' + this.objects[0].note.id);
 			this.selections = [this.objects[0]];
 		} else {
-			selCopy.forEach((sel) => this._findClosestSelection(sel));
+			this._findClosestSelection(firstSelection.selector);
+			var first = this.selections[0];
+			var tickSelected = first.note.tickCount;
+			while (tickSelected < ticksSelectedCopy && first) {
+				var delta = this.growSelectionRight();
+				if (!delta)  {
+					break;
+				}
+				tickSelected += delta;
+			}
+			// selCopy.forEach((sel) => this._findClosestSelection(sel));
 		}
 		this.highlightSelection();
 		this.triggerSelection();
@@ -6400,16 +6422,17 @@ class suiTracker {
 		// already selected
 		var artifact = this._getClosestTick(nselect);
 		if (!artifact) {
-			return;
+			return 0;
 		}
 		if (this.selections.find((sel) => SmoSelector.sameNote(sel.selector, artifact.selector))) {
-			return;
+			return 0;
 		}
 		console.log('adding selection ' + artifact.note.id);
 
 		this.selections.push(artifact);
 		this.highlightSelection();
 		this.triggerSelection();
+		return artifact.note.tickCount;
 	}
 
 	growSelectionLeft() {
@@ -6427,6 +6450,7 @@ class suiTracker {
 		this.selections.push(artifact);
 		this.highlightSelection();
 		this.triggerSelection();
+		return artifact.note.tickCount;
 	}
 
 	moveSelectionRight() {
