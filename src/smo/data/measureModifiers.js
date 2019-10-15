@@ -65,9 +65,8 @@ class SmoBarline extends SmoMeasureModifierBase {
     constructor(parameters) {
         super('SmoBarline');
         parameters = parameters ? parameters : {};
-        smoMusic.serializedMerge(['position', 'barline'], SmoBarline.defaults, this);
-        smoMusic.serializedMerge(['position', 'barline'], parameters, this);
-       
+        smoMusic.serializedMerge(SmoBarline.attributes, SmoBarline.defaults, this);
+        smoMusic.serializedMerge(SmoBarline.attributes, parameters, this);       
     }
 
     static get toVexBarline() {

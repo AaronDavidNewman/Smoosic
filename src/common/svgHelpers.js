@@ -38,12 +38,14 @@ class svgHelpers {
 				self.e.setAttributeNS('', name, value);
 				return self;
 			}
+			
 			this.text = function (x, y, classes, text) {
 				x = typeof(x) == 'string' ? x : x.toString();
 				y = typeof(y) == 'string' ? y : y.toString();
 				this.e.setAttributeNS('', 'class', classes);
 				this.e.setAttributeNS('', 'x', x);
 				this.e.setAttributeNS('', 'y', y);
+				
 				this.e.textContent = text;
 				return this;
 			}
@@ -128,6 +130,29 @@ class svgHelpers {
 		}
 		svg.appendChild(r.dom());
 
+	}
+	
+	static placeSvgText(svg,x,y,fontInfo,classes,text) {
+		var ns = svgHelpers.namespace;
+		var e = document.createElementNS(ns, 'text');
+		var fontAttrs = ['size','family','weight','style','stretch'];
+		x = typeof(x) == 'string' ? x : x.toString();
+		y = typeof(y) == 'string' ? y : y.toString();
+		e.setAttributeNS('', 'x', x);
+		e.setAttributeNS('', 'y', y);
+		if (classes) {
+			e.setAttributeNS('', 'class', classes);
+		}
+		fontAttrs.forEach((attr) => {
+			if (fontInfo[attr]) {
+				e.setAttributeNS('','font-'+attr,fontInfo[attr]);						
+			}
+		});
+		if (fontInfo.fill) {
+			e.setAttributeNS('','fill',fontInfo.fill);
+		}
+		e.textContent = text;
+		svg.appendChild(e);	
 	}
 
 	// ### findIntersectionArtifact

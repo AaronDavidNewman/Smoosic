@@ -39,8 +39,14 @@ class StaffTest {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
 			// measure.applyModifiers();
 			return layout.render().then(timeTest);
-		}		
+		}
+		
+		var scoreText = () => {
+			var tt = new SmoScoreText({text:'Hello world',x:240,y:15});
+			score.addScoreText(tt);
+			return layout.render().then(timeTest);
+		}
       
-        return drawDefaults().then(signalComplete);
+        return drawDefaults().then(scoreText).then(signalComplete);
     }
 }

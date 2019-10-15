@@ -29,20 +29,43 @@ class SmoScoreText extends SmoScoreModifierBase {
 	}
     static get defaults() {
         return {
-            box: {x:15,y:15,width:100,height:75},
-            text: 'Smo',
+            x:15,
+			y:15,
+            text: 'Smoosic',
+			fontInfo: {
+				size: '12px',
+				family:'serif',
+				style:'normal',
+				fill:'black',
+				weight:'normal'
+			},
+			styleString:'',
+			classes:'',
+				
 			pagination:'every',
-			position:'once'
+			position:'title'
         };
     }
+	
+	toStyleString() {
+		
+	}
 
+	serialize() {
+		var params = JSON.parse(JSON.stringify(this));
+        params.ctor = 'SmoScoreText';
+        return params;    
+	}
     static get attributes() {
-        return ['box', 'text','pagination','position'];
+        return ['x','y','text','pagination','position','fontInfo','classes','styleString'];
     }
 
     constructor(parameters) {
-        super('SmoBarline');
-        parameters = parameters ? parameters : {};       
+        super('SmoScoreText');
+        parameters = parameters ? parameters : {};
+		
+		smoMusic.serializedMerge(SmoScoreText.attributes, SmoScoreText.defaults, this);
+        smoMusic.serializedMerge(SmoScoreText.attributes, parameters, this);   
     }  
 }
 	

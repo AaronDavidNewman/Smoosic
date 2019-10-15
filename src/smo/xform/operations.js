@@ -379,6 +379,10 @@ class SmoOperation {
 			s += 1;
 		});
 	}
+	
+	static addScoreText(score,scoreText) {
+		score.addScoreText(scoreText);
+	}
 
 	static setMeasureBarline(score, selection, barline) {
 		var mm = selection.selector.measure;

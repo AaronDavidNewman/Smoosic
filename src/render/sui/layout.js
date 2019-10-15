@@ -491,6 +491,15 @@ class suiSimpleLayout {
 		var measure = staff.measures[i];
 		return (i > 0 ? staff.measures[i - 1][attr] : measure[attr]);
 	}
+	
+	_renderScoreModifiers() {
+		var svg = this.context.svg;
+		$(this.renderer.getContext().svg).find('text.score-text').remove();
+		this.score.scoreText.forEach((tt) => {
+			var classes = tt.attrs.id+' '+'score-text'+' '+tt.classes;
+			svgHelpers.placeSvgText(svg,tt.x,tt.y,tt.fontInfo,classes,tt.text);
+		});
+	}
 
 	// ### _renderModifiers
 	// ### Description:
@@ -769,6 +778,7 @@ class suiSimpleLayout {
 		this.score.staves.forEach((stf) => {
 			this._renderModifiers(stf, system);
 		});
+		this._renderScoreModifiers();
 		if (useAdjustedY) {
 			system.cap();
 		}

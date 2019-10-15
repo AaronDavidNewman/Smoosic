@@ -38,6 +38,7 @@ class SmoScore {
             measureTickmap: [],
             staves: [],
             activeStaff: 0,
+			scoreText:[]
         };
     }
 	static get pageSizes() {
@@ -70,11 +71,16 @@ class SmoScore {
         smoMusic.serializedMerge(SmoScore.defaultAttributes, this, params);
         var obj = {
             score: params,
-            staves: []
+            staves: [],
+			scoreText:[]
         };
         this.staves.forEach((staff) => {
             obj.staves.push(staff.serialize());
         });
+		
+		this.scoreText.forEach((tt) => {
+			obj.scoreText.push(tt.serialize());
+		});
         return obj;
     }
     // ### deserialize
@@ -90,9 +96,15 @@ class SmoScore {
             var staff = SmoSystemStaff.deserialize(staffObj);
             staves.push(staff);
         });
+		var scoreText=[];
+		jsonObj.scoreText.forEach((tt) => {
+			scoreText.push(SmoScoreText.deserialize(tt));
+		});
         params.staves = staves;
 
-        return new SmoScore(params);
+        let score = new SmoScore(params);
+		score.scoreText=scoreText;
+		
     }
 
     // ### getDefaultScore
@@ -143,7 +155,6 @@ class SmoScore {
     }
 
     // ### deleteMeasure
-    // ### Description:
     // Delete the measure at the supplied index in all the staves.
     deleteMeasure(measureIndex) {
         this.staves.forEach((staff) => {
@@ -151,8 +162,8 @@ class SmoScore {
         });
 
     }
+
     // ### addMeasure
-    // ### Description:
     // Give a measure prototype, create a new measure and add it to each staff, with the
     // correct settings for current time signature/clef.
     addMeasure(measureIndex, measure) {
@@ -161,7 +172,7 @@ class SmoScore {
             var protomeasure = measure;
             var staff = this.staves[i];
             // Since this staff may already have instrument settings, use the
-            // immediately precending or post-ceding measure if it exists.
+            // immediately preceeding or post-ceding measure if it exists.
             if (measureIndex < staff.measures.length) {
                 protomeasure = staff.measures[measureIndex];
             } else if (staff.measures.length) {
@@ -174,15 +185,16 @@ class SmoScore {
     }
 
     // ### replaceMeasure
-    // ### Description:
     // Replace the measure at the given location.  Probably due to an undo operation or paste.
     replaceMeasure(selector, measure) {
         var staff = this.staves[selector.staff];
         staff.measures[selector.measure] = measure;
     }
+
+    // ### addScoreText 
+    // 
 	
     // ### replace staff
-	// ### Description:
 	// Probably due to an undo operation, replace the staff at the given index.
     replaceStaff(index, staff) {
         var staves = [];
@@ -196,7 +208,7 @@ class SmoScore {
         this.staves = staves;
     }
     // ### addKeySignature
-    // ### Add a key signature at the specified index in all staves.
+    // Add a key signature at the specified index in all staves.
     addKeySignature(measureIndex, key) {
         this.staves.forEach((staff) => {
             staff.addKeySignature(measureIndex, key);
@@ -204,7 +216,6 @@ class SmoScore {
     }
 
     // ### addInstrument
-    // ### Description:
     // add a new staff (instrument) to the score
     addStaff(parameters) {
         if (this.staves.length == 0) {
@@ -240,6 +251,8 @@ class SmoScore {
 		this._numberStaves();
     }
 
+    // ### removeStaff
+	// Remove stave at the given index
     removeStaff(index) {
         var staves = [];
         var ix = 0;
@@ -252,6 +265,27 @@ class SmoScore {
         this.staves = staves;
         this._numberStaves();
     }
+	
+	_updateScoreText(textObject,toAdd) {
+		var texts=[];
+		this.scoreText.forEach((tt) => {
+			if (textObject.attrs.id !=  tt.attrs.id) {
+				textx.push(tt);
+			}
+		});
+	    if (toAdd) {
+			texts.push(textObject);
+		}
+		this.scoreText = texts;
+	}
+	
+	addScoreText(textObject) {
+		this._updateScoreText(textObject,true)
+	}
+	
+	removeScoreText(textObject) {
+		this._updateScoreText(textObject,false);
+	}	
 
     getMaxTicksMeasure(measure) {
         return this.staves[this.activeStaff].getMaxTicksMeasure(measure);
