@@ -17,7 +17,7 @@ class utController {
 			$('h1.testTitle').text(title);
 		}
 		var params = {};
-		params.layout = suiSimpleLayout.createScoreLayout($('#boo')[0], score);
+		params.layout = suiScoreLayout.createScoreLayout($('#boo')[0], score);
 		params.tracker = new suiTracker(params.layout);
 		// params.tracker = new suiTracker(params.layout);
 		params.score = score;

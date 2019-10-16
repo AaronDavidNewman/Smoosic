@@ -1,7 +1,7 @@
 
 // ## suiAdjuster
 // Perform adjustments on the score based on the rendered components so we can re-render it more legibly.
-class suiAdjuster {	
+class suiLayoutAdjuster {	
 	
 	static estimateMusicWidth(smoMeasure) {
 		var width = 0;
@@ -60,7 +60,7 @@ class suiAdjuster {
 		var context = renderer.getContext();
 		var svg = context.svg;
 		
-		if (suiSimpleLayout.debugLayout) {
+		if (suiLayoutBase.debugLayout) {
 			$(context.svg).find('g.measure-adjust-dbg').remove();
 		}
 		var topStaff = score.staves[0];
@@ -86,7 +86,7 @@ class suiAdjuster {
 							mm.staffWidth += just;
 							mm.staffX += accum;
 							accum += just;
-							if (suiSimpleLayout.debugLayout) {
+							if (suiLayoutBase.debugLayout) {
 								var dbgBox = svgHelpers.boxPoints(
 										mm.staffX, mm.staffY, mm.staffWidth, mm.logicalBox.height);
 								svgHelpers.debugBox(svg, dbgBox, 'measure-adjust-dbg', 10);
@@ -119,7 +119,7 @@ class suiAdjuster {
 		var topStaff = score.staves[0];
 		var maxLine = topStaff.measures[topStaff.measures.length - 1].lineIndex;
 		var svg = renderer.getContext().svg;
-		if (suiSimpleLayout.debugLayout) {
+		if (suiLayoutBase.debugLayout) {
 			$(renderer.getContext().svg).find('g.measure-adjust-dbg').remove();
 		}
 
@@ -136,7 +136,7 @@ class suiAdjuster {
 					}
 				});
 				// Make sure each note head is not squishing
-				measures.forEach((mm) => {suiAdjuster._spaceNotes(svg,mm);});
+				measures.forEach((mm) => {suiLayoutAdjuster._spaceNotes(svg,mm);});
 
 				if (measures.length) {
 					var widest = measures.map((x) => {
@@ -161,7 +161,7 @@ class suiAdjuster {
 				if (last && measure.measureNumber.systemIndex > 0) {
 					measure.staffX = last.staffX + last.staffWidth;
 				}
-				if (suiSimpleLayout.debugLayout) {
+				if (suiLayoutBase.debugLayout) {
 					var dbgBox = svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height);
 					svgHelpers.debugBox(svg, dbgBox, 'measure-adjust-dbg', 10);
 				}
@@ -191,7 +191,7 @@ class suiAdjuster {
 		var maxYPerLine = [];
 		var lineIndexPerLine = [];
 
-		if (suiSimpleLayout.debugLayout) {
+		if (suiLayoutBase.debugLayout) {
 			$(renderer.getContext().svg).find('g.measure-adjust-dbg').remove();
 		}
 		var accum = 0;
@@ -225,7 +225,7 @@ class suiAdjuster {
 				
 				var thisLineMaxY = maxYMeasure.logicalBox.y + maxYMeasure.logicalBox.height;
 				
-				var modAdj = suiAdjuster._minMaxYModifier(staff,minYRenderedY,thisLineMaxY);
+				var modAdj = suiLayoutAdjuster._minMaxYModifier(staff,minYRenderedY,thisLineMaxY);
 				minYRenderedY=modAdj.minY;
 				thisLineMaxY=modAdj.maxY;
 
@@ -237,7 +237,7 @@ class suiAdjuster {
 					var staffY = minYStaffY+ accum;					
 					measures.forEach((measure) => {
 						measure.staffY = staffY;
-						if (suiSimpleLayout.debugLayout) {
+						if (suiLayoutBase.debugLayout) {
 							var dbgBox = svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height);
 							svgHelpers.debugBox(svg, dbgBox, 'measure-adjust-dbg', 10);
 						}
@@ -253,7 +253,7 @@ class suiAdjuster {
 					measures.forEach((measure) => {
 						var ll = measures.logicalBox;
 						measure.staffY = staffY;
-						if (suiSimpleLayout.debugLayout) {
+						if (suiLayoutBase.debugLayout) {
 							var dbgBox = svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height);
 							svgHelpers.debugBox(svg, dbgBox, 'measure-adjust-dbg', 10);
 						}

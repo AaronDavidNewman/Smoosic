@@ -40,7 +40,7 @@ class suiController {
 
 		this.bindEvents();
 		this.bindResize();
-		if (!suiSimpleLayout.debugLayout) {
+		if (!suiLayoutBase.debugLayout) {
 			this.splash();
 		    this.pollRedraw();
 		}
@@ -213,7 +213,7 @@ class suiController {
 			$('h1.testTitle').text(title);
 		}
 		var params = suiController.keyBindingDefaults;
-		params.layout = suiSimpleLayout.createScoreLayout(document.getElementById("boo"), score);
+		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), score);
 		params.tracker = new suiTracker(params.layout);
 		params.score = score;
 		params.editor = new suiEditor(params);
@@ -225,8 +225,8 @@ class suiController {
 	static createDebugUi(score) {
 		suiController.createDom();
 		var params = suiController.keyBindingDefaults;
-		params.layout = suiSimpleLayout.createScoreLayout(document.getElementById("boo"), score);
-		suiSimpleLayout.debugLayout=true;
+		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), score);
+		suiLayoutBase.debugLayout=true;
 		params.tracker = new suiTracker(params.layout);
 		params.score = score;
 		params.editor = new suiEditor(params);

@@ -16,7 +16,7 @@ module.exports = function (grunt) {
                     'src/smo/xform/operations.js', 'src/smo/xform/undo.js', 'src/smo/xform/copypaste.js',
                     'src/render/vex/vxMeasure.js', 'src/render/vex/vxSystem.js',
                     'src/render/sui/tracker.js', 'src/render/sui/layout.js', 'src/render/sui/piano.js',
-					'src/render/sui/adjuster.js',
+					'src/render/sui/adjuster.js','src/render/sui/scoreLayout.js',
 					'src/ui/editor.js', 'src/ui/menus.js', 'src/ui/utController.js',
 					'src/ui/exceptions.js',
 					'src/ui/keyBindings/default/editorKeys.js','src/ui/keyBindings/default/trackerKeys.js',
