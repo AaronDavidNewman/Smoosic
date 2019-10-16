@@ -68,7 +68,6 @@
             <File name="src\test\testAll.html" />
             <File name="src\test\editorTest.js" />
             <File name="src\test\editorTest.html" />
-            <File name="src\test\serializeTestJson.js" />
             <File name="src\test\pasteTest.html" />
             <File name="src\test\pasteTest.js" />
             <File name="src\test\keySignatureTest.html" />
@@ -80,6 +79,8 @@
             <File name="src\test\measureTest.html" />
             <File name="src\test\measureTest.js" />
             <File name="src\test\debugTest.html" />
+            <File name="src\test\textTest.html" />
+            <File name="src\test\textTest.js" />
         </Folder>
         <Folder name="render">
             <Folder name="vex">
@@ -91,6 +92,7 @@
                 <File name="src\render\sui\tracker.js" />
                 <File name="src\render\sui\layout.js" />
                 <File name="src\render\sui\piano.js" />
+                <File name="src\render\sui\adjuster.js" />
             </Folder>
         </Folder>
         <Folder name="styles">
