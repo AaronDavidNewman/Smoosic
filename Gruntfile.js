@@ -16,6 +16,7 @@ module.exports = function (grunt) {
                     'src/smo/xform/operations.js', 'src/smo/xform/undo.js', 'src/smo/xform/copypaste.js',
                     'src/render/vex/vxMeasure.js', 'src/render/vex/vxSystem.js',
                     'src/render/sui/tracker.js', 'src/render/sui/layout.js', 'src/render/sui/piano.js',
+					'src/render/sui/adjuster.js',
 					'src/ui/editor.js', 'src/ui/menus.js', 'src/ui/utController.js',
 					'src/ui/exceptions.js',
 					'src/ui/keyBindings/default/editorKeys.js','src/ui/keyBindings/default/trackerKeys.js',
@@ -29,7 +30,8 @@ module.exports = function (grunt) {
                 src: ['src/test/chordTest.js', 'src/test/undoTest.js', 'src/test/timeSignatureTest.js',
                     'src/test/keySignatureTest.js',
                     'src/test/tupletTest.js', 'src/test/serializeTestJson.js', 'src/test/pasteTest.js',
-                    'src/test/voiceTest.js', 'src/test/trackerTest.js', 'src/test/clefTest.js','src/test/measureTest.js','src/test/testAll.js'],
+                    'src/test/voiceTest.js', 'src/test/trackerTest.js', 'src/test/clefTest.js','src/test/measureTest.js','src/test/testAll.js',
+					'src/test/textTest.js'],
                 dest: 'build/smoTests.js'
 
             },

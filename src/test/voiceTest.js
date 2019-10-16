@@ -61,7 +61,9 @@ class VoiceTest {
 			subTitle('serialize test');
 			layout.unrenderAll();
 			$('#boo').html('');
-			score = SmoScore.deserialize(JSON.stringify(score.serialize()));
+			var ser = score.serialize();
+			var string = JSON.stringify(ser);
+			score = SmoScore.deserialize(string);
 			keys.detach();
 			keys = utController.createUi(score,'Serializer Test');
 			return keys.layout.render().then(timeTest);

@@ -132,24 +132,15 @@ class svgHelpers {
 
 	}
 	
-	static placeSvgText(svg,x,y,fontInfo,classes,text) {
+	static placeSvgText(svg,attributes,classes,text) {
 		var ns = svgHelpers.namespace;
 		var e = document.createElementNS(ns, 'text');
-		var fontAttrs = ['size','family','weight','style','stretch'];
-		x = typeof(x) == 'string' ? x : x.toString();
-		y = typeof(y) == 'string' ? y : y.toString();
-		e.setAttributeNS('', 'x', x);
-		e.setAttributeNS('', 'y', y);
+		attributes.forEach((attr) => {
+			var key = Object.keys(attr)[0];
+		    e.setAttributeNS('', key, attr[key]);
+		})
 		if (classes) {
 			e.setAttributeNS('', 'class', classes);
-		}
-		fontAttrs.forEach((attr) => {
-			if (fontInfo[attr]) {
-				e.setAttributeNS('','font-'+attr,fontInfo[attr]);						
-			}
-		});
-		if (fontInfo.fill) {
-			e.setAttributeNS('','fill',fontInfo.fill);
 		}
 		e.textContent = text;
 		svg.appendChild(e);	

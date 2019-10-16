@@ -91,7 +91,7 @@ class SmoScore {
         var staves = [];
         smoMusic.serializedMerge(
             SmoScore.defaultAttributes,
-            jsonObj, params);
+            jsonObj.score, params);
         jsonObj.staves.forEach((staffObj) => {
             var staff = SmoSystemStaff.deserialize(staffObj);
             staves.push(staff);
@@ -104,7 +104,7 @@ class SmoScore {
 
         let score = new SmoScore(params);
 		score.scoreText=scoreText;
-		
+		return score;
     }
 
     // ### getDefaultScore
@@ -281,6 +281,19 @@ class SmoScore {
 	
 	addScoreText(textObject) {
 		this._updateScoreText(textObject,true)
+	}
+	
+	getScoreText(id) {
+		if (!this.scoreText.length) {
+			return null;
+		}
+		var ar = this.scoreText.filter((tt) => {
+			return tt.attrs.id=id;
+		});
+		if(ar.length) {
+			return ar[0];
+		}
+		return null;
 	}
 	
 	removeScoreText(textObject) {

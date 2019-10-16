@@ -660,12 +660,14 @@ class svgHelpers {
 				self.e.setAttributeNS('', name, value);
 				return self;
 			}
+			
 			this.text = function (x, y, classes, text) {
 				x = typeof(x) == 'string' ? x : x.toString();
 				y = typeof(y) == 'string' ? y : y.toString();
 				this.e.setAttributeNS('', 'class', classes);
 				this.e.setAttributeNS('', 'x', x);
 				this.e.setAttributeNS('', 'y', y);
+				
 				this.e.textContent = text;
 				return this;
 			}
@@ -750,6 +752,20 @@ class svgHelpers {
 		}
 		svg.appendChild(r.dom());
 
+	}
+	
+	static placeSvgText(svg,attributes,classes,text) {
+		var ns = svgHelpers.namespace;
+		var e = document.createElementNS(ns, 'text');
+		attributes.forEach((attr) => {
+			var key = Object.keys(attr)[0];
+		    e.setAttributeNS('', key, attr[key]);
+		})
+		if (classes) {
+			e.setAttributeNS('', 'class', classes);
+		}
+		e.textContent = text;
+		svg.appendChild(e);	
 	}
 
 	// ### findIntersectionArtifact
@@ -2425,9 +2441,8 @@ class SmoBarline extends SmoMeasureModifierBase {
     constructor(parameters) {
         super('SmoBarline');
         parameters = parameters ? parameters : {};
-        smoMusic.serializedMerge(['position', 'barline'], SmoBarline.defaults, this);
-        smoMusic.serializedMerge(['position', 'barline'], parameters, this);
-       
+        smoMusic.serializedMerge(SmoBarline.attributes, SmoBarline.defaults, this);
+        smoMusic.serializedMerge(SmoBarline.attributes, parameters, this);       
     }
 
     static get toVexBarline() {
@@ -2893,6 +2908,7 @@ class SmoScore {
             measureTickmap: [],
             staves: [],
             activeStaff: 0,
+			scoreText:[]
         };
     }
 	static get pageSizes() {
@@ -2925,11 +2941,16 @@ class SmoScore {
         smoMusic.serializedMerge(SmoScore.defaultAttributes, this, params);
         var obj = {
             score: params,
-            staves: []
+            staves: [],
+			scoreText:[]
         };
         this.staves.forEach((staff) => {
             obj.staves.push(staff.serialize());
         });
+		
+		this.scoreText.forEach((tt) => {
+			obj.scoreText.push(tt.serialize());
+		});
         return obj;
     }
     // ### deserialize
@@ -2940,14 +2961,20 @@ class SmoScore {
         var staves = [];
         smoMusic.serializedMerge(
             SmoScore.defaultAttributes,
-            jsonObj, params);
+            jsonObj.score, params);
         jsonObj.staves.forEach((staffObj) => {
             var staff = SmoSystemStaff.deserialize(staffObj);
             staves.push(staff);
         });
+		var scoreText=[];
+		jsonObj.scoreText.forEach((tt) => {
+			scoreText.push(SmoScoreText.deserialize(tt));
+		});
         params.staves = staves;
 
-        return new SmoScore(params);
+        let score = new SmoScore(params);
+		score.scoreText=scoreText;
+		return score;
     }
 
     // ### getDefaultScore
@@ -2998,7 +3025,6 @@ class SmoScore {
     }
 
     // ### deleteMeasure
-    // ### Description:
     // Delete the measure at the supplied index in all the staves.
     deleteMeasure(measureIndex) {
         this.staves.forEach((staff) => {
@@ -3006,8 +3032,8 @@ class SmoScore {
         });
 
     }
+
     // ### addMeasure
-    // ### Description:
     // Give a measure prototype, create a new measure and add it to each staff, with the
     // correct settings for current time signature/clef.
     addMeasure(measureIndex, measure) {
@@ -3016,7 +3042,7 @@ class SmoScore {
             var protomeasure = measure;
             var staff = this.staves[i];
             // Since this staff may already have instrument settings, use the
-            // immediately precending or post-ceding measure if it exists.
+            // immediately preceeding or post-ceding measure if it exists.
             if (measureIndex < staff.measures.length) {
                 protomeasure = staff.measures[measureIndex];
             } else if (staff.measures.length) {
@@ -3029,15 +3055,16 @@ class SmoScore {
     }
 
     // ### replaceMeasure
-    // ### Description:
     // Replace the measure at the given location.  Probably due to an undo operation or paste.
     replaceMeasure(selector, measure) {
         var staff = this.staves[selector.staff];
         staff.measures[selector.measure] = measure;
     }
+
+    // ### addScoreText 
+    // 
 	
     // ### replace staff
-	// ### Description:
 	// Probably due to an undo operation, replace the staff at the given index.
     replaceStaff(index, staff) {
         var staves = [];
@@ -3051,7 +3078,7 @@ class SmoScore {
         this.staves = staves;
     }
     // ### addKeySignature
-    // ### Add a key signature at the specified index in all staves.
+    // Add a key signature at the specified index in all staves.
     addKeySignature(measureIndex, key) {
         this.staves.forEach((staff) => {
             staff.addKeySignature(measureIndex, key);
@@ -3059,7 +3086,6 @@ class SmoScore {
     }
 
     // ### addInstrument
-    // ### Description:
     // add a new staff (instrument) to the score
     addStaff(parameters) {
         if (this.staves.length == 0) {
@@ -3095,6 +3121,8 @@ class SmoScore {
 		this._numberStaves();
     }
 
+    // ### removeStaff
+	// Remove stave at the given index
     removeStaff(index) {
         var staves = [];
         var ix = 0;
@@ -3107,6 +3135,40 @@ class SmoScore {
         this.staves = staves;
         this._numberStaves();
     }
+	
+	_updateScoreText(textObject,toAdd) {
+		var texts=[];
+		this.scoreText.forEach((tt) => {
+			if (textObject.attrs.id !=  tt.attrs.id) {
+				textx.push(tt);
+			}
+		});
+	    if (toAdd) {
+			texts.push(textObject);
+		}
+		this.scoreText = texts;
+	}
+	
+	addScoreText(textObject) {
+		this._updateScoreText(textObject,true)
+	}
+	
+	getScoreText(id) {
+		if (!this.scoreText.length) {
+			return null;
+		}
+		var ar = this.scoreText.filter((tt) => {
+			return tt.attrs.id=id;
+		});
+		if(ar.length) {
+			return ar[0];
+		}
+		return null;
+	}
+	
+	removeScoreText(textObject) {
+		this._updateScoreText(textObject,false);
+	}	
 
     getMaxTicksMeasure(measure) {
         return this.staves[this.activeStaff].getMaxTicksMeasure(measure);
@@ -4848,6 +4910,10 @@ class SmoOperation {
 			});
 			s += 1;
 		});
+	}
+	
+	static addScoreText(score,scoreText) {
+		score.addScoreText(scoreText);
 	}
 
 	static setMeasureBarline(score, selection, barline) {
@@ -7160,98 +7226,7 @@ class suiSimpleLayout {
 		}
 		return width;
 	}
-	
-	_minMaxYModifier(staff,minY,maxY) {
-		staff.modifiers.forEach((modifier) => {
-			minY = modifier.logicalBox.y < minY ? modifier.logicalBox.y : minY;
-			var max = modifier.logicalBox.y + modifier.logicalBox.height;
-			maxY = max > maxY ? max : maxY;	 
-			});
 
-		return {minY:minY,maxY:maxY};
-	}
-
-	// ### adjustHeight
-	// Handle measure bumping into each other, vertically.
-	adjustHeight() {
-		var topStaff = this.score.staves[0];
-		var maxLine = topStaff.measures[topStaff.measures.length - 1].lineIndex;
-		var svg = this.context.svg;
-		// array of the max Y measure per line, used to space next line down
-		var maxYPerLine = [];
-		var lineIndexPerLine = [];
-
-		if (suiSimpleLayout.debugLayout) {
-			$(this.renderer.getContext().svg).find('g.measure-adjust-dbg').remove();
-		}
-		var accum = 0;
-		for (var i = 0; i <= maxLine; ++i) {
-			for (var j = 0; j < this.score.staves.length; ++j) {
-				var absLine = this.score.staves.length * i + j;
-				var staff = this.score.staves[j];
-				var measures = staff.measures.filter((mm) => {
-						return mm.lineIndex === i
-					});
-
-				if (measures.length === 0) {
-					continue;
-				}
-
-				// maxYMeasure is measure on this line with y closest to bottom of page (maxYMeasure y point)
-				var maxYMeasure = measures.reduce((a, b) => {
-						if (a.logicalBox.y + a.logicalBox.height >
-							b.logicalBox.y + b.logicalBox.height) {
-							return a;
-						}
-						return b;
-					});
-				// minYMeasure is measure on this line with y closest to top of the page
-				var minYMeasure = measures.reduce((a, b) => {
-						return a.logicalBox.y < b.logicalBox.y ? a : b;
-					});
-					
-				var minYRenderedY = minYMeasure.logicalBox.y;
-				var minYStaffY = minYMeasure.staffY;
-				
-				var thisLineMaxY = maxYMeasure.logicalBox.y + maxYMeasure.logicalBox.height;
-				
-				var modAdj = this._minMaxYModifier(staff,minYRenderedY,thisLineMaxY);
-				minYRenderedY=modAdj.minY;
-				thisLineMaxY=modAdj.maxY;
-
-				maxYPerLine.push(thisLineMaxY);
-				lineIndexPerLine.push(maxYMeasure.lineIndex);
-
-				if (absLine == 0) {
-					accum = this.score.layout.topMargin - minYRenderedY;					
-					var staffY = minYStaffY+ accum;					
-					measures.forEach((measure) => {
-						measure.staffY = staffY;
-						if (suiSimpleLayout.debugLayout) {
-							var dbgBox = svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height);
-							svgHelpers.debugBox(svg, dbgBox, 'measure-adjust-dbg', 10);
-						}
-					});
-				} else {
-					var my = maxYPerLine[absLine - 1]  + this.score.layout.intraGap;
-					var delta = my - minYRenderedY;
-					if (lineIndexPerLine[absLine - 1] < minYMeasure.lineIndex) {
-						delta += this.score.layout.interGap;
-					}
-					accum += delta;
-					var staffY = minYStaffY + accum;					
-					measures.forEach((measure) => {
-						var ll = measures.logicalBox;
-						measure.staffY = staffY;
-						if (suiSimpleLayout.debugLayout) {
-							var dbgBox = svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height);
-							svgHelpers.debugBox(svg, dbgBox, 'measure-adjust-dbg', 10);
-						}
-					});
-				}
-			}
-		}
-	}
 
 	// ### unrenderMeasure
 	// ### Description:
@@ -7297,6 +7272,15 @@ class suiSimpleLayout {
 		var staff = this.score.staves[j];
 		var measure = staff.measures[i];
 		return (i > 0 ? staff.measures[i - 1][attr] : measure[attr]);
+	}
+	
+	_renderScoreModifiers() {
+		var svg = this.context.svg;
+		$(this.renderer.getContext().svg).find('text.score-text').remove();
+		this.score.scoreText.forEach((tt) => {
+			var classes = tt.attrs.id+' '+'score-text'+' '+tt.classes;
+			svgHelpers.placeSvgText(svg,tt.toSvgAttributes(),classes,tt.text);
+		});
 	}
 
 	// ### _renderModifiers
@@ -7391,7 +7375,7 @@ class suiSimpleLayout {
 			params.useX = true;
 		}
 		this.justifyWidths();
-		this.adjustHeight();
+		suiAdjuster.adjustHeight(this.score,this.renderer);
 		params.useY=true;
 		this.layout(params);
 	}
@@ -7576,6 +7560,7 @@ class suiSimpleLayout {
 		this.score.staves.forEach((stf) => {
 			this._renderModifiers(stf, system);
 		});
+		this._renderScoreModifiers();
 		if (useAdjustedY) {
 			system.cap();
 		}
@@ -7810,6 +7795,102 @@ class suiPiano {
 	}
 }
 ;
+// ## suiAdjuster
+// Perform adjustments on the score based on the rendered components so we can re-render it more legibly.
+class suiAdjuster {	
+		
+	static _minMaxYModifier(staff,minY,maxY) {
+		staff.modifiers.forEach((modifier) => {
+			minY = modifier.logicalBox.y < minY ? modifier.logicalBox.y : minY;
+			var max = modifier.logicalBox.y + modifier.logicalBox.height;
+			maxY = max > maxY ? max : maxY;	 
+			});
+
+		return {minY:minY,maxY:maxY};
+	}
+
+	// ### adjustHeight
+	// Handle measure bumping into each other, vertically.
+	static adjustHeight(score,renderer) {
+		var topStaff = score.staves[0];
+		var maxLine = topStaff.measures[topStaff.measures.length - 1].lineIndex;
+		var svg = renderer.getContext().svg;
+		// array of the max Y measure per line, used to space next line down
+		var maxYPerLine = [];
+		var lineIndexPerLine = [];
+
+		if (suiSimpleLayout.debugLayout) {
+			$(renderer.getContext().svg).find('g.measure-adjust-dbg').remove();
+		}
+		var accum = 0;
+		for (var i = 0; i <= maxLine; ++i) {
+			for (var j = 0; j < score.staves.length; ++j) {
+				var absLine = score.staves.length * i + j;
+				var staff = score.staves[j];
+				var measures = staff.measures.filter((mm) => {
+						return mm.lineIndex === i
+					});
+
+				if (measures.length === 0) {
+					continue;
+				}
+
+				// maxYMeasure is measure on this line with y closest to bottom of page (maxYMeasure y point)
+				var maxYMeasure = measures.reduce((a, b) => {
+						if (a.logicalBox.y + a.logicalBox.height >
+							b.logicalBox.y + b.logicalBox.height) {
+							return a;
+						}
+						return b;
+					});
+				// minYMeasure is measure on this line with y closest to top of the page
+				var minYMeasure = measures.reduce((a, b) => {
+						return a.logicalBox.y < b.logicalBox.y ? a : b;
+					});
+					
+				var minYRenderedY = minYMeasure.logicalBox.y;
+				var minYStaffY = minYMeasure.staffY;
+				
+				var thisLineMaxY = maxYMeasure.logicalBox.y + maxYMeasure.logicalBox.height;
+				
+				var modAdj = suiAdjuster._minMaxYModifier(staff,minYRenderedY,thisLineMaxY);
+				minYRenderedY=modAdj.minY;
+				thisLineMaxY=modAdj.maxY;
+
+				maxYPerLine.push(thisLineMaxY);
+				lineIndexPerLine.push(maxYMeasure.lineIndex);
+
+				if (absLine == 0) {
+					accum = score.layout.topMargin - minYRenderedY;					
+					var staffY = minYStaffY+ accum;					
+					measures.forEach((measure) => {
+						measure.staffY = staffY;
+						if (suiSimpleLayout.debugLayout) {
+							var dbgBox = svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height);
+							svgHelpers.debugBox(svg, dbgBox, 'measure-adjust-dbg', 10);
+						}
+					});
+				} else {
+					var my = maxYPerLine[absLine - 1]  + score.layout.intraGap;
+					var delta = my - minYRenderedY;
+					if (lineIndexPerLine[absLine - 1] < minYMeasure.lineIndex) {
+						delta += score.layout.interGap;
+					}
+					accum += delta;
+					var staffY = minYStaffY + accum;					
+					measures.forEach((measure) => {
+						var ll = measures.logicalBox;
+						measure.staffY = staffY;
+						if (suiSimpleLayout.debugLayout) {
+							var dbgBox = svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height);
+							svgHelpers.debugBox(svg, dbgBox, 'measure-adjust-dbg', 10);
+						}
+					});
+				}
+			}
+		}
+	}
+};
 
 class suiEditor {
     constructor(params) {

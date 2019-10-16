@@ -8,6 +8,7 @@ class StaffTest {
         score.addDefaultMeasureWithNotes(0,{});
         score.addDefaultMeasureWithNotes(1,{});
         score.addDefaultMeasureWithNotes(2,{});
+		var tt = new SmoScoreText({text:'Hello world',x:240,y:15});
 		// var measure = SmoSelection.measureSelection(score, 0, 0).measure;
 		
 		var detach = () => {
@@ -41,12 +42,33 @@ class StaffTest {
 			return layout.render().then(timeTest);
 		}
 		
-		var scoreText = () => {
-			var tt = new SmoScoreText({text:'Hello world',x:240,y:15});
+		var scoreText1 = () => {
+			
 			score.addScoreText(tt);
 			return layout.render().then(timeTest);
 		}
+		
+		var scoreText2 = () => {
+			tt = score.getScoreText(tt.attrs.id);
+			tt.boxModel='spacing';
+			tt.width=100;
+			return layout.render().then(timeTest);			
+		}
+		
+		var scoreText3 = () => {
+			tt = score.getScoreText(tt.attrs.id);
+			tt.boxModel='spacingAndGlyphs';
+			tt.fontInfo.size=20;
+			tt.width=100;
+			return layout.render().then(timeTest);	
+		}
+		
+		var scoreText4 = () => {
+			tt = score.getScoreText(tt.attrs.id);
+			tt.transform='scale(1.5)';
+			return layout.render().then(timeTest);	
+		}
       
-        return drawDefaults().then(scoreText).then(signalComplete);
+        return drawDefaults().then(scoreText1).then(scoreText2).then(scoreText3).then(scoreText3).then(scoreText4).then(signalComplete);
     }
 }
