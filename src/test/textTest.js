@@ -65,10 +65,22 @@ class StaffTest {
 		
 		var scoreText4 = () => {
 			tt = score.getScoreText(tt.attrs.id);
-			tt.transform='scale(1.5)';
-			return layout.render().then(timeTest);	
+			tt.scaleInPlace(1.5);
+			return layout.render().then(timeTest);
+		}
+		
+		var _scaleUp = () => {
+			tt = score.getScoreText(tt.attrs.id);
+			tt.scaleInPlace(1.2);
+			return layout.render().then(timeTest);
+		}
+		
+		var scaleUp = () => {
+			var p = _scaleUp();
+			return p.then(_scaleUp).then(timeTest); // .then(_scaleUp);
 		}
       
-        return drawDefaults().then(scoreText1).then(scoreText2).then(scoreText3).then(scoreText3).then(scoreText4).then(signalComplete);
+        return drawDefaults().then(scoreText1).then(scoreText2).then(scoreText3).then(scoreText3).then(scoreText4).
+		   then(scaleUp).then(signalComplete);
     }
 }

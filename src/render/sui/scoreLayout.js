@@ -74,7 +74,17 @@ class suiScoreLayout extends suiLayoutBase {
 		$(this.renderer.getContext().svg).find('text.score-text').remove();
 		this.score.scoreText.forEach((tt) => {
 			var classes = tt.attrs.id+' '+'score-text'+' '+tt.classes;
-			svgHelpers.placeSvgText(svg,tt.toSvgAttributes(),classes,tt.text);
+			var el = svgHelpers.placeSvgText(svg,tt.toSvgAttributes(),classes,tt.text);
+			
+			 var box = el.getBoundingClientRect();
+		     var lbox = svgHelpers.clientToLogical(svg,box);
+             tt.renderedBox = {
+                x: box.x,
+                y: box.y,
+                height: box.height,
+                width: box.width
+			};
+			tt.logicalBox = lbox;
 		});
 	}	
 

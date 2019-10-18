@@ -93,6 +93,7 @@
                 <File name="src\render\sui\layout.js" />
                 <File name="src\render\sui\piano.js" />
                 <File name="src\render\sui\adjuster.js" />
+                <File name="src\render\sui\scoreLayout.js" />
             </Folder>
         </Folder>
         <Folder name="styles">

@@ -144,6 +144,7 @@ class svgHelpers {
 		}
 		e.textContent = text;
 		svg.appendChild(e);	
+		return e;
 	}
 
 	// ### findIntersectionArtifact

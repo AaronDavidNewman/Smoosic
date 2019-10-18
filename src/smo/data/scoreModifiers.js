@@ -49,8 +49,10 @@ class SmoScoreText extends SmoScoreModifierBase {
 			rotate:0,
 			classes:'',
 			boxModel:'none',
-			transform:'scale  (1.0 1.0)',
-				
+			scaleX:1.0,
+			scaleY:1.0,
+			translateX:0,
+			translateY:0,						
 			pagination:'every',
 			position:'title'
         };
@@ -72,7 +74,8 @@ class SmoScoreText extends SmoScoreModifierBase {
 			rv.push({textLength:len});
 			rv.push({lengthAdjust:this.boxModel});
 		}
-		rv.push({transform:this.transform});
+		rv.push({transform:'translate ('+this.translateX+' '+this.translateY+') scale ('+
+		    this.scaleX+' '+this.scaleY+')'});
 		return rv;
 	}
 
@@ -82,8 +85,16 @@ class SmoScoreText extends SmoScoreModifierBase {
         return params;    
 	}
     static get attributes() {
-        return ['x','y','text','pagination','position','fontInfo','classes','boxModel','fill','width','height','transform'];
+        return ['x','y','text','pagination','position','fontInfo','classes','boxModel','fill','width','height','scaleX','scaleY','translateX','translateY'];
     }
+	scaleInPlace(factor) {
+		this.scaleX = this.scaleX*factor;
+		this.scaleY = this.scaleY*factor;
+		var translateX = this.logicalBox.x-this.logicalBox.x*factor;
+		var translateY = this.logicalBox.y-this.logicalBox.y*factor;
+		this.x += translateX;
+		this.y += translateY;
+	}
     constructor(parameters) {
         super('SmoScoreText');
         parameters = parameters ? parameters : {};
