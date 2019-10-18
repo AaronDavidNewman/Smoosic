@@ -22,7 +22,7 @@ class StaffTest {
 					setTimeout(() => {
 						resolve();
 					},
-						500);
+						100);
 				});
 			return promise;
 		}
@@ -65,6 +65,7 @@ class StaffTest {
 		
 		var scoreText4 = () => {
 			tt = score.getScoreText(tt.attrs.id);
+			tt.fontInfo.family='Arial';
 			tt.scaleInPlace(1.5);
 			return layout.render().then(timeTest);
 		}
@@ -79,8 +80,46 @@ class StaffTest {
 			var p = _scaleUp();
 			return p.then(_scaleUp).then(timeTest); // .then(_scaleUp);
 		}
+		
+		var _scaleDown = () => {
+			tt = score.getScoreText(tt.attrs.id);
+			tt.scaleInPlace(0.8);
+			return layout.render().then(timeTest);
+		}
+		var scaleDown = () => {
+			var p = _scaleDown();
+			return p.then(_scaleDown).then(timeTest); // .then(_scaleUp);
+		}
+		
+		var _moveText = () => {
+			tt = score.getScoreText(tt.attrs.id);
+			tt.x = tt.x + 30;
+			tt.y = tt.y + 10;
+			return layout.render().then(timeTest);
+		}
+		
+		var moveText  = () => {
+			var p = _moveText();
+			return p.then(_moveText).then(timeTest); // .then(_scaleUp);
+		}
+		
+		var measureText1 = () => {
+			tt = score.getScoreText(tt.attrs.id);
+			tt.x = 240;
+			tt.y = 30;
+			tt.scaleX=1.0;
+			tt.scaleY=1.0;
+			tt.translateX=0;
+			tt.translateY=0;
+			
+			var measureText = new SmoMeasureText({position:SmoMeasureText.positions.above,text:'Measure Text'});
+			var selection = SmoSelection.measureSelection(score, 0, 0);
+			selection.measure.addMeasureText(measureText);
+			
+			return layout.render().then(timeTest);					
+		}
       
         return drawDefaults().then(scoreText1).then(scoreText2).then(scoreText3).then(scoreText3).then(scoreText4).
-		   then(scaleUp).then(signalComplete);
+		   then(scaleUp).then(scaleDown).then(moveText).then(measureText1).then(signalComplete);
     }
 }

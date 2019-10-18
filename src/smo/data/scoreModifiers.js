@@ -41,7 +41,7 @@ class SmoScoreText extends SmoScoreModifierBase {
             text: 'Smoosic',
 			fontInfo: {
 				size: '12px',
-				family:'serif',
+				family:'times',
 				style:'normal',
 				weight:'normal'
 			},

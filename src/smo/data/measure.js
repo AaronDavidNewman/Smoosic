@@ -387,6 +387,29 @@ class SmoMeasure {
 		}
 		return -1;
 	}
+	
+	addMeasureText(mod) {
+		var added = false;
+		var exist = this.modifiers.filter((mm) => {
+			return mm.attrs.id === mod.attrs.id;
+		});
+		if (exist.length) {
+			return;
+		}
+		this.modifiers.push(mod);
+		this.changed=true;
+	}
+	
+	getMeasureText() {
+		return this.modifiers.filter(obj => obj.ctor === 'SmoMeasureText');
+	}
+	
+	removeMeasureText(id) {
+		var ar= this.modifiers.filter(obj => obj.attrs.id != id);
+		this.modifiers=ar;
+		this.changed=true;
+	}
+	
 	setRepeatSymbol(rs) {
 		var ar = [];
 		var toAdd = true;

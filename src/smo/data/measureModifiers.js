@@ -1,4 +1,6 @@
 
+// ## Measure modifiers are elements that are attached to the bar itself, like barlines or measure-specific text,
+// repeats - lots of stuff
 class SmoMeasureModifierBase {
     constructor(ctor) {
         this.ctor = ctor;
@@ -223,6 +225,65 @@ class SmoVolta extends SmoMeasureModifierBase {
 			return VF.Volta.type.MID;
 		}
 		return VF.Volta.type.NONE;
+	}		
+}
+
+class SmoMeasureText extends SmoMeasureModifierBase {
+	static get positions() {
+		return {above:0,below:1,left:2,right:3};
 	}
 	
+	static get justifications() {
+		return {left:0,right:1,center:2}
+	}
+	
+	static get _positionToString() {
+		return ['above','below','left','right'];
+	}
+	
+	static get toVexPosition() {
+		return [VF.Modifier.Position.ABOVE,VF.Modifier.Position.BELOW,VF.Modifier.Position.LEFT,VF.Modifier.Position.RIGHT];
+	}
+	static get toVexJustification() {
+		return [VF.TextNote.LEFT,VF.TextNote.RIGHT,VF.TextNote.CENTER];
+	}
+	
+	toVexJustification() {
+		return SmoMeasureText.toVexJustification[this.justification];
+	}
+	toVexPosition() {
+		return SmoMeasureText.toVexPosition[this.position];
+	}
+	static get attributes() {
+		return ['position','fontInfo','text','adjustX','adjustY','justification'];
+	}
+	
+	static get defaults() {
+		return {
+			position:SmoMeasureText.positions.above,
+			fontInfo: {
+				size: '12px',
+				family:'times',
+				style:'normal',
+				weight:'normal'
+			},
+			text:'Smo',
+			adjustX:0,
+			adjustY:0,
+			justification:SmoMeasureText.justifications.center
+		};
+	}
+	serialize() {
+        var params = {};
+        smoMusic.filteredMerge(SmoMeasureText.attributes, this, params);
+        params.ctor = 'SmoMeasureText';
+        return params;
+	}
+	
+	constructor(parameters) {
+		super('SmoMeasureText');
+        parameters = parameters ? parameters : {};
+        smoMusic.serializedMerge(SmoMeasureText.attributes, SmoMeasureText.defaults, this);
+        smoMusic.serializedMerge(SmoMeasureText.attributes, parameters, this);
+	}
 }

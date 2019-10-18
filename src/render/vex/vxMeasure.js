@@ -248,7 +248,15 @@ class VxMeasure {
 		if (sym && sym.symbol != SmoRepeatSymbol.symbols.None) {
 			var rep = new VF.Repetition(sym.toVexSymbol(),sym.xOffset+this.smoMeasure.staffX,sym.yOffset);
 			this.stave.modifiers.push(rep);
-		}			
+		}
+		var tms = this.smoMeasure.getMeasureText();
+		// TODO: set font
+		tms.forEach((tm) => {
+			this.stave.setText(tm.text,tm.toVexPosition(),{
+				shift_x:tm.adjustX,shift_y:tm.adjustY,justification:tm.toVexJustification()
+			});
+		});
+		
 	}
 
     // ## Description:
