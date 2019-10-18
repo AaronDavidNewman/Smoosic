@@ -85,6 +85,8 @@ class suiScoreLayout extends suiLayoutBase {
                 width: box.width
 			};
 			tt.logicalBox = lbox;
+			console.log(JSON.stringify(lbox,null,' '));
+			console.log('scale to ' + tt.scaleX + ' ' + tt.scaleY + ' pos ' + tt.x + ' ' + tt.y);
 		});
 	}	
 

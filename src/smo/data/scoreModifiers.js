@@ -87,13 +87,21 @@ class SmoScoreText extends SmoScoreModifierBase {
     static get attributes() {
         return ['x','y','text','pagination','position','fontInfo','classes','boxModel','fill','width','height','scaleX','scaleY','translateX','translateY'];
     }
-	scaleInPlace(factor) {
+	scaleInPlace(factor) {		
 		this.scaleX = this.scaleX*factor;
 		this.scaleY = this.scaleY*factor;
+		var deltax = this.x - this.x*this.scaleX;
+		var deltay = this.y - this.y*this.scaleY;
+		this.translateX = deltax;
+		this.translateY = deltay;
+		
+		// var deltay  = this.y * factor - this.y;
+		// this.y += deltay;
+		
 		// var translateX = this.logicalBox.x-this.logicalBox.x*factor;
 		// var translateY = this.logicalBox.y-this.logicalBox.y*factor;
-		this.x = this.logicalBox.x - this.logicalBox.width*(this.factor/2);
-		// this.y = this.logicalBox.y - this.logicalBox.height*factor;
+		// this.translateX = - this.logicalBox.width*((this.scaleX-1.0)/2);
+		// this.translateY = - this.logicalBox.height*((this.scaleY-1.0)/2);
 	}
     constructor(parameters) {
         super('SmoScoreText');

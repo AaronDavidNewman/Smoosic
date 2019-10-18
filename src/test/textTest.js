@@ -8,7 +8,7 @@ class StaffTest {
         score.addDefaultMeasureWithNotes(0,{});
         score.addDefaultMeasureWithNotes(1,{});
         score.addDefaultMeasureWithNotes(2,{});
-		var tt = new SmoScoreText({text:'Hello world',x:240,y:15});
+		var tt = new SmoScoreText({text:'Hello world',x:240,y:30});
 		// var measure = SmoSelection.measureSelection(score, 0, 0).measure;
 		
 		var detach = () => {
