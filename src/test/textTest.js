@@ -22,7 +22,7 @@ class StaffTest {
 					setTimeout(() => {
 						resolve();
 					},
-						200);
+						500);
 				});
 			return promise;
 		}

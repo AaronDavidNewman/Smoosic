@@ -90,10 +90,10 @@ class SmoScoreText extends SmoScoreModifierBase {
 	scaleInPlace(factor) {
 		this.scaleX = this.scaleX*factor;
 		this.scaleY = this.scaleY*factor;
-		var translateX = this.logicalBox.x-this.logicalBox.x*factor;
-		var translateY = this.logicalBox.y-this.logicalBox.y*factor;
-		this.x += translateX;
-		this.y += translateY;
+		// var translateX = this.logicalBox.x-this.logicalBox.x*factor;
+		// var translateY = this.logicalBox.y-this.logicalBox.y*factor;
+		this.x = this.logicalBox.x - this.logicalBox.width*(this.scaleX/2);
+		// this.y = this.logicalBox.y - this.logicalBox.height*factor;
 	}
     constructor(parameters) {
         super('SmoScoreText');
