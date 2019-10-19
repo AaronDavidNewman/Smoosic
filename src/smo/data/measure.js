@@ -394,6 +394,7 @@ class SmoMeasure {
 			return mm.attrs.id === mod.attrs.id;
 		});
 		if (exist.length) {
+			this.changed=true; // already added but set changed===true to re-justify
 			return;
 		}
 		this.modifiers.push(mod);

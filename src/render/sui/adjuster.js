@@ -54,6 +54,41 @@ class suiLayoutAdjuster {
 		return width;
 	}
 	
+	static estimateTextOffset(renderer,smoMeasure) {
+		var leftText = smoMeasure.modifiers.filter((mm) => mm.ctor==='SmoMeasureText' && mm.position === SmoMeasureText.positions.left);
+		var rightText = smoMeasure.modifiers.filter((mm) => mm.ctor==='SmoMeasureText' && mm.position === SmoMeasureText.positions.right);
+		var svg = renderer.getContext().svg;
+		var xoff=0;
+		var width=0;
+		leftText.forEach((tt) => {
+    		var testText = new SmoScoreText({text:tt.text});
+    		var box = svgHelpers.getTextBox(svg,testText.toSvgAttributes(),testText.classes,testText.text);
+			xoff += box.width;
+		});
+		rightText.forEach((tt) => {
+    		var testText = new SmoScoreText({text:tt.text});
+			var box = svgHelpers.getTextBox(svg,testText.toSvgAttributes(),testText.classes,testText.text);
+			width += box.width;
+		});
+		return svgHelpers.boxPoints(xoff,0,width,0);
+	}
+	
+	static estimateMeasureWidth(renderer,measure,staffBox) {
+		measure.staffX = staffBox.x + staffBox.width;
+	
+		// Calculate the existing staff width, based on the notes and what we expect to be rendered.
+		measure.staffWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
+		measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
+		measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
+		measure.staffWidth = measure.staffWidth  + measure.adjX + measure.adjRight;
+		
+		// Calculate the space for left/right text which displaces the measure.
+		var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(renderer,measure);
+		measure.staffX += textOffsetBox.x;
+		// measure.staffWidth -= textOffsetBox.width;
+		staffBox.x +=  textOffsetBox.width;
+	}
+	
 	// ### justifyWidths
 	// After we adjust widths so each staff has enough room, evenly distribute the remainder widths to the measures.
 	static justifyWidths(score,renderer,pageSize) {

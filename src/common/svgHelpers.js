@@ -89,6 +89,15 @@ class svgHelpers {
 		}
 		return new smoSvgBuilder(el);
 	}
+	
+	// ### getTextBox
+	// Get the logical bounding box of the text for placement.
+	static getTextBox(svg,attributes,classes,text) {
+		var el = svgHelpers.placeSvgText(svg,attributes,classes,text);
+		var box = el.getBBox();
+		svg.removeChild(el);
+		return box;
+	}
 
 	static debugBox(svg, box, classes, voffset) {
 		voffset = voffset ? voffset : 0;

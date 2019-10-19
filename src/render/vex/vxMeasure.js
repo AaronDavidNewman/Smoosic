@@ -252,9 +252,19 @@ class VxMeasure {
 		var tms = this.smoMeasure.getMeasureText();
 		// TODO: set font
 		tms.forEach((tm) => {
-			this.stave.setText(tm.text,tm.toVexPosition(),{
+			/* var vm = new VF.StaveText(tm.text,tm.toVexPosition(),{
 				shift_x:tm.adjustX,shift_y:tm.adjustY,justification:tm.toVexJustification()
 			});
+			vm.setFont(tm.fontInfo);   */
+			this.stave.setText(
+			    tm.text,tm.toVexPosition(),{
+				shift_x:tm.adjustX,shift_y:tm.adjustY,justification:tm.toVexJustification()
+			});
+			// hack - we can't create staveText directly so this is the only way I could set the font
+			var ar = this.stave.getModifiers();
+			var vm=ar[ar.length - 1];
+			vm.setFont(tm.fontInfo);
+			
 		});
 		
 	}

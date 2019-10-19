@@ -189,13 +189,21 @@ class suiScoreLayout extends suiLayoutBase {
 				this.calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast);
 
 				if (!useAdjustedX) {
-    				measure.staffX = staffBox.x + staffBox.width;
+					
+					suiLayoutAdjuster.estimateMeasureWidth(this.renderer,measure,staffBox);
+    				
+					/* measure.staffX = staffBox.x + staffBox.width;
 	
                 	// Calculate the existing staff width, based on the notes and what we expect to be rendered.
 					measure.staffWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
 					measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
 					measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
 					measure.staffWidth = measure.staffWidth  + measure.adjX + measure.adjRight;
+					
+					// Calculate the space for left/right text which displaces the measure.
+					var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(measure);
+					measure.staffX += textOffsetBox.x;
+					measure.width += textOffsetBox.width;   */
 				}
 
 				// Do we need to start a new line?  Don't start a new line on the first measure in a line...
@@ -232,10 +240,13 @@ class suiScoreLayout extends suiLayoutBase {
 					// If we have wrapped lines, calculate the beginning stuff again.
 					this.calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast);
 					if (!useAdjustedX) {
-						measure.staffWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
+						
+						suiLayoutAdjuster.estimateMeasureWidth(this.renderer,measure,staffBox);
+
+						/* measure.staffWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
 						measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
 						measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
-						measure.staffWidth = measure.staffWidth + measure.adjX + measure.adjRight;
+						measure.staffWidth = measure.staffWidth + measure.adjX + measure.adjRight;   */
 					}
 				}
 

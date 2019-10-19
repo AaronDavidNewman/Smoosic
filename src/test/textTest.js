@@ -9,6 +9,8 @@ class StaffTest {
         score.addDefaultMeasureWithNotes(1,{});
         score.addDefaultMeasureWithNotes(2,{});
 		var tt = new SmoScoreText({text:'Hello world',x:240,y:30});
+		var mt=new SmoMeasureText({position:SmoMeasureText.positions.left,text:'Measure Text'});
+		var delay=100;
 		// var measure = SmoSelection.measureSelection(score, 0, 0).measure;
 		
 		var detach = () => {
@@ -22,7 +24,7 @@ class StaffTest {
 					setTimeout(() => {
 						resolve();
 					},
-						100);
+						delay);
 				});
 			return promise;
 		}
@@ -112,14 +114,45 @@ class StaffTest {
 			tt.translateX=0;
 			tt.translateY=0;
 			
-			var measureText = new SmoMeasureText({position:SmoMeasureText.positions.above,text:'Measure Text'});
+			mt = new SmoMeasureText({position:SmoMeasureText.positions.left,text:'Measure Text'});
 			var selection = SmoSelection.measureSelection(score, 0, 0);
-			selection.measure.addMeasureText(measureText);
+			selection.measure.addMeasureText(mt);
+			
+			return layout.render().then(timeTest);					
+		}
+		
+		var measureText2 = () => {
+			delay=1000;
+			
+			mt.position = SmoMeasureText.positions.above;
+			mt.fontInfo.size='7';
+			var selection = SmoSelection.measureSelection(score, 0, 0);
+			selection.measure.addMeasureText(mt);
+			
+			return layout.render().then(timeTest);					
+		}
+		
+				
+		var measureText3 = () => {
+			
+			mt.position = SmoMeasureText.positions.below;
+			var selection = SmoSelection.measureSelection(score, 0, 0);
+			selection.measure.addMeasureText(mt);
 			
 			return layout.render().then(timeTest);					
 		}
       
+		var measureText4 = () => {
+			
+			mt.position = SmoMeasureText.positions.right;
+			var selection = SmoSelection.measureSelection(score, 0, 0);
+			selection.measure.addMeasureText(mt);
+			
+			return layout.render().then(timeTest);					
+		}
+		
         return drawDefaults().then(scoreText1).then(scoreText2).then(scoreText3).then(scoreText3).then(scoreText4).
-		   then(scaleUp).then(scaleDown).then(moveText).then(measureText1).then(signalComplete);
+		   then(scaleUp).then(scaleDown).then(moveText).then(measureText1).
+		   then(measureText2).then(measureText3).then(measureText4).then(signalComplete);
     }
 }

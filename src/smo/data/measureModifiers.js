@@ -262,7 +262,7 @@ class SmoMeasureText extends SmoMeasureModifierBase {
 		return {
 			position:SmoMeasureText.positions.above,
 			fontInfo: {
-				size: '12px',
+				size: '9',
 				family:'times',
 				style:'normal',
 				weight:'normal'
@@ -285,5 +285,11 @@ class SmoMeasureText extends SmoMeasureModifierBase {
         parameters = parameters ? parameters : {};
         smoMusic.serializedMerge(SmoMeasureText.attributes, SmoMeasureText.defaults, this);
         smoMusic.serializedMerge(SmoMeasureText.attributes, parameters, this);
+		
+		// right-justify left text and left-justify right text by default
+		if (!parameters['justification']) {
+			this.justification = (this.position === SmoMeasureText.positions.left) ? SmoMeasureText.justifications.right : 
+			     (this.position === SmoMeasureText.positions.right ? SmoMeasureText.justifications.left : this.justification);
+		}
 	}
 }
