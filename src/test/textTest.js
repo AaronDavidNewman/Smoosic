@@ -143,6 +143,7 @@ class StaffTest {
 		}
       
 		var measureText4 = () => {
+			suiLayoutBase.debugLayout = true;
 			
 			mt.position = SmoMeasureText.positions.right;
 			var selection = SmoSelection.measureSelection(score, 0, 0);

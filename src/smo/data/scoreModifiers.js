@@ -54,7 +54,8 @@ class SmoScoreText extends SmoScoreModifierBase {
 			translateX:0,
 			translateY:0,						
 			pagination:'every',
-			position:'title'
+			position:'custom',
+			autoLayout:false // set to true if one of the pre-canned positions are used.
         };
     }
 	
@@ -85,7 +86,7 @@ class SmoScoreText extends SmoScoreModifierBase {
         return params;    
 	}
     static get attributes() {
-        return ['x','y','text','pagination','position','fontInfo','classes','boxModel','fill','width','height','scaleX','scaleY','translateX','translateY'];
+        return ['x','y','text','pagination','position','fontInfo','classes','boxModel','fill','width','height','scaleX','scaleY','translateX','translateY','autoLayout'];
     }
 	// scale the text without moving it.
 	scaleInPlace(factor) {		
@@ -101,7 +102,10 @@ class SmoScoreText extends SmoScoreModifierBase {
         parameters = parameters ? parameters : {};
 		
 		smoMusic.serializedMerge(SmoScoreText.attributes, SmoScoreText.defaults, this);
-        smoMusic.serializedMerge(SmoScoreText.attributes, parameters, this);   
+        smoMusic.serializedMerge(SmoScoreText.attributes, parameters, this);
+		if (this.position != SmoScoreText.positions.custom && !parameters['autoLayout']) {
+			this.autoLayout = true;
+		}
     }  
 }
 	

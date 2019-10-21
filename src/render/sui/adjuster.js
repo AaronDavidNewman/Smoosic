@@ -85,8 +85,6 @@ class suiLayoutAdjuster {
 		// Calculate the space for left/right text which displaces the measure.
 		var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(renderer,measure);
 		measure.staffX += textOffsetBox.x;
-		// measure.staffWidth -= textOffsetBox.width;
-		staffBox.x +=  textOffsetBox.width;
 	}
 	
 	// ### justifyWidths

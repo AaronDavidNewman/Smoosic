@@ -711,6 +711,15 @@ class svgHelpers {
 		}
 		return new smoSvgBuilder(el);
 	}
+	
+	// ### getTextBox
+	// Get the logical bounding box of the text for placement.
+	static getTextBox(svg,attributes,classes,text) {
+		var el = svgHelpers.placeSvgText(svg,attributes,classes,text);
+		var box = el.getBBox();
+		svg.removeChild(el);
+		return box;
+	}
 
 	static debugBox(svg, box, classes, voffset) {
 		voffset = voffset ? voffset : 0;
@@ -766,6 +775,7 @@ class svgHelpers {
 		}
 		e.textContent = text;
 		svg.appendChild(e);	
+		return e;
 	}
 
 	// ### findIntersectionArtifact
@@ -2211,6 +2221,30 @@ class SmoMeasure {
 		}
 		return -1;
 	}
+	
+	addMeasureText(mod) {
+		var added = false;
+		var exist = this.modifiers.filter((mm) => {
+			return mm.attrs.id === mod.attrs.id;
+		});
+		if (exist.length) {
+			this.changed=true; // already added but set changed===true to re-justify
+			return;
+		}
+		this.modifiers.push(mod);
+		this.changed=true;
+	}
+	
+	getMeasureText() {
+		return this.modifiers.filter(obj => obj.ctor === 'SmoMeasureText');
+	}
+	
+	removeMeasureText(id) {
+		var ar= this.modifiers.filter(obj => obj.attrs.id != id);
+		this.modifiers=ar;
+		this.changed=true;
+	}
+	
 	setRepeatSymbol(rs) {
 		var ar = [];
 		var toAdd = true;
@@ -2375,6 +2409,8 @@ class SmoMeasure {
 	}
 }
 ;
+// ## Measure modifiers are elements that are attached to the bar itself, like barlines or measure-specific text,
+// repeats - lots of stuff
 class SmoMeasureModifierBase {
     constructor(ctor) {
         this.ctor = ctor;
@@ -2599,8 +2635,73 @@ class SmoVolta extends SmoMeasureModifierBase {
 			return VF.Volta.type.MID;
 		}
 		return VF.Volta.type.NONE;
+	}		
+}
+
+class SmoMeasureText extends SmoMeasureModifierBase {
+	static get positions() {
+		return {above:0,below:1,left:2,right:3};
 	}
 	
+	static get justifications() {
+		return {left:0,right:1,center:2}
+	}
+	
+	static get _positionToString() {
+		return ['above','below','left','right'];
+	}
+	
+	static get toVexPosition() {
+		return [VF.Modifier.Position.ABOVE,VF.Modifier.Position.BELOW,VF.Modifier.Position.LEFT,VF.Modifier.Position.RIGHT];
+	}
+	static get toVexJustification() {
+		return [VF.TextNote.LEFT,VF.TextNote.RIGHT,VF.TextNote.CENTER];
+	}
+	
+	toVexJustification() {
+		return SmoMeasureText.toVexJustification[this.justification];
+	}
+	toVexPosition() {
+		return SmoMeasureText.toVexPosition[this.position];
+	}
+	static get attributes() {
+		return ['position','fontInfo','text','adjustX','adjustY','justification'];
+	}
+	
+	static get defaults() {
+		return {
+			position:SmoMeasureText.positions.above,
+			fontInfo: {
+				size: '9',
+				family:'times',
+				style:'normal',
+				weight:'normal'
+			},
+			text:'Smo',
+			adjustX:0,
+			adjustY:0,
+			justification:SmoMeasureText.justifications.center
+		};
+	}
+	serialize() {
+        var params = {};
+        smoMusic.filteredMerge(SmoMeasureText.attributes, this, params);
+        params.ctor = 'SmoMeasureText';
+        return params;
+	}
+	
+	constructor(parameters) {
+		super('SmoMeasureText');
+        parameters = parameters ? parameters : {};
+        smoMusic.serializedMerge(SmoMeasureText.attributes, SmoMeasureText.defaults, this);
+        smoMusic.serializedMerge(SmoMeasureText.attributes, parameters, this);
+		
+		// right-justify left text and left-justify right text by default
+		if (!parameters['justification']) {
+			this.justification = (this.position === SmoMeasureText.positions.left) ? SmoMeasureText.justifications.right : 
+			     (this.position === SmoMeasureText.positions.right ? SmoMeasureText.justifications.left : this.justification);
+		}
+	}
 }
 ;
 
@@ -5872,7 +5973,25 @@ class VxMeasure {
 		if (sym && sym.symbol != SmoRepeatSymbol.symbols.None) {
 			var rep = new VF.Repetition(sym.toVexSymbol(),sym.xOffset+this.smoMeasure.staffX,sym.yOffset);
 			this.stave.modifiers.push(rep);
-		}			
+		}
+		var tms = this.smoMeasure.getMeasureText();
+		// TODO: set font
+		tms.forEach((tm) => {
+			/* var vm = new VF.StaveText(tm.text,tm.toVexPosition(),{
+				shift_x:tm.adjustX,shift_y:tm.adjustY,justification:tm.toVexJustification()
+			});
+			vm.setFont(tm.fontInfo);   */
+			this.stave.setText(
+			    tm.text,tm.toVexPosition(),{
+				shift_x:tm.adjustX,shift_y:tm.adjustY,justification:tm.toVexJustification()
+			});
+			// hack - we can't create staveText directly so this is the only way I could set the font
+			var ar = this.stave.getModifiers();
+			var vm=ar[ar.length - 1];
+			vm.setFont(tm.fontInfo);
+			
+		});
+		
 	}
 
     // ## Description:
@@ -7435,6 +7554,39 @@ class suiLayoutAdjuster {
 		return width;
 	}
 	
+	static estimateTextOffset(renderer,smoMeasure) {
+		var leftText = smoMeasure.modifiers.filter((mm) => mm.ctor==='SmoMeasureText' && mm.position === SmoMeasureText.positions.left);
+		var rightText = smoMeasure.modifiers.filter((mm) => mm.ctor==='SmoMeasureText' && mm.position === SmoMeasureText.positions.right);
+		var svg = renderer.getContext().svg;
+		var xoff=0;
+		var width=0;
+		leftText.forEach((tt) => {
+    		var testText = new SmoScoreText({text:tt.text});
+    		var box = svgHelpers.getTextBox(svg,testText.toSvgAttributes(),testText.classes,testText.text);
+			xoff += box.width;
+		});
+		rightText.forEach((tt) => {
+    		var testText = new SmoScoreText({text:tt.text});
+			var box = svgHelpers.getTextBox(svg,testText.toSvgAttributes(),testText.classes,testText.text);
+			width += box.width;
+		});
+		return svgHelpers.boxPoints(xoff,0,width,0);
+	}
+	
+	static estimateMeasureWidth(renderer,measure,staffBox) {
+		measure.staffX = staffBox.x + staffBox.width;
+	
+		// Calculate the existing staff width, based on the notes and what we expect to be rendered.
+		measure.staffWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
+		measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
+		measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
+		measure.staffWidth = measure.staffWidth  + measure.adjX + measure.adjRight;
+		
+		// Calculate the space for left/right text which displaces the measure.
+		var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(renderer,measure);
+		measure.staffX += textOffsetBox.x;
+	}
+	
 	// ### justifyWidths
 	// After we adjust widths so each staff has enough room, evenly distribute the remainder widths to the measures.
 	static justifyWidths(score,renderer,pageSize) {
@@ -7719,7 +7871,19 @@ class suiScoreLayout extends suiLayoutBase {
 		$(this.renderer.getContext().svg).find('text.score-text').remove();
 		this.score.scoreText.forEach((tt) => {
 			var classes = tt.attrs.id+' '+'score-text'+' '+tt.classes;
-			svgHelpers.placeSvgText(svg,tt.toSvgAttributes(),classes,tt.text);
+			var el = svgHelpers.placeSvgText(svg,tt.toSvgAttributes(),classes,tt.text);
+			
+			 var box = el.getBoundingClientRect();
+		     var lbox = svgHelpers.clientToLogical(svg,box);
+             tt.renderedBox = {
+                x: box.x,
+                y: box.y,
+                height: box.height,
+                width: box.width
+			};
+			tt.logicalBox = lbox;
+			console.log(JSON.stringify(lbox,null,' '));
+			console.log('scale to ' + tt.scaleX + ' ' + tt.scaleY + ' pos ' + tt.x + ' ' + tt.y);
 		});
 	}	
 
@@ -7822,13 +7986,21 @@ class suiScoreLayout extends suiLayoutBase {
 				this.calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast);
 
 				if (!useAdjustedX) {
-    				measure.staffX = staffBox.x + staffBox.width;
+					
+					suiLayoutAdjuster.estimateMeasureWidth(this.renderer,measure,staffBox);
+    				
+					/* measure.staffX = staffBox.x + staffBox.width;
 	
                 	// Calculate the existing staff width, based on the notes and what we expect to be rendered.
 					measure.staffWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
 					measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
 					measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
 					measure.staffWidth = measure.staffWidth  + measure.adjX + measure.adjRight;
+					
+					// Calculate the space for left/right text which displaces the measure.
+					var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(measure);
+					measure.staffX += textOffsetBox.x;
+					measure.width += textOffsetBox.width;   */
 				}
 
 				// Do we need to start a new line?  Don't start a new line on the first measure in a line...
@@ -7865,10 +8037,13 @@ class suiScoreLayout extends suiLayoutBase {
 					// If we have wrapped lines, calculate the beginning stuff again.
 					this.calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast);
 					if (!useAdjustedX) {
-						measure.staffWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
+						
+						suiLayoutAdjuster.estimateMeasureWidth(this.renderer,measure,staffBox);
+
+						/* measure.staffWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
 						measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
 						measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
-						measure.staffWidth = measure.staffWidth + measure.adjX + measure.adjRight;
+						measure.staffWidth = measure.staffWidth + measure.adjX + measure.adjRight;   */
 					}
 				}
 
