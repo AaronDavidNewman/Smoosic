@@ -17,6 +17,7 @@ class suiScoreLayout extends suiLayoutBase {
 			type: 'testLayout'
 		};
 	}
+	
 
 	// ### createScoreLayout
 	// ### Description;
@@ -88,7 +89,44 @@ class suiScoreLayout extends suiLayoutBase {
 			console.log(JSON.stringify(lbox,null,' '));
 			console.log('scale to ' + tt.scaleX + ' ' + tt.scaleY + ' pos ' + tt.x + ' ' + tt.y);
 		});
-	}	
+	}
+	
+	_titleTextPlacement(scoreText) {
+		var svg = this.context.svg;
+		var bbox = svgHelpers.getTextBox(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);
+		scoreText.x=this.pageWidth/2-(bbox.width/2);
+		scoreText.y=this.score.layout.topMargin;
+		this.score.layout.topMargin += bbox.height;
+		scoreText.autoLayout=false; // use custom placement or calculated placement next time
+		svgHelpers.placeSvgText(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);		
+	}
+	
+	_headerTextPlacement(scoreText) {
+		var svg = this.context.svg;
+		var bbox = svgHelpers.getTextBox(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);
+		scoreText.x=this.pageWidth/2-(bbox.width/2);
+		scoreText.y=10;
+		scoreText.autoLayout=false;
+		svgHelpers.placeSvgText(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);		
+	}
+	
+	_footerTextPlacement(scoreText) {
+		var svg = this.context.svg;
+		var bbox = svgHelpers.getTextBox(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);
+		scoreText.x=this.pageWidth/2-(bbox.width/2);
+		scoreText.y=this.pageHeight-(bbox.height+10);
+		scoreText.autoLayout=false;
+		svgHelpers.placeSvgText(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);		
+	}
+	
+	_headerTextPlacement(scoreText) {
+		var svg = this.context.svg;
+		var bbox = svgHelpers.getTextBox(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);
+		scoreText.x=this.pageWidth/2-(bbox.width/2);
+		scoreText.y=10;
+		scoreText.autoLayout=false;
+		svgHelpers.placeSvgText(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);		
+	}
 
 	calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast) {
 		var measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);

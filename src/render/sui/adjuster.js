@@ -294,5 +294,5 @@ class suiLayoutAdjuster {
 				}
 			}
 		}
-	}
+	}	
 }

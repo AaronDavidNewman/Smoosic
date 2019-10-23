@@ -25,7 +25,7 @@ class SmoScoreText extends SmoScoreModifierBase {
 		return ['every','even','odd','once']
 	}
 	static get positions() {
-		return ['title','copyright','footer','header','system','custom'];
+		return ['title','copyright','footer','header','custom'];
 	}
 	// If box model is 'none', the font and location determine the size.  
 	// spacing and spacingGlyph fit the box into a container based on the svg policy
@@ -40,7 +40,7 @@ class SmoScoreText extends SmoScoreModifierBase {
 			height:0,
             text: 'Smoosic',
 			fontInfo: {
-				size: '12px',
+				size: '12pt',
 				family:'times',
 				style:'normal',
 				weight:'normal'
@@ -52,7 +52,7 @@ class SmoScoreText extends SmoScoreModifierBase {
 			scaleX:1.0,
 			scaleY:1.0,
 			translateX:0,
-			translateY:0,						
+			translateY:0,
 			pagination:'every',
 			position:'custom',
 			autoLayout:false // set to true if one of the pre-canned positions are used.
