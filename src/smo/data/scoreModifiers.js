@@ -25,12 +25,12 @@ class SmoScoreText extends SmoScoreModifierBase {
 		return ['every','even','odd','once']
 	}
 	static get positions() {
-		return ['title','copyright','footer','header','custom'];
+		return {title:'title',copyright:'copyright',footer:'footer',header:'header',custom:'custom'};
 	}
 	// If box model is 'none', the font and location determine the size.  
 	// spacing and spacingGlyph fit the box into a container based on the svg policy
 	static get boxModel() {
-		return ['none','spacing','spacingAndGlyphs'];
+		return ['none','spacing','spacingAndGlyphs','wrap'];
 	}
     static get defaults() {
         return {
@@ -40,7 +40,7 @@ class SmoScoreText extends SmoScoreModifierBase {
 			height:0,
             text: 'Smoosic',
 			fontInfo: {
-				size: '12pt',
+				size: '1em',
 				family:'times',
 				style:'normal',
 				weight:'normal'
@@ -105,6 +105,11 @@ class SmoScoreText extends SmoScoreModifierBase {
         smoMusic.serializedMerge(SmoScoreText.attributes, parameters, this);
 		if (this.position != SmoScoreText.positions.custom && !parameters['autoLayout']) {
 			this.autoLayout = true;
+			if (this.position == SmoScoreText.positions.title) {
+				this.fontInfo.fontSize='1.8em';
+			} else {
+				this.fontInfo.fontSize='.6em';
+			}
 		}
     }  
 }

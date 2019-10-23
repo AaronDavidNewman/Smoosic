@@ -64,37 +64,57 @@ class suiScoreLayout extends suiLayoutBase {
 	get pageMarginWidth() {
 		return this.pageWidth - this.rightMargin * 2;
 	}
+	get pageMarginHeight() {
+		return this.pageHeight - this.topMargin * 2;
+	}
+
+	get logicalPageWidth() {
+		return this.pageMarginWidth/this.svgScale;
+	}
+	get logicalPageHeight() {
+		return this.pageMarginHeight/this.svgScale;
+	}
+
 	_previousAttr(i, j, attr) {
 		var staff = this.score.staves[j];
 		var measure = staff.measures[i];
 		return (i > 0 ? staff.measures[i - 1][attr] : measure[attr]);
 	}
 	
-	_renderScoreModifiers() {
+	renderScoreText(tt) {
 		var svg = this.context.svg;
-		$(this.renderer.getContext().svg).find('text.score-text').remove();
-		this.score.scoreText.forEach((tt) => {
-			var classes = tt.attrs.id+' '+'score-text'+' '+tt.classes;
-			var el = svgHelpers.placeSvgText(svg,tt.toSvgAttributes(),classes,tt.text);
-			
+		var classes = tt.attrs.id+' '+'score-text'+' '+tt.classes;
+		var el = svgHelpers.placeSvgText(svg,tt.toSvgAttributes(),classes,tt.text);
+		
+		if (tt.autoLayout === true) {
+			var fcn = '_'+tt.position+'TextPlacement';
+			this[fcn](tt);
+		} else {
 			 var box = el.getBoundingClientRect();
-		     var lbox = svgHelpers.clientToLogical(svg,box);
-             tt.renderedBox = {
-                x: box.x,
-                y: box.y,
-                height: box.height,
-                width: box.width
+			 var lbox = svgHelpers.clientToLogical(svg,box);
+			 tt.renderedBox = {
+				x: box.x,
+				y: box.y,
+				height: box.height,
+				width: box.width
 			};
 			tt.logicalBox = lbox;
 			console.log(JSON.stringify(lbox,null,' '));
 			console.log('scale to ' + tt.scaleX + ' ' + tt.scaleY + ' pos ' + tt.x + ' ' + tt.y);
+		}
+	}
+	_renderScoreModifiers() {
+		var svg = this.context.svg;
+		$(this.renderer.getContext().svg).find('text.score-text').remove();
+		this.score.scoreText.forEach((tt) => {
+			this.renderScoreText(tt);
 		});
 	}
 	
 	_titleTextPlacement(scoreText) {
 		var svg = this.context.svg;
 		var bbox = svgHelpers.getTextBox(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);
-		scoreText.x=this.pageWidth/2-(bbox.width/2);
+		scoreText.x=(this.pageMarginWidth/this.svgScale)/2-(bbox.width/2);
 		scoreText.y=this.score.layout.topMargin;
 		this.score.layout.topMargin += bbox.height;
 		scoreText.autoLayout=false; // use custom placement or calculated placement next time
@@ -104,7 +124,7 @@ class suiScoreLayout extends suiLayoutBase {
 	_headerTextPlacement(scoreText) {
 		var svg = this.context.svg;
 		var bbox = svgHelpers.getTextBox(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);
-		scoreText.x=this.pageWidth/2-(bbox.width/2);
+		scoreText.x=this.logicalPageWidth/2-(bbox.width/2);
 		scoreText.y=10;
 		scoreText.autoLayout=false;
 		svgHelpers.placeSvgText(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);		
@@ -113,8 +133,8 @@ class suiScoreLayout extends suiLayoutBase {
 	_footerTextPlacement(scoreText) {
 		var svg = this.context.svg;
 		var bbox = svgHelpers.getTextBox(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);
-		scoreText.x=this.pageWidth/2-(bbox.width/2);
-		scoreText.y=this.pageHeight-(bbox.height+10);
+		scoreText.x=this.logicalPageWidth/2-(bbox.width/2);
+		scoreText.y=this.pageMarginHeight-(bbox.height+10);
 		scoreText.autoLayout=false;
 		svgHelpers.placeSvgText(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);		
 	}
@@ -122,7 +142,7 @@ class suiScoreLayout extends suiLayoutBase {
 	_headerTextPlacement(scoreText) {
 		var svg = this.context.svg;
 		var bbox = svgHelpers.getTextBox(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);
-		scoreText.x=this.pageWidth/2-(bbox.width/2);
+		scoreText.x=this.logicalPageWidth/2-(bbox.width/2);
 		scoreText.y=10;
 		scoreText.autoLayout=false;
 		svgHelpers.placeSvgText(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);		
@@ -246,7 +266,7 @@ class suiScoreLayout extends suiLayoutBase {
 
 				// Do we need to start a new line?  Don't start a new line on the first measure in a line...
 				if (j == 0 && systemIndex > 0 && staffBox.x + staffBox.width + measure.staffWidth
-					 > this.pageMarginWidth / this.svgScale) {
+					 > this.logicalPageWidth) {
 					system.renderEndings();
 					if (useAdjustedY) {
 						system.cap();

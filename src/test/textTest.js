@@ -122,7 +122,6 @@ class StaffTest {
 		}
 		
 		var measureText2 = () => {
-			delay=1000;
 			
 			mt.position = SmoMeasureText.positions.above;
 			mt.fontInfo.size='7';
@@ -143,17 +142,44 @@ class StaffTest {
 		}
       
 		var measureText4 = () => {
-			suiLayoutBase.debugLayout = true;
-			
+
 			mt.position = SmoMeasureText.positions.right;
 			var selection = SmoSelection.measureSelection(score, 0, 0);
 			selection.measure.addMeasureText(mt);
 			
-			return layout.render().then(timeTest);					
+			return layout.render().then(timeTest);
 		}
+		
+		var titleText1 = () => {
+			score.removeScoreText(tt);
+			tt = new SmoScoreText({text:'My Song',position:'title'});
+			var selection = SmoSelection.measureSelection(score, 0, 0);
+			selection.measure.removeMeasureText(mt.attrs.id);
+			score.addScoreText(tt);
+			return layout.render().then(timeTest);
+		}
+		
+		var titleText2 = () => {
+			score.removeScoreText(tt);
+			var delay=1000;
+			tt = new SmoScoreText({text:'My Foot',position:'footer'});
+			score.addScoreText(tt);
+			return layout.render().then(timeTest);
+		}
+		
+		var titleText3 = () => {
+			// score.removeScoreText(tt);
+			tt = new SmoScoreText({text:'My Head',position:'header'});
+			var selection = SmoSelection.measureSelection(score, 0, 0);
+			selection.measure.removeMeasureText(mt.attrs.id);
+			score.addScoreText(tt);
+			return layout.render().then(timeTest);
+		}
+		
 		
         return drawDefaults().then(scoreText1).then(scoreText2).then(scoreText3).then(scoreText3).then(scoreText4).
 		   then(scaleUp).then(scaleDown).then(moveText).then(measureText1).
-		   then(measureText2).then(measureText3).then(measureText4).then(signalComplete);
+		   then(measureText2).then(measureText3).then(measureText4)
+		   .then(titleText1).then(titleText2).then(titleText3).then(signalComplete);
     }
 }

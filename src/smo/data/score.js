@@ -270,7 +270,7 @@ class SmoScore {
 		var texts=[];
 		this.scoreText.forEach((tt) => {
 			if (textObject.attrs.id !=  tt.attrs.id) {
-				textx.push(tt);
+				texts.push(tt);
 			}
 		});
 	    if (toAdd) {
@@ -280,7 +280,7 @@ class SmoScore {
 	}
 	
 	addScoreText(textObject) {
-		this._updateScoreText(textObject,true)
+		this._updateScoreText(textObject,true);
 	}
 	
 	getScoreText(id) {
