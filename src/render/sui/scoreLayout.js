@@ -114,7 +114,7 @@ class suiScoreLayout extends suiLayoutBase {
 	_titleTextPlacement(scoreText) {
 		var svg = this.context.svg;
 		var bbox = svgHelpers.getTextBox(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);
-		scoreText.x=(this.pageMarginWidth/this.svgScale)/2-(bbox.width/2);
+		scoreText.x=this.logicalPageWidth/2-(bbox.width/2);
 		scoreText.y=this.score.layout.topMargin;
 		this.score.layout.topMargin += bbox.height;
 		scoreText.autoLayout=false; // use custom placement or calculated placement next time
@@ -134,7 +134,7 @@ class suiScoreLayout extends suiLayoutBase {
 		var svg = this.context.svg;
 		var bbox = svgHelpers.getTextBox(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);
 		scoreText.x=this.logicalPageWidth/2-(bbox.width/2);
-		scoreText.y=this.pageMarginHeight-(bbox.height+10);
+		scoreText.y=this.logicalPageHeight-(bbox.height+10);
 		scoreText.autoLayout=false;
 		svgHelpers.placeSvgText(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);		
 	}

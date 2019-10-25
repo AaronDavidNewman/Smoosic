@@ -1,8 +1,7 @@
 
 class StaffTest {
   static CommonTests() {
-		$('h1.testTitle').text('Chord Test');
-		var keys = utController.createUi(SmoScore.getDefaultScore(),'Staff Test');
+		var keys = utController.createUi(SmoScore.getDefaultScore(),'Text Test');
 		var score = keys.score;
 		var layout = keys.layout;
         score.addDefaultMeasureWithNotes(0,{});

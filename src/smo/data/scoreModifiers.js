@@ -106,9 +106,9 @@ class SmoScoreText extends SmoScoreModifierBase {
 		if (this.position != SmoScoreText.positions.custom && !parameters['autoLayout']) {
 			this.autoLayout = true;
 			if (this.position == SmoScoreText.positions.title) {
-				this.fontInfo.fontSize='1.8em';
+				this.fontInfo.size='1.8em';
 			} else {
-				this.fontInfo.fontSize='.6em';
+				this.fontInfo.size='.6em';
 			}
 		}
     }  
