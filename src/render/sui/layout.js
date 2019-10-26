@@ -265,7 +265,6 @@ class suiLayoutBase {
 		this.layout(params);
 		for (var i=0;i<10;++i) {
 			params.useX=true;
-			console.log('adjust width '+i);
 		    suiLayoutAdjuster.adjustWidths(this.score,this.renderer);
 			this.layout(params);
 			

@@ -201,20 +201,7 @@ class suiScoreLayout extends suiLayoutBase {
 
 				if (!useAdjustedX) {
 					
-					suiLayoutAdjuster.estimateMeasureWidth(this.renderer,measure,staffBox);
-    				
-					/* measure.staffX = staffBox.x + staffBox.width;
-	
-                	// Calculate the existing staff width, based on the notes and what we expect to be rendered.
-					measure.staffWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
-					measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
-					measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
-					measure.staffWidth = measure.staffWidth  + measure.adjX + measure.adjRight;
-					
-					// Calculate the space for left/right text which displaces the measure.
-					var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(measure);
-					measure.staffX += textOffsetBox.x;
-					measure.width += textOffsetBox.width;   */
+					suiLayoutAdjuster.estimateMeasureWidth(this.renderer,measure,staffBox);    				
 				}
 
 				// Do we need to start a new line?  Don't start a new line on the first measure in a line...
@@ -250,14 +237,8 @@ class suiScoreLayout extends suiLayoutBase {
 
 					// If we have wrapped lines, calculate the beginning stuff again.
 					this.calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast);
-					if (!useAdjustedX) {
-						
+					if (!useAdjustedX) {						
 						suiLayoutAdjuster.estimateMeasureWidth(this.renderer,measure,staffBox);
-
-						/* measure.staffWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
-						measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
-						measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
-						measure.staffWidth = measure.staffWidth + measure.adjX + measure.adjRight;   */
 					}
 				}
 
@@ -269,7 +250,8 @@ class suiScoreLayout extends suiLayoutBase {
 					svgHelpers.debugBox(
 						svg, svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, 1), 'measure-place-dbg');
 				}
-				// WIP
+				
+				// When we are estimating dimensions, just draw changed measures.
 				if (useAdjustedY || useAdjustedX || measure.changed) {
 					smoBeamerFactory.applyBeams(measure);
 					system.renderMeasure(j, measure);

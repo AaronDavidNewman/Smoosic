@@ -1,5 +1,5 @@
 
-class StaffTest {
+class TextTest {
   static CommonTests() {
 		var keys = utController.createUi(SmoScore.getDefaultScore(),'Text Test');
 		var score = keys.score;

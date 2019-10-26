@@ -2164,7 +2164,7 @@ class MeasureTest {
 					setTimeout(() => {
 						resolve();
 					},
-						500);
+						200);
 				});
 			return promise;
 		}
@@ -2301,13 +2301,13 @@ class TestAll {
             TimeSignatureTest.CommonTests().then(
 			ChordTest.CommonTests).then(VoiceTest.CommonTests).then(TupletTest.CommonTests)
 			.then(KeySignatureTest.CommonTests).then(ClefTest.CommonTests)
-			.then(PasteTest.CommonTests).then(UndoTest.CommonTests).then(MeasureTest.CommonTests).then(TrackerTest.CommonTests);
+			.then(PasteTest.CommonTests).then(UndoTest.CommonTests).then(MeasureTest.CommonTests)
+			.then(TextTest.CommonTests).then(TrackerTest.CommonTests);
 	}
 };
-class StaffTest {
+class TextTest {
   static CommonTests() {
-		$('h1.testTitle').text('Chord Test');
-		var keys = utController.createUi(SmoScore.getDefaultScore(),'Staff Test');
+		var keys = utController.createUi(SmoScore.getDefaultScore(),'Text Test');
 		var score = keys.score;
 		var layout = keys.layout;
         score.addDefaultMeasureWithNotes(0,{});
@@ -2357,14 +2357,14 @@ class StaffTest {
 		
 		var scoreText2 = () => {
 			tt = score.getScoreText(tt.attrs.id);
-			tt.boxModel='spacing';
+			tt.boxModel=SmoScoreText.boxModels.spacing;
 			tt.width=100;
 			return layout.render().then(timeTest);			
 		}
 		
 		var scoreText3 = () => {
 			tt = score.getScoreText(tt.attrs.id);
-			tt.boxModel='spacingAndGlyphs';
+			tt.boxModel=SmoScoreText.boxModels.spacingAndGlyphs;
 			tt.fontInfo.size=20;
 			tt.width=100;
 			return layout.render().then(timeTest);	
@@ -2427,7 +2427,6 @@ class StaffTest {
 		}
 		
 		var measureText2 = () => {
-			delay=1000;
 			
 			mt.position = SmoMeasureText.positions.above;
 			mt.fontInfo.size='7';
@@ -2448,17 +2447,57 @@ class StaffTest {
 		}
       
 		var measureText4 = () => {
-			suiLayoutBase.debugLayout = true;
-			
+
 			mt.position = SmoMeasureText.positions.right;
 			var selection = SmoSelection.measureSelection(score, 0, 0);
 			selection.measure.addMeasureText(mt);
 			
-			return layout.render().then(timeTest);					
+			return layout.render().then(timeTest);
 		}
+		
+		var titleText1 = () => {
+			score.removeScoreText(tt);
+			tt = new SmoScoreText({text:'My Song',position:'title'});
+			var selection = SmoSelection.measureSelection(score, 0, 0);
+			selection.measure.removeMeasureText(mt.attrs.id);
+			score.addScoreText(tt);
+			return layout.render().then(timeTest);
+		}
+		
+		var titleText2 = () => {
+			delay=1000;
+			tt = new SmoScoreText({text:'My Foot',position:'footer'});
+			score.addScoreText(tt);
+			return layout.render().then(timeTest);
+		}
+		
+		var titleText3 = () => {
+			// score.removeScoreText(tt);
+			tt = new SmoScoreText({text:'My Head',position:'header'});
+			// var selection = SmoSelection.measureSelection(score, 0, 0);
+			// selection.measure.removeMeasureText(mt.attrs.id);
+			score.addScoreText(tt);
+			return layout.render().then(timeTest);
+		}
+		
+		var copyText1 = () => {
+			tt = new SmoScoreText({text:'Copyright By Me A Long Line',position:SmoScoreText.positions.copyright,
+			    boxModel: SmoScoreText.boxModels.wrap,width:100,height:100});
+			score.addScoreText(tt);
+			return layout.render().then(timeTest);
+		}
+		
+		var copyText2 = () => {
+			score.removeScoreText(tt);
+			tt = new SmoScoreText({text:'Copyright By Me A Long Line',position:SmoScoreText.positions.copyright,
+			    boxModel: SmoScoreText.boxModels.wrap,width:100,height:100,justification:'center'});
+			score.addScoreText(tt);
+			return layout.render().then(timeTest);
+		}			
 		
         return drawDefaults().then(scoreText1).then(scoreText2).then(scoreText3).then(scoreText3).then(scoreText4).
 		   then(scaleUp).then(scaleDown).then(moveText).then(measureText1).
-		   then(measureText2).then(measureText3).then(measureText4).then(signalComplete);
+		   then(measureText2).then(measureText3).then(measureText4)
+		   .then(titleText1).then(titleText2).then(titleText3).then(copyText1).then(copyText2).then(signalComplete);
     }
 }

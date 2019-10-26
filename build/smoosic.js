@@ -762,7 +762,7 @@ class svgHelpers {
 		svg.appendChild(r.dom());
 
 	}
-	
+		
 	static placeSvgText(svg,attributes,classes,text) {
 		var ns = svgHelpers.namespace;
 		var e = document.createElementNS(ns, 'text');
@@ -3241,7 +3241,7 @@ class SmoScore {
 		var texts=[];
 		this.scoreText.forEach((tt) => {
 			if (textObject.attrs.id !=  tt.attrs.id) {
-				textx.push(tt);
+				texts.push(tt);
 			}
 		});
 	    if (toAdd) {
@@ -3251,7 +3251,7 @@ class SmoScore {
 	}
 	
 	addScoreText(textObject) {
-		this._updateScoreText(textObject,true)
+		this._updateScoreText(textObject,true);
 	}
 	
 	getScoreText(id) {
@@ -3499,6 +3499,158 @@ class SmoSlur extends StaffModifierBase {
         }
     }
 }
+;
+class SmoScoreModifierBase {
+    constructor(ctor) {
+        this.ctor = ctor;
+		 if (!this['attrs']) {
+            this.attrs = {
+                id: VF.Element.newID(),
+                type: ctor
+            };
+        } else {
+            console.log('inherit attrs');
+        }
+    }
+    static deserialize(jsonObj) {
+        var ctor = eval(jsonObj.ctor);
+        var rv = new ctor(jsonObj);
+        rv.attrs.id = jsonObj.attrs.id;
+        rv.attrs.type = jsonObj.attrs.type;
+    }
+}
+
+// ## SmoScoreText
+// Identify some text in the score, not associated with any musical element, like page 
+// decorations, titles etc.
+class SmoScoreText extends SmoScoreModifierBase {	
+
+    static get paginations() {
+		return {every:'every',even:'even',odd:'odd',once:'once'}
+	}
+	static get positions() {
+		return {title:'title',copyright:'copyright',footer:'footer',header:'header',custom:'custom'};
+	}
+	static get justifications() {
+		return {left:'left',right:'right',center:'center'};
+	}
+	// If box model is 'none', the font and location determine the size.  
+	// spacing and spacingGlyph fit the box into a container based on the svg policy
+	static get boxModels() {
+		return {none:'none',spacing:'spacing',spacingAndGlyphs:'spacingAndGlyphs',wrap:'wrap'};
+	}
+    static get defaults() {
+        return {
+            x:15,
+			y:15,
+			width:0,
+			height:0,
+            text: 'Smoosic',
+			fontInfo: {
+				size: '1em',
+				family:'times',
+				style:'normal',
+				weight:'normal'
+			},
+			fill:'black',
+			rotate:0,
+			justification:SmoScoreText.justifications.left,
+			classes:'score-text',
+			boxModel:'none',
+			scaleX:1.0,
+			scaleY:1.0,
+			translateX:0,
+			translateY:0,
+			pagination:'every',
+			position:'custom',
+			autoLayout:false // set to true if one of the pre-canned positions are used.
+        };
+    }
+	static toSvgAttributes(inst) {
+		var rv=[];
+		var fkeys = Object.keys(inst.fontInfo);
+		fkeys.forEach((key) => {
+			var n='{"font-'+key+'":"'+inst.fontInfo[key]+'"}';
+			rv.push(JSON.parse(n));
+		});
+		var attrs = SmoScoreText.attributes.filter((x) => {return x != 'fontInfo' && x != 'boxModel'});
+		rv.push({fill:inst.fill});
+		rv.push({x:inst.x});
+		rv.push({y:inst.y});
+		if (inst.boxModel != 'none' && inst.width) {
+			var len = ''+inst.width+'px';
+			rv.push({textLength:len});
+			// rv.push({lengthAdjust:inst.boxModel});
+		}
+		rv.push({transform:'translate ('+inst.translateX+' '+inst.translateY+') scale ('+
+		    inst.scaleX+' '+inst.scaleY+')'});
+		return rv;
+	}
+	
+	toSvgAttributes() {
+		return SmoScoreText.toSvgAttributes(this);
+	}
+	
+	// ### backupParams
+	// For animation or estimation, create a copy of the attributes that can be modified without affecting settings.
+	backupParams() {
+		var rv={};
+		smoMusic.serializedMerge(SmoScoreText.attributes, this, rv);
+		return rv;
+	}
+
+	serialize() {
+		var params = JSON.parse(JSON.stringify(this));
+        params.ctor = 'SmoScoreText';
+        return params;    
+	}
+    static get attributes() {
+        return ['x','y','text','pagination','position','fontInfo','classes',
+		    'boxModel','justification','fill','width','height','scaleX','scaleY','translateX','translateY','autoLayout'];
+    }
+	// scale the text without moving it.
+	scaleInPlace(factor) {		
+		this.scaleX = this.scaleX*factor;
+		this.scaleY = this.scaleY*factor;
+		var deltax = this.x - this.x*this.scaleX;
+		var deltay = this.y - this.y*this.scaleY;
+		this.translateX = deltax;
+		this.translateY = deltay;		
+	}
+    constructor(parameters) {
+        super('SmoScoreText');
+        parameters = parameters ? parameters : {};
+		
+		smoMusic.serializedMerge(SmoScoreText.attributes, SmoScoreText.defaults, this);
+        smoMusic.serializedMerge(SmoScoreText.attributes, parameters, this);
+		if (!this.classes) {
+			this.classes='';
+		}
+		if (!parameters.pagination) {
+			this.pagination = this.position==SmoScoreText.positions.custom || this.position==SmoScoreText.positions.title ? 
+              SmoScoreText.paginations.every : 	SmoScoreText.paginations.once;
+		}
+		if (this.boxModel === SmoScoreText.boxModels.wrap) {
+			this.width = parameters.width ? this.width : 200;
+			this.height = parameters.height ? this.height : 150;
+			if (!parameters.justification) {
+				this.justification = this.position === SmoScoreText.positions.copyright 
+						? SmoScoreText.justifications.right : SmoScoreText.justifications.center;
+
+			}
+		}
+		if (this.position != SmoScoreText.positions.custom && !parameters['autoLayout']) {
+			this.autoLayout = true;
+			if (this.position == SmoScoreText.positions.title) {
+				this.fontInfo.size='1.8em';
+			} else {
+				this.fontInfo.size='.6em';				
+			}
+		}
+    }  
+}
+	
+
 ;
 VF = Vex.Flow;
 Vex.Xform = (typeof(Vex.Xform) == 'undefined' ? {}
@@ -7069,6 +7221,10 @@ class suiLayoutBase {
 	get renderElement() {
 		return this.renderer.elementId;
 	}
+	
+	get svg() {
+		return this.context.svg;
+	}
 
 	renderAndAdvance() {
 		this.render();
@@ -7167,7 +7323,7 @@ class suiLayoutBase {
 		if (!measure)
 			return;
 
-		$(this.renderer.getContext().svg).find('g.' + measure.attrs.id).remove();
+		$(this.svg).find('g.' + measure.attrs.id).remove();
 		measure.staffX = SmoMeasure.defaults.staffX;
 		measure.staffY = SmoMeasure.defaults.staffY;
 		measure.staffWidth = SmoMeasure.defaults.staffWidth;
@@ -7193,7 +7349,7 @@ class suiLayoutBase {
 	// Render staff modifiers (modifiers straddle more than one measure, like a slur).  Handle cases where the destination
 	// is on a different system due to wrapping.
 	_renderModifiers(staff, system) {
-		var svg = this.context.svg;
+		var svg = this.svg;
 		staff.modifiers.forEach((modifier) => {
 			var startNote = SmoSelection.noteSelection(this.score,
 					modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
@@ -7253,7 +7409,6 @@ class suiLayoutBase {
 		this.layout(params);
 		for (var i=0;i<10;++i) {
 			params.useX=true;
-			console.log('adjust width '+i);
 		    suiLayoutAdjuster.adjustWidths(this.score,this.renderer);
 			this.layout(params);
 			
@@ -7794,7 +7949,7 @@ class suiLayoutAdjuster {
 				}
 			}
 		}
-	}
+	}	
 };
 // ## suiLayoutBase
 // ## Description:
@@ -7814,6 +7969,7 @@ class suiScoreLayout extends suiLayoutBase {
 			type: 'testLayout'
 		};
 	}
+	
 
 	// ### createScoreLayout
 	// ### Description;
@@ -7860,32 +8016,42 @@ class suiScoreLayout extends suiLayoutBase {
 	get pageMarginWidth() {
 		return this.pageWidth - this.rightMargin * 2;
 	}
+	get pageMarginHeight() {
+		return this.pageHeight - this.topMargin * 2;
+	}
+
+	get logicalPageWidth() {
+		return this.pageMarginWidth/this.svgScale;
+	}
+	get logicalPageHeight() {
+		return this.pageMarginHeight/this.svgScale;
+	}
+
 	_previousAttr(i, j, attr) {
 		var staff = this.score.staves[j];
 		var measure = staff.measures[i];
 		return (i > 0 ? staff.measures[i - 1][attr] : measure[attr]);
 	}
 	
+	renderScoreText(tt) {
+		var svg = this.context.svg;
+		var classes = tt.attrs.id+' '+'score-text'+' '+tt.classes;
+		var args = {svg:this.svg,width:this.logicalPageWidth,height:this.logicalPageHeight,layout:this.score.layout};
+		if (tt.autoLayout === true) {
+			var fcn = tt.position+'TextPlacement';
+			suiTextLayout[fcn](tt,args);
+		} else {
+			suiTextLayout.placeText(tt,args);
+		}
+	}	
 	_renderScoreModifiers() {
 		var svg = this.context.svg;
 		$(this.renderer.getContext().svg).find('text.score-text').remove();
 		this.score.scoreText.forEach((tt) => {
-			var classes = tt.attrs.id+' '+'score-text'+' '+tt.classes;
-			var el = svgHelpers.placeSvgText(svg,tt.toSvgAttributes(),classes,tt.text);
-			
-			 var box = el.getBoundingClientRect();
-		     var lbox = svgHelpers.clientToLogical(svg,box);
-             tt.renderedBox = {
-                x: box.x,
-                y: box.y,
-                height: box.height,
-                width: box.width
-			};
-			tt.logicalBox = lbox;
-			console.log(JSON.stringify(lbox,null,' '));
-			console.log('scale to ' + tt.scaleX + ' ' + tt.scaleY + ' pos ' + tt.x + ' ' + tt.y);
+			this.renderScoreText(tt);
 		});
-	}	
+	}
+
 
 	calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast) {
 		var measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
@@ -7987,25 +8153,12 @@ class suiScoreLayout extends suiLayoutBase {
 
 				if (!useAdjustedX) {
 					
-					suiLayoutAdjuster.estimateMeasureWidth(this.renderer,measure,staffBox);
-    				
-					/* measure.staffX = staffBox.x + staffBox.width;
-	
-                	// Calculate the existing staff width, based on the notes and what we expect to be rendered.
-					measure.staffWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
-					measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
-					measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
-					measure.staffWidth = measure.staffWidth  + measure.adjX + measure.adjRight;
-					
-					// Calculate the space for left/right text which displaces the measure.
-					var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(measure);
-					measure.staffX += textOffsetBox.x;
-					measure.width += textOffsetBox.width;   */
+					suiLayoutAdjuster.estimateMeasureWidth(this.renderer,measure,staffBox);    				
 				}
 
 				// Do we need to start a new line?  Don't start a new line on the first measure in a line...
 				if (j == 0 && systemIndex > 0 && staffBox.x + staffBox.width + measure.staffWidth
-					 > this.pageMarginWidth / this.svgScale) {
+					 > this.logicalPageWidth) {
 					system.renderEndings();
 					if (useAdjustedY) {
 						system.cap();
@@ -8036,14 +8189,8 @@ class suiScoreLayout extends suiLayoutBase {
 
 					// If we have wrapped lines, calculate the beginning stuff again.
 					this.calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast);
-					if (!useAdjustedX) {
-						
+					if (!useAdjustedX) {						
 						suiLayoutAdjuster.estimateMeasureWidth(this.renderer,measure,staffBox);
-
-						/* measure.staffWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
-						measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
-						measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
-						measure.staffWidth = measure.staffWidth + measure.adjX + measure.adjRight;   */
 					}
 				}
 
@@ -8055,7 +8202,8 @@ class suiScoreLayout extends suiLayoutBase {
 					svgHelpers.debugBox(
 						svg, svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, 1), 'measure-place-dbg');
 				}
-				// WIP
+				
+				// When we are estimating dimensions, just draw changed measures.
 				if (useAdjustedY || useAdjustedX || measure.changed) {
 					smoBeamerFactory.applyBeams(measure);
 					system.renderMeasure(j, measure);
@@ -8100,6 +8248,146 @@ class suiScoreLayout extends suiLayoutBase {
 	}
 }
 ;
+class suiTextLayout {
+	
+	static _getTextBox(scoreText,parameters) {
+		var svg = parameters.svg;
+		if (scoreText.width && scoreText.height && scoreText.boxModel == SmoScoreText.boxModels.wrap) {
+			return svgHelpers.boxPoints(scoreText.x,scoreText.y,scoreText.width,scoreText.height);
+		}
+		return svgHelpers.getTextBox(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);		
+	}
+	static _saveBox(scoreText,parameters,el) {
+		var svg = parameters.svg;
+		 var box = el.getBoundingClientRect();
+		 var lbox = svgHelpers.clientToLogical(svg,box);
+		 scoreText.renderedBox = {
+			x: box.x,
+			y: box.y,
+			height: box.height,
+			width: box.width
+		};
+		scoreText.logicalBox = lbox;
+	}
+	static titleTextPlacement(scoreText,parameters) {
+		var svg = parameters.svg;
+		var bbox = suiTextLayout._getTextBox(scoreText,parameters);
+		scoreText.x=parameters.width/2-(bbox.width/2);
+		scoreText.y=parameters.layout.topMargin;
+		parameters.layout.topMargin += bbox.height;
+		scoreText.autoLayout=false; // use custom placement or calculated placement next time
+		suiTextLayout.placeText(scoreText,parameters);
+	}
+	
+	static headerTextPlacement(scoreText,parameters) {
+		var svg = parameters.svg;
+		var bbox = suiTextLayout._getTextBox(scoreText,parameters);
+		scoreText.x=parameters.width/2-(bbox.width/2);
+		scoreText.y=10;
+		scoreText.autoLayout=false;
+		suiTextLayout.placeText(scoreText,parameters);
+	}
+	
+	static footerTextPlacement(scoreText,parameters) {
+		var svg = parameters.svg;
+		var bbox = suiTextLayout._getTextBox(scoreText,parameters);
+		scoreText.x=parameters.width/2-(bbox.width/2);
+		scoreText.y=parameters.height-(bbox.height+10);
+		scoreText.autoLayout=false;
+		suiTextLayout.placeText(scoreText,parameters);
+	}
+	
+	static copyrightTextPlacement(scoreText,parameters) {
+		var svg = parameters.svg;
+		var bbox = suiTextLayout._getTextBox(scoreText,parameters);
+		scoreText.x=parameters.width-(bbox.width+10);
+		scoreText.y=10;
+		suiTextLayout.placeText(scoreText,parameters);
+		scoreText.autoLayout=false;
+	}
+	
+	static placeText(scoreText,parameters) {
+		var svg = parameters.svg;
+		if (scoreText.width && scoreText.height && scoreText.boxModel == SmoScoreText.boxModels.wrap) {
+    		suiTextLayout.placeWithWrap(scoreText,parameters);
+		} else {
+			var el = svgHelpers.placeSvgText(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);	
+            suiTextLayout._saveBox(scoreText,parameters,el);
+		}
+	}
+	
+	
+	static _placeWithWrap(scoreText,parameters,justification) {
+		var justifyOnly=false;
+		if (!justification.length) {
+			justifyOnly=true;
+		}
+		var svg = parameters.svg;
+		var words = scoreText.text.split(' ');		
+		var curx = scoreText.x;
+		var left = curx;
+		var right = scoreText.x+scoreText.width;
+		var top = scoreText.y;
+		var params = scoreText.backupParams();
+		var cury = scoreText.y;
+		var width=	scoreText.width;
+		var height = scoreText.height;
+		var delta = 0;
+		params.boxModel = SmoScoreText.boxModels.none;
+		params.width=0;
+		params.height = 0;
+		scoreText.logicalBox=svgHelpers.boxPoints(scoreText.x,scoreText.y,scoreText.width,scoreText.height);
+		scoreText.renderedBox = svgHelpers.logicalToClient(svg,scoreText.logicalBox);
+		var justifyAmount = justifyOnly ? 0 : justification[0];
+		if(!justifyOnly) {
+		    justification.splice(0,1);
+		}
+		
+		words.forEach((word) => {
+			var bbox = svgHelpers.getTextBox(svg,SmoScoreText.toSvgAttributes(params),scoreText.classes,word);
+			delta = right - (bbox.width + bbox.x);
+			if (delta > 0) {
+				params.x=bbox.x;
+				params.y=cury;
+				if (!justifyOnly) {
+                   params.x += justifyAmount;					
+				   svgHelpers.placeSvgText(svg,SmoScoreText.toSvgAttributes(params),scoreText.classes,word);
+				} 
+			} else {
+				if (!justifyOnly) {
+					justifyAmount = justification[0];
+				    justification.splice(0,1);
+				} else {
+					// If we are computing for justification, do that.
+					delta = right - bbox.x;
+					delta = scoreText.justification === SmoScoreText.justifications.right ? delta :
+					    (scoreText.justification === SmoScoreText.justifications.center ? delta/2 : 0);
+					justification.push(delta);
+				}
+				cury += bbox.height;
+				curx = left;
+				params.x=curx + justifyAmount;
+				params.y=cury;
+				if (!justifyOnly) {
+				    svgHelpers.placeSvgText(svg,SmoScoreText.toSvgAttributes(params),scoreText.classes,word);
+				}
+			}
+			curx += bbox.width + 5;
+			params.x = curx;
+		});	
+		delta = scoreText.justification === SmoScoreText.justifications.right ? delta :
+					    (scoreText.justification === SmoScoreText.justifications.center ? delta/2 : 0);
+        justification.push(delta-5);		
+	}
+	static placeWithWrap(scoreText,parameters) {
+		var justification=[];
+		
+		// One pass is to compute justification for the box model.
+		suiTextLayout._placeWithWrap(scoreText,parameters,justification);
+		suiTextLayout._placeWithWrap(scoreText,parameters,justification);
+	}
+
+};
 
 class suiEditor {
     constructor(params) {
@@ -8900,6 +9188,8 @@ class utController {
 		// params.editor = new suiEditor(params);
 		// params.menus = new suiMenuManager(params);
 		var keys = new utController(params);
+		var h =  window.innerHeight - $('.musicRelief').offset().top;
+		$('.musicRelief').css('height',''+h+'px');
 		return keys;
 	}
 

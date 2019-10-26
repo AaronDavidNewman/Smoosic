@@ -24,7 +24,7 @@ class utController {
 		// params.editor = new suiEditor(params);
 		// params.menus = new suiMenuManager(params);
 		var keys = new utController(params);
-		var h =  window.innerHeight; - $('.musicRelief').offset().top;
+		var h =  window.innerHeight - $('.musicRelief').offset().top;
 		$('.musicRelief').css('height',''+h+'px');
 		return keys;
 	}
