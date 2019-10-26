@@ -159,8 +159,7 @@ class StaffTest {
 		}
 		
 		var titleText2 = () => {
-			score.removeScoreText(tt);
-			var delay=1000;
+			delay=1000;
 			tt = new SmoScoreText({text:'My Foot',position:'footer'});
 			score.addScoreText(tt);
 			return layout.render().then(timeTest);
@@ -181,12 +180,18 @@ class StaffTest {
 			score.addScoreText(tt);
 			return layout.render().then(timeTest);
 		}
-			
 		
+		var copyText2 = () => {
+			score.removeScoreText(tt);
+			tt = new SmoScoreText({text:'Copyright By Me A Long Line',position:SmoScoreText.positions.copyright,
+			    boxModel: SmoScoreText.boxModels.wrap,width:100,height:100,justification:'center'});
+			score.addScoreText(tt);
+			return layout.render().then(timeTest);
+		}			
 		
         return drawDefaults().then(scoreText1).then(scoreText2).then(scoreText3).then(scoreText3).then(scoreText4).
 		   then(scaleUp).then(scaleDown).then(moveText).then(measureText1).
 		   then(measureText2).then(measureText3).then(measureText4)
-		   .then(titleText1).then(titleText2).then(titleText3).then(copyText1).then(signalComplete);
+		   .then(titleText1).then(titleText2).then(titleText3).then(copyText1).then(copyText2).then(signalComplete);
     }
 }

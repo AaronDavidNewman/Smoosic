@@ -67,7 +67,12 @@ class suiTextLayout {
 		}
 	}
 	
-	static placeWithWrap(scoreText,parameters) {
+	
+	static _placeWithWrap(scoreText,parameters,justification) {
+		var justifyOnly=false;
+		if (!justification.length) {
+			justifyOnly=true;
+		}
 		var svg = parameters.svg;
 		var words = scoreText.text.split(' ');		
 		var curx = scoreText.x;
@@ -78,28 +83,59 @@ class suiTextLayout {
 		var cury = scoreText.y;
 		var width=	scoreText.width;
 		var height = scoreText.height;
+		var delta = 0;
 		params.boxModel = SmoScoreText.boxModels.none;
 		params.width=0;
 		params.height = 0;
 		scoreText.logicalBox=svgHelpers.boxPoints(scoreText.x,scoreText.y,scoreText.width,scoreText.height);
 		scoreText.renderedBox = svgHelpers.logicalToClient(svg,scoreText.logicalBox);
+		var justifyAmount = justifyOnly ? 0 : justification[0];
+		if(!justifyOnly) {
+		    justification.splice(0,1);
+		}
 		
 		words.forEach((word) => {
 			var bbox = svgHelpers.getTextBox(svg,SmoScoreText.toSvgAttributes(params),scoreText.classes,word);
-			if (bbox.width + bbox.x < right) {
+			delta = right - (bbox.width + bbox.x);
+			if (delta > 0) {
 				params.x=bbox.x;
 				params.y=cury;
-				svgHelpers.placeSvgText(svg,SmoScoreText.toSvgAttributes(params),scoreText.classes,word);
+				if (!justifyOnly) {
+                   params.x += justifyAmount;					
+				   svgHelpers.placeSvgText(svg,SmoScoreText.toSvgAttributes(params),scoreText.classes,word);
+				} 
 			} else {
+				if (!justifyOnly) {
+					justifyAmount = justification[0];
+				    justification.splice(0,1);
+				} else {
+					// If we are computing for justification, do that.
+					delta = right - bbox.x;
+					delta = scoreText.justification === SmoScoreText.justifications.right ? delta :
+					    (scoreText.justification === SmoScoreText.justifications.center ? delta/2 : 0);
+					justification.push(delta);
+				}
 				cury += bbox.height;
 				curx = left;
-				params.x=curx;
+				params.x=curx + justifyAmount;
 				params.y=cury;
-				svgHelpers.placeSvgText(svg,SmoScoreText.toSvgAttributes(params),scoreText.classes,word);
+				if (!justifyOnly) {
+				    svgHelpers.placeSvgText(svg,SmoScoreText.toSvgAttributes(params),scoreText.classes,word);
+				}
 			}
 			curx += bbox.width + 5;
 			params.x = curx;
-		});		
+		});	
+		delta = scoreText.justification === SmoScoreText.justifications.right ? delta :
+					    (scoreText.justification === SmoScoreText.justifications.center ? delta/2 : 0);
+        justification.push(delta-5);		
+	}
+	static placeWithWrap(scoreText,parameters) {
+		var justification=[];
+		
+		// One pass is to compute justification for the box model.
+		suiTextLayout._placeWithWrap(scoreText,parameters,justification);
+		suiTextLayout._placeWithWrap(scoreText,parameters,justification);
 	}
 
 }

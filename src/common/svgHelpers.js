@@ -140,7 +140,7 @@ class svgHelpers {
 		svg.appendChild(r.dom());
 
 	}
-	
+		
 	static placeSvgText(svg,attributes,classes,text) {
 		var ns = svgHelpers.namespace;
 		var e = document.createElementNS(ns, 'text');

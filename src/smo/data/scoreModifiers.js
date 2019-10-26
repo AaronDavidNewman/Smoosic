@@ -19,13 +19,19 @@ class SmoScoreModifierBase {
     }
 }
 
+// ## SmoScoreText
+// Identify some text in the score, not associated with any musical element, like page 
+// decorations, titles etc.
 class SmoScoreText extends SmoScoreModifierBase {	
 
     static get paginations() {
-		return ['every','even','odd','once']
+		return {every:'every',even:'even',odd:'odd',once:'once'}
 	}
 	static get positions() {
 		return {title:'title',copyright:'copyright',footer:'footer',header:'header',custom:'custom'};
+	}
+	static get justifications() {
+		return {left:'left',right:'right',center:'center'};
 	}
 	// If box model is 'none', the font and location determine the size.  
 	// spacing and spacingGlyph fit the box into a container based on the svg policy
@@ -47,6 +53,7 @@ class SmoScoreText extends SmoScoreModifierBase {
 			},
 			fill:'black',
 			rotate:0,
+			justification:SmoScoreText.justifications.left,
 			classes:'score-text',
 			boxModel:'none',
 			scaleX:1.0,
@@ -83,6 +90,8 @@ class SmoScoreText extends SmoScoreModifierBase {
 		return SmoScoreText.toSvgAttributes(this);
 	}
 	
+	// ### backupParams
+	// For animation or estimation, create a copy of the attributes that can be modified without affecting settings.
 	backupParams() {
 		var rv={};
 		smoMusic.serializedMerge(SmoScoreText.attributes, this, rv);
@@ -95,7 +104,8 @@ class SmoScoreText extends SmoScoreModifierBase {
         return params;    
 	}
     static get attributes() {
-        return ['x','y','text','pagination','position','fontInfo','classes','boxModel','fill','width','height','scaleX','scaleY','translateX','translateY','autoLayout'];
+        return ['x','y','text','pagination','position','fontInfo','classes',
+		    'boxModel','justification','fill','width','height','scaleX','scaleY','translateX','translateY','autoLayout'];
     }
 	// scale the text without moving it.
 	scaleInPlace(factor) {		
@@ -115,16 +125,25 @@ class SmoScoreText extends SmoScoreModifierBase {
 		if (!this.classes) {
 			this.classes='';
 		}
+		if (!parameters.pagination) {
+			this.pagination = this.position==SmoScoreText.positions.custom || this.position==SmoScoreText.positions.title ? 
+              SmoScoreText.paginations.every : 	SmoScoreText.paginations.once;
+		}
 		if (this.boxModel === SmoScoreText.boxModels.wrap) {
 			this.width = parameters.width ? this.width : 200;
 			this.height = parameters.height ? this.height : 150;
+			if (!parameters.justification) {
+				this.justification = this.position === SmoScoreText.positions.copyright 
+						? SmoScoreText.justifications.right : SmoScoreText.justifications.center;
+
+			}
 		}
 		if (this.position != SmoScoreText.positions.custom && !parameters['autoLayout']) {
 			this.autoLayout = true;
 			if (this.position == SmoScoreText.positions.title) {
 				this.fontInfo.size='1.8em';
 			} else {
-				this.fontInfo.size='.6em';
+				this.fontInfo.size='.6em';				
 			}
 		}
     }  
