@@ -84,25 +84,14 @@ class suiScoreLayout extends suiLayoutBase {
 	renderScoreText(tt) {
 		var svg = this.context.svg;
 		var classes = tt.attrs.id+' '+'score-text'+' '+tt.classes;
-		var el = svgHelpers.placeSvgText(svg,tt.toSvgAttributes(),classes,tt.text);
-		
+		var args = {svg:this.svg,width:this.logicalPageWidth,height:this.logicalPageHeight,layout:this.score.layout};
 		if (tt.autoLayout === true) {
-			var fcn = '_'+tt.position+'TextPlacement';
-			this[fcn](tt);
+			var fcn = tt.position+'TextPlacement';
+			suiTextLayout[fcn](tt,args);
 		} else {
-			 var box = el.getBoundingClientRect();
-			 var lbox = svgHelpers.clientToLogical(svg,box);
-			 tt.renderedBox = {
-				x: box.x,
-				y: box.y,
-				height: box.height,
-				width: box.width
-			};
-			tt.logicalBox = lbox;
-			console.log(JSON.stringify(lbox,null,' '));
-			console.log('scale to ' + tt.scaleX + ' ' + tt.scaleY + ' pos ' + tt.x + ' ' + tt.y);
+			suiTextLayout.placeText(tt,args);
 		}
-	}
+	}	
 	_renderScoreModifiers() {
 		var svg = this.context.svg;
 		$(this.renderer.getContext().svg).find('text.score-text').remove();
@@ -110,43 +99,7 @@ class suiScoreLayout extends suiLayoutBase {
 			this.renderScoreText(tt);
 		});
 	}
-	
-	_titleTextPlacement(scoreText) {
-		var svg = this.context.svg;
-		var bbox = svgHelpers.getTextBox(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);
-		scoreText.x=this.logicalPageWidth/2-(bbox.width/2);
-		scoreText.y=this.score.layout.topMargin;
-		this.score.layout.topMargin += bbox.height;
-		scoreText.autoLayout=false; // use custom placement or calculated placement next time
-		svgHelpers.placeSvgText(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);		
-	}
-	
-	_headerTextPlacement(scoreText) {
-		var svg = this.context.svg;
-		var bbox = svgHelpers.getTextBox(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);
-		scoreText.x=this.logicalPageWidth/2-(bbox.width/2);
-		scoreText.y=10;
-		scoreText.autoLayout=false;
-		svgHelpers.placeSvgText(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);		
-	}
-	
-	_footerTextPlacement(scoreText) {
-		var svg = this.context.svg;
-		var bbox = svgHelpers.getTextBox(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);
-		scoreText.x=this.logicalPageWidth/2-(bbox.width/2);
-		scoreText.y=this.logicalPageHeight-(bbox.height+10);
-		scoreText.autoLayout=false;
-		svgHelpers.placeSvgText(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);		
-	}
-	
-	_headerTextPlacement(scoreText) {
-		var svg = this.context.svg;
-		var bbox = svgHelpers.getTextBox(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);
-		scoreText.x=this.logicalPageWidth/2-(bbox.width/2);
-		scoreText.y=10;
-		scoreText.autoLayout=false;
-		svgHelpers.placeSvgText(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);		
-	}
+
 
 	calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast) {
 		var measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);

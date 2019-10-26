@@ -77,6 +77,10 @@ class suiLayoutBase {
 	get renderElement() {
 		return this.renderer.elementId;
 	}
+	
+	get svg() {
+		return this.context.svg;
+	}
 
 	renderAndAdvance() {
 		this.render();
@@ -175,7 +179,7 @@ class suiLayoutBase {
 		if (!measure)
 			return;
 
-		$(this.renderer.getContext().svg).find('g.' + measure.attrs.id).remove();
+		$(this.svg).find('g.' + measure.attrs.id).remove();
 		measure.staffX = SmoMeasure.defaults.staffX;
 		measure.staffY = SmoMeasure.defaults.staffY;
 		measure.staffWidth = SmoMeasure.defaults.staffWidth;
@@ -201,7 +205,7 @@ class suiLayoutBase {
 	// Render staff modifiers (modifiers straddle more than one measure, like a slur).  Handle cases where the destination
 	// is on a different system due to wrapping.
 	_renderModifiers(staff, system) {
-		var svg = this.context.svg;
+		var svg = this.svg;
 		staff.modifiers.forEach((modifier) => {
 			var startNote = SmoSelection.noteSelection(this.score,
 					modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);

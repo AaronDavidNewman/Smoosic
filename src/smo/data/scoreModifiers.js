@@ -29,8 +29,8 @@ class SmoScoreText extends SmoScoreModifierBase {
 	}
 	// If box model is 'none', the font and location determine the size.  
 	// spacing and spacingGlyph fit the box into a container based on the svg policy
-	static get boxModel() {
-		return ['none','spacing','spacingAndGlyphs','wrap'];
+	static get boxModels() {
+		return {none:'none',spacing:'spacing',spacingAndGlyphs:'spacingAndGlyphs',wrap:'wrap'};
 	}
     static get defaults() {
         return {
@@ -47,7 +47,7 @@ class SmoScoreText extends SmoScoreModifierBase {
 			},
 			fill:'black',
 			rotate:0,
-			classes:'',
+			classes:'score-text',
 			boxModel:'none',
 			scaleX:1.0,
 			scaleY:1.0,
@@ -58,25 +58,34 @@ class SmoScoreText extends SmoScoreModifierBase {
 			autoLayout:false // set to true if one of the pre-canned positions are used.
         };
     }
-	
-	toSvgAttributes() {
+	static toSvgAttributes(inst) {
 		var rv=[];
-		var fkeys = Object.keys(this.fontInfo);
+		var fkeys = Object.keys(inst.fontInfo);
 		fkeys.forEach((key) => {
-			var n='{"font-'+key+'":"'+this.fontInfo[key]+'"}';
+			var n='{"font-'+key+'":"'+inst.fontInfo[key]+'"}';
 			rv.push(JSON.parse(n));
 		});
 		var attrs = SmoScoreText.attributes.filter((x) => {return x != 'fontInfo' && x != 'boxModel'});
-		rv.push({fill:this.fill});
-		rv.push({x:this.x});
-		rv.push({y:this.y});
-		if (this.boxModel != 'none' && this.width) {
-			var len = ''+this.width+'px';
+		rv.push({fill:inst.fill});
+		rv.push({x:inst.x});
+		rv.push({y:inst.y});
+		if (inst.boxModel != 'none' && inst.width) {
+			var len = ''+inst.width+'px';
 			rv.push({textLength:len});
-			rv.push({lengthAdjust:this.boxModel});
+			// rv.push({lengthAdjust:inst.boxModel});
 		}
-		rv.push({transform:'translate ('+this.translateX+' '+this.translateY+') scale ('+
-		    this.scaleX+' '+this.scaleY+')'});
+		rv.push({transform:'translate ('+inst.translateX+' '+inst.translateY+') scale ('+
+		    inst.scaleX+' '+inst.scaleY+')'});
+		return rv;
+	}
+	
+	toSvgAttributes() {
+		return SmoScoreText.toSvgAttributes(this);
+	}
+	
+	backupParams() {
+		var rv={};
+		smoMusic.serializedMerge(SmoScoreText.attributes, this, rv);
 		return rv;
 	}
 
@@ -103,6 +112,13 @@ class SmoScoreText extends SmoScoreModifierBase {
 		
 		smoMusic.serializedMerge(SmoScoreText.attributes, SmoScoreText.defaults, this);
         smoMusic.serializedMerge(SmoScoreText.attributes, parameters, this);
+		if (!this.classes) {
+			this.classes='';
+		}
+		if (this.boxModel === SmoScoreText.boxModels.wrap) {
+			this.width = parameters.width ? this.width : 200;
+			this.height = parameters.height ? this.height : 150;
+		}
 		if (this.position != SmoScoreText.positions.custom && !parameters['autoLayout']) {
 			this.autoLayout = true;
 			if (this.position == SmoScoreText.positions.title) {
