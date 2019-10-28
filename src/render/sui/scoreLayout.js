@@ -200,7 +200,7 @@ class suiScoreLayout extends suiLayoutBase {
 				this.calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast);
 
 				if (!useAdjustedX) {
-					
+					measure.staffX = staffBox.x + staffBox.width;					
 					suiLayoutAdjuster.estimateMeasureWidth(this.renderer,measure,staffBox);    				
 				}
 

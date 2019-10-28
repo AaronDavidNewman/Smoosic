@@ -74,7 +74,6 @@ class suiLayoutAdjuster {
 	}
 	
 	static estimateMeasureWidth(renderer,measure,staffBox) {
-		measure.staffX = staffBox.x + staffBox.width;
 	
 		// Calculate the existing staff width, based on the notes and what we expect to be rendered.
 		measure.staffWidth = suiLayoutAdjuster.estimateMusicWidth(measure);

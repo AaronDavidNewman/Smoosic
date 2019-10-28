@@ -2703,6 +2703,51 @@ class SmoMeasureText extends SmoMeasureModifierBase {
 		}
 	}
 }
+
+class SmoRehearsalMark extends SmoMeasureModifierBase {
+	
+	static get cardinalities() {
+		return {capitals:'capitals',lowerCase:'lowerCase',numbers:'numbers'};
+	}
+	static get positions() {
+		return {above:0,below:1,left:2,right:3};
+	}
+	static get _positionToString() {
+		return ['above','below','left','right'];
+	}
+	
+	// TODO: positions don't work.
+	static get defaults() {
+		return {
+			position:above,
+			cardinality:SmoRehearsalMark.capitals,
+			symbol:'A'
+		}
+	}
+	static get attributes() {
+		return ['cardinality','symbol','position'];
+	}
+	increment() {
+		if (!this.cardinality != 'number') {
+			var code = this.symbol.charCodeAt(0);
+			code += 1;
+			this.symbol=String.fromCharCode(code);
+			return this.symbol;
+		}
+	}
+	serialize() {
+        var params = {};
+        smoMusic.filteredMerge(SmoRehearsalMark.attributes, this, params);
+        params.ctor = 'SmoRehearsalMark';
+        return params;
+	}
+	constructor(parameters) {
+		super('SmoRehearsalMark');
+        parameters = parameters ? parameters : {};
+        smoMusic.serializedMerge(SmoRehearsalMark.attributes, SmoRehearsalMark.defaults, this);
+        smoMusic.serializedMerge(SmoRehearsalMark.attributes, parameters, this);
+	}
+}
 ;
 
 // ## SmoSystemStaff
@@ -7729,7 +7774,6 @@ class suiLayoutAdjuster {
 	}
 	
 	static estimateMeasureWidth(renderer,measure,staffBox) {
-		measure.staffX = staffBox.x + staffBox.width;
 	
 		// Calculate the existing staff width, based on the notes and what we expect to be rendered.
 		measure.staffWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
@@ -8152,7 +8196,7 @@ class suiScoreLayout extends suiLayoutBase {
 				this.calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast);
 
 				if (!useAdjustedX) {
-					
+					measure.staffX = staffBox.x + staffBox.width;					
 					suiLayoutAdjuster.estimateMeasureWidth(this.renderer,measure,staffBox);    				
 				}
 
