@@ -383,6 +383,24 @@ class SmoOperation {
 	static addScoreText(score,scoreText) {
 		score.addScoreText(scoreText);
 	}
+	static removeScoreText(score,scoreText) {
+		score.removeScoreText(scoreText);
+	}
+	
+	static addMeasureText(score,selection,measureText) {
+		selection.measure.addMeasureText(measureText);
+	}
+	
+	static removeMeasureText(score,selection,mt) {
+		selection.measure.removeMeasureText(mt.attrs.id);
+	}
+	
+	static addSystemText(score,selection,measureText) {
+		var mm = selection.selector.measure;
+		score.staves.forEach((staff) => {
+			staff.measures[mm].addMeasureText(measureText);
+		});
+	}
 
 	static setMeasureBarline(score, selection, barline) {
 		var mm = selection.selector.measure;

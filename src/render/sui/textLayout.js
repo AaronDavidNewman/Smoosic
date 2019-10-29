@@ -125,6 +125,8 @@ class suiTextLayout {
 			}
 			curx += bbox.width + 5;
 			params.x = curx;
+			// calculate delta in case this is last time			
+			delta = right - curx; 
 		});	
 		delta = scoreText.justification === SmoScoreText.justifications.right ? delta :
 					    (scoreText.justification === SmoScoreText.justifications.center ? delta/2 : 0);

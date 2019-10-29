@@ -7,6 +7,7 @@ class TextTest {
         score.addDefaultMeasureWithNotes(0,{});
         score.addDefaultMeasureWithNotes(1,{});
         score.addDefaultMeasureWithNotes(2,{});
+		var undo = keys.undoBuffer;
 		var tt = new SmoScoreText({text:'Hello world',x:240,y:30});
 		var mt=new SmoMeasureText({position:SmoMeasureText.positions.left,text:'Measure Text'});
 		var delay=100;
@@ -43,8 +44,8 @@ class TextTest {
 			return layout.render().then(timeTest);
 		}
 		
-		var scoreText1 = () => {
-			
+		var scoreText1 = () => {			
+			SmoUndoable.scoreOp(score,'addScoreText',tt,undo,'Score Text Test 1');
 			score.addScoreText(tt);
 			return layout.render().then(timeTest);
 		}
@@ -115,7 +116,7 @@ class TextTest {
 			
 			mt = new SmoMeasureText({position:SmoMeasureText.positions.left,text:'Measure Text'});
 			var selection = SmoSelection.measureSelection(score, 0, 0);
-			selection.measure.addMeasureText(mt);
+			SmoUndoable.scoreSelectionOp(score,selection,'addMeasureText',mt,undo,'test measureText1');
 			
 			return layout.render().then(timeTest);					
 		}
@@ -125,7 +126,7 @@ class TextTest {
 			mt.position = SmoMeasureText.positions.above;
 			mt.fontInfo.size='7';
 			var selection = SmoSelection.measureSelection(score, 0, 0);
-			selection.measure.addMeasureText(mt);
+			SmoUndoable.scoreSelectionOp(score,selection,'addMeasureText',mt,undo,'test measureText2');
 			
 			return layout.render().then(timeTest);					
 		}
@@ -135,7 +136,7 @@ class TextTest {
 			
 			mt.position = SmoMeasureText.positions.below;
 			var selection = SmoSelection.measureSelection(score, 0, 0);
-			selection.measure.addMeasureText(mt);
+			SmoUndoable.scoreSelectionOp(score,selection,'addMeasureText',mt,undo,'test measureText3');
 			
 			return layout.render().then(timeTest);					
 		}
@@ -144,24 +145,24 @@ class TextTest {
 
 			mt.position = SmoMeasureText.positions.right;
 			var selection = SmoSelection.measureSelection(score, 0, 0);
-			selection.measure.addMeasureText(mt);
+			SmoUndoable.scoreSelectionOp(score,selection,'addMeasureText',mt,undo,'test measureText4');
 			
 			return layout.render().then(timeTest);
 		}
 		
 		var titleText1 = () => {
-			score.removeScoreText(tt);
+			SmoUndoable.scoreOp(score,'removeScoreText',tt,undo,'remove text titelText1');
 			tt = new SmoScoreText({text:'My Song',position:'title'});
 			var selection = SmoSelection.measureSelection(score, 0, 0);
-			selection.measure.removeMeasureText(mt.attrs.id);
-			score.addScoreText(tt);
+			SmoUndoable.scoreSelectionOp(score,selection,'removeMeasureText',mt,undo,'test measureText3');
+			SmoUndoable.scoreOp(score,'addScoreText',tt,undo,'Score Title Test 1');
 			return layout.render().then(timeTest);
 		}
 		
 		var titleText2 = () => {
-			delay=1000;
+			delay=500;
 			tt = new SmoScoreText({text:'My Foot',position:'footer'});
-			score.addScoreText(tt);
+			SmoUndoable.scoreOp(score,'addScoreText',tt,undo,'Score Title Test 2');
 			return layout.render().then(timeTest);
 		}
 		
@@ -170,22 +171,22 @@ class TextTest {
 			tt = new SmoScoreText({text:'My Head',position:'header'});
 			// var selection = SmoSelection.measureSelection(score, 0, 0);
 			// selection.measure.removeMeasureText(mt.attrs.id);
-			score.addScoreText(tt);
+			SmoUndoable.scoreOp(score,'addScoreText',tt,undo,'Score Title Test 3');
 			return layout.render().then(timeTest);
 		}
 		
 		var copyText1 = () => {
-			tt = new SmoScoreText({text:'Copyright By Me A Long Line',position:SmoScoreText.positions.copyright,
+			tt = new SmoScoreText({text:'Copyright By Me A Long Line Right Justified',position:SmoScoreText.positions.copyright,
 			    boxModel: SmoScoreText.boxModels.wrap,width:100,height:100});
-			score.addScoreText(tt);
+			SmoUndoable.scoreOp(score,'addScoreText',tt,undo,'Copy Text Test 1');
 			return layout.render().then(timeTest);
 		}
 		
 		var copyText2 = () => {
-			score.removeScoreText(tt);
-			tt = new SmoScoreText({text:'Copyright By Me A Long Line',position:SmoScoreText.positions.copyright,
+			SmoUndoable.scoreOp(score,'removeScoreText',tt,undo,'Copy Text Test 1');
+			tt = new SmoScoreText({text:'Copyright By Me A Long Line Center Justified',position:SmoScoreText.positions.copyright,
 			    boxModel: SmoScoreText.boxModels.wrap,width:100,height:100,justification:'center'});
-			score.addScoreText(tt);
+			SmoUndoable.scoreOp(score,'addScoreText',tt,undo,'Copy Text Test 1');
 			return layout.render().then(timeTest);
 		}			
 		
