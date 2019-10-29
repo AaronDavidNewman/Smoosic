@@ -150,6 +150,37 @@ class SmoSystemStaff {
         }
         return null;
     }
+    
+    addRehearsalMark(index,parameters) {
+        var mark = new SmoRehearsalMark(parameters);
+        if (!mark.increment) {            
+            this.measures[index].setRehearsalMark(mark);
+            return;
+        }
+        
+        var symbol = mark.symbol;
+        for (var i=0;i<this.measures.length;++i) {
+            var mm = this.measures[i];
+            if (i < index) {
+                var rm = mm.getRehearsalMark();
+                if (rm && rm.cardinality==mark.cardinality && rm.increment) {
+                   symbol = rm.getIncrement();                   
+                   mark.symbol=symbol;
+                }
+            } 
+            if (i === index) {
+                mm.addRehearsalMark(mark);
+                symbol = mark.getIncrement();
+            }
+            if (i > index) {
+                var rm = mm.getRehearsalMark();
+                if (rm && rm.cardinality==mark.cardinality && rm.increment) {
+                    rm.symbol = symbol;
+                    symbol = rm.getIncrement();
+                }
+            }
+        }
+    }
 	
 	deleteMeasure(index) {
 		if (this.measures.length < 2) {

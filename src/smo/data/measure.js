@@ -387,7 +387,19 @@ class SmoMeasure {
 		}
 		return -1;
 	}
-	
+    
+    addRehearsalMark(parameters) {
+        var ar= this.modifiers.filter(obj => obj.attrs.type != 'SmoRehearsalMark');
+        this.modifiers=ar;
+        this.modifiers.push(new SmoRehearsalMark(parameters));
+    }
+	removeRehearsalMark() {
+        var ar= this.modifiers.filter(obj => obj.attrs.type != 'SmoRehearsalMark');
+        this.modifiers=ar;
+    }
+    getRehearsalMark() {
+        return this.modifiers.find(obj => obj.attrs.type == 'SmoRehearsalMark');
+    }
 	addMeasureText(mod) {
 		var added = false;
 		var exist = this.modifiers.filter((mm) => {

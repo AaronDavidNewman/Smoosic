@@ -311,20 +311,27 @@ class SmoRehearsalMark extends SmoMeasureModifierBase {
 		return {
 			position:above,
 			cardinality:SmoRehearsalMark.capitals,
-			symbol:'A'
+			symbol:'A',
+            increment:true
 		}
 	}
 	static get attributes() {
 		return ['cardinality','symbol','position'];
 	}
-	increment() {
+	getIncrement() {
 		if (!this.cardinality != 'number') {
 			var code = this.symbol.charCodeAt(0);
 			code += 1;
 			this.symbol=String.fromCharCode(code);
 			return this.symbol;
-		}
+		} else {
+            return parseInt(symbol)+1;
+        }
 	}
+    getInitial() {
+        return this.cardinality == SmoRehearsalMark.cardinalities.capitals ? 'A' : 
+            (this.cardinality == SmoRehearsalMark.cardinalities.lowerCase ? 'a' : '1');
+    }
 	serialize() {
         var params = {};
         smoMusic.filteredMerge(SmoRehearsalMark.attributes, this, params);
@@ -336,5 +343,8 @@ class SmoRehearsalMark extends SmoMeasureModifierBase {
         parameters = parameters ? parameters : {};
         smoMusic.serializedMerge(SmoRehearsalMark.attributes, SmoRehearsalMark.defaults, this);
         smoMusic.serializedMerge(SmoRehearsalMark.attributes, parameters, this);
+        if (!parameters.symbol) {
+            this.symbol=getInitial();
+        }
 	}
 }
