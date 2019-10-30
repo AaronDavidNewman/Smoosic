@@ -309,21 +309,21 @@ class SmoRehearsalMark extends SmoMeasureModifierBase {
 	// TODO: positions don't work.
 	static get defaults() {
 		return {
-			position:above,
-			cardinality:SmoRehearsalMark.capitals,
+			position:SmoRehearsalMark.positions.above,
+			cardinality:SmoRehearsalMark.cardinalities.capitals,
 			symbol:'A',
             increment:true
 		}
 	}
 	static get attributes() {
-		return ['cardinality','symbol','position'];
+		return ['cardinality','symbol','position','increment'];
 	}
 	getIncrement() {
 		if (!this.cardinality != 'number') {
 			var code = this.symbol.charCodeAt(0);
 			code += 1;
-			this.symbol=String.fromCharCode(code);
-			return this.symbol;
+			var symbol=String.fromCharCode(code);
+			return symbol;
 		} else {
             return parseInt(symbol)+1;
         }
@@ -344,7 +344,7 @@ class SmoRehearsalMark extends SmoMeasureModifierBase {
         smoMusic.serializedMerge(SmoRehearsalMark.attributes, SmoRehearsalMark.defaults, this);
         smoMusic.serializedMerge(SmoRehearsalMark.attributes, parameters, this);
         if (!parameters.symbol) {
-            this.symbol=getInitial();
+            this.symbol=this.getInitial();
         }
 	}
 }

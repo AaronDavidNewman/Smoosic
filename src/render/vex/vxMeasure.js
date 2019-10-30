@@ -266,6 +266,11 @@ class VxMeasure {
 			vm.setFont(tm.fontInfo);
 			
 		});
+        
+        var rm = this.smoMeasure.getRehearsalMark();
+        if (rm) {
+            this.stave.setSection(rm.symbol,0);
+        }
 		
 	}
 

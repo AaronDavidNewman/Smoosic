@@ -154,7 +154,7 @@ class SmoSystemStaff {
     addRehearsalMark(index,parameters) {
         var mark = new SmoRehearsalMark(parameters);
         if (!mark.increment) {            
-            this.measures[index].setRehearsalMark(mark);
+            this.measures[index].addRehearsalMark(mark);
             return;
         }
         
@@ -180,6 +180,31 @@ class SmoSystemStaff {
                 }
             }
         }
+    }
+    
+    removeRehearsalMark(index,mark) {
+        var ix = 0;
+        var symbol=null;
+        var card = null;
+        this.measures.forEach((measure) => {
+            if (ix == index) {
+                var mark = measure.getRehearsalMark();
+                if (mark) {
+                    symbol = mark.symbol;
+                    card = mark.cardinality;
+                }
+                measure.removeRehearsalMark();
+            }
+            if (ix > index && symbol && card) {
+                var mark = measure.getRehearsalMark();
+                if (mark && mark.increment) {
+                    mark.symbol = symbol;
+                    symbol = mark.getIncrement();
+                }
+            }
+            
+            ix += 1;
+        });
     }
 	
 	deleteMeasure(index) {

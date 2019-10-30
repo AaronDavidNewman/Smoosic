@@ -407,7 +407,13 @@ class SmoOperation {
 		var mm = selection.selector.measure;
 		score.staves.forEach((staff) => {
 			var mt = new SmoRehearsalMark(rehearsalMark.serialize());
-			staff.measures[mm].addMeasureText(mt);
+            staff.addRehearsalMark(selection.selector.measure,mt);
+		});
+	}
+    
+    static removeRehearsalMark(score,selection,rehearsalMark) {
+		score.staves.forEach((staff) => {
+            staff.removeRehearsalMark(selection.selector.measure);
 		});
 	}
 

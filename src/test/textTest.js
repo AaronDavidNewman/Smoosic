@@ -104,6 +104,37 @@ class TextTest {
 			var p = _moveText();
 			return p.then(_moveText).then(timeTest); // .then(_scaleUp);
 		}
+        
+        var rehearsalMarkTest= () => {
+            var rh=new SmoRehearsalMark();
+			var selection = SmoSelection.measureSelection(score, 0, 0);
+			SmoUndoable.scoreSelectionOp(score,selection,'addRehearsalMark',rh,undo,'test rehearsal mark');
+			return layout.render().then(timeTest);					            
+        }            
+        
+         var rehearsalMarkTest2= () => {
+            var rh=new SmoRehearsalMark();
+			var selection = SmoSelection.measureSelection(score, 0, 1);
+			SmoUndoable.scoreSelectionOp(score,selection,'addRehearsalMark',rh,undo,'test rehearsal mark2.1');
+            selection = SmoSelection.measureSelection(score, 0, 2);
+            rh=new SmoRehearsalMark();
+			SmoUndoable.scoreSelectionOp(score,selection,'addRehearsalMark',rh,undo,'test rehearsal mark2.2');
+			return layout.render().then(timeTest);					            
+        }
+        
+         var rehearsalMarkTest3= () => {
+            var rh=new SmoRehearsalMark();
+			var selection = SmoSelection.measureSelection(score, 0, 1);
+			SmoUndoable.scoreSelectionOp(score,selection,'removeRehearsalMark',null,undo,'test rehearsal mark2');
+			return layout.render().then(timeTest);					            
+        }
+        
+         /* var rehearsalMarkTest4= () => {
+            var rh=new SmoRehearsalMark();
+			var selection = SmoSelection.measureSelection(score, 0, 1);
+			SmoUndoable.scoreSelectionOp(score,selection,'addRehearsalMark',rh,undo,'test rehearsal mark2');
+			return layout.render().then(timeTest);					            
+        }    */  
 		
 		var measureText1 = () => {
 			tt = score.getScoreText(tt.attrs.id);
@@ -191,7 +222,8 @@ class TextTest {
 		}			
 		
         return drawDefaults().then(scoreText1).then(scoreText2).then(scoreText3).then(scoreText3).then(scoreText4).
-		   then(scaleUp).then(scaleDown).then(moveText).then(measureText1).
+		   then(scaleUp).then(scaleDown).then(moveText).then(rehearsalMarkTest).then(rehearsalMarkTest2)
+           .then(rehearsalMarkTest3).then(measureText1).
 		   then(measureText2).then(measureText3).then(measureText4)
 		   .then(titleText1).then(titleText2).then(titleText3).then(copyText1).then(copyText2).then(signalComplete);
     }
