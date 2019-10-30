@@ -398,7 +398,16 @@ class SmoOperation {
 	static addSystemText(score,selection,measureText) {
 		var mm = selection.selector.measure;
 		score.staves.forEach((staff) => {
-			staff.measures[mm].addMeasureText(measureText);
+			var mt = new SmoMeasureText(measureText.serialize());
+			staff.measures[mm].addMeasureText(mt);
+		});
+	}
+	
+	static addRehearsalMark(score,selection,rehearsalMark) {
+		var mm = selection.selector.measure;
+		score.staves.forEach((staff) => {
+			var mt = new SmoRehearsalMark(rehearsalMark.serialize());
+			staff.measures[mm].addMeasureText(mt);
 		});
 	}
 
