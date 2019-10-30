@@ -10,7 +10,7 @@ class TextTest {
 		var undo = keys.undoBuffer;
 		var tt = new SmoScoreText({text:'Hello world',x:240,y:30});
 		var mt=new SmoMeasureText({position:SmoMeasureText.positions.left,text:'Measure Text'});
-		var delay=100;
+		var delay=250;
 		// var measure = SmoSelection.measureSelection(score, 0, 0).measure;
 		
 		var detach = () => {

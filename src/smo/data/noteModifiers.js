@@ -165,3 +165,9 @@ class SmoDynamicText extends SmoNoteModifierBase {
         }
     }
 }
+
+class SmoTempoText {
+    static get tempoModes() {
+		return {durationMode:'duration',textMode:'text',customMode:'custom'};
+	}
+}
