@@ -348,3 +348,75 @@ class SmoRehearsalMark extends SmoMeasureModifierBase {
         }
 	}
 }
+
+
+class SmoTempoText extends SmoMeasureModifierBase {
+	static get tempoModes() {
+		return {
+			durationMode: 'duration',
+			textMode: 'text',
+			customMode: 'custom'
+		};
+	}
+
+	static get tempoTexts() {
+		return {
+			larghissimo: 'Larghissimo',
+			grave: 'Grave',
+			lento: 'Lento',
+			largo: 'Largo',
+			larghetto: 'Larghetto',
+			adagio: 'Adagio',
+			adagietto: 'Adagietto',
+			andante_moderato: 'Andante moderato',
+			andante: 'Andante',
+			andantino: 'Andantino',
+			moderator: 'Moderato',
+			allegretto: 'Allegretto', 
+			allegro: 'Allegro',
+			vivace: 'Vivace',
+			presto: 'Presto',
+			prestissimo: 'Prestissimo'
+		};
+	}
+
+	static get defaults() {
+		return {
+			tempoMode: SmoTempoText.tempoModes.durationMode,
+			bpm: 120,
+			beatDuration: 4096,
+			tempoText: SmoTempoText.tempoTexts.allegro,
+            yOffset:0,
+		};
+	}
+	static get attributes() {
+		return ['tempoMode', 'bpm', 'tempoMode', 'beatDuration', 'tempoText','yOffset'];
+	}
+    _toVexTextTempo() {
+        return {name:this.tempoText};
+    }
+    
+    _toVexDurationTempo() {
+        var vd = smoMusic.ticksToDuration[this.beatDuration];
+        var dots = (vd.match(/m/g) || []).length;
+        vd=vd.replace(/d/g,'');
+        return {duration: vd, dots: dots, bpm: this.bpm };
+    }
+    toVexTempo() {
+        if (this.tempoMode ==  SmoTempoText.tempoModes.durationMode) {
+            return this._toVexDurationTempo();
+        }
+        return this._toVexTextTempo();
+    }
+    serialize() {
+        var params = {};
+        smoMusic.filteredMerge(SmoTempoText.attributes, this, params);
+        params.ctor = 'SmoTempoText';
+        return params;
+	}
+	constructor(parameters) {
+		super('SmoTempoText');
+		smoMusic.serializedMerge(SmoTempoText.attributes, SmoTempoText.defaults, this);
+		smoMusic.serializedMerge(SmoTempoText.attributes, parameters, this);
+	}
+}

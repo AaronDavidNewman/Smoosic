@@ -182,7 +182,15 @@ class SmoSystemStaff {
         }
     }
     
-    removeRehearsalMark(index,mark) {
+    removeTempo(index) {
+        this.measures[index].removeTempo();        
+    }
+    
+    addTempo(tempo,index) {
+        this.measures[index].addTempo(tempo);
+    }
+    
+    removeRehearsalMark(index) {
         var ix = 0;
         var symbol=null;
         var card = null;

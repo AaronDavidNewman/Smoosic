@@ -388,17 +388,39 @@ class SmoMeasure {
 		return -1;
 	}
     
-    addRehearsalMark(parameters) {
-        var ar= this.modifiers.filter(obj => obj.attrs.type != 'SmoRehearsalMark');
+    _addSingletonModifier(name,parameters) {
+        var ctor = eval(name);
+        var ar= this.modifiers.filter(obj => obj.attrs.type != name);
         this.modifiers=ar;
-        this.modifiers.push(new SmoRehearsalMark(parameters));
+        this.modifiers.push(new ctor(parameters));
+    }
+    _removeSingletonModifier(name) {
+        var ar= this.modifiers.filter(obj => obj.attrs.type != name);
+        this.modifiers=ar;
+    }
+    
+    _getSingletonModifier(name) {
+        return this.modifiers.find(obj => obj.attrs.type == name);
+    }
+    
+    addRehearsalMark(parameters) {
+        this._addSingletonModifier('SmoRehearsalMark',parameters);
     }
 	removeRehearsalMark() {
-        var ar= this.modifiers.filter(obj => obj.attrs.type != 'SmoRehearsalMark');
-        this.modifiers=ar;
+        this._removeSingletonModifier('SmoRehearsalMark');
     }
     getRehearsalMark() {
-        return this.modifiers.find(obj => obj.attrs.type == 'SmoRehearsalMark');
+        return this._getSingletonModifier('SmoRehearsalMark');
+    }
+    
+    addTempo(params) {
+        this._addSingletonModifier('SmoTempoText',params);
+    }
+    removeTempo(params) {
+        this._removeSingletonModifier('SmoTempoText',params);
+    }
+    getTempo() {
+        return this._getSingletonModifier('SmoTempoText');
     }
 	addMeasureText(mod) {
 		var added = false;

@@ -271,6 +271,11 @@ class VxMeasure {
         if (rm) {
             this.stave.setSection(rm.symbol,0);
         }
+        
+        var tempo = this.smoMeasure.getTempo();
+        if (tempo) {
+            this.stave.setTempo(tempo.toVexTempo(),tempo.yOffset);
+        }
 		
 	}
 

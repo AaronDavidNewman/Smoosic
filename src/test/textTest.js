@@ -104,6 +104,7 @@ class TextTest {
 			var p = _moveText();
 			return p.then(_moveText).then(timeTest); // .then(_scaleUp);
 		}
+                
         
         var rehearsalMarkTest= () => {
             var rh=new SmoRehearsalMark();
@@ -127,6 +128,22 @@ class TextTest {
 			var selection = SmoSelection.measureSelection(score, 0, 1);
 			SmoUndoable.scoreSelectionOp(score,selection,'removeRehearsalMark',null,undo,'test rehearsal mark2');
 			return layout.render().then(timeTest);					            
+        }
+        
+        var tempoTest = () => {
+            var selection = SmoSelection.measureSelection(score, 0, 0);
+			SmoUndoable.scoreSelectionOp(score,selection,'removeRehearsalMark',null,undo,'tempo test 1.1');
+            selection = SmoSelection.measureSelection(score, 0, 2);
+            SmoUndoable.scoreSelectionOp(score,selection,'removeRehearsalMark',null,undo,'tempo test 1.2');
+            
+            selection = SmoSelection.measureSelection(score, 0, 0);
+            SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
+              new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
+            selection = SmoSelection.measureSelection(score, 0, 1);
+            SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
+              new SmoTempoText({tempoMode: SmoTempoText.tempoModes.textMode,
+                  tempoText:SmoTempoText.tempoTexts.adagio,bpm:120}),undo,'tempo test 1.3');
+
         }
         
          /* var rehearsalMarkTest4= () => {
@@ -223,7 +240,7 @@ class TextTest {
 		
         return drawDefaults().then(scoreText1).then(scoreText2).then(scoreText3).then(scoreText3).then(scoreText4).
 		   then(scaleUp).then(scaleDown).then(moveText).then(rehearsalMarkTest).then(rehearsalMarkTest2)
-           .then(rehearsalMarkTest3).then(measureText1).
+           .then(rehearsalMarkTest3).then(tempoTest).then(measureText1).
 		   then(measureText2).then(measureText3).then(measureText4)
 		   .then(titleText1).then(titleText2).then(titleText3).then(copyText1).then(copyText2).then(signalComplete);
     }

@@ -411,6 +411,19 @@ class SmoOperation {
 		});
 	}
     
+    static addTempo(score,selection,tempo) {
+		score.staves.forEach((staff) => {
+            staff.addTempo(tempo,selection.selector.measure);
+		});
+    }
+    
+    static removeTempo(score,selection) {
+		score.staves.forEach((staff) => {
+            staff.removeTempo();
+		});
+    }
+
+    
     static removeRehearsalMark(score,selection,rehearsalMark) {
 		score.staves.forEach((staff) => {
             staff.removeRehearsalMark(selection.selector.measure);
