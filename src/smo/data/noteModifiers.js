@@ -98,6 +98,49 @@ class SmoArticulation extends SmoNoteModifierBase {
 	set type(ignore) {}
 }
 
+class SmoLyric extends SmoNoteModifierBase {
+	static get defaults() {
+		return {
+            text:'',
+            endChar:'',
+            verse:0,
+			fontInfo: {
+				size: '1em',
+				family: 'times',
+				style: 'normal',
+				weight: 'normal'
+			},
+            fill:'black',
+			rotate:0,
+			classes:'score-text',
+			scaleX:1.0,
+			scaleY:1.0,
+			translateX:0,
+			translateY:0
+		};
+	}
+    
+    static get attributes() {
+        return ['text','endChar','fontInfo','classes',
+		    'fill','scaleX','scaleY','translateX','translateY'];
+    }
+    
+    constructor(parameters) {
+		super('SmoLyric');
+		smoMusic.serializedMerge(SmoLyric.attributes, SmoLyric.defaults,this);
+		smoMusic.serializedMerge(SmoLyric.attributes, parameters, this);
+
+		if (!this['attrs']) {
+			this.attrs = {
+				id: VF.Element.newID(),
+				type: 'SmoLyric'
+			};
+		} else {
+			console.log('inherit attrs');
+		}
+	}
+}
+
 // ## SmoDynamicText
 // ## Description:
 // standard dynamics text
@@ -168,4 +211,3 @@ class SmoDynamicText extends SmoNoteModifierBase {
 		}
 	}
 }
-

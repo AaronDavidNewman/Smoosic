@@ -76,6 +76,28 @@ class SmoNote {
     removeModifier(dynamic) {
         this._addModifier(dynamic, false);
     }
+    getModifiers(type) {
+        var ms = this.textModifiers.filter((mod)=> {
+            return mod.attrs.type === type;
+        });
+        return ms;
+    }
+    
+    addLyric(lyric) {
+        var tms = this.textModifiers.filter((mod) => {
+            return mod.attrs.type != 'SmoLyric' || mod.verse != lyric.verse;
+        });
+        tms.push(lyric);
+        this.textModifiers = tms;
+    }
+    
+    
+    removeLyric(lyric) {
+        var tms = this.textModifiers.filter((mod) => {
+            return mod.attrs.type != 'SmoLyric' || mod.verse != lyric.verse;
+        });
+        this.textModifiers = tms;
+    }
 
     toggleArticulation(articulation) {
         if (this.articulations.findIndex((a) => {

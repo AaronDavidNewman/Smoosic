@@ -411,6 +411,14 @@ class SmoOperation {
 		});
 	}
     
+    static addLyric(score,selection,lyric) {
+        selection.note.addLyric(lyric);
+    }
+    
+    static removeLyric(score,selection,lyric) {
+        selection.note.removeLyric(lyric);
+    }
+    
     static addTempo(score,selection,tempo) {
 		score.staves.forEach((staff) => {
             staff.addTempo(tempo,selection.selector.measure);

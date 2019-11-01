@@ -95,6 +95,18 @@ class VxMeasure {
             vexNote.addDotToAll();
         }	
 	}
+    
+    _createLyric(smoNote,vexNote) {
+        var lyrics = smoNote.getModifiers('SmoLyric');
+        var ix = 0;
+        lyrics.forEach((ll) => {
+            var y = ll.verse*10;
+            var vexL = new VF.Annotation(ll.text);
+            ll.setFont(ll.fontInfo.family,'Times', ll.fontInfo.size);
+            ll.setYShift(y); // need this?
+            vexNote.addAnnotation(ll.verse,vexL);
+        });
+    }
 
     // ## Description:
     // convert a smoNote into a vxNote so it can be rasterized
@@ -119,6 +131,7 @@ class VxMeasure {
         smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
 
 		this._createAccidentals(smoNote,vexNote,tickIndex);
+        this._createLyric(smoNote,vexNote);
 		
         return vexNote;
     }
