@@ -143,8 +143,26 @@ class TextTest {
             SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
               new SmoTempoText({tempoMode: SmoTempoText.tempoModes.textMode,
                   tempoText:SmoTempoText.tempoTexts.adagio,bpm:120}),undo,'tempo test 1.3');
+			return layout.render().then(timeTest);					            
 
         }
+		
+		var lyricTest = () => {
+			var s1 = SmoSelection.noteSelection(score,0,0,0,1);
+			var s2 = SmoSelection.noteSelection(score,0,0,0,2);
+			var s3 = SmoSelection.noteSelection(score,0,0,0,3);
+			var s4 = SmoSelection.noteSelection(score,0,1,0,0);
+			var lyric = new SmoLyric({text:'All'});
+			SmoUndoable.scoreSelectionOp(score,s1,'addLyric',new SmoLyric({text:'All'}),undo,'lyric test 1');
+			SmoUndoable.scoreSelectionOp(score,s2,'addLyric',new SmoLyric({text:'Boys'}),undo,'lyric test 2');
+			SmoUndoable.scoreSelectionOp(score,s3,'addLyric',new SmoLyric({text:'Eat'}),undo,'lyric test 3');
+			SmoUndoable.scoreSelectionOp(score,s4,'addLyric',new SmoLyric({text:'Grass'}),undo,'lyric test 4');
+			SmoUndoable.scoreSelectionOp(score,s1,'addLyric',new SmoLyric({verse:1,text:'Cows'}),undo,'lyric test 1');
+			SmoUndoable.scoreSelectionOp(score,s2,'addLyric',new SmoLyric({verse:1,text:'Do'}),undo,'lyric test 2');
+			SmoUndoable.scoreSelectionOp(score,s3,'addLyric',new SmoLyric({verse:1,text:'Fine'}),undo,'lyric test 3');
+			SmoUndoable.scoreSelectionOp(score,s4,'addLyric',new SmoLyric({verse:1,text:'Always'}),undo,'lyric test 4');
+			return layout.render().then(timeTest);					            
+		}
         
          /* var rehearsalMarkTest4= () => {
             var rh=new SmoRehearsalMark();
@@ -239,7 +257,7 @@ class TextTest {
 		}			
 		
         return drawDefaults().then(scoreText1).then(scoreText2).then(scoreText3).then(scoreText3).then(scoreText4).
-		   then(scaleUp).then(scaleDown).then(moveText).then(rehearsalMarkTest).then(rehearsalMarkTest2)
+		   then(scaleUp).then(scaleDown).then(moveText).then(lyricTest).then(rehearsalMarkTest).then(rehearsalMarkTest2)
            .then(rehearsalMarkTest3).then(tempoTest).then(measureText1).
 		   then(measureText2).then(measureText3).then(measureText4)
 		   .then(titleText1).then(titleText2).then(titleText3).then(copyText1).then(copyText2).then(signalComplete);

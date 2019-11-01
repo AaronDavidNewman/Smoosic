@@ -102,9 +102,10 @@ class VxMeasure {
         lyrics.forEach((ll) => {
             var y = ll.verse*10;
             var vexL = new VF.Annotation(ll.text);
-            ll.setFont(ll.fontInfo.family,'Times', ll.fontInfo.size);
-            ll.setYShift(y); // need this?
-            vexNote.addAnnotation(ll.verse,vexL);
+            vexL.setFont(ll.fontInfo.family, ll.fontInfo.size,ll.fontInfo.weight);
+            vexL.setYShift(y); // need this?
+			vexL.setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);
+            vexNote.addAnnotation(0,vexL);
         });
     }
 
@@ -168,7 +169,10 @@ class VxMeasure {
 	
 	renderDynamics() {
 		this.smoMeasure.notes.forEach((smoNote) => {
-			smoNote.textModifiers.forEach((tm) => {
+			var mods = smoNote.textModifiers.filter((mod) => {
+				return mod.attrs.type === 'SmoDynamicText';
+			});
+			mods.forEach((tm) => {
 				this._renderNoteGlyph(smoNote,tm);
 			});
 		});

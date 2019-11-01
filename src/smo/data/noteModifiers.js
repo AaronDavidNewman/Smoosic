@@ -105,7 +105,7 @@ class SmoLyric extends SmoNoteModifierBase {
             endChar:'',
             verse:0,
 			fontInfo: {
-				size: '1em',
+				size: 10,
 				family: 'times',
 				style: 'normal',
 				weight: 'normal'
@@ -121,7 +121,7 @@ class SmoLyric extends SmoNoteModifierBase {
 	}
     
     static get attributes() {
-        return ['text','endChar','fontInfo','classes',
+        return ['text','endChar','fontInfo','classes','verse',
 		    'fill','scaleX','scaleY','translateX','translateY'];
     }
     
