@@ -498,13 +498,15 @@ class smoMusic {
 		}
 		return ticks;
 	}
+    
 
 	// ### ticksToDuration
 	// Frequently we double/halve a note duration, and we want to find the vex tick duration that goes with that.
 	static get ticksToDuration() {
 		var durations = ["1/2", "1", "2", "4", "8", "16", "32", "64", "128", "256"];
-		var ticksToDuration = {};
-		var _ticksToDurations = function () {
+		smoMusic._ticksToDuration = smoMusic['_ticksToDuration'] ? smoMusic._ticksToDuration : null;
+		var _ticksToDurationsF = function () {
+            var ticksToDuration = smoMusic._ticksToDuration = {};
 			for (var i = 0; i < durations.length - 1; ++i) {
 				var dots = '';
 				var ticks = 0;
@@ -518,8 +520,10 @@ class smoMusic {
 			}
 			return ticksToDuration;
 		}
-		_ticksToDurations();
-		return ticksToDuration;
+        if (!smoMusic._ticksToDuration) {           
+		   _ticksToDurationsF();
+        }
+		return smoMusic._ticksToDuration;
 	};
 
 	// ### durationToTicks
