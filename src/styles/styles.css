@@ -15,6 +15,7 @@ h1 {
 .testTitle {
 	height: 20px;
 	font-size:1.2em;
+    margin:0;    
 }
 
 .draganime.hide {
@@ -501,7 +502,7 @@ body.splashScreen .bugDialog {
 	background:#999;
 }
 .workspace {
-	padding-top: 30px;
+	padding-top: 2px;
 	position:relative;
 	padding-left: 120px;
 	background: #999;

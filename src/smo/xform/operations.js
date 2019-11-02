@@ -56,9 +56,9 @@ class SmoOperation {
 		var measure = selection.measure;
 		var tuplet = measure.getTupletForNote(note);
 		if (!tuplet) {
-			if (selection.note.dots > 0) {
+			/* if (selection.note.dots > 0) {
 				return;
-			}
+			} */
 			var nticks = note.tickCount * 2;
 			var actor = new SmoStretchNoteActor({
 					startIndex: selection.selector.tick,
@@ -187,6 +187,15 @@ class SmoOperation {
 		if (nticks == note.tickCount) {
 			return;
 		}
+        
+        // Don't dot if the thing on the right of the . is too small
+        var dotCount = smoMusic.smoTicksToVexDots(nticks);
+        var multiplier = Math.pow(2,dotCount);
+        var baseDot = VF.durationToTicks(smoMusic.closestVexDuration(nticks))/(multiplier*2);
+        if (baseDot <= 128) {
+            return;
+        }
+        
 		// If this is the ultimate note in the measure, we can't increase the length
 		if (selection.selector.tick + 1 === selection.measure.notes.length) {
 			return;

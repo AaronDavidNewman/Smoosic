@@ -224,6 +224,10 @@ class suiLayoutBase {
 					vxEnd = testNote;
 					nextNote = SmoSelection.nextNoteSelection(this.score,
 							nextNote.selector.staff, nextNote.selector.measure, nextNote.selector.voice, nextNote.selector.tick);
+                    // last beat of the measure
+                    if (!nextNote) {
+                        break;
+                    }
 					testNote = system.getVxNote(nextNote.note);
 
 				}
@@ -236,6 +240,9 @@ class suiLayoutBase {
 					vxStart = testNote;
 					lastNote = SmoSelection.lastNoteSelection(this.score,
 							lastNote.selector.staff, lastNote.selector.measure, lastNote.selector.voice, lastNote.selector.tick);
+                    if (!lastNote) {
+                        break;
+                    }
 					testNote = system.getVxNote(lastNote.note);
 				}
 			}

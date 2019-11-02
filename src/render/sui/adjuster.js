@@ -203,11 +203,13 @@ class suiLayoutAdjuster {
 
 	}
 	
-	static _minMaxYModifier(staff,minY,maxY) {
+	static _minMaxYModifier(staff,minMeasure,maxMeasure,minY,maxY) {
 		staff.modifiers.forEach((modifier) => {
-			minY = modifier.logicalBox.y < minY ? modifier.logicalBox.y : minY;
-			var max = modifier.logicalBox.y + modifier.logicalBox.height;
-			maxY = max > maxY ? max : maxY;	 
+            if (modifier.startSelector.measure >= minMeasure && modifier.startSelector <= maxMeasure) {
+                minY = modifier.logicalBox.y < minY ? modifier.logicalBox.y : minY;
+                var max = modifier.logicalBox.y + modifier.logicalBox.height;
+                maxY = max > maxY ? max : maxY;	 
+            }
 			});
 
 		return {minY:minY,maxY:maxY};
@@ -238,6 +240,12 @@ class suiLayoutAdjuster {
 				if (measures.length === 0) {
 					continue;
 				}
+                
+                var measureNums = measures.map((mm)=> {
+                    return mm.measureNumber.measureIndex;
+                });
+                var measureMax = measureNums.reduce((a,b) => a > b ? a : b);
+                var measureMin = measureNums.reduce((a,b) => a < b ? a : b);
 
 				// maxYMeasure is measure on this line with y closest to bottom of page (maxYMeasure y point)
 				var maxYMeasure = measures.reduce((a, b) => {
@@ -257,7 +265,7 @@ class suiLayoutAdjuster {
 				
 				var thisLineMaxY = maxYMeasure.logicalBox.y + maxYMeasure.logicalBox.height;
 				
-				var modAdj = suiLayoutAdjuster._minMaxYModifier(staff,minYRenderedY,thisLineMaxY);
+				var modAdj = suiLayoutAdjuster._minMaxYModifier(staff,measureMin,measureMax,minYRenderedY,thisLineMaxY);
 				minYRenderedY=modAdj.minY;
 				thisLineMaxY=modAdj.maxY;
 

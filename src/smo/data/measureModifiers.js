@@ -398,7 +398,7 @@ class SmoTempoText extends SmoMeasureModifierBase {
     
     _toVexDurationTempo() {
         var vd = smoMusic.ticksToDuration[this.beatDuration];
-        var dots = (vd.match(/m/g) || []).length;
+        var dots = (vd.match(/d/g) || []).length;
         vd=vd.replace(/d/g,'');
         return {duration: vd, dots: dots, bpm: this.bpm };
     }

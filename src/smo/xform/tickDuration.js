@@ -117,7 +117,11 @@ class SmoContractNoteActor extends TickTransformBase {
 				remainder = remainder - this.newTicks;
             }
 			
+            // make sure remnainder is not too short            
 			if (remainder > 0) {
+                if (remainder < 128) {
+                    return null;
+                }
 				notes.push(new SmoNote({
                         clef: note.clef,
                         pitches: JSON.parse(JSON.stringify(note.pitches)),

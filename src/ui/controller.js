@@ -98,6 +98,7 @@ class suiController {
 	}
 	piano() {
 		this.piano = new suiPiano({elementId:'piano-svg'});
+        $('.close-piano').click();
 	}
 	updateOffsets() {
 		// the 100 is for the control offsets

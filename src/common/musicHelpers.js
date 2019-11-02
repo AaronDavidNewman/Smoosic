@@ -436,6 +436,11 @@ class smoMusic {
 		}
 		return smoMusic.keySignatureLength[key];
 	}
+    static smoTicksToVexDots(ticks) {
+        var vd = smoMusic.ticksToDuration[ticks];
+        var dots = (vd.match(/d/g) || []).length;
+        return dots;
+    }
 	// ## closestVexDuration
 	// ## Description:
 	// return the closest vex duration >= to the actual number of ticks. Used in beaming
@@ -505,7 +510,7 @@ class smoMusic {
 				var ticks = 0;
 
 				// We support up to 4 'dots'
-				for (var j = 0; j < 4 && j + i < durations.length; ++j) {
+				for (var j = 0; j <= 4 && j + i < durations.length; ++j) {
 					ticks += VF.durationToTicks.durations[durations[i + j]];
 					ticksToDuration[ticks.toString()] = durations[i] + dots;
 					dots += 'd'

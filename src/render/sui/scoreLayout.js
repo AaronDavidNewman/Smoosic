@@ -222,6 +222,11 @@ class suiScoreLayout extends suiLayoutBase {
 						this._renderModifiers(stf, system);
 					});
 					if (!useAdjustedY && measure.changed) {
+                        if (suiLayoutBase.debugLayout) {
+					       svgHelpers.debugBox(
+						svg, svgHelpers.boxPoints(measure.staffX, pageBox.y + pageBox.height, 1, this.score.layout.interGap), 
+                          'measure-place-dbg');
+				        }
 						measure.staffY = pageBox.y + pageBox.height + this.score.layout.interGap;
 						if (isNaN(measure.staffY)) {
 							throw ("nan measure ");
