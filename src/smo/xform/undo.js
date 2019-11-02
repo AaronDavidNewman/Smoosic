@@ -204,6 +204,10 @@ class SmoUndoable {
 	static noop(score,undoBuffer) {
         undoBuffer.addBuffer('Backup', 'score', null, score);		
 	}
+	static measureSelectionOp(score,selection,op,params,undoBuffer,description) {
+		undoBuffer.addBuffer(description, 'measure', selection.selector, selection.measure);
+		SmoOperation[op](score,selection,params);
+	}
 	
 	static scoreSelectionOp(score,selection,op,params,undoBuffer,description) {
         undoBuffer.addBuffer(description, 'score', null, score);

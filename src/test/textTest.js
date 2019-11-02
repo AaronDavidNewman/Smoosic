@@ -153,14 +153,14 @@ class TextTest {
 			var s3 = SmoSelection.noteSelection(score,0,0,0,3);
 			var s4 = SmoSelection.noteSelection(score,0,1,0,0);
 			var lyric = new SmoLyric({text:'All'});
-			SmoUndoable.scoreSelectionOp(score,s1,'addLyric',new SmoLyric({text:'All'}),undo,'lyric test 1');
-			SmoUndoable.scoreSelectionOp(score,s2,'addLyric',new SmoLyric({text:'Boys'}),undo,'lyric test 2');
-			SmoUndoable.scoreSelectionOp(score,s3,'addLyric',new SmoLyric({text:'Eat'}),undo,'lyric test 3');
-			SmoUndoable.scoreSelectionOp(score,s4,'addLyric',new SmoLyric({text:'Grass'}),undo,'lyric test 4');
-			SmoUndoable.scoreSelectionOp(score,s1,'addLyric',new SmoLyric({verse:1,text:'Cows'}),undo,'lyric test 1');
-			SmoUndoable.scoreSelectionOp(score,s2,'addLyric',new SmoLyric({verse:1,text:'Do'}),undo,'lyric test 2');
-			SmoUndoable.scoreSelectionOp(score,s3,'addLyric',new SmoLyric({verse:1,text:'Fine'}),undo,'lyric test 3');
-			SmoUndoable.scoreSelectionOp(score,s4,'addLyric',new SmoLyric({verse:1,text:'Always'}),undo,'lyric test 4');
+			SmoUndoable.measureSelectionOp(score,s1,'addLyric',new SmoLyric({text:'All'}),undo,'lyric test 1');
+			SmoUndoable.measureSelectionOp(score,s2,'addLyric',new SmoLyric({text:'Boys'}),undo,'lyric test 2');
+			SmoUndoable.measureSelectionOp(score,s3,'addLyric',new SmoLyric({text:'Eat'}),undo,'lyric test 3');
+			SmoUndoable.measureSelectionOp(score,s4,'addLyric',new SmoLyric({text:'Grass'}),undo,'lyric test 4');
+			SmoUndoable.measureSelectionOp(score,s1,'addLyric',new SmoLyric({verse:1,text:'Cows'}),undo,'lyric test 1');
+			SmoUndoable.measureSelectionOp(score,s2,'addLyric',new SmoLyric({verse:1,text:'Do'}),undo,'lyric test 2');
+			SmoUndoable.measureSelectionOp(score,s3,'addLyric',new SmoLyric({verse:1,text:'Fine'}),undo,'lyric test 3');
+			SmoUndoable.measureSelectionOp(score,s4,'addLyric',new SmoLyric({verse:1,text:'Always'}),undo,'lyric test 4');
 			return layout.render().then(timeTest);					            
 		}
         
