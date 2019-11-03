@@ -168,6 +168,105 @@ class suiMenuManager {
 	}
 }
 
+class SuiTextMenu extends suiMenuBase {
+    	constructor(params) {
+		params = (params ? params : {});
+		Vex.Merge(params, SuiTextMenu.defaults);
+		super(params);
+	}
+    static get defaults() {
+		return {
+			menuItems: [{
+					icon: '',
+					text: 'Title',
+					value: 'titleText'
+				}, {
+					icon: '',
+					text: 'Page Header',
+					value: 'headerText'
+				}, {
+					icon: '',
+					text: 'Page Footer',
+					value: 'footerText'
+				}, {
+					icon: '',
+					text: 'Custom Text',
+					value: 'customText'
+				}, {
+					icon: '',
+					text: 'Composer/Copyright',
+					value: 'copyright'
+				}, {
+					icon: '',
+					text: 'MeasureText',
+					value: 'measureText'
+				}, {
+					icon: '',
+					text: 'Rehearsal Mark',
+					value: 'rehearsalMark'
+				}, {
+					icon: '',
+					text: 'Tempo',
+					value: 'tempoText'
+				}, {
+					icon: '',
+					text: 'Rehearsal Mark',
+					value: 'rehearsalMark'
+				}, {
+                    icon:'',
+                    text:'Lyrics',
+                    value:'lyrics'
+                },
+				 {
+					icon: '',
+					text: 'Cancel',
+					value: 'cancel'
+				}
+			]
+		};
+	}
+    
+    static get menuCommandMap() {
+        return {
+            titleText: {
+                ctor:'SmoScoreText',
+                operation:'addScoreText',
+                params: {
+                    position:'title',
+                    text:'Title',
+                }
+            },
+            headerText: {
+                ctor:'SmoScoreText',
+                operation:'addScoreText',
+                params: {
+                    position:'header',
+                    text:'Header text'
+                }
+            },
+            footerText: {
+                ctor:'SmoScoreText',
+                operation:'addScoreText',
+                params: {
+                    position:'header',
+                    text:'Header text'
+                }
+            }
+        };
+    }
+    selection(ev) {
+		var command = $(ev.currentTarget).attr('data-value');
+        var menuObj = SuiTextMenu.menuCommandMap[command];
+        if (menuObj) {
+            var ctor = eval(menuObj.ctor);
+            var txtObj = new ctor(menuObj.params);
+            SmoUndoable.scoreOp(this.editor.score,menuObj.operation,
+               txtObj, this.editor.undoBuffer,'Text Menu Command');            
+        }
+
+		this.complete();
+	}
+}
 class SuiDynamicsMenu extends suiMenuBase {
 	constructor(params) {
 		params = (params ? params : {});

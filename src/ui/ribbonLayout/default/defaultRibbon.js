@@ -5,7 +5,8 @@ class defaultRibbonLayout {
 	static get ribbons() {
 		var left = defaultRibbonLayout.leftRibbonIds;
 		var top = defaultRibbonLayout.noteButtonIds.concat(defaultRibbonLayout.navigateButtonIds).concat(defaultRibbonLayout.articulateButtonIds)
-		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds).concat(defaultRibbonLayout.measureIds);
+		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds).concat(defaultRibbonLayout.measureIds)
+              .concat(defaultRibbonLayout.textIds);
 			
 		return {
 			left: left,
@@ -19,8 +20,8 @@ class defaultRibbonLayout {
 			defaultRibbonLayout.noteRibbonButtons).concat(
 			defaultRibbonLayout.articulationButtons).concat(
 			defaultRibbonLayout.chordButtons).concat(
-			defaultRibbonLayout.durationRibbonButtons).concat(
-			defaultRibbonLayout.measureRibbonButtons);
+			defaultRibbonLayout.durationRibbonButtons).concat(defaultRibbonLayout.measureRibbonButtons)
+            .concat(defaultRibbonLayout.textRibbonButtons);
 	}
 	
 	static get leftRibbonIds() {
@@ -51,6 +52,24 @@ class defaultRibbonLayout {
 	static get measureIds() {
 		return ['MeasureButtons','endRepeat','startRepeat','endBar','doubleBar','singleBarEnd','singleBarStart','nthEnding','dcAlCoda','dsAlCoda','dcAlFine','dsAlFine','coda','toCoda','segno','toSegno','fine'];
 	}
+    
+    static get textIds() {
+		return ['addTextMenu'];
+	}
+    
+    static get textRibbonButtons() {
+        return [
+        {
+                leftText: '',
+				rightText: '',
+				classes: 'icon  textButton',
+				icon: 'icon-text',
+				action: 'menu',
+				ctor: 'SuiTextMenu',
+				group: 'textEdit',
+				id: 'addTextMenu'		
+		}];
+    }
 	
 	static get measureRibbonButtons() {
 		return [{

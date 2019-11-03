@@ -66,6 +66,17 @@ class suiTracker {
 		this.modifierBoxes = [];
 		var modMap = {};
 		var ix=0;
+        this.layout.score.scoreText.forEach((modifier) => {
+            console.log('in text');
+            if (!modMap[modifier.attrs.id]) {
+                this.modifierTabs.push({
+                    modifier: modifier,
+							selection: null,
+							box:modifier.renderedBox,
+							index:ix
+                });
+            }
+        });
 		this.objects.forEach((selection) => {
 			selection.staff.modifiers.forEach((modifier) => {
 				if (SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {

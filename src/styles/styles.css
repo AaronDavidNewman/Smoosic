@@ -186,11 +186,20 @@ div.ribbonButtonContainer.expanded {
 	font-size:2.4em;
 }
 
-.controls-top button.duration,.controls-top button.measure, .controls-top button.repetext {
+.controls-top button.duration,.controls-top button.measure, 
+.controls-top button.repetext,.controls-top button.textButton {
 	width:65px;
 }
 
+.controls-top button.textButton {
+    font-size:1.2em;
+}
 
+.controls-top button.textButton span.left-text {
+    left:18%;
+    top:12%;
+    position:absolute;
+}
 .controls-top button.duration.expanded.tuplet span.ribbon-button-hotkey  {
 	font-size:1em;
 }

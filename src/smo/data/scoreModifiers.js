@@ -125,6 +125,9 @@ class SmoScoreText extends SmoScoreModifierBase {
 		if (!this.classes) {
 			this.classes='';
 		}
+        if (this.classes.indexOf(this.attrs.id) < 0) {
+            this.classes += ' '+this.attrs.id;
+        }
 		if (!parameters.pagination) {
 			this.pagination = this.position==SmoScoreText.positions.custom || this.position==SmoScoreText.positions.title ? 
               SmoScoreText.paginations.every : 	SmoScoreText.paginations.once;

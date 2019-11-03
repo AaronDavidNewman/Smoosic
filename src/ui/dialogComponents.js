@@ -120,6 +120,35 @@ class SuiRockerComponent {
     }
 }
 
+class SuiTextDragger {
+    constructor(dialog,parameter) {
+        smoMusic.filteredMerge(
+            ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
+        if (!this.defaultValue) {
+            this.defaultValue = 0;
+        }
+        this.dialog = dialog;
+    }
+    
+    get html() {
+        var b = htmlHelpers.buildDom;
+        var id = this.parameterId;
+        var r = b('div').classes('toggleControl smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+            .append(b('input').attr('type', 'checkbox').classes('toggleInput')
+                .attr('id', id + '-input')).append(
+                b('label').attr('for', id + '-input').text(this.label));
+        return r;
+    }
+     setValue(value) {
+        $(this._getInputElement()).prop('checked', value);
+    }
+    getValue() {
+        return $(this._getInputElement()).prop('checked');
+    }
+    bind() {
+    }
+}
+
 class SuiToggleComponent {
     constructor(dialog, parameter) {
         smoMusic.filteredMerge(

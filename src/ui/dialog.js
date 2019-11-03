@@ -2,7 +2,7 @@
 class SuiDialogFactory {
 
 	static createDialog(modSelection, context, tracker, layout) {
-		var dbType = SuiDialogFactory.modifierDialogMap[modSelection.modifier.type];
+		var dbType = SuiDialogFactory.modifierDialogMap[modSelection.modifier.attrs.type];
 		var ctor = eval(dbType);
 		if (!ctor) {
 			console.warn('no dialog for modifier ' + modSelection.modifier.type);
@@ -21,7 +21,8 @@ class SuiDialogFactory {
 			SmoStaffHairpin: 'SuiHairpinAttributesDialog',
 			SmoSlur: 'SuiSlurAttributesDialog',
 			SmoDynamicText: 'SuiTextModifierDialog',
-			SmoVolta: 'SuiVoltaAttributeDialog'
+			SmoVolta: 'SuiVoltaAttributeDialog',
+            SmoScoreText: 'SuiTextTransformDialog'
 		};
 	}
 }
@@ -130,6 +131,61 @@ class SuiDialogBase {
 	}
 }
 
+class SuiTextTransformDialog  extends SuiDialogBase {
+    static createAndDisplay(parameters) {
+		var dg = new SuiTextTransformDialog(parameters);
+		dg.display();
+        return dg;
+	}
+    
+    static get dialogElements() {
+		return [{
+				smoName: 'pageSize',
+				parameterName: 'x',
+				defaultValue: 0,
+				control: 'SuiTextDragger',
+				label:'Page Size',
+				options: []
+			}
+            ];
+    }
+    
+    display() {
+		$('body').addClass('showAttributeDialog');
+		this.components.forEach((component) => {
+			component.bind();
+		});
+		// this._bindElements();
+		// this.position(this.modifier.renderedBox);
+
+		var cb = function (x, y) {}
+		htmlHelpers.draggable({
+			parent: $(this.dgDom.element).find('.attributeModal'),
+			handle: $(this.dgDom.element).find('.icon-move'),
+			cb: cb,
+			moveParent: true
+		});
+	}
+
+	constructor(parameters) {
+		if (!parameters.modifier) {
+			throw new Error('modifier attribute dialog must have modifier');
+		}
+
+		super(SuiTextTransformDialog.dialogElements, {
+			id: 'dialog-' + parameters.modifier.id,
+			top: parameters.modifier.renderedBox.y,
+			left: parameters.modifier.renderedBox.x,
+			label: 'Dynamics Properties'
+		});
+		Vex.Merge(this, parameters);
+		this.components.find((x) => {
+			return x.parameterName == 'x'
+		}).defaultValue = parameters.modifier.x;
+	}
+    bind() {
+    }
+}
 class SuiLayoutDialog extends SuiDialogBase {
 	static get attributes() {
 		return ['pageWidth', 'pageHeight', 'leftMargin', 'topMargin', 'rightMargin', 'interGap', 'intraGap', 'zoomScale', 'svgScale'];
