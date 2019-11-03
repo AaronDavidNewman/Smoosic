@@ -49,7 +49,13 @@ class SuiDialogBase {
 		var y = box.y + box.height;
 
 		// TODO: adjust if db is clipped by the browser.
-		$(this.dgDom.element).find('.attributeDialog').css('top', '' + y + 'px');
+        var dge = $(this.dgDom.element).find('.attributeModal')
+		$(dge).css('top', '' + y + 'px');
+        
+        var x = box.x;
+        var w = $(dge).width();
+        x = (x < window.innerWidth /2)  ? x - (w+25) : x + (w+25);
+        $(dge).css('left', '' + x + 'px');
 	}
 	_constructDialog(dialogElements, parameters) {
 		var id = parameters.id;
@@ -140,23 +146,73 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     
     static get dialogElements() {
 		return [{
-				smoName: 'pageSize',
-				parameterName: 'x',
+				smoName: 'boxSize',
+				parameterName: 'location',
 				defaultValue: 0,
 				control: 'SuiTextDragger',
-				label:'Page Size',
+				label:'Drag',
 				options: []
-			}
+			},
+            {
+				smoName: 'x',
+				parameterName: 'x',
+				defaultValue: 0,
+				control: 'SuiRockerComponent',
+				label: 'X Position (Px)',
+				type: 'int'
+			},{
+				smoName: 'y',
+				parameterName: 'y',
+				defaultValue: 0,
+				control: 'SuiRockerComponent',
+				label: 'Y Position (Px)',
+				type: 'int'
+			}, {
+				smoName: 'scaleX',
+				parameterName: 'scaleX',
+				defaultValue: 100,
+				control: 'SuiRockerComponent',
+				label: 'Horizontal Scale (%)',
+				type: 'percent'
+			}, {
+				smoName: 'scaleY',
+				parameterName: 'scaleY',
+				defaultValue: 100,
+				control: 'SuiRockerComponent',
+				label: 'Vertical Scale (%)',
+				type: 'percent'
+			}, {
+				smoName: 'justification',
+				parameterName: 'justification',
+				defaultValue: SmoScoreText.justifications.left,
+				control: 'SuiDropdownComponent',
+				label:'Justification',
+				options: [{
+						value: 'left',
+						label: 'Left'
+					}, {
+						value: 'right',
+						label: 'Right'
+					}, {
+						value: 'center',
+						label: 'Cente'
+					}
+				]
+			} 
             ];
     }
     
     display() {
 		$('body').addClass('showAttributeDialog');
-		this.components.forEach((component) => {
+		this.components.forEach((component) => {            
 			component.bind();
+            if (typeof(component['setValue'])=='function') {
+			  component.setValue(this.modifier[component.parameterName]);
+            }
 		});
-		// this._bindElements();
-		// this.position(this.modifier.renderedBox);
+        
+		this._bindElements();
+		this.position(this.modifier.renderedBox);
 
 		var cb = function (x, y) {}
 		htmlHelpers.draggable({
@@ -166,6 +222,16 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			moveParent: true
 		});
 	}
+    
+    changed() {
+        this.components.find((x) => {
+            if (typeof(x['getValue'])=='function') {
+			  this.modifier[x.parameterName] = x.getValue();
+            }
+		});
+        $(this.context.svg).find('.' + this.modifier.attrs.id).remove();;
+        this.layout.renderScoreText(this.modifier);
+    }
 
 	constructor(parameters) {
 		if (!parameters.modifier) {
@@ -176,14 +242,30 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			id: 'dialog-' + parameters.modifier.id,
 			top: parameters.modifier.renderedBox.y,
 			left: parameters.modifier.renderedBox.x,
-			label: 'Dynamics Properties'
+			label: 'Text Box Properties'
 		});
-		Vex.Merge(this, parameters);
-		this.components.find((x) => {
-			return x.parameterName == 'x'
-		}).defaultValue = parameters.modifier.x;
+        this.textElement=$(parameters.context.svg).find('.' + parameters.modifier.attrs.id)[0];
+		Vex.Merge(this, parameters);		
+        this.modifier.backupParams();
 	}
-    bind() {
+    _commit() {
+        
+    }
+    _bindElements() {
+        var self = this;
+		var dgDom = this.dgDom;
+
+		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+			self.complete();
+		});
+
+		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+            self.modifier.restoreParams();
+			self.complete();
+		});
+		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
+			self.complete();
+		});
     }
 }
 class SuiLayoutDialog extends SuiDialogBase {

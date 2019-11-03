@@ -436,6 +436,11 @@ class smoMusic {
 		}
 		return smoMusic.keySignatureLength[key];
 	}
+    static smoTicksToVexDots(ticks) {
+        var vd = smoMusic.ticksToDuration[ticks];
+        var dots = (vd.match(/d/g) || []).length;
+        return dots;
+    }
 	// ## closestVexDuration
 	// ## Description:
 	// return the closest vex duration >= to the actual number of ticks. Used in beaming
@@ -493,19 +498,21 @@ class smoMusic {
 		}
 		return ticks;
 	}
+    
 
 	// ### ticksToDuration
 	// Frequently we double/halve a note duration, and we want to find the vex tick duration that goes with that.
 	static get ticksToDuration() {
 		var durations = ["1/2", "1", "2", "4", "8", "16", "32", "64", "128", "256"];
-		var ticksToDuration = {};
-		var _ticksToDurations = function () {
+		smoMusic._ticksToDuration = smoMusic['_ticksToDuration'] ? smoMusic._ticksToDuration : null;
+		var _ticksToDurationsF = function () {
+            var ticksToDuration = smoMusic._ticksToDuration = {};
 			for (var i = 0; i < durations.length - 1; ++i) {
 				var dots = '';
 				var ticks = 0;
 
 				// We support up to 4 'dots'
-				for (var j = 0; j < 4 && j + i < durations.length; ++j) {
+				for (var j = 0; j <= 4 && j + i < durations.length; ++j) {
 					ticks += VF.durationToTicks.durations[durations[i + j]];
 					ticksToDuration[ticks.toString()] = durations[i] + dots;
 					dots += 'd'
@@ -513,8 +520,10 @@ class smoMusic {
 			}
 			return ticksToDuration;
 		}
-		_ticksToDurations();
-		return ticksToDuration;
+        if (!smoMusic._ticksToDuration) {           
+		   _ticksToDurationsF();
+        }
+		return smoMusic._ticksToDuration;
 	};
 
 	// ### durationToTicks
@@ -1285,6 +1294,28 @@ class SmoNote {
     removeModifier(dynamic) {
         this._addModifier(dynamic, false);
     }
+    getModifiers(type) {
+        var ms = this.textModifiers.filter((mod)=> {
+            return mod.attrs.type === type;
+        });
+        return ms;
+    }
+    
+    addLyric(lyric) {
+        var tms = this.textModifiers.filter((mod) => {
+            return mod.attrs.type != 'SmoLyric' || mod.verse != lyric.verse;
+        });
+        tms.push(lyric);
+        this.textModifiers = tms;
+    }
+    
+    
+    removeLyric(lyric) {
+        var tms = this.textModifiers.filter((mod) => {
+            return mod.attrs.type != 'SmoLyric' || mod.verse != lyric.verse;
+        });
+        this.textModifiers = tms;
+    }
 
     toggleArticulation(articulation) {
         if (this.articulations.findIndex((a) => {
@@ -1667,170 +1698,216 @@ class SmoBeamGroup {
 }
 ;
 class SmoNoteModifierBase {
-    constructor(ctor) {
-        this.ctor = ctor;
-    }
-    static deserialize(jsonObj) {
-        var ctor = eval(jsonObj.ctor);
-        var rv = new ctor(jsonObj);
-        rv.attrs.id = jsonObj.attrs.id;
-        rv.attrs.type = jsonObj.attrs.type;
+	constructor(ctor) {
+		this.ctor = ctor;
+	}
+	static deserialize(jsonObj) {
+		var ctor = eval(jsonObj.ctor);
+		var rv = new ctor(jsonObj);
+		rv.attrs.id = jsonObj.attrs.id;
+		rv.attrs.type = jsonObj.attrs.type;
 		return rv;
-    }
+	}
 }
 
 class SmoArticulation extends SmoNoteModifierBase {
-    static get articulations() {
-        return {
-            accent: 'accent',
-            staccato: 'staccato',
-            marcato: 'marcato',
-            tenuto: 'tenuto',
-            upStroke: 'upStroke',
-            downStroke: 'downStroke',
-            pizzicato: 'pizzicato',
-			fermata:'fermata'
-        };
-    }
-	static get positions() {
-		return {above:'above',below:'below'};
+	static get articulations() {
+		return {
+			accent: 'accent',
+			staccato: 'staccato',
+			marcato: 'marcato',
+			tenuto: 'tenuto',
+			upStroke: 'upStroke',
+			downStroke: 'downStroke',
+			pizzicato: 'pizzicato',
+			fermata: 'fermata'
+		};
 	}
-    static get articulationToVex() {
-        return {
-            accent: 'a>',
-            staccato: 'a.',
-            marcato: 'a^',
-            tenuto: 'a-',
-            upStroke: 'a|',
-            downStroke: 'am',
-            pizzicato: 'ao',
-			fermata:'a@a'
-        };
-    }
+	static get positions() {
+		return {
+			above: 'above',
+			below: 'below'
+		};
+	}
+	static get articulationToVex() {
+		return {
+			accent: 'a>',
+			staccato: 'a.',
+			marcato: 'a^',
+			tenuto: 'a-',
+			upStroke: 'a|',
+			downStroke: 'am',
+			pizzicato: 'ao',
+			fermata: 'a@a'
+		};
+	}
 
-    static get vexToArticulation() {
-        return {
-            "a>": "accent",
-            "a.": "staccato",
-            "a^": "marcato",
-            "a-": "tenuto",
-            "a|": "upStroke",
-            "am": "downStroke",
-            "ao": "pizzicato",
-			'a@a':"fermata"
-        };
-    }
-    static get attrArray() {
-        return ['position', 'articulation'];
-    }
+	static get vexToArticulation() {
+		return {
+			"a>": "accent",
+			"a.": "staccato",
+			"a^": "marcato",
+			"a-": "tenuto",
+			"a|": "upStroke",
+			"am": "downStroke",
+			"ao": "pizzicato",
+			'a@a': "fermata"
+		};
+	}
+	static get attrArray() {
+		return ['position', 'articulation'];
+	}
 
-    static get positionToVex() {
-        return {
-            'above': 3,
-            'below': 4
-        };
-    }
-    static get defaults() {
-        return {
-            position: SmoArticulation.positions.above,
-            articulation: SmoArticulation.articulations.accent
-        };
+	static get positionToVex() {
+		return {
+			'above': 3,
+			'below': 4
+		};
+	}
+	static get defaults() {
+		return {
+			position: SmoArticulation.positions.above,
+			articulation: SmoArticulation.articulations.accent
+		};
 
+	}
+	constructor(parameters) {
+		super('SmoArticulation');
+		Vex.Merge(this, SmoArticulation.defaults);
+		smoMusic.filteredMerge(SmoArticulation.attrArray, parameters, this);
+		this.selector = parameters.selector;
+
+		if (!this['attrs']) {
+			this.attrs = {
+				id: VF.Element.newID(),
+				type: 'SmoArticulation'
+			};
+		} else {
+			console.log('inherit attrs');
+		}
+	}
+	get id() {
+		return this.attrs.id;
+	}
+	set id(ignore) {}
+	get type() {
+		return this.attrs.type;
+	}
+	set type(ignore) {}
+}
+
+class SmoLyric extends SmoNoteModifierBase {
+	static get defaults() {
+		return {
+            text:'',
+            endChar:'',
+            verse:0,
+			fontInfo: {
+				size: 10,
+				family: 'times',
+				style: 'normal',
+				weight: 'normal'
+			},
+            fill:'black',
+			rotate:0,
+			classes:'score-text',
+			scaleX:1.0,
+			scaleY:1.0,
+			translateX:0,
+			translateY:0
+		};
+	}
+    
+    static get attributes() {
+        return ['text','endChar','fontInfo','classes','verse',
+		    'fill','scaleX','scaleY','translateX','translateY'];
     }
+    
     constructor(parameters) {
-        super('SmoArticulation');
-        Vex.Merge(this, SmoArticulation.defaults);
-        smoMusic.filteredMerge(SmoArticulation.attrArray, parameters, this);
-        this.selector = parameters.selector;
+		super('SmoLyric');
+		smoMusic.serializedMerge(SmoLyric.attributes, SmoLyric.defaults,this);
+		smoMusic.serializedMerge(SmoLyric.attributes, parameters, this);
 
-        if (!this['attrs']) {
-            this.attrs = {
-                id: VF.Element.newID(),
-                type: 'SmoArticulation'
-            };
-        } else {
-            console.log('inherit attrs');
-        }
-    }
-    get id() {
-        return this.attrs.id;
-    }
-    set id(ignore) {}
-    get type() {
-        return this.attrs.type;
-    }
-    set type(ignore) {}
+		if (!this['attrs']) {
+			this.attrs = {
+				id: VF.Element.newID(),
+				type: 'SmoLyric'
+			};
+		} else {
+			console.log('inherit attrs');
+		}
+	}
 }
 
 // ## SmoDynamicText
 // ## Description:
 // standard dynamics text
 class SmoDynamicText extends SmoNoteModifierBase {
-    static get defaults() {
-        return {
-            xOffset: 0,
-            fontSize: 38,
-            yOffsetLine: 11,
-            yOffsetPixels: 0,
-            text: SmoDynamicText.dynamics.MP,
-        };
-    }
+	static get defaults() {
+		return {
+			xOffset: 0,
+			fontSize: 38,
+			yOffsetLine: 11,
+			yOffsetPixels: 0,
+			text: SmoDynamicText.dynamics.MP,
+		};
+	}
 
-    static get dynamics() {
-        // matches VF.modifier
-        return {
-            PP: 'pp',
-            P: 'p',
-            MP: 'mp',
-            MF: 'mf',
-            F: 'f',
-            FF: 'ff',
-            SFZ: 'sfz'
-        };
-    }
+	static get dynamics() {
+		// matches VF.modifier
+		return {
+			PP: 'pp',
+			P: 'p',
+			MP: 'mp',
+			MF: 'mf',
+			F: 'f',
+			FF: 'ff',
+			SFZ: 'sfz'
+		};
+	}
 
-    constructor(parameters) {
-        super('SmoDynamicText');
-        Vex.Merge(this, SmoDynamicText.defaults);
-        smoMusic.filteredMerge(SmoDynamicText.attrArray, parameters, this);
-        this.selector = parameters.selector;
+	constructor(parameters) {
+		super('SmoDynamicText');
+		Vex.Merge(this, SmoDynamicText.defaults);
+		smoMusic.filteredMerge(SmoDynamicText.attrArray, parameters, this);
+		this.selector = parameters.selector;
 
-        if (!this['attrs']) {
-            this.attrs = {
-                id: VF.Element.newID(),
-                type: 'SmoDynamicText'
-            };
-        } else {
-            console.log('inherit attrs');
-        }
-    }
-    get id() {
-        return this.attrs.id;
-    }
-    set id(ignore) {}
-    get type() {
-        return this.attrs.type;
-    }
-    set type(ignore) {}
-    static get attrArray() {
-        return ['xOffset', 'fontSize', 'yOffsetLine', 'yOffsetPixels', 'text'];
-    }
-    backupOriginal() {
-        if (!this['original']) {
-            this.original = {};
-            smoMusic.filteredMerge(
-                SmoDynamicText.attrArray,
-                this, this.original);
-        }
-    }
-    restoreOriginal() {
-        if (this['original']) {
-            smoMusic.filteredMerge(
-                SmoDynamicText.attrArray,
-                this.original, this);
-            this.original = null;
-        }
-    }
+		if (!this['attrs']) {
+			this.attrs = {
+				id: VF.Element.newID(),
+				type: 'SmoDynamicText'
+			};
+		} else {
+			console.log('inherit attrs');
+		}
+	}
+	get id() {
+		return this.attrs.id;
+	}
+	set id(ignore) {}
+	get type() {
+		return this.attrs.type;
+	}
+	set type(ignore) {}
+	static get attrArray() {
+		return ['xOffset', 'fontSize', 'yOffsetLine', 'yOffsetPixels', 'text'];
+	}
+	backupOriginal() {
+		if (!this['original']) {
+			this.original = {};
+			smoMusic.filteredMerge(
+				SmoDynamicText.attrArray,
+				this, this.original);
+		}
+	}
+	restoreOriginal() {
+		if (this['original']) {
+			smoMusic.filteredMerge(
+				SmoDynamicText.attrArray,
+				this.original, this);
+			this.original = null;
+		}
+	}
 }
 ;
 // ## SmoMeasure - data for a measure of music
@@ -2221,7 +2298,41 @@ class SmoMeasure {
 		}
 		return -1;
 	}
-	
+    
+    _addSingletonModifier(name,parameters) {
+        var ctor = eval(name);
+        var ar= this.modifiers.filter(obj => obj.attrs.type != name);
+        this.modifiers=ar;
+        this.modifiers.push(new ctor(parameters));
+    }
+    _removeSingletonModifier(name) {
+        var ar= this.modifiers.filter(obj => obj.attrs.type != name);
+        this.modifiers=ar;
+    }
+    
+    _getSingletonModifier(name) {
+        return this.modifiers.find(obj => obj.attrs.type == name);
+    }
+    
+    addRehearsalMark(parameters) {
+        this._addSingletonModifier('SmoRehearsalMark',parameters);
+    }
+	removeRehearsalMark() {
+        this._removeSingletonModifier('SmoRehearsalMark');
+    }
+    getRehearsalMark() {
+        return this._getSingletonModifier('SmoRehearsalMark');
+    }
+    
+    addTempo(params) {
+        this._addSingletonModifier('SmoTempoText',params);
+    }
+    removeTempo(params) {
+        this._removeSingletonModifier('SmoTempoText',params);
+    }
+    getTempo() {
+        return this._getSingletonModifier('SmoTempoText');
+    }
 	addMeasureText(mod) {
 		var added = false;
 		var exist = this.modifiers.filter((mm) => {
@@ -2719,22 +2830,29 @@ class SmoRehearsalMark extends SmoMeasureModifierBase {
 	// TODO: positions don't work.
 	static get defaults() {
 		return {
-			position:above,
-			cardinality:SmoRehearsalMark.capitals,
-			symbol:'A'
+			position:SmoRehearsalMark.positions.above,
+			cardinality:SmoRehearsalMark.cardinalities.capitals,
+			symbol:'A',
+            increment:true
 		}
 	}
 	static get attributes() {
-		return ['cardinality','symbol','position'];
+		return ['cardinality','symbol','position','increment'];
 	}
-	increment() {
+	getIncrement() {
 		if (!this.cardinality != 'number') {
 			var code = this.symbol.charCodeAt(0);
 			code += 1;
-			this.symbol=String.fromCharCode(code);
-			return this.symbol;
-		}
+			var symbol=String.fromCharCode(code);
+			return symbol;
+		} else {
+            return parseInt(symbol)+1;
+        }
 	}
+    getInitial() {
+        return this.cardinality == SmoRehearsalMark.cardinalities.capitals ? 'A' : 
+            (this.cardinality == SmoRehearsalMark.cardinalities.lowerCase ? 'a' : '1');
+    }
 	serialize() {
         var params = {};
         smoMusic.filteredMerge(SmoRehearsalMark.attributes, this, params);
@@ -2746,6 +2864,81 @@ class SmoRehearsalMark extends SmoMeasureModifierBase {
         parameters = parameters ? parameters : {};
         smoMusic.serializedMerge(SmoRehearsalMark.attributes, SmoRehearsalMark.defaults, this);
         smoMusic.serializedMerge(SmoRehearsalMark.attributes, parameters, this);
+        if (!parameters.symbol) {
+            this.symbol=this.getInitial();
+        }
+	}
+}
+
+
+class SmoTempoText extends SmoMeasureModifierBase {
+	static get tempoModes() {
+		return {
+			durationMode: 'duration',
+			textMode: 'text',
+			customMode: 'custom'
+		};
+	}
+
+	static get tempoTexts() {
+		return {
+			larghissimo: 'Larghissimo',
+			grave: 'Grave',
+			lento: 'Lento',
+			largo: 'Largo',
+			larghetto: 'Larghetto',
+			adagio: 'Adagio',
+			adagietto: 'Adagietto',
+			andante_moderato: 'Andante moderato',
+			andante: 'Andante',
+			andantino: 'Andantino',
+			moderator: 'Moderato',
+			allegretto: 'Allegretto', 
+			allegro: 'Allegro',
+			vivace: 'Vivace',
+			presto: 'Presto',
+			prestissimo: 'Prestissimo'
+		};
+	}
+
+	static get defaults() {
+		return {
+			tempoMode: SmoTempoText.tempoModes.durationMode,
+			bpm: 120,
+			beatDuration: 4096,
+			tempoText: SmoTempoText.tempoTexts.allegro,
+            yOffset:0,
+		};
+	}
+	static get attributes() {
+		return ['tempoMode', 'bpm', 'tempoMode', 'beatDuration', 'tempoText','yOffset'];
+	}
+    _toVexTextTempo() {
+        return {name:this.tempoText};
+    }
+    
+    _toVexDurationTempo() {
+        var vd = smoMusic.ticksToDuration[this.beatDuration];
+        var dots = (vd.match(/d/g) || []).length;
+        vd=vd.replace(/d/g,'');
+        return {duration: vd, dots: dots, bpm: this.bpm };
+    }
+    toVexTempo() {
+        if (this.tempoMode ==  SmoTempoText.tempoModes.durationMode) {
+            return this._toVexDurationTempo();
+        }
+        return this._toVexTextTempo();
+    }
+    serialize() {
+        var params = {};
+        smoMusic.filteredMerge(SmoTempoText.attributes, this, params);
+        params.ctor = 'SmoTempoText';
+        return params;
+	}
+	constructor(parameters) {
+		super('SmoTempoText');
+		smoMusic.serializedMerge(SmoTempoText.attributes, SmoTempoText.defaults, this);
+		smoMusic.serializedMerge(SmoTempoText.attributes, parameters, this);
 	}
 }
 ;
@@ -2899,6 +3092,70 @@ class SmoSystemStaff {
                 };
         }
         return null;
+    }
+    
+    addRehearsalMark(index,parameters) {
+        var mark = new SmoRehearsalMark(parameters);
+        if (!mark.increment) {            
+            this.measures[index].addRehearsalMark(mark);
+            return;
+        }
+        
+        var symbol = mark.symbol;
+        for (var i=0;i<this.measures.length;++i) {
+            var mm = this.measures[i];
+            if (i < index) {
+                var rm = mm.getRehearsalMark();
+                if (rm && rm.cardinality==mark.cardinality && rm.increment) {
+                   symbol = rm.getIncrement();                   
+                   mark.symbol=symbol;
+                }
+            } 
+            if (i === index) {
+                mm.addRehearsalMark(mark);
+                symbol = mark.getIncrement();
+            }
+            if (i > index) {
+                var rm = mm.getRehearsalMark();
+                if (rm && rm.cardinality==mark.cardinality && rm.increment) {
+                    rm.symbol = symbol;
+                    symbol = rm.getIncrement();
+                }
+            }
+        }
+    }
+    
+    removeTempo(index) {
+        this.measures[index].removeTempo();        
+    }
+    
+    addTempo(tempo,index) {
+        this.measures[index].addTempo(tempo);
+    }
+    
+    removeRehearsalMark(index) {
+        var ix = 0;
+        var symbol=null;
+        var card = null;
+        this.measures.forEach((measure) => {
+            if (ix == index) {
+                var mark = measure.getRehearsalMark();
+                if (mark) {
+                    symbol = mark.symbol;
+                    card = mark.cardinality;
+                }
+                measure.removeRehearsalMark();
+            }
+            if (ix > index && symbol && card) {
+                var mark = measure.getRehearsalMark();
+                if (mark && mark.increment) {
+                    mark.symbol = symbol;
+                    symbol = mark.getIncrement();
+                }
+            }
+            
+            ix += 1;
+        });
     }
 	
 	deleteMeasure(index) {
@@ -3639,11 +3896,15 @@ class SmoScoreText extends SmoScoreModifierBase {
 	// ### backupParams
 	// For animation or estimation, create a copy of the attributes that can be modified without affecting settings.
 	backupParams() {
-		var rv={};
-		smoMusic.serializedMerge(SmoScoreText.attributes, this, rv);
-		return rv;
+		this.backup={};
+		smoMusic.serializedMerge(SmoScoreText.attributes, this, this.backup);
+		return this.backup;
 	}
-
+    
+    restoreParams() {
+        smoMusic.serializedMerge(SmoScoreText.attributes, this.backup, this);
+    }
+    
 	serialize() {
 		var params = JSON.parse(JSON.stringify(this));
         params.ctor = 'SmoScoreText';
@@ -3665,12 +3926,16 @@ class SmoScoreText extends SmoScoreModifierBase {
     constructor(parameters) {
         super('SmoScoreText');
         parameters = parameters ? parameters : {};
+        this.backup={};
 		
 		smoMusic.serializedMerge(SmoScoreText.attributes, SmoScoreText.defaults, this);
         smoMusic.serializedMerge(SmoScoreText.attributes, parameters, this);
 		if (!this.classes) {
 			this.classes='';
 		}
+        if (this.classes.indexOf(this.attrs.id) < 0) {
+            this.classes += ' '+this.attrs.id;
+        }
 		if (!parameters.pagination) {
 			this.pagination = this.position==SmoScoreText.positions.custom || this.position==SmoScoreText.positions.title ? 
               SmoScoreText.paginations.every : 	SmoScoreText.paginations.once;
@@ -4221,7 +4486,11 @@ class SmoContractNoteActor extends TickTransformBase {
 				remainder = remainder - this.newTicks;
             }
 			
+            // make sure remnainder is not too short            
 			if (remainder > 0) {
+                if (remainder < 128) {
+                    return null;
+                }
 				notes.push(new SmoNote({
                         clef: note.clef,
                         pitches: JSON.parse(JSON.stringify(note.pitches)),
@@ -4886,9 +5155,9 @@ class SmoOperation {
 		var measure = selection.measure;
 		var tuplet = measure.getTupletForNote(note);
 		if (!tuplet) {
-			if (selection.note.dots > 0) {
+			/* if (selection.note.dots > 0) {
 				return;
-			}
+			} */
 			var nticks = note.tickCount * 2;
 			var actor = new SmoStretchNoteActor({
 					startIndex: selection.selector.tick,
@@ -5017,6 +5286,15 @@ class SmoOperation {
 		if (nticks == note.tickCount) {
 			return;
 		}
+        
+        // Don't dot if the thing on the right of the . is too small
+        var dotCount = smoMusic.smoTicksToVexDots(nticks);
+        var multiplier = Math.pow(2,dotCount);
+        var baseDot = VF.durationToTicks(smoMusic.closestVexDuration(nticks))/(multiplier*2);
+        if (baseDot <= 128) {
+            return;
+        }
+        
 		// If this is the ultimate note in the measure, we can't increase the length
 		if (selection.selector.tick + 1 === selection.measure.notes.length) {
 			return;
@@ -5212,6 +5490,60 @@ class SmoOperation {
 	
 	static addScoreText(score,scoreText) {
 		score.addScoreText(scoreText);
+	}
+	static removeScoreText(score,scoreText) {
+		score.removeScoreText(scoreText);
+	}
+	
+	static addMeasureText(score,selection,measureText) {
+		selection.measure.addMeasureText(measureText);
+	}
+	
+	static removeMeasureText(score,selection,mt) {
+		selection.measure.removeMeasureText(mt.attrs.id);
+	}
+	
+	static addSystemText(score,selection,measureText) {
+		var mm = selection.selector.measure;
+		score.staves.forEach((staff) => {
+			var mt = new SmoMeasureText(measureText.serialize());
+			staff.measures[mm].addMeasureText(mt);
+		});
+	}
+	
+	static addRehearsalMark(score,selection,rehearsalMark) {
+		var mm = selection.selector.measure;
+		score.staves.forEach((staff) => {
+			var mt = new SmoRehearsalMark(rehearsalMark.serialize());
+            staff.addRehearsalMark(selection.selector.measure,mt);
+		});
+	}
+    
+    static addLyric(score,selection,lyric) {
+        selection.note.addLyric(lyric);
+    }
+    
+    static removeLyric(score,selection,lyric) {
+        selection.note.removeLyric(lyric);
+    }
+    
+    static addTempo(score,selection,tempo) {
+		score.staves.forEach((staff) => {
+            staff.addTempo(tempo,selection.selector.measure);
+		});
+    }
+    
+    static removeTempo(score,selection) {
+		score.staves.forEach((staff) => {
+            staff.removeTempo();
+		});
+    }
+
+    
+    static removeRehearsalMark(score,selection,rehearsalMark) {
+		score.staves.forEach((staff) => {
+            staff.removeRehearsalMark(selection.selector.measure);
+		});
 	}
 
 	static setMeasureBarline(score, selection, barline) {
@@ -5527,6 +5859,10 @@ class SmoUndoable {
     }
 	static noop(score,undoBuffer) {
         undoBuffer.addBuffer('Backup', 'score', null, score);		
+	}
+	static measureSelectionOp(score,selection,op,params,undoBuffer,description) {
+		undoBuffer.addBuffer(description, 'measure', selection.selector, selection.measure);
+		SmoOperation[op](score,selection,params);
 	}
 	
 	static scoreSelectionOp(score,selection,op,params,undoBuffer,description) {
@@ -6017,6 +6353,19 @@ class VxMeasure {
             vexNote.addDotToAll();
         }	
 	}
+    
+    _createLyric(smoNote,vexNote) {
+        var lyrics = smoNote.getModifiers('SmoLyric');
+        var ix = 0;
+        lyrics.forEach((ll) => {
+            var y = ll.verse*10;
+            var vexL = new VF.Annotation(ll.text);
+            vexL.setFont(ll.fontInfo.family, ll.fontInfo.size,ll.fontInfo.weight);
+            vexL.setYShift(y); // need this?
+			vexL.setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);
+            vexNote.addAnnotation(0,vexL);
+        });
+    }
 
     // ## Description:
     // convert a smoNote into a vxNote so it can be rasterized
@@ -6041,6 +6390,7 @@ class VxMeasure {
         smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
 
 		this._createAccidentals(smoNote,vexNote,tickIndex);
+        this._createLyric(smoNote,vexNote);
 		
         return vexNote;
     }
@@ -6077,7 +6427,10 @@ class VxMeasure {
 	
 	renderDynamics() {
 		this.smoMeasure.notes.forEach((smoNote) => {
-			smoNote.textModifiers.forEach((tm) => {
+			var mods = smoNote.textModifiers.filter((mod) => {
+				return mod.attrs.type === 'SmoDynamicText';
+			});
+			mods.forEach((tm) => {
 				this._renderNoteGlyph(smoNote,tm);
 			});
 		});
@@ -6188,6 +6541,16 @@ class VxMeasure {
 			vm.setFont(tm.fontInfo);
 			
 		});
+        
+        var rm = this.smoMeasure.getRehearsalMark();
+        if (rm) {
+            this.stave.setSection(rm.symbol,0);
+        }
+        
+        var tempo = this.smoMeasure.getTempo();
+        if (tempo) {
+            this.stave.setTempo(tempo.toVexTempo(),tempo.yOffset);
+        }
 		
 	}
 
@@ -6559,6 +6922,18 @@ class suiTracker {
 		this.modifierBoxes = [];
 		var modMap = {};
 		var ix=0;
+        this.layout.score.scoreText.forEach((modifier) => {
+            console.log('in text');
+            if (!modMap[modifier.attrs.id]) {
+                this.modifierTabs.push({
+                    modifier: modifier,
+							selection: null,
+							box:modifier.renderedBox,
+							index:ix
+                });
+                ix += 1;
+            }            
+        });
 		this.objects.forEach((selection) => {
 			selection.staff.modifiers.forEach((modifier) => {
 				if (SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
@@ -7413,6 +7788,10 @@ class suiLayoutBase {
 					vxEnd = testNote;
 					nextNote = SmoSelection.nextNoteSelection(this.score,
 							nextNote.selector.staff, nextNote.selector.measure, nextNote.selector.voice, nextNote.selector.tick);
+                    // last beat of the measure
+                    if (!nextNote) {
+                        break;
+                    }
 					testNote = system.getVxNote(nextNote.note);
 
 				}
@@ -7425,6 +7804,9 @@ class suiLayoutBase {
 					vxStart = testNote;
 					lastNote = SmoSelection.lastNoteSelection(this.score,
 							lastNote.selector.staff, lastNote.selector.measure, lastNote.selector.voice, lastNote.selector.tick);
+                    if (!lastNote) {
+                        break;
+                    }
 					testNote = system.getVxNote(lastNote.note);
 				}
 			}
@@ -7903,11 +8285,13 @@ class suiLayoutAdjuster {
 
 	}
 	
-	static _minMaxYModifier(staff,minY,maxY) {
+	static _minMaxYModifier(staff,minMeasure,maxMeasure,minY,maxY) {
 		staff.modifiers.forEach((modifier) => {
-			minY = modifier.logicalBox.y < minY ? modifier.logicalBox.y : minY;
-			var max = modifier.logicalBox.y + modifier.logicalBox.height;
-			maxY = max > maxY ? max : maxY;	 
+            if (modifier.startSelector.measure >= minMeasure && modifier.startSelector <= maxMeasure) {
+                minY = modifier.logicalBox.y < minY ? modifier.logicalBox.y : minY;
+                var max = modifier.logicalBox.y + modifier.logicalBox.height;
+                maxY = max > maxY ? max : maxY;	 
+            }
 			});
 
 		return {minY:minY,maxY:maxY};
@@ -7938,6 +8322,12 @@ class suiLayoutAdjuster {
 				if (measures.length === 0) {
 					continue;
 				}
+                
+                var measureNums = measures.map((mm)=> {
+                    return mm.measureNumber.measureIndex;
+                });
+                var measureMax = measureNums.reduce((a,b) => a > b ? a : b);
+                var measureMin = measureNums.reduce((a,b) => a < b ? a : b);
 
 				// maxYMeasure is measure on this line with y closest to bottom of page (maxYMeasure y point)
 				var maxYMeasure = measures.reduce((a, b) => {
@@ -7957,7 +8347,7 @@ class suiLayoutAdjuster {
 				
 				var thisLineMaxY = maxYMeasure.logicalBox.y + maxYMeasure.logicalBox.height;
 				
-				var modAdj = suiLayoutAdjuster._minMaxYModifier(staff,minYRenderedY,thisLineMaxY);
+				var modAdj = suiLayoutAdjuster._minMaxYModifier(staff,measureMin,measureMax,minYRenderedY,thisLineMaxY);
 				minYRenderedY=modAdj.minY;
 				thisLineMaxY=modAdj.maxY;
 
@@ -8218,6 +8608,11 @@ class suiScoreLayout extends suiLayoutBase {
 						this._renderModifiers(stf, system);
 					});
 					if (!useAdjustedY && measure.changed) {
+                        if (suiLayoutBase.debugLayout) {
+					       svgHelpers.debugBox(
+						svg, svgHelpers.boxPoints(measure.staffX, pageBox.y + pageBox.height, 1, this.score.layout.interGap), 
+                          'measure-place-dbg');
+				        }
 						measure.staffY = pageBox.y + pageBox.height + this.score.layout.interGap;
 						if (isNaN(measure.staffY)) {
 							throw ("nan measure ");
@@ -8418,6 +8813,8 @@ class suiTextLayout {
 			}
 			curx += bbox.width + 5;
 			params.x = curx;
+			// calculate delta in case this is last time			
+			delta = right - curx; 
 		});	
 		delta = scoreText.justification === SmoScoreText.justifications.right ? delta :
 					    (scoreText.justification === SmoScoreText.justifications.center ? delta/2 : 0);
@@ -8900,6 +9297,106 @@ class suiMenuManager {
 	}
 }
 
+class SuiTextMenu extends suiMenuBase {
+    	constructor(params) {
+		params = (params ? params : {});
+		Vex.Merge(params, SuiTextMenu.defaults);
+		super(params);
+	}
+    static get defaults() {
+		return {
+			menuItems: [{
+					icon: '',
+					text: 'Title',
+					value: 'titleText'
+				}, {
+					icon: '',
+					text: 'Page Header',
+					value: 'headerText'
+				}, {
+					icon: '',
+					text: 'Page Footer',
+					value: 'footerText'
+				}, {
+					icon: '',
+					text: 'Custom Text',
+					value: 'customText'
+				}, {
+					icon: '',
+					text: 'Composer/Copyright',
+					value: 'copyright'
+				}, {
+					icon: '',
+					text: 'MeasureText',
+					value: 'measureText'
+				}, {
+					icon: '',
+					text: 'Rehearsal Mark',
+					value: 'rehearsalMark'
+				}, {
+					icon: '',
+					text: 'Tempo',
+					value: 'tempoText'
+				}, {
+					icon: '',
+					text: 'Rehearsal Mark',
+					value: 'rehearsalMark'
+				}, {
+                    icon:'',
+                    text:'Lyrics',
+                    value:'lyrics'
+                },
+				 {
+					icon: '',
+					text: 'Cancel',
+					value: 'cancel'
+				}
+			]
+		};
+	}
+    
+    static get menuCommandMap() {
+        return {
+            titleText: {
+                ctor:'SmoScoreText',
+                operation:'addScoreText',
+                params: {
+                    position:'title',
+                    text:'Title',
+                }
+            },
+            headerText: {
+                ctor:'SmoScoreText',
+                operation:'addScoreText',
+                params: {
+                    position:'header',
+                    text:'Header text'
+                }
+            },
+            footerText: {
+                ctor:'SmoScoreText',
+                operation:'addScoreText',
+                params: {
+                    position:'header',
+                    text:'Header text'
+                }
+            }
+        };
+    }
+    selection(ev) {
+		var command = $(ev.currentTarget).attr('data-value');
+        var menuObj = SuiTextMenu.menuCommandMap[command];
+        if (menuObj) {
+            var ctor = eval(menuObj.ctor);
+            var txtObj = new ctor(menuObj.params);
+            SmoUndoable.scoreOp(this.editor.score,menuObj.operation,
+               txtObj, this.editor.undoBuffer,'Text Menu Command');            
+        }
+
+		this.complete();
+	}
+    keydown(ev) {}
+}
 class SuiDynamicsMenu extends suiMenuBase {
 	constructor(params) {
 		params = (params ? params : {});
@@ -9838,7 +10335,7 @@ class defaultTrackerKeys {
 class SuiDialogFactory {
 
 	static createDialog(modSelection, context, tracker, layout) {
-		var dbType = SuiDialogFactory.modifierDialogMap[modSelection.modifier.type];
+		var dbType = SuiDialogFactory.modifierDialogMap[modSelection.modifier.attrs.type];
 		var ctor = eval(dbType);
 		if (!ctor) {
 			console.warn('no dialog for modifier ' + modSelection.modifier.type);
@@ -9857,7 +10354,8 @@ class SuiDialogFactory {
 			SmoStaffHairpin: 'SuiHairpinAttributesDialog',
 			SmoSlur: 'SuiSlurAttributesDialog',
 			SmoDynamicText: 'SuiTextModifierDialog',
-			SmoVolta: 'SuiVoltaAttributeDialog'
+			SmoVolta: 'SuiVoltaAttributeDialog',
+            SmoScoreText: 'SuiTextTransformDialog'
 		};
 	}
 }
@@ -9884,7 +10382,13 @@ class SuiDialogBase {
 		var y = box.y + box.height;
 
 		// TODO: adjust if db is clipped by the browser.
-		$(this.dgDom.element).find('.attributeDialog').css('top', '' + y + 'px');
+        var dge = $(this.dgDom.element).find('.attributeModal')
+		$(dge).css('top', '' + y + 'px');
+        
+        var x = box.x;
+        var w = $(dge).width();
+        x = (x < window.innerWidth /2)  ? x - (w+25) : x + (w+25);
+        $(dge).css('left', '' + x + 'px');
 	}
 	_constructDialog(dialogElements, parameters) {
 		var id = parameters.id;
@@ -9966,6 +10470,137 @@ class SuiDialogBase {
 	}
 }
 
+class SuiTextTransformDialog  extends SuiDialogBase {
+    static createAndDisplay(parameters) {
+		var dg = new SuiTextTransformDialog(parameters);
+		dg.display();
+        return dg;
+	}
+    
+    static get dialogElements() {
+		return [{
+				smoName: 'boxSize',
+				parameterName: 'location',
+				defaultValue: 0,
+				control: 'SuiTextDragger',
+				label:'Drag',
+				options: []
+			},
+            {
+				smoName: 'x',
+				parameterName: 'x',
+				defaultValue: 0,
+				control: 'SuiRockerComponent',
+				label: 'X Position (Px)',
+				type: 'int'
+			},{
+				smoName: 'y',
+				parameterName: 'y',
+				defaultValue: 0,
+				control: 'SuiRockerComponent',
+				label: 'Y Position (Px)',
+				type: 'int'
+			}, {
+				smoName: 'scaleX',
+				parameterName: 'scaleX',
+				defaultValue: 100,
+				control: 'SuiRockerComponent',
+				label: 'Horizontal Scale (%)',
+				type: 'percent'
+			}, {
+				smoName: 'scaleY',
+				parameterName: 'scaleY',
+				defaultValue: 100,
+				control: 'SuiRockerComponent',
+				label: 'Vertical Scale (%)',
+				type: 'percent'
+			}, {
+				smoName: 'justification',
+				parameterName: 'justification',
+				defaultValue: SmoScoreText.justifications.left,
+				control: 'SuiDropdownComponent',
+				label:'Justification',
+				options: [{
+						value: 'left',
+						label: 'Left'
+					}, {
+						value: 'right',
+						label: 'Right'
+					}, {
+						value: 'center',
+						label: 'Cente'
+					}
+				]
+			} 
+            ];
+    }
+    
+    display() {
+		$('body').addClass('showAttributeDialog');
+		this.components.forEach((component) => {            
+			component.bind();
+            if (typeof(component['setValue'])=='function') {
+			  component.setValue(this.modifier[component.parameterName]);
+            }
+		});
+        
+		this._bindElements();
+		this.position(this.modifier.renderedBox);
+
+		var cb = function (x, y) {}
+		htmlHelpers.draggable({
+			parent: $(this.dgDom.element).find('.attributeModal'),
+			handle: $(this.dgDom.element).find('.icon-move'),
+			cb: cb,
+			moveParent: true
+		});
+	}
+    
+    changed() {
+        this.components.find((x) => {
+            if (typeof(x['getValue'])=='function') {
+			  this.modifier[x.parameterName] = x.getValue();
+            }
+		});
+        $(this.context.svg).find('.' + this.modifier.attrs.id).remove();;
+        this.layout.renderScoreText(this.modifier);
+    }
+
+	constructor(parameters) {
+		if (!parameters.modifier) {
+			throw new Error('modifier attribute dialog must have modifier');
+		}
+
+		super(SuiTextTransformDialog.dialogElements, {
+			id: 'dialog-' + parameters.modifier.id,
+			top: parameters.modifier.renderedBox.y,
+			left: parameters.modifier.renderedBox.x,
+			label: 'Text Box Properties'
+		});
+        this.textElement=$(parameters.context.svg).find('.' + parameters.modifier.attrs.id)[0];
+		Vex.Merge(this, parameters);		
+        this.modifier.backupParams();
+	}
+    _commit() {
+        
+    }
+    _bindElements() {
+        var self = this;
+		var dgDom = this.dgDom;
+
+		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+			self.complete();
+		});
+
+		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+            self.modifier.restoreParams();
+			self.complete();
+		});
+		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
+			self.complete();
+		});
+    }
+}
 class SuiLayoutDialog extends SuiDialogBase {
 	static get attributes() {
 		return ['pageWidth', 'pageHeight', 'leftMargin', 'topMargin', 'rightMargin', 'interGap', 'intraGap', 'zoomScale', 'svgScale'];
@@ -10397,6 +11032,29 @@ class SuiRockerComponent {
     }
 }
 
+class SuiTextDragger {
+    constructor(dialog,parameter) {
+        smoMusic.filteredMerge(
+            ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
+        if (!this.defaultValue) {
+            this.defaultValue = 0;
+        }
+        this.dialog = dialog;
+    }
+    
+    get html() {
+        var b = htmlHelpers.buildDom;
+        var id = this.parameterId;
+        var r = b('div').classes('toggleControl smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+            .append(b('input').attr('type', 'checkbox').classes('toggleInput')
+                .attr('id', id + '-input')).append(
+                b('label').attr('for', id + '-input').text(this.label));
+        return r;
+    }    
+    bind() {
+    }
+}
+
 class SuiToggleComponent {
     constructor(dialog, parameter) {
         smoMusic.filteredMerge(
@@ -10512,7 +11170,8 @@ class defaultRibbonLayout {
 	static get ribbons() {
 		var left = defaultRibbonLayout.leftRibbonIds;
 		var top = defaultRibbonLayout.noteButtonIds.concat(defaultRibbonLayout.navigateButtonIds).concat(defaultRibbonLayout.articulateButtonIds)
-		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds).concat(defaultRibbonLayout.measureIds);
+		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds).concat(defaultRibbonLayout.measureIds)
+              .concat(defaultRibbonLayout.textIds);
 			
 		return {
 			left: left,
@@ -10526,8 +11185,8 @@ class defaultRibbonLayout {
 			defaultRibbonLayout.noteRibbonButtons).concat(
 			defaultRibbonLayout.articulationButtons).concat(
 			defaultRibbonLayout.chordButtons).concat(
-			defaultRibbonLayout.durationRibbonButtons).concat(
-			defaultRibbonLayout.measureRibbonButtons);
+			defaultRibbonLayout.durationRibbonButtons).concat(defaultRibbonLayout.measureRibbonButtons)
+            .concat(defaultRibbonLayout.textRibbonButtons);
 	}
 	
 	static get leftRibbonIds() {
@@ -10558,6 +11217,24 @@ class defaultRibbonLayout {
 	static get measureIds() {
 		return ['MeasureButtons','endRepeat','startRepeat','endBar','doubleBar','singleBarEnd','singleBarStart','nthEnding','dcAlCoda','dsAlCoda','dcAlFine','dsAlFine','coda','toCoda','segno','toSegno','fine'];
 	}
+    
+    static get textIds() {
+		return ['addTextMenu'];
+	}
+    
+    static get textRibbonButtons() {
+        return [
+        {
+                leftText: '',
+				rightText: '',
+				classes: 'icon  textButton',
+				icon: 'icon-text',
+				action: 'menu',
+				ctor: 'SuiTextMenu',
+				group: 'textEdit',
+				id: 'addTextMenu'		
+		}];
+    }
 	
 	static get measureRibbonButtons() {
 		return [{
@@ -12941,6 +13618,7 @@ class suiController {
 	}
 	piano() {
 		this.piano = new suiPiano({elementId:'piano-svg'});
+        $('.close-piano').click();
 	}
 	updateOffsets() {
 		// the 100 is for the control offsets

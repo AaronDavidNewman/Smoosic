@@ -138,13 +138,7 @@ class SuiTextDragger {
                 .attr('id', id + '-input')).append(
                 b('label').attr('for', id + '-input').text(this.label));
         return r;
-    }
-     setValue(value) {
-        $(this._getInputElement()).prop('checked', value);
-    }
-    getValue() {
-        return $(this._getInputElement()).prop('checked');
-    }
+    }    
     bind() {
     }
 }

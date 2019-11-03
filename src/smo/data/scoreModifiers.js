@@ -93,11 +93,15 @@ class SmoScoreText extends SmoScoreModifierBase {
 	// ### backupParams
 	// For animation or estimation, create a copy of the attributes that can be modified without affecting settings.
 	backupParams() {
-		var rv={};
-		smoMusic.serializedMerge(SmoScoreText.attributes, this, rv);
-		return rv;
+		this.backup={};
+		smoMusic.serializedMerge(SmoScoreText.attributes, this, this.backup);
+		return this.backup;
 	}
-
+    
+    restoreParams() {
+        smoMusic.serializedMerge(SmoScoreText.attributes, this.backup, this);
+    }
+    
 	serialize() {
 		var params = JSON.parse(JSON.stringify(this));
         params.ctor = 'SmoScoreText';
@@ -119,6 +123,7 @@ class SmoScoreText extends SmoScoreModifierBase {
     constructor(parameters) {
         super('SmoScoreText');
         parameters = parameters ? parameters : {};
+        this.backup={};
 		
 		smoMusic.serializedMerge(SmoScoreText.attributes, SmoScoreText.defaults, this);
         smoMusic.serializedMerge(SmoScoreText.attributes, parameters, this);

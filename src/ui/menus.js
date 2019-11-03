@@ -266,6 +266,7 @@ class SuiTextMenu extends suiMenuBase {
 
 		this.complete();
 	}
+    keydown(ev) {}
 }
 class SuiDynamicsMenu extends suiMenuBase {
 	constructor(params) {

@@ -75,7 +75,8 @@ class suiTracker {
 							box:modifier.renderedBox,
 							index:ix
                 });
-            }
+                ix += 1;
+            }            
         });
 		this.objects.forEach((selection) => {
 			selection.staff.modifiers.forEach((modifier) => {
