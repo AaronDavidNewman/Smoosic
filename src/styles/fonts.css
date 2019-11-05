@@ -1,9 +1,9 @@
 @font-face {
   font-family: 'smoosic';
   src:
-    url('fonts/smoosic.ttf?bepf5') format('truetype'),
-    url('fonts/smoosic.woff?bepf5') format('woff'),
-    url('fonts/smoosic.svg?bepf5#smoosic') format('svg');
+    url('fonts/smoosic.ttf?iimh71') format('truetype'),
+    url('fonts/smoosic.woff?iimh71') format('woff'),
+    url('fonts/smoosic.svg?iimh71#smoosic') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -24,6 +24,30 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-pencil .path1:before {
+  content: "\e949";
+  color: rgb(0, 0, 0);
+}
+.icon-pencil .path2:before {
+  content: "\e94a";
+  margin-left: -0.9072265625em;
+  color: rgb(0, 0, 0);
+}
+.icon-pencil .path3:before {
+  content: "\e94b";
+  margin-left: -0.9072265625em;
+  color: rgb(160, 160, 160);
+}
+.icon-pencil .path4:before {
+  content: "\e94f";
+  margin-left: -0.9072265625em;
+  color: rgb(160, 160, 160);
+}
+.icon-pencil .path5:before {
+  content: "\e950";
+  margin-left: -0.9072265625em;
+  color: rgb(64, 64, 64);
+}
 .icon-duration:before {
   content: "\e930";
 }
