@@ -27,6 +27,8 @@ class SuiRockerComponent {
 		if (SuiRockerComponent.dataTypes.indexOf(this.type) < 0) {
 			throw new Error('dialog element invalid type '+this.type);
 		}
+        
+        this.id = this.id ? this.id : '';
 		
 		if (this.type === 'percent') {
 			this.defaultValue = 100*this.defaultValue;
@@ -120,13 +122,15 @@ class SuiRockerComponent {
     }
 }
 
-class SuiTextDragger {
+class SuiTextInPlace {
     constructor(dialog,parameter) {
         smoMusic.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
             this.defaultValue = 0;
         }
+        this.id = this.id ? this.id : '';
+
         this.dialog = dialog;
     }
     
@@ -138,7 +142,10 @@ class SuiTextDragger {
                 .attr('id', id + '-input')).append(
                 b('label').attr('for', id + '-input').text(this.label));
         return r;
-    }    
+    }
+    get parameterId() {
+        return this.dialog.id + '-' + this.parameterName;
+    }
     bind() {
     }
 }

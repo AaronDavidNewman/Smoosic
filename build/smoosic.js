@@ -3923,6 +3923,16 @@ class SmoScoreText extends SmoScoreModifierBase {
 		this.translateX = deltax;
 		this.translateY = deltay;		
 	}
+    scaleXInPlace(factor) {
+		this.scaleX = factor;
+		var deltax = this.x - this.x*this.scaleX;
+		this.translateX = deltax;
+    }
+    scaleYInPlace(factor) {
+		this.scaleY = factor;
+		var deltay = this.y - this.y*this.scaleY;
+		this.translateY = deltay;		
+    }
     constructor(parameters) {
         super('SmoScoreText');
         parameters = parameters ? parameters : {};
@@ -10479,11 +10489,11 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     
     static get dialogElements() {
 		return [{
-				smoName: 'boxSize',
-				parameterName: 'location',
+				smoName: 'boxText',
+				parameterName: 'text',
 				defaultValue: 0,
-				control: 'SuiTextDragger',
-				label:'Drag',
+				control: 'SuiTextInPlace',
+				label:'Text',
 				options: []
 			},
             {
@@ -10528,7 +10538,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 						label: 'Right'
 					}, {
 						value: 'center',
-						label: 'Cente'
+						label: 'Center'
 					}
 				]
 			} 
@@ -10559,7 +10569,13 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     changed() {
         this.components.find((x) => {
             if (typeof(x['getValue'])=='function') {
-			  this.modifier[x.parameterName] = x.getValue();
+                var val = x.getValue();
+                if (x.parameterName.indexOf('scale') == 0) {
+                    var fcn = x.parameterName+'InPlace';
+                    this.modifier[fcn](val);
+                } else {
+			       this.modifier[x.parameterName] = val
+                }
             }
 		});
         $(this.context.svg).find('.' + this.modifier.attrs.id).remove();;
@@ -10572,7 +10588,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 		}
 
 		super(SuiTextTransformDialog.dialogElements, {
-			id: 'dialog-' + parameters.modifier.id,
+			id: 'dialog-' + parameters.modifier.attrs.id,
 			top: parameters.modifier.renderedBox.y,
 			left: parameters.modifier.renderedBox.x,
 			label: 'Text Box Properties'
@@ -10939,6 +10955,8 @@ class SuiRockerComponent {
 		if (SuiRockerComponent.dataTypes.indexOf(this.type) < 0) {
 			throw new Error('dialog element invalid type '+this.type);
 		}
+        
+        this.id = this.id ? this.id : '';
 		
 		if (this.type === 'percent') {
 			this.defaultValue = 100*this.defaultValue;
@@ -11032,13 +11050,15 @@ class SuiRockerComponent {
     }
 }
 
-class SuiTextDragger {
+class SuiTextInPlace {
     constructor(dialog,parameter) {
         smoMusic.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
             this.defaultValue = 0;
         }
+        this.id = this.id ? this.id : '';
+
         this.dialog = dialog;
     }
     
@@ -11050,7 +11070,10 @@ class SuiTextDragger {
                 .attr('id', id + '-input')).append(
                 b('label').attr('for', id + '-input').text(this.label));
         return r;
-    }    
+    }
+    get parameterId() {
+        return this.dialog.id + '-' + this.parameterName;
+    }
     bind() {
     }
 }

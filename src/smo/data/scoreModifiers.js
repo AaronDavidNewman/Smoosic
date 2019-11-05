@@ -120,6 +120,16 @@ class SmoScoreText extends SmoScoreModifierBase {
 		this.translateX = deltax;
 		this.translateY = deltay;		
 	}
+    scaleXInPlace(factor) {
+		this.scaleX = factor;
+		var deltax = this.x - this.x*this.scaleX;
+		this.translateX = deltax;
+    }
+    scaleYInPlace(factor) {
+		this.scaleY = factor;
+		var deltay = this.y - this.y*this.scaleY;
+		this.translateY = deltay;		
+    }
     constructor(parameters) {
         super('SmoScoreText');
         parameters = parameters ? parameters : {};
