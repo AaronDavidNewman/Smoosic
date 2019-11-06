@@ -150,7 +150,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 				parameterName: 'text',
 				defaultValue: 0,
 				control: 'SuiTextInPlace',
-				label:'Text',
+				label:'Edit Text',
 				options: []
 			},
             {

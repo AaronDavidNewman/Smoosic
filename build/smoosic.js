@@ -10493,7 +10493,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 				parameterName: 'text',
 				defaultValue: 0,
 				control: 'SuiTextInPlace',
-				label:'Text',
+				label:'Edit Text',
 				options: []
 			},
             {
@@ -11057,7 +11057,6 @@ class SuiTextInPlace {
         if (!this.defaultValue) {
             this.defaultValue = 0;
         }
-        this.id = this.id ? this.id : '';
 
         this.dialog = dialog;
     }
@@ -11065,16 +11064,25 @@ class SuiTextInPlace {
     get html() {
         var b = htmlHelpers.buildDom;
         var id = this.parameterId;
-        var r = b('div').classes('toggleControl smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
-            .append(b('input').attr('type', 'checkbox').classes('toggleInput')
-                .attr('id', id + '-input')).append(
-                b('label').attr('for', id + '-input').text(this.label));
+        var r = b('div').classes('cbTextInPlace smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+            .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
+                .attr('id', id + '-input').append(
+                b('span').classes('icon icon-pencil'))
+                .append(
+                b('label').attr('for', id + '-input').text(this.label)));
         return r;
     }
     get parameterId() {
         return this.dialog.id + '-' + this.parameterName;
     }
+    _getInputElement() {
+        var pid = this.parameterId;
+        return $(this.dialog.dgDom.element).find('#' + pid).find('button');
+    }
     bind() {
+        $(this._getInputElement()).off('click').on('click',function(ev) {
+            console.log('ouch');
+        });
     }
 }
 

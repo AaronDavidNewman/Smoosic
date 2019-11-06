@@ -851,6 +851,23 @@ body.showAttributeDialog .attributeDialog {
 	border: 1px solid #52ba73;
 }
 
+.smoControl.cbTextInPlace {
+    position:relative;
+}
+
+.smoControl.cbTextInPlace button {
+    width:32px;
+}
+.smoControl.cbTextInPlace label {
+    position:absolute;
+    top:5px;
+    left:35px;
+}
+
+.smoControl.cbTextInPlace span.icon {
+    font-size:1.6em;
+}
+
 .rockerControl button {
 	width:32px;
 }
