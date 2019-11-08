@@ -6,46 +6,79 @@ class editSvgText {
         this.target = params.target;
         var ns = svgHelpers.namespace;
         this.layout = params.layout;
+        this.fontInfo = params.fontInfo;
 		this.svg = document.createElementNS(ns, 'svg');
         this.editText = document.createElementNS(ns, 'text');
+        this.attrAr = [];
         editSvgText.textAttrs.forEach((attr) => {
-            this.editText.setAttributeNS('',attr,this.target.attributes[attr].value);
+            var val = this.target.attributes[attr].value;
+            this.editText.setAttributeNS('',attr,val);
+            this.attrAr.push(JSON.parse('{"'+attr+'":"'+val+'"}'));
         });
+        this.oldFill = this.target.getAttributeNS(null,'fill');
         // this.editText.setAttributeNS('','class',this.target.class);
         this.editText.textContent=this.target.textContent;
-        var clientBox = svgHelpers.smoBox(this.target.getBoundingClientRect());
+        this._value = this.editText.textContent;
+        this.clientBox = svgHelpers.smoBox(this.target.getBoundingClientRect());
         var svgBox = svgHelpers.smoBox(this.target.getBBox());
-        this.editText.setAttributeNS('','y',svgBox.height);
-        svgHelpers.svgViewport(this.svg, svgBox.width*2, svgBox.height+10, this.layout.svgScale);
+        this.editText.setAttributeNS('','y',svgBox.height/2);        
+        
         $('.draganime').html('');
         this.svg.appendChild(this.editText);
         $('.draganime').append(this.svg);
-        $('.draganime').removeClass('hide').addClass('editText').attr('contentEditable','true');
-        this.editing=true;
-        $('.draganime').css('top',clientBox.y).css('left',clientBox.x);
-        $(this.svg).attr('width',clientBox.width).attr('height',clientBox.height);        
+        $('.draganime').removeClass('hide').addClass('textEdit').attr('contentEditable','true');
+        this.setEditorPosition(this.clientBox,svgBox);
+    }
+    
+    setEditorPosition(clientBox,svgBox) {
+        svgHelpers.svgViewport(this.svg, svgBox.width<20 ? 30 : svgBox.width+10, 
+           svgBox.height < 10 ? 10 : svgBox.height+10, this.layout.svgScale);
+        $('.draganime').css('top',this.clientBox.y).css('left',this.clientBox.x).width(this.clientBox.width+10).height(this.clientBox.height+10);
+        $(this.svg).attr('width',this.clientBox.width+10).attr('height',this.clientBox.height+10);
     }
     
     endSession() {
         this.editing = false;
-        $('.draganime').addClass('hide');
+        this.target.setAttributeNS(null,'fill',this.oldFill);
+
+        $('.draganime').addClass('hide').removeClass('textEdit');
     }
     
     get value() {
-        return this.editText.textContent;
+        return this._value;
+    }
+    
+    _updateText() {
+        if (this.editText.textContent && this._value != this.editText.textContent) {
+          this.target.textContent = this.editText.textContent;
+          this._value = this.editText.textContent;
+          var fontAttr = svgHelpers.fontIntoToSvgAttributes(this.fontInfo);
+          var svgBox = svgHelpers.getTextBox(this.svg,this.attrAr,null,this._value);
+          var nbox = svgHelpers.logicalToClient(this.svg,svgBox);
+           if (nbox.width > this.clientBox.width) {
+             this.clientBox.width = nbox.width;
+             this.clientBox.height = nbox.height;
+             this.setEditorPosition(this.clientBox,svgBox);
+           }
+        }  
+        if (!this.editText.textContent && this._value) {
+          this.editText.textContent=this._value.substr(0,1);
+        }
     }
     
     startSessionPromise() {
         var self=this;
+        this.editing=true;
+        this.target.setAttributeNS(null,'fill','#fff');
         const promise = new Promise((resolve, reject) => {
             function editTimer() {
                 setTimeout(function() {
-                    self.target.textContent = self.editText.textContent;
+                    self._updateText();
                     if (self.editing) {
-                    editTimer();
-                } else {
-                    resolve();
-                }
+                      editTimer();
+                    } else {
+                      resolve();
+                    }
                 },250);
                 
             }

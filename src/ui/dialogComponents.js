@@ -149,6 +149,12 @@ class SuiTextInPlace {
     get parameterId() {
         return this.dialog.id + '-' + this.parameterName;
     }
+    endSession() {
+        if (this.editor) {
+            this.value=this.editor.value;
+            this.editor.endSession();
+        }
+    }
     getValue() {
         return this.value;
     }
@@ -161,7 +167,7 @@ class SuiTextInPlace {
         if (!this.editor) {
           this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
           this.value = this.textElement.textContent;            
-          this.editor = new editSvgText({target:this.textElement,layout:this.dialog.layout});
+          this.editor = new editSvgText({target:this.textElement,layout:this.dialog.layout,fontInfo:this.fontInfo});
           var button = document.getElementById(this.parameterId);
           $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
           this.editor.startSessionPromise().then(function() {
@@ -180,6 +186,7 @@ class SuiTextInPlace {
     bind() {
         var self=this;
         this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
+        this.fontInfo = JSON.parse(JSON.stringify(this.dialog.modifier.fontInfo));
         this.value = this.textElement.textContent;
         $(this._getInputElement()).off('click').on('click',function(ev) {
             self._startEditSession();

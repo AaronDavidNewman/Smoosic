@@ -146,7 +146,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     
     static get dialogElements() {
 		return [{
-				smoName: 'boxText',
+				smoName: 'textEditor',
 				parameterName: 'text',
 				defaultValue: 0,
 				control: 'SuiTextInPlace',
@@ -206,6 +206,9 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 		$('body').addClass('showAttributeDialog');
 		this.components.forEach((component) => {            
 			component.bind();
+            if (component.smoName === 'textEditor') {
+                this.textEditor = component;
+            }
             if (typeof(component['setValue'])=='function') {
 			  component.setValue(this.modifier[component.parameterName]);
             }
@@ -235,7 +238,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
                 }
             }
 		});
-        $(this.context.svg).find('.' + this.modifier.attrs.id).remove();;
+        // Use layout context because render may have reset svg.
+        $(this.layout.context.svg).find('.' + this.modifier.attrs.id).remove();;
         this.layout.renderScoreText(this.modifier);
     }
 
@@ -262,14 +266,17 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 		var dgDom = this.dgDom;
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+            self.textEditor.endSession();
 			self.complete();
 		});
 
 		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+            self.textEditor.endSession();
             self.modifier.restoreParams();
 			self.complete();
 		});
 		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
+            self.textEditor.endSession();
 			self.complete();
 		});
     }

@@ -13,7 +13,7 @@ class suiLayoutBase {
 	}
 
 	setViewport(reset) {
-		this.screenWidth = window.innerWidth;
+		// this.screenWidth = window.innerWidth;
 		var layout = this.score.layout;
 		var zoomScale = layout.zoomMode === SmoScore.zoomModes.zoomScale ?
 			layout.zoomScale : (window.innerWidth - 200) / layout.pageWidth;

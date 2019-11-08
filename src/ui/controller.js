@@ -54,7 +54,8 @@ class suiController {
 	pollIdleRedraw() {
 		var self=this;
 		setTimeout(function() {
-			if (self.undoStatus == self.undoBuffer.opCount) {				
+            var dbOpen = $('body').hasClass('showAttributeDialog');
+			if (self.undoStatus == self.undoBuffer.opCount && !dbOpen) {				
 				self.resizeEvent();
 				self.pollRedraw();
 				return;

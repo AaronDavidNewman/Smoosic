@@ -157,8 +157,17 @@ class svgHelpers {
 				b('line').line(Math.round(box.x-8), Math.round(box.y),Math.round(box.x+6),Math.round(box.y)));				  
 		}
 		svg.appendChild(r.dom());
-
 	}
+    
+    static fontIntoToSvgAttributes(fontInfo) {
+        var rv = [];
+        var fkeys = Object.keys(fontInfo);
+		fkeys.forEach((key) => {
+			var n='{"font-'+key+'":"'+fontInfo[key]+'"}';
+			rv.push(JSON.parse(n));
+		});
+        return rv;
+    }
 		
 	static placeSvgText(svg,attributes,classes,text) {
 		var ns = svgHelpers.namespace;
