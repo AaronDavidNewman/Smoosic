@@ -28,6 +28,10 @@ h1 {
 	position:absolute;
 	z-index:11;
 }
+
+.draganime.textEdit {
+    border:#9cc 4px dotted;
+}
 .subTitle {
 	height: 14px;
 	font-size:0.8em;
@@ -853,6 +857,10 @@ body.showAttributeDialog .attributeDialog {
 
 .smoControl.cbTextInPlace {
     position:relative;
+}
+
+.cbTextInPlace button span.icon-checkmark {
+    color:#9b9;
 }
 
 .smoControl.cbTextInPlace button {

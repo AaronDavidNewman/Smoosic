@@ -129,8 +129,10 @@ class SuiTextInPlace {
         if (!this.defaultValue) {
             this.defaultValue = 0;
         }
+        this.editMode=false;
 
         this.dialog = dialog;
+        this.value='';        
     }
     
     get html() {
@@ -147,13 +149,40 @@ class SuiTextInPlace {
     get parameterId() {
         return this.dialog.id + '-' + this.parameterName;
     }
+    getValue() {
+        return this.value;
+    }
     _getInputElement() {
         var pid = this.parameterId;
         return $(this.dialog.dgDom.element).find('#' + pid).find('button');
     }
+    _startEditSession() {
+        var self=this;
+        if (!this.editor) {
+          this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
+          this.value = this.textElement.textContent;            
+          this.editor = new editSvgText({target:this.textElement,layout:this.dialog.layout});
+          var button = document.getElementById(this.parameterId);
+          $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
+          this.editor.startSessionPromise().then(function() {
+              self.value=self.editor.value;
+              self.editor=null;
+          });
+        } else {
+          var button = document.getElementById(this.parameterId);
+          this.value=this.editor.value;
+          $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
+          this.editor.endSession();
+          this.dialog.changed();
+        }
+    }
+ 
     bind() {
+        var self=this;
+        this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
+        this.value = this.textElement.textContent;
         $(this._getInputElement()).off('click').on('click',function(ev) {
-            console.log('ouch');
+            self._startEditSession();
         });
     }
 }

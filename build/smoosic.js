@@ -721,6 +721,25 @@ class svgHelpers {
 		return new smoSvgBuilder(el);
 	}
 	
+    static rect(svg,box,attrs,classes) {
+        var rect = document.createELementNS(svgHelpers.namespace,'rect');
+        attrs.forEach((attr) => {
+            var key = Object.keys(attr)[0];
+            key = (key == 'strokewidth') ? 'stroke-width' : key;
+            var val = attr[key];
+            rect.setAttributeNS('', key, val);            
+        });
+        if (classes) {
+            rect.setAttributeNS('','class',classes);
+        }
+        svg.appendChild(rect);
+    }
+    
+    static textOutlineRect(svg,textElement, color, classes) {
+        var box = textElement.getBBox();
+        var attrs = [{width:box.width+5,height:box.height+5,stroke:color,strokewidth:'2',fill:'none',x:box.x-5,y:box.y-5}];
+        svgHelpers.rect(svg,box,attrs,classes);
+    }
 	// ### getTextBox
 	// Get the logical bounding box of the text for placement.
 	static getTextBox(svg,attributes,classes,text) {
@@ -8840,6 +8859,67 @@ class suiTextLayout {
 
 };
 
+
+class editSvgText {
+    constructor(params) {
+        this.target = params.target;
+        var ns = svgHelpers.namespace;
+        this.layout = params.layout;
+		this.svg = document.createElementNS(ns, 'svg');
+        this.editText = document.createElementNS(ns, 'text');
+        editSvgText.textAttrs.forEach((attr) => {
+            this.editText.setAttributeNS('',attr,this.target.attributes[attr].value);
+        });
+        // this.editText.setAttributeNS('','class',this.target.class);
+        this.editText.textContent=this.target.textContent;
+        var clientBox = svgHelpers.smoBox(this.target.getBoundingClientRect());
+        var svgBox = svgHelpers.smoBox(this.target.getBBox());
+        this.editText.setAttributeNS('','y',svgBox.height);
+        svgHelpers.svgViewport(this.svg, svgBox.width*2, svgBox.height+10, this.layout.svgScale);
+        $('.draganime').html('');
+        this.svg.appendChild(this.editText);
+        $('.draganime').append(this.svg);
+        $('.draganime').removeClass('hide').addClass('editText').attr('contentEditable','true');
+        this.editing=true;
+        $('.draganime').css('top',clientBox.y).css('left',clientBox.x);
+        $(this.svg).attr('width',clientBox.width).attr('height',clientBox.height);        
+    }
+    
+    endSession() {
+        this.editing = false;
+        $('.draganime').addClass('hide');
+    }
+    
+    get value() {
+        return this.editText.textContent;
+    }
+    
+    startSessionPromise() {
+        var self=this;
+        const promise = new Promise((resolve, reject) => {
+            function editTimer() {
+                setTimeout(function() {
+                    self.target.textContent = self.editText.textContent;
+                    if (self.editing) {
+                    editTimer();
+                } else {
+                    resolve();
+                }
+                },250);
+                
+            }
+            
+            editTimer();
+		});
+        
+        return promise;
+    }
+
+    static get textAttrs() {
+        return ['font-size','font-family','font-weight','fill','transform'];
+    }
+};
+
 class suiEditor {
     constructor(params) {
         Vex.Merge(this, params);
@@ -11057,8 +11137,10 @@ class SuiTextInPlace {
         if (!this.defaultValue) {
             this.defaultValue = 0;
         }
+        this.editMode=false;
 
         this.dialog = dialog;
+        this.value='';        
     }
     
     get html() {
@@ -11075,13 +11157,40 @@ class SuiTextInPlace {
     get parameterId() {
         return this.dialog.id + '-' + this.parameterName;
     }
+    getValue() {
+        return this.value;
+    }
     _getInputElement() {
         var pid = this.parameterId;
         return $(this.dialog.dgDom.element).find('#' + pid).find('button');
     }
+    _startEditSession() {
+        var self=this;
+        if (!this.editor) {
+          this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
+          this.value = this.textElement.textContent;            
+          this.editor = new editSvgText({target:this.textElement,layout:this.dialog.layout});
+          var button = document.getElementById(this.parameterId);
+          $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
+          this.editor.startSessionPromise().then(function() {
+              self.value=self.editor.value;
+              self.editor=null;
+          });
+        } else {
+          var button = document.getElementById(this.parameterId);
+          this.value=this.editor.value;
+          $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
+          this.editor.endSession();
+          this.dialog.changed();
+        }
+    }
+ 
     bind() {
+        var self=this;
+        this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
+        this.value = this.textElement.textContent;
         $(this._getInputElement()).off('click').on('click',function(ev) {
-            console.log('ouch');
+            self._startEditSession();
         });
     }
 }

@@ -90,6 +90,25 @@ class svgHelpers {
 		return new smoSvgBuilder(el);
 	}
 	
+    static rect(svg,box,attrs,classes) {
+        var rect = document.createELementNS(svgHelpers.namespace,'rect');
+        attrs.forEach((attr) => {
+            var key = Object.keys(attr)[0];
+            key = (key == 'strokewidth') ? 'stroke-width' : key;
+            var val = attr[key];
+            rect.setAttributeNS('', key, val);            
+        });
+        if (classes) {
+            rect.setAttributeNS('','class',classes);
+        }
+        svg.appendChild(rect);
+    }
+    
+    static textOutlineRect(svg,textElement, color, classes) {
+        var box = textElement.getBBox();
+        var attrs = [{width:box.width+5,height:box.height+5,stroke:color,strokewidth:'2',fill:'none',x:box.x-5,y:box.y-5}];
+        svgHelpers.rect(svg,box,attrs,classes);
+    }
 	// ### getTextBox
 	// Get the logical bounding box of the text for placement.
 	static getTextBox(svg,attributes,classes,text) {
