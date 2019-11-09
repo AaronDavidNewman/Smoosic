@@ -224,7 +224,7 @@ class suiEditor {
         if (measure) {
             var nmeasure = SmoMeasure.getDefaultMeasureWithNotes(measure);
             nmeasure.measureNumber.measureIndex = measure.measureNumber.measureIndex;
-            SmoUndoable.addMeasure(this.score, measure.measureNumber.systemIndex, nmeasure, this.undoBuffer);
+            SmoUndoable.addMeasure(this.score, measure.measureNumber.measureIndex, nmeasure, this.undoBuffer);
             this._render();
         }
     }
