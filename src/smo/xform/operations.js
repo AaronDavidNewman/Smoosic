@@ -141,6 +141,10 @@ class SmoOperation {
 
 		return true;
 	}
+    
+    static removeStaffModifier(selection,modifier) {
+        selection.staff.removeStaffModifier(modifier);
+    }
 
 	static makeRest(selection) {
 		selection.measure.changed = true;

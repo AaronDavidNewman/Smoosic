@@ -734,6 +734,7 @@ body.showAttributeDialog .attributeDialog {
 
 .attributeModal {
 	position:absolute;
+    width:380px;
 	background: #fff;
 	border-style: groove;
 	border-width: 2px;
@@ -846,7 +847,13 @@ body.showAttributeDialog .attributeDialog {
 .buttonContainer button {
 	margin-right:5px;
 }
-.smoControl {
+
+.attributeModal .smoControlContainer {
+    display:flex;
+    flex-flow: row wrap;
+}
+
+.attributeModal .smoControl {
 	margin-top:5px;
 	margin-bottom:5px;
 }

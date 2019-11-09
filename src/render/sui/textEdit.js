@@ -1,6 +1,8 @@
 
 
 
+// ## editSvgText
+// A class that implements very basic text editing behavior in an 
 class editSvgText {
     constructor(params) {
         this.target = params.target;
@@ -52,9 +54,12 @@ class editSvgText {
     }
     
     _updateText() {
-        if (this.editText.textContent && this._value != this.editText.textContent) {
-          this.target.textContent = this.editText.textContent;
-          this._value = this.editText.textContent;
+        if (this.editText.textContent && 
+        (this.editText.textContent.length>1 || this.editText.textContent[0] != '_') &&
+        this._value != this.editText.textContent) {
+          this.editText.textContent = this.editText.textContent.replace('_','');
+          this.target.textContent = this._value = this.editText.textContent;
+          this._value = this.target.textContent;
           var fontAttr = svgHelpers.fontIntoToSvgAttributes(this.fontInfo);
           var svgBox = svgHelpers.getTextBox(this.svg,this.attrAr,null,this._value);
           var nbox = svgHelpers.logicalToClient(this.svg,svgBox);
@@ -65,7 +70,7 @@ class editSvgText {
            }
         }  
         if (!this.editText.textContent && this._value) {
-          this.editText.textContent=this._value.substr(0,1);
+          this.editText.textContent='_';
         }
     }
     

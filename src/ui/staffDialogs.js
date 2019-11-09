@@ -1,7 +1,7 @@
 class SuiStaffModifierDialog extends SuiDialogBase {
 	 handleRemove() {
         $(this.context.svg).find('g.' + this.modifier.id).remove();
-        this.selection.staff.removeStaffModifier(this.modifier);
+        SmoUndoable.staffSelectionOp(this.layout.score,this.selection,'removeStaffModifier',this.modifier,this.undo,'remove slur');
         this.tracker.clearModifierSelections();
     }
 
@@ -164,6 +164,7 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
         return dg;
     }
 	handleRemove() {
+        this.undo.addBuffer('Remove nth ending', 'score', null, score);
 		this.layout.score.staves.forEach((staff) => {
 			staff.measures.forEach((measure) => {
 				if (measure.measureNumber.measureNumber === this.modifier.startBar) {

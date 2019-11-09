@@ -244,6 +244,28 @@ class svgHelpers {
 			return svgHelpers.unionRect(b1, mbox);
 		}
 	}
+    // ### measurePerInch
+    // Supported font units
+    static get unitsPerInch() {
+        var rv = {};
+        
+        rv['pt']=72.0;
+        rv['px']=96.0;
+        rv['em']=6.0;
+        return rv;
+    }
+    
+    // ### getFontSize
+    // Given '1em' return {size:1.0,unit:em}
+    static getFontSize(fs) {
+        var size=parseFloat(fs);
+        var measure = fs.substr(fs.length-2,2);
+        return {size:size,unit:measure};
+    }
+    
+    static convertFont(size,o,n) {
+        return size*(svgHelpers.unitsPerInch[o]/svgHelpers.unitsPerInch[n]);
+    }
 
 	static stringify(box) {
 		if (box['width']) {

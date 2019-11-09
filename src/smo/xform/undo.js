@@ -208,6 +208,11 @@ class SmoUndoable {
 		undoBuffer.addBuffer(description, 'measure', selection.selector, selection.measure);
 		SmoOperation[op](score,selection,params);
 	}
+    
+    static staffSelectionOp(score,selection,op,params,undoBuffer,description) {
+		undoBuffer.addBuffer(description, 'staff', selection.selector, selection.staff);
+		SmoOperation[op](selection,params);
+	}
 	
 	static scoreSelectionOp(score,selection,op,params,undoBuffer,description) {
         undoBuffer.addBuffer(description, 'score', null, score);

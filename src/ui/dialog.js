@@ -64,12 +64,15 @@ class SuiDialogBase {
 		var r = b('div').classes('attributeModal').css('top', parameters.top + 'px').css('left', parameters.left + 'px')
 			.append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move')))
 			.append(b('h2').text(parameters.label));
+            
+        var ctrl = b('div').classes('smoControlContainer');
 		dialogElements.forEach((de) => {
 			var ctor = eval(de.control);
 			var control = new ctor(this, de);
 			this.components.push(control);
-			r.append(control.html);
+			ctrl.append(control.html);
 		});
+        r.append(ctrl);
 		r.append(
 			b('div').classes('buttonContainer').append(
 				b('button').classes('ok-button button-left').text('OK')).append(
@@ -160,6 +163,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 				defaultValue: 0,
 				control: 'SuiRockerComponent',
 				label: 'X Position (Px)',
+                startRow:true,
 				type: 'int'
 			},{
 				smoName: 'y',
@@ -167,6 +171,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 				defaultValue: 0,
 				control: 'SuiRockerComponent',
 				label: 'Y Position (Px)',
+                startRow:true,
 				type: 'int'
 			}, {
 				smoName: 'scaleX',
@@ -174,6 +179,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 				defaultValue: 100,
 				control: 'SuiRockerComponent',
 				label: 'Horizontal Scale (%)',
+                startRow:true,
 				type: 'percent'
 			}, {
 				smoName: 'scaleY',
@@ -181,6 +187,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 				defaultValue: 100,
 				control: 'SuiRockerComponent',
 				label: 'Vertical Scale (%)',
+                startRow:true,
 				type: 'percent'
 			}, {
 				smoName: 'justification',
@@ -188,6 +195,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 				defaultValue: SmoScoreText.justifications.left,
 				control: 'SuiDropdownComponent',
 				label:'Justification',
+                startRow:true,
 				options: [{
 						value: 'left',
 						label: 'Left'
@@ -413,7 +421,7 @@ class SuiLayoutDialog extends SuiDialogBase {
 
 	}
 	_handleCancel() {
-		this.score.layout = this.backup;
+		this.layout.score.layout = this.backup;
 		this.layout.setViewport();
 		var self = this;
 		var complete = function () {
@@ -441,7 +449,7 @@ class SuiLayoutDialog extends SuiDialogBase {
 	}
 	_setPageSizeDefault() {
 		var value = 'custom';
-		var scoreDims = this.score.layout;
+		var scoreDims = this.layout.score.layout;
 		SmoScore.pageSizes.forEach((sz) => {
 			var dim = SmoScore.pageDimensions[sz];
 			if (scoreDims.pageWidth === dim.width && scoreDims.pageHeight === dim.height) {
@@ -470,34 +478,32 @@ class SuiLayoutDialog extends SuiDialogBase {
 		// this.modifier.backupOriginal();
 		this._handlePageSizeChange();
 		this.components.forEach((component) => {
-			this.score.layout[component.smoName] = component.getValue();
+			this.layout.score.layout[component.smoName] = component.getValue();
 		});
 		this.layout.setViewport();
 		this.layout.render();
 	}
 	static createAndDisplay(buttonElement, buttonData, controller) {
-		var dg = new SuiLayoutDialog({
-				score: controller.score,
+		var dg = new SuiLayoutDialog({				
 				layout: controller.layout,
 				controller: controller
 			});
 		dg.display();
 	}
 	constructor(parameters) {
-		if (!(parameters.score && parameters.layout && parameters.controller)) {
+		if (!(parameters.layout && parameters.controller)) {
 			throw new Error('layout  dialog must have score');
 		}
 		var p = parameters;
 
 		super(SuiLayoutDialog.dialogElements, {
 			id: 'dialog-layout',
-			top: (p.score.layout.pageWidth / 2) - 200,
-			left: (p.score.layout.pageHeight / 2) - 200,
+			top: (p.layout.score.layout.pageWidth / 2) - 200,
+			left: (p.layout.score.layout.pageHeight / 2) - 200,
 			label: 'Score Layout'
 		});
-		this.score = p.score;
-		this.modifier = this.score.layout;
 		this.layout = p.layout;
+		this.modifier = this.layout.score.layout;
 		this.controller = p.controller;
 		this.backupOriginal();
 	}
@@ -579,6 +585,7 @@ class SuiTextModifierDialog extends SuiDialogBase {
 	}
 	handleRemove() {
 		$(this.context.svg).find('g.' + this.modifier.id).remove();
+        this.undo.addBuffer('remove dynamic', 'measure', this.selection.selector, this.selection.measure);
 		this.selection.note.removeModifier(this.modifier);
 		this.tracker.clearModifierSelections();
 	}
