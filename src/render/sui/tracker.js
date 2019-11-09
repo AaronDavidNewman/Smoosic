@@ -67,7 +67,6 @@ class suiTracker {
 		var modMap = {};
 		var ix=0;
         this.layout.score.scoreText.forEach((modifier) => {
-            console.log('in text');
             if (!modMap[modifier.attrs.id]) {
                 this.modifierTabs.push({
                     modifier: modifier,
@@ -124,10 +123,6 @@ class suiTracker {
 				}
 			});
 		});
-		
-		this.modifierTabs.forEach((mod) => {
-			
-		});
 	}
 
 	_highlightModifier() {
@@ -138,6 +133,12 @@ class suiTracker {
 			}
 		}
 	}
+    
+    // ### selectModifierById
+    // programatically select a modifier by ID
+    selectId(id) {
+        this.modifierIndex = this.modifierTabs.findIndex((mm) =>  mm.modifier.attrs.id=='auto4257');        
+    }
 
 	clearModifierSelections() {
 		this.modifierTabs = [];
@@ -195,7 +196,7 @@ class suiTracker {
 		var ticksSelectedCopy = this._getTicksFromSelections();
 		var firstSelection = this.getExtremeSelection(-1);
 		notes.forEach((note) => {
-			var box = note.getBoundingClientRect();
+			var box = svgHelpers.smoBox(note.getBoundingClientRect());
 			// box = svgHelpers.untransformSvgBox(this.context.svg,box);
 			var selection = SmoSelection.renderedNoteSelection(this.score, note, box);
 			if (selection) {
@@ -641,7 +642,7 @@ class suiTracker {
 			return;
 		}
 		var headEl = heads[index];
-		var box = headEl.getBoundingClientRect();
+		var box = svgHelpers.smoBox(headEl.getBoundingClientRect());
 		this._drawRect(box, 'staffModifier');
 	}
 	triggerSelection() {

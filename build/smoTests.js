@@ -2296,7 +2296,7 @@ class MeasureTest {
 ;
 
 class TestAll {
-	static Run = function() {
+	static Run() {
 		  console.log("DOM fully loaded and parsed");
             TimeSignatureTest.CommonTests().then(
 			ChordTest.CommonTests).then(VoiceTest.CommonTests).then(TupletTest.CommonTests)

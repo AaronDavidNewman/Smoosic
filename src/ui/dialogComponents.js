@@ -162,7 +162,7 @@ class SuiTextInPlace {
         var pid = this.parameterId;
         return $(this.dialog.dgDom.element).find('#' + pid).find('button');
     }
-    _startEditSession() {
+    startEditSession() {
         var self=this;
         if (!this.editor) {
           this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
@@ -189,7 +189,7 @@ class SuiTextInPlace {
         this.fontInfo = JSON.parse(JSON.stringify(this.dialog.modifier.fontInfo));
         this.value = this.textElement.textContent;
         $(this._getInputElement()).off('click').on('click',function(ev) {
-            self._startEditSession();
+            self.startEditSession();
         });
     }
 }

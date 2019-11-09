@@ -1,7 +1,7 @@
 
 class SuiDialogFactory {
 
-	static createDialog(modSelection, context, tracker, layout) {
+	static createDialog(modSelection, context, tracker, layout,undoBuffer) {
 		var dbType = SuiDialogFactory.modifierDialogMap[modSelection.modifier.attrs.type];
 		var ctor = eval(dbType);
 		if (!ctor) {
@@ -13,7 +13,8 @@ class SuiDialogFactory {
 			selection: modSelection.selection,
 			context: context,
 			tracker: tracker,
-			layout: layout
+			layout: layout,
+            undo:undoBuffer
 		});
 	}
 	static get modifierDialogMap() {
@@ -54,7 +55,7 @@ class SuiDialogBase {
         
         var x = box.x;
         var w = $(dge).width();
-        x = (x < window.innerWidth /2)  ? x - (w+25) : x + (w+25);
+        x = (x > window.innerWidth /2)  ? x - (w+25) : x + (w+25);
         $(dge).css('left', '' + x + 'px');
 	}
 	_constructDialog(dialogElements, parameters) {
@@ -224,6 +225,10 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			cb: cb,
 			moveParent: true
 		});
+        if (!this.modifier.edited) {
+            this.modifier.edited = true;
+            this.textEditor.startEditSession();
+        }
 	}
     
     changed() {
@@ -254,6 +259,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			left: parameters.modifier.renderedBox.x,
 			label: 'Text Box Properties'
 		});
+        this.undo = parameters.undo;
+        // Do we jump right into editing?
         this.textElement=$(parameters.context.svg).find('.' + parameters.modifier.attrs.id)[0];
 		Vex.Merge(this, parameters);		
         this.modifier.backupParams();
@@ -277,6 +284,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 		});
 		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
             self.textEditor.endSession();
+            SmoUndoable.scoreOp(self.layout.score,'removeScoreText',self.modifier,self.undo,'remove text from dialog');
 			self.complete();
 		});
     }

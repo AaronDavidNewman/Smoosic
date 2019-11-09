@@ -282,7 +282,7 @@ class SmoTuplet {
 
     static cloneTuplet(tuplet) {
         var noteAr = tuplet.notes;
-        var durationMap = tuplet.durationMap.flat(1); // deep copy array
+        var durationMap = JSON.parse(JSON.stringify(tuplet.durationMap)); // deep copy array
 
 		// Add any remainders for oddlets
 		var totalTicks = noteAr.map((nn) => nn.ticks.numerator+nn.ticks.remainder).reduce((acc, nn) => acc+nn);

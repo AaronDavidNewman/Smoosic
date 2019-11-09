@@ -819,17 +819,16 @@ class svgHelpers {
 	// find all object that intersect with the rectangle
 	static findIntersectingArtifact(clientBox, objects) {
 		var obj = null;
-		var box = clientBox; //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
+        
+		var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
 
 		// box.y = box.y - this.renderElement.offsetTop;
 		// box.x = box.x - this.renderElement.offsetLeft;
 		var rv = [];
 		objects.forEach((object) => {
-			var i1 = box.x - object.box.x;
-			/* console.log('client coords: ' + svgHelpers.stringify(clientBox));
-			console.log('find box '+svgHelpers.stringify(box));
-			console.log('examine obj: '+svgHelpers.stringify(object.box));  */
-			var i2 = box.y - object.box.y;
+            var obox = svgHelpers.smoBox(object.box);
+			var i1 = box.x - obox.x; // handle edge not believe in x and y
+			var i2 = box.y - obox.y;
 			if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
 				rv.push(object);
 			}
@@ -922,9 +921,11 @@ class svgHelpers {
 	// return a simple box object that can be serialized, copied
 	// (from svg DOM box)
 	static smoBox(box) {
+        var x = typeof(box.x) == 'undefined' ? box.left : box.x;
+        var y = typeof(box.y) == 'undefined' ? box.top : box.y;
 		return ({
-			x: box.x,
-			y: box.y,
+			x: x,
+			y: y,
 			width: box.width,
 			height: box.height
 		});
@@ -940,6 +941,7 @@ class svgHelpers {
 	}
 
 	static copyBox(box) {
+        box = svgHelpers.smoBox(box);
 		return {
 			x: box.x,
 			y: box.y,
@@ -972,8 +974,10 @@ class svgHelpers {
 	// return a box or point in svg coordintes from screen coordinates
 	static clientToLogical(svg, point) {
 		var pt = svg.createSVGPoint();
-		pt.x = point.x;
-		pt.y = point.y;
+        var x = typeof(point.x) != 'undefined' ? point.x : point.left;
+        var y = typeof(point.y) != 'undefined' ? point.y : point.top;
+		pt.x = x;
+		pt.y = y;
 		var sp = pt.matrixTransform(svg.getScreenCTM().inverse());
 		if (!point['width']) {
 			return {
@@ -1528,7 +1532,7 @@ class SmoTuplet {
 
     static cloneTuplet(tuplet) {
         var noteAr = tuplet.notes;
-        var durationMap = tuplet.durationMap.flat(1); // deep copy array
+        var durationMap = JSON.parse(JSON.stringify(tuplet.durationMap)); // deep copy array
 
 		// Add any remainders for oddlets
 		var totalTicks = noteAr.map((nn) => nn.ticks.numerator+nn.ticks.remainder).reduce((acc, nn) => acc+nn);
@@ -3847,6 +3851,7 @@ class SmoScoreModifierBase {
         var rv = new ctor(jsonObj);
         rv.attrs.id = jsonObj.attrs.id;
         rv.attrs.type = jsonObj.attrs.type;
+        return rv;
     }
 }
 
@@ -3965,6 +3970,7 @@ class SmoScoreText extends SmoScoreModifierBase {
         super('SmoScoreText');
         parameters = parameters ? parameters : {};
         this.backup={};
+        this.edited = false; // indicate to UI that the actual text has not been edited.
 		
 		smoMusic.serializedMerge(SmoScoreText.attributes, SmoScoreText.defaults, this);
         smoMusic.serializedMerge(SmoScoreText.attributes, parameters, this);
@@ -6459,7 +6465,7 @@ class VxMeasure {
 			glyph.render(this.context, x, y);
 			x += VF.TextDynamics.GLYPHS[ch].width;
 		});
-		textObj.renderedBox = group.getBoundingClientRect();
+		textObj.renderedBox = svgHelpers.smoBox(group.getBoundingClientRect());
 		this.context.closeGroup();
 	}
 	
@@ -6674,7 +6680,7 @@ class VxMeasure {
 		// this.smoMeasure.adjX = this.stave.start_x - (this.smoMeasure.staffX);
 
         this.context.closeGroup();
-        var box = group.getBoundingClientRect();
+        var box = svgHelpers.smoBox(group.getBoundingClientRect());
 		var lbox = svgHelpers.clientToLogical(this.context.svg,box);
         this.smoMeasure.renderedBox = {
             x: box.x,
@@ -6784,7 +6790,7 @@ class VxSystem {
 		}
 
 		this.context.closeGroup();
-		return group.getBoundingClientRect();
+		return svgHelpers.smoBox(group.getBoundingClientRect());
 	}
 
 	renderEndings() {
@@ -6811,7 +6817,7 @@ class VxSystem {
 					vxVolta.setContext(this.context).draw(vxMeasure.stave, endMeasure.staffX);
 				}
 				this.context.closeGroup();
-				ending.renderedBox = group.getBoundingClientRect();
+				ending.renderedBox = svgHelpers.smoBox(group.getBoundingClientRect());
 				ending.logicalBox = svgHelpers.clientToLogical(this.context.svg, ending.renderedBox);
 				
 				// Adjust real height of measure to match volta height
@@ -6961,7 +6967,6 @@ class suiTracker {
 		var modMap = {};
 		var ix=0;
         this.layout.score.scoreText.forEach((modifier) => {
-            console.log('in text');
             if (!modMap[modifier.attrs.id]) {
                 this.modifierTabs.push({
                     modifier: modifier,
@@ -7018,10 +7023,6 @@ class suiTracker {
 				}
 			});
 		});
-		
-		this.modifierTabs.forEach((mod) => {
-			
-		});
 	}
 
 	_highlightModifier() {
@@ -7032,6 +7033,12 @@ class suiTracker {
 			}
 		}
 	}
+    
+    // ### selectModifierById
+    // programatically select a modifier by ID
+    selectId(id) {
+        this.modifierIndex = this.modifierTabs.findIndex((mm) =>  mm.modifier.attrs.id=='auto4257');        
+    }
 
 	clearModifierSelections() {
 		this.modifierTabs = [];
@@ -7089,7 +7096,7 @@ class suiTracker {
 		var ticksSelectedCopy = this._getTicksFromSelections();
 		var firstSelection = this.getExtremeSelection(-1);
 		notes.forEach((note) => {
-			var box = note.getBoundingClientRect();
+			var box = svgHelpers.smoBox(note.getBoundingClientRect());
 			// box = svgHelpers.untransformSvgBox(this.context.svg,box);
 			var selection = SmoSelection.renderedNoteSelection(this.score, note, box);
 			if (selection) {
@@ -7535,7 +7542,7 @@ class suiTracker {
 			return;
 		}
 		var headEl = heads[index];
-		var box = headEl.getBoundingClientRect();
+		var box = svgHelpers.smoBox(headEl.getBoundingClientRect());
 		this._drawRect(box, 'staffModifier');
 	}
 	triggerSelection() {
@@ -7926,7 +7933,7 @@ class suiPiano {
 		this.objects = [];
 		var keys = [].slice.call(this.renderElement.getElementsByClassName('piano-key'));
 		keys.forEach((key) => {
-			var rect = key.getBoundingClientRect();
+			var rect = svgHelpers.smoBox(key.getBoundingClientRect());
 			var id = key.getAttributeNS('', 'id');
 			var artifact = {
 				keyElement: key,
@@ -8736,7 +8743,7 @@ class suiTextLayout {
 	}
 	static _saveBox(scoreText,parameters,el) {
 		var svg = parameters.svg;
-		 var box = el.getBoundingClientRect();
+		 var box = svgHelpers.smoBox(el.getBoundingClientRect());
 		 var lbox = svgHelpers.clientToLogical(svg,box);
 		 scoreText.renderedBox = {
 			x: box.x,
@@ -8887,9 +8894,9 @@ class editSvgText {
         // this.editText.setAttributeNS('','class',this.target.class);
         this.editText.textContent=this.target.textContent;
         this._value = this.editText.textContent;
-        this.clientBox = svgHelpers.smoBox(this.target.getBoundingClientRect());
+        this.clientBox = svgHelpers.smoBox(svgHelpers.smoBox(this.target.getBoundingClientRect()));
         var svgBox = svgHelpers.smoBox(this.target.getBBox());
-        this.editText.setAttributeNS('','y',svgBox.height/2);        
+        this.editText.setAttributeNS('','y',svgBox.height);        
         
         $('.draganime').html('');
         this.svg.appendChild(this.editText);
@@ -8984,6 +8991,9 @@ class suiEditor {
             SuiExceptionHandler.instance.exceptionHandler(e);
         })
         .then(remap);
+    }
+    get score() {
+        return this.layout.score;
     }
 
     _renderAndAdvance() {
@@ -9286,6 +9296,10 @@ class suiMenuManager {
 			menuContainer: '.menuContainer'
 		};
 	}
+    
+    get score() {
+        return this.layout.score;
+    }
 
 	// ### Description:
 	// slash ('/') menu key bindings.  The slash key followed by another key brings up
@@ -9459,7 +9473,7 @@ class SuiTextMenu extends suiMenuBase {
 				}, {
 					icon: '',
 					text: 'Composer/Copyright',
-					value: 'copyright'
+					value: 'copyrightText'
 				}, {
 					icon: '',
 					text: 'MeasureText',
@@ -9515,8 +9529,22 @@ class SuiTextMenu extends suiMenuBase {
                     position:'header',
                     text:'Header text'
                 }
+            },
+            copyrightText: {
+                ctor:'SmoScoreText',
+                operation:'addScoreText',
+                params: {
+                    position:'copyright',
+                    text:'Copyright/Composer'
+                }
             }
         };
+    }
+    _editNewText(txtObj) {                
+        this.tracker.selectId(txtObj.attrs.id);
+        // Treat a created text score like a selected text score that needs to be edited.
+        $('body').trigger('tracker-select-modifier');
+                            
     }
     selection(ev) {
 		var command = $(ev.currentTarget).attr('data-value');
@@ -9525,7 +9553,16 @@ class SuiTextMenu extends suiMenuBase {
             var ctor = eval(menuObj.ctor);
             var txtObj = new ctor(menuObj.params);
             SmoUndoable.scoreOp(this.editor.score,menuObj.operation,
-               txtObj, this.editor.undoBuffer,'Text Menu Command');            
+               txtObj, this.editor.undoBuffer,'Text Menu Command');     
+                var self=this;
+                var remap = function () {
+                  return self.tracker.updateMap();
+                }
+                var editNewText = function() {
+                    self._editNewText(txtObj);
+                }
+                this.tracker.layout.render().then(remap).then(editNewText);
+                
         }
 
 		this.complete();
@@ -9667,6 +9704,7 @@ class suiKeySignatureMenu extends suiMenuBase {
 			menuContainer: '.menuContainer'
 		};
 	}
+    
 	selection(ev) {
 		var keySig = $(ev.currentTarget).attr('data-value');
 		var changed = [];
@@ -10469,7 +10507,7 @@ class defaultTrackerKeys {
 };
 class SuiDialogFactory {
 
-	static createDialog(modSelection, context, tracker, layout) {
+	static createDialog(modSelection, context, tracker, layout,undoBuffer) {
 		var dbType = SuiDialogFactory.modifierDialogMap[modSelection.modifier.attrs.type];
 		var ctor = eval(dbType);
 		if (!ctor) {
@@ -10481,7 +10519,8 @@ class SuiDialogFactory {
 			selection: modSelection.selection,
 			context: context,
 			tracker: tracker,
-			layout: layout
+			layout: layout,
+            undo:undoBuffer
 		});
 	}
 	static get modifierDialogMap() {
@@ -10522,7 +10561,7 @@ class SuiDialogBase {
         
         var x = box.x;
         var w = $(dge).width();
-        x = (x < window.innerWidth /2)  ? x - (w+25) : x + (w+25);
+        x = (x > window.innerWidth /2)  ? x - (w+25) : x + (w+25);
         $(dge).css('left', '' + x + 'px');
 	}
 	_constructDialog(dialogElements, parameters) {
@@ -10692,6 +10731,10 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			cb: cb,
 			moveParent: true
 		});
+        if (!this.modifier.edited) {
+            this.modifier.edited = true;
+            this.textEditor.startEditSession();
+        }
 	}
     
     changed() {
@@ -10722,6 +10765,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			left: parameters.modifier.renderedBox.x,
 			label: 'Text Box Properties'
 		});
+        this.undo = parameters.undo;
+        // Do we jump right into editing?
         this.textElement=$(parameters.context.svg).find('.' + parameters.modifier.attrs.id)[0];
 		Vex.Merge(this, parameters);		
         this.modifier.backupParams();
@@ -10745,6 +10790,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 		});
 		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
             self.textEditor.endSession();
+            SmoUndoable.scoreOp(self.layout.score,'removeScoreText',self.modifier,self.undo,'remove text from dialog');
 			self.complete();
 		});
     }
@@ -11222,7 +11268,7 @@ class SuiTextInPlace {
         var pid = this.parameterId;
         return $(this.dialog.dgDom.element).find('#' + pid).find('button');
     }
-    _startEditSession() {
+    startEditSession() {
         var self=this;
         if (!this.editor) {
           this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
@@ -11249,7 +11295,7 @@ class SuiTextInPlace {
         this.fontInfo = JSON.parse(JSON.stringify(this.dialog.modifier.fontInfo));
         this.value = this.textElement.textContent;
         $(this._getInputElement()).off('click').on('click',function(ev) {
-            self._startEditSession();
+            self.startEditSession();
         });
     }
 }
@@ -13936,7 +13982,6 @@ class suiController {
 		var params = suiController.keyBindingDefaults;
 		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), score);
 		params.tracker = new suiTracker(params.layout);
-		params.score = score;
 		params.editor = new suiEditor(params);
 		params.menus = new suiMenuManager(params);
 		var controller = new suiController(params);
@@ -14047,7 +14092,7 @@ class suiController {
 	}
 
 	showModifierDialog(modSelection) {
-		return SuiDialogFactory.createDialog(modSelection, this.tracker.context, this.tracker, this.layout)
+		return SuiDialogFactory.createDialog(modSelection, this.tracker.context, this.tracker, this.layout,this.undoBuffer)
 	}
 	
 	unbindKeyboardForDialog(dialog) {

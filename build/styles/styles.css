@@ -33,6 +33,7 @@ h1 {
 .draganime.textEdit {
     border:#9cc 4px dotted;
     overflow:hidden;
+    background:#fff;
 }
 .subTitle {
 	height: 14px;

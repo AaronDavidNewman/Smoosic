@@ -163,7 +163,7 @@ class VxMeasure {
 			glyph.render(this.context, x, y);
 			x += VF.TextDynamics.GLYPHS[ch].width;
 		});
-		textObj.renderedBox = group.getBoundingClientRect();
+		textObj.renderedBox = svgHelpers.smoBox(group.getBoundingClientRect());
 		this.context.closeGroup();
 	}
 	
@@ -378,7 +378,7 @@ class VxMeasure {
 		// this.smoMeasure.adjX = this.stave.start_x - (this.smoMeasure.staffX);
 
         this.context.closeGroup();
-        var box = group.getBoundingClientRect();
+        var box = svgHelpers.smoBox(group.getBoundingClientRect());
 		var lbox = svgHelpers.clientToLogical(this.context.svg,box);
         this.smoMeasure.renderedBox = {
             x: box.x,

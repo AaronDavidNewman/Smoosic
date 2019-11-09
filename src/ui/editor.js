@@ -20,6 +20,9 @@ class suiEditor {
         })
         .then(remap);
     }
+    get score() {
+        return this.layout.score;
+    }
 
     _renderAndAdvance() {
         var self = this;

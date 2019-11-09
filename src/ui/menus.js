@@ -22,6 +22,10 @@ class suiMenuManager {
 			menuContainer: '.menuContainer'
 		};
 	}
+    
+    get score() {
+        return this.layout.score;
+    }
 
 	// ### Description:
 	// slash ('/') menu key bindings.  The slash key followed by another key brings up
@@ -195,7 +199,7 @@ class SuiTextMenu extends suiMenuBase {
 				}, {
 					icon: '',
 					text: 'Composer/Copyright',
-					value: 'copyright'
+					value: 'copyrightText'
 				}, {
 					icon: '',
 					text: 'MeasureText',
@@ -251,8 +255,22 @@ class SuiTextMenu extends suiMenuBase {
                     position:'header',
                     text:'Header text'
                 }
+            },
+            copyrightText: {
+                ctor:'SmoScoreText',
+                operation:'addScoreText',
+                params: {
+                    position:'copyright',
+                    text:'Copyright/Composer'
+                }
             }
         };
+    }
+    _editNewText(txtObj) {                
+        this.tracker.selectId(txtObj.attrs.id);
+        // Treat a created text score like a selected text score that needs to be edited.
+        $('body').trigger('tracker-select-modifier');
+                            
     }
     selection(ev) {
 		var command = $(ev.currentTarget).attr('data-value');
@@ -261,7 +279,16 @@ class SuiTextMenu extends suiMenuBase {
             var ctor = eval(menuObj.ctor);
             var txtObj = new ctor(menuObj.params);
             SmoUndoable.scoreOp(this.editor.score,menuObj.operation,
-               txtObj, this.editor.undoBuffer,'Text Menu Command');            
+               txtObj, this.editor.undoBuffer,'Text Menu Command');     
+                var self=this;
+                var remap = function () {
+                  return self.tracker.updateMap();
+                }
+                var editNewText = function() {
+                    self._editNewText(txtObj);
+                }
+                this.tracker.layout.render().then(remap).then(editNewText);
+                
         }
 
 		this.complete();
@@ -403,6 +430,7 @@ class suiKeySignatureMenu extends suiMenuBase {
 			menuContainer: '.menuContainer'
 		};
 	}
+    
 	selection(ev) {
 		var keySig = $(ev.currentTarget).attr('data-value');
 		var changed = [];

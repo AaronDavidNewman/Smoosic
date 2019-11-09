@@ -19,9 +19,9 @@ class editSvgText {
         // this.editText.setAttributeNS('','class',this.target.class);
         this.editText.textContent=this.target.textContent;
         this._value = this.editText.textContent;
-        this.clientBox = svgHelpers.smoBox(this.target.getBoundingClientRect());
+        this.clientBox = svgHelpers.smoBox(svgHelpers.smoBox(this.target.getBoundingClientRect()));
         var svgBox = svgHelpers.smoBox(this.target.getBBox());
-        this.editText.setAttributeNS('','y',svgBox.height/2);        
+        this.editText.setAttributeNS('','y',svgBox.height);        
         
         $('.draganime').html('');
         this.svg.appendChild(this.editText);

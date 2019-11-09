@@ -16,6 +16,7 @@ class SmoScoreModifierBase {
         var rv = new ctor(jsonObj);
         rv.attrs.id = jsonObj.attrs.id;
         rv.attrs.type = jsonObj.attrs.type;
+        return rv;
     }
 }
 
@@ -134,6 +135,7 @@ class SmoScoreText extends SmoScoreModifierBase {
         super('SmoScoreText');
         parameters = parameters ? parameters : {};
         this.backup={};
+        this.edited = false; // indicate to UI that the actual text has not been edited.
 		
 		smoMusic.serializedMerge(SmoScoreText.attributes, SmoScoreText.defaults, this);
         smoMusic.serializedMerge(SmoScoreText.attributes, parameters, this);

@@ -34,7 +34,7 @@ class suiPiano {
 		this.objects = [];
 		var keys = [].slice.call(this.renderElement.getElementsByClassName('piano-key'));
 		keys.forEach((key) => {
-			var rect = key.getBoundingClientRect();
+			var rect = svgHelpers.smoBox(key.getBoundingClientRect());
 			var id = key.getAttributeNS('', 'id');
 			var artifact = {
 				keyElement: key,

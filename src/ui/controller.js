@@ -217,7 +217,6 @@ class suiController {
 		var params = suiController.keyBindingDefaults;
 		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), score);
 		params.tracker = new suiTracker(params.layout);
-		params.score = score;
 		params.editor = new suiEditor(params);
 		params.menus = new suiMenuManager(params);
 		var controller = new suiController(params);
@@ -328,7 +327,7 @@ class suiController {
 	}
 
 	showModifierDialog(modSelection) {
-		return SuiDialogFactory.createDialog(modSelection, this.tracker.context, this.tracker, this.layout)
+		return SuiDialogFactory.createDialog(modSelection, this.tracker.context, this.tracker, this.layout,this.undoBuffer)
 	}
 	
 	unbindKeyboardForDialog(dialog) {

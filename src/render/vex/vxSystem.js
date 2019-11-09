@@ -94,7 +94,7 @@ class VxSystem {
 		}
 
 		this.context.closeGroup();
-		return group.getBoundingClientRect();
+		return svgHelpers.smoBox(group.getBoundingClientRect());
 	}
 
 	renderEndings() {
@@ -121,7 +121,7 @@ class VxSystem {
 					vxVolta.setContext(this.context).draw(vxMeasure.stave, endMeasure.staffX);
 				}
 				this.context.closeGroup();
-				ending.renderedBox = group.getBoundingClientRect();
+				ending.renderedBox = svgHelpers.smoBox(group.getBoundingClientRect());
 				ending.logicalBox = svgHelpers.clientToLogical(this.context.svg, ending.renderedBox);
 				
 				// Adjust real height of measure to match volta height

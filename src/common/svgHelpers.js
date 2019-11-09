@@ -188,17 +188,16 @@ class svgHelpers {
 	// find all object that intersect with the rectangle
 	static findIntersectingArtifact(clientBox, objects) {
 		var obj = null;
-		var box = clientBox; //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
+        
+		var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
 
 		// box.y = box.y - this.renderElement.offsetTop;
 		// box.x = box.x - this.renderElement.offsetLeft;
 		var rv = [];
 		objects.forEach((object) => {
-			var i1 = box.x - object.box.x;
-			/* console.log('client coords: ' + svgHelpers.stringify(clientBox));
-			console.log('find box '+svgHelpers.stringify(box));
-			console.log('examine obj: '+svgHelpers.stringify(object.box));  */
-			var i2 = box.y - object.box.y;
+            var obox = svgHelpers.smoBox(object.box);
+			var i1 = box.x - obox.x; // handle edge not believe in x and y
+			var i2 = box.y - obox.y;
 			if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
 				rv.push(object);
 			}
@@ -291,9 +290,11 @@ class svgHelpers {
 	// return a simple box object that can be serialized, copied
 	// (from svg DOM box)
 	static smoBox(box) {
+        var x = typeof(box.x) == 'undefined' ? box.left : box.x;
+        var y = typeof(box.y) == 'undefined' ? box.top : box.y;
 		return ({
-			x: box.x,
-			y: box.y,
+			x: x,
+			y: y,
 			width: box.width,
 			height: box.height
 		});
@@ -309,6 +310,7 @@ class svgHelpers {
 	}
 
 	static copyBox(box) {
+        box = svgHelpers.smoBox(box);
 		return {
 			x: box.x,
 			y: box.y,
@@ -341,8 +343,10 @@ class svgHelpers {
 	// return a box or point in svg coordintes from screen coordinates
 	static clientToLogical(svg, point) {
 		var pt = svg.createSVGPoint();
-		pt.x = point.x;
-		pt.y = point.y;
+        var x = typeof(point.x) != 'undefined' ? point.x : point.left;
+        var y = typeof(point.y) != 'undefined' ? point.y : point.top;
+		pt.x = x;
+		pt.y = y;
 		var sp = pt.matrixTransform(svg.getScreenCTM().inverse());
 		if (!point['width']) {
 			return {

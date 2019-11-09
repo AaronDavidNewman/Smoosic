@@ -10,7 +10,7 @@ class suiTextLayout {
 	}
 	static _saveBox(scoreText,parameters,el) {
 		var svg = parameters.svg;
-		 var box = el.getBoundingClientRect();
+		 var box = svgHelpers.smoBox(el.getBoundingClientRect());
 		 var lbox = svgHelpers.clientToLogical(svg,box);
 		 scoreText.renderedBox = {
 			x: box.x,
