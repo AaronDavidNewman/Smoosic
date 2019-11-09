@@ -15,13 +15,13 @@ class suiLayoutBase {
 	setViewport(reset) {
 		// this.screenWidth = window.innerWidth;
 		var layout = this.score.layout;
-		var zoomScale = layout.zoomMode === SmoScore.zoomModes.zoomScale ?
+		this.zoomScale = layout.zoomMode === SmoScore.zoomModes.zoomScale ?
 			layout.zoomScale : (window.innerWidth - 200) / layout.pageWidth;
 
-		this.svgScale = layout.svgScale * zoomScale;
+		this.svgScale = layout.svgScale * this.zoomScale;
 		this.orientation = this.score.layout.orientation;
-		var w = Math.round(layout.pageWidth * zoomScale) ;
-		var h = Math.round(layout.pageHeight * zoomScale);
+		var w = Math.round(layout.pageWidth * this.zoomScale) ;
+		var h = Math.round(layout.pageHeight * this.zoomScale);
 		this.pageWidth =  (this.orientation  === SmoScore.orientations.portrait) ? w: h;
 		this.pageHeight = (this.orientation  === SmoScore.orientations.portrait) ? h : w;
 		

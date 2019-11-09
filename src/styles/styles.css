@@ -29,8 +29,10 @@ h1 {
 	z-index:11;
 }
 
+/* text edit svg overlay */
 .draganime.textEdit {
     border:#9cc 4px dotted;
+    overflow:hidden;
 }
 .subTitle {
 	height: 14px;

@@ -788,8 +788,17 @@ class svgHelpers {
 				b('line').line(Math.round(box.x-8), Math.round(box.y),Math.round(box.x+6),Math.round(box.y)));				  
 		}
 		svg.appendChild(r.dom());
-
 	}
+    
+    static fontIntoToSvgAttributes(fontInfo) {
+        var rv = [];
+        var fkeys = Object.keys(fontInfo);
+		fkeys.forEach((key) => {
+			var n='{"font-'+key+'":"'+fontInfo[key]+'"}';
+			rv.push(JSON.parse(n));
+		});
+        return rv;
+    }
 		
 	static placeSvgText(svg,attributes,classes,text) {
 		var ns = svgHelpers.namespace;
@@ -7606,15 +7615,15 @@ class suiLayoutBase {
 	}
 
 	setViewport(reset) {
-		this.screenWidth = window.innerWidth;
+		// this.screenWidth = window.innerWidth;
 		var layout = this.score.layout;
-		var zoomScale = layout.zoomMode === SmoScore.zoomModes.zoomScale ?
+		this.zoomScale = layout.zoomMode === SmoScore.zoomModes.zoomScale ?
 			layout.zoomScale : (window.innerWidth - 200) / layout.pageWidth;
 
-		this.svgScale = layout.svgScale * zoomScale;
+		this.svgScale = layout.svgScale * this.zoomScale;
 		this.orientation = this.score.layout.orientation;
-		var w = Math.round(layout.pageWidth * zoomScale) ;
-		var h = Math.round(layout.pageHeight * zoomScale);
+		var w = Math.round(layout.pageWidth * this.zoomScale) ;
+		var h = Math.round(layout.pageHeight * this.zoomScale);
 		this.pageWidth =  (this.orientation  === SmoScore.orientations.portrait) ? w: h;
 		this.pageHeight = (this.orientation  === SmoScore.orientations.portrait) ? h : w;
 		
@@ -8865,46 +8874,82 @@ class editSvgText {
         this.target = params.target;
         var ns = svgHelpers.namespace;
         this.layout = params.layout;
+        this.fontInfo = params.fontInfo;
 		this.svg = document.createElementNS(ns, 'svg');
         this.editText = document.createElementNS(ns, 'text');
+        this.attrAr = [];
         editSvgText.textAttrs.forEach((attr) => {
-            this.editText.setAttributeNS('',attr,this.target.attributes[attr].value);
+            var val = this.target.attributes[attr].value;
+            this.editText.setAttributeNS('',attr,val);
+            this.attrAr.push(JSON.parse('{"'+attr+'":"'+val+'"}'));
         });
+        this.oldFill = this.target.getAttributeNS(null,'fill');
         // this.editText.setAttributeNS('','class',this.target.class);
         this.editText.textContent=this.target.textContent;
-        var clientBox = svgHelpers.smoBox(this.target.getBoundingClientRect());
+        this._value = this.editText.textContent;
+        this.clientBox = svgHelpers.smoBox(this.target.getBoundingClientRect());
         var svgBox = svgHelpers.smoBox(this.target.getBBox());
-        this.editText.setAttributeNS('','y',svgBox.height);
-        svgHelpers.svgViewport(this.svg, svgBox.width*2, svgBox.height+10, this.layout.svgScale);
+        this.editText.setAttributeNS('','y',svgBox.height/2);        
+        
         $('.draganime').html('');
         this.svg.appendChild(this.editText);
         $('.draganime').append(this.svg);
-        $('.draganime').removeClass('hide').addClass('editText').attr('contentEditable','true');
-        this.editing=true;
-        $('.draganime').css('top',clientBox.y).css('left',clientBox.x);
-        $(this.svg).attr('width',clientBox.width).attr('height',clientBox.height);        
+        $('.draganime').removeClass('hide').addClass('textEdit').attr('contentEditable','true');
+        this.setEditorPosition(this.clientBox,svgBox);
+    }
+    
+    setEditorPosition(clientBox,svgBox) {
+        var box = svgHelpers.pointBox(this.layout.pageWidth, this.layout.pageHeight);
+        svgHelpers.svgViewport(this.svg, box.x, box.y,this.layout.svgScale);
+        
+        $('.draganime').css('top',this.clientBox.y-5)
+          .css('left',this.clientBox.x-5)
+          .width(this.clientBox.width+10)
+          .height(this.clientBox.height+10);
     }
     
     endSession() {
         this.editing = false;
-        $('.draganime').addClass('hide');
+        this.target.setAttributeNS(null,'fill',this.oldFill);
+
+        $('.draganime').addClass('hide').removeClass('textEdit');
     }
     
     get value() {
-        return this.editText.textContent;
+        return this._value;
+    }
+    
+    _updateText() {
+        if (this.editText.textContent && this._value != this.editText.textContent) {
+          this.target.textContent = this.editText.textContent;
+          this._value = this.editText.textContent;
+          var fontAttr = svgHelpers.fontIntoToSvgAttributes(this.fontInfo);
+          var svgBox = svgHelpers.getTextBox(this.svg,this.attrAr,null,this._value);
+          var nbox = svgHelpers.logicalToClient(this.svg,svgBox);
+           if (nbox.width > this.clientBox.width) {
+             this.clientBox.width = nbox.width;
+             this.clientBox.height = nbox.height;
+             this.setEditorPosition(this.clientBox,svgBox);
+           }
+        }  
+        if (!this.editText.textContent && this._value) {
+          this.editText.textContent=this._value.substr(0,1);
+        }
     }
     
     startSessionPromise() {
         var self=this;
+        this.editing=true;
+        this.target.setAttributeNS(null,'fill','#fff');
         const promise = new Promise((resolve, reject) => {
             function editTimer() {
                 setTimeout(function() {
-                    self.target.textContent = self.editText.textContent;
+                    self._updateText();
                     if (self.editing) {
-                    editTimer();
-                } else {
-                    resolve();
-                }
+                      editTimer();
+                    } else {
+                      resolve();
+                    }
                 },250);
                 
             }
@@ -10569,7 +10614,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     
     static get dialogElements() {
 		return [{
-				smoName: 'boxText',
+				smoName: 'textEditor',
 				parameterName: 'text',
 				defaultValue: 0,
 				control: 'SuiTextInPlace',
@@ -10629,6 +10674,9 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 		$('body').addClass('showAttributeDialog');
 		this.components.forEach((component) => {            
 			component.bind();
+            if (component.smoName === 'textEditor') {
+                this.textEditor = component;
+            }
             if (typeof(component['setValue'])=='function') {
 			  component.setValue(this.modifier[component.parameterName]);
             }
@@ -10658,7 +10706,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
                 }
             }
 		});
-        $(this.context.svg).find('.' + this.modifier.attrs.id).remove();;
+        // Use layout context because render may have reset svg.
+        $(this.layout.context.svg).find('.' + this.modifier.attrs.id).remove();;
         this.layout.renderScoreText(this.modifier);
     }
 
@@ -10685,14 +10734,17 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 		var dgDom = this.dgDom;
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+            self.textEditor.endSession();
 			self.complete();
 		});
 
 		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+            self.textEditor.endSession();
             self.modifier.restoreParams();
 			self.complete();
 		});
 		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
+            self.textEditor.endSession();
 			self.complete();
 		});
     }
@@ -11157,6 +11209,12 @@ class SuiTextInPlace {
     get parameterId() {
         return this.dialog.id + '-' + this.parameterName;
     }
+    endSession() {
+        if (this.editor) {
+            this.value=this.editor.value;
+            this.editor.endSession();
+        }
+    }
     getValue() {
         return this.value;
     }
@@ -11169,7 +11227,7 @@ class SuiTextInPlace {
         if (!this.editor) {
           this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
           this.value = this.textElement.textContent;            
-          this.editor = new editSvgText({target:this.textElement,layout:this.dialog.layout});
+          this.editor = new editSvgText({target:this.textElement,layout:this.dialog.layout,fontInfo:this.fontInfo});
           var button = document.getElementById(this.parameterId);
           $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
           this.editor.startSessionPromise().then(function() {
@@ -11188,6 +11246,7 @@ class SuiTextInPlace {
     bind() {
         var self=this;
         this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
+        this.fontInfo = JSON.parse(JSON.stringify(this.dialog.modifier.fontInfo));
         this.value = this.textElement.textContent;
         $(this._getInputElement()).off('click').on('click',function(ev) {
             self._startEditSession();
@@ -13714,7 +13773,8 @@ class suiController {
 	pollIdleRedraw() {
 		var self=this;
 		setTimeout(function() {
-			if (self.undoStatus == self.undoBuffer.opCount) {				
+            var dbOpen = $('body').hasClass('showAttributeDialog');
+			if (self.undoStatus == self.undoBuffer.opCount && !dbOpen) {				
 				self.resizeEvent();
 				self.pollRedraw();
 				return;

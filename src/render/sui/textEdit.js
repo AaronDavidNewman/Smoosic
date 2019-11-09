@@ -31,10 +31,13 @@ class editSvgText {
     }
     
     setEditorPosition(clientBox,svgBox) {
-        svgHelpers.svgViewport(this.svg, svgBox.width<20 ? 30 : svgBox.width+10, 
-           svgBox.height < 10 ? 10 : svgBox.height+10, this.layout.svgScale);
-        $('.draganime').css('top',this.clientBox.y).css('left',this.clientBox.x).width(this.clientBox.width+10).height(this.clientBox.height+10);
-        $(this.svg).attr('width',this.clientBox.width+10).attr('height',this.clientBox.height+10);
+        var box = svgHelpers.pointBox(this.layout.pageWidth, this.layout.pageHeight);
+        svgHelpers.svgViewport(this.svg, box.x, box.y,this.layout.svgScale);
+        
+        $('.draganime').css('top',this.clientBox.y-5)
+          .css('left',this.clientBox.x-5)
+          .width(this.clientBox.width+10)
+          .height(this.clientBox.height+10);
     }
     
     endSession() {
