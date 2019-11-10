@@ -1191,13 +1191,12 @@ class htmlHelpers {
 }
 
 class draggable {
-	static get animeClass() {
-		return '.draganime';
-	}
+
 	constructor(parameters) {
 
 		this.parent = parameters.parent;
 		this.handle = parameters.handle;
+        this.animeClass = parameters.animateDiv
 		this.svg=parameters['svg'];
 		this.width = $(this.parent).outerWidth();
 		this.height = $(this.parent).outerHeight();
@@ -1228,16 +1227,15 @@ class draggable {
 	_animate(e) {
 		this.lastX = e.clientX;
 		this.lastY = e.clientY;
-		console.log(e.clientY);
-		$(draggable.animeClass).css('left', this.lastX);
-		$(draggable.animeClass).css('top', this.lastY);
+		$(this.animeClass).css('left', this.lastX);
+		$(this.animeClass).css('top', this.lastY);
 	}
 	mousedown(e) {
 		if (!this.dragging) {
-			$(draggable.animeClass).removeClass('hide');
+			$(this.animeClass).removeClass('hide');
 
-			$(draggable.animeClass).css('width', this.width);
-			$(draggable.animeClass).css('height', this.height);
+			$(this.animeClass).css('width', this.width);
+			$(this.animeClass).css('height', this.height);
 		}
 
 		this.dragging = true;
@@ -1249,7 +1247,7 @@ class draggable {
 			$(this.parent).css('left', this.lastX + 'px');
 			$(this.parent).css('top', this.lastY + 'px');
 		}
-		$(draggable.animeClass).addClass('hide');
+		$(this.animeClass).addClass('hide');
 		this.cb(this.lastX, this.lastY);
 	}
 
@@ -3891,6 +3889,11 @@ class SmoScoreText extends SmoScoreModifierBase {
 	static get justifications() {
 		return {left:'left',right:'right',center:'center'};
 	}
+    static get fontFamilies() {
+        return {serif:'serif',sansSerif:'sans-serif',monospace:'monospace',cursive:'cursive',
+           times:'Times New Roman',arial:'Arial',helvitica:'Helvitica'};
+        
+    }
 	// If box model is 'none', the font and location determine the size.  
 	// spacing and spacingGlyph fit the box into a container based on the svg policy
 	static get boxModels() {
@@ -3905,7 +3908,7 @@ class SmoScoreText extends SmoScoreModifierBase {
             text: 'Smoosic',
 			fontInfo: {
 				size: '1em',
-				family:'times',
+				family:SmoScoreText.fontFamilies.times,
 				style:'normal',
 				weight:'normal'
 			},
@@ -8908,7 +8911,7 @@ class suiTextLayout {
 
 
 // ## editSvgText
-// A class that implements very basic text editing behavior in an 
+// A class that implements very basic text editing behavior in an svg text node
 class editSvgText {
     constructor(params) {
         this.target = params.target;
@@ -8918,23 +8921,29 @@ class editSvgText {
 		this.svg = document.createElementNS(ns, 'svg');
         this.editText = document.createElementNS(ns, 'text');
         this.attrAr = [];
+        
+        // create a mirror of the node under edit by copying attributes
+        // and setting up a similarly-dimensioned viewbox
         editSvgText.textAttrs.forEach((attr) => {
             var val = this.target.attributes[attr].value;
             this.editText.setAttributeNS('',attr,val);
             this.attrAr.push(JSON.parse('{"'+attr+'":"'+val+'"}'));
         });
+        
+        // Hide the original - TODO, handle non-white background.
         this.oldFill = this.target.getAttributeNS(null,'fill');
-        // this.editText.setAttributeNS('','class',this.target.class);
+        this.target.setAttributeNS(null,'fill','#fff');
+
         this.editText.textContent=this.target.textContent;
         this._value = this.editText.textContent;
         this.clientBox = svgHelpers.smoBox(svgHelpers.smoBox(this.target.getBoundingClientRect()));
         var svgBox = svgHelpers.smoBox(this.target.getBBox());
         this.editText.setAttributeNS('','y',svgBox.height);        
         
-        $('.draganime').html('');
+        $('.textEdit').html('');
         this.svg.appendChild(this.editText);
-        $('.draganime').append(this.svg);
-        $('.draganime').removeClass('hide').addClass('textEdit').attr('contentEditable','true');
+        $('.textEdit').append(this.svg);
+        $('.textEdit').removeClass('hide').attr('contentEditable','true');
         this.setEditorPosition(this.clientBox,svgBox);
     }
     
@@ -8942,7 +8951,7 @@ class editSvgText {
         var box = svgHelpers.pointBox(this.layout.pageWidth, this.layout.pageHeight);
         svgHelpers.svgViewport(this.svg, box.x, box.y,this.layout.svgScale);
         
-        $('.draganime').css('top',this.clientBox.y-5)
+        $('.textEdit').css('top',this.clientBox.y-5)
           .css('left',this.clientBox.x-5)
           .width(this.clientBox.width+10)
           .height(this.clientBox.height+10);
@@ -8952,7 +8961,7 @@ class editSvgText {
         this.editing = false;
         this.target.setAttributeNS(null,'fill',this.oldFill);
 
-        $('.draganime').addClass('hide').removeClass('textEdit');
+        $('.textEdit').addClass('hide')
     }
     
     get value() {
@@ -8983,7 +8992,6 @@ class editSvgText {
     startSessionPromise() {
         var self=this;
         this.editing=true;
-        this.target.setAttributeNS(null,'fill','#fff');
         const promise = new Promise((resolve, reject) => {
             function editTimer() {
                 setTimeout(function() {
@@ -10604,7 +10612,7 @@ class SuiDialogBase {
 		var id = parameters.id;
 		var b = htmlHelpers.buildDom;
 		var r = b('div').classes('attributeModal').css('top', parameters.top + 'px').css('left', parameters.left + 'px')
-			.append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move')))
+			.append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move jsDbMove')))
 			.append(b('h2').text(parameters.label));
             
         var ctrl = b('div').classes('smoControlContainer');
@@ -10657,7 +10665,8 @@ class SuiDialogBase {
 		var cb = function (x, y) {}
 		htmlHelpers.draggable({
 			parent: $(this.dgDom.element).find('.attributeModal'),
-			handle: $(this.dgDom.element).find('.icon-move'),
+			handle: $(this.dgDom.element).find('.jsDbMove'),
+            animateDiv:'.draganime',            
 			cb: cb,
 			moveParent: true
 		});
@@ -10697,6 +10706,20 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 				defaultValue: 0,
 				control: 'SuiTextInPlace',
 				label:'Edit Text',
+				options: []
+			},{
+				smoName: 'textDragger',
+				parameterName: 'textLocation',
+				defaultValue: 0,
+				control: 'SuiDragText',
+				label:'Move Text',
+				options: []
+			},{
+				smoName: 'textResizer',
+				parameterName: 'textBox',
+				defaultValue: 0,
+				control: 'SuiResizeTextBox',
+				label:'Coming Soon',
 				options: []
 			},
             {
@@ -10749,7 +10772,25 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 						label: 'Center'
 					}
 				]
-			} 
+			} ,
+            {
+				smoName: 'fontFamily',
+				parameterName: 'fontFamily',
+				defaultValue: SmoScoreText.fontFamilies.times,
+				control: 'SuiDropdownComponent',
+				label:'Font Family',
+                startRow:true,
+				options: [{value:'serif',label:'Serif'},
+                  {value:'sans-serif',label:'Sans-Serif'},
+                  {label:'Monospace',value:'monospace'},
+                  {label:'Cursive',value:'cursive'},
+                  {label:'Times',value:'Times New Roman'},
+                  {label:'Arial',value:'Arial'},
+                  {label:'Helvetica',value:'Helvetica'}
+                  ]
+                  
+			}
+            
             ];
     }
     
@@ -10757,8 +10798,9 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 		$('body').addClass('showAttributeDialog');
 		this.components.forEach((component) => {            
 			component.bind();
-            if (component.smoName === 'textEditor') {
-                this.textEditor = component;
+            
+            if (component.smoName === 'textDragger') {
+                this.textDragger = component;
             }
             if (typeof(component['setValue'])=='function') {
 			  component.setValue(this.modifier[component.parameterName]);
@@ -10771,32 +10813,51 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 		var cb = function (x, y) {}
 		htmlHelpers.draggable({
 			parent: $(this.dgDom.element).find('.attributeModal'),
-			handle: $(this.dgDom.element).find('.icon-move'),
+			handle: $(this.dgDom.element).find('span.jsDbMove'),
+            animateDiv:'.draganime',
 			cb: cb,
 			moveParent: true
 		});
         if (!this.modifier.edited) {
             this.modifier.edited = true;
-            this.textEditor.startEditSession();
+            var textEditor = this.components.find((c) => c.smoName === 'textEditor');
+            textEditor.startEditSession();
         }
 	}
     
     changed() {
+        
         this.components.find((x) => {
             if (typeof(x['getValue'])=='function') {
                 var val = x.getValue();
+                
                 if (x.parameterName.indexOf('scale') == 0) {
                     var fcn = x.parameterName+'InPlace';
                     this.modifier[fcn](val);
-                } else {
+                } 
+                else if (['x','y','textLocation','fontFamily'].indexOf(x.parameterName) == -1) {
 			       this.modifier[x.parameterName] = val
                 }
             }
 		});
+        var xcomp = this.components.find((x) => x.smoName === 'x');
+        var ycomp = this.components.find((x) => x.smoName === 'y');
+        if (this.textDragger.dragging) {
+            var val = this.textDragger.getValue();
+            xcomp.setValue(val.x);
+            ycomp.setValue(val.y);
+        } 
+        this.modifier.x=xcomp.getValue();
+        this.modifier.y=ycomp.getValue();
+        
+        var fontComp = this.components.find((c) => c.smoName === 'fontFamily');
+        this.modifier.fontInfo.family = fontComp.getValue();
+        
         // Use layout context because render may have reset svg.
         $(this.layout.context.svg).find('.' + this.modifier.attrs.id).remove();;
         this.layout.renderScoreText(this.modifier);
     }
+    
 
 	constructor(parameters) {
 		if (!parameters.modifier) {
@@ -10809,6 +10870,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			left: parameters.modifier.renderedBox.x,
 			label: 'Text Box Properties'
 		});
+       
         this.undo = parameters.undo;
         // Do we jump right into editing?
         this.textElement=$(parameters.context.svg).find('.' + parameters.modifier.attrs.id)[0];
@@ -10821,19 +10883,28 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     _bindElements() {
         var self = this;
 		var dgDom = this.dgDom;
+        var textEditor = this.components.find((c) => c.smoName === 'textEditor');
+        var textDragger = this.components.find((c) => c.smoName === 'textDragger');
+        var fontComp = this.components.find((c) => c.smoName === 'fontFamily');
+
+        fontComp.setValue(this.modifier.fontInfo.family);
+
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            self.textEditor.endSession();
+            textEditor.endSession();
+            textDragger.endSession();
 			self.complete();
 		});
 
 		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-            self.textEditor.endSession();
+            textEditor.endSession();
+            textDragger.endSession();
             self.modifier.restoreParams();
 			self.complete();
 		});
 		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-            self.textEditor.endSession();
+            textEditor.endSession();
+            textDragger.endSession();
             SmoUndoable.scoreOp(self.layout.score,'removeScoreText',self.modifier,self.undo,'remove text from dialog');
 			self.complete();
 		});
@@ -10956,6 +11027,7 @@ class SuiLayoutDialog extends SuiDialogBase {
 		htmlHelpers.draggable({
 			parent: $(this.dgDom.element).find('.attributeModal'),
 			handle: $(this.dgDom.element).find('.icon-move'),
+            animateDiv:'.draganime',            
 			cb: cb,
 			moveParent: true
 		});
@@ -11271,6 +11343,170 @@ class SuiRockerComponent {
     }
 }
 
+
+class SuiDragText {
+    constructor(dialog,parameter) {
+        smoMusic.filteredMerge(
+            ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
+        if (!this.defaultValue) {
+            this.defaultValue = 0;
+        }
+        this.dragging=false;
+
+        this.dialog = dialog;
+        this.value='';        
+    }
+    
+    get html() {
+        var b = htmlHelpers.buildDom;
+        var id = this.parameterId;
+        var r = b('div').classes('cbDragTextDialog smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+            .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
+                .attr('id', id + '-input').append(
+                b('span').classes('icon icon-move'))
+                .append(
+                b('label').attr('for', id + '-input').text(this.label)));
+        return r;
+    }
+    get parameterId() {
+        return this.dialog.id + '-' + this.parameterName;
+    }
+    endSession() {
+        if (this.editor) {
+            this.value=this.editor.value;
+            this.editor.endSession();
+        }
+    }
+    getValue() {
+        return this.value;
+    }
+    _getInputElement() {
+        var pid = this.parameterId;
+        return $(this.dialog.dgDom.element).find('#' + pid).find('button');
+    }
+    _handleEndDrag() {
+        // var domBox = svgHelpers.smoBox($('.dom-container .textEdit')[0].getBoundingClientRect());
+        var textBox = svgHelpers.smoBox(this.editor.editText.getBoundingClientRect());
+        var svgBox = svgHelpers.clientToLogical(this.dialog.layout.svg,textBox);
+        this.textElement.setAttributeNS('', 'x', '' + svgBox.x);
+        this.textElement.setAttributeNS('', 'y', '' + svgBox.y);
+        this.value = {x:svgBox.x,y:svgBox.y};
+        this.dialog.changed();
+    }
+    startDrag() {
+        if (!this.dragging) {
+        var self=this;
+        this.dragging = true;
+        var dragCb = function() {
+            self._handleEndDrag();
+        }
+        this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
+        var value = this.textElement.getBBox();
+        this.value = {x:value.x,y:value.y};
+        this.editor = new editSvgText({target:this.textElement,layout:this.dialog.layout,fontInfo:this.fontInfo});
+        var button = document.getElementById(this.parameterId);
+        $(button).find('span.icon').removeClass('icon-move').addClass('icon-checkmark');
+        $('.textEdit').addClass('icon-move').removeClass('hide');
+        htmlHelpers.draggable({
+			parent: $('.dom-container .textEdit'),
+			handle: $('.dom-container .textEdit'),
+            animateDiv:'.draganime',            
+			cb: dragCb,
+			moveParent: true
+		});
+        } else {
+          this.dragging = false;
+          this.editor.endSession();
+          var button = document.getElementById(this.parameterId);
+          $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-move');
+          $('.dom-container .textEdit').addClass('hide');
+          this.editor = null;
+        }
+    }
+ 
+    bind() {
+        var self=this;
+        this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
+        this.fontInfo = JSON.parse(JSON.stringify(this.dialog.modifier.fontInfo));
+        this.value = this.textElement.textContent;
+        $(this._getInputElement()).off('click').on('click',function(ev) {
+            self.startDrag();
+        });
+    }
+}
+
+
+class SuiResizeTextBox {
+    constructor(dialog,parameter) {
+        smoMusic.filteredMerge(
+            ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
+        if (!this.defaultValue) {
+            this.defaultValue = 0;
+        }
+        this.editMode=false;
+
+        this.dialog = dialog;
+        this.value='';        
+    }
+    
+    get html() {
+        var b = htmlHelpers.buildDom;
+        var id = this.parameterId;
+        var r = b('div').classes('cbResizeTextBox smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+            .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
+                .attr('id', id + '-input').append(
+                b('span').classes('icon icon-enlarge'))
+                .append(
+                b('label').attr('for', id + '-input').text(this.label)));
+        return r;
+    }
+    get parameterId() {
+        return this.dialog.id + '-' + this.parameterName;
+    }
+    endSession() {
+        if (this.editor) {
+            this.value=this.editor.value;
+            this.editor.endSession();
+        }
+    }
+    getValue() {
+        return this.value;
+    }
+    _getInputElement() {
+        var pid = this.parameterId;
+        return $(this.dialog.dgDom.element).find('#' + pid).find('button');
+    }
+    startEditSession() {
+        var self=this;
+        if (!this.editor) {
+          this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
+          this.value = this.textElement.textContent;            
+          this.editor = new editSvgText({target:this.textElement,layout:this.dialog.layout,fontInfo:this.fontInfo});
+          var button = document.getElementById(this.parameterId);
+          $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
+          this.editor.startSessionPromise().then(function() {
+              self.value=self.editor.value;
+              self.editor=null;
+          });
+        } else {
+          var button = document.getElementById(this.parameterId);
+          this.value=this.editor.value;
+          $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
+          this.editor.endSession();
+          this.dialog.changed();
+        }
+    }
+ 
+    bind() {
+        var self=this;
+        this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
+        this.fontInfo = JSON.parse(JSON.stringify(this.dialog.modifier.fontInfo));
+        this.value = this.textElement.textContent;
+        $(this._getInputElement()).off('click').on('click',function(ev) {
+            self.startEditSession();
+        });
+    }
+}
 class SuiTextInPlace {
     constructor(dialog,parameter) {
         smoMusic.filteredMerge(
@@ -13992,6 +14228,7 @@ class suiController {
 			 .append(b('div').classes('modes'))
 			 .append(b('div').classes('overlay'))
 			 .append(b('div').classes('draganime hide'))
+			 .append(b('div').classes('textEdit hide'))
 			 .append(b('div').classes('attributeDialog'))
 			 .append(b('div').classes('helpDialog'))
 			 .append(b('div').classes('bugDialog'))

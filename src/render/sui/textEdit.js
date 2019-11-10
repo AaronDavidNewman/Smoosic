@@ -2,7 +2,7 @@
 
 
 // ## editSvgText
-// A class that implements very basic text editing behavior in an 
+// A class that implements very basic text editing behavior in an svg text node
 class editSvgText {
     constructor(params) {
         this.target = params.target;
@@ -12,23 +12,29 @@ class editSvgText {
 		this.svg = document.createElementNS(ns, 'svg');
         this.editText = document.createElementNS(ns, 'text');
         this.attrAr = [];
+        
+        // create a mirror of the node under edit by copying attributes
+        // and setting up a similarly-dimensioned viewbox
         editSvgText.textAttrs.forEach((attr) => {
             var val = this.target.attributes[attr].value;
             this.editText.setAttributeNS('',attr,val);
             this.attrAr.push(JSON.parse('{"'+attr+'":"'+val+'"}'));
         });
+        
+        // Hide the original - TODO, handle non-white background.
         this.oldFill = this.target.getAttributeNS(null,'fill');
-        // this.editText.setAttributeNS('','class',this.target.class);
+        this.target.setAttributeNS(null,'fill','#fff');
+
         this.editText.textContent=this.target.textContent;
         this._value = this.editText.textContent;
         this.clientBox = svgHelpers.smoBox(svgHelpers.smoBox(this.target.getBoundingClientRect()));
         var svgBox = svgHelpers.smoBox(this.target.getBBox());
         this.editText.setAttributeNS('','y',svgBox.height);        
         
-        $('.draganime').html('');
+        $('.textEdit').html('');
         this.svg.appendChild(this.editText);
-        $('.draganime').append(this.svg);
-        $('.draganime').removeClass('hide').addClass('textEdit').attr('contentEditable','true');
+        $('.textEdit').append(this.svg);
+        $('.textEdit').removeClass('hide').attr('contentEditable','true');
         this.setEditorPosition(this.clientBox,svgBox);
     }
     
@@ -36,7 +42,7 @@ class editSvgText {
         var box = svgHelpers.pointBox(this.layout.pageWidth, this.layout.pageHeight);
         svgHelpers.svgViewport(this.svg, box.x, box.y,this.layout.svgScale);
         
-        $('.draganime').css('top',this.clientBox.y-5)
+        $('.textEdit').css('top',this.clientBox.y-5)
           .css('left',this.clientBox.x-5)
           .width(this.clientBox.width+10)
           .height(this.clientBox.height+10);
@@ -46,7 +52,7 @@ class editSvgText {
         this.editing = false;
         this.target.setAttributeNS(null,'fill',this.oldFill);
 
-        $('.draganime').addClass('hide').removeClass('textEdit');
+        $('.textEdit').addClass('hide')
     }
     
     get value() {
@@ -77,7 +83,6 @@ class editSvgText {
     startSessionPromise() {
         var self=this;
         this.editing=true;
-        this.target.setAttributeNS(null,'fill','#fff');
         const promise = new Promise((resolve, reject) => {
             function editTimer() {
                 setTimeout(function() {

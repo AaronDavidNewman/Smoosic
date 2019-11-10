@@ -18,7 +18,7 @@ h1 {
     margin:0;    
 }
 
-.draganime.hide {
+.draganime.hide,.textEdit.hide {
 	display:none;
 }
 
@@ -28,9 +28,14 @@ h1 {
 	position:absolute;
 	z-index:11;
 }
-
+.textEdit  {
+	display:block;
+	border:#3e3 2px dashed;
+	position:absolute;
+	z-index:11;
+}
 /* text edit svg overlay */
-.draganime.textEdit {
+.textEdit {
     border:#9cc 4px dotted;
     overflow:hidden;
     background:#fff;
@@ -865,18 +870,25 @@ body.showAttributeDialog .attributeDialog {
 	border: 1px solid #52ba73;
 }
 
-.smoControl.cbTextInPlace {
+.smoControl.cbTextInPlace,.smoControl.cbDragTextDialog ,.smoControl.cbResizeTextBox  {
     position:relative;
+    min-width:110px;
 }
 
 .cbTextInPlace button span.icon-checkmark {
     color:#9b9;
 }
 
-.smoControl.cbTextInPlace button {
+.smoControl select label {
+    margin-left:5px;
+}
+.smoControl.cbTextInPlace button,.smoControl.cbDragTextDialog button,
+.smoControl.cbResizeTextBox button
+ {
     width:32px;
 }
-.smoControl.cbTextInPlace label {
+.smoControl.cbTextInPlace label, .smoControl.cbDragTextDialog label,
+.smoControl.cbResizeTextBox label{
     position:absolute;
     top:5px;
     left:35px;
@@ -895,7 +907,7 @@ body.showAttributeDialog .attributeDialog {
 }
 
 .dropdownControl select {
-	margin-left: 68px;
+	margin-left: 7px;
 	height: 30px;
 	border-radius: 5%;
 	border: 1px solid #52ba73;

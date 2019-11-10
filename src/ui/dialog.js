@@ -62,7 +62,7 @@ class SuiDialogBase {
 		var id = parameters.id;
 		var b = htmlHelpers.buildDom;
 		var r = b('div').classes('attributeModal').css('top', parameters.top + 'px').css('left', parameters.left + 'px')
-			.append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move')))
+			.append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move jsDbMove')))
 			.append(b('h2').text(parameters.label));
             
         var ctrl = b('div').classes('smoControlContainer');
@@ -115,7 +115,8 @@ class SuiDialogBase {
 		var cb = function (x, y) {}
 		htmlHelpers.draggable({
 			parent: $(this.dgDom.element).find('.attributeModal'),
-			handle: $(this.dgDom.element).find('.icon-move'),
+			handle: $(this.dgDom.element).find('.jsDbMove'),
+            animateDiv:'.draganime',            
 			cb: cb,
 			moveParent: true
 		});
@@ -155,6 +156,20 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 				defaultValue: 0,
 				control: 'SuiTextInPlace',
 				label:'Edit Text',
+				options: []
+			},{
+				smoName: 'textDragger',
+				parameterName: 'textLocation',
+				defaultValue: 0,
+				control: 'SuiDragText',
+				label:'Move Text',
+				options: []
+			},{
+				smoName: 'textResizer',
+				parameterName: 'textBox',
+				defaultValue: 0,
+				control: 'SuiResizeTextBox',
+				label:'Coming Soon',
 				options: []
 			},
             {
@@ -207,7 +222,25 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 						label: 'Center'
 					}
 				]
-			} 
+			} ,
+            {
+				smoName: 'fontFamily',
+				parameterName: 'fontFamily',
+				defaultValue: SmoScoreText.fontFamilies.times,
+				control: 'SuiDropdownComponent',
+				label:'Font Family',
+                startRow:true,
+				options: [{value:'serif',label:'Serif'},
+                  {value:'sans-serif',label:'Sans-Serif'},
+                  {label:'Monospace',value:'monospace'},
+                  {label:'Cursive',value:'cursive'},
+                  {label:'Times',value:'Times New Roman'},
+                  {label:'Arial',value:'Arial'},
+                  {label:'Helvetica',value:'Helvetica'}
+                  ]
+                  
+			}
+            
             ];
     }
     
@@ -215,8 +248,9 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 		$('body').addClass('showAttributeDialog');
 		this.components.forEach((component) => {            
 			component.bind();
-            if (component.smoName === 'textEditor') {
-                this.textEditor = component;
+            
+            if (component.smoName === 'textDragger') {
+                this.textDragger = component;
             }
             if (typeof(component['setValue'])=='function') {
 			  component.setValue(this.modifier[component.parameterName]);
@@ -229,32 +263,51 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 		var cb = function (x, y) {}
 		htmlHelpers.draggable({
 			parent: $(this.dgDom.element).find('.attributeModal'),
-			handle: $(this.dgDom.element).find('.icon-move'),
+			handle: $(this.dgDom.element).find('span.jsDbMove'),
+            animateDiv:'.draganime',
 			cb: cb,
 			moveParent: true
 		});
         if (!this.modifier.edited) {
             this.modifier.edited = true;
-            this.textEditor.startEditSession();
+            var textEditor = this.components.find((c) => c.smoName === 'textEditor');
+            textEditor.startEditSession();
         }
 	}
     
     changed() {
+        
         this.components.find((x) => {
             if (typeof(x['getValue'])=='function') {
                 var val = x.getValue();
+                
                 if (x.parameterName.indexOf('scale') == 0) {
                     var fcn = x.parameterName+'InPlace';
                     this.modifier[fcn](val);
-                } else {
+                } 
+                else if (['x','y','textLocation','fontFamily'].indexOf(x.parameterName) == -1) {
 			       this.modifier[x.parameterName] = val
                 }
             }
 		});
+        var xcomp = this.components.find((x) => x.smoName === 'x');
+        var ycomp = this.components.find((x) => x.smoName === 'y');
+        if (this.textDragger.dragging) {
+            var val = this.textDragger.getValue();
+            xcomp.setValue(val.x);
+            ycomp.setValue(val.y);
+        } 
+        this.modifier.x=xcomp.getValue();
+        this.modifier.y=ycomp.getValue();
+        
+        var fontComp = this.components.find((c) => c.smoName === 'fontFamily');
+        this.modifier.fontInfo.family = fontComp.getValue();
+        
         // Use layout context because render may have reset svg.
         $(this.layout.context.svg).find('.' + this.modifier.attrs.id).remove();;
         this.layout.renderScoreText(this.modifier);
     }
+    
 
 	constructor(parameters) {
 		if (!parameters.modifier) {
@@ -267,6 +320,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			left: parameters.modifier.renderedBox.x,
 			label: 'Text Box Properties'
 		});
+       
         this.undo = parameters.undo;
         // Do we jump right into editing?
         this.textElement=$(parameters.context.svg).find('.' + parameters.modifier.attrs.id)[0];
@@ -279,19 +333,28 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     _bindElements() {
         var self = this;
 		var dgDom = this.dgDom;
+        var textEditor = this.components.find((c) => c.smoName === 'textEditor');
+        var textDragger = this.components.find((c) => c.smoName === 'textDragger');
+        var fontComp = this.components.find((c) => c.smoName === 'fontFamily');
+
+        fontComp.setValue(this.modifier.fontInfo.family);
+
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            self.textEditor.endSession();
+            textEditor.endSession();
+            textDragger.endSession();
 			self.complete();
 		});
 
 		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-            self.textEditor.endSession();
+            textEditor.endSession();
+            textDragger.endSession();
             self.modifier.restoreParams();
 			self.complete();
 		});
 		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-            self.textEditor.endSession();
+            textEditor.endSession();
+            textDragger.endSession();
             SmoUndoable.scoreOp(self.layout.score,'removeScoreText',self.modifier,self.undo,'remove text from dialog');
 			self.complete();
 		});
@@ -414,6 +477,7 @@ class SuiLayoutDialog extends SuiDialogBase {
 		htmlHelpers.draggable({
 			parent: $(this.dgDom.element).find('.attributeModal'),
 			handle: $(this.dgDom.element).find('.icon-move'),
+            animateDiv:'.draganime',            
 			cb: cb,
 			moveParent: true
 		});

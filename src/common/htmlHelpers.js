@@ -144,13 +144,12 @@ class htmlHelpers {
 }
 
 class draggable {
-	static get animeClass() {
-		return '.draganime';
-	}
+
 	constructor(parameters) {
 
 		this.parent = parameters.parent;
 		this.handle = parameters.handle;
+        this.animeClass = parameters.animateDiv
 		this.svg=parameters['svg'];
 		this.width = $(this.parent).outerWidth();
 		this.height = $(this.parent).outerHeight();
@@ -181,16 +180,15 @@ class draggable {
 	_animate(e) {
 		this.lastX = e.clientX;
 		this.lastY = e.clientY;
-		console.log(e.clientY);
-		$(draggable.animeClass).css('left', this.lastX);
-		$(draggable.animeClass).css('top', this.lastY);
+		$(this.animeClass).css('left', this.lastX);
+		$(this.animeClass).css('top', this.lastY);
 	}
 	mousedown(e) {
 		if (!this.dragging) {
-			$(draggable.animeClass).removeClass('hide');
+			$(this.animeClass).removeClass('hide');
 
-			$(draggable.animeClass).css('width', this.width);
-			$(draggable.animeClass).css('height', this.height);
+			$(this.animeClass).css('width', this.width);
+			$(this.animeClass).css('height', this.height);
 		}
 
 		this.dragging = true;
@@ -202,7 +200,7 @@ class draggable {
 			$(this.parent).css('left', this.lastX + 'px');
 			$(this.parent).css('top', this.lastY + 'px');
 		}
-		$(draggable.animeClass).addClass('hide');
+		$(this.animeClass).addClass('hide');
 		this.cb(this.lastX, this.lastY);
 	}
 

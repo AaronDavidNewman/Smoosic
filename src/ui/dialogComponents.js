@@ -122,6 +122,170 @@ class SuiRockerComponent {
     }
 }
 
+
+class SuiDragText {
+    constructor(dialog,parameter) {
+        smoMusic.filteredMerge(
+            ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
+        if (!this.defaultValue) {
+            this.defaultValue = 0;
+        }
+        this.dragging=false;
+
+        this.dialog = dialog;
+        this.value='';        
+    }
+    
+    get html() {
+        var b = htmlHelpers.buildDom;
+        var id = this.parameterId;
+        var r = b('div').classes('cbDragTextDialog smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+            .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
+                .attr('id', id + '-input').append(
+                b('span').classes('icon icon-move'))
+                .append(
+                b('label').attr('for', id + '-input').text(this.label)));
+        return r;
+    }
+    get parameterId() {
+        return this.dialog.id + '-' + this.parameterName;
+    }
+    endSession() {
+        if (this.editor) {
+            this.value=this.editor.value;
+            this.editor.endSession();
+        }
+    }
+    getValue() {
+        return this.value;
+    }
+    _getInputElement() {
+        var pid = this.parameterId;
+        return $(this.dialog.dgDom.element).find('#' + pid).find('button');
+    }
+    _handleEndDrag() {
+        // var domBox = svgHelpers.smoBox($('.dom-container .textEdit')[0].getBoundingClientRect());
+        var textBox = svgHelpers.smoBox(this.editor.editText.getBoundingClientRect());
+        var svgBox = svgHelpers.clientToLogical(this.dialog.layout.svg,textBox);
+        this.textElement.setAttributeNS('', 'x', '' + svgBox.x);
+        this.textElement.setAttributeNS('', 'y', '' + svgBox.y);
+        this.value = {x:svgBox.x,y:svgBox.y};
+        this.dialog.changed();
+    }
+    startDrag() {
+        if (!this.dragging) {
+        var self=this;
+        this.dragging = true;
+        var dragCb = function() {
+            self._handleEndDrag();
+        }
+        this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
+        var value = this.textElement.getBBox();
+        this.value = {x:value.x,y:value.y};
+        this.editor = new editSvgText({target:this.textElement,layout:this.dialog.layout,fontInfo:this.fontInfo});
+        var button = document.getElementById(this.parameterId);
+        $(button).find('span.icon').removeClass('icon-move').addClass('icon-checkmark');
+        $('.textEdit').addClass('icon-move').removeClass('hide');
+        htmlHelpers.draggable({
+			parent: $('.dom-container .textEdit'),
+			handle: $('.dom-container .textEdit'),
+            animateDiv:'.draganime',            
+			cb: dragCb,
+			moveParent: true
+		});
+        } else {
+          this.dragging = false;
+          this.editor.endSession();
+          var button = document.getElementById(this.parameterId);
+          $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-move');
+          $('.dom-container .textEdit').addClass('hide');
+          this.editor = null;
+        }
+    }
+ 
+    bind() {
+        var self=this;
+        this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
+        this.fontInfo = JSON.parse(JSON.stringify(this.dialog.modifier.fontInfo));
+        this.value = this.textElement.textContent;
+        $(this._getInputElement()).off('click').on('click',function(ev) {
+            self.startDrag();
+        });
+    }
+}
+
+
+class SuiResizeTextBox {
+    constructor(dialog,parameter) {
+        smoMusic.filteredMerge(
+            ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
+        if (!this.defaultValue) {
+            this.defaultValue = 0;
+        }
+        this.editMode=false;
+
+        this.dialog = dialog;
+        this.value='';        
+    }
+    
+    get html() {
+        var b = htmlHelpers.buildDom;
+        var id = this.parameterId;
+        var r = b('div').classes('cbResizeTextBox smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+            .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
+                .attr('id', id + '-input').append(
+                b('span').classes('icon icon-enlarge'))
+                .append(
+                b('label').attr('for', id + '-input').text(this.label)));
+        return r;
+    }
+    get parameterId() {
+        return this.dialog.id + '-' + this.parameterName;
+    }
+    endSession() {
+        if (this.editor) {
+            this.value=this.editor.value;
+            this.editor.endSession();
+        }
+    }
+    getValue() {
+        return this.value;
+    }
+    _getInputElement() {
+        var pid = this.parameterId;
+        return $(this.dialog.dgDom.element).find('#' + pid).find('button');
+    }
+    startEditSession() {
+        var self=this;
+        if (!this.editor) {
+          this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
+          this.value = this.textElement.textContent;            
+          this.editor = new editSvgText({target:this.textElement,layout:this.dialog.layout,fontInfo:this.fontInfo});
+          var button = document.getElementById(this.parameterId);
+          $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
+          this.editor.startSessionPromise().then(function() {
+              self.value=self.editor.value;
+              self.editor=null;
+          });
+        } else {
+          var button = document.getElementById(this.parameterId);
+          this.value=this.editor.value;
+          $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
+          this.editor.endSession();
+          this.dialog.changed();
+        }
+    }
+ 
+    bind() {
+        var self=this;
+        this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
+        this.fontInfo = JSON.parse(JSON.stringify(this.dialog.modifier.fontInfo));
+        this.value = this.textElement.textContent;
+        $(this._getInputElement()).off('click').on('click',function(ev) {
+            self.startEditSession();
+        });
+    }
+}
 class SuiTextInPlace {
     constructor(dialog,parameter) {
         smoMusic.filteredMerge(

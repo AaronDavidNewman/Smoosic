@@ -34,6 +34,11 @@ class SmoScoreText extends SmoScoreModifierBase {
 	static get justifications() {
 		return {left:'left',right:'right',center:'center'};
 	}
+    static get fontFamilies() {
+        return {serif:'serif',sansSerif:'sans-serif',monospace:'monospace',cursive:'cursive',
+           times:'Times New Roman',arial:'Arial',helvitica:'Helvitica'};
+        
+    }
 	// If box model is 'none', the font and location determine the size.  
 	// spacing and spacingGlyph fit the box into a container based on the svg policy
 	static get boxModels() {
@@ -48,7 +53,7 @@ class SmoScoreText extends SmoScoreModifierBase {
             text: 'Smoosic',
 			fontInfo: {
 				size: '1em',
-				family:'times',
+				family:SmoScoreText.fontFamilies.times,
 				style:'normal',
 				weight:'normal'
 			},
