@@ -882,6 +882,9 @@ body.showAttributeDialog .attributeDialog {
 .smoControl select label {
     margin-left:5px;
 }
+.smoControl.rockerControl[data-param="fontSize"] input {
+    width:50px;    
+}
 .smoControl.cbTextInPlace button,.smoControl.cbDragTextDialog button,
 .smoControl.cbResizeTextBox button
  {

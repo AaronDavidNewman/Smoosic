@@ -152,8 +152,14 @@ class SuiDragText {
     }
     endSession() {
         if (this.editor) {
-            this.value=this.editor.value;
-            this.editor.endSession();
+          this.dragging = false;
+          this.editor.endSession();
+          this.dragger.disconnect();
+          var button = document.getElementById(this.parameterId);
+          $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-move');
+          $('.dom-container .textEdit').addClass('hide').removeClass('icon-move');
+          this.editor = null;
+           
         }
     }
     getValue() {
@@ -164,12 +170,17 @@ class SuiDragText {
         return $(this.dialog.dgDom.element).find('#' + pid).find('button');
     }
     _handleEndDrag() {
-        // var domBox = svgHelpers.smoBox($('.dom-container .textEdit')[0].getBoundingClientRect());
-        var textBox = svgHelpers.smoBox(this.editor.editText.getBoundingClientRect());
-        var svgBox = svgHelpers.clientToLogical(this.dialog.layout.svg,textBox);
-        this.textElement.setAttributeNS('', 'x', '' + svgBox.x);
-        this.textElement.setAttributeNS('', 'y', '' + svgBox.y);
-        this.value = {x:svgBox.x,y:svgBox.y};
+        var svgBox = svgHelpers.clientToLogical(this.dialog.layout.svg,svgHelpers.smoBox(this.editor.editText.getBoundingClientRect()));
+                
+        // textBox.x += domBox.x-textBox.x;
+        // textBox.y -= domBox.y-textBox.y;
+        // var svgBox = svgHelpers.clientToLogical(this.dialog.layout.svg,textBox);
+        var offsetBox = this.editor.editText.getBBox();
+        var x = svgBox.x;
+        var y = svgBox.y+svgBox.height-offsetBox.y;
+        this.textElement.setAttributeNS('', 'x', '' + x);
+        this.textElement.setAttributeNS('', 'y', '' + y);
+        this.value = {x:x,y:y};        
         this.dialog.changed();
     }
     startDrag() {
@@ -179,6 +190,9 @@ class SuiDragText {
         var dragCb = function() {
             self._handleEndDrag();
         }
+        var draggingCb = function() {
+            self._handleDragging();
+        }
         this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
         var value = this.textElement.getBBox();
         this.value = {x:value.x,y:value.y};
@@ -186,20 +200,17 @@ class SuiDragText {
         var button = document.getElementById(this.parameterId);
         $(button).find('span.icon').removeClass('icon-move').addClass('icon-checkmark');
         $('.textEdit').addClass('icon-move').removeClass('hide');
-        htmlHelpers.draggable({
+        this.dragger = htmlHelpers.draggable({
 			parent: $('.dom-container .textEdit'),
 			handle: $('.dom-container .textEdit'),
             animateDiv:'.draganime',            
 			cb: dragCb,
-			moveParent: true
+            draggingCb:draggingCb,
+			moveParent: true,
+            dragParent: true
 		});
         } else {
-          this.dragging = false;
-          this.editor.endSession();
-          var button = document.getElementById(this.parameterId);
-          $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-move');
-          $('.dom-container .textEdit').addClass('hide');
-          this.editor = null;
+          this.endSession();
         }
     }
  

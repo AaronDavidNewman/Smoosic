@@ -239,7 +239,24 @@ class SuiTextTransformDialog  extends SuiDialogBase {
                   {label:'Helvetica',value:'Helvetica'}
                   ]
                   
-			}
+			},
+            {
+				smoName: 'fontSize',
+				parameterName: 'fontSize',
+				defaultValue: 1,
+				control: 'SuiRockerComponent',
+				label: 'Font Size',
+				type: 'float',
+                increment:0.1
+			},
+            {
+				smoName: 'fontUnit',
+				parameterName: 'fontUnit',
+				defaultValue: 'em',
+				control: 'SuiDropdownComponent',
+				label: 'Units',
+                options: [{value:'em',label:'em'},{value:'px',label:'px'},{value:'pt',label:'pt'}]
+			},
             
             ];
     }
@@ -252,10 +269,17 @@ class SuiTextTransformDialog  extends SuiDialogBase {
             if (component.smoName === 'textDragger') {
                 this.textDragger = component;
             }
-            if (typeof(component['setValue'])=='function') {
+            if (typeof(component['setValue'])=='function' && this.modifier[component.parameterName]) {
 			  component.setValue(this.modifier[component.parameterName]);
             }
 		});
+        
+        var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
+        var dbFontUnit  = this.components.find((c) => c.smoName === 'fontUnit');
+        var fontSize = this.modifier.fontInfo.size;
+        fontSize=svgHelpers.getFontSize(fontSize);
+        dbFontSize.setValue(fontSize.size);
+        dbFontUnit.setValue(fontSize.unit);
         
 		this._bindElements();
 		this.position(this.modifier.renderedBox);
@@ -277,17 +301,15 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     
     changed() {
         
+        var textEditor = this.components.find((c) => c.smoName === 'textEditor');
+        this.modifier.text = textEditor.getValue();
         this.components.find((x) => {
-            if (typeof(x['getValue'])=='function') {
-                var val = x.getValue();
-                
+            if (typeof(x['getValue'])=='function') {                
                 if (x.parameterName.indexOf('scale') == 0) {
+                   var val = x.getValue();                    
                     var fcn = x.parameterName+'InPlace';
                     this.modifier[fcn](val);
                 } 
-                else if (['x','y','textLocation','fontFamily'].indexOf(x.parameterName) == -1) {
-			       this.modifier[x.parameterName] = val
-                }
             }
 		});
         var xcomp = this.components.find((x) => x.smoName === 'x');
@@ -302,6 +324,10 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         
         var fontComp = this.components.find((c) => c.smoName === 'fontFamily');
         this.modifier.fontInfo.family = fontComp.getValue();
+        
+        var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
+        var dbFontUnit  = this.components.find((c) => c.smoName === 'fontUnit');
+        this.modifier.fontInfo.size=''+dbFontSize.getValue()+dbFontUnit.getValue();
         
         // Use layout context because render may have reset svg.
         $(this.layout.context.svg).find('.' + this.modifier.attrs.id).remove();;
@@ -324,7 +350,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         this.undo = parameters.undo;
         // Do we jump right into editing?
         this.textElement=$(parameters.context.svg).find('.' + parameters.modifier.attrs.id)[0];
-		Vex.Merge(this, parameters);		
+		Vex.Merge(this, parameters);
         this.modifier.backupParams();
 	}
     _commit() {

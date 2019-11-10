@@ -149,7 +149,9 @@ class draggable {
 
 		this.parent = parameters.parent;
 		this.handle = parameters.handle;
-        this.animeClass = parameters.animateDiv
+        this.animeClass = parameters.animateDiv;
+        this.dragParent = parameters.dragParent;
+        
 		this.svg=parameters['svg'];
 		this.width = $(this.parent).outerWidth();
 		this.height = $(this.parent).outerHeight();
@@ -177,11 +179,21 @@ class draggable {
 			self.mouseup(e);
 		});
 	}
+    disconnect() {
+        $(this.handle).off('mousedown');
+        $(this.document).off('mousemove');
+        $(this.handle).off('mouseup');
+    }
 	_animate(e) {
 		this.lastX = e.clientX;
 		this.lastY = e.clientY;
 		$(this.animeClass).css('left', this.lastX);
 		$(this.animeClass).css('top', this.lastY);
+        
+        if (this.dragParent) {
+            $(this.parent).css('left', this.lastX + 'px');
+			$(this.parent).css('top', this.lastY + 'px');
+        }
 	}
 	mousedown(e) {
 		if (!this.dragging) {

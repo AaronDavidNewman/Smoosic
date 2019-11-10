@@ -70,7 +70,7 @@ class editSvgText {
           var svgBox = svgHelpers.getTextBox(this.svg,this.attrAr,null,this._value);
           var nbox = svgHelpers.logicalToClient(this.svg,svgBox);
            if (nbox.width > this.clientBox.width) {
-             this.clientBox.width = nbox.width;
+             this.clientBox.width = nbox.width + nbox.width*.1;
              this.clientBox.height = nbox.height;
              this.setEditorPosition(this.clientBox,svgBox);
            }
