@@ -34,6 +34,14 @@ h1 {
 	position:absolute;
 	z-index:11;
 }
+.textEdit span.icon-move.hide {
+    display:none;
+}
+.textEdit span.icon-move {
+    position:absolute;
+    left:2;
+    top:2;
+}
 /* text edit svg overlay */
 .textEdit {
     border:#9cc 4px dotted;

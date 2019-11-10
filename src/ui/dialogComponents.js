@@ -199,7 +199,8 @@ class SuiDragText {
         this.editor = new editSvgText({target:this.textElement,layout:this.dialog.layout,fontInfo:this.fontInfo});
         var button = document.getElementById(this.parameterId);
         $(button).find('span.icon').removeClass('icon-move').addClass('icon-checkmark');
-        $('.textEdit').addClass('icon-move').removeClass('hide');
+        $('.textEdit').removeClass('hide');
+        $('.textEdit span.icon-move').removeClass('hide');
         this.dragger = htmlHelpers.draggable({
 			parent: $('.dom-container .textEdit'),
 			handle: $('.dom-container .textEdit'),

@@ -8954,6 +8954,9 @@ class editSvgText {
         
         $('.textEdit').html('');
         this.svg.appendChild(this.editText);
+        var b = htmlHelpers.buildDom;        
+        var r = b('span').classes('hide icon-move');
+        $('.textEdit').append(r.dom());
         $('.textEdit').append(this.svg);
         $('.textEdit').removeClass('hide').attr('contentEditable','true');
         this.setEditorPosition(this.clientBox,svgBox);
@@ -11458,7 +11461,8 @@ class SuiDragText {
         this.editor = new editSvgText({target:this.textElement,layout:this.dialog.layout,fontInfo:this.fontInfo});
         var button = document.getElementById(this.parameterId);
         $(button).find('span.icon').removeClass('icon-move').addClass('icon-checkmark');
-        $('.textEdit').addClass('icon-move').removeClass('hide');
+        $('.textEdit').removeClass('hide');
+        $('.textEdit span.icon-move').removeClass('hide');
         this.dragger = htmlHelpers.draggable({
 			parent: $('.dom-container .textEdit'),
 			handle: $('.dom-container .textEdit'),

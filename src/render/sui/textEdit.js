@@ -33,6 +33,9 @@ class editSvgText {
         
         $('.textEdit').html('');
         this.svg.appendChild(this.editText);
+        var b = htmlHelpers.buildDom;        
+        var r = b('span').classes('hide icon-move');
+        $('.textEdit').append(r.dom());
         $('.textEdit').append(this.svg);
         $('.textEdit').removeClass('hide').attr('contentEditable','true');
         this.setEditorPosition(this.clientBox,svgBox);
