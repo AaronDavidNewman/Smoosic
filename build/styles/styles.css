@@ -195,6 +195,14 @@ div.ribbonButtonContainer.expanded {
 	top:33%;
 }
 
+#TextButtons {
+    font-size:1.2em;
+}
+
+#lyrics {
+    width:65px;
+}
+
 #articulationButtons .left-text {
     font-size: 1.4em;
     position: absolute;

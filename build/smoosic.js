@@ -7083,7 +7083,7 @@ class suiTracker {
     // ### selectModifierById
     // programatically select a modifier by ID
     selectId(id) {
-        this.modifierIndex = this.modifierTabs.findIndex((mm) =>  mm.modifier.attrs.id=='auto4257');        
+        this.modifierIndex = this.modifierTabs.findIndex((mm) =>  mm.modifier.attrs.id==id);        
     }
 
 	clearModifierSelections() {
@@ -9599,6 +9599,8 @@ class SuiTextMenu extends suiMenuBase {
             }
         };
     }
+    bind() {
+    }
     _editNewText(txtObj) {                
         this.tracker.selectId(txtObj.attrs.id);
         // Treat a created text score like a selected text score that needs to be edited.
@@ -11796,21 +11798,50 @@ class defaultRibbonLayout {
 	}
     
     static get textIds() {
-		return ['addTextMenu'];
+		return ['TextButtons','addTextMenu','rehearsalMark','lyrics'];
 	}
     
     static get textRibbonButtons() {
         return [
         {
+			leftText: '',
+				rightText: '',
+				classes: 'icon  collapseParent measure',
+				icon: 'icon-text',
+				action: 'collapseParent',
+				ctor: 'CollapseRibbonControl',
+				group: 'textEdit',
+				id: 'TextButtons'			
+		},
+        {
                 leftText: '',
 				rightText: '',
-				classes: 'icon  textButton',
-				icon: 'icon-text',
-				action: 'menu',
-				ctor: 'SuiTextMenu',
+				classes: 'icon collapsed textButton',
+				icon: 'icon-textBasic',
+				action: 'collapseChild',
+				ctor: 'TextButtons',
 				group: 'textEdit',
 				id: 'addTextMenu'		
-		}];
+		},{
+                leftText: '',
+				rightText: '',
+				classes: 'icon collapsed textButton',
+				icon: 'icon-rehearsemark',
+				action: 'collapseChild',
+				ctor: 'TextButtons',
+				group: 'textEdit',
+				id: 'rehearsalMark'		
+		},{
+                leftText: '',
+				rightText: '',
+				classes: 'icon collapsed textButton',
+				icon: 'icon-lyric',
+				action: 'collapseChild',
+				ctor: 'TextButtons',
+				group: 'textEdit',
+				id: 'lyrics'		
+		},
+        ];
     }
 	
 	static get measureRibbonButtons() {
@@ -13133,6 +13164,30 @@ class MeasureButtons {
 	}
 }
 
+class TextButtons {
+	constructor(parameters) {
+		this.buttonElement = parameters.buttonElement;
+		this.buttonData = parameters.buttonData;
+		this.tracker = parameters.tracker;
+        this.editor = parameters.editor;
+        this.menus=parameters.controller.menus;
+	}
+    textMenu() {
+	  var self = this;
+	  var rebind = function () {
+		
+      }
+	  this.menuPromise = this.menus.slashMenuMode().then(rebind);
+	  this.menus.createMenu('SuiTextMenu');
+    }
+    bind() {
+        var self=this;
+        $(this.buttonElement).off('click').on('click', function () {
+            self.textMenu();
+        });
+		
+	}
+}
 class NavigationButtons {
 	static get directionsTrackerMap() {
 		return {
