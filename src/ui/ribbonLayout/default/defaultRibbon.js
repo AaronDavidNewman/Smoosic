@@ -54,21 +54,50 @@ class defaultRibbonLayout {
 	}
     
     static get textIds() {
-		return ['addTextMenu'];
+		return ['TextButtons','addTextMenu','rehearsalMark','lyrics'];
 	}
     
     static get textRibbonButtons() {
         return [
         {
+			leftText: '',
+				rightText: '',
+				classes: 'icon  collapseParent measure',
+				icon: 'icon-text',
+				action: 'collapseParent',
+				ctor: 'CollapseRibbonControl',
+				group: 'textEdit',
+				id: 'TextButtons'			
+		},
+        {
                 leftText: '',
 				rightText: '',
-				classes: 'icon  textButton',
-				icon: 'icon-text',
-				action: 'menu',
-				ctor: 'SuiTextMenu',
+				classes: 'icon collapsed textButton',
+				icon: 'icon-textBasic',
+				action: 'collapseChild',
+				ctor: 'TextButtons',
 				group: 'textEdit',
 				id: 'addTextMenu'		
-		}];
+		},{
+                leftText: '',
+				rightText: '',
+				classes: 'icon collapsed textButton',
+				icon: 'icon-rehearsemark',
+				action: 'collapseChild',
+				ctor: 'TextButtons',
+				group: 'textEdit',
+				id: 'rehearsalMark'		
+		},{
+                leftText: '',
+				rightText: '',
+				classes: 'icon collapsed textButton',
+				icon: 'icon-lyric',
+				action: 'collapseChild',
+				ctor: 'TextButtons',
+				group: 'textEdit',
+				id: 'lyrics'		
+		},
+        ];
     }
 	
 	static get measureRibbonButtons() {

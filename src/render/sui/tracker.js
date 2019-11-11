@@ -137,7 +137,7 @@ class suiTracker {
     // ### selectModifierById
     // programatically select a modifier by ID
     selectId(id) {
-        this.modifierIndex = this.modifierTabs.findIndex((mm) =>  mm.modifier.attrs.id=='auto4257');        
+        this.modifierIndex = this.modifierTabs.findIndex((mm) =>  mm.modifier.attrs.id==id);        
     }
 
 	clearModifierSelections() {

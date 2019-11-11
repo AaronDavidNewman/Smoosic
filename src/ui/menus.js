@@ -266,6 +266,8 @@ class SuiTextMenu extends suiMenuBase {
             }
         };
     }
+    bind() {
+    }
     _editNewText(txtObj) {                
         this.tracker.selectId(txtObj.attrs.id);
         // Treat a created text score like a selected text score that needs to be edited.

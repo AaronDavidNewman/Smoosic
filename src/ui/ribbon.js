@@ -330,6 +330,30 @@ class MeasureButtons {
 	}
 }
 
+class TextButtons {
+	constructor(parameters) {
+		this.buttonElement = parameters.buttonElement;
+		this.buttonData = parameters.buttonData;
+		this.tracker = parameters.tracker;
+        this.editor = parameters.editor;
+        this.menus=parameters.controller.menus;
+	}
+    textMenu() {
+	  var self = this;
+	  var rebind = function () {
+		
+      }
+	  this.menuPromise = this.menus.slashMenuMode().then(rebind);
+	  this.menus.createMenu('SuiTextMenu');
+    }
+    bind() {
+        var self=this;
+        $(this.buttonElement).off('click').on('click', function () {
+            self.textMenu();
+        });
+		
+	}
+}
 class NavigationButtons {
 	static get directionsTrackerMap() {
 		return {
