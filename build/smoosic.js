@@ -6454,6 +6454,7 @@ class VxMeasure {
             vexL.setYShift(y); // need this?
 			vexL.setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);
             vexNote.addAnnotation(0,vexL);
+            vexL.addClass('lyric-id-'+ll.attrs.id);
         });
     }
 
@@ -9029,6 +9030,45 @@ class editSvgText {
     static get textAttrs() {
         return ['font-size','font-family','font-weight','fill','transform'];
     }
+}
+
+class editLyricSession {
+    constructor(parameters) {
+        this.tracker = parameters.tracker;
+        this.selection = parameters.selection;
+        this.controller = parameters.controller;
+        var lyrics = this.selection.getModifiers('SmoLyric');
+        if (!lyrics.length) {
+            selection.note.addLyric(new SmoLyric({text:'_'}));
+        }
+    }
+    
+    detach() {
+        $('body').off('dismissMenu');
+    }
+    
+    editNote() {
+        
+    }
+    
+    bindEvents() {
+		var self = this;
+        this.controller.detach();
+
+		if (!this.bound) {
+			this.keydownHandler = this.handleKeydown.bind(this);
+
+			window.addEventListener("keydown", this.keydownHandler, true);
+			this.bound = true;
+		}
+		$(this.menuContainer).find('button').off('click').on('click', function (ev) {
+			if ($(ev.currentTarget).attr('data-value') == 'cancel') {
+				self.menu.complete();
+				return;
+			}
+			self.menu.selection(ev);
+		});
+	}
 };
 
 class suiEditor {
@@ -13172,18 +13212,23 @@ class TextButtons {
         this.editor = parameters.editor;
         this.menus=parameters.controller.menus;
 	}
-    textMenu() {
+    lyric() {
+    }
+    rehearsalMark() {
+        var selection = this.tracker.getExtremeSelection(-1);
+        var cmd = selection.measure.getRehearsalMark() ? 'removeRehearsalMark' : 'addRehearsalMark';
+        this.editor.scoreSelectionOperation(selection, cmd, new SmoRehearsalMark());
+    }
+    addTextMenu() {
 	  var self = this;
-	  var rebind = function () {
-		
-      }
-	  this.menuPromise = this.menus.slashMenuMode().then(rebind);
-	  this.menus.createMenu('SuiTextMenu');
+      var rebind = function() {};
+      this.menuPromise = this.menus.slashMenuMode().then(rebind);
+      this.menus.createMenu('SuiTextMenu');
     }
     bind() {
         var self=this;
         $(this.buttonElement).off('click').on('click', function () {
-            self.textMenu();
+            self[self.buttonData.id]();
         });
 		
 	}
