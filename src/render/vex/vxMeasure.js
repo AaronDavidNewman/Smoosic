@@ -106,6 +106,7 @@ class VxMeasure {
             vexL.setYShift(y); // need this?
 			vexL.setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);
             vexNote.addAnnotation(0,vexL);
+            vexL.addClass('lyric-id-'+ll.attrs.id);
         });
     }
 

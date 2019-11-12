@@ -109,3 +109,42 @@ class editSvgText {
         return ['font-size','font-family','font-weight','fill','transform'];
     }
 }
+
+class editLyricSession {
+    constructor(parameters) {
+        this.tracker = parameters.tracker;
+        this.selection = parameters.selection;
+        this.controller = parameters.controller;
+        var lyrics = this.selection.getModifiers('SmoLyric');
+        if (!lyrics.length) {
+            selection.note.addLyric(new SmoLyric({text:'_'}));
+        }
+    }
+    
+    detach() {
+        $('body').off('dismissMenu');
+    }
+    
+    editNote() {
+        
+    }
+    
+    bindEvents() {
+		var self = this;
+        this.controller.detach();
+
+		if (!this.bound) {
+			this.keydownHandler = this.handleKeydown.bind(this);
+
+			window.addEventListener("keydown", this.keydownHandler, true);
+			this.bound = true;
+		}
+		$(this.menuContainer).find('button').off('click').on('click', function (ev) {
+			if ($(ev.currentTarget).attr('data-value') == 'cancel') {
+				self.menu.complete();
+				return;
+			}
+			self.menu.selection(ev);
+		});
+	}
+}

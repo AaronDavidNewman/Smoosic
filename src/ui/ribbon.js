@@ -338,18 +338,23 @@ class TextButtons {
         this.editor = parameters.editor;
         this.menus=parameters.controller.menus;
 	}
-    textMenu() {
+    lyric() {
+    }
+    rehearsalMark() {
+        var selection = this.tracker.getExtremeSelection(-1);
+        var cmd = selection.measure.getRehearsalMark() ? 'removeRehearsalMark' : 'addRehearsalMark';
+        this.editor.scoreSelectionOperation(selection, cmd, new SmoRehearsalMark());
+    }
+    addTextMenu() {
 	  var self = this;
-	  var rebind = function () {
-		
-      }
-	  this.menuPromise = this.menus.slashMenuMode().then(rebind);
-	  this.menus.createMenu('SuiTextMenu');
+      var rebind = function() {};
+      this.menuPromise = this.menus.slashMenuMode().then(rebind);
+      this.menus.createMenu('SuiTextMenu');
     }
     bind() {
         var self=this;
         $(this.buttonElement).off('click').on('click', function () {
-            self.textMenu();
+            self[self.buttonData.id]();
         });
 		
 	}
