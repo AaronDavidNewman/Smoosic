@@ -124,7 +124,11 @@ class editLyricSession {
     
     detach() {
 		window.removeEventListener("keydown", this.keydownHandler, true);
-        $('body').off('dismissMenu');
+		var self=this;
+		function rebind() {
+			self.controller.bindEvents();
+		}
+		this.tracker.layout.render().then(rebind);
     }
 	
 	_editingSession() {
