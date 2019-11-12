@@ -16,9 +16,11 @@ class editSvgText {
         // create a mirror of the node under edit by copying attributes
         // and setting up a similarly-dimensioned viewbox
         editSvgText.textAttrs.forEach((attr) => {
-            var val = this.target.attributes[attr].value;
-            this.editText.setAttributeNS('',attr,val);
-            this.attrAr.push(JSON.parse('{"'+attr+'":"'+val+'"}'));
+			if (this.target.attributes[attr]) {
+         		var val = this.target.attributes[attr].value;
+				this.editText.setAttributeNS('',attr,val);
+				this.attrAr.push(JSON.parse('{"'+attr+'":"'+val+'"}'));
+			}
         });
         
         // Hide the original - TODO, handle non-white background.
@@ -111,23 +113,73 @@ class editSvgText {
 }
 
 class editLyricSession {
+	
+	// tracker, selection, controller
     constructor(parameters) {
         this.tracker = parameters.tracker;
         this.selection = parameters.selection;
         this.controller = parameters.controller;
-        var lyrics = this.selection.getModifiers('SmoLyric');
-        if (!lyrics.length) {
-            selection.note.addLyric(new SmoLyric({text:'_'}));
-        }
+		this.bound = false;
     }
     
     detach() {
+		window.removeEventListener("keydown", this.keydownHandler, true);
         $('body').off('dismissMenu');
     }
+	
+	_editingSession() {
+		if (!this.bound) {
+			this.bindEvents();
+		}
+		// TODO: get the ID from the class
+		this.textElement = $(this.tracker.layout.svg).find('#'+this.selection.note.renderId).find('g.vf-lyric text')[0];
+		this.editor = new editSvgText({target:this.textElement,layout:this.tracker.layout,fontInfo:this.fontInfo});
+	}
     
     editNote() {
-        
+		var self=this;
+		function _startEditing() {
+			self._editingSession();
+		}
+		var lyrics = this.selection.note.getModifiers('SmoLyric');
+        if (!lyrics.length) {
+			this.lyric = new SmoLyric({text:'_'});
+        } else {
+			this.lyric = lyrics[0];
+		}
+		this.fontInfo = JSON.parse(JSON.stringify(this.lyric.fontInfo));
+        this.selection.note.addLyric(this.lyric);
+		this.tracker.layout.render().then(_startEditing);        
     }
+	
+	handleKeydown(event) {
+		console.log("Lyric KeyboardEvent: key='" + event.key + "' | code='" +
+			event.code + "'"
+			 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
+		if (['Space', 'Minus'].indexOf(event.code) >= 0) {
+			if (this.editor) {
+				this.lyric.text = this.editor.editText.textContent;
+				this.editor.endSession();				
+			}
+			
+			this.lyric.text = event.key == '-' ? this.lyric.text + '-' : this.lyric.text ;
+			var sel = SmoSelection.nextNoteSelection(
+			  this.tracker.layout.score, this.selection.selector.staff, 
+			  this.selection.selector.measure, this.selection.selector.voice, this.selection.selector.tick);
+			if (!sel) {
+				this.detach();
+				return;
+			} else {
+				this.selection = sel;
+				this.editNote();
+			}
+		}
+		
+		if (event.code == 'Escape') {
+			this.detach();
+		}
+
+	}
     
     bindEvents() {
 		var self = this;
@@ -139,12 +191,6 @@ class editLyricSession {
 			window.addEventListener("keydown", this.keydownHandler, true);
 			this.bound = true;
 		}
-		$(this.menuContainer).find('button').off('click').on('click', function (ev) {
-			if ($(ev.currentTarget).attr('data-value') == 'cancel') {
-				self.menu.complete();
-				return;
-			}
-			self.menu.selection(ev);
-		});
+		this.bound = true;
 	}
 }

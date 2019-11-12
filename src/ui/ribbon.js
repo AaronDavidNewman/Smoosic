@@ -336,9 +336,14 @@ class TextButtons {
 		this.buttonData = parameters.buttonData;
 		this.tracker = parameters.tracker;
         this.editor = parameters.editor;
+		this.controller = parameters.controller;
         this.menus=parameters.controller.menus;
 	}
-    lyric() {
+    lyrics() {
+		// tracker, selection, controller
+		var selection = this.tracker.getExtremeSelection(-1);
+		var editor = new editLyricSession({tracker:this.tracker,selection:selection,controller:this.controller});
+		editor.editNote();
     }
     rehearsalMark() {
         var selection = this.tracker.getExtremeSelection(-1);

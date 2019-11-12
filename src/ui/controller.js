@@ -230,7 +230,6 @@ class suiController {
 		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), score);
 		suiLayoutBase.debugLayout=true;
 		params.tracker = new suiTracker(params.layout);
-		params.score = score;
 		params.editor = new suiEditor(params);
 		params.menus = new suiMenuManager(params);
 		var controller = new suiController(params);
