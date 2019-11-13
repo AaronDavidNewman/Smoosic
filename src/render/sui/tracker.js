@@ -201,6 +201,15 @@ class suiTracker {
 			var selection = SmoSelection.renderedNoteSelection(this.score, note, box);
 			if (selection) {
 				this.objects.push(selection);
+                // lyrics weren't drawn when note was created so get the box now...
+                // this is a little inconsistent, maybe s/b don'e in vxMeasure
+                selection.note.getModifiers('SmoLyric').forEach((lyric) => {
+                    var ar = Array.from(note.getElementsByClassName('vf-lyric'));
+                    ar.forEach((lbox) => {
+                        lyric.renderedBox = svgHelpers.smoBox(lbox.getBoundingClientRect());
+                        
+                    });
+                });
 			}
 		});
 		this._updateModifiers();

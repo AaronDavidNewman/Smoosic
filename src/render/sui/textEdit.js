@@ -113,13 +113,17 @@ class editSvgText {
 }
 
 class editLyricSession {
-	
+	static get states() {
+        return {stopped:0,started:1,minus:2,space:3,stopping:4};
+    }
 	// tracker, selection, controller
     constructor(parameters) {
         this.tracker = parameters.tracker;
         this.selection = parameters.selection;
         this.controller = parameters.controller;
+        this.verse=0;
 		this.bound = false;
+        this.state=editLyricSession.states.stopped;
     }
     
     detach() {
@@ -131,26 +135,52 @@ class editLyricSession {
 		this.tracker.layout.render().then(rebind);
     }
 	
-	_editingSession() {
+	_editingSession() {       
 		if (!this.bound) {
 			this.bindEvents();
 		}
-		// TODO: get the ID from the class
-		this.textElement = $(this.tracker.layout.svg).find('#'+this.selection.note.renderId).find('g.vf-lyric text')[0];
+		this.textElement = $(this.tracker.layout.svg).find('#'+this.selection.note.renderId).find('g.lyric-'+this.lyric.verse)[0];
 		this.editor = new editSvgText({target:this.textElement,layout:this.tracker.layout,fontInfo:this.fontInfo});
+        this.state = editLyricSession.states.started;
+        var self = this;
+        function editEnd() {
+            self._handleSkip();
+        }
+        this.editor.startSessionPromise().then(editEnd);
 	}
     
-    editNote() {
-		var self=this;
-		function _startEditing() {
-			self._editingSession();
-		}
-		var lyrics = this.selection.note.getModifiers('SmoLyric');
+    _getOrCreateLyric(note) {
+        var lyrics =  note.getModifiers('SmoLyric');
         if (!lyrics.length) {
 			this.lyric = new SmoLyric({text:'_'});
         } else {
 			this.lyric = lyrics[0];
 		}
+    }
+    
+    _handleSkip() {
+        var tag = this.state == editLyricSession.states.minus ? '-' :'';
+        this.lyric.text = this.editor.value+tag;
+        if (this.state != editLyricSession.states.stopping) {
+            var sel = SmoSelection.nextNoteSelection(
+		      this.tracker.layout.score, this.selection.selector.staff, 
+              this.selection.selector.measure, this.selection.selector.voice, this.selection.selector.tick);
+            if (sel) {
+                this.selection=sel;
+                this._getOrCreateLyric(this.selection.note);
+                this.editNote();
+            }
+        } else {
+            this.detach();
+        }
+        
+    }
+    editNote() {
+		var self=this;
+		function _startEditing() {
+			self._editingSession();
+		}
+        this._getOrCreateLyric(this.selection.note)
 		this.fontInfo = JSON.parse(JSON.stringify(this.lyric.fontInfo));
         this.selection.note.addLyric(this.lyric);
 		this.tracker.layout.render().then(_startEditing);        
@@ -160,27 +190,15 @@ class editLyricSession {
 		console.log("Lyric KeyboardEvent: key='" + event.key + "' | code='" +
 			event.code + "'"
 			 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
+       
 		if (['Space', 'Minus'].indexOf(event.code) >= 0) {
-			if (this.editor) {
-				this.lyric.text = this.editor.editText.textContent;
-				this.editor.endSession();				
-			}
-			
-			this.lyric.text = event.key == '-' ? this.lyric.text + '-' : this.lyric.text ;
-			var sel = SmoSelection.nextNoteSelection(
-			  this.tracker.layout.score, this.selection.selector.staff, 
-			  this.selection.selector.measure, this.selection.selector.voice, this.selection.selector.tick);
-			if (!sel) {
-				this.detach();
-				return;
-			} else {
-				this.selection = sel;
-				this.editNote();
-			}
+            this.editor.endSession();
+			this.state =  event.key == '-' ? editLyricSession.states.minus :  editLyricSession.states.space;			
 		}
 		
 		if (event.code == 'Escape') {
-			this.detach();
+            this.state = editLyricSession.states.stopping;
+            this.editor.endSession();
 		}
 
 	}
