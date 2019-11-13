@@ -65,23 +65,30 @@ class editSvgText {
     }
     
     _updateText() {
+        $('.textEdit').focus();
+        
         if (this.editText.textContent && 
-        (this.editText.textContent.length>1 || this.editText.textContent[0] != '_') &&
-        this._value != this.editText.textContent) {
-          this.editText.textContent = this.editText.textContent.replace('_','');
+         this.editText.textContent.length &&
+           this._value != this.editText.textContent) {
+          // if (this.editText[0]
+          // this.editText.textContent = this.editText.textContent.replace(' ','');
+          if (this.editText.textContent.length > 1 && 
+              this.editText.textContent[this.editText.textContent.length - 1] == '_') {
+            this.editText.textContent = this.editText.textContent.substr(0,this.editText.textContent.length - 1);
+          }
           this.target.textContent = this._value = this.editText.textContent;
           this._value = this.target.textContent;
           var fontAttr = svgHelpers.fontIntoToSvgAttributes(this.fontInfo);
           var svgBox = svgHelpers.getTextBox(this.svg,this.attrAr,null,this._value);
           var nbox = svgHelpers.logicalToClient(this.svg,svgBox);
-           if (nbox.width > this.clientBox.width) {
-             this.clientBox.width = nbox.width + nbox.width*.1;
+          if (nbox.width > this.clientBox.width) {
+             this.clientBox.width = nbox.width + nbox.width*.3;
              this.clientBox.height = nbox.height;
              this.setEditorPosition(this.clientBox,svgBox);
            }
         }  
-        if (!this.editText.textContent && this._value) {
-          this.editText.textContent='_';
+        if (!this.editText.textContent) {
+           this.editText.textContent='_';
         }
     }
     
@@ -127,6 +134,7 @@ class editLyricSession {
     }
     
     detach() {
+        $('body').removeClass('showAttributeDialog');
 		window.removeEventListener("keydown", this.keydownHandler, true);
 		var self=this;
 		function rebind() {
@@ -181,6 +189,7 @@ class editLyricSession {
 		function _startEditing() {
 			self._editingSession();
 		}
+        $('body').addClass('showAttributeDialog');
         this._getOrCreateLyric(this.selection.note)
 		this.fontInfo = JSON.parse(JSON.stringify(this.lyric.fontInfo));
         this.selection.note.addLyric(this.lyric);
@@ -201,7 +210,6 @@ class editLyricSession {
             this.state = editLyricSession.states.stopping;
             this.editor.endSession();
 		}
-
 	}
     
     bindEvents() {
