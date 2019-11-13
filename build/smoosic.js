@@ -9093,6 +9093,7 @@ class editLyricSession {
     _handleSkip() {
         var tag = this.state == editLyricSession.states.minus ? '-' :'';
         this.lyric.text = this.editor.value+tag;
+        this.selection.measure.changed = true;
         if (this.state != editLyricSession.states.stopping) {
             var sel = SmoSelection.nextNoteSelection(
 		      this.tracker.layout.score, this.selection.selector.staff, 
