@@ -22,6 +22,7 @@ class editSvgText {
 				this.attrAr.push(JSON.parse('{"'+attr+'":"'+val+'"}'));
 			}
         });
+        this.editing = this.running=false;
         
         // Hide the original - TODO, handle non-white background.
         this.oldFill = this.target.getAttributeNS(null,'fill');
@@ -57,12 +58,34 @@ class editSvgText {
         this.editing = false;
         this.target.setAttributeNS(null,'fill',this.oldFill);
 
-        $('.textEdit').addClass('hide')
+        $('.textEdit').addClass('hide');
+        var self=this;
+        const promise = new Promise((resolve, reject) => {
+            var f = function() {
+                setTimeout(function() {
+                    if (this.running) {
+                        f();
+                    } else {
+                        resolve();
+                    }
+                },5);
+            }
+            f();
+        });
+        return promise;
     }
     
     get value() {
         return this._value;
     }
+    
+    /* moveCursorToEnd() {
+       if (this.editText.getNumberOfChars() < 1) 
+           return;
+       var content = this.editText.textContent;
+       this.editText.textContent = content+content.substr(content.length-1,1);
+       this.editText.selectSubString(content.length,1);
+    }  */
     
     _updateText() {
         $('.textEdit').focus();
@@ -72,10 +95,14 @@ class editSvgText {
            this._value != this.editText.textContent) {
           // if (this.editText[0]
           // this.editText.textContent = this.editText.textContent.replace(' ','');
-          if (this.editText.textContent.length > 1 && 
+          /* if (this.editText.textContent.length > 1 && 
               this.editText.textContent[this.editText.textContent.length - 1] == '_') {
             this.editText.textContent = this.editText.textContent.substr(0,this.editText.textContent.length - 1);
-          }
+            var self = this;
+            setTimeout(function() {
+                self.moveCursorToEnd();
+            },1);
+          }  */
           this.target.textContent = this._value = this.editText.textContent;
           this._value = this.target.textContent;
           var fontAttr = svgHelpers.fontIntoToSvgAttributes(this.fontInfo);
@@ -88,13 +115,14 @@ class editSvgText {
            }
         }  
         if (!this.editText.textContent) {
-           this.editText.textContent='_';
+           this.editText.textContent='\xa0';
         }
     }
     
     startSessionPromise() {
         var self=this;
         this.editing=true;
+        this.running = true;
         const promise = new Promise((resolve, reject) => {
             function editTimer() {
                 setTimeout(function() {
@@ -102,6 +130,8 @@ class editSvgText {
                     if (self.editing) {
                       editTimer();
                     } else {
+                      self._updateText();
+                      self.running=false;
                       resolve();
                     }
                 },250);
@@ -140,6 +170,9 @@ class editLyricSession {
 		function rebind() {
 			self.controller.bindEvents();
 		}
+        if (this.selection) {
+            this.selection.measure.changed=true;
+        }
 		this.tracker.layout.render().then(rebind);
     }
 	
@@ -151,16 +184,19 @@ class editLyricSession {
 		this.editor = new editSvgText({target:this.textElement,layout:this.tracker.layout,fontInfo:this.fontInfo});
         this.state = editLyricSession.states.started;
         var self = this;
-        function editEnd() {
+        function handleSkip() {
             self._handleSkip();
         }
-        this.editor.startSessionPromise().then(editEnd);
+        function editEnd() {
+            return self.editor.endSession();
+        }
+        this.editor.startSessionPromise().then(editEnd).then(handleSkip);
 	}
     
     _getOrCreateLyric(note) {
         var lyrics =  note.getModifiers('SmoLyric');
         if (!lyrics.length) {
-			this.lyric = new SmoLyric({text:'_'});
+			this.lyric = new SmoLyric({text:'\xa0'});
         } else {
 			this.lyric = lyrics[0];
 		}
@@ -201,15 +237,16 @@ class editLyricSession {
 			event.code + "'"
 			 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
        
-		if (['Space', 'Minus'].indexOf(event.code) >= 0) {
+		if (['Space', 'Minus'].indexOf(event.code) >= 0) {            
+			this.state =  event.key == '&#160;' ? editLyricSession.states.minus :  editLyricSession.states.space;
             this.editor.endSession();
-			this.state =  event.key == '-' ? editLyricSession.states.minus :  editLyricSession.states.space;			
 		}
 		
 		if (event.code == 'Escape') {
             this.state = editLyricSession.states.stopping;
             this.editor.endSession();
 		}
+        this.selection.measure.changed=true;
 	}
     
     bindEvents() {
