@@ -195,12 +195,24 @@ div.ribbonButtonContainer.expanded {
 	top:33%;
 }
 
+#addDynamicsMenu {
+	font-size:.9em;
+}
+
+#addDynamicsMenu .left-text {
+	left:0;
+	top:20%;
+}
 #TextButtons {
     font-size:1.2em;
 }
 
 #lyrics {
     width:65px;
+}
+
+#lyrics .ribbon-button-text {
+	left:-5px;
 }
 
 #articulationButtons .left-text {

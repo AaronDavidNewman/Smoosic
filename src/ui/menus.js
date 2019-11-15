@@ -59,6 +59,14 @@ class suiMenuManager {
 				altKey: false,
 				shiftKey: false,
 				action: "SuiAddStaffMenu"
+			},
+			 {
+				event: "keydown",
+				key: "t",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "SuiTextMenu"
 			}
 
 		];
@@ -342,6 +350,7 @@ class SuiDynamicsMenu extends suiMenuBase {
 			]
 		};
 	}
+	
 	selection(ev) {
 		var text = $(ev.currentTarget).attr('data-value');
 

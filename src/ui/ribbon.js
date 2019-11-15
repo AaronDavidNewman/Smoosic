@@ -356,6 +356,16 @@ class TextButtons {
       this.menuPromise = this.menus.slashMenuMode().then(rebind);
       this.menus.createMenu('SuiTextMenu');
     }
+	addDynamicsMenu() {
+      var self = this;
+      var rebind = function() {
+		  self.controller.render();
+		  self.controller.bindEvents();
+	  };
+      this.menuPromise = this.menus.slashMenuMode().then(rebind);
+      this.menus.createMenu('SuiDynamicsMenu');
+	  this.menus.slashMenuMode().then(rebind);
+	}
     bind() {
         var self=this;
         $(this.buttonElement).off('click').on('click', function () {

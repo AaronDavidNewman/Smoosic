@@ -25,7 +25,7 @@ class defaultRibbonLayout {
 	}
 	
 	static get leftRibbonIds() {
-		return ['helpDialog', 'addStaffMenu', 'dynamicsMenu', 'keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
+		return ['helpDialog', 'addStaffMenu', 'keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
 	}
 	static get noteButtonIds() {
 		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton',
@@ -54,7 +54,7 @@ class defaultRibbonLayout {
 	}
     
     static get textIds() {
-		return ['TextButtons','addTextMenu','rehearsalMark','lyrics'];
+		return ['TextButtons','addTextMenu','rehearsalMark','lyrics','addDynamicsMenu'];
 	}
     
     static get textRibbonButtons() {
@@ -71,7 +71,7 @@ class defaultRibbonLayout {
 		},
         {
                 leftText: '',
-				rightText: '',
+				rightText: '/t',
 				classes: 'icon collapsed textButton',
 				icon: 'icon-textBasic',
 				action: 'collapseChild',
@@ -96,7 +96,16 @@ class defaultRibbonLayout {
 				ctor: 'TextButtons',
 				group: 'textEdit',
 				id: 'lyrics'		
-		},
+		} ,{
+                leftText: '',
+				rightText: '/d',
+				classes: 'icon collapsed textButton',
+				icon: 'icon-mezzopiano',
+				action: 'collapseChild',
+				ctor: 'TextButtons',
+				group: 'textEdit',
+				id: 'addDynamicsMenu'		
+		} 
         ];
     }
 	
@@ -903,15 +912,6 @@ class defaultRibbonLayout {
 				ctor: 'SuiAddStaffMenu',
 				group: 'scoreEdit',
 				id: 'addStaffMenu'
-			}, {
-				leftText: 'Dynamics',
-				rightText: '/d',
-				icon: '',
-				classes: 'note-modify',
-				action: 'menu',
-				ctor: 'SuiDynamicsMenu',
-				group: 'scoreEdit',
-				id: 'dynamicsMenu'
 			}, {
 				leftText: 'Key',
 				rightText: '/k',
