@@ -58,21 +58,7 @@ class editSvgText {
         this.editing = false;
         this.target.setAttributeNS(null,'fill',this.oldFill);
 
-        $('.textEdit').addClass('hide');
-        var self=this;
-        const promise = new Promise((resolve, reject) => {
-            var f = function() {
-                setTimeout(function() {
-                    if (this.running) {
-                        f();
-                    } else {
-                        resolve();
-                    }
-                },5);
-            }
-            f();
-        });
-        return promise;
+        $('.textEdit').addClass('hide');        
     }
     
     get value() {
@@ -130,14 +116,12 @@ class editSvgText {
                     if (self.editing) {
                       editTimer();
                     } else {
-                      self._updateText();
-                      self.running=false;
+                      self._updateText();                      
                       resolve();
                     }
-                },250);
+                },25);
                 
-            }
-            
+            }            
             editTimer();
 		});
         
@@ -151,7 +135,7 @@ class editSvgText {
 
 class editLyricSession {
 	static get states() {
-        return {stopped:0,started:1,minus:2,space:3,stopping:4};
+        return {stopped:0,started:1,minus:2,space:3,backSpace:4,stopping:5};
     }
 	// tracker, selection, controller
     constructor(parameters) {
@@ -173,7 +157,8 @@ class editLyricSession {
         if (this.selection) {
             this.selection.measure.changed=true;
         }
-		this.tracker.layout.render().then(rebind);
+		this.controller.bindEvents();
+		this.controller.resizeEvent();
     }
 	
 	_editingSession() {       
@@ -187,10 +172,8 @@ class editLyricSession {
         function handleSkip() {
             self._handleSkip();
         }
-        function editEnd() {
-            return self.editor.endSession();
-        }
-        this.editor.startSessionPromise().then(editEnd).then(handleSkip);
+
+        this.editor.startSessionPromise().then(handleSkip);
 	}
     
     _getOrCreateLyric(note) {
@@ -207,7 +190,8 @@ class editLyricSession {
         this.lyric.text = this.editor.value+tag;
         this.selection.measure.changed = true;
         if (this.state != editLyricSession.states.stopping) {
-            var sel = SmoSelection.nextNoteSelection(
+			var func = (this.state == editLyricSession.states.backSpace) ? 'lastNoteSelection' : 'nextNoteSelection';
+            var sel = SmoSelection[func](
 		      this.tracker.layout.score, this.selection.selector.staff, 
               this.selection.selector.measure, this.selection.selector.voice, this.selection.selector.tick);
             if (sel) {
@@ -238,7 +222,9 @@ class editLyricSession {
 			 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
        
 		if (['Space', 'Minus'].indexOf(event.code) >= 0) {            
-			this.state =  event.key == '&#160;' ? editLyricSession.states.minus :  editLyricSession.states.space;
+			this.state =  (event.key == '-') ? editLyricSession.states.minus :  editLyricSession.states.space;
+			this.state = (this.state === editLyricSession.states.space && event.shiftKey) 
+			     ? editLyricSession.states.backSpace :  this.state;
             this.editor.endSession();
 		}
 		
