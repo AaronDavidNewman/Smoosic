@@ -116,7 +116,7 @@ class SmoLyric extends SmoNoteModifierBase {
 			scaleX:1.0,
 			scaleY:1.0,
 			translateX:0,
-			translateY:0
+			translateY:0,
 		};
 	}
     
@@ -129,6 +129,7 @@ class SmoLyric extends SmoNoteModifierBase {
 		super('SmoLyric');
 		smoMusic.serializedMerge(SmoLyric.attributes, SmoLyric.defaults,this);
 		smoMusic.serializedMerge(SmoLyric.attributes, parameters, this);
+		this.adjY=0;
 
 		if (!this['attrs']) {
 			this.attrs = {

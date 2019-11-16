@@ -56,6 +56,36 @@ class VxSystem {
 		}
 		return null;
 	}
+	
+	updateLyricOffsets() {
+		var lowestYs = {};
+		var lyrics=[];
+		this.vxMeasures.forEach((mm) => {
+			var smoMeasure = mm.smoMeasure;
+			smoMeasure.voices.forEach((voice) => {
+				voice.notes.forEach((note) => {
+					note.getModifiers('SmoLyric').forEach((lyric) => {
+						var lowest = (lyric.logicalBox.y+lyric.logicalBox.height)-lyric.adjY;
+						if (!lowestYs[lyric.verse]) {
+							lowestYs[lyric.verse] = lowest;
+						} else {
+							lowestYs[lyric.verse] = lowestYs[lyric.verse] > lowest ? lowest : lowestYs[lyric.verse];
+						}
+						lyric.selector='#'+note.renderId+' g.lyric-'+lyric.verse;
+						lyrics.push(lyric);
+					});
+				});
+			});
+		});
+
+		lyrics.forEach((lyric) => {
+			lyric.adjY = lowestYs[lyric.verse] - (lyric.logicalBox.y + lyric.logicalBox.height);
+			var dom = $(this.context.svg).find(lyric.selector)[0];
+			dom.setAttributeNS('','transform','translate(0 '+lyric.adjY+')');
+		});
+		
+		
+	}
 
 	renderModifier(modifier, vxStart, vxEnd) {
 		// if it is split between lines, render one artifact for each line, with a common class for

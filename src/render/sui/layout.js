@@ -257,6 +257,8 @@ class suiLayoutBase {
 			// TODO: consider staff height with these.
 			// TODO: handle dynamics split across systems.
 		});
+		
+		system.updateLyricOffsets();
 	}
 
 	_redraw() {
