@@ -229,6 +229,7 @@ class suiLayoutAdjuster {
 			$(renderer.getContext().svg).find('g.measure-adjust-dbg').remove();
 		}
 		var accum = 0;
+		// iterate: system, staves within a system, measures 
 		for (var i = 0; i <= maxLine; ++i) {
 			for (var j = 0; j < score.staves.length; ++j) {
 				var absLine = score.staves.length * i + j;

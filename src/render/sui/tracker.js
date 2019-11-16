@@ -195,23 +195,45 @@ class suiTracker {
 		var selCopy = this._copySelections();
 		var ticksSelectedCopy = this._getTicksFromSelections();
 		var firstSelection = this.getExtremeSelection(-1);
-		notes.forEach((note) => {
+
+		this.layout.score.staves.forEach((staff) => {
+			staff.measures.forEach((measure) => {
+				var voiceIx = 0;
+				measure.voices.forEach((voice) => {
+					var tick = 0;
+					voice.notes.forEach((note) => {
+						var selector = {
+								staff: staff.staffId,
+								measure: measure.measureNumber.measureIndex,
+								voice: voiceIx,
+								tick: tick,
+								pitches: []
+							};
+							
+						var selection = new SmoSelection({
+									selector: selector,
+									_staff: staff,
+									_measure: measure,
+									_note: note,
+									_pitches: [],
+									box: note.renderedBox,
+									type: 'rendered'
+								});
+						this.objects.push(selection); 							
+                        tick += 1;
+					});
+				});
+				voiceIx += 1;
+			});
+		});
+		/* notes.forEach((note) => {
 			var box = svgHelpers.smoBox(note.getBoundingClientRect());
 			// box = svgHelpers.untransformSvgBox(this.context.svg,box);
 			var selection = SmoSelection.renderedNoteSelection(this.score, note, box);
 			if (selection) {
-				this.objects.push(selection);
-                // lyrics weren't drawn when note was created so get the box now...
-                // this is a little inconsistent, maybe s/b don'e in vxMeasure
-                selection.note.getModifiers('SmoLyric').forEach((lyric) => {
-                    var ar = Array.from(note.getElementsByClassName('vf-lyric'));
-                    ar.forEach((lbox) => {
-                        lyric.renderedBox = svgHelpers.smoBox(lbox.getBoundingClientRect());
-                        
-                    });
-                });
+				this.objects.push(selection);                
 			}
-		});
+		}); */
 		this._updateModifiers();
 		this.selections = [];
 		if (this.objects.length && !selCopy.length) {
