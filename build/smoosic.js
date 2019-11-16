@@ -721,6 +721,23 @@ class svgHelpers {
 		return new smoSvgBuilder(el);
 	}
 	
+	// ### boxNote
+	// update the note geometry based on current viewbox conditions.
+	// This may not be the appropriate place for this...maybe in layout
+	static updateNoteBox(svg,smoNote) {
+		var el = svg.getElementById(smoNote.renderId);
+		smoNote.renderedBox = svgHelpers.smoBox(el.getBoundingClientRect());
+		smoNote.logicalBox = svgHelpers.clientToLogical(svg,
+			smoNote.renderedBox);
+			
+		smoNote.getModifiers('SmoLyric').forEach((lyric) => {
+			var ar = Array.from(el.getElementsByClassName('vf-lyric'));
+			ar.forEach((lbox) => {
+				lyric.renderedBox = svgHelpers.smoBox(lbox.getBoundingClientRect());
+				lyric.logicalBox = svgHelpers.clientToLogical(svg,lyric.renderedBox);
+			});
+		});
+	}
     static rect(svg,box,attrs,classes) {
         var rect = document.createELementNS(svgHelpers.namespace,'rect');
         attrs.forEach((attr) => {
@@ -1878,7 +1895,7 @@ class SmoLyric extends SmoNoteModifierBase {
 			scaleX:1.0,
 			scaleY:1.0,
 			translateX:0,
-			translateY:0
+			translateY:0,
 		};
 	}
     
@@ -1891,6 +1908,7 @@ class SmoLyric extends SmoNoteModifierBase {
 		super('SmoLyric');
 		smoMusic.serializedMerge(SmoLyric.attributes, SmoLyric.defaults,this);
 		smoMusic.serializedMerge(SmoLyric.attributes, parameters, this);
+		this.adjY=0;
 
 		if (!this['attrs']) {
 			this.attrs = {
@@ -6735,7 +6753,14 @@ class VxMeasure {
             y: box.y,
             height: box.height,
             width: box.width
-        };
+        };		
+		
+
+		this.smoMeasure.voices.forEach((voice) => {
+			voice.notes.forEach((smoNote) =>  {
+				svgHelpers.updateNoteBox(this.context.svg,smoNote);
+			});
+		});
 		
 		this.smoMeasure.logicalBox = lbox;
         this.smoMeasure.changed = false;
@@ -6799,6 +6824,36 @@ class VxSystem {
 			}
 		}
 		return null;
+	}
+	
+	updateLyricOffsets() {
+		var lowestYs = {};
+		var lyrics=[];
+		this.vxMeasures.forEach((mm) => {
+			var smoMeasure = mm.smoMeasure;
+			smoMeasure.voices.forEach((voice) => {
+				voice.notes.forEach((note) => {
+					note.getModifiers('SmoLyric').forEach((lyric) => {
+						var lowest = (lyric.logicalBox.y+lyric.logicalBox.height)-lyric.adjY;
+						if (!lowestYs[lyric.verse]) {
+							lowestYs[lyric.verse] = lowest;
+						} else {
+							lowestYs[lyric.verse] = lowestYs[lyric.verse] > lowest ? lowest : lowestYs[lyric.verse];
+						}
+						lyric.selector='#'+note.renderId+' g.lyric-'+lyric.verse;
+						lyrics.push(lyric);
+					});
+				});
+			});
+		});
+
+		lyrics.forEach((lyric) => {
+			lyric.adjY = lowestYs[lyric.verse] - (lyric.logicalBox.y + lyric.logicalBox.height);
+			var dom = $(this.context.svg).find(lyric.selector)[0];
+			dom.setAttributeNS('','transform','translate(0 '+lyric.adjY+')');
+		});
+		
+		
 	}
 
 	renderModifier(modifier, vxStart, vxEnd) {
@@ -7135,7 +7190,7 @@ class suiTracker {
 	//
 	// ### TODO:
 	// try to preserve the previous selection
-	_updateMap() {
+	_updateMap(rebox) {
 		var notes = [].slice.call(this.renderElement.getElementsByClassName('vf-stavenote'));
 		this.groupObjectMap = {};
 		this.objectGroupMap = {};
@@ -7143,23 +7198,49 @@ class suiTracker {
 		var selCopy = this._copySelections();
 		var ticksSelectedCopy = this._getTicksFromSelections();
 		var firstSelection = this.getExtremeSelection(-1);
-		notes.forEach((note) => {
+
+		this.layout.score.staves.forEach((staff) => {
+			staff.measures.forEach((measure) => {
+				var voiceIx = 0;
+				measure.voices.forEach((voice) => {
+					var tick = 0;
+					voice.notes.forEach((note) => {
+						var selector = {
+								staff: staff.staffId,
+								measure: measure.measureNumber.measureIndex,
+								voice: voiceIx,
+								tick: tick,
+								pitches: []
+							};
+						// if we need to update the screen based on scroll
+						if (rebox) {
+							svgHelpers.updateNoteBox(this.layout.svg,note);
+						}
+							
+						var selection = new SmoSelection({
+									selector: selector,
+									_staff: staff,
+									_measure: measure,
+									_note: note,
+									_pitches: [],
+									box: note.renderedBox,
+									type: 'rendered'
+								});
+						this.objects.push(selection); 							
+                        tick += 1;
+					});
+				});
+				voiceIx += 1;
+			});
+		});
+		/* notes.forEach((note) => {
 			var box = svgHelpers.smoBox(note.getBoundingClientRect());
 			// box = svgHelpers.untransformSvgBox(this.context.svg,box);
 			var selection = SmoSelection.renderedNoteSelection(this.score, note, box);
 			if (selection) {
-				this.objects.push(selection);
-                // lyrics weren't drawn when note was created so get the box now...
-                // this is a little inconsistent, maybe s/b don'e in vxMeasure
-                selection.note.getModifiers('SmoLyric').forEach((lyric) => {
-                    var ar = Array.from(note.getElementsByClassName('vf-lyric'));
-                    ar.forEach((lbox) => {
-                        lyric.renderedBox = svgHelpers.smoBox(lbox.getBoundingClientRect());
-                        
-                    });
-                });
+				this.objects.push(selection);                
 			}
-		});
+		}); */
 		this._updateModifiers();
 		this.selections = [];
 		if (this.objects.length && !selCopy.length) {
@@ -7184,9 +7265,9 @@ class suiTracker {
 		this.pasteBuffer.setSelections(this.score, this.selections);
 	}
 	
-	updateMap() {
+	updateMap(rebox) {
 		const promise = new Promise((resolve, reject) => {
-             this._updateMap();
+             this._updateMap(rebox);
 			 resolve();
                 });
             return promise;
@@ -7923,6 +8004,8 @@ class suiLayoutBase {
 			// TODO: consider staff height with these.
 			// TODO: handle dynamics split across systems.
 		});
+		
+		system.updateLyricOffsets();
 	}
 
 	_redraw() {
@@ -8413,6 +8496,7 @@ class suiLayoutAdjuster {
 			$(renderer.getContext().svg).find('g.measure-adjust-dbg').remove();
 		}
 		var accum = 0;
+		// iterate: system, staves within a system, measures 
 		for (var i = 0; i <= maxLine; ++i) {
 			for (var j = 0; j < score.staves.length; ++j) {
 				var absLine = score.staves.length * i + j;
@@ -8954,6 +9038,7 @@ class editSvgText {
 				this.attrAr.push(JSON.parse('{"'+attr+'":"'+val+'"}'));
 			}
         });
+        this.editing = this.running=false;
         
         // Hide the original - TODO, handle non-white background.
         this.oldFill = this.target.getAttributeNS(null,'fill');
@@ -8989,12 +9074,20 @@ class editSvgText {
         this.editing = false;
         this.target.setAttributeNS(null,'fill',this.oldFill);
 
-        $('.textEdit').addClass('hide')
+        $('.textEdit').addClass('hide');        
     }
     
     get value() {
         return this._value;
     }
+    
+    /* moveCursorToEnd() {
+       if (this.editText.getNumberOfChars() < 1) 
+           return;
+       var content = this.editText.textContent;
+       this.editText.textContent = content+content.substr(content.length-1,1);
+       this.editText.selectSubString(content.length,1);
+    }  */
     
     _updateText() {
         $('.textEdit').focus();
@@ -9004,10 +9097,14 @@ class editSvgText {
            this._value != this.editText.textContent) {
           // if (this.editText[0]
           // this.editText.textContent = this.editText.textContent.replace(' ','');
-          if (this.editText.textContent.length > 1 && 
+          /* if (this.editText.textContent.length > 1 && 
               this.editText.textContent[this.editText.textContent.length - 1] == '_') {
             this.editText.textContent = this.editText.textContent.substr(0,this.editText.textContent.length - 1);
-          }
+            var self = this;
+            setTimeout(function() {
+                self.moveCursorToEnd();
+            },1);
+          }  */
           this.target.textContent = this._value = this.editText.textContent;
           this._value = this.target.textContent;
           var fontAttr = svgHelpers.fontIntoToSvgAttributes(this.fontInfo);
@@ -9020,13 +9117,14 @@ class editSvgText {
            }
         }  
         if (!this.editText.textContent) {
-           this.editText.textContent='_';
+           this.editText.textContent='\xa0';
         }
     }
     
     startSessionPromise() {
         var self=this;
         this.editing=true;
+        this.running = true;
         const promise = new Promise((resolve, reject) => {
             function editTimer() {
                 setTimeout(function() {
@@ -9034,12 +9132,12 @@ class editSvgText {
                     if (self.editing) {
                       editTimer();
                     } else {
+                      self._updateText();                      
                       resolve();
                     }
-                },250);
+                },25);
                 
-            }
-            
+            }            
             editTimer();
 		});
         
@@ -9053,7 +9151,7 @@ class editSvgText {
 
 class editLyricSession {
 	static get states() {
-        return {stopped:0,started:1,minus:2,space:3,stopping:4};
+        return {stopped:0,started:1,minus:2,space:3,backSpace:4,stopping:5};
     }
 	// tracker, selection, controller
     constructor(parameters) {
@@ -9072,7 +9170,11 @@ class editLyricSession {
 		function rebind() {
 			self.controller.bindEvents();
 		}
-		this.tracker.layout.render().then(rebind);
+        if (this.selection) {
+            this.selection.measure.changed=true;
+        }
+		this.controller.bindEvents();
+		this.controller.resizeEvent();
     }
 	
 	_editingSession() {       
@@ -9083,16 +9185,17 @@ class editLyricSession {
 		this.editor = new editSvgText({target:this.textElement,layout:this.tracker.layout,fontInfo:this.fontInfo});
         this.state = editLyricSession.states.started;
         var self = this;
-        function editEnd() {
+        function handleSkip() {
             self._handleSkip();
         }
-        this.editor.startSessionPromise().then(editEnd);
+
+        this.editor.startSessionPromise().then(handleSkip);
 	}
     
     _getOrCreateLyric(note) {
         var lyrics =  note.getModifiers('SmoLyric');
         if (!lyrics.length) {
-			this.lyric = new SmoLyric({text:'_'});
+			this.lyric = new SmoLyric({text:'\xa0'});
         } else {
 			this.lyric = lyrics[0];
 		}
@@ -9103,7 +9206,8 @@ class editLyricSession {
         this.lyric.text = this.editor.value+tag;
         this.selection.measure.changed = true;
         if (this.state != editLyricSession.states.stopping) {
-            var sel = SmoSelection.nextNoteSelection(
+			var func = (this.state == editLyricSession.states.backSpace) ? 'lastNoteSelection' : 'nextNoteSelection';
+            var sel = SmoSelection[func](
 		      this.tracker.layout.score, this.selection.selector.staff, 
               this.selection.selector.measure, this.selection.selector.voice, this.selection.selector.tick);
             if (sel) {
@@ -9133,15 +9237,18 @@ class editLyricSession {
 			event.code + "'"
 			 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
        
-		if (['Space', 'Minus'].indexOf(event.code) >= 0) {
+		if (['Space', 'Minus'].indexOf(event.code) >= 0) {            
+			this.state =  (event.key == '-') ? editLyricSession.states.minus :  editLyricSession.states.space;
+			this.state = (this.state === editLyricSession.states.space && event.shiftKey) 
+			     ? editLyricSession.states.backSpace :  this.state;
             this.editor.endSession();
-			this.state =  event.key == '-' ? editLyricSession.states.minus :  editLyricSession.states.space;			
 		}
 		
 		if (event.code == 'Escape') {
             this.state = editLyricSession.states.stopping;
             this.editor.endSession();
 		}
+        this.selection.measure.changed=true;
 	}
     
     bindEvents() {
@@ -9462,6 +9569,7 @@ class suiEditor {
 class suiMenuBase {
 	constructor(params) {
 		Vex.Merge(this, params);
+        this.focusIndex = -1;
 	}
 
 	complete() {
@@ -9474,6 +9582,7 @@ class suiMenuManager {
 		Vex.Merge(this, suiMenuManager.defaults);
 		Vex.Merge(this, params);
 		this.bound = false;
+        this.hotkeyBindings={};
 	}
 
 	static get defaults() {
@@ -9519,10 +9628,24 @@ class suiMenuManager {
 				altKey: false,
 				shiftKey: false,
 				action: "SuiAddStaffMenu"
+			},
+			 {
+				event: "keydown",
+				key: "t",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "SuiTextMenu"
 			}
 
 		];
 	}
+    _advanceSelection(inc) {
+        var options = $('.menuContainer ul.menuElement li.menuOption');
+        inc = inc < 0 ? options.length - 1: 1;
+        this.menu.focusIndex = (this.menu.focusIndex+inc) % options.length;
+        $(options[this.menu.focusIndex]).find('button').focus();
+    }
 
 	get menuBindings() {
 		return this.menuBind;
@@ -9544,15 +9667,19 @@ class suiMenuManager {
 		var b = htmlHelpers.buildDom;
 		var r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length)
 			.css('left', '' + this.menuPosition.x + 'px')
-			.css('top', '' + this.menuPosition.y + 'px')
-			.css('height', '' + this.menu.menuItems.length * 35 + 'px');
+			.css('top', '' + this.menuPosition.y + 'px');			
+        var hotkey=0;
 		this.menu.menuItems.forEach((item) => {
 			r.append(
 				b('li').classes('menuOption').append(
-					b('button')
-					.text(item.text).attr('data-value', item.value)
+					b('button').attr('data-value',item.value)
+                    .append(b('span').classes('menuText').text(item.text))
+					
 					.append(
-						b('span').classes('icon icon-' + item.icon))));
+						b('span').classes('icon icon-' + item.icon))
+                     .append(b('span').classes('menu-key').text(''+hotkey))));
+            item.hotkey=hotkey;
+            hotkey += 1;
 		});
 		$(this.menuContainer).append(r.dom());
 		$('body').addClass('modal');
@@ -9581,6 +9708,11 @@ class suiMenuManager {
 				score: this.score
 			});
 		this.attach(this.menuContainer);
+        this.menu.menuItems.forEach((item) => {
+            if (item.hotkey) {
+                this.hotkeyBindings[item.hotkey] = item.value;
+            }
+        });
 	}
 
 	handleKeydown(event) {
@@ -9597,7 +9729,16 @@ class suiMenuManager {
 			$('body').trigger('menuDismiss');
 		}
 		if (this.menu) {
-			this.menu.keydown(event);
+            if (event.code == 'ArrowUp') {
+                this._advanceSelection(-1);
+            }
+            else if (event.code == 'ArrowDown') {
+                this._advanceSelection(1);
+            } else  if (this.hotkeyBindings[event.key]) {
+                $('button[data-value="'+this.hotkeyBindings[event.key]+'"]').click();
+            } else {
+			    this.menu.keydown(event);
+            }
 		}
 		if (this.tracker.selections.length == 0) {
 			this.unattach();
@@ -9615,6 +9756,7 @@ class suiMenuManager {
 
 	bindEvents() {
 		var self = this;
+        this.hotkeyBindings={};
 
 		if (!this.bound) {
 			this.keydownHandler = this.handleKeydown.bind(this);
@@ -9802,6 +9944,7 @@ class SuiDynamicsMenu extends suiMenuBase {
 			]
 		};
 	}
+	
 	selection(ev) {
 		var text = $(ev.currentTarget).attr('data-value');
 
@@ -9833,15 +9976,15 @@ class suiKeySignatureMenu extends suiMenuBase {
 			menuItems: [{
 					icon: 'key-sig-c',
 					text: 'C Major',
-					value: 'C'
+					value: 'C',
 				}, {
 					icon: 'key-sig-f',
 					text: 'F Major',
-					value: 'F'
+					value: 'F',
 				}, {
 					icon: 'key-sig-g',
 					text: 'G Major',
-					value: 'G'
+					value: 'G',
 				}, {
 					icon: 'key-sig-bb',
 					text: 'Bb Major',
@@ -11896,7 +12039,7 @@ class defaultRibbonLayout {
 	}
 	
 	static get leftRibbonIds() {
-		return ['helpDialog', 'addStaffMenu', 'dynamicsMenu', 'keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
+		return ['helpDialog', 'addStaffMenu', 'keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
 	}
 	static get noteButtonIds() {
 		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton',
@@ -11925,7 +12068,7 @@ class defaultRibbonLayout {
 	}
     
     static get textIds() {
-		return ['TextButtons','addTextMenu','rehearsalMark','lyrics'];
+		return ['TextButtons','addTextMenu','rehearsalMark','lyrics','addDynamicsMenu'];
 	}
     
     static get textRibbonButtons() {
@@ -11942,7 +12085,7 @@ class defaultRibbonLayout {
 		},
         {
                 leftText: '',
-				rightText: '',
+				rightText: '/t',
 				classes: 'icon collapsed textButton',
 				icon: 'icon-textBasic',
 				action: 'collapseChild',
@@ -11967,7 +12110,16 @@ class defaultRibbonLayout {
 				ctor: 'TextButtons',
 				group: 'textEdit',
 				id: 'lyrics'		
-		},
+		} ,{
+                leftText: '',
+				rightText: '/d',
+				classes: 'icon collapsed textButton',
+				icon: 'icon-mezzopiano',
+				action: 'collapseChild',
+				ctor: 'TextButtons',
+				group: 'textEdit',
+				id: 'addDynamicsMenu'		
+		} 
         ];
     }
 	
@@ -12775,15 +12927,6 @@ class defaultRibbonLayout {
 				group: 'scoreEdit',
 				id: 'addStaffMenu'
 			}, {
-				leftText: 'Dynamics',
-				rightText: '/d',
-				icon: '',
-				classes: 'note-modify',
-				action: 'menu',
-				ctor: 'SuiDynamicsMenu',
-				group: 'scoreEdit',
-				id: 'dynamicsMenu'
-			}, {
 				leftText: 'Key',
 				rightText: '/k',
 				icon: '',
@@ -13311,12 +13454,16 @@ class TextButtons {
         var cmd = selection.measure.getRehearsalMark() ? 'removeRehearsalMark' : 'addRehearsalMark';
         this.editor.scoreSelectionOperation(selection, cmd, new SmoRehearsalMark());
     }
-    addTextMenu() {
-	  var self = this;
-      var rebind = function() {};
-      this.menuPromise = this.menus.slashMenuMode().then(rebind);
-      this.menus.createMenu('SuiTextMenu');
+    _invokeMenu(cmd) {
+      this.controller.unbindKeyboardForMenu(this.menus);
+      this.menus.createMenu(cmd);
     }
+    addTextMenu() {
+        this._invokeMenu('SuiTextMenu');
+    }
+	addDynamicsMenu() {
+        this._invokeMenu('SuiDynamicsMenu');
+	}
     bind() {
         var self=this;
         $(this.buttonElement).off('click').on('click', function () {
@@ -14402,7 +14549,7 @@ class suiController {
 	resizeEvent() {
 		var self = this;
 		var remap = function () {
-			return self.tracker.updateMap();
+			return self.tracker.updateMap(true);
 		}
 		if (this.resizing)
 			return;
@@ -14461,7 +14608,7 @@ class suiController {
 			setTimeout(function() {
 				// self.scrollRedrawStatus = true;
 				self.trackScrolling = false;
-				self.tracker.updateMap();
+				self.tracker.updateMap(true);
 			},500);
 		};
 		el.onscroll = scrollCallback;
@@ -14629,6 +14776,16 @@ class suiController {
 		window.removeEventListener("keydown", this.keydownHandler, true);
 		dialog.closeDialogPromise.then(rebind);		
 	}
+    
+    unbindKeyboardForMenu(menuMgr) {
+        window.removeEventListener("keydown", this.keydownHandler, true);
+        var self=this;
+        var rebind = function () {
+            self.render();
+            self.bindEvents();
+        }
+        menuMgr.slashMenuMode().then(rebind);
+    }
 
 	handleKeydown(evdata) {
 		var self = this;
@@ -14643,13 +14800,8 @@ class suiController {
 		}
 
 		if (evdata.key == '/') {
-			window.removeEventListener("keydown", this.keydownHandler, true);
 			this.menuHelp();
-			var rebind = function () {
-				self.render();
-				self.bindEvents();
-            }
-			this.menuPromise = this.menus.slashMenuMode().then(rebind);
+            this.unbindKeyboardForMenu(this.menus);
 		}
 
 		// TODO:  work dialogs into the scheme of things

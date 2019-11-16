@@ -350,21 +350,15 @@ class TextButtons {
         var cmd = selection.measure.getRehearsalMark() ? 'removeRehearsalMark' : 'addRehearsalMark';
         this.editor.scoreSelectionOperation(selection, cmd, new SmoRehearsalMark());
     }
+    _invokeMenu(cmd) {
+      this.controller.unbindKeyboardForMenu(this.menus);
+      this.menus.createMenu(cmd);
+    }
     addTextMenu() {
-	  var self = this;
-      var rebind = function() {};
-      this.menuPromise = this.menus.slashMenuMode().then(rebind);
-      this.menus.createMenu('SuiTextMenu');
+        this._invokeMenu('SuiTextMenu');
     }
 	addDynamicsMenu() {
-      var self = this;
-      var rebind = function() {
-		  self.controller.render();
-		  self.controller.bindEvents();
-	  };
-      this.menuPromise = this.menus.slashMenuMode().then(rebind);
-      this.menus.createMenu('SuiDynamicsMenu');
-	  this.menus.slashMenuMode().then(rebind);
+        this._invokeMenu('SuiDynamicsMenu');
 	}
     bind() {
         var self=this;

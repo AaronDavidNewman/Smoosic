@@ -1,9 +1,9 @@
 @font-face {
   font-family: 'smoosic';
   src:
-    url('fonts/smoosic.ttf?45uy31') format('truetype'),
-    url('fonts/smoosic.woff?45uy31') format('woff'),
-    url('fonts/smoosic.svg?45uy31#smoosic') format('svg');
+    url('fonts/smoosic.ttf?j05lb6') format('truetype'),
+    url('fonts/smoosic.woff?j05lb6') format('woff'),
+    url('fonts/smoosic.svg?j05lb6#smoosic') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -24,6 +24,33 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-clipboard:before {
+  content: "\e959";
+}
+.icon-file-music:before {
+  content: "\e950";
+}
+.icon-pencil1:before {
+  content: "\e951";
+}
+.icon-redo:before {
+  content: "\e952";
+}
+.icon-floppy-disk:before {
+  content: "\e953";
+}
+.icon-undo:before {
+  content: "\e954";
+}
+.icon-folder-open:before {
+  content: "\e956";
+}
+.icon-paste:before {
+  content: "\e957";
+}
+.icon-copy:before {
+  content: "\e958";
+}
 .icon-lyric:before {
   content: "\e94b";
 }

@@ -339,6 +339,16 @@ class suiController {
 		window.removeEventListener("keydown", this.keydownHandler, true);
 		dialog.closeDialogPromise.then(rebind);		
 	}
+    
+    unbindKeyboardForMenu(menuMgr) {
+        window.removeEventListener("keydown", this.keydownHandler, true);
+        var self=this;
+        var rebind = function () {
+            self.render();
+            self.bindEvents();
+        }
+        menuMgr.slashMenuMode().then(rebind);
+    }
 
 	handleKeydown(evdata) {
 		var self = this;
@@ -353,13 +363,8 @@ class suiController {
 		}
 
 		if (evdata.key == '/') {
-			window.removeEventListener("keydown", this.keydownHandler, true);
 			this.menuHelp();
-			var rebind = function () {
-				self.render();
-				self.bindEvents();
-            }
-			this.menuPromise = this.menus.slashMenuMode().then(rebind);
+            this.unbindKeyboardForMenu(this.menus);
 		}
 
 		// TODO:  work dialogs into the scheme of things

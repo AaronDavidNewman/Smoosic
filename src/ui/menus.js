@@ -2,6 +2,7 @@
 class suiMenuBase {
 	constructor(params) {
 		Vex.Merge(this, params);
+        this.focusIndex = -1;
 	}
 
 	complete() {
@@ -14,6 +15,7 @@ class suiMenuManager {
 		Vex.Merge(this, suiMenuManager.defaults);
 		Vex.Merge(this, params);
 		this.bound = false;
+        this.hotkeyBindings={};
 	}
 
 	static get defaults() {
@@ -71,6 +73,12 @@ class suiMenuManager {
 
 		];
 	}
+    _advanceSelection(inc) {
+        var options = $('.menuContainer ul.menuElement li.menuOption');
+        inc = inc < 0 ? options.length - 1: 1;
+        this.menu.focusIndex = (this.menu.focusIndex+inc) % options.length;
+        $(options[this.menu.focusIndex]).find('button').focus();
+    }
 
 	get menuBindings() {
 		return this.menuBind;
@@ -92,15 +100,19 @@ class suiMenuManager {
 		var b = htmlHelpers.buildDom;
 		var r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length)
 			.css('left', '' + this.menuPosition.x + 'px')
-			.css('top', '' + this.menuPosition.y + 'px')
-			.css('height', '' + this.menu.menuItems.length * 35 + 'px');
+			.css('top', '' + this.menuPosition.y + 'px');			
+        var hotkey=0;
 		this.menu.menuItems.forEach((item) => {
 			r.append(
 				b('li').classes('menuOption').append(
-					b('button')
-					.text(item.text).attr('data-value', item.value)
+					b('button').attr('data-value',item.value)
+                    .append(b('span').classes('menuText').text(item.text))
+					
 					.append(
-						b('span').classes('icon icon-' + item.icon))));
+						b('span').classes('icon icon-' + item.icon))
+                     .append(b('span').classes('menu-key').text(''+hotkey))));
+            item.hotkey=hotkey;
+            hotkey += 1;
 		});
 		$(this.menuContainer).append(r.dom());
 		$('body').addClass('modal');
@@ -129,6 +141,11 @@ class suiMenuManager {
 				score: this.score
 			});
 		this.attach(this.menuContainer);
+        this.menu.menuItems.forEach((item) => {
+            if (item.hotkey) {
+                this.hotkeyBindings[item.hotkey] = item.value;
+            }
+        });
 	}
 
 	handleKeydown(event) {
@@ -145,7 +162,16 @@ class suiMenuManager {
 			$('body').trigger('menuDismiss');
 		}
 		if (this.menu) {
-			this.menu.keydown(event);
+            if (event.code == 'ArrowUp') {
+                this._advanceSelection(-1);
+            }
+            else if (event.code == 'ArrowDown') {
+                this._advanceSelection(1);
+            } else  if (this.hotkeyBindings[event.key]) {
+                $('button[data-value="'+this.hotkeyBindings[event.key]+'"]').click();
+            } else {
+			    this.menu.keydown(event);
+            }
 		}
 		if (this.tracker.selections.length == 0) {
 			this.unattach();
@@ -163,6 +189,7 @@ class suiMenuManager {
 
 	bindEvents() {
 		var self = this;
+        this.hotkeyBindings={};
 
 		if (!this.bound) {
 			this.keydownHandler = this.handleKeydown.bind(this);
@@ -382,15 +409,15 @@ class suiKeySignatureMenu extends suiMenuBase {
 			menuItems: [{
 					icon: 'key-sig-c',
 					text: 'C Major',
-					value: 'C'
+					value: 'C',
 				}, {
 					icon: 'key-sig-f',
 					text: 'F Major',
-					value: 'F'
+					value: 'F',
 				}, {
 					icon: 'key-sig-g',
 					text: 'G Major',
-					value: 'G'
+					value: 'G',
 				}, {
 					icon: 'key-sig-bb',
 					text: 'Bb Major',

@@ -195,12 +195,24 @@ div.ribbonButtonContainer.expanded {
 	top:33%;
 }
 
+#addDynamicsMenu {
+	font-size:.9em;
+}
+
+#addDynamicsMenu .left-text {
+	left:0;
+	top:20%;
+}
 #TextButtons {
     font-size:1.2em;
 }
 
 #lyrics {
     width:65px;
+}
+
+#lyrics .ribbon-button-text {
+	left:-5px;
 }
 
 #articulationButtons .left-text {
@@ -556,15 +568,6 @@ body.splashScreen .bugDialog {
 	opacity:0.7;
 }
 
-.menuOption {
-	width:128px;
-	height:32px;
-	padding:0;
-	position:relative;
-	background:#fff;
-}
-
-
 .musicRelief {
 	background:#999;
 	overflow:auto;
@@ -599,23 +602,39 @@ body.splashScreen .bugDialog {
 }
 
 .menuOption {
-
+	width:200px;
+	height:50px;
+	padding:0;
+	position:relative;
+	background:#fff;
 }
 
+.menuOption .menuText {
+    display:block;
+    flex:3;
+}
+
+.menuOption .icon {
+    display:block;
+    flex:1;
+}
+
+.menuOption .menuKey {
+    flex:1;
+    display:block;
+}
 .menuElement 	.menuOption button:focus-within {
 	background:#ccf;
 	border:2px green solid;
-	font-weigth: bold;
+	font-weight: bold;
 }
 
 .menuElement .menuOption button {
 	width: 100%;
     height: 100%;
-    position: absolute;
-    left: 0;
-	padding:0;
-	font-size: 10px;
-    text-align: left;
+	font-size: 1em;
+    display:flex;
+    flex-flow:row;
 }
 
 .overlay {
@@ -737,12 +756,6 @@ button.help-title:focus {
 	margin-right:7px;
 }
 
-.menuOption .icon {
-	position:absolute;
-	right:0;
-	top:0;
-	font-size:2em;
-}
 body.showAttributeDialog .attributeDialog {
 	display:block;
 	z-index:3;
