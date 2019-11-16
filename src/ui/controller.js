@@ -112,7 +112,7 @@ class suiController {
 	resizeEvent() {
 		var self = this;
 		var remap = function () {
-			return self.tracker.updateMap();
+			return self.tracker.updateMap(true);
 		}
 		if (this.resizing)
 			return;
@@ -171,7 +171,7 @@ class suiController {
 			setTimeout(function() {
 				// self.scrollRedrawStatus = true;
 				self.trackScrolling = false;
-				self.tracker.updateMap();
+				self.tracker.updateMap(true);
 			},500);
 		};
 		el.onscroll = scrollCallback;

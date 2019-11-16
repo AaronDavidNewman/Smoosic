@@ -90,6 +90,22 @@ class svgHelpers {
 		return new smoSvgBuilder(el);
 	}
 	
+	// ### boxNote
+	// update the note geometry based on current viewbox conditions
+	static updateNoteBox(svg,smoNote) {
+		var el = svg.getElementById(smoNote.renderId);
+		smoNote.renderedBox = svgHelpers.smoBox(el.getBoundingClientRect());
+		smoNote.logicalBox = svgHelpers.clientToLogical(svg,
+			smoNote.renderedBox);
+			
+		smoNote.getModifiers('SmoLyric').forEach((lyric) => {
+			var ar = Array.from(el.getElementsByClassName('vf-lyric'));
+			ar.forEach((lbox) => {
+				lyric.renderedBox = svgHelpers.smoBox(lbox.getBoundingClientRect());
+				
+			});
+		});
+	}
     static rect(svg,box,attrs,classes) {
         var rect = document.createELementNS(svgHelpers.namespace,'rect');
         attrs.forEach((attr) => {

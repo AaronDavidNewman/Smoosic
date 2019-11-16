@@ -187,7 +187,7 @@ class suiTracker {
 	//
 	// ### TODO:
 	// try to preserve the previous selection
-	_updateMap() {
+	_updateMap(rebox) {
 		var notes = [].slice.call(this.renderElement.getElementsByClassName('vf-stavenote'));
 		this.groupObjectMap = {};
 		this.objectGroupMap = {};
@@ -209,6 +209,10 @@ class suiTracker {
 								tick: tick,
 								pitches: []
 							};
+						// if we need to update the screen based on scroll
+						if (rebox) {
+							svgHelpers.updateNoteBox(this.layout.svg,note);
+						}
 							
 						var selection = new SmoSelection({
 									selector: selector,
@@ -258,9 +262,9 @@ class suiTracker {
 		this.pasteBuffer.setSelections(this.score, this.selections);
 	}
 	
-	updateMap() {
+	updateMap(rebox) {
 		const promise = new Promise((resolve, reject) => {
-             this._updateMap();
+             this._updateMap(rebox);
 			 resolve();
                 });
             return promise;

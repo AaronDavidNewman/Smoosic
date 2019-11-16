@@ -387,25 +387,12 @@ class VxMeasure {
             y: box.y,
             height: box.height,
             width: box.width
-        };
-		var noteBoxes = group.getElementsByClassName('vf-stavenote');
+        };		
 		
 
 		this.smoMeasure.voices.forEach((voice) => {
 			voice.notes.forEach((smoNote) =>  {
-				var vexNote = this.noteToVexMap[smoNote.attrs.id];
-				var el = this.context.svg.getElementById(smoNote.renderId);
-				smoNote.renderedBox = svgHelpers.smoBox(el.getBoundingClientRect());
-				smoNote.logicalBox = svgHelpers.clientToLogical(this.context.svg,
-				    smoNote.renderedBox);
-					
-				smoNote.getModifiers('SmoLyric').forEach((lyric) => {
-                    var ar = Array.from(el.getElementsByClassName('vf-lyric'));
-                    ar.forEach((lbox) => {
-                        lyric.renderedBox = svgHelpers.smoBox(lbox.getBoundingClientRect());
-                        
-                    });
-				});
+				svgHelpers.updateNoteBox(this.context.svg,smoNote);
 			});
 		});
 		
