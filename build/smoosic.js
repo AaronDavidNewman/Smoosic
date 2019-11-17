@@ -1123,6 +1123,15 @@ class htmlHelpers {
 	static get focusableElements() {
 		return ['a', 'input', 'select', 'textarea', 'button', 'li[tabindex]', 'div[tabindex]'];
 	}
+    static addFileLink(filename,txt,parent) {        
+        var anchor = $('<a></a>');
+        $(anchor).attr('href', 'data:application/octet-stream;charset=utf-8,' + encodeURI(txt));
+        $(anchor).attr('download',filename);
+        $(anchor).text('save');
+        $(parent).html('');
+        $(parent).append(anchor);    
+    }
+    
 	static inputTrapper(selector) {
 		var trapper = function () {
 			this.parent = $(selector);
@@ -3407,7 +3416,7 @@ class SmoScore {
 			'custom':{width:1,height:1}
 		}
 	}
-	
+    
 	static get orientationLabels() {
 		return ['portrait','landscape'];
 	}
@@ -9592,6 +9601,10 @@ class suiMenuManager {
 		};
 	}
     
+    setController(c) {
+        this.controller=c;
+    }
+    
     get score() {
         return this.layout.score;
     }
@@ -9699,13 +9712,14 @@ class suiMenuManager {
 	}
 
 	createMenu(action) {
-		this.menuPosition = this.tracker.selections[0].box;
+		this.menuPosition = {x:250,y:40,width:1,height:1};
 		var ctor = eval(action);
 		this.menu = new ctor({
 				position: this.menuPosition,
 				tracker: this.tracker,
 				editor: this.editor,
-				score: this.score
+				score: this.score,
+                controller:this.controller
 			});
 		this.attach(this.menuContainer);
         this.menu.menuItems.forEach((item) => {
@@ -9774,6 +9788,46 @@ class suiMenuManager {
 	}
 }
 
+class SuiFileMenu extends suiMenuBase {
+    constructor(params) {
+		params = (params ? params : {});
+		Vex.Merge(params, SuiFileMenu.defaults);
+		super(params);
+	}
+     static get defaults() {
+		return {
+			menuItems: [{
+					icon: 'icon-folder-open',
+					text: 'Open',
+					value: 'openFile'
+				}, {
+					icon: 'icon-floppy-disk',
+					text: 'Save',
+					value: 'saveFile' 
+                },	{
+					icon: '',
+					text: 'Cancel',
+					value: 'cancel'
+				}                
+            ]
+        };
+     }
+     selection(ev) {
+		var text = $(ev.currentTarget).attr('data-value');
+
+		if (text == 'saveFile') {
+            $('.saveLink a')[0].click();
+        } else if (text == 'openFile') {
+            SuiLoadFileDialog.createAndDisplay({
+			layout: this.layout,
+            controller:this.controller
+		    });
+        }
+		this.complete();
+	}
+	keydown(ev) {}
+     
+}
 class SuiTextMenu extends suiMenuBase {
     	constructor(params) {
 		params = (params ? params : {});
@@ -10860,7 +10914,8 @@ class SuiDialogFactory {
 			SmoSlur: 'SuiSlurAttributesDialog',
 			SmoDynamicText: 'SuiTextModifierDialog',
 			SmoVolta: 'SuiVoltaAttributeDialog',
-            SmoScoreText: 'SuiTextTransformDialog'
+            SmoScoreText: 'SuiTextTransformDialog',
+            SmoLoadScore:  'SuiLoadFileDialog'
 		};
 	}
 }
@@ -10979,6 +11034,97 @@ class SuiDialogBase {
 	}
 }
 
+class SuiLoadFileDialog extends SuiDialogBase {
+   
+    static get dialogElements() {
+		return [{
+				smoName: 'loadFile',
+				parameterName: 'jsonFile',
+				defaultValue: '',
+				control: 'SuiFileDownloadComponent',
+				label:'Load'
+			}];
+    }    
+    display() {
+		$('body').addClass('showAttributeDialog');
+		this.components.forEach((component) => {
+			component.bind();
+		});
+		
+		this._bindElements();
+		
+		this.controller.unbindKeyboardForDialog(this);
+        
+	}
+    
+    changed() {
+        this.value = this.components[0].getValue();
+        $(this.dgDom.element).find('.ok-button').prop('disabled',false);
+    }
+    commit() {
+        var scoreWorks = false;
+        var self=this;
+        if (this.value) {
+            try {
+                var score = SmoScore.deserialize(this.value);
+                var finish = function() {
+                    self.complete();
+                }
+                scoreWorks=true;
+                this.layout.unrenderAll();
+                this.layout.score = score;
+                this.layout.redraw().then(finish);                  
+            } catch (e) {
+                console.log('unable to score '+e);
+            }
+            if (!scoreWorks) {
+                this.complete();
+            }
+        }
+    }
+    _bindElements() {
+		var self = this;
+		var dgDom = this.dgDom;
+        
+        // disable until file is selected
+        $(dgDom.element).find('.ok-button').prop('disabled',true);
+
+		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+            self.commit();
+		});
+
+		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+			self.complete();	
+		});
+
+		$(dgDom.element).find('.remove-button').remove();
+	}
+    static createAndDisplay(params) {
+		var dg = new SuiLoadFileDialog({				
+				layout: params.controller.layout,
+				controller: params.controller
+			});
+		dg.display();
+	}
+    constructor(parameters) {
+		if (!(parameters.controller)) {
+			throw new Error('file dialog must have score');
+		}
+		var p = parameters;
+
+		super(SuiLoadFileDialog.dialogElements, {
+			id: 'dialog-layout',
+			top: (p.layout.score.layout.pageWidth / 2) - 200,
+			left: (p.layout.score.layout.pageHeight / 2) - 200,
+			label: 'Score Layout'
+		});
+		this.layout = p.layout;
+        this.value='';
+		// this.modifier = this.layout.score.layout;
+		this.controller = p.controller;
+		// this.backupOriginal();
+	}
+}
 class SuiTextTransformDialog  extends SuiDialogBase {
     static createAndDisplay(parameters) {
 		var dg = new SuiTextTransformDialog(parameters);
@@ -11904,6 +12050,49 @@ class SuiTextInPlace {
     }
 }
 
+class SuiFileDownloadComponent {
+    constructor(dialog, parameter) {
+        smoMusic.filteredMerge(
+            ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
+        if (!this.defaultValue) {
+            this.defaultValue = 0;
+        }
+        this.dialog = dialog;
+        this.value='';
+    }
+    get parameterId() {
+        return this.dialog.id + '-' + this.parameterName;
+    }
+    get html() {
+        var b = htmlHelpers.buildDom;
+        var id = this.parameterId;
+        var r = b('div').classes('select-file').attr('id', this.parameterId).attr('data-param', this.parameterName)
+            .append(b('input').attr('type', 'file').classes('file-button')
+                .attr('id', id + '-input')).append(
+                b('label').attr('for', id + '-input').text(this.label));
+        return r;
+    }
+    
+    _handleUploadedFiles(evt)  {
+        var reader = new FileReader();
+        var self=this;
+        reader.onload = function(file) {
+            self.value = file.target.result;
+            self.dialog.changed();
+        }
+        reader.readAsText(evt.target.files[0]);
+    }
+    getValue() {
+        return this.value;
+    }
+    bind() {
+        var self=this;
+        $('#'+this.parameterId).find('input').off('change').on('change',function(e) {
+            self._handleUploadedFiles(e);
+        });
+    }
+    
+}
 class SuiToggleComponent {
     constructor(dialog, parameter) {
         smoMusic.filteredMerge(
@@ -12039,7 +12228,7 @@ class defaultRibbonLayout {
 	}
 	
 	static get leftRibbonIds() {
-		return ['helpDialog', 'addStaffMenu', 'keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
+		return ['helpDialog', 'fileMenu','addStaffMenu', 'keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
 	}
 	static get noteButtonIds() {
 		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton',
@@ -12918,6 +13107,15 @@ class defaultRibbonLayout {
 				group: 'scoreEdit',
 				id: 'helpDialog'
 			}, {
+				leftText: 'File',
+				rightText: '/f',
+				icon: '',
+				classes: 'file-modify',
+				action: 'menu',
+				ctor: 'SuiFileMenu',
+				group: 'scoreEdit',
+				id: 'fileMenu'
+			}, {
 				leftText: 'Staves',
 				rightText: '/s',
 				icon: '',
@@ -13135,11 +13333,7 @@ class RibbonButtons {
 	}
 	_executeButtonMenu(buttonElement, buttonData) {
 		var self = this;
-		this.controller.detach();
-		var rebind = function () {
-			self._rebindController();
-		}
-		this.menuPromise = this.menus.slashMenuMode().then(rebind);
+        this.controller.unbindKeyboardForMenu(this.menus);
 		this.menus.createMenu(buttonData.ctor);
 	}
 	_bindCollapsibleAction(buttonElement, buttonData) {
@@ -14461,6 +14655,7 @@ class suiController {
 		this.undoStatus=0;
 		this.scrollRedrawStatus=0;
 		this.trackScrolling = false;
+        this.keyboardActive = false;
 
 		this.ribbon = new RibbonButtons({
 				ribbons: defaultRibbonLayout.ribbons,
@@ -14471,6 +14666,8 @@ class suiController {
 				score: this.score,
 				controller: this
 			});
+            
+        this.menus.setController(this);
 
 		// create globbal exception instance
 		this.exhandler = new SuiExceptionHandler(this);
@@ -14510,6 +14707,7 @@ class suiController {
 	// if anything has changed over some period, prepare to redraw everything.
 	pollRedraw() {
 		var self=this;
+        this.saveFile('myScore.json');
 		setTimeout(function() {
 			if (self.undoStatus != self.undoBuffer.opCount || self.scrollRedrawStatus) {
 				self.scrollRedrawStatus = false;
@@ -14623,6 +14821,7 @@ class suiController {
 			 .append(b('div').classes('textEdit hide'))
 			 .append(b('div').classes('attributeDialog'))
 			 .append(b('div').classes('helpDialog'))
+             .append(b('div').classes('saveLink'))
 			 .append(b('div').classes('bugDialog'))
 			 .append(b('div').classes('menuContainer'))
 			 .append(b('h1').classes('testTitle').text('Smoosic'))
@@ -14774,17 +14973,26 @@ class suiController {
 			self.bindEvents();
 		}
 		window.removeEventListener("keydown", this.keydownHandler, true);
+        this.keyboardActive = false;
 		dialog.closeDialogPromise.then(rebind);		
 	}
     
     unbindKeyboardForMenu(menuMgr) {
+
         window.removeEventListener("keydown", this.keydownHandler, true);
         var self=this;
         var rebind = function () {
             self.render();
             self.bindEvents();
         }
+        this.keyboardActive = false;
         menuMgr.slashMenuMode().then(rebind);
+    }
+    
+    saveFile(filename) {
+        var txt = this.layout.score.serialize();
+        txt = JSON.stringify(txt,null,' ');
+        htmlHelpers.addFileLink(filename,txt,$('.saveLInk'));
     }
 
 	handleKeydown(evdata) {
@@ -14840,6 +15048,11 @@ class suiController {
 	bindEvents() {
 		var self = this;
 		var tracker = this.tracker;
+        if (this.keyboardActive) {
+            return; // already bound.
+        }
+        this.keyboardActive = true;
+
 		$(this.renderElement).off('mousemove').on('mousemove', function (ev) {
 			tracker.intersectingArtifact({
 				x: ev.clientX,

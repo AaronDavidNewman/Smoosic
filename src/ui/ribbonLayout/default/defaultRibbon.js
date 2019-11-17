@@ -25,7 +25,7 @@ class defaultRibbonLayout {
 	}
 	
 	static get leftRibbonIds() {
-		return ['helpDialog', 'addStaffMenu', 'keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
+		return ['helpDialog', 'fileMenu','addStaffMenu', 'keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
 	}
 	static get noteButtonIds() {
 		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton',
@@ -903,6 +903,15 @@ class defaultRibbonLayout {
 				ctor: 'helpModal',
 				group: 'scoreEdit',
 				id: 'helpDialog'
+			}, {
+				leftText: 'File',
+				rightText: '/f',
+				icon: '',
+				classes: 'file-modify',
+				action: 'menu',
+				ctor: 'SuiFileMenu',
+				group: 'scoreEdit',
+				id: 'fileMenu'
 			}, {
 				leftText: 'Staves',
 				rightText: '/s',

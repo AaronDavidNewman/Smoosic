@@ -370,6 +370,49 @@ class SuiTextInPlace {
     }
 }
 
+class SuiFileDownloadComponent {
+    constructor(dialog, parameter) {
+        smoMusic.filteredMerge(
+            ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
+        if (!this.defaultValue) {
+            this.defaultValue = 0;
+        }
+        this.dialog = dialog;
+        this.value='';
+    }
+    get parameterId() {
+        return this.dialog.id + '-' + this.parameterName;
+    }
+    get html() {
+        var b = htmlHelpers.buildDom;
+        var id = this.parameterId;
+        var r = b('div').classes('select-file').attr('id', this.parameterId).attr('data-param', this.parameterName)
+            .append(b('input').attr('type', 'file').classes('file-button')
+                .attr('id', id + '-input')).append(
+                b('label').attr('for', id + '-input').text(this.label));
+        return r;
+    }
+    
+    _handleUploadedFiles(evt)  {
+        var reader = new FileReader();
+        var self=this;
+        reader.onload = function(file) {
+            self.value = file.target.result;
+            self.dialog.changed();
+        }
+        reader.readAsText(evt.target.files[0]);
+    }
+    getValue() {
+        return this.value;
+    }
+    bind() {
+        var self=this;
+        $('#'+this.parameterId).find('input').off('change').on('change',function(e) {
+            self._handleUploadedFiles(e);
+        });
+    }
+    
+}
 class SuiToggleComponent {
     constructor(dialog, parameter) {
         smoMusic.filteredMerge(

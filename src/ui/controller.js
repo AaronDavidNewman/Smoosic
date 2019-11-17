@@ -24,6 +24,7 @@ class suiController {
 		this.undoStatus=0;
 		this.scrollRedrawStatus=0;
 		this.trackScrolling = false;
+        this.keyboardActive = false;
 
 		this.ribbon = new RibbonButtons({
 				ribbons: defaultRibbonLayout.ribbons,
@@ -34,6 +35,8 @@ class suiController {
 				score: this.score,
 				controller: this
 			});
+            
+        this.menus.setController(this);
 
 		// create globbal exception instance
 		this.exhandler = new SuiExceptionHandler(this);
@@ -73,6 +76,7 @@ class suiController {
 	// if anything has changed over some period, prepare to redraw everything.
 	pollRedraw() {
 		var self=this;
+        this.saveFile('myScore.json');
 		setTimeout(function() {
 			if (self.undoStatus != self.undoBuffer.opCount || self.scrollRedrawStatus) {
 				self.scrollRedrawStatus = false;
@@ -186,6 +190,7 @@ class suiController {
 			 .append(b('div').classes('textEdit hide'))
 			 .append(b('div').classes('attributeDialog'))
 			 .append(b('div').classes('helpDialog'))
+             .append(b('div').classes('saveLink'))
 			 .append(b('div').classes('bugDialog'))
 			 .append(b('div').classes('menuContainer'))
 			 .append(b('h1').classes('testTitle').text('Smoosic'))
@@ -337,17 +342,26 @@ class suiController {
 			self.bindEvents();
 		}
 		window.removeEventListener("keydown", this.keydownHandler, true);
+        this.keyboardActive = false;
 		dialog.closeDialogPromise.then(rebind);		
 	}
     
     unbindKeyboardForMenu(menuMgr) {
+
         window.removeEventListener("keydown", this.keydownHandler, true);
         var self=this;
         var rebind = function () {
             self.render();
             self.bindEvents();
         }
+        this.keyboardActive = false;
         menuMgr.slashMenuMode().then(rebind);
+    }
+    
+    saveFile(filename) {
+        var txt = this.layout.score.serialize();
+        txt = JSON.stringify(txt,null,' ');
+        htmlHelpers.addFileLink(filename,txt,$('.saveLInk'));
     }
 
 	handleKeydown(evdata) {
@@ -403,6 +417,11 @@ class suiController {
 	bindEvents() {
 		var self = this;
 		var tracker = this.tracker;
+        if (this.keyboardActive) {
+            return; // already bound.
+        }
+        this.keyboardActive = true;
+
 		$(this.renderElement).off('mousemove').on('mousemove', function (ev) {
 			tracker.intersectingArtifact({
 				x: ev.clientX,

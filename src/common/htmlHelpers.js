@@ -59,6 +59,15 @@ class htmlHelpers {
 	static get focusableElements() {
 		return ['a', 'input', 'select', 'textarea', 'button', 'li[tabindex]', 'div[tabindex]'];
 	}
+    static addFileLink(filename,txt,parent) {        
+        var anchor = $('<a></a>');
+        $(anchor).attr('href', 'data:application/octet-stream;charset=utf-8,' + encodeURI(txt));
+        $(anchor).attr('download',filename);
+        $(anchor).text('save');
+        $(parent).html('');
+        $(parent).append(anchor);    
+    }
+    
 	static inputTrapper(selector) {
 		var trapper = function () {
 			this.parent = $(selector);

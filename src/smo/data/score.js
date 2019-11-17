@@ -52,7 +52,7 @@ class SmoScore {
 			'custom':{width:1,height:1}
 		}
 	}
-	
+    
 	static get orientationLabels() {
 		return ['portrait','landscape'];
 	}

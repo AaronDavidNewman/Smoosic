@@ -23,7 +23,8 @@ class SuiDialogFactory {
 			SmoSlur: 'SuiSlurAttributesDialog',
 			SmoDynamicText: 'SuiTextModifierDialog',
 			SmoVolta: 'SuiVoltaAttributeDialog',
-            SmoScoreText: 'SuiTextTransformDialog'
+            SmoScoreText: 'SuiTextTransformDialog',
+            SmoLoadScore:  'SuiLoadFileDialog'
 		};
 	}
 }
@@ -142,6 +143,97 @@ class SuiDialogBase {
 	}
 }
 
+class SuiLoadFileDialog extends SuiDialogBase {
+   
+    static get dialogElements() {
+		return [{
+				smoName: 'loadFile',
+				parameterName: 'jsonFile',
+				defaultValue: '',
+				control: 'SuiFileDownloadComponent',
+				label:'Load'
+			}];
+    }    
+    display() {
+		$('body').addClass('showAttributeDialog');
+		this.components.forEach((component) => {
+			component.bind();
+		});
+		
+		this._bindElements();
+		
+		this.controller.unbindKeyboardForDialog(this);
+        
+	}
+    
+    changed() {
+        this.value = this.components[0].getValue();
+        $(this.dgDom.element).find('.ok-button').prop('disabled',false);
+    }
+    commit() {
+        var scoreWorks = false;
+        var self=this;
+        if (this.value) {
+            try {
+                var score = SmoScore.deserialize(this.value);
+                var finish = function() {
+                    self.complete();
+                }
+                scoreWorks=true;
+                this.layout.unrenderAll();
+                this.layout.score = score;
+                this.layout.redraw().then(finish);                  
+            } catch (e) {
+                console.log('unable to score '+e);
+            }
+            if (!scoreWorks) {
+                this.complete();
+            }
+        }
+    }
+    _bindElements() {
+		var self = this;
+		var dgDom = this.dgDom;
+        
+        // disable until file is selected
+        $(dgDom.element).find('.ok-button').prop('disabled',true);
+
+		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+            self.commit();
+		});
+
+		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+			self.complete();	
+		});
+
+		$(dgDom.element).find('.remove-button').remove();
+	}
+    static createAndDisplay(params) {
+		var dg = new SuiLoadFileDialog({				
+				layout: params.controller.layout,
+				controller: params.controller
+			});
+		dg.display();
+	}
+    constructor(parameters) {
+		if (!(parameters.controller)) {
+			throw new Error('file dialog must have score');
+		}
+		var p = parameters;
+
+		super(SuiLoadFileDialog.dialogElements, {
+			id: 'dialog-layout',
+			top: (p.layout.score.layout.pageWidth / 2) - 200,
+			left: (p.layout.score.layout.pageHeight / 2) - 200,
+			label: 'Score Layout'
+		});
+		this.layout = p.layout;
+        this.value='';
+		// this.modifier = this.layout.score.layout;
+		this.controller = p.controller;
+		// this.backupOriginal();
+	}
+}
 class SuiTextTransformDialog  extends SuiDialogBase {
     static createAndDisplay(parameters) {
 		var dg = new SuiTextTransformDialog(parameters);

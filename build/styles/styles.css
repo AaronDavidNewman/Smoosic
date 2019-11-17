@@ -553,6 +553,35 @@ body.splashScreen .bugDialog {
 	display:none;
 }
 
+@media print {
+    .controls-left,.controls-top,.testTitle { 
+       display:none;
+    }
+    
+    .musicRelief {
+        overflow:hidden;
+    }
+    .workspace {
+        padding-top: 0;
+        position:relative;
+        padding-left: 0;
+        background: #999;
+    }
+
+}
+
+@media screen {
+  	.musicRelief {
+            overflow:auto;
+    }
+    .workspace {
+        padding-top: 2px;
+        position:relative;
+        padding-left: 120px;
+        background: #999;
+    }
+}
+
 .controls-left .expanded {
 	display:block;
 }
@@ -570,16 +599,16 @@ body.splashScreen .bugDialog {
 
 .musicRelief {
 	background:#999;
-	overflow:auto;
+
 }
 .workspace-container {
 	background:#999;
 }
-.workspace {
-	padding-top: 2px;
-	position:relative;
-	padding-left: 120px;
-	background: #999;
+
+
+
+.saveLink {
+    display:none;
 }
 
 .musicContainer {

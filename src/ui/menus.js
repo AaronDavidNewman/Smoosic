@@ -25,6 +25,10 @@ class suiMenuManager {
 		};
 	}
     
+    setController(c) {
+        this.controller=c;
+    }
+    
     get score() {
         return this.layout.score;
     }
@@ -132,13 +136,14 @@ class suiMenuManager {
 	}
 
 	createMenu(action) {
-		this.menuPosition = this.tracker.selections[0].box;
+		this.menuPosition = {x:250,y:40,width:1,height:1};
 		var ctor = eval(action);
 		this.menu = new ctor({
 				position: this.menuPosition,
 				tracker: this.tracker,
 				editor: this.editor,
-				score: this.score
+				score: this.score,
+                controller:this.controller
 			});
 		this.attach(this.menuContainer);
         this.menu.menuItems.forEach((item) => {
@@ -207,6 +212,46 @@ class suiMenuManager {
 	}
 }
 
+class SuiFileMenu extends suiMenuBase {
+    constructor(params) {
+		params = (params ? params : {});
+		Vex.Merge(params, SuiFileMenu.defaults);
+		super(params);
+	}
+     static get defaults() {
+		return {
+			menuItems: [{
+					icon: 'icon-folder-open',
+					text: 'Open',
+					value: 'openFile'
+				}, {
+					icon: 'icon-floppy-disk',
+					text: 'Save',
+					value: 'saveFile' 
+                },	{
+					icon: '',
+					text: 'Cancel',
+					value: 'cancel'
+				}                
+            ]
+        };
+     }
+     selection(ev) {
+		var text = $(ev.currentTarget).attr('data-value');
+
+		if (text == 'saveFile') {
+            $('.saveLink a')[0].click();
+        } else if (text == 'openFile') {
+            SuiLoadFileDialog.createAndDisplay({
+			layout: this.layout,
+            controller:this.controller
+		    });
+        }
+		this.complete();
+	}
+	keydown(ev) {}
+     
+}
 class SuiTextMenu extends suiMenuBase {
     	constructor(params) {
 		params = (params ? params : {});
