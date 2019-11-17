@@ -73,6 +73,14 @@ class suiMenuManager {
 				altKey: false,
 				shiftKey: false,
 				action: "SuiTextMenu"
+			},
+			 {
+				event: "keydown",
+				key: "m",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "SuiTimeSignatureMenu"
 			}
 
 		];
@@ -212,6 +220,8 @@ class suiMenuManager {
 	}
 }
 
+
+
 class SuiFileMenu extends suiMenuBase {
     constructor(params) {
 		params = (params ? params : {});
@@ -221,11 +231,11 @@ class SuiFileMenu extends suiMenuBase {
      static get defaults() {
 		return {
 			menuItems: [{
-					icon: 'icon-folder-open',
+					icon: 'folder-open',
 					text: 'Open',
 					value: 'openFile'
 				}, {
-					icon: 'icon-floppy-disk',
+					icon: 'floppy-disk',
 					text: 'Save',
 					value: 'saveFile' 
                 },	{
@@ -442,6 +452,41 @@ class SuiDynamicsMenu extends suiMenuBase {
 	keydown(ev) {}
 }
 
+class SuiTimeSignatureMenu extends suiMenuBase {
+    constructor(params) {
+		params = (params ? params : {});
+		Vex.Merge(params, SuiTimeSignatureMenu.defaults);
+		super(params);
+	}
+    static get defaults() {
+		return {
+			menuItems: [{
+					icon: 'sixeight',
+					text: '6/8',
+					value: 'sixeight',
+				},
+				 {
+					icon: '',
+					text: 'Cancel',
+					value: 'cancel'
+				}
+                ]
+        };
+    }
+    
+    selection(ev) {
+		var keySig = $(ev.currentTarget).attr('data-value');
+		var changed = [];
+		this.tracker.selections.forEach((sel) => {
+			if (changed.indexOf(sel.selector.measure) === -1) {
+				changed.push(sel.selector.measure);
+				SmoUndoable.addKeySignature(this.score, sel, keySig, this.editor.undoBuffer);
+			}
+		});
+		this.complete();
+	}
+	keydown(ev) {}
+}
 class suiKeySignatureMenu extends suiMenuBase {
 
 	constructor(params) {

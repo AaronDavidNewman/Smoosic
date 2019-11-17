@@ -133,6 +133,9 @@ class suiEditor {
             return;
         // code='Digit3'
         var interval = parseInt(keyEvent.code[5]) - 1;
+        if (isNaN(interval) || interval < 2 || interval > 7) {
+            return;
+        }
         this.intervalAdd(interval, keyEvent.shiftKey ? -1 : 1);
     }
 
