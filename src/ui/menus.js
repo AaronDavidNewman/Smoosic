@@ -151,7 +151,8 @@ class suiMenuManager {
 				tracker: this.tracker,
 				editor: this.editor,
 				score: this.score,
-                controller:this.controller
+                controller:this.controller,
+                closePromise:this.closeMenuPromise
 			});
 		this.attach(this.menuContainer);
         this.menu.menuItems.forEach((item) => {
@@ -250,11 +251,16 @@ class SuiFileMenu extends suiMenuBase {
 		var text = $(ev.currentTarget).attr('data-value');
 
 		if (text == 'saveFile') {
-            $('.saveLink a')[0].click();
+            SuiSaveFileDialog.createAndDisplay({
+			layout: this.layout,
+            controller:this.controller,
+            closeMenuPromise:this.closePromise
+		    });            
         } else if (text == 'openFile') {
             SuiLoadFileDialog.createAndDisplay({
 			layout: this.layout,
-            controller:this.controller
+            controller:this.controller,
+            closeMenuPromise:this.closePromise
 		    });
         }
 		this.complete();

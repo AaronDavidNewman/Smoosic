@@ -16,6 +16,23 @@ class SmoOperation {
 		noteSelection.measure.changed = true;
 		noteSelection.note.endBeam = !(noteSelection.note.endBeam);
 	}
+    
+    static setTimeSignature(score,selections,timeSignature) {
+        var selectors = [];
+        selections.forEach((selection) => {
+            for (var i=0;i<score.staves.length;++i) {
+                var measureSel = {
+                    staff: i,
+                    measure: selection.selector.measure,
+                    voice: selection.selector.voice
+                };
+                selectors.push(measureSel);
+            }
+        });
+        
+        selectors.forEach((selector) => {
+        })
+    }
 
 	static batchSelectionOperation(score, selections, operation) {
 		var measureTicks = [];

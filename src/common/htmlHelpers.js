@@ -61,7 +61,8 @@ class htmlHelpers {
 	}
     static addFileLink(filename,txt,parent) {        
         var anchor = $('<a></a>');
-        $(anchor).attr('href', 'data:application/octet-stream;charset=utf-8,' + encodeURI(txt));
+        var url = URL.createObjectURL(new Blob([txt],{type:'application/octet-stream'}));
+        $(anchor).attr('href',url);
         $(anchor).attr('download',filename);
         $(anchor).text('save');
         $(parent).html('');

@@ -234,6 +234,92 @@ class SuiLoadFileDialog extends SuiDialogBase {
 		// this.backupOriginal();
 	}
 }
+
+class SuiSaveFileDialog extends SuiDialogBase {
+   
+    static get dialogElements() {
+		return [{
+				smoName: 'saveFileName',
+				parameterName: 'saveFileName',
+				defaultValue: '',
+				control: 'SuiTextInputComponent',
+				label:'Save'
+			}];
+    }    
+    display() {
+		$('body').addClass('showAttributeDialog');
+		this.components.forEach((component) => {
+			component.bind();
+		});		
+		this._bindElements();
+        
+        // make sure keyboard is unbound or we get dupicate key events.
+        var self=this;
+        function getKeys() {
+            self.controller.unbindKeyboardForDialog(self);
+        }
+        this.startPromise.then(getKeys);
+	}
+    
+    changed() {
+        this.value = this.components[0].getValue();        
+    }
+    commit() {
+        var filename = this.value;
+        if (!filename) {
+            filename='myScore.json';
+        }
+        if (filename.indexOf('.json') < 0) {
+            filename = filename + '.json';
+        }
+        var txt = this.layout.score.serialize();
+        txt = JSON.stringify(txt,null,' ');
+        htmlHelpers.addFileLink(filename,txt,$('.saveLink'));
+        $('.saveLink a')[0].click();
+        this.complete();        
+    }
+    _bindElements() {
+		var self = this;
+		var dgDom = this.dgDom;
+
+		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+            self.commit();
+		});
+
+		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+			self.complete();	
+		});
+
+		$(dgDom.element).find('.remove-button').remove();
+	}
+    static createAndDisplay(params) {
+		var dg = new SuiSaveFileDialog({				
+				layout: params.controller.layout,
+				controller: params.controller,
+                closeMenuPromise:params.closeMenuPromise
+			});
+		dg.display();
+	}
+    constructor(parameters) {
+		if (!(parameters.controller)) {
+			throw new Error('file dialog must have score');
+		}
+		var p = parameters;
+
+		super(SuiSaveFileDialog.dialogElements, {
+			id: 'dialog-layout',
+			top: (p.layout.score.layout.pageWidth / 2) - 200,
+			left: (p.layout.score.layout.pageHeight / 2) - 200,
+			label: 'Score Layout'
+		});
+        this.startPromise=p.closeMenuPromise;
+		this.layout = p.layout;
+        this.value='';
+		// this.modifier = this.layout.score.layout;
+		this.controller = p.controller;
+		// this.backupOriginal();
+	}
+}
 class SuiTextTransformDialog  extends SuiDialogBase {
     static createAndDisplay(parameters) {
 		var dg = new SuiTextTransformDialog(parameters);

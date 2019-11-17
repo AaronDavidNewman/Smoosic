@@ -76,7 +76,6 @@ class suiController {
 	// if anything has changed over some period, prepare to redraw everything.
 	pollRedraw() {
 		var self=this;
-        this.saveFile('myScore.json');
 		setTimeout(function() {
 			if (self.undoStatus != self.undoBuffer.opCount || self.scrollRedrawStatus) {
 				self.scrollRedrawStatus = false;
@@ -358,12 +357,7 @@ class suiController {
         menuMgr.slashMenuMode().then(rebind);
     }
     
-    saveFile(filename) {
-        var txt = this.layout.score.serialize();
-        txt = JSON.stringify(txt,null,' ');
-        htmlHelpers.addFileLink(filename,txt,$('.saveLInk'));
-    }
-
+   
 	handleKeydown(evdata) {
 		var self = this;
 
