@@ -23,15 +23,52 @@ class SmoOperation {
             for (var i=0;i<score.staves.length;++i) {
                 var measureSel = {
                     staff: i,
-                    measure: selection.selector.measure,
-                    voice: selection.selector.voice
+                    measure: selection.selector.measure
                 };
                 selectors.push(measureSel);
             }
         });
+        var tsTicks = smoMusic.timeSignatureToTicks(timeSignature);
         
         selectors.forEach((selector) => {
-        })
+            var params={};
+            var attrs = SmoMeasure.defaultAttributes.filter((aa) => aa != 'timeSignature');
+            var proto = SmoSelection.measureSelection(score,selector.staff,selector.measure);
+            smoMusic.serializedMerge(attrs,proto,params);
+            params.timeSignature = timeSignature;
+            var nm = SmoMeasure.getDefaultMeasure(params);
+            var spareNotes = SmoMeasure.getDefaultNotes(params);
+            var ticks = 0;
+            voices = [];
+            proto.voices.forEach((voice) => {
+                var nvoice=[];
+                for (var i=0;i<voice.notes.length;++i) {
+                    var pnote = voice.notes[i];
+                    var nnote = SmoNote.deserialize(SmoNote.serialize(pnote));
+                    if (ticks + pnote.tickCount <= tsTicks) {
+                        nnote.ticks = JSON.parse(JSON.stringify(pnote.ticks))
+                        nvoice.push(nnote);
+                        ticks += nnote.tickCount;
+                    } else {
+                        var remain = (ticks + pnote.tickCount)-tsTicks;
+                        nnote.ticks = {numerator:remain,denominator:1,remainder:0};
+                        nvoice.push(nnote);
+                        ticks += nnote.tickCount;
+                    }
+                    if (ticks >= tsTicks) {
+                        break;
+                    }
+                }
+                if (ticks < tsTicks) {
+                    var adjNote = nvoice[nvoice.length - 1];
+                    adjNote.ticks.numerator += tsTicks-ticks;
+                }
+                voices.push(nvoice);            
+                
+            });
+            mn.voices=voices;
+            score.replaceMeasure(selector,nm);
+        });
     }
 
 	static batchSelectionOperation(score, selections, operation) {

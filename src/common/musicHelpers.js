@@ -436,6 +436,15 @@ class smoMusic {
 		}
 		return smoMusic.keySignatureLength[key];
 	}
+    
+    static timeSignatureToTicks(timeSignature) {
+        var nd = timeSignature.split('/');
+        var num = parseInt(nd[0]);
+        var den = parseInt(nd[1]);
+        
+        var base = 2048*(8/den);
+        return base*num;
+    }
     static smoTicksToVexDots(ticks) {
         var vd = smoMusic.ticksToDuration[ticks];
         var dots = (vd.match(/d/g) || []).length;

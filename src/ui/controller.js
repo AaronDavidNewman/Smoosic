@@ -225,6 +225,8 @@ class suiController {
 		params.editor = new suiEditor(params);
 		params.menus = new suiMenuManager(params);
 		var controller = new suiController(params);
+        var score = SmoScore.deserialize(inventionJson);
+        params.layout.score = score;
 		return controller;
 	}
 	

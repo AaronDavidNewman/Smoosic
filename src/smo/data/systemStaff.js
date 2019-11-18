@@ -227,7 +227,14 @@ class SmoSystemStaff {
 		});
 		var sm=[];
 		this.modifiers.forEach((mod)=> {
+            // Bug: if we are deleting a measure before the selector, change the measure number.
 			if (mod.startSelector.measure != index && mod.endSelector.measure != index) {
+                if (index < mod.startSelector.measure) {
+                    mod.startSelector.measure -= 1;
+                }
+                if (index < mod.endSelector.measure) {
+                    mod.endSelector.measure -= 1;
+                }
 				sm.push(mod);
 			}
 		});
