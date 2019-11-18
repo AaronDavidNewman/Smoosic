@@ -1,7 +1,7 @@
 // # dbComponents - components of modal dialogs.
 
 // ## SuiRockerComponent
-// ## An integer input box with +- buttons.
+// A numeric input box with +- buttons.   Adjustable type and scale
 class SuiRockerComponent {
 	static get dataTypes() {
 		return ['int','float','percent'];
@@ -122,7 +122,10 @@ class SuiRockerComponent {
     }
 }
 
-
+// ## SuiDragText
+// A component that lets you drag the text you are editing to anywhere on the score.
+// The text is not really part of the dialog but the location of the text appears 
+// in other dialog fields. 
 class SuiDragText {
     constructor(dialog,parameter) {
         smoMusic.filteredMerge(
@@ -170,11 +173,7 @@ class SuiDragText {
         return $(this.dialog.dgDom.element).find('#' + pid).find('button');
     }
     _handleEndDrag() {
-        var svgBox = svgHelpers.clientToLogical(this.dialog.layout.svg,svgHelpers.smoBox(this.editor.editText.getBoundingClientRect()));
-                
-        // textBox.x += domBox.x-textBox.x;
-        // textBox.y -= domBox.y-textBox.y;
-        // var svgBox = svgHelpers.clientToLogical(this.dialog.layout.svg,textBox);
+        var svgBox = svgHelpers.clientToLogical(this.dialog.layout.svg,svgHelpers.smoBox(this.editor.editText.getBoundingClientRect()));                
         var offsetBox = this.editor.editText.getBBox();
         var x = svgBox.x;
         var y = svgBox.y+svgBox.height-offsetBox.y;
@@ -226,7 +225,7 @@ class SuiDragText {
     }
 }
 
-
+// ## TBD: do this.
 class SuiResizeTextBox {
     constructor(dialog,parameter) {
         smoMusic.filteredMerge(
@@ -298,6 +297,10 @@ class SuiResizeTextBox {
         });
     }
 }
+
+// ## SuiTextInPlace
+// Edit the text in an SVG element, in the same scale etc. as the text in the score SVG DOM.
+// This component just manages the text editing component of hte renderer.
 class SuiTextInPlace {
     constructor(dialog,parameter) {
         smoMusic.filteredMerge(
@@ -370,6 +373,8 @@ class SuiTextInPlace {
     }
 }
 
+// ## SuiTextInputComponent
+// Just get text from an input, such as a filename.
 class SuiTextInputComponent {
     constructor(dialog, parameter) {
         smoMusic.filteredMerge(
@@ -404,6 +409,9 @@ class SuiTextInputComponent {
         });
     }    
 }
+
+// ## SuiFileDownloadComponent
+// Download a test file using the file input.
 class SuiFileDownloadComponent {
     constructor(dialog, parameter) {
         smoMusic.filteredMerge(
@@ -447,6 +455,9 @@ class SuiFileDownloadComponent {
     }
     
 }
+
+// ## SuiToggleComponent
+// Simple on/off behavior
 class SuiToggleComponent {
     constructor(dialog, parameter) {
         smoMusic.filteredMerge(

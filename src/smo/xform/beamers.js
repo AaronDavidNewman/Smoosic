@@ -101,7 +101,7 @@ class smoBeamModifier extends BeamModifierBase {
         }
 
         // don't beam > 1/4 note in 4/4 time
-        if (iterator.delta >= this.beamBeats) {
+        if (iterator.delta >= 4096) {
 			this._completeGroup();
             this._advanceGroup();
             return note;

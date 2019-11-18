@@ -2245,7 +2245,7 @@ class SmoMeasure {
 			denominator: 1,
 			remainder: 0
 		};
-		if (meterNumbers[0] % 3 == 0) {
+		if (meterNumbers[1]  == 8) {
 			ticks = {
 				numerator: 2048,
 				denominator: 1,
@@ -4466,7 +4466,7 @@ class smoBeamModifier extends BeamModifierBase {
         }
 
         // don't beam > 1/4 note in 4/4 time
-        if (iterator.delta >= this.beamBeats) {
+        if (iterator.delta >= 4096) {
 			this._completeGroup();
             this._advanceGroup();
             return note;
@@ -5257,18 +5257,18 @@ class SmoOperation {
         selectors.forEach((selector) => {
             var params={};
             var attrs = SmoMeasure.defaultAttributes.filter((aa) => aa != 'timeSignature');
-            var proto = SmoSelection.measureSelection(score,selector.staff,selector.measure);
+            var proto = SmoSelection.measureSelection(score,selector.staff,selector.measure).measure;
             smoMusic.serializedMerge(attrs,proto,params);
             params.timeSignature = timeSignature;
             var nm = SmoMeasure.getDefaultMeasure(params);
             var spareNotes = SmoMeasure.getDefaultNotes(params);
             var ticks = 0;
-            voices = [];
+            var voices = [];
             proto.voices.forEach((voice) => {
                 var nvoice=[];
                 for (var i=0;i<voice.notes.length;++i) {
                     var pnote = voice.notes[i];
-                    var nnote = SmoNote.deserialize(SmoNote.serialize(pnote));
+                    var nnote = SmoNote.deserialize(pnote.serialize());
                     if (ticks + pnote.tickCount <= tsTicks) {
                         nnote.ticks = JSON.parse(JSON.stringify(pnote.ticks))
                         nvoice.push(nnote);
@@ -5287,10 +5287,10 @@ class SmoOperation {
                     var adjNote = nvoice[nvoice.length - 1];
                     adjNote.ticks.numerator += tsTicks-ticks;
                 }
-                voices.push(nvoice);            
+                voices.push({notes:nvoice});            
                 
             });
-            mn.voices=voices;
+            nm.voices=voices;
             score.replaceMeasure(selector,nm);
         });
     }
@@ -6043,6 +6043,7 @@ class SmoUndoable {
 	static noop(score,undoBuffer) {
         undoBuffer.addBuffer('Backup', 'score', null, score);		
 	}
+        
 	static measureSelectionOp(score,selection,op,params,undoBuffer,description) {
 		undoBuffer.addBuffer(description, 'measure', selection.selector, selection.measure);
 		SmoOperation[op](score,selection,params);
@@ -9715,6 +9716,13 @@ class suiMenuManager {
 				altKey: false,
 				shiftKey: false,
 				action: "SuiAddStaffMenu"
+			}, {
+				event: "keydown",
+				key: "f",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "SuiFileMenu"
 			},
 			 {
 				event: "keydown",
@@ -9882,6 +9890,10 @@ class SuiFileMenu extends suiMenuBase {
      static get defaults() {
 		return {
 			menuItems: [{
+					icon: 'folder-new',
+					text: 'New Score',
+					value: 'newFile'
+				},{
 					icon: 'folder-open',
 					text: 'Open',
 					value: 'openFile'
@@ -9912,6 +9924,11 @@ class SuiFileMenu extends suiMenuBase {
             controller:this.controller,
             closeMenuPromise:this.closePromise
 		    });
+        } else if (text == 'newFile') {
+            this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
+            var score = SmoScore.getDefaultScore();
+            this.controller.layout.unrenderAll();
+            this.controller.layout.score = score;
         }
 		this.complete();
 	}
@@ -10119,9 +10136,28 @@ class SuiTimeSignatureMenu extends suiMenuBase {
 			menuItems: [{
 					icon: 'sixeight',
 					text: '6/8',
-					value: 'sixeight',
-				},
-				 {
+					value: '6/8',
+				},{
+					icon: 'threefour',
+					text: '3/4',
+					value: '3/4',
+				},{
+					icon: 'twofour',
+					text: '2/4',
+					value: '2/4',
+				},{
+					icon: 'twelveeight',
+					text: '12/8',
+					value: '12/8',
+				},{
+					icon: 'seveneight',
+					text: '7/8',
+					value: '7/8',
+				},{
+					icon: 'fiveeight',
+					text: '5/8',
+					value: '5/8',
+				},{
 					icon: '',
 					text: 'Cancel',
 					value: 'cancel'
@@ -10131,14 +10167,10 @@ class SuiTimeSignatureMenu extends suiMenuBase {
     }
     
     selection(ev) {
-		var keySig = $(ev.currentTarget).attr('data-value');
-		var changed = [];
-		this.tracker.selections.forEach((sel) => {
-			if (changed.indexOf(sel.selector.measure) === -1) {
-				changed.push(sel.selector.measure);
-				SmoUndoable.addKeySignature(this.score, sel, keySig, this.editor.undoBuffer);
-			}
-		});
+		var timeSig = $(ev.currentTarget).attr('data-value');
+        this.controller.layout.unrenderAll();
+        SmoUndoable.scoreSelectionOp(this.controller.layout.score,this.tracker.selections,
+            'setTimeSignature',timeSig,this.controller.undoBuffer,'change time signature');
 		this.complete();
 	}
 	keydown(ev) {}
@@ -11159,7 +11191,59 @@ class SuiDialogBase {
 	}
 }
 
-class SuiLoadFileDialog extends SuiDialogBase {
+class SuiFileDialog extends SuiDialogBase {
+     constructor(parameters) {
+		if (!(parameters.controller)) {
+			throw new Error('file dialog must have score');
+		}
+		var p = parameters;
+        var ctor = eval(parameters.ctor);
+
+		super(ctor.dialogElements, {
+			id: 'dialog-layout',
+			top: (p.layout.score.layout.pageWidth / 2) - 200,
+			left: (p.layout.score.layout.pageHeight / 2) - 200,
+			label: 'Score Layout'
+		});
+        this.startPromise=p.closeMenuPromise;
+		this.layout = p.layout;
+        this.value='';
+		// this.modifier = this.layout.score.layout;
+		this.controller = p.controller;
+		// this.backupOriginal();
+	}
+    display() {
+        $('body').addClass('showAttributeDialog');
+		this.components.forEach((component) => {
+			component.bind();
+		});		
+		this._bindElements();
+        
+        // make sure keyboard is unbound or we get dupicate key events.
+        var self=this;
+        function getKeys() {
+            self.controller.unbindKeyboardForDialog(self);
+        }
+        this.startPromise.then(getKeys);        
+	}
+    _bindElements() {
+		var self = this;
+		var dgDom = this.dgDom;       
+
+		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+            self.commit();
+		});
+
+		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+			self.complete();	
+		});
+
+		$(dgDom.element).find('.remove-button').remove();
+	}
+
+    
+}
+class SuiLoadFileDialog extends SuiFileDialog {
    
     static get dialogElements() {
 		return [{
@@ -11170,17 +11254,6 @@ class SuiLoadFileDialog extends SuiDialogBase {
 				label:'Load'
 			}];
     }    
-    display() {
-		$('body').addClass('showAttributeDialog');
-		this.components.forEach((component) => {
-			component.bind();
-		});
-		
-		this._bindElements();
-		
-		this.controller.unbindKeyboardForDialog(this);
-        
-	}
     
     changed() {
         this.value = this.components[0].getValue();
@@ -11207,51 +11280,23 @@ class SuiLoadFileDialog extends SuiDialogBase {
             }
         }
     }
-    _bindElements() {
-		var self = this;
-		var dgDom = this.dgDom;
-        
-        // disable until file is selected
-        $(dgDom.element).find('.ok-button').prop('disabled',true);
-
-		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            self.commit();
-		});
-
-		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-			self.complete();	
-		});
-
-		$(dgDom.element).find('.remove-button').remove();
-	}
     static createAndDisplay(params) {
 		var dg = new SuiLoadFileDialog({				
 				layout: params.controller.layout,
-				controller: params.controller
+				controller: params.controller,
+                closeMenuPromise:params.closeMenuPromise
 			});
 		dg.display();
+         // disable until file is selected
+        $(dg.dgDom.element).find('.ok-button').prop('disabled',true);
 	}
     constructor(parameters) {
-		if (!(parameters.controller)) {
-			throw new Error('file dialog must have score');
-		}
-		var p = parameters;
-
-		super(SuiLoadFileDialog.dialogElements, {
-			id: 'dialog-layout',
-			top: (p.layout.score.layout.pageWidth / 2) - 200,
-			left: (p.layout.score.layout.pageHeight / 2) - 200,
-			label: 'Score Layout'
-		});
-		this.layout = p.layout;
-        this.value='';
-		// this.modifier = this.layout.score.layout;
-		this.controller = p.controller;
-		// this.backupOriginal();
+        parameters.ctor='SuiLoadFileDialog';
+        super(parameters);
 	}
 }
 
-class SuiSaveFileDialog extends SuiDialogBase {
+class SuiSaveFileDialog extends SuiFileDialog {
    
     static get dialogElements() {
 		return [{
@@ -11262,21 +11307,7 @@ class SuiSaveFileDialog extends SuiDialogBase {
 				label:'Save'
 			}];
     }    
-    display() {
-		$('body').addClass('showAttributeDialog');
-		this.components.forEach((component) => {
-			component.bind();
-		});		
-		this._bindElements();
-        
-        // make sure keyboard is unbound or we get dupicate key events.
-        var self=this;
-        function getKeys() {
-            self.controller.unbindKeyboardForDialog(self);
-        }
-        this.startPromise.then(getKeys);
-	}
-    
+   
     changed() {
         this.value = this.components[0].getValue();        
     }
@@ -11293,21 +11324,7 @@ class SuiSaveFileDialog extends SuiDialogBase {
         htmlHelpers.addFileLink(filename,txt,$('.saveLink'));
         $('.saveLink a')[0].click();
         this.complete();        
-    }
-    _bindElements() {
-		var self = this;
-		var dgDom = this.dgDom;
-
-		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            self.commit();
-		});
-
-		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-			self.complete();	
-		});
-
-		$(dgDom.element).find('.remove-button').remove();
-	}
+    }   
     static createAndDisplay(params) {
 		var dg = new SuiSaveFileDialog({				
 				layout: params.controller.layout,
@@ -11317,23 +11334,8 @@ class SuiSaveFileDialog extends SuiDialogBase {
 		dg.display();
 	}
     constructor(parameters) {
-		if (!(parameters.controller)) {
-			throw new Error('file dialog must have score');
-		}
-		var p = parameters;
-
-		super(SuiSaveFileDialog.dialogElements, {
-			id: 'dialog-layout',
-			top: (p.layout.score.layout.pageWidth / 2) - 200,
-			left: (p.layout.score.layout.pageHeight / 2) - 200,
-			label: 'Score Layout'
-		});
-        this.startPromise=p.closeMenuPromise;
-		this.layout = p.layout;
-        this.value='';
-		// this.modifier = this.layout.score.layout;
-		this.controller = p.controller;
-		// this.backupOriginal();
+        parameters.ctor='SuiSaveFileDialog';
+        super(parameters);
 	}
 }
 class SuiTextTransformDialog  extends SuiDialogBase {
@@ -11892,7 +11894,7 @@ class helpModal {
 ;// # dbComponents - components of modal dialogs.
 
 // ## SuiRockerComponent
-// ## An integer input box with +- buttons.
+// A numeric input box with +- buttons.   Adjustable type and scale
 class SuiRockerComponent {
 	static get dataTypes() {
 		return ['int','float','percent'];
@@ -12013,7 +12015,10 @@ class SuiRockerComponent {
     }
 }
 
-
+// ## SuiDragText
+// A component that lets you drag the text you are editing to anywhere on the score.
+// The text is not really part of the dialog but the location of the text appears 
+// in other dialog fields. 
 class SuiDragText {
     constructor(dialog,parameter) {
         smoMusic.filteredMerge(
@@ -12061,11 +12066,7 @@ class SuiDragText {
         return $(this.dialog.dgDom.element).find('#' + pid).find('button');
     }
     _handleEndDrag() {
-        var svgBox = svgHelpers.clientToLogical(this.dialog.layout.svg,svgHelpers.smoBox(this.editor.editText.getBoundingClientRect()));
-                
-        // textBox.x += domBox.x-textBox.x;
-        // textBox.y -= domBox.y-textBox.y;
-        // var svgBox = svgHelpers.clientToLogical(this.dialog.layout.svg,textBox);
+        var svgBox = svgHelpers.clientToLogical(this.dialog.layout.svg,svgHelpers.smoBox(this.editor.editText.getBoundingClientRect()));                
         var offsetBox = this.editor.editText.getBBox();
         var x = svgBox.x;
         var y = svgBox.y+svgBox.height-offsetBox.y;
@@ -12117,7 +12118,7 @@ class SuiDragText {
     }
 }
 
-
+// ## TBD: do this.
 class SuiResizeTextBox {
     constructor(dialog,parameter) {
         smoMusic.filteredMerge(
@@ -12189,6 +12190,10 @@ class SuiResizeTextBox {
         });
     }
 }
+
+// ## SuiTextInPlace
+// Edit the text in an SVG element, in the same scale etc. as the text in the score SVG DOM.
+// This component just manages the text editing component of hte renderer.
 class SuiTextInPlace {
     constructor(dialog,parameter) {
         smoMusic.filteredMerge(
@@ -12261,6 +12266,8 @@ class SuiTextInPlace {
     }
 }
 
+// ## SuiTextInputComponent
+// Just get text from an input, such as a filename.
 class SuiTextInputComponent {
     constructor(dialog, parameter) {
         smoMusic.filteredMerge(
@@ -12295,6 +12302,9 @@ class SuiTextInputComponent {
         });
     }    
 }
+
+// ## SuiFileDownloadComponent
+// Download a test file using the file input.
 class SuiFileDownloadComponent {
     constructor(dialog, parameter) {
         smoMusic.filteredMerge(
@@ -12338,6 +12348,9 @@ class SuiFileDownloadComponent {
     }
     
 }
+
+// ## SuiToggleComponent
+// Simple on/off behavior
 class SuiToggleComponent {
     constructor(dialog, parameter) {
         smoMusic.filteredMerge(
@@ -12473,7 +12486,7 @@ class defaultRibbonLayout {
 	}
 	
 	static get leftRibbonIds() {
-		return ['helpDialog', 'fileMenu','addStaffMenu', 'keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
+		return ['helpDialog', 'fileMenu','addStaffMenu', 'timeSignatureMenu','keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
 	}
 	static get noteButtonIds() {
 		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton',
@@ -13360,6 +13373,15 @@ class defaultRibbonLayout {
 				ctor: 'SuiFileMenu',
 				group: 'scoreEdit',
 				id: 'fileMenu'
+			}, {
+				leftText: 'Time Sig',
+				rightText: '/m',
+				icon: '',
+				classes: 'staff-modify',
+				action: 'menu',
+				ctor: 'SuiTimeSignatureMenu',
+				group: 'scoreEdit',
+				id: 'timeSignatureMenu'
 			}, {
 				leftText: 'Staves',
 				rightText: '/s',

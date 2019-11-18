@@ -65,6 +65,13 @@ class suiMenuManager {
 				altKey: false,
 				shiftKey: false,
 				action: "SuiAddStaffMenu"
+			}, {
+				event: "keydown",
+				key: "f",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "SuiFileMenu"
 			},
 			 {
 				event: "keydown",
@@ -232,6 +239,10 @@ class SuiFileMenu extends suiMenuBase {
      static get defaults() {
 		return {
 			menuItems: [{
+					icon: 'folder-new',
+					text: 'New Score',
+					value: 'newFile'
+				},{
 					icon: 'folder-open',
 					text: 'Open',
 					value: 'openFile'
@@ -262,6 +273,11 @@ class SuiFileMenu extends suiMenuBase {
             controller:this.controller,
             closeMenuPromise:this.closePromise
 		    });
+        } else if (text == 'newFile') {
+            this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
+            var score = SmoScore.getDefaultScore();
+            this.controller.layout.unrenderAll();
+            this.controller.layout.score = score;
         }
 		this.complete();
 	}
@@ -469,9 +485,28 @@ class SuiTimeSignatureMenu extends suiMenuBase {
 			menuItems: [{
 					icon: 'sixeight',
 					text: '6/8',
-					value: 'sixeight',
-				},
-				 {
+					value: '6/8',
+				},{
+					icon: 'threefour',
+					text: '3/4',
+					value: '3/4',
+				},{
+					icon: 'twofour',
+					text: '2/4',
+					value: '2/4',
+				},{
+					icon: 'twelveeight',
+					text: '12/8',
+					value: '12/8',
+				},{
+					icon: 'seveneight',
+					text: '7/8',
+					value: '7/8',
+				},{
+					icon: 'fiveeight',
+					text: '5/8',
+					value: '5/8',
+				},{
 					icon: '',
 					text: 'Cancel',
 					value: 'cancel'
@@ -481,14 +516,10 @@ class SuiTimeSignatureMenu extends suiMenuBase {
     }
     
     selection(ev) {
-		var keySig = $(ev.currentTarget).attr('data-value');
-		var changed = [];
-		this.tracker.selections.forEach((sel) => {
-			if (changed.indexOf(sel.selector.measure) === -1) {
-				changed.push(sel.selector.measure);
-				SmoUndoable.addKeySignature(this.score, sel, keySig, this.editor.undoBuffer);
-			}
-		});
+		var timeSig = $(ev.currentTarget).attr('data-value');
+        this.controller.layout.unrenderAll();
+        SmoUndoable.scoreSelectionOp(this.controller.layout.score,this.tracker.selections,
+            'setTimeSignature',timeSig,this.controller.undoBuffer,'change time signature');
 		this.complete();
 	}
 	keydown(ev) {}

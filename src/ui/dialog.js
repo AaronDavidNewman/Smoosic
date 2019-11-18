@@ -143,7 +143,59 @@ class SuiDialogBase {
 	}
 }
 
-class SuiLoadFileDialog extends SuiDialogBase {
+class SuiFileDialog extends SuiDialogBase {
+     constructor(parameters) {
+		if (!(parameters.controller)) {
+			throw new Error('file dialog must have score');
+		}
+		var p = parameters;
+        var ctor = eval(parameters.ctor);
+
+		super(ctor.dialogElements, {
+			id: 'dialog-layout',
+			top: (p.layout.score.layout.pageWidth / 2) - 200,
+			left: (p.layout.score.layout.pageHeight / 2) - 200,
+			label: 'Score Layout'
+		});
+        this.startPromise=p.closeMenuPromise;
+		this.layout = p.layout;
+        this.value='';
+		// this.modifier = this.layout.score.layout;
+		this.controller = p.controller;
+		// this.backupOriginal();
+	}
+    display() {
+        $('body').addClass('showAttributeDialog');
+		this.components.forEach((component) => {
+			component.bind();
+		});		
+		this._bindElements();
+        
+        // make sure keyboard is unbound or we get dupicate key events.
+        var self=this;
+        function getKeys() {
+            self.controller.unbindKeyboardForDialog(self);
+        }
+        this.startPromise.then(getKeys);        
+	}
+    _bindElements() {
+		var self = this;
+		var dgDom = this.dgDom;       
+
+		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+            self.commit();
+		});
+
+		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+			self.complete();	
+		});
+
+		$(dgDom.element).find('.remove-button').remove();
+	}
+
+    
+}
+class SuiLoadFileDialog extends SuiFileDialog {
    
     static get dialogElements() {
 		return [{
@@ -154,17 +206,6 @@ class SuiLoadFileDialog extends SuiDialogBase {
 				label:'Load'
 			}];
     }    
-    display() {
-		$('body').addClass('showAttributeDialog');
-		this.components.forEach((component) => {
-			component.bind();
-		});
-		
-		this._bindElements();
-		
-		this.controller.unbindKeyboardForDialog(this);
-        
-	}
     
     changed() {
         this.value = this.components[0].getValue();
@@ -191,51 +232,23 @@ class SuiLoadFileDialog extends SuiDialogBase {
             }
         }
     }
-    _bindElements() {
-		var self = this;
-		var dgDom = this.dgDom;
-        
-        // disable until file is selected
-        $(dgDom.element).find('.ok-button').prop('disabled',true);
-
-		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            self.commit();
-		});
-
-		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-			self.complete();	
-		});
-
-		$(dgDom.element).find('.remove-button').remove();
-	}
     static createAndDisplay(params) {
 		var dg = new SuiLoadFileDialog({				
 				layout: params.controller.layout,
-				controller: params.controller
+				controller: params.controller,
+                closeMenuPromise:params.closeMenuPromise
 			});
 		dg.display();
+         // disable until file is selected
+        $(dg.dgDom.element).find('.ok-button').prop('disabled',true);
 	}
     constructor(parameters) {
-		if (!(parameters.controller)) {
-			throw new Error('file dialog must have score');
-		}
-		var p = parameters;
-
-		super(SuiLoadFileDialog.dialogElements, {
-			id: 'dialog-layout',
-			top: (p.layout.score.layout.pageWidth / 2) - 200,
-			left: (p.layout.score.layout.pageHeight / 2) - 200,
-			label: 'Score Layout'
-		});
-		this.layout = p.layout;
-        this.value='';
-		// this.modifier = this.layout.score.layout;
-		this.controller = p.controller;
-		// this.backupOriginal();
+        parameters.ctor='SuiLoadFileDialog';
+        super(parameters);
 	}
 }
 
-class SuiSaveFileDialog extends SuiDialogBase {
+class SuiSaveFileDialog extends SuiFileDialog {
    
     static get dialogElements() {
 		return [{
@@ -246,21 +259,7 @@ class SuiSaveFileDialog extends SuiDialogBase {
 				label:'Save'
 			}];
     }    
-    display() {
-		$('body').addClass('showAttributeDialog');
-		this.components.forEach((component) => {
-			component.bind();
-		});		
-		this._bindElements();
-        
-        // make sure keyboard is unbound or we get dupicate key events.
-        var self=this;
-        function getKeys() {
-            self.controller.unbindKeyboardForDialog(self);
-        }
-        this.startPromise.then(getKeys);
-	}
-    
+   
     changed() {
         this.value = this.components[0].getValue();        
     }
@@ -277,21 +276,7 @@ class SuiSaveFileDialog extends SuiDialogBase {
         htmlHelpers.addFileLink(filename,txt,$('.saveLink'));
         $('.saveLink a')[0].click();
         this.complete();        
-    }
-    _bindElements() {
-		var self = this;
-		var dgDom = this.dgDom;
-
-		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            self.commit();
-		});
-
-		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-			self.complete();	
-		});
-
-		$(dgDom.element).find('.remove-button').remove();
-	}
+    }   
     static createAndDisplay(params) {
 		var dg = new SuiSaveFileDialog({				
 				layout: params.controller.layout,
@@ -301,23 +286,8 @@ class SuiSaveFileDialog extends SuiDialogBase {
 		dg.display();
 	}
     constructor(parameters) {
-		if (!(parameters.controller)) {
-			throw new Error('file dialog must have score');
-		}
-		var p = parameters;
-
-		super(SuiSaveFileDialog.dialogElements, {
-			id: 'dialog-layout',
-			top: (p.layout.score.layout.pageWidth / 2) - 200,
-			left: (p.layout.score.layout.pageHeight / 2) - 200,
-			label: 'Score Layout'
-		});
-        this.startPromise=p.closeMenuPromise;
-		this.layout = p.layout;
-        this.value='';
-		// this.modifier = this.layout.score.layout;
-		this.controller = p.controller;
-		// this.backupOriginal();
+        parameters.ctor='SuiSaveFileDialog';
+        super(parameters);
 	}
 }
 class SuiTextTransformDialog  extends SuiDialogBase {

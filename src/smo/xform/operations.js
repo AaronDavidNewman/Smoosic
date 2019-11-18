@@ -33,18 +33,18 @@ class SmoOperation {
         selectors.forEach((selector) => {
             var params={};
             var attrs = SmoMeasure.defaultAttributes.filter((aa) => aa != 'timeSignature');
-            var proto = SmoSelection.measureSelection(score,selector.staff,selector.measure);
+            var proto = SmoSelection.measureSelection(score,selector.staff,selector.measure).measure;
             smoMusic.serializedMerge(attrs,proto,params);
             params.timeSignature = timeSignature;
             var nm = SmoMeasure.getDefaultMeasure(params);
             var spareNotes = SmoMeasure.getDefaultNotes(params);
             var ticks = 0;
-            voices = [];
+            var voices = [];
             proto.voices.forEach((voice) => {
                 var nvoice=[];
                 for (var i=0;i<voice.notes.length;++i) {
                     var pnote = voice.notes[i];
-                    var nnote = SmoNote.deserialize(SmoNote.serialize(pnote));
+                    var nnote = SmoNote.deserialize(pnote.serialize());
                     if (ticks + pnote.tickCount <= tsTicks) {
                         nnote.ticks = JSON.parse(JSON.stringify(pnote.ticks))
                         nvoice.push(nnote);
@@ -63,10 +63,10 @@ class SmoOperation {
                     var adjNote = nvoice[nvoice.length - 1];
                     adjNote.ticks.numerator += tsTicks-ticks;
                 }
-                voices.push(nvoice);            
+                voices.push({notes:nvoice});            
                 
             });
-            mn.voices=voices;
+            nm.voices=voices;
             score.replaceMeasure(selector,nm);
         });
     }

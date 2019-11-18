@@ -233,7 +233,7 @@ class SmoMeasure {
 			denominator: 1,
 			remainder: 0
 		};
-		if (meterNumbers[0] % 3 == 0) {
+		if (meterNumbers[1]  == 8) {
 			ticks = {
 				numerator: 2048,
 				denominator: 1,

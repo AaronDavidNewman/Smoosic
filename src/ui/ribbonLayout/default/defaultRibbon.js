@@ -25,7 +25,7 @@ class defaultRibbonLayout {
 	}
 	
 	static get leftRibbonIds() {
-		return ['helpDialog', 'fileMenu','addStaffMenu', 'keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
+		return ['helpDialog', 'fileMenu','addStaffMenu', 'timeSignatureMenu','keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
 	}
 	static get noteButtonIds() {
 		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton',
@@ -912,6 +912,15 @@ class defaultRibbonLayout {
 				ctor: 'SuiFileMenu',
 				group: 'scoreEdit',
 				id: 'fileMenu'
+			}, {
+				leftText: 'Time Sig',
+				rightText: '/m',
+				icon: '',
+				classes: 'staff-modify',
+				action: 'menu',
+				ctor: 'SuiTimeSignatureMenu',
+				group: 'scoreEdit',
+				id: 'timeSignatureMenu'
 			}, {
 				leftText: 'Staves',
 				rightText: '/s',
