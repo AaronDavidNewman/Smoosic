@@ -9,31 +9,15 @@ class suiEditor {
     // ## _render
     // utility function to render the music and update the tracker map.
     _render() {
-        var self = this;
-        var remap = function () {
-            return self.tracker.updateMap();
-        }
-        this.layout.render().catch(function (e) {
-            // make to non-promise exception format
-            e.error = e;
-            SuiExceptionHandler.instance.exceptionHandler(e);
-        })
-        .then(remap);
+		this.layout.setDirty();
     }
     get score() {
         return this.layout.score;
     }
 
     _renderAndAdvance() {
-        var self = this;
-        var remap = function () {
-            return self.tracker.updateMap();
-        }
-        var mover = function () {
-            return self.tracker.moveSelectionRight();
-        }
-        this.layout.render().then(remap).then(mover);
-        // TODO: make this promise-based
+		this.tracker.moveSelectionRight();
+		this.layout.setDirty();
     }
     _batchDurationOperation(operation) {
         SmoUndoable.batchDurationOperation(this.score, this.tracker.selections, operation, this.undoBuffer);
@@ -57,6 +41,7 @@ class suiEditor {
         } else {
             SmoUndoable[name](selection, this.undoBuffer);
         }
+		selection.measure.changed = true;
     }
 
     undo() {

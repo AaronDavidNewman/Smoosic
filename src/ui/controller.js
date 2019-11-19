@@ -22,9 +22,12 @@ class suiController {
 		this.editor.pasteBuffer = this.pasteBuffer;
 		this.resizing = false;
 		this.undoStatus=0;
-		this.scrollRedrawStatus=0;
 		this.trackScrolling = false;
         this.keyboardActive = false;
+		this.pollTime = 50;
+		this.idleRedrawTime = 2000;
+		this.waitingForIdleLayout = false;
+		this.idleLayoutTimer = 0;
 
 		this.ribbon = new RibbonButtons({
 				ribbons: defaultRibbonLayout.ribbons,
@@ -52,38 +55,40 @@ class suiController {
 		this.updateOffsets();
 	}
 	
-	// ### pollIdleRedraw
-	// redraw after the user has been idle for some period
-	pollIdleRedraw() {
-		var self=this;
-		setTimeout(function() {
-            var dbOpen = $('body').hasClass('showAttributeDialog');
-			if (self.undoStatus == self.undoBuffer.opCount && !dbOpen) {				
-				self.resizeEvent();
-				self.pollRedraw();
-				return;
-			}
-			self.undoStatus = self.undoBuffer.opCount;
-			self.pollIdleRedraw();
-		},5000);
-	}
-	
 	static get scrollable() {
 		return '.musicRelief';
 	}
 	
+	handleRedrawTimer() {
+		    // If there has been a change, redraw the score 
+			if (this.undoStatus != this.undoBuffer.opCount || this.layout.dirty) {				
+				this.layout.dirty=true;				
+				this.undoStatus = this.undoBuffer.opCount;
+				this.idleLayoutTimer = Date.now();
+				this.render();
+				while (this.layout.passState == suiLayoutBase.passStates.pass) {
+					this.render();
+				}
+			} else if (this.layout.passState === suiLayoutBase.passStates.replace) {
+				// Do we need to refresh the score?
+				if (!this.waitingForIdleLayout === false) {
+					this.waitingForIdleLayout = false;
+					this.idleLayoutTimer = Date.now();
+				} else if (Date.now() - this.idleLayoutTimer > this.idleRedrawTime) {
+					this.layout.setRefresh();
+					this.waitingForIdleLayout = false;
+				}
+			}
+	}
+	
 	// ### pollRedraw
 	// if anything has changed over some period, prepare to redraw everything.
-	pollRedraw() {
+	pollRedraw() {		
 		var self=this;
 		setTimeout(function() {
-			if (self.undoStatus != self.undoBuffer.opCount || self.scrollRedrawStatus) {
-				self.scrollRedrawStatus = false;
-				self.undoStatus = self.undoBuffer.opCount;
-				self.pollIdleRedraw();
-			}
+			self.handleRedrawTimer();
 			self.pollRedraw();
-		},1000);
+		},self.pollTime);
 	}
 
 	splash() {
@@ -113,10 +118,7 @@ class suiController {
 		this.scrollPosition = $('body')[0].scrollTop;
 	}
 	resizeEvent() {
-		var self = this;
-		var remap = function () {
-			return self.tracker.updateMap(true);
-		}
+		var self = this;		
 		if (this.resizing)
 			return;
 		this.resizing = true;
@@ -126,8 +128,7 @@ class suiController {
 			self.layout.setViewport(true);
 			$('.musicRelief').height(window.innerHeight - $('.musicRelief').offset().top);
 			self.piano.handleResize();
-			self.updateOffsets();
-			self.layout.redraw().then(remap);
+			self.updateOffsets();			
 			
 		}, 500);
 	}
@@ -254,11 +255,7 @@ class suiController {
 		}
 
 		var controller = debug ? suiController.createDebugUi(score) : suiController.createUi(score);
-		var remap = function () {
-			return controller.tracker.updateMap();
-		}
-		controller.layout.render().then(remap);
-
+		controller.render();
 	}
 
 	// ### renderElement
@@ -331,6 +328,16 @@ class suiController {
 			keyBind: suiController.keyBindingDefaults
 		};
 	}
+	remap() {
+		var self=this;
+		setTimeout(function() {
+			if (self.layout.dirty == false) {
+				self.tracker.updateMap();
+			} else {
+				self.remap();
+			}
+		},100);
+	}
 
 	showModifierDialog(modSelection) {
 		return SuiDialogFactory.createDialog(modSelection, this.tracker.context, this.tracker, this.layout,this.undoBuffer)
@@ -402,12 +409,9 @@ class suiController {
 		this.editor = null;  */
 	}
 
-	render() {
-		var controller = this;
-		var remap = function () {
-			return controller.tracker.updateMap();
-		}
-		this.layout.render().then(remap);
+	render() {		
+		this.layout.render();
+		this.tracker.updateMap();
 	}
 
 	bindEvents() {

@@ -18,6 +18,19 @@ class suiScoreLayout extends suiLayoutBase {
 		};
 	}
 	
+	get score() {
+		return this._score;
+	}
+	
+	set score(score) {
+		if (this._score) {
+		    this.unrenderAll();
+		}
+		this.passState = suiLayoutBase.passStates.initial;
+		this.dirty=true;
+		this._score = score;
+	}
+	
 
 	// ### createScoreLayout
 	// ### Description;
@@ -56,7 +69,7 @@ class suiScoreLayout extends suiLayoutBase {
 	// ### Description:
 	// Delete all the svg elements associated with the score.
 	unrenderAll() {
-		this.score.staves.forEach((staff) => {
+		this._score.staves.forEach((staff) => {
 			this.unrenderStaff(staff);
 		});
 		$(this.renderer.getContext().svg).find('g.lineBracket').remove();
@@ -76,7 +89,7 @@ class suiScoreLayout extends suiLayoutBase {
 	}
 
 	_previousAttr(i, j, attr) {
-		var staff = this.score.staves[j];
+		var staff = this._score.staves[j];
 		var measure = staff.measures[i];
 		return (i > 0 ? staff.measures[i - 1][attr] : measure[attr]);
 	}
@@ -84,7 +97,7 @@ class suiScoreLayout extends suiLayoutBase {
 	renderScoreText(tt) {
 		var svg = this.context.svg;
 		var classes = tt.attrs.id+' '+'score-text'+' '+tt.classes;
-		var args = {svg:this.svg,width:this.logicalPageWidth,height:this.logicalPageHeight,layout:this.score.layout};
+		var args = {svg:this.svg,width:this.logicalPageWidth,height:this.logicalPageHeight,layout:this._score.layout};
 		if (tt.autoLayout === true) {
 			var fcn = tt.position+'TextPlacement';
 			suiTextLayout[fcn](tt,args);
@@ -95,7 +108,7 @@ class suiScoreLayout extends suiLayoutBase {
 	_renderScoreModifiers() {
 		var svg = this.context.svg;
 		$(this.renderer.getContext().svg).find('text.score-text').remove();
-		this.score.scoreText.forEach((tt) => {
+		this._score.scoreText.forEach((tt) => {
 			this.renderScoreText(tt);
 		});
 	}
@@ -138,10 +151,10 @@ class suiScoreLayout extends suiLayoutBase {
 		// bounding box of all artifacts in a system
 		var systemBoxes = {};
 		var staffBoxes = {};
-		if (!this.score.staves.length) {
+		if (!this._score.staves.length) {
 			return;
 		}
-		var topStaff = this.score.staves[0];
+		var topStaff = this._score.staves[0];
 		var topStaffY = topStaff.staffY;
 		if (!topStaff.measures.length) {
 			return;
@@ -155,14 +168,14 @@ class suiScoreLayout extends suiLayoutBase {
 
 		for (var i = 0; i < topStaff.measures.length; ++i) {
 			var staffWidth = 0;
-			for (var j = 0; j < this.score.staves.length; ++j) {
-				var staff = this.score.staves[j];
+			for (var j = 0; j < this._score.staves.length; ++j) {
+				var staff = this._score.staves[j];
 				var measure = staff.measures[i];
 
 				measure.lineIndex = lineIndex;
 
 				// The SVG X,Y of this staff.  Set it initially to the UL corner of page.  Width,height filled in later.
-				var staffBox = svgHelpers.pointBox(this.score.layout.leftMargin, this.score.layout.topMargin);
+				var staffBox = svgHelpers.pointBox(this._score.layout.leftMargin, this._score.layout.topMargin);
 
 				// The left-most measure sets the y for the row, top measure sets the x for the column.
 				// Other measures get the x, y from previous measure on this row.  Once the music is rendered we will adjust
@@ -171,7 +184,7 @@ class suiScoreLayout extends suiLayoutBase {
 					if (j == 0) {
 						staffBoxes[j] = svgHelpers.copyBox(staffBox);
 					} else {
-						staffBoxes[j] = svgHelpers.pointBox(staffBoxes[j - 1].x, staffBoxes[j - 1].y + staffBoxes[j - 1].height + this.score.layout.intraGap);
+						staffBoxes[j] = svgHelpers.pointBox(staffBoxes[j - 1].x, staffBoxes[j - 1].y + staffBoxes[j - 1].height + this._score.layout.intraGap);
 					}
 				}
 
@@ -216,24 +229,24 @@ class suiScoreLayout extends suiLayoutBase {
 					if (useAdjustedX && measure.measureNumber.systemIndex != 0) {
 						useAdjustedX = params.useX = false;
     				}
-					measure.staffX = this.score.layout.leftMargin;
+					measure.staffX = this._score.layout.leftMargin;
 
-					this.score.staves.forEach((stf) => {
+					this._score.staves.forEach((stf) => {
 						this._renderModifiers(stf, system);
 					});
 					if (!useAdjustedY && measure.changed) {
                         if (suiLayoutBase.debugLayout) {
 					       svgHelpers.debugBox(
-						svg, svgHelpers.boxPoints(measure.staffX, pageBox.y + pageBox.height, 1, this.score.layout.interGap), 
+						svg, svgHelpers.boxPoints(measure.staffX, pageBox.y + pageBox.height, 1, this._score.layout.interGap), 
                           'measure-place-dbg');
 				        }
-						measure.staffY = pageBox.y + pageBox.height + this.score.layout.interGap;
+						measure.staffY = pageBox.y + pageBox.height + this._score.layout.interGap;
 						if (isNaN(measure.staffY)) {
 							throw ("nan measure ");
 						}
 					}
 					staffBoxes = {};
-					staffBoxes[j] = svgHelpers.boxPoints(this.score.layout.leftMargin, measure.staffY, 1, 1);
+					staffBoxes[j] = svgHelpers.boxPoints(this._score.layout.leftMargin, measure.staffY, 1, 1);
 					lineIndex += 1;
 					measure.lineIndex = lineIndex;
 					system = new VxSystem(this.context, staff.staffY, lineIndex);
@@ -291,7 +304,7 @@ class suiScoreLayout extends suiLayoutBase {
 			++systemIndex;
 		}
 		system.renderEndings();
-		this.score.staves.forEach((stf) => {
+		this._score.staves.forEach((stf) => {
 			this._renderModifiers(stf, system);
 		});
 		this._renderScoreModifiers();

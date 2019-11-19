@@ -276,7 +276,6 @@ class SuiFileMenu extends suiMenuBase {
         } else if (text == 'newFile') {
             this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
             var score = SmoScore.getDefaultScore();
-            this.controller.layout.unrenderAll();
             this.controller.layout.score = score;
         }
 		this.complete();
@@ -394,15 +393,7 @@ class SuiTextMenu extends suiMenuBase {
             var txtObj = new ctor(menuObj.params);
             SmoUndoable.scoreOp(this.editor.score,menuObj.operation,
                txtObj, this.editor.undoBuffer,'Text Menu Command');     
-                var self=this;
-                var remap = function () {
-                  return self.tracker.updateMap();
-                }
-                var editNewText = function() {
-                    self._editNewText(txtObj);
-                }
-                this.tracker.layout.render().then(remap).then(editNewText);
-                
+			this._editNewText(txtObj);                
         }
 
 		this.complete();

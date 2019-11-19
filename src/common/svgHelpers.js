@@ -204,19 +204,25 @@ class svgHelpers {
 	// ### findIntersectionArtifact
 	// find all object that intersect with the rectangle
 	static findIntersectingArtifact(clientBox, objects) {
-		var obj = null;
-        
 		var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
 
 		// box.y = box.y - this.renderElement.offsetTop;
 		// box.x = box.x - this.renderElement.offsetLeft;
 		var rv = [];
+		if (typeof(objects['forEach']) != 'function') {
+			console.log('corrupt objects in findIntersectingArtifact');
+		}
 		objects.forEach((object) => {
-            var obox = svgHelpers.smoBox(object.box);
-			var i1 = box.x - obox.x; // handle edge not believe in x and y
-			var i2 = box.y - obox.y;
-			if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
-				rv.push(object);
+			// Measure has been updated, but not drawn.
+			if (!object.box) {
+				// console.log('there is no box');
+			} else {
+				var obox = svgHelpers.smoBox(object.box);
+				var i1 = box.x - obox.x; // handle edge not believe in x and y
+				var i2 = box.y - obox.y;
+				if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
+					rv.push(object);
+				}
 			}
 		});
 

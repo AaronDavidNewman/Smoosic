@@ -584,6 +584,8 @@ class SmoOperation {
 				position: SmoStaffHairpin.positions.BELOW
 			});
 		fromSelection.staff.addStaffModifier(modifier);
+		fromSelection.measure.changed=true;
+		toSelection.measure.changed=true;
 	}
 
 	static addStaff(score, parameters) {

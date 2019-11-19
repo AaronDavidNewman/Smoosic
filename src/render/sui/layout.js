@@ -10,23 +10,50 @@ class suiLayoutBase {
 			id: VF.Element.newID(),
 			type: ctor
 		};
+		this.dirty=true;
+		this.setPassState(suiLayoutBase.initial,'ctor');
+		console.log('layout ctor: pstate initial');
+		this.viewportChange = false;
+	}
+	
+	static get passStates() {
+		return {initial:0,pass:1,clean:2,replace:3};
+	}
+	
+	setDirty() {
+		if (!this.dirty) {
+			this.dirty = true;
+			if (this.viewportChange) {
+				this.setPassState(suiLayoutBase.passStates.initial,'setDirty 1');
+			} else if (this.passState == suiLayoutBase.passStates.clean || 
+			   this.passState == suiLayoutBase.passStates.replace) {
+				this.setPassState(suiLayoutBase.passStates.replace,'setDirty 2');
+			} else {
+				this.setPassState(suiLayoutBase.passStates.pass,'setDirty 3');
+			}
+		}
+	}
+	setRefresh() {
+		this.dirty=true;
+		this.setPassState(suiLayoutBase.passStates.initial,'setRefresh');
+		this.viewportChange = true;
 	}
 
 	setViewport(reset) {
 		// this.screenWidth = window.innerWidth;
-		var layout = this.score.layout;
+		var layout = this._score.layout;
 		this.zoomScale = layout.zoomMode === SmoScore.zoomModes.zoomScale ?
 			layout.zoomScale : (window.innerWidth - 200) / layout.pageWidth;
 
 		this.svgScale = layout.svgScale * this.zoomScale;
-		this.orientation = this.score.layout.orientation;
+		this.orientation = this._score.layout.orientation;
 		var w = Math.round(layout.pageWidth * this.zoomScale) ;
 		var h = Math.round(layout.pageHeight * this.zoomScale);
 		this.pageWidth =  (this.orientation  === SmoScore.orientations.portrait) ? w: h;
 		this.pageHeight = (this.orientation  === SmoScore.orientations.portrait) ? h : w;
 		
-		this.leftMargin=this.score.layout.leftMargin;
-        this.rightMargin = this.score.layout.rightMargin;
+		this.leftMargin=this._score.layout.leftMargin;
+        this.rightMargin = this._score.layout.rightMargin;
 		$(this.elementId).css('width', '' + Math.round(this.pageWidth) + 'px');
 		$(this.elementId).css('height', '' + Math.round(this.pageHeight) + 'px');
 		if (reset) {
@@ -38,9 +65,17 @@ class suiLayoutBase {
 		svgHelpers.svgViewport(this.context.svg, this.pageWidth, this.pageHeight, this.svgScale);
 
 		this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
-		var self = this;
 		this.resizing = false;
+		this.setPassState(suiLayoutBase.passStates.initial,'setViewport');
+		console.log('layout setViewport: pstate initial');
+		this.viewportChange = true;
+		this.dirty=true;
 
+	}
+	
+	setPassState(st,location) {
+		console.log(location + ': passState '+this.passState+'=>'+st);
+		this.passState = st;
 	}
 	static get defaults() {
 		return {
@@ -81,33 +116,14 @@ class suiLayoutBase {
 	get svg() {
 		return this.context.svg;
 	}
-
-	renderAndAdvance() {
-		this.render();
-	}
+	
 	// ### render
 	// ### Description:
 	// Render the current score in the div using VEX.  Rendering is actually done twice:
 	// 1. Rendering is done just to the changed parts of the score.  THe first time, the whole score is rendered.
 	// 2. Widths and heights are adjusted for elements that may have overlapped or exceeded their expected boundary.
 	// 3. The whole score is rendered a second time with the new values.
-	render() {
-		const promise = new Promise((resolve, reject) => {
-				this._render();
-				resolve();
-			});
-
-		return promise;
-	}
-	redraw() {
-		const promise = new Promise((resolve, reject) => {
-				this._redraw();
-				resolve();
-			});
-
-		return promise;
-	}
-
+	
 
 	// ### undo
 	// ### Description:
@@ -119,13 +135,13 @@ class suiLayoutBase {
 		if (buffer) {
 			var sel = buffer.selector;
 			if (buffer.type == 'measure') {
-				this.unrenderMeasure(SmoSelection.measureSelection(this.score, sel.staff, sel.measure).measure);
+				this.unrenderMeasure(SmoSelection.measureSelection(this._score, sel.staff, sel.measure).measure);
 			} else if (buffer.type === 'staff') {
-				this.unrenderStaff(SmoSelection.measureSelection(this.score, sel.staff, 0).staff);
+				this.unrenderStaff(SmoSelection.measureSelection(this._score, sel.staff, 0).staff);
 			} else {
 				this.unrenderAll();
 			}
-			this.score = undoBuffer.undo(this.score);
+			this._score = undoBuffer.undo(this._score);
 			this.render();
 		}
 	}
@@ -135,7 +151,7 @@ class suiLayoutBase {
 	// For dialogs that allow you to manually modify elements that are automatically rendered, we allow a preview so the
 	// changes can be undone before the buffer closes.
 	renderNoteModifierPreview(modifier) {
-		var selection = SmoSelection.noteSelection(this.score, modifier.selector.staff, modifier.selector.measure, modifier.selector.voice, modifier.selector.tick);
+		var selection = SmoSelection.noteSelection(this._score, modifier.selector.staff, modifier.selector.measure, modifier.selector.voice, modifier.selector.tick);
 		if (!selection.measure.renderedBox) {
 			return;
 		}
@@ -149,7 +165,7 @@ class suiLayoutBase {
 	// re-render a modifier for preview during modifier dialog
 	renderStaffModifierPreview(modifier) {
 		// get the first measure the modifier touches
-		var startSelection = SmoSelection.measureSelection(this.score, modifier.startSelector.staff, modifier.startSelector.measure);
+		var startSelection = SmoSelection.measureSelection(this._score, modifier.startSelector.staff, modifier.startSelector.measure);
 
 		// We can only render if we already have, or we don't know where things go.
 		if (!startSelection.measure.renderedBox) {
@@ -159,7 +175,7 @@ class suiLayoutBase {
 		while (startSelection && startSelection.selector.measure <= modifier.endSelector.measure) {
 			smoBeamerFactory.applyBeams(startSelection.measure);
 			system.renderMeasure(startSelection.selector.staff, startSelection.measure);
-			var nextSelection = SmoSelection.measureSelection(this.score, startSelection.selector.staff, startSelection.selector.measure + 1);
+			var nextSelection = SmoSelection.measureSelection(this._score, startSelection.selector.staff, startSelection.selector.measure + 1);
 
 			// If we go to new line, render this line part, then advance because the modifier is split
 			if (nextSelection && nextSelection.measure && nextSelection.measure.lineIndex != startSelection.measure.lineIndex) {
@@ -207,9 +223,9 @@ class suiLayoutBase {
 	_renderModifiers(staff, system) {
 		var svg = this.svg;
 		staff.modifiers.forEach((modifier) => {
-			var startNote = SmoSelection.noteSelection(this.score,
+			var startNote = SmoSelection.noteSelection(this._score,
 					modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
-			var endNote = SmoSelection.noteSelection(this.score,
+			var endNote = SmoSelection.noteSelection(this._score,
 					modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
 
 			var vxStart = system.getVxNote(startNote.note);
@@ -217,12 +233,12 @@ class suiLayoutBase {
 
 			// If the modifier goes to the next staff, draw what part of it we can on this staff.
 			if (vxStart && !vxEnd) {
-				var nextNote = SmoSelection.nextNoteSelection(this.score,
+				var nextNote = SmoSelection.nextNoteSelection(this._score,
 						modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
 				var testNote = system.getVxNote(nextNote.note);
 				while (testNote) {
 					vxEnd = testNote;
-					nextNote = SmoSelection.nextNoteSelection(this.score,
+					nextNote = SmoSelection.nextNoteSelection(this._score,
 							nextNote.selector.staff, nextNote.selector.measure, nextNote.selector.voice, nextNote.selector.tick);
                     // last beat of the measure
                     if (!nextNote) {
@@ -233,12 +249,12 @@ class suiLayoutBase {
 				}
 			}
 			if (vxEnd && !vxStart) {
-				var lastNote = SmoSelection.lastNoteSelection(this.score,
+				var lastNote = SmoSelection.lastNoteSelection(this._score,
 						modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
 				var testNote = system.getVxNote(lastNote.note);
 				while (testNote) {
 					vxStart = testNote;
-					lastNote = SmoSelection.lastNoteSelection(this.score,
+					lastNote = SmoSelection.lastNoteSelection(this._score,
 							lastNote.selector.staff, lastNote.selector.measure, lastNote.selector.voice, lastNote.selector.tick);
                     if (!lastNote) {
                         break;
@@ -260,33 +276,48 @@ class suiLayoutBase {
 		
 		system.updateLyricOffsets();
 	}
-
-	_redraw() {
-		this.unrenderAll();
-		this._render();
-	}
-	_render() {
+	
+	render() {
+		if (this.viewportChange) {
+			this.unrenderAll();
+			this.setPassState(suiLayoutBase.passStates.initial,'render 1');			
+			this.viewportChange = false;
+		}
 
 		// layout a second time to adjust for issues.
 		// this.adjustWidths();
 		// this.adjustWidths();
 		var params = {useY:false,useX:false};
-		this.layout(params);
-		for (var i=0;i<10;++i) {
+		if (this.passState == suiLayoutBase.passStates.pass) {
 			params.useX=true;
-		    suiLayoutAdjuster.adjustWidths(this.score,this.renderer);
-			this.layout(params);
-			
-			// If useX is still true, there was no wrapping and we
-			// can stop
-			if (params.useX) {
-				break;
-			}
-			params.useX = true;
+		    suiLayoutAdjuster.adjustWidths(this._score,this.renderer);
 		}
-		suiLayoutAdjuster.justifyWidths(this.score,this.renderer,this.pageMarginWidth / this.svgScale);
-		suiLayoutAdjuster.adjustHeight(this.score,this.renderer);
-		params.useY=true;
+		if ((this.passState == suiLayoutBase.passStates.clean) || 
+		    (this.passState == suiLayoutBase.passStates.replace)) {
+			params.useY=true;
+			params.useX=true;
+		}
 		this.layout(params);
+		
+		if (this.passState == suiLayoutBase.passStates.replace) {
+			this.dirty=false;
+			return;
+		}
+		
+		if (params.useX == true) {
+			if (this.passState == suiLayoutBase.passStates.clean) {
+				this.dirty=false;
+    			console.log('layout after pass: dirty false pstate clean');
+			} else {
+				suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth / this.svgScale);
+				suiLayoutAdjuster.adjustHeight(this._score,this.renderer);
+				this.setPassState(suiLayoutBase.passStates.clean,'render 2');
+			}
+		} else {
+			// otherwise we need another pass.
+			this.dirty=true;
+			this.setPassState(suiLayoutBase.passStates.pass,'render 3');
+			console.log('layout after pass: pstate pass');
+		}	
 	}
 }

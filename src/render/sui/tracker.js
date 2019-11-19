@@ -21,7 +21,7 @@ class suiTracker {
 		this.objectGroupMap = {};
 		this.objects = [];
 		this.selections = [];
-		this.modifierTabs = {};
+		this.modifierTabs = [];
 		this.modifierIndex = -1;
 		this.modifierSuggestion=-1;
 		this.suggestion = {};
@@ -645,7 +645,7 @@ class suiTracker {
 	intersectingArtifact(bb) {
 		var artifacts = svgHelpers.findIntersectingArtifact(bb,this.objects);
 		// TODO: handle overlapping suggestions
-		if (!artifacts.length) {
+		if (!artifacts.length) {			
 			var sel = svgHelpers.findIntersectingArtifact(bb,this.modifierTabs);
 			if (sel.length) {
 				sel = sel[0];
