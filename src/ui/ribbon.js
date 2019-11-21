@@ -121,6 +121,19 @@ class RibbonButtons {
 	}
 }
 
+class DebugButtons {
+	constructor(parameters) {
+		this.buttonElement = parameters.buttonElement;
+		this.buttonData = parameters.buttonData;
+		this.editor = parameters.editor;
+	}
+	bind() {
+		var self = this;
+		$(this.buttonElement).off('click').on('click', function () {
+			$('body').trigger('redrawScore');
+		});
+    }
+}
 class DurationButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;

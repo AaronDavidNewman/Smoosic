@@ -48,7 +48,7 @@ class suiController {
 		this.bindResize();
 		if (!suiLayoutBase.debugLayout) {
 			this.splash();
-		    this.pollRedraw();
+			this.pollRedraw();
 		}
 
 		this.piano();
@@ -255,7 +255,6 @@ class suiController {
 		}
 
 		var controller = debug ? suiController.createDebugUi(score) : suiController.createUi(score);
-		controller.render();
 	}
 
 	// ### renderElement
@@ -421,6 +420,10 @@ class suiController {
             return; // already bound.
         }
         this.keyboardActive = true;
+		
+		$('body').off('redrawScore').on('redrawScore',function() {
+			self.handleRedrawTimer();
+		});
 
 		$(this.renderElement).off('mousemove').on('mousemove', function (ev) {
 			tracker.intersectingArtifact({

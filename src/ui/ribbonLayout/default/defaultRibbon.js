@@ -6,7 +6,7 @@ class defaultRibbonLayout {
 		var left = defaultRibbonLayout.leftRibbonIds;
 		var top = defaultRibbonLayout.noteButtonIds.concat(defaultRibbonLayout.navigateButtonIds).concat(defaultRibbonLayout.articulateButtonIds)
 		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds).concat(defaultRibbonLayout.measureIds)
-              .concat(defaultRibbonLayout.textIds);
+              .concat(defaultRibbonLayout.textIds).concat(defaultRibbonLayout.debugIds);
 			
 		return {
 			left: left,
@@ -21,7 +21,7 @@ class defaultRibbonLayout {
 			defaultRibbonLayout.articulationButtons).concat(
 			defaultRibbonLayout.chordButtons).concat(
 			defaultRibbonLayout.durationRibbonButtons).concat(defaultRibbonLayout.measureRibbonButtons)
-            .concat(defaultRibbonLayout.textRibbonButtons);
+            .concat(defaultRibbonLayout.textRibbonButtons).concat(defaultRibbonLayout.debugRibbonButtons);
 	}
 	
 	static get leftRibbonIds() {
@@ -45,6 +45,10 @@ class defaultRibbonLayout {
 		return ['CreateChordButtons', 'SecondUpButton', 'SecondDownButton', 'ThirdUpButton', 'ThirdDownButton', 'FourthUpButton', 'FourthDownButton',
 				'FifthUpButton', 'FifthDownButton','SixthUpButton', 'SixthDownButton'
 				,'SeventhUpButton', 'SeventhDownButton','OctaveUpButton','OctaveDownButton','CollapseChordButton'];
+	}
+	
+	static get debugIds() {
+		return ['DebugGroup','DebugButton2'];
 	}
 	static get durationIds() {
 		return ['DurationButtons','GrowDuration','LessDuration','GrowDurationDot','LessDurationDot','TripletButton','QuintupletButton','SeptupletButton','NoTupletButton'];
@@ -271,6 +275,27 @@ class defaultRibbonLayout {
 				id: 'fine'
 			}
 		];
+	}
+	static get debugRibbonButtons() {
+		return [{
+				leftText: '',
+				rightText: '',
+				classes: 'icon  collapseParent',
+				icon: 'icon-new-tab',
+				action: 'collapseParent',
+				ctor: 'CollapseRibbonControl',
+				group: 'debug',
+				id: 'DebugGroup'
+			},{
+				leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed',
+				icon: 'icon-new-tab',
+				action: 'collapseChild',
+				ctor: 'DebugButtons',
+				group: 'debug',
+				id: 'DebugButton2'
+			}];
 	}
 	
 	static get durationRibbonButtons() {

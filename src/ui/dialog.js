@@ -661,11 +661,7 @@ class SuiLayoutDialog extends SuiDialogBase {
 	_handleCancel() {
 		this.layout.score.layout = this.backup;
 		this.layout.setViewport();
-		var self = this;
-		var complete = function () {
-			self.complete();
-		}
-		this.layout.redraw().then(complete);	
+		this.complete();
 	}
 	_bindElements() {
 		var self = this;
@@ -673,10 +669,7 @@ class SuiLayoutDialog extends SuiDialogBase {
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
 			self.layout.setViewport();
-			var complete = function () {
-				self.complete();
-			}
-			self.layout.render().then(complete);
+			self.complete();			
 		});
 
 		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
@@ -719,7 +712,6 @@ class SuiLayoutDialog extends SuiDialogBase {
 			this.layout.score.layout[component.smoName] = component.getValue();
 		});
 		this.layout.setViewport();
-		this.layout.render();
 	}
 	static createAndDisplay(buttonElement, buttonData, controller) {
 		var dg = new SuiLayoutDialog({				
