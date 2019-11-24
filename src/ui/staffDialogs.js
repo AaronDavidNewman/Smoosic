@@ -164,7 +164,7 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
         return dg;
     }
 	handleRemove() {
-        this.undo.addBuffer('Remove nth ending', 'score', null, score);
+        this.undo.addBuffer('Remove nth ending', 'score', null, this.layout.score);
 		this.layout.score.staves.forEach((staff) => {
 			staff.measures.forEach((measure) => {
 				if (measure.measureNumber.measureNumber === this.modifier.startBar) {

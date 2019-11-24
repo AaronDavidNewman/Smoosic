@@ -13,7 +13,7 @@ class SmoOperation {
 	}
 
 	static toggleBeamGroup(noteSelection) {
-		noteSelection.measure.changed = true;
+		noteSelection.measure.setChanged();
 		noteSelection.note.endBeam = !(noteSelection.note.endBeam);
 	}
     
@@ -79,7 +79,7 @@ class SmoOperation {
 				measure: selection.selector.measure,
 				voice: selection.selector.voice
 			};
-			selection.measure.changed = true;
+			selection.measure.setChanged();
 			if (!measureTicks[measureSel]) {
 				var tm = selection.measure.tickmap();
 				var tickOffset = tm.durationMap[selection.selector.tick];
@@ -134,7 +134,7 @@ class SmoOperation {
 				});
 			SmoTickTransformer.applyTransform(measure, actor);
 		}
-		selection.measure.changed = true;
+		selection.measure.setChanged();
 		return true;
 	}
 
@@ -171,7 +171,7 @@ class SmoOperation {
 				});
 			SmoTickTransformer.applyTransform(measure, actor);
 		}
-		selection.measure.changed = true;
+		selection.measure.setChanged();
 	}
 
 	// ## makeTuplet
@@ -191,7 +191,7 @@ class SmoOperation {
 				measure: measure
 			});
 		SmoTickTransformer.applyTransform(measure, actor);
-		selection.measure.changed = true;
+		selection.measure.setChanged();
 
 		return true;
 	}
@@ -201,11 +201,11 @@ class SmoOperation {
     }
 
 	static makeRest(selection) {
-		selection.measure.changed = true;
+		selection.measure.setChanged();
 		selection.note.makeRest();
 	}
 	static makeNote(selection) {
-		selection.measure.changed = true;
+		selection.measure.setChanged();
 		selection.note.makeNote();
 	}
 
@@ -229,7 +229,7 @@ class SmoOperation {
 				measure: measure
 			});
 		SmoTickTransformer.applyTransform(measure, actor);
-		measure.changed = true;
+		measure.setChanged();
 		return true;
 	}
 
@@ -272,7 +272,7 @@ class SmoOperation {
 				newTicks: nticks
 			});
 		SmoTickTransformer.applyTransform(measure, actor);
-		measure.changed = true;
+		measure.setChanged();
 		return true;
 	}
 
@@ -293,7 +293,7 @@ class SmoOperation {
 				newTicks: nticks
 			});
 		SmoTickTransformer.applyTransform(measure, actor);
-		selection.measure.changed = true;
+		selection.measure.setChanged();
 		return true;
 	}
 
@@ -305,7 +305,7 @@ class SmoOperation {
 		var note = selection.note;
 		if (measure && note) {
 			note.transpose(selection.selector.pitches, offset, measure.keySignature);
-			measure.changed = true;
+			measure.setChanged();
 			return true;
 		}
 		return false;
@@ -319,7 +319,7 @@ class SmoOperation {
 	static setPitch(selection, pitches) {
 		var measure = selection.measure;
 		var note = selection.note;
-		measure.changed = true;
+		measure.setChanged();
 		// TODO allow hint for octave
 		var octave = note.pitches[0].octave;
 		note.pitches = [];
@@ -362,7 +362,7 @@ class SmoOperation {
 			smoMusic.smoPitchToInt(b);
 		});
 		selection.note.pitches = JSON.parse(JSON.stringify(toAdd));
-		selection.measure.changed = true;
+		selection.measure.setChanged();
 	}
 
 	static toggleCourtesyAccidental(selection) {
@@ -381,14 +381,14 @@ class SmoOperation {
 		}
 
 		SmoOperation.courtesyAccidental(selection, toBe);
-		selection.measure.changed = true;
+		selection.measure.setChanged();
 	}
 
 	static courtesyAccidental(pitchSelection, toBe) {
 		pitchSelection.selector.pitches.forEach((pitchIx) => {
 			pitchSelection.note.pitches[pitchIx].cautionary = toBe;
 		});
-		pitchSelection.measure.changed = true;
+		pitchSelection.measure.setChanged();
 	}
 
 	static toggleEnharmonic(pitchSelection) {
@@ -404,17 +404,17 @@ class SmoOperation {
 		pitch.accidental = vexPitch.length > 1 ?
 			vexPitch.substring(1, vexPitch.length) : 'n';
 		pitch.octave += smoMusic.letterChangedOctave(lastLetter, pitch.letter);
-		pitchSelection.measure.changed = true;
+		pitchSelection.measure.setChanged();
 	}
 
 	static addDynamic(selection, dynamic) {
 		selection.note.addModifier(dynamic);
-		selection.measure.changed = true;
+		selection.measure.setChanged();
 	}
 
 	static toggleArticulation(selection, articulation) {
 		selection.note.toggleArticulation(articulation);
-		selection.measure.changed = true;
+		selection.measure.setChanged();
 	}
 
 	static addEnding(score, parameters) {
@@ -440,7 +440,7 @@ class SmoOperation {
 					var ending = new SmoVolta(pp);
 					measure.addNthEnding(ending);
 				}
-				measure.changed = true;
+				measure.setChanged();
 				m += 1;
 			});
 			s += 1;
@@ -511,7 +511,7 @@ class SmoOperation {
 		score.staves.forEach((staff) => {
 			var s2 = SmoSelection.measureSelection(score, ix, mm);
 			s2.measure.setBarline(barline);
-			s2.measure.changed = true;
+			s2.measure.setChanged();
 			ix += 1;
 		});
 	}
@@ -522,7 +522,7 @@ class SmoOperation {
 		score.staves.forEach((staff) => {
 			var s2 = SmoSelection.measureSelection(score, ix, mm);
 			s2.measure.setRepeatSymbol(sym);
-			s2.measure.changed = true;
+			s2.measure.setChanged();
 			ix += 1;
 		});
 	}
@@ -533,7 +533,7 @@ class SmoOperation {
 	static interval(selection, interval) {
 		var measure = selection.measure;
 		var note = selection.note;
-		selection.measure.changed = true;
+		selection.measure.setChanged();
 
 		// TODO: figure out which pitch is selected
 		var pitch = note.pitches[0];
@@ -584,8 +584,8 @@ class SmoOperation {
 				position: SmoStaffHairpin.positions.BELOW
 			});
 		fromSelection.staff.addStaffModifier(modifier);
-		fromSelection.measure.changed=true;
-		toSelection.measure.changed=true;
+		fromSelection.measure.setChanged();
+		toSelection.measure.setChanged();
 	}
 
 	static addStaff(score, parameters) {
@@ -600,7 +600,7 @@ class SmoOperation {
 			if (!measureHash[selection.selector.measure]) {
 				measureHash[selection.selector.measure] = 1;
 				selection.measure.clef = instrument.clef;
-				selection.measure.changed = true;
+				selection.measure.setChanged();
 				selection.measure.transposeIndex = instrument.keyOffset;
 				selection.measure.voices.forEach((voice) => {
 					voice.notes.forEach((note) => {

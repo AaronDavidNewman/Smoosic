@@ -61,13 +61,17 @@ class suiTracker {
 		return rv;		
 	}
 
-	_updateModifiers() {
+	_updateModifiers(rebox) {
 		this.modifierTabs = [];
 		this.modifierBoxes = [];
 		var modMap = {};
 		var ix=0;
         this.layout.score.scoreText.forEach((modifier) => {
             if (!modMap[modifier.attrs.id]) {
+                if (rebox) {
+                    var el = this.context.svg.getElementsByClassName(modifier.attrs.id)[0]
+                    svgHelpers.updateArtifactBox(this.context.svg,el,modifier);
+                }
                 this.modifierTabs.push({
                     modifier: modifier,
 							selection: null,
@@ -81,6 +85,10 @@ class suiTracker {
 			selection.staff.modifiers.forEach((modifier) => {
 				if (SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
 					if (!modMap[modifier.id]) {
+                        if (rebox) {
+                            var el = this.context.svg.getElementsByClassName(modifier.id)[0];
+                            svgHelpers.updateArtifactBox(this.context.svg,el,modifier);
+                        }
 						this.modifierTabs.push({
 							modifier: modifier,
 							selection: selection,
@@ -96,6 +104,10 @@ class suiTracker {
 			});
 			selection.measure.modifiers.forEach((modifier) => {
 				if (modifier.id && !modMap[modifier.id]) {
+                    if (rebox) {
+                        var el = this.context.svg.getElementsByClassName(modifier.id)[0];
+                        svgHelpers.updateArtifactBox(this.context.svg,el,modifier);
+                    }
 					this.modifierTabs.push({
 						modifier: modifier,
 						selection: selection,
@@ -110,6 +122,10 @@ class suiTracker {
 			});
 			selection.note.textModifiers.forEach((modifier) => {
 				if (!modMap[modifier.id]) {
+                    if (rebox) {
+                        var el = this.context.svg.getElementsByClassName(modifier.id)[0];
+                        svgHelpers.updateArtifactBox(this.context.svg,el,modifier);
+                    }
 					this.modifierTabs.push({
 						modifier: modifier,
 						selection: selection,
@@ -180,6 +196,21 @@ class suiTracker {
 		}
 		this.selections.push(artifact);
 	}
+    
+    // ### _updateNoteBox
+    // Update the svg to screen coordinates based on a change in viewport.
+    _updateNoteBox(svg,smoNote) {
+        var el = svg.getElementById(smoNote.renderId);
+        svgHelpers.updateArtifactBox(svg,el,smoNote);
+        
+        // TODO: fix this, only works on the first line.
+        smoNote.getModifiers('SmoLyric').forEach((lyric) => {
+			var ar = Array.from(el.getElementsByClassName('vf-lyric'));
+			ar.forEach((lbox) => {
+                svgHelpers.updateArtifactBox(svg,lbox,lyric);
+			});
+		});
+    }
 	
 	// ### updateMap
 	// This should be called after rendering the score.  It updates the score to
@@ -211,7 +242,7 @@ class suiTracker {
 							};
 						// if we need to update the screen based on scroll
 						if (rebox) {
-							svgHelpers.updateNoteBox(this.layout.svg,note);
+							this._updateNoteBox(this.layout.svg,note);
 						}
 							
 						var selection = new SmoSelection({
@@ -238,7 +269,7 @@ class suiTracker {
 				this.objects.push(selection);                
 			}
 		}); */
-		this._updateModifiers();
+		this._updateModifiers(rebox);
 		this.selections = [];
 		if (this.objects.length && !selCopy.length) {
 			console.log('adding selection ' + this.objects[0].note.id);

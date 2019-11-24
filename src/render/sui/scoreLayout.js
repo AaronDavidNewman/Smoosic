@@ -36,9 +36,10 @@ class suiScoreLayout extends suiLayoutBase {
 	// ### Description;
 	// to get the score to appear, a div and a score object are required.  The layout takes care of creating the
 	// svg element in the dom and interacting with the vex library.
-	static createScoreLayout(renderElement, score, layoutParams) {
+	static createScoreLayout(renderElement,shadowElement, score, layoutParams) {
 		var ctorObj = {
 			elementId: renderElement,
+            shadowElement:shadowElement,
 			score: score
 		};
 		if (layoutParams) {
@@ -120,7 +121,7 @@ class suiScoreLayout extends suiLayoutBase {
 		measure.forceTimeSignature = (systemIndex === 0 || measure.timeSignature !== timeSigLast);
 		if (measureKeySig !== keySigLast) {
 			measure.canceledKeySignature = keySigLast;
-			measure.changed=true;
+			measure.setChanged();
 			measure.forceKeySignature = true;
 		} else if (measure.measureNumber.measureIndex == 0 && measureKeySig != 'C') {
 			measure.forceKeySignature = true;
@@ -283,6 +284,13 @@ class suiScoreLayout extends suiLayoutBase {
 							});
 						});
 					}
+                    // If we are still animating, pass that information back.
+                    if (measure.staffY != measure.prevY) {
+                        params.animateY=true;
+                    }
+                    if (measure.staffX != measure.prevX) {
+                        params.animateX=true;
+                    }
 					measure.changed = false;
 				}
 				// Rendered box is in client coordinates, convert it to SVG

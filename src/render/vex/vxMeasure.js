@@ -57,7 +57,7 @@ class VxMeasure {
     }
     tickmap() {
         return VX.TICKMAP(this.smoMeasure);
-    }
+    }     
 
     // ## Description:
     // decide whether to force stem direction for multi-voice, or use the default.
@@ -311,12 +311,10 @@ class VxMeasure {
 		var canceledKey = this.smoMeasure.canceledKeySignature ? smoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature,this.smoMeasure.transposeIndex)
 		   : this.smoMeasure.canceledKeySignature;
 
-        var staffWidth = this.smoMeasure.staffWidth;
-		
-
-        //console.log('measure '+JSON.stringify(this.smoMeasure.measureNumber,null,' ')+' x: ' + this.smoMeasure.staffX + ' y: '+this.smoMeasure.staffY
-        // + 'width: '+staffWidth);
-        this.stave = new VF.Stave(this.smoMeasure.staffX, this.smoMeasure.staffY, staffWidth-1);
+        this.stave = new VF.Stave(this.smoMeasure.staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - 1);
+        if (this.smoMeasure.prevFrame < VxMeasure.fps) {
+            this.smoMeasure.prevFrame += 1;
+        }
 		
 		this.stave.options.space_above_staff_ln=0; // don't let vex place the staff, we want to.
         //console.log('adjX is '+this.smoMeasure.adjX);
@@ -392,7 +390,8 @@ class VxMeasure {
 
 		this.smoMeasure.voices.forEach((voice) => {
 			voice.notes.forEach((smoNote) =>  {
-				svgHelpers.updateNoteBox(this.context.svg,smoNote);
+                var el = this.context.svg.getElementById(smoNote.renderId);
+				svgHelpers.updateArtifactBox(this.context.svg,el,smoNote);
 			});
 		});
 		

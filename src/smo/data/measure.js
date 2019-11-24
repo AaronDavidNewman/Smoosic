@@ -12,6 +12,10 @@ class SmoMeasure {
 		this.beamGroups = [];
 		this.modifiers = [];
 		this.changed = true;
+        this.timestamp=0;
+        this.prevY = 0;
+        this.prevX = 0;
+        this.prevFrame=0;
 		var defaults = SmoMeasure.defaults;
 
 		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, defaults, this);
@@ -273,7 +277,7 @@ class SmoMeasure {
 		});
 		return measure;
 	}
-
+        
 	
 	static get defaultVoice44() {
 		return SmoMeasure.getDefaultNotes({
@@ -328,7 +332,7 @@ class SmoMeasure {
 	}
 	tickmap() {
 		return VX.TICKMAP(this);
-	}
+	}    
 
 	// ### getDynamicMap
 	// ### Description:
@@ -428,11 +432,11 @@ class SmoMeasure {
 			return mm.attrs.id === mod.attrs.id;
 		});
 		if (exist.length) {
-			this.changed=true; // already added but set changed===true to re-justify
+			this.setChanged(); // already added but set changed===true to re-justify
 			return;
 		}
 		this.modifiers.push(mod);
-		this.changed=true;
+		this.setChanged();
 	}
 	
 	getMeasureText() {
@@ -442,7 +446,7 @@ class SmoMeasure {
 	removeMeasureText(id) {
 		var ar= this.modifiers.filter(obj => obj.attrs.id != id);
 		this.modifiers=ar;
-		this.changed=true;
+		this.setChanged();
 	}
 	
 	setRepeatSymbol(rs) {
@@ -581,13 +585,18 @@ class SmoMeasure {
 	}
 	setKeySignature(sig) {
 		this.keySignature = sig;
-		this.changed=true;
+		this.setChanged();
 		this.voices.forEach((voice) => {
 			voice.notes.forEach((note) => {
 				note.keySignature = sig;
 			});
 		});
 	}
+    setChanged() {
+        this.changed = true;
+        this.prevFrame=0;
+        this.timestamp = Date.now();
+    }
 	get beatValue() {
 		return this.timeSignature.split('/').map(number => parseInt(number, 10))[1];
 	}

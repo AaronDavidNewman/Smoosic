@@ -36,10 +36,9 @@ class suiLayoutBase {
 	setRefresh() {
 		this.dirty=true;
 		this.setPassState(suiLayoutBase.passStates.initial,'setRefresh');
-		this.viewportChange = true;
 	}
 
-	setViewport(reset) {
+	_setViewport(reset,elementId) {
 		// this.screenWidth = window.innerWidth;
 		var layout = this._score.layout;
 		this.zoomScale = layout.zoomMode === SmoScore.zoomModes.zoomScale ?
@@ -54,11 +53,12 @@ class suiLayoutBase {
 		
 		this.leftMargin=this._score.layout.leftMargin;
         this.rightMargin = this._score.layout.rightMargin;
-		$(this.elementId).css('width', '' + Math.round(this.pageWidth) + 'px');
-		$(this.elementId).css('height', '' + Math.round(this.pageHeight) + 'px');
+		$(elementId).css('width', '' + Math.round(this.pageWidth) + 'px');
+		$(elementId).css('height', '' + Math.round(this.pageHeight) + 'px');        
 		if (reset) {
-		    $(this.elementId).html('');
-    		this.renderer = new VF.Renderer(this.elementId, VF.Renderer.Backends.SVG);
+		    $(elementId).html('');
+    		this.renderer = new VF.Renderer(elementId, VF.Renderer.Backends.SVG);
+            this.viewportChange = true;
 		}
 		// this.renderer.resize(this.pageWidth, this.pageHeight);
 
@@ -68,10 +68,19 @@ class suiLayoutBase {
 		this.resizing = false;
 		this.setPassState(suiLayoutBase.passStates.initial,'setViewport');
 		console.log('layout setViewport: pstate initial');
-		this.viewportChange = true;
 		this.dirty=true;
-
 	}
+    
+    setViewport(reset) {
+        this._setViewport(reset,this.elementId);
+        this.mainRenderer = this.renderer;        
+        
+        this._setViewport(reset,this.shadowElement);
+        if (reset) {
+            this.shadowRenderer = this.renderer;
+        }
+        this.renderer = this.mainRenderer;
+    }
 	
 	setPassState(st,location) {
 		console.log(location + ': passState '+this.passState+'=>'+st);
@@ -101,6 +110,11 @@ class suiLayoutBase {
 
 	static set debugLayout(value) {
 		suiLayoutBase._debugLayout = value;
+        if (value) {
+            $('body').addClass('layout-debug');
+        } else {
+            $('body').removeClass('layout-debug');
+        }
 	}
 
 	// ### get context
@@ -200,7 +214,7 @@ class suiLayoutBase {
 		measure.staffY = SmoMeasure.defaults.staffY;
 		measure.staffWidth = SmoMeasure.defaults.staffWidth;
 		measure.adjY = 0;
-		measure.changed = true;
+		measure.setChanged();
 	}
 
 	// ### unrenderStaff
@@ -297,7 +311,10 @@ class suiLayoutBase {
 			params.useY=true;
 			params.useX=true;
 		}
-		this.layout(params);
+        this.renderer = (this.passState == suiLayoutBase.passStates.initial || this.passState == suiLayoutBase.passStates.pass) ? 
+            this.shadowRenderer : this.mainRenderer;
+		
+        this.layout(params);
 		
 		if (this.passState == suiLayoutBase.passStates.replace) {
 			this.dirty=false;

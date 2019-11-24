@@ -54,6 +54,7 @@ class suiLayoutAdjuster {
 		return width;
 	}
 	
+    
 	static estimateTextOffset(renderer,smoMeasure) {
 		var leftText = smoMeasure.modifiers.filter((mm) => mm.ctor==='SmoMeasureText' && mm.position === SmoMeasureText.positions.left);
 		var rightText = smoMeasure.modifiers.filter((mm) => mm.ctor==='SmoMeasureText' && mm.position === SmoMeasureText.positions.right);
@@ -178,7 +179,7 @@ class suiLayoutAdjuster {
 						});
 					measures.forEach((measure) => {
 						measure.staffWidth = widest;
-						measure.changed = true;
+						measure.setChanged();
 					});
 				}
 				if (!measures.length)

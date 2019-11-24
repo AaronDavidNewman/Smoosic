@@ -106,5 +106,8 @@
         <Folder name="html">
             <File name="html\editor.html" />
         </Folder>
+        <Folder name="music">
+            <File name="src\music\invention.js" />
+        </Folder>
     </Project>
 </NotepadPlus>

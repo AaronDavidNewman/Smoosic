@@ -147,6 +147,15 @@ body.show-piano .piano-keys {
 .menu-status div {
 	margin:5px;
 }
+
+.ribbonButtonContainer[data-group="debug"] {
+    display:none;
+}
+
+body.layout-debug .ribbonButtonContainer[data-group="debug"] {
+    display:block;
+}
+
 div.ribbonButtonContainer.expanded {
 	margin-right:5px;
 }

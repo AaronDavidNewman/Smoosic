@@ -41,7 +41,7 @@ class suiEditor {
         } else {
             SmoUndoable[name](selection, this.undoBuffer);
         }
-		selection.measure.changed = true;
+		selection.measure.setChanged();
     }
 
     undo() {

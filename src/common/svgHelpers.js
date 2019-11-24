@@ -93,19 +93,11 @@ class svgHelpers {
 	// ### boxNote
 	// update the note geometry based on current viewbox conditions.
 	// This may not be the appropriate place for this...maybe in layout
-	static updateNoteBox(svg,smoNote) {
-		var el = svg.getElementById(smoNote.renderId);
-		smoNote.renderedBox = svgHelpers.smoBox(el.getBoundingClientRect());
-		smoNote.logicalBox = svgHelpers.clientToLogical(svg,
-			smoNote.renderedBox);
-			
-		smoNote.getModifiers('SmoLyric').forEach((lyric) => {
-			var ar = Array.from(el.getElementsByClassName('vf-lyric'));
-			ar.forEach((lbox) => {
-				lyric.renderedBox = svgHelpers.smoBox(lbox.getBoundingClientRect());
-				lyric.logicalBox = svgHelpers.clientToLogical(svg,lyric.renderedBox);
-			});
-		});
+	static updateArtifactBox(svg,element,artifact) {
+		
+		artifact.renderedBox = svgHelpers.smoBox(element.getBoundingClientRect());
+		artifact.logicalBox = svgHelpers.clientToLogical(svg,
+			artifact.renderedBox);
 	}
     static rect(svg,box,attrs,classes) {
         var rect = document.createELementNS(svgHelpers.namespace,'rect');

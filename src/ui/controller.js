@@ -25,7 +25,7 @@ class suiController {
 		this.trackScrolling = false;
         this.keyboardActive = false;
 		this.pollTime = 50;
-		this.idleRedrawTime = 2000;
+		this.idleRedrawTime = 200;
 		this.waitingForIdleLayout = false;
 		this.idleLayoutTimer = 0;
 
@@ -65,10 +65,11 @@ class suiController {
 				this.layout.dirty=true;				
 				this.undoStatus = this.undoBuffer.opCount;
 				this.idleLayoutTimer = Date.now();
+                var state = this.layout.passState;
 				this.render();
-				while (this.layout.passState == suiLayoutBase.passStates.pass) {
-					this.render();
-				}
+                if (state == suiLayoutBase.passStates.initial) {
+                    this.render();
+                }
 			} else if (this.layout.passState === suiLayoutBase.passStates.replace) {
 				// Do we need to refresh the score?
 				if (!this.waitingForIdleLayout === false) {
@@ -201,7 +202,9 @@ class suiController {
 				    .append(b('div').classes('controls-top'))
 					.append(b('div').classes('controls-left'))
 					.append(b('div').classes('musicRelief')
-					   .append(b('div').classes('musicContainer').attr('id','boo')))));
+					   .append(b('div').classes('musicContainer').attr('id','boo')))
+                     .append(b('div').classes('musicReliefShadow')
+					   .append(b('div').classes('musicContainerShadow').attr('id','booShadow')))));
 	    $('#smoo').append(r.dom());
 		var pianoDom=$('.piano-keys')[0];
 		var svg=document.createElementNS(svgHelpers.namespace,'svg');
@@ -221,7 +224,7 @@ class suiController {
 			$('h1.testTitle').text(title);
 		}
 		var params = suiController.keyBindingDefaults;
-		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), score);
+		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), document.getElementById("booShadow"),score);
 		params.tracker = new suiTracker(params.layout);
 		params.editor = new suiEditor(params);
 		params.menus = new suiMenuManager(params);
