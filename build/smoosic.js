@@ -733,19 +733,11 @@ class svgHelpers {
 	// ### boxNote
 	// update the note geometry based on current viewbox conditions.
 	// This may not be the appropriate place for this...maybe in layout
-	static updateNoteBox(svg,smoNote) {
-		var el = svg.getElementById(smoNote.renderId);
-		smoNote.renderedBox = svgHelpers.smoBox(el.getBoundingClientRect());
-		smoNote.logicalBox = svgHelpers.clientToLogical(svg,
-			smoNote.renderedBox);
-			
-		smoNote.getModifiers('SmoLyric').forEach((lyric) => {
-			var ar = Array.from(el.getElementsByClassName('vf-lyric'));
-			ar.forEach((lbox) => {
-				lyric.renderedBox = svgHelpers.smoBox(lbox.getBoundingClientRect());
-				lyric.logicalBox = svgHelpers.clientToLogical(svg,lyric.renderedBox);
-			});
-		});
+	static updateArtifactBox(svg,element,artifact) {
+		
+		artifact.renderedBox = svgHelpers.smoBox(element.getBoundingClientRect());
+		artifact.logicalBox = svgHelpers.clientToLogical(svg,
+			artifact.renderedBox);
 	}
     static rect(svg,box,attrs,classes) {
         var rect = document.createELementNS(svgHelpers.namespace,'rect');
@@ -844,19 +836,25 @@ class svgHelpers {
 	// ### findIntersectionArtifact
 	// find all object that intersect with the rectangle
 	static findIntersectingArtifact(clientBox, objects) {
-		var obj = null;
-        
 		var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
 
 		// box.y = box.y - this.renderElement.offsetTop;
 		// box.x = box.x - this.renderElement.offsetLeft;
 		var rv = [];
+		if (typeof(objects['forEach']) != 'function') {
+			console.log('corrupt objects in findIntersectingArtifact');
+		}
 		objects.forEach((object) => {
-            var obox = svgHelpers.smoBox(object.box);
-			var i1 = box.x - obox.x; // handle edge not believe in x and y
-			var i2 = box.y - obox.y;
-			if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
-				rv.push(object);
+			// Measure has been updated, but not drawn.
+			if (!object.box) {
+				// console.log('there is no box');
+			} else {
+				var obox = svgHelpers.smoBox(object.box);
+				var i1 = box.x - obox.x; // handle edge not believe in x and y
+				var i2 = box.y - obox.y;
+				if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
+					rv.push(object);
+				}
 			}
 		});
 
@@ -2024,6 +2022,10 @@ class SmoMeasure {
 		this.beamGroups = [];
 		this.modifiers = [];
 		this.changed = true;
+        this.timestamp=0;
+        this.prevY = 0;
+        this.prevX = 0;
+        this.prevFrame=0;
 		var defaults = SmoMeasure.defaults;
 
 		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, defaults, this);
@@ -2285,7 +2287,7 @@ class SmoMeasure {
 		});
 		return measure;
 	}
-
+        
 	
 	static get defaultVoice44() {
 		return SmoMeasure.getDefaultNotes({
@@ -2340,7 +2342,7 @@ class SmoMeasure {
 	}
 	tickmap() {
 		return VX.TICKMAP(this);
-	}
+	}    
 
 	// ### getDynamicMap
 	// ### Description:
@@ -2440,11 +2442,11 @@ class SmoMeasure {
 			return mm.attrs.id === mod.attrs.id;
 		});
 		if (exist.length) {
-			this.changed=true; // already added but set changed===true to re-justify
+			this.setChanged(); // already added but set changed===true to re-justify
 			return;
 		}
 		this.modifiers.push(mod);
-		this.changed=true;
+		this.setChanged();
 	}
 	
 	getMeasureText() {
@@ -2454,7 +2456,7 @@ class SmoMeasure {
 	removeMeasureText(id) {
 		var ar= this.modifiers.filter(obj => obj.attrs.id != id);
 		this.modifiers=ar;
-		this.changed=true;
+		this.setChanged();
 	}
 	
 	setRepeatSymbol(rs) {
@@ -2593,13 +2595,18 @@ class SmoMeasure {
 	}
 	setKeySignature(sig) {
 		this.keySignature = sig;
-		this.changed=true;
+		this.setChanged();
 		this.voices.forEach((voice) => {
 			voice.notes.forEach((note) => {
 				note.keySignature = sig;
 			});
 		});
 	}
+    setChanged() {
+        this.changed = true;
+        this.prevFrame=0;
+        this.timestamp = Date.now();
+    }
 	get beatValue() {
 		return this.timeSignature.split('/').map(number => parseInt(number, 10))[1];
 	}
@@ -5237,7 +5244,7 @@ class SmoOperation {
 	}
 
 	static toggleBeamGroup(noteSelection) {
-		noteSelection.measure.changed = true;
+		noteSelection.measure.setChanged();
 		noteSelection.note.endBeam = !(noteSelection.note.endBeam);
 	}
     
@@ -5303,7 +5310,7 @@ class SmoOperation {
 				measure: selection.selector.measure,
 				voice: selection.selector.voice
 			};
-			selection.measure.changed = true;
+			selection.measure.setChanged();
 			if (!measureTicks[measureSel]) {
 				var tm = selection.measure.tickmap();
 				var tickOffset = tm.durationMap[selection.selector.tick];
@@ -5358,7 +5365,7 @@ class SmoOperation {
 				});
 			SmoTickTransformer.applyTransform(measure, actor);
 		}
-		selection.measure.changed = true;
+		selection.measure.setChanged();
 		return true;
 	}
 
@@ -5395,7 +5402,7 @@ class SmoOperation {
 				});
 			SmoTickTransformer.applyTransform(measure, actor);
 		}
-		selection.measure.changed = true;
+		selection.measure.setChanged();
 	}
 
 	// ## makeTuplet
@@ -5415,7 +5422,7 @@ class SmoOperation {
 				measure: measure
 			});
 		SmoTickTransformer.applyTransform(measure, actor);
-		selection.measure.changed = true;
+		selection.measure.setChanged();
 
 		return true;
 	}
@@ -5425,11 +5432,11 @@ class SmoOperation {
     }
 
 	static makeRest(selection) {
-		selection.measure.changed = true;
+		selection.measure.setChanged();
 		selection.note.makeRest();
 	}
 	static makeNote(selection) {
-		selection.measure.changed = true;
+		selection.measure.setChanged();
 		selection.note.makeNote();
 	}
 
@@ -5453,7 +5460,7 @@ class SmoOperation {
 				measure: measure
 			});
 		SmoTickTransformer.applyTransform(measure, actor);
-		measure.changed = true;
+		measure.setChanged();
 		return true;
 	}
 
@@ -5496,7 +5503,7 @@ class SmoOperation {
 				newTicks: nticks
 			});
 		SmoTickTransformer.applyTransform(measure, actor);
-		measure.changed = true;
+		measure.setChanged();
 		return true;
 	}
 
@@ -5517,7 +5524,7 @@ class SmoOperation {
 				newTicks: nticks
 			});
 		SmoTickTransformer.applyTransform(measure, actor);
-		selection.measure.changed = true;
+		selection.measure.setChanged();
 		return true;
 	}
 
@@ -5529,7 +5536,7 @@ class SmoOperation {
 		var note = selection.note;
 		if (measure && note) {
 			note.transpose(selection.selector.pitches, offset, measure.keySignature);
-			measure.changed = true;
+			measure.setChanged();
 			return true;
 		}
 		return false;
@@ -5543,7 +5550,7 @@ class SmoOperation {
 	static setPitch(selection, pitches) {
 		var measure = selection.measure;
 		var note = selection.note;
-		measure.changed = true;
+		measure.setChanged();
 		// TODO allow hint for octave
 		var octave = note.pitches[0].octave;
 		note.pitches = [];
@@ -5586,7 +5593,7 @@ class SmoOperation {
 			smoMusic.smoPitchToInt(b);
 		});
 		selection.note.pitches = JSON.parse(JSON.stringify(toAdd));
-		selection.measure.changed = true;
+		selection.measure.setChanged();
 	}
 
 	static toggleCourtesyAccidental(selection) {
@@ -5605,14 +5612,14 @@ class SmoOperation {
 		}
 
 		SmoOperation.courtesyAccidental(selection, toBe);
-		selection.measure.changed = true;
+		selection.measure.setChanged();
 	}
 
 	static courtesyAccidental(pitchSelection, toBe) {
 		pitchSelection.selector.pitches.forEach((pitchIx) => {
 			pitchSelection.note.pitches[pitchIx].cautionary = toBe;
 		});
-		pitchSelection.measure.changed = true;
+		pitchSelection.measure.setChanged();
 	}
 
 	static toggleEnharmonic(pitchSelection) {
@@ -5628,17 +5635,17 @@ class SmoOperation {
 		pitch.accidental = vexPitch.length > 1 ?
 			vexPitch.substring(1, vexPitch.length) : 'n';
 		pitch.octave += smoMusic.letterChangedOctave(lastLetter, pitch.letter);
-		pitchSelection.measure.changed = true;
+		pitchSelection.measure.setChanged();
 	}
 
 	static addDynamic(selection, dynamic) {
 		selection.note.addModifier(dynamic);
-		selection.measure.changed = true;
+		selection.measure.setChanged();
 	}
 
 	static toggleArticulation(selection, articulation) {
 		selection.note.toggleArticulation(articulation);
-		selection.measure.changed = true;
+		selection.measure.setChanged();
 	}
 
 	static addEnding(score, parameters) {
@@ -5664,7 +5671,7 @@ class SmoOperation {
 					var ending = new SmoVolta(pp);
 					measure.addNthEnding(ending);
 				}
-				measure.changed = true;
+				measure.setChanged();
 				m += 1;
 			});
 			s += 1;
@@ -5735,7 +5742,7 @@ class SmoOperation {
 		score.staves.forEach((staff) => {
 			var s2 = SmoSelection.measureSelection(score, ix, mm);
 			s2.measure.setBarline(barline);
-			s2.measure.changed = true;
+			s2.measure.setChanged();
 			ix += 1;
 		});
 	}
@@ -5746,7 +5753,7 @@ class SmoOperation {
 		score.staves.forEach((staff) => {
 			var s2 = SmoSelection.measureSelection(score, ix, mm);
 			s2.measure.setRepeatSymbol(sym);
-			s2.measure.changed = true;
+			s2.measure.setChanged();
 			ix += 1;
 		});
 	}
@@ -5757,7 +5764,7 @@ class SmoOperation {
 	static interval(selection, interval) {
 		var measure = selection.measure;
 		var note = selection.note;
-		selection.measure.changed = true;
+		selection.measure.setChanged();
 
 		// TODO: figure out which pitch is selected
 		var pitch = note.pitches[0];
@@ -5808,6 +5815,8 @@ class SmoOperation {
 				position: SmoStaffHairpin.positions.BELOW
 			});
 		fromSelection.staff.addStaffModifier(modifier);
+		fromSelection.measure.setChanged();
+		toSelection.measure.setChanged();
 	}
 
 	static addStaff(score, parameters) {
@@ -5822,7 +5831,7 @@ class SmoOperation {
 			if (!measureHash[selection.selector.measure]) {
 				measureHash[selection.selector.measure] = 1;
 				selection.measure.clef = instrument.clef;
-				selection.measure.changed = true;
+				selection.measure.setChanged();
 				selection.measure.transposeIndex = instrument.keyOffset;
 				selection.measure.voices.forEach((voice) => {
 					voice.notes.forEach((note) => {
@@ -5912,7 +5921,7 @@ class UndoBuffer {
             return score;
         if (buf.type === 'measure') {
             var measure = SmoMeasure.deserialize(buf.json);
-            measure.changed = true;
+            measure.setChanged();
             score.replaceMeasure(buf.selector, measure);
         } else if (buf.type === 'score') {
             // Score expects string, as deserialized score is how saving is done.
@@ -6504,7 +6513,7 @@ class VxMeasure {
     }
     tickmap() {
         return VX.TICKMAP(this.smoMeasure);
-    }
+    }     
 
     // ## Description:
     // decide whether to force stem direction for multi-voice, or use the default.
@@ -6758,12 +6767,10 @@ class VxMeasure {
 		var canceledKey = this.smoMeasure.canceledKeySignature ? smoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature,this.smoMeasure.transposeIndex)
 		   : this.smoMeasure.canceledKeySignature;
 
-        var staffWidth = this.smoMeasure.staffWidth;
-		
-
-        //console.log('measure '+JSON.stringify(this.smoMeasure.measureNumber,null,' ')+' x: ' + this.smoMeasure.staffX + ' y: '+this.smoMeasure.staffY
-        // + 'width: '+staffWidth);
-        this.stave = new VF.Stave(this.smoMeasure.staffX, this.smoMeasure.staffY, staffWidth-1);
+        this.stave = new VF.Stave(this.smoMeasure.staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - 1);
+        if (this.smoMeasure.prevFrame < VxMeasure.fps) {
+            this.smoMeasure.prevFrame += 1;
+        }
 		
 		this.stave.options.space_above_staff_ln=0; // don't let vex place the staff, we want to.
         //console.log('adjX is '+this.smoMeasure.adjX);
@@ -6835,17 +6842,24 @@ class VxMeasure {
             height: box.height,
             width: box.width
         };		
+		this.smoMeasure.logicalBox = lbox;
+        this.smoMeasure.changed = false;
 		
 
 		this.smoMeasure.voices.forEach((voice) => {
 			voice.notes.forEach((smoNote) =>  {
-				svgHelpers.updateNoteBox(this.context.svg,smoNote);
-			});
-		});
-		
-		this.smoMeasure.logicalBox = lbox;
-        this.smoMeasure.changed = false;
-		
+                var el = this.context.svg.getElementById(smoNote.renderId);
+				svgHelpers.updateArtifactBox(this.context.svg,el,smoNote);
+                
+                // TODO: fix this, only works on the first line.
+                smoNote.getModifiers('SmoLyric').forEach((lyric) => {
+                    var ar = Array.from(el.getElementsByClassName('vf-lyric'));
+                    ar.forEach((lbox) => {
+                        svgHelpers.updateArtifactBox(this.context.svg,lbox,lyric);
+                    });
+                });
+            });
+        });
     }
 }
 ;// ## Description:
@@ -7105,7 +7119,7 @@ class suiTracker {
 		this.objectGroupMap = {};
 		this.objects = [];
 		this.selections = [];
-		this.modifierTabs = {};
+		this.modifierTabs = [];
 		this.modifierIndex = -1;
 		this.modifierSuggestion=-1;
 		this.suggestion = {};
@@ -7145,13 +7159,17 @@ class suiTracker {
 		return rv;		
 	}
 
-	_updateModifiers() {
+	_updateModifiers(rebox) {
 		this.modifierTabs = [];
 		this.modifierBoxes = [];
 		var modMap = {};
 		var ix=0;
         this.layout.score.scoreText.forEach((modifier) => {
             if (!modMap[modifier.attrs.id]) {
+                if (rebox) {
+                    var el = this.context.svg.getElementsByClassName(modifier.attrs.id)[0]
+                    svgHelpers.updateArtifactBox(this.context.svg,el,modifier);
+                }
                 this.modifierTabs.push({
                     modifier: modifier,
 							selection: null,
@@ -7165,6 +7183,10 @@ class suiTracker {
 			selection.staff.modifiers.forEach((modifier) => {
 				if (SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
 					if (!modMap[modifier.id]) {
+                        if (rebox) {
+                            var el = this.context.svg.getElementsByClassName(modifier.id)[0];
+                            svgHelpers.updateArtifactBox(this.context.svg,el,modifier);
+                        }
 						this.modifierTabs.push({
 							modifier: modifier,
 							selection: selection,
@@ -7180,6 +7202,10 @@ class suiTracker {
 			});
 			selection.measure.modifiers.forEach((modifier) => {
 				if (modifier.id && !modMap[modifier.id]) {
+                    if (rebox) {
+                        var el = this.context.svg.getElementsByClassName(modifier.id)[0];
+                        svgHelpers.updateArtifactBox(this.context.svg,el,modifier);
+                    }
 					this.modifierTabs.push({
 						modifier: modifier,
 						selection: selection,
@@ -7194,6 +7220,10 @@ class suiTracker {
 			});
 			selection.note.textModifiers.forEach((modifier) => {
 				if (!modMap[modifier.id]) {
+                    if (rebox) {
+                        var el = this.context.svg.getElementsByClassName(modifier.id)[0];
+                        svgHelpers.updateArtifactBox(this.context.svg,el,modifier);
+                    }
 					this.modifierTabs.push({
 						modifier: modifier,
 						selection: selection,
@@ -7264,6 +7294,21 @@ class suiTracker {
 		}
 		this.selections.push(artifact);
 	}
+    
+    // ### _updateNoteBox
+    // Update the svg to screen coordinates based on a change in viewport.
+    _updateNoteBox(svg,smoNote) {
+        var el = svg.getElementById(smoNote.renderId);
+        svgHelpers.updateArtifactBox(svg,el,smoNote);
+        
+        // TODO: fix this, only works on the first line.
+        smoNote.getModifiers('SmoLyric').forEach((lyric) => {
+			var ar = Array.from(el.getElementsByClassName('vf-lyric'));
+			ar.forEach((lbox) => {
+                svgHelpers.updateArtifactBox(svg,lbox,lyric);
+			});
+		});
+    }
 	
 	// ### updateMap
 	// This should be called after rendering the score.  It updates the score to
@@ -7295,7 +7340,7 @@ class suiTracker {
 							};
 						// if we need to update the screen based on scroll
 						if (rebox) {
-							svgHelpers.updateNoteBox(this.layout.svg,note);
+							this._updateNoteBox(this.layout.svg,note);
 						}
 							
 						var selection = new SmoSelection({
@@ -7322,7 +7367,7 @@ class suiTracker {
 				this.objects.push(selection);                
 			}
 		}); */
-		this._updateModifiers();
+		this._updateModifiers(rebox);
 		this.selections = [];
 		if (this.objects.length && !selCopy.length) {
 			console.log('adding selection ' + this.objects[0].note.id);
@@ -7729,7 +7774,7 @@ class suiTracker {
 	intersectingArtifact(bb) {
 		var artifacts = svgHelpers.findIntersectingArtifact(bb,this.objects);
 		// TODO: handle overlapping suggestions
-		if (!artifacts.length) {
+		if (!artifacts.length) {			
 			var sel = svgHelpers.findIntersectingArtifact(bb,this.modifierTabs);
 			if (sel.length) {
 				sel = sel[0];
@@ -7838,37 +7883,85 @@ class suiLayoutBase {
 			id: VF.Element.newID(),
 			type: ctor
 		};
+		this.dirty=true;
+		this.setPassState(suiLayoutBase.initial,'ctor');
+		console.log('layout ctor: pstate initial');
+		this.viewportChange = false;
+	}
+	
+	static get passStates() {
+		return {initial:0,pass:1,clean:2,replace:3};
+	}
+	
+	setDirty() {
+		if (!this.dirty) {
+			this.dirty = true;
+			if (this.viewportChange) {
+				this.setPassState(suiLayoutBase.passStates.initial,'setDirty 1');
+			} else if (this.passState == suiLayoutBase.passStates.clean || 
+			   this.passState == suiLayoutBase.passStates.replace) {
+				this.setPassState(suiLayoutBase.passStates.replace,'setDirty 2');
+			} else {
+				this.setPassState(suiLayoutBase.passStates.pass,'setDirty 3');
+			}
+		}
+	}
+	setRefresh() {
+		this.dirty=true;
+		this.setPassState(suiLayoutBase.passStates.initial,'setRefresh');
 	}
 
-	setViewport(reset) {
+	_setViewport(reset,elementId) {
 		// this.screenWidth = window.innerWidth;
-		var layout = this.score.layout;
+		var layout = this._score.layout;
 		this.zoomScale = layout.zoomMode === SmoScore.zoomModes.zoomScale ?
 			layout.zoomScale : (window.innerWidth - 200) / layout.pageWidth;
 
 		this.svgScale = layout.svgScale * this.zoomScale;
-		this.orientation = this.score.layout.orientation;
+		this.orientation = this._score.layout.orientation;
 		var w = Math.round(layout.pageWidth * this.zoomScale) ;
 		var h = Math.round(layout.pageHeight * this.zoomScale);
 		this.pageWidth =  (this.orientation  === SmoScore.orientations.portrait) ? w: h;
 		this.pageHeight = (this.orientation  === SmoScore.orientations.portrait) ? h : w;
 		
-		this.leftMargin=this.score.layout.leftMargin;
-        this.rightMargin = this.score.layout.rightMargin;
-		$(this.elementId).css('width', '' + Math.round(this.pageWidth) + 'px');
-		$(this.elementId).css('height', '' + Math.round(this.pageHeight) + 'px');
+		this.leftMargin=this._score.layout.leftMargin;
+        this.rightMargin = this._score.layout.rightMargin;
+		$(elementId).css('width', '' + Math.round(this.pageWidth) + 'px');
+		$(elementId).css('height', '' + Math.round(this.pageHeight) + 'px');        
 		if (reset) {
-		    $(this.elementId).html('');
-    		this.renderer = new VF.Renderer(this.elementId, VF.Renderer.Backends.SVG);
+		    $(elementId).html('');
+    		this.renderer = new VF.Renderer(elementId, VF.Renderer.Backends.SVG);
+            this.viewportChange = true;
 		}
 		// this.renderer.resize(this.pageWidth, this.pageHeight);
 
 		svgHelpers.svgViewport(this.context.svg, this.pageWidth, this.pageHeight, this.svgScale);
 
 		this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
-		var self = this;
 		this.resizing = false;
-
+		this.setPassState(suiLayoutBase.passStates.initial,'setViewport');
+		console.log('layout setViewport: pstate initial');
+		this.dirty=true;
+	}
+    
+    setViewport(reset) {
+        this._setViewport(reset,this.elementId);
+        this.mainRenderer = this.renderer;
+        
+        if (this.shadowElement) {
+            this._setViewport(reset,this.shadowElement);
+            if (reset) {
+                this.shadowRenderer = this.renderer;
+            }
+            this.renderer = this.mainRenderer;
+        } else {
+            this.shadowRenderer = this.renderer;
+        }
+    }
+	
+	setPassState(st,location) {
+		console.log(location + ': passState '+this.passState+'=>'+st);
+		this.passState = st;
 	}
 	static get defaults() {
 		return {
@@ -7894,6 +7987,11 @@ class suiLayoutBase {
 
 	static set debugLayout(value) {
 		suiLayoutBase._debugLayout = value;
+        if (value) {
+            $('body').addClass('layout-debug');
+        } else {
+            $('body').removeClass('layout-debug');
+        }
 	}
 
 	// ### get context
@@ -7909,33 +8007,14 @@ class suiLayoutBase {
 	get svg() {
 		return this.context.svg;
 	}
-
-	renderAndAdvance() {
-		this.render();
-	}
+	
 	// ### render
 	// ### Description:
 	// Render the current score in the div using VEX.  Rendering is actually done twice:
 	// 1. Rendering is done just to the changed parts of the score.  THe first time, the whole score is rendered.
 	// 2. Widths and heights are adjusted for elements that may have overlapped or exceeded their expected boundary.
 	// 3. The whole score is rendered a second time with the new values.
-	render() {
-		const promise = new Promise((resolve, reject) => {
-				this._render();
-				resolve();
-			});
-
-		return promise;
-	}
-	redraw() {
-		const promise = new Promise((resolve, reject) => {
-				this._redraw();
-				resolve();
-			});
-
-		return promise;
-	}
-
+	
 
 	// ### undo
 	// ### Description:
@@ -7947,13 +8026,13 @@ class suiLayoutBase {
 		if (buffer) {
 			var sel = buffer.selector;
 			if (buffer.type == 'measure') {
-				this.unrenderMeasure(SmoSelection.measureSelection(this.score, sel.staff, sel.measure).measure);
+				this.unrenderMeasure(SmoSelection.measureSelection(this._score, sel.staff, sel.measure).measure);
 			} else if (buffer.type === 'staff') {
-				this.unrenderStaff(SmoSelection.measureSelection(this.score, sel.staff, 0).staff);
+				this.unrenderStaff(SmoSelection.measureSelection(this._score, sel.staff, 0).staff);
 			} else {
 				this.unrenderAll();
 			}
-			this.score = undoBuffer.undo(this.score);
+			this._score = undoBuffer.undo(this._score);
 			this.render();
 		}
 	}
@@ -7963,7 +8042,7 @@ class suiLayoutBase {
 	// For dialogs that allow you to manually modify elements that are automatically rendered, we allow a preview so the
 	// changes can be undone before the buffer closes.
 	renderNoteModifierPreview(modifier) {
-		var selection = SmoSelection.noteSelection(this.score, modifier.selector.staff, modifier.selector.measure, modifier.selector.voice, modifier.selector.tick);
+		var selection = SmoSelection.noteSelection(this._score, modifier.selector.staff, modifier.selector.measure, modifier.selector.voice, modifier.selector.tick);
 		if (!selection.measure.renderedBox) {
 			return;
 		}
@@ -7977,7 +8056,7 @@ class suiLayoutBase {
 	// re-render a modifier for preview during modifier dialog
 	renderStaffModifierPreview(modifier) {
 		// get the first measure the modifier touches
-		var startSelection = SmoSelection.measureSelection(this.score, modifier.startSelector.staff, modifier.startSelector.measure);
+		var startSelection = SmoSelection.measureSelection(this._score, modifier.startSelector.staff, modifier.startSelector.measure);
 
 		// We can only render if we already have, or we don't know where things go.
 		if (!startSelection.measure.renderedBox) {
@@ -7987,7 +8066,7 @@ class suiLayoutBase {
 		while (startSelection && startSelection.selector.measure <= modifier.endSelector.measure) {
 			smoBeamerFactory.applyBeams(startSelection.measure);
 			system.renderMeasure(startSelection.selector.staff, startSelection.measure);
-			var nextSelection = SmoSelection.measureSelection(this.score, startSelection.selector.staff, startSelection.selector.measure + 1);
+			var nextSelection = SmoSelection.measureSelection(this._score, startSelection.selector.staff, startSelection.selector.measure + 1);
 
 			// If we go to new line, render this line part, then advance because the modifier is split
 			if (nextSelection && nextSelection.measure && nextSelection.measure.lineIndex != startSelection.measure.lineIndex) {
@@ -8012,7 +8091,7 @@ class suiLayoutBase {
 		measure.staffY = SmoMeasure.defaults.staffY;
 		measure.staffWidth = SmoMeasure.defaults.staffWidth;
 		measure.adjY = 0;
-		measure.changed = true;
+		measure.setChanged();
 	}
 
 	// ### unrenderStaff
@@ -8035,9 +8114,9 @@ class suiLayoutBase {
 	_renderModifiers(staff, system) {
 		var svg = this.svg;
 		staff.modifiers.forEach((modifier) => {
-			var startNote = SmoSelection.noteSelection(this.score,
+			var startNote = SmoSelection.noteSelection(this._score,
 					modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
-			var endNote = SmoSelection.noteSelection(this.score,
+			var endNote = SmoSelection.noteSelection(this._score,
 					modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
 
 			var vxStart = system.getVxNote(startNote.note);
@@ -8045,12 +8124,12 @@ class suiLayoutBase {
 
 			// If the modifier goes to the next staff, draw what part of it we can on this staff.
 			if (vxStart && !vxEnd) {
-				var nextNote = SmoSelection.nextNoteSelection(this.score,
+				var nextNote = SmoSelection.nextNoteSelection(this._score,
 						modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
 				var testNote = system.getVxNote(nextNote.note);
 				while (testNote) {
 					vxEnd = testNote;
-					nextNote = SmoSelection.nextNoteSelection(this.score,
+					nextNote = SmoSelection.nextNoteSelection(this._score,
 							nextNote.selector.staff, nextNote.selector.measure, nextNote.selector.voice, nextNote.selector.tick);
                     // last beat of the measure
                     if (!nextNote) {
@@ -8061,12 +8140,12 @@ class suiLayoutBase {
 				}
 			}
 			if (vxEnd && !vxStart) {
-				var lastNote = SmoSelection.lastNoteSelection(this.score,
+				var lastNote = SmoSelection.lastNoteSelection(this._score,
 						modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
 				var testNote = system.getVxNote(lastNote.note);
 				while (testNote) {
 					vxStart = testNote;
-					lastNote = SmoSelection.lastNoteSelection(this.score,
+					lastNote = SmoSelection.lastNoteSelection(this._score,
 							lastNote.selector.staff, lastNote.selector.measure, lastNote.selector.voice, lastNote.selector.tick);
                     if (!lastNote) {
                         break;
@@ -8088,34 +8167,51 @@ class suiLayoutBase {
 		
 		system.updateLyricOffsets();
 	}
-
-	_redraw() {
-		this.unrenderAll();
-		this._render();
-	}
-	_render() {
+	
+	render() {
+		if (this.viewportChange) {
+			this.unrenderAll();
+			this.setPassState(suiLayoutBase.passStates.initial,'render 1');			
+			this.viewportChange = false;
+		}
 
 		// layout a second time to adjust for issues.
 		// this.adjustWidths();
 		// this.adjustWidths();
 		var params = {useY:false,useX:false};
-		this.layout(params);
-		for (var i=0;i<10;++i) {
+		if (this.passState == suiLayoutBase.passStates.pass) {
 			params.useX=true;
-		    suiLayoutAdjuster.adjustWidths(this.score,this.renderer);
-			this.layout(params);
-			
-			// If useX is still true, there was no wrapping and we
-			// can stop
-			if (params.useX) {
-				break;
-			}
-			params.useX = true;
+		    suiLayoutAdjuster.adjustWidths(this._score,this.renderer);
 		}
-		suiLayoutAdjuster.justifyWidths(this.score,this.renderer,this.pageMarginWidth / this.svgScale);
-		suiLayoutAdjuster.adjustHeight(this.score,this.renderer);
-		params.useY=true;
-		this.layout(params);
+		if ((this.passState == suiLayoutBase.passStates.clean) || 
+		    (this.passState == suiLayoutBase.passStates.replace)) {
+			params.useY=true;
+			params.useX=true;
+		}
+        this.renderer = (this.passState == suiLayoutBase.passStates.initial || this.passState == suiLayoutBase.passStates.pass) ? 
+            this.shadowRenderer : this.mainRenderer;
+		
+        this.layout(params);
+		
+		if (this.passState == suiLayoutBase.passStates.replace) {
+			this.dirty=false;
+			return;
+		}
+		
+		if (params.useX == true) {
+			if (this.passState == suiLayoutBase.passStates.clean) {
+				this.dirty=false;
+			} else {
+				suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth / this.svgScale);
+				suiLayoutAdjuster.adjustHeight(this._score,this.renderer);
+				this.setPassState(suiLayoutBase.passStates.clean,'render 2');
+			}
+		} else {
+			// otherwise we need another pass.
+			this.dirty=true;
+			this.setPassState(suiLayoutBase.passStates.pass,'render 3');
+			console.log('layout after pass: pstate pass');
+		}	
 	}
 }
 ;
@@ -8402,6 +8498,7 @@ class suiLayoutAdjuster {
 		return width;
 	}
 	
+    
 	static estimateTextOffset(renderer,smoMeasure) {
 		var leftText = smoMeasure.modifiers.filter((mm) => mm.ctor==='SmoMeasureText' && mm.position === SmoMeasureText.positions.left);
 		var rightText = smoMeasure.modifiers.filter((mm) => mm.ctor==='SmoMeasureText' && mm.position === SmoMeasureText.positions.right);
@@ -8526,7 +8623,7 @@ class suiLayoutAdjuster {
 						});
 					measures.forEach((measure) => {
 						measure.staffWidth = widest;
-						measure.changed = true;
+						measure.setChanged();
 					});
 				}
 				if (!measures.length)
@@ -8671,14 +8768,28 @@ class suiScoreLayout extends suiLayoutBase {
 		};
 	}
 	
+	get score() {
+		return this._score;
+	}
+	
+	set score(score) {
+		if (this._score) {
+		    this.unrenderAll();
+		}
+		this.passState = suiLayoutBase.passStates.initial;
+		this.dirty=true;
+		this._score = score;
+	}
+	
 
 	// ### createScoreLayout
 	// ### Description;
 	// to get the score to appear, a div and a score object are required.  The layout takes care of creating the
 	// svg element in the dom and interacting with the vex library.
-	static createScoreLayout(renderElement, score, layoutParams) {
+	static createScoreLayout(renderElement,shadowElement, score, layoutParams) {
 		var ctorObj = {
 			elementId: renderElement,
+            shadowElement:shadowElement,
 			score: score
 		};
 		if (layoutParams) {
@@ -8709,7 +8820,7 @@ class suiScoreLayout extends suiLayoutBase {
 	// ### Description:
 	// Delete all the svg elements associated with the score.
 	unrenderAll() {
-		this.score.staves.forEach((staff) => {
+		this._score.staves.forEach((staff) => {
 			this.unrenderStaff(staff);
 		});
 		$(this.renderer.getContext().svg).find('g.lineBracket').remove();
@@ -8729,7 +8840,7 @@ class suiScoreLayout extends suiLayoutBase {
 	}
 
 	_previousAttr(i, j, attr) {
-		var staff = this.score.staves[j];
+		var staff = this._score.staves[j];
 		var measure = staff.measures[i];
 		return (i > 0 ? staff.measures[i - 1][attr] : measure[attr]);
 	}
@@ -8737,7 +8848,7 @@ class suiScoreLayout extends suiLayoutBase {
 	renderScoreText(tt) {
 		var svg = this.context.svg;
 		var classes = tt.attrs.id+' '+'score-text'+' '+tt.classes;
-		var args = {svg:this.svg,width:this.logicalPageWidth,height:this.logicalPageHeight,layout:this.score.layout};
+		var args = {svg:this.svg,width:this.logicalPageWidth,height:this.logicalPageHeight,layout:this._score.layout};
 		if (tt.autoLayout === true) {
 			var fcn = tt.position+'TextPlacement';
 			suiTextLayout[fcn](tt,args);
@@ -8748,7 +8859,7 @@ class suiScoreLayout extends suiLayoutBase {
 	_renderScoreModifiers() {
 		var svg = this.context.svg;
 		$(this.renderer.getContext().svg).find('text.score-text').remove();
-		this.score.scoreText.forEach((tt) => {
+		this._score.scoreText.forEach((tt) => {
 			this.renderScoreText(tt);
 		});
 	}
@@ -8760,7 +8871,7 @@ class suiScoreLayout extends suiLayoutBase {
 		measure.forceTimeSignature = (systemIndex === 0 || measure.timeSignature !== timeSigLast);
 		if (measureKeySig !== keySigLast) {
 			measure.canceledKeySignature = keySigLast;
-			measure.changed=true;
+			measure.setChanged();
 			measure.forceKeySignature = true;
 		} else if (measure.measureNumber.measureIndex == 0 && measureKeySig != 'C') {
 			measure.forceKeySignature = true;
@@ -8791,10 +8902,10 @@ class suiScoreLayout extends suiLayoutBase {
 		// bounding box of all artifacts in a system
 		var systemBoxes = {};
 		var staffBoxes = {};
-		if (!this.score.staves.length) {
+		if (!this._score.staves.length) {
 			return;
 		}
-		var topStaff = this.score.staves[0];
+		var topStaff = this._score.staves[0];
 		var topStaffY = topStaff.staffY;
 		if (!topStaff.measures.length) {
 			return;
@@ -8808,14 +8919,14 @@ class suiScoreLayout extends suiLayoutBase {
 
 		for (var i = 0; i < topStaff.measures.length; ++i) {
 			var staffWidth = 0;
-			for (var j = 0; j < this.score.staves.length; ++j) {
-				var staff = this.score.staves[j];
+			for (var j = 0; j < this._score.staves.length; ++j) {
+				var staff = this._score.staves[j];
 				var measure = staff.measures[i];
 
 				measure.lineIndex = lineIndex;
 
 				// The SVG X,Y of this staff.  Set it initially to the UL corner of page.  Width,height filled in later.
-				var staffBox = svgHelpers.pointBox(this.score.layout.leftMargin, this.score.layout.topMargin);
+				var staffBox = svgHelpers.pointBox(this._score.layout.leftMargin, this._score.layout.topMargin);
 
 				// The left-most measure sets the y for the row, top measure sets the x for the column.
 				// Other measures get the x, y from previous measure on this row.  Once the music is rendered we will adjust
@@ -8824,7 +8935,7 @@ class suiScoreLayout extends suiLayoutBase {
 					if (j == 0) {
 						staffBoxes[j] = svgHelpers.copyBox(staffBox);
 					} else {
-						staffBoxes[j] = svgHelpers.pointBox(staffBoxes[j - 1].x, staffBoxes[j - 1].y + staffBoxes[j - 1].height + this.score.layout.intraGap);
+						staffBoxes[j] = svgHelpers.pointBox(staffBoxes[j - 1].x, staffBoxes[j - 1].y + staffBoxes[j - 1].height + this._score.layout.intraGap);
 					}
 				}
 
@@ -8869,24 +8980,24 @@ class suiScoreLayout extends suiLayoutBase {
 					if (useAdjustedX && measure.measureNumber.systemIndex != 0) {
 						useAdjustedX = params.useX = false;
     				}
-					measure.staffX = this.score.layout.leftMargin;
+					measure.staffX = this._score.layout.leftMargin;
 
-					this.score.staves.forEach((stf) => {
+					this._score.staves.forEach((stf) => {
 						this._renderModifiers(stf, system);
 					});
 					if (!useAdjustedY && measure.changed) {
                         if (suiLayoutBase.debugLayout) {
 					       svgHelpers.debugBox(
-						svg, svgHelpers.boxPoints(measure.staffX, pageBox.y + pageBox.height, 1, this.score.layout.interGap), 
+						svg, svgHelpers.boxPoints(measure.staffX, pageBox.y + pageBox.height, 1, this._score.layout.interGap), 
                           'measure-place-dbg');
 				        }
-						measure.staffY = pageBox.y + pageBox.height + this.score.layout.interGap;
+						measure.staffY = pageBox.y + pageBox.height + this._score.layout.interGap;
 						if (isNaN(measure.staffY)) {
 							throw ("nan measure ");
 						}
 					}
 					staffBoxes = {};
-					staffBoxes[j] = svgHelpers.boxPoints(this.score.layout.leftMargin, measure.staffY, 1, 1);
+					staffBoxes[j] = svgHelpers.boxPoints(this._score.layout.leftMargin, measure.staffY, 1, 1);
 					lineIndex += 1;
 					measure.lineIndex = lineIndex;
 					system = new VxSystem(this.context, staff.staffY, lineIndex);
@@ -8923,6 +9034,13 @@ class suiScoreLayout extends suiLayoutBase {
 							});
 						});
 					}
+                    // If we are still animating, pass that information back.
+                    if (measure.staffY != measure.prevY) {
+                        params.animateY=true;
+                    }
+                    if (measure.staffX != measure.prevX) {
+                        params.animateX=true;
+                    }
 					measure.changed = false;
 				}
 				// Rendered box is in client coordinates, convert it to SVG
@@ -8944,7 +9062,7 @@ class suiScoreLayout extends suiLayoutBase {
 			++systemIndex;
 		}
 		system.renderEndings();
-		this.score.staves.forEach((stf) => {
+		this._score.staves.forEach((stf) => {
 			this._renderModifiers(stf, system);
 		});
 		this._renderScoreModifiers();
@@ -9310,7 +9428,8 @@ class editLyricSession {
         this._getOrCreateLyric(this.selection.note)
 		this.fontInfo = JSON.parse(JSON.stringify(this.lyric.fontInfo));
         this.selection.note.addLyric(this.lyric);
-		this.tracker.layout.render().then(_startEditing);        
+        this.tracker.layout.render();
+		_startEditing();
     }
 	
 	handleKeydown(event) {
@@ -9355,31 +9474,15 @@ class suiEditor {
     // ## _render
     // utility function to render the music and update the tracker map.
     _render() {
-        var self = this;
-        var remap = function () {
-            return self.tracker.updateMap();
-        }
-        this.layout.render().catch(function (e) {
-            // make to non-promise exception format
-            e.error = e;
-            SuiExceptionHandler.instance.exceptionHandler(e);
-        })
-        .then(remap);
+		this.layout.setDirty();
     }
     get score() {
         return this.layout.score;
     }
 
     _renderAndAdvance() {
-        var self = this;
-        var remap = function () {
-            return self.tracker.updateMap();
-        }
-        var mover = function () {
-            return self.tracker.moveSelectionRight();
-        }
-        this.layout.render().then(remap).then(mover);
-        // TODO: make this promise-based
+		this.tracker.moveSelectionRight();
+		this.layout.setDirty();
     }
     _batchDurationOperation(operation) {
         SmoUndoable.batchDurationOperation(this.score, this.tracker.selections, operation, this.undoBuffer);
@@ -9403,6 +9506,7 @@ class suiEditor {
         } else {
             SmoUndoable[name](selection, this.undoBuffer);
         }
+		selection.measure.setChanged();
     }
 
     undo() {
@@ -9927,7 +10031,6 @@ class SuiFileMenu extends suiMenuBase {
         } else if (text == 'newFile') {
             this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
             var score = SmoScore.getDefaultScore();
-            this.controller.layout.unrenderAll();
             this.controller.layout.score = score;
         }
 		this.complete();
@@ -10045,15 +10148,7 @@ class SuiTextMenu extends suiMenuBase {
             var txtObj = new ctor(menuObj.params);
             SmoUndoable.scoreOp(this.editor.score,menuObj.operation,
                txtObj, this.editor.undoBuffer,'Text Menu Command');     
-                var self=this;
-                var remap = function () {
-                  return self.tracker.updateMap();
-                }
-                var editNewText = function() {
-                    self._editNewText(txtObj);
-                }
-                this.tracker.layout.render().then(remap).then(editNewText);
-                
+			this._editNewText(txtObj);                
         }
 
 		this.complete();
@@ -10437,7 +10532,7 @@ class utController {
 			$('h1.testTitle').text(title);
 		}
 		var params = {};
-		params.layout = suiScoreLayout.createScoreLayout($('#boo')[0], score);
+		params.layout = suiScoreLayout.createScoreLayout($('#boo')[0],null, score);
 		params.tracker = new suiTracker(params.layout);
 		// params.tracker = new suiTracker(params.layout);
 		params.score = score;
@@ -10484,7 +10579,14 @@ class utController {
 	}
 
 	render() {
-		return this.layout.render();
+        var ix = 0;
+        this.layout.setRefresh();
+		while(this.layout.dirty) {
+            this.layout.render();
+            ix += 1;
+            if (ix>20)
+                break;
+        }
 	}
 
 	bindEvents() {}
@@ -11709,11 +11811,7 @@ class SuiLayoutDialog extends SuiDialogBase {
 	_handleCancel() {
 		this.layout.score.layout = this.backup;
 		this.layout.setViewport();
-		var self = this;
-		var complete = function () {
-			self.complete();
-		}
-		this.layout.redraw().then(complete);	
+		this.complete();
 	}
 	_bindElements() {
 		var self = this;
@@ -11721,10 +11819,7 @@ class SuiLayoutDialog extends SuiDialogBase {
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
 			self.layout.setViewport();
-			var complete = function () {
-				self.complete();
-			}
-			self.layout.render().then(complete);
+			self.complete();			
 		});
 
 		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
@@ -11767,7 +11862,6 @@ class SuiLayoutDialog extends SuiDialogBase {
 			this.layout.score.layout[component.smoName] = component.getValue();
 		});
 		this.layout.setViewport();
-		this.layout.render();
 	}
 	static createAndDisplay(buttonElement, buttonData, controller) {
 		var dg = new SuiLayoutDialog({				
@@ -12467,7 +12561,7 @@ class defaultRibbonLayout {
 		var left = defaultRibbonLayout.leftRibbonIds;
 		var top = defaultRibbonLayout.noteButtonIds.concat(defaultRibbonLayout.navigateButtonIds).concat(defaultRibbonLayout.articulateButtonIds)
 		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds).concat(defaultRibbonLayout.measureIds)
-              .concat(defaultRibbonLayout.textIds);
+              .concat(defaultRibbonLayout.textIds).concat(defaultRibbonLayout.debugIds);
 			
 		return {
 			left: left,
@@ -12482,7 +12576,7 @@ class defaultRibbonLayout {
 			defaultRibbonLayout.articulationButtons).concat(
 			defaultRibbonLayout.chordButtons).concat(
 			defaultRibbonLayout.durationRibbonButtons).concat(defaultRibbonLayout.measureRibbonButtons)
-            .concat(defaultRibbonLayout.textRibbonButtons);
+            .concat(defaultRibbonLayout.textRibbonButtons).concat(defaultRibbonLayout.debugRibbonButtons);
 	}
 	
 	static get leftRibbonIds() {
@@ -12506,6 +12600,10 @@ class defaultRibbonLayout {
 		return ['CreateChordButtons', 'SecondUpButton', 'SecondDownButton', 'ThirdUpButton', 'ThirdDownButton', 'FourthUpButton', 'FourthDownButton',
 				'FifthUpButton', 'FifthDownButton','SixthUpButton', 'SixthDownButton'
 				,'SeventhUpButton', 'SeventhDownButton','OctaveUpButton','OctaveDownButton','CollapseChordButton'];
+	}
+	
+	static get debugIds() {
+		return ['DebugGroup','DebugButton2'];
 	}
 	static get durationIds() {
 		return ['DurationButtons','GrowDuration','LessDuration','GrowDurationDot','LessDurationDot','TripletButton','QuintupletButton','SeptupletButton','NoTupletButton'];
@@ -12732,6 +12830,27 @@ class defaultRibbonLayout {
 				id: 'fine'
 			}
 		];
+	}
+	static get debugRibbonButtons() {
+		return [{
+				leftText: '',
+				rightText: '',
+				classes: 'icon  collapseParent',
+				icon: 'icon-new-tab',
+				action: 'collapseParent',
+				ctor: 'CollapseRibbonControl',
+				group: 'debug',
+				id: 'DebugGroup'
+			},{
+				leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed',
+				icon: 'icon-new-tab',
+				action: 'collapseChild',
+				ctor: 'DebugButtons',
+				group: 'debug',
+				id: 'DebugButton2'
+			}];
 	}
 	
 	static get durationRibbonButtons() {
@@ -13477,31 +13596,43 @@ class vexGlyph {
 			singleBar: {
 				width:1,
 				height:41,
+                yTop:0,
+                yBottom:0,
 				spacingRight:10
 			},
 			endBar: {
 				width:5.22,
 				height:40.99,
+                yTop:0,
+                yBottom:0,
 				spacingRight:10
 			},			
 			doubleBar: {
 				width:3.22,
 				height:40.99,
+                yTop:0,
+                yBottom:0,
 				spacingRight:0
 			},
 			endRepeat: {
 				width:6,
 				height:40.99,
+                yTop:0,
+                yBottom:0,
 				spacingRight:0,
 			},
 			startRepeat: {
 				width:6,
 				height:40.99,
+                yTop:0,
+                yBottom:0,
 				spacingRight:5,
 			},
 			noteHead: {
 				width:12.02,
 				height:10.48,
+                yTop:0,
+                yBottom:0,
 				spacingRight:15,
 			},
 			dot: {
@@ -13512,56 +13643,78 @@ class vexGlyph {
 			trebleClef: {
 				width: 25.5,
 				height: 68.32,
+                yTop:14,
+                yBottom:0,
 				spacingRight: 10,
 			},
 			bassClef: {
 				width: 32.32,
 				height: 31.88,
+                yTop:0,
+                yBottom:0,
 				spacingRight: 5,
 			},
 			altoClef: {
 				width: 31.5,
+                yTop:0,
+                yBottom:0,
 				height: 85.5,
 				spacingRight: 10
 			},
 			tenorClef: {
 				width: 31.5,
+                yTop:10,
+                yBottom:0,
 				height: 41,
 				spacingRight: 10
 			},
 			timeSignature: {
 				width: 13.48,
 				height: 85,
+                yTop:0,
+                yBottom:0,
 				spacingRight: 5
 			},
 			flat: {
 				width: 7.44,
 				height: 23.55,
+                yTop:0,
+                yBottom:0,
 				spacingRight: 2
 			},
 			keySignature: {
 				width: 0,
 				height: 85.5,
+                yTop:0,
+                yBottom:0,
 				spacingRight: 10
 			},
 			sharp: {
 				width: 8.84,
 				height: 62,
+                yTop:0,
+                yBottom:0,
 				spacingRight: 2
 			},
 			natural: {
 				width: 6.54,
 				height: 53.35,
+                yTop:0,
+                yBottom:0,
 				spacingRight: 2
 			},
 			doubleSharp: {
 				height: 10.04,
 				width: 21.63,
+                yTop:0,
+                yBottom:0,
 				spacingRight: 2
 			},
 			doubleFlat: {
 				width: 13.79,
 				height: 49.65,
+                yTop:0,
+                yBottom:0,
 				spacingRight:2
 			}
 		};
@@ -13572,7 +13725,7 @@ class vexGlyph {
   "layout": {
    "leftMargin": 30,
    "rightMargin": 30,
-   "topMargin": 72.171875,
+   "topMargin": 103.671875,
    "bottomMargin": 40,
    "pageWidth": 816,
    "pageHeight": 1056,
@@ -13642,14 +13795,14 @@ class vexGlyph {
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 92.05937194824219,
+     "staffY": 123.4843978881836,
      "measureNumber": {
       "measureNumber": 0,
       "measureIndex": 0,
       "systemIndex": 0,
       "staffId": 0
      },
-     "staffWidth": 557.2199687957764,
+     "staffWidth": 557.2199993133545,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -13684,21 +13837,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8793555",
+          "id": "auto2353724",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8793568",
+         "renderId": "vf-auto2353738",
          "renderedBox": {
-          "x": 259.85321044921875,
-          "y": 261.9184875488281,
+          "x": 287.84527587890625,
+          "y": 305.9010009765625,
           "width": 17.68536376953125,
-          "height": 36.117462158203125
+          "height": 36.11749267578125
          },
          "logicalBox": {
-          "x": 99.90080261230469,
-          "y": 133.55113220214844,
-          "width": 12.635993957519531,
-          "height": 25.805526733398438
+          "x": 119.90081787109375,
+          "y": 164.97613525390625,
+          "width": 12.635986328125,
+          "height": 25.8055419921875
          }
         },
         {
@@ -13723,9 +13876,9 @@ class vexGlyph {
             "type": "SmoDynamicText"
            },
            "renderedBox": {
-            "x": 307.0353698730469,
-            "y": 301.11016845703125,
-            "width": 21.673919677734375,
+            "x": 335.02740478515625,
+            "y": 345.09271240234375,
+            "width": 21.6739501953125,
             "height": 24.20123291015625
            }
           }
@@ -13750,20 +13903,20 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8793555",
+          "id": "auto2353724",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8793574",
+         "renderId": "vf-auto2353744",
          "renderedBox": {
-          "x": 309.06494140625,
-          "y": 266.51666259765625,
+          "x": 337.0569763183594,
+          "y": 310.49920654296875,
           "width": 16.82073974609375,
           "height": 14.65924072265625
          },
          "logicalBox": {
-          "x": 135.06202697753906,
-          "y": 136.8364715576172,
-          "width": 12.018218994140625,
+          "x": 155.06201171875,
+          "y": 168.26150512695312,
+          "width": 12.018234252929688,
           "height": 10.473861694335938
          }
         },
@@ -13790,21 +13943,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8793555",
+          "id": "auto2353724",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8793581",
+         "renderId": "vf-auto2353751",
          "renderedBox": {
-          "x": 357.4119873046875,
-          "y": 259.5186767578125,
-          "width": 16.82080078125,
-          "height": 14.659210205078125
+          "x": 385.404052734375,
+          "y": 303.501220703125,
+          "width": 16.820770263671875,
+          "height": 14.6591796875
          },
          "logicalBox": {
-          "x": 169.60543823242188,
-          "y": 131.8365020751953,
-          "width": 12.018280029296875,
-          "height": 10.473831176757812
+          "x": 189.60545349121094,
+          "y": 163.2615203857422,
+          "width": 12.01824951171875,
+          "height": 10.47381591796875
          }
         },
         {
@@ -13830,26 +13983,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8793555",
+          "id": "auto2353724",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8793588",
+         "renderId": "vf-auto2353758",
          "renderedBox": {
-          "x": 405.7591247558594,
-          "y": 252.52066040039062,
+          "x": 433.75115966796875,
+          "y": 296.5032043457031,
           "width": 16.82073974609375,
           "height": 14.659210205078125
          },
          "logicalBox": {
-          "x": 204.14892578125,
-          "y": 126.83649444580078,
-          "width": 12.018218994140625,
-          "height": 10.473838806152344
+          "x": 224.14891052246094,
+          "y": 158.2615203857422,
+          "width": 12.018234252929688,
+          "height": 10.473846435546875
          }
         }
        ],
        "attrs": {
-        "id": "auto8793555",
+        "id": "auto2353724",
         "type": "SmoBeamGroup"
        }
       },
@@ -13878,21 +14031,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8793556",
+          "id": "auto2353725",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8793595",
+         "renderId": "vf-auto2353765",
          "renderedBox": {
-          "x": 454.106201171875,
-          "y": 245.52264404296875,
-          "width": 16.82073974609375,
-          "height": 14.659210205078125
+          "x": 482.0982360839844,
+          "y": 289.50518798828125,
+          "width": 16.820770263671875,
+          "height": 14.6591796875
          },
          "logicalBox": {
-          "x": 238.69235229492188,
-          "y": 121.83649444580078,
-          "width": 12.018234252929688,
-          "height": 10.473838806152344
+          "x": 258.6923522949219,
+          "y": 153.2615203857422,
+          "width": 12.01824951171875,
+          "height": 10.47381591796875
          }
         },
         {
@@ -13918,21 +14071,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8793556",
+          "id": "auto2353725",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8793602",
+         "renderId": "vf-auto2353772",
          "renderedBox": {
-          "x": 502.45330810546875,
-          "y": 259.5186767578125,
-          "width": 16.82073974609375,
-          "height": 14.659210205078125
+          "x": 530.4453125,
+          "y": 303.501220703125,
+          "width": 16.82080078125,
+          "height": 14.6591796875
          },
          "logicalBox": {
-          "x": 273.2358093261719,
-          "y": 131.8365020751953,
-          "width": 12.018218994140625,
-          "height": 10.473831176757812
+          "x": 293.23577880859375,
+          "y": 163.2615203857422,
+          "width": 12.018280029296875,
+          "height": 10.47381591796875
          }
         },
         {
@@ -13958,21 +14111,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8793556",
+          "id": "auto2353725",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8793609",
+         "renderId": "vf-auto2353779",
          "renderedBox": {
-          "x": 550.8003540039062,
-          "y": 252.52066040039062,
-          "width": 16.82073974609375,
+          "x": 578.79248046875,
+          "y": 296.5032043457031,
+          "width": 16.8206787109375,
           "height": 14.659210205078125
          },
          "logicalBox": {
-          "x": 307.77923583984375,
-          "y": 126.83649444580078,
-          "width": 12.018218994140625,
-          "height": 10.473838806152344
+          "x": 327.779296875,
+          "y": 158.2615203857422,
+          "width": 12.0181884765625,
+          "height": 10.473846435546875
          }
         },
         {
@@ -13998,26 +14151,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8793556",
+          "id": "auto2353725",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8793616",
+         "renderId": "vf-auto2353786",
          "renderedBox": {
-          "x": 599.1474609375,
-          "y": 266.51666259765625,
-          "width": 16.82080078125,
+          "x": 627.1395263671875,
+          "y": 310.49920654296875,
+          "width": 16.82073974609375,
           "height": 14.65924072265625
          },
          "logicalBox": {
-          "x": 342.32269287109375,
-          "y": 136.8364715576172,
-          "width": 12.018280029296875,
+          "x": 362.32269287109375,
+          "y": 168.26150512695312,
+          "width": 12.01824951171875,
           "height": 10.473861694335938
          }
         }
        ],
        "attrs": {
-        "id": "auto8793556",
+        "id": "auto2353725",
         "type": "SmoBeamGroup"
        }
       },
@@ -14046,21 +14199,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8793557",
+          "id": "auto2353726",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8793623",
+         "renderId": "vf-auto2353793",
          "renderedBox": {
-          "x": 647.4945678710938,
-          "y": 238.52464294433594,
-          "width": 16.82080078125,
+          "x": 675.4866333007812,
+          "y": 282.5071716308594,
+          "width": 16.82073974609375,
           "height": 14.659210205078125
          },
          "logicalBox": {
-          "x": 376.86614990234375,
-          "y": 116.83650207519531,
-          "width": 12.018280029296875,
-          "height": 10.473838806152344
+          "x": 396.86614990234375,
+          "y": 148.2615203857422,
+          "width": 12.01824951171875,
+          "height": 10.473831176757812
          }
         },
         {
@@ -14086,26 +14239,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8793557",
+          "id": "auto2353726",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8793630",
+         "renderId": "vf-auto2353800",
          "renderedBox": {
-          "x": 718.9703979492188,
-          "y": 217.5305938720703,
+          "x": 746.9624633789062,
+          "y": 261.51312255859375,
           "width": 16.82073974609375,
-          "height": 14.659210205078125
+          "height": 14.65924072265625
          },
          "logicalBox": {
-          "x": 427.934814453125,
-          "y": 101.83648681640625,
-          "width": 12.018218994140625,
-          "height": 10.473838806152344
+          "x": 447.934814453125,
+          "y": 133.26150512695312,
+          "width": 12.01824951171875,
+          "height": 10.473861694335938
          }
         }
        ],
        "attrs": {
-        "id": "auto8793557",
+        "id": "auto2353726",
         "type": "SmoBeamGroup"
        }
       },
@@ -14134,21 +14287,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8793558",
+          "id": "auto2353727",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8793637",
+         "renderId": "vf-auto2353807",
          "renderedBox": {
-          "x": 790.4461669921875,
-          "y": 224.5286102294922,
-          "width": 16.82080078125,
-          "height": 14.659210205078125
+          "x": 818.4382934570312,
+          "y": 268.51116943359375,
+          "width": 16.82073974609375,
+          "height": 14.6591796875
          },
          "logicalBox": {
-          "x": 479.0034484863281,
-          "y": 106.83649444580078,
-          "width": 12.01824951171875,
-          "height": 10.473838806152344
+          "x": 499.0035095214844,
+          "y": 138.26153564453125,
+          "width": 12.018218994140625,
+          "height": 10.47381591796875
          }
         },
         {
@@ -14174,26 +14327,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8793558",
+          "id": "auto2353727",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8793644",
+         "renderId": "vf-auto2353814",
          "renderedBox": {
-          "x": 861.9219360351562,
-          "y": 217.5305938720703,
-          "width": 16.82080078125,
-          "height": 14.659210205078125
+          "x": 889.9141235351562,
+          "y": 261.51312255859375,
+          "width": 16.82073974609375,
+          "height": 14.65924072265625
          },
          "logicalBox": {
-          "x": 530.0720825195312,
-          "y": 101.83648681640625,
+          "x": 550.0721435546875,
+          "y": 133.26150512695312,
           "width": 12.01824951171875,
-          "height": 10.473838806152344
+          "height": 10.473861694335938
          }
         }
        ],
        "attrs": {
-        "id": "auto8793558",
+        "id": "auto2353727",
         "type": "SmoBeamGroup"
        }
       }
@@ -14263,9 +14416,9 @@ class vexGlyph {
             "type": "SmoDynamicText"
            },
            "renderedBox": {
-            "x": 307.0353698730469,
-            "y": 301.11016845703125,
-            "width": 21.673919677734375,
+            "x": 335.02740478515625,
+            "y": 345.09271240234375,
+            "width": 21.6739501953125,
             "height": 24.20123291015625
            }
           }
@@ -14496,11 +14649,6 @@ class vexGlyph {
      ],
      "modifiers": [
       {
-       "position": 0,
-       "barline": 0,
-       "ctor": "SmoBarline"
-      },
-      {
        "position": 1,
        "barline": 0,
        "ctor": "SmoBarline"
@@ -14511,21 +14659,26 @@ class vexGlyph {
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "position": 0,
+       "barline": 3,
+       "ctor": "SmoBarline"
       }
      ]
     },
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 587.2199687957764,
-     "staffY": 92.05937194824219,
+     "staffX": 587.2199993133545,
+     "staffY": 123.4843978881836,
      "measureNumber": {
       "measureNumber": 1,
       "measureIndex": 1,
       "systemIndex": 1,
       "staffId": 0
      },
-     "staffWidth": 503.239990234375,
+     "staffWidth": 503.2400207519531,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -14549,7 +14702,7 @@ class vexGlyph {
          },
          "pitches": [
           {
-           "letter": "d",
+           "letter": "c",
            "accidental": "n",
            "octave": 5
           }
@@ -14560,21 +14713,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8794611",
+          "id": "auto2354782",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8794618",
+         "renderId": "vf-auto2354789",
          "renderedBox": {
           "x": 965.6995239257812,
-          "y": 210.5325927734375,
+          "y": 261.51312255859375,
           "width": 16.82073974609375,
-          "height": 14.659210205078125
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 604.219970703125,
-          "y": 96.83649444580078,
+          "y": 133.26150512695312,
           "width": 12.01824951171875,
-          "height": 10.473838806152344
+          "height": 10.473861694335938
          }
         },
         {
@@ -14600,21 +14753,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8794611",
+          "id": "auto2354782",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8794625",
+         "renderId": "vf-auto2354796",
          "renderedBox": {
-          "x": 1014.1005859375,
-          "y": 238.52464294433594,
-          "width": 16.82080078125,
+          "x": 1014.1007080078125,
+          "y": 282.5071716308594,
+          "width": 16.8206787109375,
           "height": 14.659210205078125
          },
          "logicalBox": {
-          "x": 638.802001953125,
-          "y": 116.83650207519531,
-          "width": 12.01824951171875,
-          "height": 10.473838806152344
+          "x": 638.8020629882812,
+          "y": 148.2615203857422,
+          "width": 12.0181884765625,
+          "height": 10.473831176757812
          }
         },
         {
@@ -14640,21 +14793,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8794611",
+          "id": "auto2354782",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8794632",
+         "renderId": "vf-auto2354803",
          "renderedBox": {
           "x": 1062.501708984375,
-          "y": 231.52662658691406,
+          "y": 275.5091552734375,
           "width": 16.82080078125,
           "height": 14.659210205078125
          },
          "logicalBox": {
           "x": 673.384033203125,
-          "y": 111.83649444580078,
+          "y": 143.2615203857422,
           "width": 12.01824951171875,
-          "height": 10.473838806152344
+          "height": 10.473831176757812
          }
         },
         {
@@ -14680,26 +14833,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8794611",
+          "id": "auto2354782",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8794639",
+         "renderId": "vf-auto2354810",
          "renderedBox": {
-          "x": 1110.90283203125,
-          "y": 224.5286102294922,
+          "x": 1110.9029541015625,
+          "y": 268.51116943359375,
           "width": 16.82080078125,
-          "height": 14.659210205078125
+          "height": 14.6591796875
          },
          "logicalBox": {
-          "x": 707.966064453125,
-          "y": 106.83649444580078,
-          "width": 12.018310546875,
-          "height": 10.473838806152344
+          "x": 707.9661865234375,
+          "y": 138.26153564453125,
+          "width": 12.01824951171875,
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto8794611",
+        "id": "auto2354782",
         "type": "SmoBeamGroup"
        }
       },
@@ -14728,21 +14881,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8794612",
+          "id": "auto2354783",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8794646",
+         "renderId": "vf-auto2354817",
          "renderedBox": {
           "x": 1159.3040771484375,
-          "y": 217.5305938720703,
+          "y": 261.51312255859375,
           "width": 16.82080078125,
-          "height": 14.659210205078125
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 742.5482177734375,
-          "y": 101.83648681640625,
+          "y": 133.26150512695312,
           "width": 12.01824951171875,
-          "height": 10.473838806152344
+          "height": 10.473861694335938
          }
         },
         {
@@ -14768,21 +14921,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8794612",
+          "id": "auto2354783",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8794653",
+         "renderId": "vf-auto2354824",
          "renderedBox": {
           "x": 1207.7052001953125,
-          "y": 231.52662658691406,
-          "width": 16.8206787109375,
+          "y": 275.5091552734375,
+          "width": 16.82080078125,
           "height": 14.659210205078125
          },
          "logicalBox": {
           "x": 777.1302490234375,
-          "y": 111.83649444580078,
-          "width": 12.0181884765625,
-          "height": 10.473838806152344
+          "y": 143.2615203857422,
+          "width": 12.018310546875,
+          "height": 10.473831176757812
          }
         },
         {
@@ -14808,21 +14961,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8794612",
+          "id": "auto2354783",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8794660",
+         "renderId": "vf-auto2354831",
          "renderedBox": {
           "x": 1256.1063232421875,
-          "y": 224.5286102294922,
+          "y": 268.51116943359375,
           "width": 16.82080078125,
-          "height": 14.659210205078125
+          "height": 14.6591796875
          },
          "logicalBox": {
           "x": 811.7123413085938,
-          "y": 106.83649444580078,
+          "y": 138.26153564453125,
           "width": 12.01824951171875,
-          "height": 10.473838806152344
+          "height": 10.47381591796875
          }
         },
         {
@@ -14848,26 +15001,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8794612",
+          "id": "auto2354783",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8794667",
+         "renderId": "vf-auto2354838",
          "renderedBox": {
-          "x": 1304.5074462890625,
-          "y": 238.52464294433594,
-          "width": 16.82080078125,
+          "x": 1304.507568359375,
+          "y": 282.5071716308594,
+          "width": 16.8206787109375,
           "height": 14.659210205078125
          },
          "logicalBox": {
-          "x": 846.2943725585938,
-          "y": 116.83650207519531,
-          "width": 12.018310546875,
-          "height": 10.473838806152344
+          "x": 846.2944946289062,
+          "y": 148.2615203857422,
+          "width": 12.0181884765625,
+          "height": 10.473831176757812
          }
         }
        ],
        "attrs": {
-        "id": "auto8794612",
+        "id": "auto2354783",
         "type": "SmoBeamGroup"
        }
       },
@@ -14896,21 +15049,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8794613",
+          "id": "auto2354784",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8794674",
+         "renderId": "vf-auto2354845",
          "renderedBox": {
           "x": 1352.9085693359375,
-          "y": 210.5325927734375,
-          "width": 16.8206787109375,
-          "height": 14.659210205078125
+          "y": 254.51513671875,
+          "width": 16.82080078125,
+          "height": 14.6591796875
          },
          "logicalBox": {
           "x": 880.87646484375,
-          "y": 96.83649444580078,
-          "width": 12.01812744140625,
-          "height": 10.473838806152344
+          "y": 128.2615203857422,
+          "width": 12.01824951171875,
+          "height": 10.47381591796875
          }
         },
         {
@@ -14936,26 +15089,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8794613",
+          "id": "auto2354784",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8794681",
+         "renderId": "vf-auto2354852",
          "renderedBox": {
           "x": 1424.4925537109375,
-          "y": 189.53854370117188,
+          "y": 233.52108764648438,
           "width": 16.8206787109375,
-          "height": 14.659225463867188
+          "height": 14.659210205078125
          },
          "logicalBox": {
           "x": 932.0223999023438,
-          "y": 81.83648681640625,
+          "y": 113.26151275634766,
           "width": 12.0181884765625,
-          "height": 10.473854064941406
+          "height": 10.473838806152344
          }
         }
        ],
        "attrs": {
-        "id": "auto8794613",
+        "id": "auto2354784",
         "type": "SmoBeamGroup"
        }
       },
@@ -14984,21 +15137,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8794614",
+          "id": "auto2354785",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8794688",
+         "renderId": "vf-auto2354859",
          "renderedBox": {
           "x": 1496.076416015625,
-          "y": 196.53656005859375,
+          "y": 240.51910400390625,
           "width": 16.82080078125,
-          "height": 14.659210205078125
+          "height": 14.659194946289062
          },
          "logicalBox": {
           "x": 983.168212890625,
-          "y": 86.83649444580078,
+          "y": 118.26152038574219,
           "width": 12.018310546875,
-          "height": 10.473838806152344
+          "height": 10.473831176757812
          }
         },
         {
@@ -15024,26 +15177,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8794614",
+          "id": "auto2354785",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8794695",
+         "renderId": "vf-auto2354866",
          "renderedBox": {
           "x": 1567.6602783203125,
-          "y": 189.53854370117188,
-          "width": 16.8206787109375,
-          "height": 14.659225463867188
+          "y": 233.52108764648438,
+          "width": 16.82080078125,
+          "height": 14.659210205078125
          },
          "logicalBox": {
           "x": 1034.3140869140625,
-          "y": 81.83648681640625,
-          "width": 12.0181884765625,
-          "height": 10.473854064941406
+          "y": 113.26151275634766,
+          "width": 12.018310546875,
+          "height": 10.473838806152344
          }
         }
        ],
        "attrs": {
-        "id": "auto8794614",
+        "id": "auto2354785",
         "type": "SmoBeamGroup"
        }
       }
@@ -15059,7 +15212,7 @@ class vexGlyph {
          },
          "pitches": [
           {
-           "letter": "d",
+           "letter": "c",
            "accidental": "n",
            "octave": 5
           }
@@ -15342,7 +15495,7 @@ class vexGlyph {
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 349.44244384765625,
+     "staffY": 380.28621673583984,
      "measureNumber": {
       "measureNumber": 2,
       "measureIndex": 2,
@@ -15384,19 +15537,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8795761",
+          "id": "auto2355929",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795774",
+         "renderId": "vf-auto2355942",
          "renderedBox": {
           "x": 259.85321044921875,
-          "y": 563.7685546875,
+          "y": 606.9375610351562,
           "width": 16.82073974609375,
           "height": 14.6591796875
          },
          "logicalBox": {
           "x": 99.90080261230469,
-          "y": 349.2195739746094,
+          "y": 380.0633544921875,
           "width": 12.018226623535156,
           "height": 10.47381591796875
          }
@@ -15424,21 +15577,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8795761",
+          "id": "auto2355929",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795781",
+         "renderId": "vf-auto2355949",
          "renderedBox": {
           "x": 301.6068115234375,
-          "y": 542.7745361328125,
+          "y": 585.9434814453125,
           "width": 16.82080078125,
-          "height": 14.6591796875
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 129.7332763671875,
-          "y": 334.2196044921875,
+          "y": 365.0633239746094,
           "width": 12.018264770507812,
-          "height": 10.47381591796875
+          "height": 10.473846435546875
          }
         },
         {
@@ -15464,19 +15617,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8795761",
+          "id": "auto2355929",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795788",
+         "renderId": "vf-auto2355956",
          "renderedBox": {
           "x": 343.3604736328125,
-          "y": 549.7725219726562,
+          "y": 592.9415283203125,
           "width": 16.820770263671875,
           "height": 14.6591796875
          },
          "logicalBox": {
           "x": 159.5657958984375,
-          "y": 339.2195739746094,
+          "y": 370.0633239746094,
           "width": 12.01824951171875,
           "height": 10.47381591796875
          }
@@ -15504,26 +15657,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8795761",
+          "id": "auto2355929",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795795",
+         "renderId": "vf-auto2355963",
          "renderedBox": {
           "x": 385.1141357421875,
-          "y": 556.7705078125,
+          "y": 599.9395141601562,
           "width": 16.82073974609375,
-          "height": 14.6591796875
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 189.3983154296875,
-          "y": 344.21954345703125,
+          "y": 375.0633239746094,
           "width": 12.018218994140625,
-          "height": 10.47381591796875
+          "height": 10.473846435546875
          }
         }
        ],
        "attrs": {
-        "id": "auto8795761",
+        "id": "auto2355929",
         "type": "SmoBeamGroup"
        }
       },
@@ -15552,19 +15705,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8795762",
+          "id": "auto2355930",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795802",
+         "renderId": "vf-auto2355970",
          "renderedBox": {
           "x": 426.86773681640625,
-          "y": 563.7685546875,
+          "y": 606.9375610351562,
           "width": 16.820770263671875,
           "height": 14.6591796875
          },
          "logicalBox": {
           "x": 219.2307891845703,
-          "y": 349.2195739746094,
+          "y": 380.0633544921875,
           "width": 12.01824951171875,
           "height": 10.47381591796875
          }
@@ -15592,19 +15745,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8795762",
+          "id": "auto2355930",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795809",
+         "renderId": "vf-auto2355977",
          "renderedBox": {
           "x": 468.62139892578125,
-          "y": 549.7725219726562,
+          "y": 592.9415283203125,
           "width": 16.820770263671875,
           "height": 14.6591796875
          },
          "logicalBox": {
           "x": 249.06329345703125,
-          "y": 339.2195739746094,
+          "y": 370.0633239746094,
           "width": 12.01824951171875,
           "height": 10.47381591796875
          }
@@ -15632,21 +15785,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8795762",
+          "id": "auto2355930",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795816",
+         "renderId": "vf-auto2355984",
          "renderedBox": {
           "x": 510.375,
-          "y": 556.7705078125,
+          "y": 599.9395141601562,
           "width": 16.82080078125,
-          "height": 14.6591796875
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 278.8957824707031,
-          "y": 344.21954345703125,
+          "y": 375.0633239746094,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.473846435546875
          }
         },
         {
@@ -15672,26 +15825,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8795762",
+          "id": "auto2355930",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795823",
+         "renderId": "vf-auto2355991",
          "renderedBox": {
           "x": 552.128662109375,
-          "y": 542.7745361328125,
+          "y": 585.9434814453125,
           "width": 16.82073974609375,
-          "height": 14.6591796875
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 308.7283020019531,
-          "y": 334.2196044921875,
+          "y": 365.0633239746094,
           "width": 12.018218994140625,
-          "height": 10.47381591796875
+          "height": 10.473846435546875
          }
         }
        ],
        "attrs": {
-        "id": "auto8795762",
+        "id": "auto2355930",
         "type": "SmoBeamGroup"
        }
       },
@@ -15720,19 +15873,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8795763",
+          "id": "auto2355931",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795830",
+         "renderId": "vf-auto2355998",
          "renderedBox": {
           "x": 593.88232421875,
-          "y": 549.7725219726562,
+          "y": 592.9415283203125,
           "width": 16.82073974609375,
           "height": 14.6591796875
          },
          "logicalBox": {
           "x": 338.5608215332031,
-          "y": 339.2195739746094,
+          "y": 370.0633239746094,
           "width": 12.018218994140625,
           "height": 10.47381591796875
          }
@@ -15760,21 +15913,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8795763",
+          "id": "auto2355931",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795837",
+         "renderId": "vf-auto2356005",
          "renderedBox": {
           "x": 635.6359252929688,
-          "y": 556.7705078125,
+          "y": 599.9395141601562,
           "width": 16.82073974609375,
-          "height": 14.6591796875
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 368.3932800292969,
-          "y": 344.21954345703125,
+          "y": 375.0633239746094,
           "width": 12.018218994140625,
-          "height": 10.47381591796875
+          "height": 10.473846435546875
          }
         },
         {
@@ -15800,19 +15953,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8795763",
+          "id": "auto2355931",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795844",
+         "renderId": "vf-auto2356012",
          "renderedBox": {
           "x": 677.3895874023438,
-          "y": 563.7685546875,
+          "y": 606.9375610351562,
           "width": 16.82073974609375,
           "height": 14.6591796875
          },
          "logicalBox": {
           "x": 398.2257995605469,
-          "y": 349.2195739746094,
+          "y": 380.0633544921875,
           "width": 12.018218994140625,
           "height": 10.47381591796875
          }
@@ -15840,26 +15993,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8795763",
+          "id": "auto2355931",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795851",
+         "renderId": "vf-auto2356019",
          "renderedBox": {
           "x": 719.1431884765625,
-          "y": 570.7666015625,
+          "y": 613.935546875,
           "width": 16.82080078125,
-          "height": 14.6591796875
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 428.0582580566406,
-          "y": 354.2196044921875,
+          "y": 385.0633239746094,
           "width": 12.018280029296875,
-          "height": 10.47381591796875
+          "height": 10.473846435546875
          }
         }
        ],
        "attrs": {
-        "id": "auto8795763",
+        "id": "auto2355931",
         "type": "SmoBeamGroup"
        }
       },
@@ -15888,21 +16041,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8795764",
+          "id": "auto2355932",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795858",
+         "renderId": "vf-auto2356026",
          "renderedBox": {
           "x": 760.8968505859375,
-          "y": 577.7645874023438,
+          "y": 620.9335327148438,
           "width": 16.82073974609375,
-          "height": 14.6591796875
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 457.8907775878906,
-          "y": 359.2195739746094,
+          "y": 390.06329345703125,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.473876953125
          }
         },
         {
@@ -15928,19 +16081,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8795764",
+          "id": "auto2355932",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795865",
+         "renderId": "vf-auto2356033",
          "renderedBox": {
           "x": 802.6505126953125,
-          "y": 563.7685546875,
+          "y": 606.9375610351562,
           "width": 16.82073974609375,
           "height": 14.6591796875
          },
          "logicalBox": {
           "x": 487.7232971191406,
-          "y": 349.2195739746094,
+          "y": 380.0633544921875,
           "width": 12.01824951171875,
           "height": 10.47381591796875
          }
@@ -15968,21 +16121,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8795764",
+          "id": "auto2355932",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795872",
+         "renderId": "vf-auto2356040",
          "renderedBox": {
           "x": 844.4041137695312,
-          "y": 570.7666015625,
+          "y": 613.935546875,
           "width": 16.82080078125,
-          "height": 14.6591796875
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 517.5557861328125,
-          "y": 354.2196044921875,
+          "y": 385.0633239746094,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.473846435546875
          }
         },
         {
@@ -16008,26 +16161,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8795764",
+          "id": "auto2355932",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795879",
+         "renderId": "vf-auto2356047",
          "renderedBox": {
           "x": 886.1577758789062,
-          "y": 556.7705078125,
+          "y": 599.9395141601562,
           "width": 16.82080078125,
-          "height": 14.6591796875
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 547.3883056640625,
-          "y": 344.21954345703125,
+          "y": 375.0633239746094,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.473846435546875
          }
         }
        ],
        "attrs": {
-        "id": "auto8795764",
+        "id": "auto2355932",
         "type": "SmoBeamGroup"
        }
       }
@@ -16414,14 +16567,14 @@ class vexGlyph {
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 583.2999858856201,
-     "staffY": 349.44244384765625,
+     "staffY": 380.28621673583984,
      "measureNumber": {
       "measureNumber": 3,
       "measureIndex": 3,
       "systemIndex": 1,
       "staffId": 0
      },
-     "staffWidth": 508.15997314453125,
+     "staffWidth": 508.1600341796875,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -16456,19 +16609,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8796981",
+          "id": "auto2357149",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8796988",
+         "renderId": "vf-auto2357156",
          "renderedBox": {
           "x": 960.2130737304688,
-          "y": 563.7685546875,
+          "y": 606.9375610351562,
           "width": 16.82080078125,
           "height": 14.6591796875
          },
          "logicalBox": {
           "x": 600.2999877929688,
-          "y": 349.2195739746094,
+          "y": 380.0633544921875,
           "width": 12.01824951171875,
           "height": 10.47381591796875
          }
@@ -16496,21 +16649,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8796981",
+          "id": "auto2357149",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8796995",
+         "renderId": "vf-auto2357163",
          "renderedBox": {
           "x": 1001.6170654296875,
-          "y": 570.7666015625,
+          "y": 613.935546875,
           "width": 16.82073974609375,
-          "height": 14.6591796875
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 629.8826293945312,
-          "y": 354.2196044921875,
+          "y": 385.0633239746094,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.473846435546875
          }
         },
         {
@@ -16536,21 +16689,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8796981",
+          "id": "auto2357149",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8797002",
+         "renderId": "vf-auto2357170",
          "renderedBox": {
           "x": 1043.02099609375,
-          "y": 577.7645874023438,
+          "y": 620.9335327148438,
           "width": 16.82080078125,
-          "height": 14.6591796875
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 659.4652709960938,
-          "y": 359.2195739746094,
+          "y": 390.06329345703125,
           "width": 12.018310546875,
-          "height": 10.47381591796875
+          "height": 10.473876953125
          }
         },
         {
@@ -16576,26 +16729,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8796981",
+          "id": "auto2357149",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8797009",
+         "renderId": "vf-auto2357177",
          "renderedBox": {
           "x": 1084.425048828125,
-          "y": 584.7625732421875,
+          "y": 627.9315795898438,
           "width": 16.82080078125,
-          "height": 14.6591796875
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 689.0480346679688,
-          "y": 364.2195739746094,
+          "y": 395.0633239746094,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto8796981",
+        "id": "auto2357149",
         "type": "SmoBeamGroup"
        }
       },
@@ -16624,21 +16777,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8796982",
+          "id": "auto2357150",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8797016",
+         "renderId": "vf-auto2357184",
          "renderedBox": {
           "x": 1125.8291015625,
-          "y": 591.7606201171875,
+          "y": 634.9295654296875,
           "width": 16.8206787109375,
-          "height": 14.6591796875
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 718.6307373046875,
-          "y": 369.2196044921875,
+          "y": 400.0633239746094,
           "width": 12.0181884765625,
-          "height": 10.47381591796875
+          "height": 10.473846435546875
          }
         },
         {
@@ -16664,21 +16817,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8796982",
+          "id": "auto2357150",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8797023",
+         "renderId": "vf-auto2357191",
          "renderedBox": {
           "x": 1167.23291015625,
-          "y": 577.7645874023438,
+          "y": 620.9335327148438,
           "width": 16.82080078125,
-          "height": 14.6591796875
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 748.2132568359375,
-          "y": 359.2195739746094,
+          "y": 390.06329345703125,
           "width": 12.018310546875,
-          "height": 10.47381591796875
+          "height": 10.473876953125
          }
         },
         {
@@ -16704,21 +16857,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8796982",
+          "id": "auto2357150",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8797030",
+         "renderId": "vf-auto2357198",
          "renderedBox": {
           "x": 1208.636962890625,
-          "y": 584.7625732421875,
-          "width": 16.8206787109375,
-          "height": 14.6591796875
+          "y": 627.9315795898438,
+          "width": 16.82080078125,
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 777.7960205078125,
-          "y": 364.2195739746094,
-          "width": 12.0181884765625,
-          "height": 10.47381591796875
+          "y": 395.0633239746094,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         },
         {
@@ -16744,26 +16897,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8796982",
+          "id": "auto2357150",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8797037",
+         "renderId": "vf-auto2357205",
          "renderedBox": {
           "x": 1250.0408935546875,
-          "y": 570.7666015625,
+          "y": 613.935546875,
           "width": 16.82080078125,
-          "height": 14.6591796875
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 807.378662109375,
-          "y": 354.2196044921875,
+          "y": 385.0633239746094,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.473846435546875
          }
         }
        ],
        "attrs": {
-        "id": "auto8796982",
+        "id": "auto2357150",
         "type": "SmoBeamGroup"
        }
       },
@@ -16792,21 +16945,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8796983",
+          "id": "auto2357151",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8797044",
+         "renderId": "vf-auto2357212",
          "renderedBox": {
-          "x": 1291.44482421875,
-          "y": 577.7645874023438,
+          "x": 1291.4449462890625,
+          "y": 620.9335327148438,
           "width": 16.82080078125,
-          "height": 14.6591796875
+          "height": 14.65924072265625
          },
          "logicalBox": {
-          "x": 836.9613037109375,
-          "y": 359.2195739746094,
-          "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "x": 836.9613647460938,
+          "y": 390.06329345703125,
+          "width": 12.018310546875,
+          "height": 10.473876953125
          }
         },
         {
@@ -16832,21 +16985,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8796983",
+          "id": "auto2357151",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8797051",
+         "renderId": "vf-auto2357219",
          "renderedBox": {
           "x": 1332.848876953125,
-          "y": 584.7625732421875,
+          "y": 627.9315795898438,
           "width": 16.82080078125,
-          "height": 14.6591796875
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 866.5440063476562,
-          "y": 364.2195739746094,
+          "y": 395.0633239746094,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.473876953125
          }
         },
         {
@@ -16872,21 +17025,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8796983",
+          "id": "auto2357151",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8797058",
+         "renderId": "vf-auto2357226",
          "renderedBox": {
-          "x": 1374.2528076171875,
-          "y": 591.7606201171875,
-          "width": 16.82080078125,
-          "height": 14.6591796875
+          "x": 1374.2529296875,
+          "y": 634.9295654296875,
+          "width": 16.8206787109375,
+          "height": 14.65924072265625
          },
          "logicalBox": {
-          "x": 896.1266479492188,
-          "y": 369.2196044921875,
-          "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "x": 896.126708984375,
+          "y": 400.0633239746094,
+          "width": 12.0181884765625,
+          "height": 10.473846435546875
          }
         },
         {
@@ -16912,26 +17065,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8796983",
+          "id": "auto2357151",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8797065",
+         "renderId": "vf-auto2357233",
          "renderedBox": {
           "x": 1415.6568603515625,
-          "y": 598.7586059570312,
+          "y": 641.9276123046875,
           "width": 16.8206787109375,
           "height": 14.6591796875
          },
          "logicalBox": {
           "x": 925.7093505859375,
-          "y": 374.2195739746094,
+          "y": 405.0633239746094,
           "width": 12.0181884765625,
           "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto8796983",
+        "id": "auto2357151",
         "type": "SmoBeamGroup"
        }
       },
@@ -16960,21 +17113,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8796984",
+          "id": "auto2357152",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8797072",
+         "renderId": "vf-auto2357240",
          "renderedBox": {
-          "x": 1458.4603271484375,
-          "y": 592.503173828125,
+          "x": 1458.46044921875,
+          "y": 635.6721801757812,
           "width": 33.3883056640625,
-          "height": 41.1650390625
+          "height": 41.16510009765625
          },
          "logicalBox": {
-          "x": 956.2919921875,
-          "y": 369.7501220703125,
-          "width": 23.85552978515625,
-          "height": 29.411956787109375
+          "x": 956.2920532226562,
+          "y": 400.5939025878906,
+          "width": 23.8555908203125,
+          "height": 29.4119873046875
          }
         },
         {
@@ -17000,21 +17153,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8796984",
+          "id": "auto2357152",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8797081",
+         "renderId": "vf-auto2357249",
          "renderedBox": {
           "x": 1516.431884765625,
-          "y": 591.7606201171875,
+          "y": 634.9295654296875,
           "width": 16.82080078125,
-          "height": 14.6591796875
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 997.7119750976562,
-          "y": 369.2196044921875,
+          "y": 400.0633239746094,
           "width": 12.018310546875,
-          "height": 10.47381591796875
+          "height": 10.473846435546875
          }
         },
         {
@@ -17040,19 +17193,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8796984",
+          "id": "auto2357152",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8797088",
+         "renderId": "vf-auto2357256",
          "renderedBox": {
           "x": 1557.8359375,
-          "y": 598.7586059570312,
+          "y": 641.9276123046875,
           "width": 16.8206787109375,
           "height": 14.6591796875
          },
          "logicalBox": {
           "x": 1027.294677734375,
-          "y": 374.2195739746094,
+          "y": 405.0633239746094,
           "width": 12.0181884765625,
           "height": 10.47381591796875
          }
@@ -17080,26 +17233,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8796984",
+          "id": "auto2357152",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8797095",
+         "renderId": "vf-auto2357263",
          "renderedBox": {
           "x": 1599.2398681640625,
-          "y": 584.7625732421875,
-          "width": 16.8206787109375,
-          "height": 14.6591796875
+          "y": 627.9315795898438,
+          "width": 16.82080078125,
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 1056.8773193359375,
-          "y": 364.2195739746094,
-          "width": 12.0181884765625,
-          "height": 10.47381591796875
+          "y": 395.0633239746094,
+          "width": 12.018310546875,
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto8796984",
+        "id": "auto2357152",
         "type": "SmoBeamGroup"
        }
       }
@@ -17486,7 +17639,7 @@ class vexGlyph {
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 559.3465576171875,
+     "staffY": 590.5380783081055,
      "measureNumber": {
       "measureNumber": 4,
       "measureIndex": 4,
@@ -17528,19 +17681,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8798135",
+          "id": "auto2358303",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8798148",
+         "renderId": "vf-auto2358316",
          "renderedBox": {
           "x": 259.85321044921875,
-          "y": 885.5428466796875,
+          "y": 929.1986083984375,
           "width": 16.82073974609375,
           "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 99.90080261230469,
-          "y": 579.1236572265625,
+          "y": 610.315185546875,
           "width": 12.018226623535156,
           "height": 10.473876953125
          }
@@ -17568,26 +17721,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8798135",
+          "id": "auto2358303",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8798155",
+         "renderId": "vf-auto2358323",
          "renderedBox": {
           "x": 320.0657958984375,
-          "y": 913.534912109375,
+          "y": 957.1906127929688,
           "width": 16.820770263671875,
-          "height": 14.65924072265625
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 142.92201232910156,
-          "y": 599.1236572265625,
+          "y": 630.315185546875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto8798135",
+        "id": "auto2358303",
         "type": "SmoBeamGroup"
        }
       },
@@ -17616,19 +17769,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8798136",
+          "id": "auto2358304",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8798162",
+         "renderId": "vf-auto2358330",
          "renderedBox": {
           "x": 380.2784118652344,
-          "y": 871.5468139648438,
+          "y": 915.2025756835938,
           "width": 26.617950439453125,
-          "height": 14.6593017578125
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 185.9432373046875,
-          "y": 569.1236572265625,
+          "y": 600.315185546875,
           "width": 19.018218994140625,
           "height": 10.473876953125
          }
@@ -17656,26 +17809,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8798136",
+          "id": "auto2358304",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8798170",
+         "renderId": "vf-auto2358338",
          "renderedBox": {
           "x": 466.3857421875,
-          "y": 864.548828125,
+          "y": 908.2045288085938,
           "width": 16.820770263671875,
-          "height": 14.65924072265625
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 247.4659423828125,
-          "y": 564.1236572265625,
+          "y": 595.315185546875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto8798136",
+        "id": "auto2358304",
         "type": "SmoBeamGroup"
        }
       },
@@ -17704,19 +17857,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8798137",
+          "id": "auto2358305",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8798177",
+         "renderId": "vf-auto2358345",
          "renderedBox": {
           "x": 509.1012268066406,
-          "y": 878.5448608398438,
+          "y": 922.2005615234375,
           "width": 16.820770263671875,
-          "height": 14.65924072265625
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 277.9856872558594,
-          "y": 574.1236572265625,
+          "y": 605.315185546875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -17744,19 +17897,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8798137",
+          "id": "auto2358305",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8798184",
+         "renderId": "vf-auto2358352",
          "renderedBox": {
           "x": 551.8167114257812,
-          "y": 885.5428466796875,
+          "y": 929.1986083984375,
           "width": 16.82073974609375,
           "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 308.5054016113281,
-          "y": 579.1236572265625,
+          "y": 610.315185546875,
           "width": 12.018218994140625,
           "height": 10.473876953125
          }
@@ -17784,19 +17937,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8798137",
+          "id": "auto2358305",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8798191",
+         "renderId": "vf-auto2358359",
          "renderedBox": {
           "x": 594.5322265625,
-          "y": 892.5408935546875,
+          "y": 936.1965942382812,
           "width": 16.8206787109375,
           "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 339.025146484375,
-          "y": 584.1236572265625,
+          "y": 615.315185546875,
           "width": 12.0181884765625,
           "height": 10.473876953125
          }
@@ -17824,26 +17977,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8798137",
+          "id": "auto2358305",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8798198",
+         "renderId": "vf-auto2358366",
          "renderedBox": {
           "x": 638.6472778320312,
-          "y": 886.2854614257812,
+          "y": 929.941162109375,
           "width": 33.38824462890625,
           "height": 41.16510009765625
          },
          "logicalBox": {
           "x": 370.54486083984375,
-          "y": 579.6542358398438,
+          "y": 610.8457641601562,
           "width": 23.85552978515625,
           "height": 29.4119873046875
          }
         }
        ],
        "attrs": {
-        "id": "auto8798137",
+        "id": "auto2358305",
         "type": "SmoBeamGroup"
        }
       },
@@ -17872,19 +18025,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8798138",
+          "id": "auto2358306",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8798207",
+         "renderId": "vf-auto2358375",
          "renderedBox": {
           "x": 697.9302978515625,
-          "y": 906.536865234375,
+          "y": 950.192626953125,
           "width": 16.8206787109375,
-          "height": 14.6593017578125
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 412.90191650390625,
-          "y": 594.1236572265625,
+          "y": 625.315185546875,
           "width": 12.018157958984375,
           "height": 10.473876953125
          }
@@ -17912,19 +18065,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8798138",
+          "id": "auto2358306",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8798214",
+         "renderId": "vf-auto2358382",
          "renderedBox": {
           "x": 740.645751953125,
-          "y": 892.5408935546875,
+          "y": 936.1965942382812,
           "width": 16.82073974609375,
           "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 443.4216003417969,
-          "y": 584.1236572265625,
+          "y": 615.315185546875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -17952,19 +18105,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8798138",
+          "id": "auto2358306",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8798221",
+         "renderId": "vf-auto2358389",
          "renderedBox": {
           "x": 783.3612670898438,
-          "y": 899.5388793945312,
+          "y": 943.1946411132812,
           "width": 16.8206787109375,
           "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 473.94134521484375,
-          "y": 589.1236572265625,
+          "y": 620.315185546875,
           "width": 12.0181884765625,
           "height": 10.473876953125
          }
@@ -17992,26 +18145,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8798138",
+          "id": "auto2358306",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8798228",
+         "renderId": "vf-auto2358396",
          "renderedBox": {
           "x": 826.0767211914062,
-          "y": 885.5428466796875,
+          "y": 929.1986083984375,
           "width": 16.82073974609375,
           "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 504.4610595703125,
-          "y": 579.1236572265625,
+          "y": 610.315185546875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto8798138",
+        "id": "auto2358306",
         "type": "SmoBeamGroup"
        }
       }
@@ -18310,7 +18463,7 @@ class vexGlyph {
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 541.0599956512451,
-     "staffY": 559.3465576171875,
+     "staffY": 590.5380783081055,
      "measureNumber": {
       "measureNumber": 5,
       "measureIndex": 5,
@@ -18346,25 +18499,25 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto3953599",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8799361",
+          "id": "auto2359529",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8799368",
+         "renderId": "vf-auto2359536",
          "renderedBox": {
           "x": 901.0939331054688,
-          "y": 892.5408935546875,
+          "y": 936.1965942382812,
           "width": 16.82073974609375,
           "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 558.0599975585938,
-          "y": 584.1236572265625,
+          "y": 615.315185546875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -18386,25 +18539,25 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto3953600",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8799361",
+          "id": "auto2359529",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8799375",
+         "renderId": "vf-auto2359543",
          "renderedBox": {
           "x": 947.2213134765625,
-          "y": 878.5448608398438,
+          "y": 922.2005615234375,
           "width": 16.82080078125,
-          "height": 14.65924072265625
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 591.0175170898438,
-          "y": 574.1236572265625,
+          "y": 605.315185546875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -18426,25 +18579,25 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto3953603",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8799361",
+          "id": "auto2359529",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8799382",
+         "renderId": "vf-auto2359550",
          "renderedBox": {
           "x": 993.3486938476562,
-          "y": 885.5428466796875,
+          "y": 929.1986083984375,
           "width": 16.82073974609375,
           "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 623.9749755859375,
-          "y": 579.1236572265625,
+          "y": 610.315185546875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -18466,32 +18619,32 @@ class vexGlyph {
            "octave": 5
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto3953604",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8799361",
+          "id": "auto2359529",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8799389",
+         "renderId": "vf-auto2359557",
          "renderedBox": {
           "x": 1039.47607421875,
-          "y": 871.5468139648438,
+          "y": 915.2025756835938,
           "width": 16.82080078125,
-          "height": 14.6593017578125
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 656.9324951171875,
-          "y": 569.1236572265625,
+          "y": 600.315185546875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto8799361",
+        "id": "auto2359529",
         "type": "SmoBeamGroup"
        }
       },
@@ -18514,25 +18667,25 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto3880053",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8799362",
+          "id": "auto2359530",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8799396",
+         "renderId": "vf-auto2359564",
          "renderedBox": {
           "x": 1085.603515625,
-          "y": 878.5448608398438,
+          "y": 922.2005615234375,
           "width": 16.82080078125,
-          "height": 14.65924072265625
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 689.8900146484375,
-          "y": 574.1236572265625,
+          "y": 605.315185546875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -18554,25 +18707,25 @@ class vexGlyph {
            "octave": 5
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto3880054",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8799362",
+          "id": "auto2359530",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8799403",
+         "renderId": "vf-auto2359571",
          "renderedBox": {
           "x": 1131.7308349609375,
-          "y": 864.548828125,
+          "y": 908.2045288085938,
           "width": 16.82080078125,
-          "height": 14.65924072265625
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 722.8474731445312,
-          "y": 564.1236572265625,
+          "y": 595.315185546875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -18594,25 +18747,25 @@ class vexGlyph {
            "octave": 5
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto4020250",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8799362",
+          "id": "auto2359530",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8799410",
+         "renderId": "vf-auto2359578",
          "renderedBox": {
           "x": 1177.8582763671875,
-          "y": 871.5468139648438,
+          "y": 915.2025756835938,
           "width": 16.82080078125,
-          "height": 14.6593017578125
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 755.8049926757812,
-          "y": 569.1236572265625,
+          "y": 600.315185546875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -18634,32 +18787,32 @@ class vexGlyph {
            "octave": 5
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto4020251",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8799362",
+          "id": "auto2359530",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8799417",
+         "renderId": "vf-auto2359585",
          "renderedBox": {
           "x": 1223.9857177734375,
-          "y": 857.55078125,
+          "y": 901.20654296875,
           "width": 16.82080078125,
-          "height": 14.6593017578125
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 788.7625122070312,
-          "y": 559.1236572265625,
+          "y": 590.315185546875,
           "width": 12.018310546875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto8799362",
+        "id": "auto2359530",
         "type": "SmoBeamGroup"
        }
       },
@@ -18682,25 +18835,25 @@ class vexGlyph {
            "octave": 5
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto4020254",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8799363",
+          "id": "auto2359531",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8799424",
+         "renderId": "vf-auto2359592",
          "renderedBox": {
           "x": 1270.113037109375,
-          "y": 864.548828125,
+          "y": 908.2045288085938,
           "width": 16.82080078125,
-          "height": 14.65924072265625
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 821.719970703125,
-          "y": 564.1236572265625,
+          "y": 595.315185546875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -18722,25 +18875,25 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto4344970",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8799363",
+          "id": "auto2359531",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8799431",
+         "renderId": "vf-auto2359599",
          "renderedBox": {
           "x": 1316.240478515625,
-          "y": 878.5448608398438,
+          "y": 922.2005615234375,
           "width": 16.82080078125,
-          "height": 14.65924072265625
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 854.677490234375,
-          "y": 574.1236572265625,
+          "y": 605.315185546875,
           "width": 12.018310546875,
           "height": 10.473876953125
          }
@@ -18762,25 +18915,25 @@ class vexGlyph {
            "octave": 5
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto4344971",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8799363",
+          "id": "auto2359531",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8799438",
+         "renderId": "vf-auto2359606",
          "renderedBox": {
           "x": 1351.913330078125,
-          "y": 871.5468139648438,
+          "y": 915.2025756835938,
           "width": 16.82080078125,
-          "height": 14.6593017578125
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 880.1653442382812,
-          "y": 569.1236572265625,
+          "y": 600.315185546875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -18802,25 +18955,25 @@ class vexGlyph {
            "octave": 5
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto4020242",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8799363",
+          "id": "auto2359531",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8799445",
+         "renderId": "vf-auto2359613",
          "renderedBox": {
           "x": 1387.5863037109375,
-          "y": 864.548828125,
+          "y": 908.2045288085938,
           "width": 16.8206787109375,
-          "height": 14.65924072265625
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 905.6532592773438,
-          "y": 564.1236572265625,
+          "y": 595.315185546875,
           "width": 12.0181884765625,
           "height": 10.473876953125
          }
@@ -18842,32 +18995,32 @@ class vexGlyph {
            "octave": 5
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto4020243",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8799363",
+          "id": "auto2359531",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8799452",
+         "renderId": "vf-auto2359620",
          "renderedBox": {
           "x": 1433.713623046875,
-          "y": 843.5548095703125,
+          "y": 887.2105102539062,
           "width": 16.82080078125,
           "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 938.6107177734375,
-          "y": 549.1236572265625,
+          "y": 580.315185546875,
           "width": 12.018310546875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto8799363",
+        "id": "auto2359531",
         "type": "SmoBeamGroup"
        }
       },
@@ -18896,19 +19049,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8799364",
+          "id": "auto2359532",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8799459",
+         "renderId": "vf-auto2359627",
          "renderedBox": {
           "x": 1479.841064453125,
-          "y": 878.5448608398438,
+          "y": 922.2005615234375,
           "width": 16.8206787109375,
-          "height": 14.65924072265625
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 971.5682373046875,
-          "y": 574.1236572265625,
+          "y": 605.315185546875,
           "width": 12.0181884765625,
           "height": 10.473876953125
          }
@@ -18930,25 +19083,25 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto3880041",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8799364",
+          "id": "auto2359532",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8799466",
+         "renderId": "vf-auto2359634",
          "renderedBox": {
           "x": 1546.87744140625,
-          "y": 885.5428466796875,
+          "y": 929.1986083984375,
           "width": 16.82080078125,
           "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 1019.4649658203125,
-          "y": 579.1236572265625,
+          "y": 610.315185546875,
           "width": 12.018310546875,
           "height": 10.473876953125
          }
@@ -18970,32 +19123,32 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto3880042",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8799364",
+          "id": "auto2359532",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8799473",
+         "renderId": "vf-auto2359641",
          "renderedBox": {
           "x": 1593.0048828125,
-          "y": 892.5408935546875,
+          "y": 936.1965942382812,
           "width": 16.82080078125,
           "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 1052.4224853515625,
-          "y": 584.1236572265625,
+          "y": 615.315185546875,
           "width": 12.018310546875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto8799364",
+        "id": "auto2359532",
         "type": "SmoBeamGroup"
        }
       }
@@ -19382,14 +19535,14 @@ class vexGlyph {
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 810.21484375,
+     "staffY": 840.4047164916992,
      "measureNumber": {
       "measureNumber": 6,
       "measureIndex": 6,
       "systemIndex": 0,
       "staffId": 0
      },
-     "staffWidth": 386.2000102996826,
+     "staffWidth": 377.2000102996826,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -19418,27 +19571,27 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto4893041",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8800585",
+          "id": "auto2360753",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8800615",
+         "renderId": "vf-auto2360783",
          "renderedBox": {
-          "x": 417.81005859375,
-          "y": 1239.05859375,
+          "x": 411.5118408203125,
+          "y": 1281.3123779296875,
           "width": 17.68536376953125,
-          "height": 36.117431640625
+          "height": 36.1175537109375
          },
          "logicalBox": {
-          "x": 212.75917053222656,
-          "y": 831.7066650390625,
-          "width": 12.636001586914062,
-          "height": 25.80548095703125
+          "x": 208.25917053222656,
+          "y": 861.896484375,
+          "width": 12.635986328125,
+          "height": 25.80560302734375
          }
         },
         {
@@ -19458,27 +19611,27 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto4893042",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8800585",
+          "id": "auto2360753",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8800621",
+         "renderId": "vf-auto2360789",
          "renderedBox": {
-          "x": 453.0950622558594,
-          "y": 1243.65673828125,
+          "x": 446.00958251953125,
+          "y": 1285.9105224609375,
           "width": 16.82073974609375,
           "height": 14.6593017578125
          },
          "logicalBox": {
-          "x": 237.96990966796875,
-          "y": 834.991943359375,
+          "x": 232.90740966796875,
+          "y": 865.1818237304688,
           "width": 12.018234252929688,
-          "height": 10.47393798828125
+          "height": 10.473876953125
          }
         },
         {
@@ -19498,27 +19651,27 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto4893045",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8800585",
+          "id": "auto2360753",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8800628",
+         "renderId": "vf-auto2360796",
          "renderedBox": {
-          "x": 487.5154724121094,
-          "y": 1236.65869140625,
+          "x": 479.6427001953125,
+          "y": 1278.9124755859375,
           "width": 16.820770263671875,
           "height": 14.6593017578125
          },
          "logicalBox": {
-          "x": 262.5628967285156,
-          "y": 829.991943359375,
+          "x": 256.9378967285156,
+          "y": 860.1817626953125,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.47393798828125
          }
         },
         {
@@ -19538,32 +19691,32 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto4893046",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8800585",
+          "id": "auto2360753",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8800635",
+         "renderId": "vf-auto2360803",
          "renderedBox": {
-          "x": 521.9359130859375,
-          "y": 1229.66064453125,
+          "x": 513.2758178710938,
+          "y": 1271.91455078125,
           "width": 16.82073974609375,
-          "height": 14.6593017578125
+          "height": 14.6591796875
          },
          "logicalBox": {
-          "x": 287.1559143066406,
-          "y": 824.9918823242188,
+          "x": 280.9683837890625,
+          "y": 855.1818237304688,
           "width": 12.018218994140625,
-          "height": 10.47393798828125
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto8800585",
+        "id": "auto2360753",
         "type": "SmoBeamGroup"
        }
       },
@@ -19586,27 +19739,27 @@ class vexGlyph {
            "octave": 5
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto4893049",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8800586",
+          "id": "auto2360754",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8800642",
+         "renderId": "vf-auto2360810",
          "renderedBox": {
-          "x": 556.3562622070312,
-          "y": 1222.6627197265625,
-          "width": 16.82073974609375,
-          "height": 14.6591796875
+          "x": 546.908935546875,
+          "y": 1264.91650390625,
+          "width": 16.82080078125,
+          "height": 14.6593017578125
          },
          "logicalBox": {
-          "x": 311.7488708496094,
-          "y": 819.991943359375,
-          "width": 12.018218994140625,
-          "height": 10.47381591796875
+          "x": 304.9988708496094,
+          "y": 850.1818237304688,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         },
         {
@@ -19626,27 +19779,27 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto4893050",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8800586",
+          "id": "auto2360754",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8800649",
+         "renderId": "vf-auto2360817",
          "renderedBox": {
-          "x": 590.7766723632812,
-          "y": 1236.65869140625,
+          "x": 580.5421142578125,
+          "y": 1278.9124755859375,
           "width": 16.82073974609375,
           "height": 14.6593017578125
          },
          "logicalBox": {
-          "x": 336.34185791015625,
-          "y": 829.991943359375,
+          "x": 329.0293884277344,
+          "y": 860.1817626953125,
           "width": 12.018218994140625,
-          "height": 10.473876953125
+          "height": 10.47393798828125
          }
         },
         {
@@ -19666,27 +19819,27 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto4893053",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8800586",
+          "id": "auto2360754",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8800656",
+         "renderId": "vf-auto2360824",
          "renderedBox": {
-          "x": 625.1970825195312,
-          "y": 1229.66064453125,
-          "width": 16.82073974609375,
-          "height": 14.6593017578125
+          "x": 614.1751708984375,
+          "y": 1271.91455078125,
+          "width": 16.82080078125,
+          "height": 14.6591796875
          },
          "logicalBox": {
-          "x": 360.9348449707031,
-          "y": 824.9918823242188,
-          "width": 12.018218994140625,
-          "height": 10.47393798828125
+          "x": 353.059814453125,
+          "y": 855.1818237304688,
+          "width": 12.018280029296875,
+          "height": 10.47381591796875
          }
         },
         {
@@ -19706,32 +19859,32 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto4893054",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8800586",
+          "id": "auto2360754",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8800663",
+         "renderId": "vf-auto2360831",
          "renderedBox": {
-          "x": 659.6174926757812,
-          "y": 1243.65673828125,
+          "x": 647.808349609375,
+          "y": 1285.9105224609375,
           "width": 16.82073974609375,
           "height": 14.6593017578125
          },
          "logicalBox": {
-          "x": 385.52783203125,
-          "y": 834.991943359375,
+          "x": 377.09033203125,
+          "y": 865.1818237304688,
           "width": 12.01824951171875,
-          "height": 10.47393798828125
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto8800586",
+        "id": "auto2360754",
         "type": "SmoBeamGroup"
        }
       }
@@ -20007,15 +20160,15 @@ class vexGlyph {
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 416.2000102996826,
-     "staffY": 810.21484375,
+     "staffX": 407.2000102996826,
+     "staffY": 840.4047164916992,
      "measureNumber": {
       "measureNumber": 7,
       "measureIndex": 7,
       "systemIndex": 1,
       "staffId": 0
      },
-     "staffWidth": 341.06005859375,
+     "staffWidth": 359.0799865722656,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -20044,27 +20197,27 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto5985762",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8801513",
+          "id": "auto2361681",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8801539",
+         "renderId": "vf-auto2361707",
          "renderedBox": {
-          "x": 899.4662475585938,
-          "y": 1232.060546875,
-          "width": 17.68536376953125,
-          "height": 36.117431640625
+          "x": 899.4801635742188,
+          "y": 1274.3143310546875,
+          "width": 17.6854248046875,
+          "height": 36.1175537109375
          },
          "logicalBox": {
-          "x": 556.8970336914062,
-          "y": 826.7066040039062,
-          "width": 12.635986328125,
-          "height": 25.80548095703125
+          "x": 556.906982421875,
+          "y": 856.896484375,
+          "width": 12.63604736328125,
+          "height": 25.8055419921875
          }
         },
         {
@@ -20084,27 +20237,27 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto5985763",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8801513",
+          "id": "auto2361681",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8801545",
+         "renderId": "vf-auto2361713",
          "renderedBox": {
-          "x": 934.401611328125,
-          "y": 1236.65869140625,
-          "width": 16.82080078125,
+          "x": 935.9918212890625,
+          "y": 1278.9124755859375,
+          "width": 16.82073974609375,
           "height": 14.6593017578125
          },
          "logicalBox": {
-          "x": 581.8579711914062,
-          "y": 829.991943359375,
+          "x": 582.994140625,
+          "y": 860.1817626953125,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.47393798828125
          }
         },
         {
@@ -20124,27 +20277,27 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto5985766",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8801513",
+          "id": "auto2361681",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8801552",
+         "renderId": "vf-auto2361720",
          "renderedBox": {
-          "x": 968.4723510742188,
-          "y": 1229.66064453125,
-          "width": 16.82073974609375,
-          "height": 14.6593017578125
+          "x": 971.6388549804688,
+          "y": 1271.91455078125,
+          "width": 16.82080078125,
+          "height": 14.6591796875
          },
          "logicalBox": {
-          "x": 606.2011108398438,
-          "y": 824.9918823242188,
+          "x": 608.4635620117188,
+          "y": 855.1818237304688,
           "width": 12.01824951171875,
-          "height": 10.47393798828125
+          "height": 10.47381591796875
          }
         },
         {
@@ -20164,32 +20317,32 @@ class vexGlyph {
            "octave": 5
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto5985767",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8801513",
+          "id": "auto2361681",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8801559",
+         "renderId": "vf-auto2361727",
          "renderedBox": {
-          "x": 1002.5430297851562,
-          "y": 1222.6627197265625,
-          "width": 16.82080078125,
-          "height": 14.6591796875
+          "x": 1007.2859497070312,
+          "y": 1264.91650390625,
+          "width": 16.82073974609375,
+          "height": 14.6593017578125
          },
          "logicalBox": {
-          "x": 630.5442504882812,
-          "y": 819.991943359375,
+          "x": 633.9329833984375,
+          "y": 850.1818237304688,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto8801513",
+        "id": "auto2361681",
         "type": "SmoBeamGroup"
        }
       },
@@ -20212,27 +20365,27 @@ class vexGlyph {
            "octave": 5
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto5985770",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8801514",
+          "id": "auto2361682",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8801566",
+         "renderId": "vf-auto2361734",
          "renderedBox": {
-          "x": 1036.61376953125,
-          "y": 1215.6646728515625,
-          "width": 16.82080078125,
+          "x": 1042.9329833984375,
+          "y": 1257.91845703125,
+          "width": 16.8206787109375,
           "height": 14.6593017578125
          },
          "logicalBox": {
-          "x": 654.8873901367188,
-          "y": 814.991943359375,
-          "width": 12.01824951171875,
-          "height": 10.47393798828125
+          "x": 659.4024047851562,
+          "y": 845.1818237304688,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
          }
         },
         {
@@ -20252,27 +20405,27 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto5985771",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8801514",
+          "id": "auto2361682",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8801573",
+         "renderId": "vf-auto2361741",
          "renderedBox": {
-          "x": 1070.6845703125,
-          "y": 1229.66064453125,
+          "x": 1078.5799560546875,
+          "y": 1271.91455078125,
           "width": 16.82080078125,
-          "height": 14.6593017578125
+          "height": 14.6591796875
          },
          "logicalBox": {
-          "x": 679.2305908203125,
-          "y": 824.9918823242188,
+          "x": 684.8717651367188,
+          "y": 855.1818237304688,
           "width": 12.01824951171875,
-          "height": 10.47393798828125
+          "height": 10.47381591796875
          }
         },
         {
@@ -20292,27 +20445,27 @@ class vexGlyph {
            "octave": 5
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto5985774",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8801514",
+          "id": "auto2361682",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8801580",
+         "renderId": "vf-auto2361748",
          "renderedBox": {
-          "x": 1104.75537109375,
-          "y": 1222.6627197265625,
-          "width": 16.8206787109375,
-          "height": 14.6591796875
+          "x": 1114.22705078125,
+          "y": 1264.91650390625,
+          "width": 16.82080078125,
+          "height": 14.6593017578125
          },
          "logicalBox": {
-          "x": 703.5737915039062,
-          "y": 819.991943359375,
-          "width": 12.0181884765625,
-          "height": 10.47381591796875
+          "x": 710.3411865234375,
+          "y": 850.1818237304688,
+          "width": 12.018310546875,
+          "height": 10.473876953125
          }
         },
         {
@@ -20332,32 +20485,32 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto5985775",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8801514",
+          "id": "auto2361682",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8801587",
+         "renderId": "vf-auto2361755",
          "renderedBox": {
-          "x": 1138.826171875,
-          "y": 1236.65869140625,
+          "x": 1149.8741455078125,
+          "y": 1278.9124755859375,
           "width": 16.8206787109375,
           "height": 14.6593017578125
          },
          "logicalBox": {
-          "x": 727.9169921875,
-          "y": 829.991943359375,
+          "x": 735.8106689453125,
+          "y": 860.1817626953125,
           "width": 12.0181884765625,
-          "height": 10.473876953125
+          "height": 10.47393798828125
          }
         }
        ],
        "attrs": {
-        "id": "auto8801514",
+        "id": "auto2361682",
         "type": "SmoBeamGroup"
        }
       }
@@ -20633,15 +20786,15 @@ class vexGlyph {
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 757.2600688934326,
-     "staffY": 810.21484375,
+     "staffX": 766.2799968719482,
+     "staffY": 840.4047164916992,
      "measureNumber": {
       "measureNumber": 8,
       "measureIndex": 8,
       "systemIndex": 2,
       "staffId": 0
      },
-     "staffWidth": 332.22003173828125,
+     "staffWidth": 323.22003173828125,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -20670,26 +20823,26 @@ class vexGlyph {
            "octave": 5
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto6626751",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8802028",
+          "id": "auto2362754",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8802052",
+         "renderId": "vf-auto2362778",
          "renderedBox": {
-          "x": 1353.2344970703125,
-          "y": 1211.0665283203125,
-          "width": 17.6854248046875,
-          "height": 36.117431640625
+          "x": 1359.5606689453125,
+          "y": 1253.3203125,
+          "width": 17.685302734375,
+          "height": 36.1175537109375
          },
          "logicalBox": {
-          "x": 881.1093139648438,
-          "y": 811.7066040039062,
-          "width": 12.63604736328125,
+          "x": 885.6292724609375,
+          "y": 841.896484375,
+          "width": 12.635986328125,
           "height": 25.8055419921875
          }
         },
@@ -20710,27 +20863,27 @@ class vexGlyph {
            "octave": 5
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto6626752",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8802028",
+          "id": "auto2362754",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8802058",
+         "renderId": "vf-auto2362784",
          "renderedBox": {
-          "x": 1389.5709228515625,
-          "y": 1215.6646728515625,
-          "width": 16.8206787109375,
+          "x": 1395.109619140625,
+          "y": 1257.91845703125,
+          "width": 16.82080078125,
           "height": 14.6593017578125
          },
          "logicalBox": {
-          "x": 907.0712890625,
-          "y": 814.991943359375,
-          "width": 12.0181884765625,
-          "height": 10.47393798828125
+          "x": 911.0286254882812,
+          "y": 845.1818237304688,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         },
         {
@@ -20750,27 +20903,27 @@ class vexGlyph {
            "octave": 5
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto6626755",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8802028",
+          "id": "auto2362754",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8802065",
+         "renderId": "vf-auto2362791",
          "renderedBox": {
-          "x": 1425.0426025390625,
-          "y": 1222.6627197265625,
-          "width": 16.8206787109375,
-          "height": 14.6591796875
+          "x": 1429.7940673828125,
+          "y": 1264.91650390625,
+          "width": 16.82080078125,
+          "height": 14.6593017578125
          },
          "logicalBox": {
-          "x": 932.4154052734375,
-          "y": 819.991943359375,
-          "width": 12.0181884765625,
-          "height": 10.47381591796875
+          "x": 935.8102416992188,
+          "y": 850.1818237304688,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         },
         {
@@ -20790,32 +20943,32 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto6626756",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8802028",
+          "id": "auto2362754",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8802072",
+         "renderId": "vf-auto2362798",
          "renderedBox": {
-          "x": 1460.5142822265625,
-          "y": 1229.66064453125,
+          "x": 1464.478515625,
+          "y": 1271.91455078125,
           "width": 16.8206787109375,
-          "height": 14.6593017578125
+          "height": 14.6591796875
          },
          "logicalBox": {
-          "x": 957.759521484375,
-          "y": 824.9918823242188,
-          "width": 12.01812744140625,
-          "height": 10.47393798828125
+          "x": 960.5919189453125,
+          "y": 855.1818237304688,
+          "width": 12.0181884765625,
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto8802028",
+        "id": "auto2362754",
         "type": "SmoBeamGroup"
        }
       },
@@ -20838,27 +20991,27 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto6626759",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8802029",
+          "id": "auto2362755",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8802079",
+         "renderId": "vf-auto2362805",
          "renderedBox": {
-          "x": 1495.9859619140625,
-          "y": 1236.65869140625,
-          "width": 16.8206787109375,
+          "x": 1499.1629638671875,
+          "y": 1278.9124755859375,
+          "width": 16.82080078125,
           "height": 14.6593017578125
          },
          "logicalBox": {
-          "x": 983.1035766601562,
-          "y": 829.991943359375,
-          "width": 12.0181884765625,
-          "height": 10.473876953125
+          "x": 985.37353515625,
+          "y": 860.1817626953125,
+          "width": 12.01824951171875,
+          "height": 10.47393798828125
          }
         },
         {
@@ -20878,27 +21031,27 @@ class vexGlyph {
            "octave": 5
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto6626760",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8802029",
+          "id": "auto2362755",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8802086",
+         "renderId": "vf-auto2362812",
          "renderedBox": {
-          "x": 1531.4576416015625,
-          "y": 1222.6627197265625,
+          "x": 1533.847412109375,
+          "y": 1264.91650390625,
           "width": 16.8206787109375,
-          "height": 14.6591796875
+          "height": 14.6593017578125
          },
          "logicalBox": {
-          "x": 1008.4476928710938,
-          "y": 819.991943359375,
-          "width": 12.0181884765625,
-          "height": 10.47381591796875
+          "x": 1010.1552124023438,
+          "y": 850.1818237304688,
+          "width": 12.01812744140625,
+          "height": 10.473876953125
          }
         },
         {
@@ -20918,27 +21071,27 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto6626763",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8802029",
+          "id": "auto2362755",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8802093",
+         "renderId": "vf-auto2362819",
          "renderedBox": {
-          "x": 1566.9293212890625,
-          "y": 1229.66064453125,
-          "width": 16.82080078125,
-          "height": 14.6593017578125
+          "x": 1568.53173828125,
+          "y": 1271.91455078125,
+          "width": 16.8206787109375,
+          "height": 14.6591796875
          },
          "logicalBox": {
-          "x": 1033.7918701171875,
-          "y": 824.9918823242188,
+          "x": 1034.936767578125,
+          "y": 855.1818237304688,
           "width": 12.0181884765625,
-          "height": 10.47393798828125
+          "height": 10.47381591796875
          }
         },
         {
@@ -20958,32 +21111,32 @@ class vexGlyph {
            "octave": 5
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto6626764",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto8802029",
+          "id": "auto2362755",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8802100",
+         "renderId": "vf-auto2362826",
          "renderedBox": {
-          "x": 1602.401123046875,
-          "y": 1215.6646728515625,
-          "width": 16.8206787109375,
+          "x": 1603.2161865234375,
+          "y": 1257.91845703125,
+          "width": 16.82080078125,
           "height": 14.6593017578125
          },
          "logicalBox": {
-          "x": 1059.135986328125,
-          "y": 814.991943359375,
-          "width": 12.0181884765625,
-          "height": 10.47393798828125
+          "x": 1059.7183837890625,
+          "y": 845.1818237304688,
+          "width": 12.018310546875,
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto8802029",
+        "id": "auto2362755",
         "type": "SmoBeamGroup"
        }
       }
@@ -21260,14 +21413,14 @@ class vexGlyph {
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 996.1371459960938,
+     "staffY": 1061.0244674682617,
      "measureNumber": {
       "measureNumber": 9,
       "measureIndex": 9,
       "systemIndex": 0,
       "staffId": 0
      },
-     "staffWidth": 479.059965133667,
+     "staffWidth": 397.2000102996826,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -21291,7 +21444,7 @@ class vexGlyph {
          },
          "pitches": [
           {
-           "letter": "a",
+           "letter": "b",
            "accidental": "n",
            "octave": 4
           }
@@ -21302,25 +21455,25 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8802552",
+          "id": "auto2363682",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8802565",
+         "renderId": "vf-auto2363694",
          "renderedBox": {
           "x": 259.85321044921875,
-          "y": 1496.8759765625,
+          "y": 1580.694580078125,
           "width": 16.82073974609375,
-          "height": 14.6591796875
+          "height": 14.6590576171875
          },
          "logicalBox": {
           "x": 99.90080261230469,
-          "y": 1015.9142456054688,
+          "y": 1075.8016357421875,
           "width": 12.018226623535156,
-          "height": 10.47381591796875
+          "height": 10.4737548828125
          }
         },
         {
-         "noteType": "n",
+         "noteType": "r",
          "textModifiers": [],
          "articulations": [],
          "endBeam": false,
@@ -21331,7 +21484,7 @@ class vexGlyph {
          },
          "pitches": [
           {
-           "letter": "d",
+           "letter": "b",
            "accidental": "n",
            "octave": 4
           }
@@ -21342,69 +21495,69 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8802552",
+          "id": "auto2363682",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8802572",
+         "renderId": "vf-auto2363701",
          "renderedBox": {
-          "x": 314.4674072265625,
-          "y": 1524.8681640625,
-          "width": 16.82073974609375,
-          "height": 14.6590576171875
+          "x": 307.502685546875,
+          "y": 1576.0963134765625,
+          "width": 13.71600341796875,
+          "height": 22.63720703125
          },
          "logicalBox": {
-          "x": 138.92202758789062,
-          "y": 1035.914306640625,
-          "width": 12.018218994140625,
-          "height": 10.4737548828125
+          "x": 133.94581604003906,
+          "y": 1072.5162353515625,
+          "width": 9.7999267578125,
+          "height": 16.174072265625
          }
         }
        ],
        "attrs": {
-        "id": "auto8802552",
+        "id": "auto2363682",
         "type": "SmoBeamGroup"
        }
       },
       {
        "notes": [
         {
-         "noteType": "n",
+         "noteType": "r",
          "textModifiers": [],
          "articulations": [],
          "endBeam": false,
          "ticks": {
-          "numerator": 3072,
+          "numerator": 1024,
           "denominator": 1,
           "remainder": 0
          },
          "pitches": [
           {
-           "letter": "c",
+           "letter": "g",
            "accidental": "n",
-           "octave": 5
+           "octave": 4
           }
          ],
+         "clef": "treble",
          "attrs": {
-          "id": "auto7540258",
+          "id": "auto575803",
           "type": "SmoNote"
          },
-         "clef": "treble",
          "beam_group": {
-          "id": "auto8802553",
+          "id": "auto2363683",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8802579",
+         "renderId": "vf-auto2363713",
          "renderedBox": {
-          "x": 369.08160400390625,
-          "y": 1482.8800048828125,
-          "width": 26.617950439453125,
-          "height": 14.6591796875
+          "x": 417.09747314453125,
+          "y": 1590.09228515625,
+          "width": 17.685394287109375,
+          "height": 36.1175537109375
          },
          "logicalBox": {
-          "x": 177.94325256347656,
-          "y": 1005.9142456054688,
-          "width": 19.018218994140625,
-          "height": 10.47381591796875
+          "x": 212.2500457763672,
+          "y": 1082.5162353515625,
+          "width": 12.636001586914062,
+          "height": 25.8055419921875
          }
         },
         {
@@ -21424,37 +21577,69 @@ class vexGlyph {
            "octave": 5
           }
          ],
+         "clef": "treble",
          "attrs": {
-          "id": "auto7540259",
+          "id": "auto575804",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2363683",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2363719",
+         "renderedBox": {
+          "x": 454.3960266113281,
+          "y": 1566.698486328125,
+          "width": 16.82073974609375,
+          "height": 14.6590576171875
+         },
+         "logicalBox": {
+          "x": 238.89942932128906,
+          "y": 1065.8016357421875,
+          "width": 12.018234252929688,
+          "height": 10.4737548828125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 5
+          }
+         ],
+         "attrs": {
+          "id": "auto7540262",
           "type": "SmoNote"
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8802553",
+          "id": "auto2363683",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8802587",
+         "renderId": "vf-auto2363726",
          "renderedBox": {
-          "x": 446.7912902832031,
-          "y": 1475.8819580078125,
+          "x": 490.8299560546875,
+          "y": 1573.696533203125,
           "width": 16.820770263671875,
-          "height": 14.6593017578125
+          "height": 14.6590576171875
          },
          "logicalBox": {
-          "x": 233.4659423828125,
-          "y": 1000.9142456054688,
+          "x": 264.9310607910156,
+          "y": 1070.8016357421875,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
-        }
-       ],
-       "attrs": {
-        "id": "auto8802553",
-        "type": "SmoBeamGroup"
-       }
-      },
-      {
-       "notes": [
+        },
         {
          "noteType": "n",
          "textModifiers": [],
@@ -21473,151 +21658,31 @@ class vexGlyph {
           }
          ],
          "attrs": {
-          "id": "auto7540260",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "beam_group": {
-          "id": "auto8802554",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto8802594",
-         "renderedBox": {
-          "x": 486.7075500488281,
-          "y": 1489.8779296875,
-          "width": 16.820770263671875,
-          "height": 14.6593017578125
-         },
-         "logicalBox": {
-          "x": 261.98565673828125,
-          "y": 1010.9141845703125,
-          "width": 12.01824951171875,
-          "height": 10.47393798828125
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "a",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "attrs": {
-          "id": "auto7540261",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "beam_group": {
-          "id": "auto8802554",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto8802601",
-         "renderedBox": {
-          "x": 526.6239013671875,
-          "y": 1496.8759765625,
-          "width": 16.8206787109375,
-          "height": 14.6591796875
-         },
-         "logicalBox": {
-          "x": 290.50543212890625,
-          "y": 1015.9142456054688,
-          "width": 12.0181884765625,
-          "height": 10.47381591796875
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "g",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "attrs": {
-          "id": "auto7540262",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "beam_group": {
-          "id": "auto8802554",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto8802608",
-         "renderedBox": {
-          "x": 566.5401611328125,
-          "y": 1503.8740234375,
-          "width": 16.82073974609375,
-          "height": 14.6591796875
-         },
-         "logicalBox": {
-          "x": 319.025146484375,
-          "y": 1020.9142456054688,
-          "width": 12.018218994140625,
-          "height": 10.47381591796875
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "f",
-           "accidental": "#",
-           "octave": 4
-          }
-         ],
-         "attrs": {
           "id": "auto7540263",
           "type": "SmoNote"
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8802554",
+          "id": "auto2363683",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8802615",
+         "renderId": "vf-auto2363733",
          "renderedBox": {
-          "x": 607.8560180664062,
-          "y": 1497.61865234375,
-          "width": 33.38824462890625,
-          "height": 41.1650390625
+          "x": 527.2638549804688,
+          "y": 1580.694580078125,
+          "width": 16.82073974609375,
+          "height": 14.6590576171875
          },
          "logicalBox": {
-          "x": 348.54486083984375,
-          "y": 1016.4448852539062,
-          "width": 23.855499267578125,
-          "height": 29.41192626953125
+          "x": 290.9626770019531,
+          "y": 1075.8016357421875,
+          "width": 12.018218994140625,
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto8802554",
+        "id": "auto2363683",
         "type": "SmoBeamGroup"
        }
       },
@@ -21635,7 +21700,7 @@ class vexGlyph {
          },
          "pitches": [
           {
-           "letter": "e",
+           "letter": "a",
            "accidental": "n",
            "octave": 4
           }
@@ -21646,19 +21711,59 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8802555",
+          "id": "auto2363684",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8802624",
+         "renderId": "vf-auto2363740",
          "renderedBox": {
-          "x": 664.3397827148438,
-          "y": 1517.8701171875,
+          "x": 563.69775390625,
+          "y": 1587.6925048828125,
+          "width": 16.82080078125,
+          "height": 14.6591796875
+         },
+         "logicalBox": {
+          "x": 316.9942626953125,
+          "y": 1080.8016357421875,
+          "width": 12.018280029296875,
+          "height": 10.4737548828125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 5
+          }
+         ],
+         "attrs": {
+          "id": "auto7540265",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "beam_group": {
+          "id": "auto2363684",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2363747",
+         "renderedBox": {
+          "x": 600.1317138671875,
+          "y": 1573.696533203125,
           "width": 16.82073974609375,
           "height": 14.6590576171875
          },
          "logicalBox": {
-          "x": 388.90185546875,
-          "y": 1030.914306640625,
+          "x": 343.02593994140625,
+          "y": 1070.8016357421875,
           "width": 12.018218994140625,
           "height": 10.4737548828125
          }
@@ -21675,48 +21780,8 @@ class vexGlyph {
          },
          "pitches": [
           {
-           "letter": "g",
+           "letter": "b",
            "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "attrs": {
-          "id": "auto7540265",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "beam_group": {
-          "id": "auto8802555",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto8802631",
-         "renderedBox": {
-          "x": 704.2560424804688,
-          "y": 1503.8740234375,
-          "width": 16.82073974609375,
-          "height": 14.6591796875
-         },
-         "logicalBox": {
-          "x": 417.42156982421875,
-          "y": 1020.9142456054688,
-          "width": 12.018218994140625,
-          "height": 10.47381591796875
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "f",
-           "accidental": "#",
            "octave": 4
           }
          ],
@@ -21726,19 +21791,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8802555",
+          "id": "auto2363684",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8802638",
+         "renderId": "vf-auto2363754",
          "renderedBox": {
-          "x": 744.17236328125,
-          "y": 1510.8720703125,
+          "x": 636.565673828125,
+          "y": 1580.694580078125,
           "width": 16.82073974609375,
-          "height": 14.6591796875
+          "height": 14.6590576171875
          },
          "logicalBox": {
-          "x": 445.94134521484375,
-          "y": 1025.914306640625,
+          "x": 369.0575866699219,
+          "y": 1075.8016357421875,
           "width": 12.018218994140625,
           "height": 10.4737548828125
          }
@@ -21755,9 +21820,9 @@ class vexGlyph {
          },
          "pitches": [
           {
-           "letter": "a",
+           "letter": "d",
            "accidental": "n",
-           "octave": 4
+           "octave": 5
           }
          ],
          "attrs": {
@@ -21766,26 +21831,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8802555",
+          "id": "auto2363684",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8802645",
+         "renderId": "vf-auto2363761",
          "renderedBox": {
-          "x": 784.088623046875,
-          "y": 1496.8759765625,
+          "x": 672.9995727539062,
+          "y": 1566.698486328125,
           "width": 16.82073974609375,
-          "height": 14.6591796875
+          "height": 14.6590576171875
          },
          "logicalBox": {
-          "x": 474.4610595703125,
-          "y": 1015.9142456054688,
-          "width": 12.018218994140625,
-          "height": 10.47381591796875
+          "x": 395.08917236328125,
+          "y": 1065.8016357421875,
+          "width": 12.01824951171875,
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto8802555",
+        "id": "auto2363684",
         "type": "SmoBeamGroup"
        }
       }
@@ -21801,7 +21866,7 @@ class vexGlyph {
          },
          "pitches": [
           {
-           "letter": "a",
+           "letter": "b",
            "accidental": "n",
            "octave": 4
           }
@@ -21823,12 +21888,12 @@ class vexGlyph {
          },
          "pitches": [
           {
-           "letter": "d",
+           "letter": "b",
            "accidental": "n",
            "octave": 4
           }
          ],
-         "noteType": "n",
+         "noteType": "r",
          "attrs": {
           "id": "auto7540257",
           "type": "SmoNote"
@@ -21839,7 +21904,7 @@ class vexGlyph {
         },
         {
          "ticks": {
-          "numerator": 3072,
+          "numerator": 4096,
           "denominator": 1,
           "remainder": 0
          },
@@ -21850,9 +21915,31 @@ class vexGlyph {
            "octave": 5
           }
          ],
-         "noteType": "n",
+         "noteType": "r",
          "attrs": {
-          "id": "auto7540258",
+          "id": "auto500835",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "r",
+         "attrs": {
+          "id": "auto575803",
           "type": "SmoNote"
          },
          "clef": "treble",
@@ -21874,7 +21961,29 @@ class vexGlyph {
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto7540259",
+          "id": "auto575804",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 5
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto7540262",
           "type": "SmoNote"
          },
          "clef": "treble",
@@ -21896,72 +22005,6 @@ class vexGlyph {
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto7540260",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "a",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto7540261",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "g",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto7540262",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "f",
-           "accidental": "#",
-           "octave": 4
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
           "id": "auto7540263",
           "type": "SmoNote"
          },
@@ -21977,7 +22020,7 @@ class vexGlyph {
          },
          "pitches": [
           {
-           "letter": "e",
+           "letter": "a",
            "accidental": "n",
            "octave": 4
           }
@@ -21999,9 +22042,9 @@ class vexGlyph {
          },
          "pitches": [
           {
-           "letter": "g",
+           "letter": "c",
            "accidental": "n",
-           "octave": 4
+           "octave": 5
           }
          ],
          "noteType": "n",
@@ -22021,8 +22064,8 @@ class vexGlyph {
          },
          "pitches": [
           {
-           "letter": "f",
-           "accidental": "#",
+           "letter": "b",
+           "accidental": "n",
            "octave": 4
           }
          ],
@@ -22043,9 +22086,9 @@ class vexGlyph {
          },
          "pitches": [
           {
-           "letter": "a",
+           "letter": "d",
            "accidental": "n",
-           "octave": 4
+           "octave": 5
           }
          ],
          "noteType": "n",
@@ -22083,15 +22126,15 @@ class vexGlyph {
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 509.059965133667,
-     "staffY": 996.1371459960938,
+     "staffX": 427.2000102996826,
+     "staffY": 1061.0244674682617,
      "measureNumber": {
       "measureNumber": 10,
       "measureIndex": 10,
       "systemIndex": 1,
       "staffId": 0
      },
-     "staffWidth": 193.08004760742188,
+     "staffWidth": 352.06005859375,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -22100,13 +22143,460 @@ class vexGlyph {
      "padRight": 10,
      "rightMargin": 2,
      "tuplets": [],
-     "beamGroups": [],
+     "beamGroups": [
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 5
+          }
+         ],
+         "attrs": {
+          "id": "auto1028946",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "beam_group": {
+          "id": "auto2364671",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2364677",
+         "renderedBox": {
+          "x": 741.7352294921875,
+          "y": 1573.696533203125,
+          "width": 16.82073974609375,
+          "height": 14.6590576171875
+         },
+         "logicalBox": {
+          "x": 444.2000427246094,
+          "y": 1070.8016357421875,
+          "width": 12.018218994140625,
+          "height": 10.4737548828125
+         }
+        },
+        {
+         "noteType": "r",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "attrs": {
+          "id": "auto1066417",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "beam_group": {
+          "id": "auto2364671",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2364684",
+         "renderedBox": {
+          "x": 788.6853637695312,
+          "y": 1576.0963134765625,
+          "width": 13.71600341796875,
+          "height": 22.63720703125
+         },
+         "logicalBox": {
+          "x": 477.745361328125,
+          "y": 1072.5162353515625,
+          "width": 9.7999267578125,
+          "height": 16.174072265625
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto2364671",
+        "type": "SmoBeamGroup"
+       }
+      },
+      {
+       "notes": [
+        {
+         "noteType": "r",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "treble",
+         "attrs": {
+          "id": "auto144046",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2364672",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2364696",
+         "renderedBox": {
+          "x": 896.1822509765625,
+          "y": 1576.0963134765625,
+          "width": 17.68536376953125,
+          "height": 36.117431640625
+         },
+         "logicalBox": {
+          "x": 554.5506591796875,
+          "y": 1072.5162353515625,
+          "width": 12.635986328125,
+          "height": 25.8055419921875
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 5
+          }
+         ],
+         "clef": "treble",
+         "attrs": {
+          "id": "auto144047",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2364672",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2364702",
+         "renderedBox": {
+          "x": 933.131103515625,
+          "y": 1559.700439453125,
+          "width": 16.82073974609375,
+          "height": 14.6591796875
+         },
+         "logicalBox": {
+          "x": 580.9501953125,
+          "y": 1060.8016357421875,
+          "width": 12.01824951171875,
+          "height": 10.4737548828125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 5
+          }
+         ],
+         "clef": "treble",
+         "attrs": {
+          "id": "auto144050",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2364672",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2364709",
+         "renderedBox": {
+          "x": 969.21533203125,
+          "y": 1566.698486328125,
+          "width": 16.82080078125,
+          "height": 14.6590576171875
+         },
+         "logicalBox": {
+          "x": 606.7319946289062,
+          "y": 1065.8016357421875,
+          "width": 12.01824951171875,
+          "height": 10.4737548828125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 5
+          }
+         ],
+         "clef": "treble",
+         "attrs": {
+          "id": "auto144051",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2364672",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2364716",
+         "renderedBox": {
+          "x": 1005.2996215820312,
+          "y": 1573.696533203125,
+          "width": 16.82080078125,
+          "height": 14.6590576171875
+         },
+         "logicalBox": {
+          "x": 632.5137939453125,
+          "y": 1070.8016357421875,
+          "width": 12.01824951171875,
+          "height": 10.4737548828125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto2364672",
+        "type": "SmoBeamGroup"
+       }
+      },
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "treble",
+         "attrs": {
+          "id": "auto144054",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2364673",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2364723",
+         "renderedBox": {
+          "x": 1041.3839111328125,
+          "y": 1580.694580078125,
+          "width": 16.8206787109375,
+          "height": 14.6590576171875
+         },
+         "logicalBox": {
+          "x": 658.2955932617188,
+          "y": 1075.8016357421875,
+          "width": 12.0181884765625,
+          "height": 10.4737548828125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 5
+          }
+         ],
+         "clef": "treble",
+         "attrs": {
+          "id": "auto144055",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2364673",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2364730",
+         "renderedBox": {
+          "x": 1077.4681396484375,
+          "y": 1566.698486328125,
+          "width": 16.82080078125,
+          "height": 14.6590576171875
+         },
+         "logicalBox": {
+          "x": 684.077392578125,
+          "y": 1065.8016357421875,
+          "width": 12.01824951171875,
+          "height": 10.4737548828125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "#",
+           "octave": 5
+          }
+         ],
+         "clef": "treble",
+         "attrs": {
+          "id": "auto144058",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2364673",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2364737",
+         "renderedBox": {
+          "x": 1114.9520263671875,
+          "y": 1560.4429931640625,
+          "width": 33.3883056640625,
+          "height": 41.1651611328125
+         },
+         "logicalBox": {
+          "x": 710.8591918945312,
+          "y": 1061.3321533203125,
+          "width": 23.8555908203125,
+          "height": 29.4119873046875
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 5
+          }
+         ],
+         "clef": "treble",
+         "attrs": {
+          "id": "auto144059",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2364673",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2364746",
+         "renderedBox": {
+          "x": 1167.603759765625,
+          "y": 1559.700439453125,
+          "width": 16.82080078125,
+          "height": 14.6591796875
+         },
+         "logicalBox": {
+          "x": 748.478271484375,
+          "y": 1060.8016357421875,
+          "width": 12.01824951171875,
+          "height": 10.4737548828125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto2364673",
+        "type": "SmoBeamGroup"
+       }
+      }
+     ],
      "voices": [
       {
        "notes": [
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 5
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1028946",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 2048,
           "denominator": 1,
           "remainder": 0
          },
@@ -22117,9 +22607,9 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "noteType": "n",
+         "noteType": "r",
          "attrs": {
-          "id": "auto7386699",
+          "id": "auto1066417",
           "type": "SmoNote"
          },
          "clef": "treble",
@@ -22139,9 +22629,9 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "noteType": "n",
+         "noteType": "r",
          "attrs": {
-          "id": "auto7386700",
+          "id": "auto1165671",
           "type": "SmoNote"
          },
          "clef": "treble",
@@ -22150,7 +22640,95 @@ class vexGlyph {
         },
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "r",
+         "attrs": {
+          "id": "auto144046",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 5
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto144047",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 5
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto144050",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 5
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto144051",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
           "denominator": 1,
           "remainder": 0
          },
@@ -22163,7 +22741,7 @@ class vexGlyph {
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto7386701",
+          "id": "auto144054",
           "type": "SmoNote"
          },
          "clef": "treble",
@@ -22172,20 +22750,64 @@ class vexGlyph {
         },
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 1024,
           "denominator": 1,
           "remainder": 0
          },
          "pitches": [
           {
-           "letter": "b",
+           "letter": "d",
            "accidental": "n",
-           "octave": 4
+           "octave": 5
           }
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto7386702",
+          "id": "auto144055",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "#",
+           "octave": 5
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto144058",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 5
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto144059",
           "type": "SmoNote"
          },
          "clef": "treble",
@@ -22218,15 +22840,15 @@ class vexGlyph {
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 702.1400127410889,
-     "staffY": 996.1371459960938,
+     "staffX": 779.2600688934326,
+     "staffY": 1061.0244674682617,
      "measureNumber": {
       "measureNumber": 11,
       "measureIndex": 11,
       "systemIndex": 2,
       "staffId": 0
      },
-     "staffWidth": 193.08001708984375,
+     "staffWidth": 154.08001708984375,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -22353,15 +22975,15 @@ class vexGlyph {
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 895.2200298309326,
-     "staffY": 996.1371459960938,
+     "staffX": 933.3400859832764,
+     "staffY": 1061.0244674682617,
      "measureNumber": {
       "measureNumber": 12,
       "measureIndex": 12,
       "systemIndex": 3,
       "staffId": 0
      },
-     "staffWidth": 193.08001708984375,
+     "staffWidth": 154.08001708984375,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -22489,7 +23111,7 @@ class vexGlyph {
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 1184.9129638671875,
+     "staffY": 1234.924430847168,
      "measureNumber": {
       "measureNumber": 13,
       "measureIndex": 13,
@@ -22531,19 +23153,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8803924",
+          "id": "auto2365450",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8803937",
+         "renderId": "vf-auto2365463",
          "renderedBox": {
           "x": 259.85321044921875,
-          "y": 1761.0870361328125,
+          "y": 1831.083251953125,
           "width": 16.82073974609375,
           "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 99.90080261230469,
-          "y": 1204.6900634765625,
+          "y": 1254.7015380859375,
           "width": 12.018226623535156,
           "height": 10.473876953125
          }
@@ -22571,26 +23193,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8803924",
+          "id": "auto2365450",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8803944",
+         "renderId": "vf-auto2365470",
          "renderedBox": {
           "x": 303.4455261230469,
-          "y": 1789.0791015625,
+          "y": 1859.0753173828125,
           "width": 16.820770263671875,
           "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 131.04701232910156,
-          "y": 1224.6900634765625,
+          "y": 1274.7015380859375,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto8803924",
+        "id": "auto2365450",
         "type": "SmoBeamGroup"
        }
       },
@@ -22619,19 +23241,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8803925",
+          "id": "auto2365451",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8803951",
+         "renderId": "vf-auto2365477",
          "renderedBox": {
           "x": 347.037841796875,
-          "y": 1747.091064453125,
+          "y": 1817.0872802734375,
           "width": 26.61798095703125,
-          "height": 14.6593017578125
+          "height": 14.6591796875
          },
          "logicalBox": {
           "x": 162.1932373046875,
-          "y": 1194.6900634765625,
+          "y": 1244.7015380859375,
           "width": 19.018234252929688,
           "height": 10.473876953125
          }
@@ -22659,26 +23281,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8803925",
+          "id": "auto2365451",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8803959",
+         "renderId": "vf-auto2365485",
          "renderedBox": {
           "x": 408.2147521972656,
-          "y": 1740.093017578125,
+          "y": 1810.0892333984375,
           "width": 16.820770263671875,
           "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 205.9034423828125,
-          "y": 1189.6900634765625,
+          "y": 1239.7015380859375,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto8803925",
+        "id": "auto2365451",
         "type": "SmoBeamGroup"
        }
       },
@@ -22707,19 +23329,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8803926",
+          "id": "auto2365452",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8803966",
+         "renderId": "vf-auto2365492",
          "renderedBox": {
           "x": 442.6201171875,
-          "y": 1754.089111328125,
+          "y": 1824.085205078125,
           "width": 16.820770263671875,
-          "height": 14.6591796875
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 230.48568725585938,
-          "y": 1199.6900634765625,
+          "y": 1249.7015380859375,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -22747,19 +23369,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8803926",
+          "id": "auto2365452",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8803973",
+         "renderId": "vf-auto2365499",
          "renderedBox": {
           "x": 477.02545166015625,
-          "y": 1761.0870361328125,
+          "y": 1831.083251953125,
           "width": 16.820770263671875,
           "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 255.06790161132812,
-          "y": 1204.6900634765625,
+          "y": 1254.7015380859375,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -22787,19 +23409,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8803926",
+          "id": "auto2365452",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8803980",
+         "renderId": "vf-auto2365506",
          "renderedBox": {
           "x": 511.4308166503906,
-          "y": 1768.0850830078125,
+          "y": 1838.081298828125,
           "width": 16.820770263671875,
           "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 279.650146484375,
-          "y": 1209.6900634765625,
+          "y": 1259.7015380859375,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -22827,26 +23449,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8803926",
+          "id": "auto2365452",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8803987",
+         "renderId": "vf-auto2365513",
          "renderedBox": {
           "x": 545.836181640625,
-          "y": 1775.0831298828125,
+          "y": 1845.079345703125,
           "width": 16.82073974609375,
-          "height": 14.6593017578125
+          "height": 14.6591796875
          },
          "logicalBox": {
           "x": 304.2323913574219,
-          "y": 1214.6900634765625,
+          "y": 1264.7015380859375,
           "width": 12.018218994140625,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto8803926",
+        "id": "auto2365452",
         "type": "SmoBeamGroup"
        }
       },
@@ -22875,19 +23497,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8803927",
+          "id": "auto2365453",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8803994",
+         "renderId": "vf-auto2365520",
          "renderedBox": {
           "x": 580.2415161132812,
-          "y": 1782.0811767578125,
+          "y": 1852.0772705078125,
           "width": 16.82073974609375,
-          "height": 14.6591796875
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 328.8146057128906,
-          "y": 1219.6900634765625,
+          "y": 1269.7015380859375,
           "width": 12.018218994140625,
           "height": 10.473876953125
          }
@@ -22915,19 +23537,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8803927",
+          "id": "auto2365453",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8804001",
+         "renderId": "vf-auto2365527",
          "renderedBox": {
           "x": 614.6468505859375,
-          "y": 1768.0850830078125,
+          "y": 1838.081298828125,
           "width": 16.82080078125,
           "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 353.3968200683594,
-          "y": 1209.6900634765625,
+          "y": 1259.7015380859375,
           "width": 12.018280029296875,
           "height": 10.473876953125
          }
@@ -22955,21 +23577,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8803927",
+          "id": "auto2365453",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8804008",
+         "renderId": "vf-auto2365534",
          "renderedBox": {
           "x": 650.4517822265625,
-          "y": 1761.8297119140625,
+          "y": 1831.8258056640625,
           "width": 33.38824462890625,
-          "height": 41.1651611328125
+          "height": 41.165283203125
          },
          "logicalBox": {
           "x": 378.9790344238281,
-          "y": 1205.220703125,
+          "y": 1255.2320556640625,
           "width": 23.85552978515625,
-          "height": 29.4119873046875
+          "height": 29.412109375
          }
         },
         {
@@ -22995,26 +23617,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto8803927",
+          "id": "auto2365453",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8804017",
+         "renderId": "vf-auto2365543",
          "renderedBox": {
           "x": 701.4246215820312,
-          "y": 1761.0870361328125,
+          "y": 1831.083251953125,
           "width": 16.82080078125,
           "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 415.3985595703125,
-          "y": 1204.6900634765625,
+          "y": 1254.7015380859375,
           "width": 12.018280029296875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto8803927",
+        "id": "auto2365453",
         "type": "SmoBeamGroup"
        }
       }
@@ -23461,14 +24083,14 @@ class vexGlyph {
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 208.7884063720703,
+     "staffY": 240.19468688964844,
      "measureNumber": {
       "measureNumber": 0,
       "measureIndex": 0,
       "systemIndex": 0,
       "staffId": 1
      },
-     "staffWidth": 557.2199687957764,
+     "staffWidth": 557.2199993133545,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -23503,21 +24125,21 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8794165",
+          "id": "auto2354335",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8794182",
+         "renderId": "vf-auto2354353",
          "renderedBox": {
-          "x": 509.1246337890625,
-          "y": 390.30267333984375,
+          "x": 537.11669921875,
+          "y": 434.2589416503906,
           "width": 17.6854248046875,
-          "height": 36.117462158203125
+          "height": 36.11749267578125
          },
          "logicalBox": {
-          "x": 278.0024108886719,
-          "y": 225.28018188476562,
-          "width": 12.636016845703125,
-          "height": 25.805511474609375
+          "x": 298.0024108886719,
+          "y": 256.6864318847656,
+          "width": 12.63604736328125,
+          "height": 25.8055419921875
          }
         },
         {
@@ -23543,21 +24165,21 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8794165",
+          "id": "auto2354335",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8794188",
+         "renderId": "vf-auto2354359",
          "renderedBox": {
-          "x": 562.8589477539062,
-          "y": 394.9008483886719,
-          "width": 16.82073974609375,
-          "height": 14.659210205078125
+          "x": 590.85107421875,
+          "y": 438.8571472167969,
+          "width": 16.8206787109375,
+          "height": 14.65924072265625
          },
          "logicalBox": {
-          "x": 316.39495849609375,
-          "y": 228.56552124023438,
-          "width": 12.018218994140625,
-          "height": 10.473831176757812
+          "x": 336.39501953125,
+          "y": 259.9718017578125,
+          "width": 12.0181884765625,
+          "height": 10.473846435546875
          }
         },
         {
@@ -23583,21 +24205,21 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8794165",
+          "id": "auto2354335",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8794195",
+         "renderId": "vf-auto2354366",
          "renderedBox": {
-          "x": 615.7286376953125,
-          "y": 387.90283203125,
-          "width": 16.82073974609375,
-          "height": 14.659210205078125
+          "x": 643.7206420898438,
+          "y": 431.859130859375,
+          "width": 16.82080078125,
+          "height": 14.65924072265625
          },
          "logicalBox": {
-          "x": 354.16973876953125,
-          "y": 223.56552124023438,
-          "width": 12.01824951171875,
-          "height": 10.473831176757812
+          "x": 374.1697082519531,
+          "y": 254.97178649902344,
+          "width": 12.018280029296875,
+          "height": 10.473861694335938
          }
         },
         {
@@ -23623,26 +24245,26 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8794165",
+          "id": "auto2354335",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8794202",
+         "renderId": "vf-auto2354373",
          "renderedBox": {
-          "x": 668.5982666015625,
-          "y": 380.9048156738281,
-          "width": 16.82073974609375,
-          "height": 14.65924072265625
+          "x": 696.59033203125,
+          "y": 424.86114501953125,
+          "width": 16.82080078125,
+          "height": 14.659210205078125
          },
          "logicalBox": {
-          "x": 391.9444885253906,
-          "y": 218.56552124023438,
+          "x": 411.94451904296875,
+          "y": 249.97181701660156,
           "width": 12.01824951171875,
-          "height": 10.473861694335938
+          "height": 10.473831176757812
          }
         }
        ],
        "attrs": {
-        "id": "auto8794165",
+        "id": "auto2354335",
         "type": "SmoBeamGroup"
        }
       },
@@ -23671,21 +24293,21 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8794166",
+          "id": "auto2354336",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8794209",
+         "renderId": "vf-auto2354380",
          "renderedBox": {
-          "x": 721.4678955078125,
-          "y": 373.90679931640625,
-          "width": 16.82080078125,
-          "height": 14.65924072265625
+          "x": 749.4600219726562,
+          "y": 417.8631286621094,
+          "width": 16.82073974609375,
+          "height": 14.659210205078125
          },
          "logicalBox": {
-          "x": 429.71923828125,
-          "y": 213.5655059814453,
-          "width": 12.018280029296875,
-          "height": 10.473861694335938
+          "x": 449.71929931640625,
+          "y": 244.9718017578125,
+          "width": 12.018218994140625,
+          "height": 10.473846435546875
          }
         },
         {
@@ -23711,21 +24333,21 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8794166",
+          "id": "auto2354336",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8794216",
+         "renderId": "vf-auto2354387",
          "renderedBox": {
-          "x": 774.3375854492188,
-          "y": 387.90283203125,
-          "width": 16.82080078125,
-          "height": 14.659210205078125
+          "x": 802.3297119140625,
+          "y": 431.859130859375,
+          "width": 16.82073974609375,
+          "height": 14.65924072265625
          },
          "logicalBox": {
-          "x": 467.4940490722656,
-          "y": 223.56552124023438,
-          "width": 12.01824951171875,
-          "height": 10.473831176757812
+          "x": 487.4941101074219,
+          "y": 254.97178649902344,
+          "width": 12.018218994140625,
+          "height": 10.473861694335938
          }
         },
         {
@@ -23751,21 +24373,21 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8794166",
+          "id": "auto2354336",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8794223",
+         "renderId": "vf-auto2354394",
          "renderedBox": {
-          "x": 827.207275390625,
-          "y": 380.9048156738281,
-          "width": 16.82073974609375,
-          "height": 14.65924072265625
+          "x": 855.1993408203125,
+          "y": 424.86114501953125,
+          "width": 16.82080078125,
+          "height": 14.659210205078125
          },
          "logicalBox": {
-          "x": 505.2688293457031,
-          "y": 218.56552124023438,
-          "width": 12.018218994140625,
-          "height": 10.473861694335938
+          "x": 525.2688598632812,
+          "y": 249.97181701660156,
+          "width": 12.01824951171875,
+          "height": 10.473831176757812
          }
         },
         {
@@ -23791,26 +24413,26 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8794166",
+          "id": "auto2354336",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8794230",
+         "renderId": "vf-auto2354401",
          "renderedBox": {
-          "x": 880.076904296875,
-          "y": 394.9008483886719,
-          "width": 16.82073974609375,
-          "height": 14.659210205078125
+          "x": 908.0690307617188,
+          "y": 438.8571472167969,
+          "width": 16.82080078125,
+          "height": 14.65924072265625
          },
          "logicalBox": {
-          "x": 543.0435791015625,
-          "y": 228.56552124023438,
+          "x": 563.0436401367188,
+          "y": 259.9718017578125,
           "width": 12.01824951171875,
-          "height": 10.473831176757812
+          "height": 10.473846435546875
          }
         }
        ],
        "attrs": {
-        "id": "auto8794166",
+        "id": "auto2354336",
         "type": "SmoBeamGroup"
        }
       }
@@ -24021,11 +24643,6 @@ class vexGlyph {
      ],
      "modifiers": [
       {
-       "position": 0,
-       "barline": 0,
-       "ctor": "SmoBarline"
-      },
-      {
        "position": 1,
        "barline": 0,
        "ctor": "SmoBarline"
@@ -24036,21 +24653,26 @@ class vexGlyph {
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "position": 0,
+       "barline": 3,
+       "ctor": "SmoBarline"
       }
      ]
     },
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 587.2199687957764,
-     "staffY": 208.7884063720703,
+     "staffX": 587.2199993133545,
+     "staffY": 240.19468688964844,
      "measureNumber": {
       "measureNumber": 1,
       "measureIndex": 1,
       "systemIndex": 1,
       "staffId": 1
      },
-     "staffWidth": 503.239990234375,
+     "staffWidth": 503.2400207519531,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -24085,37 +24707,27 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8795215",
+          "id": "auto2355386",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795221",
+         "renderId": "vf-auto2355392",
          "renderedBox": {
           "x": 965.6995239257812,
-          "y": 366.9088134765625,
+          "y": 410.8651123046875,
           "width": 16.82073974609375,
           "height": 14.659210205078125
          },
          "logicalBox": {
           "x": 604.219970703125,
-          "y": 208.56553649902344,
+          "y": 239.9718017578125,
           "width": 12.01824951171875,
-          "height": 10.473831176757812
+          "height": 10.473846435546875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
-         "articulations": [
-          {
-           "ctor": "SmoArticulation",
-           "position": "above",
-           "articulation": "staccato",
-           "attrs": {
-            "id": "auto3425461",
-            "type": "SmoArticulation"
-           }
-          }
-         ],
+         "articulations": [],
          "endBeam": false,
          "ticks": {
           "numerator": 2048,
@@ -24135,26 +24747,26 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8795215",
+          "id": "auto2355386",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795228",
+         "renderId": "vf-auto2355399",
          "renderedBox": {
-          "x": 1042.8663330078125,
-          "y": 399.5877380371094,
-          "width": 16.8206787109375,
-          "height": 30.96636962890625
+          "x": 1040.95654296875,
+          "y": 459.8511962890625,
+          "width": 16.82080078125,
+          "height": 14.659210205078125
          },
          "logicalBox": {
-          "x": 659.3547973632812,
-          "y": 231.91424560546875,
-          "width": 12.0181884765625,
-          "height": 22.1251220703125
+          "x": 657.990234375,
+          "y": 274.9718017578125,
+          "width": 12.018310546875,
+          "height": 10.473846435546875
          }
         }
        ],
        "attrs": {
-        "id": "auto8795215",
+        "id": "auto2355386",
         "type": "SmoBeamGroup"
        }
       },
@@ -24183,20 +24795,20 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8795216",
+          "id": "auto2355387",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795241",
+         "renderId": "vf-auto2355412",
          "renderedBox": {
-          "x": 1239.02490234375,
-          "y": 383.3046569824219,
-          "width": 17.685302734375,
+          "x": 1236.4783935546875,
+          "y": 427.2609558105469,
+          "width": 17.6854248046875,
           "height": 36.117462158203125
          },
          "logicalBox": {
-          "x": 799.5078735351562,
-          "y": 220.28016662597656,
-          "width": 12.63592529296875,
+          "x": 797.6884155273438,
+          "y": 251.6864471435547,
+          "width": 12.63604736328125,
           "height": 25.805526733398438
          }
         },
@@ -24223,21 +24835,21 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8795216",
+          "id": "auto2355387",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795247",
+         "renderId": "vf-auto2355418",
          "renderedBox": {
-          "x": 1289.808837890625,
-          "y": 366.9088134765625,
+          "x": 1287.5806884765625,
+          "y": 410.8651123046875,
           "width": 16.8206787109375,
           "height": 14.659210205078125
          },
          "logicalBox": {
-          "x": 835.7924194335938,
-          "y": 208.56553649902344,
+          "x": 834.2003784179688,
+          "y": 239.9718017578125,
           "width": 12.0181884765625,
-          "height": 10.473831176757812
+          "height": 10.473846435546875
          }
         },
         {
@@ -24263,20 +24875,20 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8795216",
+          "id": "auto2355387",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795254",
+         "renderId": "vf-auto2355425",
          "renderedBox": {
-          "x": 1339.7281494140625,
-          "y": 359.9107971191406,
+          "x": 1337.8182373046875,
+          "y": 403.8670959472656,
           "width": 16.82080078125,
           "height": 14.659210205078125
          },
          "logicalBox": {
-          "x": 871.4591674804688,
-          "y": 203.56552124023438,
-          "width": 12.01824951171875,
+          "x": 870.0945434570312,
+          "y": 234.9718017578125,
+          "width": 12.018310546875,
           "height": 10.473846435546875
          }
         },
@@ -24303,26 +24915,26 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8795216",
+          "id": "auto2355387",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795261",
+         "renderId": "vf-auto2355432",
          "renderedBox": {
-          "x": 1389.6474609375,
-          "y": 352.91278076171875,
-          "width": 16.82080078125,
+          "x": 1388.0560302734375,
+          "y": 396.86907958984375,
+          "width": 16.8206787109375,
           "height": 14.659210205078125
          },
          "logicalBox": {
-          "x": 907.1259765625,
-          "y": 198.56552124023438,
-          "width": 12.01824951171875,
-          "height": 10.473846435546875
+          "x": 905.9888916015625,
+          "y": 229.9718017578125,
+          "width": 12.0181884765625,
+          "height": 10.473831176757812
          }
         }
        ],
        "attrs": {
-        "id": "auto8795216",
+        "id": "auto2355387",
         "type": "SmoBeamGroup"
        }
       },
@@ -24351,21 +24963,21 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8795217",
+          "id": "auto2355388",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795268",
+         "renderId": "vf-auto2355439",
          "renderedBox": {
-          "x": 1439.56689453125,
-          "y": 345.9147644042969,
+          "x": 1438.293701171875,
+          "y": 389.8710632324219,
           "width": 16.8206787109375,
-          "height": 14.659210205078125
+          "height": 14.65924072265625
          },
          "logicalBox": {
-          "x": 942.7928466796875,
-          "y": 193.56552124023438,
+          "x": 941.8831176757812,
+          "y": 224.9718017578125,
           "width": 12.0181884765625,
-          "height": 10.473831176757812
+          "height": 10.473861694335938
          }
         },
         {
@@ -24391,20 +25003,20 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8795217",
+          "id": "auto2355388",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795275",
+         "renderId": "vf-auto2355446",
          "renderedBox": {
-          "x": 1489.486083984375,
-          "y": 359.9107971191406,
-          "width": 16.82080078125,
+          "x": 1488.5313720703125,
+          "y": 403.8670959472656,
+          "width": 16.8206787109375,
           "height": 14.659210205078125
          },
          "logicalBox": {
-          "x": 978.4595336914062,
-          "y": 203.56552124023438,
-          "width": 12.01824951171875,
+          "x": 977.7774047851562,
+          "y": 234.9718017578125,
+          "width": 12.0181884765625,
           "height": 10.473846435546875
          }
         },
@@ -24431,21 +25043,21 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8795217",
+          "id": "auto2355388",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795282",
+         "renderId": "vf-auto2355453",
          "renderedBox": {
-          "x": 1539.405517578125,
-          "y": 352.91278076171875,
+          "x": 1538.7689208984375,
+          "y": 396.86907958984375,
           "width": 16.82080078125,
           "height": 14.659210205078125
          },
          "logicalBox": {
-          "x": 1014.1264038085938,
-          "y": 198.56552124023438,
+          "x": 1013.6715698242188,
+          "y": 229.9718017578125,
           "width": 12.01824951171875,
-          "height": 10.473846435546875
+          "height": 10.473831176757812
          }
         },
         {
@@ -24471,26 +25083,26 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8795217",
+          "id": "auto2355388",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8795289",
+         "renderId": "vf-auto2355460",
          "renderedBox": {
-          "x": 1589.324951171875,
-          "y": 366.9088134765625,
+          "x": 1589.006591796875,
+          "y": 410.8651123046875,
           "width": 16.8206787109375,
           "height": 14.659210205078125
          },
          "logicalBox": {
-          "x": 1049.793212890625,
-          "y": 208.56553649902344,
+          "x": 1049.5657958984375,
+          "y": 239.9718017578125,
           "width": 12.0181884765625,
-          "height": 10.473831176757812
+          "height": 10.473846435546875
          }
         }
        ],
        "attrs": {
-        "id": "auto8795217",
+        "id": "auto2355388",
         "type": "SmoBeamGroup"
        }
       }
@@ -24767,7 +25379,7 @@ class vexGlyph {
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 449.55279541015625,
+     "staffY": 480.3778610229492,
      "measureNumber": {
       "measureNumber": 2,
       "measureIndex": 2,
@@ -24809,19 +25421,19 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8796623",
+          "id": "auto2356791",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8796636",
+         "renderId": "vf-auto2356804",
          "renderedBox": {
           "x": 261.9492492675781,
-          "y": 682.8892211914062,
+          "y": 726.031982421875,
           "width": 16.820770263671875,
-          "height": 14.6591796875
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 101.39839935302734,
-          "y": 434.3299255371094,
+          "y": 465.15496826171875,
           "width": 12.01824951171875,
           "height": 10.473846435546875
          }
@@ -24849,26 +25461,26 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8796623",
+          "id": "auto2356791",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8796643",
+         "renderId": "vf-auto2356811",
          "renderedBox": {
           "x": 345.13812255859375,
-          "y": 689.88720703125,
+          "y": 733.030029296875,
           "width": 16.82073974609375,
           "height": 14.6591796875
          },
          "logicalBox": {
           "x": 160.83590698242188,
-          "y": 439.3299255371094,
+          "y": 470.15496826171875,
           "width": 12.018218994140625,
           "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto8796623",
+        "id": "auto2356791",
         "type": "SmoBeamGroup"
        }
       },
@@ -24897,19 +25509,19 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8796624",
+          "id": "auto2356792",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8796650",
+         "renderId": "vf-auto2356818",
          "renderedBox": {
           "x": 428.32696533203125,
-          "y": 682.8892211914062,
+          "y": 726.031982421875,
           "width": 16.820770263671875,
-          "height": 14.6591796875
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 220.2733917236328,
-          "y": 434.3299255371094,
+          "y": 465.15496826171875,
           "width": 12.01824951171875,
           "height": 10.473846435546875
          }
@@ -24937,26 +25549,26 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8796624",
+          "id": "auto2356792",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8796657",
+         "renderId": "vf-auto2356825",
          "renderedBox": {
           "x": 511.515869140625,
-          "y": 675.8911743164062,
+          "y": 719.0339965820312,
           "width": 16.8206787109375,
-          "height": 14.6591796875
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 279.7109069824219,
-          "y": 429.3299255371094,
+          "y": 460.15496826171875,
           "width": 12.0181884765625,
-          "height": 10.47381591796875
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto8796624",
+        "id": "auto2356792",
         "type": "SmoBeamGroup"
        }
       },
@@ -24985,21 +25597,21 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8796625",
+          "id": "auto2356793",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8796664",
+         "renderId": "vf-auto2356832",
          "renderedBox": {
           "x": 594.7047119140625,
-          "y": 668.8931884765625,
+          "y": 712.0359497070312,
           "width": 16.82073974609375,
-          "height": 14.6591796875
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 339.1484069824219,
-          "y": 424.3299255371094,
+          "y": 455.1549377441406,
           "width": 12.018218994140625,
-          "height": 10.47381591796875
+          "height": 10.473876953125
          }
         },
         {
@@ -25025,26 +25637,26 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8796625",
+          "id": "auto2356793",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8796671",
+         "renderId": "vf-auto2356839",
          "renderedBox": {
           "x": 677.8935546875,
-          "y": 703.8832397460938,
+          "y": 747.0260620117188,
           "width": 16.82073974609375,
           "height": 14.6591796875
          },
          "logicalBox": {
           "x": 398.58587646484375,
-          "y": 449.3299255371094,
+          "y": 480.1549987792969,
           "width": 12.018218994140625,
           "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto8796625",
+        "id": "auto2356793",
         "type": "SmoBeamGroup"
        }
       },
@@ -25073,21 +25685,21 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8796626",
+          "id": "auto2356794",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8796678",
+         "renderId": "vf-auto2356846",
          "renderedBox": {
           "x": 761.0823974609375,
-          "y": 696.88525390625,
+          "y": 740.0280151367188,
           "width": 16.82080078125,
-          "height": 14.65911865234375
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 458.0233459472656,
-          "y": 444.3299560546875,
+          "y": 475.15496826171875,
           "width": 12.018280029296875,
-          "height": 10.4737548828125
+          "height": 10.473846435546875
          }
         },
         {
@@ -25113,26 +25725,26 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8796626",
+          "id": "auto2356794",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8796685",
+         "renderId": "vf-auto2356853",
          "renderedBox": {
           "x": 844.2713012695312,
-          "y": 689.88720703125,
+          "y": 733.030029296875,
           "width": 16.82073974609375,
           "height": 14.6591796875
          },
          "logicalBox": {
           "x": 517.4608764648438,
-          "y": 439.3299255371094,
+          "y": 470.15496826171875,
           "width": 12.01824951171875,
           "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto8796626",
+        "id": "auto2356794",
         "type": "SmoBeamGroup"
        }
       }
@@ -25343,14 +25955,14 @@ class vexGlyph {
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 583.2999858856201,
-     "staffY": 449.55279541015625,
+     "staffY": 480.3778610229492,
      "measureNumber": {
       "measureNumber": 3,
       "measureIndex": 3,
       "systemIndex": 1,
       "staffId": 1
      },
-     "staffWidth": 508.15997314453125,
+     "staffWidth": 508.1600341796875,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -25385,19 +25997,19 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8797839",
+          "id": "auto2358007",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8797845",
+         "renderId": "vf-auto2358013",
          "renderedBox": {
           "x": 960.2130737304688,
-          "y": 682.8892211914062,
+          "y": 726.031982421875,
           "width": 16.82080078125,
-          "height": 14.6591796875
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 600.2999877929688,
-          "y": 434.3299255371094,
+          "y": 465.15496826171875,
           "width": 12.01824951171875,
           "height": 10.473846435546875
          }
@@ -25425,26 +26037,26 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8797839",
+          "id": "auto2358007",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8797852",
+         "renderId": "vf-auto2358020",
          "renderedBox": {
           "x": 1046.17333984375,
-          "y": 717.8792724609375,
+          "y": 761.0220336914062,
           "width": 16.82080078125,
-          "height": 14.6591796875
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 661.7175903320312,
-          "y": 459.3299255371094,
+          "y": 490.1549377441406,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto8797839",
+        "id": "auto2358007",
         "type": "SmoBeamGroup"
        }
       },
@@ -25473,21 +26085,21 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8797840",
+          "id": "auto2358008",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8797859",
+         "renderId": "vf-auto2358027",
          "renderedBox": {
           "x": 1133.533203125,
-          "y": 697.6278076171875,
-          "width": 33.38818359375,
-          "height": 41.1650390625
+          "y": 740.7706298828125,
+          "width": 33.3883056640625,
+          "height": 41.16510009765625
          },
          "logicalBox": {
           "x": 724.13525390625,
-          "y": 444.8605041503906,
-          "width": 23.85546875,
-          "height": 29.411956787109375
+          "y": 475.685546875,
+          "width": 23.85552978515625,
+          "height": 29.4119873046875
          }
         },
         {
@@ -25513,26 +26125,26 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8797840",
+          "id": "auto2358008",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8797868",
+         "renderId": "vf-auto2358036",
          "renderedBox": {
           "x": 1236.0609130859375,
-          "y": 703.8832397460938,
+          "y": 747.0260620117188,
           "width": 16.82080078125,
           "height": 14.6591796875
          },
          "logicalBox": {
           "x": 797.39013671875,
-          "y": 449.3299255371094,
+          "y": 480.1549987792969,
           "width": 12.01824951171875,
           "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto8797840",
+        "id": "auto2358008",
         "type": "SmoBeamGroup"
        }
       },
@@ -25561,21 +26173,21 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8797841",
+          "id": "auto2358009",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8797875",
+         "renderId": "vf-auto2358043",
          "renderedBox": {
           "x": 1322.0211181640625,
-          "y": 696.88525390625,
+          "y": 740.0280151367188,
           "width": 16.82080078125,
-          "height": 14.65911865234375
+          "height": 14.65924072265625
          },
          "logicalBox": {
           "x": 858.8076782226562,
-          "y": 444.3299560546875,
+          "y": 475.15496826171875,
           "width": 12.018310546875,
-          "height": 10.4737548828125
+          "height": 10.473846435546875
          }
         },
         {
@@ -25601,26 +26213,26 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8797841",
+          "id": "auto2358009",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8797882",
+         "renderId": "vf-auto2358050",
          "renderedBox": {
           "x": 1407.9814453125,
-          "y": 689.88720703125,
-          "width": 16.8206787109375,
+          "y": 733.030029296875,
+          "width": 16.82080078125,
           "height": 14.6591796875
          },
          "logicalBox": {
           "x": 920.2254028320312,
-          "y": 439.3299255371094,
-          "width": 12.0181884765625,
+          "y": 470.15496826171875,
+          "width": 12.01824951171875,
           "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto8797841",
+        "id": "auto2358009",
         "type": "SmoBeamGroup"
        }
       }
@@ -25809,7 +26421,7 @@ class vexGlyph {
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 655.4085083007812,
+     "staffY": 685.6672286987305,
      "measureNumber": {
       "measureNumber": 4,
       "measureIndex": 4,
@@ -25845,25 +26457,25 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto2112596",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8798749",
+          "id": "auto2358917",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8798762",
+         "renderId": "vf-auto2358930",
          "renderedBox": {
           "x": 261.9492492675781,
-          "y": 971.0053100585938,
+          "y": 1013.35546875,
           "width": 16.820770263671875,
-          "height": 14.65924072265625
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 101.39839935302734,
-          "y": 640.1856079101562,
+          "y": 670.4443359375,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -25885,27 +26497,27 @@ class vexGlyph {
            "octave": 3
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto2112597",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8798749",
+          "id": "auto2358917",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8798769",
+         "renderId": "vf-auto2358937",
          "renderedBox": {
           "x": 305.0303955078125,
-          "y": 1012.9933471679688,
+          "y": 1055.343505859375,
           "width": 16.82073974609375,
-          "height": 14.65924072265625
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 132.17938232421875,
-          "y": 670.1856079101562,
+          "y": 700.4442749023438,
           "width": 12.018234252929688,
-          "height": 10.47381591796875
+          "height": 10.47393798828125
          }
         },
         {
@@ -25925,27 +26537,27 @@ class vexGlyph {
            "octave": 3
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto2112600",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8798749",
+          "id": "auto2358917",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8798776",
+         "renderId": "vf-auto2358944",
          "renderedBox": {
           "x": 348.11151123046875,
-          "y": 1005.995361328125,
+          "y": 1048.3455810546875,
           "width": 16.820770263671875,
-          "height": 14.65924072265625
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 162.96035766601562,
-          "y": 665.1856079101562,
+          "y": 695.4443359375,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.47393798828125
          }
         },
         {
@@ -25965,32 +26577,32 @@ class vexGlyph {
            "octave": 3
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto2112601",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8798749",
+          "id": "auto2358917",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8798783",
+         "renderId": "vf-auto2358951",
          "renderedBox": {
           "x": 392.5922546386719,
-          "y": 985.7439575195312,
+          "y": 1028.0941162109375,
           "width": 33.38824462890625,
-          "height": 41.16497802734375
+          "height": 41.1651611328125
          },
          "logicalBox": {
           "x": 194.74134826660156,
-          "y": 650.7161865234375,
+          "y": 680.9749145507812,
           "width": 23.855514526367188,
-          "height": 29.41192626953125
+          "height": 29.41204833984375
          }
         }
        ],
        "attrs": {
-        "id": "auto8798749",
+        "id": "auto2358917",
         "type": "SmoBeamGroup"
        }
       },
@@ -26013,27 +26625,27 @@ class vexGlyph {
            "octave": 3
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto2112604",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8798750",
+          "id": "auto2358918",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8798792",
+         "renderId": "vf-auto2358960",
          "renderedBox": {
           "x": 452.2408752441406,
-          "y": 991.9993286132812,
+          "y": 1034.349609375,
           "width": 16.82073974609375,
-          "height": 14.6593017578125
+          "height": 14.6591796875
          },
          "logicalBox": {
           "x": 237.35960388183594,
-          "y": 655.1856079101562,
+          "y": 685.4443969726562,
           "width": 12.018218994140625,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         },
         {
@@ -26053,27 +26665,27 @@ class vexGlyph {
            "octave": 3
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto2112605",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8798750",
+          "id": "auto2358918",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8798799",
+         "renderId": "vf-auto2358967",
          "renderedBox": {
           "x": 495.3219909667969,
-          "y": 1005.995361328125,
+          "y": 1048.3455810546875,
           "width": 16.820770263671875,
-          "height": 14.65924072265625
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 268.14056396484375,
-          "y": 665.1856079101562,
+          "y": 695.4443359375,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.47393798828125
          }
         },
         {
@@ -26093,25 +26705,25 @@ class vexGlyph {
            "octave": 3
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto2112608",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8798750",
+          "id": "auto2358918",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8798806",
+         "renderId": "vf-auto2358974",
          "renderedBox": {
           "x": 538.4031372070312,
-          "y": 998.9973754882812,
+          "y": 1041.3475341796875,
           "width": 16.82073974609375,
-          "height": 14.65924072265625
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 298.92156982421875,
-          "y": 660.1856079101562,
+          "y": 690.4443359375,
           "width": 12.018218994140625,
           "height": 10.473876953125
          }
@@ -26133,32 +26745,32 @@ class vexGlyph {
            "octave": 3
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto2112609",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8798750",
+          "id": "auto2358918",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8798813",
+         "renderId": "vf-auto2358981",
          "renderedBox": {
           "x": 581.4842529296875,
-          "y": 1012.9933471679688,
+          "y": 1055.343505859375,
           "width": 16.82073974609375,
-          "height": 14.65924072265625
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 329.7025146484375,
-          "y": 670.1856079101562,
+          "y": 700.4442749023438,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.47393798828125
          }
         }
        ],
        "attrs": {
-        "id": "auto8798750",
+        "id": "auto2358918",
         "type": "SmoBeamGroup"
        }
       },
@@ -26181,27 +26793,27 @@ class vexGlyph {
            "octave": 3
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto2326933",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8798751",
+          "id": "auto2358919",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8798820",
+         "renderId": "vf-auto2358988",
          "renderedBox": {
           "x": 624.5654296875,
-          "y": 991.9993286132812,
+          "y": 1034.349609375,
           "width": 16.82073974609375,
-          "height": 14.6593017578125
+          "height": 14.6591796875
          },
          "logicalBox": {
           "x": 360.4835510253906,
-          "y": 655.1856079101562,
+          "y": 685.4443969726562,
           "width": 12.018218994140625,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         },
         {
@@ -26221,32 +26833,32 @@ class vexGlyph {
            "octave": 2
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto2326934",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8798751",
+          "id": "auto2358919",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8798827",
+         "renderId": "vf-auto2358995",
          "renderedBox": {
           "x": 685.5093383789062,
-          "y": 1026.9893798828125,
+          "y": 1069.339599609375,
           "width": 16.8206787109375,
-          "height": 14.6593017578125
+          "height": 14.6591796875
          },
          "logicalBox": {
           "x": 404.02728271484375,
-          "y": 680.1856079101562,
+          "y": 710.4443359375,
           "width": 12.018157958984375,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto8798751",
+        "id": "auto2358919",
         "type": "SmoBeamGroup"
        }
       },
@@ -26269,25 +26881,25 @@ class vexGlyph {
            "octave": 3
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto2326937",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8798752",
+          "id": "auto2358920",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8798834",
+         "renderId": "vf-auto2359002",
          "renderedBox": {
           "x": 746.4531860351562,
-          "y": 1019.9913940429688,
+          "y": 1062.341552734375,
           "width": 16.82073974609375,
-          "height": 14.65924072265625
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 447.5709533691406,
-          "y": 675.1856079101562,
+          "y": 705.4443359375,
           "width": 12.018218994140625,
           "height": 10.473876953125
          }
@@ -26309,32 +26921,32 @@ class vexGlyph {
            "octave": 3
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto2326938",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8798752",
+          "id": "auto2358920",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8798841",
+         "renderId": "vf-auto2359009",
          "renderedBox": {
           "x": 807.3970947265625,
-          "y": 1012.9933471679688,
+          "y": 1055.343505859375,
           "width": 16.82073974609375,
-          "height": 14.65924072265625
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 491.11468505859375,
-          "y": 670.1856079101562,
+          "y": 700.4442749023438,
           "width": 12.018218994140625,
-          "height": 10.47381591796875
+          "height": 10.47393798828125
          }
         }
        ],
        "attrs": {
-        "id": "auto8798752",
+        "id": "auto2358920",
         "type": "SmoBeamGroup"
        }
       }
@@ -26633,7 +27245,7 @@ class vexGlyph {
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 541.0599956512451,
-     "staffY": 655.4085083007812,
+     "staffY": 685.6672286987305,
      "measureNumber": {
       "measureNumber": 5,
       "measureIndex": 5,
@@ -26669,27 +27281,27 @@ class vexGlyph {
            "octave": 3
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto2596642",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8800217",
+          "id": "auto2360385",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8800224",
+         "renderId": "vf-auto2360392",
          "renderedBox": {
           "x": 901.0939331054688,
-          "y": 1005.995361328125,
+          "y": 1048.3455810546875,
           "width": 16.82073974609375,
-          "height": 14.65924072265625
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 558.0599975585938,
-          "y": 665.1856079101562,
+          "y": 695.4443359375,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.47393798828125
          }
         },
         {
@@ -26709,32 +27321,32 @@ class vexGlyph {
            "octave": 3
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto2596643",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8800217",
+          "id": "auto2360385",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8800231",
+         "renderId": "vf-auto2360399",
          "renderedBox": {
           "x": 991.4527587890625,
-          "y": 985.7439575195312,
+          "y": 1028.0941162109375,
           "width": 33.38818359375,
-          "height": 41.16497802734375
+          "height": 41.1651611328125
          },
          "logicalBox": {
           "x": 622.620361328125,
-          "y": 650.7161865234375,
+          "y": 680.9749145507812,
           "width": 23.85546875,
-          "height": 29.41192626953125
+          "height": 29.41204833984375
          }
         }
        ],
        "attrs": {
-        "id": "auto8800217",
+        "id": "auto2360385",
         "type": "SmoBeamGroup"
        }
       },
@@ -26757,27 +27369,27 @@ class vexGlyph {
            "octave": 3
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto2596646",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8800218",
+          "id": "auto2360386",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8800240",
+         "renderId": "vf-auto2360408",
          "renderedBox": {
           "x": 1096.9793701171875,
-          "y": 991.9993286132812,
+          "y": 1034.349609375,
           "width": 16.82080078125,
-          "height": 14.6593017578125
+          "height": 14.6591796875
          },
          "logicalBox": {
           "x": 698.0179443359375,
-          "y": 655.1856079101562,
+          "y": 685.4443969726562,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         },
         {
@@ -26797,32 +27409,32 @@ class vexGlyph {
            "octave": 3
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto2596647",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8800218",
+          "id": "auto2360386",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8800247",
+         "renderId": "vf-auto2360415",
          "renderedBox": {
           "x": 1185.9385986328125,
-          "y": 1005.995361328125,
+          "y": 1048.3455810546875,
           "width": 16.82080078125,
-          "height": 14.65924072265625
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 761.5783081054688,
-          "y": 665.1856079101562,
+          "y": 695.4443359375,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.47393798828125
          }
         }
        ],
        "attrs": {
-        "id": "auto8800218",
+        "id": "auto2360386",
         "type": "SmoBeamGroup"
        }
       },
@@ -26851,19 +27463,19 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8800219",
+          "id": "auto2360387",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8800254",
+         "renderId": "vf-auto2360422",
          "renderedBox": {
           "x": 1274.8978271484375,
-          "y": 1024.502197265625,
+          "y": 1066.852294921875,
           "width": 26.617919921875,
           "height": 17.146484375
          },
          "logicalBox": {
           "x": 825.138671875,
-          "y": 678.4085083007812,
+          "y": 708.6671752929688,
           "width": 19.0181884765625,
           "height": 12.2509765625
          }
@@ -26891,26 +27503,26 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8800219",
+          "id": "auto2360387",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8800262",
+         "renderId": "vf-auto2360430",
          "renderedBox": {
           "x": 1404.125,
-          "y": 1019.9913940429688,
+          "y": 1062.341552734375,
           "width": 16.82080078125,
-          "height": 14.65924072265625
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 917.469970703125,
-          "y": 675.1856079101562,
+          "y": 705.4443359375,
           "width": 12.018310546875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto8800219",
+        "id": "auto2360387",
         "type": "SmoBeamGroup"
        }
       },
@@ -26933,27 +27545,27 @@ class vexGlyph {
            "octave": 3
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto2596654",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8800220",
+          "id": "auto2360388",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8800269",
+         "renderId": "vf-auto2360437",
          "renderedBox": {
           "x": 1461.2138671875,
-          "y": 1012.9933471679688,
+          "y": 1055.343505859375,
           "width": 16.82080078125,
-          "height": 14.65924072265625
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 958.2593383789062,
-          "y": 670.1856079101562,
+          "y": 700.4442749023438,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.47393798828125
          }
         },
         {
@@ -26973,32 +27585,32 @@ class vexGlyph {
            "octave": 2
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto2596655",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8800220",
+          "id": "auto2360388",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8800276",
+         "renderId": "vf-auto2360444",
          "renderedBox": {
           "x": 1550.1729736328125,
-          "y": 1061.9794921875,
+          "y": 1104.32958984375,
           "width": 16.82080078125,
-          "height": 14.6591796875
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 1021.819580078125,
-          "y": 705.1856079101562,
+          "y": 735.4442749023438,
           "width": 12.018310546875,
-          "height": 10.47381591796875
+          "height": 10.47393798828125
          }
         }
        ],
        "attrs": {
-        "id": "auto8800220",
+        "id": "auto2360388",
         "type": "SmoBeamGroup"
        }
       }
@@ -27209,14 +27821,14 @@ class vexGlyph {
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 885.6398315429688,
+     "staffY": 935.5527267456055,
      "measureNumber": {
       "measureNumber": 6,
       "measureIndex": 6,
       "systemIndex": 0,
       "staffId": 1
      },
-     "staffWidth": 386.2000102996826,
+     "staffWidth": 377.2000102996826,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -27245,25 +27857,25 @@ class vexGlyph {
            "octave": 2
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto8459958",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8801056",
+          "id": "auto2361224",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8801067",
+         "renderId": "vf-auto2361235",
          "renderedBox": {
           "x": 261.9492492675781,
-          "y": 1358.6195068359375,
+          "y": 1428.477783203125,
           "width": 17.685394287109375,
           "height": 36.1175537109375
          },
          "logicalBox": {
           "x": 101.39839935302734,
-          "y": 917.1315307617188,
+          "y": 967.0444946289062,
           "width": 12.636009216308594,
           "height": 25.80560302734375
          }
@@ -27285,26 +27897,26 @@ class vexGlyph {
            "octave": 2
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto8459959",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8801056",
+          "id": "auto2361224",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8801073",
+         "renderId": "vf-auto2361241",
          "renderedBox": {
-          "x": 299.19403076171875,
-          "y": 1356.2197265625,
-          "width": 16.82080078125,
+          "x": 298.40679931640625,
+          "y": 1426.077880859375,
+          "width": 16.82073974609375,
           "height": 14.6593017578125
          },
          "logicalBox": {
-          "x": 128.00936889648438,
-          "y": 915.4169311523438,
-          "width": 12.018280029296875,
+          "x": 127.44690704345703,
+          "y": 965.3297729492188,
+          "width": 12.018226623535156,
           "height": 10.47393798828125
          }
         },
@@ -27325,27 +27937,27 @@ class vexGlyph {
            "octave": 2
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto8459962",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8801056",
+          "id": "auto2361224",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8801080",
+         "renderId": "vf-auto2361248",
          "renderedBox": {
-          "x": 335.5742492675781,
-          "y": 1363.2177734375,
-          "width": 16.820770263671875,
-          "height": 14.6591796875
+          "x": 333.99969482421875,
+          "y": 1433.075927734375,
+          "width": 16.82073974609375,
+          "height": 14.6593017578125
          },
          "logicalBox": {
-          "x": 154.00262451171875,
-          "y": 920.4169311523438,
-          "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "x": 152.87762451171875,
+          "y": 970.329833984375,
+          "width": 12.018218994140625,
+          "height": 10.473876953125
          }
         },
         {
@@ -27365,32 +27977,32 @@ class vexGlyph {
            "octave": 2
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto8459963",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8801056",
+          "id": "auto2361224",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8801087",
+         "renderId": "vf-auto2361255",
          "renderedBox": {
-          "x": 371.9544372558594,
-          "y": 1363.2177734375,
+          "x": 369.59259033203125,
+          "y": 1433.075927734375,
           "width": 16.820770263671875,
-          "height": 14.6591796875
+          "height": 14.6593017578125
          },
          "logicalBox": {
-          "x": 179.995849609375,
-          "y": 920.4169311523438,
-          "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "x": 178.308349609375,
+          "y": 970.329833984375,
+          "width": 12.018234252929688,
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto8801056",
+        "id": "auto2361224",
         "type": "SmoBeamGroup"
        }
       },
@@ -27413,27 +28025,27 @@ class vexGlyph {
            "octave": 2
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto8459966",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8801057",
+          "id": "auto2361225",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8801094",
+         "renderId": "vf-auto2361262",
          "renderedBox": {
-          "x": 408.3346252441406,
-          "y": 1363.2177734375,
-          "width": 16.82073974609375,
-          "height": 14.6591796875
+          "x": 405.1855163574219,
+          "y": 1433.075927734375,
+          "width": 16.820770263671875,
+          "height": 14.6593017578125
          },
          "logicalBox": {
-          "x": 205.9890899658203,
-          "y": 920.4169311523438,
-          "width": 12.018218994140625,
-          "height": 10.47381591796875
+          "x": 203.7390899658203,
+          "y": 970.329833984375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         },
         {
@@ -27453,27 +28065,27 @@ class vexGlyph {
            "octave": 2
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto8459967",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8801057",
+          "id": "auto2361225",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8801101",
+         "renderId": "vf-auto2361269",
          "renderedBox": {
-          "x": 444.7148132324219,
-          "y": 1363.2177734375,
+          "x": 440.7784423828125,
+          "y": 1433.075927734375,
           "width": 16.82073974609375,
-          "height": 14.6591796875
+          "height": 14.6593017578125
          },
          "logicalBox": {
-          "x": 231.98231506347656,
-          "y": 920.4169311523438,
-          "width": 12.018234252929688,
-          "height": 10.47381591796875
+          "x": 229.16983032226562,
+          "y": 970.329833984375,
+          "width": 12.018218994140625,
+          "height": 10.473876953125
          }
         },
         {
@@ -27493,27 +28105,27 @@ class vexGlyph {
            "octave": 2
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto8459970",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8801057",
+          "id": "auto2361225",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8801108",
+         "renderId": "vf-auto2361276",
          "renderedBox": {
-          "x": 481.0950012207031,
-          "y": 1363.2177734375,
+          "x": 476.371337890625,
+          "y": 1433.075927734375,
           "width": 16.82073974609375,
-          "height": 14.6591796875
+          "height": 14.6593017578125
          },
          "logicalBox": {
-          "x": 257.9755554199219,
-          "y": 920.4169311523438,
-          "width": 12.018218994140625,
-          "height": 10.47381591796875
+          "x": 254.6005401611328,
+          "y": 970.329833984375,
+          "width": 12.018234252929688,
+          "height": 10.473876953125
          }
         },
         {
@@ -27533,32 +28145,32 @@ class vexGlyph {
            "octave": 2
           }
          ],
-         "clef": "bass",
          "attrs": {
           "id": "auto8459971",
           "type": "SmoNote"
          },
+         "clef": "bass",
          "beam_group": {
-          "id": "auto8801057",
+          "id": "auto2361225",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8801115",
+         "renderId": "vf-auto2361283",
          "renderedBox": {
-          "x": 517.4752197265625,
-          "y": 1363.2177734375,
-          "width": 16.8206787109375,
-          "height": 14.6591796875
+          "x": 511.9642639160156,
+          "y": 1433.075927734375,
+          "width": 16.820709228515625,
+          "height": 14.6593017578125
          },
          "logicalBox": {
-          "x": 283.96881103515625,
-          "y": 920.4169311523438,
-          "width": 12.018157958984375,
-          "height": 10.47381591796875
+          "x": 280.0312805175781,
+          "y": 970.329833984375,
+          "width": 12.018218994140625,
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto8801057",
+        "id": "auto2361225",
         "type": "SmoBeamGroup"
        }
       }
@@ -27812,15 +28424,15 @@ class vexGlyph {
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 416.2000102996826,
-     "staffY": 885.6398315429688,
+     "staffX": 407.2000102996826,
+     "staffY": 935.5527267456055,
      "measureNumber": {
       "measureNumber": 7,
       "measureIndex": 7,
       "systemIndex": 1,
       "staffId": 1
      },
-     "staffWidth": 341.06005859375,
+     "staffWidth": 359.0799865722656,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -27829,26 +28441,539 @@ class vexGlyph {
      "padRight": 10,
      "rightMargin": 2,
      "tuplets": [],
-     "beamGroups": [],
+     "beamGroups": [
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "a",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto1532842",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2362148",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2362155",
+         "renderedBox": {
+          "x": 713.7431640625,
+          "y": 1377.091796875,
+          "width": 16.82073974609375,
+          "height": 14.6593017578125
+         },
+         "logicalBox": {
+          "x": 424.20001220703125,
+          "y": 930.3297729492188,
+          "width": 12.018218994140625,
+          "height": 10.47393798828125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto1532843",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2362148",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2362162",
+         "renderedBox": {
+          "x": 748.410888671875,
+          "y": 1405.0838623046875,
+          "width": 16.82080078125,
+          "height": 14.6593017578125
+         },
+         "logicalBox": {
+          "x": 448.9697265625,
+          "y": 950.329833984375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto1532846",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2362148",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2362169",
+         "renderedBox": {
+          "x": 783.0786743164062,
+          "y": 1398.0859375,
+          "width": 16.82080078125,
+          "height": 14.6591796875
+         },
+         "logicalBox": {
+          "x": 473.73944091796875,
+          "y": 945.3298950195312,
+          "width": 12.018280029296875,
+          "height": 10.47381591796875
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "f",
+           "accidental": "#",
+           "octave": 3
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto1532847",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2362148",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2362176",
+         "renderedBox": {
+          "x": 819.1460571289062,
+          "y": 1377.83447265625,
+          "width": 33.3883056640625,
+          "height": 41.1650390625
+         },
+         "logicalBox": {
+          "x": 499.5091857910156,
+          "y": 930.8604125976562,
+          "width": 23.855560302734375,
+          "height": 29.4119873046875
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto2362148",
+        "type": "SmoBeamGroup"
+       }
+      },
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto1532850",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2362149",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2362185",
+         "renderedBox": {
+          "x": 870.38134765625,
+          "y": 1384.08984375,
+          "width": 16.82073974609375,
+          "height": 14.6593017578125
+         },
+         "logicalBox": {
+          "x": 536.1162109375,
+          "y": 935.329833984375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto1532851",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2362149",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2362192",
+         "renderedBox": {
+          "x": 905.049072265625,
+          "y": 1398.0859375,
+          "width": 16.82080078125,
+          "height": 14.6591796875
+         },
+         "logicalBox": {
+          "x": 560.8859252929688,
+          "y": 945.3298950195312,
+          "width": 12.01824951171875,
+          "height": 10.47381591796875
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "f",
+           "accidental": "#",
+           "octave": 3
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto1532854",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2362149",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2362199",
+         "renderedBox": {
+          "x": 939.7168579101562,
+          "y": 1391.087890625,
+          "width": 16.82073974609375,
+          "height": 14.6593017578125
+         },
+         "logicalBox": {
+          "x": 585.6556396484375,
+          "y": 940.329833984375,
+          "width": 12.01824951171875,
+          "height": 10.47393798828125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto1532855",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2362149",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2362206",
+         "renderedBox": {
+          "x": 974.3847045898438,
+          "y": 1405.0838623046875,
+          "width": 16.82073974609375,
+          "height": 14.6593017578125
+         },
+         "logicalBox": {
+          "x": 610.4254150390625,
+          "y": 950.329833984375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto2362149",
+        "type": "SmoBeamGroup"
+       }
+      },
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "a",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto1873973",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2362150",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2362213",
+         "renderedBox": {
+          "x": 1009.0524291992188,
+          "y": 1377.091796875,
+          "width": 16.82073974609375,
+          "height": 14.6593017578125
+         },
+         "logicalBox": {
+          "x": 635.1951293945312,
+          "y": 930.3297729492188,
+          "width": 12.01824951171875,
+          "height": 10.47393798828125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto1873974",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2362150",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2362220",
+         "renderedBox": {
+          "x": 1053.169677734375,
+          "y": 1356.0977783203125,
+          "width": 16.820556640625,
+          "height": 14.6593017578125
+         },
+         "logicalBox": {
+          "x": 666.7164306640625,
+          "y": 915.329833984375,
+          "width": 12.01806640625,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto2362150",
+        "type": "SmoBeamGroup"
+       }
+      },
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto1873977",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2362151",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2362227",
+         "renderedBox": {
+          "x": 1097.2867431640625,
+          "y": 1363.0958251953125,
+          "width": 16.82080078125,
+          "height": 14.6593017578125
+         },
+         "logicalBox": {
+          "x": 698.237548828125,
+          "y": 920.329833984375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto1873978",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2362151",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2362234",
+         "renderedBox": {
+          "x": 1141.4039306640625,
+          "y": 1356.0977783203125,
+          "width": 16.82080078125,
+          "height": 14.6593017578125
+         },
+         "logicalBox": {
+          "x": 729.7587890625,
+          "y": 915.329833984375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto2362151",
+        "type": "SmoBeamGroup"
+       }
+      }
+     ],
      "voices": [
       {
        "notes": [
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 1024,
           "denominator": 1,
           "remainder": 0
          },
          "pitches": [
           {
-           "letter": "d",
+           "letter": "a",
            "accidental": "n",
            "octave": 3
           }
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto1886599",
+          "id": "auto1532842",
           "type": "SmoNote"
          },
          "clef": "bass",
@@ -27857,7 +28982,7 @@ class vexGlyph {
         },
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 1024,
           "denominator": 1,
           "remainder": 0
          },
@@ -27870,7 +28995,7 @@ class vexGlyph {
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto1886600",
+          "id": "auto1532843",
           "type": "SmoNote"
          },
          "clef": "bass",
@@ -27879,20 +29004,20 @@ class vexGlyph {
         },
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 1024,
           "denominator": 1,
           "remainder": 0
          },
          "pitches": [
           {
-           "letter": "d",
+           "letter": "e",
            "accidental": "n",
            "octave": 3
           }
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto1886601",
+          "id": "auto1532846",
           "type": "SmoNote"
          },
          "clef": "bass",
@@ -27901,7 +29026,95 @@ class vexGlyph {
         },
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "f",
+           "accidental": "#",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1532847",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1532850",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1532851",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "f",
+           "accidental": "#",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1532854",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
           "denominator": 1,
           "remainder": 0
          },
@@ -27914,7 +29127,95 @@ class vexGlyph {
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto1886602",
+          "id": "auto1532855",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "a",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1873973",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1873974",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1873977",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1873978",
           "type": "SmoNote"
          },
          "clef": "bass",
@@ -27947,15 +29248,15 @@ class vexGlyph {
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 757.2600688934326,
-     "staffY": 885.6398315429688,
+     "staffX": 766.2799968719482,
+     "staffY": 935.5527267456055,
      "measureNumber": {
       "measureNumber": 8,
       "measureIndex": 8,
       "systemIndex": 2,
       "staffId": 1
      },
-     "staffWidth": 332.22003173828125,
+     "staffWidth": 323.22003173828125,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -27964,13 +29265,184 @@ class vexGlyph {
      "padRight": 10,
      "rightMargin": 2,
      "tuplets": [],
-     "beamGroups": [],
-     "voices": [
+     "beamGroups": [
       {
        "notes": [
         {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
          "ticks": {
-          "numerator": 4096,
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto2258110",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2363218",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2363223",
+         "renderedBox": {
+          "x": 1216.3123779296875,
+          "y": 1384.08984375,
+          "width": 16.8206787109375,
+          "height": 14.6593017578125
+         },
+         "logicalBox": {
+          "x": 783.280029296875,
+          "y": 935.329833984375,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto2258111",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2363218",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2363230",
+         "renderedBox": {
+          "x": 1252.1185302734375,
+          "y": 1384.08984375,
+          "width": 16.82080078125,
+          "height": 14.6593017578125
+         },
+         "logicalBox": {
+          "x": 808.8630981445312,
+          "y": 935.329833984375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto2258114",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2363218",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2363237",
+         "renderedBox": {
+          "x": 1287.9246826171875,
+          "y": 1384.08984375,
+          "width": 16.82080078125,
+          "height": 14.6593017578125
+         },
+         "logicalBox": {
+          "x": 834.4461669921875,
+          "y": 935.329833984375,
+          "width": 12.018310546875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto2258115",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2363218",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2363244",
+         "renderedBox": {
+          "x": 1323.7308349609375,
+          "y": 1384.08984375,
+          "width": 16.8206787109375,
+          "height": 14.6593017578125
+         },
+         "logicalBox": {
+          "x": 860.029296875,
+          "y": 935.329833984375,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto2363218",
+        "type": "SmoBeamGroup"
+       }
+      },
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 1024,
           "denominator": 1,
           "remainder": 0
          },
@@ -27981,9 +29453,175 @@ class vexGlyph {
            "octave": 3
           }
          ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto2258118",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2363219",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2363251",
+         "renderedBox": {
+          "x": 1359.5369873046875,
+          "y": 1405.0838623046875,
+          "width": 16.82080078125,
+          "height": 14.6593017578125
+         },
+         "logicalBox": {
+          "x": 885.6123657226562,
+          "y": 950.329833984375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto2258119",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2363219",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2363258",
+         "renderedBox": {
+          "x": 1395.3431396484375,
+          "y": 1405.0838623046875,
+          "width": 16.82080078125,
+          "height": 14.6593017578125
+         },
+         "logicalBox": {
+          "x": 911.1954345703125,
+          "y": 950.329833984375,
+          "width": 12.018310546875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto2258122",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2363219",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2363265",
+         "renderedBox": {
+          "x": 1431.1492919921875,
+          "y": 1405.0838623046875,
+          "width": 16.82080078125,
+          "height": 14.6593017578125
+         },
+         "logicalBox": {
+          "x": 936.778564453125,
+          "y": 950.329833984375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "endBeam": false,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto2258123",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto2363219",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto2363272",
+         "renderedBox": {
+          "x": 1466.9554443359375,
+          "y": 1405.0838623046875,
+          "width": 16.82080078125,
+          "height": 14.6593017578125
+         },
+         "logicalBox": {
+          "x": 962.3616333007812,
+          "y": 950.329833984375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto2363219",
+        "type": "SmoBeamGroup"
+       }
+      }
+     ],
+     "voices": [
+      {
+       "notes": [
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
          "noteType": "n",
          "attrs": {
-          "id": "auto1867128",
+          "id": "auto2258110",
           "type": "SmoNote"
          },
          "clef": "bass",
@@ -27992,7 +29630,73 @@ class vexGlyph {
         },
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2258111",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2258114",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2258115",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
           "denominator": 1,
           "remainder": 0
          },
@@ -28005,7 +29709,73 @@ class vexGlyph {
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto1867129",
+          "id": "auto2258118",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2258119",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2258122",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2258123",
           "type": "SmoNote"
          },
          "clef": "bass",
@@ -28083,14 +29853,14 @@ class vexGlyph {
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 1076.7129516601562,
+     "staffY": 1126.7245407104492,
      "measureNumber": {
       "measureNumber": 9,
       "measureIndex": 9,
       "systemIndex": 0,
       "staffId": 1
      },
-     "staffWidth": 479.059965133667,
+     "staffWidth": 397.2000102996826,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -28125,19 +29895,19 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8803166",
+          "id": "auto2364213",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8803177",
+         "renderId": "vf-auto2364224",
          "renderedBox": {
           "x": 261.9492492675781,
-          "y": 1602.6522216796875,
+          "y": 1672.6485595703125,
           "width": 16.820770263671875,
           "height": 14.6590576171875
          },
          "logicalBox": {
           "x": 101.39839935302734,
-          "y": 1091.4901123046875,
+          "y": 1141.501708984375,
           "width": 12.01824951171875,
           "height": 10.4737548828125
          }
@@ -28165,19 +29935,19 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8803166",
+          "id": "auto2364213",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8803184",
+         "renderId": "vf-auto2364231",
          "renderedBox": {
-          "x": 306.50640869140625,
-          "y": 1602.6522216796875,
+          "x": 299.345703125,
+          "y": 1672.6485595703125,
           "width": 16.820770263671875,
           "height": 14.6590576171875
          },
          "logicalBox": {
-          "x": 133.23397827148438,
-          "y": 1091.4901123046875,
+          "x": 128.11773681640625,
+          "y": 1141.501708984375,
           "width": 12.01824951171875,
           "height": 10.4737548828125
          }
@@ -28205,20 +29975,20 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8803166",
+          "id": "auto2364213",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8803191",
+         "renderId": "vf-auto2364238",
          "renderedBox": {
-          "x": 351.0635986328125,
-          "y": 1602.6522216796875,
-          "width": 16.82073974609375,
+          "x": 336.7421569824219,
+          "y": 1672.6485595703125,
+          "width": 16.820770263671875,
           "height": 14.6590576171875
          },
          "logicalBox": {
-          "x": 165.06959533691406,
-          "y": 1091.4901123046875,
-          "width": 12.018218994140625,
+          "x": 154.8370819091797,
+          "y": 1141.501708984375,
+          "width": 12.01824951171875,
           "height": 10.4737548828125
          }
         },
@@ -28245,26 +30015,26 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8803166",
+          "id": "auto2364213",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8803198",
+         "renderId": "vf-auto2364245",
          "renderedBox": {
-          "x": 395.6207580566406,
-          "y": 1602.6522216796875,
-          "width": 16.82073974609375,
+          "x": 374.13861083984375,
+          "y": 1672.6485595703125,
+          "width": 16.820770263671875,
           "height": 14.6590576171875
          },
          "logicalBox": {
-          "x": 196.90516662597656,
-          "y": 1091.4901123046875,
-          "width": 12.018234252929688,
+          "x": 181.55642700195312,
+          "y": 1141.501708984375,
+          "width": 12.01824951171875,
           "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto8803166",
+        "id": "auto2364213",
         "type": "SmoBeamGroup"
        }
       },
@@ -28293,20 +30063,20 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8803167",
+          "id": "auto2364214",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8803205",
+         "renderId": "vf-auto2364252",
          "renderedBox": {
-          "x": 440.17791748046875,
-          "y": 1602.6522216796875,
-          "width": 16.82073974609375,
+          "x": 411.5350646972656,
+          "y": 1672.6485595703125,
+          "width": 16.820770263671875,
           "height": 14.6590576171875
          },
          "logicalBox": {
-          "x": 228.74075317382812,
-          "y": 1091.4901123046875,
-          "width": 12.018234252929688,
+          "x": 208.2757568359375,
+          "y": 1141.501708984375,
+          "width": 12.01824951171875,
           "height": 10.4737548828125
          }
         },
@@ -28333,20 +30103,20 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8803167",
+          "id": "auto2364214",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8803212",
+         "renderId": "vf-auto2364259",
          "renderedBox": {
-          "x": 484.73504638671875,
-          "y": 1602.6522216796875,
-          "width": 16.820770263671875,
+          "x": 448.9315185546875,
+          "y": 1672.6485595703125,
+          "width": 16.82073974609375,
           "height": 14.6590576171875
          },
          "logicalBox": {
-          "x": 260.5763244628906,
-          "y": 1091.4901123046875,
-          "width": 12.01824951171875,
+          "x": 234.99510192871094,
+          "y": 1141.501708984375,
+          "width": 12.018234252929688,
           "height": 10.4737548828125
          }
         },
@@ -28373,20 +30143,20 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8803167",
+          "id": "auto2364214",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8803219",
+         "renderId": "vf-auto2364266",
          "renderedBox": {
-          "x": 529.292236328125,
-          "y": 1602.6522216796875,
-          "width": 16.82080078125,
+          "x": 486.3279724121094,
+          "y": 1672.6485595703125,
+          "width": 16.820770263671875,
           "height": 14.6590576171875
          },
          "logicalBox": {
-          "x": 292.41192626953125,
-          "y": 1091.4901123046875,
-          "width": 12.018280029296875,
+          "x": 261.7144470214844,
+          "y": 1141.501708984375,
+          "width": 12.01824951171875,
           "height": 10.4737548828125
          }
         },
@@ -28413,26 +30183,26 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8803167",
+          "id": "auto2364214",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8803226",
+         "renderId": "vf-auto2364273",
          "renderedBox": {
-          "x": 573.8494262695312,
-          "y": 1602.6522216796875,
+          "x": 523.7244262695312,
+          "y": 1672.6485595703125,
           "width": 16.82073974609375,
           "height": 14.6590576171875
          },
          "logicalBox": {
-          "x": 324.2475280761719,
-          "y": 1091.4901123046875,
-          "width": 12.018218994140625,
+          "x": 288.43377685546875,
+          "y": 1141.501708984375,
+          "width": 12.01824951171875,
           "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto8803167",
+        "id": "auto2364214",
         "type": "SmoBeamGroup"
        }
       }
@@ -28686,15 +30456,15 @@ class vexGlyph {
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 509.059965133667,
-     "staffY": 1076.7129516601562,
+     "staffX": 427.2000102996826,
+     "staffY": 1126.7245407104492,
      "measureNumber": {
       "measureNumber": 10,
       "measureIndex": 10,
       "systemIndex": 1,
       "staffId": 1
      },
-     "staffWidth": 193.08004760742188,
+     "staffWidth": 352.06005859375,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -28821,15 +30591,15 @@ class vexGlyph {
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 702.1400127410889,
-     "staffY": 1076.7129516601562,
+     "staffX": 779.2600688934326,
+     "staffY": 1126.7245407104492,
      "measureNumber": {
       "measureNumber": 11,
       "measureIndex": 11,
       "systemIndex": 2,
       "staffId": 1
      },
-     "staffWidth": 193.08001708984375,
+     "staffWidth": 154.08001708984375,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -28956,15 +30726,15 @@ class vexGlyph {
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 895.2200298309326,
-     "staffY": 1076.7129516601562,
+     "staffX": 933.3400859832764,
+     "staffY": 1126.7245407104492,
      "measureNumber": {
       "measureNumber": 12,
       "measureIndex": 12,
       "systemIndex": 3,
       "staffId": 1
      },
-     "staffWidth": 193.08001708984375,
+     "staffWidth": 154.08001708984375,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -29092,7 +30862,7 @@ class vexGlyph {
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 1265.262939453125,
+     "staffY": 1315.274284362793,
      "measureNumber": {
       "measureNumber": 13,
       "measureIndex": 13,
@@ -29134,19 +30904,19 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8804538",
+          "id": "auto2366064",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8804549",
+         "renderId": "vf-auto2366075",
          "renderedBox": {
           "x": 261.9492492675781,
-          "y": 1866.547119140625,
+          "y": 1936.5430908203125,
           "width": 16.820770263671875,
-          "height": 14.6591796875
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 101.39839935302734,
-          "y": 1280.0400390625,
+          "y": 1330.0513916015625,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -29174,19 +30944,19 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8804538",
+          "id": "auto2366064",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8804556",
+         "renderId": "vf-auto2366082",
          "renderedBox": {
           "x": 300.9954833984375,
-          "y": 1866.547119140625,
+          "y": 1936.5430908203125,
           "width": 16.82073974609375,
-          "height": 14.6591796875
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 129.29649353027344,
-          "y": 1280.0400390625,
+          "y": 1330.0513916015625,
           "width": 12.018218994140625,
           "height": 10.473876953125
          }
@@ -29214,19 +30984,19 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8804538",
+          "id": "auto2366064",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8804563",
+         "renderId": "vf-auto2366089",
          "renderedBox": {
           "x": 340.0417175292969,
-          "y": 1866.547119140625,
+          "y": 1936.5430908203125,
           "width": 16.820770263671875,
-          "height": 14.6591796875
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 157.194580078125,
-          "y": 1280.0400390625,
+          "y": 1330.0513916015625,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -29254,26 +31024,26 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8804538",
+          "id": "auto2366064",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8804570",
+         "renderId": "vf-auto2366096",
          "renderedBox": {
           "x": 379.08795166015625,
-          "y": 1866.547119140625,
+          "y": 1936.5430908203125,
           "width": 16.820770263671875,
-          "height": 14.6591796875
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 185.09266662597656,
-          "y": 1280.0400390625,
+          "y": 1330.0513916015625,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto8804538",
+        "id": "auto2366064",
         "type": "SmoBeamGroup"
        }
       },
@@ -29302,19 +31072,19 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8804539",
+          "id": "auto2366065",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8804577",
+         "renderId": "vf-auto2366103",
          "renderedBox": {
           "x": 418.1341857910156,
-          "y": 1866.547119140625,
+          "y": 1936.5430908203125,
           "width": 16.820770263671875,
-          "height": 14.6591796875
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 212.99075317382812,
-          "y": 1280.0400390625,
+          "y": 1330.0513916015625,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -29342,19 +31112,19 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8804539",
+          "id": "auto2366065",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8804584",
+         "renderId": "vf-auto2366110",
          "renderedBox": {
           "x": 457.180419921875,
-          "y": 1866.547119140625,
+          "y": 1936.5430908203125,
           "width": 16.82073974609375,
-          "height": 14.6591796875
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 240.88885498046875,
-          "y": 1280.0400390625,
+          "y": 1330.0513916015625,
           "width": 12.018218994140625,
           "height": 10.473876953125
          }
@@ -29382,19 +31152,19 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8804539",
+          "id": "auto2366065",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8804591",
+         "renderId": "vf-auto2366117",
          "renderedBox": {
           "x": 496.22662353515625,
-          "y": 1866.547119140625,
+          "y": 1936.5430908203125,
           "width": 16.82073974609375,
-          "height": 14.6591796875
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 268.78692626953125,
-          "y": 1280.0400390625,
+          "y": 1330.0513916015625,
           "width": 12.018218994140625,
           "height": 10.473876953125
          }
@@ -29422,26 +31192,26 @@ class vexGlyph {
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto8804539",
+          "id": "auto2366065",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto8804598",
+         "renderId": "vf-auto2366124",
          "renderedBox": {
           "x": 535.2728881835938,
-          "y": 1866.547119140625,
+          "y": 1936.5430908203125,
           "width": 16.82073974609375,
-          "height": 14.6591796875
+          "height": 14.6593017578125
          },
          "logicalBox": {
           "x": 296.6850280761719,
-          "y": 1280.0400390625,
+          "y": 1330.0513916015625,
           "width": 12.018218994140625,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto8804539",
+        "id": "auto2366065",
         "type": "SmoBeamGroup"
        }
       }
@@ -29702,33 +31472,10 @@ class vexGlyph {
     "id": "auto3181348",
     "type": "SmoScoreText"
    },
-   "backup": {
-    "x": 534,
-    "y": 40,
-    "text": "15 Inventions a 2 voix",
-    "pagination": "every",
-    "position": "title",
-    "fontInfo": {
-     "size": "1.8em",
-     "family": "Times New Roman",
-     "style": "normal",
-     "weight": "normal"
-    },
-    "classes": "score-text auto3181348",
-    "boxModel": "none",
-    "justification": "left",
-    "fill": "black",
-    "width": 0,
-    "height": 0,
-    "scaleX": 1,
-    "scaleY": 1,
-    "translateX": 0,
-    "translateY": 0,
-    "autoLayout": false
-   },
-   "edited": true,
-   "x": 467,
-   "y": 57,
+   "backup": {},
+   "edited": false,
+   "x": 264.1640625,
+   "y": 72.171875,
    "text": "15 Inventions a 2 voix",
    "pagination": "every",
    "position": "title",
@@ -29738,7 +31485,7 @@ class vexGlyph {
     "style": "normal",
     "weight": "normal"
    },
-   "classes": "score-text auto3181348",
+   "classes": "score-text auto3181348 auto1328",
    "boxModel": "none",
    "justification": "left",
    "fill": "black",
@@ -29750,20 +31497,20 @@ class vexGlyph {
    "translateY": 0,
    "autoLayout": false,
    "renderedBox": {
-    "x": 773.6461181640625,
-    "y": 118.75944519042969,
+    "x": 489.7455139160156,
+    "y": 139.99403381347656,
     "height": 45.02783203125,
-    "width": 360.4195556640625
+    "width": 360.4413757324219
    },
    "logicalBox": {
-    "x": 467,
-    "y": 31.265626907348633,
-    "width": 257.51568603515625,
-    "height": 32.17187309265137
+    "x": 264.15625,
+    "y": 46.4375,
+    "width": 257.53125,
+    "height": 32.171875
    }
   }
  ]
-}`;;
+}` ;;
 
 // ## RibbonButtons
 // Render the ribbon buttons based on group, function, and underlying UI handler.
@@ -29886,6 +31633,19 @@ class RibbonButtons {
 	}
 }
 
+class DebugButtons {
+	constructor(parameters) {
+		this.buttonElement = parameters.buttonElement;
+		this.buttonData = parameters.buttonData;
+		this.editor = parameters.editor;
+	}
+	bind() {
+		var self = this;
+		$(this.buttonElement).off('click').on('click', function () {
+			$('body').trigger('redrawScore');
+		});
+    }
+}
 class DurationButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
@@ -30432,7 +32192,7 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
         return dg;
     }
 	handleRemove() {
-        this.undo.addBuffer('Remove nth ending', 'score', null, score);
+        this.undo.addBuffer('Remove nth ending', 'score', null, this.layout.score);
 		this.layout.score.staves.forEach((staff) => {
 			staff.measures.forEach((measure) => {
 				if (measure.measureNumber.measureNumber === this.modifier.startBar) {
@@ -31116,9 +32876,12 @@ class suiController {
 		this.editor.pasteBuffer = this.pasteBuffer;
 		this.resizing = false;
 		this.undoStatus=0;
-		this.scrollRedrawStatus=0;
 		this.trackScrolling = false;
         this.keyboardActive = false;
+		this.pollTime = 50;
+		this.idleRedrawTime = 200;
+		this.waitingForIdleLayout = false;
+		this.idleLayoutTimer = 0;
 
 		this.ribbon = new RibbonButtons({
 				ribbons: defaultRibbonLayout.ribbons,
@@ -31139,45 +32902,48 @@ class suiController {
 		this.bindResize();
 		if (!suiLayoutBase.debugLayout) {
 			this.splash();
-		    this.pollRedraw();
+			this.pollRedraw();
 		}
 
 		this.piano();
 		this.updateOffsets();
 	}
 	
-	// ### pollIdleRedraw
-	// redraw after the user has been idle for some period
-	pollIdleRedraw() {
-		var self=this;
-		setTimeout(function() {
-            var dbOpen = $('body').hasClass('showAttributeDialog');
-			if (self.undoStatus == self.undoBuffer.opCount && !dbOpen) {				
-				self.resizeEvent();
-				self.pollRedraw();
-				return;
-			}
-			self.undoStatus = self.undoBuffer.opCount;
-			self.pollIdleRedraw();
-		},5000);
-	}
-	
 	static get scrollable() {
 		return '.musicRelief';
 	}
 	
+	handleRedrawTimer() {
+		    // If there has been a change, redraw the score 
+			if (this.undoStatus != this.undoBuffer.opCount || this.layout.dirty) {				
+				this.layout.dirty=true;				
+				this.undoStatus = this.undoBuffer.opCount;
+				this.idleLayoutTimer = Date.now();
+                var state = this.layout.passState;
+				this.render();
+                if (state == suiLayoutBase.passStates.initial) {
+                    this.render();
+                }
+			} else if (this.layout.passState === suiLayoutBase.passStates.replace) {
+				// Do we need to refresh the score?
+				if (!this.waitingForIdleLayout === false) {
+					this.waitingForIdleLayout = false;
+					this.idleLayoutTimer = Date.now();
+				} else if (Date.now() - this.idleLayoutTimer > this.idleRedrawTime) {
+					this.layout.setRefresh();
+					this.waitingForIdleLayout = false;
+				}
+			}
+	}
+	
 	// ### pollRedraw
 	// if anything has changed over some period, prepare to redraw everything.
-	pollRedraw() {
+	pollRedraw() {		
 		var self=this;
 		setTimeout(function() {
-			if (self.undoStatus != self.undoBuffer.opCount || self.scrollRedrawStatus) {
-				self.scrollRedrawStatus = false;
-				self.undoStatus = self.undoBuffer.opCount;
-				self.pollIdleRedraw();
-			}
+			self.handleRedrawTimer();
 			self.pollRedraw();
-		},1000);
+		},self.pollTime);
 	}
 
 	splash() {
@@ -31207,10 +32973,7 @@ class suiController {
 		this.scrollPosition = $('body')[0].scrollTop;
 	}
 	resizeEvent() {
-		var self = this;
-		var remap = function () {
-			return self.tracker.updateMap(true);
-		}
+		var self = this;		
 		if (this.resizing)
 			return;
 		this.resizing = true;
@@ -31220,8 +32983,7 @@ class suiController {
 			self.layout.setViewport(true);
 			$('.musicRelief').height(window.innerHeight - $('.musicRelief').offset().top);
 			self.piano.handleResize();
-			self.updateOffsets();
-			self.layout.redraw().then(remap);
+			self.updateOffsets();			
 			
 		}, 500);
 	}
@@ -31294,7 +33056,9 @@ class suiController {
 				    .append(b('div').classes('controls-top'))
 					.append(b('div').classes('controls-left'))
 					.append(b('div').classes('musicRelief')
-					   .append(b('div').classes('musicContainer').attr('id','boo')))));
+					   .append(b('div').classes('musicContainer').attr('id','boo')))
+                     .append(b('div').classes('musicReliefShadow')
+					   .append(b('div').classes('musicContainerShadow').attr('id','booShadow')))));
 	    $('#smoo').append(r.dom());
 		var pianoDom=$('.piano-keys')[0];
 		var svg=document.createElementNS(svgHelpers.namespace,'svg');
@@ -31314,7 +33078,7 @@ class suiController {
 			$('h1.testTitle').text(title);
 		}
 		var params = suiController.keyBindingDefaults;
-		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), score);
+		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), document.getElementById("booShadow"),score);
 		params.tracker = new suiTracker(params.layout);
 		params.editor = new suiEditor(params);
 		params.menus = new suiMenuManager(params);
@@ -31348,11 +33112,6 @@ class suiController {
 		}
 
 		var controller = debug ? suiController.createDebugUi(score) : suiController.createUi(score);
-		var remap = function () {
-			return controller.tracker.updateMap();
-		}
-		controller.layout.render().then(remap);
-
 	}
 
 	// ### renderElement
@@ -31425,6 +33184,16 @@ class suiController {
 			keyBind: suiController.keyBindingDefaults
 		};
 	}
+	remap() {
+		var self=this;
+		setTimeout(function() {
+			if (self.layout.dirty == false) {
+				self.tracker.updateMap();
+			} else {
+				self.remap();
+			}
+		},100);
+	}
 
 	showModifierDialog(modSelection) {
 		return SuiDialogFactory.createDialog(modSelection, this.tracker.context, this.tracker, this.layout,this.undoBuffer)
@@ -31496,12 +33265,9 @@ class suiController {
 		this.editor = null;  */
 	}
 
-	render() {
-		var controller = this;
-		var remap = function () {
-			return controller.tracker.updateMap();
-		}
-		this.layout.render().then(remap);
+	render() {		
+		this.layout.render();
+		this.tracker.updateMap();
 	}
 
 	bindEvents() {
@@ -31511,6 +33277,10 @@ class suiController {
             return; // already bound.
         }
         this.keyboardActive = true;
+		
+		$('body').off('redrawScore').on('redrawScore',function() {
+			self.handleRedrawTimer();
+		});
 
 		$(this.renderElement).off('mousemove').on('mousemove', function (ev) {
 			tracker.intersectingArtifact({

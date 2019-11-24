@@ -37,7 +37,9 @@ class TrackerTest {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
 			// measure.applyModifiers();
 			
-			return layout.render().then(remap).then(timeTest);
+			layout.render();
+            remap();
+            return timeTest();
 		}
 
 		var trackTest = () => {
@@ -48,7 +50,9 @@ class TrackerTest {
 		var addInstrument = () => {
 			subTitle('track multiple staves');
 			score.addStaff();
-			return layout.render().then(remap).then(timeTest);
+			return layout.render();
+            remap();
+            return timeTest();
 		}
 
 		var selectionTest1 = () => {

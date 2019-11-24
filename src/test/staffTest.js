@@ -38,7 +38,8 @@ class StaffTest {
 		var drawDefaults = () => {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
 			// measure.applyModifiers();
-			return layout.render().then(timeTest);
+			layout.render();
+            return timeTest();
 		}		
       
         return drawDefaults().then(signalComplete);

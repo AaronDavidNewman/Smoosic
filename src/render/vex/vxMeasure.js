@@ -386,17 +386,23 @@ class VxMeasure {
             height: box.height,
             width: box.width
         };		
+		this.smoMeasure.logicalBox = lbox;
+        this.smoMeasure.changed = false;
 		
 
 		this.smoMeasure.voices.forEach((voice) => {
 			voice.notes.forEach((smoNote) =>  {
                 var el = this.context.svg.getElementById(smoNote.renderId);
 				svgHelpers.updateArtifactBox(this.context.svg,el,smoNote);
-			});
-		});
-		
-		this.smoMeasure.logicalBox = lbox;
-        this.smoMeasure.changed = false;
-		
+                
+                // TODO: fix this, only works on the first line.
+                smoNote.getModifiers('SmoLyric').forEach((lyric) => {
+                    var ar = Array.from(el.getElementsByClassName('vf-lyric'));
+                    ar.forEach((lbox) => {
+                        svgHelpers.updateArtifactBox(this.context.svg,lbox,lyric);
+                    });
+                });
+            });
+        });
     }
 }

@@ -46,14 +46,16 @@ class MeasureTest {
 		var drawDefaults = () => {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
 			// measure.applyModifiers();
-			return layout.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		
 		var startRepeatTest = () => {
 			subTitle('startRepeatTest');
 			var selection = SmoSelection.measureSelection(score, 0, 0);
 			SmoOperation.setMeasureBarline(score,selection,new SmoBarline({position:SmoBarline.positions.start,barline:SmoBarline.barlines.startRepeat}));
-			return layout.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 
 		var endRepeatTest = () => {
@@ -64,33 +66,38 @@ class MeasureTest {
 			selection = SmoSelection.measureSelection(score, 0, 0);
 			SmoUndoable.scoreSelectionOp(score,selection,'setMeasureBarline',new SmoBarline({position:SmoBarline.positions.start,barline:SmoBarline.barlines.singleBar}),
 			    undoBuffer,'set barline');
-			return layout.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		
 		var serialize1 = () => {
 			score = SmoScore.deserialize(JSON.stringify(score.serialize()));
 			keys = utController.createUi(score,'Measure Test');
 		    layout = keys.layout;
-			return layout.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		
 		var doubleEndTest = () => {
 			subTitle('endRepeatTest');
 			var selection = SmoSelection.measureSelection(score, 0, 1);
 			SmoOperation.setMeasureBarline(score,selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.doubleBar}));
-			return layout.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}	
 		var endEndTest = () => {
 			subTitle('endRepeatTest');
 			var selection = SmoSelection.measureSelection(score, 0, 1);
 			SmoOperation.setMeasureBarline(score,selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.endBar}));
-			return layout.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}	
 		var noneEndTest = () => {
 			subTitle('noneEndTest');
 			var selection = SmoSelection.measureSelection(score, 0,1);
 			SmoOperation.setMeasureBarline(score,selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.none}));
-			return layout.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		
 		var symbolTest1 = () => {
@@ -98,42 +105,48 @@ class MeasureTest {
 			var selection = SmoSelection.measureSelection(score, 0,3);
 			SmoOperation.setMeasureBarline(score,selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.endRepeat}));
 			SmoOperation.setRepeatSymbol(score,selection,new SmoRepeatSymbol({position:SmoRepeatSymbol.positions.end,symbol:SmoRepeatSymbol.symbols.DcAlCoda}));
-			return layout.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		var symbolTest2 = () => {
 			subTitle('symbolTest2');
 			var selection = SmoSelection.measureSelection(score, 0,3);
 			SmoOperation.setMeasureBarline(score,selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.endRepeat}));
 			SmoOperation.setRepeatSymbol(score,selection,new SmoRepeatSymbol({position:SmoRepeatSymbol.positions.end,symbol:SmoRepeatSymbol.symbols.DcAlFine}));
-			return layout.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		var symbolTest3 = () => {
 			subTitle('symbolTest3');
 			var selection = SmoSelection.measureSelection(score, 0,3);
 			SmoOperation.setMeasureBarline(score,selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.endRepeat}));
 			SmoOperation.setRepeatSymbol(score,selection,new SmoRepeatSymbol({position:SmoRepeatSymbol.positions.end,symbol:SmoRepeatSymbol.symbols.Coda}));
-			return layout.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		var symbolTest4 = () => {
 			subTitle('symbolTest4');
 			var selection = SmoSelection.measureSelection(score, 0,3);
 			SmoOperation.setMeasureBarline(score,selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.endRepeat}));
 			SmoOperation.setRepeatSymbol(score,selection,new SmoRepeatSymbol({position:SmoRepeatSymbol.positions.end,symbol:SmoRepeatSymbol.symbols.DsAlCoda}));
-			return layout.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		var symbolTest5 = () => {
 			subTitle('symbolTest5');
 			var selection = SmoSelection.measureSelection(score, 0,3);
 			SmoOperation.setMeasureBarline(score,selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.endRepeat}));
 			SmoOperation.setRepeatSymbol(score,selection,new SmoRepeatSymbol({position:SmoRepeatSymbol.positions.end,symbol:SmoRepeatSymbol.symbols.DsAlFine}));
-			return layout.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		var symbolTest6 = () => {
 			subTitle('symbolTest6');
 			var selection = SmoSelection.measureSelection(score, 0,3);
 			SmoOperation.setMeasureBarline(score,selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.endBar}));
 			SmoOperation.setRepeatSymbol(score,selection,new SmoRepeatSymbol({position:SmoRepeatSymbol.positions.end,symbol:SmoRepeatSymbol.symbols.Fine}));
-			return layout.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		
 		var voltaTest1 = () => {
@@ -141,7 +154,8 @@ class MeasureTest {
 			var selection = SmoSelection.measureSelection(score, 0,3);
 			SmoOperation.addEnding(score,new SmoVolta({startBar:1,endBar:3,number:1}));
 			SmoOperation.setRepeatSymbol(score,selection,new SmoRepeatSymbol({position:SmoRepeatSymbol.positions.end,symbol:SmoRepeatSymbol.symbols.Fine}));
-			return layout.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		
 		var voltaTest2 = () => {
@@ -149,7 +163,8 @@ class MeasureTest {
 			var selection = SmoSelection.measureSelection(score, 0,3);
 			SmoOperation.addEnding(score,new SmoVolta({startBar:2,endBar:3,number:2}));
 			SmoOperation.setRepeatSymbol(score,selection,new SmoRepeatSymbol({position:SmoRepeatSymbol.positions.end,symbol:SmoRepeatSymbol.symbols.Fine}));
-			return layout.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}      	       
         
         return drawDefaults().then(startRepeatTest).then(endRepeatTest).then(voltaTest1).then(serialize1).then(voltaTest2)

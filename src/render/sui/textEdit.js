@@ -213,7 +213,8 @@ class editLyricSession {
         this._getOrCreateLyric(this.selection.note)
 		this.fontInfo = JSON.parse(JSON.stringify(this.lyric.fontInfo));
         this.selection.note.addLyric(this.lyric);
-		this.tracker.layout.render().then(_startEditing);        
+        this.tracker.layout.render();
+		_startEditing();
     }
 	
 	handleKeydown(event) {

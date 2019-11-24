@@ -45,7 +45,8 @@ class VoiceTest {
 			// measure.applyModifiers();
 			subTitle('notes in 2 voices');
 
-			return layout.render().then(timeTest);
+			keys.layout.render();
+            return timeTest();
 		}
 		var accidentalTest = () => {
 			var target = SmoSelection.pitchSelection(score, 0, 0, 0, 1, [0]);
@@ -54,7 +55,8 @@ class VoiceTest {
 			/* if (target) {
 			target.note.transpose([0],-1);
 			}  */
-			return layout.render().then(timeTest);
+			keys.layout.render();
+            return timeTest();
 		}
 
 		var serializeTest = () => {
@@ -66,7 +68,8 @@ class VoiceTest {
 			score = SmoScore.deserialize(string);
 			keys.detach();
 			keys = utController.createUi(score,'Serializer Test');
-			return keys.layout.render().then(timeTest);
+			keys.layout.render();
+            return timeTest();
 		}
 
 		return drawDefaults().then(accidentalTest).then(serializeTest).then(signalComplete);

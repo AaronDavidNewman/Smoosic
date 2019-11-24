@@ -41,20 +41,23 @@ class TextTest {
 		var drawDefaults = () => {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
 			// measure.applyModifiers();
-			return layout.render().then(timeTest);
+			keys.render();
+            return timeTest();
 		}
 		
 		var scoreText1 = () => {			
 			SmoUndoable.scoreOp(score,'addScoreText',tt,undo,'Score Text Test 1');
 			score.addScoreText(tt);
-			return layout.render().then(timeTest);
+			keys.render();
+            return timeTest();
 		}
 		
 		var scoreText2 = () => {
 			tt = score.getScoreText(tt.attrs.id);
 			tt.boxModel=SmoScoreText.boxModels.spacing;
 			tt.width=100;
-			return layout.render().then(timeTest);			
+			keys.render();
+            return timeTest();
 		}
 		
 		var scoreText3 = () => {
@@ -62,20 +65,23 @@ class TextTest {
 			tt.boxModel=SmoScoreText.boxModels.spacingAndGlyphs;
 			tt.fontInfo.size=20;
 			tt.width=100;
-			return layout.render().then(timeTest);	
+			keys.render();
+            return timeTest();
 		}
 		
 		var scoreText4 = () => {
 			tt = score.getScoreText(tt.attrs.id);
 			tt.fontInfo.family='Arial';
 			tt.scaleInPlace(1.5);
-			return layout.render().then(timeTest);
+			keys.render();
+            return timeTest();
 		}
 		
 		var _scaleUp = () => {
 			tt = score.getScoreText(tt.attrs.id);
 			tt.scaleInPlace(1.2);
-			return layout.render().then(timeTest);
+			keys.render();
+            return timeTest();
 		}
 		
 		var scaleUp = () => {
@@ -86,7 +92,8 @@ class TextTest {
 		var _scaleDown = () => {
 			tt = score.getScoreText(tt.attrs.id);
 			tt.scaleInPlace(0.8);
-			return layout.render().then(timeTest);
+			keys.render();
+            return timeTest();
 		}
 		var scaleDown = () => {
 			var p = _scaleDown();
@@ -97,7 +104,8 @@ class TextTest {
 			tt = score.getScoreText(tt.attrs.id);
 			tt.x = tt.x + 30;
 			tt.y = tt.y + 10;
-			return layout.render().then(timeTest);
+			keys.render();
+            return timeTest();
 		}
 		
 		var moveText  = () => {
@@ -110,7 +118,8 @@ class TextTest {
             var rh=new SmoRehearsalMark();
 			var selection = SmoSelection.measureSelection(score, 0, 0);
 			SmoUndoable.scoreSelectionOp(score,selection,'addRehearsalMark',rh,undo,'test rehearsal mark');
-			return layout.render().then(timeTest);					            
+			keys.render();
+            return timeTest();
         }            
         
          var rehearsalMarkTest2= () => {
@@ -120,14 +129,16 @@ class TextTest {
             selection = SmoSelection.measureSelection(score, 0, 2);
             rh=new SmoRehearsalMark();
 			SmoUndoable.scoreSelectionOp(score,selection,'addRehearsalMark',rh,undo,'test rehearsal mark2.2');
-			return layout.render().then(timeTest);					            
+			keys.render();
+            return timeTest();
         }
         
          var rehearsalMarkTest3= () => {
             var rh=new SmoRehearsalMark();
 			var selection = SmoSelection.measureSelection(score, 0, 1);
 			SmoUndoable.scoreSelectionOp(score,selection,'removeRehearsalMark',null,undo,'test rehearsal mark2');
-			return layout.render().then(timeTest);					            
+			keys.render();
+            return timeTest();
         }
         
         var tempoTest = () => {
@@ -143,7 +154,8 @@ class TextTest {
             SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
               new SmoTempoText({tempoMode: SmoTempoText.tempoModes.textMode,
                   tempoText:SmoTempoText.tempoTexts.adagio,bpm:120}),undo,'tempo test 1.3');
-			return layout.render().then(timeTest);					            
+			keys.render();
+            return timeTest();
 
         }
 		
@@ -161,7 +173,8 @@ class TextTest {
 			SmoUndoable.measureSelectionOp(score,s2,'addLyric',new SmoLyric({verse:1,text:'Do'}),undo,'lyric test 2');
 			SmoUndoable.measureSelectionOp(score,s3,'addLyric',new SmoLyric({verse:1,text:'Fine'}),undo,'lyric test 3');
 			SmoUndoable.measureSelectionOp(score,s4,'addLyric',new SmoLyric({verse:1,text:'Always'}),undo,'lyric test 4');
-			return layout.render().then(timeTest);					            
+			keys.render()
+            return timeTest();
 		}
         
          /* var rehearsalMarkTest4= () => {
@@ -184,7 +197,8 @@ class TextTest {
 			var selection = SmoSelection.measureSelection(score, 0, 0);
 			SmoUndoable.scoreSelectionOp(score,selection,'addMeasureText',mt,undo,'test measureText1');
 			
-			return layout.render().then(timeTest);					
+			keys.render()
+            return timeTest();
 		}
 		
 		var measureText2 = () => {
@@ -194,7 +208,8 @@ class TextTest {
 			var selection = SmoSelection.measureSelection(score, 0, 0);
 			SmoUndoable.scoreSelectionOp(score,selection,'addMeasureText',mt,undo,'test measureText2');
 			
-			return layout.render().then(timeTest);					
+			keys.render();
+            return timeTest();
 		}
 		
 				
@@ -204,7 +219,8 @@ class TextTest {
 			var selection = SmoSelection.measureSelection(score, 0, 0);
 			SmoUndoable.scoreSelectionOp(score,selection,'addMeasureText',mt,undo,'test measureText3');
 			
-			return layout.render().then(timeTest);					
+			keys.render();
+            return timeTest();
 		}
       
 		var measureText4 = () => {
@@ -213,7 +229,8 @@ class TextTest {
 			var selection = SmoSelection.measureSelection(score, 0, 0);
 			SmoUndoable.scoreSelectionOp(score,selection,'addMeasureText',mt,undo,'test measureText4');
 			
-			return layout.render().then(timeTest);
+			keys.render();
+            return timeTest();
 		}
 		
 		var titleText1 = () => {
@@ -222,14 +239,16 @@ class TextTest {
 			var selection = SmoSelection.measureSelection(score, 0, 0);
 			SmoUndoable.scoreSelectionOp(score,selection,'removeMeasureText',mt,undo,'test measureText3');
 			SmoUndoable.scoreOp(score,'addScoreText',tt,undo,'Score Title Test 1');
-			return layout.render().then(timeTest);
+			keys.render();
+            return timeTest();
 		}
 		
 		var titleText2 = () => {
 			delay=500;
 			tt = new SmoScoreText({text:'My Foot',position:'footer'});
 			SmoUndoable.scoreOp(score,'addScoreText',tt,undo,'Score Title Test 2');
-			return layout.render().then(timeTest);
+			keys.render();
+            return timeTest();
 		}
 		
 		var titleText3 = () => {
@@ -238,14 +257,16 @@ class TextTest {
 			// var selection = SmoSelection.measureSelection(score, 0, 0);
 			// selection.measure.removeMeasureText(mt.attrs.id);
 			SmoUndoable.scoreOp(score,'addScoreText',tt,undo,'Score Title Test 3');
-			return layout.render().then(timeTest);
+			keys.render();
+            return timeTest();
 		}
 		
 		var copyText1 = () => {
 			tt = new SmoScoreText({text:'Copyright By Me A Long Line Right Justified',position:SmoScoreText.positions.copyright,
 			    boxModel: SmoScoreText.boxModels.wrap,width:100,height:100});
 			SmoUndoable.scoreOp(score,'addScoreText',tt,undo,'Copy Text Test 1');
-			return layout.render().then(timeTest);
+			keys.render();
+            return timeTest();
 		}
 		
 		var copyText2 = () => {
@@ -253,7 +274,8 @@ class TextTest {
 			tt = new SmoScoreText({text:'Copyright By Me A Long Line Center Justified',position:SmoScoreText.positions.copyright,
 			    boxModel: SmoScoreText.boxModels.wrap,width:100,height:100,justification:'center'});
 			SmoUndoable.scoreOp(score,'addScoreText',tt,undo,'Copy Text Test 1');
-			return layout.render().then(timeTest);
+			keys.render();
+            return timeTest();
 		}			
 		
         return drawDefaults().then(scoreText1).then(scoreText2).then(scoreText3).then(scoreText3).then(scoreText4).

@@ -73,13 +73,17 @@ class suiLayoutBase {
     
     setViewport(reset) {
         this._setViewport(reset,this.elementId);
-        this.mainRenderer = this.renderer;        
+        this.mainRenderer = this.renderer;
         
-        this._setViewport(reset,this.shadowElement);
-        if (reset) {
+        if (this.shadowElement) {
+            this._setViewport(reset,this.shadowElement);
+            if (reset) {
+                this.shadowRenderer = this.renderer;
+            }
+            this.renderer = this.mainRenderer;
+        } else {
             this.shadowRenderer = this.renderer;
         }
-        this.renderer = this.mainRenderer;
     }
 	
 	setPassState(st,location) {
@@ -324,7 +328,6 @@ class suiLayoutBase {
 		if (params.useX == true) {
 			if (this.passState == suiLayoutBase.passStates.clean) {
 				this.dirty=false;
-    			console.log('layout after pass: dirty false pstate clean');
 			} else {
 				suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth / this.svgScale);
 				suiLayoutAdjuster.adjustHeight(this._score,this.renderer);

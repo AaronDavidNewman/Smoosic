@@ -16,6 +16,7 @@ class PasteTest {
 		var undo = keys.undoBuffer;
 		var score = keys.score;
 		var layout = keys.layout;
+        
 
 		var detach = () => {
 			keys.detach();
@@ -46,7 +47,8 @@ class PasteTest {
 		var drawDefaults = () => {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
 			// measure.applyModifiers();
-			return keys.render().then(timeTest);
+			keys.render();
+            return timeTest();
 		}
 
 		var copySetup = () => {
@@ -94,7 +96,8 @@ class PasteTest {
 				octave: 5,
 				accidental: 'n'
 			});
-			return keys.render().then(timeTest);
+			keys.render();
+            return timeTest();
 		}
 		var copyTest = () => {
 			var selections = [];
@@ -109,14 +112,16 @@ class PasteTest {
 				tick: 2
 			};
 			pasteBuffer.pasteSelections(score, pasteTarget);
-			return keys.render().then(timeTest);
+			keys.render();
+            return timeTest();
 		}
 
 		var copyDurationSetup = () => {
 			subTitle('copy notes with different durations setup');
 			var selection = SmoSelection.noteSelection(score, 0, 1, 0, 2);
 			SmoOperation.halveDuration(selection);
-			return layout.render().then(timeTest);
+			keys.render();
+            return timeTest();
 		}
 
 		var copyDurationChange = () => {
@@ -135,14 +140,16 @@ class PasteTest {
 				tick: 0
 			};
 			pasteBuffer.pasteSelections(score, pasteTarget);
-			return keys.render().then(timeTest);
+			keys.render();
+            return timeTest();
 		}
 
 		var copyOverTupletSetup = () => {
 			subTitle('copy notes containing tuplet setup');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
 			SmoOperation.makeTuplet(selection, 3);
-			return keys.render().then(timeTest);
+			keys.render();
+            return timeTest();
 		}
 		var copyOverTupletTest = () => {
 			subTitle('copy notes containing tuplet');
@@ -161,7 +168,8 @@ class PasteTest {
 				tick: 0
 			};
 			pasteBuffer.pasteSelections(score, pasteTarget);
-			return keys.render().then(timeTest);
+			keys.render();
+            return timeTest();
 		}
 		return drawDefaults().then(copySetup).then(copyTest).then(copyDurationSetup).then(copyDurationChange).
 		then(copyOverTupletSetup).then(copyOverTupletTest).then(signalComplete);

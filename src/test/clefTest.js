@@ -45,7 +45,8 @@ class ClefTest {
         var drawDefaults = () => {
             // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
             // measure.applyModifiers();
-            return keys.render().then(timeTest);
+			keys.render()
+            return timeTest();
         }
 		
 		
@@ -57,7 +58,8 @@ class ClefTest {
                 keyOffset: 0,
                 clef: 'bass'
             }});
-            return keys.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		
 		var clefChangeTest = () => {
@@ -71,20 +73,23 @@ class ClefTest {
 			var sel2=SmoSelection.measureSelection(score,1,2);
 			keys.layout.unrenderAll();
 			SmoOperation.changeInstrument(score,instrument,[sel1,sel2]);
-            return keys.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		var bassRenderTest = () => {
 			subTitle('change pitch in bass clef');
 			var note = SmoSelection.pitchSelection(score,1,0,0,2);
 			SmoOperation.transpose(note,3);
-            return keys.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		
 		var bassDurationTest = () => {
 			subTitle('change duration in bass clef');
 			var note = SmoSelection.noteSelection(score,1,0,0,1);
 			SmoOperation.makeTuplet(note,3);
-            return keys.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		
 		var tenorClefTest = () => {
@@ -97,7 +102,8 @@ class ClefTest {
                 keyOffset: 0,
                 clef: 'tenor'
 			}});
-            return keys.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		
 		var altoClefTest = () => {
@@ -108,7 +114,8 @@ class ClefTest {
                 keyOffset: 0,
                 clef: 'alto'
 			}});
-            return keys.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		
 		var baritoneClefTest = () => {
@@ -121,7 +128,8 @@ class ClefTest {
                 keyOffset: 0,
                 clef: 'baritone-c'
 			}});
-            return keys.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		
 		var baritoneClefTest2 = () => {
@@ -134,7 +142,8 @@ class ClefTest {
                 keyOffset: 0,
                 clef: 'baritone-f'
 			}});
-            return keys.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		
 		var trumpetClefTest = () => {
@@ -147,7 +156,8 @@ class ClefTest {
                 keyOffset: 2,
                 clef: 'treble'
 			}});
-            return keys.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
       
         return drawDefaults().then(bassClefTest).then(clefChangeTest).then(bassRenderTest).then(bassDurationTest).then(tenorClefTest)

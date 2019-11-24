@@ -17,7 +17,7 @@ class utController {
 			$('h1.testTitle').text(title);
 		}
 		var params = {};
-		params.layout = suiScoreLayout.createScoreLayout($('#boo')[0], score);
+		params.layout = suiScoreLayout.createScoreLayout($('#boo')[0],null, score);
 		params.tracker = new suiTracker(params.layout);
 		// params.tracker = new suiTracker(params.layout);
 		params.score = score;
@@ -64,7 +64,14 @@ class utController {
 	}
 
 	render() {
-		return this.layout.render();
+        var ix = 0;
+        this.layout.setRefresh();
+		while(this.layout.dirty) {
+            this.layout.render();
+            ix += 1;
+            if (ix>20)
+                break;
+        }
 	}
 
 	bindEvents() {}

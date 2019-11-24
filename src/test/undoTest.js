@@ -45,7 +45,8 @@ class UndoTest {
 		var drawDefaults = () => {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
 			// measure.applyModifiers();
-			return keys.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 
 		var changePitch = () => {
@@ -64,13 +65,15 @@ class UndoTest {
 			}
 			];
 			}   */
-			return keys.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		var undoTest = () => {
 			var buf = undo.peek();
 			subTitle('undo ' + buf.title);
 			layout.undo(undo);
-			return timeTest();
+			keys.render()
+            return timeTest();
 		}
 		var changePitch2 = () => {
 			subTitle('change pitch to f#, rest');
@@ -82,7 +85,8 @@ class UndoTest {
 			}, undo);
 
 			SmoUndoable.makeRest(SmoSelection.noteSelection(score, 0, 1, 0, 2), undo);
-			return keys.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		var keySigTest = () => {
 			subTitle('key sig to A');
@@ -91,19 +95,22 @@ class UndoTest {
 			// score.addKeySignature(1,'A');
 			var selection = SmoSelection.noteSelection(score, 0, 1, 0, 2);
 			SmoUndoable.makeNote(selection, undo);
-			return keys.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		var crescendoTest = () => {
 			var ft = SmoSelection.noteSelection(layout.score, 0, 0, 0, 0);
 			var tt = SmoSelection.noteSelection(layout.score, 0, 0, 0, 3);
 			SmoUndoable.crescendo(ft, tt, undo);
-			return keys.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		var keySigTest2 = () => {
 			subTitle('key sig to Bb');
 			var selection = SmoSelection.measureSelection(score, 0, 2);
 			SmoUndoable.addKeySignature(score, selection, 'Bb', undo);
-			return keys.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 
 		var addStaff = () => {
@@ -116,7 +123,8 @@ class UndoTest {
 				}
 			},
 				undo);
-			return keys.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		var keySigTest3 = () => {
 			subTitle('key sig change to f#');
@@ -124,7 +132,8 @@ class UndoTest {
 			SmoUndoable.addKeySignature(score, selection, 'C#', undo);
 			selection = SmoSelection.measureSelection(score, 0, 2);
 			SmoUndoable.addKeySignature(score, selection, 'Cb', undo);
-			return keys.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		return drawDefaults().then(changePitch).then(crescendoTest).then(changePitch2)
 		.then(keySigTest).then(keySigTest2).then(addStaff)

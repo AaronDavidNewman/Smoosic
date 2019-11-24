@@ -45,7 +45,8 @@ class KeySignatureTest {
 		var drawDefaults = () => {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
 			// measure.applyModifiers();
-			return keys.render().then(timeTest);
+			keys.render();
+            return timeTest();
 		}
 
 		var changePitch = () => {
@@ -57,7 +58,8 @@ class KeySignatureTest {
 				octave: 4,
 				accidental: 'b'
 			});
-			return keys.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		var undoTest = () => {
 			layout.undo(undo);
@@ -75,7 +77,8 @@ class KeySignatureTest {
 
 			var selection = SmoSelection.noteSelection(score, 0, 1, 0, 2);
 			SmoOperation.makeRest(selection);
-			return keys.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		var keySigTest = () => {
 			subTitle('key sig to C to A');
@@ -85,14 +88,16 @@ class KeySignatureTest {
 			// score.addKeySignature(1,'A');
 			var selection = SmoSelection.noteSelection(score, 0, 1, 0, 2);
 			SmoOperation.makeNote(selection);
-			return keys.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		var keySigTest2 = () => {
 			subTitle('key sig to Bb');
 			var selection = SmoSelection.measureSelection(score, 0, 2);
 			undo.addBuffer('undo key sig', 'score', selection.selector, score);
 			SmoOperation.addKeySignature(score, selection, 'Bb');
-			return keys.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		var keySigTest3 = () => {
 			subTitle('key sig to c# canceled to cb');
@@ -100,13 +105,15 @@ class KeySignatureTest {
 			SmoOperation.addKeySignature(score, selection, 'C#');
 			selection = SmoSelection.measureSelection(score, 0, 2);
 			SmoOperation.addKeySignature(score, selection, 'Cb');
-			return keys.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		var keySigTest4 = () => {
 			subTitle('key sig to Bb 1st mesure');
 			var selection = SmoSelection.measureSelection(score, 0, 0);
 			SmoOperation.addKeySignature(score, selection, 'Bb');
-			return keys.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 		var serializeTest = () => {
 			subTitle('serialize');
@@ -116,7 +123,8 @@ class KeySignatureTest {
 			layout.unrenderAll();
 			keys.detach();
 			keys = utController.createUi(score,'Key Signature Test');
-			return keys.render().then(timeTest);
+			keys.render()
+            return timeTest();
 		}
 
 		return drawDefaults().then(changePitch).then(changePitch2).then(undoTest)
