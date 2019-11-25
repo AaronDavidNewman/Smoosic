@@ -13875,8 +13875,8 @@ class vexGlyph {
    "interGap": 30,
    "intraGap": 10,
    "svgScale": 0.7,
-   "zoomScale": 2,
-   "zoomMode": 2,
+   "zoomScale": 1,
+   "zoomMode": 0,
    "pageSize": "letter"
   },
   "startIndex": 0,
