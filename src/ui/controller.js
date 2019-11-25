@@ -59,6 +59,19 @@ class suiController {
 		return '.musicRelief';
 	}
 	
+	handleScrollEvent() {
+		var self=this;
+		if (self.trackScrolling) {
+				return;
+		}
+		self.trackScrolling = true;
+		setTimeout(function() {
+			// self.scrollRedrawStatus = true;
+			self.trackScrolling = false;
+			self.tracker.updateMap(true);
+		},500);
+	}
+	
 	handleRedrawTimer() {
 		    // If there has been a change, redraw the score 
 			if (this.undoStatus != this.undoBuffer.opCount || this.layout.dirty) {				
@@ -150,6 +163,7 @@ class suiController {
 		}
 		return;
 	}
+	
 
     // ### bindResize
 	// This handles both resizing of the music area (scrolling) and resizing of the window.
@@ -426,6 +440,12 @@ class suiController {
 		
 		$('body').off('redrawScore').on('redrawScore',function() {
 			self.handleRedrawTimer();
+		});
+		$('body').off('forceScrollEvent').on('forceScrollEvent',function() {
+			self.handleScrollEvent();
+		});
+		$('body').off('forceResizeEvent').on('forceResizeEvent',function() {
+			self.resizeEvent();
 		});
 
 		$(this.renderElement).off('mousemove').on('mousemove', function (ev) {

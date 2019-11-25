@@ -43,6 +43,10 @@ class suiLayoutBase {
 		var layout = this._score.layout;
 		this.zoomScale = layout.zoomMode === SmoScore.zoomModes.zoomScale ?
 			layout.zoomScale : (window.innerWidth - 200) / layout.pageWidth;
+			
+		if (layout.zoomMode != SmoScore.zoomModes.zoomScale) {
+			layout.zoomScale = this.zoomScale;
+		}
 
 		this.svgScale = layout.svgScale * this.zoomScale;
 		this.orientation = this._score.layout.orientation;

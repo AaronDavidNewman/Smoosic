@@ -515,7 +515,7 @@ class CollapseRibbonControl {
 		}
 		
 		// Expand may change music dom, redraw
-		this.controller.resizeEvent();
+		$('body').trigger('forceScrollEvent');
 	}
 	bind() {
 		var self = this;

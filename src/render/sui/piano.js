@@ -27,8 +27,8 @@ class suiPiano {
 	static createAndDisplay(parms) {
 		// Called by ribbon button.
 		$('body').toggleClass('show-piano');
+		$('body').trigger('forceScrollEvent');
 		// handle resize work area.
-		window.dispatchEvent(new Event('resize'));
 	}
 	_mapKeys() {
 		this.objects = [];
@@ -90,7 +90,7 @@ class suiPiano {
 		$('.close-piano').off('click').on('click', function () {
 			$('body').removeClass('show-piano');
 			// resize the work area.
-			window.dispatchEvent(new Event('resize'));
+			$('body').trigger('forceScrollEvent');
 		});
 	}
 	_updateSelections(ev) {

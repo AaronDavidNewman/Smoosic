@@ -3433,7 +3433,7 @@ class SmoScore {
 				intraGap:10,
 				svgScale: 1.0,
 				zoomScale: 2.0,
-				zoomMode:SmoScore.zoomModes.zoomScale
+				zoomMode:SmoScore.zoomModes.fitWidth
 			},
             staffWidth: 1600,
             startIndex: 0,
@@ -7974,6 +7974,10 @@ class suiLayoutBase {
 		var layout = this._score.layout;
 		this.zoomScale = layout.zoomMode === SmoScore.zoomModes.zoomScale ?
 			layout.zoomScale : (window.innerWidth - 200) / layout.pageWidth;
+			
+		if (layout.zoomMode != SmoScore.zoomModes.zoomScale) {
+			layout.zoomScale = this.zoomScale;
+		}
 
 		this.svgScale = layout.svgScale * this.zoomScale;
 		this.orientation = this._score.layout.orientation;
@@ -8301,8 +8305,8 @@ class suiPiano {
 	static createAndDisplay(parms) {
 		// Called by ribbon button.
 		$('body').toggleClass('show-piano');
+		$('body').trigger('forceScrollEvent');
 		// handle resize work area.
-		window.dispatchEvent(new Event('resize'));
 	}
 	_mapKeys() {
 		this.objects = [];
@@ -8364,7 +8368,7 @@ class suiPiano {
 		$('.close-piano').off('click').on('click', function () {
 			$('body').removeClass('show-piano');
 			// resize the work area.
-			window.dispatchEvent(new Event('resize'));
+			$('body').trigger('forceScrollEvent');
 		});
 	}
 	_updateSelections(ev) {
@@ -33205,7 +33209,7 @@ class CollapseRibbonControl {
 		}
 		
 		// Expand may change music dom, redraw
-		this.controller.resizeEvent();
+		$('body').trigger('forceScrollEvent');
 	}
 	bind() {
 		var self = this;
@@ -34114,6 +34118,19 @@ class suiController {
 		return '.musicRelief';
 	}
 	
+	handleScrollEvent() {
+		var self=this;
+		if (self.trackScrolling) {
+				return;
+		}
+		self.trackScrolling = true;
+		setTimeout(function() {
+			// self.scrollRedrawStatus = true;
+			self.trackScrolling = false;
+			self.tracker.updateMap(true);
+		},500);
+	}
+	
 	handleRedrawTimer() {
 		    // If there has been a change, redraw the score 
 			if (this.undoStatus != this.undoBuffer.opCount || this.layout.dirty) {				
@@ -34205,6 +34222,7 @@ class suiController {
 		}
 		return;
 	}
+	
 
     // ### bindResize
 	// This handles both resizing of the music area (scrolling) and resizing of the window.
@@ -34481,6 +34499,12 @@ class suiController {
 		
 		$('body').off('redrawScore').on('redrawScore',function() {
 			self.handleRedrawTimer();
+		});
+		$('body').off('forceScrollEvent').on('forceScrollEvent',function() {
+			self.handleScrollEvent();
+		});
+		$('body').off('forceResizeEvent').on('forceResizeEvent',function() {
+			self.resizeEvent();
 		});
 
 		$(this.renderElement).off('mousemove').on('mousemove', function (ev) {

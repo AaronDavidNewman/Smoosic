@@ -29,7 +29,7 @@ class SmoScore {
 				intraGap:10,
 				svgScale: 1.0,
 				zoomScale: 2.0,
-				zoomMode:SmoScore.zoomModes.zoomScale
+				zoomMode:SmoScore.zoomModes.fitWidth
 			},
             staffWidth: 1600,
             startIndex: 0,
