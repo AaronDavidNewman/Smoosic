@@ -121,9 +121,48 @@ class TimeSignatureTest {
 			layout.render();
             return timeTest();
         }
+        
+        var unmakeDupletTest = () => {
+            subTitle('duplet 6/8 test');
+            var selection = SmoSelection.noteSelection(score, 0, 0, 0, 0);
+            SmoOperation.undotDuration(selection);            
+            selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
+            SmoOperation.undotDuration(selection);            
+            
+            selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
+            SmoOperation.doubleDuration(selection);
+            selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
+            SmoOperation.doubleDuration(selection);
+			layout.render();
+            return timeTest();
+        }
+        var changeBeamGroup = () => {
+            subTitle('duplet 6/8 test');
+            var group1=[];
+            var group2=[];
+            for (var i=0;i<4;++i) {
+                group1.push(SmoSelection.noteSelection(score, 0, 0, 0, i));
+            }
+            group2.push(SmoSelection.noteSelection(score, 0, 0, 0, 4));
+            group2.push(SmoSelection.noteSelection(score, 0, 0, 0, 5));
+            SmoOperation.beamSelections(group1);
+            SmoOperation.beamSelections(group2);
+			layout.render();
+            return timeTest();            
+        }
+        var flipBeams1 = () => {
+            subTitle('flip beams 1');
+            var group2=[];
+            group2.push(SmoSelection.noteSelection(score, 0, 0, 0, 4));
+            group2.push(SmoSelection.noteSelection(score, 0, 0, 0, 5));
+            SmoOperation.toggleBeamDirection(group2);
+			layout.render();
+            return timeTest();            
+        }
 
         return drawDefaults().then(breakBeamTest).then(breakBeamTest2).then(unbreakBeamTest)
-		.then(stretchTest).then(contractTest).then(makeDupletTest).then(signalComplete);
+		.then(stretchTest).then(contractTest).then(makeDupletTest).then(unmakeDupletTest)
+        .then(changeBeamGroup).then(flipBeams1).then(signalComplete);
 
     }
 }

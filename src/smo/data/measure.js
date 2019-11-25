@@ -237,12 +237,14 @@ class SmoMeasure {
 			denominator: 1,
 			remainder: 0
 		};
+        var beamBeats = ticks.numerator;
 		if (meterNumbers[1]  == 8) {
 			ticks = {
 				numerator: 2048,
 				denominator: 1,
 				remainder: 0
 			};
+            beamBeats = 2048*3;
 		}
 		var pitches = SmoMeasure.defaultPitchForClef[params.clef];
 		var rv = [];
@@ -252,7 +254,8 @@ class SmoMeasure {
 					clef: params.clef,
 					pitches: [pitches],
 					ticks: ticks,
-					timeSignature: params.timeSignature
+					timeSignature: params.timeSignature,
+                    beamBeats:beamBeats
 				});
 			rv.push(note);
 		}

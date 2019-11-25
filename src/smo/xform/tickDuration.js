@@ -112,7 +112,8 @@ class SmoContractNoteActor extends TickTransformBase {
                 notes.push(new SmoNote({
                         clef: note.clef,
                         pitches: JSON.parse(JSON.stringify(note.pitches)),
-                        ticks: {numerator:this.newTicks,denominator:1,remainder:0}
+                        ticks: {numerator:this.newTicks,denominator:1,remainder:0},
+                        beamBeats:note.beamBeats
                     }));
 				remainder = remainder - this.newTicks;
             }
@@ -125,7 +126,8 @@ class SmoContractNoteActor extends TickTransformBase {
 				notes.push(new SmoNote({
                         clef: note.clef,
                         pitches: JSON.parse(JSON.stringify(note.pitches)),
-                        ticks: {numerator:remainder,denominator:1,remainder:0}
+                        ticks: {numerator:remainder,denominator:1,remainder:0},
+                        beamBeats:note.beamBeats
                     }));
 			}
             return notes;

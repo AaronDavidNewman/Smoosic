@@ -133,6 +133,9 @@ class suiLayoutAdjuster {
 
 	static _spaceNotes(svg,smoMeasure) {
 		var g = svg.getElementById(smoMeasure.attrs.id);
+        if (!g) {
+            return;
+        }
 		var notes = Array.from(g.getElementsByClassName('vf-stavenote'));
 		var acc = 0;
 		for (var i = 1; i < notes.length; ++i) {

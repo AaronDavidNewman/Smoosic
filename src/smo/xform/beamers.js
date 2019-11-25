@@ -72,6 +72,7 @@ class smoBeamModifier extends BeamModifierBase {
         this.duration = 0;
     }
     beamNote(iterator, note, accidentalMap) {
+        this.beamBeats = note.beamBeats;
 
         this.duration += iterator.delta;
 

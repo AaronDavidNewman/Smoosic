@@ -1338,8 +1338,19 @@ class SmoNote {
             // inherit attrs id for deserialized
         }
     }
+    static get flagStates() {
+        return {auto:0,up:1,down:2};
+    }
     static get parameterArray() {
-        return ['ticks', 'pitches', 'noteType', 'tuplet', 'attrs', 'clef', 'endBeam'];
+        return ['ticks', 'pitches', 'noteType', 'tuplet', 'attrs', 'clef', 'endBeam','beamBeats','flagState'];
+    }
+    
+    toggleFlagState() {
+        this.flagState = (this.flagState + 1) % 3;
+    }
+    
+    toVexStemDirection() {
+        this.flagState = SmoNote.flagStates.up ? VF.Stem.UP : VF.Stem.DOWN;
     }
     get id() {
         return this.attrs.id;
@@ -1534,6 +1545,8 @@ class SmoNote {
             textModifiers: [],
             articulations: [],
             endBeam: false,
+            beamBeats:4096,
+            flagState:SmoNote.flagStates.auto,
             ticks: {
                 numerator: 4096,
                 denominator: 1,
@@ -2247,12 +2260,14 @@ class SmoMeasure {
 			denominator: 1,
 			remainder: 0
 		};
+        var beamBeats = ticks.numerator;
 		if (meterNumbers[1]  == 8) {
 			ticks = {
 				numerator: 2048,
 				denominator: 1,
 				remainder: 0
 			};
+            beamBeats = 2048*3;
 		}
 		var pitches = SmoMeasure.defaultPitchForClef[params.clef];
 		var rv = [];
@@ -2262,7 +2277,8 @@ class SmoMeasure {
 					clef: params.clef,
 					pitches: [pitches],
 					ticks: ticks,
-					timeSignature: params.timeSignature
+					timeSignature: params.timeSignature,
+                    beamBeats:beamBeats
 				});
 			rv.push(note);
 		}
@@ -4444,6 +4460,7 @@ class smoBeamModifier extends BeamModifierBase {
         this.duration = 0;
     }
     beamNote(iterator, note, accidentalMap) {
+        this.beamBeats = note.beamBeats;
 
         this.duration += iterator.delta;
 
@@ -4613,7 +4630,8 @@ class SmoContractNoteActor extends TickTransformBase {
                 notes.push(new SmoNote({
                         clef: note.clef,
                         pitches: JSON.parse(JSON.stringify(note.pitches)),
-                        ticks: {numerator:this.newTicks,denominator:1,remainder:0}
+                        ticks: {numerator:this.newTicks,denominator:1,remainder:0},
+                        beamBeats:note.beamBeats
                     }));
 				remainder = remainder - this.newTicks;
             }
@@ -4626,7 +4644,8 @@ class SmoContractNoteActor extends TickTransformBase {
 				notes.push(new SmoNote({
                         clef: note.clef,
                         pitches: JSON.parse(JSON.stringify(note.pitches)),
-                        ticks: {numerator:remainder,denominator:1,remainder:0}
+                        ticks: {numerator:remainder,denominator:1,remainder:0},
+                        beamBeats:note.beamBeats
                     }));
 			}
             return notes;
@@ -5642,6 +5661,36 @@ class SmoOperation {
 		selection.note.addModifier(dynamic);
 		selection.measure.setChanged();
 	}
+    
+    static beamSelections(selections) {
+        var start = selections[0].selector;
+        var cur = selections[0].selector;
+        var beamGroup = [];
+        var ticks = 0;
+        selections.forEach((selection) => {
+            if (SmoSelector.sameNote(start,selection.selector) || 
+                (SmoSelector.sameMeasure(selection.selector,cur) &&
+                 cur.tick == selection.selector.tick-1)) {
+                ticks += selection.note.tickCount;
+                cur = selection.selector;
+                beamGroup.push(selection.note);
+            }
+        });
+        if (beamGroup.length) {
+            beamGroup.forEach((note) => {
+                note.beamBeats=ticks;
+                note.endBeam=false;
+            });
+            beamGroup[beamGroup.length - 1].endBeam=true;
+        }
+    }
+    
+    static toggleBeamDirection(selections) {
+        selections[0].note.toggleFlagState();               
+        selections.forEach((selection) => {
+            selection.note.flagState = selections[0].note.flagState;
+        });
+    }
 
 	static toggleArticulation(selection, articulation) {
 		selection.note.toggleArticulation(articulation);
@@ -6012,6 +6061,11 @@ class SmoUndoable {
             }
             SmoOperation.toggleBeamGroup(selection);
         });
+    }
+    
+    static beamSelections(selections,undoBuffer) {
+        undoBuffer.addBuffer('beam notes', 'measure', selections[0].selector, selections[0].measure);
+        SmoOperation.beamSelections(selections);
     }
     static undotDuration(selection, undoBuffer) {
         undoBuffer.addBuffer('undot duration', 'measure', selection.selector, selection.measure);
@@ -6661,15 +6715,16 @@ class VxMeasure {
         for (var i = 0; i < this.smoMeasure.beamGroups.length; ++i) {
             var bg = this.smoMeasure.beamGroups[i];
             var vexNotes = [];
-            var stemDirection = -1;
+            var stemDirection = VF.Stem.DOWN;
             for (var j = 0; j < bg.notes.length; ++j) {
                 var note = bg.notes[j];
                 var vexNote = this.noteToVexMap[note.attrs.id]
                     if (j === 0) {
-                        stemDirection = vexNote.getStemDirection();
-                    } else {
-                        vexNote.setStemDirection(stemDirection);
-                    }
+                        stemDirection = note.flagState == SmoNote.flagStates.auto ? 
+                            vexNote.getStemDirection() : note.toVexStemDirection();
+                    } 
+                    vexNote.setStemDirection(stemDirection);
+                    
                     vexNotes.push(this.noteToVexMap[note.attrs.id]);
             }
             var vexBeam = new VF.Beam(vexNotes);
@@ -8577,6 +8632,9 @@ class suiLayoutAdjuster {
 
 	static _spaceNotes(svg,smoMeasure) {
 		var g = svg.getElementById(smoMeasure.attrs.id);
+        if (!g) {
+            return;
+        }
 		var notes = Array.from(g.getElementsByClassName('vf-stavenote'));
 		var acc = 0;
 		for (var i = 1; i < notes.length; ++i) {
@@ -9476,6 +9534,7 @@ class suiEditor {
     _render() {
 		this.layout.setDirty();
     }
+    
     get score() {
         return this.layout.score;
     }
@@ -9550,6 +9609,13 @@ class suiEditor {
         }
         SmoUndoable.toggleBeamGroups(this.tracker.selections, this.undoBuffer);
         this._render();
+    }
+    
+    beamSelections() {
+        if (this.tracker.selections.length < 1) {
+            return;
+        }
+        SmoUndoable.beamSelections(this.tracker.selections, this.undoBuffer);
     }
 
     deleteMeasure() {
@@ -10976,6 +11042,13 @@ class SuiExceptionHandler {
 				shiftKey: false,
 				action: "toggleBeamGroup"
 			}, {
+				event: "keydown",
+				key: "X",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "beamSelections"
+			},{
 				event: "keydown",
 				key: "v",
 				ctrlKey: true,
@@ -32879,7 +32952,7 @@ class suiController {
 		this.trackScrolling = false;
         this.keyboardActive = false;
 		this.pollTime = 50;
-		this.idleRedrawTime = 200;
+		this.idleRedrawTime = 2000;
 		this.waitingForIdleLayout = false;
 		this.idleLayoutTimer = 0;
 
@@ -33091,7 +33164,7 @@ class suiController {
 	static createDebugUi(score) {
 		suiController.createDom();
 		var params = suiController.keyBindingDefaults;
-		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), score);
+		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), document.getElementById("booShadow"), score);
 		suiLayoutBase.debugLayout=true;
 		params.tracker = new suiTracker(params.layout);
 		params.editor = new suiEditor(params);

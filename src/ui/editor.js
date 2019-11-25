@@ -11,6 +11,7 @@ class suiEditor {
     _render() {
 		this.layout.setDirty();
     }
+    
     get score() {
         return this.layout.score;
     }
@@ -85,6 +86,13 @@ class suiEditor {
         }
         SmoUndoable.toggleBeamGroups(this.tracker.selections, this.undoBuffer);
         this._render();
+    }
+    
+    beamSelections() {
+        if (this.tracker.selections.length < 1) {
+            return;
+        }
+        SmoUndoable.beamSelections(this.tracker.selections, this.undoBuffer);
     }
 
     deleteMeasure() {

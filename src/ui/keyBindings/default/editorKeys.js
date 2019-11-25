@@ -299,6 +299,13 @@ class defaultEditorKeys {
 				action: "toggleBeamGroup"
 			}, {
 				event: "keydown",
+				key: "X",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "beamSelections"
+			},{
+				event: "keydown",
 				key: "v",
 				ctrlKey: true,
 				altKey: false,

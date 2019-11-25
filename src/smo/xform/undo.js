@@ -165,6 +165,11 @@ class SmoUndoable {
             SmoOperation.toggleBeamGroup(selection);
         });
     }
+    
+    static beamSelections(selections,undoBuffer) {
+        undoBuffer.addBuffer('beam notes', 'measure', selections[0].selector, selections[0].measure);
+        SmoOperation.beamSelections(selections);
+    }
     static undotDuration(selection, undoBuffer) {
         undoBuffer.addBuffer('undot duration', 'measure', selection.selector, selection.measure);
         SmoOperation.undotDuration(selection);

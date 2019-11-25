@@ -22,8 +22,19 @@ class SmoNote {
             // inherit attrs id for deserialized
         }
     }
+    static get flagStates() {
+        return {auto:0,up:1,down:2};
+    }
     static get parameterArray() {
-        return ['ticks', 'pitches', 'noteType', 'tuplet', 'attrs', 'clef', 'endBeam'];
+        return ['ticks', 'pitches', 'noteType', 'tuplet', 'attrs', 'clef', 'endBeam','beamBeats','flagState'];
+    }
+    
+    toggleFlagState() {
+        this.flagState = (this.flagState + 1) % 3;
+    }
+    
+    toVexStemDirection() {
+        this.flagState = SmoNote.flagStates.up ? VF.Stem.UP : VF.Stem.DOWN;
     }
     get id() {
         return this.attrs.id;
@@ -218,6 +229,8 @@ class SmoNote {
             textModifiers: [],
             articulations: [],
             endBeam: false,
+            beamBeats:4096,
+            flagState:SmoNote.flagStates.auto,
             ticks: {
                 numerator: 4096,
                 denominator: 1,

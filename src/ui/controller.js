@@ -25,7 +25,7 @@ class suiController {
 		this.trackScrolling = false;
         this.keyboardActive = false;
 		this.pollTime = 50;
-		this.idleRedrawTime = 200;
+		this.idleRedrawTime = 2000;
 		this.waitingForIdleLayout = false;
 		this.idleLayoutTimer = 0;
 
@@ -237,7 +237,7 @@ class suiController {
 	static createDebugUi(score) {
 		suiController.createDom();
 		var params = suiController.keyBindingDefaults;
-		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), score);
+		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), document.getElementById("booShadow"), score);
 		suiLayoutBase.debugLayout=true;
 		params.tracker = new suiTracker(params.layout);
 		params.editor = new suiEditor(params);

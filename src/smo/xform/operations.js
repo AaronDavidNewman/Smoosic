@@ -411,6 +411,36 @@ class SmoOperation {
 		selection.note.addModifier(dynamic);
 		selection.measure.setChanged();
 	}
+    
+    static beamSelections(selections) {
+        var start = selections[0].selector;
+        var cur = selections[0].selector;
+        var beamGroup = [];
+        var ticks = 0;
+        selections.forEach((selection) => {
+            if (SmoSelector.sameNote(start,selection.selector) || 
+                (SmoSelector.sameMeasure(selection.selector,cur) &&
+                 cur.tick == selection.selector.tick-1)) {
+                ticks += selection.note.tickCount;
+                cur = selection.selector;
+                beamGroup.push(selection.note);
+            }
+        });
+        if (beamGroup.length) {
+            beamGroup.forEach((note) => {
+                note.beamBeats=ticks;
+                note.endBeam=false;
+            });
+            beamGroup[beamGroup.length - 1].endBeam=true;
+        }
+    }
+    
+    static toggleBeamDirection(selections) {
+        selections[0].note.toggleFlagState();               
+        selections.forEach((selection) => {
+            selection.note.flagState = selections[0].note.flagState;
+        });
+    }
 
 	static toggleArticulation(selection, articulation) {
 		selection.note.toggleArticulation(articulation);
