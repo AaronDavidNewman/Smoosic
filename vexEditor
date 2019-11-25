@@ -105,6 +105,7 @@
         <File name="Gruntfile.js" />
         <Folder name="html">
             <File name="html\editor.html" />
+            <File name="html\debug.html" />
         </Folder>
         <Folder name="music">
             <File name="src\music\invention.js" />
