@@ -253,8 +253,12 @@ div.ribbonButtonContainer.expanded {
     font-size:1.2em;
 }
 
-#beamSelections,#toggleBeamDirection {
+#toggleBeamDirection {
     width:75px;
+}
+
+#beamSelections {
+    width:115px;
 }
 
 #toggleBeamDirection .left-text,
