@@ -660,7 +660,7 @@ class SuiLayoutDialog extends SuiDialogBase {
 	}
 	_handleCancel() {
 		this.layout.score.layout = this.backup;
-		this.layout.setViewport();
+		this.layout.setViewport(true);
 		this.complete();
 	}
 	_bindElements() {
@@ -668,7 +668,7 @@ class SuiLayoutDialog extends SuiDialogBase {
 		var dgDom = this.dgDom;
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-			self.layout.setViewport();
+			self.layout.setViewport(true);
 			self.complete();			
 		});
 
