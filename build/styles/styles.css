@@ -243,8 +243,31 @@ div.ribbonButtonContainer.expanded {
 }
 
 .controls-top button.duration,.controls-top button.measure, 
-.controls-top button.repetext,.controls-top button.textButton {
+.controls-top button.repetext,.controls-top button.textButton,
+.controls-top button.beams
+ {
 	width:55px;
+}
+
+.controls-top button.beams {
+    font-size:1.2em;
+}
+
+#beamSelections,#toggleBeamDirection {
+    width:75px;
+}
+
+#toggleBeamDirection .left-text,
+#beamSelections .left-text,
+#breakBeam .left-text {
+    font-size: 1.6em;
+    position: absolute;
+    top: 20%;
+    left: 0;
+}
+
+.controls-top button.beams .ribbon-button-hotkey {
+    font-size:0.6em;
 }
 
 .controls-top button.textButton {

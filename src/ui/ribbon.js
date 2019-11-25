@@ -134,6 +134,29 @@ class DebugButtons {
 		});
     }
 }
+
+class BeamButtons {
+	constructor(parameters) {
+		this.buttonElement = parameters.buttonElement;
+		this.buttonData = parameters.buttonData;
+		this.editor = parameters.editor;
+	}
+    operation() {
+        if (this.buttonData.id === 'breakBeam') {
+			this.editor.toggleBeamGroup();
+        } else if (this.buttonData.id === 'beamSelections') {
+            this.editor.beamSelections();
+        } else if (this.buttonData.id === 'toggleBeamDirection') {
+            this.editor.toggleBeamDirection();
+        }
+    }
+	bind() {
+		var self = this;
+		$(this.buttonElement).off('click').on('click', function () {
+			self.operation();
+		});
+    }
+}
 class DurationButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;

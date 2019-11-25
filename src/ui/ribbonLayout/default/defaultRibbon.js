@@ -5,7 +5,8 @@ class defaultRibbonLayout {
 	static get ribbons() {
 		var left = defaultRibbonLayout.leftRibbonIds;
 		var top = defaultRibbonLayout.noteButtonIds.concat(defaultRibbonLayout.navigateButtonIds).concat(defaultRibbonLayout.articulateButtonIds)
-		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds).concat(defaultRibbonLayout.measureIds)
+		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds)
+            .concat(defaultRibbonLayout.beamIds).concat(defaultRibbonLayout.measureIds)
               .concat(defaultRibbonLayout.textIds).concat(defaultRibbonLayout.debugIds);
 			
 		return {
@@ -20,7 +21,7 @@ class defaultRibbonLayout {
 			defaultRibbonLayout.noteRibbonButtons).concat(
 			defaultRibbonLayout.articulationButtons).concat(
 			defaultRibbonLayout.chordButtons).concat(
-			defaultRibbonLayout.durationRibbonButtons).concat(defaultRibbonLayout.measureRibbonButtons)
+			defaultRibbonLayout.durationRibbonButtons).concat(defaultRibbonLayout.beamRibbonButtons).concat(defaultRibbonLayout.measureRibbonButtons)
             .concat(defaultRibbonLayout.textRibbonButtons).concat(defaultRibbonLayout.debugRibbonButtons);
 	}
 	
@@ -60,6 +61,11 @@ class defaultRibbonLayout {
     static get textIds() {
 		return ['TextButtons','addTextMenu','rehearsalMark','lyrics','addDynamicsMenu'];
 	}
+    
+    static get beamIds() {
+		return ['BeamButtons','breakBeam','beamSelections','toggleBeamDirection'];
+	}
+
     
     static get textRibbonButtons() {
         return [
@@ -110,6 +116,49 @@ class defaultRibbonLayout {
 				group: 'textEdit',
 				id: 'addDynamicsMenu'		
 		} 
+        ];
+    }
+    
+    static get beamRibbonButtons() {
+        return [{
+			leftText: '',
+				rightText: '',
+				classes: 'icon  collapseParent beams',
+				icon: 'icon-flag',
+				action: 'collapseParent',
+				ctor: 'CollapseRibbonControl',
+				group: 'beams',
+				id: 'BeamButtons'			
+		},{
+				leftText: '',
+				rightText: 'x',
+				icon: 'icon-beamBreak',
+				classes: 'collapsed beams',
+				action: 'collapseChild',
+				ctor: 'BeamButtons',
+				group: 'beams',
+				id: 'breakBeam'
+			},
+            {
+				leftText: '',
+				rightText: 'Shift-X',
+				icon: 'icon-beam',
+				classes: 'collapsed beams',
+				action: 'collapseChild',
+				ctor: 'BeamButtons',
+				group: 'beams',
+				id: 'beamSelections'
+			},
+            {
+				leftText: '',
+				rightText: 'Shift-B',
+				icon: 'icon-flagFlip',
+				classes: 'collapsed beams',
+				action: 'collapseChild',
+				ctor: 'BeamButtons',
+				group: 'beams',
+				id: 'toggleBeamDirection'
+			}
         ];
     }
 	

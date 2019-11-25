@@ -271,6 +271,13 @@ class defaultEditorKeys {
 				action: "addMeasure"
 			}, {
 				event: "keydown",
+				key: "B",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "toggleBeamDirection"
+			}, {
+				event: "keydown",
 				key: "Delete",
 				ctrlKey: false,
 				altKey: false,

@@ -94,6 +94,12 @@ class suiEditor {
         }
         SmoUndoable.beamSelections(this.tracker.selections, this.undoBuffer);
     }
+    toggleBeamDirection() {
+        if (this.tracker.selections.length < 1) {
+            return;
+        }
+        SmoUndoable.toggleBeamDirection(this.tracker.selections, this.undoBuffer);
+    }
 
     deleteMeasure() {
         if (this.tracker.selections.length < 1) {

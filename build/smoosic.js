@@ -6062,7 +6062,10 @@ class SmoUndoable {
             SmoOperation.toggleBeamGroup(selection);
         });
     }
-    
+    static toggleBeamDirection(selections,undoBuffer) {
+        undoBuffer.addBuffer('beam notes', 'measure', selections[0].selector, selections[0].measure);
+        SmoOperation.toggleBeamDirection(selections);
+    }
     static beamSelections(selections,undoBuffer) {
         undoBuffer.addBuffer('beam notes', 'measure', selections[0].selector, selections[0].measure);
         SmoOperation.beamSelections(selections);
@@ -7880,7 +7883,7 @@ class suiTracker {
 			this._drawRect(this.selections[0].box, 'selection');			
 			return;
 		}
-		var sorted = this.selections.sort((a, b) => a.box.y - b.box.y);
+		var sorted = this.selections.sort((a, b) => SmoSelector.gt(a.selector,b.selector) ? 1 : -1);
 		var prevSel = sorted[0];
 		var curBox = svgHelpers.smoBox(prevSel.box);
 		var boxes = [];
@@ -9617,6 +9620,12 @@ class suiEditor {
         }
         SmoUndoable.beamSelections(this.tracker.selections, this.undoBuffer);
     }
+    toggleBeamDirection() {
+        if (this.tracker.selections.length < 1) {
+            return;
+        }
+        SmoUndoable.toggleBeamDirection(this.tracker.selections, this.undoBuffer);
+    }
 
     deleteMeasure() {
         if (this.tracker.selections.length < 1) {
@@ -11013,6 +11022,13 @@ class SuiExceptionHandler {
 				altKey: false,
 				shiftKey: false,
 				action: "addMeasure"
+			}, {
+				event: "keydown",
+				key: "B",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "toggleBeamDirection"
 			}, {
 				event: "keydown",
 				key: "Delete",
@@ -12633,7 +12649,8 @@ class defaultRibbonLayout {
 	static get ribbons() {
 		var left = defaultRibbonLayout.leftRibbonIds;
 		var top = defaultRibbonLayout.noteButtonIds.concat(defaultRibbonLayout.navigateButtonIds).concat(defaultRibbonLayout.articulateButtonIds)
-		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds).concat(defaultRibbonLayout.measureIds)
+		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds)
+            .concat(defaultRibbonLayout.beamIds).concat(defaultRibbonLayout.measureIds)
               .concat(defaultRibbonLayout.textIds).concat(defaultRibbonLayout.debugIds);
 			
 		return {
@@ -12648,7 +12665,7 @@ class defaultRibbonLayout {
 			defaultRibbonLayout.noteRibbonButtons).concat(
 			defaultRibbonLayout.articulationButtons).concat(
 			defaultRibbonLayout.chordButtons).concat(
-			defaultRibbonLayout.durationRibbonButtons).concat(defaultRibbonLayout.measureRibbonButtons)
+			defaultRibbonLayout.durationRibbonButtons).concat(defaultRibbonLayout.beamRibbonButtons).concat(defaultRibbonLayout.measureRibbonButtons)
             .concat(defaultRibbonLayout.textRibbonButtons).concat(defaultRibbonLayout.debugRibbonButtons);
 	}
 	
@@ -12688,6 +12705,11 @@ class defaultRibbonLayout {
     static get textIds() {
 		return ['TextButtons','addTextMenu','rehearsalMark','lyrics','addDynamicsMenu'];
 	}
+    
+    static get beamIds() {
+		return ['BeamButtons','breakBeam','beamSelections','toggleBeamDirection'];
+	}
+
     
     static get textRibbonButtons() {
         return [
@@ -12738,6 +12760,49 @@ class defaultRibbonLayout {
 				group: 'textEdit',
 				id: 'addDynamicsMenu'		
 		} 
+        ];
+    }
+    
+    static get beamRibbonButtons() {
+        return [{
+			leftText: '',
+				rightText: '',
+				classes: 'icon  collapseParent beams',
+				icon: 'icon-flag',
+				action: 'collapseParent',
+				ctor: 'CollapseRibbonControl',
+				group: 'beams',
+				id: 'BeamButtons'			
+		},{
+				leftText: '',
+				rightText: 'x',
+				icon: 'icon-beamBreak',
+				classes: 'collapsed beams',
+				action: 'collapseChild',
+				ctor: 'BeamButtons',
+				group: 'beams',
+				id: 'breakBeam'
+			},
+            {
+				leftText: '',
+				rightText: 'Shift-X',
+				icon: 'icon-beam',
+				classes: 'collapsed beams',
+				action: 'collapseChild',
+				ctor: 'BeamButtons',
+				group: 'beams',
+				id: 'beamSelections'
+			},
+            {
+				leftText: '',
+				rightText: 'Shift-B',
+				icon: 'icon-flagFlip',
+				classes: 'collapsed beams',
+				action: 'collapseChild',
+				ctor: 'BeamButtons',
+				group: 'beams',
+				id: 'toggleBeamDirection'
+			}
         ];
     }
 	
@@ -31716,6 +31781,29 @@ class DebugButtons {
 		var self = this;
 		$(this.buttonElement).off('click').on('click', function () {
 			$('body').trigger('redrawScore');
+		});
+    }
+}
+
+class BeamButtons {
+	constructor(parameters) {
+		this.buttonElement = parameters.buttonElement;
+		this.buttonData = parameters.buttonData;
+		this.editor = parameters.editor;
+	}
+    operation() {
+        if (this.buttonData.id === 'breakBeam') {
+			this.editor.toggleBeamGroup();
+        } else if (this.buttonData.id === 'beamSelections') {
+            this.editor.beamSelections();
+        } else if (this.buttonData.id === 'toggleBeamDirection') {
+            this.editor.toggleBeamDirection();
+        }
+    }
+	bind() {
+		var self = this;
+		$(this.buttonElement).off('click').on('click', function () {
+			self.operation();
 		});
     }
 }

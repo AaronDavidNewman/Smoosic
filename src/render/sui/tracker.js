@@ -727,7 +727,7 @@ class suiTracker {
 			this._drawRect(this.selections[0].box, 'selection');			
 			return;
 		}
-		var sorted = this.selections.sort((a, b) => a.box.y - b.box.y);
+		var sorted = this.selections.sort((a, b) => SmoSelector.gt(a.selector,b.selector) ? 1 : -1);
 		var prevSel = sorted[0];
 		var curBox = svgHelpers.smoBox(prevSel.box);
 		var boxes = [];
