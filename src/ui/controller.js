@@ -245,6 +245,7 @@ class suiController {
 		var controller = new suiController(params);
         var score = SmoScore.deserialize(inventionJson);
         params.layout.score = score;
+		params.layout.setViewport();
 		return controller;
 	}
 	

@@ -34,7 +34,8 @@ class SmoNote {
     }
     
     toVexStemDirection() {
-        this.flagState = SmoNote.flagStates.up ? VF.Stem.UP : VF.Stem.DOWN;
+        return (this.flagState == SmoNote.flagStates.up ? VF.Stem.UP : VF.Stem.DOWN);
+		
     }
     get id() {
         return this.attrs.id;

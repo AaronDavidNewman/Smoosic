@@ -236,7 +236,7 @@ class SmoSelection {
 		if (!selections.length) {
 			return rv;
 		}
-		var cur = selections;
+		var cur = selections[0];
 		rv.push(cur.measure);
 		for (var i=1;i<selections.length;++i) {
 			var sel = selections[i];

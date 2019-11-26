@@ -6,7 +6,7 @@ class defaultRibbonLayout {
 		var left = defaultRibbonLayout.leftRibbonIds;
 		var top = defaultRibbonLayout.noteButtonIds.concat(defaultRibbonLayout.navigateButtonIds).concat(defaultRibbonLayout.articulateButtonIds)
 		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds)
-            .concat(defaultRibbonLayout.beamIds).concat(defaultRibbonLayout.measureIds)
+            .concat(defaultRibbonLayout.beamIds).concat(defaultRibbonLayout.measureIds).concat(defaultRibbonLayout.staveIds)
               .concat(defaultRibbonLayout.textIds).concat(defaultRibbonLayout.debugIds);
 			
 		return {
@@ -22,6 +22,7 @@ class defaultRibbonLayout {
 			defaultRibbonLayout.articulationButtons).concat(
 			defaultRibbonLayout.chordButtons).concat(
 			defaultRibbonLayout.durationRibbonButtons).concat(defaultRibbonLayout.beamRibbonButtons).concat(defaultRibbonLayout.measureRibbonButtons)
+			.concat(defaultRibbonLayout.staveRibbonButtons)
             .concat(defaultRibbonLayout.textRibbonButtons).concat(defaultRibbonLayout.debugRibbonButtons);
 	}
 	
@@ -65,7 +66,9 @@ class defaultRibbonLayout {
     static get beamIds() {
 		return ['BeamButtons','breakBeam','beamSelections','toggleBeamDirection'];
 	}
-
+    static get staveIds() {
+		return ['StaveButtons','clefTreble','clefBass','clefTenor','clefAlto','clefMoveUp','clefMoveDown'];
+	}
     
     static get textRibbonButtons() {
         return [
@@ -118,6 +121,74 @@ class defaultRibbonLayout {
 		} 
         ];
     }
+	
+	static get staveRibbonButtons() {
+		return [{
+			leftText: '',
+				rightText: '',
+				classes: 'icon  collapseParent staves',
+				icon: 'icon-treble',
+				action: 'collapseParent',
+				ctor: 'CollapseRibbonControl',
+				group: 'staves',
+				id: 'StaveButtons'			
+		},{
+			leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed staves',
+				icon: 'icon-treble',
+				action: 'collapseChild',
+				ctor: 'StaveButtons',
+				group: 'staves',
+				id: 'clefTreble'
+		},{
+			leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed staves',
+				icon: 'icon-bass',
+				action: 'collapseChild',
+				ctor: 'StaveButtons',
+				group: 'staves',
+				id: 'clefBass'
+		},{
+			leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed staves',
+				icon: 'icon-tenor',
+				action: 'collapseChild',
+				ctor: 'StaveButtons',
+				group: 'staves',
+				id: 'clefTenor'
+		},{
+			leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed staves',
+				icon: 'icon-alto',
+				action: 'collapseChild',
+				ctor: 'StaveButtons',
+				group: 'staves',
+				id: 'clefAlto'
+		},{
+			leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed staves',
+				icon: 'icon-arrow-up',
+				action: 'collapseChild',
+				ctor: 'StaveButtons',
+				group: 'staves',
+				id: 'clefMoveUp'
+		},{
+			leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed staves',
+				icon: 'icon-arrow-down',
+				action: 'collapseChild',
+				ctor: 'StaveButtons',
+				group: 'staves',
+				id: 'clefMoveDown'
+		}
+		];
+	}
     
     static get beamRibbonButtons() {
         return [{

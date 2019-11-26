@@ -231,9 +231,10 @@ div.ribbonButtonContainer.expanded {
     left: 12%;
 }
 
-#NoteButtons span.icon {
+#NoteButtons span.icon,
+#StaveButtons span.icon {
 	font-size:2em;
-}
+} 
 
 #articulationButtons  .icon-articulation{
 	left:30%;
@@ -603,6 +604,9 @@ body.splashScreen .bugDialog {
         padding-left: 0;
         background: #999;
     }
+	.musicReliefShadow {
+		display:none;
+	}
 
 }
 

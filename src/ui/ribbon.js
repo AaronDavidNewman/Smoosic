@@ -257,6 +257,53 @@ class ChordButtons {
 		});
 	}
 }
+
+class StaveButtons {
+	constructor(parameters) {
+		this.buttonElement = parameters.buttonElement;
+		this.buttonData = parameters.buttonData;
+		this.tracker = parameters.tracker;
+		this.editor = parameters.editor;
+		this.score = this.editor.score;
+	}
+	addClef(clef,clefName) {
+		var instrument = {
+			instrumentName:clefName,
+			keyOffset:0,
+			clef:clef
+		}
+		var staff = this.tracker.selections[0].selector.staff;
+		var measures = SmoSelection.getMeasureList(this.tracker.selections);
+		var selections=[];
+		measures.forEach((measure) => {
+			selections.push(SmoSelection.measureSelection(this.tracker.layout.score,staff,measure.measureNumber.measureNumber));
+		});
+		SmoUndoable.changeInstrument(this.tracker.layout.score,instrument,selections,this.editor.undoBuffer);
+		this.tracker.layout.setDirty();		
+	}
+	clefTreble() {
+		this.addClef('treble','Treble Instrument');
+	}
+	clefBass() {
+		this.addClef('bass','Bass Instrument');
+	}
+	clefAlto() {
+		this.addClef('alto','Alto Instrument');
+	}
+	clefTenor() {
+		this.addClef('tenor','Tenor Instrument');
+	}
+	bind() {
+		var self = this;
+		$(this.buttonElement).off('click').on('click', function (ev) {
+			 console.log('couch');
+			 var id = self.buttonData.id;
+			if (typeof(self[id]) === 'function') {
+				self[id]();
+			}
+		});
+	}
+}
 class MeasureButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
@@ -357,7 +404,6 @@ class MeasureButtons {
 			if (typeof(self[id]) === 'function') {
 				self[id]();
 			}
-			 console.log('couch');
 		});
 	}
 }

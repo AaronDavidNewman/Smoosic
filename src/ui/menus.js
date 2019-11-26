@@ -250,6 +250,10 @@ class SuiFileMenu extends suiMenuBase {
 					icon: 'floppy-disk',
 					text: 'Save',
 					value: 'saveFile' 
+                },{
+					icon: '',
+					text: 'Bach Invention',
+					value: 'bach' 
                 },	{
 					icon: '',
 					text: 'Cancel',
@@ -277,7 +281,11 @@ class SuiFileMenu extends suiMenuBase {
             this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
             var score = SmoScore.getDefaultScore();
             this.controller.layout.score = score;
-        }
+        } else if (text == 'bach') {
+			this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
+			var score = SmoScore.deserialize(inventionJson);
+			this.controller.layout.score = score;
+		}
 		this.complete();
 	}
 	keydown(ev) {}

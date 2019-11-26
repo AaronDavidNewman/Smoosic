@@ -668,6 +668,9 @@ class SuiLayoutDialog extends SuiDialogBase {
 		var dgDom = this.dgDom;
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+			
+			// TODO:  allow user to select a zoom mode.
+			self.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
 			self.layout.setViewport(true);
 			self.complete();			
 		});
