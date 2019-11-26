@@ -60,6 +60,16 @@ class suiTracker {
 		});
 		return rv;		
 	}
+    // Hack - lyric should be handled consistently
+    _reboxTextModifier(modifier) {
+        var el;
+        if (modifier.attrs.type === 'SmoLyric') {
+            el = $(modifier.selector)[0];
+        } else {
+            el = this.context.svg.getElementsByClassName(modifier.attrs.id)[0];
+        }
+        svgHelpers.updateArtifactBox(this.context.svg,el,modifier);
+    }
 
 	_updateModifiers(rebox) {
 		this.modifierTabs = [];
@@ -123,8 +133,7 @@ class suiTracker {
 			selection.note.textModifiers.forEach((modifier) => {
 				if (!modMap[modifier.id]) {
                     if (rebox) {
-                        var el = this.context.svg.getElementsByClassName(modifier.id)[0];
-                        svgHelpers.updateArtifactBox(this.context.svg,el,modifier);
+                        this._reboxTextModifier(modifier);
                     }
 					this.modifierTabs.push({
 						modifier: modifier,
@@ -294,11 +303,7 @@ class suiTracker {
 	}
 	
 	updateMap(rebox) {
-		const promise = new Promise((resolve, reject) => {
-             this._updateMap(rebox);
-			 resolve();
-                });
-            return promise;
+        this._updateMap(rebox);
 	}
 
 	static stringifyBox(box) {

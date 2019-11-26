@@ -66,9 +66,13 @@ class suiController {
 		}
 		self.trackScrolling = true;
 		setTimeout(function() {
+            try {
 			// self.scrollRedrawStatus = true;
 			self.trackScrolling = false;
 			self.tracker.updateMap(true);
+            } catch(e) {
+                SuiExceptionHandler.instance.exceptionHandler(e);
+            }
 		},500);
 	}
 	
@@ -182,16 +186,8 @@ class suiController {
 			self.resizeEvent();
 		});
 				
-		let scrollCallback = (el) => {
-			if (self.trackScrolling) {
-				return;
-			}
-			self.trackScrolling = true;
-			setTimeout(function() {
-				// self.scrollRedrawStatus = true;
-				self.trackScrolling = false;
-				self.tracker.updateMap(true);
-			},500);
+		let scrollCallback = (el) => {			
+            self.handleScrollEvent();
 		};
 		el.onscroll = scrollCallback;
 	}
