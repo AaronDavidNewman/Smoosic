@@ -6649,6 +6649,12 @@ class VxMeasure {
 		
         this.applyStemDirection(noteParams);
         var vexNote = new VF.StaveNote(noteParams);
+        if (smoNote.tickCount >= 4096) {
+            var stemDirection = smoNote.flagState == SmoNote.flagStates.auto ? 
+                vexNote.getStemDirection() : smoNote.toVexStemDirection();
+            vexNote.setStemDirection(stemDirection);
+
+        }
         smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
 
 		this._createAccidentals(smoNote,vexNote,tickIndex);
