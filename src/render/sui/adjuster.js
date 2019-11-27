@@ -228,6 +228,7 @@ class suiLayoutAdjuster {
 		// array of the max Y measure per line, used to space next line down
 		var maxYPerLine = [];
 		var lineIndexPerLine = [];
+        var vyMaxY = 0;
 
 		if (suiLayoutBase.debugLayout) {
 			$(renderer.getContext().svg).find('g.measure-adjust-dbg').remove();
@@ -282,6 +283,8 @@ class suiLayoutAdjuster {
 					var staffY = minYStaffY+ accum;					
 					measures.forEach((measure) => {
 						measure.staffY = staffY;
+                        vyMaxY = (vyMaxY > measure.staffY + measure.logicalBox.height) ? vyMaxY : 
+                           measure.staffY + measure.logicalBox.height;
 						if (suiLayoutBase.debugLayout) {
 							var dbgBox = svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height);
 							svgHelpers.debugBox(svg, dbgBox, 'measure-adjust-dbg', 10);
@@ -296,8 +299,9 @@ class suiLayoutAdjuster {
 					accum += delta;
 					var staffY = minYStaffY + accum;					
 					measures.forEach((measure) => {
-						var ll = measures.logicalBox;
 						measure.staffY = staffY;
+                        vyMaxY = (vyMaxY > measure.staffY + measure.logicalBox.height) ? vyMaxY : 
+                           measure.staffY + measure.logicalBox.height;
 						if (suiLayoutBase.debugLayout) {
 							var dbgBox = svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height);
 							svgHelpers.debugBox(svg, dbgBox, 'measure-adjust-dbg', 10);
@@ -306,5 +310,15 @@ class suiLayoutAdjuster {
 				}
 			}
 		}
+        
+        // Adjust pages
+        var docHeight = score.layout.pages * score.layout.pageHeight;
+        
+        if (vyMaxY > docHeight) {
+            score.layout.pages += 1;
+        } else if (docHeight - score.layout.pageHeight > vyMaxY) {
+            score.layout.pages -= 1;
+        }
+
 	}	
 }

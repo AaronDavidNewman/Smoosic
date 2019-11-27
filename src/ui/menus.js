@@ -281,6 +281,9 @@ class SuiFileMenu extends suiMenuBase {
             this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
             var score = SmoScore.getDefaultScore();
             this.controller.layout.score = score;
+            setTimeout(function() {
+            $('body').trigger('forceResizeEvent');
+            },1);
         } else if (text == 'bach') {
 			this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
 			var score = SmoScore.deserialize(inventionJson);

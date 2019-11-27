@@ -3413,6 +3413,9 @@ class SmoScore {
     constructor(params) {
         Vex.Merge(this, SmoScore.defaults);
         Vex.Merge(this, params);
+        if (!this.layout.pages) {
+            this.layout.pages = 1;
+        }
         if (this.staves.length) {
             this._numberStaves();
         }
@@ -3434,7 +3437,8 @@ class SmoScore {
 				intraGap:10,
 				svgScale: 1.0,
 				zoomScale: 2.0,
-				zoomMode:SmoScore.zoomModes.fitWidth
+				zoomMode:SmoScore.zoomModes.fitWidth,
+                pages:1
 			},
             staffWidth: 1600,
             startIndex: 0,
@@ -7991,6 +7995,7 @@ class suiLayoutBase {
 		var h = Math.round(layout.pageHeight * this.zoomScale);
 		this.pageWidth =  (this.orientation  === SmoScore.orientations.portrait) ? w: h;
 		this.pageHeight = (this.orientation  === SmoScore.orientations.portrait) ? h : w;
+        this.pageHeight = this.pageHeight * layout.pages;
 		
 		this.leftMargin=this._score.layout.leftMargin;
         this.rightMargin = this._score.layout.rightMargin;
@@ -8270,9 +8275,16 @@ class suiLayoutBase {
 			if (this.passState == suiLayoutBase.passStates.clean) {
 				this.dirty=false;
 			} else {
+                var curPages = this._score.layout.pages;
 				suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth / this.svgScale);
 				suiLayoutAdjuster.adjustHeight(this._score,this.renderer);
-				this.setPassState(suiLayoutBase.passStates.clean,'render 2');
+                if (this._score.layout.pages  != curPages) {                    
+				    this.setPassState(suiLayoutBase.passStates.initial,'render 2');
+                    // Force the viewport to update the page size
+                    $('body').trigger('forceResizeEvent');
+                } else {
+				    this.setPassState(suiLayoutBase.passStates.clean,'render 2');
+                }
 			}
 		} else {
 			// otherwise we need another pass.
@@ -8740,6 +8752,7 @@ class suiLayoutAdjuster {
 		// array of the max Y measure per line, used to space next line down
 		var maxYPerLine = [];
 		var lineIndexPerLine = [];
+        var vyMaxY = 0;
 
 		if (suiLayoutBase.debugLayout) {
 			$(renderer.getContext().svg).find('g.measure-adjust-dbg').remove();
@@ -8794,6 +8807,8 @@ class suiLayoutAdjuster {
 					var staffY = minYStaffY+ accum;					
 					measures.forEach((measure) => {
 						measure.staffY = staffY;
+                        vyMaxY = (vyMaxY > measure.staffY + measure.logicalBox.height) ? vyMaxY : 
+                           measure.staffY + measure.logicalBox.height;
 						if (suiLayoutBase.debugLayout) {
 							var dbgBox = svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height);
 							svgHelpers.debugBox(svg, dbgBox, 'measure-adjust-dbg', 10);
@@ -8808,8 +8823,9 @@ class suiLayoutAdjuster {
 					accum += delta;
 					var staffY = minYStaffY + accum;					
 					measures.forEach((measure) => {
-						var ll = measures.logicalBox;
 						measure.staffY = staffY;
+                        vyMaxY = (vyMaxY > measure.staffY + measure.logicalBox.height) ? vyMaxY : 
+                           measure.staffY + measure.logicalBox.height;
 						if (suiLayoutBase.debugLayout) {
 							var dbgBox = svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height);
 							svgHelpers.debugBox(svg, dbgBox, 'measure-adjust-dbg', 10);
@@ -8818,6 +8834,16 @@ class suiLayoutAdjuster {
 				}
 			}
 		}
+        
+        // Adjust pages
+        var docHeight = score.layout.pages * score.layout.pageHeight;
+        
+        if (vyMaxY > docHeight) {
+            score.layout.pages += 1;
+        } else if (docHeight - score.layout.pageHeight > vyMaxY) {
+            score.layout.pages -= 1;
+        }
+
 	}	
 };
 // ## suiLayoutBase
@@ -10121,6 +10147,9 @@ class SuiFileMenu extends suiMenuBase {
             this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
             var score = SmoScore.getDefaultScore();
             this.controller.layout.score = score;
+            setTimeout(function() {
+            $('body').trigger('forceResizeEvent');
+            },1);
         } else if (text == 'bach') {
 			this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
 			var score = SmoScore.deserialize(inventionJson);
@@ -10692,6 +10721,7 @@ class SuiExceptionHandler {
         this.layout = params.layout;
         this.score = params.score;
         this.undoBuffer = params.undoBuffer;
+        this.thrown = false;
 		SuiExceptionHandler._instance = this;
     }
 	static get instance() {
@@ -10718,8 +10748,8 @@ class SuiExceptionHandler {
             } else if (e['stack']) {
 				stack = e.stack;
 			}
-        } catch (e) {
-            stack = 'Error with stack: ' + e.message;
+        } catch (e2) {
+            stack = 'Error with stack: ' + e2.message;
         }
         var doing = 'Last operation not available.';
 
@@ -10767,6 +10797,11 @@ class SuiExceptionHandler {
             window.open(url, 'Report Smoosic issues');
         });
         $('body').addClass('bugReport');
+        if (!this.thrown) {
+            this.thrown = true;
+            throw(e);
+        }
+        
     }
 }
 ;class defaultEditorKeys {
@@ -11470,17 +11505,15 @@ class SuiLoadFileDialog extends SuiFileDialog {
     }
     commit() {
         var scoreWorks = false;
-        var self=this;
         if (this.value) {
             try {
                 var score = SmoScore.deserialize(this.value);
-                var finish = function() {
-                    self.complete();
-                }
                 scoreWorks=true;
-                this.layout.unrenderAll();
                 this.layout.score = score;
-                this.layout.redraw().then(finish);                  
+                setTimeout(function() {
+                    $('body').trigger('forceResizeEvent');
+                },1);
+                this.complete();
             } catch (e) {
                 console.log('unable to score '+e);
             }

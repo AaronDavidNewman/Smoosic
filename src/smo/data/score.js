@@ -8,6 +8,9 @@ class SmoScore {
     constructor(params) {
         Vex.Merge(this, SmoScore.defaults);
         Vex.Merge(this, params);
+        if (!this.layout.pages) {
+            this.layout.pages = 1;
+        }
         if (this.staves.length) {
             this._numberStaves();
         }
@@ -29,7 +32,8 @@ class SmoScore {
 				intraGap:10,
 				svgScale: 1.0,
 				zoomScale: 2.0,
-				zoomMode:SmoScore.zoomModes.fitWidth
+				zoomMode:SmoScore.zoomModes.fitWidth,
+                pages:1
 			},
             staffWidth: 1600,
             startIndex: 0,

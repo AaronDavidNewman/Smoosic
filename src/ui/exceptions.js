@@ -5,6 +5,7 @@ class SuiExceptionHandler {
         this.layout = params.layout;
         this.score = params.score;
         this.undoBuffer = params.undoBuffer;
+        this.thrown = false;
 		SuiExceptionHandler._instance = this;
     }
 	static get instance() {
@@ -31,8 +32,8 @@ class SuiExceptionHandler {
             } else if (e['stack']) {
 				stack = e.stack;
 			}
-        } catch (e) {
-            stack = 'Error with stack: ' + e.message;
+        } catch (e2) {
+            stack = 'Error with stack: ' + e2.message;
         }
         var doing = 'Last operation not available.';
 
@@ -80,5 +81,10 @@ class SuiExceptionHandler {
             window.open(url, 'Report Smoosic issues');
         });
         $('body').addClass('bugReport');
+        if (!this.thrown) {
+            this.thrown = true;
+            throw(e);
+        }
+        
     }
 }

@@ -54,6 +54,7 @@ class suiLayoutBase {
 		var h = Math.round(layout.pageHeight * this.zoomScale);
 		this.pageWidth =  (this.orientation  === SmoScore.orientations.portrait) ? w: h;
 		this.pageHeight = (this.orientation  === SmoScore.orientations.portrait) ? h : w;
+        this.pageHeight = this.pageHeight * layout.pages;
 		
 		this.leftMargin=this._score.layout.leftMargin;
         this.rightMargin = this._score.layout.rightMargin;
@@ -333,9 +334,16 @@ class suiLayoutBase {
 			if (this.passState == suiLayoutBase.passStates.clean) {
 				this.dirty=false;
 			} else {
+                var curPages = this._score.layout.pages;
 				suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth / this.svgScale);
 				suiLayoutAdjuster.adjustHeight(this._score,this.renderer);
-				this.setPassState(suiLayoutBase.passStates.clean,'render 2');
+                if (this._score.layout.pages  != curPages) {                    
+				    this.setPassState(suiLayoutBase.passStates.initial,'render 2');
+                    // Force the viewport to update the page size
+                    $('body').trigger('forceResizeEvent');
+                } else {
+				    this.setPassState(suiLayoutBase.passStates.clean,'render 2');
+                }
 			}
 		} else {
 			// otherwise we need another pass.

@@ -213,17 +213,15 @@ class SuiLoadFileDialog extends SuiFileDialog {
     }
     commit() {
         var scoreWorks = false;
-        var self=this;
         if (this.value) {
             try {
                 var score = SmoScore.deserialize(this.value);
-                var finish = function() {
-                    self.complete();
-                }
                 scoreWorks=true;
-                this.layout.unrenderAll();
                 this.layout.score = score;
-                this.layout.redraw().then(finish);                  
+                setTimeout(function() {
+                    $('body').trigger('forceResizeEvent');
+                },1);
+                this.complete();
             } catch (e) {
                 console.log('unable to score '+e);
             }
