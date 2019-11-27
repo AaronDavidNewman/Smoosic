@@ -753,6 +753,30 @@ class svgHelpers {
         svg.appendChild(rect);
     }
     
+    static line(svg,x1,y1,x2,y2,attrs,classes) {
+        var line = document.createElementNS(svgHelpers.namespace,'line');
+        x1 = typeof(x1) == 'string' ? x1 : x1.toString();
+        y1 = typeof(y1) == 'string' ? y1 : y1.toString();
+        x2 = typeof(x2) == 'string' ? x2 : x2.toString();
+        y2 = typeof(y2) == 'string' ? y2 : y2.toString();
+
+        line.setAttributeNS('', 'x1', x1);
+        line.setAttributeNS('', 'y1', y1);
+        line.setAttributeNS('', 'x2', x2);
+        line.setAttributeNS('', 'y2', y2);
+        attrs = (attrs) ? attrs : [];
+        attrs.forEach((attr) => {
+            var key = Object.keys(attr)[0];
+            key = (key == 'strokewidth') ? 'stroke-width' : key;
+            var val = attr[key];
+            line.setAttributeNS('', key, val);            
+        });
+        if (classes) {
+            line.setAttributeNS('', 'class', classes);
+        }
+        svg.appendChild(line);
+    }
+    
     static textOutlineRect(svg,textElement, color, classes) {
         var box = textElement.getBBox();
         var attrs = [{width:box.width+5,height:box.height+5,stroke:color,strokewidth:'2',fill:'none',x:box.x-5,y:box.y-5}];
@@ -8001,12 +8025,12 @@ class suiLayoutBase {
 		var h = Math.round(layout.pageHeight * this.zoomScale);
 		this.pageWidth =  (this.orientation  === SmoScore.orientations.portrait) ? w: h;
 		this.pageHeight = (this.orientation  === SmoScore.orientations.portrait) ? h : w;
-        this.pageHeight = this.pageHeight * layout.pages;
+        this.totalHeight = this.pageHeight * this.score.layout.pages;
 		
 		this.leftMargin=this._score.layout.leftMargin;
         this.rightMargin = this._score.layout.rightMargin;
 		$(elementId).css('width', '' + Math.round(this.pageWidth) + 'px');
-		$(elementId).css('height', '' + Math.round(this.pageHeight) + 'px');        
+		$(elementId).css('height', '' + Math.round(this.totalHeight) + 'px');        
 		if (reset) {
 		    $(elementId).html('');
     		this.renderer = new VF.Renderer(elementId, VF.Renderer.Backends.SVG);
@@ -8014,7 +8038,7 @@ class suiLayoutBase {
 		}
 		// this.renderer.resize(this.pageWidth, this.pageHeight);
 
-		svgHelpers.svgViewport(this.context.svg, this.pageWidth, this.pageHeight, this.svgScale);
+		svgHelpers.svgViewport(this.context.svg, this.pageWidth, this.totalHeight, this.svgScale);
 
 		this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
 		this.resizing = false;
@@ -8246,6 +8270,17 @@ class suiLayoutBase {
 		
 		system.updateLyricOffsets();
 	}
+    
+    _drawPageLines() {
+        for (var i=1;i<this._score.layout.pages;++i) {
+            var y = (this.pageHeight/this.svgScale)*i;
+            svgHelpers.line(this.svg,0,y,(this.pageWidth/this.svgScale),y,
+                [{'stroke': '#321'},
+                    {'stroke-width': '2'},
+                        {'stroke-dasharray': '4,1'},
+                            {'fill': 'none'}],'pageLine');
+        }
+    }         
 	
 	render() {
 		if (this.viewportChange) {
@@ -8271,6 +8306,7 @@ class suiLayoutBase {
             this.shadowRenderer : this.mainRenderer;
 		
         this.layout(params);
+        this._drawPageLines();
 		
 		if (this.passState == suiLayoutBase.passStates.replace) {
 			this.dirty=false;
@@ -8283,7 +8319,7 @@ class suiLayoutBase {
 			} else {
                 var curPages = this._score.layout.pages;
 				suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth / this.svgScale);
-				suiLayoutAdjuster.adjustHeight(this._score,this.renderer);
+				suiLayoutAdjuster.adjustHeight(this._score,this.renderer,this.pageWidth/this.svgScale,this.pageHeight/this.svgScale);
                 if (this._score.layout.pages  != curPages) {                    
 				    this.setPassState(suiLayoutBase.passStates.initial,'render 2');
                     // Force the viewport to update the page size
@@ -8751,7 +8787,7 @@ class suiLayoutAdjuster {
 
 	// ### adjustHeight
 	// Handle measure bumping into each other, vertically.
-	static adjustHeight(score,renderer) {
+	static adjustHeight(score,renderer,pageWidth,pageHeight) {
 		var topStaff = score.staves[0];
 		var maxLine = topStaff.measures[topStaff.measures.length - 1].lineIndex;
 		var svg = renderer.getContext().svg;
@@ -8841,15 +8877,46 @@ class suiLayoutAdjuster {
 			}
 		}
         
-        // Adjust pages
-        var docHeight = score.layout.pages * score.layout.pageHeight;
+        // Finally, make sure each system does not run into the page break;
+        var page = 1;
+        var pageGap = 0;
+        var pbrk = page * pageHeight;
         
-        if (vyMaxY > docHeight) {
-            score.layout.pages += 1;
-        } else if (docHeight - score.layout.pageHeight > vyMaxY) {
-            score.layout.pages -= 1;
+        for (var i=0; i <= maxLine; ++i) {
+            var measures=[];
+            score.staves.forEach((staff) => {
+                var delta = staff.measures.filter((mm) => {
+                            return mm.lineIndex === i
+                });
+                measures = measures.concat(delta);
+            });
+            
+            var miny = measures.reduce((a, b) => {
+						return a.staffY < b.staffY ? a: b;
+					});
+            miny = miny.staffY;
+            var maxy = measures.reduce((a, b) => {
+                var ay = a.staffY + a.logicalBox.height;
+                var by = b.staffY+ b.logicalBox.height;
+						return  ay > by ? a : b;
+					});
+            maxy = maxy.staffY + maxy.logicalBox.height;
+            
+            // miny + x = pbrk + margin
+            if (maxy > pbrk) {
+                pageGap += pbrk - miny + score.layout.topMargin;
+                page += 1;
+                pbrk = page * pageHeight;
+            }
+            if (pageGap > 0) {
+                measures.forEach((mm) => {
+                    mm.staffY += pageGap;
+                });
+            }
         }
-
+        if (page != score.layout.pages) {
+            score.layout.pages = page;
+        }
 	}	
 };
 // ## suiLayoutBase

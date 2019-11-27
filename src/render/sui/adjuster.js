@@ -221,7 +221,7 @@ class suiLayoutAdjuster {
 
 	// ### adjustHeight
 	// Handle measure bumping into each other, vertically.
-	static adjustHeight(score,renderer) {
+	static adjustHeight(score,renderer,pageWidth,pageHeight) {
 		var topStaff = score.staves[0];
 		var maxLine = topStaff.measures[topStaff.measures.length - 1].lineIndex;
 		var svg = renderer.getContext().svg;
@@ -311,14 +311,45 @@ class suiLayoutAdjuster {
 			}
 		}
         
-        // Adjust pages
-        var docHeight = score.layout.pages * score.layout.pageHeight;
+        // Finally, make sure each system does not run into the page break;
+        var page = 1;
+        var pageGap = 0;
+        var pbrk = page * pageHeight;
         
-        if (vyMaxY > docHeight) {
-            score.layout.pages += 1;
-        } else if (docHeight - score.layout.pageHeight > vyMaxY) {
-            score.layout.pages -= 1;
+        for (var i=0; i <= maxLine; ++i) {
+            var measures=[];
+            score.staves.forEach((staff) => {
+                var delta = staff.measures.filter((mm) => {
+                            return mm.lineIndex === i
+                });
+                measures = measures.concat(delta);
+            });
+            
+            var miny = measures.reduce((a, b) => {
+						return a.staffY < b.staffY ? a: b;
+					});
+            miny = miny.staffY;
+            var maxy = measures.reduce((a, b) => {
+                var ay = a.staffY + a.logicalBox.height;
+                var by = b.staffY+ b.logicalBox.height;
+						return  ay > by ? a : b;
+					});
+            maxy = maxy.staffY + maxy.logicalBox.height;
+            
+            // miny + x = pbrk + margin
+            if (maxy > pbrk) {
+                pageGap += pbrk - miny + score.layout.topMargin;
+                page += 1;
+                pbrk = page * pageHeight;
+            }
+            if (pageGap > 0) {
+                measures.forEach((mm) => {
+                    mm.staffY += pageGap;
+                });
+            }
         }
-
+        if (page != score.layout.pages) {
+            score.layout.pages = page;
+        }
 	}	
 }

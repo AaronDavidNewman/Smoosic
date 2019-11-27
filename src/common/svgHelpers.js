@@ -113,6 +113,30 @@ class svgHelpers {
         svg.appendChild(rect);
     }
     
+    static line(svg,x1,y1,x2,y2,attrs,classes) {
+        var line = document.createElementNS(svgHelpers.namespace,'line');
+        x1 = typeof(x1) == 'string' ? x1 : x1.toString();
+        y1 = typeof(y1) == 'string' ? y1 : y1.toString();
+        x2 = typeof(x2) == 'string' ? x2 : x2.toString();
+        y2 = typeof(y2) == 'string' ? y2 : y2.toString();
+
+        line.setAttributeNS('', 'x1', x1);
+        line.setAttributeNS('', 'y1', y1);
+        line.setAttributeNS('', 'x2', x2);
+        line.setAttributeNS('', 'y2', y2);
+        attrs = (attrs) ? attrs : [];
+        attrs.forEach((attr) => {
+            var key = Object.keys(attr)[0];
+            key = (key == 'strokewidth') ? 'stroke-width' : key;
+            var val = attr[key];
+            line.setAttributeNS('', key, val);            
+        });
+        if (classes) {
+            line.setAttributeNS('', 'class', classes);
+        }
+        svg.appendChild(line);
+    }
+    
     static textOutlineRect(svg,textElement, color, classes) {
         var box = textElement.getBBox();
         var attrs = [{width:box.width+5,height:box.height+5,stroke:color,strokewidth:'2',fill:'none',x:box.x-5,y:box.y-5}];
