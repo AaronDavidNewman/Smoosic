@@ -77,6 +77,9 @@ class suiController {
 	}
 	
 	handleRedrawTimer() {
+        if ($('body').hasClass('printing')) {
+            return;
+        }
 		    // If there has been a change, redraw the score 
 			if (this.undoStatus != this.undoBuffer.opCount || this.layout.dirty) {				
 				this.layout.dirty=true;				
@@ -203,6 +206,7 @@ class suiController {
 			 .append(b('div').classes('helpDialog'))
              .append(b('div').classes('saveLink'))
 			 .append(b('div').classes('bugDialog'))
+			 .append(b('div').classes('printFrame'))
 			 .append(b('div').classes('menuContainer'))
 			 .append(b('h1').classes('testTitle').text('Smoosic'))
 			 .append(b('div').classes('piano-container')

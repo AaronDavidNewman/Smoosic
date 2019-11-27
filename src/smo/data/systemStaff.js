@@ -104,7 +104,7 @@ class SmoSystemStaff {
         this.modifiers = mods;
     }
 	
-	getModifiesrAt(selector) {
+	getModifiersAt(selector) {
 		var rv = [];
 		this.modifiers.forEach((mod) => {
 			if (SmoSelector.sameNote(mod.startSelector,selector)) {

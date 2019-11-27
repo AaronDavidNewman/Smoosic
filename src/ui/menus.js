@@ -247,9 +247,9 @@ class SuiFileMenu extends suiMenuBase {
 					text: 'Open',
 					value: 'openFile'
 				}, {
-					icon: 'floppy-disk',
-					text: 'Save',
-					value: 'saveFile' 
+					icon: '',
+					text: 'Print',
+					value: 'printScore' 
                 },{
 					icon: '',
 					text: 'Bach Invention',
@@ -264,6 +264,7 @@ class SuiFileMenu extends suiMenuBase {
      }
      selection(ev) {
 		var text = $(ev.currentTarget).attr('data-value');
+        var self=this;
 
 		if (text == 'saveFile') {
             SuiSaveFileDialog.createAndDisplay({
@@ -284,7 +285,43 @@ class SuiFileMenu extends suiMenuBase {
             setTimeout(function() {
             $('body').trigger('forceResizeEvent');
             },1);
-        } else if (text == 'bach') {
+        } else if (text == 'printScore') {
+            $('.printFrame').html('');
+            var svgDoc = $('#boo svg')[0];
+            var s = new XMLSerializer();
+            var svgString = s.serializeToString(svgDoc);
+            var iframe = document.createElement("iframe");
+            var scale = 1.0/this.controller.layout.score.layout.zoomScale;
+            var w=Math.round(scale * $('#boo').width());
+            var h=Math.round(scale * $('#boo').height());
+            $(iframe).attr('width',w);
+            $(iframe).attr('height',h);
+            iframe.srcdoc=svgString;
+            $('body').addClass('printing');
+            $('.printFrame')[0].appendChild(iframe);
+            $('.printFrame').width(w);
+            $('.printFrame').height(h);
+            function resize() {
+                setTimeout(function() {
+                    var svg = $(window.frames[0].document.getElementsByTagName('svg'));
+                    if (svg && svg.length) {
+                        $(window.frames[0].document.getElementsByTagName('svg')).height(h);
+                        $(window.frames[0].document.getElementsByTagName('svg')).width(w);
+                        window.print();
+                        SuiPrintFileDialog.createAndDisplay({
+                            layout: self.controller.tracker.layout,
+                            controller:self.controller,
+                            closeMenuPromise:self.closePromise
+                            });  
+                    } else {
+                        resize();
+                    }
+                },50);
+            }
+            
+            resize();
+        }
+         else if (text == 'bach') {
 			this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
 			var score = SmoScore.deserialize(inventionJson);
 			this.controller.layout.score = score;

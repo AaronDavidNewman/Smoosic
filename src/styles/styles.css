@@ -240,6 +240,14 @@ div.ribbonButtonContainer.expanded {
     font-size:1.6em;
 }
 
+.ribbonButtonContainer .icon.staves.expanded .left-text span.icon {
+    left:20%;
+}
+
+.ribbonButtonContainer .icon.staves.expanded .left-text span.icon.icon-treble  {
+    left:25%;
+}
+
 #clefMoveUp,#clefMoveDown {
     font-size:1em;
 }
@@ -626,6 +634,20 @@ body.splashScreen .bugDialog {
 		display:none;
 	}
 
+}
+
+body.printing .workspace-container {
+    display:none;
+}
+body.printing .printFrame {
+    display:block;
+    overflow:visible;
+}
+.printFrame {
+    display:none;
+}
+.printFrame iframe {
+    background:#fff;
 }
 
 @media screen {

@@ -49,8 +49,15 @@ class PasteBuffer {
 	_populateSelectArray(selections) {
 		var currentTupletParameters = null;
 		var currentTupletNotes = [];
+        this.modifiers=[];
 		selections.forEach((selection) => {
 			var selector = JSON.parse(JSON.stringify(selection.selector));
+            var mod = selection.staff.getModifiersAt(selector);
+            if (mod) {
+                mod.forEach((modifier) => {
+                    this.modifiers.push(StaffModifierBase.deserialize(modifier.serialize()));
+                });
+            }
 			if (selection.note.isTuplet) {
 				var tuplet = selection.measure.getTupletForNote(selection.note);
 				var index = tuplet.getIndexOfNote(selection.note);
@@ -82,6 +89,15 @@ class PasteBuffer {
 	clearSelections() {
 		this.notes = [];
 	}
+    
+    _findModifier(selector) {
+        var rv = this.modifiers.filter((mod) => SmoSelector.eq(selector,mod.startSelector));
+        return (rv && rv.length) ? rv[0] : null;
+    }
+    _findPlacedModifier(selector) {
+        var rv = this.modifiers.filter((mod) => SmoSelector.eq(selector,mod.endSelector));
+        return (rv && rv.length) ? rv[0] : null;        
+    }
 
 	// ### _populateMeasureArray
 	// ### Description:
@@ -89,6 +105,7 @@ class PasteBuffer {
 	// so we know how to place the notes.
 	_populateMeasureArray() {
 		this.measures = [];
+        this.staffSelectors = [];
 		var measureSelection = SmoSelection.measureSelection(this.score, this.destination.staff, this.destination.measure);
 		var measure = measureSelection.measure;
 		this.measures.push(measure);
@@ -206,15 +223,33 @@ class PasteBuffer {
 		return voiceTicks;
 	}
 
+    // ### _populateModifier
+    // If the destination contains a modifier start and end, copy and paste it.
+    _populateModifier(srcSelector,destSelector,staff) {
+        var mod = this._findModifier(srcSelector);
+        // If this is the starting point of a staff modifier, update the selector
+        if (mod) {
+            mod.startSelector = JSON.parse(JSON.stringify(destSelector));
+        }
+        // If this is the ending point of a staff modifier, paste the modifier
+        mod = this._findPlacedModifier(srcSelector);
+        if (mod) {
+            mod.endSelector = JSON.parse(JSON.stringify(destSelector));
+            mod.attrs.id = VF.Element.newID();
+            staff.addStaffModifier(mod);
+        }
+    }
+
 	// ### _populateNew
-	// ### Description:
 	// Start copying the paste buffer into the destination by copying the notes and working out
 	// the measure overlap
 	_populateNew(voice, voiceIndex, measure, tickmap, startSelector) {
 		var currentDuration = tickmap.durationMap[startSelector.tick];
 		var totalDuration = tickmap.totalDuration;
 		while (currentDuration < totalDuration && this.noteIndex < this.notes.length) {
-			var note = this.notes[this.noteIndex].note;
+            var selection = this.notes[this.noteIndex];
+			var note = selection.note;
+            this._populateModifier(selection.selector,startSelector,this.score.staves[selection.selector.staff]);
 			if (note.isTuplet) {
 				var tuplet = this.tupletNoteMap[note.tuplet.id];
 				var index = tuplet.getIndexOfNote(note);

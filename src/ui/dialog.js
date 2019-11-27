@@ -150,12 +150,13 @@ class SuiFileDialog extends SuiDialogBase {
 		}
 		var p = parameters;
         var ctor = eval(parameters.ctor);
+        var label = parameters.label ? parameters.label : 'Dialog Box';
 
 		super(ctor.dialogElements, {
 			id: 'dialog-layout',
 			top: (p.layout.score.layout.pageWidth / 2) - 200,
 			left: (p.layout.score.layout.pageHeight / 2) - 200,
-			label: 'Score Layout'
+			label: label
 		});
         this.startPromise=p.closeMenuPromise;
 		this.layout = p.layout;
@@ -246,6 +247,39 @@ class SuiLoadFileDialog extends SuiFileDialog {
 	}
 }
 
+class SuiPrintFileDialog extends SuiFileDialog {
+    static get dialogElements() {
+		return [];
+    }
+    static createAndDisplay(params) {
+		var dg = new SuiPrintFileDialog({				
+				layout: params.controller.layout,
+				controller: params.controller,
+                closeMenuPromise:params.closeMenuPromise,
+                label: 'Print Complete'
+			});
+		dg.display();
+        
+	}
+    constructor(parameters) {
+        parameters.ctor='SuiPrintFileDialog';
+        parameters.label = 'Print Complete';
+        super(parameters);
+	}
+    changed() {}
+    _bindElements() {
+        var self = this;
+        var dgDom = this.dgDom;       
+   
+		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+            $('body').removeClass('printing');
+            self.complete();
+		});
+
+		$(dgDom.element).find('.cancel-button').remove();
+		$(dgDom.element).find('.remove-button').remove();
+	}       
+}
 class SuiSaveFileDialog extends SuiFileDialog {
    
     static get dialogElements() {
