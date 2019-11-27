@@ -230,9 +230,27 @@ div.ribbonButtonContainer.expanded {
     top: 10%;
     left: 12%;
 }
+#StaveButtons {
+    width:55px;
+    font-size:1.2em;
+}
 
-#NoteButtons span.icon,
+.ribbonButtonContainer .icon.staves.expanded {
+    width:55px;
+    font-size:1.6em;
+}
+
+#clefMoveUp,#clefMoveDown {
+    font-size:1em;
+}
+
 #StaveButtons span.icon {
+    font-size:1.6em;
+    top:0;
+    left:20%;
+}
+
+#NoteButtons span.icon {
 	font-size:2em;
 } 
 

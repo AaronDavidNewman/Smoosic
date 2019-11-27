@@ -6184,7 +6184,7 @@ class SmoUndoable {
         SmoOperation.removeStaff(score, index);
     }
     static changeInstrument(score, instrument, selections, undoBuffer) {
-        undoBuffer.addBuffer('changeInstrument', 'staff', selections[0].selector, score);
+        undoBuffer.addBuffer('changeInstrument', 'staff', selections[0].selector, selections[0].staff);
         SmoOperation.changeInstrument(score, instrument, selections);
     }
 	static pasteBuffer(score,pasteBuffer,selections,undoBuffer,operation) {
