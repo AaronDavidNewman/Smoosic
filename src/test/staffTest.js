@@ -38,10 +38,19 @@ class StaffTest {
 		var drawDefaults = () => {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
 			// measure.applyModifiers();
+            
 			layout.render();
             return timeTest();
-		}		
+		}
+        
+        var test1 = () => {
+            var sel = SmoSelection.noteSelection(score,0,0,0,0);
+            SmoOperation.addGraceNote(sel,new SmoGraceNote({pitches:[{letter:'c',octave:4,accidental:'n'}],ticks:{numerator:2048,denominator:0,remainder:0}}))
+			layout.render();
+            
+            return timeTest();
+        }
       
-        return drawDefaults().then(signalComplete);
+        return drawDefaults().then(test1).then(signalComplete);
     }
 }

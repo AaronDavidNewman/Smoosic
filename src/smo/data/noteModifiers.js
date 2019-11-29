@@ -1,6 +1,10 @@
 
 class SmoNoteModifierBase {
 	constructor(ctor) {
+        this.attrs = {
+            id: VF.Element.newID(),
+            type: ctor
+        };
 		this.ctor = ctor;
 	}
 	static deserialize(jsonObj) {
@@ -10,6 +14,54 @@ class SmoNoteModifierBase {
 		rv.attrs.type = jsonObj.attrs.type;
 		return rv;
 	}
+}
+
+class SmoGraceNote extends SmoNoteModifierBase {
+    static get defaults() {
+        return {
+            flagState:SmoGraceNote.flagStates.auto,
+            noteType: 'n',
+            beamBeats:4096,
+            endBeam:false,
+            clef:'treble',
+            slash:false,
+            
+            ticks: {
+                numerator: 4096,
+                denominator: 1,
+                remainder: 0
+            },
+            pitches: [{
+                    letter: 'b',
+                    octave: 4,
+                    accidental: ''
+                }
+            ],
+        }
+    }
+    // TODO: Matches SmoNote - move to smoMusic?
+    static get flagStates() {
+        return {auto:0,up:1,down:2};
+    }
+    static get parameterArray() {
+        return ['ticks', 'pitches', 'noteType', 'attrs', 'clef', 'endBeam','beamBeats','flagState','slash'];
+    }
+    tickCount() {
+        return this.ticks.numerator / this.ticks.denominator + this.ticks.remainder;
+    }
+    
+    toVexGraceNote() {
+        var p = smoMusic.smoPitchesToVex(this.pitches);
+        var rv = {duration:smoMusic.closestVexDuration(this.tickCount()),pitches:p};
+        return rv;
+    }
+
+    constructor(parameters) {
+        super('SmoGraceNote');
+    	smoMusic.serializedMerge(SmoGraceNote.parameterArray,SmoGraceNote.defaults,this);
+		smoMusic.serializedMerge(SmoGraceNote.parameterArray, parameters, this);
+    }
+    
 }
 
 class SmoArticulation extends SmoNoteModifierBase {
@@ -75,18 +127,11 @@ class SmoArticulation extends SmoNoteModifierBase {
 	}
 	constructor(parameters) {
 		super('SmoArticulation');
-		Vex.Merge(this, SmoArticulation.defaults);
-		smoMusic.filteredMerge(SmoArticulation.attrArray, parameters, this);
+		smoMusic.serializedMerge(SmoArticulation.attrArray,SmoArticulation.defaults,this);
+		smoMusic.serializedMerge(SmoArticulation.attrArray, parameters, this);
 		this.selector = parameters.selector;
 
-		if (!this['attrs']) {
-			this.attrs = {
-				id: VF.Element.newID(),
-				type: 'SmoArticulation'
-			};
-		} else {
-			console.log('inherit attrs');
-		}
+		
 	}
 	get id() {
 		return this.attrs.id;

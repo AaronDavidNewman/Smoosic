@@ -208,6 +208,11 @@ class SmoOperation {
 		selection.measure.setChanged();
 		selection.note.makeNote();
 	}
+    
+    static addGraceNote(selection,offset,g) {
+        selection.note.addGraceNote(offset,g);
+        selection.measure.changed= true;
+    }
 
 	// ## unmakeTuplet
 	// ## Description

@@ -26,7 +26,7 @@ class SmoNote {
         return {auto:0,up:1,down:2};
     }
     static get parameterArray() {
-        return ['ticks', 'pitches', 'noteType', 'tuplet', 'attrs', 'clef', 'endBeam','beamBeats','flagState'];
+        return ['ticks', 'pitches', 'noteType', 'tuplet', 'attrs', 'clef', 'endBeam','beamBeats','flagState','graceNotes'];
     }
     
     toggleFlagState() {
@@ -130,6 +130,27 @@ class SmoNote {
             return keyIndex(a) - keyIndex(b);
         });
     }
+    addGraceNote(params,offset) {
+        params.clef = this.clef;
+        if (this.graceNotes.length > offset) {
+            this.graceNotes[offset]= new SmoGraceNote(params);
+        } else {
+            this.graceNotes.push(new SmoGraceNote(params));
+        }
+    }
+    removeGraceNote(offset) {
+        if (offset >= this.graceNotes.length) {
+            return;
+        }
+        this.graceNotes = this.graceNotes,splice(offset,1);
+    }
+    toVexGraceNotes() {
+        var rv = [];
+        this.graceNotes.forEach((g) => {
+            rv.push(g.toVexGraceNote());
+        });
+        return rv;
+    }
     addPitchOffset(offset) {
         if (this.pitches.length == 0) {
             return this;
@@ -154,19 +175,22 @@ class SmoNote {
     }
 
     transpose(pitchArray, offset, keySignature) {
+        return SmoNote._transpose(this,pitchArray,offset,keySignature);
+    }
+    static _transpose(note,pitchArray, offset, keySignature) {
         var pitches = [];
-        this.noteType = 'n';
+        note.noteType = 'n';
         if (pitchArray.length == 0) {
-            this.pitches.forEach((m) => {
-                pitchArray.push(this.pitches.indexOf(m));
+            note.pitches.forEach((m) => {
+                pitchArray.push(note.pitches.indexOf(m));
             });
         }
         for (var j = 0; j < pitchArray.length; ++j) {
             var index = pitchArray[j];
-            if (index + 1 > this.pitches.length) {
-                this.addPitchOffset(offset);
+            if (index + 1 > note.pitches.length) {
+                note.addPitchOffset(offset);
             } else {
-                var pitch = smoMusic.getKeyOffset(this.pitches[index], offset);
+                var pitch = smoMusic.getKeyOffset(note.pitches[index], offset);
                 if (keySignature) {
                     var letterKey = pitch.letter + pitch.accidental;
                     letterKey = smoMusic.getKeyFriendlyEnharmonic(letterKey, keySignature);
@@ -177,11 +201,11 @@ class SmoNote {
                         pitch.accidental = letterKey.substring(1);
                     }
                 }
-                this.pitches[index] = pitch;
+                note.pitches[index] = pitch;
             }
         }
-        this._sortPitches();
-        return this;
+        note._sortPitches();
+        return note;
     }
     get tickCount() {
         return this.ticks.numerator / this.ticks.denominator + this.ticks.remainder;
@@ -213,14 +237,16 @@ class SmoNote {
         return rv;
     }
 
-    _serializeModifiers() {
-        return JSON.parse(JSON.stringify(this.textModifiers));
+    _serializeModifiers(params) {
+        params.noteModifiers = JSON.parse(JSON.stringify(this.textModifiers));
+        params.graceNotes = JSON.parse(JSON.stringify(this.graceNotes));
+        
     }
     serialize() {
         var params = {};
         smoMusic.serializedMerge(SmoNote.parameterArray, this, params);
         params.ticks = JSON.parse(JSON.stringify(params.ticks));
-        params.noteModifiers = this._serializeModifiers();
+        this._serializeModifiers(params);
         return params;
     }
 
@@ -229,6 +255,7 @@ class SmoNote {
             noteType: 'n',
             textModifiers: [],
             articulations: [],
+            graceNotes:[],
             endBeam: false,
             beamBeats:4096,
             flagState:SmoNote.flagStates.auto,
@@ -251,6 +278,10 @@ class SmoNote {
         jsonObj.noteModifiers.forEach((mod) => {
             note.textModifiers.push(SmoNoteModifierBase.deserialize(mod));
         });
+        jsonObj.graceNotes = jsonObj.graceNotes ? jsonObj.graceNotes : [];
+        jsonObj.graceNotes.forEach((mod) => {            
+            note.graceNotes.push(SmoNoteModifierBase.deserialize(mod));
+        });
         return note;
     }
 }
@@ -265,7 +296,6 @@ class SmoTuplet {
                 type: 'SmoTuplet'
             };
         } else {
-            console.log('inherit attrs');
         }
         this._adjustTicks();
     }
@@ -483,7 +513,6 @@ class SmoBeamGroup {
                 type: 'SmoBeamGroup'
             };
         } else {
-            console.log('inherit attrs');
         }
         for (var i = 0; i < this.notes.length; ++i) {
             var note = this.notes[i];

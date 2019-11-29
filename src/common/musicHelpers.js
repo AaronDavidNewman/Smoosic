@@ -326,7 +326,7 @@ class smoMusic {
 
 	// ### vexToSmoPitch
 	// #### Example:
-	// 'f#' => {letter:'f',accidental:'#'}
+	// ['f#'] => [{letter:'f',accidental:'#'}]
 	static vexToSmoPitch(vexPitch) {
 		var accidental = vexPitch.length < 2 ? 'n' : vexPitch.substring(1, vexPitch.length);
 		return {
@@ -334,6 +334,17 @@ class smoMusic {
 			accidental: accidental
 		};
 	}
+    
+    // ### smoPitchToVes
+	// #### Example:
+    // {letter:'f',accidental:'#'} => [f#/
+    static smoPitchesToVex(pitchAr) {
+        var rv = [];
+        pitchAr.forEach((p) => {
+            rv.push(smoMusic.pitchToVexKey(p));
+        });
+        return rv;
+    }
 
 	static stripVexOctave(vexKey) {
 		if (vexKey.indexOf('/') > 0) {
