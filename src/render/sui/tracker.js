@@ -230,6 +230,10 @@ class suiTracker {
     // Update the svg to screen coordinates based on a change in viewport.
     _updateNoteBox(svg,smoNote) {
         var el = svg.getElementById(smoNote.renderId);
+        if (!el) {
+            console.warn('no element to box');
+            return;
+        }
         svgHelpers.updateArtifactBox(svg,el,smoNote);
         
         // TODO: fix this, only works on the first line.
@@ -807,12 +811,15 @@ class suiTracker {
 		}
 		this.pitchIndex = -1;
 		this.eraseAllSelections();
-		if (this.selections.length === 1) {
+		if (this.selections.length === 1 && this.selections[0].box) {
 			this._drawRect(this.selections[0].box, 'selection');			
 			return;
 		}
 		var sorted = this.selections.sort((a, b) => SmoSelector.gt(a.selector,b.selector) ? 1 : -1);
 		var prevSel = sorted[0];
+        // rendered yet?
+        if (!prevSel.box) 
+            return;
 		var curBox = svgHelpers.smoBox(prevSel.box);
 		var boxes = [];
 		for (var i = 1; i < sorted.length; ++i) {
