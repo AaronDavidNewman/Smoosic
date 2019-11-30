@@ -219,10 +219,26 @@ class suiEditor {
     }
 
     doubleDuration(keyEvent) {
+        var grace = this.tracker.getSelectedGraceNotes();
+        if (grace.length) {
+            grace.forEach((artifact) => {
+                SmoUndoable.doubleGraceNoteDuration(artifact.selection,artifact.modifier,this.undoBuffer);
+            });
+            
+            return;
+        }
         this._batchDurationOperation('doubleDuration');
     }
 
     halveDuration(keyEvent) {
+        var grace = this.tracker.getSelectedGraceNotes();
+        if (grace.length) {
+            grace.forEach((artifact) => {
+                SmoUndoable.halveGraceNoteDuration(artifact.selection,artifact.modifier,this.undoBuffer);
+            });
+            
+            return;
+        }        
         this._batchDurationOperation('halveDuration');
     }
 

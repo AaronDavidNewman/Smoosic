@@ -673,8 +673,19 @@ class suiTracker {
 			this.highlightSelection();
 			return;
 		}
+        
+        var preselected = SmoSelector.sameNote(this.suggestion.selector,this.selections[0].selector) && this.selections.length == 1;
 
 		this.selections = [this.suggestion];
+        if (preselected && this.modifierTabs.length) {
+            var mods  = this.modifierTabs.filter((mm) => mm.selection && SmoSelector.sameNote(mm.selection.selector,this.selections[0].selector));
+            if (mods.length) {
+            this.modifierSelections[0] = mods[0];
+            this.modifierIndex = mods[0].index;
+            this._highlightModifier();
+            return;
+            }
+        }
 		this.score.setActiveStaff(this.selections[0].selector.staff);
 		if (this.selections.length == 0)
 			return;

@@ -6191,9 +6191,20 @@ class SmoUndoable {
     }
     
     static transposeGraceNotes(selection,params,undoBuffer) {
-        undoBuffer.addBuffer('remove grace note',
+        undoBuffer.addBuffer('transpose grace note',
             'measure', selection.selector, selection.measure);
         SmoOperation.transposeGraceNotes(selection,params.modifiers,params.offset);        
+    }
+    static doubleGraceNoteDuration(selection,modifier,undoBuffer) { 
+        undoBuffer.addBuffer('double grace note duration',
+            'measure', selection.selector, selection.measure);
+        SmoOperation.doubleGraceNoteDuration(selection,modifier);            
+    }
+    
+    static halveGraceNoteDuration(selection,modifier,undoBuffer) { 
+        undoBuffer.addBuffer('halve grace note duration',
+            'measure', selection.selector, selection.measure);
+        SmoOperation.halveGraceNoteDuration(selection,modifier);            
     }
     static setPitch(selection, pitches, undoBuffer)  {
         undoBuffer.addBuffer('pitch change ' + JSON.stringify(pitches, null, ' '),
@@ -8084,8 +8095,19 @@ class suiTracker {
 			this.highlightSelection();
 			return;
 		}
+        
+        var preselected = SmoSelector.sameNote(this.suggestion.selector,this.selections[0].selector) && this.selections.length == 1;
 
 		this.selections = [this.suggestion];
+        if (preselected && this.modifierTabs.length) {
+            var mods  = this.modifierTabs.filter((mm) => mm.selection && SmoSelector.sameNote(mm.selection.selector,this.selections[0].selector));
+            if (mods.length) {
+            this.modifierSelections[0] = mods[0];
+            this.modifierIndex = mods[0].index;
+            this._highlightModifier();
+            return;
+            }
+        }
 		this.score.setActiveStaff(this.selections[0].selector.staff);
 		if (this.selections.length == 0)
 			return;
@@ -10160,10 +10182,26 @@ class suiEditor {
     }
 
     doubleDuration(keyEvent) {
+        var grace = this.tracker.getSelectedGraceNotes();
+        if (grace.length) {
+            grace.forEach((artifact) => {
+                SmoUndoable.doubleGraceNoteDuration(artifact.selection,artifact.modifier,this.undoBuffer);
+            });
+            
+            return;
+        }
         this._batchDurationOperation('doubleDuration');
     }
 
     halveDuration(keyEvent) {
+        var grace = this.tracker.getSelectedGraceNotes();
+        if (grace.length) {
+            grace.forEach((artifact) => {
+                SmoUndoable.halveGraceNoteDuration(artifact.selection,artifact.modifier,this.undoBuffer);
+            });
+            
+            return;
+        }        
         this._batchDurationOperation('halveDuration');
     }
 

@@ -135,9 +135,20 @@ class SmoUndoable {
     }
     
     static transposeGraceNotes(selection,params,undoBuffer) {
-        undoBuffer.addBuffer('remove grace note',
+        undoBuffer.addBuffer('transpose grace note',
             'measure', selection.selector, selection.measure);
         SmoOperation.transposeGraceNotes(selection,params.modifiers,params.offset);        
+    }
+    static doubleGraceNoteDuration(selection,modifier,undoBuffer) { 
+        undoBuffer.addBuffer('double grace note duration',
+            'measure', selection.selector, selection.measure);
+        SmoOperation.doubleGraceNoteDuration(selection,modifier);            
+    }
+    
+    static halveGraceNoteDuration(selection,modifier,undoBuffer) { 
+        undoBuffer.addBuffer('halve grace note duration',
+            'measure', selection.selector, selection.measure);
+        SmoOperation.halveGraceNoteDuration(selection,modifier);            
     }
     static setPitch(selection, pitches, undoBuffer)  {
         undoBuffer.addBuffer('pitch change ' + JSON.stringify(pitches, null, ' '),
