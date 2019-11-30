@@ -1481,12 +1481,12 @@ class SmoNote {
         this._addArticulation(articulation, true);
     }
 
-    _sortPitches() {
+    static _sortPitches(note) {
         var canon = VF.Music.canonical_notes;
         var keyIndex = ((pitch) => {
             return canon.indexOf(pitch.letter) + pitch.octave * 12;
         });
-        this.pitches.sort((a, b) => {
+        note.pitches.sort((a, b) => {
             return keyIndex(a) - keyIndex(b);
         });
     }
@@ -1502,7 +1502,7 @@ class SmoNote {
         if (offset >= this.graceNotes.length) {
             return;
         }
-        this.graceNotes = this.graceNotes,splice(offset,1);
+        this.graceNotes.splice(offset,1);        
     }
     getGraceNotes() {
         return this.graceNotes;
@@ -1515,7 +1515,7 @@ class SmoNote {
         var pitch = this.pitches[0];
         this.pitches.push(smoMusic.getKeyOffset(pitch, offset));
 
-        this._sortPitches();
+        SmoNote._sortPitches(this);
     }
 
     makeRest() {
@@ -1560,7 +1560,7 @@ class SmoNote {
                 note.pitches[index] = pitch;
             }
         }
-        note._sortPitches();
+        SmoNote._sortPitches(note);
         return note;
     }
     get tickCount() {
@@ -5580,6 +5580,43 @@ class SmoOperation {
         selection.note.addGraceNote(offset,g);
         selection.measure.changed= true;
     }
+    
+    static removeGraceNote(selection,offset) {
+        selection.note.removeGraceNote(offset);
+        selection.measure.changed= true;
+    }
+    
+    static doubleGraceNoteDuration(selection,modifiers) {
+        if (!Array.isArray(modifiers)) {
+            modifiers=[modifiers];
+        }
+        modifiers.forEach((mm) => {
+            mm.ticks.numerator = mm.ticks.numerator * 2;
+        });
+        selection.measure.changed = true;
+    }
+    static halveGraceNoteDuration(selection,modifiers) {
+        if (!Array.isArray(modifiers)) {
+            modifiers=[modifiers];
+        }
+        modifiers.forEach((mm) => {
+            mm.ticks.numerator = mm.ticks.numerator / 2;
+        });
+        selection.measure.changed = true;
+    }
+    
+    static transposeGraceNotes(selection,modifiers,offset) {
+        if (!Array.isArray(modifiers)) {
+            modifiers=[modifiers];
+        }
+        modifiers.forEach((mm) => {
+            var par = [];
+            mm.pitches.forEach((pitch)=> {
+                par.push(par.length);
+            });
+            SmoNote._transpose(mm,par, offset, selection.measure.keySignature);
+        });
+    }
 
 	// ## unmakeTuplet
 	// ## Description
@@ -6146,6 +6183,17 @@ class SmoUndoable {
             'measure', selection.selector, selection.measure);
         var pitches = JSON.parse(JSON.stringify(selection.note.pitches));
         SmoOperation.addGraceNote(selection,new SmoGraceNote({pitches:pitches,ticks:{numerator:2048,denominator:1,remainder:0}}))
+    }
+    static removeGraceNote(selection,params,undoBuffer) {
+        undoBuffer.addBuffer('remove grace note',
+            'measure', selection.selector, selection.measure);
+        SmoOperation.removeGraceNote(selection,params.index);        
+    }
+    
+    static transposeGraceNotes(selection,params,undoBuffer) {
+        undoBuffer.addBuffer('remove grace note',
+            'measure', selection.selector, selection.measure);
+        SmoOperation.transposeGraceNotes(selection,params.modifiers,params.offset);        
     }
     static setPitch(selection, pitches, undoBuffer)  {
         undoBuffer.addBuffer('pitch change ' + JSON.stringify(pitches, null, ' '),
@@ -6786,6 +6834,36 @@ class VxMeasure {
             vexL.addClass(classString);
         });
     }
+    
+    _createGraceNotes(smoNote,vexNote) {
+        var gar = smoNote.getGraceNotes();
+        var toBeam = true;
+        if (gar && gar.length) {
+            var group = [];
+            gar.forEach((g) => {
+                var gr = new VF.GraceNote(g.toVexGraceNote());
+                for (var i=0;i<g.pitches.length;++i) {
+                    var pitch = g.pitches[i];
+                    if (pitch.accidental != 'n') {
+                        gr.addAccidental(i,new VF.Accidental(pitch.accidental));
+                    }
+                }
+                if (g.tickCount() > 4096) {
+                    toBeam = false;
+                }
+                gr.addClass('grace-note'); // note: this doesn't work :(
+                
+                g.renderedId = gr.attrs.id;
+                group.push(gr);
+            });
+            var grace = new VF.GraceNoteGroup(group);
+            if (toBeam) {
+                grace.beamNotes();
+            }
+            
+            vexNote.addModifier(0,grace);
+        }
+    }
 
     // ## Description:
     // convert a smoNote into a vxNote so it can be rasterized
@@ -6817,16 +6895,7 @@ class VxMeasure {
 
 		this._createAccidentals(smoNote,vexNote,tickIndex);
         this._createLyric(smoNote,vexNote);
-        var gar = smoNote.getGraceNotes();
-        if (gar && gar.length) {
-            var group = [];
-            gar.forEach((g) => {
-                group.push(new VF.GraceNote(g.toVexGraceNote()));
-            });
-            var grace = new VF.GraceNoteGroup(group).beamNotes();
-            vexNote.addModifier(0,grace);
-        }
-        
+        this._createGraceNotes(smoNote,vexNote);
 		
         return vexNote;
     }
@@ -6990,6 +7059,28 @@ class VxMeasure {
         }
 		
 	}
+    
+    _setModifierBoxes() {
+        this.smoMeasure.voices.forEach((voice) => {
+			voice.notes.forEach((smoNote) =>  {
+                var el = this.context.svg.getElementById(smoNote.renderId);
+				svgHelpers.updateArtifactBox(this.context.svg,el,smoNote);
+                
+                // TODO: fix this, only works on the first line.
+                smoNote.getModifiers('SmoLyric').forEach((lyric) => {
+                    var ar = Array.from(el.getElementsByClassName('vf-lyric'));
+                    ar.forEach((lbox) => {
+                        svgHelpers.updateArtifactBox(this.context.svg,lbox,lyric);
+                    });
+                });
+                smoNote.graceNotes.forEach((g) => {
+                    var gel = this.context.svg.getElementById('vf-'+g.renderedId);
+                    $(gel).addClass('grace-note');
+                    svgHelpers.updateArtifactBox(this.context.svg,gel,g);
+                });
+            });
+        });
+    }
 
     // ## Description:
     // Render all the notes in my smoMeasure.  All rendering logic is called from here.
@@ -7081,22 +7172,7 @@ class VxMeasure {
         };		
 		this.smoMeasure.logicalBox = lbox;
         this.smoMeasure.changed = false;
-		
-
-		this.smoMeasure.voices.forEach((voice) => {
-			voice.notes.forEach((smoNote) =>  {
-                var el = this.context.svg.getElementById(smoNote.renderId);
-				svgHelpers.updateArtifactBox(this.context.svg,el,smoNote);
-                
-                // TODO: fix this, only works on the first line.
-                smoNote.getModifiers('SmoLyric').forEach((lyric) => {
-                    var ar = Array.from(el.getElementsByClassName('vf-lyric'));
-                    ar.forEach((lbox) => {
-                        svgHelpers.updateArtifactBox(this.context.svg,lbox,lyric);
-                    });
-                });
-            });
-        });
+		this._setModifierBoxes();		
     }
 }
 ;// ## Description:
@@ -7356,6 +7432,7 @@ class suiTracker {
 		this.objectGroupMap = {};
 		this.objects = [];
 		this.selections = [];
+        this.modifierSelections = [];
 		this.modifierTabs = [];
 		this.modifierIndex = -1;
 		this.modifierSuggestion=-1;
@@ -7400,10 +7477,35 @@ class suiTracker {
         var el;
         if (modifier.attrs.type === 'SmoLyric') {
             el = $(modifier.selector)[0];
+        } else if (modifier.attrs.type === 'SmoGraceNote') { 
+            el = this.context.svg.getElementById('vf-'+modifier.renderedId);
         } else {
             el = this.context.svg.getElementsByClassName(modifier.attrs.id)[0];
         }
+        if (!el) {
+            console.warn('cannot rebox element '+modifier.attrs.id);
+            return;
+        }
         svgHelpers.updateArtifactBox(this.context.svg,el,modifier);
+    }
+    
+    _updateNoteModifier(rebox,selection,modMap,modifier,ix) {
+        if (!modMap[modifier.attrs.id]) {
+            if (rebox) {
+                this._reboxTextModifier(modifier);
+            }
+            this.modifierTabs.push({
+                modifier: modifier,
+                selection: selection,
+                box:modifier.renderedBox,
+                index:ix
+            });
+            ix += 1;
+            modMap[modifier.attrs.id] = {
+                exists: true
+            };
+        }
+        return ix;
     }
 
 	_updateModifiers(rebox) {
@@ -7453,7 +7555,7 @@ class suiTracker {
 				}
 			});
 			selection.measure.modifiers.forEach((modifier) => {
-				if (modifier.id && !modMap[modifier.id]) {
+				if (modifier.id && !modMap[modifier.attrs.id]) {
                     if (rebox) {
                         var el = this.context.svg.getElementsByClassName(modifier.id)[0];
                         svgHelpers.updateArtifactBox(this.context.svg,el,modifier);
@@ -7465,49 +7567,32 @@ class suiTracker {
 						index:ix
 					});
 					ix += 1;
-					modMap[modifier.id] = {
+					modMap[modifier.attrs.id] = {
 						exists: true
 					};
 				}
 			});
 			selection.note.textModifiers.forEach((modifier) => {
-				if (!modMap[modifier.id]) {
-                    if (rebox) {
-                        this._reboxTextModifier(modifier);
-                    }
-					this.modifierTabs.push({
-						modifier: modifier,
-						selection: selection,
-						box:modifier.renderedBox,
-						index:ix
-					});
-					ix += 1;
-					modMap[modifier.id] = {
-						exists: true
-					};
-				}
+                ix = this._updateNoteModifier(rebox,selection,modMap,modifier,ix);
 			});
+            
+            selection.note.graceNotes.forEach((modifier) => {
+                ix = this._updateNoteModifier(rebox,selection,modMap,modifier,ix);
+            });
 		});
 	}
 
-	_highlightModifier() {
-		if (this.modifierIndex >= 0 && this.modifierIndex < this.modifierTabs.length) {
-			var modSelection = this.modifierTabs[this.modifierIndex];
-			if (modSelection.modifier.renderedBox) {
-				this._drawRect(modSelection.modifier.renderedBox, 'staffModifier');
-			}
-		}
-	}
-    
     // ### selectModifierById
     // programatically select a modifier by ID
     selectId(id) {
         this.modifierIndex = this.modifierTabs.findIndex((mm) =>  mm.modifier.attrs.id==id);        
     }
 
+    // TODO: this is not called right now...
 	clearModifierSelections() {
 		this.modifierTabs = [];
 		this.modifierIndex = -1;
+        this.modifierSelections=[];
 		this.eraseRect('staffModifier');
 		this.pasteBuffer.clearSelections();
 	}
@@ -7516,6 +7601,10 @@ class suiTracker {
 			return this.modifierTabs[this.modifierIndex];
 		}
 	}
+    
+    getSelectedModifiers() {
+        return this.modifierSelections;
+    }
 
 	advanceModifierSelection() {
 		this.eraseRect('staffModifier');
@@ -7524,8 +7613,10 @@ class suiTracker {
 			return;
 		}
 		this.modifierIndex = this.modifierIndex + 1;
+        this.modifierSelections.push(this.modifierTabs[this.modifierIndex]);
 		if (this.modifierIndex >= this.modifierTabs.length) {
 			this.modifierIndex = -1;
+            this.modifierSelections=[];
 			return;
 		}
 		this._highlightModifier();
@@ -7729,8 +7820,46 @@ class suiTracker {
 		}
 		return {};
 	}
+    
+    getSelectedGraceNotes() {
+        if (!this.modifierSelections.length) {
+            return [];
+        }
+        var ff = this.modifierSelections.filter((mm) => {
+            return mm.modifier.attrs.type == 'SmoGraceNote';
+        });
+        return ff;
+    }
+    
+    isGraceNoteSelected() {
+        if (this.modifierSelections.length) {
+            var ff = this.modifierSelections.findIndex((mm)=> mm.modifier.attrs.type == 'SmoGraceNote');
+            return ff >= 0;
+        }
+    }
+    
+    _growGraceNoteSelections(offset) {
+        var far = this.modifierSelections.filter((mm)=> mm.modifier.attrs.type == 'SmoGraceNote');
+        if (!far.length) {
+            return;
+        }
+        var ix = (offset < 0) ? 0 : far.length-1;
+        var sel = far[ix];
+        var left = this.modifierTabs.filter((mt) => {
+            return mt.modifier.attrs.type == 'SmoGraceNote' && SmoSelector.sameNote(mt.selection.selector,sel.selection.selector);
+        });
+        if (ix+offset < 0 || ix+offset >= left.length) {
+            return;
+        }
+        this.modifierSelections.push(left[ix+offset]);
+        this._highlightModifier();
+    }
 
 	growSelectionRight() {
+        if (this.isGraceNoteSelected()) {
+            this._growGraceNoteSelections(1);
+            return;
+        }
 		var nselect = this._getOffsetSelection(1);
 		// already selected
 		var artifact = this._getClosestTick(nselect);
@@ -7745,10 +7874,13 @@ class suiTracker {
 		this.selections.push(artifact);
 		this.highlightSelection();
 		this.triggerSelection();
-		return artifact.note.tickCount;
 	}
 
 	growSelectionLeft() {
+        if (this.isGraceNoteSelected()) {
+            this._growGraceNoteSelections(-1);
+            return;
+        }
 		var nselect = this._getOffsetSelection(-1);
 		// already selected
 		var artifact = this._getClosestTick(nselect);
@@ -7763,7 +7895,6 @@ class suiTracker {
 		this.selections.push(artifact);
 		this.highlightSelection();
 		this.triggerSelection();
-		return artifact.note.tickCount;
 	}
 
 	moveSelectionRight() {
@@ -7860,6 +7991,9 @@ class suiTracker {
 
 	_replaceSelection(nselector) {
 		var artifact = SmoSelection.noteSelection(this.score, nselector.staff, nselector.measure, nselector.voice, nselector.tick);
+        
+        // clear modifier selections
+        this.modifierSelections=[];
 		this.score.setActiveStaff(nselector.staff);
 		var mapped = this.objects.find((el) => {
 				return SmoSelector.sameNote(el.selector, artifact.selector);
@@ -8044,6 +8178,22 @@ class suiTracker {
 	eraseRect(stroke) {
 		$(this.renderElement).find('g.vf-' + stroke).remove();
 	}
+    
+    _highlightModifier() {
+        if (!this.modifierSelections.length) {
+            return;
+        }
+        var box=null;
+        this.modifierSelections.forEach((artifact) => {
+            if (!box) {
+                box = artifact.modifier.renderedBox;
+            }
+            else {
+                box = svgHelpers.unionRect(box,artifact.modifier.renderedBox);
+            }
+        });
+        this._drawRect(box, 'staffModifier');
+	}    
 
 	_highlightPitchSelection(note, index) {
 		this.eraseAllSelections();
@@ -9923,6 +10073,14 @@ class suiEditor {
     }
 
     transpose(offset) {
+        var grace = this.tracker.getSelectedGraceNotes();
+        if (grace.length) {
+            grace.forEach((artifact) => {
+                SmoUndoable.transposeGraceNotes(artifact.selection,{modifiers:artifact.modifier,offset:offset},this.undoBuffer);
+            });
+            
+            return;
+        }
         this.tracker.selections.forEach((selected) => this._transpose(selected, offset,false));
         this._render();
     }
@@ -10044,6 +10202,9 @@ class suiEditor {
 
     unmakeTuplet(keyEvent) {
         this._singleSelectionOperation('unmakeTuplet');
+    }
+    removeGraceNote(keyEvent) {
+        this._singleSelectionOperation('removeGraceNote',{index:0});
     }
     addGraceNote(keyEvent) {
         this._singleSelectionOperation('addGraceNote');
@@ -11158,6 +11319,13 @@ class SuiExceptionHandler {
 				altKey: false,
 				shiftKey: true,
 				action: "addGraceNote"
+			}, {
+				event: "keydown",
+				key: "g",
+				ctrlKey: false,
+				altKey: true,
+				shiftKey: false,
+				action: "removeGraceNote"
 			}, {
 				event: "keydown",
 				key: "c",

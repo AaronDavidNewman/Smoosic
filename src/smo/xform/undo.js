@@ -128,6 +128,17 @@ class SmoUndoable {
         var pitches = JSON.parse(JSON.stringify(selection.note.pitches));
         SmoOperation.addGraceNote(selection,new SmoGraceNote({pitches:pitches,ticks:{numerator:2048,denominator:1,remainder:0}}))
     }
+    static removeGraceNote(selection,params,undoBuffer) {
+        undoBuffer.addBuffer('remove grace note',
+            'measure', selection.selector, selection.measure);
+        SmoOperation.removeGraceNote(selection,params.index);        
+    }
+    
+    static transposeGraceNotes(selection,params,undoBuffer) {
+        undoBuffer.addBuffer('remove grace note',
+            'measure', selection.selector, selection.measure);
+        SmoOperation.transposeGraceNotes(selection,params.modifiers,params.offset);        
+    }
     static setPitch(selection, pitches, undoBuffer)  {
         undoBuffer.addBuffer('pitch change ' + JSON.stringify(pitches, null, ' '),
             'measure', selection.selector, selection.measure);

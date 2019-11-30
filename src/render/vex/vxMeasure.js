@@ -110,6 +110,36 @@ class VxMeasure {
             vexL.addClass(classString);
         });
     }
+    
+    _createGraceNotes(smoNote,vexNote) {
+        var gar = smoNote.getGraceNotes();
+        var toBeam = true;
+        if (gar && gar.length) {
+            var group = [];
+            gar.forEach((g) => {
+                var gr = new VF.GraceNote(g.toVexGraceNote());
+                for (var i=0;i<g.pitches.length;++i) {
+                    var pitch = g.pitches[i];
+                    if (pitch.accidental != 'n') {
+                        gr.addAccidental(i,new VF.Accidental(pitch.accidental));
+                    }
+                }
+                if (g.tickCount() > 4096) {
+                    toBeam = false;
+                }
+                gr.addClass('grace-note'); // note: this doesn't work :(
+                
+                g.renderedId = gr.attrs.id;
+                group.push(gr);
+            });
+            var grace = new VF.GraceNoteGroup(group);
+            if (toBeam) {
+                grace.beamNotes();
+            }
+            
+            vexNote.addModifier(0,grace);
+        }
+    }
 
     // ## Description:
     // convert a smoNote into a vxNote so it can be rasterized
@@ -141,16 +171,7 @@ class VxMeasure {
 
 		this._createAccidentals(smoNote,vexNote,tickIndex);
         this._createLyric(smoNote,vexNote);
-        var gar = smoNote.getGraceNotes();
-        if (gar && gar.length) {
-            var group = [];
-            gar.forEach((g) => {
-                group.push(new VF.GraceNote(g.toVexGraceNote()));
-            });
-            var grace = new VF.GraceNoteGroup(group).beamNotes();
-            vexNote.addModifier(0,grace);
-        }
-        
+        this._createGraceNotes(smoNote,vexNote);
 		
         return vexNote;
     }
@@ -314,6 +335,28 @@ class VxMeasure {
         }
 		
 	}
+    
+    _setModifierBoxes() {
+        this.smoMeasure.voices.forEach((voice) => {
+			voice.notes.forEach((smoNote) =>  {
+                var el = this.context.svg.getElementById(smoNote.renderId);
+				svgHelpers.updateArtifactBox(this.context.svg,el,smoNote);
+                
+                // TODO: fix this, only works on the first line.
+                smoNote.getModifiers('SmoLyric').forEach((lyric) => {
+                    var ar = Array.from(el.getElementsByClassName('vf-lyric'));
+                    ar.forEach((lbox) => {
+                        svgHelpers.updateArtifactBox(this.context.svg,lbox,lyric);
+                    });
+                });
+                smoNote.graceNotes.forEach((g) => {
+                    var gel = this.context.svg.getElementById('vf-'+g.renderedId);
+                    $(gel).addClass('grace-note');
+                    svgHelpers.updateArtifactBox(this.context.svg,gel,g);
+                });
+            });
+        });
+    }
 
     // ## Description:
     // Render all the notes in my smoMeasure.  All rendering logic is called from here.
@@ -405,21 +448,6 @@ class VxMeasure {
         };		
 		this.smoMeasure.logicalBox = lbox;
         this.smoMeasure.changed = false;
-		
-
-		this.smoMeasure.voices.forEach((voice) => {
-			voice.notes.forEach((smoNote) =>  {
-                var el = this.context.svg.getElementById(smoNote.renderId);
-				svgHelpers.updateArtifactBox(this.context.svg,el,smoNote);
-                
-                // TODO: fix this, only works on the first line.
-                smoNote.getModifiers('SmoLyric').forEach((lyric) => {
-                    var ar = Array.from(el.getElementsByClassName('vf-lyric'));
-                    ar.forEach((lbox) => {
-                        svgHelpers.updateArtifactBox(this.context.svg,lbox,lyric);
-                    });
-                });
-            });
-        });
+		this._setModifierBoxes();		
     }
 }

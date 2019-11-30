@@ -87,6 +87,13 @@ class defaultEditorKeys {
 				action: "addGraceNote"
 			}, {
 				event: "keydown",
+				key: "g",
+				ctrlKey: false,
+				altKey: true,
+				shiftKey: false,
+				action: "removeGraceNote"
+			}, {
+				event: "keydown",
 				key: "c",
 				ctrlKey: false,
 				altKey: false,

@@ -139,6 +139,14 @@ class suiEditor {
     }
 
     transpose(offset) {
+        var grace = this.tracker.getSelectedGraceNotes();
+        if (grace.length) {
+            grace.forEach((artifact) => {
+                SmoUndoable.transposeGraceNotes(artifact.selection,{modifiers:artifact.modifier,offset:offset},this.undoBuffer);
+            });
+            
+            return;
+        }
         this.tracker.selections.forEach((selected) => this._transpose(selected, offset,false));
         this._render();
     }
@@ -260,6 +268,9 @@ class suiEditor {
 
     unmakeTuplet(keyEvent) {
         this._singleSelectionOperation('unmakeTuplet');
+    }
+    removeGraceNote(keyEvent) {
+        this._singleSelectionOperation('removeGraceNote',{index:0});
     }
     addGraceNote(keyEvent) {
         this._singleSelectionOperation('addGraceNote');

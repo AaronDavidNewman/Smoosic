@@ -21,6 +21,7 @@ class suiTracker {
 		this.objectGroupMap = {};
 		this.objects = [];
 		this.selections = [];
+        this.modifierSelections = [];
 		this.modifierTabs = [];
 		this.modifierIndex = -1;
 		this.modifierSuggestion=-1;
@@ -65,10 +66,35 @@ class suiTracker {
         var el;
         if (modifier.attrs.type === 'SmoLyric') {
             el = $(modifier.selector)[0];
+        } else if (modifier.attrs.type === 'SmoGraceNote') { 
+            el = this.context.svg.getElementById('vf-'+modifier.renderedId);
         } else {
             el = this.context.svg.getElementsByClassName(modifier.attrs.id)[0];
         }
+        if (!el) {
+            console.warn('cannot rebox element '+modifier.attrs.id);
+            return;
+        }
         svgHelpers.updateArtifactBox(this.context.svg,el,modifier);
+    }
+    
+    _updateNoteModifier(rebox,selection,modMap,modifier,ix) {
+        if (!modMap[modifier.attrs.id]) {
+            if (rebox) {
+                this._reboxTextModifier(modifier);
+            }
+            this.modifierTabs.push({
+                modifier: modifier,
+                selection: selection,
+                box:modifier.renderedBox,
+                index:ix
+            });
+            ix += 1;
+            modMap[modifier.attrs.id] = {
+                exists: true
+            };
+        }
+        return ix;
     }
 
 	_updateModifiers(rebox) {
@@ -118,7 +144,7 @@ class suiTracker {
 				}
 			});
 			selection.measure.modifiers.forEach((modifier) => {
-				if (modifier.id && !modMap[modifier.id]) {
+				if (modifier.id && !modMap[modifier.attrs.id]) {
                     if (rebox) {
                         var el = this.context.svg.getElementsByClassName(modifier.id)[0];
                         svgHelpers.updateArtifactBox(this.context.svg,el,modifier);
@@ -130,49 +156,32 @@ class suiTracker {
 						index:ix
 					});
 					ix += 1;
-					modMap[modifier.id] = {
+					modMap[modifier.attrs.id] = {
 						exists: true
 					};
 				}
 			});
 			selection.note.textModifiers.forEach((modifier) => {
-				if (!modMap[modifier.id]) {
-                    if (rebox) {
-                        this._reboxTextModifier(modifier);
-                    }
-					this.modifierTabs.push({
-						modifier: modifier,
-						selection: selection,
-						box:modifier.renderedBox,
-						index:ix
-					});
-					ix += 1;
-					modMap[modifier.id] = {
-						exists: true
-					};
-				}
+                ix = this._updateNoteModifier(rebox,selection,modMap,modifier,ix);
 			});
+            
+            selection.note.graceNotes.forEach((modifier) => {
+                ix = this._updateNoteModifier(rebox,selection,modMap,modifier,ix);
+            });
 		});
 	}
 
-	_highlightModifier() {
-		if (this.modifierIndex >= 0 && this.modifierIndex < this.modifierTabs.length) {
-			var modSelection = this.modifierTabs[this.modifierIndex];
-			if (modSelection.modifier.renderedBox) {
-				this._drawRect(modSelection.modifier.renderedBox, 'staffModifier');
-			}
-		}
-	}
-    
     // ### selectModifierById
     // programatically select a modifier by ID
     selectId(id) {
         this.modifierIndex = this.modifierTabs.findIndex((mm) =>  mm.modifier.attrs.id==id);        
     }
 
+    // TODO: this is not called right now...
 	clearModifierSelections() {
 		this.modifierTabs = [];
 		this.modifierIndex = -1;
+        this.modifierSelections=[];
 		this.eraseRect('staffModifier');
 		this.pasteBuffer.clearSelections();
 	}
@@ -181,6 +190,10 @@ class suiTracker {
 			return this.modifierTabs[this.modifierIndex];
 		}
 	}
+    
+    getSelectedModifiers() {
+        return this.modifierSelections;
+    }
 
 	advanceModifierSelection() {
 		this.eraseRect('staffModifier');
@@ -189,8 +202,10 @@ class suiTracker {
 			return;
 		}
 		this.modifierIndex = this.modifierIndex + 1;
+        this.modifierSelections.push(this.modifierTabs[this.modifierIndex]);
 		if (this.modifierIndex >= this.modifierTabs.length) {
 			this.modifierIndex = -1;
+            this.modifierSelections=[];
 			return;
 		}
 		this._highlightModifier();
@@ -394,8 +409,46 @@ class suiTracker {
 		}
 		return {};
 	}
+    
+    getSelectedGraceNotes() {
+        if (!this.modifierSelections.length) {
+            return [];
+        }
+        var ff = this.modifierSelections.filter((mm) => {
+            return mm.modifier.attrs.type == 'SmoGraceNote';
+        });
+        return ff;
+    }
+    
+    isGraceNoteSelected() {
+        if (this.modifierSelections.length) {
+            var ff = this.modifierSelections.findIndex((mm)=> mm.modifier.attrs.type == 'SmoGraceNote');
+            return ff >= 0;
+        }
+    }
+    
+    _growGraceNoteSelections(offset) {
+        var far = this.modifierSelections.filter((mm)=> mm.modifier.attrs.type == 'SmoGraceNote');
+        if (!far.length) {
+            return;
+        }
+        var ix = (offset < 0) ? 0 : far.length-1;
+        var sel = far[ix];
+        var left = this.modifierTabs.filter((mt) => {
+            return mt.modifier.attrs.type == 'SmoGraceNote' && SmoSelector.sameNote(mt.selection.selector,sel.selection.selector);
+        });
+        if (ix+offset < 0 || ix+offset >= left.length) {
+            return;
+        }
+        this.modifierSelections.push(left[ix+offset]);
+        this._highlightModifier();
+    }
 
 	growSelectionRight() {
+        if (this.isGraceNoteSelected()) {
+            this._growGraceNoteSelections(1);
+            return;
+        }
 		var nselect = this._getOffsetSelection(1);
 		// already selected
 		var artifact = this._getClosestTick(nselect);
@@ -410,10 +463,13 @@ class suiTracker {
 		this.selections.push(artifact);
 		this.highlightSelection();
 		this.triggerSelection();
-		return artifact.note.tickCount;
 	}
 
 	growSelectionLeft() {
+        if (this.isGraceNoteSelected()) {
+            this._growGraceNoteSelections(-1);
+            return;
+        }
 		var nselect = this._getOffsetSelection(-1);
 		// already selected
 		var artifact = this._getClosestTick(nselect);
@@ -428,7 +484,6 @@ class suiTracker {
 		this.selections.push(artifact);
 		this.highlightSelection();
 		this.triggerSelection();
-		return artifact.note.tickCount;
 	}
 
 	moveSelectionRight() {
@@ -525,6 +580,9 @@ class suiTracker {
 
 	_replaceSelection(nselector) {
 		var artifact = SmoSelection.noteSelection(this.score, nselector.staff, nselector.measure, nselector.voice, nselector.tick);
+        
+        // clear modifier selections
+        this.modifierSelections=[];
 		this.score.setActiveStaff(nselector.staff);
 		var mapped = this.objects.find((el) => {
 				return SmoSelector.sameNote(el.selector, artifact.selector);
@@ -709,6 +767,22 @@ class suiTracker {
 	eraseRect(stroke) {
 		$(this.renderElement).find('g.vf-' + stroke).remove();
 	}
+    
+    _highlightModifier() {
+        if (!this.modifierSelections.length) {
+            return;
+        }
+        var box=null;
+        this.modifierSelections.forEach((artifact) => {
+            if (!box) {
+                box = artifact.modifier.renderedBox;
+            }
+            else {
+                box = svgHelpers.unionRect(box,artifact.modifier.renderedBox);
+            }
+        });
+        this._drawRect(box, 'staffModifier');
+	}    
 
 	_highlightPitchSelection(note, index) {
 		this.eraseAllSelections();

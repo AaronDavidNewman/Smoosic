@@ -130,12 +130,12 @@ class SmoNote {
         this._addArticulation(articulation, true);
     }
 
-    _sortPitches() {
+    static _sortPitches(note) {
         var canon = VF.Music.canonical_notes;
         var keyIndex = ((pitch) => {
             return canon.indexOf(pitch.letter) + pitch.octave * 12;
         });
-        this.pitches.sort((a, b) => {
+        note.pitches.sort((a, b) => {
             return keyIndex(a) - keyIndex(b);
         });
     }
@@ -151,7 +151,7 @@ class SmoNote {
         if (offset >= this.graceNotes.length) {
             return;
         }
-        this.graceNotes = this.graceNotes,splice(offset,1);
+        this.graceNotes.splice(offset,1);        
     }
     getGraceNotes() {
         return this.graceNotes;
@@ -164,7 +164,7 @@ class SmoNote {
         var pitch = this.pitches[0];
         this.pitches.push(smoMusic.getKeyOffset(pitch, offset));
 
-        this._sortPitches();
+        SmoNote._sortPitches(this);
     }
 
     makeRest() {
@@ -209,7 +209,7 @@ class SmoNote {
                 note.pitches[index] = pitch;
             }
         }
-        note._sortPitches();
+        SmoNote._sortPitches(note);
         return note;
     }
     get tickCount() {

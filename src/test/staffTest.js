@@ -51,7 +51,33 @@ class StaffTest {
             
             return timeTest();
         }
+        
+        var test2 = () => {
+            var sel = SmoSelection.noteSelection(score,0,0,0,0);
+            SmoOperation.removeGraceNote(sel,0);
+			layout.render();
+            
+            return timeTest();
+        }
+
+        var test3 = () => {
+            var sel = SmoSelection.noteSelection(score,0,0,0,0);
+            SmoOperation.addGraceNote(sel,new SmoGraceNote({pitches:[{letter:'c',octave:5,accidental:'n'}],ticks:{numerator:1024,denominator:1,remainder:0}}))
+            SmoOperation.doubleGraceNoteDuration(sel,sel.note.getGraceNotes());
+			layout.render();
+            
+            return timeTest();
+        }
+
+        var test4 = () => {
+            var sel = SmoSelection.noteSelection(score,0,0,0,0);
+            SmoOperation.halveGraceNoteDuration(sel,sel.note.getGraceNotes());
+            SmoOperation.transposeGraceNotes(sel,sel.note.getGraceNotes()[0],-4);
+			layout.render();
+            
+            return timeTest();
+        }
       
-        return drawDefaults().then(test1).then(signalComplete);
+        return drawDefaults().then(test1).then(test2).then(test3).then(test4).then(signalComplete);
     }
 }
