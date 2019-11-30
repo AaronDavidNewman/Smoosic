@@ -97,7 +97,12 @@ class suiTracker {
 					if (!modMap[modifier.id]) {
                         if (rebox) {
                             var el = this.context.svg.getElementsByClassName(modifier.id)[0];
-                            svgHelpers.updateArtifactBox(this.context.svg,el,modifier);
+                            // Bug: some slurs are not showing up in the DOM.
+                            if (el) {
+                                svgHelpers.updateArtifactBox(this.context.svg,el,modifier);
+                            } else {
+                                console.log('missing slur '+modifier.id);
+                            }
                         }
 						this.modifierTabs.push({
 							modifier: modifier,

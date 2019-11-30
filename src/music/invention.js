@@ -3,7 +3,7 @@ var inventionJson = `{
   "layout": {
    "leftMargin": 30,
    "rightMargin": 30,
-   "topMargin": 261.390625,
+   "topMargin": 324.984375,
    "bottomMargin": 40,
    "pageWidth": 816,
    "pageHeight": 1056,
@@ -195,6 +195,70 @@ var inventionJson = `{
      },
      "thickness": 2,
      "ctor": "SmoSlur"
+    },
+    {
+     "startSelector": {
+      "staff": 0,
+      "measure": 15,
+      "voice": 0,
+      "tick": 8,
+      "pitches": []
+     },
+     "endSelector": {
+      "staff": 0,
+      "measure": 16,
+      "voice": 0,
+      "tick": 0,
+      "pitches": []
+     },
+     "spacing": 2,
+     "xOffset": 0,
+     "yOffset": 10,
+     "position": 4,
+     "position_end": 1,
+     "invert": false,
+     "cp1x": 0,
+     "cp1y": 40,
+     "cp2x": 0,
+     "cp2y": 40,
+     "attrs": {
+      "id": "auto3258358",
+      "type": "SmoSlur"
+     },
+     "thickness": 2,
+     "ctor": "SmoSlur"
+    },
+    {
+     "startSelector": {
+      "staff": 0,
+      "measure": 16,
+      "voice": 0,
+      "tick": 8,
+      "pitches": []
+     },
+     "endSelector": {
+      "staff": 0,
+      "measure": 17,
+      "voice": 0,
+      "tick": 0,
+      "pitches": []
+     },
+     "spacing": 2,
+     "xOffset": 0,
+     "yOffset": 10,
+     "position": 4,
+     "position_end": 1,
+     "invert": false,
+     "cp1x": 0,
+     "cp1y": 40,
+     "cp2x": 0,
+     "cp2y": 40,
+     "attrs": {
+      "id": "auto3305046",
+      "type": "SmoSlur"
+     },
+     "thickness": 2,
+     "ctor": "SmoSlur"
     }
    ],
    "measures": [
@@ -202,14 +266,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 281.35313415527344,
+     "staffY": 344.9468688964844,
      "measureNumber": {
       "measureNumber": 0,
       "measureIndex": 0,
       "systemIndex": 0,
       "staffId": 0
      },
-     "staffWidth": 557.2202167510986,
+     "staffWidth": 557.2202091217041,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -225,6 +289,7 @@ var inventionJson = `{
          "noteType": "r",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -246,19 +311,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2940191",
+          "id": "auto3828726",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2940205",
+         "renderId": "vf-auto3828740",
          "renderedBox": {
           "x": 287.82000732421875,
-          "y": -2572.510498046875,
+          "y": -1983.5009765625,
           "width": 17.68603515625,
           "height": 36.118896484375
          },
          "logicalBox": {
           "x": 119.90081787109375,
-          "y": 322.8448181152344,
+          "y": 386.4386291503906,
           "width": 12.635971069335938,
           "height": 25.8055419921875
          }
@@ -267,6 +332,10 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [
           {
+           "attrs": {
+            "id": "auto7709807",
+            "type": "SmoDynamicText"
+           },
            "ctor": "SmoDynamicText",
            "xOffset": 0,
            "fontSize": 38,
@@ -280,25 +349,22 @@ var inventionJson = `{
             "tick": 1,
             "pitches": []
            },
-           "attrs": {
-            "id": "auto7709807",
-            "type": "SmoDynamicText"
-           },
            "renderedBox": {
             "x": 335.0040283203125,
-            "y": -2533.317138671875,
+            "y": -1944.307861328125,
             "width": 21.67474365234375,
-            "height": 24.2021484375
+            "height": 24.2022705078125
            },
            "logicalBox": {
             "x": 153.61195373535156,
-            "y": 350.8469543457031,
+            "y": 414.4405822753906,
             "width": 15.485748291015625,
-            "height": 17.291473388671875
+            "height": 17.29156494140625
            }
           }
          ],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -320,27 +386,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2940191",
+          "id": "auto3828726",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2940211",
+         "renderId": "vf-auto3828746",
          "renderedBox": {
           "x": 337.03363037109375,
-          "y": -2567.912109375,
+          "y": -1978.902587890625,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 155.06201171875,
-          "y": 326.13018798828125,
+          "y": 389.7239990234375,
           "width": 12.01824951171875,
-          "height": 10.47393798828125
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -362,27 +429,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2940191",
+          "id": "auto3828726",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2940218",
+         "renderId": "vf-auto3828753",
          "renderedBox": {
           "x": 385.38262939453125,
-          "y": -2574.910400390625,
+          "y": -1985.90087890625,
           "width": 16.821441650390625,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 189.60548400878906,
-          "y": 321.13018798828125,
+          "y": 384.7239990234375,
           "width": 12.018264770507812,
-          "height": 10.47393798828125
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -404,26 +472,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2940191",
+          "id": "auto3828726",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2940225",
+         "renderId": "vf-auto3828760",
          "renderedBox": {
           "x": 433.7316589355469,
-          "y": -2581.90869140625,
+          "y": -1992.899169921875,
           "width": 16.821380615234375,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 224.1489715576172,
-          "y": 316.13018798828125,
+          "y": 379.7239990234375,
           "width": 12.018218994140625,
-          "height": 10.47393798828125
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto2940191",
+        "id": "auto3828726",
         "type": "SmoBeamGroup"
        }
       },
@@ -433,6 +501,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -454,27 +523,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2940192",
+          "id": "auto3828727",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2940232",
+         "renderId": "vf-auto3828767",
          "renderedBox": {
           "x": 482.08062744140625,
-          "y": -2588.906982421875,
+          "y": -1999.8974609375,
           "width": 16.821441650390625,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 258.6924133300781,
-          "y": 311.13018798828125,
+          "y": 374.7239990234375,
           "width": 12.01824951171875,
-          "height": 10.47393798828125
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -496,27 +566,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2940192",
+          "id": "auto3828727",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2940239",
+         "renderId": "vf-auto3828774",
          "renderedBox": {
           "x": 530.4296264648438,
-          "y": -2574.910400390625,
+          "y": -1985.90087890625,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 293.2358703613281,
-          "y": 321.13018798828125,
+          "y": 384.7239990234375,
           "width": 12.01824951171875,
-          "height": 10.47393798828125
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -538,27 +609,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2940192",
+          "id": "auto3828727",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2940246",
+         "renderId": "vf-auto3828781",
          "renderedBox": {
           "x": 578.7786254882812,
-          "y": -2581.90869140625,
+          "y": -1992.899169921875,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 327.7793273925781,
-          "y": 316.13018798828125,
+          "y": 379.7239990234375,
           "width": 12.01824951171875,
-          "height": 10.47393798828125
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -580,26 +652,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2940192",
+          "id": "auto3828727",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2940253",
+         "renderId": "vf-auto3828788",
          "renderedBox": {
           "x": 627.127685546875,
-          "y": -2567.912109375,
+          "y": -1978.902587890625,
           "width": 16.82135009765625,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 362.3228454589844,
-          "y": 326.13018798828125,
+          "y": 389.7239990234375,
           "width": 12.0181884765625,
-          "height": 10.47393798828125
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto2940192",
+        "id": "auto3828727",
         "type": "SmoBeamGroup"
        }
       },
@@ -609,6 +681,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -630,27 +703,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2940193",
+          "id": "auto3828728",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2940260",
+         "renderId": "vf-auto3828795",
          "renderedBox": {
           "x": 675.4766235351562,
-          "y": -2595.9052734375,
+          "y": -2006.895751953125,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 396.86627197265625,
-          "y": 306.13018798828125,
+          "y": 369.7239990234375,
           "width": 12.018218994140625,
-          "height": 10.47393798828125
+          "height": 10.473846435546875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": true,
          "beamBeats": 4096,
          "flagState": 0,
@@ -672,26 +746,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2940193",
+          "id": "auto3828728",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2940267",
+         "renderId": "vf-auto3828802",
          "renderedBox": {
           "x": 746.9552612304688,
-          "y": -2616.89990234375,
+          "y": -2027.890625,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 447.9349365234375,
-          "y": 291.1303405761719,
+          "y": 354.7239685058594,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.473846435546875
          }
         }
        ],
        "attrs": {
-        "id": "auto2940193",
+        "id": "auto3828728",
         "type": "SmoBeamGroup"
        }
       },
@@ -701,6 +775,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 1,
@@ -722,27 +797,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2940194",
+          "id": "auto3828729",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2940274",
+         "renderId": "vf-auto3828809",
          "renderedBox": {
           "x": 818.4338989257812,
-          "y": -2609.90185546875,
+          "y": -2020.892333984375,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 499.0036315917969,
-          "y": 296.1301574707031,
+          "y": 359.7239685058594,
           "width": 12.01824951171875,
-          "height": 10.47393798828125
+          "height": 10.473846435546875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": true,
          "beamBeats": 4096,
          "flagState": 1,
@@ -764,26 +840,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2940194",
+          "id": "auto3828729",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2940281",
+         "renderId": "vf-auto3828816",
          "renderedBox": {
           "x": 889.9125366210938,
-          "y": -2616.89990234375,
+          "y": -2027.890625,
           "width": 16.82147216796875,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 550.0723266601562,
-          "y": 291.1303405761719,
+          "y": 354.7239685058594,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.473846435546875
          }
         }
        ],
        "attrs": {
-        "id": "auto2940194",
+        "id": "auto3828729",
         "type": "SmoBeamGroup"
        }
       }
@@ -813,6 +889,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -837,8 +914,13 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": [
           {
+           "attrs": {
+            "id": "auto7709807",
+            "type": "SmoDynamicText"
+           },
            "ctor": "SmoDynamicText",
            "xOffset": 0,
            "fontSize": 38,
@@ -852,21 +934,17 @@ var inventionJson = `{
             "tick": 1,
             "pitches": []
            },
-           "attrs": {
-            "id": "auto7709807",
-            "type": "SmoDynamicText"
-           },
            "renderedBox": {
             "x": 335.0040283203125,
-            "y": -2533.317138671875,
+            "y": -1944.307861328125,
             "width": 21.67474365234375,
-            "height": 24.2021484375
+            "height": 24.2022705078125
            },
            "logicalBox": {
             "x": 153.61195373535156,
-            "y": 350.8469543457031,
+            "y": 414.4405822753906,
             "width": 15.485748291015625,
-            "height": 17.291473388671875
+            "height": 17.29156494140625
            }
           }
          ]
@@ -893,6 +971,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -917,6 +996,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -941,6 +1021,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -965,6 +1046,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -989,6 +1071,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -1013,6 +1096,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -1037,6 +1121,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -1061,6 +1146,7 @@ var inventionJson = `{
          "endBeam": true,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -1085,6 +1171,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 1,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -1109,6 +1196,7 @@ var inventionJson = `{
          "endBeam": true,
          "beamBeats": 4096,
          "flagState": 1,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -1137,8 +1225,8 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 587.2202167510986,
-     "staffY": 281.35313415527344,
+     "staffX": 587.2202091217041,
+     "staffY": 344.9468688964844,
      "measureNumber": {
       "measureNumber": 1,
       "measureIndex": 1,
@@ -1161,6 +1249,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -1182,27 +1271,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2941267",
+          "id": "auto3829802",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2941274",
+         "renderId": "vf-auto3829809",
          "renderedBox": {
           "x": 965.7010498046875,
-          "y": -2616.89990234375,
+          "y": -2027.890625,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 604.22021484375,
-          "y": 291.1303405761719,
+          "y": 354.7239685058594,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.473846435546875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -1224,27 +1314,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2941267",
+          "id": "auto3829802",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2941281",
+         "renderId": "vf-auto3829816",
          "renderedBox": {
-          "x": 1014.1040649414062,
-          "y": -2595.9052734375,
-          "width": 16.82135009765625,
-          "height": 14.659912109375
+          "x": 1014.10400390625,
+          "y": -2006.895751953125,
+          "width": 16.8214111328125,
+          "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 638.8023071289062,
-          "y": 306.13018798828125,
-          "width": 12.0181884765625,
-          "height": 10.47393798828125
+          "x": 638.80224609375,
+          "y": 369.7239990234375,
+          "width": 12.01824951171875,
+          "height": 10.473846435546875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -1266,27 +1357,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2941267",
+          "id": "auto3829802",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2941288",
+         "renderId": "vf-auto3829823",
          "renderedBox": {
           "x": 1062.507080078125,
-          "y": -2602.903564453125,
+          "y": -2013.89404296875,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 673.3843383789062,
-          "y": 301.13018798828125,
+          "y": 364.7239990234375,
           "width": 12.01824951171875,
-          "height": 10.473907470703125
+          "height": 10.473846435546875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -1308,26 +1400,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2941267",
+          "id": "auto3829802",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2941295",
+         "renderId": "vf-auto3829830",
          "renderedBox": {
           "x": 1110.91015625,
-          "y": -2609.90185546875,
+          "y": -2020.892333984375,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 707.9664306640625,
-          "y": 296.1301574707031,
+          "y": 359.7239685058594,
           "width": 12.01824951171875,
-          "height": 10.47393798828125
+          "height": 10.473846435546875
          }
         }
        ],
        "attrs": {
-        "id": "auto2941267",
+        "id": "auto3829802",
         "type": "SmoBeamGroup"
        }
       },
@@ -1337,6 +1429,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -1358,27 +1451,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2941268",
+          "id": "auto3829803",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2941302",
+         "renderId": "vf-auto3829837",
          "renderedBox": {
           "x": 1159.3131103515625,
-          "y": -2616.89990234375,
+          "y": -2027.890625,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 742.5484619140625,
-          "y": 291.1303405761719,
+          "y": 354.7239685058594,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.473846435546875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -1400,27 +1494,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2941268",
+          "id": "auto3829803",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2941309",
+         "renderId": "vf-auto3829844",
          "renderedBox": {
           "x": 1207.7161865234375,
-          "y": -2602.903564453125,
+          "y": -2013.89404296875,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 777.1305541992188,
-          "y": 301.13018798828125,
+          "y": 364.7239990234375,
           "width": 12.01824951171875,
-          "height": 10.473907470703125
+          "height": 10.473846435546875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -1442,27 +1537,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2941268",
+          "id": "auto3829803",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2941316",
+         "renderId": "vf-auto3829851",
          "renderedBox": {
-          "x": 1256.1192626953125,
-          "y": -2609.90185546875,
-          "width": 16.8212890625,
-          "height": 14.659912109375
+          "x": 1256.119140625,
+          "y": -2020.892333984375,
+          "width": 16.8214111328125,
+          "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 811.712646484375,
-          "y": 296.1301574707031,
-          "width": 12.0181884765625,
-          "height": 10.47393798828125
+          "x": 811.7125854492188,
+          "y": 359.7239685058594,
+          "width": 12.01824951171875,
+          "height": 10.473846435546875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -1484,26 +1580,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2941268",
+          "id": "auto3829803",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2941323",
+         "renderId": "vf-auto3829858",
          "renderedBox": {
           "x": 1304.522216796875,
-          "y": -2595.9052734375,
+          "y": -2006.895751953125,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 846.294677734375,
-          "y": 306.13018798828125,
+          "y": 369.7239990234375,
           "width": 12.01824951171875,
-          "height": 10.47393798828125
+          "height": 10.473846435546875
          }
         }
        ],
        "attrs": {
-        "id": "auto2941268",
+        "id": "auto3829803",
         "type": "SmoBeamGroup"
        }
       },
@@ -1513,6 +1609,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -1534,27 +1631,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2941269",
+          "id": "auto3829804",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2941330",
+         "renderId": "vf-auto3829865",
          "renderedBox": {
           "x": 1352.92529296875,
-          "y": -2623.8984375,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
+          "y": -2034.888916015625,
+          "width": 16.8212890625,
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 880.8767700195312,
-          "y": 286.1301574707031,
-          "width": 12.01824951171875,
-          "height": 10.47393798828125
+          "y": 349.7239685058594,
+          "width": 12.01812744140625,
+          "height": 10.473846435546875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -1576,26 +1674,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2941269",
+          "id": "auto3829804",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2941337",
+         "renderId": "vf-auto3829872",
          "renderedBox": {
           "x": 1424.511962890625,
-          "y": -2644.89306640625,
+          "y": -2055.8837890625,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 932.0226440429688,
-          "y": 271.13031005859375,
+          "y": 334.7239685058594,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.473846435546875
          }
         }
        ],
        "attrs": {
-        "id": "auto2941269",
+        "id": "auto3829804",
         "type": "SmoBeamGroup"
        }
       },
@@ -1605,6 +1703,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -1626,27 +1725,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2941270",
+          "id": "auto3829805",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2941344",
+         "renderId": "vf-auto3829879",
          "renderedBox": {
           "x": 1496.0986328125,
-          "y": -2637.89501953125,
+          "y": -2048.885498046875,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 983.1685180664062,
-          "y": 276.1301574707031,
+          "y": 339.7239685058594,
           "width": 12.01824951171875,
-          "height": 10.47393798828125
+          "height": 10.473846435546875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -1668,26 +1768,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2941270",
+          "id": "auto3829805",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2941351",
+         "renderId": "vf-auto3829886",
          "renderedBox": {
           "x": 1567.6854248046875,
-          "y": -2644.89306640625,
+          "y": -2055.8837890625,
           "width": 16.8212890625,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 1034.314453125,
-          "y": 271.13031005859375,
+          "y": 334.7239685058594,
           "width": 12.0181884765625,
-          "height": 10.4737548828125
+          "height": 10.473846435546875
          }
         }
        ],
        "attrs": {
-        "id": "auto2941270",
+        "id": "auto3829805",
         "type": "SmoBeamGroup"
        }
       }
@@ -1717,6 +1817,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -1741,6 +1842,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -1765,6 +1867,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -1789,6 +1892,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -1813,6 +1917,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -1837,6 +1942,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -1861,6 +1967,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -1885,6 +1992,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -1909,6 +2017,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -1933,6 +2042,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -1957,6 +2067,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -1981,6 +2092,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -2010,14 +2122,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 538.1736907958984,
+     "staffY": 602.3299255371094,
      "measureNumber": {
       "measureNumber": 2,
       "measureIndex": 2,
       "systemIndex": 0,
       "staffId": 0
      },
-     "staffWidth": 553.3000507354736,
+     "staffWidth": 553.3001041412354,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -2033,6 +2145,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -2054,27 +2167,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2942450",
+          "id": "auto3830993",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2942463",
+         "renderId": "vf-auto3831006",
          "renderedBox": {
           "x": 259.82684326171875,
-          "y": -2271.43603515625,
+          "y": -1681.63916015625,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 99.90079498291016,
-          "y": 537.9507446289062,
+          "y": 602.1070556640625,
           "width": 12.018241882324219,
-          "height": 10.47393798828125
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -2096,19 +2210,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2942450",
+          "id": "auto3830993",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2942470",
+         "renderId": "vf-auto3831013",
          "renderedBox": {
           "x": 301.5821228027344,
-          "y": -2292.4306640625,
+          "y": -1702.634033203125,
           "width": 16.8214111328125,
           "height": 14.65966796875
          },
          "logicalBox": {
           "x": 129.73330688476562,
-          "y": 522.9508666992188,
+          "y": 587.1070556640625,
           "width": 12.018234252929688,
           "height": 10.4737548828125
          }
@@ -2117,6 +2231,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -2138,27 +2253,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2942450",
+          "id": "auto3830993",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2942477",
+         "renderId": "vf-auto3831020",
          "renderedBox": {
           "x": 343.33740234375,
-          "y": -2285.4326171875,
+          "y": -1695.6357421875,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 159.56581115722656,
-          "y": 527.9507446289062,
+          "y": 592.1070556640625,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -2180,26 +2296,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2942450",
+          "id": "auto3830993",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2942484",
+         "renderId": "vf-auto3831027",
          "renderedBox": {
           "x": 385.0926818847656,
-          "y": -2278.43408203125,
-          "width": 16.821380615234375,
+          "y": -1688.637451171875,
+          "width": 16.8214111328125,
           "height": 14.65966796875
          },
          "logicalBox": {
           "x": 189.39833068847656,
-          "y": 532.9508666992188,
-          "width": 12.018218994140625,
-          "height": 10.47381591796875
+          "y": 597.1070556640625,
+          "width": 12.018234252929688,
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto2942450",
+        "id": "auto3830993",
         "type": "SmoBeamGroup"
        }
       },
@@ -2209,6 +2325,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -2230,27 +2347,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2942451",
+          "id": "auto3830994",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2942491",
+         "renderId": "vf-auto3831034",
          "renderedBox": {
           "x": 426.8479309082031,
-          "y": -2271.43603515625,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
+          "y": -1681.63916015625,
+          "width": 16.821441650390625,
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 219.23081970214844,
-          "y": 537.9507446289062,
-          "width": 12.018234252929688,
-          "height": 10.47393798828125
+          "y": 602.1070556640625,
+          "width": 12.01824951171875,
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -2272,27 +2390,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2942451",
+          "id": "auto3830994",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2942498",
+         "renderId": "vf-auto3831041",
          "renderedBox": {
-          "x": 468.6031799316406,
-          "y": -2285.4326171875,
+          "x": 468.6032409667969,
+          "y": -1695.6357421875,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 249.0633087158203,
-          "y": 527.9507446289062,
+          "x": 249.06333923339844,
+          "y": 592.1070556640625,
           "width": 12.018234252929688,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -2314,27 +2433,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2942451",
+          "id": "auto3830994",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2942505",
+         "renderId": "vf-auto3831048",
          "renderedBox": {
-          "x": 510.35845947265625,
-          "y": -2278.43408203125,
-          "width": 16.82147216796875,
+          "x": 510.3584899902344,
+          "y": -1688.637451171875,
+          "width": 16.821441650390625,
           "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 278.89581298828125,
-          "y": 532.9508666992188,
-          "width": 12.018280029296875,
-          "height": 10.47381591796875
+          "x": 278.8958435058594,
+          "y": 597.1070556640625,
+          "width": 12.01824951171875,
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -2356,26 +2476,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2942451",
+          "id": "auto3830994",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2942512",
+         "renderId": "vf-auto3831055",
          "renderedBox": {
           "x": 552.11376953125,
-          "y": -2292.4306640625,
+          "y": -1702.634033203125,
           "width": 16.8214111328125,
           "height": 14.65966796875
          },
          "logicalBox": {
           "x": 308.72833251953125,
-          "y": 522.9508666992188,
+          "y": 587.1070556640625,
           "width": 12.01824951171875,
           "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto2942451",
+        "id": "auto3830994",
         "type": "SmoBeamGroup"
        }
       },
@@ -2385,6 +2505,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -2406,27 +2527,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2942452",
+          "id": "auto3830995",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2942519",
+         "renderId": "vf-auto3831062",
          "renderedBox": {
           "x": 593.8690185546875,
-          "y": -2285.4326171875,
+          "y": -1695.6357421875,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 338.5608215332031,
-          "y": 527.9507446289062,
+          "y": 592.1070556640625,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -2448,27 +2570,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2942452",
+          "id": "auto3830995",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2942526",
+         "renderId": "vf-auto3831069",
          "renderedBox": {
           "x": 635.6243286132812,
-          "y": -2278.43408203125,
-          "width": 16.82135009765625,
+          "y": -1688.637451171875,
+          "width": 16.8214111328125,
           "height": 14.65966796875
          },
          "logicalBox": {
           "x": 368.39337158203125,
-          "y": 532.9508666992188,
-          "width": 12.0181884765625,
-          "height": 10.47381591796875
+          "y": 597.1070556640625,
+          "width": 12.018218994140625,
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -2490,27 +2613,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2942452",
+          "id": "auto3830995",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2942533",
+         "renderId": "vf-auto3831076",
          "renderedBox": {
           "x": 677.3795776367188,
-          "y": -2271.43603515625,
+          "y": -1681.63916015625,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 398.2258605957031,
-          "y": 537.9507446289062,
+          "y": 602.1070556640625,
           "width": 12.018218994140625,
-          "height": 10.47393798828125
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -2532,26 +2656,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2942452",
+          "id": "auto3830995",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2942540",
+         "renderId": "vf-auto3831083",
          "renderedBox": {
-          "x": 719.1348266601562,
-          "y": -2264.4375,
+          "x": 719.1348876953125,
+          "y": -1674.640869140625,
           "width": 16.8214111328125,
           "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 428.058349609375,
-          "y": 542.950927734375,
-          "width": 12.018218994140625,
+          "x": 428.0583801269531,
+          "y": 607.1070556640625,
+          "width": 12.01824951171875,
           "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto2942452",
+        "id": "auto3830995",
         "type": "SmoBeamGroup"
        }
       },
@@ -2561,6 +2685,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -2582,27 +2707,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2942453",
+          "id": "auto3830996",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2942547",
+         "renderId": "vf-auto3831090",
          "renderedBox": {
-          "x": 760.8900756835938,
-          "y": -2257.439453125,
-          "width": 16.82147216796875,
-          "height": 14.659912109375
+          "x": 760.89013671875,
+          "y": -1667.642578125,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 457.8908386230469,
-          "y": 547.9507446289062,
-          "width": 12.018280029296875,
-          "height": 10.47393798828125
+          "x": 457.890869140625,
+          "y": 612.1070556640625,
+          "width": 12.01824951171875,
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -2624,27 +2750,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2942453",
+          "id": "auto3830996",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2942554",
+         "renderId": "vf-auto3831097",
          "renderedBox": {
-          "x": 802.6453247070312,
-          "y": -2271.43603515625,
-          "width": 16.82147216796875,
-          "height": 14.659912109375
+          "x": 802.6454467773438,
+          "y": -1681.63916015625,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 487.72332763671875,
-          "y": 537.9507446289062,
-          "width": 12.018280029296875,
-          "height": 10.47393798828125
+          "x": 487.723388671875,
+          "y": 602.1070556640625,
+          "width": 12.01824951171875,
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -2666,19 +2793,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2942453",
+          "id": "auto3830996",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2942561",
+         "renderId": "vf-auto3831104",
          "renderedBox": {
-          "x": 844.400634765625,
-          "y": -2264.4375,
-          "width": 16.8214111328125,
+          "x": 844.4006958007812,
+          "y": -1674.640869140625,
+          "width": 16.82147216796875,
           "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 517.5558471679688,
-          "y": 542.950927734375,
+          "x": 517.555908203125,
+          "y": 607.1070556640625,
           "width": 12.01824951171875,
           "height": 10.4737548828125
          }
@@ -2687,6 +2814,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -2708,26 +2836,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2942453",
+          "id": "auto3830996",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2942568",
+         "renderId": "vf-auto3831111",
          "renderedBox": {
-          "x": 886.1559448242188,
-          "y": -2278.43408203125,
-          "width": 16.8214111328125,
+          "x": 886.156005859375,
+          "y": -1688.637451171875,
+          "width": 16.82135009765625,
           "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 547.3883666992188,
-          "y": 532.9508666992188,
-          "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "x": 547.388427734375,
+          "y": 597.1070556640625,
+          "width": 12.0181884765625,
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto2942453",
+        "id": "auto3830996",
         "type": "SmoBeamGroup"
        }
       }
@@ -2757,6 +2885,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -2781,6 +2910,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -2805,6 +2935,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -2829,6 +2960,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -2853,6 +2985,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -2877,6 +3010,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -2901,6 +3035,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -2925,6 +3060,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -2949,6 +3085,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -2973,6 +3110,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -2997,6 +3135,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -3021,6 +3160,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -3045,6 +3185,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -3069,6 +3210,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -3093,6 +3235,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -3117,6 +3260,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -3145,8 +3289,8 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 583.3000507354736,
-     "staffY": 538.1736907958984,
+     "staffX": 583.3001041412354,
+     "staffY": 602.3299255371094,
      "measureNumber": {
       "measureNumber": 3,
       "measureIndex": 3,
@@ -3169,6 +3313,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -3190,27 +3335,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2943694",
+          "id": "auto3832237",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2943701",
+         "renderId": "vf-auto3832244",
          "renderedBox": {
-          "x": 960.214111328125,
-          "y": -2271.43603515625,
-          "width": 16.82147216796875,
-          "height": 14.659912109375
+          "x": 960.2142333984375,
+          "y": -1681.63916015625,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 600.300048828125,
-          "y": 537.9507446289062,
+          "x": 600.3001098632812,
+          "y": 602.1070556640625,
           "width": 12.01824951171875,
-          "height": 10.47393798828125
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -3232,19 +3378,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2943694",
+          "id": "auto3832237",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2943708",
+         "renderId": "vf-auto3832251",
          "renderedBox": {
-          "x": 1001.6196899414062,
-          "y": -2264.4375,
-          "width": 16.8214111328125,
+          "x": 1001.6197509765625,
+          "y": -1674.640869140625,
+          "width": 16.82147216796875,
           "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 629.8826904296875,
-          "y": 542.950927734375,
+          "x": 629.8827514648438,
+          "y": 607.1070556640625,
           "width": 12.01824951171875,
           "height": 10.4737548828125
          }
@@ -3253,6 +3399,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -3274,27 +3421,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2943694",
+          "id": "auto3832237",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2943715",
+         "renderId": "vf-auto3832258",
          "renderedBox": {
           "x": 1043.025390625,
-          "y": -2257.439453125,
-          "width": 16.8212890625,
-          "height": 14.659912109375
+          "y": -1667.642578125,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 659.4654541015625,
-          "y": 547.9507446289062,
-          "width": 12.01812744140625,
-          "height": 10.47393798828125
+          "y": 612.1070556640625,
+          "width": 12.01824951171875,
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -3316,26 +3464,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2943694",
+          "id": "auto3832237",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2943722",
+         "renderId": "vf-auto3832265",
          "renderedBox": {
           "x": 1084.430908203125,
-          "y": -2250.44091796875,
-          "width": 16.8214111328125,
+          "y": -1660.644287109375,
+          "width": 16.821533203125,
           "height": 14.65966796875
          },
          "logicalBox": {
           "x": 689.0480346679688,
-          "y": 552.950927734375,
-          "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "y": 617.1070556640625,
+          "width": 12.01837158203125,
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto2943694",
+        "id": "auto3832237",
         "type": "SmoBeamGroup"
        }
       },
@@ -3345,6 +3493,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -3366,27 +3515,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2943695",
+          "id": "auto3832238",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2943729",
+         "renderId": "vf-auto3832272",
          "renderedBox": {
-          "x": 1125.83642578125,
-          "y": -2243.44287109375,
-          "width": 16.821533203125,
-          "height": 14.659912109375
+          "x": 1125.836669921875,
+          "y": -1653.64599609375,
+          "width": 16.8212890625,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 718.6306762695312,
-          "y": 557.9507446289062,
-          "width": 12.018310546875,
-          "height": 10.47393798828125
+          "x": 718.630859375,
+          "y": 622.1071166992188,
+          "width": 12.01812744140625,
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -3408,27 +3558,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2943695",
+          "id": "auto3832238",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2943736",
+         "renderId": "vf-auto3832279",
          "renderedBox": {
-          "x": 1167.2420654296875,
-          "y": -2257.439453125,
+          "x": 1167.2421875,
+          "y": -1667.642578125,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 748.21337890625,
-          "y": 547.9507446289062,
-          "width": 12.01824951171875,
-          "height": 10.47393798828125
+          "x": 748.2135009765625,
+          "y": 612.1070556640625,
+          "width": 12.0181884765625,
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -3450,27 +3601,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2943695",
+          "id": "auto3832238",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2943743",
+         "renderId": "vf-auto3832286",
          "renderedBox": {
-          "x": 1208.647705078125,
-          "y": -2250.44091796875,
-          "width": 16.8214111328125,
+          "x": 1208.6478271484375,
+          "y": -1660.644287109375,
+          "width": 16.8212890625,
           "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 777.7960815429688,
-          "y": 552.950927734375,
-          "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "x": 777.7962036132812,
+          "y": 617.1070556640625,
+          "width": 12.01812744140625,
+          "height": 10.47381591796875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -3492,26 +3644,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2943695",
+          "id": "auto3832238",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2943750",
+         "renderId": "vf-auto3832293",
          "renderedBox": {
-          "x": 1250.05322265625,
-          "y": -2264.4375,
+          "x": 1250.0533447265625,
+          "y": -1674.640869140625,
           "width": 16.8214111328125,
           "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 807.3787231445312,
-          "y": 542.950927734375,
+          "x": 807.3787841796875,
+          "y": 607.1070556640625,
           "width": 12.01824951171875,
           "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto2943695",
+        "id": "auto3832238",
         "type": "SmoBeamGroup"
        }
       },
@@ -3521,6 +3673,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -3542,27 +3695,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2943696",
+          "id": "auto3832239",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2943757",
+         "renderId": "vf-auto3832300",
          "renderedBox": {
           "x": 1291.4588623046875,
-          "y": -2257.439453125,
+          "y": -1667.642578125,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 836.96142578125,
-          "y": 547.9507446289062,
+          "y": 612.1070556640625,
           "width": 12.01824951171875,
-          "height": 10.47393798828125
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -3584,27 +3738,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2943696",
+          "id": "auto3832239",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2943764",
+         "renderId": "vf-auto3832307",
          "renderedBox": {
-          "x": 1332.8643798828125,
-          "y": -2250.44091796875,
+          "x": 1332.864501953125,
+          "y": -1660.644287109375,
           "width": 16.8214111328125,
           "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 866.5440063476562,
-          "y": 552.950927734375,
+          "x": 866.5441284179688,
+          "y": 617.1070556640625,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.47381591796875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -3626,27 +3781,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2943696",
+          "id": "auto3832239",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2943771",
+         "renderId": "vf-auto3832314",
          "renderedBox": {
           "x": 1374.27001953125,
-          "y": -2243.44287109375,
+          "y": -1653.64599609375,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 896.1267700195312,
-          "y": 557.9507446289062,
+          "y": 622.1071166992188,
           "width": 12.0181884765625,
-          "height": 10.47393798828125
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -3668,26 +3824,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2943696",
+          "id": "auto3832239",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2943778",
+         "renderId": "vf-auto3832321",
          "renderedBox": {
           "x": 1415.6756591796875,
-          "y": -2236.444580078125,
+          "y": -1646.647705078125,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 925.70947265625,
-          "y": 562.9507446289062,
+          "y": 627.1071166992188,
           "width": 12.0181884765625,
-          "height": 10.47393798828125
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto2943696",
+        "id": "auto3832239",
         "type": "SmoBeamGroup"
        }
       },
@@ -3697,6 +3853,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -3718,20 +3875,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2943697",
+          "id": "auto3832240",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2943785",
+         "renderId": "vf-auto3832328",
          "renderedBox": {
-          "x": 1458.4808349609375,
-          "y": -2242.7001953125,
+          "x": 1458.48095703125,
+          "y": -1652.9034423828125,
           "width": 33.3895263671875,
           "height": 41.166748046875
          },
          "logicalBox": {
-          "x": 956.2920532226562,
-          "y": 558.4813842773438,
-          "width": 23.85552978515625,
+          "x": 956.2921752929688,
+          "y": 622.6376342773438,
+          "width": 23.85546875,
           "height": 29.4119873046875
          }
         },
@@ -3739,6 +3896,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -3760,27 +3918,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2943697",
+          "id": "auto3832240",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2943794",
+         "renderId": "vf-auto3832337",
          "renderedBox": {
-          "x": 1516.45458984375,
-          "y": -2243.44287109375,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
+          "x": 1516.4547119140625,
+          "y": -1653.64599609375,
+          "width": 16.8212890625,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 997.7120361328125,
-          "y": 557.9507446289062,
-          "width": 12.01824951171875,
-          "height": 10.47393798828125
+          "x": 997.712158203125,
+          "y": 622.1071166992188,
+          "width": 12.01812744140625,
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -3802,27 +3961,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2943697",
+          "id": "auto3832240",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2943801",
+         "renderId": "vf-auto3832344",
          "renderedBox": {
-          "x": 1557.860107421875,
-          "y": -2236.444580078125,
-          "width": 16.821533203125,
-          "height": 14.659912109375
+          "x": 1557.8603515625,
+          "y": -1646.647705078125,
+          "width": 16.8212890625,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 1027.294677734375,
-          "y": 562.9507446289062,
-          "width": 12.018310546875,
-          "height": 10.47393798828125
+          "x": 1027.2947998046875,
+          "y": 627.1071166992188,
+          "width": 12.0181884765625,
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -3844,26 +4004,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2943697",
+          "id": "auto3832240",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2943808",
+         "renderId": "vf-auto3832351",
          "renderedBox": {
-          "x": 1599.265625,
-          "y": -2250.44091796875,
-          "width": 16.821533203125,
+          "x": 1599.265869140625,
+          "y": -1660.644287109375,
+          "width": 16.8212890625,
           "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 1056.8773193359375,
-          "y": 552.950927734375,
-          "width": 12.018310546875,
-          "height": 10.4737548828125
+          "x": 1056.87744140625,
+          "y": 617.1070556640625,
+          "width": 12.0181884765625,
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto2943697",
+        "id": "auto3832240",
         "type": "SmoBeamGroup"
        }
       }
@@ -3893,6 +4053,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -3917,6 +4078,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -3941,6 +4103,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -3965,6 +4128,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -3989,6 +4153,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -4013,6 +4178,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -4037,6 +4203,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -4061,6 +4228,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -4085,6 +4253,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -4109,6 +4278,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -4133,6 +4303,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -4157,6 +4328,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -4181,6 +4353,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -4205,6 +4378,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -4229,6 +4403,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -4253,6 +4428,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -4282,14 +4458,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 748.4257049560547,
+     "staffY": 812.2341003417969,
      "measureNumber": {
       "measureNumber": 4,
       "measureIndex": 4,
       "systemIndex": 0,
       "staffId": 0
      },
-     "staffWidth": 511.06006050109863,
+     "staffWidth": 511.0600528717041,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -4305,6 +4481,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -4326,27 +4503,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2944885",
+          "id": "auto3833436",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2944898",
+         "renderId": "vf-auto3833449",
          "renderedBox": {
           "x": 259.82684326171875,
-          "y": -1949.162109375,
+          "y": -1359.8521728515625,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 99.90079498291016,
-          "y": 768.2028198242188,
+          "y": 832.01123046875,
           "width": 12.018241882324219,
-          "height": 10.47381591796875
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -4368,26 +4546,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2944885",
+          "id": "auto3833436",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2944905",
+         "renderId": "vf-auto3833456",
          "renderedBox": {
           "x": 320.04180908203125,
-          "y": -1921.1689453125,
+          "y": -1331.8590087890625,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 142.92202758789062,
-          "y": 788.2028198242188,
+          "y": 852.0112915039062,
           "width": 12.018234252929688,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto2944885",
+        "id": "auto3833436",
         "type": "SmoBeamGroup"
        }
       },
@@ -4397,6 +4575,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -4418,27 +4597,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2944886",
+          "id": "auto3833437",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2944912",
+         "renderId": "vf-auto3833463",
          "renderedBox": {
           "x": 380.25677490234375,
-          "y": -1963.15869140625,
-          "width": 26.6190185546875,
-          "height": 14.6597900390625
+          "y": -1373.8487548828125,
+          "width": 26.618988037109375,
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 185.94325256347656,
-          "y": 758.2028198242188,
-          "width": 19.01824951171875,
-          "height": 10.47381591796875
+          "y": 822.01123046875,
+          "width": 19.018234252929688,
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -4460,26 +4640,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2944886",
+          "id": "auto3833437",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2944920",
+         "renderId": "vf-auto3833471",
          "renderedBox": {
           "x": 466.3674621582031,
-          "y": -1970.156982421875,
+          "y": -1380.8470458984375,
           "width": 16.821441650390625,
           "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 247.46597290039062,
-          "y": 753.2028198242188,
+          "y": 817.01123046875,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2944886",
+        "id": "auto3833437",
         "type": "SmoBeamGroup"
        }
       },
@@ -4489,6 +4669,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -4510,27 +4691,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2944887",
+          "id": "auto3833438",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2944927",
+         "renderId": "vf-auto3833478",
          "renderedBox": {
           "x": 509.08465576171875,
-          "y": -1956.160400390625,
+          "y": -1366.8504638671875,
           "width": 16.82135009765625,
-          "height": 14.6597900390625
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 277.9857177734375,
-          "y": 763.2028198242188,
+          "y": 827.01123046875,
           "width": 12.018218994140625,
-          "height": 10.47381591796875
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -4552,27 +4734,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2944887",
+          "id": "auto3833438",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2944934",
+         "renderId": "vf-auto3833485",
          "renderedBox": {
           "x": 551.8017578125,
-          "y": -1949.162109375,
+          "y": -1359.8521728515625,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 308.50543212890625,
-          "y": 768.2028198242188,
+          "y": 832.01123046875,
           "width": 12.018218994140625,
-          "height": 10.47381591796875
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -4594,19 +4777,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2944887",
+          "id": "auto3833438",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2944941",
+         "renderId": "vf-auto3833492",
          "renderedBox": {
           "x": 594.5189208984375,
-          "y": -1942.163818359375,
+          "y": -1352.8538818359375,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 339.025146484375,
-          "y": 773.2028198242188,
+          "y": 837.01123046875,
           "width": 12.01824951171875,
           "height": 10.47381591796875
          }
@@ -4615,6 +4798,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -4636,26 +4820,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2944887",
+          "id": "auto3833438",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2944948",
+         "renderId": "vf-auto3833499",
          "renderedBox": {
-          "x": 638.6358032226562,
-          "y": -1948.41943359375,
-          "width": 33.38946533203125,
-          "height": 41.1666259765625
+          "x": 638.6357421875,
+          "y": -1359.109619140625,
+          "width": 33.3895263671875,
+          "height": 41.166748046875
          },
          "logicalBox": {
-          "x": 370.5449523925781,
-          "y": 768.7333984375,
-          "width": 23.85546875,
+          "x": 370.5448913574219,
+          "y": 832.5418090820312,
+          "width": 23.85552978515625,
           "height": 29.4119873046875
          }
         }
        ],
        "attrs": {
-        "id": "auto2944887",
+        "id": "auto3833438",
         "type": "SmoBeamGroup"
        }
       },
@@ -4665,6 +4849,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -4686,27 +4871,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2944888",
+          "id": "auto3833439",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2944957",
+         "renderId": "vf-auto3833508",
          "renderedBox": {
           "x": 697.9210205078125,
-          "y": -1928.167236328125,
+          "y": -1338.8572998046875,
           "width": 16.82147216796875,
-          "height": 14.6597900390625
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 412.90191650390625,
-          "y": 783.2028198242188,
+          "y": 847.0112915039062,
           "width": 12.018280029296875,
-          "height": 10.47381591796875
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -4728,20 +4914,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2944888",
+          "id": "auto3833439",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2944964",
+         "renderId": "vf-auto3833515",
          "renderedBox": {
           "x": 740.63818359375,
-          "y": -1942.163818359375,
-          "width": 16.82147216796875,
-          "height": 14.6597900390625
+          "y": -1352.8538818359375,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 443.421630859375,
-          "y": 773.2028198242188,
-          "width": 12.018280029296875,
+          "y": 837.01123046875,
+          "width": 12.01824951171875,
           "height": 10.47381591796875
          }
         },
@@ -4749,6 +4935,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -4770,27 +4957,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2944888",
+          "id": "auto3833439",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2944971",
+         "renderId": "vf-auto3833522",
          "renderedBox": {
-          "x": 783.3554077148438,
-          "y": -1935.16552734375,
-          "width": 16.82135009765625,
-          "height": 14.6597900390625
+          "x": 783.3553466796875,
+          "y": -1345.8555908203125,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 473.9414367675781,
-          "y": 778.2028198242188,
-          "width": 12.0181884765625,
-          "height": 10.47381591796875
+          "x": 473.9413757324219,
+          "y": 842.0112915039062,
+          "width": 12.01824951171875,
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -4812,26 +5000,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2944888",
+          "id": "auto3833439",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2944978",
+         "renderId": "vf-auto3833529",
          "renderedBox": {
           "x": 826.072509765625,
-          "y": -1949.162109375,
+          "y": -1359.8521728515625,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 504.46112060546875,
-          "y": 768.2028198242188,
+          "y": 832.01123046875,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto2944888",
+        "id": "auto3833439",
         "type": "SmoBeamGroup"
        }
       }
@@ -4861,6 +5049,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -4885,6 +5074,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -4909,6 +5099,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -4933,6 +5124,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -4957,6 +5149,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -4981,6 +5174,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -5005,6 +5199,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -5029,6 +5224,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -5053,6 +5249,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -5077,6 +5274,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -5101,6 +5299,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -5125,6 +5324,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -5153,15 +5353,15 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 541.0600605010986,
-     "staffY": 748.4257049560547,
+     "staffX": 541.0600528717041,
+     "staffY": 812.2341003417969,
      "measureNumber": {
       "measureNumber": 5,
       "measureIndex": 5,
       "systemIndex": 1,
       "staffId": 0
      },
-     "staffWidth": 549.320068359375,
+     "staffWidth": 549.3199462890625,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -5177,6 +5377,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -5198,19 +5399,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2946135",
+          "id": "auto3834686",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2946142",
+         "renderId": "vf-auto3834693",
          "renderedBox": {
           "x": 901.0926513671875,
-          "y": -1942.163818359375,
+          "y": -1352.8538818359375,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 558.06005859375,
-          "y": 773.2028198242188,
+          "y": 837.01123046875,
           "width": 12.01824951171875,
           "height": 10.47381591796875
          }
@@ -5219,6 +5420,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -5240,27 +5442,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2946135",
+          "id": "auto3834686",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2946149",
+         "renderId": "vf-auto3834700",
          "renderedBox": {
           "x": 947.2218627929688,
-          "y": -1956.160400390625,
-          "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "y": -1366.8504638671875,
+          "width": 16.82135009765625,
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 591.017578125,
-          "y": 763.2028198242188,
-          "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "y": 827.01123046875,
+          "width": 12.0181884765625,
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -5282,27 +5485,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2946135",
+          "id": "auto3834686",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2946156",
+         "renderId": "vf-auto3834707",
          "renderedBox": {
-          "x": 993.35107421875,
-          "y": -1949.162109375,
-          "width": 16.82135009765625,
-          "height": 14.6597900390625
+          "x": 993.3510131835938,
+          "y": -1359.8521728515625,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 623.97509765625,
-          "y": 768.2028198242188,
-          "width": 12.0181884765625,
-          "height": 10.47381591796875
+          "x": 623.9750366210938,
+          "y": 832.01123046875,
+          "width": 12.01824951171875,
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -5324,26 +5528,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2946135",
+          "id": "auto3834686",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2946163",
+         "renderId": "vf-auto3834714",
          "renderedBox": {
           "x": 1039.480224609375,
-          "y": -1963.15869140625,
+          "y": -1373.8487548828125,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 656.9325561523438,
-          "y": 758.2028198242188,
+          "y": 822.01123046875,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto2946135",
+        "id": "auto3834686",
         "type": "SmoBeamGroup"
        }
       },
@@ -5353,6 +5557,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -5374,27 +5579,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2946136",
+          "id": "auto3834687",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2946170",
+         "renderId": "vf-auto3834721",
          "renderedBox": {
           "x": 1085.609375,
-          "y": -1956.160400390625,
-          "width": 16.821533203125,
-          "height": 14.6597900390625
+          "y": -1366.8504638671875,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 689.8900146484375,
-          "y": 763.2028198242188,
-          "width": 12.01837158203125,
-          "height": 10.47381591796875
+          "y": 827.01123046875,
+          "width": 12.01824951171875,
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -5416,27 +5622,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2946136",
+          "id": "auto3834687",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2946177",
+         "renderId": "vf-auto3834728",
          "renderedBox": {
-          "x": 1131.7386474609375,
-          "y": -1970.156982421875,
-          "width": 16.8214111328125,
+          "x": 1131.738525390625,
+          "y": -1380.8470458984375,
+          "width": 16.821533203125,
           "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 722.8475952148438,
-          "y": 753.2028198242188,
-          "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "x": 722.8474731445312,
+          "y": 817.01123046875,
+          "width": 12.01837158203125,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -5458,27 +5665,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2946136",
+          "id": "auto3834687",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2946184",
+         "renderId": "vf-auto3834735",
          "renderedBox": {
-          "x": 1177.867919921875,
-          "y": -1963.15869140625,
-          "width": 16.8212890625,
-          "height": 14.6597900390625
+          "x": 1177.8677978515625,
+          "y": -1373.8487548828125,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 755.8051147460938,
-          "y": 758.2028198242188,
-          "width": 12.0181884765625,
-          "height": 10.47381591796875
+          "x": 755.8050537109375,
+          "y": 822.01123046875,
+          "width": 12.01824951171875,
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -5500,26 +5708,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2946136",
+          "id": "auto3834687",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2946191",
+         "renderId": "vf-auto3834742",
          "renderedBox": {
-          "x": 1223.9970703125,
-          "y": -1977.1552734375,
+          "x": 1223.9969482421875,
+          "y": -1387.8453369140625,
           "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 788.7626342773438,
-          "y": 748.2027587890625,
-          "width": 12.0181884765625,
+          "x": 788.7625122070312,
+          "y": 812.01123046875,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2946136",
+        "id": "auto3834687",
         "type": "SmoBeamGroup"
        }
       },
@@ -5529,6 +5737,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -5550,27 +5759,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2946137",
+          "id": "auto3834688",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2946198",
+         "renderId": "vf-auto3834749",
          "renderedBox": {
-          "x": 1270.126220703125,
-          "y": -1970.156982421875,
-          "width": 16.8214111328125,
+          "x": 1270.1260986328125,
+          "y": -1380.8470458984375,
+          "width": 16.821533203125,
           "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 821.7200927734375,
-          "y": 753.2028198242188,
-          "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "x": 821.719970703125,
+          "y": 817.01123046875,
+          "width": 12.01837158203125,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -5592,27 +5802,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2946137",
+          "id": "auto3834688",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2946205",
+         "renderId": "vf-auto3834756",
          "renderedBox": {
-          "x": 1316.2554931640625,
-          "y": -1956.160400390625,
-          "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "x": 1316.25537109375,
+          "y": -1366.8504638671875,
+          "width": 16.8212890625,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 854.6776123046875,
-          "y": 763.2028198242188,
-          "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "x": 854.6775512695312,
+          "y": 827.01123046875,
+          "width": 12.01812744140625,
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -5634,27 +5845,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2946137",
+          "id": "auto3834688",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2946212",
+         "renderId": "vf-auto3834763",
          "renderedBox": {
-          "x": 1351.9296875,
-          "y": -1963.15869140625,
-          "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "x": 1351.9295654296875,
+          "y": -1373.8487548828125,
+          "width": 16.821533203125,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 880.1654663085938,
-          "y": 758.2028198242188,
-          "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "x": 880.1653442382812,
+          "y": 822.01123046875,
+          "width": 12.01837158203125,
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -5676,27 +5888,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2946137",
+          "id": "auto3834688",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2946219",
+         "renderId": "vf-auto3834770",
          "renderedBox": {
-          "x": 1387.60400390625,
-          "y": -1970.156982421875,
+          "x": 1387.6038818359375,
+          "y": -1380.8470458984375,
           "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 905.6533203125,
-          "y": 753.2028198242188,
+          "x": 905.6532592773438,
+          "y": 817.01123046875,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -5718,26 +5931,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2946137",
+          "id": "auto3834688",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2946226",
+         "renderId": "vf-auto3834777",
          "renderedBox": {
           "x": 1433.733154296875,
-          "y": -1991.15185546875,
-          "width": 16.8214111328125,
+          "y": -1401.8419189453125,
+          "width": 16.8212890625,
           "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 938.61083984375,
-          "y": 738.2027587890625,
-          "width": 12.0181884765625,
-          "height": 10.473876953125
+          "y": 802.01123046875,
+          "width": 12.01812744140625,
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto2946137",
+        "id": "auto3834688",
         "type": "SmoBeamGroup"
        }
       },
@@ -5747,6 +5960,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -5768,27 +5982,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2946138",
+          "id": "auto3834689",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2946233",
+         "renderId": "vf-auto3834784",
          "renderedBox": {
-          "x": 1479.8624267578125,
-          "y": -1956.160400390625,
-          "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "x": 1479.8621826171875,
+          "y": -1366.8504638671875,
+          "width": 16.821533203125,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 971.568359375,
-          "y": 763.2028198242188,
-          "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "x": 971.5681762695312,
+          "y": 827.01123046875,
+          "width": 12.01837158203125,
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -5810,27 +6025,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2946138",
+          "id": "auto3834689",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2946240",
+         "renderId": "vf-auto3834791",
          "renderedBox": {
-          "x": 1546.9014892578125,
-          "y": -1949.162109375,
+          "x": 1546.9013671875,
+          "y": -1359.8521728515625,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 1019.4651489257812,
-          "y": 768.2028198242188,
-          "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "x": 1019.465087890625,
+          "y": 832.01123046875,
+          "width": 12.0181884765625,
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -5852,26 +6068,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2946138",
+          "id": "auto3834689",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2946247",
+         "renderId": "vf-auto3834798",
          "renderedBox": {
-          "x": 1593.0306396484375,
-          "y": -1942.163818359375,
+          "x": 1593.0303955078125,
+          "y": -1352.8538818359375,
           "width": 16.821533203125,
-          "height": 14.6597900390625
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 1052.422607421875,
-          "y": 773.2028198242188,
+          "x": 1052.4224853515625,
+          "y": 837.01123046875,
           "width": 12.018310546875,
           "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto2946138",
+        "id": "auto3834689",
         "type": "SmoBeamGroup"
        }
       }
@@ -5901,6 +6117,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -5925,6 +6142,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -5949,6 +6167,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -5973,6 +6192,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -5997,6 +6217,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -6021,6 +6242,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -6045,6 +6267,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -6069,6 +6292,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -6093,6 +6317,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -6117,6 +6342,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -6141,6 +6367,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -6165,6 +6392,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -6189,6 +6417,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -6213,6 +6442,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -6237,6 +6467,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -6261,6 +6492,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -6290,14 +6522,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 993.6694183349609,
+     "staffY": 1058.4632873535156,
      "measureNumber": {
       "measureNumber": 6,
       "measureIndex": 6,
       "systemIndex": 0,
       "staffId": 0
      },
-     "staffWidth": 557.8800067901611,
+     "staffWidth": 557.8800601959229,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -6313,6 +6545,7 @@ var inventionJson = `{
          "noteType": "r",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -6334,27 +6567,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2947397",
+          "id": "auto3835956",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947429",
+         "renderId": "vf-auto3835988",
          "renderedBox": {
           "x": 537.9364013671875,
-          "y": -1603.505126953125,
-          "width": 17.68603515625,
+          "y": -1012.81591796875,
+          "width": 17.68609619140625,
           "height": 36.118896484375
          },
          "logicalBox": {
           "x": 298.59918212890625,
-          "y": 1015.1611938476562,
-          "width": 12.635955810546875,
-          "height": 25.80548095703125
+          "y": 1079.955078125,
+          "width": 12.636016845703125,
+          "height": 25.8055419921875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -6376,20 +6610,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2947397",
+          "id": "auto3835956",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947435",
+         "renderId": "vf-auto3835994",
          "renderedBox": {
-          "x": 588.2410888671875,
-          "y": -1598.90673828125,
-          "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "x": 588.2411499023438,
+          "y": -1008.2176513671875,
+          "width": 16.82135009765625,
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 334.5398864746094,
-          "y": 1018.446533203125,
-          "width": 12.01824951171875,
+          "x": 334.5399475097656,
+          "y": 1083.2403564453125,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         },
@@ -6397,6 +6631,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -6418,27 +6653,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2947397",
+          "id": "auto3835956",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947442",
+         "renderId": "vf-auto3836001",
          "renderedBox": {
-          "x": 637.68115234375,
-          "y": -1605.905029296875,
+          "x": 637.6812133789062,
+          "y": -1015.2159423828125,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 369.8628845214844,
-          "y": 1013.446533203125,
+          "x": 369.8629150390625,
+          "y": 1078.2403564453125,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -6460,26 +6696,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2947397",
+          "id": "auto3835956",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947449",
+         "renderId": "vf-auto3836008",
          "renderedBox": {
-          "x": 687.1212158203125,
-          "y": -1612.9033203125,
-          "width": 16.82147216796875,
-          "height": 14.6597900390625
+          "x": 687.1212768554688,
+          "y": -1022.2142333984375,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 405.1858825683594,
-          "y": 1008.446533203125,
-          "width": 12.018280029296875,
-          "height": 10.47381591796875
+          "x": 405.1859130859375,
+          "y": 1073.2403564453125,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2947397",
+        "id": "auto3835956",
         "type": "SmoBeamGroup"
        }
       },
@@ -6489,6 +6725,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 1,
@@ -6510,27 +6747,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2947398",
+          "id": "auto3835957",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947456",
+         "renderId": "vf-auto3836015",
          "renderedBox": {
-          "x": 736.561279296875,
-          "y": -1619.901611328125,
+          "x": 736.5613403320312,
+          "y": -1029.2125244140625,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 440.50885009765625,
-          "y": 1003.446533203125,
-          "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "x": 440.5089111328125,
+          "y": 1068.2403564453125,
+          "width": 12.018218994140625,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 2,
@@ -6552,27 +6790,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2947398",
+          "id": "auto3835957",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947463",
+         "renderId": "vf-auto3836022",
          "renderedBox": {
-          "x": 786.0013427734375,
-          "y": -1605.905029296875,
-          "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "x": 786.00146484375,
+          "y": -1015.2159423828125,
+          "width": 16.82135009765625,
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 475.83184814453125,
-          "y": 1013.446533203125,
-          "width": 12.018218994140625,
-          "height": 10.47381591796875
+          "x": 475.8319396972656,
+          "y": 1078.2403564453125,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 2,
@@ -6594,27 +6833,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2947398",
+          "id": "auto3835957",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947470",
+         "renderId": "vf-auto3836029",
          "renderedBox": {
-          "x": 835.44140625,
-          "y": -1612.9033203125,
-          "width": 16.82147216796875,
-          "height": 14.6597900390625
+          "x": 835.4414672851562,
+          "y": -1022.2142333984375,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 511.1548156738281,
-          "y": 1008.446533203125,
-          "width": 12.018280029296875,
-          "height": 10.47381591796875
+          "x": 511.1548767089844,
+          "y": 1073.2403564453125,
+          "width": 12.018218994140625,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 2,
@@ -6636,26 +6876,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2947398",
+          "id": "auto3835957",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947477",
+         "renderId": "vf-auto3836036",
          "renderedBox": {
           "x": 884.8815307617188,
-          "y": -1598.90673828125,
-          "width": 16.82135009765625,
-          "height": 14.6597900390625
+          "y": -1008.2176513671875,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 546.4778442382812,
-          "y": 1018.446533203125,
-          "width": 12.0181884765625,
+          "y": 1083.2403564453125,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2947398",
+        "id": "auto3835957",
         "type": "SmoBeamGroup"
        }
       }
@@ -6685,6 +6925,7 @@ var inventionJson = `{
          "endBeam": true,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -6709,6 +6950,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -6733,6 +6975,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -6757,6 +7000,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -6781,6 +7025,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -6805,6 +7050,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -6829,6 +7075,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -6853,6 +7100,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 1,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -6877,6 +7125,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 2,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -6901,6 +7150,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 2,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -6925,6 +7175,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 2,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -6953,15 +7204,15 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 587.8800067901611,
-     "staffY": 993.6694183349609,
+     "staffX": 587.8800601959229,
+     "staffY": 1058.4632873535156,
      "measureNumber": {
       "measureNumber": 7,
       "measureIndex": 7,
       "systemIndex": 1,
       "staffId": 0
      },
-     "staffWidth": 502.0799560546875,
+     "staffWidth": 502.08013916015625,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -6977,6 +7228,7 @@ var inventionJson = `{
          "noteType": "r",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -6998,19 +7250,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2948497",
+          "id": "auto3837056",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2948525",
+         "renderId": "vf-auto3837084",
          "renderedBox": {
-          "x": 1252.4442138671875,
-          "y": -1610.50341796875,
+          "x": 1252.4444580078125,
+          "y": -1019.814208984375,
           "width": 17.68603515625,
           "height": 36.118896484375
          },
          "logicalBox": {
-          "x": 809.0869750976562,
-          "y": 1010.1611328125,
+          "x": 809.087158203125,
+          "y": 1074.955078125,
           "width": 12.635986328125,
           "height": 25.8055419921875
          }
@@ -7019,6 +7271,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -7040,27 +7293,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2948497",
+          "id": "auto3837056",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2948531",
+         "renderId": "vf-auto3837090",
          "renderedBox": {
-          "x": 1301.4666748046875,
-          "y": -1605.905029296875,
-          "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "x": 1301.4669189453125,
+          "y": -1015.2159423828125,
+          "width": 16.821533203125,
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 844.1116333007812,
-          "y": 1013.446533203125,
-          "width": 12.0181884765625,
-          "height": 10.47381591796875
+          "x": 844.1117553710938,
+          "y": 1078.2403564453125,
+          "width": 12.01837158203125,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -7082,27 +7336,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2948497",
+          "id": "auto3837056",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2948538",
+         "renderId": "vf-auto3837097",
          "renderedBox": {
-          "x": 1349.6246337890625,
-          "y": -1612.9033203125,
+          "x": 1349.6248779296875,
+          "y": -1022.2142333984375,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 878.5185546875,
-          "y": 1008.446533203125,
+          "x": 878.5187377929688,
+          "y": 1073.2403564453125,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -7124,26 +7379,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2948497",
+          "id": "auto3837056",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2948545",
+         "renderId": "vf-auto3837104",
          "renderedBox": {
-          "x": 1397.782470703125,
-          "y": -1619.901611328125,
+          "x": 1397.78271484375,
+          "y": -1029.2125244140625,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 912.9254760742188,
-          "y": 1003.446533203125,
+          "x": 912.9256591796875,
+          "y": 1068.2403564453125,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2948497",
+        "id": "auto3837056",
         "type": "SmoBeamGroup"
        }
       },
@@ -7153,6 +7408,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -7174,27 +7430,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2948498",
+          "id": "auto3837057",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2948552",
+         "renderId": "vf-auto3837111",
          "renderedBox": {
-          "x": 1445.9403076171875,
-          "y": -1626.89990234375,
+          "x": 1445.9405517578125,
+          "y": -1036.210693359375,
           "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 947.3323364257812,
-          "y": 998.446533203125,
+          "x": 947.33251953125,
+          "y": 1063.2403564453125,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -7216,27 +7473,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2948498",
+          "id": "auto3837057",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2948559",
+         "renderId": "vf-auto3837118",
          "renderedBox": {
-          "x": 1494.09814453125,
-          "y": -1612.9033203125,
+          "x": 1494.098388671875,
+          "y": -1022.2142333984375,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 981.7392578125,
-          "y": 1008.446533203125,
+          "x": 981.7394409179688,
+          "y": 1073.2403564453125,
           "width": 12.0181884765625,
-          "height": 10.47381591796875
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -7258,27 +7516,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2948498",
+          "id": "auto3837057",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2948566",
+         "renderId": "vf-auto3837125",
          "renderedBox": {
-          "x": 1542.256103515625,
-          "y": -1619.901611328125,
-          "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "x": 1542.25634765625,
+          "y": -1029.2125244140625,
+          "width": 16.821533203125,
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 1016.146240234375,
-          "y": 1003.446533203125,
-          "width": 12.0181884765625,
-          "height": 10.47381591796875
+          "x": 1016.1463623046875,
+          "y": 1068.2403564453125,
+          "width": 12.018310546875,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -7300,26 +7559,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2948498",
+          "id": "auto3837057",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2948573",
+         "renderId": "vf-auto3837132",
          "renderedBox": {
-          "x": 1590.4139404296875,
-          "y": -1605.905029296875,
+          "x": 1590.414306640625,
+          "y": -1015.2159423828125,
           "width": 16.8212890625,
-          "height": 14.6597900390625
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 1050.5531005859375,
-          "y": 1013.446533203125,
+          "x": 1050.5533447265625,
+          "y": 1078.2403564453125,
           "width": 12.0181884765625,
-          "height": 10.47381591796875
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2948498",
+        "id": "auto3837057",
         "type": "SmoBeamGroup"
        }
       }
@@ -7349,6 +7608,7 @@ var inventionJson = `{
          "endBeam": true,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -7373,6 +7633,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -7397,6 +7658,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -7421,6 +7683,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -7445,6 +7708,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -7469,6 +7733,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -7493,6 +7758,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -7517,6 +7783,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -7541,6 +7808,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -7565,6 +7833,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -7589,6 +7858,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -7618,14 +7888,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 1215.6739349365234,
+     "staffY": 1279.5550231933594,
      "measureNumber": {
       "measureNumber": 8,
       "measureIndex": 8,
       "systemIndex": 0,
       "staffId": 0
      },
-     "staffWidth": 560.7600116729736,
+     "staffWidth": 560.7600040435791,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -7641,6 +7911,7 @@ var inventionJson = `{
          "noteType": "r",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -7662,20 +7933,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2949619",
+          "id": "auto3838186",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2949651",
+         "renderId": "vf-auto3838218",
          "renderedBox": {
-          "x": 531.541259765625,
-          "y": -1320.7681884765625,
-          "width": 17.68603515625,
+          "x": 531.5411376953125,
+          "y": -731.3565673828125,
+          "width": 17.6861572265625,
           "height": 36.118896484375
          },
          "logicalBox": {
-          "x": 294.03009033203125,
-          "y": 1217.1656494140625,
-          "width": 12.635986328125,
+          "x": 294.0299987792969,
+          "y": 1281.0467529296875,
+          "width": 12.636077880859375,
           "height": 25.8055419921875
          }
         },
@@ -7683,6 +7954,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -7704,19 +7976,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2949619",
+          "id": "auto3838186",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2949657",
+         "renderId": "vf-auto3838224",
          "renderedBox": {
           "x": 583.149169921875,
-          "y": -1316.169677734375,
+          "y": -726.758056640625,
           "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 330.90191650390625,
-          "y": 1220.4510498046875,
+          "y": 1284.3321533203125,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -7725,6 +7997,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -7746,19 +8019,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2949619",
+          "id": "auto3838186",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2949664",
+         "renderId": "vf-auto3838231",
          "renderedBox": {
           "x": 633.8925170898438,
-          "y": -1309.17138671875,
+          "y": -719.759765625,
           "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 367.1560363769531,
-          "y": 1225.4510498046875,
+          "y": 1289.3321533203125,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -7767,6 +8040,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -7788,26 +8062,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2949619",
+          "id": "auto3838186",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2949671",
+         "renderId": "vf-auto3838238",
          "renderedBox": {
           "x": 684.6358642578125,
-          "y": -1302.173095703125,
+          "y": -712.761474609375,
           "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 403.4101867675781,
-          "y": 1230.4510498046875,
+          "y": 1294.3321533203125,
           "width": 12.018218994140625,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2949619",
+        "id": "auto3838186",
         "type": "SmoBeamGroup"
        }
       },
@@ -7817,6 +8091,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -7838,19 +8113,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2949620",
+          "id": "auto3838187",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2949678",
+         "renderId": "vf-auto3838245",
          "renderedBox": {
           "x": 735.3792114257812,
-          "y": -1295.1748046875,
+          "y": -705.76318359375,
           "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 439.664306640625,
-          "y": 1235.4510498046875,
+          "y": 1299.3321533203125,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -7859,6 +8134,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -7880,19 +8156,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2949620",
+          "id": "auto3838187",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2949685",
+         "renderId": "vf-auto3838252",
          "renderedBox": {
           "x": 786.12255859375,
-          "y": -1309.17138671875,
+          "y": -719.759765625,
           "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 475.91845703125,
-          "y": 1225.4510498046875,
+          "y": 1289.3321533203125,
           "width": 12.018218994140625,
           "height": 10.473876953125
          }
@@ -7901,6 +8177,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -7922,19 +8199,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2949620",
+          "id": "auto3838187",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2949692",
+         "renderId": "vf-auto3838259",
          "renderedBox": {
           "x": 836.8658447265625,
-          "y": -1302.173095703125,
+          "y": -712.761474609375,
           "width": 16.82147216796875,
           "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 512.1725463867188,
-          "y": 1230.4510498046875,
+          "y": 1294.3321533203125,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -7943,6 +8220,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -7964,26 +8242,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2949620",
+          "id": "auto3838187",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2949699",
+         "renderId": "vf-auto3838266",
          "renderedBox": {
           "x": 887.6092529296875,
-          "y": -1316.169677734375,
+          "y": -726.758056640625,
           "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 548.4266967773438,
-          "y": 1220.4510498046875,
+          "y": 1284.3321533203125,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2949620",
+        "id": "auto3838187",
         "type": "SmoBeamGroup"
        }
       }
@@ -8013,6 +8291,7 @@ var inventionJson = `{
          "endBeam": true,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -8037,6 +8316,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -8061,6 +8341,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -8085,6 +8366,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -8109,6 +8391,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -8133,6 +8416,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -8157,6 +8441,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -8181,6 +8466,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -8205,6 +8491,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -8229,6 +8516,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -8253,6 +8541,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -8281,8 +8570,8 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 590.7600116729736,
-     "staffY": 1215.6739349365234,
+     "staffX": 590.7600040435791,
+     "staffY": 1279.5550231933594,
      "measureNumber": {
       "measureNumber": 9,
       "measureIndex": 9,
@@ -8305,6 +8594,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -8326,19 +8616,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2950723",
+          "id": "auto3839290",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2950729",
+         "renderId": "vf-auto3839296",
          "renderedBox": {
           "x": 970.655517578125,
-          "y": -1302.173095703125,
+          "y": -712.761474609375,
           "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 607.760009765625,
-          "y": 1230.4510498046875,
+          "y": 1294.3321533203125,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -8347,6 +8637,7 @@ var inventionJson = `{
          "noteType": "r",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -8368,26 +8659,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2950723",
+          "id": "auto3839290",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2950736",
+         "renderId": "vf-auto3839303",
          "renderedBox": {
           "x": 1043.53271484375,
-          "y": -1306.7716064453125,
-          "width": 13.716552734375,
+          "y": -717.3599853515625,
+          "width": 13.7164306640625,
           "height": 22.63818359375
          },
          "logicalBox": {
           "x": 659.827880859375,
-          "y": 1227.1656494140625,
-          "width": 9.79998779296875,
+          "y": 1291.0467529296875,
+          "width": 9.79986572265625,
           "height": 16.174072265625
          }
         }
        ],
        "attrs": {
-        "id": "auto2950723",
+        "id": "auto3839290",
         "type": "SmoBeamGroup"
        }
       },
@@ -8397,6 +8688,7 @@ var inventionJson = `{
          "noteType": "r",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -8418,19 +8710,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2950724",
+          "id": "auto3839291",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2950750",
+         "renderId": "vf-auto3839317",
          "renderedBox": {
           "x": 1228.80908203125,
-          "y": -1292.7750244140625,
+          "y": -703.3634033203125,
           "width": 17.68603515625,
           "height": 36.118896484375
          },
          "logicalBox": {
           "x": 792.2006225585938,
-          "y": 1237.1656494140625,
+          "y": 1301.0467529296875,
           "width": 12.635986328125,
           "height": 25.8055419921875
          }
@@ -8439,6 +8731,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -8460,19 +8753,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2950724",
+          "id": "auto3839291",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2950756",
+         "renderId": "vf-auto3839323",
          "renderedBox": {
           "x": 1278.721923828125,
-          "y": -1323.16796875,
+          "y": -733.75634765625,
           "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 827.8613891601562,
-          "y": 1215.4510498046875,
+          "y": 1279.3321533203125,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -8481,6 +8774,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -8502,20 +8796,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2950724",
+          "id": "auto3839291",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2950763",
+         "renderId": "vf-auto3839330",
          "renderedBox": {
-          "x": 1327.770263671875,
-          "y": -1316.169677734375,
-          "width": 16.8212890625,
+          "x": 1327.7701416015625,
+          "y": -726.758056640625,
+          "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 862.9044799804688,
-          "y": 1220.4510498046875,
-          "width": 12.0181884765625,
+          "x": 862.9044189453125,
+          "y": 1284.3321533203125,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -8523,6 +8817,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -8544,26 +8839,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2950724",
+          "id": "auto3839291",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2950770",
+         "renderId": "vf-auto3839337",
          "renderedBox": {
           "x": 1376.8184814453125,
-          "y": -1309.17138671875,
+          "y": -719.759765625,
           "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 897.947509765625,
-          "y": 1225.4510498046875,
+          "y": 1289.3321533203125,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2950724",
+        "id": "auto3839291",
         "type": "SmoBeamGroup"
        }
       },
@@ -8573,6 +8868,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -8594,19 +8890,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2950725",
+          "id": "auto3839292",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2950777",
+         "renderId": "vf-auto3839344",
          "renderedBox": {
           "x": 1425.86669921875,
-          "y": -1302.173095703125,
+          "y": -712.761474609375,
           "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 932.9905395507812,
-          "y": 1230.4510498046875,
+          "y": 1294.3321533203125,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -8615,6 +8911,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -8636,19 +8933,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2950725",
+          "id": "auto3839292",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2950784",
+         "renderId": "vf-auto3839351",
          "renderedBox": {
           "x": 1474.9149169921875,
-          "y": -1316.169677734375,
+          "y": -726.758056640625,
           "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 968.0335693359375,
-          "y": 1220.4510498046875,
+          "y": 1284.3321533203125,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -8657,6 +8954,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -8678,20 +8976,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2950725",
+          "id": "auto3839292",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2950791",
+         "renderId": "vf-auto3839358",
          "renderedBox": {
-          "x": 1525.3629150390625,
-          "y": -1322.4254150390625,
-          "width": 33.389404296875,
+          "x": 1525.36279296875,
+          "y": -733.0137939453125,
+          "width": 33.3895263671875,
           "height": 41.1666259765625
          },
          "logicalBox": {
-          "x": 1004.07666015625,
-          "y": 1215.9815673828125,
-          "width": 23.85546875,
+          "x": 1004.0765991210938,
+          "y": 1279.8626708984375,
+          "width": 23.85552978515625,
           "height": 29.4119873046875
          }
         },
@@ -8699,6 +8997,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -8720,26 +9019,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2950725",
+          "id": "auto3839292",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2950800",
+         "renderId": "vf-auto3839367",
          "renderedBox": {
           "x": 1590.9791259765625,
-          "y": -1323.16796875,
+          "y": -733.75634765625,
           "width": 16.821533203125,
           "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 1050.9569091796875,
-          "y": 1215.4510498046875,
+          "y": 1279.3321533203125,
           "width": 12.018310546875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2950725",
+        "id": "auto3839292",
         "type": "SmoBeamGroup"
        }
       }
@@ -8769,6 +9068,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -8793,6 +9093,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -8817,6 +9118,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -8841,6 +9143,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -8865,6 +9168,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -8889,6 +9193,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -8913,6 +9218,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -8937,6 +9243,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -8961,6 +9268,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -8985,6 +9293,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -9009,6 +9318,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -9038,14 +9348,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 1769.9620535714287,
+     "staffY": 1833.5558035714287,
      "measureNumber": {
       "measureNumber": 10,
       "measureIndex": 10,
       "systemIndex": 0,
       "staffId": 0
      },
-     "staffWidth": 556.7400531768799,
+     "staffWidth": 556.7401065826416,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -9061,6 +9371,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 8192,
          "flagState": 2,
@@ -9082,27 +9393,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2951902",
+          "id": "auto3840477",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2951913",
+         "renderId": "vf-auto3840488",
          "renderedBox": {
           "x": 259.82684326171875,
-          "y": -540.3564453125,
+          "y": 48.65283203125,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 99.90079498291016,
-          "y": 1774.7392578125,
+          "y": 1838.3328857421875,
           "width": 12.018241882324219,
-          "height": 10.4737548828125
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 8192,
          "flagState": 2,
@@ -9124,20 +9436,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2951902",
+          "id": "auto3840477",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2951920",
+         "renderId": "vf-auto3840495",
          "renderedBox": {
-          "x": 343.0929260253906,
-          "y": -546.612060546875,
-          "width": 33.389556884765625,
+          "x": 343.09295654296875,
+          "y": 42.397216796875,
+          "width": 33.3895263671875,
           "height": 41.166748046875
          },
          "logicalBox": {
-          "x": 159.39114379882812,
-          "y": 1770.269775390625,
-          "width": 23.85552978515625,
+          "x": 159.39117431640625,
+          "y": 1833.8634033203125,
+          "width": 23.855499267578125,
           "height": 29.412109375
          }
         },
@@ -9145,6 +9457,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 8192,
          "flagState": 2,
@@ -9166,27 +9479,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2951902",
+          "id": "auto3840477",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2951929",
+         "renderId": "vf-auto3840504",
          "renderedBox": {
           "x": 441.5274963378906,
-          "y": -540.3564453125,
-          "width": 16.821380615234375,
-          "height": 14.65966796875
+          "y": 48.65283203125,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 229.71878051757812,
-          "y": 1774.7392578125,
-          "width": 12.018218994140625,
-          "height": 10.4737548828125
+          "y": 1838.3328857421875,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": true,
          "beamBeats": 8192,
          "flagState": 2,
@@ -9208,26 +9522,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2951902",
+          "id": "auto3840477",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2951936",
+         "renderId": "vf-auto3840511",
          "renderedBox": {
           "x": 523.3939208984375,
-          "y": -547.354736328125,
+          "y": 41.654541015625,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 288.2091369628906,
-          "y": 1769.7392578125,
+          "y": 1833.3328857421875,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2951902",
+        "id": "auto3840477",
         "type": "SmoBeamGroup"
        }
       },
@@ -9237,6 +9551,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 8192,
          "flagState": 0,
@@ -9258,27 +9573,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2951903",
+          "id": "auto3840478",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2951943",
+         "renderId": "vf-auto3840518",
          "renderedBox": {
-          "x": 605.2603149414062,
-          "y": -554.35302734375,
+          "x": 605.2603759765625,
+          "y": 34.65625,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 346.699462890625,
-          "y": 1764.7392578125,
-          "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "x": 346.69952392578125,
+          "y": 1828.3328857421875,
+          "width": 12.018218994140625,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 8192,
          "flagState": 0,
@@ -9300,27 +9616,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2951903",
+          "id": "auto3840478",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2951950",
+         "renderId": "vf-auto3840525",
          "renderedBox": {
           "x": 687.1267700195312,
-          "y": -519.361572265625,
-          "width": 16.82135009765625,
-          "height": 14.65966796875
+          "y": 69.647705078125,
+          "width": 16.82147216796875,
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 405.1898498535156,
-          "y": 1789.7392578125,
-          "width": 12.0181884765625,
-          "height": 10.4737548828125
+          "y": 1853.3328857421875,
+          "width": 12.018280029296875,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 8192,
          "flagState": 0,
@@ -9342,27 +9659,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2951903",
+          "id": "auto3840478",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2951957",
+         "renderId": "vf-auto3840532",
          "renderedBox": {
-          "x": 768.9931640625,
-          "y": -526.35986328125,
-          "width": 16.8214111328125,
-          "height": 14.65966796875
+          "x": 768.9932250976562,
+          "y": 62.6494140625,
+          "width": 16.82135009765625,
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 463.68017578125,
-          "y": 1784.7392578125,
-          "width": 12.018218994140625,
-          "height": 10.4737548828125
+          "x": 463.6802062988281,
+          "y": 1848.3328857421875,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": true,
          "beamBeats": 8192,
          "flagState": 0,
@@ -9384,26 +9702,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2951903",
+          "id": "auto3840478",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2951964",
+         "renderId": "vf-auto3840539",
          "renderedBox": {
           "x": 850.859619140625,
-          "y": -533.358154296875,
-          "width": 16.82135009765625,
-          "height": 14.65966796875
+          "y": 55.651123046875,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 522.1705322265625,
-          "y": 1779.7392578125,
-          "width": 12.0181884765625,
-          "height": 10.4737548828125
+          "y": 1843.3328857421875,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2951903",
+        "id": "auto3840478",
         "type": "SmoBeamGroup"
        }
       }
@@ -9433,6 +9751,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 8192,
          "flagState": 2,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -9457,6 +9776,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 8192,
          "flagState": 2,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -9481,6 +9801,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 8192,
          "flagState": 2,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -9505,6 +9826,7 @@ var inventionJson = `{
          "endBeam": true,
          "beamBeats": 8192,
          "flagState": 2,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -9529,6 +9851,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 8192,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -9553,6 +9876,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 8192,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -9577,6 +9901,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 8192,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -9601,6 +9926,7 @@ var inventionJson = `{
          "endBeam": true,
          "beamBeats": 8192,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -9629,15 +9955,15 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 586.7400531768799,
-     "staffY": 1769.9620535714287,
+     "staffX": 586.7401065826416,
+     "staffY": 1833.5558035714287,
      "measureNumber": {
       "measureNumber": 11,
       "measureIndex": 11,
       "systemIndex": 1,
       "staffId": 0
      },
-     "staffWidth": 504.15997314453125,
+     "staffWidth": 504.159912109375,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -9653,6 +9979,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -9674,27 +10001,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2953222",
+          "id": "auto3841797",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2953228",
+         "renderId": "vf-auto3841803",
          "renderedBox": {
-          "x": 965.0289306640625,
-          "y": -540.3564453125,
-          "width": 16.82147216796875,
-          "height": 14.65966796875
+          "x": 965.029052734375,
+          "y": 48.65283203125,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 603.7400512695312,
-          "y": 1774.7392578125,
+          "x": 603.7401123046875,
+          "y": 1838.3328857421875,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -9716,26 +10044,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2953222",
+          "id": "auto3841797",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2953235",
+         "renderId": "vf-auto3841810",
          "renderedBox": {
           "x": 1049.446533203125,
-          "y": -518.618896484375,
+          "y": 70.390380859375,
           "width": 33.389404296875,
-          "height": 41.16650390625
+          "height": 41.166748046875
          },
          "logicalBox": {
           "x": 664.0531005859375,
-          "y": 1790.269775390625,
+          "y": 1853.863525390625,
           "width": 23.85540771484375,
-          "height": 29.411865234375
+          "height": 29.4119873046875
          }
         }
        ],
        "attrs": {
-        "id": "auto2953222",
+        "id": "auto3841797",
         "type": "SmoBeamGroup"
        }
       },
@@ -9745,6 +10073,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 2,
@@ -9766,27 +10095,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2953223",
+          "id": "auto3841798",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2953244",
+         "renderId": "vf-auto3841819",
          "renderedBox": {
-          "x": 1150.4320068359375,
-          "y": -525.6171875,
-          "width": 33.3895263671875,
-          "height": 41.16650390625
+          "x": 1150.43212890625,
+          "y": 63.39208984375,
+          "width": 33.389404296875,
+          "height": 41.166748046875
          },
          "logicalBox": {
-          "x": 736.2032470703125,
-          "y": 1785.269775390625,
-          "width": 23.85552978515625,
-          "height": 29.411865234375
+          "x": 736.203369140625,
+          "y": 1848.863525390625,
+          "width": 23.85540771484375,
+          "height": 29.4119873046875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 2,
@@ -9808,26 +10138,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2953223",
+          "id": "auto3841798",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2953253",
+         "renderId": "vf-auto3841828",
          "renderedBox": {
-          "x": 1250.017822265625,
-          "y": -519.361572265625,
-          "width": 16.821533203125,
-          "height": 14.65966796875
+          "x": 1250.0179443359375,
+          "y": 69.647705078125,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 807.3533935546875,
-          "y": 1789.7392578125,
-          "width": 12.01837158203125,
-          "height": 10.4737548828125
+          "x": 807.353515625,
+          "y": 1853.3328857421875,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2953223",
+        "id": "auto3841798",
         "type": "SmoBeamGroup"
        }
       },
@@ -9837,6 +10167,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -9858,27 +10189,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2953224",
+          "id": "auto3841799",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2953260",
+         "renderId": "vf-auto3841835",
          "renderedBox": {
           "x": 1333.0357666015625,
-          "y": -526.35986328125,
+          "y": 62.6494140625,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 866.66650390625,
-          "y": 1784.7392578125,
+          "y": 1848.3328857421875,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -9900,26 +10232,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2953224",
+          "id": "auto3841799",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2953267",
+         "renderId": "vf-auto3841842",
          "renderedBox": {
-          "x": 1416.053466796875,
-          "y": -533.358154296875,
+          "x": 1416.0535888671875,
+          "y": 55.651123046875,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 925.9793701171875,
-          "y": 1779.7392578125,
-          "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "x": 925.9794921875,
+          "y": 1843.3328857421875,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2953224",
+        "id": "auto3841799",
         "type": "SmoBeamGroup"
        }
       }
@@ -9949,6 +10281,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -9973,6 +10306,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -9997,6 +10331,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 2,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -10021,6 +10356,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 2,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -10045,6 +10381,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -10069,6 +10406,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -10093,6 +10431,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -10122,14 +10461,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 2027.1328299386162,
+     "staffY": 2090.179704938616,
      "measureNumber": {
       "measureNumber": 12,
       "measureIndex": 12,
       "systemIndex": 0,
       "staffId": 0
      },
-     "staffWidth": 570.9800434112549,
+     "staffWidth": 570.9800968170166,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -10145,6 +10484,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -10166,19 +10506,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2954417",
+          "id": "auto3843000",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2954430",
+         "renderId": "vf-auto3843013",
          "renderedBox": {
           "x": 259.82684326171875,
-          "y": -180.40576171875,
+          "y": 407.83837890625,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 99.90079498291016,
-          "y": 2031.909912109375,
+          "y": 2094.956787109375,
           "width": 12.018241882324219,
           "height": 10.473876953125
          }
@@ -10187,6 +10527,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -10208,20 +10549,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2954417",
+          "id": "auto3843000",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2954437",
+         "renderId": "vf-auto3843020",
          "renderedBox": {
           "x": 300.88275146484375,
-          "y": -138.416015625,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
+          "y": 449.828125,
+          "width": 16.821441650390625,
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 129.23362731933594,
-          "y": 2061.909912109375,
-          "width": 12.01824951171875,
+          "y": 2124.956787109375,
+          "width": 12.018264770507812,
           "height": 10.473876953125
          }
         },
@@ -10229,6 +10570,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -10250,20 +10592,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2954417",
+          "id": "auto3843000",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2954444",
+         "renderId": "vf-auto3843027",
          "renderedBox": {
-          "x": 343.33831787109375,
-          "y": -158.668212890625,
-          "width": 33.38958740234375,
-          "height": 41.166748046875
+          "x": 343.33837890625,
+          "y": 429.57568359375,
+          "width": 33.3895263671875,
+          "height": 41.1669921875
          },
          "logicalBox": {
-          "x": 159.56646728515625,
-          "y": 2047.4404296875,
-          "width": 23.855560302734375,
+          "x": 159.56651306152344,
+          "y": 2110.4873046875,
+          "width": 23.855514526367188,
           "height": 29.412109375
          }
         },
@@ -10271,6 +10613,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -10292,26 +10635,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2954417",
+          "id": "auto3843000",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2954453",
+         "renderId": "vf-auto3843036",
          "renderedBox": {
-          "x": 402.3620300292969,
-          "y": -165.66650390625,
-          "width": 33.389556884765625,
-          "height": 41.166748046875
+          "x": 402.362060546875,
+          "y": 422.577392578125,
+          "width": 33.3895263671875,
+          "height": 41.1669921875
          },
          "logicalBox": {
-          "x": 201.73660278320312,
-          "y": 2042.4404296875,
-          "width": 23.85552978515625,
+          "x": 201.7366180419922,
+          "y": 2105.4873046875,
+          "width": 23.855514526367188,
           "height": 29.412109375
          }
         }
        ],
        "attrs": {
-        "id": "auto2954417",
+        "id": "auto3843000",
         "type": "SmoBeamGroup"
        }
       },
@@ -10321,6 +10664,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -10342,20 +10686,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2954418",
+          "id": "auto3843001",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2954462",
+         "renderId": "vf-auto3843045",
          "renderedBox": {
           "x": 459.9861145019531,
-          "y": -159.410888671875,
-          "width": 16.821380615234375,
-          "height": 14.659912109375
+          "y": 428.833251953125,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 242.90675354003906,
-          "y": 2046.909912109375,
-          "width": 12.018203735351562,
+          "y": 2109.956787109375,
+          "width": 12.018234252929688,
           "height": 10.473876953125
          }
         },
@@ -10363,6 +10707,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -10384,19 +10729,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2954418",
+          "id": "auto3843001",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2954469",
+         "renderId": "vf-auto3843052",
          "renderedBox": {
-          "x": 501.0419921875,
-          "y": -145.414306640625,
+          "x": 501.04205322265625,
+          "y": 442.829833984375,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 272.23956298828125,
-          "y": 2056.909912109375,
+          "x": 272.2395935058594,
+          "y": 2119.956787109375,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -10405,6 +10750,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -10426,20 +10772,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2954418",
+          "id": "auto3843001",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2954476",
+         "renderId": "vf-auto3843059",
          "renderedBox": {
-          "x": 542.097900390625,
-          "y": -152.41259765625,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
+          "x": 542.0979614257812,
+          "y": 435.83154296875,
+          "width": 16.82135009765625,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 301.5723876953125,
-          "y": 2051.909912109375,
-          "width": 12.01824951171875,
+          "x": 301.57244873046875,
+          "y": 2114.956787109375,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         },
@@ -10447,6 +10793,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -10468,26 +10815,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2954418",
+          "id": "auto3843001",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2954483",
+         "renderId": "vf-auto3843066",
          "renderedBox": {
           "x": 583.1538696289062,
-          "y": -138.416015625,
-          "width": 16.82135009765625,
-          "height": 14.659912109375
+          "y": 449.828125,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 330.9052734375,
-          "y": 2061.909912109375,
-          "width": 12.0181884765625,
+          "y": 2124.956787109375,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2954418",
+        "id": "auto3843001",
         "type": "SmoBeamGroup"
        }
       },
@@ -10497,6 +10844,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -10518,27 +10866,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2954419",
+          "id": "auto3843002",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2954490",
+         "renderId": "vf-auto3843073",
          "renderedBox": {
-          "x": 624.209716796875,
-          "y": -187.404052734375,
-          "width": 16.82147216796875,
-          "height": 14.659912109375
+          "x": 624.2098388671875,
+          "y": 400.840087890625,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 360.2380676269531,
-          "y": 2026.9097900390625,
-          "width": 12.018280029296875,
-          "height": 10.4739990234375
+          "x": 360.2381591796875,
+          "y": 2089.956787109375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -10560,20 +10909,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2954419",
+          "id": "auto3843002",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2954497",
+         "renderId": "vf-auto3843080",
          "renderedBox": {
-          "x": 665.2656860351562,
-          "y": -180.40576171875,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
+          "x": 665.2657470703125,
+          "y": 407.83837890625,
+          "width": 16.82135009765625,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 389.5709533691406,
-          "y": 2031.909912109375,
-          "width": 12.01824951171875,
+          "x": 389.57098388671875,
+          "y": 2094.956787109375,
+          "width": 12.018218994140625,
           "height": 10.473876953125
          }
         },
@@ -10581,6 +10930,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -10602,20 +10952,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2954419",
+          "id": "auto3843002",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2954504",
+         "renderId": "vf-auto3843087",
          "renderedBox": {
-          "x": 706.3215942382812,
-          "y": -173.407470703125,
+          "x": 706.3216552734375,
+          "y": 414.836669921875,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 418.9037780761719,
-          "y": 2036.909912109375,
-          "width": 12.01824951171875,
+          "x": 418.9038391113281,
+          "y": 2099.956787109375,
+          "width": 12.018218994140625,
           "height": 10.473876953125
          }
         },
@@ -10623,6 +10973,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -10644,26 +10995,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2954419",
+          "id": "auto3843002",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2954511",
+         "renderId": "vf-auto3843094",
          "renderedBox": {
-          "x": 747.3775024414062,
-          "y": -187.404052734375,
+          "x": 747.3775634765625,
+          "y": 400.840087890625,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 448.23663330078125,
-          "y": 2026.9097900390625,
-          "width": 12.018218994140625,
-          "height": 10.4739990234375
+          "x": 448.2366638183594,
+          "y": 2089.956787109375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2954419",
+        "id": "auto3843002",
         "type": "SmoBeamGroup"
        }
       },
@@ -10673,6 +11024,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -10694,19 +11046,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2954420",
+          "id": "auto3843003",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2954518",
+         "renderId": "vf-auto3843101",
          "renderedBox": {
-          "x": 788.4334106445312,
-          "y": -180.40576171875,
+          "x": 788.4334716796875,
+          "y": 407.83837890625,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 477.5694580078125,
-          "y": 2031.909912109375,
+          "x": 477.5694885253906,
+          "y": 2094.956787109375,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -10715,6 +11067,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -10736,19 +11089,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2954420",
+          "id": "auto3843003",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2954525",
+         "renderId": "vf-auto3843108",
          "renderedBox": {
-          "x": 829.4893188476562,
-          "y": -173.407470703125,
+          "x": 829.4893798828125,
+          "y": 414.836669921875,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 506.90228271484375,
-          "y": 2036.909912109375,
+          "x": 506.90234375,
+          "y": 2099.956787109375,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -10757,6 +11110,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -10778,20 +11132,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2954420",
+          "id": "auto3843003",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2954532",
+         "renderId": "vf-auto3843115",
          "renderedBox": {
-          "x": 870.5452880859375,
-          "y": -166.4091796875,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
+          "x": 870.5453491210938,
+          "y": 421.8349609375,
+          "width": 16.82135009765625,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 536.2351684570312,
-          "y": 2041.909912109375,
-          "width": 12.01824951171875,
+          "x": 536.2352294921875,
+          "y": 2104.956787109375,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         },
@@ -10799,6 +11153,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -10820,26 +11175,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2954420",
+          "id": "auto3843003",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2954539",
+         "renderId": "vf-auto3843122",
          "renderedBox": {
-          "x": 911.6011962890625,
-          "y": -180.40576171875,
+          "x": 911.6012573242188,
+          "y": 407.83837890625,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 565.5679931640625,
-          "y": 2031.909912109375,
+          "x": 565.5680541992188,
+          "y": 2094.956787109375,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2954420",
+        "id": "auto3843003",
         "type": "SmoBeamGroup"
        }
       }
@@ -10869,6 +11224,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -10893,6 +11249,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -10917,6 +11274,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -10941,6 +11299,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -10965,6 +11324,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -10989,6 +11349,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -11013,6 +11374,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -11037,6 +11399,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -11061,6 +11424,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -11085,6 +11449,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -11109,6 +11474,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -11133,6 +11499,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -11157,6 +11524,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -11181,6 +11549,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -11205,6 +11574,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -11229,6 +11599,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -11257,15 +11628,15 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 600.9800434112549,
-     "staffY": 2027.1328299386162,
+     "staffX": 600.9800968170166,
+     "staffY": 2090.179704938616,
      "measureNumber": {
       "measureNumber": 13,
       "measureIndex": 13,
       "systemIndex": 1,
       "staffId": 0
      },
-     "staffWidth": 489.97998046875,
+     "staffWidth": 489.9801025390625,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -11281,6 +11652,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -11302,19 +11674,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2955928",
+          "id": "auto3844511",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2955935",
+         "renderId": "vf-auto3844518",
          "renderedBox": {
-          "x": 984.9600830078125,
-          "y": -173.407470703125,
+          "x": 984.9601440429688,
+          "y": 414.836669921875,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 617.9800415039062,
-          "y": 2036.909912109375,
+          "x": 617.9801025390625,
+          "y": 2099.956787109375,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -11323,6 +11695,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -11344,27 +11717,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2955928",
+          "id": "auto3844511",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2955942",
+         "renderId": "vf-auto3844525",
          "renderedBox": {
-          "x": 1024.5882568359375,
-          "y": -208.39892578125,
-          "width": 16.8214111328125,
+          "x": 1024.58837890625,
+          "y": 379.84521484375,
+          "width": 16.8212890625,
           "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 646.2928466796875,
-          "y": 2011.9097900390625,
-          "width": 12.01824951171875,
-          "height": 10.4739990234375
+          "x": 646.2929077148438,
+          "y": 2074.956787109375,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -11386,27 +11760,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2955928",
+          "id": "auto3844511",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2955949",
+         "renderId": "vf-auto3844532",
          "renderedBox": {
-          "x": 1065.6160888671875,
-          "y": -214.654296875,
-          "width": 33.3895263671875,
-          "height": 41.16650390625
+          "x": 1065.6162109375,
+          "y": 373.58935546875,
+          "width": 33.389404296875,
+          "height": 41.1669921875
          },
          "logicalBox": {
-          "x": 675.6055908203125,
-          "y": 2007.440673828125,
-          "width": 23.85552978515625,
-          "height": 29.4117431640625
+          "x": 675.605712890625,
+          "y": 2070.4873046875,
+          "width": 23.85540771484375,
+          "height": 29.412109375
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -11428,26 +11803,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2955928",
+          "id": "auto3844511",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2955958",
+         "renderId": "vf-auto3844541",
          "renderedBox": {
-          "x": 1121.8123779296875,
-          "y": -215.397216796875,
+          "x": 1121.8125,
+          "y": 372.846923828125,
           "width": 16.8214111328125,
           "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 715.7556762695312,
-          "y": 2006.9097900390625,
+          "x": 715.7557373046875,
+          "y": 2069.956787109375,
           "width": 12.01824951171875,
-          "height": 10.4739990234375
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2955928",
+        "id": "auto3844511",
         "type": "SmoBeamGroup"
        }
       },
@@ -11457,6 +11832,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -11478,27 +11854,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2955929",
+          "id": "auto3844512",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2955965",
+         "renderId": "vf-auto3844548",
          "renderedBox": {
-          "x": 1161.4405517578125,
-          "y": -208.39892578125,
+          "x": 1161.440673828125,
+          "y": 379.84521484375,
           "width": 16.8214111328125,
           "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 744.0684204101562,
-          "y": 2011.9097900390625,
-          "width": 12.01824951171875,
-          "height": 10.4739990234375
+          "x": 744.0685424804688,
+          "y": 2074.956787109375,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -11520,27 +11897,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2955929",
+          "id": "auto3844512",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2955972",
+         "renderId": "vf-auto3844555",
          "renderedBox": {
-          "x": 1201.0687255859375,
-          "y": -187.404052734375,
+          "x": 1201.06884765625,
+          "y": 400.840087890625,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 772.3812255859375,
-          "y": 2026.9097900390625,
+          "x": 772.3812866210938,
+          "y": 2089.956787109375,
           "width": 12.01824951171875,
-          "height": 10.4739990234375
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -11562,27 +11940,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2955929",
+          "id": "auto3844512",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2955979",
+         "renderId": "vf-auto3844562",
          "renderedBox": {
-          "x": 1240.6968994140625,
-          "y": -194.40234375,
+          "x": 1240.697021484375,
+          "y": 393.841796875,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 800.6939697265625,
-          "y": 2021.9097900390625,
+          "x": 800.694091796875,
+          "y": 2084.956787109375,
           "width": 12.01824951171875,
-          "height": 10.4739990234375
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -11604,26 +11983,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2955929",
+          "id": "auto3844512",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2955986",
+         "renderId": "vf-auto3844569",
          "renderedBox": {
-          "x": 1280.3250732421875,
-          "y": -180.40576171875,
+          "x": 1280.3253173828125,
+          "y": 407.83837890625,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 829.0067749023438,
-          "y": 2031.909912109375,
-          "width": 12.01824951171875,
+          "x": 829.0069580078125,
+          "y": 2094.956787109375,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2955929",
+        "id": "auto3844512",
         "type": "SmoBeamGroup"
        }
       },
@@ -11633,6 +12012,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -11655,20 +12035,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2955930",
+          "id": "auto3844513",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2955993",
+         "renderId": "vf-auto3844576",
          "renderedBox": {
-          "x": 1322.7525634765625,
-          "y": -160.2548828125,
+          "x": 1322.752685546875,
+          "y": 427.9892578125,
           "width": 42.2342529296875,
           "height": 30.33349609375
          },
          "logicalBox": {
-          "x": 859.3195190429688,
-          "y": 2046.306884765625,
-          "width": 30.17474365234375,
+          "x": 859.3196411132812,
+          "y": 2109.353759765625,
+          "width": 30.1746826171875,
           "height": 21.672119140625
          }
         },
@@ -11676,6 +12056,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -11698,27 +12079,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2955930",
+          "id": "auto3844513",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2956005",
+         "renderId": "vf-auto3844588",
          "renderedBox": {
-          "x": 1387.7935791015625,
-          "y": -194.40234375,
+          "x": 1387.7938232421875,
+          "y": 393.841796875,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 905.788818359375,
-          "y": 2021.9097900390625,
-          "width": 12.0181884765625,
-          "height": 10.4739990234375
+          "x": 905.7889404296875,
+          "y": 2084.956787109375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -11741,27 +12123,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2955930",
+          "id": "auto3844513",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2956012",
+         "renderId": "vf-auto3844595",
          "renderedBox": {
-          "x": 1427.4217529296875,
-          "y": -187.404052734375,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
+          "x": 1427.4219970703125,
+          "y": 400.840087890625,
+          "width": 16.8212890625,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 934.1015625,
-          "y": 2026.9097900390625,
-          "width": 12.01824951171875,
-          "height": 10.4739990234375
+          "x": 934.1017456054688,
+          "y": 2089.956787109375,
+          "width": 12.01812744140625,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -11784,26 +12167,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2955930",
+          "id": "auto3844513",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2956019",
+         "renderId": "vf-auto3844602",
          "renderedBox": {
-          "x": 1467.0499267578125,
-          "y": -180.40576171875,
+          "x": 1467.0501708984375,
+          "y": 407.83837890625,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 962.4143676757812,
-          "y": 2031.909912109375,
+          "x": 962.41455078125,
+          "y": 2094.956787109375,
           "width": 12.0181884765625,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2955930",
+        "id": "auto3844513",
         "type": "SmoBeamGroup"
        }
       },
@@ -11813,6 +12196,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -11835,20 +12219,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2955931",
+          "id": "auto3844514",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2956026",
+         "renderId": "vf-auto3844609",
          "renderedBox": {
-          "x": 1506.67822265625,
-          "y": -173.407470703125,
-          "width": 16.8212890625,
-          "height": 14.659912109375
+          "x": 1506.6783447265625,
+          "y": 414.836669921875,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 990.7272338867188,
-          "y": 2036.909912109375,
-          "width": 12.01812744140625,
+          "x": 990.727294921875,
+          "y": 2099.956787109375,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -11856,6 +12240,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -11878,20 +12263,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2955931",
+          "id": "auto3844514",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2956033",
+         "renderId": "vf-auto3844616",
          "renderedBox": {
-          "x": 1560.715087890625,
-          "y": -166.4091796875,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
+          "x": 1560.71533203125,
+          "y": 421.8349609375,
+          "width": 16.821533203125,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 1029.33447265625,
-          "y": 2041.909912109375,
-          "width": 12.0181884765625,
+          "x": 1029.3345947265625,
+          "y": 2104.956787109375,
+          "width": 12.018310546875,
           "height": 10.473876953125
          }
         },
@@ -11899,6 +12284,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -11921,26 +12307,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2955931",
+          "id": "auto3844514",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2956040",
+         "renderId": "vf-auto3844623",
          "renderedBox": {
-          "x": 1600.34326171875,
-          "y": -159.410888671875,
-          "width": 16.821533203125,
-          "height": 14.659912109375
+          "x": 1600.3436279296875,
+          "y": 428.833251953125,
+          "width": 16.8212890625,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 1057.647216796875,
-          "y": 2046.909912109375,
-          "width": 12.018310546875,
+          "x": 1057.6474609375,
+          "y": 2109.956787109375,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2955931",
+        "id": "auto3844514",
         "type": "SmoBeamGroup"
        }
       }
@@ -11970,6 +12356,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -11994,6 +12381,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -12018,6 +12406,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -12042,6 +12431,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -12066,6 +12456,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -12090,6 +12481,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -12114,6 +12506,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -12138,6 +12531,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -12163,6 +12557,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -12188,6 +12583,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -12213,6 +12609,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -12238,6 +12635,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -12263,6 +12661,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -12288,6 +12687,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -12313,6 +12713,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -12342,14 +12743,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 2295.9627859933034,
+     "staffY": 2358.956804547991,
      "measureNumber": {
       "measureNumber": 14,
       "measureIndex": 14,
       "systemIndex": 0,
       "staffId": 0
      },
-     "staffWidth": 389.160005569458,
+     "staffWidth": 432.8599796295166,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -12365,6 +12766,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -12381,25 +12783,25 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto193087",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2957382",
+          "id": "auto3845973",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2957393",
+         "renderId": "vf-auto3845984",
          "renderedBox": {
           "x": 259.82684326171875,
-          "y": 216.859130859375,
+          "y": 805.02880859375,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 99.90079498291016,
-          "y": 2315.739990234375,
+          "y": 2378.73388671875,
           "width": 12.018241882324219,
           "height": 10.473876953125
          }
@@ -12408,6 +12810,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -12424,26 +12827,26 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto193088",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2957382",
+          "id": "auto3845973",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2957400",
+         "renderId": "vf-auto3845991",
          "renderedBox": {
-          "x": 298.2568359375,
-          "y": 167.87109375,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
+          "x": 302.07965087890625,
+          "y": 756.041015625,
+          "width": 16.821441650390625,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 127.3575210571289,
-          "y": 2280.739990234375,
-          "width": 12.018241882324219,
+          "x": 130.08877563476562,
+          "y": 2343.73388671875,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -12451,6 +12854,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -12467,26 +12871,26 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto193091",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2957382",
+          "id": "auto3845973",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2957407",
+         "renderId": "vf-auto3845998",
          "renderedBox": {
-          "x": 336.68682861328125,
-          "y": 174.869384765625,
-          "width": 16.821441650390625,
-          "height": 14.659912109375
+          "x": 344.3324890136719,
+          "y": 763.039306640625,
+          "width": 16.821380615234375,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 154.81423950195312,
-          "y": 2285.739990234375,
-          "width": 12.018264770507812,
+          "x": 160.27676391601562,
+          "y": 2348.73388671875,
+          "width": 12.018218994140625,
           "height": 10.473876953125
          }
         },
@@ -12494,6 +12898,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -12510,32 +12915,32 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto193092",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2957382",
+          "id": "auto3845973",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2957414",
+         "renderId": "vf-auto3846005",
          "renderedBox": {
-          "x": 375.11688232421875,
-          "y": 181.86767578125,
-          "width": 16.821380615234375,
-          "height": 14.659912109375
+          "x": 386.5852966308594,
+          "y": 770.03759765625,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 182.27101135253906,
-          "y": 2290.739990234375,
-          "width": 12.018218994140625,
+          "x": 190.46473693847656,
+          "y": 2353.73388671875,
+          "width": 12.018234252929688,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2957382",
+        "id": "auto3845973",
         "type": "SmoBeamGroup"
        }
       },
@@ -12545,6 +12950,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -12561,26 +12967,26 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto193095",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2957383",
+          "id": "auto3845974",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2957421",
+         "renderId": "vf-auto3846012",
          "renderedBox": {
-          "x": 413.546875,
-          "y": 188.865966796875,
-          "width": 16.821380615234375,
-          "height": 14.65966796875
+          "x": 428.8381042480469,
+          "y": 777.03564453125,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 209.7277374267578,
-          "y": 2295.739990234375,
-          "width": 12.018203735351562,
+          "x": 220.6527099609375,
+          "y": 2358.73388671875,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -12588,6 +12994,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -12604,26 +13011,26 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto193096",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2957383",
+          "id": "auto3845974",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2957428",
+         "renderId": "vf-auto3846019",
          "renderedBox": {
-          "x": 451.97686767578125,
-          "y": 174.869384765625,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
+          "x": 471.0909118652344,
+          "y": 763.039306640625,
+          "width": 16.821441650390625,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 237.1844482421875,
-          "y": 2285.739990234375,
-          "width": 12.01824951171875,
+          "x": 250.84068298339844,
+          "y": 2348.73388671875,
+          "width": 12.018264770507812,
           "height": 10.473876953125
          }
         },
@@ -12631,6 +13038,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -12647,25 +13055,25 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto193099",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2957383",
+          "id": "auto3845974",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2957435",
+         "renderId": "vf-auto3846026",
          "renderedBox": {
-          "x": 490.4068603515625,
-          "y": 181.86767578125,
+          "x": 513.34375,
+          "y": 770.03759765625,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 264.64117431640625,
-          "y": 2290.739990234375,
+          "x": 281.0286865234375,
+          "y": 2353.73388671875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -12674,6 +13082,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -12690,32 +13099,32 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto193100",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2957383",
+          "id": "auto3845974",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2957442",
+         "renderId": "vf-auto3846033",
          "renderedBox": {
-          "x": 528.8368530273438,
-          "y": 167.87109375,
-          "width": 16.82147216796875,
-          "height": 14.659912109375
+          "x": 555.5965576171875,
+          "y": 756.041015625,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 292.097900390625,
-          "y": 2280.739990234375,
-          "width": 12.018280029296875,
+          "x": 311.2166442871094,
+          "y": 2343.73388671875,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2957383",
+        "id": "auto3845974",
         "type": "SmoBeamGroup"
        }
       }
@@ -12746,6 +13155,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -12771,6 +13181,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -12796,6 +13207,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -12821,6 +13233,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -12846,6 +13259,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -12871,6 +13285,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -12896,6 +13311,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -12921,6 +13337,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -12946,6 +13363,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -12974,15 +13392,15 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 419.160005569458,
-     "staffY": 2295.9627859933034,
+     "staffX": 462.8599796295166,
+     "staffY": 2358.956804547991,
      "measureNumber": {
       "measureNumber": 15,
       "measureIndex": 15,
       "systemIndex": 1,
       "staffId": 0
      },
-     "staffWidth": 335.1800231933594,
+     "staffWidth": 314.1800537109375,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -12998,6 +13416,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -13014,26 +13433,26 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto743100",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2957899",
+          "id": "auto3846973",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2957904",
+         "renderId": "vf-auto3846978",
          "renderedBox": {
-          "x": 730.474365234375,
-          "y": 174.869384765625,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
+          "x": 791.6393432617188,
+          "y": 763.039306640625,
+          "width": 16.82147216796875,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 436.1600036621094,
-          "y": 2285.739990234375,
-          "width": 12.018218994140625,
+          "x": 479.8599853515625,
+          "y": 2348.73388671875,
+          "width": 12.018280029296875,
           "height": 10.473876953125
          }
         },
@@ -13041,6 +13460,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -13057,26 +13477,26 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto743101",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2957899",
+          "id": "auto3846973",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2957911",
+         "renderId": "vf-auto3846985",
          "renderedBox": {
-          "x": 768.9043579101562,
-          "y": 188.865966796875,
-          "width": 16.82147216796875,
-          "height": 14.65966796875
+          "x": 828.2322998046875,
+          "y": 777.03564453125,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 463.6167297363281,
-          "y": 2295.739990234375,
-          "width": 12.018280029296875,
+          "x": 506.00421142578125,
+          "y": 2358.73388671875,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -13084,6 +13504,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -13100,26 +13521,26 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto743104",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2957899",
+          "id": "auto3846973",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2957918",
+         "renderId": "vf-auto3846992",
          "renderedBox": {
-          "x": 807.3343505859375,
-          "y": 181.86767578125,
-          "width": 16.82147216796875,
-          "height": 14.659912109375
+          "x": 864.8252563476562,
+          "y": 770.03759765625,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 491.07342529296875,
-          "y": 2290.739990234375,
-          "width": 12.018310546875,
+          "x": 532.1484375,
+          "y": 2353.73388671875,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -13127,6 +13548,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -13143,32 +13565,32 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto743105",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2957899",
+          "id": "auto3846973",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2957925",
+         "renderId": "vf-auto3846999",
          "renderedBox": {
-          "x": 845.764404296875,
-          "y": 174.869384765625,
+          "x": 901.418212890625,
+          "y": 763.039306640625,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 518.5302124023438,
-          "y": 2285.739990234375,
+          "x": 558.2926635742188,
+          "y": 2348.73388671875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2957899",
+        "id": "auto3846973",
         "type": "SmoBeamGroup"
        }
       },
@@ -13178,6 +13600,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -13194,25 +13617,25 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto743108",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2957900",
+          "id": "auto3846974",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2957932",
+         "renderId": "vf-auto3847006",
          "renderedBox": {
-          "x": 884.1943969726562,
-          "y": 167.87109375,
+          "x": 938.0111694335938,
+          "y": 756.041015625,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 545.9869384765625,
-          "y": 2280.739990234375,
+          "x": 584.4368896484375,
+          "y": 2343.73388671875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -13221,6 +13644,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -13231,32 +13655,32 @@ var inventionJson = `{
          },
          "pitches": [
           {
-           "letter": "g",
+           "letter": "f",
            "accidental": "n",
            "octave": 5,
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto743109",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2957900",
+          "id": "auto3846974",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2957939",
+         "renderId": "vf-auto3847013",
          "renderedBox": {
-          "x": 922.6243896484375,
-          "y": 174.869384765625,
-          "width": 16.82147216796875,
-          "height": 14.659912109375
+          "x": 974.6041870117188,
+          "y": 770.03759765625,
+          "width": 16.82135009765625,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 573.4436645507812,
-          "y": 2285.739990234375,
-          "width": 12.01824951171875,
+          "x": 610.5811767578125,
+          "y": 2353.73388671875,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         },
@@ -13264,6 +13688,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -13280,25 +13705,25 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto743112",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2957900",
+          "id": "auto3846974",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2957946",
+         "renderId": "vf-auto3847020",
          "renderedBox": {
-          "x": 961.0543823242188,
-          "y": 174.869384765625,
-          "width": 16.82147216796875,
-          "height": 14.659912109375
+          "x": 1011.1971435546875,
+          "y": 763.039306640625,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 600.900390625,
-          "y": 2285.739990234375,
+          "x": 636.7254028320312,
+          "y": 2348.73388671875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -13307,6 +13732,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -13323,32 +13749,32 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto743113",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2957900",
+          "id": "auto3846974",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2957953",
+         "renderId": "vf-auto3847027",
          "renderedBox": {
-          "x": 999.484375,
-          "y": 188.865966796875,
-          "width": 16.82147216796875,
-          "height": 14.65966796875
+          "x": 1047.7900390625,
+          "y": 777.03564453125,
+          "width": 16.821533203125,
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 628.3571166992188,
-          "y": 2295.739990234375,
-          "width": 12.01824951171875,
+          "x": 662.86962890625,
+          "y": 2358.73388671875,
+          "width": 12.018310546875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2957900",
+        "id": "auto3846974",
         "type": "SmoBeamGroup"
        }
       }
@@ -13379,6 +13805,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -13404,6 +13831,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -13429,6 +13857,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -13454,6 +13883,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -13479,6 +13909,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -13489,7 +13920,7 @@ var inventionJson = `{
          },
          "pitches": [
           {
-           "letter": "g",
+           "letter": "f",
            "accidental": "n",
            "octave": 5,
            "cautionary": false
@@ -13504,6 +13935,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -13529,6 +13961,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -13554,6 +13987,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -13579,6 +14013,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -13607,15 +14042,15 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 754.3400287628174,
-     "staffY": 2295.9627859933034,
+     "staffX": 777.0400333404541,
+     "staffY": 2358.956804547991,
      "measureNumber": {
       "measureNumber": 16,
       "measureIndex": 16,
       "systemIndex": 2,
       "staffId": 0
      },
-     "staffWidth": 335.17999267578125,
+     "staffWidth": 314.179931640625,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -13631,6 +14066,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -13647,25 +14083,25 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
-          "id": "auto1309692",
+          "id": "auto2859692",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2958404",
+          "id": "auto3847871",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2958409",
+         "renderId": "vf-auto3847876",
          "renderedBox": {
-          "x": 1199.6114501953125,
-          "y": 181.86767578125,
+          "x": 1231.3836669921875,
+          "y": 770.03759765625,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 771.3400268554688,
-          "y": 2290.739990234375,
+          "x": 794.0400390625,
+          "y": 2353.73388671875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -13674,143 +14110,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 5,
-           "cautionary": false
-          }
-         ],
-         "clef": "treble",
-         "attrs": {
-          "id": "auto1309693",
-          "type": "SmoNote"
-         },
-         "beam_group": {
-          "id": "auto2958404",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2958416",
-         "renderedBox": {
-          "x": 1238.0413818359375,
-          "y": 195.8642578125,
-          "width": 16.8214111328125,
-          "height": 14.65966796875
-         },
-         "logicalBox": {
-          "x": 798.7967529296875,
-          "y": 2300.739990234375,
-          "width": 12.0181884765625,
-          "height": 10.473876953125
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "e",
-           "accidental": "n",
-           "octave": 5,
-           "cautionary": false
-          }
-         ],
-         "clef": "treble",
-         "attrs": {
-          "id": "auto1309696",
-          "type": "SmoNote"
-         },
-         "beam_group": {
-          "id": "auto2958404",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2958423",
-         "renderedBox": {
-          "x": 1276.471435546875,
-          "y": 188.865966796875,
-          "width": 16.8214111328125,
-          "height": 14.65966796875
-         },
-         "logicalBox": {
-          "x": 826.2534790039062,
-          "y": 2295.739990234375,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "f",
-           "accidental": "n",
-           "octave": 5,
-           "cautionary": false
-          }
-         ],
-         "clef": "treble",
-         "attrs": {
-          "id": "auto1309697",
-          "type": "SmoNote"
-         },
-         "beam_group": {
-          "id": "auto2958404",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2958430",
-         "renderedBox": {
-          "x": 1314.9013671875,
-          "y": 181.86767578125,
-          "width": 16.821533203125,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 853.7101440429688,
-          "y": 2290.739990234375,
-          "width": 12.01837158203125,
-          "height": 10.473876953125
-         }
-        }
-       ],
-       "attrs": {
-        "id": "auto2958404",
-        "type": "SmoBeamGroup"
-       }
-      },
-      {
-       "notes": [
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -13827,69 +14127,26 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
-          "id": "auto1309700",
+          "id": "auto2859693",
           "type": "SmoNote"
          },
-         "beam_group": {
-          "id": "auto2958405",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2958437",
-         "renderedBox": {
-          "x": 1353.3314208984375,
-          "y": 174.869384765625,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 881.1669311523438,
-          "y": 2285.739990234375,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "e",
-           "accidental": "n",
-           "octave": 5,
-           "cautionary": false
-          }
-         ],
          "clef": "treble",
-         "attrs": {
-          "id": "auto1309701",
-          "type": "SmoNote"
-         },
          "beam_group": {
-          "id": "auto2958405",
+          "id": "auto3847871",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2958444",
+         "renderId": "vf-auto3847883",
          "renderedBox": {
-          "x": 1391.761474609375,
-          "y": 188.865966796875,
+          "x": 1267.9765625,
+          "y": 763.039306640625,
           "width": 16.8214111328125,
           "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 908.6237182617188,
-          "y": 2295.739990234375,
-          "width": 12.01824951171875,
+          "x": 820.1842651367188,
+          "y": 2348.73388671875,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         },
@@ -13897,6 +14154,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -13913,25 +14171,25 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
-          "id": "auto1309704",
+          "id": "auto2859696",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2958405",
+          "id": "auto3847871",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2958451",
+         "renderId": "vf-auto3847890",
          "renderedBox": {
-          "x": 1430.19140625,
-          "y": 181.86767578125,
+          "x": 1304.569580078125,
+          "y": 770.03759765625,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 936.0803833007812,
-          "y": 2290.739990234375,
+          "x": 846.3284912109375,
+          "y": 2353.73388671875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -13940,6 +14198,59 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "attrs": {
+          "id": "auto2859697",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "beam_group": {
+          "id": "auto3847871",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3847897",
+         "renderedBox": {
+          "x": 1341.1624755859375,
+          "y": 777.03564453125,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 872.4727172851562,
+          "y": 2358.73388671875,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3847871",
+        "type": "SmoBeamGroup"
+       }
+      },
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -13956,32 +14267,164 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
-          "id": "auto1309705",
+          "id": "auto2859700",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2958405",
+          "id": "auto3847872",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2958458",
+         "renderId": "vf-auto3847904",
          "renderedBox": {
-          "x": 1468.6214599609375,
-          "y": 195.8642578125,
+          "x": 1377.7554931640625,
+          "y": 784.033935546875,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 898.6170043945312,
+          "y": 2363.73388671875,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "f",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "attrs": {
+          "id": "auto2859701",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "beam_group": {
+          "id": "auto3847872",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3847911",
+         "renderedBox": {
+          "x": 1414.348388671875,
+          "y": 770.03759765625,
           "width": 16.8214111328125,
           "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 963.5371704101562,
-          "y": 2300.739990234375,
-          "width": 12.0181884765625,
+          "x": 924.7611694335938,
+          "y": 2353.73388671875,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "attrs": {
+          "id": "auto2859704",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "beam_group": {
+          "id": "auto3847872",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3847918",
+         "renderedBox": {
+          "x": 1450.9412841796875,
+          "y": 777.03564453125,
+          "width": 16.821533203125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 950.9053344726562,
+          "y": 2358.73388671875,
+          "width": 12.01837158203125,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "attrs": {
+          "id": "auto2859705",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "beam_group": {
+          "id": "auto3847872",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3847925",
+         "renderedBox": {
+          "x": 1487.5343017578125,
+          "y": 763.039306640625,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 977.0496215820312,
+          "y": 2348.73388671875,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2958405",
+        "id": "auto3847872",
         "type": "SmoBeamGroup"
        }
       }
@@ -14005,88 +14448,14 @@ var inventionJson = `{
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto1309692",
+          "id": "auto2859692",
           "type": "SmoNote"
          },
          "clef": "treble",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 5,
-           "cautionary": false
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto1309693",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "e",
-           "accidental": "n",
-           "octave": 5,
-           "cautionary": false
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto1309696",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "f",
-           "accidental": "n",
-           "octave": 5,
-           "cautionary": false
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto1309697",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -14105,38 +14474,14 @@ var inventionJson = `{
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto1309700",
+          "id": "auto2859693",
           "type": "SmoNote"
          },
          "clef": "treble",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "e",
-           "accidental": "n",
-           "octave": 5,
-           "cautionary": false
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto1309701",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -14155,13 +14500,40 @@ var inventionJson = `{
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto1309704",
+          "id": "auto2859696",
           "type": "SmoNote"
          },
          "clef": "treble",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2859697",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -14180,18 +14552,45 @@ var inventionJson = `{
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto1309705",
+          "id": "auto2859700",
           "type": "SmoNote"
          },
          "clef": "treble",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
          "ticks": {
-          "numerator": 8192,
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "f",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2859701",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
           "denominator": 1,
           "remainder": 0
          },
@@ -14205,13 +14604,66 @@ var inventionJson = `{
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto2045853",
+          "id": "auto2859704",
           "type": "SmoNote"
          },
          "clef": "treble",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2859705",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 8192,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "f",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto3187706",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -14241,14 +14693,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 2471.885515485491,
+     "staffY": 2574.415056501116,
      "measureNumber": {
       "measureNumber": 17,
       "measureIndex": 17,
       "systemIndex": 0,
       "staffId": 0
      },
-     "staffWidth": 605.3000507354736,
+     "staffWidth": 467.4200382232666,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -14264,6 +14716,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -14274,31 +14727,31 @@ var inventionJson = `{
          },
          "pitches": [
           {
-           "letter": "e",
+           "letter": "f",
            "accidental": "n",
            "octave": 5,
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
-          "id": "auto2128816",
+          "id": "auto1309692",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2958937",
+          "id": "auto3848812",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2958950",
+         "renderId": "vf-auto3848823",
          "renderedBox": {
           "x": 259.82684326171875,
-          "y": 435.09716796875,
+          "y": 1071.605224609375,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 99.90079498291016,
-          "y": 2471.66259765625,
+          "y": 2569.192138671875,
           "width": 12.018241882324219,
           "height": 10.473876953125
          }
@@ -14307,49 +14760,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "c",
-           "accidental": "n",
-           "octave": 5,
-           "cautionary": false
-          }
-         ],
-         "clef": "treble",
-         "attrs": {
-          "id": "auto2128817",
-          "type": "SmoNote"
-         },
-         "beam_group": {
-          "id": "auto2958937",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2958957",
-         "renderedBox": {
-          "x": 306.1310119628906,
-          "y": 449.09375,
-          "width": 16.821380615234375,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 132.98330688476562,
-          "y": 2481.66259765625,
-          "width": 12.018218994140625,
-          "height": 10.473876953125
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -14366,26 +14777,26 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
-          "id": "auto2128820",
+          "id": "auto1309693",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2958937",
+          "id": "auto3848812",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2958964",
+         "renderId": "vf-auto3848830",
          "renderedBox": {
-          "x": 352.4351806640625,
-          "y": 442.095458984375,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
+          "x": 305.1029052734375,
+          "y": 1085.601806640625,
+          "width": 16.821441650390625,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 166.06582641601562,
-          "y": 2476.66259765625,
-          "width": 12.018234252929688,
+          "x": 132.24876403808594,
+          "y": 2579.192138671875,
+          "width": 12.018264770507812,
           "height": 10.473876953125
          }
         },
@@ -14393,6 +14804,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -14409,41 +14821,34 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
-          "id": "auto2128821",
+          "id": "auto1309696",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2958937",
+          "id": "auto3848812",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2958971",
+         "renderId": "vf-auto3848837",
          "renderedBox": {
-          "x": 398.73931884765625,
-          "y": 435.09716796875,
+          "x": 350.3790283203125,
+          "y": 1078.603515625,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 199.1483154296875,
-          "y": 2471.66259765625,
+          "x": 164.59678649902344,
+          "y": 2574.192138671875,
           "width": 12.018234252929688,
           "height": 10.473876953125
          }
-        }
-       ],
-       "attrs": {
-        "id": "auto2958937",
-        "type": "SmoBeamGroup"
-       }
-      },
-      {
-       "notes": [
+        },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -14460,161 +14865,32 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
-          "id": "auto2128824",
+          "id": "auto1309697",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2958938",
+          "id": "auto3848812",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2958978",
+         "renderId": "vf-auto3848844",
          "renderedBox": {
-          "x": 445.0434875488281,
-          "y": 428.098876953125,
+          "x": 395.65509033203125,
+          "y": 1071.605224609375,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 232.23081970214844,
-          "y": 2466.66259765625,
+          "x": 196.9447479248047,
+          "y": 2569.192138671875,
           "width": 12.01824951171875,
-          "height": 10.473876953125
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 5,
-           "cautionary": false
-          }
-         ],
-         "clef": "treble",
-         "attrs": {
-          "id": "auto2128825",
-          "type": "SmoNote"
-         },
-         "beam_group": {
-          "id": "auto2958938",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2958985",
-         "renderedBox": {
-          "x": 491.3476257324219,
-          "y": 442.095458984375,
-          "width": 16.821380615234375,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 265.3133239746094,
-          "y": 2476.66259765625,
-          "width": 12.018218994140625,
-          "height": 10.473876953125
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "e",
-           "accidental": "n",
-           "octave": 5,
-           "cautionary": false
-          }
-         ],
-         "clef": "treble",
-         "attrs": {
-          "id": "auto2128828",
-          "type": "SmoNote"
-         },
-         "beam_group": {
-          "id": "auto2958938",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2958992",
-         "renderedBox": {
-          "x": 537.6517333984375,
-          "y": 435.09716796875,
-          "width": 16.82147216796875,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 298.3957824707031,
-          "y": 2471.66259765625,
-          "width": 12.018280029296875,
-          "height": 10.473876953125
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "c",
-           "accidental": "n",
-           "octave": 5,
-           "cautionary": false
-          }
-         ],
-         "clef": "treble",
-         "attrs": {
-          "id": "auto2128829",
-          "type": "SmoNote"
-         },
-         "beam_group": {
-          "id": "auto2958938",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2958999",
-         "renderedBox": {
-          "x": 583.9559326171875,
-          "y": 449.09375,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 331.47833251953125,
-          "y": 2481.66259765625,
-          "width": 12.018218994140625,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2958938",
+        "id": "auto3848812",
         "type": "SmoBeamGroup"
        }
       },
@@ -14624,135 +14900,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 5,
-           "cautionary": false
-          }
-         ],
-         "clef": "treble",
-         "attrs": {
-          "id": "auto2402688",
-          "type": "SmoNote"
-         },
-         "beam_group": {
-          "id": "auto2958939",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2959006",
-         "renderedBox": {
-          "x": 630.2601318359375,
-          "y": 442.095458984375,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 364.56085205078125,
-          "y": 2476.66259765625,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "e",
-           "accidental": "n",
-           "octave": 5,
-           "cautionary": false
-          }
-         ],
-         "clef": "treble",
-         "attrs": {
-          "id": "auto2402689",
-          "type": "SmoNote"
-         },
-         "beam_group": {
-          "id": "auto2958939",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2959013",
-         "renderedBox": {
-          "x": 676.5642700195312,
-          "y": 435.09716796875,
-          "width": 16.82135009765625,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 397.6433410644531,
-          "y": 2471.66259765625,
-          "width": 12.0181884765625,
-          "height": 10.473876953125
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "f",
-           "accidental": "n",
-           "octave": 5,
-           "cautionary": false
-          }
-         ],
-         "clef": "treble",
-         "attrs": {
-          "id": "auto2402692",
-          "type": "SmoNote"
-         },
-         "beam_group": {
-          "id": "auto2958939",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2959020",
-         "renderedBox": {
-          "x": 722.868408203125,
-          "y": 428.098876953125,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 430.725830078125,
-          "y": 2466.66259765625,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -14769,32 +14917,630 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
-          "id": "auto2402693",
+          "id": "auto1309700",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2958939",
+          "id": "auto3848813",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2959027",
+         "renderId": "vf-auto3848851",
          "renderedBox": {
-          "x": 769.172607421875,
-          "y": 421.1005859375,
-          "width": 16.82135009765625,
-          "height": 14.659912109375
+          "x": 440.93115234375,
+          "y": 1064.60693359375,
+          "width": 16.821441650390625,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 463.8083801269531,
-          "y": 2461.66259765625,
+          "x": 229.292724609375,
+          "y": 2564.192138671875,
+          "width": 12.018264770507812,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "attrs": {
+          "id": "auto1309701",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "beam_group": {
+          "id": "auto3848813",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3848858",
+         "renderedBox": {
+          "x": 486.2072448730469,
+          "y": 1078.603515625,
+          "width": 16.821441650390625,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 261.6407165527344,
+          "y": 2574.192138671875,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "f",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "attrs": {
+          "id": "auto1309704",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "beam_group": {
+          "id": "auto3848813",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3848865",
+         "renderedBox": {
+          "x": 531.4833374023438,
+          "y": 1071.605224609375,
+          "width": 16.82135009765625,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 293.98870849609375,
+          "y": 2569.192138671875,
           "width": 12.0181884765625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "attrs": {
+          "id": "auto1309705",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "beam_group": {
+          "id": "auto3848813",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3848872",
+         "renderedBox": {
+          "x": 576.7593994140625,
+          "y": 1085.601806640625,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 326.336669921875,
+          "y": 2579.192138671875,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2958939",
+        "id": "auto3848813",
+        "type": "SmoBeamGroup"
+       }
+      }
+     ],
+     "voices": [
+      {
+       "notes": [
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "f",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1309692",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1309693",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1309696",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "f",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1309697",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1309700",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1309701",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "f",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1309704",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1309705",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 8192,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2045853",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        }
+       ]
+      }
+     ],
+     "modifiers": [
+      {
+       "position": 0,
+       "barline": 0,
+       "ctor": "SmoBarline"
+      },
+      {
+       "position": 1,
+       "barline": 0,
+       "ctor": "SmoBarline"
+      },
+      {
+       "symbol": 0,
+       "xOffset": 0,
+       "yOffset": 30,
+       "position": 0,
+       "ctor": "SmoRepeatSymbol"
+      }
+     ]
+    },
+    {
+     "timeSignature": "4/4",
+     "keySignature": "C",
+     "staffX": 497.4200382232666,
+     "staffY": 2574.415056501116,
+     "measureNumber": {
+      "measureNumber": 18,
+      "measureIndex": 18,
+      "systemIndex": 1,
+      "staffId": 0
+     },
+     "staffWidth": 593.3199462890625,
+     "activeVoice": 0,
+     "clef": "treble",
+     "transposeIndex": 0,
+     "adjX": 11,
+     "adjRight": 11,
+     "padRight": 10,
+     "rightMargin": 2,
+     "tuplets": [],
+     "beamGroups": [
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "attrs": {
+          "id": "auto2128816",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "beam_group": {
+          "id": "auto3849724",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3849731",
+         "renderedBox": {
+          "x": 840.0115966796875,
+          "y": 1078.603515625,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 514.4200439453125,
+          "y": 2574.192138671875,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "attrs": {
+          "id": "auto2128817",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "beam_group": {
+          "id": "auto3849724",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3849738",
+         "renderedBox": {
+          "x": 889.9898681640625,
+          "y": 1092.599853515625,
+          "width": 16.82135009765625,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 550.1275634765625,
+          "y": 2584.192138671875,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "attrs": {
+          "id": "auto2128820",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "beam_group": {
+          "id": "auto3849724",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3849745",
+         "renderedBox": {
+          "x": 939.9680786132812,
+          "y": 1085.601806640625,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 585.8350219726562,
+          "y": 2579.192138671875,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "attrs": {
+          "id": "auto2128821",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "beam_group": {
+          "id": "auto3849724",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3849752",
+         "renderedBox": {
+          "x": 989.9463500976562,
+          "y": 1078.603515625,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 621.5425415039062,
+          "y": 2574.192138671875,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3849724",
         "type": "SmoBeamGroup"
        }
       },
@@ -14804,6 +15550,375 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "f",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "attrs": {
+          "id": "auto2128824",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "beam_group": {
+          "id": "auto3849725",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3849759",
+         "renderedBox": {
+          "x": 1039.924560546875,
+          "y": 1071.605224609375,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 657.25,
+          "y": 2569.192138671875,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "attrs": {
+          "id": "auto2128825",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "beam_group": {
+          "id": "auto3849725",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3849766",
+         "renderedBox": {
+          "x": 1089.90283203125,
+          "y": 1085.601806640625,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 692.95751953125,
+          "y": 2579.192138671875,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "attrs": {
+          "id": "auto2128828",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "beam_group": {
+          "id": "auto3849725",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3849773",
+         "renderedBox": {
+          "x": 1139.881103515625,
+          "y": 1078.603515625,
+          "width": 16.8212890625,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 728.6650390625,
+          "y": 2574.192138671875,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "attrs": {
+          "id": "auto2128829",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "beam_group": {
+          "id": "auto3849725",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3849780",
+         "renderedBox": {
+          "x": 1189.8592529296875,
+          "y": 1092.599853515625,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 764.3724975585938,
+          "y": 2584.192138671875,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3849725",
+        "type": "SmoBeamGroup"
+       }
+      },
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "attrs": {
+          "id": "auto2402688",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "beam_group": {
+          "id": "auto3849726",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3849787",
+         "renderedBox": {
+          "x": 1239.8375244140625,
+          "y": 1085.601806640625,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 800.0800170898438,
+          "y": 2579.192138671875,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "attrs": {
+          "id": "auto2402689",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "beam_group": {
+          "id": "auto3849726",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3849794",
+         "renderedBox": {
+          "x": 1289.8157958984375,
+          "y": 1078.603515625,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 835.7875366210938,
+          "y": 2574.192138671875,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "f",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "attrs": {
+          "id": "auto2402692",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "beam_group": {
+          "id": "auto3849726",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3849801",
+         "renderedBox": {
+          "x": 1339.7940673828125,
+          "y": 1071.605224609375,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 871.4950561523438,
+          "y": 2569.192138671875,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 5,
+           "cautionary": false
+          }
+         ],
+         "attrs": {
+          "id": "auto2402693",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "beam_group": {
+          "id": "auto3849726",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3849808",
+         "renderedBox": {
+          "x": 1389.7723388671875,
+          "y": 1064.60693359375,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 907.2025146484375,
+          "y": 2564.192138671875,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3849726",
+        "type": "SmoBeamGroup"
+       }
+      },
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -14820,26 +15935,26 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto2402696",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2958940",
+          "id": "auto3849727",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2959034",
+         "renderId": "vf-auto3849815",
          "renderedBox": {
-          "x": 815.4766845703125,
-          "y": 414.102294921875,
-          "width": 16.82147216796875,
-          "height": 14.659912109375
+          "x": 1439.75048828125,
+          "y": 1057.608642578125,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 496.89080810546875,
-          "y": 2456.66259765625,
-          "width": 12.018280029296875,
+          "x": 942.9099731445312,
+          "y": 2559.192138671875,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -14847,6 +15962,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -14863,25 +15979,25 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto2402697",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2958940",
+          "id": "auto3849727",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2959041",
+         "renderId": "vf-auto3849822",
          "renderedBox": {
-          "x": 861.7808227539062,
-          "y": 428.098876953125,
-          "width": 16.82147216796875,
-          "height": 14.659912109375
+          "x": 1489.728759765625,
+          "y": 1071.605224609375,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 529.9733276367188,
-          "y": 2466.66259765625,
+          "x": 978.6174926757812,
+          "y": 2569.192138671875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -14890,6 +16006,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -14906,25 +16023,25 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto2402700",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2958940",
+          "id": "auto3849727",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2959048",
+         "renderId": "vf-auto3849829",
          "renderedBox": {
-          "x": 908.0850219726562,
-          "y": 421.1005859375,
+          "x": 1539.70703125,
+          "y": 1064.60693359375,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 563.0558471679688,
-          "y": 2461.66259765625,
+          "x": 1014.3250122070312,
+          "y": 2564.192138671875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -14933,6 +16050,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -14949,32 +16067,32 @@ var inventionJson = `{
            "cautionary": false
           }
          ],
-         "clef": "treble",
          "attrs": {
           "id": "auto2402701",
           "type": "SmoNote"
          },
+         "clef": "treble",
          "beam_group": {
-          "id": "auto2958940",
+          "id": "auto3849727",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2959055",
+         "renderId": "vf-auto3849836",
          "renderedBox": {
-          "x": 954.3892211914062,
-          "y": 435.09716796875,
+          "x": 1589.685302734375,
+          "y": 1078.603515625,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 596.1383666992188,
-          "y": 2471.66259765625,
-          "width": 12.01824951171875,
+          "x": 1050.032470703125,
+          "y": 2574.192138671875,
+          "width": 12.018310546875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2958940",
+        "id": "auto3849727",
         "type": "SmoBeamGroup"
        }
       }
@@ -15005,6 +16123,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -15030,6 +16149,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -15055,6 +16175,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -15080,6 +16201,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -15105,6 +16227,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -15130,6 +16253,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -15155,6 +16279,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -15180,6 +16305,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -15205,6 +16331,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -15230,6 +16357,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -15255,6 +16383,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -15280,6 +16409,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -15305,6 +16435,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -15330,6 +16461,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -15355,6 +16487,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -15380,6 +16513,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -15408,19 +16542,19 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 635.3000507354736,
-     "staffY": 2471.885515485491,
+     "staffX": 30,
+     "staffY": 2775.000017438616,
      "measureNumber": {
-      "measureNumber": 18,
-      "measureIndex": 18,
-      "systemIndex": 1,
+      "measureNumber": 19,
+      "measureIndex": 19,
+      "systemIndex": 0,
       "staffId": 0
      },
-     "staffWidth": 227.08001708984375,
+     "staffWidth": 402.0400638580322,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
-     "adjX": 11,
+     "adjX": 64.98,
      "adjRight": 11,
      "padRight": 10,
      "rightMargin": 2,
@@ -15451,6 +16585,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -15475,6 +16610,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -15499,6 +16635,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -15523,6 +16660,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -15551,15 +16689,1183 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 862.3800678253174,
-     "staffY": 2471.885515485491,
+     "staffX": 432.0400638580322,
+     "staffY": 2775.000017438616,
      "measureNumber": {
-      "measureNumber": 19,
-      "measureIndex": 19,
+      "measureNumber": 20,
+      "measureIndex": 20,
+      "systemIndex": 1,
+      "staffId": 0
+     },
+     "staffWidth": 413.9772033691406,
+     "activeVoice": 0,
+     "clef": "treble",
+     "transposeIndex": 0,
+     "adjX": 11,
+     "adjRight": 11,
+     "padRight": 10,
+     "rightMargin": 2,
+     "tuplets": [],
+     "beamGroups": [
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 5
+          }
+         ],
+         "clef": "treble",
+         "attrs": {
+          "id": "auto2760282",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851677",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851684",
+         "renderedBox": {
+          "x": 748.5020751953125,
+          "y": 1373.35009765625,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 449.04010009765625,
+          "y": 2784.777099609375,
+          "width": 12.018218994140625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "b",
+           "octave": 4
+          }
+         ],
+         "clef": "treble",
+         "attrs": {
+          "id": "auto2760283",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851677",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851691",
+         "renderedBox": {
+          "x": 782.2684326171875,
+          "y": 1363.45654296875,
+          "width": 31.4365234375,
+          "height": 32.971435546875
+         },
+         "logicalBox": {
+          "x": 473.1648254394531,
+          "y": 2777.70849609375,
+          "width": 22.460174560546875,
+          "height": 23.556884765625
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "a",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "treble",
+         "attrs": {
+          "id": "auto2760286",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851677",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851700",
+         "renderedBox": {
+          "x": 829.250244140625,
+          "y": 1387.3466796875,
+          "width": 16.82147216796875,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 506.7314758300781,
+          "y": 2794.777099609375,
+          "width": 12.018280029296875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "treble",
+         "attrs": {
+          "id": "auto2760287",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851677",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851707",
+         "renderedBox": {
+          "x": 861.6170043945312,
+          "y": 1394.344970703125,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 529.8562622070312,
+          "y": 2799.777099609375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3851677",
+        "type": "SmoBeamGroup"
+       }
+      },
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "f",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "treble",
+         "attrs": {
+          "id": "auto2760290",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851678",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851714",
+         "renderedBox": {
+          "x": 893.9837036132812,
+          "y": 1401.34326171875,
+          "width": 16.82147216796875,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 552.9810180664062,
+          "y": 2804.777099609375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "a",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "treble",
+         "attrs": {
+          "id": "auto2760291",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851678",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851721",
+         "renderedBox": {
+          "x": 926.3505249023438,
+          "y": 1387.3466796875,
+          "width": 16.82135009765625,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 576.1058349609375,
+          "y": 2794.777099609375,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "treble",
+         "attrs": {
+          "id": "auto2760294",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851678",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851728",
+         "renderedBox": {
+          "x": 958.71728515625,
+          "y": 1394.344970703125,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 599.2305908203125,
+          "y": 2799.777099609375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "b",
+           "octave": 4
+          }
+         ],
+         "clef": "treble",
+         "attrs": {
+          "id": "auto2760295",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851678",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851735",
+         "renderedBox": {
+          "x": 991.083984375,
+          "y": 1380.348388671875,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 622.3553466796875,
+          "y": 2789.777099609375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3851678",
+        "type": "SmoBeamGroup"
+       }
+      },
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "a",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "treble",
+         "attrs": {
+          "id": "auto2760298",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851679",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851742",
+         "renderedBox": {
+          "x": 1023.45068359375,
+          "y": 1387.3466796875,
+          "width": 16.821533203125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 645.4801025390625,
+          "y": 2794.777099609375,
+          "width": 12.018310546875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "treble",
+         "attrs": {
+          "id": "auto2760299",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851679",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851749",
+         "renderedBox": {
+          "x": 1057.217041015625,
+          "y": 1369.966552734375,
+          "width": 30.1728515625,
+          "height": 35.422607421875
+         },
+         "logicalBox": {
+          "x": 669.6047973632812,
+          "y": 2782.359619140625,
+          "width": 21.557373046875,
+          "height": 25.30810546875
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 5
+          }
+         ],
+         "clef": "treble",
+         "attrs": {
+          "id": "auto2760302",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851679",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851758",
+         "renderedBox": {
+          "x": 1102.935302734375,
+          "y": 1373.35009765625,
+          "width": 16.8212890625,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 702.2687377929688,
+          "y": 2784.777099609375,
+          "width": 12.01812744140625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "treble",
+         "attrs": {
+          "id": "auto2760303",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851679",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851765",
+         "renderedBox": {
+          "x": 1135.302001953125,
+          "y": 1408.341552734375,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 725.3934936523438,
+          "y": 2809.777099609375,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3851679",
+        "type": "SmoBeamGroup"
+       }
+      },
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "treble",
+         "attrs": {
+          "id": "auto2760306",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851680",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851772",
+         "renderedBox": {
+          "x": 1167.668701171875,
+          "y": 1415.33984375,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 748.5181884765625,
+          "y": 2814.777099609375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 5
+          }
+         ],
+         "clef": "treble",
+         "attrs": {
+          "id": "auto2760307",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851680",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851779",
+         "renderedBox": {
+          "x": 1200.035400390625,
+          "y": 1373.35009765625,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 771.6429443359375,
+          "y": 2784.777099609375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "f",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "treble",
+         "attrs": {
+          "id": "auto2760310",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851680",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851786",
+         "renderedBox": {
+          "x": 1232.4022216796875,
+          "y": 1401.34326171875,
+          "width": 16.8212890625,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 794.7677612304688,
+          "y": 2804.777099609375,
+          "width": 12.01812744140625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "treble",
+         "attrs": {
+          "id": "auto2760311",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851680",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851793",
+         "renderedBox": {
+          "x": 1264.7689208984375,
+          "y": 1380.348388671875,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 817.8925170898438,
+          "y": 2789.777099609375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3851680",
+        "type": "SmoBeamGroup"
+       }
+      }
+     ],
+     "voices": [
+      {
+       "notes": [
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 5
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2760282",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "b",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2760283",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "a",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2760286",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2760287",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "f",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2760290",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "a",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2760291",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2760294",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "b",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2760295",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "a",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2760298",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2760299",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 5
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2760302",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2760303",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2760306",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 5
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2760307",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "f",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2760310",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2760311",
+          "type": "SmoNote"
+         },
+         "clef": "treble",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        }
+       ]
+      }
+     ],
+     "modifiers": [
+      {
+       "position": 0,
+       "barline": 0,
+       "ctor": "SmoBarline"
+      },
+      {
+       "position": 1,
+       "barline": 0,
+       "ctor": "SmoBarline"
+      },
+      {
+       "symbol": 0,
+       "xOffset": 0,
+       "yOffset": 30,
+       "position": 0,
+       "ctor": "SmoRepeatSymbol"
+      }
+     ]
+    },
+    {
+     "timeSignature": "4/4",
+     "keySignature": "C",
+     "staffX": 846.0172672271729,
+     "staffY": 2775.000017438616,
+     "measureNumber": {
+      "measureNumber": 21,
+      "measureIndex": 21,
       "systemIndex": 2,
       "staffId": 0
      },
-     "staffWidth": 227.08001708984375,
+     "staffWidth": 104.8199462890625,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -15574,515 +17880,7 @@ var inventionJson = `{
        "notes": [
         {
          "ticks": {
-          "numerator": 4096,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "b",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto2810811",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 4096,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "b",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto2810812",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 4096,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "b",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto2810813",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 4096,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "b",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto2810814",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": []
-        }
-       ]
-      }
-     ],
-     "modifiers": [
-      {
-       "position": 0,
-       "barline": 0,
-       "ctor": "SmoBarline"
-      },
-      {
-       "position": 1,
-       "barline": 0,
-       "ctor": "SmoBarline"
-      },
-      {
-       "symbol": 0,
-       "xOffset": 0,
-       "yOffset": 30,
-       "position": 0,
-       "ctor": "SmoRepeatSymbol"
-      }
-     ]
-    },
-    {
-     "timeSignature": "4/4",
-     "keySignature": "C",
-     "staffX": 30,
-     "staffY": 2645.785417829241,
-     "measureNumber": {
-      "measureNumber": 20,
-      "measureIndex": 20,
-      "systemIndex": 0,
-      "staffId": 0
-     },
-     "staffWidth": 416.0599994659424,
-     "activeVoice": 0,
-     "clef": "treble",
-     "transposeIndex": 0,
-     "adjX": 64.98,
-     "adjRight": 11,
-     "padRight": 10,
-     "rightMargin": 2,
-     "tuplets": [],
-     "beamGroups": [
-      {
-       "notes": [
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 2048,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "a",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "attrs": {
-          "id": "auto1351378",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "beam_group": {
-          "id": "auto2960123",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2960136",
-         "renderedBox": {
-          "x": 259.82684326171875,
-          "y": 706.490478515625,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 99.90079498291016,
-          "y": 2665.5625,
-          "width": 12.018241882324219,
-          "height": 10.473876953125
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 2048,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "attrs": {
-          "id": "auto1351382",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "beam_group": {
-          "id": "auto2960123",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2960143",
-         "renderedBox": {
-          "x": 303.4208679199219,
-          "y": 734.483642578125,
-          "width": 16.821441650390625,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 131.04701232910156,
-          "y": 2685.5625,
-          "width": 12.018264770507812,
-          "height": 10.473876953125
-         }
-        }
-       ],
-       "attrs": {
-        "id": "auto2960123",
-        "type": "SmoBeamGroup"
-       }
-      },
-      {
-       "notes": [
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 3072,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "c",
-           "accidental": "n",
-           "octave": 5
-          }
-         ],
-         "attrs": {
-          "id": "auto1414086",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "beam_group": {
-          "id": "auto2960124",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2960150",
-         "renderedBox": {
-          "x": 347.014892578125,
-          "y": 692.493896484375,
-          "width": 26.6190185546875,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 162.1932373046875,
-          "y": 2655.5625,
-          "width": 19.01824951171875,
-          "height": 10.473876953125
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 5
-          }
-         ],
-         "attrs": {
-          "id": "auto1299131",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "beam_group": {
-          "id": "auto2960124",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2960158",
-         "renderedBox": {
-          "x": 408.1941833496094,
-          "y": 685.49560546875,
-          "width": 16.821441650390625,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 205.9034423828125,
-          "y": 2650.5625,
-          "width": 12.018264770507812,
-          "height": 10.473876953125
-         }
-        }
-       ],
-       "attrs": {
-        "id": "auto2960124",
-        "type": "SmoBeamGroup"
-       }
-      },
-      {
-       "notes": [
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "b",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "attrs": {
-          "id": "auto1299134",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "beam_group": {
-          "id": "auto2960125",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2960165",
-         "renderedBox": {
-          "x": 442.60089111328125,
-          "y": 699.4921875,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 230.48568725585938,
-          "y": 2660.5625,
-          "width": 12.018234252929688,
-          "height": 10.473876953125
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "a",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "attrs": {
-          "id": "auto1299135",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "beam_group": {
-          "id": "auto2960125",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2960172",
-         "renderedBox": {
-          "x": 477.007568359375,
-          "y": 706.490478515625,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 255.06790161132812,
-          "y": 2665.5625,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "g",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "attrs": {
-          "id": "auto1299138",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "beam_group": {
-          "id": "auto2960125",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2960179",
-         "renderedBox": {
-          "x": 511.4142761230469,
-          "y": 713.48876953125,
-          "width": 16.821380615234375,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 279.650146484375,
-          "y": 2670.5625,
-          "width": 12.018218994140625,
-          "height": 10.473876953125
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "f",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "attrs": {
-          "id": "auto1299139",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "beam_group": {
-          "id": "auto2960125",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2960186",
-         "renderedBox": {
-          "x": 545.8209228515625,
-          "y": 720.487060546875,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 304.23236083984375,
-          "y": 2675.5625,
-          "width": 12.018218994140625,
-          "height": 10.473876953125
-         }
-        }
-       ],
-       "attrs": {
-        "id": "auto2960125",
-        "type": "SmoBeamGroup"
-       }
-      },
-      {
-       "notes": [
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
+          "numerator": 16384,
           "denominator": 1,
           "remainder": 0
          },
@@ -16091,222 +17889,12 @@ var inventionJson = `{
            "letter": "e",
            "accidental": "n",
            "octave": 4
-          }
-         ],
-         "attrs": {
-          "id": "auto1299142",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "beam_group": {
-          "id": "auto2960126",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2960193",
-         "renderedBox": {
-          "x": 580.2276611328125,
-          "y": 727.4853515625,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 328.8146057128906,
-          "y": 2680.5625,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
+          },
           {
            "letter": "g",
            "accidental": "n",
            "octave": 4
-          }
-         ],
-         "attrs": {
-          "id": "auto1299143",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "beam_group": {
-          "id": "auto2960126",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2960200",
-         "renderedBox": {
-          "x": 614.63427734375,
-          "y": 713.48876953125,
-          "width": 16.82147216796875,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 353.39678955078125,
-          "y": 2670.5625,
-          "width": 12.018280029296875,
-          "height": 10.473876953125
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "f",
-           "accidental": "#",
-           "octave": 4
-          }
-         ],
-         "attrs": {
-          "id": "auto1299146",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "beam_group": {
-          "id": "auto2960126",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2960207",
-         "renderedBox": {
-          "x": 650.440673828125,
-          "y": 707.233154296875,
-          "width": 33.38958740234375,
-          "height": 41.166748046875
-         },
-         "logicalBox": {
-          "x": 378.97906494140625,
-          "y": 2666.093017578125,
-          "width": 23.855560302734375,
-          "height": 29.412109375
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "a",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "attrs": {
-          "id": "auto1299147",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "beam_group": {
-          "id": "auto2960126",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2960216",
-         "renderedBox": {
-          "x": 701.4154663085938,
-          "y": 706.490478515625,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 415.3985595703125,
-          "y": 2665.5625,
-          "width": 12.018218994140625,
-          "height": 10.473876953125
-         }
-        }
-       ],
-       "attrs": {
-        "id": "auto2960126",
-        "type": "SmoBeamGroup"
-       }
-      }
-     ],
-     "voices": [
-      {
-       "notes": [
-        {
-         "ticks": {
-          "numerator": 2048,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "a",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto1351378",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 2048,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto1351382",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 3072,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
+          },
           {
            "letter": "c",
            "accidental": "n",
@@ -16315,229 +17903,14 @@ var inventionJson = `{
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto1414086",
+          "id": "auto2495915",
           "type": "SmoNote"
          },
          "clef": "treble",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 5
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto1299131",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "b",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto1299134",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "a",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto1299135",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "g",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto1299138",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "f",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto1299139",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "e",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto1299142",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "g",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto1299143",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "f",
-           "accidental": "#",
-           "octave": 4
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto1299146",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "a",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto1299147",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -16804,6 +18177,70 @@ var inventionJson = `{
      },
      "thickness": 2,
      "ctor": "SmoSlur"
+    },
+    {
+     "startSelector": {
+      "staff": 1,
+      "measure": 14,
+      "voice": 0,
+      "tick": 0,
+      "pitches": []
+     },
+     "endSelector": {
+      "staff": 1,
+      "measure": 14,
+      "voice": 0,
+      "tick": 1,
+      "pitches": []
+     },
+     "spacing": 2,
+     "xOffset": 0,
+     "yOffset": 10,
+     "position": 4,
+     "position_end": 1,
+     "invert": false,
+     "cp1x": 0,
+     "cp1y": 40,
+     "cp2x": 0,
+     "cp2y": 40,
+     "attrs": {
+      "id": "auto915152",
+      "type": "SmoSlur"
+     },
+     "thickness": 2,
+     "ctor": "SmoSlur"
+    },
+    {
+     "startSelector": {
+      "staff": 1,
+      "measure": 16,
+      "voice": 0,
+      "tick": 0,
+      "pitches": []
+     },
+     "endSelector": {
+      "staff": 1,
+      "measure": 16,
+      "voice": 0,
+      "tick": 1,
+      "pitches": []
+     },
+     "spacing": 2,
+     "xOffset": 0,
+     "yOffset": 10,
+     "position": 4,
+     "position_end": 1,
+     "invert": false,
+     "cp1x": 0,
+     "cp1y": 40,
+     "cp2x": 0,
+     "cp2y": 40,
+     "attrs": {
+      "id": "auto3518180",
+      "type": "SmoSlur"
+     },
+     "thickness": 2,
+     "ctor": "SmoSlur"
     }
    ],
    "measures": [
@@ -16811,14 +18248,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 398.0821533203125,
+     "staffY": 461.6759033203125,
      "measureNumber": {
       "measureNumber": 0,
       "measureIndex": 0,
       "systemIndex": 0,
       "staffId": 1
      },
-     "staffWidth": 557.2202167510986,
+     "staffWidth": 557.2202091217041,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -16834,6 +18271,7 @@ var inventionJson = `{
          "noteType": "r",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -16855,27 +18293,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2940813",
+          "id": "auto3829348",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2940833",
+         "renderId": "vf-auto3829368",
          "renderedBox": {
           "x": 537.101318359375,
-          "y": -2444.12109375,
+          "y": -1855.11181640625,
           "width": 17.68609619140625,
-          "height": 36.11865234375
+          "height": 36.118896484375
          },
          "logicalBox": {
           "x": 298.0025329589844,
-          "y": 414.57403564453125,
+          "y": 478.16766357421875,
           "width": 12.636016845703125,
-          "height": 25.80535888671875
+          "height": 25.8055419921875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -16897,27 +18336,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2940813",
+          "id": "auto3829348",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2940839",
+         "renderId": "vf-auto3829374",
          "renderedBox": {
-          "x": 590.8377685546875,
-          "y": -2439.52294921875,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
+          "x": 590.8377075195312,
+          "y": -1850.513427734375,
+          "width": 16.82147216796875,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 336.3951110839844,
-          "y": 417.8592224121094,
-          "width": 12.01824951171875,
-          "height": 10.47393798828125
+          "x": 336.39508056640625,
+          "y": 481.4530334472656,
+          "width": 12.018280029296875,
+          "height": 10.4737548828125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -16939,27 +18379,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2940813",
+          "id": "auto3829348",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2940846",
+         "renderId": "vf-auto3829381",
          "renderedBox": {
           "x": 643.70947265625,
-          "y": -2446.52099609375,
+          "y": -1857.51171875,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 374.1698913574219,
-          "y": 412.859375,
+          "y": 476.4530334472656,
           "width": 12.018218994140625,
-          "height": 10.4737548828125
+          "height": 10.473846435546875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -16981,26 +18422,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2940813",
+          "id": "auto3829348",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2940853",
+         "renderId": "vf-auto3829388",
          "renderedBox": {
           "x": 696.5812377929688,
-          "y": -2453.51953125,
+          "y": -1864.510009765625,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 411.9446716308594,
-          "y": 407.8592224121094,
+          "y": 471.4530334472656,
           "width": 12.01824951171875,
-          "height": 10.473907470703125
+          "height": 10.473846435546875
          }
         }
        ],
        "attrs": {
-        "id": "auto2940813",
+        "id": "auto3829348",
         "type": "SmoBeamGroup"
        }
       },
@@ -17010,6 +18451,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -17031,27 +18473,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2940814",
+          "id": "auto3829349",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2940860",
+         "renderId": "vf-auto3829395",
          "renderedBox": {
           "x": 749.4529418945312,
-          "y": -2460.517578125,
+          "y": -1871.50830078125,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 449.7194519042969,
-          "y": 402.859375,
+          "y": 466.4530029296875,
           "width": 12.018218994140625,
-          "height": 10.4737548828125
+          "height": 10.473846435546875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -17073,27 +18516,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2940814",
+          "id": "auto3829349",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2940867",
+         "renderId": "vf-auto3829402",
          "renderedBox": {
           "x": 802.32470703125,
-          "y": -2446.52099609375,
+          "y": -1857.51171875,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 487.4942321777344,
-          "y": 412.859375,
+          "y": 476.4530334472656,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.473846435546875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -17115,27 +18559,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2940814",
+          "id": "auto3829349",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2940874",
+         "renderId": "vf-auto3829409",
          "renderedBox": {
           "x": 855.1964721679688,
-          "y": -2453.51953125,
+          "y": -1864.510009765625,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 525.26904296875,
-          "y": 407.8592224121094,
+          "y": 471.4530334472656,
           "width": 12.01824951171875,
-          "height": 10.473907470703125
+          "height": 10.473846435546875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -17157,26 +18602,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2940814",
+          "id": "auto3829349",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2940881",
+         "renderId": "vf-auto3829416",
          "renderedBox": {
           "x": 908.0681762695312,
-          "y": -2439.52294921875,
+          "y": -1850.513427734375,
           "width": 16.82147216796875,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 563.0438232421875,
-          "y": 417.8592224121094,
+          "y": 481.4530334472656,
           "width": 12.01824951171875,
-          "height": 10.47393798828125
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto2940814",
+        "id": "auto3829349",
         "type": "SmoBeamGroup"
        }
       }
@@ -17206,6 +18651,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -17230,6 +18676,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -17254,6 +18701,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -17278,6 +18726,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -17302,6 +18751,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -17326,6 +18776,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -17350,6 +18801,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -17374,6 +18826,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -17398,6 +18851,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -17426,8 +18880,8 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 587.2202167510986,
-     "staffY": 398.0821533203125,
+     "staffX": 587.2202091217041,
+     "staffY": 461.6759033203125,
      "measureNumber": {
       "measureNumber": 1,
       "measureIndex": 1,
@@ -17450,6 +18904,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -17471,27 +18926,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2941883",
+          "id": "auto3830418",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2941889",
+         "renderId": "vf-auto3830424",
          "renderedBox": {
           "x": 965.7010498046875,
-          "y": -2467.51611328125,
+          "y": -1878.506591796875,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 604.22021484375,
-          "y": 397.85919189453125,
+          "y": 461.4530029296875,
           "width": 12.01824951171875,
-          "height": 10.47393798828125
+          "height": 10.473846435546875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -17513,26 +18969,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2941883",
+          "id": "auto3830418",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2941896",
+         "renderId": "vf-auto3830431",
          "renderedBox": {
           "x": 1040.9609375,
-          "y": -2418.528076171875,
+          "y": -1829.5185546875,
           "width": 16.8212890625,
-          "height": 14.659912109375
+          "height": 14.65966796875
          },
          "logicalBox": {
           "x": 657.990478515625,
-          "y": 432.8592224121094,
+          "y": 496.4530334472656,
           "width": 12.01812744140625,
-          "height": 10.47393798828125
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto2941883",
+        "id": "auto3830418",
         "type": "SmoBeamGroup"
        }
       },
@@ -17542,6 +18998,7 @@ var inventionJson = `{
          "noteType": "r",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -17563,27 +19020,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2941884",
+          "id": "auto3830419",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2941911",
+         "renderId": "vf-auto3830446",
          "renderedBox": {
           "x": 1236.490478515625,
-          "y": -2451.11962890625,
+          "y": -1862.110107421875,
           "width": 17.68603515625,
           "height": 36.118896484375
          },
          "logicalBox": {
           "x": 797.6886596679688,
-          "y": 409.5738525390625,
+          "y": 473.16766357421875,
           "width": 12.635986328125,
-          "height": 25.805511474609375
+          "height": 25.8055419921875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -17605,27 +19063,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2941884",
+          "id": "auto3830419",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2941917",
+         "renderId": "vf-auto3830452",
          "renderedBox": {
           "x": 1287.5947265625,
-          "y": -2467.51611328125,
-          "width": 16.821533203125,
-          "height": 14.659912109375
+          "y": -1878.506591796875,
+          "width": 16.8214111328125,
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 834.2006225585938,
-          "y": 397.85919189453125,
-          "width": 12.01837158203125,
-          "height": 10.47393798828125
+          "y": 461.4530029296875,
+          "width": 12.01824951171875,
+          "height": 10.473846435546875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -17647,27 +19106,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2941884",
+          "id": "auto3830419",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2941924",
+         "renderId": "vf-auto3830459",
          "renderedBox": {
           "x": 1337.8343505859375,
-          "y": -2474.51416015625,
+          "y": -1885.5048828125,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 870.0949096679688,
-          "y": 392.859375,
+          "y": 456.4530029296875,
           "width": 12.0181884765625,
-          "height": 10.4737548828125
+          "height": 10.473846435546875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -17689,26 +19149,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2941884",
+          "id": "auto3830419",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2941931",
+         "renderId": "vf-auto3830466",
          "renderedBox": {
           "x": 1388.073974609375,
-          "y": -2481.5126953125,
+          "y": -1892.503173828125,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 905.9891357421875,
-          "y": 387.85919189453125,
+          "y": 451.4530029296875,
           "width": 12.01824951171875,
-          "height": 10.47393798828125
+          "height": 10.473846435546875
          }
         }
        ],
        "attrs": {
-        "id": "auto2941884",
+        "id": "auto3830419",
         "type": "SmoBeamGroup"
        }
       },
@@ -17718,6 +19178,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -17739,27 +19200,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2941885",
+          "id": "auto3830420",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2941938",
+         "renderId": "vf-auto3830473",
          "renderedBox": {
           "x": 1438.3135986328125,
-          "y": -2488.5107421875,
+          "y": -1899.50146484375,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 941.8833618164062,
-          "y": 382.8593444824219,
+          "y": 446.4530029296875,
           "width": 12.01824951171875,
-          "height": 10.473785400390625
+          "height": 10.473846435546875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -17781,27 +19243,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2941885",
+          "id": "auto3830420",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2941945",
+         "renderId": "vf-auto3830480",
          "renderedBox": {
           "x": 1488.55322265625,
-          "y": -2474.51416015625,
+          "y": -1885.5048828125,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 977.777587890625,
-          "y": 392.859375,
+          "y": 456.4530029296875,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.473846435546875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -17823,27 +19286,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2941885",
+          "id": "auto3830420",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2941952",
+         "renderId": "vf-auto3830487",
          "renderedBox": {
           "x": 1538.7928466796875,
-          "y": -2481.5126953125,
+          "y": -1892.503173828125,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 1013.671875,
-          "y": 387.85919189453125,
+          "y": 451.4530029296875,
           "width": 12.0181884765625,
-          "height": 10.47393798828125
+          "height": 10.473846435546875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -17865,26 +19329,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2941885",
+          "id": "auto3830420",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2941959",
+         "renderId": "vf-auto3830494",
          "renderedBox": {
           "x": 1589.0323486328125,
-          "y": -2467.51611328125,
+          "y": -1878.506591796875,
           "width": 16.821533203125,
-          "height": 14.659912109375
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 1049.5660400390625,
-          "y": 397.85919189453125,
+          "y": 461.4530029296875,
           "width": 12.018310546875,
-          "height": 10.47393798828125
+          "height": 10.473846435546875
          }
         }
        ],
        "attrs": {
-        "id": "auto2941885",
+        "id": "auto3830420",
         "type": "SmoBeamGroup"
        }
       }
@@ -17914,6 +19378,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -17938,6 +19403,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -17962,6 +19428,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -17986,6 +19453,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -18010,6 +19478,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -18034,6 +19503,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -18058,6 +19528,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -18082,6 +19553,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -18106,6 +19578,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -18130,6 +19603,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -18154,6 +19628,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -18183,14 +19658,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 638.2653350830078,
+     "staffY": 702.4403381347656,
      "measureNumber": {
       "measureNumber": 2,
       "measureIndex": 2,
       "systemIndex": 0,
       "staffId": 1
      },
-     "staffWidth": 553.3000507354736,
+     "staffWidth": 553.3001041412354,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -18206,6 +19681,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -18227,27 +19703,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2943324",
+          "id": "auto3831867",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2943337",
+         "renderId": "vf-auto3831880",
          "renderedBox": {
           "x": 261.9229736328125,
-          "y": -2152.3369140625,
+          "y": -1562.5137939453125,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 101.39839935302734,
-          "y": 623.0423583984375,
+          "y": 687.2174682617188,
           "width": 12.018241882324219,
-          "height": 10.47393798828125
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -18269,26 +19746,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2943324",
+          "id": "auto3831867",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2943344",
+         "renderId": "vf-auto3831887",
          "renderedBox": {
           "x": 345.1151123046875,
-          "y": -2145.33837890625,
-          "width": 16.821380615234375,
-          "height": 14.65966796875
+          "y": -1555.5155029296875,
+          "width": 16.8214111328125,
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 160.83592224121094,
-          "y": 628.0425415039062,
-          "width": 12.018218994140625,
-          "height": 10.4737548828125
+          "y": 692.2174682617188,
+          "width": 12.018234252929688,
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2943324",
+        "id": "auto3831867",
         "type": "SmoBeamGroup"
        }
       },
@@ -18298,6 +19775,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -18319,27 +19797,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2943325",
+          "id": "auto3831868",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2943351",
+         "renderId": "vf-auto3831894",
          "renderedBox": {
-          "x": 428.30718994140625,
-          "y": -2152.3369140625,
+          "x": 428.3072204589844,
+          "y": -1562.5137939453125,
           "width": 16.821441650390625,
-          "height": 14.659912109375
+          "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 220.2733917236328,
-          "y": 623.0423583984375,
-          "width": 12.018264770507812,
-          "height": 10.47393798828125
+          "x": 220.27342224121094,
+          "y": 687.2174682617188,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -18361,26 +19840,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2943325",
+          "id": "auto3831868",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2943358",
+         "renderId": "vf-auto3831901",
          "renderedBox": {
-          "x": 511.49932861328125,
-          "y": -2159.3349609375,
-          "width": 16.8214111328125,
-          "height": 14.65966796875
+          "x": 511.4993591308594,
+          "y": -1569.5120849609375,
+          "width": 16.821441650390625,
+          "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 279.7109069824219,
-          "y": 618.0425415039062,
+          "x": 279.7109375,
+          "y": 682.2174682617188,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto2943325",
+        "id": "auto3831868",
         "type": "SmoBeamGroup"
        }
       },
@@ -18390,6 +19869,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -18411,27 +19891,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2943326",
+          "id": "auto3831869",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2943365",
+         "renderId": "vf-auto3831908",
          "renderedBox": {
           "x": 594.6914672851562,
-          "y": -2166.333251953125,
-          "width": 16.82135009765625,
-          "height": 14.65966796875
+          "y": -1576.5103759765625,
+          "width": 16.8214111328125,
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 339.1484375,
-          "y": 613.0425415039062,
-          "width": 12.0181884765625,
-          "height": 10.4737548828125
+          "y": 677.2174682617188,
+          "width": 12.01824951171875,
+          "height": 10.47381591796875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -18453,26 +19934,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2943326",
+          "id": "auto3831869",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2943372",
+         "renderId": "vf-auto3831915",
          "renderedBox": {
           "x": 677.8836059570312,
-          "y": -2131.341796875,
+          "y": -1541.5189208984375,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 398.5859680175781,
-          "y": 638.0425415039062,
+          "y": 702.2174682617188,
           "width": 12.018218994140625,
-          "height": 10.4737548828125
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2943326",
+        "id": "auto3831869",
         "type": "SmoBeamGroup"
        }
       },
@@ -18482,6 +19963,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -18503,27 +19985,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2943327",
+          "id": "auto3831870",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2943379",
+         "renderId": "vf-auto3831922",
          "renderedBox": {
-          "x": 761.07568359375,
-          "y": -2138.34033203125,
+          "x": 761.0757446289062,
+          "y": -1548.5172119140625,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 458.0234375,
-          "y": 633.0423583984375,
+          "x": 458.0234680175781,
+          "y": 697.2174682617188,
           "width": 12.01824951171875,
-          "height": 10.47393798828125
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -18545,26 +20028,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2943327",
+          "id": "auto3831870",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2943386",
+         "renderId": "vf-auto3831929",
          "renderedBox": {
-          "x": 844.267822265625,
-          "y": -2145.33837890625,
+          "x": 844.2678833007812,
+          "y": -1555.5155029296875,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 517.4609375,
-          "y": 628.0425415039062,
+          "x": 517.4609985351562,
+          "y": 692.2174682617188,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2943327",
+        "id": "auto3831870",
         "type": "SmoBeamGroup"
        }
       }
@@ -18594,6 +20077,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -18618,6 +20102,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -18642,6 +20127,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -18666,6 +20152,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -18690,6 +20177,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -18714,6 +20202,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -18738,6 +20227,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -18762,6 +20252,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -18790,8 +20281,8 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 583.3000507354736,
-     "staffY": 638.2653350830078,
+     "staffX": 583.3001041412354,
+     "staffY": 702.4403381347656,
      "measureNumber": {
       "measureNumber": 3,
       "measureIndex": 3,
@@ -18814,6 +20305,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -18835,27 +20327,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2944564",
+          "id": "auto3833107",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2944570",
+         "renderId": "vf-auto3833113",
          "renderedBox": {
-          "x": 960.214111328125,
-          "y": -2152.3369140625,
-          "width": 16.82147216796875,
-          "height": 14.659912109375
+          "x": 960.2142333984375,
+          "y": -1562.5137939453125,
+          "width": 16.8214111328125,
+          "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 600.300048828125,
-          "y": 623.0423583984375,
+          "x": 600.3001098632812,
+          "y": 687.2174682617188,
           "width": 12.01824951171875,
-          "height": 10.47393798828125
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -18877,26 +20370,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2944564",
+          "id": "auto3833107",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2944577",
+         "renderId": "vf-auto3833120",
          "renderedBox": {
           "x": 1046.177734375,
-          "y": -2117.34521484375,
-          "width": 16.8214111328125,
-          "height": 14.65966796875
+          "y": -1527.5224609375,
+          "width": 16.821533203125,
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 661.7176513671875,
-          "y": 648.0426025390625,
-          "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "y": 712.2174072265625,
+          "width": 12.01837158203125,
+          "height": 10.47393798828125
          }
         }
        ],
        "attrs": {
-        "id": "auto2944564",
+        "id": "auto3833107",
         "type": "SmoBeamGroup"
        }
       },
@@ -18906,6 +20399,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -18927,19 +20421,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2944565",
+          "id": "auto3833108",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2944584",
+         "renderId": "vf-auto3833127",
          "renderedBox": {
           "x": 1133.541015625,
-          "y": -2137.59765625,
+          "y": -1547.774658203125,
           "width": 33.3895263671875,
           "height": 41.166748046875
          },
          "logicalBox": {
           "x": 724.1353149414062,
-          "y": 633.572998046875,
+          "y": 697.7479858398438,
           "width": 23.85552978515625,
           "height": 29.41204833984375
          }
@@ -18948,6 +20442,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -18969,26 +20464,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2944565",
+          "id": "auto3833108",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2944593",
+         "renderId": "vf-auto3833136",
          "renderedBox": {
-          "x": 1236.07275390625,
-          "y": -2131.341796875,
-          "width": 16.8214111328125,
-          "height": 14.65966796875
+          "x": 1236.0728759765625,
+          "y": -1541.5189208984375,
+          "width": 16.8212890625,
+          "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 797.3901977539062,
-          "y": 638.0425415039062,
-          "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "x": 797.3903198242188,
+          "y": 702.2174682617188,
+          "width": 12.01812744140625,
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2944565",
+        "id": "auto3833108",
         "type": "SmoBeamGroup"
        }
       },
@@ -18998,6 +20493,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -19019,27 +20515,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2944566",
+          "id": "auto3833109",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2944600",
+         "renderId": "vf-auto3833143",
          "renderedBox": {
-          "x": 1322.0362548828125,
-          "y": -2138.34033203125,
-          "width": 16.821533203125,
-          "height": 14.659912109375
+          "x": 1322.036376953125,
+          "y": -1548.5172119140625,
+          "width": 16.8214111328125,
+          "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 858.8077392578125,
-          "y": 633.0423583984375,
-          "width": 12.01837158203125,
-          "height": 10.47393798828125
+          "x": 858.807861328125,
+          "y": 697.2174682617188,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -19061,26 +20558,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2944566",
+          "id": "auto3833109",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2944607",
+         "renderId": "vf-auto3833150",
          "renderedBox": {
-          "x": 1407.9998779296875,
-          "y": -2145.33837890625,
+          "x": 1408,
+          "y": -1555.5155029296875,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 920.2254028320312,
-          "y": 628.0425415039062,
+          "x": 920.2254638671875,
+          "y": 692.2174682617188,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2944566",
+        "id": "auto3833109",
         "type": "SmoBeamGroup"
        }
       }
@@ -19110,6 +20607,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -19134,6 +20632,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -19158,6 +20657,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -19182,6 +20682,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -19206,6 +20707,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -19230,6 +20732,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -19254,6 +20757,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -19283,14 +20787,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 843.5547943115234,
+     "staffY": 908.2960510253906,
      "measureNumber": {
       "measureNumber": 4,
       "measureIndex": 4,
       "systemIndex": 0,
       "staffId": 1
      },
-     "staffWidth": 511.06006050109863,
+     "staffWidth": 511.0600528717041,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -19306,6 +20810,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -19327,27 +20832,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2945511",
+          "id": "auto3834062",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2945524",
+         "renderId": "vf-auto3834075",
          "renderedBox": {
           "x": 261.9229736328125,
-          "y": -1865.001953125,
+          "y": -1274.386474609375,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 101.39839935302734,
-          "y": 828.3319091796875,
+          "y": 893.0731201171875,
           "width": 12.018241882324219,
-          "height": 10.47381591796875
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -19369,27 +20875,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2945511",
+          "id": "auto3834062",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2945531",
+         "renderId": "vf-auto3834082",
          "renderedBox": {
           "x": 305.00579833984375,
-          "y": -1823.0123291015625,
+          "y": -1232.396728515625,
           "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 132.17938232421875,
-          "y": 858.3318481445312,
+          "y": 923.0731811523438,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -19411,27 +20918,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2945511",
+          "id": "auto3834062",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2945538",
+         "renderId": "vf-auto3834089",
          "renderedBox": {
           "x": 348.088623046875,
-          "y": -1830.0106201171875,
+          "y": -1239.39501953125,
           "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 162.9603729248047,
-          "y": 853.3318481445312,
+          "y": 918.0731811523438,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -19453,26 +20961,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2945511",
+          "id": "auto3834062",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2945545",
+         "renderId": "vf-auto3834096",
          "renderedBox": {
           "x": 392.5710754394531,
-          "y": -1850.2628173828125,
+          "y": -1259.647216796875,
           "width": 33.389556884765625,
-          "height": 41.166748046875
+          "height": 41.1666259765625
          },
          "logicalBox": {
           "x": 194.74134826660156,
-          "y": 838.8624877929688,
+          "y": 903.603759765625,
           "width": 23.85552978515625,
-          "height": 29.4119873046875
+          "height": 29.41192626953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2945511",
+        "id": "auto3834062",
         "type": "SmoBeamGroup"
        }
       },
@@ -19482,6 +20990,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -19503,27 +21012,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2945512",
+          "id": "auto3834063",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2945554",
+         "renderId": "vf-auto3834105",
          "renderedBox": {
           "x": 452.2220458984375,
-          "y": -1844.007080078125,
+          "y": -1253.3916015625,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 237.359619140625,
-          "y": 843.3319702148438,
+          "y": 908.0731811523438,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.47381591796875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -19545,27 +21055,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2945512",
+          "id": "auto3834063",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2945561",
+         "renderId": "vf-auto3834112",
          "renderedBox": {
           "x": 495.3048400878906,
-          "y": -1830.0106201171875,
+          "y": -1239.39501953125,
           "width": 16.821441650390625,
           "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 268.1405944824219,
-          "y": 853.3318481445312,
+          "y": 918.0731811523438,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -19587,27 +21098,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2945512",
+          "id": "auto3834063",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2945568",
+         "renderId": "vf-auto3834119",
          "renderedBox": {
           "x": 538.3876953125,
-          "y": -1837.0089111328125,
+          "y": -1246.393310546875,
           "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 298.9216003417969,
-          "y": 848.3318481445312,
+          "y": 913.0731811523438,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -19629,26 +21141,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2945512",
+          "id": "auto3834063",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2945575",
+         "renderId": "vf-auto3834126",
          "renderedBox": {
           "x": 581.470458984375,
-          "y": -1823.0123291015625,
+          "y": -1232.396728515625,
           "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 329.7025451660156,
-          "y": 858.3318481445312,
+          "y": 923.0731811523438,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto2945512",
+        "id": "auto3834063",
         "type": "SmoBeamGroup"
        }
       },
@@ -19658,6 +21170,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -19679,27 +21192,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2945513",
+          "id": "auto3834064",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2945582",
+         "renderId": "vf-auto3834133",
          "renderedBox": {
           "x": 624.5533447265625,
-          "y": -1844.007080078125,
+          "y": -1253.3916015625,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 360.48358154296875,
-          "y": 843.3319702148438,
+          "y": 908.0731811523438,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.47381591796875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -19721,26 +21235,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2945513",
+          "id": "auto3834064",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2945589",
+         "renderId": "vf-auto3834140",
          "renderedBox": {
           "x": 685.4995727539062,
-          "y": -1809.0157470703125,
-          "width": 16.82147216796875,
+          "y": -1218.400146484375,
+          "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 404.02728271484375,
-          "y": 868.3319091796875,
-          "width": 12.018280029296875,
+          "y": 933.0731811523438,
+          "width": 12.018218994140625,
           "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto2945513",
+        "id": "auto3834064",
         "type": "SmoBeamGroup"
        }
       },
@@ -19750,6 +21264,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -19771,19 +21286,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2945514",
+          "id": "auto3834065",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2945596",
+         "renderId": "vf-auto3834147",
          "renderedBox": {
           "x": 746.4458618164062,
-          "y": -1816.0140380859375,
+          "y": -1225.3984375,
           "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 447.5710144042969,
-          "y": 863.3319091796875,
+          "y": 928.0731811523438,
           "width": 12.018218994140625,
           "height": 10.47381591796875
          }
@@ -19792,6 +21307,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -19813,26 +21329,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2945514",
+          "id": "auto3834065",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2945603",
+         "renderId": "vf-auto3834154",
          "renderedBox": {
           "x": 807.3921508789062,
-          "y": -1823.0123291015625,
+          "y": -1232.396728515625,
           "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 491.11474609375,
-          "y": 858.3318481445312,
+          "y": 923.0731811523438,
           "width": 12.018218994140625,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto2945514",
+        "id": "auto3834065",
         "type": "SmoBeamGroup"
        }
       }
@@ -19862,6 +21378,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -19886,6 +21403,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -19910,6 +21428,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -19934,6 +21453,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -19958,6 +21478,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -19982,6 +21503,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -20006,6 +21528,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -20030,6 +21553,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -20054,6 +21578,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -20078,6 +21603,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -20102,6 +21628,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -20126,6 +21653,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -20154,15 +21682,15 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 541.0600605010986,
-     "staffY": 843.5547943115234,
+     "staffX": 541.0600528717041,
+     "staffY": 908.2960510253906,
      "measureNumber": {
       "measureNumber": 5,
       "measureIndex": 5,
       "systemIndex": 1,
       "staffId": 1
      },
-     "staffWidth": 549.320068359375,
+     "staffWidth": 549.3199462890625,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -20178,6 +21706,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -20199,27 +21728,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2947003",
+          "id": "auto3835554",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947010",
+         "renderId": "vf-auto3835561",
          "renderedBox": {
           "x": 901.0926513671875,
-          "y": -1830.0106201171875,
+          "y": -1239.39501953125,
           "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 558.06005859375,
-          "y": 853.3318481445312,
+          "y": 918.0731811523438,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -20241,26 +21771,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2947003",
+          "id": "auto3835554",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947017",
+         "renderId": "vf-auto3835568",
          "renderedBox": {
-          "x": 991.4550170898438,
-          "y": -1850.2628173828125,
-          "width": 33.38946533203125,
-          "height": 41.166748046875
+          "x": 991.4548950195312,
+          "y": -1259.647216796875,
+          "width": 33.38958740234375,
+          "height": 41.1666259765625
          },
          "logicalBox": {
-          "x": 622.6204223632812,
-          "y": 838.8624877929688,
-          "width": 23.85546875,
-          "height": 29.4119873046875
+          "x": 622.620361328125,
+          "y": 903.603759765625,
+          "width": 23.85552978515625,
+          "height": 29.41192626953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2947003",
+        "id": "auto3835554",
         "type": "SmoBeamGroup"
        }
       },
@@ -20270,6 +21800,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -20291,27 +21822,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2947004",
+          "id": "auto3835555",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947026",
+         "renderId": "vf-auto3835577",
          "renderedBox": {
           "x": 1096.98583984375,
-          "y": -1844.007080078125,
+          "y": -1253.3916015625,
           "width": 16.8212890625,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 698.01806640625,
-          "y": 843.3319702148438,
+          "y": 908.0731811523438,
           "width": 12.01812744140625,
-          "height": 10.4737548828125
+          "height": 10.47381591796875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -20333,26 +21865,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2947004",
+          "id": "auto3835555",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947033",
+         "renderId": "vf-auto3835584",
          "renderedBox": {
-          "x": 1185.948486328125,
-          "y": -1830.0106201171875,
+          "x": 1185.9483642578125,
+          "y": -1239.39501953125,
           "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 761.578369140625,
-          "y": 853.3318481445312,
+          "x": 761.5783081054688,
+          "y": 918.0731811523438,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto2947004",
+        "id": "auto3835555",
         "type": "SmoBeamGroup"
        }
       },
@@ -20362,6 +21894,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -20383,19 +21916,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2947005",
+          "id": "auto3835556",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947040",
+         "renderId": "vf-auto3835591",
          "renderedBox": {
           "x": 1274.9111328125,
-          "y": -1811.5030517578125,
+          "y": -1220.887451171875,
           "width": 26.6190185546875,
           "height": 17.1470947265625
          },
          "logicalBox": {
           "x": 825.1387329101562,
-          "y": 866.5548095703125,
+          "y": 931.2960815429688,
           "width": 19.01824951171875,
           "height": 12.25091552734375
          }
@@ -20404,6 +21937,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -20425,26 +21959,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2947005",
+          "id": "auto3835556",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947048",
+         "renderId": "vf-auto3835599",
          "renderedBox": {
-          "x": 1404.1434326171875,
-          "y": -1816.0140380859375,
+          "x": 1404.143310546875,
+          "y": -1225.3984375,
           "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 917.4701538085938,
-          "y": 863.3319091796875,
-          "width": 12.0181884765625,
+          "x": 917.4700317382812,
+          "y": 928.0731811523438,
+          "width": 12.01824951171875,
           "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto2947005",
+        "id": "auto3835556",
         "type": "SmoBeamGroup"
        }
       },
@@ -20454,6 +21988,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -20475,27 +22010,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2947006",
+          "id": "auto3835557",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947055",
+         "renderId": "vf-auto3835606",
          "renderedBox": {
-          "x": 1461.2344970703125,
-          "y": -1823.0123291015625,
+          "x": 1461.234375,
+          "y": -1232.396728515625,
           "width": 16.8214111328125,
           "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 958.2594604492188,
-          "y": 858.3318481445312,
+          "x": 958.2593383789062,
+          "y": 923.0731811523438,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -20517,26 +22053,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2947006",
+          "id": "auto3835557",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947062",
+         "renderId": "vf-auto3835613",
          "renderedBox": {
-          "x": 1550.1971435546875,
-          "y": -1774.0242919921875,
-          "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "x": 1550.1968994140625,
+          "y": -1183.40869140625,
+          "width": 16.821533203125,
+          "height": 14.65966796875
          },
          "logicalBox": {
-          "x": 1021.8197631835938,
-          "y": 893.3319091796875,
-          "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "x": 1021.819580078125,
+          "y": 958.0731811523438,
+          "width": 12.018310546875,
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto2947006",
+        "id": "auto3835557",
         "type": "SmoBeamGroup"
        }
       }
@@ -20566,6 +22102,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -20590,6 +22127,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -20614,6 +22152,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -20638,6 +22177,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -20662,6 +22202,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -20686,6 +22227,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -20710,6 +22252,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -20734,6 +22277,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -20763,14 +22307,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 1083.8611297607422,
+     "staffY": 1148.7909851074219,
      "measureNumber": {
       "measureNumber": 6,
       "measureIndex": 6,
       "systemIndex": 0,
       "staffId": 1
      },
-     "staffWidth": 557.8800067901611,
+     "staffWidth": 557.8800601959229,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -20786,6 +22330,7 @@ var inventionJson = `{
          "noteType": "r",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -20807,19 +22352,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2947875",
+          "id": "auto3836434",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947888",
+         "renderId": "vf-auto3836447",
          "renderedBox": {
           "x": 261.9229736328125,
-          "y": -1463.2711181640625,
+          "y": -872.3916015625,
           "width": 17.686065673828125,
-          "height": 36.1190185546875
+          "height": 36.118896484375
          },
          "logicalBox": {
           "x": 101.39839935302734,
-          "y": 1115.3529052734375,
+          "y": 1180.28271484375,
           "width": 12.636001586914062,
           "height": 25.8055419921875
          }
@@ -20828,6 +22373,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -20849,27 +22395,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2947875",
+          "id": "auto3836434",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947894",
+         "renderId": "vf-auto3836453",
          "renderedBox": {
           "x": 309.91217041015625,
-          "y": -1458.672607421875,
+          "y": -867.793212890625,
           "width": 16.821380615234375,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 135.68479919433594,
-          "y": 1118.6383056640625,
+          "y": 1183.568115234375,
           "width": 12.018218994140625,
-          "height": 10.4737548828125
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -20891,27 +22438,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2947875",
+          "id": "auto3836434",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947901",
+         "renderId": "vf-auto3836460",
          "renderedBox": {
-          "x": 357.0366516113281,
-          "y": -1465.6708984375,
-          "width": 16.821441650390625,
-          "height": 14.65966796875
+          "x": 357.03668212890625,
+          "y": -874.79150390625,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 169.3533935546875,
-          "y": 1113.6383056640625,
-          "width": 12.018264770507812,
-          "height": 10.4737548828125
+          "x": 169.35340881347656,
+          "y": 1178.568115234375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -20933,26 +22481,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2947875",
+          "id": "auto3836434",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947908",
+         "renderId": "vf-auto3836467",
          "renderedBox": {
-          "x": 404.1611633300781,
-          "y": -1472.669189453125,
-          "width": 16.821441650390625,
-          "height": 14.65966796875
+          "x": 404.16119384765625,
+          "y": -881.789794921875,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 203.02200317382812,
-          "y": 1108.6383056640625,
-          "width": 12.018264770507812,
-          "height": 10.4737548828125
+          "x": 203.02203369140625,
+          "y": 1173.568115234375,
+          "width": 12.018234252929688,
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2947875",
+        "id": "auto3836434",
         "type": "SmoBeamGroup"
        }
       },
@@ -20962,6 +22510,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -20983,27 +22532,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2947876",
+          "id": "auto3836435",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947915",
+         "renderId": "vf-auto3836474",
          "renderedBox": {
-          "x": 451.28570556640625,
-          "y": -1479.66748046875,
-          "width": 16.8214111328125,
-          "height": 14.65966796875
+          "x": 451.2857360839844,
+          "y": -888.7879638671875,
+          "width": 16.821380615234375,
+          "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 236.69064331054688,
-          "y": 1103.6383056640625,
-          "width": 12.018234252929688,
-          "height": 10.4737548828125
+          "x": 236.690673828125,
+          "y": 1168.568115234375,
+          "width": 12.018203735351562,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -21025,27 +22575,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2947876",
+          "id": "auto3836435",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947922",
+         "renderId": "vf-auto3836481",
          "renderedBox": {
-          "x": 498.41021728515625,
-          "y": -1465.6708984375,
-          "width": 16.8214111328125,
-          "height": 14.65966796875
+          "x": 498.4102478027344,
+          "y": -874.79150390625,
+          "width": 16.821441650390625,
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 270.3592529296875,
-          "y": 1113.6383056640625,
+          "x": 270.3592834472656,
+          "y": 1178.568115234375,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -21067,27 +22618,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2947876",
+          "id": "auto3836435",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947929",
+         "renderId": "vf-auto3836488",
          "renderedBox": {
           "x": 545.5347900390625,
-          "y": -1472.669189453125,
-          "width": 16.82135009765625,
-          "height": 14.65966796875
+          "y": -881.789794921875,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 304.0279235839844,
-          "y": 1108.6383056640625,
-          "width": 12.0181884765625,
-          "height": 10.4737548828125
+          "y": 1173.568115234375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -21109,26 +22661,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2947876",
+          "id": "auto3836435",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947936",
+         "renderId": "vf-auto3836495",
          "renderedBox": {
-          "x": 592.6592407226562,
-          "y": -1458.672607421875,
-          "width": 16.82147216796875,
-          "height": 14.65966796875
+          "x": 592.6593017578125,
+          "y": -867.793212890625,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 337.6965026855469,
-          "y": 1118.6383056640625,
-          "width": 12.018280029296875,
-          "height": 10.4737548828125
+          "x": 337.696533203125,
+          "y": 1183.568115234375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2947876",
+        "id": "auto3836435",
         "type": "SmoBeamGroup"
        }
       },
@@ -21138,6 +22690,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -21159,27 +22712,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2947877",
+          "id": "auto3836436",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947943",
+         "renderId": "vf-auto3836502",
          "renderedBox": {
-          "x": 639.7837524414062,
-          "y": -1486.665771484375,
+          "x": 639.7838134765625,
+          "y": -895.7862548828125,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 371.3651123046875,
-          "y": 1098.6383056640625,
-          "width": 12.018218994140625,
-          "height": 10.4737548828125
+          "x": 371.3651428222656,
+          "y": 1163.568115234375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -21201,26 +22755,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2947877",
+          "id": "auto3836436",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947950",
+         "renderId": "vf-auto3836509",
          "renderedBox": {
-          "x": 708.8134155273438,
-          "y": -1507.66064453125,
-          "width": 16.82147216796875,
-          "height": 14.65966796875
+          "x": 708.8134765625,
+          "y": -916.7811279296875,
+          "width": 16.8214111328125,
+          "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 420.68408203125,
-          "y": 1083.6383056640625,
-          "width": 12.018280029296875,
-          "height": 10.4737548828125
+          "x": 420.68414306640625,
+          "y": 1148.568115234375,
+          "width": 12.018218994140625,
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2947877",
+        "id": "auto3836436",
         "type": "SmoBeamGroup"
        }
       },
@@ -21230,6 +22784,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -21251,20 +22806,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2947878",
+          "id": "auto3836437",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947957",
+         "renderId": "vf-auto3836516",
          "renderedBox": {
-          "x": 779.2427978515625,
-          "y": -1513.9163818359375,
+          "x": 779.2428588867188,
+          "y": -923.036865234375,
           "width": 33.3895263671875,
-          "height": 41.166748046875
+          "height": 41.1666259765625
          },
          "logicalBox": {
-          "x": 471.00311279296875,
-          "y": 1079.1688232421875,
-          "width": 23.85552978515625,
+          "x": 471.003173828125,
+          "y": 1144.0986328125,
+          "width": 23.855499267578125,
           "height": 29.4119873046875
          }
         },
@@ -21272,6 +22827,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -21293,26 +22849,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2947878",
+          "id": "auto3836437",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2947966",
+         "renderId": "vf-auto3836525",
          "renderedBox": {
           "x": 864.8406372070312,
-          "y": -1507.66064453125,
+          "y": -916.7811279296875,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 532.159423828125,
-          "y": 1083.6383056640625,
+          "y": 1148.568115234375,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2947878",
+        "id": "auto3836437",
         "type": "SmoBeamGroup"
        }
       }
@@ -21342,6 +22898,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -21366,6 +22923,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -21390,6 +22948,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -21414,6 +22973,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -21438,6 +22998,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -21462,6 +23023,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -21486,6 +23048,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -21510,6 +23073,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -21534,6 +23098,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -21558,6 +23123,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -21582,6 +23148,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -21606,6 +23173,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -21634,15 +23202,15 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 587.8800067901611,
-     "staffY": 1083.8611297607422,
+     "staffX": 587.8800601959229,
+     "staffY": 1148.7909851074219,
      "measureNumber": {
       "measureNumber": 7,
       "measureIndex": 7,
       "systemIndex": 1,
       "staffId": 1
      },
-     "staffWidth": 502.0799560546875,
+     "staffWidth": 502.08013916015625,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -21658,6 +23226,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -21679,27 +23248,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2948971",
+          "id": "auto3837530",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2948978",
+         "renderId": "vf-auto3837537",
          "renderedBox": {
-          "x": 966.62451171875,
-          "y": -1514.658935546875,
+          "x": 966.6245727539062,
+          "y": -923.7794189453125,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 604.8800048828125,
-          "y": 1078.6383056640625,
+          "x": 604.8800659179688,
+          "y": 1143.568115234375,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -21721,27 +23291,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2948971",
+          "id": "auto3837530",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2948985",
+         "renderId": "vf-auto3837544",
          "renderedBox": {
-          "x": 1013.8030395507812,
-          "y": -1486.665771484375,
-          "width": 16.82147216796875,
-          "height": 14.65966796875
+          "x": 1013.8031005859375,
+          "y": -895.7862548828125,
+          "width": 16.8214111328125,
+          "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 638.5872192382812,
-          "y": 1098.6383056640625,
-          "width": 12.018310546875,
-          "height": 10.4737548828125
+          "x": 638.5872802734375,
+          "y": 1163.568115234375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -21763,27 +23334,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2948971",
+          "id": "auto3837530",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2948992",
+         "renderId": "vf-auto3837551",
          "renderedBox": {
-          "x": 1060.9815673828125,
-          "y": -1493.6640625,
-          "width": 16.8214111328125,
-          "height": 14.65966796875
+          "x": 1060.981689453125,
+          "y": -902.7845458984375,
+          "width": 16.821533203125,
+          "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 672.29443359375,
-          "y": 1093.6383056640625,
-          "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "x": 672.2944946289062,
+          "y": 1158.568115234375,
+          "width": 12.01837158203125,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -21805,26 +23377,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2948971",
+          "id": "auto3837530",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2948999",
+         "renderId": "vf-auto3837558",
          "renderedBox": {
-          "x": 1109.559814453125,
-          "y": -1513.9163818359375,
-          "width": 33.3896484375,
-          "height": 41.166748046875
+          "x": 1109.5599365234375,
+          "y": -923.036865234375,
+          "width": 33.3895263671875,
+          "height": 41.1666259765625
          },
          "logicalBox": {
-          "x": 707.001708984375,
-          "y": 1079.1688232421875,
-          "width": 23.8555908203125,
+          "x": 707.0017700195312,
+          "y": 1144.0986328125,
+          "width": 23.85552978515625,
           "height": 29.4119873046875
          }
         }
        ],
        "attrs": {
-        "id": "auto2948971",
+        "id": "auto3837530",
         "type": "SmoBeamGroup"
        }
       },
@@ -21834,6 +23406,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -21855,27 +23428,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2948972",
+          "id": "auto3837531",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2949008",
+         "renderId": "vf-auto3837567",
          "renderedBox": {
-          "x": 1173.3065185546875,
-          "y": -1507.66064453125,
+          "x": 1173.306640625,
+          "y": -916.7811279296875,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 752.5462036132812,
-          "y": 1083.6383056640625,
+          "x": 752.5462646484375,
+          "y": 1148.568115234375,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -21897,27 +23471,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2948972",
+          "id": "auto3837531",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2949015",
+         "renderId": "vf-auto3837574",
          "renderedBox": {
-          "x": 1220.485107421875,
-          "y": -1493.6640625,
+          "x": 1220.4852294921875,
+          "y": -902.7845458984375,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 786.2534790039062,
-          "y": 1093.6383056640625,
-          "width": 12.0181884765625,
-          "height": 10.4737548828125
+          "x": 786.2535400390625,
+          "y": 1158.568115234375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -21939,27 +23514,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2948972",
+          "id": "auto3837531",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2949022",
+         "renderId": "vf-auto3837581",
          "renderedBox": {
-          "x": 1267.66357421875,
-          "y": -1500.662353515625,
+          "x": 1267.663818359375,
+          "y": -909.7828369140625,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 819.9606323242188,
-          "y": 1088.6383056640625,
-          "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "x": 819.9608154296875,
+          "y": 1153.568115234375,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -21981,26 +23557,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2948972",
+          "id": "auto3837531",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2949029",
+         "renderId": "vf-auto3837588",
          "renderedBox": {
-          "x": 1314.8421630859375,
-          "y": -1486.665771484375,
+          "x": 1314.8424072265625,
+          "y": -895.7862548828125,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 853.6678466796875,
-          "y": 1098.6383056640625,
+          "x": 853.6680297851562,
+          "y": 1163.568115234375,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2948972",
+        "id": "auto3837531",
         "type": "SmoBeamGroup"
        }
       },
@@ -22010,6 +23586,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -22031,27 +23608,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2948973",
+          "id": "auto3837532",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2949036",
+         "renderId": "vf-auto3837595",
          "renderedBox": {
-          "x": 1362.020751953125,
-          "y": -1514.658935546875,
-          "width": 16.8214111328125,
-          "height": 14.65966796875
+          "x": 1362.0208740234375,
+          "y": -923.7794189453125,
+          "width": 16.821533203125,
+          "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 887.3751220703125,
-          "y": 1078.6383056640625,
-          "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "x": 887.3751831054688,
+          "y": 1143.568115234375,
+          "width": 12.01837158203125,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -22073,26 +23651,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2948973",
+          "id": "auto3837532",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2949043",
+         "renderId": "vf-auto3837602",
          "renderedBox": {
-          "x": 1431.158447265625,
-          "y": -1535.65380859375,
+          "x": 1431.15869140625,
+          "y": -944.7742919921875,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 936.7713012695312,
-          "y": 1063.6383056640625,
+          "x": 936.771484375,
+          "y": 1128.568115234375,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2948973",
+        "id": "auto3837532",
         "type": "SmoBeamGroup"
        }
       },
@@ -22102,6 +23680,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -22123,27 +23702,28 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2948974",
+          "id": "auto3837533",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2949050",
+         "renderId": "vf-auto3837609",
          "renderedBox": {
-          "x": 1500.2962646484375,
-          "y": -1528.655517578125,
+          "x": 1500.2965087890625,
+          "y": -937.7760009765625,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 986.1675415039062,
-          "y": 1068.6383056640625,
+          "x": 986.167724609375,
+          "y": 1133.568115234375,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -22165,26 +23745,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2948974",
+          "id": "auto3837533",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2949057",
+         "renderId": "vf-auto3837616",
          "renderedBox": {
-          "x": 1569.4339599609375,
-          "y": -1535.65380859375,
-          "width": 16.821533203125,
-          "height": 14.65966796875
+          "x": 1569.434326171875,
+          "y": -944.7742919921875,
+          "width": 16.8212890625,
+          "height": 14.6597900390625
          },
          "logicalBox": {
-          "x": 1035.563720703125,
-          "y": 1063.6383056640625,
-          "width": 12.018310546875,
-          "height": 10.4737548828125
+          "x": 1035.56396484375,
+          "y": 1128.568115234375,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2948974",
+        "id": "auto3837533",
         "type": "SmoBeamGroup"
        }
       }
@@ -22214,6 +23794,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -22238,6 +23819,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -22262,6 +23844,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -22286,6 +23869,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -22310,6 +23894,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -22334,6 +23919,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -22358,6 +23944,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -22382,6 +23969,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -22406,6 +23994,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -22430,6 +24019,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -22454,6 +24044,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -22478,6 +24069,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -22506,15 +24098,15 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 29.999998092651367,
-     "staffY": 1295.8941497802734,
+     "staffX": 30,
+     "staffY": 1359.7549743652344,
      "measureNumber": {
       "measureNumber": 8,
       "measureIndex": 8,
       "systemIndex": 0,
       "staffId": 1
      },
-     "staffWidth": 560.7600116729736,
+     "staffWidth": 560.7600040435791,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -22530,6 +24122,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -22551,19 +24144,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2950096",
+          "id": "auto3838663",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2950109",
+         "renderId": "vf-auto3838676",
          "renderedBox": {
           "x": 259.82684326171875,
-          "y": -1126.9078369140625,
+          "y": -537.5245361328125,
           "width": 16.8214111328125,
-          "height": 14.659912109375
+          "height": 14.6597900390625
          },
          "logicalBox": {
           "x": 99.90079498291016,
-          "y": 1355.6712646484375,
+          "y": 1419.5321044921875,
           "width": 12.018241882324219,
           "height": 10.473876953125
          }
@@ -22572,6 +24165,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -22593,19 +24187,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2950096",
+          "id": "auto3838663",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2950116",
+         "renderId": "vf-auto3838683",
          "renderedBox": {
           "x": 306.9244384765625,
-          "y": -1175.895751953125,
+          "y": -586.5125732421875,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 133.55018615722656,
-          "y": 1320.6712646484375,
+          "y": 1384.5321044921875,
           "width": 12.018234252929688,
           "height": 10.473876953125
          }
@@ -22614,6 +24208,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -22636,19 +24231,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2950096",
+          "id": "auto3838663",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2950123",
+         "renderId": "vf-auto3838690",
          "renderedBox": {
           "x": 356.8212890625,
-          "y": -1174.6236572265625,
+          "y": -585.2403564453125,
           "width": 39.864044189453125,
           "height": 26.1009521484375
          },
          "logicalBox": {
           "x": 169.19952392578125,
-          "y": 1321.5802001953125,
+          "y": 1385.4410400390625,
           "width": 28.481292724609375,
           "height": 18.6480712890625
          }
@@ -22657,6 +24252,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -22678,26 +24274,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2950096",
+          "id": "auto3838663",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2950135",
+         "renderId": "vf-auto3838702",
          "renderedBox": {
           "x": 426.96148681640625,
-          "y": -1161.899169921875,
+          "y": -572.5159912109375,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 219.31195068359375,
-          "y": 1330.6712646484375,
+          "y": 1394.5321044921875,
           "width": 12.018234252929688,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2950096",
+        "id": "auto3838663",
         "type": "SmoBeamGroup"
        }
       },
@@ -22707,6 +24303,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -22728,19 +24325,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2950097",
+          "id": "auto3838664",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2950142",
+         "renderId": "vf-auto3838709",
          "renderedBox": {
           "x": 474.05908203125,
-          "y": -1154.9010009765625,
+          "y": -565.5177001953125,
           "width": 16.821380615234375,
           "height": 14.659912109375
          },
          "logicalBox": {
           "x": 252.96133422851562,
-          "y": 1335.6712646484375,
+          "y": 1399.5321044921875,
           "width": 12.018218994140625,
           "height": 10.473876953125
          }
@@ -22749,6 +24346,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -22770,19 +24368,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2950097",
+          "id": "auto3838664",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2950149",
+         "renderId": "vf-auto3838716",
          "renderedBox": {
           "x": 521.1566162109375,
-          "y": -1168.8974609375,
+          "y": -579.5142822265625,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 286.61065673828125,
-          "y": 1325.6712646484375,
+          "y": 1389.5321044921875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -22791,6 +24389,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -22812,19 +24411,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2950097",
+          "id": "auto3838664",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2950156",
+         "renderId": "vf-auto3838723",
          "renderedBox": {
           "x": 568.2542724609375,
-          "y": -1161.899169921875,
+          "y": -572.5159912109375,
           "width": 16.82135009765625,
-          "height": 14.6597900390625
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 320.2601013183594,
-          "y": 1330.6712646484375,
+          "y": 1394.5321044921875,
           "width": 12.0181884765625,
           "height": 10.473876953125
          }
@@ -22833,6 +24432,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -22854,26 +24454,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2950097",
+          "id": "auto3838664",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2950163",
+         "renderId": "vf-auto3838730",
          "renderedBox": {
           "x": 615.351806640625,
-          "y": -1175.895751953125,
+          "y": -586.5125732421875,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 353.9094543457031,
-          "y": 1320.6712646484375,
+          "y": 1384.5321044921875,
           "width": 12.018218994140625,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2950097",
+        "id": "auto3838664",
         "type": "SmoBeamGroup"
        }
       },
@@ -22883,6 +24483,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -22904,19 +24505,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2950098",
+          "id": "auto3838665",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2950170",
+         "renderId": "vf-auto3838737",
          "renderedBox": {
           "x": 662.4494018554688,
-          "y": -1168.8974609375,
+          "y": -579.5142822265625,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 387.558837890625,
-          "y": 1325.6712646484375,
+          "y": 1389.5321044921875,
           "width": 12.018218994140625,
           "height": 10.473876953125
          }
@@ -22925,6 +24526,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -22946,26 +24548,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2950098",
+          "id": "auto3838665",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2950177",
+         "renderId": "vf-auto3838744",
          "renderedBox": {
           "x": 731.4251708984375,
-          "y": -1161.899169921875,
+          "y": -572.5159912109375,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 436.83929443359375,
-          "y": 1330.6712646484375,
+          "y": 1394.5321044921875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2950098",
+        "id": "auto3838665",
         "type": "SmoBeamGroup"
        }
       },
@@ -22975,6 +24577,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -22996,20 +24599,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2950099",
+          "id": "auto3838666",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2950184",
+         "renderId": "vf-auto3838751",
          "renderedBox": {
           "x": 800.4010009765625,
-          "y": -1168.8974609375,
-          "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "y": -579.5142822265625,
+          "width": 16.82135009765625,
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 486.1198425292969,
-          "y": 1325.6712646484375,
-          "width": 12.018218994140625,
+          "y": 1389.5321044921875,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         },
@@ -23017,6 +24620,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -23038,26 +24642,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2950099",
+          "id": "auto3838666",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2950191",
+         "renderId": "vf-auto3838758",
          "renderedBox": {
           "x": 869.3767700195312,
-          "y": -1154.9010009765625,
+          "y": -565.5177001953125,
           "width": 16.82135009765625,
           "height": 14.659912109375
          },
          "logicalBox": {
           "x": 535.4003295898438,
-          "y": 1335.6712646484375,
+          "y": 1399.5321044921875,
           "width": 12.0181884765625,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2950099",
+        "id": "auto3838666",
         "type": "SmoBeamGroup"
        }
       }
@@ -23087,6 +24691,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -23111,6 +24716,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -23136,6 +24742,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -23160,6 +24767,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -23184,6 +24792,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -23208,6 +24817,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -23232,6 +24842,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -23256,6 +24867,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -23280,6 +24892,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -23304,6 +24917,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -23328,6 +24942,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -23352,6 +24967,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -23380,8 +24996,8 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 590.760009765625,
-     "staffY": 1295.8941497802734,
+     "staffX": 590.7600040435791,
+     "staffY": 1359.7549743652344,
      "measureNumber": {
       "measureNumber": 9,
       "measureIndex": 9,
@@ -23404,6 +25020,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -23425,19 +25042,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2951260",
+          "id": "auto3839827",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2951267",
+         "renderId": "vf-auto3839834",
          "renderedBox": {
           "x": 970.655517578125,
-          "y": -1161.899169921875,
+          "y": -572.5159912109375,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 607.760009765625,
-          "y": 1330.6712646484375,
+          "y": 1394.5321044921875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -23446,6 +25063,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -23467,19 +25085,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2951260",
+          "id": "auto3839827",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2951274",
+         "renderId": "vf-auto3839841",
          "renderedBox": {
           "x": 1018.7960815429688,
-          "y": -1182.89404296875,
+          "y": -593.5108642578125,
           "width": 16.82135009765625,
-          "height": 14.6597900390625
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 642.154541015625,
-          "y": 1315.6712646484375,
+          "y": 1379.5321044921875,
           "width": 12.0181884765625,
           "height": 10.473876953125
          }
@@ -23488,6 +25106,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -23509,19 +25128,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2951260",
+          "id": "auto3839827",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2951281",
+         "renderId": "vf-auto3839848",
          "renderedBox": {
           "x": 1066.936767578125,
-          "y": -1175.895751953125,
+          "y": -586.5125732421875,
           "width": 16.8212890625,
-          "height": 14.6597900390625
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 676.5491943359375,
-          "y": 1320.6712646484375,
+          "y": 1384.5321044921875,
           "width": 12.01812744140625,
           "height": 10.473876953125
          }
@@ -23530,6 +25149,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -23551,26 +25171,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2951260",
+          "id": "auto3839827",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2951288",
+         "renderId": "vf-auto3839855",
          "renderedBox": {
           "x": 1115.0771484375,
-          "y": -1168.8974609375,
+          "y": -579.5142822265625,
           "width": 16.821533203125,
-          "height": 14.6597900390625
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 710.943603515625,
-          "y": 1325.6712646484375,
+          "y": 1389.5321044921875,
           "width": 12.018310546875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2951260",
+        "id": "auto3839827",
         "type": "SmoBeamGroup"
        }
       },
@@ -23580,6 +25200,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -23601,19 +25222,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2951261",
+          "id": "auto3839828",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2951295",
+         "renderId": "vf-auto3839862",
          "renderedBox": {
           "x": 1163.2178955078125,
-          "y": -1161.899169921875,
+          "y": -572.5159912109375,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 745.3382568359375,
-          "y": 1330.6712646484375,
+          "y": 1394.5321044921875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -23622,6 +25243,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -23643,19 +25265,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2951261",
+          "id": "auto3839828",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2951302",
+         "renderId": "vf-auto3839869",
          "renderedBox": {
           "x": 1211.3583984375,
-          "y": -1175.895751953125,
+          "y": -586.5125732421875,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 779.7327880859375,
-          "y": 1320.6712646484375,
+          "y": 1384.5321044921875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -23664,6 +25286,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -23685,19 +25308,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2951261",
+          "id": "auto3839828",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2951309",
+         "renderId": "vf-auto3839876",
          "renderedBox": {
           "x": 1259.4990234375,
-          "y": -1168.8974609375,
+          "y": -579.5142822265625,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 814.1273803710938,
-          "y": 1325.6712646484375,
+          "y": 1389.5321044921875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -23706,6 +25329,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -23727,26 +25351,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2951261",
+          "id": "auto3839828",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2951316",
+         "renderId": "vf-auto3839883",
          "renderedBox": {
           "x": 1307.6396484375,
-          "y": -1182.89404296875,
+          "y": -593.5108642578125,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 848.52197265625,
-          "y": 1315.6712646484375,
+          "y": 1379.5321044921875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2951261",
+        "id": "auto3839828",
         "type": "SmoBeamGroup"
        }
       },
@@ -23756,6 +25380,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -23777,20 +25402,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2951262",
+          "id": "auto3839829",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2951323",
+         "renderId": "vf-auto3839890",
          "renderedBox": {
           "x": 1355.7802734375,
-          "y": -1175.895751953125,
-          "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "y": -586.5125732421875,
+          "width": 16.8212890625,
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 882.9165649414062,
-          "y": 1320.6712646484375,
-          "width": 12.0181884765625,
+          "y": 1384.5321044921875,
+          "width": 12.01812744140625,
           "height": 10.473876953125
          }
         },
@@ -23798,6 +25423,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -23819,26 +25445,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2951262",
+          "id": "auto3839829",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2951330",
+         "renderId": "vf-auto3839897",
          "renderedBox": {
           "x": 1426.842041015625,
-          "y": -1168.8974609375,
+          "y": -579.5142822265625,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 933.6873779296875,
-          "y": 1325.6712646484375,
+          "y": 1389.5321044921875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2951262",
+        "id": "auto3839829",
         "type": "SmoBeamGroup"
        }
       },
@@ -23848,6 +25474,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -23869,19 +25496,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2951263",
+          "id": "auto3839830",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2951337",
+         "renderId": "vf-auto3839904",
          "renderedBox": {
           "x": 1497.90380859375,
-          "y": -1175.895751953125,
+          "y": -586.5125732421875,
           "width": 16.8214111328125,
-          "height": 14.6597900390625
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 984.458251953125,
-          "y": 1320.6712646484375,
+          "y": 1384.5321044921875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -23890,6 +25517,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -23911,26 +25539,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2951263",
+          "id": "auto3839830",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2951344",
+         "renderId": "vf-auto3839911",
          "renderedBox": {
           "x": 1568.9656982421875,
-          "y": -1161.899169921875,
+          "y": -572.5159912109375,
           "width": 16.8212890625,
-          "height": 14.6597900390625
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 1035.2291259765625,
-          "y": 1330.6712646484375,
+          "y": 1394.5321044921875,
           "width": 12.0181884765625,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2951263",
+        "id": "auto3839830",
         "type": "SmoBeamGroup"
        }
       }
@@ -23960,6 +25588,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -23984,6 +25613,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -24008,6 +25638,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -24032,6 +25663,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -24056,6 +25688,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -24080,6 +25713,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -24104,6 +25738,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -24128,6 +25763,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -24152,6 +25788,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -24176,6 +25813,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -24200,6 +25838,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -24224,6 +25863,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -24252,15 +25892,15 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 29.999998092651367,
-     "staffY": 1866.1317313058037,
+     "staffX": 30,
+     "staffY": 1929.8724539620537,
      "measureNumber": {
       "measureNumber": 10,
       "measureIndex": 10,
       "systemIndex": 0,
       "staffId": 1
      },
-     "staffWidth": 556.7400531768799,
+     "staffWidth": 556.7401065826416,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -24276,6 +25916,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -24297,27 +25938,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2952346",
+          "id": "auto3840921",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2952359",
+         "renderId": "vf-auto3840934",
          "renderedBox": {
           "x": 259.82684326171875,
-          "y": -370.760498046875,
+          "y": 218.45458984375,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 99.90079498291016,
-          "y": 1895.9088134765625,
+          "y": 1959.6495361328125,
           "width": 12.018241882324219,
-          "height": 10.4737548828125
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -24339,27 +25981,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2952346",
+          "id": "auto3840921",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2952366",
+         "renderId": "vf-auto3840941",
          "renderedBox": {
           "x": 302.28179931640625,
-          "y": -408.647216796875,
+          "y": 180.56787109375,
           "width": 31.436492919921875,
           "height": 32.9716796875
          },
          "logicalBox": {
           "x": 130.2332000732422,
-          "y": 1868.84033203125,
+          "y": 1932.5809326171875,
           "width": 22.46014404296875,
-          "height": 23.556884765625
+          "height": 23.5570068359375
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -24381,27 +26024,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2952346",
+          "id": "auto3840921",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2952375",
+         "renderId": "vf-auto3840950",
          "renderedBox": {
           "x": 357.9521484375,
-          "y": -384.757080078125,
+          "y": 204.4580078125,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 170.00747680664062,
-          "y": 1885.9088134765625,
+          "y": 1949.6495361328125,
           "width": 12.018234252929688,
-          "height": 10.4737548828125
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -24423,26 +26067,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2952346",
+          "id": "auto3840921",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2952382",
+         "renderId": "vf-auto3840957",
          "renderedBox": {
           "x": 399.0074462890625,
-          "y": -377.7587890625,
+          "y": 211.456298828125,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 199.33987426757812,
-          "y": 1890.9088134765625,
+          "y": 1954.6495361328125,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2952346",
+        "id": "auto3840921",
         "type": "SmoBeamGroup"
        }
       },
@@ -24452,6 +26096,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -24473,27 +26118,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2952347",
+          "id": "auto3840922",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2952389",
+         "renderId": "vf-auto3840964",
          "renderedBox": {
-          "x": 440.0627136230469,
-          "y": -370.760498046875,
-          "width": 16.8214111328125,
-          "height": 14.65966796875
+          "x": 440.062744140625,
+          "y": 218.45458984375,
+          "width": 16.821380615234375,
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 228.67225646972656,
-          "y": 1895.9088134765625,
-          "width": 12.018234252929688,
-          "height": 10.4737548828125
+          "x": 228.67227172851562,
+          "y": 1959.6495361328125,
+          "width": 12.018218994140625,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -24515,27 +26161,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2952347",
+          "id": "auto3840922",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2952396",
+         "renderId": "vf-auto3840971",
          "renderedBox": {
           "x": 481.11798095703125,
-          "y": -384.757080078125,
+          "y": 204.4580078125,
           "width": 16.821441650390625,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 258.004638671875,
-          "y": 1885.9088134765625,
+          "y": 1949.6495361328125,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -24557,27 +26204,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2952347",
+          "id": "auto3840922",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2952403",
+         "renderId": "vf-auto3840978",
          "renderedBox": {
-          "x": 522.1732177734375,
-          "y": -377.7587890625,
+          "x": 522.1732788085938,
+          "y": 211.456298828125,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 287.3370056152344,
-          "y": 1890.9088134765625,
-          "width": 12.018218994140625,
-          "height": 10.4737548828125
+          "x": 287.3370361328125,
+          "y": 1954.6495361328125,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -24599,26 +26247,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2952347",
+          "id": "auto3840922",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2952410",
+         "renderId": "vf-auto3840985",
          "renderedBox": {
-          "x": 563.228515625,
-          "y": -391.75537109375,
-          "width": 16.8214111328125,
-          "height": 14.65966796875
+          "x": 563.2285766601562,
+          "y": 197.459716796875,
+          "width": 16.82135009765625,
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 316.6694030761719,
-          "y": 1880.9088134765625,
-          "width": 12.018218994140625,
-          "height": 10.4737548828125
+          "x": 316.66943359375,
+          "y": 1944.6495361328125,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2952347",
+        "id": "auto3840922",
         "type": "SmoBeamGroup"
        }
       },
@@ -24628,6 +26276,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -24649,27 +26298,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2952348",
+          "id": "auto3840923",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2952417",
+         "renderId": "vf-auto3840992",
          "renderedBox": {
           "x": 604.2838134765625,
-          "y": -384.757080078125,
+          "y": 204.4580078125,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 346.0018005371094,
-          "y": 1885.9088134765625,
+          "y": 1949.6495361328125,
           "width": 12.018218994140625,
-          "height": 10.4737548828125
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -24691,27 +26341,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2952348",
+          "id": "auto3840923",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2952424",
+         "renderId": "vf-auto3840999",
          "renderedBox": {
-          "x": 645.3390502929688,
-          "y": -377.7587890625,
-          "width": 16.82147216796875,
-          "height": 14.65966796875
+          "x": 645.339111328125,
+          "y": 211.456298828125,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 375.3341369628906,
-          "y": 1890.9088134765625,
-          "width": 12.018280029296875,
-          "height": 10.4737548828125
+          "x": 375.3341979980469,
+          "y": 1954.6495361328125,
+          "width": 12.018218994140625,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -24733,27 +26384,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2952348",
+          "id": "auto3840923",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2952431",
+         "renderId": "vf-auto3841006",
          "renderedBox": {
-          "x": 686.3943481445312,
-          "y": -370.760498046875,
+          "x": 686.3944091796875,
+          "y": 218.45458984375,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 404.66656494140625,
-          "y": 1895.9088134765625,
-          "width": 12.018218994140625,
-          "height": 10.4737548828125
+          "x": 404.6665954589844,
+          "y": 1959.6495361328125,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -24775,26 +26427,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2952348",
+          "id": "auto3840923",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2952438",
+         "renderId": "vf-auto3841013",
          "renderedBox": {
           "x": 727.4496459960938,
-          "y": -363.76220703125,
-          "width": 16.8214111328125,
-          "height": 14.65966796875
+          "y": 225.452880859375,
+          "width": 16.82147216796875,
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 433.99896240234375,
-          "y": 1900.9088134765625,
-          "width": 12.018218994140625,
-          "height": 10.4737548828125
+          "y": 1964.6495361328125,
+          "width": 12.018280029296875,
+          "height": 10.4739990234375
          }
         }
        ],
        "attrs": {
-        "id": "auto2952348",
+        "id": "auto3840923",
         "type": "SmoBeamGroup"
        }
       },
@@ -24804,6 +26456,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -24825,27 +26478,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2952349",
+          "id": "auto3840924",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2952445",
+         "renderId": "vf-auto3841020",
          "renderedBox": {
           "x": 768.5049438476562,
-          "y": -356.763916015625,
-          "width": 16.82135009765625,
-          "height": 14.65966796875
+          "y": 232.451171875,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 463.33135986328125,
-          "y": 1905.9088134765625,
-          "width": 12.0181884765625,
-          "height": 10.4737548828125
+          "y": 1969.6495361328125,
+          "width": 12.018218994140625,
+          "height": 10.4739990234375
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -24867,27 +26521,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2952349",
+          "id": "auto3840924",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2952452",
+         "renderId": "vf-auto3841027",
          "renderedBox": {
-          "x": 809.5601806640625,
-          "y": -370.760498046875,
+          "x": 809.5602416992188,
+          "y": 218.45458984375,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 492.6636962890625,
-          "y": 1895.9088134765625,
-          "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "x": 492.66375732421875,
+          "y": 1959.6495361328125,
+          "width": 12.018218994140625,
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -24909,27 +26564,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2952349",
+          "id": "auto3840924",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2952459",
+         "renderId": "vf-auto3841034",
          "renderedBox": {
-          "x": 850.615478515625,
-          "y": -363.76220703125,
-          "width": 16.8214111328125,
-          "height": 14.65966796875
+          "x": 850.6155395507812,
+          "y": 225.452880859375,
+          "width": 16.82135009765625,
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 521.99609375,
-          "y": 1900.9088134765625,
-          "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "x": 521.9961547851562,
+          "y": 1964.6495361328125,
+          "width": 12.0181884765625,
+          "height": 10.4739990234375
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -24951,26 +26607,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2952349",
+          "id": "auto3840924",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2952466",
+         "renderId": "vf-auto3841041",
          "renderedBox": {
           "x": 891.6707763671875,
-          "y": -377.7587890625,
-          "width": 16.8212890625,
-          "height": 14.65966796875
+          "y": 211.456298828125,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 551.3284912109375,
-          "y": 1890.9088134765625,
-          "width": 12.0181884765625,
-          "height": 10.4737548828125
+          "y": 1954.6495361328125,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2952349",
+        "id": "auto3840924",
         "type": "SmoBeamGroup"
        }
       }
@@ -25000,6 +26656,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -25024,6 +26681,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -25048,6 +26706,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -25072,6 +26731,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -25096,6 +26756,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -25120,6 +26781,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -25144,6 +26806,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -25168,6 +26831,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -25192,6 +26856,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -25216,6 +26881,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -25240,6 +26906,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -25264,6 +26931,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -25288,6 +26956,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -25312,6 +26981,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -25336,6 +27006,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -25360,6 +27031,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -25388,15 +27060,15 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 586.7400512695312,
-     "staffY": 1866.1317313058037,
+     "staffX": 586.7401065826416,
+     "staffY": 1929.8724539620537,
      "measureNumber": {
       "measureNumber": 11,
       "measureIndex": 11,
       "systemIndex": 1,
       "staffId": 1
      },
-     "staffWidth": 504.15997314453125,
+     "staffWidth": 504.159912109375,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -25412,6 +27084,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -25433,27 +27106,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2953513",
+          "id": "auto3842088",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2953520",
+         "renderId": "vf-auto3842095",
          "renderedBox": {
-          "x": 965.0289306640625,
-          "y": -370.760498046875,
-          "width": 16.82147216796875,
-          "height": 14.65966796875
+          "x": 965.029052734375,
+          "y": 218.45458984375,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 603.7400512695312,
-          "y": 1895.9088134765625,
+          "x": 603.7401123046875,
+          "y": 1959.6495361328125,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.473876953125
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -25475,27 +27149,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2953513",
+          "id": "auto3842088",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2953527",
+         "renderId": "vf-auto3842102",
          "renderedBox": {
-          "x": 1006.0845947265625,
-          "y": -363.76220703125,
-          "width": 16.8214111328125,
-          "height": 14.65966796875
+          "x": 1006.0846557617188,
+          "y": 225.452880859375,
+          "width": 16.82147216796875,
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 633.0726928710938,
-          "y": 1900.9088134765625,
+          "x": 633.07275390625,
+          "y": 1964.6495361328125,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.4739990234375
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -25517,27 +27192,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2953513",
+          "id": "auto3842088",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2953534",
+         "renderId": "vf-auto3842109",
          "renderedBox": {
           "x": 1047.140380859375,
-          "y": -356.763916015625,
-          "width": 16.8212890625,
-          "height": 14.65966796875
+          "y": 232.451171875,
+          "width": 16.821533203125,
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 662.4054565429688,
-          "y": 1905.9088134765625,
-          "width": 12.01812744140625,
-          "height": 10.4737548828125
+          "y": 1969.6495361328125,
+          "width": 12.018310546875,
+          "height": 10.4739990234375
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -25559,26 +27235,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2953513",
+          "id": "auto3842088",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2953541",
+         "renderId": "vf-auto3842116",
          "renderedBox": {
-          "x": 1088.1959228515625,
-          "y": -349.765625,
+          "x": 1088.196044921875,
+          "y": 239.449462890625,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 691.738037109375,
-          "y": 1910.9088134765625,
+          "x": 691.7380981445312,
+          "y": 1974.6495361328125,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4739990234375
          }
         }
        ],
        "attrs": {
-        "id": "auto2953513",
+        "id": "auto3842088",
         "type": "SmoBeamGroup"
        }
       },
@@ -25588,6 +27264,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -25609,27 +27286,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2953514",
+          "id": "auto3842089",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2953548",
+         "renderId": "vf-auto3842123",
          "renderedBox": {
           "x": 1129.251708984375,
-          "y": -342.767333984375,
+          "y": 246.44775390625,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 721.0707397460938,
-          "y": 1915.908935546875,
+          "y": 1979.6495361328125,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.4739990234375
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -25651,27 +27329,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2953514",
+          "id": "auto3842089",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2953555",
+         "renderId": "vf-auto3842130",
          "renderedBox": {
-          "x": 1170.3072509765625,
-          "y": -356.763916015625,
-          "width": 16.821533203125,
-          "height": 14.65966796875
+          "x": 1170.307373046875,
+          "y": 232.451171875,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 750.4033203125,
-          "y": 1905.9088134765625,
-          "width": 12.01837158203125,
-          "height": 10.4737548828125
+          "x": 750.4034423828125,
+          "y": 1969.6495361328125,
+          "width": 12.01824951171875,
+          "height": 10.4739990234375
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -25693,27 +27372,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2953514",
+          "id": "auto3842089",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2953562",
+         "renderId": "vf-auto3842137",
          "renderedBox": {
           "x": 1211.363037109375,
-          "y": -349.765625,
-          "width": 16.8212890625,
-          "height": 14.65966796875
+          "y": 239.449462890625,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 779.736083984375,
-          "y": 1910.9088134765625,
-          "width": 12.0181884765625,
-          "height": 10.473876953125
+          "y": 1974.6495361328125,
+          "width": 12.01824951171875,
+          "height": 10.4739990234375
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -25735,26 +27415,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2953514",
+          "id": "auto3842089",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2953569",
+         "renderId": "vf-auto3842144",
          "renderedBox": {
           "x": 1252.418701171875,
-          "y": -363.76220703125,
+          "y": 225.452880859375,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 809.0687255859375,
-          "y": 1900.9088134765625,
+          "y": 1964.6495361328125,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.4739990234375
          }
         }
        ],
        "attrs": {
-        "id": "auto2953514",
+        "id": "auto3842089",
         "type": "SmoBeamGroup"
        }
       },
@@ -25764,6 +27444,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -25785,27 +27466,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2953515",
+          "id": "auto3842090",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2953576",
+         "renderId": "vf-auto3842151",
          "renderedBox": {
           "x": 1293.474365234375,
-          "y": -356.763916015625,
+          "y": 232.451171875,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 838.4014282226562,
-          "y": 1905.9088134765625,
+          "y": 1969.6495361328125,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.4739990234375
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -25827,27 +27509,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2953515",
+          "id": "auto3842090",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2953583",
+         "renderId": "vf-auto3842158",
          "renderedBox": {
           "x": 1334.530029296875,
-          "y": -349.765625,
+          "y": 239.449462890625,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 867.7340698242188,
-          "y": 1910.9088134765625,
+          "y": 1974.6495361328125,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4739990234375
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -25869,27 +27552,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2953515",
+          "id": "auto3842090",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2953590",
+         "renderId": "vf-auto3842165",
          "renderedBox": {
           "x": 1375.585693359375,
-          "y": -342.767333984375,
-          "width": 16.8214111328125,
-          "height": 14.65966796875
+          "y": 246.44775390625,
+          "width": 16.821533203125,
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 897.0667114257812,
-          "y": 1915.908935546875,
-          "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "y": 1979.6495361328125,
+          "width": 12.01837158203125,
+          "height": 10.4739990234375
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -25911,26 +27595,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2953515",
+          "id": "auto3842090",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2953597",
+         "renderId": "vf-auto3842172",
          "renderedBox": {
           "x": 1416.641357421875,
-          "y": -335.76904296875,
+          "y": 253.446044921875,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 926.3994140625,
-          "y": 1920.908935546875,
+          "y": 1984.6495361328125,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.4739990234375
          }
         }
        ],
        "attrs": {
-        "id": "auto2953515",
+        "id": "auto3842090",
         "type": "SmoBeamGroup"
        }
       },
@@ -25940,6 +27624,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -25961,27 +27646,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2953516",
+          "id": "auto3842091",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2953604",
+         "renderId": "vf-auto3842179",
          "renderedBox": {
           "x": 1459.0966796875,
-          "y": -342.024658203125,
+          "y": 247.1904296875,
           "width": 33.3895263671875,
           "height": 41.166748046875
          },
          "logicalBox": {
           "x": 956.7320556640625,
-          "y": 1916.439453125,
+          "y": 1980.18017578125,
           "width": 23.85552978515625,
-          "height": 29.412109375
+          "height": 29.4119873046875
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -26003,27 +27689,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2953516",
+          "id": "auto3842091",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2953613",
+         "renderId": "vf-auto3842188",
          "renderedBox": {
           "x": 1516.7205810546875,
-          "y": -342.767333984375,
+          "y": 246.44775390625,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 997.902099609375,
-          "y": 1915.908935546875,
+          "y": 1979.6495361328125,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.4739990234375
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -26045,27 +27732,28 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2953516",
+          "id": "auto3842091",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2953620",
+         "renderId": "vf-auto3842195",
          "renderedBox": {
           "x": 1557.7762451171875,
-          "y": -335.76904296875,
+          "y": 253.446044921875,
           "width": 16.8212890625,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 1027.2347412109375,
-          "y": 1920.908935546875,
+          "y": 1984.6495361328125,
           "width": 12.0181884765625,
-          "height": 10.4737548828125
+          "height": 10.4739990234375
          }
         },
         {
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -26087,26 +27775,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto2953516",
+          "id": "auto3842091",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2953627",
+         "renderId": "vf-auto3842202",
          "renderedBox": {
           "x": 1598.8319091796875,
-          "y": -349.765625,
+          "y": 239.449462890625,
           "width": 16.8212890625,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 1056.5673828125,
-          "y": 1910.9088134765625,
+          "y": 1974.6495361328125,
           "width": 12.0181884765625,
-          "height": 10.473876953125
+          "height": 10.4739990234375
          }
         }
        ],
        "attrs": {
-        "id": "auto2953516",
+        "id": "auto3842091",
         "type": "SmoBeamGroup"
        }
       }
@@ -26136,6 +27824,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -26160,6 +27849,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -26184,6 +27874,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -26208,6 +27899,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -26232,6 +27924,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -26256,6 +27949,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -26280,6 +27974,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -26304,6 +27999,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -26328,6 +28024,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -26352,6 +28049,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -26376,6 +28074,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -26400,6 +28099,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -26424,6 +28124,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -26448,6 +28149,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -26472,6 +28174,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -26496,6 +28199,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -26524,15 +28228,15 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 29.999998092651367,
-     "staffY": 2153.203142438616,
+     "staffX": 30,
+     "staffY": 2216.672136579241,
      "measureNumber": {
       "measureNumber": 12,
       "measureIndex": 12,
       "systemIndex": 0,
       "staffId": 1
      },
-     "staffWidth": 570.9800434112549,
+     "staffWidth": 570.9800968170166,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -26548,6 +28252,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -26569,19 +28274,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2955295",
+          "id": "auto3843878",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2955308",
+         "renderId": "vf-auto3843891",
          "renderedBox": {
           "x": 261.9229736328125,
-          "y": -24.9453125,
+          "y": 563.889404296875,
           "width": 16.8214111328125,
           "height": 14.659912109375
          },
          "logicalBox": {
           "x": 101.39839935302734,
-          "y": 2142.980224609375,
+          "y": 2206.44921875,
           "width": 12.018241882324219,
           "height": 10.473876953125
          }
@@ -26590,6 +28295,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -26611,26 +28317,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2955295",
+          "id": "auto3843878",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2955315",
+         "renderId": "vf-auto3843898",
          "renderedBox": {
           "x": 326.82672119140625,
-          "y": 3.0478515625,
+          "y": 591.882568359375,
           "width": 16.8214111328125,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
           "x": 147.7695770263672,
-          "y": 2162.980224609375,
+          "y": 2226.44921875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2955295",
+        "id": "auto3843878",
         "type": "SmoBeamGroup"
        }
       },
@@ -26640,6 +28346,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -26661,20 +28368,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2955296",
+          "id": "auto3843879",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2955322",
+         "renderId": "vf-auto3843905",
          "renderedBox": {
-          "x": 391.73046875,
-          "y": -38.94189453125,
+          "x": 391.7304992675781,
+          "y": 549.892822265625,
           "width": 26.6190185546875,
           "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 194.14076232910156,
-          "y": 2132.980224609375,
-          "width": 19.01824951171875,
+          "x": 194.1407928466797,
+          "y": 2196.44921875,
+          "width": 19.018234252929688,
           "height": 10.473876953125
          }
         },
@@ -26682,6 +28389,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -26703,26 +28411,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2955296",
+          "id": "auto3843879",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2955330",
+         "renderId": "vf-auto3843913",
          "renderedBox": {
-          "x": 484.8743591308594,
-          "y": -45.940185546875,
-          "width": 16.8214111328125,
+          "x": 484.8743896484375,
+          "y": 542.89453125,
+          "width": 16.821441650390625,
           "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 260.68841552734375,
-          "y": 2127.980224609375,
+          "x": 260.6884460449219,
+          "y": 2191.44921875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2955296",
+        "id": "auto3843879",
         "type": "SmoBeamGroup"
        }
       },
@@ -26732,6 +28440,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -26753,20 +28462,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2955297",
+          "id": "auto3843880",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2955337",
+         "renderId": "vf-auto3843920",
          "renderedBox": {
-          "x": 529.9359130859375,
-          "y": -31.943603515625,
-          "width": 16.8214111328125,
+          "x": 529.9359741210938,
+          "y": 556.89111328125,
+          "width": 16.82135009765625,
           "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 292.8831481933594,
-          "y": 2137.980224609375,
-          "width": 12.018218994140625,
+          "x": 292.8831787109375,
+          "y": 2201.44921875,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         },
@@ -26774,6 +28483,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -26795,20 +28505,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2955297",
+          "id": "auto3843880",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2955344",
+         "renderId": "vf-auto3843927",
          "renderedBox": {
-          "x": 574.9974365234375,
-          "y": -24.9453125,
-          "width": 16.82147216796875,
+          "x": 574.99755859375,
+          "y": 563.889404296875,
+          "width": 16.8214111328125,
           "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 325.07781982421875,
-          "y": 2142.980224609375,
-          "width": 12.018280029296875,
+          "x": 325.0779113769531,
+          "y": 2206.44921875,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -26816,6 +28526,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -26837,20 +28548,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2955297",
+          "id": "auto3843880",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2955351",
+         "renderId": "vf-auto3843934",
          "renderedBox": {
-          "x": 620.0590209960938,
-          "y": -17.947021484375,
+          "x": 620.05908203125,
+          "y": 570.8876953125,
           "width": 16.8214111328125,
           "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 357.2725524902344,
-          "y": 2147.980224609375,
-          "width": 12.01824951171875,
+          "x": 357.2726135253906,
+          "y": 2211.44921875,
+          "width": 12.018218994140625,
           "height": 10.473876953125
          }
         },
@@ -26858,6 +28569,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -26880,26 +28592,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2955297",
+          "id": "auto3843880",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2955358",
+         "renderId": "vf-auto3843941",
          "renderedBox": {
           "x": 667.919921875,
-          "y": -16.6748046875,
-          "width": 39.86395263671875,
-          "height": 26.1005859375
+          "y": 572.159912109375,
+          "width": 39.86407470703125,
+          "height": 26.100830078125
          },
          "logicalBox": {
           "x": 391.46728515625,
-          "y": 2148.88916015625,
-          "width": 28.481231689453125,
+          "y": 2212.358154296875,
+          "width": 28.4813232421875,
           "height": 18.64794921875
          }
         }
        ],
        "attrs": {
-        "id": "auto2955297",
+        "id": "auto3843880",
         "type": "SmoBeamGroup"
        }
       },
@@ -26909,6 +28621,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -26930,20 +28643,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2955298",
+          "id": "auto3843881",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2955370",
+         "renderId": "vf-auto3843953",
          "renderedBox": {
-          "x": 737.4237060546875,
-          "y": -17.20458984375,
-          "width": 33.38958740234375,
-          "height": 41.1669921875
+          "x": 737.4237670898438,
+          "y": 571.63037109375,
+          "width": 33.3895263671875,
+          "height": 41.166748046875
          },
          "logicalBox": {
-          "x": 441.1250305175781,
-          "y": 2148.5107421875,
-          "width": 23.855560302734375,
+          "x": 441.12506103515625,
+          "y": 2211.979736328125,
+          "width": 23.85552978515625,
           "height": 29.412109375
          }
         },
@@ -26951,6 +28664,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -26972,20 +28686,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2955298",
+          "id": "auto3843881",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2955379",
+         "renderId": "vf-auto3843962",
          "renderedBox": {
-          "x": 799.0534057617188,
-          "y": -17.947021484375,
+          "x": 799.053466796875,
+          "y": 570.8876953125,
           "width": 16.8214111328125,
           "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 485.15704345703125,
-          "y": 2147.980224609375,
-          "width": 12.018218994140625,
+          "x": 485.1570739746094,
+          "y": 2211.44921875,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -26993,6 +28707,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -27014,20 +28729,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2955298",
+          "id": "auto3843881",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2955386",
+         "renderId": "vf-auto3843969",
          "renderedBox": {
-          "x": 845.5146484375,
-          "y": -24.202880859375,
-          "width": 33.3895263671875,
-          "height": 41.1669921875
+          "x": 845.5147094726562,
+          "y": 564.632080078125,
+          "width": 33.38946533203125,
+          "height": 41.166748046875
          },
          "logicalBox": {
-          "x": 518.3517456054688,
-          "y": 2143.5107421875,
-          "width": 23.85552978515625,
+          "x": 518.351806640625,
+          "y": 2206.979736328125,
+          "width": 23.85546875,
           "height": 29.412109375
          }
         },
@@ -27035,6 +28750,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -27056,26 +28772,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2955298",
+          "id": "auto3843881",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2955395",
+         "renderId": "vf-auto3843978",
          "renderedBox": {
-          "x": 907.144287109375,
-          "y": -24.9453125,
-          "width": 16.8214111328125,
+          "x": 907.1443481445312,
+          "y": 563.889404296875,
+          "width": 16.82147216796875,
           "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 562.3837280273438,
-          "y": 2142.980224609375,
+          "x": 562.3837890625,
+          "y": 2206.44921875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2955298",
+        "id": "auto3843881",
         "type": "SmoBeamGroup"
        }
       }
@@ -27105,6 +28821,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -27129,6 +28846,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -27153,6 +28871,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -27177,6 +28896,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -27201,6 +28921,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -27225,6 +28946,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -27249,6 +28971,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -27274,6 +28997,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -27298,6 +29022,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -27322,6 +29047,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -27346,6 +29072,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -27370,6 +29097,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -27398,15 +29126,15 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 600.9800415039062,
-     "staffY": 2153.203142438616,
+     "staffX": 600.9800968170166,
+     "staffY": 2216.672136579241,
      "measureNumber": {
       "measureNumber": 13,
       "measureIndex": 13,
       "systemIndex": 1,
       "staffId": 1
      },
-     "staffWidth": 489.97998046875,
+     "staffWidth": 489.9801025390625,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -27422,6 +29150,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -27443,19 +29172,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2956740",
+          "id": "auto3845323",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2956747",
+         "renderId": "vf-auto3845330",
          "renderedBox": {
-          "x": 984.9600830078125,
-          "y": -17.947021484375,
+          "x": 984.9601440429688,
+          "y": 570.8876953125,
           "width": 16.8214111328125,
           "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 617.9800415039062,
-          "y": 2147.980224609375,
+          "x": 617.9801025390625,
+          "y": 2211.44921875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -27464,6 +29193,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -27485,20 +29215,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2956740",
+          "id": "auto3845323",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2956754",
+         "renderId": "vf-auto3845337",
          "renderedBox": {
           "x": 1032.203125,
-          "y": -31.943603515625,
-          "width": 16.8214111328125,
+          "y": 556.89111328125,
+          "width": 16.821533203125,
           "height": 14.659912109375
          },
          "logicalBox": {
           "x": 651.7333374023438,
-          "y": 2137.980224609375,
-          "width": 12.01824951171875,
+          "y": 2201.44921875,
+          "width": 12.01837158203125,
           "height": 10.473876953125
          }
         },
@@ -27506,6 +29236,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -27527,20 +29258,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2956740",
+          "id": "auto3845323",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2956761",
+         "renderId": "vf-auto3845344",
          "renderedBox": {
-          "x": 1079.446044921875,
-          "y": -24.9453125,
-          "width": 16.821533203125,
+          "x": 1079.4462890625,
+          "y": 563.889404296875,
+          "width": 16.8212890625,
           "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 685.486572265625,
-          "y": 2142.980224609375,
-          "width": 12.018310546875,
+          "x": 685.4867553710938,
+          "y": 2206.44921875,
+          "width": 12.01812744140625,
           "height": 10.473876953125
          }
         },
@@ -27548,6 +29279,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -27569,26 +29301,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2956740",
+          "id": "auto3845323",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2956768",
+         "renderId": "vf-auto3845351",
          "renderedBox": {
-          "x": 1126.689208984375,
-          "y": -38.94189453125,
+          "x": 1126.6893310546875,
+          "y": 549.892822265625,
           "width": 16.8214111328125,
           "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 719.239990234375,
-          "y": 2132.980224609375,
-          "width": 12.0181884765625,
+          "x": 719.2400512695312,
+          "y": 2196.44921875,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2956740",
+        "id": "auto3845323",
         "type": "SmoBeamGroup"
        }
       },
@@ -27598,6 +29330,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -27619,20 +29352,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2956741",
+          "id": "auto3845324",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2956775",
+         "renderId": "vf-auto3845358",
          "renderedBox": {
-          "x": 1173.9322509765625,
-          "y": -31.943603515625,
+          "x": 1173.932373046875,
+          "y": 556.89111328125,
           "width": 16.8214111328125,
           "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 752.9932861328125,
-          "y": 2137.980224609375,
-          "width": 12.0181884765625,
+          "x": 752.9933471679688,
+          "y": 2201.44921875,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -27640,6 +29373,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -27661,20 +29395,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2956741",
+          "id": "auto3845324",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2956782",
+         "renderId": "vf-auto3845365",
          "renderedBox": {
-          "x": 1221.17529296875,
-          "y": -45.940185546875,
-          "width": 16.8214111328125,
+          "x": 1221.175537109375,
+          "y": 542.89453125,
+          "width": 16.8212890625,
           "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 786.74658203125,
-          "y": 2127.980224609375,
-          "width": 12.01824951171875,
+          "x": 786.7467651367188,
+          "y": 2191.44921875,
+          "width": 12.01812744140625,
           "height": 10.473876953125
          }
         },
@@ -27682,6 +29416,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -27703,20 +29438,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2956741",
+          "id": "auto3845324",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2956789",
+         "renderId": "vf-auto3845372",
          "renderedBox": {
-          "x": 1268.4183349609375,
-          "y": -38.94189453125,
+          "x": 1268.4185791015625,
+          "y": 549.892822265625,
           "width": 16.8214111328125,
           "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 820.4998779296875,
-          "y": 2132.980224609375,
-          "width": 12.01824951171875,
+          "x": 820.5000610351562,
+          "y": 2196.44921875,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         },
@@ -27724,6 +29459,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -27745,26 +29481,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2956741",
+          "id": "auto3845324",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2956796",
+         "renderId": "vf-auto3845379",
          "renderedBox": {
-          "x": 1315.661376953125,
-          "y": -59.936767578125,
-          "width": 16.8214111328125,
+          "x": 1315.6614990234375,
+          "y": 528.89794921875,
+          "width": 16.821533203125,
           "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 854.253173828125,
-          "y": 2117.980224609375,
-          "width": 12.01824951171875,
+          "x": 854.2532348632812,
+          "y": 2181.44921875,
+          "width": 12.01837158203125,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2956741",
+        "id": "auto3845324",
         "type": "SmoBeamGroup"
        }
       },
@@ -27774,6 +29510,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -27795,19 +29532,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2956742",
+          "id": "auto3845325",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2956803",
+         "renderId": "vf-auto3845386",
          "renderedBox": {
-          "x": 1362.904541015625,
-          "y": -45.940185546875,
+          "x": 1362.9046630859375,
+          "y": 542.89453125,
           "width": 16.8214111328125,
           "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 888.0065307617188,
-          "y": 2127.980224609375,
+          "x": 888.0066528320312,
+          "y": 2191.44921875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -27816,6 +29553,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -27837,26 +29575,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2956742",
+          "id": "auto3845325",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2956810",
+         "renderId": "vf-auto3845393",
          "renderedBox": {
-          "x": 1432.1712646484375,
-          "y": -17.947021484375,
+          "x": 1432.17138671875,
+          "y": 570.8876953125,
           "width": 16.8214111328125,
           "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 937.4949340820312,
-          "y": 2147.980224609375,
-          "width": 12.0181884765625,
+          "x": 937.4949951171875,
+          "y": 2211.44921875,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2956742",
+        "id": "auto3845325",
         "type": "SmoBeamGroup"
        }
       },
@@ -27866,6 +29604,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -27887,20 +29626,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2956743",
+          "id": "auto3845326",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2956817",
+         "renderId": "vf-auto3845400",
          "renderedBox": {
-          "x": 1501.43798828125,
-          "y": -45.940185546875,
-          "width": 16.8214111328125,
+          "x": 1501.4381103515625,
+          "y": 542.89453125,
+          "width": 16.821533203125,
           "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 986.9832763671875,
-          "y": 2127.980224609375,
-          "width": 12.01824951171875,
+          "x": 986.9833374023438,
+          "y": 2191.44921875,
+          "width": 12.01837158203125,
           "height": 10.473876953125
          }
         },
@@ -27908,6 +29647,7 @@ var inventionJson = `{
          "noteType": "n",
          "textModifiers": [],
          "articulations": [],
+         "graceNotes": [],
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
@@ -27929,26 +29669,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto2956743",
+          "id": "auto3845326",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto2956824",
+         "renderId": "vf-auto3845407",
          "renderedBox": {
-          "x": 1570.704833984375,
-          "y": 3.0478515625,
+          "x": 1570.7049560546875,
+          "y": 591.882568359375,
           "width": 16.8212890625,
-          "height": 14.65966796875
+          "height": 14.659912109375
          },
          "logicalBox": {
-          "x": 1036.4716796875,
-          "y": 2162.980224609375,
+          "x": 1036.4718017578125,
+          "y": 2226.44921875,
           "width": 12.0181884765625,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto2956743",
+        "id": "auto3845326",
         "type": "SmoBeamGroup"
        }
       }
@@ -27978,6 +29718,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -28002,6 +29743,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -28026,6 +29768,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -28050,6 +29793,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -28074,6 +29818,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -28098,6 +29843,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -28122,6 +29868,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -28146,6 +29893,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -28170,6 +29918,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -28194,6 +29943,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -28218,6 +29968,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -28242,6 +29993,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -28270,15 +30022,15 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 29.999998092651367,
-     "staffY": 2361.662615094866,
+     "staffX": 30,
+     "staffY": 2449.3795340401784,
      "measureNumber": {
       "measureNumber": 14,
       "measureIndex": 14,
       "systemIndex": 0,
       "staffId": 1
      },
-     "staffWidth": 389.160005569458,
+     "staffWidth": 432.8599796295166,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -28287,13 +30039,113 @@ var inventionJson = `{
      "padRight": 10,
      "rightMargin": 2,
      "tuplets": [],
-     "beamGroups": [],
-     "voices": [
+     "beamGroups": [
       {
        "notes": [
         {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
          "ticks": {
-          "numerator": 4096,
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "a",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "attrs": {
+          "id": "auto784467",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3846428",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3846440",
+         "renderedBox": {
+          "x": 261.9229736328125,
+          "y": 896.598388671875,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 101.39839935302734,
+          "y": 2444.15673828125,
+          "width": 12.018241882324219,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "a",
+           "accidental": "n",
+           "octave": 2
+          }
+         ],
+         "attrs": {
+          "id": "auto784468",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3846428",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3846447",
+         "renderedBox": {
+          "x": 312.86077880859375,
+          "y": 945.58642578125,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 137.7914581298828,
+          "y": 2479.15673828125,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3846428",
+        "type": "SmoBeamGroup"
+       }
+      },
+      {
+       "notes": [
+        {
+         "noteType": "r",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
           "denominator": 1,
           "remainder": 0
          },
@@ -28304,15 +30156,396 @@ var inventionJson = `{
            "octave": 3
           }
          ],
+         "attrs": {
+          "id": "auto1045506",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3846429",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3846462",
+         "renderedBox": {
+          "x": 435.4241027832031,
+          "y": 919.9931640625,
+          "width": 17.686065673828125,
+          "height": 36.11865234375
+         },
+         "logicalBox": {
+          "x": 225.358154296875,
+          "y": 2460.871337890625,
+          "width": 12.636001586914062,
+          "height": 25.805419921875
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "attrs": {
+          "id": "auto1045507",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3846429",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3846468",
+         "renderedBox": {
+          "x": 474.3673400878906,
+          "y": 868.605224609375,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 253.1815643310547,
+          "y": 2424.15673828125,
+          "width": 12.018234252929688,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "attrs": {
+          "id": "auto1045510",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3846429",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3846475",
+         "renderedBox": {
+          "x": 512.4459228515625,
+          "y": 875.603515625,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 280.38720703125,
+          "y": 2429.15673828125,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "attrs": {
+          "id": "auto1045511",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3846429",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3846482",
+         "renderedBox": {
+          "x": 550.5244750976562,
+          "y": 882.601806640625,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 307.5928649902344,
+          "y": 2434.15673828125,
+          "width": 12.018218994140625,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3846429",
+        "type": "SmoBeamGroup"
+       }
+      },
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "attrs": {
+          "id": "auto1045514",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3846430",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3846489",
+         "renderedBox": {
+          "x": 588.60302734375,
+          "y": 889.60009765625,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 334.7984924316406,
+          "y": 2439.15673828125,
+          "width": 12.018218994140625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "attrs": {
+          "id": "auto1045515",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3846430",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3846496",
+         "renderedBox": {
+          "x": 626.681640625,
+          "y": 875.603515625,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 362.004150390625,
+          "y": 2429.15673828125,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "#",
+           "octave": 4
+          }
+         ],
+         "attrs": {
+          "id": "auto1045518",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3846430",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3846503",
+         "renderedBox": {
+          "x": 666.1598510742188,
+          "y": 869.347900390625,
+          "width": 33.3895263671875,
+          "height": 41.16650390625
+         },
+         "logicalBox": {
+          "x": 390.2098083496094,
+          "y": 2424.687255859375,
+          "width": 23.855499267578125,
+          "height": 29.411865234375
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "attrs": {
+          "id": "auto1045519",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3846430",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3846512",
+         "renderedBox": {
+          "x": 720.8065185546875,
+          "y": 868.605224609375,
+          "width": 16.82147216796875,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 429.252685546875,
+          "y": 2424.15673828125,
+          "width": 12.018280029296875,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3846430",
+        "type": "SmoBeamGroup"
+       }
+      }
+     ],
+     "voices": [
+      {
+       "notes": [
+        {
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "a",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
          "noteType": "n",
          "attrs": {
-          "id": "auto7327032",
+          "id": "auto784467",
           "type": "SmoNote"
          },
          "clef": "bass",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "a",
+           "accidental": "n",
+           "octave": 2
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto784468",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -28328,7 +30561,7 @@ var inventionJson = `{
            "octave": 3
           }
          ],
-         "noteType": "n",
+         "noteType": "r",
          "attrs": {
           "id": "auto7327033",
           "type": "SmoNote"
@@ -28337,11 +30570,12 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 1024,
           "denominator": 1,
           "remainder": 0
          },
@@ -28352,20 +30586,46 @@ var inventionJson = `{
            "octave": 3
           }
          ],
-         "noteType": "n",
+         "noteType": "r",
          "attrs": {
-          "id": "auto7327034",
+          "id": "auto1045506",
           "type": "SmoNote"
          },
          "clef": "bass",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1045507",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
           "denominator": 1,
           "remainder": 0
          },
@@ -28373,18 +30633,144 @@ var inventionJson = `{
           {
            "letter": "d",
            "accidental": "n",
-           "octave": 3
+           "octave": 4
           }
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto7327035",
+          "id": "auto1045510",
           "type": "SmoNote"
          },
          "clef": "bass",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1045511",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1045514",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1045515",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "#",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1045518",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1045519",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -28413,15 +30799,15 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 419.1600036621094,
-     "staffY": 2361.662615094866,
+     "staffX": 462.8599796295166,
+     "staffY": 2449.3795340401784,
      "measureNumber": {
       "measureNumber": 15,
       "measureIndex": 15,
       "systemIndex": 1,
       "staffId": 1
      },
-     "staffWidth": 335.1800231933594,
+     "staffWidth": 314.1800537109375,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -28430,13 +30816,374 @@ var inventionJson = `{
      "padRight": 10,
      "rightMargin": 2,
      "tuplets": [],
-     "beamGroups": [],
+     "beamGroups": [
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "attrs": {
+          "id": "auto1532263",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3847422",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3847435",
+         "renderedBox": {
+          "x": 907.8475341796875,
+          "y": 875.603515625,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 562.8861694335938,
+          "y": 2429.15673828125,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "a",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "attrs": {
+          "id": "auto1532264",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3847422",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3847442",
+         "renderedBox": {
+          "x": 944.4404907226562,
+          "y": 896.598388671875,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 589.0303955078125,
+          "y": 2444.15673828125,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "attrs": {
+          "id": "auto1532267",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3847422",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3847449",
+         "renderedBox": {
+          "x": 981.033447265625,
+          "y": 889.60009765625,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 615.1746215820312,
+          "y": 2439.15673828125,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "attrs": {
+          "id": "auto1532268",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3847422",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3847456",
+         "renderedBox": {
+          "x": 1017.6264038085938,
+          "y": 882.601806640625,
+          "width": 16.82135009765625,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 641.31884765625,
+          "y": 2434.15673828125,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3847422",
+        "type": "SmoBeamGroup"
+       }
+      },
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "attrs": {
+          "id": "auto1532271",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3847423",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3847463",
+         "renderedBox": {
+          "x": 1054.21923828125,
+          "y": 875.603515625,
+          "width": 16.821533203125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 667.4630126953125,
+          "y": 2429.15673828125,
+          "width": 12.018310546875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "attrs": {
+          "id": "auto1532272",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3847423",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3847470",
+         "renderedBox": {
+          "x": 1090.8123779296875,
+          "y": 889.60009765625,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 693.6073608398438,
+          "y": 2439.15673828125,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "attrs": {
+          "id": "auto1532275",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3847423",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3847477",
+         "renderedBox": {
+          "x": 1127.4052734375,
+          "y": 882.601806640625,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 719.7515869140625,
+          "y": 2434.15673828125,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "a",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "attrs": {
+          "id": "auto1532276",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3847423",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3847484",
+         "renderedBox": {
+          "x": 1163.998291015625,
+          "y": 896.598388671875,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 745.8958129882812,
+          "y": 2444.15673828125,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3847423",
+        "type": "SmoBeamGroup"
+       }
+      }
+     ],
      "voices": [
       {
        "notes": [
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 8192,
           "denominator": 1,
           "remainder": 0
          },
@@ -28444,23 +31191,24 @@ var inventionJson = `{
           {
            "letter": "d",
            "accidental": "n",
-           "octave": 3
+           "octave": 4
           }
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto367648",
+          "id": "auto1421503",
           "type": "SmoNote"
          },
          "clef": "bass",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 1024,
           "denominator": 1,
           "remainder": 0
          },
@@ -28468,47 +31216,99 @@ var inventionJson = `{
           {
            "letter": "d",
            "accidental": "n",
-           "octave": 3
+           "octave": 4
           }
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto367649",
+          "id": "auto1532263",
           "type": "SmoNote"
          },
          "clef": "bass",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 1024,
           "denominator": 1,
           "remainder": 0
          },
          "pitches": [
           {
-           "letter": "d",
+           "letter": "a",
            "accidental": "n",
            "octave": 3
           }
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto367650",
+          "id": "auto1532264",
           "type": "SmoNote"
          },
          "clef": "bass",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1532267",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1532268",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
           "denominator": 1,
           "remainder": 0
          },
@@ -28516,18 +31316,94 @@ var inventionJson = `{
           {
            "letter": "d",
            "accidental": "n",
-           "octave": 3
+           "octave": 4
           }
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto367651",
+          "id": "auto1532271",
           "type": "SmoNote"
          },
          "clef": "bass",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1532272",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1532275",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "a",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1532276",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -28556,15 +31432,15 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 754.3400268554688,
-     "staffY": 2361.662615094866,
+     "staffX": 777.0400333404541,
+     "staffY": 2449.3795340401784,
      "measureNumber": {
       "measureNumber": 16,
       "measureIndex": 16,
       "systemIndex": 2,
       "staffId": 1
      },
-     "staffWidth": 335.17999267578125,
+     "staffWidth": 314.179931640625,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -28573,61 +31449,424 @@ var inventionJson = `{
      "padRight": 10,
      "rightMargin": 2,
      "tuplets": [],
-     "beamGroups": [],
+     "beamGroups": [
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "attrs": {
+          "id": "auto3352193",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3848320",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3848333",
+         "renderedBox": {
+          "x": 1347.591796875,
+          "y": 889.60009765625,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 877.0662231445312,
+          "y": 2439.15673828125,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "attrs": {
+          "id": "auto3352194",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3848320",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3848340",
+         "renderedBox": {
+          "x": 1384.1846923828125,
+          "y": 875.603515625,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 903.2103881835938,
+          "y": 2429.15673828125,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "attrs": {
+          "id": "auto3352195",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3848320",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3848347",
+         "renderedBox": {
+          "x": 1420.777587890625,
+          "y": 882.601806640625,
+          "width": 16.821533203125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 929.3545532226562,
+          "y": 2434.15673828125,
+          "width": 12.01837158203125,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "attrs": {
+          "id": "auto3352196",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3848320",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3848354",
+         "renderedBox": {
+          "x": 1457.37060546875,
+          "y": 889.60009765625,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 955.4988403320312,
+          "y": 2439.15673828125,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3848320",
+        "type": "SmoBeamGroup"
+       }
+      },
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "a",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "attrs": {
+          "id": "auto3352197",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3848321",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3848361",
+         "renderedBox": {
+          "x": 1493.9635009765625,
+          "y": 896.598388671875,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 981.64306640625,
+          "y": 2444.15673828125,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "attrs": {
+          "id": "auto3352198",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3848321",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3848368",
+         "renderedBox": {
+          "x": 1530.5565185546875,
+          "y": 882.601806640625,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 1007.7872924804688,
+          "y": 2434.15673828125,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "attrs": {
+          "id": "auto3352199",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3848321",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3848375",
+         "renderedBox": {
+          "x": 1567.1494140625,
+          "y": 889.60009765625,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 1033.9315185546875,
+          "y": 2439.15673828125,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "attrs": {
+          "id": "auto3352200",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3848321",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3848382",
+         "renderedBox": {
+          "x": 1603.7423095703125,
+          "y": 875.603515625,
+          "width": 16.821533203125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 1060.07568359375,
+          "y": 2429.15673828125,
+          "width": 12.018310546875,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3848321",
+        "type": "SmoBeamGroup"
+       }
+      }
+     ],
      "voices": [
       {
        "notes": [
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 8192,
           "denominator": 1,
           "remainder": 0
          },
          "pitches": [
           {
-           "letter": "d",
+           "letter": "b",
            "accidental": "n",
            "octave": 3
           }
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto348070",
+          "id": "auto3352192",
           "type": "SmoNote"
          },
          "clef": "bass",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 1024,
           "denominator": 1,
           "remainder": 0
          },
          "pitches": [
           {
-           "letter": "d",
+           "letter": "b",
            "accidental": "n",
            "octave": 3
           }
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto348071",
+          "id": "auto3352193",
           "type": "SmoNote"
          },
          "clef": "bass",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 1024,
           "denominator": 1,
           "remainder": 0
          },
@@ -28635,23 +31874,149 @@ var inventionJson = `{
           {
            "letter": "d",
            "accidental": "n",
-           "octave": 3
+           "octave": 4
           }
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto348072",
+          "id": "auto3352194",
           "type": "SmoNote"
          },
          "clef": "bass",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto3352195",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto3352196",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "a",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto3352197",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto3352198",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto3352199",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
           "denominator": 1,
           "remainder": 0
          },
@@ -28659,18 +32024,19 @@ var inventionJson = `{
           {
            "letter": "d",
            "accidental": "n",
-           "octave": 3
+           "octave": 4
           }
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto348073",
+          "id": "auto3352200",
           "type": "SmoNote"
          },
          "clef": "bass",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -28699,15 +32065,15 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 29.999998092651367,
-     "staffY": 2537.585222516741,
+     "staffX": 30,
+     "staffY": 2661.9063895089284,
      "measureNumber": {
       "measureNumber": 17,
       "measureIndex": 17,
       "systemIndex": 0,
       "staffId": 1
      },
-     "staffWidth": 605.3000507354736,
+     "staffWidth": 467.4200382232666,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -28716,104 +32082,594 @@ var inventionJson = `{
      "padRight": 10,
      "rightMargin": 2,
      "tuplets": [],
-     "beamGroups": [],
+     "beamGroups": [
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "attrs": {
+          "id": "auto2051050",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3849267",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3849286",
+         "renderedBox": {
+          "x": 438.3150329589844,
+          "y": 1180.066650390625,
+          "width": 16.821441650390625,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 227.42361450195312,
+          "y": 2646.68359375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "attrs": {
+          "id": "auto2051051",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3849267",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3849293",
+         "renderedBox": {
+          "x": 482.43096923828125,
+          "y": 1201.0615234375,
+          "width": 16.821441650390625,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 258.9427185058594,
+          "y": 2661.68359375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "a",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "attrs": {
+          "id": "auto2051054",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3849267",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3849300",
+         "renderedBox": {
+          "x": 526.5469360351562,
+          "y": 1194.063232421875,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 290.46185302734375,
+          "y": 2656.68359375,
+          "width": 12.018218994140625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "b",
+           "octave": 3
+          }
+         ],
+         "attrs": {
+          "id": "auto2051055",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3849267",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3849307",
+         "renderedBox": {
+          "x": 572.0625,
+          "y": 1170.1728515625,
+          "width": 31.4365234375,
+          "height": 32.9716796875
+         },
+         "logicalBox": {
+          "x": 322.9809265136719,
+          "y": 2639.614990234375,
+          "width": 22.460174560546875,
+          "height": 23.556884765625
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3849267",
+        "type": "SmoBeamGroup"
+       }
+      },
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "attrs": {
+          "id": "auto2051058",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3849268",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3849316",
+         "renderedBox": {
+          "x": 630.7935791015625,
+          "y": 1180.066650390625,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 364.9419860839844,
+          "y": 2646.68359375,
+          "width": 12.018218994140625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "a",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "attrs": {
+          "id": "auto2051059",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3849268",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3849323",
+         "renderedBox": {
+          "x": 674.9095458984375,
+          "y": 1194.063232421875,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 396.46112060546875,
+          "y": 2656.68359375,
+          "width": 12.018218994140625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "b",
+           "octave": 3
+          }
+         ],
+         "attrs": {
+          "id": "auto2051062",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3849268",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3849330",
+         "renderedBox": {
+          "x": 719.0255126953125,
+          "y": 1187.06494140625,
+          "width": 16.82135009765625,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 427.980224609375,
+          "y": 2651.68359375,
+          "width": 12.018218994140625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "attrs": {
+          "id": "auto2051063",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3849268",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3849337",
+         "renderedBox": {
+          "x": 763.1414184570312,
+          "y": 1201.0615234375,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 459.49932861328125,
+          "y": 2661.68359375,
+          "width": 12.018218994140625,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3849268",
+        "type": "SmoBeamGroup"
+       }
+      }
+     ],
      "voices": [
       {
        "notes": [
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 8192,
           "denominator": 1,
           "remainder": 0
          },
          "pitches": [
           {
-           "letter": "d",
+           "letter": "c",
            "accidental": "n",
-           "octave": 3
+           "octave": 4
           }
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto328648",
+          "id": "auto2006116",
           "type": "SmoNote"
          },
          "clef": "bass",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 1024,
           "denominator": 1,
           "remainder": 0
          },
          "pitches": [
           {
-           "letter": "d",
+           "letter": "c",
            "accidental": "n",
-           "octave": 3
+           "octave": 4
           }
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto328649",
+          "id": "auto2051050",
           "type": "SmoNote"
          },
          "clef": "bass",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 1024,
           "denominator": 1,
           "remainder": 0
          },
          "pitches": [
           {
-           "letter": "d",
+           "letter": "g",
            "accidental": "n",
            "octave": 3
           }
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto328650",
+          "id": "auto2051051",
           "type": "SmoNote"
          },
          "clef": "bass",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 1024,
           "denominator": 1,
           "remainder": 0
          },
          "pitches": [
           {
-           "letter": "d",
+           "letter": "a",
            "accidental": "n",
            "octave": 3
           }
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto328651",
+          "id": "auto2051054",
           "type": "SmoNote"
          },
          "clef": "bass",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "b",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2051055",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2051058",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "a",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2051059",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "b",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2051062",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto2051063",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -28842,15 +32698,15 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 635.300048828125,
-     "staffY": 2537.585222516741,
+     "staffX": 497.4200382232666,
+     "staffY": 2661.9063895089284,
      "measureNumber": {
       "measureNumber": 18,
       "measureIndex": 18,
       "systemIndex": 1,
       "staffId": 1
      },
-     "staffWidth": 227.08001708984375,
+     "staffWidth": 593.3199462890625,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -28859,85 +32715,515 @@ var inventionJson = `{
      "padRight": 10,
      "rightMargin": 2,
      "tuplets": [],
-     "beamGroups": [],
+     "beamGroups": [
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "a",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "attrs": {
+          "id": "auto4141820",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3850592",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3850599",
+         "renderedBox": {
+          "x": 840.0115966796875,
+          "y": 1194.063232421875,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 514.4200439453125,
+          "y": 2656.68359375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "b",
+           "octave": 3
+          }
+         ],
+         "attrs": {
+          "id": "auto4141821",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3850592",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3850606",
+         "renderedBox": {
+          "x": 939.3658447265625,
+          "y": 1170.1728515625,
+          "width": 31.4365234375,
+          "height": 32.9716796875
+         },
+         "logicalBox": {
+          "x": 585.40478515625,
+          "y": 2639.614990234375,
+          "width": 22.46014404296875,
+          "height": 23.556884765625
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3850592",
+        "type": "SmoBeamGroup"
+       }
+      },
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "a",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "attrs": {
+          "id": "auto4141824",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3850593",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3850615",
+         "renderedBox": {
+          "x": 1051.9356689453125,
+          "y": 1194.063232421875,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 665.8314819335938,
+          "y": 2656.68359375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "attrs": {
+          "id": "auto4141825",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3850593",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3850622",
+         "renderedBox": {
+          "x": 1149.8902587890625,
+          "y": 1201.0615234375,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 735.8162231445312,
+          "y": 2661.68359375,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3850593",
+        "type": "SmoBeamGroup"
+       }
+      },
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "f",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "attrs": {
+          "id": "auto4141828",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3850594",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3850629",
+         "renderedBox": {
+          "x": 1247.844970703125,
+          "y": 1208.059814453125,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 805.801025390625,
+          "y": 2666.68359375,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "attrs": {
+          "id": "auto4141829",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3850594",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3850636",
+         "renderedBox": {
+          "x": 1345.799560546875,
+          "y": 1173.068359375,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 875.7857055664062,
+          "y": 2641.68359375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3850594",
+        "type": "SmoBeamGroup"
+       }
+      },
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "attrs": {
+          "id": "auto4141832",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3850595",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3850643",
+         "renderedBox": {
+          "x": 1443.7542724609375,
+          "y": 1180.066650390625,
+          "width": 16.8212890625,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 945.7705078125,
+          "y": 2646.68359375,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "b",
+           "octave": 3
+          }
+         ],
+         "attrs": {
+          "id": "auto4141833",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "beam_group": {
+          "id": "auto3850595",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3850650",
+         "renderedBox": {
+          "x": 1541.7088623046875,
+          "y": 1187.06494140625,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 1015.7552490234375,
+          "y": 2651.68359375,
+          "width": 12.0181884765625,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3850595",
+        "type": "SmoBeamGroup"
+       }
+      }
+     ],
      "voices": [
       {
        "notes": [
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 2048,
           "denominator": 1,
           "remainder": 0
          },
          "pitches": [
           {
-           "letter": "d",
+           "letter": "a",
            "accidental": "n",
            "octave": 3
           }
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto309346",
+          "id": "auto4141820",
           "type": "SmoNote"
          },
          "clef": "bass",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 2048,
           "denominator": 1,
           "remainder": 0
          },
          "pitches": [
           {
-           "letter": "d",
-           "accidental": "n",
+           "letter": "b",
+           "accidental": "b",
            "octave": 3
           }
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto309347",
+          "id": "auto4141821",
           "type": "SmoNote"
          },
          "clef": "bass",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 2048,
           "denominator": 1,
           "remainder": 0
          },
          "pitches": [
           {
-           "letter": "d",
+           "letter": "a",
            "accidental": "n",
            "octave": 3
           }
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto309348",
+          "id": "auto4141824",
           "type": "SmoNote"
          },
          "clef": "bass",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto4141825",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "f",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto4141828",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 2048,
           "denominator": 1,
           "remainder": 0
          },
@@ -28945,18 +33231,69 @@ var inventionJson = `{
           {
            "letter": "d",
            "accidental": "n",
-           "octave": 3
+           "octave": 4
           }
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto309349",
+          "id": "auto4141829",
           "type": "SmoNote"
          },
          "clef": "bass",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto4141832",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "b",
+           "accidental": "b",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto4141833",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -28985,15 +33322,911 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 862.3800659179688,
-     "staffY": 2537.585222516741,
+     "staffX": 30,
+     "staffY": 2885.091570172991,
      "measureNumber": {
       "measureNumber": 19,
       "measureIndex": 19,
-      "systemIndex": 2,
+      "systemIndex": 0,
       "staffId": 1
      },
-     "staffWidth": 227.08001708984375,
+     "staffWidth": 402.0400638580322,
+     "activeVoice": 0,
+     "clef": "bass",
+     "transposeIndex": 0,
+     "adjX": 66.8,
+     "adjRight": 11,
+     "padRight": 10,
+     "rightMargin": 2,
+     "tuplets": [],
+     "beamGroups": [
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "a",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto787845",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851055",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851068",
+         "renderedBox": {
+          "x": 261.9229736328125,
+          "y": 1506.445556640625,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 101.39839935302734,
+          "y": 2879.86865234375,
+          "width": 12.018241882324219,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "f",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto787846",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851055",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851075",
+         "renderedBox": {
+          "x": 306.0413818359375,
+          "y": 1471.454345703125,
+          "width": 16.821441650390625,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 132.9192657470703,
+          "y": 2854.86865234375,
+          "width": 12.018264770507812,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3851055",
+        "type": "SmoBeamGroup"
+       }
+      },
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto787849",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851056",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851082",
+         "renderedBox": {
+          "x": 350.1598205566406,
+          "y": 1478.45263671875,
+          "width": 16.821441650390625,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 164.44017028808594,
+          "y": 2859.86865234375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto787850",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851056",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851089",
+         "renderedBox": {
+          "x": 394.27825927734375,
+          "y": 1485.450927734375,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 195.9610595703125,
+          "y": 2864.86865234375,
+          "width": 12.018234252929688,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3851056",
+        "type": "SmoBeamGroup"
+       }
+      },
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto1105750",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851057",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851096",
+         "renderedBox": {
+          "x": 438.3966979980469,
+          "y": 1478.45263671875,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 227.48194885253906,
+          "y": 2859.86865234375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto1105751",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851057",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851103",
+         "renderedBox": {
+          "x": 473.0655822753906,
+          "y": 1485.450927734375,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 252.2515106201172,
+          "y": 2864.86865234375,
+          "width": 12.018234252929688,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto1105754",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851057",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851110",
+         "renderedBox": {
+          "x": 507.7344970703125,
+          "y": 1478.45263671875,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 277.0210876464844,
+          "y": 2859.86865234375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "f",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto1105755",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851057",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851117",
+         "renderedBox": {
+          "x": 542.4033813476562,
+          "y": 1471.454345703125,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 301.7906494140625,
+          "y": 2854.86865234375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3851057",
+        "type": "SmoBeamGroup"
+       }
+      },
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto1105758",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851058",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851124",
+         "renderedBox": {
+          "x": 577.072265625,
+          "y": 1464.4560546875,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 326.5602111816406,
+          "y": 2849.86865234375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto1105759",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851058",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851131",
+         "renderedBox": {
+          "x": 611.7411499023438,
+          "y": 1478.45263671875,
+          "width": 16.82147216796875,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 351.32977294921875,
+          "y": 2859.86865234375,
+          "width": 12.018280029296875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "f",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto1105762",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851058",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851138",
+         "renderedBox": {
+          "x": 646.4100341796875,
+          "y": 1471.454345703125,
+          "width": 16.8214111328125,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 376.0993347167969,
+          "y": 2854.86865234375,
+          "width": 12.018218994140625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto1105763",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3851058",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3851145",
+         "renderedBox": {
+          "x": 681.0789184570312,
+          "y": 1485.450927734375,
+          "width": 16.82147216796875,
+          "height": 14.65966796875
+         },
+         "logicalBox": {
+          "x": 400.868896484375,
+          "y": 2864.86865234375,
+          "width": 12.018280029296875,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3851058",
+        "type": "SmoBeamGroup"
+       }
+      }
+     ],
+     "voices": [
+      {
+       "notes": [
+        {
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "a",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto787845",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "f",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto787846",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto787849",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto787850",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1105750",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1105751",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1105754",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "f",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1105755",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "g",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1105758",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1105759",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "f",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1105762",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 1024,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 4
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1105763",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 4096,
+         "flagState": 0,
+         "graceNotes": [],
+         "noteModifiers": []
+        }
+       ]
+      }
+     ],
+     "modifiers": [
+      {
+       "position": 0,
+       "barline": 0,
+       "ctor": "SmoBarline"
+      },
+      {
+       "position": 1,
+       "barline": 0,
+       "ctor": "SmoBarline"
+      },
+      {
+       "symbol": 0,
+       "xOffset": 0,
+       "yOffset": 30,
+       "position": 0,
+       "ctor": "SmoRepeatSymbol"
+      }
+     ]
+    },
+    {
+     "timeSignature": "4/4",
+     "keySignature": "C",
+     "staffX": 432.0400638580322,
+     "staffY": 2885.091570172991,
+     "measureNumber": {
+      "measureNumber": 20,
+      "measureIndex": 20,
+      "systemIndex": 1,
+      "staffId": 1
+     },
+     "staffWidth": 413.9772033691406,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -29002,37 +34235,244 @@ var inventionJson = `{
      "padRight": 10,
      "rightMargin": 2,
      "tuplets": [],
-     "beamGroups": [],
+     "beamGroups": [
+      {
+       "notes": [
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 8192,
+         "flagState": 2,
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto1851283",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3852549",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3852553",
+         "renderedBox": {
+          "x": 748.5020751953125,
+          "y": 1527.4404296875,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 449.04010009765625,
+          "y": 2894.86865234375,
+          "width": 12.018218994140625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 8192,
+         "flagState": 2,
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto1851284",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3852549",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3852560",
+         "renderedBox": {
+          "x": 823.3861083984375,
+          "y": 1541.43701171875,
+          "width": 16.82135009765625,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 502.5417785644531,
+          "y": 2904.86865234375,
+          "width": 12.018218994140625,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": false,
+         "beamBeats": 8192,
+         "flagState": 2,
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "d",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto1851287",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3852549",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3852567",
+         "renderedBox": {
+          "x": 898.2700805664062,
+          "y": 1534.438720703125,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 556.04345703125,
+          "y": 2899.86865234375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        },
+        {
+         "noteType": "n",
+         "textModifiers": [],
+         "articulations": [],
+         "graceNotes": [],
+         "endBeam": true,
+         "beamBeats": 8192,
+         "flagState": 2,
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "clef": "bass",
+         "attrs": {
+          "id": "auto1851288",
+          "type": "SmoNote"
+         },
+         "beam_group": {
+          "id": "auto3852549",
+          "type": "SmoBeamGroup"
+         },
+         "renderId": "vf-auto3852574",
+         "renderedBox": {
+          "x": 973.1541137695312,
+          "y": 1527.4404296875,
+          "width": 16.8214111328125,
+          "height": 14.659912109375
+         },
+         "logicalBox": {
+          "x": 609.545166015625,
+          "y": 2894.86865234375,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
+         }
+        }
+       ],
+       "attrs": {
+        "id": "auto3852549",
+        "type": "SmoBeamGroup"
+       }
+      }
+     ],
      "voices": [
       {
        "notes": [
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 2048,
           "denominator": 1,
           "remainder": 0
          },
          "pitches": [
           {
-           "letter": "d",
+           "letter": "e",
            "accidental": "n",
            "octave": 3
           }
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto2810822",
+          "id": "auto1851283",
           "type": "SmoNote"
          },
          "clef": "bass",
          "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
+         "beamBeats": 8192,
+         "flagState": 2,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
          "ticks": {
-          "numerator": 4096,
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "c",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1851284",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": false,
+         "beamBeats": 8192,
+         "flagState": 2,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 2048,
           "denominator": 1,
           "remainder": 0
          },
@@ -29045,13 +34485,39 @@ var inventionJson = `{
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto2810823",
+          "id": "auto1851287",
           "type": "SmoNote"
          },
          "clef": "bass",
          "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
+         "beamBeats": 8192,
+         "flagState": 2,
+         "graceNotes": [],
+         "noteModifiers": []
+        },
+        {
+         "ticks": {
+          "numerator": 2048,
+          "denominator": 1,
+          "remainder": 0
+         },
+         "pitches": [
+          {
+           "letter": "e",
+           "accidental": "n",
+           "octave": 3
+          }
+         ],
+         "noteType": "n",
+         "attrs": {
+          "id": "auto1851288",
+          "type": "SmoNote"
+         },
+         "clef": "bass",
+         "endBeam": true,
+         "beamBeats": 8192,
+         "flagState": 2,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -29076,6 +34542,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         },
         {
@@ -29100,6 +34567,7 @@ var inventionJson = `{
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -29128,618 +34596,55 @@ var inventionJson = `{
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 29.999998092651367,
-     "staffY": 2726.1353934151784,
+     "staffX": 846.0172672271729,
+     "staffY": 2885.091570172991,
      "measureNumber": {
-      "measureNumber": 20,
-      "measureIndex": 20,
-      "systemIndex": 0,
+      "measureNumber": 21,
+      "measureIndex": 21,
+      "systemIndex": 2,
       "staffId": 1
      },
-     "staffWidth": 416.0599994659424,
+     "staffWidth": 104.8199462890625,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
-     "adjX": 66.8,
+     "adjX": 11,
      "adjRight": 11,
      "padRight": 10,
      "rightMargin": 2,
      "tuplets": [],
-     "beamGroups": [
-      {
-       "notes": [
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 3
-          }
-         ],
-         "attrs": {
-          "id": "auto1763324",
-          "type": "SmoNote"
-         },
-         "clef": "bass",
-         "beam_group": {
-          "id": "auto2960749",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2960760",
-         "renderedBox": {
-          "x": 261.9229736328125,
-          "y": 811.954833984375,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 101.39839935302734,
-          "y": 2740.91259765625,
-          "width": 12.018241882324219,
-          "height": 10.473876953125
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 3
-          }
-         ],
-         "attrs": {
-          "id": "auto1763325",
-          "type": "SmoNote"
-         },
-         "clef": "bass",
-         "beam_group": {
-          "id": "auto2960749",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2960767",
-         "renderedBox": {
-          "x": 300.9707336425781,
-          "y": 811.954833984375,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 129.29649353027344,
-          "y": 2740.91259765625,
-          "width": 12.018234252929688,
-          "height": 10.473876953125
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 3
-          }
-         ],
-         "attrs": {
-          "id": "auto1763328",
-          "type": "SmoNote"
-         },
-         "clef": "bass",
-         "beam_group": {
-          "id": "auto2960749",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2960774",
-         "renderedBox": {
-          "x": 340.01849365234375,
-          "y": 811.954833984375,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 157.194580078125,
-          "y": 2740.91259765625,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 3
-          }
-         ],
-         "attrs": {
-          "id": "auto1763329",
-          "type": "SmoNote"
-         },
-         "clef": "bass",
-         "beam_group": {
-          "id": "auto2960749",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2960781",
-         "renderedBox": {
-          "x": 379.06622314453125,
-          "y": 811.954833984375,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 185.0926513671875,
-          "y": 2740.91259765625,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
-         }
-        }
-       ],
-       "attrs": {
-        "id": "auto2960749",
-        "type": "SmoBeamGroup"
-       }
-      },
-      {
-       "notes": [
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 3
-          }
-         ],
-         "attrs": {
-          "id": "auto1763332",
-          "type": "SmoNote"
-         },
-         "clef": "bass",
-         "beam_group": {
-          "id": "auto2960750",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2960788",
-         "renderedBox": {
-          "x": 418.1139831542969,
-          "y": 811.954833984375,
-          "width": 16.821441650390625,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 212.99075317382812,
-          "y": 2740.91259765625,
-          "width": 12.018264770507812,
-          "height": 10.473876953125
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 3
-          }
-         ],
-         "attrs": {
-          "id": "auto1763333",
-          "type": "SmoNote"
-         },
-         "clef": "bass",
-         "beam_group": {
-          "id": "auto2960750",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2960795",
-         "renderedBox": {
-          "x": 457.1617736816406,
-          "y": 811.954833984375,
-          "width": 16.821380615234375,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 240.8888702392578,
-          "y": 2740.91259765625,
-          "width": 12.018218994140625,
-          "height": 10.473876953125
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 3
-          }
-         ],
-         "attrs": {
-          "id": "auto1763336",
-          "type": "SmoNote"
-         },
-         "clef": "bass",
-         "beam_group": {
-          "id": "auto2960750",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2960802",
-         "renderedBox": {
-          "x": 496.2095031738281,
-          "y": 811.954833984375,
-          "width": 16.821380615234375,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 268.78692626953125,
-          "y": 2740.91259765625,
-          "width": 12.018218994140625,
-          "height": 10.473876953125
-         }
-        },
-        {
-         "noteType": "n",
-         "textModifiers": [],
-         "articulations": [],
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 3
-          }
-         ],
-         "attrs": {
-          "id": "auto1763337",
-          "type": "SmoNote"
-         },
-         "clef": "bass",
-         "beam_group": {
-          "id": "auto2960750",
-          "type": "SmoBeamGroup"
-         },
-         "renderId": "vf-auto2960809",
-         "renderedBox": {
-          "x": 535.2572631835938,
-          "y": 811.954833984375,
-          "width": 16.8214111328125,
-          "height": 14.659912109375
-         },
-         "logicalBox": {
-          "x": 296.6850280761719,
-          "y": 2740.91259765625,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
-         }
-        }
-       ],
-       "attrs": {
-        "id": "auto2960750",
-        "type": "SmoBeamGroup"
-       }
-      }
-     ],
+     "beamGroups": [],
      "voices": [
       {
        "notes": [
         {
          "ticks": {
-          "numerator": 1024,
+          "numerator": 16384,
           "denominator": 1,
           "remainder": 0
          },
          "pitches": [
           {
-           "letter": "d",
+           "letter": "c",
+           "accidental": "n",
+           "octave": 2
+          },
+          {
+           "letter": "c",
            "accidental": "n",
            "octave": 3
           }
          ],
          "noteType": "n",
          "attrs": {
-          "id": "auto1763324",
+          "id": "auto2275018",
           "type": "SmoNote"
          },
          "clef": "bass",
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 3
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto1763325",
-          "type": "SmoNote"
-         },
-         "clef": "bass",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 3
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto1763328",
-          "type": "SmoNote"
-         },
-         "clef": "bass",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 3
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto1763329",
-          "type": "SmoNote"
-         },
-         "clef": "bass",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 3
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto1763332",
-          "type": "SmoNote"
-         },
-         "clef": "bass",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 3
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto1763333",
-          "type": "SmoNote"
-         },
-         "clef": "bass",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 3
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto1763336",
-          "type": "SmoNote"
-         },
-         "clef": "bass",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 1024,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 3
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto1763337",
-          "type": "SmoNote"
-         },
-         "clef": "bass",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 4096,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 3
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto12985",
-          "type": "SmoNote"
-         },
-         "clef": "bass",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": []
-        },
-        {
-         "ticks": {
-          "numerator": 4096,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 3
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto12986",
-          "type": "SmoNote"
-         },
-         "clef": "bass",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
+         "graceNotes": [],
          "noteModifiers": []
         }
        ]
@@ -29778,7 +34683,7 @@ var inventionJson = `{
    "backup": {},
    "edited": false,
    "x": 432.49107142857144,
-   "y": 229.59375,
+   "y": 293.1875,
    "text": "15 Inventions a 2 voix",
    "pagination": "every",
    "position": "title",
@@ -29788,7 +34693,7 @@ var inventionJson = `{
     "style": "normal",
     "weight": "normal"
    },
-   "classes": "score-text auto3181348 auto1328 auto1356",
+   "classes": "score-text auto3181348 auto1328 auto1356 auto1426 auto1440",
    "boxModel": "none",
    "justification": "left",
    "fill": "black",
@@ -29801,13 +34706,13 @@ var inventionJson = `{
    "autoLayout": false,
    "renderedBox": {
     "x": 725.3297729492188,
-    "y": -2739.04931640625,
+    "y": -2150.039794921875,
     "height": 45.029541015625,
     "width": 360.52105712890625
    },
    "logicalBox": {
     "x": 432.484375,
-    "y": 203.859375,
+    "y": 267.45318603515625,
     "width": 257.57818603515625,
     "height": 32.171844482421875
    }

@@ -267,6 +267,7 @@ class suiEditor {
             'staff', this.tracker.selections[0].selector, this.tracker.selections[0].staff);
 
         this.tracker.selections.forEach((sel) => {
+            
             var aa = new SmoArticulation({
                     articulation: articulation,
                     position: position

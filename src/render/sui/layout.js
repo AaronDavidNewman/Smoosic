@@ -80,7 +80,7 @@ class suiLayoutBase {
         this._setViewport(reset,this.elementId);
         this.mainRenderer = this.renderer;
         
-        if (this.shadowElement) {
+        if (this.shadowElement && !suiLayoutBase['_debugLayout']) {
             this._setViewport(reset,this.shadowElement);
             if (reset) {
                 this.shadowRenderer = this.renderer;
@@ -286,7 +286,7 @@ class suiLayoutBase {
 				}
 			}
 
-			if (!vxStart || !vxEnd)
+			if (!vxStart && !vxEnd)
 				return;
 
 			// TODO: notes may have changed, get closest if these exact endpoints don't exist

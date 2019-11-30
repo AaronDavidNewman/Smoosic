@@ -141,6 +141,16 @@ class VxMeasure {
 
 		this._createAccidentals(smoNote,vexNote,tickIndex);
         this._createLyric(smoNote,vexNote);
+        var gar = smoNote.getGraceNotes();
+        if (gar && gar.length) {
+            var group = [];
+            gar.forEach((g) => {
+                group.push(new VF.GraceNote(g.toVexGraceNote()));
+            });
+            var grace = new VF.GraceNoteGroup(group).beamNotes();
+            vexNote.addModifier(vexNote.modifiers.length,grace);
+        }
+        
 		
         return vexNote;
     }

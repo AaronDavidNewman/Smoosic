@@ -45,7 +45,8 @@ class StaffTest {
         
         var test1 = () => {
             var sel = SmoSelection.noteSelection(score,0,0,0,0);
-            SmoOperation.addGraceNote(sel,new SmoGraceNote({pitches:[{letter:'c',octave:4,accidental:'n'}],ticks:{numerator:2048,denominator:0,remainder:0}}))
+            SmoOperation.addGraceNote(sel,new SmoGraceNote({pitches:[{letter:'c',octave:5,accidental:'n'}],ticks:{numerator:1024,denominator:1,remainder:0}}))
+            SmoOperation.addGraceNote(sel,new SmoGraceNote({pitches:[{letter:'d',octave:5,accidental:'n'}],ticks:{numerator:1024,denominator:1,remainder:0}}))
 			layout.render();
             
             return timeTest();

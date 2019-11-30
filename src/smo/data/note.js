@@ -111,14 +111,23 @@ class SmoNote {
         this.textModifiers = tms;
     }
 
+    // Toggle between articulation above, below, or remove
     toggleArticulation(articulation) {
-        if (this.articulations.findIndex((a) => {
+        var aix = this.articulations.findIndex((a) => {
                 return a.articulation === articulation.articulation;
-            }) < 0) {
-            this._addArticulation(articulation, true);
-        } else {
-            this._addArticulation(articulation, false);
+            });
+        if (aix >= 0) {
+            var cur = this.articulations[aix];
+            if (cur.position == SmoArticulation.positions.above) {
+                cur.position = SmoArticulation.positions.below;
+                return;
+            }
+            else {
+                this._addArticulation(articulation,false);
+                return;
+            }
         }
+        this._addArticulation(articulation, true);
     }
 
     _sortPitches() {
@@ -144,12 +153,8 @@ class SmoNote {
         }
         this.graceNotes = this.graceNotes,splice(offset,1);
     }
-    toVexGraceNotes() {
-        var rv = [];
-        this.graceNotes.forEach((g) => {
-            rv.push(g.toVexGraceNote());
-        });
-        return rv;
+    getGraceNotes() {
+        return this.graceNotes;
     }
     addPitchOffset(offset) {
         if (this.pitches.length == 0) {

@@ -52,7 +52,7 @@ class SmoGraceNote extends SmoNoteModifierBase {
     
     toVexGraceNote() {
         var p = smoMusic.smoPitchesToVex(this.pitches);
-        var rv = {duration:smoMusic.closestVexDuration(this.tickCount()),pitches:p};
+        var rv = {duration:smoMusic.closestVexDuration(this.tickCount()),keys:p};
         return rv;
     }
 
@@ -182,7 +182,6 @@ class SmoLyric extends SmoNoteModifierBase {
 				type: 'SmoLyric'
 			};
 		} else {
-			console.log('inherit attrs');
 		}
 	}
 }
@@ -226,7 +225,6 @@ class SmoDynamicText extends SmoNoteModifierBase {
 				type: 'SmoDynamicText'
 			};
 		} else {
-			console.log('inherit attrs');
 		}
 	}
 	get id() {

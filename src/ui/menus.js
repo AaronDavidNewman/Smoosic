@@ -246,7 +246,11 @@ class SuiFileMenu extends suiMenuBase {
 					icon: 'folder-open',
 					text: 'Open',
 					value: 'openFile'
-				}, {
+				},{
+					icon: 'folder-save',
+					text: 'Save',
+					value: 'saveFile'
+				},{
 					icon: '',
 					text: 'Print',
 					value: 'printScore' 
