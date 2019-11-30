@@ -148,7 +148,7 @@ class VxMeasure {
                 group.push(new VF.GraceNote(g.toVexGraceNote()));
             });
             var grace = new VF.GraceNoteGroup(group).beamNotes();
-            vexNote.addModifier(vexNote.modifiers.length,grace);
+            vexNote.addModifier(0,grace);
         }
         
 		

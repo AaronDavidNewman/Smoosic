@@ -261,6 +261,9 @@ class suiEditor {
     unmakeTuplet(keyEvent) {
         this._singleSelectionOperation('unmakeTuplet');
     }
+    addGraceNote(keyEvent) {
+        this._singleSelectionOperation('addGraceNote');
+    }
 
     toggleArticulationCommand(articulation, position) {
         this.undoBuffer.addBuffer('change articulation ' + articulation,

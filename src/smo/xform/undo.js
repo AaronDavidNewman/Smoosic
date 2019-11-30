@@ -122,7 +122,13 @@ class SmoUndoable {
 	    SmoUndoable.undoForSelections(score,selections,undoBuffer,operation);
 		SmoOperation.batchSelectionOperation(score,selections,operation);
 	}
-    static setPitch(selection, pitches, undoBuffer) {
+    static addGraceNote(selection,undoBuffer) {
+        undoBuffer.addBuffer('grace note ' + JSON.stringify(selection.note.pitches, null, ' '),
+            'measure', selection.selector, selection.measure);
+        var pitches = JSON.parse(JSON.stringify(selection.note.pitches));
+        SmoOperation.addGraceNote(selection,new SmoGraceNote({pitches:pitches,ticks:{numerator:2048,denominator:1,remainder:0}}))
+    }
+    static setPitch(selection, pitches, undoBuffer)  {
         undoBuffer.addBuffer('pitch change ' + JSON.stringify(pitches, null, ' '),
             'measure', selection.selector, selection.measure);
         SmoOperation.setPitch(selection, pitches);

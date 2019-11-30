@@ -80,6 +80,13 @@ class defaultEditorKeys {
 				action: "setPitch"
 			}, {
 				event: "keydown",
+				key: "G",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "addGraceNote"
+			}, {
+				event: "keydown",
 				key: "c",
 				ctrlKey: false,
 				altKey: false,
