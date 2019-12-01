@@ -20,6 +20,13 @@ class defaultTrackerKeys {
 				event: "keydown",
 				key: "ArrowLeft",
 				ctrlKey: false,
+				altKey: true,
+				shiftKey: false,
+				action: "advanceModifierSelection"
+			},{
+				event: "keydown",
+				key: "ArrowLeft",
+				ctrlKey: false,
 				altKey: false,
 				shiftKey: false,
 				action: "moveSelectionLeft"

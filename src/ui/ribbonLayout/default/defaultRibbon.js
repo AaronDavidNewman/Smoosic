@@ -39,8 +39,7 @@ class defaultRibbonLayout {
 	}
 	
 	static get articulateButtonIds()  {
-		return ['articulationButtons', 'accentAboveButton', 'accentBelowButton', 'tenutoAboveButton', 'tenutoBelowButton',
-				'staccatoAboveButton', 'staccatoBelowButton', 'marcatoAboveButton', 'marcatoBelowButton', 'pizzicatoAboveButton', 'pizzicatoBelowButton'];
+		return ['articulationButtons', 'accentAboveButton', 'tenutoAboveButton', 'staccatoAboveButton', 'marcatoAboveButton',  'pizzicatoAboveButton'];
 	}
 	
 	static get intervalIds()  {

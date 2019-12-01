@@ -7592,21 +7592,7 @@ class suiTracker {
             });
 		});
 	}
-
-    // ### selectModifierById
-    // programatically select a modifier by ID
-    selectId(id) {
-        this.modifierIndex = this.modifierTabs.findIndex((mm) =>  mm.modifier.attrs.id==id);        
-    }
-
-    // TODO: this is not called right now...
-	clearModifierSelections() {
-		this.modifierTabs = [];
-		this.modifierIndex = -1;
-        this.modifierSelections=[];
-		this.eraseRect('staffModifier');
-		this.pasteBuffer.clearSelections();
-	}
+  
 	getSelectedModifier() {
 		if (this.modifierIndex >= 0) {
 			return this.modifierTabs[this.modifierIndex];
@@ -7617,19 +7603,21 @@ class suiTracker {
         return this.modifierSelections;
     }
 
-	advanceModifierSelection() {
+	advanceModifierSelection(keyEv) {
 		this.eraseRect('staffModifier');
+        
+        var offset = keyEv.key === 'ArrowLeft' ? -1 : 1;
 
 		if (!this.modifierTabs.length) {
 			return;
 		}
-		this.modifierIndex = this.modifierIndex + 1;
-        this.modifierSelections.push(this.modifierTabs[this.modifierIndex]);
-		if (this.modifierIndex >= this.modifierTabs.length) {
+		this.modifierIndex = this.modifierIndex + offset;
+		if (this.modifierIndex >= this.modifierTabs.length || this.modifierIndex < 0) {
 			this.modifierIndex = -1;
             this.modifierSelections=[];
 			return;
 		}
+        this.modifierSelections = [this.modifierTabs[this.modifierIndex]];
 		this._highlightModifier();
 	}
 
@@ -11715,6 +11703,13 @@ class defaultTrackerKeys {
 				event: "keydown",
 				key: "ArrowLeft",
 				ctrlKey: false,
+				altKey: true,
+				shiftKey: false,
+				action: "advanceModifierSelection"
+			},{
+				event: "keydown",
+				key: "ArrowLeft",
+				ctrlKey: false,
 				altKey: false,
 				shiftKey: false,
 				action: "moveSelectionLeft"
@@ -13258,8 +13253,7 @@ class defaultRibbonLayout {
 	}
 	
 	static get articulateButtonIds()  {
-		return ['articulationButtons', 'accentAboveButton', 'accentBelowButton', 'tenutoAboveButton', 'tenutoBelowButton',
-				'staccatoAboveButton', 'staccatoBelowButton', 'marcatoAboveButton', 'marcatoBelowButton', 'pizzicatoAboveButton', 'pizzicatoBelowButton'];
+		return ['articulationButtons', 'accentAboveButton', 'tenutoAboveButton', 'staccatoAboveButton', 'marcatoAboveButton',  'pizzicatoAboveButton'];
 	}
 	
 	static get intervalIds()  {
