@@ -1943,6 +1943,54 @@ class SmoGraceNote extends SmoNoteModifierBase {
     
 }
 
+class SmoOrnament extends SmoNoteModifierBase {
+    static get ornaments() {
+		return {
+			mordent: 'mordent',
+			mordentInverted: 'mordent_inverted',
+			turn: 'turn',
+			turn_inverted: 'turn_inverted',
+			trill: 'trill',
+			upprail: 'upprail',
+			prailup: 'prailup',
+			praildown: 'praildown',
+            upmordent:'upmordent',
+            downmordent:'downmordent',
+            lineprail:'linepraile',
+            prailprail:'prailprail'
+		};
+	}
+    static get attrArray() {
+		return ['position', 'offset','ornament'];
+	}
+
+    static get positions() {
+		return {
+			above: 'above',
+			below: 'below'
+		};
+	}
+    static get offsets() {
+		return {
+			on: 'on',
+			after: 'after'
+		};
+	}
+    static get defaults() {
+        return {
+            ornament:SmoOrnament.ornaments.mordent,
+            position:SmoOrnament.positions.above,
+            offsets:SmoOrnament.offsets.on            
+        };
+    }
+    
+    constructor(parameters) {
+		super('SmoOrnament');
+		smoMusic.serializedMerge(SmoOrnament.attrArray,SmoOrnament.defaults,this);
+		smoMusic.serializedMerge(SmoOrnament.attrArray, parameters, this);
+		this.selector = parameters.selector;
+	}
+}
 class SmoArticulation extends SmoNoteModifierBase {
 	static get articulations() {
 		return {
@@ -2009,8 +2057,6 @@ class SmoArticulation extends SmoNoteModifierBase {
 		smoMusic.serializedMerge(SmoArticulation.attrArray,SmoArticulation.defaults,this);
 		smoMusic.serializedMerge(SmoArticulation.attrArray, parameters, this);
 		this.selector = parameters.selector;
-
-		
 	}
 	get id() {
 		return this.attrs.id;
@@ -7592,6 +7638,12 @@ class suiTracker {
             });
 		});
 	}
+    
+    // ### selectModifierById
+    // programatically select a modifier by ID.  Used by text editor.
+    selectId(id) {
+        this.modifierIndex = this.modifierTabs.findIndex((mm) =>  mm.modifier.attrs.id==id);        
+    }
   
 	getSelectedModifier() {
 		if (this.modifierIndex >= 0) {
@@ -8067,6 +8119,7 @@ class suiTracker {
 			$('body').trigger('tracker-select-modifier');
 			return;
 		}
+        
 		if (ev.shiftKey) {
 			var sel1 = this.getExtremeSelection(-1);
 			if (sel1.selector.staff === this.suggestion.selector.staff) {
@@ -8225,6 +8278,14 @@ class suiTracker {
 	}
 
 	highlightSelection() {
+        var grace = this.getSelectedGraceNotes();
+        // If this is not a note with grace notes, logically unselect the grace notes
+        if (grace.length) {
+            if (!SmoSelector.sameNote(grace[0].selection.selector,this.selections[0])) {
+                this.modifierSelections=[];
+                this.modifierIndex = -1;
+            }
+        }
 		if (this.pitchIndex >= 0 && this.selections.length == 1 &&
 			this.pitchIndex < this.selections[0].note.pitches.length) {
 			this._highlightPitchSelection(this.selections[0].note, this.pitchIndex);
@@ -9759,7 +9820,8 @@ class editSvgText {
         this.editing = false;
         this.target.setAttributeNS(null,'fill',this.oldFill);
 
-        $('.textEdit').addClass('hide');        
+        $('.textEdit').addClass('hide');
+        $('body').removeClass('text-edit');
     }
     
     get value() {
@@ -9808,6 +9870,8 @@ class editSvgText {
     
     startSessionPromise() {
         var self=this;
+        $('body').addClass('text-edit');
+
         this.editing=true;
         this.running = true;
         const promise = new Promise((resolve, reject) => {
@@ -12246,6 +12310,16 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			cb: cb,
 			moveParent: true
 		});
+        $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
+            if ($(ctrl).hasClass('cbTextInPlace')) {
+                $(ctrl).addClass('fold-textmove');
+            } else if ($(ctrl).hasClass('cbDragTextDialog')) {
+                $(ctrl).addClass('fold-textedit');                
+            } else {
+                $(ctrl).addClass('fold-textedit');
+                $(ctrl).addClass('fold-textmove');
+            }
+        });
         if (!this.modifier.edited) {
             this.modifier.edited = true;
             var textEditor = this.components.find((c) => c.smoName === 'textEditor');
@@ -12800,6 +12874,8 @@ class SuiDragText {
         return this.dialog.id + '-' + this.parameterName;
     }
     endSession() {
+        $('body').removeClass('text-move');
+        $(this._getInputElement()).find('label').text(this.label);
         if (this.editor) {
           this.dragging = false;
           this.editor.endSession();
@@ -12829,6 +12905,8 @@ class SuiDragText {
         this.dialog.changed();
     }
     startDrag() {
+        $('body').addClass('text-move');
+        $(this._getInputElement()).find('label').text('Done');
         if (!this.dragging) {
         var self=this;
         this.dragging = true;
@@ -12861,7 +12939,7 @@ class SuiDragText {
     }
  
     bind() {
-        var self=this;
+        var self=this;        
         this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
         this.fontInfo = JSON.parse(JSON.stringify(this.dialog.modifier.fontInfo));
         this.value = this.textElement.textContent;
@@ -12989,6 +13067,7 @@ class SuiTextInPlace {
     }
     startEditSession() {
         var self=this;
+        $(this._getInputElement()).find('label').text('Done');
         if (!this.editor) {
           this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
           this.value = this.textElement.textContent;            
@@ -13004,6 +13083,9 @@ class SuiTextInPlace {
           this.value=this.editor.value;
           $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
           this.editor.endSession();
+          $('.textEdit').addClass('hide');
+          $('body').removeClass('text-edit');
+          $(this._getInputElement()).find('label').text(this.label);
           this.dialog.changed();
         }
     }

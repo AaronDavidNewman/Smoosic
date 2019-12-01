@@ -154,6 +154,8 @@ class SuiDragText {
         return this.dialog.id + '-' + this.parameterName;
     }
     endSession() {
+        $('body').removeClass('text-move');
+        $(this._getInputElement()).find('label').text(this.label);
         if (this.editor) {
           this.dragging = false;
           this.editor.endSession();
@@ -183,6 +185,8 @@ class SuiDragText {
         this.dialog.changed();
     }
     startDrag() {
+        $('body').addClass('text-move');
+        $(this._getInputElement()).find('label').text('Done');
         if (!this.dragging) {
         var self=this;
         this.dragging = true;
@@ -215,7 +219,7 @@ class SuiDragText {
     }
  
     bind() {
-        var self=this;
+        var self=this;        
         this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
         this.fontInfo = JSON.parse(JSON.stringify(this.dialog.modifier.fontInfo));
         this.value = this.textElement.textContent;
@@ -343,6 +347,7 @@ class SuiTextInPlace {
     }
     startEditSession() {
         var self=this;
+        $(this._getInputElement()).find('label').text('Done');
         if (!this.editor) {
           this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
           this.value = this.textElement.textContent;            
@@ -358,6 +363,9 @@ class SuiTextInPlace {
           this.value=this.editor.value;
           $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
           this.editor.endSession();
+          $('.textEdit').addClass('hide');
+          $('body').removeClass('text-edit');
+          $(this._getInputElement()).find('label').text(this.label);
           this.dialog.changed();
         }
     }

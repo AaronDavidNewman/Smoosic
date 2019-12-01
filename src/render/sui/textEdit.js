@@ -58,7 +58,8 @@ class editSvgText {
         this.editing = false;
         this.target.setAttributeNS(null,'fill',this.oldFill);
 
-        $('.textEdit').addClass('hide');        
+        $('.textEdit').addClass('hide');
+        $('body').removeClass('text-edit');
     }
     
     get value() {
@@ -107,6 +108,8 @@ class editSvgText {
     
     startSessionPromise() {
         var self=this;
+        $('body').addClass('text-edit');
+
         this.editing=true;
         this.running = true;
         const promise = new Promise((resolve, reject) => {

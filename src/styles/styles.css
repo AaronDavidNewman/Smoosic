@@ -28,6 +28,18 @@ h1 {
 	position:absolute;
 	z-index:11;
 }
+body.text-edit .fold-textedit {
+    display:none;
+}
+
+body.text-move .fold-textmove{
+    display:none;
+}
+
+body.text-edit .buttonContainer {
+    display:none;
+}
+
 .textEdit  {
 	display:block;
 	border:#3e3 2px dashed;

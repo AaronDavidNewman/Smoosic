@@ -472,6 +472,16 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			cb: cb,
 			moveParent: true
 		});
+        $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
+            if ($(ctrl).hasClass('cbTextInPlace')) {
+                $(ctrl).addClass('fold-textmove');
+            } else if ($(ctrl).hasClass('cbDragTextDialog')) {
+                $(ctrl).addClass('fold-textedit');                
+            } else {
+                $(ctrl).addClass('fold-textedit');
+                $(ctrl).addClass('fold-textmove');
+            }
+        });
         if (!this.modifier.edited) {
             this.modifier.edited = true;
             var textEditor = this.components.find((c) => c.smoName === 'textEditor');

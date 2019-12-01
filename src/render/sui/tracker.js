@@ -170,6 +170,12 @@ class suiTracker {
             });
 		});
 	}
+    
+    // ### selectModifierById
+    // programatically select a modifier by ID.  Used by text editor.
+    selectId(id) {
+        this.modifierIndex = this.modifierTabs.findIndex((mm) =>  mm.modifier.attrs.id==id);        
+    }
   
 	getSelectedModifier() {
 		if (this.modifierIndex >= 0) {
@@ -645,6 +651,7 @@ class suiTracker {
 			$('body').trigger('tracker-select-modifier');
 			return;
 		}
+        
 		if (ev.shiftKey) {
 			var sel1 = this.getExtremeSelection(-1);
 			if (sel1.selector.staff === this.suggestion.selector.staff) {
@@ -803,6 +810,14 @@ class suiTracker {
 	}
 
 	highlightSelection() {
+        var grace = this.getSelectedGraceNotes();
+        // If this is not a note with grace notes, logically unselect the grace notes
+        if (grace.length) {
+            if (!SmoSelector.sameNote(grace[0].selection.selector,this.selections[0])) {
+                this.modifierSelections=[];
+                this.modifierIndex = -1;
+            }
+        }
 		if (this.pitchIndex >= 0 && this.selections.length == 1 &&
 			this.pitchIndex < this.selections[0].note.pitches.length) {
 			this._highlightPitchSelection(this.selections[0].note, this.pitchIndex);

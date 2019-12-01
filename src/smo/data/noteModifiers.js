@@ -64,6 +64,54 @@ class SmoGraceNote extends SmoNoteModifierBase {
     
 }
 
+class SmoOrnament extends SmoNoteModifierBase {
+    static get ornaments() {
+		return {
+			mordent: 'mordent',
+			mordentInverted: 'mordent_inverted',
+			turn: 'turn',
+			turn_inverted: 'turn_inverted',
+			trill: 'trill',
+			upprail: 'upprail',
+			prailup: 'prailup',
+			praildown: 'praildown',
+            upmordent:'upmordent',
+            downmordent:'downmordent',
+            lineprail:'linepraile',
+            prailprail:'prailprail'
+		};
+	}
+    static get attrArray() {
+		return ['position', 'offset','ornament'];
+	}
+
+    static get positions() {
+		return {
+			above: 'above',
+			below: 'below'
+		};
+	}
+    static get offsets() {
+		return {
+			on: 'on',
+			after: 'after'
+		};
+	}
+    static get defaults() {
+        return {
+            ornament:SmoOrnament.ornaments.mordent,
+            position:SmoOrnament.positions.above,
+            offsets:SmoOrnament.offsets.on            
+        };
+    }
+    
+    constructor(parameters) {
+		super('SmoOrnament');
+		smoMusic.serializedMerge(SmoOrnament.attrArray,SmoOrnament.defaults,this);
+		smoMusic.serializedMerge(SmoOrnament.attrArray, parameters, this);
+		this.selector = parameters.selector;
+	}
+}
 class SmoArticulation extends SmoNoteModifierBase {
 	static get articulations() {
 		return {
@@ -130,8 +178,6 @@ class SmoArticulation extends SmoNoteModifierBase {
 		smoMusic.serializedMerge(SmoArticulation.attrArray,SmoArticulation.defaults,this);
 		smoMusic.serializedMerge(SmoArticulation.attrArray, parameters, this);
 		this.selector = parameters.selector;
-
-		
 	}
 	get id() {
 		return this.attrs.id;
