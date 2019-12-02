@@ -9820,8 +9820,6 @@ class editSvgText {
         this.editing = false;
         this.target.setAttributeNS(null,'fill',this.oldFill);
 
-        $('.textEdit').addClass('hide');
-        $('body').removeClass('text-edit');
     }
     
     get value() {
@@ -10513,7 +10511,7 @@ class suiMenuManager {
 			});
 		this.attach(this.menuContainer);
         this.menu.menuItems.forEach((item) => {
-            if (item.hotkey) {
+            if (typeof(item.hotkey) != 'undefined') {
                 this.hotkeyBindings[item.hotkey] = item.value;
             }
         });
@@ -12042,7 +12040,7 @@ class SuiLoadFileDialog extends SuiFileDialog {
 				parameterName: 'jsonFile',
 				defaultValue: '',
 				control: 'SuiFileDownloadComponent',
-				label:'Load'
+				label:''
 			}];
     }    
     
@@ -12073,7 +12071,8 @@ class SuiLoadFileDialog extends SuiFileDialog {
 		var dg = new SuiLoadFileDialog({				
 				layout: params.controller.layout,
 				controller: params.controller,
-                closeMenuPromise:params.closeMenuPromise
+                closeMenuPromise:params.closeMenuPromise,
+                label:'Open File'
 			});
 		dg.display();
          // disable until file is selected
@@ -12126,7 +12125,7 @@ class SuiSaveFileDialog extends SuiFileDialog {
 				parameterName: 'saveFileName',
 				defaultValue: '',
 				control: 'SuiTextInputComponent',
-				label:'Save'
+				label:'File Name'
 			}];
     }    
    
@@ -12151,7 +12150,8 @@ class SuiSaveFileDialog extends SuiFileDialog {
 		var dg = new SuiSaveFileDialog({				
 				layout: params.controller.layout,
 				controller: params.controller,
-                closeMenuPromise:params.closeMenuPromise
+                closeMenuPromise:params.closeMenuPromise,
+                label:'Save File'
 			});
 		dg.display();
 	}
@@ -12906,7 +12906,7 @@ class SuiDragText {
     }
     startDrag() {
         $('body').addClass('text-move');
-        $(this._getInputElement()).find('label').text('Done');
+        $(this._getInputElement()).find('label').text('Done Moving Text Block');
         if (!this.dragging) {
         var self=this;
         this.dragging = true;
@@ -13067,7 +13067,7 @@ class SuiTextInPlace {
     }
     startEditSession() {
         var self=this;
-        $(this._getInputElement()).find('label').text('Done');
+        $(this._getInputElement()).find('label').text('Done Editing Text Block');
         if (!this.editor) {
           this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
           this.value = this.textElement.textContent;            

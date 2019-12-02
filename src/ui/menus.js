@@ -163,7 +163,7 @@ class suiMenuManager {
 			});
 		this.attach(this.menuContainer);
         this.menu.menuItems.forEach((item) => {
-            if (item.hotkey) {
+            if (typeof(item.hotkey) != 'undefined') {
                 this.hotkeyBindings[item.hotkey] = item.value;
             }
         });

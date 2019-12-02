@@ -36,7 +36,16 @@ body.text-move .fold-textmove{
     display:none;
 }
 
-body.text-edit .buttonContainer {
+body.text-edit .cbTextInPlace label {
+    width:100%;
+}
+
+body.text-move .cbDragTextDialog label {
+    width:100%;
+}
+
+body.text-edit .buttonContainer,
+body.text-move .buttonContainer {
     display:none;
 }
 

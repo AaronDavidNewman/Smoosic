@@ -186,7 +186,7 @@ class SuiDragText {
     }
     startDrag() {
         $('body').addClass('text-move');
-        $(this._getInputElement()).find('label').text('Done');
+        $(this._getInputElement()).find('label').text('Done Moving Text Block');
         if (!this.dragging) {
         var self=this;
         this.dragging = true;
@@ -347,7 +347,7 @@ class SuiTextInPlace {
     }
     startEditSession() {
         var self=this;
-        $(this._getInputElement()).find('label').text('Done');
+        $(this._getInputElement()).find('label').text('Done Editing Text Block');
         if (!this.editor) {
           this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
           this.value = this.textElement.textContent;            

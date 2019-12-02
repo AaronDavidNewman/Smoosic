@@ -204,7 +204,7 @@ class SuiLoadFileDialog extends SuiFileDialog {
 				parameterName: 'jsonFile',
 				defaultValue: '',
 				control: 'SuiFileDownloadComponent',
-				label:'Load'
+				label:''
 			}];
     }    
     
@@ -235,7 +235,8 @@ class SuiLoadFileDialog extends SuiFileDialog {
 		var dg = new SuiLoadFileDialog({				
 				layout: params.controller.layout,
 				controller: params.controller,
-                closeMenuPromise:params.closeMenuPromise
+                closeMenuPromise:params.closeMenuPromise,
+                label:'Open File'
 			});
 		dg.display();
          // disable until file is selected
@@ -288,7 +289,7 @@ class SuiSaveFileDialog extends SuiFileDialog {
 				parameterName: 'saveFileName',
 				defaultValue: '',
 				control: 'SuiTextInputComponent',
-				label:'Save'
+				label:'File Name'
 			}];
     }    
    
@@ -313,7 +314,8 @@ class SuiSaveFileDialog extends SuiFileDialog {
 		var dg = new SuiSaveFileDialog({				
 				layout: params.controller.layout,
 				controller: params.controller,
-                closeMenuPromise:params.closeMenuPromise
+                closeMenuPromise:params.closeMenuPromise,
+                label:'Save File'
 			});
 		dg.display();
 	}

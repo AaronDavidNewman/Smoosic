@@ -58,8 +58,6 @@ class editSvgText {
         this.editing = false;
         this.target.setAttributeNS(null,'fill',this.oldFill);
 
-        $('.textEdit').addClass('hide');
-        $('body').removeClass('text-edit');
     }
     
     get value() {
