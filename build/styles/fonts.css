@@ -1,9 +1,9 @@
 @font-face {
   font-family: 'smoosic';
   src:
-    url('fonts/smoosic.ttf?ntg4db') format('truetype'),
-    url('fonts/smoosic.woff?ntg4db') format('woff'),
-    url('fonts/smoosic.svg?ntg4db#smoosic') format('svg');
+    url('fonts/smoosic.ttf?lxwdd') format('truetype'),
+    url('fonts/smoosic.woff?lxwdd') format('woff'),
+    url('fonts/smoosic.svg?lxwdd#smoosic') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -24,6 +24,15 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-mordent:before {
+  content: "\e963";
+}
+.icon-trill:before {
+  content: "\e964";
+}
+.icon-mordent-inv:before {
+  content: "\e965";
+}
 .icon-beam:before {
   content: "\e95e";
 }

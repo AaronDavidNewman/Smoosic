@@ -476,47 +476,40 @@ class NavigationButtons {
 class ArticulationButtons {
 	static get articulationIdMap() {
 		return {
-			accentAboveButton: SmoArticulation.articulations.accent,
-			accentBelowButton: SmoArticulation.articulations.accent,
-			tenutoAboveButton: SmoArticulation.articulations.tenuto,
-			tenutoBelowButton: SmoArticulation.articulations.tenuto,
-			staccatoAboveButton: SmoArticulation.articulations.staccato,
-			staccatoBelowButton: SmoArticulation.articulations.staccato,
-			marcatoAboveButton: SmoArticulation.articulations.marcato,
-			marcatoBelowButton: SmoArticulation.articulations.marcato,
-			pizzicatoAboveButton: SmoArticulation.articulations.pizzicato,
-			pizzicatoBelowButton: SmoArticulation.articulations.pizzicato,
-			fermataAboveButton: SmoArticulation.articulations.fermata,
-			fermataBelowButton: SmoArticulation.articulations.fermata
+			accentButton: SmoArticulation.articulations.accent,
+			tenutoButton: SmoArticulation.articulations.tenuto,
+			staccatoButton: SmoArticulation.articulations.staccato,
+			marcatoButton: SmoArticulation.articulations.marcato,
+			pizzicatoButton: SmoArticulation.articulations.pizzicato,
+			fermataButton: SmoArticulation.articulations.fermata,
+            mordentButton: SmoOrnament.ornaments.mordent,
+            mordentInvertedButton:SmoOrnament.ornaments.mordentInverted,
+            trillButton:SmoOrnament.ornaments.trill
 		};
 	}
-	static get placementIdMap() {
-		return {
-			accentAboveButton: SmoArticulation.positions.above,
-			accentBelowButton: SmoArticulation.positions.below,
-			tenutoAboveButton: SmoArticulation.positions.above,
-			tenutoBelowButton: SmoArticulation.positions.below,
-			staccatoAboveButton: SmoArticulation.positions.above,
-			staccatoBelowButton: SmoArticulation.positions.below,
-			marcatoAboveButton: SmoArticulation.positions.above,
-			marcatoBelowButton: SmoArticulation.positions.below,
-			pizzicatoAboveButton: SmoArticulation.positions.above,
-			pizzicatoBelowButton: SmoArticulation.positions.below,
-			fermataAboveButton: SmoArticulation.positions.above,
-			fermataBelowButton: SmoArticulation.positions.below
-		};
-	}
+    static get constructors() {
+        return {
+			accentButton: 'SmoArticulation',
+			tenutoButton: 'SmoArticulation',
+			staccatoButton: 'SmoArticulation',
+			marcatoButton: 'SmoArticulation',
+			pizzicatoButton: 'SmoArticulation',
+			fermataButton: 'SmoArticulation',
+            mordentButton: 'SmoOrnament',
+            mordentInvertedButton:'SmoOrnament',
+            trillButton:'SmoOrnament'
+        }
+    }
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
 		this.buttonData = parameters.buttonData;
 		this.editor = parameters.editor;
 		this.articulation = ArticulationButtons.articulationIdMap[this.buttonData.id];
-		this.placement = ArticulationButtons.placementIdMap[this.buttonData.id];
+        this.ctor = ArticulationButtons.constructors[this.buttonData.id];
 	}
 	_toggleArticulation() {
 		this.showState = !this.showState;
-
-		this.editor.toggleArticulationCommand(this.articulation, this.placement);
+		this.editor.toggleArticulationCommand(this.articulation, this.ctor);
 	}
 	bind() {
 		var self = this;

@@ -292,17 +292,23 @@ class suiEditor {
         this._singleSelectionOperation('addGraceNote');
     }
 
-    toggleArticulationCommand(articulation, position) {
+    toggleArticulationCommand(articulation, ctor) {
         this.undoBuffer.addBuffer('change articulation ' + articulation,
             'staff', this.tracker.selections[0].selector, this.tracker.selections[0].staff);
 
         this.tracker.selections.forEach((sel) => {
             
-            var aa = new SmoArticulation({
-                    articulation: articulation,
-                    position: position
+            if (ctor === 'SmoArticulation') {
+                var aa = new SmoArticulation({
+                    articulation: articulation
                 });
-            SmoOperation.toggleArticulation(sel, aa);
+               SmoOperation.toggleArticulation(sel, aa);
+            } else {
+                var aa = new SmoOrnament({
+                    ornament: articulation
+                });
+               SmoOperation.toggleOrnament(sel, aa);
+            }
         });
         this._render();
     }
@@ -328,8 +334,7 @@ class suiEditor {
         if (keyEvent.key.toLowerCase() === 'l') {
             atyp = SmoArticulation.articulations.pizzicato;
         }
-        var pos = keyEvent.shiftKey ? SmoArticulation.positions.below : SmoArticulation.positions.above;
-        this.toggleArticulationCommand(atyp, pos);
+        this.toggleArticulationCommand(atyp, 'SmoArticulation');
 
     }
 }

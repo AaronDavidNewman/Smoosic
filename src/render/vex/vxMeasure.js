@@ -96,6 +96,20 @@ class VxMeasure {
         }	
 	}
     
+    _createOrnaments(smoNote,vexNote) {
+        var o  = smoNote.getOrnaments();
+        var ix=0;
+        o.forEach((ll) => {
+            var mod = new VF.Ornament(ll.ornament);
+            if (ll.offset === SmoOrnament.offsets.after) {
+                mod.setDelayed(true);
+            }
+            vexNote.addModifier(ix, mod);
+            ix += 1;
+        });
+        
+    }
+    
     _createLyric(smoNote,vexNote) {
         var lyrics = smoNote.getModifiers('SmoLyric');
         var ix = 0;
@@ -171,6 +185,7 @@ class VxMeasure {
 
 		this._createAccidentals(smoNote,vexNote,tickIndex);
         this._createLyric(smoNote,vexNote);
+        this._createOrnaments(smoNote,vexNote);
         this._createGraceNotes(smoNote,vexNote);
 		
         return vexNote;

@@ -1461,6 +1461,21 @@ class SmoNote {
         });
         this.textModifiers = tms;
     }
+    
+    getOrnaments(ornament) {
+        return this.ornaments;
+    }
+    
+    toggleOrnament(ornament) {
+            var aix = this.ornaments.filter((a) => {
+                return a.attrs.type === 'SmoOrnament' && a.ornament === ornament.ornament;
+            });
+        if (!aix.length) {
+            this.ornaments.push(ornament);
+        } else {
+            this.ornaments=[];
+        }
+    }
 
     // Toggle between articulation above, below, or remove
     toggleArticulation(articulation) {
@@ -1612,6 +1627,7 @@ class SmoNote {
             textModifiers: [],
             articulations: [],
             graceNotes:[],
+            ornaments:[],
             endBeam: false,
             beamBeats:4096,
             flagState:SmoNote.flagStates.auto,
@@ -1638,6 +1654,11 @@ class SmoNote {
         jsonObj.graceNotes.forEach((mod) => {            
             note.graceNotes.push(SmoNoteModifierBase.deserialize(mod));
         });
+        jsonObj.ornaments = jsonObj.ornaments ? jsonObj.ornaments : [];
+        jsonObj.ornaments.forEach((mod) => {            
+            note.ornaments.push(SmoNoteModifierBase.deserialize(mod));
+        });
+        
         return note;
     }
 }
@@ -1949,8 +1970,8 @@ class SmoOrnament extends SmoNoteModifierBase {
 			mordent: 'mordent',
 			mordentInverted: 'mordent_inverted',
 			turn: 'turn',
-			turn_inverted: 'turn_inverted',
-			trill: 'trill',
+			turnInverted: 'turn_inverted',
+			trill: 'tr',
 			upprail: 'upprail',
 			prailup: 'prailup',
 			praildown: 'praildown',
@@ -1980,7 +2001,7 @@ class SmoOrnament extends SmoNoteModifierBase {
         return {
             ornament:SmoOrnament.ornaments.mordent,
             position:SmoOrnament.positions.above,
-            offsets:SmoOrnament.offsets.on            
+            offset:SmoOrnament.offsets.on            
         };
     }
     
@@ -5896,6 +5917,11 @@ class SmoOperation {
             selection.note.flagState = selections[0].note.flagState;
         });
     }
+    
+    static toggleOrnament(selection,ornament) {
+		selection.note.toggleOrnament(ornament);
+		selection.measure.setChanged();
+    }
 
 	static toggleArticulation(selection, articulation) {
 		selection.note.toggleArticulation(articulation);
@@ -6877,6 +6903,20 @@ class VxMeasure {
         }	
 	}
     
+    _createOrnaments(smoNote,vexNote) {
+        var o  = smoNote.getOrnaments();
+        var ix=0;
+        o.forEach((ll) => {
+            var mod = new VF.Ornament(ll.ornament);
+            if (ll.offset === SmoOrnament.offsets.after) {
+                mod.setDelayed(true);
+            }
+            vexNote.addModifier(ix, mod);
+            ix += 1;
+        });
+        
+    }
+    
     _createLyric(smoNote,vexNote) {
         var lyrics = smoNote.getModifiers('SmoLyric');
         var ix = 0;
@@ -6952,6 +6992,7 @@ class VxMeasure {
 
 		this._createAccidentals(smoNote,vexNote,tickIndex);
         this._createLyric(smoNote,vexNote);
+        this._createOrnaments(smoNote,vexNote);
         this._createGraceNotes(smoNote,vexNote);
 		
         return vexNote;
@@ -10298,17 +10339,23 @@ class suiEditor {
         this._singleSelectionOperation('addGraceNote');
     }
 
-    toggleArticulationCommand(articulation, position) {
+    toggleArticulationCommand(articulation, ctor) {
         this.undoBuffer.addBuffer('change articulation ' + articulation,
             'staff', this.tracker.selections[0].selector, this.tracker.selections[0].staff);
 
         this.tracker.selections.forEach((sel) => {
             
-            var aa = new SmoArticulation({
-                    articulation: articulation,
-                    position: position
+            if (ctor === 'SmoArticulation') {
+                var aa = new SmoArticulation({
+                    articulation: articulation
                 });
-            SmoOperation.toggleArticulation(sel, aa);
+               SmoOperation.toggleArticulation(sel, aa);
+            } else {
+                var aa = new SmoOrnament({
+                    ornament: articulation
+                });
+               SmoOperation.toggleOrnament(sel, aa);
+            }
         });
         this._render();
     }
@@ -10334,8 +10381,7 @@ class suiEditor {
         if (keyEvent.key.toLowerCase() === 'l') {
             atyp = SmoArticulation.articulations.pizzicato;
         }
-        var pos = keyEvent.shiftKey ? SmoArticulation.positions.below : SmoArticulation.positions.above;
-        this.toggleArticulationCommand(atyp, pos);
+        this.toggleArticulationCommand(atyp, 'SmoArticulation');
 
     }
 }
@@ -13399,7 +13445,7 @@ class defaultRibbonLayout {
 	}
 	
 	static get articulateButtonIds()  {
-		return ['articulationButtons', 'accentAboveButton', 'tenutoAboveButton', 'staccatoAboveButton', 'marcatoAboveButton',  'pizzicatoAboveButton'];
+		return ['articulationButtons', 'accentButton', 'tenutoButton', 'staccatoButton', 'marcatoButton',  'pizzicatoButton','mordentButton','mordentInvertedButton','trillButton'];
 	}
 	
 	static get intervalIds()  {
@@ -14022,17 +14068,8 @@ class defaultRibbonLayout {
 				action: 'collapseChild',
 				ctor: 'ArticulationButtons',
 				group: 'articulations',
-				id: 'accentAboveButton'
-			}, {
-				leftText: '',
-				rightText: 'H',
-				icon: 'icon-accent_below',
-				classes: 'icon collapsed articulation',
-				action: 'collapseChild',
-				ctor: 'ArticulationButtons',
-				group: 'articulations',
-				id: 'accentBelowButton'
-			}, {
+				id: 'accentButton'
+			},{
 				leftText: '',
 				rightText: 'i',
 				icon: 'icon-tenuto_above',
@@ -14040,16 +14077,7 @@ class defaultRibbonLayout {
 				action: 'collapseChild',
 				ctor: 'ArticulationButtons',
 				group: 'articulations',
-				id: 'tenutoAboveButton'
-			}, {
-				leftText: '',
-				rightText: 'I',
-				icon: 'icon-tenuto_below',
-				classes: 'icon collapsed articulation',
-				action: 'collapseChild',
-				ctor: 'ArticulationButtons',
-				group: 'articulations',
-				id: 'tenutoBelowButton'
+				id: 'tenutoButton'
 			}, {
 				leftText: '',
 				rightText: 'j',
@@ -14058,16 +14086,7 @@ class defaultRibbonLayout {
 				action: 'collapseChild',
 				ctor: 'ArticulationButtons',
 				group: 'articulations',
-				id: 'staccatoAboveButton'
-			}, {
-				leftText: '',
-				rightText: 'J',
-				icon: 'icon-staccato_below',
-				classes: 'icon collapsed articulation',
-				action: 'collapseChild',
-				ctor: 'ArticulationButtons',
-				group: 'articulations',
-				id: 'staccatoBelowButton'
+				id: 'staccatoButton'
 			}, {
 				leftText: '',
 				rightText: 'k',
@@ -14076,16 +14095,7 @@ class defaultRibbonLayout {
 				action: 'collapseChild',
 				ctor: 'ArticulationButtons',
 				group: 'articulations',
-				id: 'marcatoAboveButton'
-			}, {
-				leftText: '',
-				rightText: 'K',
-				icon: 'icon-marcato_below',
-				classes: 'icon collapsed articulation',
-				action: 'collapseChild',
-				ctor: 'ArticulationButtons',
-				group: 'articulations',
-				id: 'marcatoBelowButton'
+				id: 'marcatoButton'
 			}, {
 				leftText: '',
 				rightText: 'l',
@@ -14094,17 +14104,35 @@ class defaultRibbonLayout {
 				action: 'collapseChild',
 				ctor: 'ArticulationButtons',
 				group: 'articulations',
-				id: 'pizzicatoAboveButton'
+				id: 'pizzicatoButton'
 			}, {
 				leftText: '',
-				rightText: 'L',
-				icon: 'icon-pitz_below',
+				rightText: '',
+				icon: 'icon-mordent-inv',
 				classes: 'icon collapsed articulation',
 				action: 'collapseChild',
 				ctor: 'ArticulationButtons',
 				group: 'articulations',
-				id: 'pizzicatoBelowButton'
-			}
+				id: 'mordentInvertedButton'
+            }, {
+				leftText: '',
+				rightText: '',
+				icon: 'icon-mordent',
+				classes: 'icon collapsed articulation',
+				action: 'collapseChild',
+				ctor: 'ArticulationButtons',
+				group: 'articulations',
+				id: 'mordentButton'
+            }, {
+				leftText: '',
+				rightText: '',
+				icon: 'icon-trill',
+				classes: 'icon collapsed articulation',
+				action: 'collapseChild',
+				ctor: 'ArticulationButtons',
+				group: 'articulations',
+				id: 'trillButton'
+            }
 		];
 	}
 	static get navigationButtons() {
@@ -51557,47 +51585,40 @@ class NavigationButtons {
 class ArticulationButtons {
 	static get articulationIdMap() {
 		return {
-			accentAboveButton: SmoArticulation.articulations.accent,
-			accentBelowButton: SmoArticulation.articulations.accent,
-			tenutoAboveButton: SmoArticulation.articulations.tenuto,
-			tenutoBelowButton: SmoArticulation.articulations.tenuto,
-			staccatoAboveButton: SmoArticulation.articulations.staccato,
-			staccatoBelowButton: SmoArticulation.articulations.staccato,
-			marcatoAboveButton: SmoArticulation.articulations.marcato,
-			marcatoBelowButton: SmoArticulation.articulations.marcato,
-			pizzicatoAboveButton: SmoArticulation.articulations.pizzicato,
-			pizzicatoBelowButton: SmoArticulation.articulations.pizzicato,
-			fermataAboveButton: SmoArticulation.articulations.fermata,
-			fermataBelowButton: SmoArticulation.articulations.fermata
+			accentButton: SmoArticulation.articulations.accent,
+			tenutoButton: SmoArticulation.articulations.tenuto,
+			staccatoButton: SmoArticulation.articulations.staccato,
+			marcatoButton: SmoArticulation.articulations.marcato,
+			pizzicatoButton: SmoArticulation.articulations.pizzicato,
+			fermataButton: SmoArticulation.articulations.fermata,
+            mordentButton: SmoOrnament.ornaments.mordent,
+            mordentInvertedButton:SmoOrnament.ornaments.mordentInverted,
+            trillButton:SmoOrnament.ornaments.trill
 		};
 	}
-	static get placementIdMap() {
-		return {
-			accentAboveButton: SmoArticulation.positions.above,
-			accentBelowButton: SmoArticulation.positions.below,
-			tenutoAboveButton: SmoArticulation.positions.above,
-			tenutoBelowButton: SmoArticulation.positions.below,
-			staccatoAboveButton: SmoArticulation.positions.above,
-			staccatoBelowButton: SmoArticulation.positions.below,
-			marcatoAboveButton: SmoArticulation.positions.above,
-			marcatoBelowButton: SmoArticulation.positions.below,
-			pizzicatoAboveButton: SmoArticulation.positions.above,
-			pizzicatoBelowButton: SmoArticulation.positions.below,
-			fermataAboveButton: SmoArticulation.positions.above,
-			fermataBelowButton: SmoArticulation.positions.below
-		};
-	}
+    static get constructors() {
+        return {
+			accentButton: 'SmoArticulation',
+			tenutoButton: 'SmoArticulation',
+			staccatoButton: 'SmoArticulation',
+			marcatoButton: 'SmoArticulation',
+			pizzicatoButton: 'SmoArticulation',
+			fermataButton: 'SmoArticulation',
+            mordentButton: 'SmoOrnament',
+            mordentInvertedButton:'SmoOrnament',
+            trillButton:'SmoOrnament'
+        }
+    }
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
 		this.buttonData = parameters.buttonData;
 		this.editor = parameters.editor;
 		this.articulation = ArticulationButtons.articulationIdMap[this.buttonData.id];
-		this.placement = ArticulationButtons.placementIdMap[this.buttonData.id];
+        this.ctor = ArticulationButtons.constructors[this.buttonData.id];
 	}
 	_toggleArticulation() {
 		this.showState = !this.showState;
-
-		this.editor.toggleArticulationCommand(this.articulation, this.placement);
+		this.editor.toggleArticulationCommand(this.articulation, this.ctor);
 	}
 	bind() {
 		var self = this;

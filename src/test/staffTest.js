@@ -77,7 +77,25 @@ class StaffTest {
             
             return timeTest();
         }
+        
+        var test5 = () => {
+            var sel = SmoSelection.noteSelection(score,0,0,0,1);
+            var nm = new SmoOrnament({ornament:SmoOrnament.ornaments.mordentInverted});
+            sel.note.addModifier(nm);
+            
+            sel = SmoSelection.noteSelection(score,0,1,0,1);
+            nm = new SmoOrnament({ornament:SmoOrnament.ornaments.trill});
+            sel.note.addModifier(nm);
+
+            sel = SmoSelection.noteSelection(score,0,1,0,3);
+            nm = new SmoOrnament({ornament:SmoOrnament.ornaments.mordent});
+            sel.note.addModifier(nm);
+
+            layout.render();
+            
+            return timeTest();
+        }
       
-        return drawDefaults().then(test1).then(test2).then(test3).then(test4).then(signalComplete);
+        return drawDefaults().then(test1).then(test2).then(test3).then(test4).then(test5).then(signalComplete);
     }
 }

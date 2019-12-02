@@ -110,6 +110,21 @@ class SmoNote {
         });
         this.textModifiers = tms;
     }
+    
+    getOrnaments(ornament) {
+        return this.ornaments;
+    }
+    
+    toggleOrnament(ornament) {
+            var aix = this.ornaments.filter((a) => {
+                return a.attrs.type === 'SmoOrnament' && a.ornament === ornament.ornament;
+            });
+        if (!aix.length) {
+            this.ornaments.push(ornament);
+        } else {
+            this.ornaments=[];
+        }
+    }
 
     // Toggle between articulation above, below, or remove
     toggleArticulation(articulation) {
@@ -261,6 +276,7 @@ class SmoNote {
             textModifiers: [],
             articulations: [],
             graceNotes:[],
+            ornaments:[],
             endBeam: false,
             beamBeats:4096,
             flagState:SmoNote.flagStates.auto,
@@ -287,6 +303,11 @@ class SmoNote {
         jsonObj.graceNotes.forEach((mod) => {            
             note.graceNotes.push(SmoNoteModifierBase.deserialize(mod));
         });
+        jsonObj.ornaments = jsonObj.ornaments ? jsonObj.ornaments : [];
+        jsonObj.ornaments.forEach((mod) => {            
+            note.ornaments.push(SmoNoteModifierBase.deserialize(mod));
+        });
+        
         return note;
     }
 }

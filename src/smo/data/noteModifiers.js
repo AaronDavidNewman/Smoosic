@@ -70,8 +70,8 @@ class SmoOrnament extends SmoNoteModifierBase {
 			mordent: 'mordent',
 			mordentInverted: 'mordent_inverted',
 			turn: 'turn',
-			turn_inverted: 'turn_inverted',
-			trill: 'trill',
+			turnInverted: 'turn_inverted',
+			trill: 'tr',
 			upprail: 'upprail',
 			prailup: 'prailup',
 			praildown: 'praildown',
@@ -101,7 +101,7 @@ class SmoOrnament extends SmoNoteModifierBase {
         return {
             ornament:SmoOrnament.ornaments.mordent,
             position:SmoOrnament.positions.above,
-            offsets:SmoOrnament.offsets.on            
+            offset:SmoOrnament.offsets.on            
         };
     }
     

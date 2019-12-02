@@ -483,6 +483,11 @@ class SmoOperation {
             selection.note.flagState = selections[0].note.flagState;
         });
     }
+    
+    static toggleOrnament(selection,ornament) {
+		selection.note.toggleOrnament(ornament);
+		selection.measure.setChanged();
+    }
 
 	static toggleArticulation(selection, articulation) {
 		selection.note.toggleArticulation(articulation);

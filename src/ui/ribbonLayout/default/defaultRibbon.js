@@ -39,7 +39,7 @@ class defaultRibbonLayout {
 	}
 	
 	static get articulateButtonIds()  {
-		return ['articulationButtons', 'accentAboveButton', 'tenutoAboveButton', 'staccatoAboveButton', 'marcatoAboveButton',  'pizzicatoAboveButton'];
+		return ['articulationButtons', 'accentButton', 'tenutoButton', 'staccatoButton', 'marcatoButton',  'pizzicatoButton','mordentButton','mordentInvertedButton','trillButton'];
 	}
 	
 	static get intervalIds()  {
@@ -662,17 +662,8 @@ class defaultRibbonLayout {
 				action: 'collapseChild',
 				ctor: 'ArticulationButtons',
 				group: 'articulations',
-				id: 'accentAboveButton'
-			}, {
-				leftText: '',
-				rightText: 'H',
-				icon: 'icon-accent_below',
-				classes: 'icon collapsed articulation',
-				action: 'collapseChild',
-				ctor: 'ArticulationButtons',
-				group: 'articulations',
-				id: 'accentBelowButton'
-			}, {
+				id: 'accentButton'
+			},{
 				leftText: '',
 				rightText: 'i',
 				icon: 'icon-tenuto_above',
@@ -680,16 +671,7 @@ class defaultRibbonLayout {
 				action: 'collapseChild',
 				ctor: 'ArticulationButtons',
 				group: 'articulations',
-				id: 'tenutoAboveButton'
-			}, {
-				leftText: '',
-				rightText: 'I',
-				icon: 'icon-tenuto_below',
-				classes: 'icon collapsed articulation',
-				action: 'collapseChild',
-				ctor: 'ArticulationButtons',
-				group: 'articulations',
-				id: 'tenutoBelowButton'
+				id: 'tenutoButton'
 			}, {
 				leftText: '',
 				rightText: 'j',
@@ -698,16 +680,7 @@ class defaultRibbonLayout {
 				action: 'collapseChild',
 				ctor: 'ArticulationButtons',
 				group: 'articulations',
-				id: 'staccatoAboveButton'
-			}, {
-				leftText: '',
-				rightText: 'J',
-				icon: 'icon-staccato_below',
-				classes: 'icon collapsed articulation',
-				action: 'collapseChild',
-				ctor: 'ArticulationButtons',
-				group: 'articulations',
-				id: 'staccatoBelowButton'
+				id: 'staccatoButton'
 			}, {
 				leftText: '',
 				rightText: 'k',
@@ -716,16 +689,7 @@ class defaultRibbonLayout {
 				action: 'collapseChild',
 				ctor: 'ArticulationButtons',
 				group: 'articulations',
-				id: 'marcatoAboveButton'
-			}, {
-				leftText: '',
-				rightText: 'K',
-				icon: 'icon-marcato_below',
-				classes: 'icon collapsed articulation',
-				action: 'collapseChild',
-				ctor: 'ArticulationButtons',
-				group: 'articulations',
-				id: 'marcatoBelowButton'
+				id: 'marcatoButton'
 			}, {
 				leftText: '',
 				rightText: 'l',
@@ -734,17 +698,35 @@ class defaultRibbonLayout {
 				action: 'collapseChild',
 				ctor: 'ArticulationButtons',
 				group: 'articulations',
-				id: 'pizzicatoAboveButton'
+				id: 'pizzicatoButton'
 			}, {
 				leftText: '',
-				rightText: 'L',
-				icon: 'icon-pitz_below',
+				rightText: '',
+				icon: 'icon-mordent-inv',
 				classes: 'icon collapsed articulation',
 				action: 'collapseChild',
 				ctor: 'ArticulationButtons',
 				group: 'articulations',
-				id: 'pizzicatoBelowButton'
-			}
+				id: 'mordentInvertedButton'
+            }, {
+				leftText: '',
+				rightText: '',
+				icon: 'icon-mordent',
+				classes: 'icon collapsed articulation',
+				action: 'collapseChild',
+				ctor: 'ArticulationButtons',
+				group: 'articulations',
+				id: 'mordentButton'
+            }, {
+				leftText: '',
+				rightText: '',
+				icon: 'icon-trill',
+				classes: 'icon collapsed articulation',
+				action: 'collapseChild',
+				ctor: 'ArticulationButtons',
+				group: 'articulations',
+				id: 'trillButton'
+            }
 		];
 	}
 	static get navigationButtons() {
