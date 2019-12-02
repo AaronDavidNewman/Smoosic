@@ -10716,6 +10716,7 @@ class SuiFileMenu extends suiMenuBase {
 			this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
 			var score = SmoScore.deserialize(inventionJson);
 			this.controller.layout.score = score;
+			$('body').trigger('forceResizeEvent');
 		}
 		this.complete();
 	}
@@ -52748,14 +52749,14 @@ class suiController {
 			$('h1.testTitle').text(title);
 		}
 		var params = suiController.keyBindingDefaults;
+        var score = SmoScore.deserialize(basicJson);
 		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), document.getElementById("booShadow"),score);
 		params.tracker = new suiTracker(params.layout);
 		params.editor = new suiEditor(params);
 		params.menus = new suiMenuManager(params);
 		var controller = new suiController(params);
-        var score = SmoScore.deserialize(basicJson);
         params.layout.score = score;
-		params.layout.setViewport();
+		// params.layout.setViewport();
 		return controller;
 	}
 	
