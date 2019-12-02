@@ -57,7 +57,6 @@ class editSvgText {
     endSession() {
         this.editing = false;
         this.target.setAttributeNS(null,'fill',this.oldFill);
-
     }
     
     get value() {
@@ -149,17 +148,12 @@ class editLyricSession {
     }
     
     detach() {
-        $('body').removeClass('showAttributeDialog');
+        this.editor.endSession();
+        this.state = editLyricSession.states.stopping;
 		window.removeEventListener("keydown", this.keydownHandler, true);
-		var self=this;
-		function rebind() {
-			self.controller.bindEvents();
-		}
         if (this.selection) {
             this.selection.measure.changed=true;
         }
-		this.controller.bindEvents();
-		this.controller.resizeEvent();
     }
 	
 	_editingSession() {       
@@ -210,7 +204,6 @@ class editLyricSession {
 		function _startEditing() {
 			self._editingSession();
 		}
-        $('body').addClass('showAttributeDialog');
         this._getOrCreateLyric(this.selection.note)
 		this.fontInfo = JSON.parse(JSON.stringify(this.lyric.fontInfo));
         this.selection.note.addLyric(this.lyric);

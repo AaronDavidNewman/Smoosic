@@ -418,10 +418,8 @@ class TextButtons {
         this.menus=parameters.controller.menus;
 	}
     lyrics() {
+		SuiLyricDialog.createAndDisplay(this.buttonElement, this.buttonData,this.controller);
 		// tracker, selection, controller
-		var selection = this.tracker.getExtremeSelection(-1);
-		var editor = new editLyricSession({tracker:this.tracker,selection:selection,controller:this.controller});
-		editor.editNote();
     }
     rehearsalMark() {
         var selection = this.tracker.getExtremeSelection(-1);

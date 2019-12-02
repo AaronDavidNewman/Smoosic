@@ -248,6 +248,7 @@ class SuiLoadFileDialog extends SuiFileDialog {
 	}
 }
 
+
 class SuiPrintFileDialog extends SuiFileDialog {
     static get dialogElements() {
 		return [];
@@ -323,6 +324,76 @@ class SuiSaveFileDialog extends SuiFileDialog {
         parameters.ctor='SuiSaveFileDialog';
         super(parameters);
 	}
+}
+
+class SuiLyricDialog extends SuiDialogBase {
+    static createAndDisplay(buttonElement, buttonData, controller) {
+		var dg = new SuiLyricDialog({				
+				layout: controller.layout,
+				controller: controller
+			});
+		dg.display();
+	}
+    static get dialogElements() {
+		return [];
+    }
+    constructor(parameters) {
+        parameters.ctor='SuiLyricDialog';
+        parameters.label = 'Done Editing Lyrics';
+        var p = parameters;
+
+		super(SuiLyricDialog.dialogElements, {
+			id: 'dialog-layout',
+			top: (p.layout.score.layout.pageWidth / 2) - 200,
+			left: (p.layout.score.layout.pageHeight / 2) - 200,
+			label: p.label
+		});        
+        this.layout = p.layout;
+		this.controller = p.controller;
+        this.tracker = this.controller.tracker;
+	}
+    display() {
+        $('body').addClass('showAttributeDialog');
+        $(this.dgDom.element).find('.buttonContainer').addClass('show-text-edit');
+		this.components.forEach((component) => {
+			component.bind();
+		});		
+		this._bindElements();
+        
+        // make sure keyboard is unbound or we get dupicate key events.
+        var self=this;
+        this.controller.unbindKeyboardForDialog(this);
+
+        var cb = function (x, y) {}
+        htmlHelpers.draggable({
+			parent: $(this.dgDom.element).find('.attributeModal'),
+			handle: $(this.dgDom.element).find('.jsDbMove'),
+            animateDiv:'.draganime',            
+			cb: cb,
+			moveParent: true
+		});
+	}
+    changed() {}
+    _bindElements() {
+        var self = this;
+        var dgDom = this.dgDom;       
+   
+		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+            self.editor.detach();
+            $('.textEdit').addClass('hide');
+            self.controller.bindEvents();
+            self.complete();
+		});
+        
+        // tracker, selection, controller
+		var selection = this.tracker.getExtremeSelection(-1);
+		this.editor = new editLyricSession({tracker:this.tracker,selection:selection,controller:this.controller});
+		this.editor.editNote();
+
+
+		$(dgDom.element).find('.cancel-button').remove();
+		$(dgDom.element).find('.remove-button').remove();
+	}       
 }
 class SuiTextTransformDialog  extends SuiDialogBase {
     static createAndDisplay(parameters) {

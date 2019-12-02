@@ -49,6 +49,10 @@ body.text-move .buttonContainer {
     display:none;
 }
 
+body.text-edit .buttonContainer.show-text-edit {
+    display:block;
+}
+
 .textEdit  {
 	display:block;
 	border:#3e3 2px dashed;

@@ -9819,7 +9819,6 @@ class editSvgText {
     endSession() {
         this.editing = false;
         this.target.setAttributeNS(null,'fill',this.oldFill);
-
     }
     
     get value() {
@@ -9911,17 +9910,12 @@ class editLyricSession {
     }
     
     detach() {
-        $('body').removeClass('showAttributeDialog');
+        this.editor.endSession();
+        this.state = editLyricSession.states.stopping;
 		window.removeEventListener("keydown", this.keydownHandler, true);
-		var self=this;
-		function rebind() {
-			self.controller.bindEvents();
-		}
         if (this.selection) {
             this.selection.measure.changed=true;
         }
-		this.controller.bindEvents();
-		this.controller.resizeEvent();
     }
 	
 	_editingSession() {       
@@ -9972,7 +9966,6 @@ class editLyricSession {
 		function _startEditing() {
 			self._editingSession();
 		}
-        $('body').addClass('showAttributeDialog');
         this._getOrCreateLyric(this.selection.note)
 		this.fontInfo = JSON.parse(JSON.stringify(this.lyric.fontInfo));
         this.selection.note.addLyric(this.lyric);
@@ -12084,6 +12077,7 @@ class SuiLoadFileDialog extends SuiFileDialog {
 	}
 }
 
+
 class SuiPrintFileDialog extends SuiFileDialog {
     static get dialogElements() {
 		return [];
@@ -12159,6 +12153,76 @@ class SuiSaveFileDialog extends SuiFileDialog {
         parameters.ctor='SuiSaveFileDialog';
         super(parameters);
 	}
+}
+
+class SuiLyricDialog extends SuiDialogBase {
+    static createAndDisplay(buttonElement, buttonData, controller) {
+		var dg = new SuiLyricDialog({				
+				layout: controller.layout,
+				controller: controller
+			});
+		dg.display();
+	}
+    static get dialogElements() {
+		return [];
+    }
+    constructor(parameters) {
+        parameters.ctor='SuiLyricDialog';
+        parameters.label = 'Done Editing Lyrics';
+        var p = parameters;
+
+		super(SuiLyricDialog.dialogElements, {
+			id: 'dialog-layout',
+			top: (p.layout.score.layout.pageWidth / 2) - 200,
+			left: (p.layout.score.layout.pageHeight / 2) - 200,
+			label: p.label
+		});        
+        this.layout = p.layout;
+		this.controller = p.controller;
+        this.tracker = this.controller.tracker;
+	}
+    display() {
+        $('body').addClass('showAttributeDialog');
+        $(this.dgDom.element).find('.buttonContainer').addClass('show-text-edit');
+		this.components.forEach((component) => {
+			component.bind();
+		});		
+		this._bindElements();
+        
+        // make sure keyboard is unbound or we get dupicate key events.
+        var self=this;
+        this.controller.unbindKeyboardForDialog(this);
+
+        var cb = function (x, y) {}
+        htmlHelpers.draggable({
+			parent: $(this.dgDom.element).find('.attributeModal'),
+			handle: $(this.dgDom.element).find('.jsDbMove'),
+            animateDiv:'.draganime',            
+			cb: cb,
+			moveParent: true
+		});
+	}
+    changed() {}
+    _bindElements() {
+        var self = this;
+        var dgDom = this.dgDom;       
+   
+		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+            self.editor.detach();
+            $('.textEdit').addClass('hide');
+            self.controller.bindEvents();
+            self.complete();
+		});
+        
+        // tracker, selection, controller
+		var selection = this.tracker.getExtremeSelection(-1);
+		this.editor = new editLyricSession({tracker:this.tracker,selection:selection,controller:this.controller});
+		this.editor.editNote();
+
+
+		$(dgDom.element).find('.cancel-button').remove();
+		$(dgDom.element).find('.remove-button').remove();
+	}       
 }
 class SuiTextTransformDialog  extends SuiDialogBase {
     static createAndDisplay(parameters) {
@@ -51435,10 +51499,8 @@ class TextButtons {
         this.menus=parameters.controller.menus;
 	}
     lyrics() {
+		SuiLyricDialog.createAndDisplay(this.buttonElement, this.buttonData,this.controller);
 		// tracker, selection, controller
-		var selection = this.tracker.getExtremeSelection(-1);
-		var editor = new editLyricSession({tracker:this.tracker,selection:selection,controller:this.controller});
-		editor.editNote();
     }
     rehearsalMark() {
         var selection = this.tracker.getExtremeSelection(-1);
@@ -51776,8 +51838,7 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
 		});
         $(this.context.svg).find('g.' + this.modifier.endingId).remove();
         this.selection.staff.removeStaffModifier(this.modifier);
-        this.tracker.clearModifierSelections();
-    }
+   }
 	_commit() {
         this.modifier.restoreOriginal();
 		this.layout.score.staves.forEach((staff) => {
