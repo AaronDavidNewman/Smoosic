@@ -180,7 +180,7 @@ class SmoScore {
             if (measureIndex < staff.measures.length) {
                 protomeasure = staff.measures[measureIndex];
             } else if (staff.measures.length) {
-                protomeasure = staff.measures[staff.measure.length - 1];
+                protomeasure = staff.measures[staff.measures.length - 1];
             }
             var nmeasure = SmoMeasure.getDefaultMeasureWithNotes(protomeasure);
             staff.addMeasure(measureIndex, nmeasure);

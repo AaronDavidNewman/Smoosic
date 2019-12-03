@@ -3764,7 +3764,7 @@ class SmoScore {
             if (measureIndex < staff.measures.length) {
                 protomeasure = staff.measures[measureIndex];
             } else if (staff.measures.length) {
-                protomeasure = staff.measures[staff.measure.length - 1];
+                protomeasure = staff.measures[staff.measures.length - 1];
             }
             var nmeasure = SmoMeasure.getDefaultMeasureWithNotes(protomeasure);
             staff.addMeasure(measureIndex, nmeasure);
@@ -6478,9 +6478,11 @@ class PasteBuffer {
 		selections.forEach((selection) => {
 			var selector = JSON.parse(JSON.stringify(selection.selector));
             var mod = selection.staff.getModifiersAt(selector);
-            if (mod) {
+            if (mod.length) {
                 mod.forEach((modifier) => {
-                    this.modifiers.push(StaffModifierBase.deserialize(modifier.serialize()));
+                    var cp = StaffModifierBase.deserialize(modifier.serialize());
+                    cp.attrs.id = VF.Element.newID();
+                    this.modifiers.push(cp);
                 });
             }
 			if (selection.note.isTuplet) {
@@ -6631,6 +6633,7 @@ class PasteBuffer {
 					tick: 0
 				};
 				this.measureIndex += 1;
+                startSelector.measure += 1;
 			} else {
 				break;
 			}
@@ -7685,6 +7688,14 @@ class suiTracker {
     selectId(id) {
         this.modifierIndex = this.modifierTabs.findIndex((mm) =>  mm.modifier.attrs.id==id);        
     }
+    
+    
+    // used by remove dialogs to clear removed thing 
+    clearModifierSelections() {
+        this.modifierSelections=[];
+        this.modifierIndex = -1;
+        this.eraseRect('staffModifier');
+    }
   
 	getSelectedModifier() {
 		if (this.modifierIndex >= 0) {
@@ -8586,7 +8597,9 @@ class suiLayoutBase {
 		var system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex);
 		while (startSelection && startSelection.selector.measure <= modifier.endSelector.measure) {
 			smoBeamerFactory.applyBeams(startSelection.measure);
-			system.renderMeasure(startSelection.selector.staff, startSelection.measure);
+            system.renderMeasure(startSelection.selector.staff, startSelection.measure);
+            this._renderModifiers(startSelection.staff, system);
+			
 			var nextSelection = SmoSelection.measureSelection(this._score, startSelection.selector.staff, startSelection.selector.measure + 1);
 
 			// If we go to new line, render this line part, then advance because the modifier is split
@@ -8596,7 +8609,7 @@ class suiLayoutBase {
 			}
 			startSelection = nextSelection;
 		}
-		this._renderModifiers(startSelection.staff, system);
+		// this._renderModifiers(startSelection.staff, system);
 	}
 
 	// ### unrenderMeasure
@@ -8701,10 +8714,12 @@ class suiLayoutBase {
     }         
 	
 	render() {
+        var viewportChanged = false;
 		if (this.viewportChange) {
 			this.unrenderAll();
 			this.setPassState(suiLayoutBase.passStates.initial,'render 1');			
 			this.viewportChange = false;
+            viewportChanged = true;
 		}
 
 		// layout a second time to adjust for issues.
@@ -8720,7 +8735,7 @@ class suiLayoutBase {
 			params.useY=true;
 			params.useX=true;
 		}
-        this.renderer = (this.passState == suiLayoutBase.passStates.initial || this.passState == suiLayoutBase.passStates.pass) ? 
+        this.renderer = (this.passState == suiLayoutBase.passStates.initial || this.passState == suiLayoutBase.passStates.pass) & !viewportChanged ? 
             this.shadowRenderer : this.mainRenderer;
 		
         this.layout(params);

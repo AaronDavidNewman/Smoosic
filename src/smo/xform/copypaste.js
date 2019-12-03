@@ -53,9 +53,11 @@ class PasteBuffer {
 		selections.forEach((selection) => {
 			var selector = JSON.parse(JSON.stringify(selection.selector));
             var mod = selection.staff.getModifiersAt(selector);
-            if (mod) {
+            if (mod.length) {
                 mod.forEach((modifier) => {
-                    this.modifiers.push(StaffModifierBase.deserialize(modifier.serialize()));
+                    var cp = StaffModifierBase.deserialize(modifier.serialize());
+                    cp.attrs.id = VF.Element.newID();
+                    this.modifiers.push(cp);
                 });
             }
 			if (selection.note.isTuplet) {
@@ -206,6 +208,7 @@ class PasteBuffer {
 					tick: 0
 				};
 				this.measureIndex += 1;
+                startSelector.measure += 1;
 			} else {
 				break;
 			}

@@ -197,7 +197,9 @@ class suiLayoutBase {
 		var system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex);
 		while (startSelection && startSelection.selector.measure <= modifier.endSelector.measure) {
 			smoBeamerFactory.applyBeams(startSelection.measure);
-			system.renderMeasure(startSelection.selector.staff, startSelection.measure);
+            system.renderMeasure(startSelection.selector.staff, startSelection.measure);
+            this._renderModifiers(startSelection.staff, system);
+			
 			var nextSelection = SmoSelection.measureSelection(this._score, startSelection.selector.staff, startSelection.selector.measure + 1);
 
 			// If we go to new line, render this line part, then advance because the modifier is split
@@ -207,7 +209,7 @@ class suiLayoutBase {
 			}
 			startSelection = nextSelection;
 		}
-		this._renderModifiers(startSelection.staff, system);
+		// this._renderModifiers(startSelection.staff, system);
 	}
 
 	// ### unrenderMeasure
@@ -312,10 +314,12 @@ class suiLayoutBase {
     }         
 	
 	render() {
+        var viewportChanged = false;
 		if (this.viewportChange) {
 			this.unrenderAll();
 			this.setPassState(suiLayoutBase.passStates.initial,'render 1');			
 			this.viewportChange = false;
+            viewportChanged = true;
 		}
 
 		// layout a second time to adjust for issues.
@@ -331,7 +335,7 @@ class suiLayoutBase {
 			params.useY=true;
 			params.useX=true;
 		}
-        this.renderer = (this.passState == suiLayoutBase.passStates.initial || this.passState == suiLayoutBase.passStates.pass) ? 
+        this.renderer = (this.passState == suiLayoutBase.passStates.initial || this.passState == suiLayoutBase.passStates.pass) & !viewportChanged ? 
             this.shadowRenderer : this.mainRenderer;
 		
         this.layout(params);

@@ -176,6 +176,14 @@ class suiTracker {
     selectId(id) {
         this.modifierIndex = this.modifierTabs.findIndex((mm) =>  mm.modifier.attrs.id==id);        
     }
+    
+    
+    // used by remove dialogs to clear removed thing 
+    clearModifierSelections() {
+        this.modifierSelections=[];
+        this.modifierIndex = -1;
+        this.eraseRect('staffModifier');
+    }
   
 	getSelectedModifier() {
 		if (this.modifierIndex >= 0) {
