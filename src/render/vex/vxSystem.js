@@ -90,8 +90,10 @@ class VxSystem {
 	renderModifier(modifier, vxStart, vxEnd) {
 		// if it is split between lines, render one artifact for each line, with a common class for
 		// both if it is removed.
-		var artifactId = modifier.attrs.id + '-' + this.lineIndex;
-		$(this.context.svg).find('g.' + artifactId).remove();
+		if (vxStart) {
+		    $(this.context.svg).find('g.' +  modifier.attrs.id).remove();
+        }
+        var artifactId = modifier.attrs.id + '-' + this.lineIndex;
 		var group = this.context.openGroup();
 		group.classList.add(modifier.id);
 		group.classList.add(artifactId);

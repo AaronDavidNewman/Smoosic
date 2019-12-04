@@ -260,7 +260,8 @@ class SmoNote {
     _serializeModifiers(params) {
         params.noteModifiers = JSON.parse(JSON.stringify(this.textModifiers));
         params.graceNotes = JSON.parse(JSON.stringify(this.graceNotes));
-        
+        params.articulations = JSON.parse(JSON.stringify(this.articulations));
+        params.ornaments = JSON.parse(JSON.stringify(this.ornaments ));        
     }
     serialize() {
         var params = {};
@@ -306,6 +307,10 @@ class SmoNote {
         jsonObj.ornaments = jsonObj.ornaments ? jsonObj.ornaments : [];
         jsonObj.ornaments.forEach((mod) => {            
             note.ornaments.push(SmoNoteModifierBase.deserialize(mod));
+        });
+        jsonObj.articulations = jsonObj.articulations ? jsonObj.articulations : [];
+        jsonObj.articulations.forEach((mod) => {            
+            note.articulations.push(SmoNoteModifierBase.deserialize(mod));
         });
         
         return note;

@@ -453,7 +453,7 @@ class suiTracker {
 	growSelectionRight() {
         if (this.isGraceNoteSelected()) {
             this._growGraceNoteSelections(1);
-            return;
+            return 0;
         }
 		var nselect = this._getOffsetSelection(1);
 		// already selected
@@ -468,13 +468,14 @@ class suiTracker {
 
 		this.selections.push(artifact);
 		this.highlightSelection();
-		this.triggerSelection();
+        return artifact.note.tickCount;
+		// this.triggerSelection();
 	}
 
 	growSelectionLeft() {
         if (this.isGraceNoteSelected()) {
             this._growGraceNoteSelections(-1);
-            return;
+            return 0;
         }
 		var nselect = this._getOffsetSelection(-1);
 		// already selected
@@ -489,7 +490,8 @@ class suiTracker {
 		console.log('adding selection ' + artifact.note.id);
 		this.selections.push(artifact);
 		this.highlightSelection();
-		this.triggerSelection();
+		// this.triggerSelection();
+        return artifact.note.tickCount;
 	}
 
 	moveSelectionRight() {
