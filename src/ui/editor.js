@@ -11,6 +11,10 @@ class suiEditor {
     _render() {
 		this.layout.setDirty();
     }
+	
+	_refresh() {
+		this.layout.setRefresh();
+	}
     
     get score() {
         return this.layout.score;
@@ -78,7 +82,7 @@ class suiEditor {
         }
         this.layout.unrenderAll();
         SmoUndoable.pasteBuffer(this.score, this.pasteBuffer, this.tracker.selections, this.undoBuffer, 'paste')
-        this._render();
+        this._refresh();
     }
     toggleBeamGroup() {
         if (this.tracker.selections.length < 1) {
@@ -93,26 +97,16 @@ class suiEditor {
             return;
         }
         SmoUndoable.beamSelections(this.tracker.selections, this.undoBuffer);
+        this._render();
     }
     toggleBeamDirection() {
         if (this.tracker.selections.length < 1) {
             return;
         }
         SmoUndoable.toggleBeamDirection(this.tracker.selections, this.undoBuffer);
-    }
-
-    deleteMeasure() {
-        if (this.tracker.selections.length < 1) {
-            return;
-        }
-        var selection = this.tracker.selections[0];
-        this.layout.unrenderAll();
-        SmoUndoable.deleteMeasure(this.score, selection, this.undoBuffer);
-        this.tracker.selections = [];
-        this.tracker.clearModifierSelections();
         this._render();
     }
-
+    
     collapseChord() {
         SmoUndoable.noop(this.score, this.undoBuffer);
         this.tracker.selections.forEach((selection) => {
@@ -249,11 +243,27 @@ class suiEditor {
         var measure = this.tracker.getFirstMeasureOfSelection();
         if (measure) {
             var nmeasure = SmoMeasure.getDefaultMeasureWithNotes(measure);
-            nmeasure.measureNumber.measureIndex = measure.measureNumber.measureIndex;
-            SmoUndoable.addMeasure(this.score, measure.measureNumber.measureIndex, nmeasure, this.undoBuffer);
-            this._render();
+			var pos = measure.measureNumber.measureIndex;
+			if (keyEvent.shiftKey) {
+				pos += 1;
+			}
+            nmeasure.measureNumber.measureIndex = pos;
+            SmoUndoable.addMeasure(this.score, pos, nmeasure, this.undoBuffer);
+            this._refresh();
         }
     }
+	deleteMeasure() {
+        if (this.tracker.selections.length < 1) {
+            return;
+        }
+        var selection = this.tracker.selections[0];
+        this.layout.unrenderAll();
+        SmoUndoable.deleteMeasure(this.score, selection, this.undoBuffer);
+        this.tracker.selections = [];
+        this.tracker.clearModifierSelections();
+        this._refresh();
+    }
+
     toggleCourtesyAccidental() {
         if (this.tracker.selections.length < 1) {
             return;

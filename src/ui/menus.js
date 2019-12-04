@@ -797,14 +797,15 @@ class SuiAddStaffMenu extends suiMenuBase {
 			if (this.score.staves.length > 1 && this.tracker.selections.length > 0) {
 				this.tracker.layout.unrenderAll();
 				SmoUndoable.removeStaff(this.score, this.tracker.selections[0].selector.staff, this.editor.undoBuffer);
+				this.tracker.layout.setRefresh();
 			}
 
 		} else if (op === 'cancel') {
 			this.complete();
 		}else {
 			var instrument = SuiAddStaffMenu.instrumentMap[op];
-
 			SmoUndoable.addStaff(this.score, instrument, this.editor.undoBuffer);
+			this.tracker.layout.setRefresh();
 		}
 		this.complete();
 	}

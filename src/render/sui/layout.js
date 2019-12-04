@@ -154,6 +154,7 @@ class suiLayoutBase {
 	// , then create the modified score, then render the 'new' score.
 	undo(undoBuffer) {
 		var buffer = undoBuffer.peek();
+		var op = 'setDirty';
 		// Unrender the modified music because the IDs may change and normal unrender won't work
 		if (buffer) {
 			var sel = buffer.selector;
@@ -161,11 +162,13 @@ class suiLayoutBase {
 				this.unrenderMeasure(SmoSelection.measureSelection(this._score, sel.staff, sel.measure).measure);
 			} else if (buffer.type === 'staff') {
 				this.unrenderStaff(SmoSelection.measureSelection(this._score, sel.staff, 0).staff);
+				op = 'setRefresh';
 			} else {
 				this.unrenderAll();
+				op = 'setRefresh';
 			}
 			this._score = undoBuffer.undo(this._score);
-			this.render();
+			this[op]();
 		}
 	}
 

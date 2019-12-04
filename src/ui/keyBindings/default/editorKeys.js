@@ -283,7 +283,14 @@ class defaultEditorKeys {
 				altKey: false,
 				shiftKey: false,
 				action: "addMeasure"
-			}, {
+			},{
+				event: "keydown",
+				key: "Insert",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "addMeasure"
+			} , {
 				event: "keydown",
 				key: "B",
 				ctrlKey: false,
