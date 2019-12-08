@@ -465,6 +465,7 @@ class suiController {
 			obj=obj.selections;
 			self.tracker.selections.forEach((sel) => {
 				SmoOperation.addPitch(sel,obj);
+                suiOscillator.playSelectionNow(sel);
 				// sel.note.pitches=JSON.parse(JSON.stringify(obj));
 			});
 			self.render();

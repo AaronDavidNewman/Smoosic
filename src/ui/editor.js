@@ -63,11 +63,13 @@ class suiEditor {
         } else {
             SmoUndoable[name](selection, this.undoBuffer);
         }
+        suiOscillator.playSelectionNow(selection);
         this._render();
     }
 
     _transpose(selection, offset) {
         this._selectionOperation(selection, 'transpose', offset);
+        suiOscillator.playSelectionNow(selection);
     }
 
     copy() {
@@ -115,6 +117,11 @@ class suiEditor {
             selection.note.pitches = [p];
         });
         this._render();
+    }
+    
+    playMeasure() {
+        var mm = this.tracker.getExtremeSelection(-1);
+        suiOscillator.playMeasureNow(mm);
     }
 
     intervalAdd(interval, direction) {
@@ -193,6 +200,7 @@ class suiEditor {
             pitch.octave -= 1;
         }
         SmoUndoable['setPitch'](selected, pitch, this.undoBuffer);
+        suiOscillator.playSelectionNow(selected);
     }
 
     setPitchCommand(letter) {

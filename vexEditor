@@ -97,6 +97,9 @@
                 <File name="src\render\sui\textLayout.js" />
                 <File name="src\render\sui\textEdit.js" />
             </Folder>
+            <Folder name="audio">
+                <File name="src\render\audio\oscillator.js" />
+            </Folder>
         </Folder>
         <Folder name="styles">
             <File name="src\styles\styles.css" />

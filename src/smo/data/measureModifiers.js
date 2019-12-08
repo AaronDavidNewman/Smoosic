@@ -416,6 +416,7 @@ class SmoTempoText extends SmoMeasureModifierBase {
 	}
 	constructor(parameters) {
 		super('SmoTempoText');
+        parameters = parameters ? parameters : {};
 		smoMusic.serializedMerge(SmoTempoText.attributes, SmoTempoText.defaults, this);
 		smoMusic.serializedMerge(SmoTempoText.attributes, parameters, this);
 	}

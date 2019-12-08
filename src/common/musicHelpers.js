@@ -221,6 +221,43 @@ class smoMusic {
 		}
 		return rv;
 	}
+    
+    // ### getEnharmonic(noteProp)
+	// cycle through the enharmonics for a note.
+	static getEnharmonic(vexKey) {
+		vexKey = smoMusic.stripVexOctave(vexKey);
+		var intVal = VF.Music.noteValues[vexKey.toLowerCase()].int_val;
+		var ar = smoMusic.enharmonics[intVal.toString()];
+		var len = ar.length;
+		// 'n' for natural in key but not in value
+		vexKey = vexKey.length > 1 && vexKey[1] === 'n' ? vexKey[0] : vexKey;
+		var ix = ar.indexOf(vexKey);
+		vexKey = ar[(ix + 1) % len];
+		return vexKey;
+	}
+    
+	// ### getKeyFriendlyEnharmonic
+	// fix the enharmonic to match the key, if possible
+	// `getKeyFriendlyEnharmonic('b','eb');  => returns 'bb'
+	static getKeyFriendlyEnharmonic(letter, keySignature) {
+		var rv = letter;
+		var muse = new VF.Music();
+		var scale = Object.values(muse.createScaleMap(keySignature));
+		var prop = smoMusic.getEnharmonic(letter.toLowerCase());
+		while (prop.toLowerCase() != letter.toLowerCase()) {
+			for (var i = 0; i < scale.length; ++i) {
+				var skey = scale[i];
+				if ((skey[0] == prop && skey[1] == 'n') ||
+					(skey.toLowerCase() == prop.toLowerCase())) {
+					rv = skey;
+					break;
+				}
+			}
+			prop = (prop[1] == 'n' ? prop[0] : prop);
+			prop = smoMusic.getEnharmonic(prop);
+		}
+		return rv;
+	}
 	static closestTonic(smoPitch, vexKey, direction) {
 		direction = Math.sign(direction) < 0 ? -1 : 1;
 		var tonic = smoMusic.vexToSmoPitch(vexKey);
@@ -294,6 +331,9 @@ class smoMusic {
 		}
 		return key;
 	}
+    static get frequencyMap() {
+        return suiAudioPitch.pitchFrequencyMap;
+    }
 
 	// ### get letterPitchIndex
 	// Used to adjust octave when transposing.
@@ -566,41 +606,7 @@ class smoMusic {
 	}
 
 
-	// ### getEnharmonic(noteProp)
-	// cycle through the enharmonics for a note.
-	static getEnharmonic(vexKey) {
-		vexKey = smoMusic.stripVexOctave(vexKey);
-		var intVal = VF.Music.noteValues[vexKey.toLowerCase()].int_val;
-		var ar = smoMusic.enharmonics[intVal.toString()];
-		var len = ar.length;
-		// 'n' for natural in key but not in value
-		vexKey = vexKey.length > 1 && vexKey[1] === 'n' ? vexKey[0] : vexKey;
-		var ix = ar.indexOf(vexKey);
-		vexKey = ar[(ix + 1) % len];
-		return vexKey;
-	}
-	// ### getKeyFriendlyEnharmonic
-	// fix the enharmonic to match the key, if possible
-	// `getKeyFriendlyEnharmonic('b','eb');  => returns 'bb'
-	static getKeyFriendlyEnharmonic(letter, keySignature) {
-		var rv = letter;
-		var muse = new VF.Music();
-		var scale = Object.values(muse.createScaleMap(keySignature));
-		var prop = smoMusic.getEnharmonic(letter.toLowerCase());
-		while (prop.toLowerCase() != letter.toLowerCase()) {
-			for (var i = 0; i < scale.length; ++i) {
-				var skey = scale[i];
-				if ((skey[0] == prop && skey[1] == 'n') ||
-					(skey.toLowerCase() == prop.toLowerCase())) {
-					rv = skey;
-					break;
-				}
-			}
-			prop = (prop[1] == 'n' ? prop[0] : prop);
-			prop = smoMusic.getEnharmonic(prop);
-		}
-		return rv;
-	}
+	
 
 	// ### filteredMerge
 	// Like vexMerge, but only for specific attributes.

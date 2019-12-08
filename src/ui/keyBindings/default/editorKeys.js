@@ -143,6 +143,13 @@ class defaultEditorKeys {
 				action: "rerender"
 			}, {
 				event: "keydown",
+				key: "p",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "playMeasure"
+			},  {
+				event: "keydown",
 				key: "3",
 				ctrlKey: true,
 				altKey: false,
