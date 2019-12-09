@@ -482,7 +482,7 @@ class suiController {
 
 		this.helpControls();
 
-		window.addEventListener("keypress", this.keydownHandler, true);
+		window.addEventListener("keydown", this.keydownHandler, true);
 		this.ribbon.display();
 
 		window.addEventListener('error', function (e) {

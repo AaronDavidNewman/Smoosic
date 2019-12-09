@@ -7756,6 +7756,9 @@ class suiOscillator {
         parameters = parameters ? parameters : {};
 		smoMusic.serializedMerge(suiOscillator.attributes, suiOscillator.defaults, this);
 		smoMusic.serializedMerge(suiOscillator.attributes, parameters, this);
+        
+        // Note: having some trouble with FloatArray and wavetable on some browsers, so I'm not using it 
+        // use built-in instead        
         /* if (parameters.waveform && parameters.waveform != 'custom') {
             this.waveform = parameters.waveform;
         } else {
@@ -55831,7 +55834,7 @@ class suiController {
 
 		this.helpControls();
 
-		window.addEventListener("keypress", this.keydownHandler, true);
+		window.addEventListener("keydown", this.keydownHandler, true);
 		this.ribbon.display();
 
 		window.addEventListener('error', function (e) {
