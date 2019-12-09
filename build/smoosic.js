@@ -7630,10 +7630,12 @@ class suiOscillator {
     }
     
     static playSelectionNow(selection) {
+        setTimeout(function() {
         var ar = suiOscillator.fromSelection(selection);
         ar.forEach((osc) => {
             osc.play();
         });
+        },1);
     }
     
     static playOscillatorArray(ar) {
@@ -7652,10 +7654,12 @@ class suiOscillator {
         playIx(0,ar[0]);
     }
     static playMeasureNow(selection) {
+        setTimeout(function() {
         var voices = suiOscillator.measureOscillators(selection);
         voices.forEach((voice) => {
             suiOscillator.playOscillatorArray(voice);
         });
+        },1);
     }
     static measureOscillators(selection) {
         var measure = selection.measure;
