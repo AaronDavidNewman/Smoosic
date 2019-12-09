@@ -44,6 +44,34 @@ class suiAudioPitch {
     }
 }
 
+class suiAudioPlayer {
+    static get playingMode() {
+        return {
+            note:0,fromStart:1,fromSelection:2,range:3
+        }
+    }
+    constructor(parameters) {
+        this.playing=false;
+        this.oscillators=[];
+    }
+    
+    _playOscillatorRecurse(ix,oscAr) {
+        var self=this;
+        var par = [];
+        oscAr.forEach((osc) => {
+            par.push(osc.play());
+        });
+        ix += 1;
+        Promise.all(par).then(() => {            
+            if (self.playing && ix < self.oscillators.length) {
+                self._playOscillatorRecurse(ix,self.oscillators[ix]);
+            }
+        });
+    }
+    play() {
+        this._playOscillatorRecurse(0,this.oscillators[0]);
+    }
+}
 class suiOscillator {
     static get defaults() {
         
@@ -60,9 +88,15 @@ class suiOscillator {
             gain:1
         };
         
+        var real=[];
+        var imag=[];
+        real.push(0);
+        imag.push(0);
+        real.push(1);
+        imag.push(0);
         var wavetable = {
-            real:[0,1,0.2,0.1,0.23],
-            imaginary:[0,0.4,0.1,0.05,.123]
+            real:real,
+            imaginary:imag
         };
         obj.wavetable = wavetable;
         return obj;
@@ -182,7 +216,7 @@ class suiOscillator {
         if (this.waveform != 'custom') {
             osc.type = this.waveform;
         } else {
-            var wave = audio.createPeriodicWave(this.wavetable.real, this.wavetable.imaginary, {disableNormalization: true});
+            var wave = audio.createPeriodicWave(this.wavetable.real, this.wavetable.imaginary);
             osc.setPeriodicWave(wave);
         }
         osc.frequency.value = this.frequency;
@@ -195,11 +229,14 @@ class suiOscillator {
         parameters = parameters ? parameters : {};
 		smoMusic.serializedMerge(suiOscillator.attributes, suiOscillator.defaults, this);
 		smoMusic.serializedMerge(suiOscillator.attributes, parameters, this);
-        if (parameters.waveform && parameters.waveform != 'custom') {
+        
+        // Note: having some trouble with FloatArray and wavetable on some browsers, so I'm not using it 
+        // use built-in instead        
+        /* if (parameters.waveform && parameters.waveform != 'custom') {
             this.waveform = parameters.waveform;
         } else {
             this.waveform='custom';
-        }
+        }  */
         this.sustain = this.duration-(this.attack + this.release + this.decay);
         this.sustain = (this.sustain > 0) ? this.sustain : 0;
     }

@@ -132,8 +132,8 @@ class suiEditor {
         if (this.tracker.selections.length != 1)
             return;
         // code='Digit3'
-        var interval = parseInt(keyEvent.code[5]) - 1;
-        if (isNaN(interval) || interval < 2 || interval > 7) {
+        var interval = parseInt(keyEvent.keyCode) - 49;  // 48 === '0', 0 indexed
+        if (isNaN(interval) || interval < 1 || interval > 7) {
             return;
         }
         this.intervalAdd(interval, keyEvent.shiftKey ? -1 : 1);
