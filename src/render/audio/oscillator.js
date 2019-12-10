@@ -79,25 +79,19 @@ class suiOscillator {
             
             duration:1000,
             frequency:440,
-            attack:10,
+            attack:30,
             decay:100,
-            sustain:750,
-            sustainLevel:0.05,
+            sustain:100,
+            sustainLevel:0.4,
             releaseLevel:0.01,
             waveform:'triangle',
-            gain:1
+            gain:0.4
         };
         
-        var real=[];
-        var imag=[];
-        real.push(0);
-        imag.push(0);
-        real.push(1);
-        imag.push(0);
         var wavetable = {
-            real:real,
-            imaginary:imag
-        };
+            real:[0,1],
+            imaginary:[0,0]
+        }
         obj.wavetable = wavetable;
         return obj;
     }
@@ -170,7 +164,7 @@ class suiOscillator {
         var duration = (beats / bpm) * 60000;
         
         var ar = [];
-        var gain = 1.0/selection.note.pitches.length; 
+        var gain = 0.5/selection.note.pitches.length; 
         selection.note.pitches.forEach((pitch) => {
             var frequency = suiAudioPitch.smoPitchToFrequency(pitch);
             var osc = new suiOscillator({frequency:frequency,duration:duration,gain:gain});
@@ -206,6 +200,15 @@ class suiOscillator {
         return promise;
     }
     
+    static toFloatArray(ar) {
+        var rv = new Float32Array(ar.length);
+        for (var i=0;i<ar.length;++i) {
+            rv[i] = ar[i];
+        }
+        
+        return rv;
+    }
+    
     play() {
         
         var audio = suiOscillator.audio;
@@ -214,17 +217,22 @@ class suiOscillator {
 
         gain.connect(audio.destination);
         gain.gain.setValueAtTime(0, audio.currentTime);
-        gain.gain.linearRampToValueAtTime(this.gain, audio.currentTime + this.attack / 1000);
-        gain.gain.linearRampToValueAtTime(this.sustainLevel*this.gain, audio.currentTime + this.decay / 1000);
-        gain.gain.linearRampToValueAtTime(this.releaseLevel*this.gain,audio.currentTime + this.sustain / 1000);
+        var attack = this.attack / 1000;
+        var decay = this.decay/1000;
+        var sustain = this.sustain/1000;
+        gain.gain.exponentialRampToValueAtTime(this.gain, audio.currentTime + attack);
+        gain.gain.exponentialRampToValueAtTime(this.sustainLevel*this.gain, audio.currentTime + attack + decay);
+        gain.gain.exponentialRampToValueAtTime(this.releaseLevel*this.gain,audio.currentTime + attack + decay + sustain );
         if (this.waveform != 'custom') {
             osc.type = this.waveform;
         } else {
-            var wave = audio.createPeriodicWave(this.wavetable.real, this.wavetable.imaginary);
+            var wave = audio.createPeriodicWave(suiOscillator.toFloatArray(this.wavetable.real), suiOscillator.toFloatArray(this.wavetable.imaginary), 
+               {disableNormalization: true});
             osc.setPeriodicWave(wave);
         }
         osc.frequency.value = this.frequency;
         osc.connect(gain);
+        gain.connect(audio.destination);
         return this._playPromise(osc,this.duration,gain);
     }
 
@@ -236,11 +244,11 @@ class suiOscillator {
         
         // Note: having some trouble with FloatArray and wavetable on some browsers, so I'm not using it 
         // use built-in instead        
-        /* if (parameters.waveform && parameters.waveform != 'custom') {
+        if (parameters.waveform && parameters.waveform != 'custom') {
             this.waveform = parameters.waveform;
         } else {
             this.waveform='custom';
-        }  */
+        }
         this.sustain = this.duration-(this.attack + this.release + this.decay);
         this.sustain = (this.sustain > 0) ? this.sustain : 0;
     }

@@ -303,7 +303,7 @@ class SmoMeasure {
 				position: SmoRepeatSymbol.positions.start,
 				symbol: SmoRepeatSymbol.symbols.None
 			}));
-	    modifiers.push(new SmoTempoText({tempoMode:SmoTempoText.tempoModes.textMode}));
+	    // modifiers.push(new SmoTempoText({tempoMode:SmoTempoText.tempoModes.textMode}));
 		// modifiers.push(new SmoRepeatSymbol({symbol:SmoRepeatSymbol.symbols.None});
 		return {
 			timeSignature: '4/4',

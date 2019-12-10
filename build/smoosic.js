@@ -2517,7 +2517,7 @@ class SmoMeasure {
 				position: SmoRepeatSymbol.positions.start,
 				symbol: SmoRepeatSymbol.symbols.None
 			}));
-	    modifiers.push(new SmoTempoText({tempoMode:SmoTempoText.tempoModes.textMode}));
+	    // modifiers.push(new SmoTempoText({tempoMode:SmoTempoText.tempoModes.textMode}));
 		// modifiers.push(new SmoRepeatSymbol({symbol:SmoRepeatSymbol.symbols.None});
 		return {
 			timeSignature: '4/4',
@@ -7606,25 +7606,19 @@ class suiOscillator {
             
             duration:1000,
             frequency:440,
-            attack:10,
+            attack:30,
             decay:100,
-            sustain:750,
-            sustainLevel:0.05,
+            sustain:100,
+            sustainLevel:0.4,
             releaseLevel:0.01,
             waveform:'triangle',
-            gain:1
+            gain:0.4
         };
         
-        var real=[];
-        var imag=[];
-        real.push(0);
-        imag.push(0);
-        real.push(1);
-        imag.push(0);
         var wavetable = {
-            real:real,
-            imaginary:imag
-        };
+            real:[0,1],
+            imaginary:[0,0]
+        }
         obj.wavetable = wavetable;
         return obj;
     }
@@ -7697,7 +7691,7 @@ class suiOscillator {
         var duration = (beats / bpm) * 60000;
         
         var ar = [];
-        var gain = 1.0/selection.note.pitches.length; 
+        var gain = 0.5/selection.note.pitches.length; 
         selection.note.pitches.forEach((pitch) => {
             var frequency = suiAudioPitch.smoPitchToFrequency(pitch);
             var osc = new suiOscillator({frequency:frequency,duration:duration,gain:gain});
@@ -7733,6 +7727,15 @@ class suiOscillator {
         return promise;
     }
     
+    static toFloatArray(ar) {
+        var rv = new Float32Array(ar.length);
+        for (var i=0;i<ar.length;++i) {
+            rv[i] = ar[i];
+        }
+        
+        return rv;
+    }
+    
     play() {
         
         var audio = suiOscillator.audio;
@@ -7741,17 +7744,22 @@ class suiOscillator {
 
         gain.connect(audio.destination);
         gain.gain.setValueAtTime(0, audio.currentTime);
-        gain.gain.linearRampToValueAtTime(this.gain, audio.currentTime + this.attack / 1000);
-        gain.gain.linearRampToValueAtTime(this.sustainLevel*this.gain, audio.currentTime + this.decay / 1000);
-        gain.gain.linearRampToValueAtTime(this.releaseLevel*this.gain,audio.currentTime + this.sustain / 1000);
+        var attack = this.attack / 1000;
+        var decay = this.decay/1000;
+        var sustain = this.sustain/1000;
+        gain.gain.exponentialRampToValueAtTime(this.gain, audio.currentTime + attack);
+        gain.gain.exponentialRampToValueAtTime(this.sustainLevel*this.gain, audio.currentTime + attack + decay);
+        gain.gain.exponentialRampToValueAtTime(this.releaseLevel*this.gain,audio.currentTime + attack + decay + sustain );
         if (this.waveform != 'custom') {
             osc.type = this.waveform;
         } else {
-            var wave = audio.createPeriodicWave(this.wavetable.real, this.wavetable.imaginary);
+            var wave = audio.createPeriodicWave(suiOscillator.toFloatArray(this.wavetable.real), suiOscillator.toFloatArray(this.wavetable.imaginary), 
+               {disableNormalization: true});
             osc.setPeriodicWave(wave);
         }
         osc.frequency.value = this.frequency;
         osc.connect(gain);
+        gain.connect(audio.destination);
         return this._playPromise(osc,this.duration,gain);
     }
 
@@ -7763,11 +7771,11 @@ class suiOscillator {
         
         // Note: having some trouble with FloatArray and wavetable on some browsers, so I'm not using it 
         // use built-in instead        
-        /* if (parameters.waveform && parameters.waveform != 'custom') {
+        if (parameters.waveform && parameters.waveform != 'custom') {
             this.waveform = parameters.waveform;
         } else {
             this.waveform='custom';
-        }  */
+        }
         this.sustain = this.duration-(this.attack + this.release + this.decay);
         this.sustain = (this.sustain > 0) ? this.sustain : 0;
     }
@@ -9713,7 +9721,7 @@ class suiScoreLayout extends suiLayoutBase {
 		var measure = staff.measures[i];
 		return (i > 0 ? staff.measures[i - 1][attr] : measure[attr]);
 	}
-	
+    	
 	renderScoreText(tt) {
 		var svg = this.context.svg;
 		var classes = tt.attrs.id+' '+'score-text'+' '+tt.classes;
@@ -9769,7 +9777,6 @@ class suiScoreLayout extends suiLayoutBase {
 		// bounding box of all artifacts on the page
 		var pageBox = {};
 		// bounding box of all artifacts in a system
-		var systemBoxes = {};
 		var staffBoxes = {};
 		if (!this._score.staves.length) {
 			return;
@@ -9785,7 +9792,7 @@ class suiScoreLayout extends suiLayoutBase {
 		var lineIndex = 0;
 		var system = new VxSystem(this.context, topStaff.measures[0].staffY, lineIndex);
 		var systemIndex = 0;
-
+        
 		for (var i = 0; i < topStaff.measures.length; ++i) {
 			var staffWidth = 0;
 			for (var j = 0; j < this._score.staves.length; ++j) {
@@ -9800,15 +9807,16 @@ class suiScoreLayout extends suiLayoutBase {
 				// The left-most measure sets the y for the row, top measure sets the x for the column.
 				// Other measures get the x, y from previous measure on this row.  Once the music is rendered we will adjust
 				// based on actual rendered dimensions.
-				if (!staffBoxes[j]) {
-					if (j == 0) {
-						staffBoxes[j] = svgHelpers.copyBox(staffBox);
+				if (!staffBoxes[staff.staffId]) {
+					if (staff.staffId == 0) {
+						staffBoxes[staff.staffId] = svgHelpers.copyBox(staffBox);
 					} else {
-						staffBoxes[j] = svgHelpers.pointBox(staffBoxes[j - 1].x, staffBoxes[j - 1].y + staffBoxes[j - 1].height + this._score.layout.intraGap);
+						staffBoxes[staff.staffId] = svgHelpers.pointBox(staffBoxes[staff.staffId - 1].x, 
+                        staffBoxes[staff.staffId - 1].y + staffBoxes[staff.staffId - 1].height + this._score.layout.intraGap);
 					}
 				}
 
-				staffBox = staffBoxes[j];
+				staffBox = staffBoxes[staff.staffId];
 				
 				// If we are calculating the measures' location dynamically, always update the y
 				if (!useAdjustedY && measure.changed) { // && systemIndex === 0) {
@@ -9818,17 +9826,13 @@ class suiScoreLayout extends suiLayoutBase {
 						}
 				}
 
-				if (!systemBoxes[lineIndex] || j > 0) {
-					systemBoxes[lineIndex] = svgHelpers.copyBox(staffBox);
-				}
-
 				if (!pageBox['width']) {
 					pageBox = svgHelpers.copyBox(staffBox);
 				}
 				var measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
-				var keySigLast = smoMusic.vexKeySignatureTranspose(this._previousAttr(i, j, 'keySignature'), measure.transposeIndex);
-				var timeSigLast = this._previousAttr(i, j, 'timeSignature');
-				var clefLast = this._previousAttr(i, j, 'clef');
+				var keySigLast = smoMusic.vexKeySignatureTranspose(this._previousAttr(i, staff.staffId, 'keySignature'), measure.transposeIndex);
+				var timeSigLast = this._previousAttr(i, staff.staffId, 'timeSignature');
+				var clefLast = this._previousAttr(i, staff.staffId, 'clef');
 
 				this.calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast);
 
@@ -9838,7 +9842,7 @@ class suiScoreLayout extends suiLayoutBase {
 				}
 
 				// Do we need to start a new line?  Don't start a new line on the first measure in a line...
-				if (j == 0 && systemIndex > 0 && staffBox.x + staffBox.width + measure.staffWidth
+				if (staff.staffId == 0 && systemIndex > 0 && staffBox.x + staffBox.width + measure.staffWidth
 					 > this.logicalPageWidth) {
 					system.renderEndings();
 					if (useAdjustedY) {
@@ -9866,12 +9870,11 @@ class suiScoreLayout extends suiLayoutBase {
 						}
 					}
 					staffBoxes = {};
-					staffBoxes[j] = svgHelpers.boxPoints(this._score.layout.leftMargin, measure.staffY, 1, 1);
+					staffBoxes[staff.staffId] = svgHelpers.boxPoints(this._score.layout.leftMargin, measure.staffY, 1, 1);
 					lineIndex += 1;
 					measure.lineIndex = lineIndex;
 					system = new VxSystem(this.context, staff.staffY, lineIndex);
 					systemIndex = 0;
-					systemBoxes[lineIndex] = staffBoxes[j];
 
 					// If we have wrapped lines, calculate the beginning stuff again.
 					this.calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast);
@@ -9892,7 +9895,7 @@ class suiScoreLayout extends suiLayoutBase {
 				// When we are estimating dimensions, just draw changed measures.
 				if (useAdjustedY || useAdjustedX || measure.changed) {
 					smoBeamerFactory.applyBeams(measure);
-					system.renderMeasure(j, measure);
+					system.renderMeasure(staff.staffId, measure);
 
 					if (suiLayoutBase.debugLayout) {
 						svgHelpers.debugBox(svg, svgHelpers.clientToLogical(svg, measure.renderedBox), 'measure-render-dbg');
@@ -9902,30 +9905,20 @@ class suiScoreLayout extends suiLayoutBase {
 								svgHelpers.debugBox(svg, noteEl.getBBox(), 'measure-note-dbg');
 							});
 						});
-					}
-                    // If we are still animating, pass that information back.
-                    if (measure.staffY != measure.prevY) {
-                        params.animateY=true;
-                    }
-                    if (measure.staffX != measure.prevX) {
-                        params.animateX=true;
-                    }
+					}                   
 					measure.changed = false;
 				}
 				// Rendered box is in client coordinates, convert it to SVG
 				var logicalRenderedBox = measure.logicalBox;
 
-				// Keep a running tally of the page, system, and staff dimensions as we draw.
-				systemBoxes[lineIndex] = svgHelpers.unionRect(systemBoxes[lineIndex], logicalRenderedBox);
-
 				// For x coordinate we adjust to the actual rendered size.  For Y, we want all staves at the same height
 				// so we only consider the height of the first measure in the system
 				if (systemIndex === 0) {
-					staffBoxes[j] = svgHelpers.unionRect(staffBoxes[j], logicalRenderedBox);
+					staffBoxes[staff.staffId] = svgHelpers.unionRect(staffBoxes[staff.staffId], logicalRenderedBox);
 				} else {
-					staffBoxes[j].width = (logicalRenderedBox.x + logicalRenderedBox.width) - staffBoxes[j].x;
+					staffBoxes[staff.staffId].width = (logicalRenderedBox.x + logicalRenderedBox.width) - staffBoxes[staff.staffId].x;
 				}
-				staffBoxes[j].y = measure.staffY;
+				staffBoxes[staff.staffId].y = measure.staffY;
 				pageBox = svgHelpers.unionRect(pageBox, logicalRenderedBox);
 			}
 			++systemIndex;

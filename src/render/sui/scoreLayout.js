@@ -94,7 +94,7 @@ class suiScoreLayout extends suiLayoutBase {
 		var measure = staff.measures[i];
 		return (i > 0 ? staff.measures[i - 1][attr] : measure[attr]);
 	}
-	
+    	
 	renderScoreText(tt) {
 		var svg = this.context.svg;
 		var classes = tt.attrs.id+' '+'score-text'+' '+tt.classes;
@@ -150,7 +150,6 @@ class suiScoreLayout extends suiLayoutBase {
 		// bounding box of all artifacts on the page
 		var pageBox = {};
 		// bounding box of all artifacts in a system
-		var systemBoxes = {};
 		var staffBoxes = {};
 		if (!this._score.staves.length) {
 			return;
@@ -166,7 +165,7 @@ class suiScoreLayout extends suiLayoutBase {
 		var lineIndex = 0;
 		var system = new VxSystem(this.context, topStaff.measures[0].staffY, lineIndex);
 		var systemIndex = 0;
-
+        
 		for (var i = 0; i < topStaff.measures.length; ++i) {
 			var staffWidth = 0;
 			for (var j = 0; j < this._score.staves.length; ++j) {
@@ -181,15 +180,16 @@ class suiScoreLayout extends suiLayoutBase {
 				// The left-most measure sets the y for the row, top measure sets the x for the column.
 				// Other measures get the x, y from previous measure on this row.  Once the music is rendered we will adjust
 				// based on actual rendered dimensions.
-				if (!staffBoxes[j]) {
-					if (j == 0) {
-						staffBoxes[j] = svgHelpers.copyBox(staffBox);
+				if (!staffBoxes[staff.staffId]) {
+					if (staff.staffId == 0) {
+						staffBoxes[staff.staffId] = svgHelpers.copyBox(staffBox);
 					} else {
-						staffBoxes[j] = svgHelpers.pointBox(staffBoxes[j - 1].x, staffBoxes[j - 1].y + staffBoxes[j - 1].height + this._score.layout.intraGap);
+						staffBoxes[staff.staffId] = svgHelpers.pointBox(staffBoxes[staff.staffId - 1].x, 
+                        staffBoxes[staff.staffId - 1].y + staffBoxes[staff.staffId - 1].height + this._score.layout.intraGap);
 					}
 				}
 
-				staffBox = staffBoxes[j];
+				staffBox = staffBoxes[staff.staffId];
 				
 				// If we are calculating the measures' location dynamically, always update the y
 				if (!useAdjustedY && measure.changed) { // && systemIndex === 0) {
@@ -199,17 +199,13 @@ class suiScoreLayout extends suiLayoutBase {
 						}
 				}
 
-				if (!systemBoxes[lineIndex] || j > 0) {
-					systemBoxes[lineIndex] = svgHelpers.copyBox(staffBox);
-				}
-
 				if (!pageBox['width']) {
 					pageBox = svgHelpers.copyBox(staffBox);
 				}
 				var measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
-				var keySigLast = smoMusic.vexKeySignatureTranspose(this._previousAttr(i, j, 'keySignature'), measure.transposeIndex);
-				var timeSigLast = this._previousAttr(i, j, 'timeSignature');
-				var clefLast = this._previousAttr(i, j, 'clef');
+				var keySigLast = smoMusic.vexKeySignatureTranspose(this._previousAttr(i, staff.staffId, 'keySignature'), measure.transposeIndex);
+				var timeSigLast = this._previousAttr(i, staff.staffId, 'timeSignature');
+				var clefLast = this._previousAttr(i, staff.staffId, 'clef');
 
 				this.calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast);
 
@@ -219,7 +215,7 @@ class suiScoreLayout extends suiLayoutBase {
 				}
 
 				// Do we need to start a new line?  Don't start a new line on the first measure in a line...
-				if (j == 0 && systemIndex > 0 && staffBox.x + staffBox.width + measure.staffWidth
+				if (staff.staffId == 0 && systemIndex > 0 && staffBox.x + staffBox.width + measure.staffWidth
 					 > this.logicalPageWidth) {
 					system.renderEndings();
 					if (useAdjustedY) {
@@ -247,12 +243,11 @@ class suiScoreLayout extends suiLayoutBase {
 						}
 					}
 					staffBoxes = {};
-					staffBoxes[j] = svgHelpers.boxPoints(this._score.layout.leftMargin, measure.staffY, 1, 1);
+					staffBoxes[staff.staffId] = svgHelpers.boxPoints(this._score.layout.leftMargin, measure.staffY, 1, 1);
 					lineIndex += 1;
 					measure.lineIndex = lineIndex;
 					system = new VxSystem(this.context, staff.staffY, lineIndex);
 					systemIndex = 0;
-					systemBoxes[lineIndex] = staffBoxes[j];
 
 					// If we have wrapped lines, calculate the beginning stuff again.
 					this.calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast);
@@ -273,7 +268,7 @@ class suiScoreLayout extends suiLayoutBase {
 				// When we are estimating dimensions, just draw changed measures.
 				if (useAdjustedY || useAdjustedX || measure.changed) {
 					smoBeamerFactory.applyBeams(measure);
-					system.renderMeasure(j, measure);
+					system.renderMeasure(staff.staffId, measure);
 
 					if (suiLayoutBase.debugLayout) {
 						svgHelpers.debugBox(svg, svgHelpers.clientToLogical(svg, measure.renderedBox), 'measure-render-dbg');
@@ -283,30 +278,20 @@ class suiScoreLayout extends suiLayoutBase {
 								svgHelpers.debugBox(svg, noteEl.getBBox(), 'measure-note-dbg');
 							});
 						});
-					}
-                    // If we are still animating, pass that information back.
-                    if (measure.staffY != measure.prevY) {
-                        params.animateY=true;
-                    }
-                    if (measure.staffX != measure.prevX) {
-                        params.animateX=true;
-                    }
+					}                   
 					measure.changed = false;
 				}
 				// Rendered box is in client coordinates, convert it to SVG
 				var logicalRenderedBox = measure.logicalBox;
 
-				// Keep a running tally of the page, system, and staff dimensions as we draw.
-				systemBoxes[lineIndex] = svgHelpers.unionRect(systemBoxes[lineIndex], logicalRenderedBox);
-
 				// For x coordinate we adjust to the actual rendered size.  For Y, we want all staves at the same height
 				// so we only consider the height of the first measure in the system
 				if (systemIndex === 0) {
-					staffBoxes[j] = svgHelpers.unionRect(staffBoxes[j], logicalRenderedBox);
+					staffBoxes[staff.staffId] = svgHelpers.unionRect(staffBoxes[staff.staffId], logicalRenderedBox);
 				} else {
-					staffBoxes[j].width = (logicalRenderedBox.x + logicalRenderedBox.width) - staffBoxes[j].x;
+					staffBoxes[staff.staffId].width = (logicalRenderedBox.x + logicalRenderedBox.width) - staffBoxes[staff.staffId].x;
 				}
-				staffBoxes[j].y = measure.staffY;
+				staffBoxes[staff.staffId].y = measure.staffY;
 				pageBox = svgHelpers.unionRect(pageBox, logicalRenderedBox);
 			}
 			++systemIndex;
