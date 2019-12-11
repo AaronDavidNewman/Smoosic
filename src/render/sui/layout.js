@@ -314,7 +314,21 @@ class suiLayoutBase {
                         {'stroke-dasharray': '4,1'},
                             {'fill': 'none'}],'pageLine');
         }
-    }         
+    }
+    
+    _replaceMeasures() {
+        var changes = [];
+        this._score.staves.forEach((s) => {
+            var mms = s.measures.filter((m) => {return m.changed;});
+            mms.forEach((mm) => {
+                changes.push({staff:s,measure:mm});
+            });
+        });
+        changes.forEach((change) => {
+            var system = new VxSystem(this.context, change.staff.measures[0].staffY, change.measure.lineIndex);
+            system.renderMeasure(change.staff.staffId, change.measure);
+        });
+    }
 	
 	render() {
         var viewportChanged = false;
@@ -341,7 +355,11 @@ class suiLayoutBase {
         this.renderer = (this.passState == suiLayoutBase.passStates.initial || this.passState == suiLayoutBase.passStates.pass) & !viewportChanged ? 
             this.shadowRenderer : this.mainRenderer;
 		
-        this.layout(params);
+        if (suiLayoutBase.passStates.replace == this.passState) {
+            this._replaceMeasures();
+        } else {
+           this.layout(params);
+        }
         this._drawPageLines();
 		
 		if (this.passState == suiLayoutBase.passStates.replace) {
