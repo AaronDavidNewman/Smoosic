@@ -408,6 +408,18 @@ class MeasureButtons {
 	}
 }
 
+class PlayerButtons {
+    	constructor(parameters) {
+		this.buttonElement = parameters.buttonElement;
+		this.buttonData = parameters.buttonData;
+		this.tracker = parameters.tracker;
+        this.editor = parameters.editor;
+		this.controller = parameters.controller;
+        this.menus=parameters.controller.menus;
+	}
+    
+}
+
 class TextButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;

@@ -52,6 +52,7 @@ class suiAudioPlayer {
     }
     constructor(parameters) {
         this.playing=false;
+        this.score = parameters.score;
         this.oscillators=[];
     }
     
@@ -67,6 +68,49 @@ class suiAudioPlayer {
                 self._playOscillatorRecurse(ix,self.oscillators[ix]);
             }
         });
+    }
+    _createOscillatorsForMeasure(measure) {
+         var tempo = measure.getTempo();
+        tempo = tempo ? tempo : new SmoTempoText();
+        var tickTime = 60000/tempo.bpm;
+        var voiceOsc = [];
+        measure.voices.forEach((voice) => {
+            var ix = 0;
+            var rv = [];
+            voiceOsc.push(rv);
+            voice.notes.forEach((note) => {
+                var ss=JSON.parse(JSON.stringify(selection.selector));
+                ss.tick=ix;
+                var nsel = new SmoSelection({
+									selector: ss,
+									_staff: selection.staff,
+									_measure: selection.measure,
+									_note: note,
+									_pitches: [],
+								});
+                
+                rv.push(suiOscillator.fromSelection(nsel));
+                ix += 1;
+            });
+        });
+        
+        return voiceOsc;
+        
+    }
+    playScore(measureIx) {
+        measureIx = measureIx ? measureIx : 0;
+        var staffList = {};
+
+        this.score.staves.forEach((staff) => {
+            var measureList = {};
+            var measures = staff.filter((mm) => mm.measureNumber.measureIndex >= measureIx);
+            measures.forEach((measure) => {
+                measureList[measure.measureNumber.measureIndex] = _createOscillatorsForMeasure(measure);
+            });
+            staffList[staff.staffId] = measureList;
+        });
+        
+        
     }
     play() {
         this._playOscillatorRecurse(0,this.oscillators[0]);
