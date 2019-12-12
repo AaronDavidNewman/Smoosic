@@ -24,7 +24,7 @@ class suiController {
 		this.undoStatus=0;
 		this.trackScrolling = false;
         this.keyboardActive = false;
-		this.pollTime = 50;
+		this.pollTime = 100;
 		this.idleRedrawTime = 2000;
 		this.waitingForIdleLayout = false;
 		this.idleLayoutTimer = 0;
@@ -317,8 +317,7 @@ class suiController {
 
 	helpControls() {
 		var self = this;
-		var rebind = function () {
-			self.render();
+		var rebind = function () {			
 			self.bindEvents();
 		}
 		/* SmoHelp.helpControls();
@@ -365,7 +364,6 @@ class suiController {
 	unbindKeyboardForDialog(dialog) {
 		var self=this;
 		var rebind = function () {
-			self.render();
 			self.bindEvents();
 		}
 		window.removeEventListener("keydown", this.keydownHandler, true);
@@ -378,7 +376,6 @@ class suiController {
         window.removeEventListener("keydown", this.keydownHandler, true);
         var self=this;
         var rebind = function () {
-            self.render();
             self.bindEvents();
         }
         this.keyboardActive = false;
@@ -430,7 +427,9 @@ class suiController {
 
 	render() {		
 		this.layout.render();
-		this.tracker.updateMap();
+        if (this.layout.passState == suiLayoutBase.passStates.clean || this.layout.passState ==  suiLayoutBase.passStates.replace) {
+		    this.tracker.updateMap();
+        }
 	}
 
 	bindEvents() {
@@ -468,7 +467,6 @@ class suiController {
                 suiOscillator.playSelectionNow(sel);
 				// sel.note.pitches=JSON.parse(JSON.stringify(obj));
 			});
-			self.render();
 		});
 		$('body').off('tracker-selection').on('tracker-selection',function(ev) {
 			self.trackerChangeEvent(ev);

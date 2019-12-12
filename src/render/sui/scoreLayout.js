@@ -341,17 +341,7 @@ class suiScoreLayout extends suiLayoutBase {
         return s;
     }
     
-    // ### layout
-	//  Render the music, keeping track of the bounding boxes of all the
-	// elements.  Re-render a second time to adjust measure widths to prevent notes
-	// from overlapping.  Then render all the modifiers.
-	// * useAdjustedY is false if we are dynamically rendering the score, and we use other
-	// measures to find our sweet spot.  If true, we assume the coordinates are correct and we use those.
-    layout(calculations) {
-        // bounding box of all artifacts in a system
-		if (!this._score.staves.length || !this._score.staves[0].measures.length) {
-			return;
-		}
+    _initializeRenderState(calculations) {
         var staff = this._score.staves[0];
         var measure = staff.measures[0];
         var lineIndex = 0;
@@ -374,17 +364,48 @@ class suiScoreLayout extends suiLayoutBase {
         renderState.clefLast = this._previousAttr(measure.measureNumber.measureIndex, staff.staffId, 'clef');
 
         this._resetStaffBoxes(renderState);
+        return renderState;        
+    }
+    
+    // ### layout
+	//  Render the music, keeping track of the bounding boxes of all the
+	// elements.  Re-render a second time to adjust measure widths to prevent notes
+	// from overlapping.  Then render all the modifiers.
+	// * useAdjustedY is false if we are dynamically rendering the score, and we use other
+	// measures to find our sweet spot.  If true, we assume the coordinates are correct and we use those.
+    layout(calculations) {
+        // bounding box of all artifacts in a system
+		if (!this._score.staves.length || !this._score.staves[0].measures.length) {
+			return;
+		}
         
+        var renderState = this.passState == suiLayoutBase.passStates.incomplete ? 
+            this.renderState : 
+            this._initializeRenderState(calculations);
+        if (this.passState == suiLayoutBase.passStates.incomplete) {
+            this.setPassState(suiLayoutBase.passStates.pass,'completing');
+        }
+        var ts = Date.now();
         while (renderState.complete == false) {
             this._layoutSystem(renderState);
+            if (this.passState == suiLayoutBase.passStates.pass && 
+                renderState.complete == false 
+                && Date.now() - ts > 100) {
+                this.renderState = renderState;
+                this.setPassState(suiLayoutBase.passStates.incomplete,' partial '+renderState.measure.measureNumber.measureIndex);
+                break;
+            }
         }
         
+        if (this.passState == suiLayoutBase.passStates.incomplete) {
+            return;
+        }
         this._score.staves.forEach((stf) => {
-			this._renderModifiers(stf, system);
+			this._renderModifiers(stf, renderState.system);
 		});
 		this._renderScoreModifiers();
 		if (calculations.useY) {
-			system.cap();
+			renderState.system.cap();
 		}
     }
 }	

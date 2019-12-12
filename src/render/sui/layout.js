@@ -17,7 +17,7 @@ class suiLayoutBase {
 	}
 	
 	static get passStates() {
-		return {initial:0,pass:1,clean:2,replace:3};
+		return {initial:0,pass:1,clean:2,replace:3,incomplete:4};
 	}
 	
 	setDirty() {
@@ -343,7 +343,7 @@ class suiLayoutBase {
 		// this.adjustWidths();
 		// this.adjustWidths();
 		var params = {useY:false,useX:false};
-		if (this.passState == suiLayoutBase.passStates.pass) {
+		if (this.passState == suiLayoutBase.passStates.pass || this.passState == suiLayoutBase.passStates.incomplete) {
 			params.useX=true;
 		    suiLayoutAdjuster.adjustWidths(this._score,this.renderer);
 		}
@@ -352,13 +352,18 @@ class suiLayoutBase {
 			params.useY=true;
 			params.useX=true;
 		}
-        this.renderer = (this.passState == suiLayoutBase.passStates.initial || this.passState == suiLayoutBase.passStates.pass) & !viewportChanged ? 
+        this.renderer = (this.passState == suiLayoutBase.passStates.initial || this.passState == suiLayoutBase.passStates.pass || this.passState == suiLayoutBase.passStates.incomplete) && 
+            !viewportChanged ? 
             this.shadowRenderer : this.mainRenderer;
 		
         if (suiLayoutBase.passStates.replace == this.passState) {
             this._replaceMeasures();
         } else {
            this.layout(params);
+        }
+        
+        if (this.passState == suiLayoutBase.passStates.incomplete) {
+            return;
         }
         this._drawPageLines();
 		
