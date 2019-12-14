@@ -121,7 +121,7 @@ class suiEditor {
     
     playMeasure() {
         var mm = this.tracker.getExtremeSelection(-1);
-        suiOscillator.playMeasureNow(mm);
+        suiOscillator.playMeasureNow(this.layout.score,mm);
     }
 
     intervalAdd(interval, direction) {

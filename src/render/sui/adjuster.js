@@ -97,7 +97,7 @@ class suiLayoutAdjuster {
 			$(context.svg).find('g.measure-adjust-dbg').remove();
 		}
 		var topStaff = score.staves[0];
-		var maxLine = topStaff.measures[topStaff.measures.length - 1].lineIndex - 1;
+		var maxLine = topStaff.measures[topStaff.measures.length - 1].lineIndex;
 		for (var i = 0; i <= maxLine; ++i) {
 			var systemIndex = 0;
 
