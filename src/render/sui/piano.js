@@ -26,7 +26,8 @@ class suiPiano {
 
 	static createAndDisplay(parms) {
 		// Called by ribbon button.
-		$('body').toggleClass('show-piano');
+		// $('body').toggleClass('show-piano');
+        $('body').trigger('show-piano-event');
 		$('body').trigger('forceScrollEvent');
 		// handle resize work area.
 	}
@@ -63,6 +64,11 @@ class suiPiano {
 	}
 	bind() {
 		var self = this;
+        $('body').off('show-piano-event').on('show-piano-event',function() {
+            $('body').toggleClass('show-piano');
+            self._mapKeys();
+        });
+
 		$(this.renderElement).off('mousemove').on('mousemove', function (ev) {
 			var keyPressed = svgHelpers.findSmallestIntersection({
 					x: ev.clientX,
