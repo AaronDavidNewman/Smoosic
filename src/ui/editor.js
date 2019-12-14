@@ -126,7 +126,7 @@ class suiEditor {
             return;
         }
 
-        new suiAudioPlayer({score:this.layout.score,startIndex:mm.selector.measure}).play();        
+        new suiAudioPlayer({score:this.layout.score,startIndex:mm.selector.measure,tracker:this.tracker}).play();        
     }
     
     stopPlayer() {

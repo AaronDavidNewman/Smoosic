@@ -794,6 +794,13 @@ class svgHelpers {
         svg.appendChild(line);
     }
     
+    static arrowDown(svg,box,attrs,classes) {
+        svgHelpers.line(svg,box.x+box.width/2,box.y,box.x+box.width/2,box.y+box.height);
+        var arrowY=box.y + box.height/4;
+        svgHelpers.line(svg,box.x,arrowY,box.x+box.width/2,box.y+box.height);
+        svgHelpers.line(svg,box.x+box.width,arrowY,box.x+box.width/2,box.y+box.height);
+    }
+    
     static textOutlineRect(svg,textElement, color, classes) {
         var box = textElement.getBBox();
         var attrs = [{width:box.width+5,height:box.height+5,stroke:color,strokewidth:'2',fill:'none',x:box.x-5,y:box.y-5}];
@@ -1017,6 +1024,12 @@ class svgHelpers {
 			height: box.height
 		});
 	}
+    
+    static adjustScroll(box,scroll) {
+        // WIP...
+        // return svgHelpers.boxPoints(box.x + scroll.x,box.y+scroll.y,box.width,box.height);
+        return box;
+    }
 
 	static boxPoints(x, y, w, h) {
 		return ({
@@ -7634,11 +7647,17 @@ class suiAudioPlayer {
     }
     
     // A single voice-measure.
-    static _playVoice(voiceOsc) {
+    _playVoice(voiceOsc,updateCursor) {
+        self = this;
         var measureCompletePromise = new Promise((resolve) => {
             var recursePlayer = (ix,oscAr) => {
                 return suiAudioPlayer._playChord(voiceOsc[ix]).then(() =>{
                     if (suiAudioPlayer.playing && voiceOsc.length - 1 > ix) {
+                        
+                        // Update the birdy that follows the music
+                        if (updateCursor) {
+                            self.tracker.musicCursor(self.startIndex + self.playIndex,ix+1);
+                        }
                         recursePlayer(ix+1,voiceOsc);
                     } else {
                         resolve();
@@ -7660,20 +7679,7 @@ class suiAudioPlayer {
             var pitchOsc = [];
             voiceOsc.push(pitchOsc);
             voice.notes.forEach((note) => {
-                // TODO: selector isn't really used here.
-                var ss={
-                    staff:staff.staffId,measure:ix,tick:ix
-                };
-                ss.tick=ix;
-                var nsel = new SmoSelection({
-									selector: ss,
-									_staff: staff,
-									_measure: measure,
-									_note: note,
-									_pitches: [],
-								});
-                
-                pitchOsc.push(suiOscillator.fromSelection(nsel));
+                pitchOsc.push(suiOscillator.fromNote(measure,note));
                 ix += 1;
             });
         });
@@ -7697,20 +7703,23 @@ class suiAudioPlayer {
         return staffList;
     }
     
-    static _playMeasure(measureOsc) {
+    _playMeasure(measureOsc,updateCursor) {
        var par = [];
        measureOsc.forEach((voiceOsc) => {
-           par.push(suiAudioPlayer._playVoice(voiceOsc));
+           par.push(this._playVoice(voiceOsc,updateCursor));
        });
        
        return Promise.all(par);
     }
     
-    static _playMeasureAllStaffs(measureIx,staffList) {
+    _playMeasureAllStaffs(measureIx,staffList) {
         var par = [];
+        // only update cursor once per staff
+        var updateCursor = true;
         staffList.forEach((staffOsc) => {
             var measureOsc = staffOsc[measureIx];
-            par.push(suiAudioPlayer._playMeasure(measureOsc));
+            par.push(this._playMeasure(measureOsc,updateCursor));
+            updateCursor = false;
         });
         
         return par;
@@ -7723,11 +7732,12 @@ class suiAudioPlayer {
         suiAudioPlayer._playingInstance = this;
         var self = this;
         var playRecurse = (oscillators,ix) => {
-            self.startIndex = ix;
-            Promise.all(suiAudioPlayer._playMeasureAllStaffs(ix,oscillators)).then(() => {
+            self.playIndex = ix;
+            Promise.all(this._playMeasureAllStaffs(ix,oscillators)).then(() => {
                 if (suiAudioPlayer.playing && 
                   suiAudioPlayer.instanceId == self.instanceId && 
                   ix < oscillators[0].length - 1) {
+                    self.tracker.musicCursor(ix + 1,0);
                     playRecurse(oscillators,ix+1);
                 } else {                    
                     if (ix > oscillators[0].length - 1 || self.paused == false) {
@@ -7735,18 +7745,21 @@ class suiAudioPlayer {
                         suiAudioPlayer._playingInstance = null;
                         self.paused = false;
                     }
+                    self.tracker.clearMusicCursor();
                 }
             });
         }        
         suiAudioPlayer.playing = true;
-        playRecurse(this.oscillators,this.startIndex);
+        playRecurse(this.oscillators,this.playIndex);
     }
     
     constructor(parameters) {
         this.instanceId = suiAudioPlayer.incrementInstanceId();
         suiAudioPlayer.playing=false;
         this.paused = false;
-        this.startIndex = parameters.startIndex;        
+        this.startIndex = parameters.startIndex;
+        this.playIndex = 0;
+        this.tracker = parameters.tracker;
         this.score = parameters.score;
         this.oscillators=suiAudioPlayer._createOscillatorsAllStaffs(this.score,this.startIndex);
     }
@@ -7778,7 +7791,7 @@ class suiOscillator {
     
     static playSelectionNow(selection) {
         setTimeout(function() {
-        var ar = suiOscillator.fromSelection(selection);
+        var ar = suiOscillator.fromNote(selection.measure,selection.note);
         ar.forEach((osc) => {
             osc.play();
         });
@@ -7803,57 +7816,20 @@ class suiOscillator {
         }
         playIx(0,ar[0]);
     }
-    static playMeasureNow(score,selection) {
-        var player = new suiAudioPlayer({score:score,startIndex:selection.selector.measure});
-        player.play();
-        /* setTimeout(function() {
-        var voices = suiOscillator.measureOscillators(selection);
-        voices.forEach((voice) => {
-            suiOscillator.playOscillatorArray(voice);
-        });
-        },1);  */
-    }
-    static measureOscillators(selection) {
-        var measure = selection.measure;
+   
+    static fromNote(measure,note) {
         var tempo = measure.getTempo();
         tempo = tempo ? tempo : new SmoTempoText();
-        var tickTime = 60000/tempo.bpm;
-        var voiceOsc = [];
-        selection.measure.voices.forEach((voice) => {
-            var ix = 0;
-            var rv = [];
-            voiceOsc.push(rv);
-            voice.notes.forEach((note) => {
-                var ss=JSON.parse(JSON.stringify(selection.selector));
-                ss.tick=ix;
-                var nsel = new SmoSelection({
-									selector: ss,
-									_staff: selection.staff,
-									_measure: selection.measure,
-									_note: note,
-									_pitches: [],
-								});
-                
-                rv.push(suiOscillator.fromSelection(nsel));
-                ix += 1;
-            });
-        });
-        
-        return voiceOsc;
-    }
-    static fromSelection(selection) {
-        var tempo = selection.measure.getTempo();
-        tempo = tempo ? tempo : new SmoTempoText();
         var bpm = tempo.bpm;
-        var beats = selection.note.tickCount/4096;
+        var beats = note.tickCount/4096;
         var duration = (beats / bpm) * 60000;
         
         var ar = [];
-        var gain = 0.5/selection.note.pitches.length;
-        if (selection.note.noteType == 'r') {
+        var gain = 0.5/note.pitches.length;
+        if (note.noteType == 'r') {
             gain = 0.001;
         }
-        selection.note.pitches.forEach((pitch) => {
+        note.pitches.forEach((pitch) => {
             var frequency = suiAudioPitch.smoPitchToFrequency(pitch);
             var osc = new suiOscillator({frequency:frequency,duration:duration,gain:gain});
             ar.push(osc);
@@ -7916,7 +7892,7 @@ class suiOscillator {
         var decay = this.decay/1000;
         var sustain = this.sustain/1000;
         var release = this.release/1000;
-        gain.gain.linearRampToValueAtTime(this.gain, audio.currentTime + attack);
+        gain.gain.exponentialRampToValueAtTime(this.gain, audio.currentTime + attack);
         gain.gain.exponentialRampToValueAtTime(this.sustainLevel*this.gain, audio.currentTime + attack + decay);
         gain.gain.exponentialRampToValueAtTime(this.releaseLevel*this.gain,audio.currentTime + attack + decay + sustain );
         gain.gain.exponentialRampToValueAtTime(0.001,audio.currentTime + attack + decay + sustain + release);
@@ -7973,7 +7949,9 @@ class suiTracker {
 		this.layout = layout;
 		this.groupObjectMap = {};
 		this.objectGroupMap = {};
+        this.measureNoteMap = {};
 		this.objects = [];
+        this._scroll = {x:0,y:0};
 		this.selections = [];
         this.modifierSelections = [];
 		this.modifierTabs = [];
@@ -7983,6 +7961,10 @@ class suiTracker {
 		this.pitchIndex = -1;
 		this.pasteBuffer = new PasteBuffer();
 	}
+    
+    handleScroll(x,y) {
+        this._scroll = {x:x,y:y};        
+    }
 
 	// ### renderElement
 	// the element the score is rendered on
@@ -8040,7 +8022,7 @@ class suiTracker {
             this.modifierTabs.push({
                 modifier: modifier,
                 selection: selection,
-                box:modifier.renderedBox,
+                box:svgHelpers.adjustScroll(modifier.renderedBox,this._scroll),
                 index:ix
             });
             ix += 1;
@@ -8065,7 +8047,7 @@ class suiTracker {
                 this.modifierTabs.push({
                     modifier: modifier,
 							selection: null,
-							box:modifier.renderedBox,
+							box:svgHelpers.adjustScroll(modifier.renderedBox,this._scroll),
 							index:ix
                 });
                 ix += 1;
@@ -8087,7 +8069,7 @@ class suiTracker {
 						this.modifierTabs.push({
 							modifier: modifier,
 							selection: selection,
-							box:modifier.renderedBox,
+							box:svgHelpers.adjustScroll(modifier.renderedBox,this._scroll),
 							index:ix
 						});
 						ix += 1;
@@ -8106,7 +8088,7 @@ class suiTracker {
 					this.modifierTabs.push({
 						modifier: modifier,
 						selection: selection,
-						box:modifier.renderedBox,
+						box:svgHelpers.adjustScroll(modifier.renderedBox,this._scroll),
 						index:ix
 					});
 					ix += 1;
@@ -8124,6 +8106,23 @@ class suiTracker {
             });
 		});
 	}
+    
+    clearMusicCursor() {
+        $('.workspace #birdy').remove();
+    }
+    
+    musicCursor(measureIndex,noteIndex) {
+        var key = '' + measureIndex  + '-' + noteIndex;
+        if (this.measureNoteMap[key]) {
+            var pos = this.measureNoteMap[key];
+            var b = htmlHelpers.buildDom;
+	        var r = b('span').classes('birdy icon icon-arrow-down').attr('id','birdy');
+            $('.workspace #birdy').remove();
+            var rd = r.dom();
+            $(rd).css('top',pos.y - this._scroll.y).css('left',pos.x - this._scroll.x);
+            $('.workspace').append(rd);
+        }
+    }
     
     // ### selectModifierById
     // programatically select a modifier by ID.  Used by text editor.
@@ -8184,8 +8183,9 @@ class suiTracker {
     
     // ### _updateNoteBox
     // Update the svg to screen coordinates based on a change in viewport.
-    _updateNoteBox(svg,smoNote) {
+    _updateNoteBox(svg,smoNote,selector) {
         var el = svg.getElementById(smoNote.renderId);
+        var cursorKey = '' + selector.measure + '-' + selector.tick;       
         if (!el) {
             console.warn('no element to box');
             return;
@@ -8200,6 +8200,16 @@ class suiTracker {
 			});
 		});
     }
+    
+    _updateMeasureNoteMap(artifact) {
+        var key = ''+artifact.selector.measure+'-'+artifact.selector.tick;
+        if (!this.measureNoteMap[key]) {
+            this.measureNoteMap[key] = {x:artifact.box.x - this._scroll.x,y:artifact.measure.renderedBox.y - this._scroll.y};
+        } else {
+            var mm = this.measureNoteMap[key];
+            mm = {x:Math.min(artifact.box.x - this._scroll.x,mm.x),y:Math.min(artifact.measure.renderedBox.y - this._scroll.y,mm.y)};
+        }
+    }
 	
 	// ### updateMap
 	// This should be called after rendering the score.  It updates the score to
@@ -8211,6 +8221,10 @@ class suiTracker {
 		var notes = [].slice.call(this.renderElement.getElementsByClassName('vf-stavenote'));
 		this.groupObjectMap = {};
 		this.objectGroupMap = {};
+        
+        if (!rebox) {
+            this.measureNoteMap = {}; // Map for tracker
+        }
 		this.objects = [];
 		var selCopy = this._copySelections();
 		var ticksSelectedCopy = this._getTicksFromSelections();
@@ -8231,7 +8245,7 @@ class suiTracker {
 							};
 						// if we need to update the screen based on scroll
 						if (rebox) {
-							this._updateNoteBox(this.layout.svg,note);
+							this._updateNoteBox(this.layout.svg,note,selector);
 						}
 							
 						var selection = new SmoSelection({
@@ -8240,28 +8254,22 @@ class suiTracker {
 									_measure: measure,
 									_note: note,
 									_pitches: [],
-									box: note.renderedBox,
+									box: svgHelpers.adjustScroll(note.renderedBox,this._scroll),
 									type: 'rendered'
 								});
-						this.objects.push(selection); 							
+						this.objects.push(selection);
+                        this._updateMeasureNoteMap(selection);
                         tick += 1;
 					});
 				});
 				voiceIx += 1;
 			});
 		});
-		/* notes.forEach((note) => {
-			var box = svgHelpers.smoBox(note.getBoundingClientRect());
-			// box = svgHelpers.untransformSvgBox(this.context.svg,box);
-			var selection = SmoSelection.renderedNoteSelection(this.score, note, box);
-			if (selection) {
-				this.objects.push(selection);                
-			}
-		}); */
+		
 		this._updateModifiers(rebox);
 		this.selections = [];
 		if (this.objects.length && !selCopy.length) {
-			console.log('adding selection ' + this.objects[0].note.id);
+			// console.log('adding selection ' + this.objects[0].note.id);
 			this.selections = [this.objects[0]];
 		} else {
 			this._findClosestSelection(firstSelection.selector);
@@ -8418,12 +8426,13 @@ class suiTracker {
 		if (this.selections.find((sel) => SmoSelector.sameNote(sel.selector, artifact.selector))) {
 			return 0;
 		}
-		console.log('adding selection ' + artifact.note.id);
+		// console.log('adding selection ' + artifact.note.id);
+        
+        suiOscillator.playSelectionNow(artifact);
 
 		this.selections.push(artifact);
 		this.highlightSelection();
         return artifact.note.tickCount;
-		// this.triggerSelection();
 	}
 
 	growSelectionLeft() {
@@ -8441,10 +8450,10 @@ class suiTracker {
 			return;
 		}
 
-		console.log('adding selection ' + artifact.note.id);
+		// console.log('adding selection ' + artifact.note.id);
 		this.selections.push(artifact);
+        suiOscillator.playSelectionNow(artifact);
 		this.highlightSelection();
-		// this.triggerSelection();
         return artifact.note.tickCount;
 	}
 
@@ -8542,6 +8551,7 @@ class suiTracker {
 
 	_replaceSelection(nselector) {
 		var artifact = SmoSelection.noteSelection(this.score, nselector.staff, nselector.measure, nselector.voice, nselector.tick);
+        suiOscillator.playSelectionNow(artifact);
         
         // clear modifier selections
         this.modifierSelections=[];
@@ -8556,7 +8566,7 @@ class suiTracker {
 		if (!nselector['pitches'] || nselector.pitches.length==0) {
 			this.pitchIndex = -1;
 		}
-		console.log('adding selection ' + mapped.note.id);
+		// console.log('adding selection ' + mapped.note.id);
 
 		this.selections = [mapped];
 		this.highlightSelection();
@@ -8595,6 +8605,8 @@ class suiTracker {
 		var ar=this.selections.filter((sel) => {
 			return SmoSelector.neq(sel.selector,selection.selector);
 		});
+        suiOscillator.playSelectionNow(selection);
+
 		ar.push(selection);
 		this.selections=ar;
 	}
@@ -8603,7 +8615,7 @@ class suiTracker {
 		if (!this.suggestion['measure']) {
 			return;
 		}
-		console.log('adding selection ' + this.suggestion.note.id);
+		// console.log('adding selection ' + this.suggestion.note.id);
 		
 		if (this.modifierSuggestion >= 0) {
 			if (this['suggestFadeTimer']) {
@@ -8632,6 +8644,8 @@ class suiTracker {
 			this.highlightSelection();
 			return;
 		}
+        
+        suiOscillator.playSelectionNow(this.suggestion);
         
         var preselected = SmoSelector.sameNote(this.suggestion.selector,this.selections[0].selector) && this.selections.length == 1;
 
@@ -8716,6 +8730,7 @@ class suiTracker {
 	}
 
 	intersectingArtifact(bb) {
+        bb = svgHelpers.boxPoints(bb.x-this._scroll.x,bb.y-this._scroll.y,bb.width,bb.height);
 		var artifacts = svgHelpers.findIntersectingArtifact(bb,this.objects);
 		// TODO: handle overlapping suggestions
 		if (!artifacts.length) {			
@@ -10746,7 +10761,7 @@ class suiEditor {
             return;
         }
 
-        new suiAudioPlayer({score:this.layout.score,startIndex:mm.selector.measure}).play();        
+        new suiAudioPlayer({score:this.layout.score,startIndex:mm.selector.measure,tracker:this.tracker}).play();        
     }
     
     stopPlayer() {
@@ -12122,6 +12137,14 @@ class SuiExceptionHandler {
 				shiftKey: false,
 				action: "playScore"
 			}, {
+				event: "keydown",
+				key: "P",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "pausePlayer"
+			},
+            {
 				event: "keydown",
 				key: "s",
 				ctrlKey: false,
@@ -55800,7 +55823,7 @@ class suiController {
 		return '.musicRelief';
 	}
 	
-	handleScrollEvent() {
+	handleScrollEvent(ev) {
 		var self=this;
 		if (self.trackScrolling) {
 				return;
@@ -55810,7 +55833,9 @@ class suiController {
             try {
 			// self.scrollRedrawStatus = true;
 			self.trackScrolling = false;
-			self.tracker.updateMap(true);
+            self.tracker.updateMap(true);
+            // Thisi s a WIP...
+			// self.tracker.handleScroll($(suiController.scrollable)[0].scrollLeft,$(suiController.scrollable)[0].scrollTop);
             } catch(e) {
                 SuiExceptionHandler.instance.exceptionHandler(e);
             }
@@ -55930,8 +55955,8 @@ class suiController {
 			self.resizeEvent();
 		});
 				
-		let scrollCallback = (el) => {			
-            self.handleScrollEvent();
+		let scrollCallback = (ev) => {			
+            self.handleScrollEvent(ev);
 		};
 		el.onscroll = scrollCallback;
 	}

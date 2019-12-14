@@ -150,6 +150,14 @@ class defaultEditorKeys {
 				action: "playScore"
 			}, {
 				event: "keydown",
+				key: "P",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "pausePlayer"
+			},
+            {
+				event: "keydown",
 				key: "s",
 				ctrlKey: false,
 				altKey: false,

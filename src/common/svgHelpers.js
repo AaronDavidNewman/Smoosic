@@ -137,6 +137,13 @@ class svgHelpers {
         svg.appendChild(line);
     }
     
+    static arrowDown(svg,box,attrs,classes) {
+        svgHelpers.line(svg,box.x+box.width/2,box.y,box.x+box.width/2,box.y+box.height);
+        var arrowY=box.y + box.height/4;
+        svgHelpers.line(svg,box.x,arrowY,box.x+box.width/2,box.y+box.height);
+        svgHelpers.line(svg,box.x+box.width,arrowY,box.x+box.width/2,box.y+box.height);
+    }
+    
     static textOutlineRect(svg,textElement, color, classes) {
         var box = textElement.getBBox();
         var attrs = [{width:box.width+5,height:box.height+5,stroke:color,strokewidth:'2',fill:'none',x:box.x-5,y:box.y-5}];
@@ -360,6 +367,12 @@ class svgHelpers {
 			height: box.height
 		});
 	}
+    
+    static adjustScroll(box,scroll) {
+        // WIP...
+        // return svgHelpers.boxPoints(box.x + scroll.x,box.y+scroll.y,box.width,box.height);
+        return box;
+    }
 
 	static boxPoints(x, y, w, h) {
 		return ({

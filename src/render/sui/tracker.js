@@ -19,7 +19,9 @@ class suiTracker {
 		this.layout = layout;
 		this.groupObjectMap = {};
 		this.objectGroupMap = {};
+        this.measureNoteMap = {};
 		this.objects = [];
+        this._scroll = {x:0,y:0};
 		this.selections = [];
         this.modifierSelections = [];
 		this.modifierTabs = [];
@@ -29,6 +31,10 @@ class suiTracker {
 		this.pitchIndex = -1;
 		this.pasteBuffer = new PasteBuffer();
 	}
+    
+    handleScroll(x,y) {
+        this._scroll = {x:x,y:y};        
+    }
 
 	// ### renderElement
 	// the element the score is rendered on
@@ -86,7 +92,7 @@ class suiTracker {
             this.modifierTabs.push({
                 modifier: modifier,
                 selection: selection,
-                box:modifier.renderedBox,
+                box:svgHelpers.adjustScroll(modifier.renderedBox,this._scroll),
                 index:ix
             });
             ix += 1;
@@ -111,7 +117,7 @@ class suiTracker {
                 this.modifierTabs.push({
                     modifier: modifier,
 							selection: null,
-							box:modifier.renderedBox,
+							box:svgHelpers.adjustScroll(modifier.renderedBox,this._scroll),
 							index:ix
                 });
                 ix += 1;
@@ -133,7 +139,7 @@ class suiTracker {
 						this.modifierTabs.push({
 							modifier: modifier,
 							selection: selection,
-							box:modifier.renderedBox,
+							box:svgHelpers.adjustScroll(modifier.renderedBox,this._scroll),
 							index:ix
 						});
 						ix += 1;
@@ -152,7 +158,7 @@ class suiTracker {
 					this.modifierTabs.push({
 						modifier: modifier,
 						selection: selection,
-						box:modifier.renderedBox,
+						box:svgHelpers.adjustScroll(modifier.renderedBox,this._scroll),
 						index:ix
 					});
 					ix += 1;
@@ -170,6 +176,23 @@ class suiTracker {
             });
 		});
 	}
+    
+    clearMusicCursor() {
+        $('.workspace #birdy').remove();
+    }
+    
+    musicCursor(measureIndex,noteIndex) {
+        var key = '' + measureIndex  + '-' + noteIndex;
+        if (this.measureNoteMap[key]) {
+            var pos = this.measureNoteMap[key];
+            var b = htmlHelpers.buildDom;
+	        var r = b('span').classes('birdy icon icon-arrow-down').attr('id','birdy');
+            $('.workspace #birdy').remove();
+            var rd = r.dom();
+            $(rd).css('top',pos.y - this._scroll.y).css('left',pos.x - this._scroll.x);
+            $('.workspace').append(rd);
+        }
+    }
     
     // ### selectModifierById
     // programatically select a modifier by ID.  Used by text editor.
@@ -230,8 +253,9 @@ class suiTracker {
     
     // ### _updateNoteBox
     // Update the svg to screen coordinates based on a change in viewport.
-    _updateNoteBox(svg,smoNote) {
+    _updateNoteBox(svg,smoNote,selector) {
         var el = svg.getElementById(smoNote.renderId);
+        var cursorKey = '' + selector.measure + '-' + selector.tick;       
         if (!el) {
             console.warn('no element to box');
             return;
@@ -246,6 +270,16 @@ class suiTracker {
 			});
 		});
     }
+    
+    _updateMeasureNoteMap(artifact) {
+        var key = ''+artifact.selector.measure+'-'+artifact.selector.tick;
+        if (!this.measureNoteMap[key]) {
+            this.measureNoteMap[key] = {x:artifact.box.x - this._scroll.x,y:artifact.measure.renderedBox.y - this._scroll.y};
+        } else {
+            var mm = this.measureNoteMap[key];
+            mm = {x:Math.min(artifact.box.x - this._scroll.x,mm.x),y:Math.min(artifact.measure.renderedBox.y - this._scroll.y,mm.y)};
+        }
+    }
 	
 	// ### updateMap
 	// This should be called after rendering the score.  It updates the score to
@@ -257,6 +291,10 @@ class suiTracker {
 		var notes = [].slice.call(this.renderElement.getElementsByClassName('vf-stavenote'));
 		this.groupObjectMap = {};
 		this.objectGroupMap = {};
+        
+        if (!rebox) {
+            this.measureNoteMap = {}; // Map for tracker
+        }
 		this.objects = [];
 		var selCopy = this._copySelections();
 		var ticksSelectedCopy = this._getTicksFromSelections();
@@ -277,7 +315,7 @@ class suiTracker {
 							};
 						// if we need to update the screen based on scroll
 						if (rebox) {
-							this._updateNoteBox(this.layout.svg,note);
+							this._updateNoteBox(this.layout.svg,note,selector);
 						}
 							
 						var selection = new SmoSelection({
@@ -286,28 +324,22 @@ class suiTracker {
 									_measure: measure,
 									_note: note,
 									_pitches: [],
-									box: note.renderedBox,
+									box: svgHelpers.adjustScroll(note.renderedBox,this._scroll),
 									type: 'rendered'
 								});
-						this.objects.push(selection); 							
+						this.objects.push(selection);
+                        this._updateMeasureNoteMap(selection);
                         tick += 1;
 					});
 				});
 				voiceIx += 1;
 			});
 		});
-		/* notes.forEach((note) => {
-			var box = svgHelpers.smoBox(note.getBoundingClientRect());
-			// box = svgHelpers.untransformSvgBox(this.context.svg,box);
-			var selection = SmoSelection.renderedNoteSelection(this.score, note, box);
-			if (selection) {
-				this.objects.push(selection);                
-			}
-		}); */
+		
 		this._updateModifiers(rebox);
 		this.selections = [];
 		if (this.objects.length && !selCopy.length) {
-			console.log('adding selection ' + this.objects[0].note.id);
+			// console.log('adding selection ' + this.objects[0].note.id);
 			this.selections = [this.objects[0]];
 		} else {
 			this._findClosestSelection(firstSelection.selector);
@@ -464,12 +496,13 @@ class suiTracker {
 		if (this.selections.find((sel) => SmoSelector.sameNote(sel.selector, artifact.selector))) {
 			return 0;
 		}
-		console.log('adding selection ' + artifact.note.id);
+		// console.log('adding selection ' + artifact.note.id);
+        
+        suiOscillator.playSelectionNow(artifact);
 
 		this.selections.push(artifact);
 		this.highlightSelection();
         return artifact.note.tickCount;
-		// this.triggerSelection();
 	}
 
 	growSelectionLeft() {
@@ -487,10 +520,10 @@ class suiTracker {
 			return;
 		}
 
-		console.log('adding selection ' + artifact.note.id);
+		// console.log('adding selection ' + artifact.note.id);
 		this.selections.push(artifact);
+        suiOscillator.playSelectionNow(artifact);
 		this.highlightSelection();
-		// this.triggerSelection();
         return artifact.note.tickCount;
 	}
 
@@ -588,6 +621,7 @@ class suiTracker {
 
 	_replaceSelection(nselector) {
 		var artifact = SmoSelection.noteSelection(this.score, nselector.staff, nselector.measure, nselector.voice, nselector.tick);
+        suiOscillator.playSelectionNow(artifact);
         
         // clear modifier selections
         this.modifierSelections=[];
@@ -602,7 +636,7 @@ class suiTracker {
 		if (!nselector['pitches'] || nselector.pitches.length==0) {
 			this.pitchIndex = -1;
 		}
-		console.log('adding selection ' + mapped.note.id);
+		// console.log('adding selection ' + mapped.note.id);
 
 		this.selections = [mapped];
 		this.highlightSelection();
@@ -641,6 +675,8 @@ class suiTracker {
 		var ar=this.selections.filter((sel) => {
 			return SmoSelector.neq(sel.selector,selection.selector);
 		});
+        suiOscillator.playSelectionNow(selection);
+
 		ar.push(selection);
 		this.selections=ar;
 	}
@@ -649,7 +685,7 @@ class suiTracker {
 		if (!this.suggestion['measure']) {
 			return;
 		}
-		console.log('adding selection ' + this.suggestion.note.id);
+		// console.log('adding selection ' + this.suggestion.note.id);
 		
 		if (this.modifierSuggestion >= 0) {
 			if (this['suggestFadeTimer']) {
@@ -678,6 +714,8 @@ class suiTracker {
 			this.highlightSelection();
 			return;
 		}
+        
+        suiOscillator.playSelectionNow(this.suggestion);
         
         var preselected = SmoSelector.sameNote(this.suggestion.selector,this.selections[0].selector) && this.selections.length == 1;
 
@@ -762,6 +800,7 @@ class suiTracker {
 	}
 
 	intersectingArtifact(bb) {
+        bb = svgHelpers.boxPoints(bb.x-this._scroll.x,bb.y-this._scroll.y,bb.width,bb.height);
 		var artifacts = svgHelpers.findIntersectingArtifact(bb,this.objects);
 		// TODO: handle overlapping suggestions
 		if (!artifacts.length) {			

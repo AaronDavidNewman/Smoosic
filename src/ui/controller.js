@@ -59,7 +59,7 @@ class suiController {
 		return '.musicRelief';
 	}
 	
-	handleScrollEvent() {
+	handleScrollEvent(ev) {
 		var self=this;
 		if (self.trackScrolling) {
 				return;
@@ -69,7 +69,9 @@ class suiController {
             try {
 			// self.scrollRedrawStatus = true;
 			self.trackScrolling = false;
-			self.tracker.updateMap(true);
+            self.tracker.updateMap(true);
+            // Thisi s a WIP...
+			// self.tracker.handleScroll($(suiController.scrollable)[0].scrollLeft,$(suiController.scrollable)[0].scrollTop);
             } catch(e) {
                 SuiExceptionHandler.instance.exceptionHandler(e);
             }
@@ -189,8 +191,8 @@ class suiController {
 			self.resizeEvent();
 		});
 				
-		let scrollCallback = (el) => {			
-            self.handleScrollEvent();
+		let scrollCallback = (ev) => {			
+            self.handleScrollEvent(ev);
 		};
 		el.onscroll = scrollCallback;
 	}

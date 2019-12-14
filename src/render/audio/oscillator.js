@@ -107,11 +107,17 @@ class suiAudioPlayer {
     }
     
     // A single voice-measure.
-    static _playVoice(voiceOsc) {
+    _playVoice(voiceOsc,updateCursor) {
+        self = this;
         var measureCompletePromise = new Promise((resolve) => {
             var recursePlayer = (ix,oscAr) => {
                 return suiAudioPlayer._playChord(voiceOsc[ix]).then(() =>{
                     if (suiAudioPlayer.playing && voiceOsc.length - 1 > ix) {
+                        
+                        // Update the birdy that follows the music
+                        if (updateCursor) {
+                            self.tracker.musicCursor(self.startIndex + self.playIndex,ix+1);
+                        }
                         recursePlayer(ix+1,voiceOsc);
                     } else {
                         resolve();
@@ -133,20 +139,7 @@ class suiAudioPlayer {
             var pitchOsc = [];
             voiceOsc.push(pitchOsc);
             voice.notes.forEach((note) => {
-                // TODO: selector isn't really used here.
-                var ss={
-                    staff:staff.staffId,measure:ix,tick:ix
-                };
-                ss.tick=ix;
-                var nsel = new SmoSelection({
-									selector: ss,
-									_staff: staff,
-									_measure: measure,
-									_note: note,
-									_pitches: [],
-								});
-                
-                pitchOsc.push(suiOscillator.fromSelection(nsel));
+                pitchOsc.push(suiOscillator.fromNote(measure,note));
                 ix += 1;
             });
         });
@@ -170,20 +163,23 @@ class suiAudioPlayer {
         return staffList;
     }
     
-    static _playMeasure(measureOsc) {
+    _playMeasure(measureOsc,updateCursor) {
        var par = [];
        measureOsc.forEach((voiceOsc) => {
-           par.push(suiAudioPlayer._playVoice(voiceOsc));
+           par.push(this._playVoice(voiceOsc,updateCursor));
        });
        
        return Promise.all(par);
     }
     
-    static _playMeasureAllStaffs(measureIx,staffList) {
+    _playMeasureAllStaffs(measureIx,staffList) {
         var par = [];
+        // only update cursor once per staff
+        var updateCursor = true;
         staffList.forEach((staffOsc) => {
             var measureOsc = staffOsc[measureIx];
-            par.push(suiAudioPlayer._playMeasure(measureOsc));
+            par.push(this._playMeasure(measureOsc,updateCursor));
+            updateCursor = false;
         });
         
         return par;
@@ -196,11 +192,12 @@ class suiAudioPlayer {
         suiAudioPlayer._playingInstance = this;
         var self = this;
         var playRecurse = (oscillators,ix) => {
-            self.startIndex = ix;
-            Promise.all(suiAudioPlayer._playMeasureAllStaffs(ix,oscillators)).then(() => {
+            self.playIndex = ix;
+            Promise.all(this._playMeasureAllStaffs(ix,oscillators)).then(() => {
                 if (suiAudioPlayer.playing && 
                   suiAudioPlayer.instanceId == self.instanceId && 
                   ix < oscillators[0].length - 1) {
+                    self.tracker.musicCursor(ix + 1,0);
                     playRecurse(oscillators,ix+1);
                 } else {                    
                     if (ix > oscillators[0].length - 1 || self.paused == false) {
@@ -208,18 +205,21 @@ class suiAudioPlayer {
                         suiAudioPlayer._playingInstance = null;
                         self.paused = false;
                     }
+                    self.tracker.clearMusicCursor();
                 }
             });
         }        
         suiAudioPlayer.playing = true;
-        playRecurse(this.oscillators,this.startIndex);
+        playRecurse(this.oscillators,this.playIndex);
     }
     
     constructor(parameters) {
         this.instanceId = suiAudioPlayer.incrementInstanceId();
         suiAudioPlayer.playing=false;
         this.paused = false;
-        this.startIndex = parameters.startIndex;        
+        this.startIndex = parameters.startIndex;
+        this.playIndex = 0;
+        this.tracker = parameters.tracker;
         this.score = parameters.score;
         this.oscillators=suiAudioPlayer._createOscillatorsAllStaffs(this.score,this.startIndex);
     }
@@ -251,7 +251,7 @@ class suiOscillator {
     
     static playSelectionNow(selection) {
         setTimeout(function() {
-        var ar = suiOscillator.fromSelection(selection);
+        var ar = suiOscillator.fromNote(selection.measure,selection.note);
         ar.forEach((osc) => {
             osc.play();
         });
@@ -276,57 +276,20 @@ class suiOscillator {
         }
         playIx(0,ar[0]);
     }
-    static playMeasureNow(score,selection) {
-        var player = new suiAudioPlayer({score:score,startIndex:selection.selector.measure});
-        player.play();
-        /* setTimeout(function() {
-        var voices = suiOscillator.measureOscillators(selection);
-        voices.forEach((voice) => {
-            suiOscillator.playOscillatorArray(voice);
-        });
-        },1);  */
-    }
-    static measureOscillators(selection) {
-        var measure = selection.measure;
+   
+    static fromNote(measure,note) {
         var tempo = measure.getTempo();
         tempo = tempo ? tempo : new SmoTempoText();
-        var tickTime = 60000/tempo.bpm;
-        var voiceOsc = [];
-        selection.measure.voices.forEach((voice) => {
-            var ix = 0;
-            var rv = [];
-            voiceOsc.push(rv);
-            voice.notes.forEach((note) => {
-                var ss=JSON.parse(JSON.stringify(selection.selector));
-                ss.tick=ix;
-                var nsel = new SmoSelection({
-									selector: ss,
-									_staff: selection.staff,
-									_measure: selection.measure,
-									_note: note,
-									_pitches: [],
-								});
-                
-                rv.push(suiOscillator.fromSelection(nsel));
-                ix += 1;
-            });
-        });
-        
-        return voiceOsc;
-    }
-    static fromSelection(selection) {
-        var tempo = selection.measure.getTempo();
-        tempo = tempo ? tempo : new SmoTempoText();
         var bpm = tempo.bpm;
-        var beats = selection.note.tickCount/4096;
+        var beats = note.tickCount/4096;
         var duration = (beats / bpm) * 60000;
         
         var ar = [];
-        var gain = 0.5/selection.note.pitches.length;
-        if (selection.note.noteType == 'r') {
+        var gain = 0.5/note.pitches.length;
+        if (note.noteType == 'r') {
             gain = 0.001;
         }
-        selection.note.pitches.forEach((pitch) => {
+        note.pitches.forEach((pitch) => {
             var frequency = suiAudioPitch.smoPitchToFrequency(pitch);
             var osc = new suiOscillator({frequency:frequency,duration:duration,gain:gain});
             ar.push(osc);
@@ -389,7 +352,7 @@ class suiOscillator {
         var decay = this.decay/1000;
         var sustain = this.sustain/1000;
         var release = this.release/1000;
-        gain.gain.linearRampToValueAtTime(this.gain, audio.currentTime + attack);
+        gain.gain.exponentialRampToValueAtTime(this.gain, audio.currentTime + attack);
         gain.gain.exponentialRampToValueAtTime(this.sustainLevel*this.gain, audio.currentTime + attack + decay);
         gain.gain.exponentialRampToValueAtTime(this.releaseLevel*this.gain,audio.currentTime + attack + decay + sustain );
         gain.gain.exponentialRampToValueAtTime(0.001,audio.currentTime + attack + decay + sustain + release);
