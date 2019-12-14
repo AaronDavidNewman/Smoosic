@@ -7,7 +7,7 @@ class defaultRibbonLayout {
 		var top = defaultRibbonLayout.noteButtonIds.concat(defaultRibbonLayout.navigateButtonIds).concat(defaultRibbonLayout.articulateButtonIds)
 		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds)
             .concat(defaultRibbonLayout.beamIds).concat(defaultRibbonLayout.measureIds).concat(defaultRibbonLayout.staveIds)
-              .concat(defaultRibbonLayout.textIds).concat(defaultRibbonLayout.debugIds);
+              .concat(defaultRibbonLayout.textIds).concat(defaultRibbonLayout.playerIds).concat(defaultRibbonLayout.debugIds);
 			
 		return {
 			left: left,
@@ -23,7 +23,7 @@ class defaultRibbonLayout {
 			defaultRibbonLayout.chordButtons).concat(
 			defaultRibbonLayout.durationRibbonButtons).concat(defaultRibbonLayout.beamRibbonButtons).concat(defaultRibbonLayout.measureRibbonButtons)
 			.concat(defaultRibbonLayout.staveRibbonButtons)
-            .concat(defaultRibbonLayout.textRibbonButtons).concat(defaultRibbonLayout.debugRibbonButtons);
+            .concat(defaultRibbonLayout.textRibbonButtons).concat(defaultRibbonLayout.playerButtons).concat(defaultRibbonLayout.debugRibbonButtons);
 	}
 	
 	static get leftRibbonIds() {
@@ -68,6 +68,10 @@ class defaultRibbonLayout {
     static get staveIds() {
 		return ['StaveButtons','clefTreble','clefBass','clefTenor','clefAlto','clefMoveUp','clefMoveDown'];
 	}
+    
+    static get playerIds() {
+        return ['playerButtons','playButton','stopButton'];
+    }
     
     static get textRibbonButtons() {
         return [
@@ -644,7 +648,39 @@ class defaultRibbonLayout {
 
 		];
 	}
-	static get articulationButtons() {
+	static get playerButtons() {
+        // .icon-play3
+        return [{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-equalizer2',
+				classes: 'icon collapseParent player',
+				action: 'collapseParent',
+				ctor: 'CollapseRibbonControl',
+				group: 'playerButtons',
+				id: 'playerButtons'
+			}, {
+				leftText: '',
+				rightText: 'p',
+				icon: 'icon-play3',
+				classes: 'icon collapsed player',
+				action: 'collapseChild',
+				ctor: 'PlayerButtons',
+				group: 'playerButtons',
+				id: 'playButton'
+			},
+            {
+				leftText: '',
+				rightText: 's',
+				icon: 'icon-stop2',
+				classes: 'icon collapsed player',
+				action: 'collapseChild',
+				ctor: 'PlayerButtons',
+				group: 'playerButtons',
+				id: 'stopButton'
+			}];
+    }
+    static get articulationButtons() {
 		return [{
 				leftText: '',
 				rightText: '',

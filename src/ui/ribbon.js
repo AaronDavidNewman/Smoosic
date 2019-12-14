@@ -418,6 +418,19 @@ class PlayerButtons {
         this.menus=parameters.controller.menus;
 	}
     
+    playButton() {
+        var selection = this.tracker.getExtremeSelection(-1);
+        new suiAudioPlayer({score:this.controller.layout.score,startIndex:selection.selector.measure}).play();
+    }
+    stopButton() {
+        suiAudioPlayer.playing=false;
+    }
+    bind() {
+		var self = this;
+		$(this.buttonElement).off('click').on('click', function () {
+			self[self.buttonData.id]();
+		});
+    }
 }
 
 class TextButtons {

@@ -119,9 +119,13 @@ class suiEditor {
         this._render();
     }
     
-    playMeasure() {
+    playScore() {
         var mm = this.tracker.getExtremeSelection(-1);
-        suiOscillator.playMeasureNow(this.layout.score,mm);
+        new suiAudioPlayer({score:this.layout.score,startIndex:mm.selector.measure}).play();        
+    }
+    
+    stopPlayer() {
+        suiAudioPlayer.playing = false;
     }
 
     intervalAdd(interval, direction) {

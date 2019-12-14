@@ -147,7 +147,14 @@ class defaultEditorKeys {
 				ctrlKey: false,
 				altKey: false,
 				shiftKey: false,
-				action: "playMeasure"
+				action: "playScore"
+			}, {
+				event: "keydown",
+				key: "s",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "stopPlayer"
 			},  {
 				event: "keydown",
 				key: "3",

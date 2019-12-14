@@ -53,12 +53,24 @@ class suiAudioPlayer {
     static set playing(val) {
         suiAudioPlayer._playing = val;
     }
+    
+    static get instanceId() {
+        if (typeof(suiAudioPlayer._instanceId) == 'undefined') {
+            suiAudioPlayer._instanceId = 0;
+        }
+        return suiAudioPlayer._instanceId;
+    }
+    static incrementPlayingInstance() {
+        var id = suiAudioPlayer.instanceId + 1;
+        suiAudioPlayer._instanceId = id;
+        return id;
+    }
     static get playing() {
         if (typeof(suiAudioPlayer._playing) == 'undefined') {
             suiAudioPlayer._playing = false;            
         }
         return suiAudioPlayer._playing;
-    }
+    }   
 
     // the oscAr contains an oscillator for each pitch in the chord.
     // each inner oscillator is a promise, the combined promise is resolved when all
@@ -89,27 +101,8 @@ class suiAudioPlayer {
         return measureCompletePromise;
     }
     
-    static _playMeasure(measureOsc) {
-       var par = [];
-       measureOsc.forEach((voiceOsc) => {
-           par.push(suiAudioPlayer._playVoice(voiceOsc));
-       });
-       
-       return Promise.all(par);
-    }
+   
     
-    static _playMeasureAllStaffs(measureIx,staffList) {
-        var par = [];
-        staffList.forEach((staffOsc) => {
-            var measureOsc = staffOsc[measureIx];
-            par.push(suiAudioPlayer._playMeasure(measureOsc));
-        });
-        
-        return par;
-    }
-    
-
-       
     
     static _createOscillatorsForMeasure(staff,measure) {
          var tempo = measure.getTempo();
@@ -157,11 +150,35 @@ class suiAudioPlayer {
         });        
         return staffList;
     }
+    
+    static _playMeasure(measureOsc) {
+       var par = [];
+       measureOsc.forEach((voiceOsc) => {
+           par.push(suiAudioPlayer._playVoice(voiceOsc));
+       });
+       
+       return Promise.all(par);
+    }
+    
+    static _playMeasureAllStaffs(measureIx,staffList) {
+        var par = [];
+        staffList.forEach((staffOsc) => {
+            var measureOsc = staffOsc[measureIx];
+            par.push(suiAudioPlayer._playMeasure(measureOsc));
+        });
+        
+        return par;
+    }
+    
     play() {
-                
+        var self = this;
+        suiAudioPlayer.playingInstance = this;
         var playRecurse = (oscillators,ix) => {
+            self.startIndex = ix;
             Promise.all(suiAudioPlayer._playMeasureAllStaffs(ix,oscillators)).then(() => {
-                if (suiAudioPlayer.playing && ix < oscillators[0].length - 1) {
+                if (suiAudioPlayer.playing && 
+                  suiAudioPlayer.instanceId == self.instanceId && 
+                  ix < oscillators[0].length - 1) {
                     playRecurse(oscillators,ix+1);
                 } else {
                     suiAudioPlayer.playing = false;
@@ -174,9 +191,12 @@ class suiAudioPlayer {
     }
     
     constructor(parameters) {
-        suiAudioPlayer.playing=false;
+        this.instanceId = suiAudioPlayer.incrementPlayingInstance();
+        suiAudioPlayer.playingInstance = this;
+        suiAudioPlayer.playing=false;   
+        this.startIndex = parameters.startIndex;        
         this.score = parameters.score;
-        this.oscillators=suiAudioPlayer._createOscillatorsAllStaffs(this.score,parameters.startIndex);
+        this.oscillators=suiAudioPlayer._createOscillatorsAllStaffs(this.score,this.startIndex);
     }
     
 }
@@ -277,7 +297,10 @@ class suiOscillator {
         var duration = (beats / bpm) * 60000;
         
         var ar = [];
-        var gain = 0.5/selection.note.pitches.length; 
+        var gain = 0.5/selection.note.pitches.length;
+        if (selection.note.noteType == 'r') {
+            gain = 0.001;
+        }
         selection.note.pitches.forEach((pitch) => {
             var frequency = suiAudioPitch.smoPitchToFrequency(pitch);
             var osc = new suiOscillator({frequency:frequency,duration:duration,gain:gain});
