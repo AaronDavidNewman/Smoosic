@@ -70,7 +70,7 @@ class defaultRibbonLayout {
 	}
     
     static get playerIds() {
-        return ['playerButtons','playButton','stopButton'];
+        return ['playerButtons','playButton','pauseButton','stopButton'];
     }
     
     static get textRibbonButtons() {
@@ -678,6 +678,16 @@ class defaultRibbonLayout {
 				ctor: 'PlayerButtons',
 				group: 'playerButtons',
 				id: 'stopButton'
+			},
+            {
+				leftText: '',
+				rightText: 'P',
+				icon: 'icon-pause2',
+				classes: 'icon collapsed player',
+				action: 'collapseChild',
+				ctor: 'PlayerButtons',
+				group: 'playerButtons',
+				id: 'pauseButton'
 			}];
     }
     static get articulationButtons() {

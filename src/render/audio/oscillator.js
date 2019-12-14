@@ -60,7 +60,7 @@ class suiAudioPlayer {
         }
         return suiAudioPlayer._instanceId;
     }
-    static incrementPlayingInstance() {
+    static incrementInstanceId() {
         var id = suiAudioPlayer.instanceId + 1;
         suiAudioPlayer._instanceId = id;
         return id;
@@ -70,7 +70,29 @@ class suiAudioPlayer {
             suiAudioPlayer._playing = false;            
         }
         return suiAudioPlayer._playing;
-    }   
+    }
+    
+    static pausePlayer() {
+        if (suiAudioPlayer._playingInstance) {
+            var a = suiAudioPlayer._playingInstance;
+            a.paused = true;
+        }
+        suiAudioPlayer.playing = false;
+    }
+    static stopPlayer() {
+        if (suiAudioPlayer._playingInstance) {
+            var a = suiAudioPlayer._playingInstance;
+            a.paused = false;
+        }
+        suiAudioPlayer.playing = false;
+    }
+    
+    static get playingInstance() {
+        if (!suiAudioPlayer._playingInstance) {
+            return null;
+        }
+        return suiAudioPlayer._playingInstance;
+    }
 
     // the oscAr contains an oscillator for each pitch in the chord.
     // each inner oscillator is a promise, the combined promise is resolved when all
@@ -99,11 +121,8 @@ class suiAudioPlayer {
             recursePlayer(0,voiceOsc);                
         });
         return measureCompletePromise;
-    }
-    
-   
-    
-    
+    }    
+          
     static _createOscillatorsForMeasure(staff,measure) {
          var tempo = measure.getTempo();
         tempo = tempo ? tempo : new SmoTempoText();
@@ -171,8 +190,11 @@ class suiAudioPlayer {
     }
     
     play() {
+        if (suiAudioPlayer.playing) {
+            return;
+        }
+        suiAudioPlayer._playingInstance = this;
         var self = this;
-        suiAudioPlayer.playingInstance = this;
         var playRecurse = (oscillators,ix) => {
             self.startIndex = ix;
             Promise.all(suiAudioPlayer._playMeasureAllStaffs(ix,oscillators)).then(() => {
@@ -180,20 +202,23 @@ class suiAudioPlayer {
                   suiAudioPlayer.instanceId == self.instanceId && 
                   ix < oscillators[0].length - 1) {
                     playRecurse(oscillators,ix+1);
-                } else {
-                    suiAudioPlayer.playing = false;
+                } else {                    
+                    if (ix > oscillators[0].length - 1 || self.paused == false) {
+                        suiAudioPlayer.playing = false;
+                        suiAudioPlayer._playingInstance = null;
+                        self.paused = false;
+                    }
                 }
             });
-        }
-        
+        }        
         suiAudioPlayer.playing = true;
-        playRecurse(this.oscillators,0);
+        playRecurse(this.oscillators,this.startIndex);
     }
     
     constructor(parameters) {
-        this.instanceId = suiAudioPlayer.incrementPlayingInstance();
-        suiAudioPlayer.playingInstance = this;
-        suiAudioPlayer.playing=false;   
+        this.instanceId = suiAudioPlayer.incrementInstanceId();
+        suiAudioPlayer.playing=false;
+        this.paused = false;
         this.startIndex = parameters.startIndex;        
         this.score = parameters.score;
         this.oscillators=suiAudioPlayer._createOscillatorsAllStaffs(this.score,this.startIndex);
@@ -210,15 +235,15 @@ class suiOscillator {
             decayEnv:0.15,
             sustainEnv:0.7,
             releaseEnv:0.1,
-            sustainLevel:0.5,
-            releaseLevel:0.2,
+            sustainLevel:0.4,
+            releaseLevel:0.1,
             waveform:'triangle',
             gain:0.4
         };
         
         var wavetable = {
-            real:[0,1],
-            imaginary:[0,0]
+            real:[0,0.2,0.9,0.1,0.3],
+            imaginary:[0,0.2,0.9,0.1,0.3]
         }
         obj.wavetable = wavetable;
         return obj;
@@ -325,16 +350,19 @@ class suiOscillator {
         var audio = suiOscillator.audio;
         var promise = new Promise((resolve) => {
             osc.start(0);
-            
-        
 
-        setTimeout(function() {
-           // gain.gain.setTargetAtTime(0, audio.currentTime, 0.015);
-            resolve();
-            osc.stop(0);
-            osc.disconnect(gain);
-            gain.disconnect(audio.destination);
-        }, duration);
+            setTimeout(function() {
+               // gain.gain.setTargetAtTime(0, audio.currentTime, 0.015);
+                resolve();
+            }, duration);
+
+            
+            setTimeout(function() {
+               // gain.gain.setTargetAtTime(0, audio.currentTime, 0.015);
+                osc.stop(0);
+                osc.disconnect(gain);
+                gain.disconnect(audio.destination);
+            }, duration+500);
         });
         
         return promise;
@@ -387,6 +415,7 @@ class suiOscillator {
         this.decay = this.decayEnv*this.duration;
         this.sustain = this.sustainEnv*this.duration;
         this.release = this.releaseEnv*this.duration;
+        this.frequency = this.frequency/2;  // Overtones below partial
         
         // Note: having some trouble with FloatArray and wavetable on some browsers, so I'm not using it 
         // use built-in instead        

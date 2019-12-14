@@ -419,12 +419,15 @@ class PlayerButtons {
 	}
     
     playButton() {
-        var selection = this.tracker.getExtremeSelection(-1);
-        new suiAudioPlayer({score:this.controller.layout.score,startIndex:selection.selector.measure}).play();
+        this.editor.playScore();
     }
     stopButton() {
-        suiAudioPlayer.playing=false;
+        this.editor.stopPlayer();
     }
+    pauseButton() {
+        this.editor.pausePlayer();
+    }
+    
     bind() {
 		var self = this;
 		$(this.buttonElement).off('click').on('click', function () {

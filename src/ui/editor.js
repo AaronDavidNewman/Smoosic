@@ -121,11 +121,19 @@ class suiEditor {
     
     playScore() {
         var mm = this.tracker.getExtremeSelection(-1);
+        if (suiAudioPlayer.playingInstance && suiAudioPlayer.playingInstance.paused) {
+            suiAudioPlayer.playingInstance.play();
+            return;
+        }
+
         new suiAudioPlayer({score:this.layout.score,startIndex:mm.selector.measure}).play();        
     }
     
     stopPlayer() {
-        suiAudioPlayer.playing = false;
+        suiAudioPlayer.stopPlayer();
+    }
+    pausePlayer() {
+        suiAudioPlayer.pausePlayer();
     }
 
     intervalAdd(interval, direction) {

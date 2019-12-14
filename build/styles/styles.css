@@ -366,6 +366,24 @@ button.addChord .left-text .icon {
 	left:2em;
 }
 
+.ribbonButtonContainer button.player{
+    width:55px;
+}
+
+.controls-top .ribbonButtonContainer button.player span.ribbon-button-text {
+    top:25%;
+}
+#playerButtons .ribbon-button-text {
+    top: 15%;
+    left: 15%;
+}
+
+#playerButtons {
+    width:55px;
+    font-size:1.3em;
+}
+
+
 #addTextMenu .left-text {
     left:18%;
     top: 15%;
