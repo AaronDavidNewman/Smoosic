@@ -69,9 +69,9 @@ class suiController {
             try {
 			// self.scrollRedrawStatus = true;
 			self.trackScrolling = false;
-            self.tracker.updateMap(true);
+            // self.tracker.updateMap(true);
             // Thisi s a WIP...
-			// self.tracker.handleScroll($(suiController.scrollable)[0].scrollLeft,$(suiController.scrollable)[0].scrollTop);
+			self.tracker.handleScroll($(suiController.scrollable)[0].scrollLeft,$(suiController.scrollable)[0].scrollTop);
             } catch(e) {
                 SuiExceptionHandler.instance.exceptionHandler(e);
             }

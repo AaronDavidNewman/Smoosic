@@ -22,6 +22,7 @@ class suiTracker {
         this.measureNoteMap = {};
 		this.objects = [];
         this._scroll = {x:0,y:0};
+        this._scrollInitial = {x:0,y:0};
 		this.selections = [];
         this.modifierSelections = [];
 		this.modifierTabs = [];
@@ -33,7 +34,11 @@ class suiTracker {
 	}
     
     handleScroll(x,y) {
-        this._scroll = {x:x,y:y};        
+        this._scroll = {x:x,y:y};
+    }
+    
+    get netScroll() {
+        return {x:this._scroll.x - this._scrollInitial.x,y:this._scroll.y - this._scrollInitial.y};
     }
 
 	// ### renderElement
@@ -92,7 +97,7 @@ class suiTracker {
             this.modifierTabs.push({
                 modifier: modifier,
                 selection: selection,
-                box:svgHelpers.adjustScroll(modifier.renderedBox,this._scroll),
+                box:svgHelpers.adjustScroll(modifier.renderedBox,this.netScroll),
                 index:ix
             });
             ix += 1;
@@ -117,7 +122,7 @@ class suiTracker {
                 this.modifierTabs.push({
                     modifier: modifier,
 							selection: null,
-							box:svgHelpers.adjustScroll(modifier.renderedBox,this._scroll),
+							box:svgHelpers.adjustScroll(modifier.renderedBox,this.netScroll),
 							index:ix
                 });
                 ix += 1;
@@ -139,7 +144,7 @@ class suiTracker {
 						this.modifierTabs.push({
 							modifier: modifier,
 							selection: selection,
-							box:svgHelpers.adjustScroll(modifier.renderedBox,this._scroll),
+							box:svgHelpers.adjustScroll(modifier.renderedBox,this.netScroll),
 							index:ix
 						});
 						ix += 1;
@@ -158,7 +163,7 @@ class suiTracker {
 					this.modifierTabs.push({
 						modifier: modifier,
 						selection: selection,
-						box:svgHelpers.adjustScroll(modifier.renderedBox,this._scroll),
+						box:svgHelpers.adjustScroll(modifier.renderedBox,this.netScroll),
 						index:ix
 					});
 					ix += 1;
@@ -189,7 +194,7 @@ class suiTracker {
 	        var r = b('span').classes('birdy icon icon-arrow-down').attr('id','birdy');
             $('.workspace #birdy').remove();
             var rd = r.dom();
-            $(rd).css('top',pos.y - this._scroll.y).css('left',pos.x - this._scroll.x);
+            $(rd).css('top',pos.y - this.netScroll.y).css('left',pos.x - this.netScroll.x);
             $('.workspace').append(rd);
         }
     }
@@ -274,10 +279,10 @@ class suiTracker {
     _updateMeasureNoteMap(artifact) {
         var key = ''+artifact.selector.measure+'-'+artifact.selector.tick;
         if (!this.measureNoteMap[key]) {
-            this.measureNoteMap[key] = {x:artifact.box.x - this._scroll.x,y:artifact.measure.renderedBox.y - this._scroll.y};
+            this.measureNoteMap[key] = {x:artifact.box.x - this.netScroll.x,y:artifact.measure.renderedBox.y - this.netScroll.y};
         } else {
             var mm = this.measureNoteMap[key];
-            mm = {x:Math.min(artifact.box.x - this._scroll.x,mm.x),y:Math.min(artifact.measure.renderedBox.y - this._scroll.y,mm.y)};
+            mm = {x:Math.min(artifact.box.x - this.netScroll.x,mm.x),y:Math.min(artifact.measure.renderedBox.y - this.netScroll.y,mm.y)};
         }
     }
 	
@@ -289,6 +294,8 @@ class suiTracker {
 	// try to preserve the previous selection
 	_updateMap(rebox) {
 		var notes = [].slice.call(this.renderElement.getElementsByClassName('vf-stavenote'));
+        var scroller = $('.musicRelief');
+        this._scrollInitial = {x:$(scroller)[0].scrollLeft,y:$(scroller)[0].scrollTop};
 		this.groupObjectMap = {};
 		this.objectGroupMap = {};
         
@@ -324,7 +331,7 @@ class suiTracker {
 									_measure: measure,
 									_note: note,
 									_pitches: [],
-									box: svgHelpers.adjustScroll(note.renderedBox,this._scroll),
+									box: svgHelpers.adjustScroll(note.renderedBox,this.netScroll),
 									type: 'rendered'
 								});
 						this.objects.push(selection);
@@ -921,9 +928,10 @@ class suiTracker {
 			$(Object.keys(strokes)).each(function (ix, key) {
 				strokeObj[key] = strokes[key];
 			});
-			box = svgHelpers.clientToLogical(this.context.svg, box);
+            box = svgHelpers.clientToLogical(this.context.svg, svgHelpers.adjustScroll(box,this.netScroll));
 			this.context.rect(box.x - margin, box.y - margin, box.width + margin * 2, box.height + margin * 2, strokeObj);
 		});
 		this.context.closeGroup(grp);
 	}
 }
+

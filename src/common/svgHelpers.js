@@ -370,8 +370,8 @@ class svgHelpers {
     
     static adjustScroll(box,scroll) {
         // WIP...
-        // return svgHelpers.boxPoints(box.x + scroll.x,box.y+scroll.y,box.width,box.height);
-        return box;
+        return svgHelpers.boxPoints(box.x - scroll.x,box.y-scroll.y,box.width,box.height);
+        // return box;
     }
 
 	static boxPoints(x, y, w, h) {
