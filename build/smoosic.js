@@ -7966,10 +7966,33 @@ class suiTracker {
 		this.suggestion = {};
 		this.pitchIndex = -1;
 		this.pasteBuffer = new PasteBuffer();
+        this.viewport = svgHelpers.boxPoints(
+          $('.musicRelief').offset().left,
+          $('.musicRelief').offset().top,
+          $('.musicRelief').width(),          
+          $('.musicRelief').height());
 	}
     
     handleScroll(x,y) {
         this._scroll = {x:x,y:y};
+        this.viewport = svgHelpers.boxPoints(
+          $('.musicRelief').offset().left,
+          $('.musicRelief').offset().top,
+          $('.musicRelief').width,          
+          $('.musicRelief').height());
+          
+    }
+    
+    scrollOffset(x,y) {
+        var cur = {x:this._scroll.x,y:this._scroll.y};
+        setTimeout(function() {
+            if (x) {
+                $('.musicRelief')[0].scrollLeft = cur.x + x;
+            }
+            if (y) {
+                $('.musicRelief')[0].scrollTop = cur.y + y;
+            }
+        },1);
     }
     
     get netScroll() {
@@ -8129,7 +8152,15 @@ class suiTracker {
 	        var r = b('span').classes('birdy icon icon-arrow-down').attr('id','birdy');
             $('.workspace #birdy').remove();
             var rd = r.dom();
-            $(rd).css('top',pos.y - this.netScroll.y).css('left',pos.x - this.netScroll.x);
+            var y = pos.y - this.netScroll.y;
+            var x = pos.x - this.netScroll.x;
+            $(rd).css('top',y).css('left',x);
+            if (y < 0) {
+                console.log('cursor above');
+            } else if (y > this.viewport.height + this.viewport.y) {
+                console.log('cursor below');
+                this.scrollOffset(0,this.viewport.height/2);
+            }
             $('.workspace').append(rd);
         }
     }
