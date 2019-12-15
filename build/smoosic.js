@@ -883,7 +883,7 @@ class svgHelpers {
 
 	// ### findIntersectionArtifact
 	// find all object that intersect with the rectangle
-	static findIntersectingArtifact(clientBox, objects) {
+	static findIntersectingArtifact(clientBox, objects,netScroll) {
 		var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
 
 		// box.y = box.y - this.renderElement.offsetTop;
@@ -897,7 +897,7 @@ class svgHelpers {
 			if (!object.box) {
 				// console.log('there is no box');
 			} else {
-				var obox = svgHelpers.smoBox(object.box);
+				var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box),netScroll);
 				var i1 = box.x - obox.x; // handle edge not believe in x and y
 				var i2 = box.y - obox.y;
 				if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
@@ -8742,11 +8742,11 @@ class suiTracker {
 	}
 
 	intersectingArtifact(bb) {
-        bb = svgHelpers.boxPoints(bb.x-this._scroll.x,bb.y-this._scroll.y,bb.width,bb.height);
-		var artifacts = svgHelpers.findIntersectingArtifact(bb,this.objects);
+        bb = svgHelpers.boxPoints(bb.x,bb.y,bb.width,bb.height);
+		var artifacts = svgHelpers.findIntersectingArtifact(bb,this.objects,this.netScroll);
 		// TODO: handle overlapping suggestions
 		if (!artifacts.length) {			
-			var sel = svgHelpers.findIntersectingArtifact(bb,this.modifierTabs);
+			var sel = svgHelpers.findIntersectingArtifact(bb,this.modifierTabs,this.netScroll);
 			if (sel.length) {
 				sel = sel[0];
 				this._setModifierAsSuggestion(bb, sel);

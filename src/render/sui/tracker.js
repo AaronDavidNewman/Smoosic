@@ -807,11 +807,11 @@ class suiTracker {
 	}
 
 	intersectingArtifact(bb) {
-        bb = svgHelpers.boxPoints(bb.x-this._scroll.x,bb.y-this._scroll.y,bb.width,bb.height);
-		var artifacts = svgHelpers.findIntersectingArtifact(bb,this.objects);
+        bb = svgHelpers.boxPoints(bb.x,bb.y,bb.width,bb.height);
+		var artifacts = svgHelpers.findIntersectingArtifact(bb,this.objects,this.netScroll);
 		// TODO: handle overlapping suggestions
 		if (!artifacts.length) {			
-			var sel = svgHelpers.findIntersectingArtifact(bb,this.modifierTabs);
+			var sel = svgHelpers.findIntersectingArtifact(bb,this.modifierTabs,this.netScroll);
 			if (sel.length) {
 				sel = sel[0];
 				this._setModifierAsSuggestion(bb, sel);

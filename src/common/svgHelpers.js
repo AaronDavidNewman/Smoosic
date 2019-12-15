@@ -226,7 +226,7 @@ class svgHelpers {
 
 	// ### findIntersectionArtifact
 	// find all object that intersect with the rectangle
-	static findIntersectingArtifact(clientBox, objects) {
+	static findIntersectingArtifact(clientBox, objects,netScroll) {
 		var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
 
 		// box.y = box.y - this.renderElement.offsetTop;
@@ -240,7 +240,7 @@ class svgHelpers {
 			if (!object.box) {
 				// console.log('there is no box');
 			} else {
-				var obox = svgHelpers.smoBox(object.box);
+				var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box),netScroll);
 				var i1 = box.x - obox.x; // handle edge not believe in x and y
 				var i2 = box.y - obox.y;
 				if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
