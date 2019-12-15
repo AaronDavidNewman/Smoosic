@@ -246,6 +246,11 @@ div.ribbonButtonContainer.expanded {
     font-size:1.2em;
 }
 
+#TextButtons .ribbon-button-text{
+    top:15%;
+    left:18%;
+}
+
 #lyrics {
     width:65px;
 }

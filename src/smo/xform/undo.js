@@ -155,6 +155,11 @@ class SmoUndoable {
             'measure', selection.selector, selection.measure);
         SmoOperation.setPitch(selection, pitches);
     }
+    static addPitch(selection, pitches, undoBuffer)  {
+        undoBuffer.addBuffer('pitch change ' + JSON.stringify(pitches, null, ' '),
+            'measure', selection.selector, selection.measure);
+        SmoOperation.addPitch(selection, pitches);
+    }
     static doubleDuration(selection, undoBuffer) {
         undoBuffer.addBuffer('double duration', 'measure', selection.selector, selection.measure);
         SmoOperation.doubleDuration(selection);

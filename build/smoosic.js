@@ -6309,6 +6309,11 @@ class SmoUndoable {
             'measure', selection.selector, selection.measure);
         SmoOperation.setPitch(selection, pitches);
     }
+    static addPitch(selection, pitches, undoBuffer)  {
+        undoBuffer.addBuffer('pitch change ' + JSON.stringify(pitches, null, ' '),
+            'measure', selection.selector, selection.measure);
+        SmoOperation.addPitch(selection, pitches);
+    }
     static doubleDuration(selection, undoBuffer) {
         undoBuffer.addBuffer('double duration', 'measure', selection.selector, selection.measure);
         SmoOperation.doubleDuration(selection);
@@ -56243,9 +56248,8 @@ class suiController {
 		$('body').off('smo-piano-key').on('smo-piano-key',function(ev,obj) {
 			obj=obj.selections;
 			self.tracker.selections.forEach((sel) => {
-				SmoOperation.addPitch(sel,obj);
+                SmoUndoable.addPitch(sel, obj, self.undoBuffer);				
                 suiOscillator.playSelectionNow(sel);
-				// sel.note.pitches=JSON.parse(JSON.stringify(obj));
 			});
 		});
 		$('body').off('tracker-selection').on('tracker-selection',function(ev) {
