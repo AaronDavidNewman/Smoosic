@@ -184,6 +184,19 @@ class suiLayoutBase {
 		var system = new VxSystem(this.context, selection.measure.staffY, selection.measure.lineIndex);
 		system.renderMeasure(selection.selector.staff, selection.measure);
 	}
+    
+    // ### renderNoteModifierPreview
+	// ### Description:
+	// For dialogs that allow you to manually modify elements that are automatically rendered, we allow a preview so the
+	// changes can be undone before the buffer closes.
+	renderMeasureModifierPreview(modifier,measure) {
+        var ix = measure.measureNumber.measureIndex;
+        this._score.staves.forEach((staff) => {
+            var cm = staff.measures[ix];
+    		var system = new VxSystem(this.context, cm.staffY, cm.lineIndex);
+            system.renderMeasure(staff.staffId, cm);
+        });
+	}
 	
 	// ### renderStaffModifierPreview
 	// ### Description:

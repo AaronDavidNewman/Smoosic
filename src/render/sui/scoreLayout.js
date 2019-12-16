@@ -88,6 +88,12 @@ class suiScoreLayout extends suiLayoutBase {
 	get logicalPageHeight() {
 		return this.pageMarginHeight/this.svgScale;
 	}
+    
+    _previousAttrFunc(i,j,attr) {
+		var staff = this._score.staves[j];
+		var measure = staff.measures[i];
+		return (i > 0 ? staff.measures[i - 1][attr]() : measure[attr]());
+    }
 
 	_previousAttr(i, j, attr) {
 		var staff = this._score.staves[j];
@@ -286,6 +292,7 @@ class suiScoreLayout extends suiLayoutBase {
         s.measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
         s.keySigLast = smoMusic.vexKeySignatureTranspose(this._previousAttr(measure.measureNumber.measureIndex, 
             staff.staffId, 'keySignature'), measure.transposeIndex);
+        s.tempoLast = this._previousAttrFunc(measure.measureNumber.measureIndex,staff.staffId,'getTempo');
         s.timeSigLast = this._previousAttr(measure.measureNumber.measureIndex, 
             staff.staffId, 'timeSignature');
         s.clefLast = this._previousAttr(measure.measureNumber.measureIndex, 

@@ -22,6 +22,153 @@ class SuiStaffModifierDialog extends SuiDialogBase {
     }
 }
 
+
+class SuiTempoDialog extends SuiStaffModifierDialog {
+    static get attributes() {
+        return ['tempoMode', 'bpm', 'beatDuration', 'tempoText','yOffset'];
+    }
+    static get dialogElements() {
+        return [{
+            smoName: 'tempoMode',
+            parameterName: 'tempoMode',
+            defaultValue: SmoTempoText.tempoModes.durationMode,
+            control: 'SuiDropdownComponent',
+            label:'Tempo Mode',
+            options: [{
+                    value: 'duration',
+                    label: 'Duration (Beats/Minute)'
+                }, {
+                    value: 'text',
+                    label: 'Tempo Text'
+                }, {
+                    value: 'custom',
+                    label: 'Specify text and duration'
+                }
+                ]
+        } ,
+            {
+            smoName: 'tempoText',
+            parameterName: 'tempoText',
+            defaultValue: SmoTempoText.tempoTexts.allegro,
+            control: 'SuiDropdownComponent',
+            label:'Tempo Text',
+            options: [{
+                value: SmoTempoText.tempoTexts.larghissimo,
+                label: 'Larghissimo'
+              }, {
+                value: SmoTempoText.tempoTexts.grave,
+                label: 'Grave'
+              }, {
+                value: SmoTempoText.tempoTexts.lento,
+                label: 'Lento'
+              }, {
+                value: SmoTempoText.tempoTexts.largo,
+                label: 'Largo'
+              }, {
+                value: SmoTempoText.tempoTexts.larghetto,
+                label: 'Larghetto'
+              }, {
+                value: SmoTempoText.tempoTexts.adagio,
+                label: 'Adagio'
+              }, {
+                value: SmoTempoText.tempoTexts.adagietto,
+                label: 'Adagietto'
+              }, {
+                value: SmoTempoText.tempoTexts.andante_moderato,
+                label: 'Andante moderato'
+              }, {
+                value: SmoTempoText.tempoTexts.andante,
+                label: 'Andante'
+              }, {
+                value: SmoTempoText.tempoTexts.andantino,
+                label: 'Andantino'
+              }, {
+                value: SmoTempoText.tempoTexts.moderator,
+                label: 'Moderato'
+              }, {
+                value: SmoTempoText.tempoTexts.allegretto,
+                label: 'Allegretto',
+              } ,{
+                value: SmoTempoText.tempoTexts.allegro,
+                label: 'Allegro'
+              }, {
+                value: SmoTempoText.tempoTexts.vivace,
+                label: 'Vivace'
+              }, {
+                value: SmoTempoText.tempoTexts.presto,
+                label: 'Presto'
+              }, {
+                value: SmoTempoText.tempoTexts.prestissimo,
+                label: 'Prestissimo}'
+              }
+            ]
+        },{
+                smoName: 'display',
+                parameterName: 'display',
+                defaultValue: true,
+                control: 'SuiToggleComponent',
+                label: 'Display Tempo'
+            }, 
+        ]
+    }
+    static createAndDisplay(buttonElement,buttonData,controller) {
+        // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
+        //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
+        var measures = SmoSelection.getMeasureList(controller.tracker.selections);
+        var existing = measures[0].getTempo();
+        if (!existing) {
+            existing = new SmoTempoText();
+            measures[0].addTempo(existing);
+        }
+        if (!existing.renderedBox) {
+            existing.renderedBox = svgHelpers.copyBox(measures[0].renderedBox);
+        }
+        var dg = new SuiTempoDialog({measures:measures,modifier:existing,buttonElement:buttonElement,buttonData:buttonData,layout:controller.tracker.layout});
+        dg.display();
+        return dg;
+    }
+    constructor(parameters) {
+        if (!parameters.modifier || !parameters.measures) {
+            throw new Error('modifier attribute dialog must have modifier and selection');
+        }
+       
+        super(SuiTempoDialog.dialogElements, {
+            id: 'dialog-' + parameters.modifier.id,
+            top: parameters.modifier.renderedBox.y,
+            left: parameters.modifier.renderedBox.x,
+            label: 'Slur Properties'
+        });
+        Vex.Merge(this, parameters);
+    }
+    changed() {
+        this.modifier.backupOriginal();
+        
+        this.components.forEach((component) => {
+            this.modifier[component.smoName] = component.getValue();
+        });
+        if (this.modifier.tempoMode == SmoTempoText.tempoModes.textMode) {
+            this.modifier.bpm = SmoTempoText.bpmFromText[this.modifier.tempoText];
+        }
+        this.measures[0].addTempo(this.modifier);
+        this.layout.renderMeasureModifierPreview(this.modifier,this.measures[0]);
+    }
+    handleRemove() {
+        
+    }
+    _bindElements() {
+        var self = this;
+		var dgDom = this.dgDom; 
+        $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+            self.modifier.restoreOriginal();
+            self.complete();
+        });
+        $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
+            self.handleRemove();
+            self.complete();
+        });
+    }
+}
+
 class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
     static get dialogElements() {
         return [{

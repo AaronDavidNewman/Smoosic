@@ -387,13 +387,36 @@ class SmoTempoText extends SmoMeasureModifierBase {
 			beatDuration: 4096,
 			tempoText: SmoTempoText.tempoTexts.allegro,
             yOffset:0,
+            display:true
 		};
 	}
 	static get attributes() {
-		return ['tempoMode', 'bpm', 'tempoMode', 'beatDuration', 'tempoText','yOffset'];
+		return ['tempoMode', 'bpm', 'display','tempoMode', 'beatDuration', 'tempoText','yOffset'];
 	}
     _toVexTextTempo() {
         return {name:this.tempoText};
+    }
+    
+    static get bpmFromText() {
+        // TODO: learn these
+        var rv = {};              
+        rv[SmoTempoText.tempoTexts.larghissimo] = 40;
+        rv[SmoTempoText.tempoTexts.grave] = 40;
+		rv[SmoTempoText.tempoTexts.lento] = 42;
+		rv[SmoTempoText.tempoTexts.largo] = 46;
+		rv[SmoTempoText.tempoTexts.larghetto] = 52;
+		rv[SmoTempoText.tempoTexts.adagio] = 72;
+		rv[SmoTempoText.tempoTexts.adagietto] = 72;
+		rv[SmoTempoText.tempoTexts.andante_moderato] = 72;
+		rv[SmoTempoText.tempoTexts.andante] = 72;
+		rv[SmoTempoText.tempoTexts.andantino] = 84;
+		rv[SmoTempoText.tempoTexts.moderator] = 96;
+		rv[SmoTempoText.tempoTexts.allegretto] = 96; 
+		rv[SmoTempoText.tempoTexts.allegro] = 120;
+		rv[SmoTempoText.tempoTexts.vivace] = 144;
+		rv[SmoTempoText.tempoTexts.presto] = 168;
+		rv[SmoTempoText.tempoTexts.prestissimo] = 240;
+        return rv;
     }
     
     _toVexDurationTempo() {
@@ -407,6 +430,13 @@ class SmoTempoText extends SmoMeasureModifierBase {
             return this._toVexDurationTempo();
         }
         return this._toVexTextTempo();
+    }
+    backupOriginal() {
+        this.backup = {};
+        smoMusic.serializedMerge(SmoTempoText.attributes, this, this.backup);
+    }
+    restoreOriginal() {
+        smoMusic.serializedMerge(SmoTempoText.attributes, this.backup, this);
     }
     serialize() {
         var params = {};

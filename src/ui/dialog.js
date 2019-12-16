@@ -649,6 +649,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 		});
     }
 }
+
 class SuiLayoutDialog extends SuiDialogBase {
 	static get attributes() {
 		return ['pageWidth', 'pageHeight', 'leftMargin', 'topMargin', 'rightMargin', 'interGap', 'intraGap', 'zoomScale', 'svgScale'];
