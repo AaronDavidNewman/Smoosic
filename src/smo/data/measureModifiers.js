@@ -18,6 +18,7 @@ class SmoMeasureModifierBase {
         var rv = new ctor(jsonObj);
         rv.attrs.id = jsonObj.attrs.id;
         rv.attrs.type = jsonObj.attrs.type;
+        return rv;
     }
 }
 
@@ -39,9 +40,9 @@ class SmoBarline extends SmoMeasureModifierBase {
             noBar: 5
         }
     }
-	
+
 	static get _barlineToString() {
-		return  ['singleBar','doubleBar','endBar','startRepeat','endRepeat','noBar'];		
+		return  ['singleBar','doubleBar','endBar','startRepeat','endRepeat','noBar'];
 	}
 	static barlineString(inst) {
 		return SmoBarline._barlineToString[inst.barline];
@@ -61,14 +62,14 @@ class SmoBarline extends SmoMeasureModifierBase {
         var params = {};
         smoMusic.filteredMerge(SmoBarline.attributes, this, params);
         params.ctor = 'SmoBarline';
-        return params;    
+        return params;
 	}
 
     constructor(parameters) {
         super('SmoBarline');
         parameters = parameters ? parameters : {};
         smoMusic.serializedMerge(SmoBarline.attributes, SmoBarline.defaults, this);
-        smoMusic.serializedMerge(SmoBarline.attributes, parameters, this);       
+        smoMusic.serializedMerge(SmoBarline.attributes, parameters, this);
     }
 
     static get toVexBarline() {
@@ -104,7 +105,7 @@ class SmoRepeatSymbol extends SmoMeasureModifierBase {
             Fine: 9
         };
     }
-	
+
 	static get defaultXOffset() {
 		return [0,0,0,-20,-60,-60,-50,-60,-50,-40];
 	}
@@ -136,7 +137,7 @@ class SmoRepeatSymbol extends SmoMeasureModifierBase {
         var params = {};
         smoMusic.filteredMerge(SmoRepeatSymbol.attributes, this, params);
         params.ctor = 'SmoRepeatSymbol';
-        return params;    
+        return params;
 	}
     constructor(parameters) {
         super('SmoRepeatSymbol');
@@ -163,9 +164,9 @@ class SmoVolta extends SmoMeasureModifierBase {
 		smoMusic.serializedMerge(SmoVolta.attributes, parameters, this);
     }
 	get id() {
-		return this.attrs.id;		
+		return this.attrs.id;
 	}
-	
+
 	get type() {
 		return this.attrs.type;
 	}
@@ -173,16 +174,16 @@ class SmoVolta extends SmoMeasureModifierBase {
         return ['startBar', 'endBar', 'endingId','startSelector','endSelector','xOffsetStart', 'xOffsetEnd', 'yOffset', 'number'];
     }
 	static get editableAttributes() {
-		return ['xOffsetStart','xOffsetEnd','yOffset','number'];	
+		return ['xOffsetStart','xOffsetEnd','yOffset','number'];
 	}
-	
+
 	serialize() {
         var params = {};
         smoMusic.filteredMerge(SmoVolta.attributes, this, params);
         params.ctor = 'SmoVolta';
-        return params;    
+        return params;
 	}
-	
+
     static get defaults() {
         return {
             startBar: 1,
@@ -193,7 +194,7 @@ class SmoVolta extends SmoMeasureModifierBase {
             number: 1
         }
     }
-	
+
 	 backupOriginal() {
         if (!this['original']) {
             this.original = {};
@@ -210,14 +211,14 @@ class SmoVolta extends SmoMeasureModifierBase {
             this.original = null;
         }
     }
-	
+
 	toVexVolta(measureNumber) {
 		if (this.startBar === measureNumber && this.startBar === this.endBar) {
 			return VF.Volta.type.BEGIN_END;
 		}
 		if (this.startBar === measureNumber) {
 			return VF.Volta.type.BEGIN;
-		} 
+		}
 		if (this.endBar === measureNumber) {
 			return VF.Volta.type.END;
 		}
@@ -225,29 +226,29 @@ class SmoVolta extends SmoMeasureModifierBase {
 			return VF.Volta.type.MID;
 		}
 		return VF.Volta.type.NONE;
-	}		
+	}
 }
 
 class SmoMeasureText extends SmoMeasureModifierBase {
 	static get positions() {
 		return {above:0,below:1,left:2,right:3};
 	}
-	
+
 	static get justifications() {
 		return {left:0,right:1,center:2}
 	}
-	
+
 	static get _positionToString() {
 		return ['above','below','left','right'];
 	}
-	
+
 	static get toVexPosition() {
 		return [VF.Modifier.Position.ABOVE,VF.Modifier.Position.BELOW,VF.Modifier.Position.LEFT,VF.Modifier.Position.RIGHT];
 	}
 	static get toVexJustification() {
 		return [VF.TextNote.LEFT,VF.TextNote.RIGHT,VF.TextNote.CENTER];
 	}
-	
+
 	toVexJustification() {
 		return SmoMeasureText.toVexJustification[this.justification];
 	}
@@ -257,7 +258,7 @@ class SmoMeasureText extends SmoMeasureModifierBase {
 	static get attributes() {
 		return ['position','fontInfo','text','adjustX','adjustY','justification'];
 	}
-	
+
 	static get defaults() {
 		return {
 			position:SmoMeasureText.positions.above,
@@ -279,23 +280,23 @@ class SmoMeasureText extends SmoMeasureModifierBase {
         params.ctor = 'SmoMeasureText';
         return params;
 	}
-	
+
 	constructor(parameters) {
 		super('SmoMeasureText');
         parameters = parameters ? parameters : {};
         smoMusic.serializedMerge(SmoMeasureText.attributes, SmoMeasureText.defaults, this);
         smoMusic.serializedMerge(SmoMeasureText.attributes, parameters, this);
-		
+
 		// right-justify left text and left-justify right text by default
 		if (!parameters['justification']) {
-			this.justification = (this.position === SmoMeasureText.positions.left) ? SmoMeasureText.justifications.right : 
+			this.justification = (this.position === SmoMeasureText.positions.left) ? SmoMeasureText.justifications.right :
 			     (this.position === SmoMeasureText.positions.right ? SmoMeasureText.justifications.left : this.justification);
 		}
 	}
 }
 
 class SmoRehearsalMark extends SmoMeasureModifierBase {
-	
+
 	static get cardinalities() {
 		return {capitals:'capitals',lowerCase:'lowerCase',numbers:'numbers'};
 	}
@@ -305,7 +306,7 @@ class SmoRehearsalMark extends SmoMeasureModifierBase {
 	static get _positionToString() {
 		return ['above','below','left','right'];
 	}
-	
+
 	// TODO: positions don't work.
 	static get defaults() {
 		return {
@@ -329,7 +330,7 @@ class SmoRehearsalMark extends SmoMeasureModifierBase {
         }
 	}
     getInitial() {
-        return this.cardinality == SmoRehearsalMark.cardinalities.capitals ? 'A' : 
+        return this.cardinality == SmoRehearsalMark.cardinalities.capitals ? 'A' :
             (this.cardinality == SmoRehearsalMark.cardinalities.lowerCase ? 'a' : '1');
     }
 	serialize() {
@@ -350,6 +351,8 @@ class SmoRehearsalMark extends SmoMeasureModifierBase {
 }
 
 
+// ### SmoTempoText
+// Tempo marking and also the information about the tempo.
 class SmoTempoText extends SmoMeasureModifierBase {
 	static get tempoModes() {
 		return {
@@ -372,7 +375,7 @@ class SmoTempoText extends SmoMeasureModifierBase {
 			andante: 'Andante',
 			andantino: 'Andantino',
 			moderator: 'Moderato',
-			allegretto: 'Allegretto', 
+			allegretto: 'Allegretto',
 			allegro: 'Allegro',
 			vivace: 'Vivace',
 			presto: 'Presto',
@@ -387,19 +390,36 @@ class SmoTempoText extends SmoMeasureModifierBase {
 			beatDuration: 4096,
 			tempoText: SmoTempoText.tempoTexts.allegro,
             yOffset:0,
-            display:true
+            display:false
 		};
 	}
 	static get attributes() {
-		return ['tempoMode', 'bpm', 'display','tempoMode', 'beatDuration', 'tempoText','yOffset'];
+		return ['attrs','tempoMode', 'bpm', 'display','tempoMode', 'beatDuration', 'tempoText','yOffset'];
 	}
     _toVexTextTempo() {
         return {name:this.tempoText};
     }
-    
+
+    // ### eq
+    // Return equality wrt the tempo marking, e.g. 2 allegro in textMode will be equal but
+    // an allegro and duration 120bpm will not.
+    static eq (t1,t2) {
+    	if (t1.tempoMode != t2.tempoMode) {
+    		return false;
+    	}
+    	if (t1.tempoMode == SmoTempoText.tempoModes.durationMode) {
+    		return t1.bpm == t2.bpm && t1.beatDuration == t2.beatDuration;
+    	}
+    	if (t1.tempoMode == SmoTempoText.tempoModes.textMode) {
+    		return t1.tempoText == t2.tempoText;
+    	} else {
+    		return t1.bpm == t2.bpm && t1.beatDuration == t2.beatDuration &&
+    		    t1.tempoText == t2.tempoText;
+    	}
+    }
     static get bpmFromText() {
         // TODO: learn these
-        var rv = {};              
+        var rv = {};
         rv[SmoTempoText.tempoTexts.larghissimo] = 40;
         rv[SmoTempoText.tempoTexts.grave] = 40;
 		rv[SmoTempoText.tempoTexts.lento] = 42;
@@ -411,14 +431,14 @@ class SmoTempoText extends SmoMeasureModifierBase {
 		rv[SmoTempoText.tempoTexts.andante] = 72;
 		rv[SmoTempoText.tempoTexts.andantino] = 84;
 		rv[SmoTempoText.tempoTexts.moderator] = 96;
-		rv[SmoTempoText.tempoTexts.allegretto] = 96; 
+		rv[SmoTempoText.tempoTexts.allegretto] = 96;
 		rv[SmoTempoText.tempoTexts.allegro] = 120;
 		rv[SmoTempoText.tempoTexts.vivace] = 144;
 		rv[SmoTempoText.tempoTexts.presto] = 168;
 		rv[SmoTempoText.tempoTexts.prestissimo] = 240;
         return rv;
     }
-    
+
     _toVexDurationTempo() {
         var vd = smoMusic.ticksToDuration[this.beatDuration];
         var dots = (vd.match(/d/g) || []).length;

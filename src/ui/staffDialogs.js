@@ -173,6 +173,7 @@ class SuiTempoDialog extends SuiDialogBase {
             left: parameters.modifier.renderedBox.x,
             label: 'Slur Properties'
         });
+        this.refresh = false;
         Vex.Merge(this, parameters);
     }
     changed() {
@@ -186,7 +187,24 @@ class SuiTempoDialog extends SuiDialogBase {
 
         }
         this.measures[0].addTempo(this.modifier);
-        this.layout.renderMeasureModifierPreview(this.modifier,this.measures[0]);
+        this.refresh = true;
+    }
+    handleFuture() {
+        var fc = this.components.find((comp) => {return comp.smoName == 'applyToAll'});
+        if (!fc.getValue()) {
+            return;
+        }
+        this.layout.score.staves.forEach((staff) => {
+            var measures = staff.measures.filter((mm) => {
+                return mm.measureNumber.measureIndex > this.measures[0].measureNumber.measureIndex
+            });
+            measures.forEach((mm) => {
+                var tempo = SmoMeasureModifierBase.deserialize(this.modifier.serialize());
+                tempo.attrs.id = VF.Element.newID();
+                mm.addTempo(tempo);
+            });
+        });
+
     }
     handleRemove() {
 
@@ -194,7 +212,12 @@ class SuiTempoDialog extends SuiDialogBase {
     _bindElements() {
         var self = this;
 		var dgDom = this.dgDom;
-        $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+        $(dgDom.element).find('.cancel-button').remove();
+        $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+            self.handleFuture();
+            if (self.refresh) {
+                self.layout.setDirty();
+            }
             self.complete();
         });
         $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
