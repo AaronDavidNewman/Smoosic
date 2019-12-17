@@ -242,8 +242,10 @@ class SmoUndoable {
         undoBuffer.addBuffer('slur', 'staff', fromSelection.selector, fromSelection.staff);
         SmoOperation.slur(fromSelection, toSelection);
     }
-	static noop(score,undoBuffer) {
-        undoBuffer.addBuffer('Backup', 'score', null, score);		
+    // easy way to back up the score for a score-wide operation
+	static noop(score,undoBuffer,label) {
+        label = label ? label : 'Backup';
+        undoBuffer.addBuffer(label, 'score', null, score);		
 	}
         
 	static measureSelectionOp(score,selection,op,params,undoBuffer,description) {
