@@ -143,7 +143,7 @@ class SuiTempoDialog extends SuiDialogBase {
                 defaultValue: true,
                 control: 'SuiToggleComponent',
                 label: 'Display Tempo'
-            }, 
+            },
         ]
     }
     static createAndDisplay(buttonElement,buttonData,controller) {
@@ -166,7 +166,7 @@ class SuiTempoDialog extends SuiDialogBase {
         if (!parameters.modifier || !parameters.measures) {
             throw new Error('modifier attribute dialog must have modifier and selection');
         }
-       
+
         super(SuiTempoDialog.dialogElements, {
             id: 'dialog-' + parameters.modifier.id,
             top: parameters.modifier.renderedBox.y,
@@ -176,9 +176,6 @@ class SuiTempoDialog extends SuiDialogBase {
         Vex.Merge(this, parameters);
     }
     changed() {
-		var changed = this.components.filter((comp) => {
-			return indexOf(this.components
-		});
         this.components.forEach((component) => {
 			if (SmoTempoText.attributes.indexOf(component.smoName) >= 0) {
                 this.modifier[component.smoName] = component.getValue();
@@ -186,17 +183,17 @@ class SuiTempoDialog extends SuiDialogBase {
         });
         if (this.modifier.tempoMode == SmoTempoText.tempoModes.textMode) {
             this.modifier.bpm = SmoTempoText.bpmFromText[this.modifier.tempoText];
-			
+
         }
         this.measures[0].addTempo(this.modifier);
         this.layout.renderMeasureModifierPreview(this.modifier,this.measures[0]);
     }
     handleRemove() {
-        
+
     }
     _bindElements() {
         var self = this;
-		var dgDom = this.dgDom; 
+		var dgDom = this.dgDom;
         $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
             self.complete();
         });
@@ -372,13 +369,13 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
 						 endings.forEach((ending) => {
 							 this.components.forEach((component) => {
 								ending[component.smoName] = component.getValue();
-							 }); 
+							 });
 						 });
 					 }
 				}
 			});
 		});
-       
+
         this.layout.renderStaffModifierPreview(this.modifier);
     }
     constructor(parameters) {
