@@ -3,7 +3,7 @@ var inventionJson = `{
   "layout": {
    "leftMargin": 30,
    "rightMargin": 30,
-   "topMargin": 169.59375,
+   "topMargin": 201.390625,
    "bottomMargin": 40,
    "pageWidth": 816,
    "pageHeight": 1056,
@@ -398,14 +398,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 215.27098846435547,
+     "staffY": 247.0679168701172,
      "measureNumber": {
       "measureNumber": 0,
       "measureIndex": 0,
       "systemIndex": 0,
       "staffId": 0
      },
-     "staffWidth": 536.2199954986572,
+     "staffWidth": 536.2199039459229,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -440,15 +440,9 @@ var inventionJson = `{
            },
            "renderedBox": {
             "x": 212.5869140625,
-            "y": -675.40478515625,
+            "y": 309.8476257324219,
             "width": 10.837371826171875,
-            "height": 12.10113525390625
-           },
-           "logicalBox": {
-            "x": 132.2994384765625,
-            "y": 284.7647399902344,
-            "width": 15.485748291015625,
-            "height": 17.29156494140625
+            "height": 12.101104736328125
            }
           }
          ],
@@ -476,19 +470,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto423618",
+          "id": "auto389647",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto423636",
+         "renderId": "vf-auto389666",
          "renderedBox": {
           "x": 213.60171508789062,
-          "y": -692.7022094726562,
+          "y": 292.55023193359375,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 133.74951171875,
-          "y": 260.0480651855469,
+          "y": 291.8450622558594,
           "width": 12.018234252929688,
           "height": 10.473846435546875
          }
@@ -520,21 +514,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto423618",
+          "id": "auto389647",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto423643",
+         "renderId": "vf-auto389673",
          "renderedBox": {
           "x": 236.857666015625,
-          "y": -696.2012939453125,
-          "width": 8.410720825195312,
-          "height": 7.329833984375
+          "y": 289.05108642578125,
+          "width": 8.41070556640625,
+          "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 166.98043823242188,
-          "y": 255.04815673828125,
-          "width": 12.018264770507812,
-          "height": 10.4737548828125
+          "y": 286.8450622558594,
+          "width": 12.018234252929688,
+          "height": 10.473846435546875
          }
         },
         {
@@ -564,26 +558,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto423618",
+          "id": "auto389647",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto423650",
+         "renderId": "vf-auto389680",
          "renderedBox": {
           "x": 260.1136474609375,
-          "y": -699.700439453125,
+          "y": 285.55194091796875,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 200.21141052246094,
-          "y": 250.0481414794922,
+          "y": 281.8450622558594,
           "width": 12.018234252929688,
-          "height": 10.473770141601562
+          "height": 10.473846435546875
          }
         }
        ],
        "attrs": {
-        "id": "auto423618",
+        "id": "auto389647",
         "type": "SmoBeamGroup"
        }
       },
@@ -616,21 +610,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto423619",
+          "id": "auto389648",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto423657",
+         "renderId": "vf-auto389687",
          "renderedBox": {
           "x": 283.3695983886719,
-          "y": -703.1995849609375,
-          "width": 8.410736083984375,
-          "height": 7.329833984375
+          "y": 282.05279541015625,
+          "width": 8.41070556640625,
+          "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 233.4423370361328,
-          "y": 245.0481414794922,
-          "width": 12.018295288085938,
-          "height": 10.4737548828125
+          "y": 276.8450622558594,
+          "width": 12.01824951171875,
+          "height": 10.47381591796875
          }
         },
         {
@@ -660,21 +654,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto423619",
+          "id": "auto389648",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto423664",
+         "renderId": "vf-auto389694",
          "renderedBox": {
-          "x": 306.6255798339844,
-          "y": -696.2012939453125,
+          "x": 306.62554931640625,
+          "y": 289.05108642578125,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 266.6733093261719,
-          "y": 255.04815673828125,
-          "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "x": 266.67327880859375,
+          "y": 286.8450622558594,
+          "width": 12.018218994140625,
+          "height": 10.473846435546875
          }
         },
         {
@@ -704,21 +698,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto423619",
+          "id": "auto389648",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto423671",
+         "renderId": "vf-auto389701",
          "renderedBox": {
           "x": 329.88153076171875,
-          "y": -699.700439453125,
+          "y": 285.55194091796875,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 299.90423583984375,
-          "y": 250.0481414794922,
+          "y": 281.8450622558594,
           "width": 12.01824951171875,
-          "height": 10.473770141601562
+          "height": 10.473846435546875
          }
         },
         {
@@ -748,26 +742,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto423619",
+          "id": "auto389648",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto423678",
+         "renderId": "vf-auto389708",
          "renderedBox": {
-          "x": 353.13751220703125,
-          "y": -692.7022094726562,
-          "width": 8.41070556640625,
+          "x": 353.137451171875,
+          "y": 292.55023193359375,
+          "width": 8.410736083984375,
           "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 333.1352233886719,
-          "y": 260.0480651855469,
-          "width": 12.01824951171875,
+          "x": 333.1351318359375,
+          "y": 291.8450622558594,
+          "width": 12.018280029296875,
           "height": 10.473846435546875
          }
         }
        ],
        "attrs": {
-        "id": "auto423619",
+        "id": "auto389648",
         "type": "SmoBeamGroup"
        }
       },
@@ -800,21 +794,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto423620",
+          "id": "auto389649",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto423685",
+         "renderId": "vf-auto389715",
          "renderedBox": {
-          "x": 376.3934631347656,
-          "y": -706.69873046875,
+          "x": 376.3934326171875,
+          "y": 278.55364990234375,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 366.36614990234375,
-          "y": 240.0481414794922,
-          "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "x": 366.3661193847656,
+          "y": 271.84503173828125,
+          "width": 12.018218994140625,
+          "height": 10.473846435546875
          }
         },
         {
@@ -844,20 +838,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto423620",
+          "id": "auto389649",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto423692",
+         "renderId": "vf-auto389722",
          "renderedBox": {
-          "x": 410.29571533203125,
-          "y": -717.1961669921875,
+          "x": 410.2956848144531,
+          "y": 268.05621337890625,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 414.809814453125,
-          "y": 225.04812622070312,
-          "width": 12.018218994140625,
+          "x": 414.80975341796875,
+          "y": 256.84503173828125,
+          "width": 12.01824951171875,
           "height": 10.473846435546875
          }
         },
@@ -899,21 +893,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto423620",
+          "id": "auto389649",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto423699",
+         "renderId": "vf-auto389729",
          "renderedBox": {
-          "x": 440.7156982421875,
-          "y": -756.0047607421875,
+          "x": 440.71563720703125,
+          "y": 229.24765014648438,
           "width": 15.375274658203125,
-          "height": 49.63763427734375
+          "height": 49.637603759765625
          },
          "logicalBox": {
-          "x": 458.277587890625,
-          "y": 169.59368896484375,
+          "x": 458.2774963378906,
+          "y": 201.39064025878906,
           "width": 21.970062255859375,
-          "height": 70.92828369140625
+          "height": 70.92823791503906
          }
         },
         {
@@ -943,26 +937,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto423620",
+          "id": "auto389649",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto423708",
+         "renderId": "vf-auto389738",
          "renderedBox": {
-          "x": 478.1002197265625,
-          "y": -717.1961669921875,
-          "width": 8.410736083984375,
+          "x": 478.10015869140625,
+          "y": 268.05621337890625,
+          "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 511.6971130371094,
-          "y": 225.04812622070312,
-          "width": 12.018280029296875,
+          "x": 511.6970520019531,
+          "y": 256.84503173828125,
+          "width": 12.018218994140625,
           "height": 10.473846435546875
          }
         }
        ],
        "attrs": {
-        "id": "auto423620",
+        "id": "auto389649",
         "type": "SmoBeamGroup"
        }
       }
@@ -1040,15 +1034,9 @@ var inventionJson = `{
            },
            "renderedBox": {
             "x": 212.5869140625,
-            "y": -675.40478515625,
+            "y": 309.8476257324219,
             "width": 10.837371826171875,
-            "height": 12.10113525390625
-           },
-           "logicalBox": {
-            "x": 132.2994384765625,
-            "y": 284.7647399902344,
-            "width": 15.485748291015625,
-            "height": 17.29156494140625
+            "height": 12.101104736328125
            }
           }
          ],
@@ -1357,21 +1345,34 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179416",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 566.2199954986572,
-     "staffY": 215.27098846435547,
+     "staffX": 566.2199039459229,
+     "staffY": 247.0679168701172,
      "measureNumber": {
       "measureNumber": 1,
       "measureIndex": 1,
       "systemIndex": 1,
       "staffId": 0
      },
-     "staffWidth": 482.2400817871094,
+     "staffWidth": 482.24017333984375,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -1405,16 +1406,10 @@ var inventionJson = `{
             "pitches": []
            },
            "renderedBox": {
-            "x": 528.4124755859375,
-            "y": -675.40478515625,
+            "x": 528.412353515625,
+            "y": 309.8476257324219,
             "width": 10.83740234375,
-            "height": 12.10113525390625
-           },
-           "logicalBox": {
-            "x": 583.5894165039062,
-            "y": 284.7647399902344,
-            "width": 15.48577880859375,
-            "height": 17.29156494140625
+            "height": 12.101104736328125
            }
           }
          ],
@@ -1452,21 +1447,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto424681",
+          "id": "auto390712",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto424687",
+         "renderId": "vf-auto390718",
          "renderedBox": {
           "x": 529.42724609375,
-          "y": -730.1607666015625,
-          "width": 8.41070556640625,
-          "height": 16.79534912109375
+          "y": 255.09158325195312,
+          "width": 8.41064453125,
+          "height": 16.795379638671875
          },
          "logicalBox": {
           "x": 585.0394287109375,
-          "y": 206.52273559570312,
-          "width": 12.01824951171875,
-          "height": 23.999221801757812
+          "y": 238.31959533691406,
+          "width": 12.01812744140625,
+          "height": 23.999282836914062
          }
         },
         {
@@ -1496,21 +1491,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto424681",
+          "id": "auto390712",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto424694",
+         "renderId": "vf-auto390725",
          "renderedBox": {
           "x": 553.8243408203125,
-          "y": -706.69873046875,
-          "width": 8.4107666015625,
-          "height": 7.329833984375
+          "y": 278.55364990234375,
+          "width": 8.41070556640625,
+          "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 619.9009399414062,
-          "y": 240.0481414794922,
-          "width": 12.01837158203125,
-          "height": 10.4737548828125
+          "y": 271.84503173828125,
+          "width": 12.01824951171875,
+          "height": 10.473846435546875
          }
         },
         {
@@ -1540,21 +1535,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto424681",
+          "id": "auto390712",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto424701",
+         "renderId": "vf-auto390732",
          "renderedBox": {
-          "x": 576.9482421875,
-          "y": -710.1978759765625,
-          "width": 8.41064453125,
-          "height": 7.329833984375
+          "x": 576.9481201171875,
+          "y": 275.05450439453125,
+          "width": 8.4107666015625,
+          "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 652.9431762695312,
-          "y": 235.04812622070312,
-          "width": 12.0181884765625,
-          "height": 10.473770141601562
+          "x": 652.9430541992188,
+          "y": 266.84503173828125,
+          "width": 12.018310546875,
+          "height": 10.473846435546875
          }
         },
         {
@@ -1584,26 +1579,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto424681",
+          "id": "auto390712",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto424708",
+         "renderId": "vf-auto390739",
          "renderedBox": {
           "x": 600.072021484375,
-          "y": -713.697021484375,
-          "width": 8.4107666015625,
+          "y": 271.55535888671875,
+          "width": 8.41064453125,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 685.9852905273438,
-          "y": 230.04812622070312,
-          "width": 12.018310546875,
+          "y": 261.84503173828125,
+          "width": 12.01812744140625,
           "height": 10.473846435546875
          }
         }
        ],
        "attrs": {
-        "id": "auto424681",
+        "id": "auto390712",
         "type": "SmoBeamGroup"
        }
       },
@@ -1636,19 +1631,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto424682",
+          "id": "auto390713",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto424715",
+         "renderId": "vf-auto390746",
          "renderedBox": {
-          "x": 623.1958618164062,
-          "y": -717.1961669921875,
+          "x": 623.19580078125,
+          "y": 268.05621337890625,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 719.0274047851562,
-          "y": 225.04812622070312,
+          "x": 719.02734375,
+          "y": 256.84503173828125,
           "width": 12.01824951171875,
           "height": 10.473846435546875
          }
@@ -1680,21 +1675,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto424682",
+          "id": "auto390713",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto424722",
+         "renderId": "vf-auto390753",
          "renderedBox": {
-          "x": 646.3197021484375,
-          "y": -710.1978759765625,
-          "width": 8.41064453125,
-          "height": 7.329833984375
+          "x": 646.3196411132812,
+          "y": 275.05450439453125,
+          "width": 8.41070556640625,
+          "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 752.069580078125,
-          "y": 235.04812622070312,
-          "width": 12.01812744140625,
-          "height": 10.473770141601562
+          "x": 752.0694580078125,
+          "y": 266.84503173828125,
+          "width": 12.01824951171875,
+          "height": 10.473846435546875
          }
         },
         {
@@ -1724,20 +1719,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto424682",
+          "id": "auto390713",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto424729",
+         "renderId": "vf-auto390760",
          "renderedBox": {
-          "x": 669.4435424804688,
-          "y": -713.697021484375,
+          "x": 669.4434814453125,
+          "y": 271.55535888671875,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 785.1117553710938,
-          "y": 230.04812622070312,
-          "width": 12.0181884765625,
+          "x": 785.1116333007812,
+          "y": 261.84503173828125,
+          "width": 12.01824951171875,
           "height": 10.473846435546875
          }
         },
@@ -1768,26 +1763,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto424682",
+          "id": "auto390713",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto424736",
+         "renderId": "vf-auto390767",
          "renderedBox": {
-          "x": 692.5673217773438,
-          "y": -706.69873046875,
-          "width": 8.41070556640625,
-          "height": 7.329833984375
+          "x": 692.5672607421875,
+          "y": 278.55364990234375,
+          "width": 8.4107666015625,
+          "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 818.15380859375,
-          "y": 240.0481414794922,
-          "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "x": 818.1536865234375,
+          "y": 271.84503173828125,
+          "width": 12.01837158203125,
+          "height": 10.473846435546875
          }
         }
        ],
        "attrs": {
-        "id": "auto424682",
+        "id": "auto390713",
         "type": "SmoBeamGroup"
        }
       },
@@ -1820,21 +1815,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto424683",
+          "id": "auto390714",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto424743",
+         "renderId": "vf-auto390774",
          "renderedBox": {
           "x": 715.691162109375,
-          "y": -720.6953125,
+          "y": 264.55706787109375,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 851.1959228515625,
-          "y": 220.04812622070312,
+          "y": 251.84503173828125,
           "width": 12.01824951171875,
-          "height": 10.473831176757812
+          "height": 10.473846435546875
          }
         },
         {
@@ -1864,21 +1859,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto424683",
+          "id": "auto390714",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto424750",
+         "renderId": "vf-auto390781",
          "renderedBox": {
           "x": 749.3291015625,
-          "y": -731.1927490234375,
+          "y": 254.0596466064453,
           "width": 8.4107666015625,
-          "height": 7.32989501953125
+          "height": 7.3298797607421875
          },
          "logicalBox": {
           "x": 899.2619018554688,
-          "y": 205.04811096191406,
+          "y": 236.84503173828125,
           "width": 12.01837158203125,
-          "height": 10.473846435546875
+          "height": 10.473831176757812
          }
         },
         {
@@ -1919,21 +1914,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto424683",
+          "id": "auto390714",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto424757",
+         "renderId": "vf-auto390788",
          "renderedBox": {
-          "x": 779.48486328125,
-          "y": -742.0081787109375,
-          "width": 15.375244140625,
-          "height": 21.64447021484375
+          "x": 779.4848022460938,
+          "y": 243.2442169189453,
+          "width": 15.37530517578125,
+          "height": 21.644454956054688
          },
          "logicalBox": {
-          "x": 942.3521728515625,
-          "y": 189.5937042236328,
-          "width": 21.969970703125,
-          "height": 30.928253173828125
+          "x": 942.35205078125,
+          "y": 221.39064025878906,
+          "width": 21.9700927734375,
+          "height": 30.92822265625
          }
         },
         {
@@ -1963,26 +1958,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto424683",
+          "id": "auto390714",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto424766",
+         "renderId": "vf-auto390797",
          "renderedBox": {
           "x": 816.6051025390625,
-          "y": -731.1927490234375,
+          "y": 254.0596466064453,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.3298797607421875
          },
          "logicalBox": {
           "x": 995.39404296875,
-          "y": 205.04811096191406,
+          "y": 236.84503173828125,
           "width": 12.01824951171875,
-          "height": 10.473846435546875
+          "height": 10.473831176757812
          }
         }
        ],
        "attrs": {
-        "id": "auto424683",
+        "id": "auto390714",
         "type": "SmoBeamGroup"
        }
       }
@@ -2032,16 +2027,10 @@ var inventionJson = `{
             "pitches": []
            },
            "renderedBox": {
-            "x": 528.4124755859375,
-            "y": -675.40478515625,
+            "x": 528.412353515625,
+            "y": 309.8476257324219,
             "width": 10.83740234375,
-            "height": 12.10113525390625
-           },
-           "logicalBox": {
-            "x": 583.5894165039062,
-            "y": 284.7647399902344,
-            "width": 15.48577880859375,
-            "height": 17.29156494140625
+            "height": 12.101104736328125
            }
           }
          ],
@@ -2387,6 +2376,19 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179419",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
@@ -2394,7 +2396,7 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 482.0728988647461,
+     "staffY": 531.3821563720703,
      "measureNumber": {
       "measureNumber": 2,
       "measureIndex": 2,
@@ -2450,21 +2452,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto425878",
+          "id": "auto391909",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto425891",
+         "renderId": "vf-auto391922",
          "renderedBox": {
           "x": 191.1867218017578,
-          "y": -543.4451904296875,
+          "y": 454.06280517578125,
           "width": 8.41070556640625,
-          "height": 13.29620361328125
+          "height": 13.296234130859375
          },
          "logicalBox": {
           "x": 101.72024536132812,
-          "y": 473.32464599609375,
+          "y": 522.6338500976562,
           "width": 12.018234252929688,
-          "height": 18.999237060546875
+          "height": 18.999267578125
          }
         },
         {
@@ -2494,21 +2496,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto425878",
+          "id": "auto391909",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto425898",
+         "renderId": "vf-auto391929",
          "renderedBox": {
           "x": 212.21621704101562,
-          "y": -547.976318359375,
+          "y": 449.53173828125,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329864501953125
          },
          "logicalBox": {
           "x": 131.76974487304688,
-          "y": 466.8500061035156,
+          "y": 516.1593017578125,
           "width": 12.018234252929688,
-          "height": 10.473846435546875
+          "height": 10.47381591796875
          }
         },
         {
@@ -2538,21 +2540,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto425878",
+          "id": "auto391909",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto425905",
+         "renderId": "vf-auto391936",
          "renderedBox": {
           "x": 231.97242736816406,
-          "y": -544.4771728515625,
+          "y": 453.0308532714844,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 159.99981689453125,
-          "y": 471.8500061035156,
+          "y": 521.1593017578125,
           "width": 12.018234252929688,
-          "height": 10.473846435546875
+          "height": 10.47381591796875
          }
         },
         {
@@ -2582,26 +2584,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto425878",
+          "id": "auto391909",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto425912",
+         "renderId": "vf-auto391943",
          "renderedBox": {
           "x": 251.7286376953125,
-          "y": -540.97802734375,
+          "y": 456.5299987792969,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 188.22988891601562,
-          "y": 476.85003662109375,
+          "y": 526.1593017578125,
           "width": 12.018234252929688,
-          "height": 10.473846435546875
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto425878",
+        "id": "auto391909",
         "type": "SmoBeamGroup"
        }
       },
@@ -2634,21 +2636,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto425879",
+          "id": "auto391910",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto425919",
+         "renderId": "vf-auto391950",
          "renderedBox": {
           "x": 271.48486328125,
-          "y": -537.4788818359375,
+          "y": 460.0291442871094,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 216.45999145507812,
-          "y": 481.85003662109375,
+          "y": 531.1593017578125,
           "width": 12.018234252929688,
-          "height": 10.473846435546875
+          "height": 10.47381591796875
          }
         },
         {
@@ -2678,21 +2680,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto425879",
+          "id": "auto391910",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto425926",
+         "renderId": "vf-auto391957",
          "renderedBox": {
           "x": 291.24102783203125,
-          "y": -544.4771728515625,
+          "y": 453.0308532714844,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 244.69000244140625,
-          "y": 471.8500061035156,
+          "y": 521.1593017578125,
           "width": 12.01824951171875,
-          "height": 10.473846435546875
+          "height": 10.47381591796875
          }
         },
         {
@@ -2722,21 +2724,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto425879",
+          "id": "auto391910",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto425933",
+         "renderId": "vf-auto391964",
          "renderedBox": {
           "x": 310.99725341796875,
-          "y": -540.97802734375,
+          "y": 456.5299987792969,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 272.92010498046875,
-          "y": 476.85003662109375,
+          "y": 526.1593017578125,
           "width": 12.018218994140625,
-          "height": 10.473846435546875
+          "height": 10.47381591796875
          }
         },
         {
@@ -2766,26 +2768,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto425879",
+          "id": "auto391910",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto425940",
+         "renderId": "vf-auto391971",
          "renderedBox": {
           "x": 330.75347900390625,
-          "y": -547.976318359375,
+          "y": 449.53173828125,
           "width": 8.410675048828125,
-          "height": 7.32989501953125
+          "height": 7.329864501953125
          },
          "logicalBox": {
           "x": 301.1501770019531,
-          "y": 466.8500061035156,
+          "y": 516.1593017578125,
           "width": 12.018218994140625,
-          "height": 10.473846435546875
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto425879",
+        "id": "auto391910",
         "type": "SmoBeamGroup"
        }
       },
@@ -2818,21 +2820,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto425880",
+          "id": "auto391911",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto425947",
+         "renderId": "vf-auto391978",
          "renderedBox": {
           "x": 350.5096435546875,
-          "y": -544.4771728515625,
+          "y": 453.0308532714844,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 329.38018798828125,
-          "y": 471.8500061035156,
+          "y": 521.1593017578125,
           "width": 12.01824951171875,
-          "height": 10.473846435546875
+          "height": 10.47381591796875
          }
         },
         {
@@ -2862,21 +2864,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto425880",
+          "id": "auto391911",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto425954",
+         "renderId": "vf-auto391985",
          "renderedBox": {
           "x": 370.265869140625,
-          "y": -540.97802734375,
+          "y": 456.5299987792969,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 357.61029052734375,
-          "y": 476.85003662109375,
+          "y": 526.1593017578125,
           "width": 12.01824951171875,
-          "height": 10.473846435546875
+          "height": 10.47381591796875
          }
         },
         {
@@ -2906,21 +2908,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto425880",
+          "id": "auto391911",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto425961",
+         "renderId": "vf-auto391992",
          "renderedBox": {
           "x": 390.0220642089844,
-          "y": -537.4788818359375,
+          "y": 460.0291442871094,
           "width": 8.410736083984375,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 385.8403625488281,
-          "y": 481.85003662109375,
+          "y": 531.1593017578125,
           "width": 12.018280029296875,
-          "height": 10.473846435546875
+          "height": 10.47381591796875
          }
         },
         {
@@ -2950,26 +2952,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto425880",
+          "id": "auto391911",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto425968",
+         "renderId": "vf-auto391999",
          "renderedBox": {
           "x": 409.7782897949219,
-          "y": -533.979736328125,
+          "y": 463.5282897949219,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.329864501953125
          },
          "logicalBox": {
           "x": 414.0704345703125,
-          "y": 486.85003662109375,
+          "y": 536.1593017578125,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto425880",
+        "id": "auto391911",
         "type": "SmoBeamGroup"
        }
       },
@@ -3002,21 +3004,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto425881",
+          "id": "auto391912",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto425975",
+         "renderId": "vf-auto392006",
          "renderedBox": {
           "x": 429.53448486328125,
-          "y": -530.4805908203125,
+          "y": 467.0274353027344,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.329864501953125
          },
          "logicalBox": {
           "x": 442.3005065917969,
-          "y": 491.85003662109375,
+          "y": 541.1593017578125,
           "width": 12.018218994140625,
-          "height": 10.4737548828125
+          "height": 10.47381591796875
          }
         },
         {
@@ -3046,21 +3048,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto425881",
+          "id": "auto391912",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto425982",
+         "renderId": "vf-auto392013",
          "renderedBox": {
           "x": 449.29071044921875,
-          "y": -537.4788818359375,
+          "y": 460.0291442871094,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 470.5306091308594,
-          "y": 481.85003662109375,
+          "y": 531.1593017578125,
           "width": 12.018218994140625,
-          "height": 10.473846435546875
+          "height": 10.47381591796875
          }
         },
         {
@@ -3090,21 +3092,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto425881",
+          "id": "auto391912",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto425989",
+         "renderId": "vf-auto392020",
          "renderedBox": {
           "x": 469.0469055175781,
-          "y": -533.979736328125,
+          "y": 463.5282897949219,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.329864501953125
          },
          "logicalBox": {
           "x": 498.7606506347656,
-          "y": 486.85003662109375,
+          "y": 536.1593017578125,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.47381591796875
          }
         },
         {
@@ -3134,26 +3136,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto425881",
+          "id": "auto391912",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto425996",
+         "renderId": "vf-auto392027",
          "renderedBox": {
           "x": 488.8031005859375,
-          "y": -540.97802734375,
+          "y": 456.5299987792969,
           "width": 8.410736083984375,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 526.99072265625,
-          "y": 476.85003662109375,
+          "y": 526.1593017578125,
           "width": 12.01824951171875,
-          "height": 10.473846435546875
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto425881",
+        "id": "auto391912",
         "type": "SmoBeamGroup"
        }
       }
@@ -3623,6 +3625,19 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179422",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
@@ -3630,14 +3645,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 561.2999820709229,
-     "staffY": 482.0728988647461,
+     "staffY": 531.3821563720703,
      "measureNumber": {
       "measureNumber": 3,
       "measureIndex": 3,
       "systemIndex": 1,
       "staffId": 0
      },
-     "staffWidth": 486.1600341796875,
+     "staffWidth": 486.15997314453125,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -3676,21 +3691,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto427197",
+          "id": "auto393228",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto427204",
+         "renderId": "vf-auto393235",
          "renderedBox": {
           "x": 524.7108154296875,
-          "y": -537.4788818359375,
+          "y": 460.0291442871094,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 578.2999877929688,
-          "y": 481.85003662109375,
+          "y": 531.1593017578125,
           "width": 12.01824951171875,
-          "height": 10.473846435546875
+          "height": 10.47381591796875
          }
         },
         {
@@ -3720,21 +3735,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto427197",
+          "id": "auto393228",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto427211",
+         "renderId": "vf-auto393242",
          "renderedBox": {
           "x": 544.4512939453125,
-          "y": -533.979736328125,
+          "y": 463.5282897949219,
           "width": 8.4107666015625,
-          "height": 7.329833984375
+          "height": 7.329864501953125
          },
          "logicalBox": {
           "x": 606.5076293945312,
-          "y": 486.85003662109375,
+          "y": 536.1593017578125,
           "width": 12.018310546875,
-          "height": 10.4737548828125
+          "height": 10.47381591796875
          }
         },
         {
@@ -3764,21 +3779,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto427197",
+          "id": "auto393228",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto427218",
+         "renderId": "vf-auto393249",
          "renderedBox": {
           "x": 564.19189453125,
-          "y": -530.4805908203125,
+          "y": 467.0274353027344,
           "width": 8.41064453125,
-          "height": 7.329833984375
+          "height": 7.329864501953125
          },
          "logicalBox": {
           "x": 634.7153930664062,
-          "y": 491.85003662109375,
+          "y": 541.1593017578125,
           "width": 12.01812744140625,
-          "height": 10.4737548828125
+          "height": 10.47381591796875
          }
         },
         {
@@ -3808,26 +3823,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto427197",
+          "id": "auto393228",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto427225",
+         "renderId": "vf-auto393256",
          "renderedBox": {
           "x": 583.932373046875,
-          "y": -526.9814453125,
+          "y": 470.5265808105469,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.329864501953125
          },
          "logicalBox": {
           "x": 662.9229736328125,
-          "y": 496.85003662109375,
+          "y": 546.1593017578125,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto427197",
+        "id": "auto393228",
         "type": "SmoBeamGroup"
        }
       },
@@ -3860,21 +3875,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto427198",
+          "id": "auto393229",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto427232",
+         "renderId": "vf-auto393263",
          "renderedBox": {
           "x": 603.6729125976562,
-          "y": -523.4822998046875,
+          "y": 474.0257263183594,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.329864501953125
          },
          "logicalBox": {
           "x": 691.1306762695312,
-          "y": 501.85003662109375,
+          "y": 551.1593017578125,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.47381591796875
          }
         },
         {
@@ -3904,21 +3919,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto427198",
+          "id": "auto393229",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto427239",
+         "renderId": "vf-auto393270",
          "renderedBox": {
           "x": 623.4134521484375,
-          "y": -530.4805908203125,
+          "y": 467.0274353027344,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.329864501953125
          },
          "logicalBox": {
           "x": 719.3383178710938,
-          "y": 491.85003662109375,
+          "y": 541.1593017578125,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.47381591796875
          }
         },
         {
@@ -3948,21 +3963,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto427198",
+          "id": "auto393229",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto427246",
+         "renderId": "vf-auto393277",
          "renderedBox": {
           "x": 643.1539916992188,
-          "y": -526.9814453125,
-          "width": 8.41070556640625,
-          "height": 7.329833984375
+          "y": 470.5265808105469,
+          "width": 8.41064453125,
+          "height": 7.329864501953125
          },
          "logicalBox": {
           "x": 747.5460205078125,
-          "y": 496.85003662109375,
-          "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "y": 546.1593017578125,
+          "width": 12.01812744140625,
+          "height": 10.47381591796875
          }
         },
         {
@@ -3992,26 +4007,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto427198",
+          "id": "auto393229",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto427253",
+         "renderId": "vf-auto393284",
          "renderedBox": {
           "x": 662.89453125,
-          "y": -533.979736328125,
+          "y": 463.5282897949219,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.329864501953125
          },
          "logicalBox": {
           "x": 775.7537231445312,
-          "y": 486.85003662109375,
+          "y": 536.1593017578125,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto427198",
+        "id": "auto393229",
         "type": "SmoBeamGroup"
        }
       },
@@ -4044,21 +4059,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto427199",
+          "id": "auto393230",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto427260",
+         "renderId": "vf-auto393291",
          "renderedBox": {
-          "x": 682.6350708007812,
-          "y": -530.4805908203125,
+          "x": 682.635009765625,
+          "y": 467.0274353027344,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.329864501953125
          },
          "logicalBox": {
-          "x": 803.9613647460938,
-          "y": 491.85003662109375,
+          "x": 803.9613037109375,
+          "y": 541.1593017578125,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.47381591796875
          }
         },
         {
@@ -4088,21 +4103,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto427199",
+          "id": "auto393230",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto427267",
+         "renderId": "vf-auto393298",
          "renderedBox": {
           "x": 702.3755493164062,
-          "y": -526.9814453125,
+          "y": 470.5265808105469,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.329864501953125
          },
          "logicalBox": {
           "x": 832.1690063476562,
-          "y": 496.85003662109375,
+          "y": 546.1593017578125,
           "width": 12.0181884765625,
-          "height": 10.4737548828125
+          "height": 10.47381591796875
          }
         },
         {
@@ -4132,21 +4147,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto427199",
+          "id": "auto393230",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto427274",
+         "renderId": "vf-auto393305",
          "renderedBox": {
           "x": 722.1160888671875,
-          "y": -523.4822998046875,
-          "width": 8.4107666015625,
-          "height": 7.329833984375
+          "y": 474.0257263183594,
+          "width": 8.41070556640625,
+          "height": 7.329864501953125
          },
          "logicalBox": {
           "x": 860.3766479492188,
-          "y": 501.85003662109375,
-          "width": 12.01837158203125,
-          "height": 10.4737548828125
+          "y": 551.1593017578125,
+          "width": 12.01824951171875,
+          "height": 10.47381591796875
          }
         },
         {
@@ -4176,26 +4191,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto427199",
+          "id": "auto393230",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto427281",
+         "renderId": "vf-auto393312",
          "renderedBox": {
           "x": 741.8566284179688,
-          "y": -519.983154296875,
+          "y": 477.5248718261719,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.329864501953125
          },
          "logicalBox": {
           "x": 888.5843505859375,
-          "y": 506.85003662109375,
+          "y": 556.1593017578125,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto427199",
+        "id": "auto393230",
         "type": "SmoBeamGroup"
        }
       },
@@ -4228,21 +4243,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto427200",
+          "id": "auto393231",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto427288",
+         "renderId": "vf-auto393319",
          "renderedBox": {
           "x": 762.2969970703125,
-          "y": -523.1110229492188,
+          "y": 474.3970031738281,
           "width": 16.69476318359375,
-          "height": 20.5833740234375
+          "height": 20.583343505859375
          },
          "logicalBox": {
           "x": 917.7920532226562,
-          "y": 502.3805847167969,
+          "y": 551.6898193359375,
           "width": 23.85546875,
-          "height": 29.412017822265625
+          "height": 29.4119873046875
          }
         },
         {
@@ -4272,21 +4287,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto427200",
+          "id": "auto393231",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto427297",
+         "renderId": "vf-auto393328",
          "renderedBox": {
           "x": 790.3215942382812,
-          "y": -523.4822998046875,
-          "width": 8.41070556640625,
-          "height": 7.329833984375
+          "y": 474.0257263183594,
+          "width": 8.41064453125,
+          "height": 7.329864501953125
          },
          "logicalBox": {
           "x": 957.8369750976562,
-          "y": 501.85003662109375,
-          "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "y": 551.1593017578125,
+          "width": 12.0181884765625,
+          "height": 10.47381591796875
          }
         },
         {
@@ -4316,21 +4331,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto427200",
+          "id": "auto393231",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto427304",
+         "renderId": "vf-auto393335",
          "renderedBox": {
-          "x": 810.0621337890625,
-          "y": -519.983154296875,
-          "width": 8.41070556640625,
-          "height": 7.329833984375
+          "x": 810.0620727539062,
+          "y": 477.5248718261719,
+          "width": 8.4107666015625,
+          "height": 7.329864501953125
          },
          "logicalBox": {
-          "x": 986.044677734375,
-          "y": 506.85003662109375,
-          "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "x": 986.0445556640625,
+          "y": 556.1593017578125,
+          "width": 12.01837158203125,
+          "height": 10.47381591796875
          }
         },
         {
@@ -4360,26 +4375,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto427200",
+          "id": "auto393231",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto427311",
+         "renderId": "vf-auto393342",
          "renderedBox": {
-          "x": 829.8026733398438,
-          "y": -526.9814453125,
+          "x": 829.8026123046875,
+          "y": 470.5265808105469,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.329864501953125
          },
          "logicalBox": {
-          "x": 1014.2523193359375,
-          "y": 496.85003662109375,
-          "width": 12.018310546875,
-          "height": 10.4737548828125
+          "x": 1014.2522583007812,
+          "y": 546.1593017578125,
+          "width": 12.01824951171875,
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto427200",
+        "id": "auto393231",
         "type": "SmoBeamGroup"
        }
       }
@@ -4839,6 +4854,19 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179425",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
@@ -4846,14 +4874,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 712.2298812866211,
+     "staffY": 760.1220550537109,
      "measureNumber": {
       "measureNumber": 4,
       "measureIndex": 4,
       "systemIndex": 0,
       "staffId": 0
      },
-     "staffWidth": 490.0600528717041,
+     "staffWidth": 490.06011390686035,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -4892,19 +4920,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto428441",
+          "id": "auto394472",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto428454",
+         "renderId": "vf-auto394485",
          "renderedBox": {
           "x": 189.91342163085938,
-          "y": -362.41192626953125,
+          "y": 634.1043701171875,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 99.90079498291016,
-          "y": 732.0069580078125,
+          "y": 779.8991088867188,
           "width": 12.018241882324219,
           "height": 10.473876953125
          }
@@ -4936,26 +4964,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto428441",
+          "id": "auto394472",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto428461",
+         "renderId": "vf-auto394492",
          "renderedBox": {
           "x": 218.18385314941406,
-          "y": -348.41534423828125,
-          "width": 8.41070556640625,
+          "y": 648.1009521484375,
+          "width": 8.410720825195312,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 140.29702758789062,
-          "y": 752.0070190429688,
-          "width": 12.018234252929688,
+          "y": 799.899169921875,
+          "width": 12.018264770507812,
           "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto428441",
+        "id": "auto394472",
         "type": "SmoBeamGroup"
        }
       },
@@ -4999,21 +5027,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto428442",
+          "id": "auto394473",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto428468",
+         "renderId": "vf-auto394499",
          "renderedBox": {
-          "x": 242.97198486328125,
-          "y": -394.2221984863281,
-          "width": 16.79180908203125,
-          "height": 32.141876220703125
+          "x": 242.9720001220703,
+          "y": 602.2941284179688,
+          "width": 16.791793823242188,
+          "height": 32.141845703125
          },
          "logicalBox": {
-          "x": 175.71731567382812,
-          "y": 686.5526123046875,
-          "width": 23.994186401367188,
-          "height": 45.92822265625
+          "x": 175.71734619140625,
+          "y": 734.44482421875,
+          "width": 23.994155883789062,
+          "height": 45.92816162109375
          }
         },
         {
@@ -5043,26 +5071,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto428442",
+          "id": "auto394473",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto428478",
+         "renderId": "vf-auto394509",
          "renderedBox": {
-          "x": 286.7540588378906,
-          "y": -372.9093322753906,
+          "x": 286.75408935546875,
+          "y": 623.6069946289062,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 238.27847290039062,
-          "y": 717.0070190429688,
+          "x": 238.2785186767578,
+          "y": 764.8992309570312,
           "width": 12.018234252929688,
-          "height": 10.47381591796875
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto428442",
+        "id": "auto394473",
         "type": "SmoBeamGroup"
        }
       },
@@ -5095,21 +5123,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto428443",
+          "id": "auto394474",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto428485",
+         "renderId": "vf-auto394516",
          "renderedBox": {
-          "x": 307.1941223144531,
-          "y": -365.9110412597656,
+          "x": 307.19415283203125,
+          "y": 630.605224609375,
           "width": 8.410675048828125,
-          "height": 7.329864501953125
+          "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 267.4857177734375,
-          "y": 727.0070190429688,
-          "width": 12.0181884765625,
-          "height": 10.47381591796875
+          "x": 267.4857482910156,
+          "y": 774.8991088867188,
+          "width": 12.018218994140625,
+          "height": 10.473876953125
          }
         },
         {
@@ -5139,20 +5167,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto428443",
+          "id": "auto394474",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto428492",
+         "renderId": "vf-auto394523",
          "renderedBox": {
-          "x": 327.6341552734375,
-          "y": -362.41192626953125,
+          "x": 327.6341857910156,
+          "y": 634.1043701171875,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 296.69293212890625,
-          "y": 732.0069580078125,
-          "width": 12.018218994140625,
+          "x": 296.6929626464844,
+          "y": 779.8991088867188,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -5183,21 +5211,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto428443",
+          "id": "auto394474",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto428499",
+         "renderId": "vf-auto394530",
          "renderedBox": {
-          "x": 348.07421875,
-          "y": -358.91278076171875,
+          "x": 348.0742492675781,
+          "y": 637.603515625,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 325.9001770019531,
-          "y": 737.0069580078125,
-          "width": 12.018218994140625,
-          "height": 10.473876953125
+          "x": 325.90020751953125,
+          "y": 784.899169921875,
+          "width": 12.01824951171875,
+          "height": 10.47381591796875
          }
         },
         {
@@ -5227,26 +5255,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto428443",
+          "id": "auto394474",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto428506",
+         "renderId": "vf-auto394537",
          "renderedBox": {
-          "x": 369.214111328125,
-          "y": -362.0406494140625,
+          "x": 369.2141418457031,
+          "y": 634.4757080078125,
           "width": 16.69476318359375,
-          "height": 20.58343505859375
+          "height": 20.5833740234375
          },
          "logicalBox": {
-          "x": 356.107421875,
-          "y": 732.5374755859375,
-          "width": 23.855499267578125,
-          "height": 29.41217041015625
+          "x": 356.1074523925781,
+          "y": 780.4297485351562,
+          "width": 23.85552978515625,
+          "height": 29.41204833984375
          }
         }
        ],
        "attrs": {
-        "id": "auto428443",
+        "id": "auto394474",
         "type": "SmoBeamGroup"
        }
       },
@@ -5279,20 +5307,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto428444",
+          "id": "auto394475",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto428515",
+         "renderId": "vf-auto394546",
          "renderedBox": {
-          "x": 397.938232421875,
-          "y": -351.91448974609375,
+          "x": 397.9382629394531,
+          "y": 644.601806640625,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 397.1519470214844,
-          "y": 747.0070190429688,
-          "width": 12.018218994140625,
+          "x": 397.1519775390625,
+          "y": 794.899169921875,
+          "width": 12.01824951171875,
           "height": 10.47381591796875
          }
         },
@@ -5323,21 +5351,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto428444",
+          "id": "auto394475",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto428522",
+         "renderId": "vf-auto394553",
          "renderedBox": {
           "x": 418.3782958984375,
-          "y": -358.91278076171875,
-          "width": 8.410675048828125,
+          "y": 637.603515625,
+          "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 426.35919189453125,
-          "y": 737.0069580078125,
-          "width": 12.0181884765625,
-          "height": 10.473876953125
+          "y": 784.899169921875,
+          "width": 12.018218994140625,
+          "height": 10.47381591796875
          }
         },
         {
@@ -5367,21 +5395,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto428444",
+          "id": "auto394475",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto428529",
+         "renderId": "vf-auto394560",
          "renderedBox": {
-          "x": 438.8183288574219,
-          "y": -355.41363525390625,
+          "x": 438.818359375,
+          "y": 641.1026611328125,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 455.5663757324219,
-          "y": 742.0069580078125,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
+          "x": 455.5664367675781,
+          "y": 789.899169921875,
+          "width": 12.018218994140625,
+          "height": 10.47381591796875
          }
         },
         {
@@ -5411,26 +5439,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto428444",
+          "id": "auto394475",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto428536",
+         "renderId": "vf-auto394567",
          "renderedBox": {
-          "x": 459.2583923339844,
-          "y": -362.41192626953125,
+          "x": 459.2584228515625,
+          "y": 634.1043701171875,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 484.77362060546875,
-          "y": 732.0069580078125,
+          "x": 484.773681640625,
+          "y": 779.8991088867188,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto428444",
+        "id": "auto394475",
         "type": "SmoBeamGroup"
        }
       }
@@ -5793,21 +5821,34 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179428",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 520.0600528717041,
-     "staffY": 712.2298812866211,
+     "staffX": 520.0601139068604,
+     "staffY": 760.1220550537109,
      "measureNumber": {
       "measureNumber": 5,
       "measureIndex": 5,
       "systemIndex": 1,
       "staffId": 0
      },
-     "staffWidth": 528.320068359375,
+     "staffWidth": 528.3200073242188,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -5846,21 +5887,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto429730",
+          "id": "auto395761",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429737",
+         "renderId": "vf-auto395768",
          "renderedBox": {
-          "x": 495.84991455078125,
-          "y": -358.91278076171875,
+          "x": 495.8499755859375,
+          "y": 637.603515625,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 537.06005859375,
-          "y": 737.0069580078125,
+          "x": 537.0601196289062,
+          "y": 784.899169921875,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         },
         {
@@ -5890,21 +5931,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto429730",
+          "id": "auto395761",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429744",
+         "renderId": "vf-auto395775",
          "renderedBox": {
-          "x": 517.9959716796875,
-          "y": -365.9110412597656,
-          "width": 8.41070556640625,
-          "height": 7.329864501953125
+          "x": 517.99609375,
+          "y": 630.605224609375,
+          "width": 8.41064453125,
+          "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 568.7050170898438,
-          "y": 727.0070190429688,
-          "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "x": 568.7052001953125,
+          "y": 774.8991088867188,
+          "width": 12.01812744140625,
+          "height": 10.473876953125
          }
         },
         {
@@ -5934,20 +5975,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto429730",
+          "id": "auto395761",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429751",
+         "renderId": "vf-auto395782",
          "renderedBox": {
           "x": 540.14208984375,
-          "y": -362.41192626953125,
-          "width": 8.41064453125,
+          "y": 634.1043701171875,
+          "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 600.35009765625,
-          "y": 732.0069580078125,
-          "width": 12.01812744140625,
+          "y": 779.8991088867188,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -5978,26 +6019,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto429730",
+          "id": "auto395761",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429758",
+         "renderId": "vf-auto395789",
          "renderedBox": {
-          "x": 562.2881469726562,
-          "y": -369.4101867675781,
-          "width": 8.41070556640625,
-          "height": 7.329864501953125
+          "x": 562.2882080078125,
+          "y": 627.1060791015625,
+          "width": 8.41064453125,
+          "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 631.9950561523438,
-          "y": 722.0070190429688,
-          "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "x": 631.9951782226562,
+          "y": 769.8991088867188,
+          "width": 12.01812744140625,
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto429730",
+        "id": "auto395761",
         "type": "SmoBeamGroup"
        }
       },
@@ -6030,21 +6071,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto429731",
+          "id": "auto395762",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429765",
+         "renderId": "vf-auto395796",
          "renderedBox": {
-          "x": 584.4342041015625,
-          "y": -365.9110412597656,
-          "width": 8.4107666015625,
-          "height": 7.329864501953125
+          "x": 584.4342651367188,
+          "y": 630.605224609375,
+          "width": 8.41070556640625,
+          "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 663.6400756835938,
-          "y": 727.0070190429688,
-          "width": 12.018310546875,
-          "height": 10.47381591796875
+          "x": 663.64013671875,
+          "y": 774.8991088867188,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         },
         {
@@ -6074,21 +6115,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto429731",
+          "id": "auto395762",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429772",
+         "renderId": "vf-auto395803",
          "renderedBox": {
           "x": 606.580322265625,
-          "y": -372.9093322753906,
+          "y": 623.6069946289062,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 695.2850952148438,
-          "y": 717.0070190429688,
+          "y": 764.8992309570312,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.4737548828125
          }
         },
         {
@@ -6118,21 +6159,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto429731",
+          "id": "auto395762",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429779",
+         "renderId": "vf-auto395810",
          "renderedBox": {
-          "x": 628.726318359375,
-          "y": -369.4101867675781,
-          "width": 8.4107666015625,
-          "height": 7.329864501953125
+          "x": 628.7263793945312,
+          "y": 627.1060791015625,
+          "width": 8.41070556640625,
+          "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 726.9299926757812,
-          "y": 722.0070190429688,
-          "width": 12.01837158203125,
-          "height": 10.47381591796875
+          "x": 726.9301147460938,
+          "y": 769.8991088867188,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         },
         {
@@ -6162,26 +6203,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto429731",
+          "id": "auto395762",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429786",
+         "renderId": "vf-auto395817",
          "renderedBox": {
-          "x": 650.8724365234375,
-          "y": -376.4084777832031,
+          "x": 650.8724975585938,
+          "y": 620.1078491210938,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 758.5750732421875,
-          "y": 712.0070190429688,
+          "x": 758.5751342773438,
+          "y": 759.8992309570312,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto429731",
+        "id": "auto395762",
         "type": "SmoBeamGroup"
        }
       },
@@ -6214,21 +6255,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto429732",
+          "id": "auto395763",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429793",
+         "renderId": "vf-auto395824",
          "renderedBox": {
           "x": 673.0184936523438,
-          "y": -372.9093322753906,
+          "y": 623.6069946289062,
           "width": 8.4107666015625,
-          "height": 7.32989501953125
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 790.2200317382812,
-          "y": 717.0070190429688,
+          "y": 764.8992309570312,
           "width": 12.01837158203125,
-          "height": 10.47381591796875
+          "height": 10.4737548828125
          }
         },
         {
@@ -6258,21 +6299,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto429732",
+          "id": "auto395763",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429800",
+         "renderId": "vf-auto395831",
          "renderedBox": {
           "x": 695.1646118164062,
-          "y": -365.9110412597656,
-          "width": 8.41064453125,
-          "height": 7.329864501953125
+          "y": 630.605224609375,
+          "width": 8.41070556640625,
+          "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 821.8651123046875,
-          "y": 727.0070190429688,
-          "width": 12.0181884765625,
-          "height": 10.47381591796875
+          "y": 774.8991088867188,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         },
         {
@@ -6302,21 +6343,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto429732",
+          "id": "auto395763",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429807",
+         "renderId": "vf-auto395838",
          "renderedBox": {
           "x": 712.54248046875,
-          "y": -369.4101867675781,
+          "y": 627.1060791015625,
           "width": 8.41070556640625,
-          "height": 7.329864501953125
+          "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 846.6967163085938,
-          "y": 722.0070190429688,
+          "y": 769.8991088867188,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.473876953125
          }
         },
         {
@@ -6346,21 +6387,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto429732",
+          "id": "auto395763",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429814",
+         "renderId": "vf-auto395845",
          "renderedBox": {
           "x": 729.9203491210938,
-          "y": -372.9093322753906,
+          "y": 623.6069946289062,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 871.5283203125,
-          "y": 717.0070190429688,
+          "y": 764.8992309570312,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.4737548828125
          }
         },
         {
@@ -6390,26 +6431,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto429732",
+          "id": "auto395763",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429821",
+         "renderId": "vf-auto395852",
          "renderedBox": {
           "x": 752.06640625,
-          "y": -383.40673828125,
+          "y": 613.1095581054688,
           "width": 8.41070556640625,
-          "height": 7.329864501953125
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 903.17333984375,
-          "y": 702.0070190429688,
+          "y": 749.899169921875,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto429732",
+        "id": "auto395763",
         "type": "SmoBeamGroup"
        }
       },
@@ -6453,21 +6494,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto429733",
+          "id": "auto395764",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429828",
+         "renderId": "vf-auto395859",
          "renderedBox": {
-          "x": 770.7301635742188,
-          "y": -389.9523620605469,
-          "width": 15.37530517578125,
-          "height": 31.371185302734375
+          "x": 770.730224609375,
+          "y": 606.56396484375,
+          "width": 15.375244140625,
+          "height": 31.37115478515625
          },
          "logicalBox": {
-          "x": 929.8423461914062,
-          "y": 692.6538696289062,
-          "width": 21.97015380859375,
-          "height": 44.82696533203125
+          "x": 929.8424682617188,
+          "y": 740.5460815429688,
+          "width": 21.97003173828125,
+          "height": 44.826904296875
          }
         },
         {
@@ -6497,20 +6538,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto429733",
+          "id": "auto395764",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429837",
+         "renderId": "vf-auto395868",
          "renderedBox": {
-          "x": 805.8949584960938,
-          "y": -362.41192626953125,
-          "width": 8.41070556640625,
+          "x": 805.89501953125,
+          "y": 634.1043701171875,
+          "width": 8.41064453125,
           "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 980.090087890625,
-          "y": 732.0069580078125,
-          "width": 12.01824951171875,
+          "x": 980.0902099609375,
+          "y": 779.8991088867188,
+          "width": 12.01812744140625,
           "height": 10.473876953125
          }
         },
@@ -6541,26 +6582,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto429733",
+          "id": "auto395764",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429844",
+         "renderId": "vf-auto395875",
          "renderedBox": {
           "x": 828.041015625,
-          "y": -358.91278076171875,
+          "y": 637.603515625,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 1011.735107421875,
-          "y": 737.0069580078125,
+          "y": 784.899169921875,
           "width": 12.0181884765625,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto429733",
+        "id": "auto395764",
         "type": "SmoBeamGroup"
        }
       }
@@ -7031,6 +7072,19 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179431",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
@@ -7038,14 +7092,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 946.9779891967773,
+     "staffY": 994.8035125732422,
      "measureNumber": {
       "measureNumber": 6,
       "measureIndex": 6,
       "systemIndex": 0,
       "staffId": 0
      },
-     "staffWidth": 536.8800296783447,
+     "staffWidth": 536.8799991607666,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -7084,19 +7138,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto431052",
+          "id": "auto397083",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto431090",
+         "renderId": "vf-auto397121",
          "renderedBox": {
           "x": 345.85382080078125,
-          "y": -194.62933349609375,
+          "y": 801.84033203125,
           "width": 8.41070556640625,
           "height": 7.329833984375
          },
          "logicalBox": {
           "x": 322.7273864746094,
-          "y": 971.755126953125,
+          "y": 1019.5806884765625,
           "width": 12.01824951171875,
           "height": 10.4737548828125
          }
@@ -7128,21 +7182,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto431052",
+          "id": "auto397083",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto431097",
+         "renderId": "vf-auto397128",
          "renderedBox": {
           "x": 369.65533447265625,
-          "y": -198.12847900390625,
+          "y": 798.3411865234375,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 356.7378845214844,
-          "y": 966.755126953125,
+          "y": 1014.5806884765625,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
@@ -7172,26 +7226,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto431052",
+          "id": "auto397083",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto431104",
+         "renderId": "vf-auto397135",
          "renderedBox": {
           "x": 393.45684814453125,
-          "y": -201.62762451171875,
-          "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "y": 794.842041015625,
+          "width": 8.410675048828125,
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 390.7483825683594,
-          "y": 961.755126953125,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
+          "y": 1009.5806884765625,
+          "width": 12.0181884765625,
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto431052",
+        "id": "auto397083",
         "type": "SmoBeamGroup"
        }
       },
@@ -7224,21 +7278,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto431053",
+          "id": "auto397084",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto431111",
+         "renderId": "vf-auto397142",
          "renderedBox": {
-          "x": 417.25836181640625,
-          "y": -205.12677001953125,
+          "x": 417.2583312988281,
+          "y": 791.3428955078125,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 424.7588806152344,
-          "y": 956.755126953125,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
+          "x": 424.75885009765625,
+          "y": 1004.5806274414062,
+          "width": 12.018218994140625,
+          "height": 10.47381591796875
          }
         },
         {
@@ -7268,21 +7322,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto431053",
+          "id": "auto397084",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto431118",
+         "renderId": "vf-auto397149",
          "renderedBox": {
-          "x": 441.05987548828125,
-          "y": -198.12847900390625,
-          "width": 8.410675048828125,
-          "height": 7.32989501953125
+          "x": 441.0598449707031,
+          "y": 798.3411865234375,
+          "width": 8.41070556640625,
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 458.7693786621094,
-          "y": 966.755126953125,
-          "width": 12.0181884765625,
-          "height": 10.473876953125
+          "x": 458.76934814453125,
+          "y": 1014.5806884765625,
+          "width": 12.018218994140625,
+          "height": 10.4737548828125
          }
         },
         {
@@ -7312,21 +7366,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto431053",
+          "id": "auto397084",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto431125",
+         "renderId": "vf-auto397156",
          "renderedBox": {
           "x": 464.8613586425781,
-          "y": -201.62762451171875,
-          "width": 8.410736083984375,
-          "height": 7.32989501953125
+          "y": 794.842041015625,
+          "width": 8.41070556640625,
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 492.77984619140625,
-          "y": 961.755126953125,
-          "width": 12.018280029296875,
-          "height": 10.473876953125
+          "y": 1009.5806884765625,
+          "width": 12.018218994140625,
+          "height": 10.4737548828125
          }
         },
         {
@@ -7356,26 +7410,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto431053",
+          "id": "auto397084",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto431132",
+         "renderId": "vf-auto397163",
          "renderedBox": {
           "x": 488.6628723144531,
-          "y": -194.62933349609375,
-          "width": 8.410736083984375,
+          "y": 801.84033203125,
+          "width": 8.410675048828125,
           "height": 7.329833984375
          },
          "logicalBox": {
           "x": 526.7903442382812,
-          "y": 971.755126953125,
-          "width": 12.01824951171875,
+          "y": 1019.5806884765625,
+          "width": 12.0181884765625,
           "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto431053",
+        "id": "auto397084",
         "type": "SmoBeamGroup"
        }
       }
@@ -7700,21 +7754,34 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179434",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 566.8800296783447,
-     "staffY": 946.9779891967773,
+     "staffX": 566.8799991607666,
+     "staffY": 994.8035125732422,
      "measureNumber": {
       "measureNumber": 7,
       "measureIndex": 7,
       "systemIndex": 1,
       "staffId": 0
      },
-     "staffWidth": 481.0799255371094,
+     "staffWidth": 481.0799560546875,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -7753,21 +7820,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto432088",
+          "id": "auto398119",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto432122",
+         "renderId": "vf-auto398153",
          "renderedBox": {
           "x": 687.770263671875,
-          "y": -198.12847900390625,
+          "y": 798.3411865234375,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 811.2991943359375,
-          "y": 966.755126953125,
+          "y": 1014.5806884765625,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
@@ -7797,21 +7864,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto432088",
+          "id": "auto398119",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto432129",
+         "renderId": "vf-auto398160",
          "renderedBox": {
           "x": 710.9306640625,
-          "y": -201.62762451171875,
+          "y": 794.842041015625,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 844.3935546875,
-          "y": 961.755126953125,
+          "y": 1009.5806884765625,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
@@ -7841,26 +7908,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto432088",
+          "id": "auto398119",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto432136",
+         "renderId": "vf-auto398167",
          "renderedBox": {
-          "x": 734.091064453125,
-          "y": -205.12677001953125,
-          "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "x": 734.0910034179688,
+          "y": 791.3428955078125,
+          "width": 8.4107666015625,
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 877.4879760742188,
-          "y": 956.755126953125,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
+          "x": 877.4878540039062,
+          "y": 1004.5806274414062,
+          "width": 12.01837158203125,
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto432088",
+        "id": "auto398119",
         "type": "SmoBeamGroup"
        }
       },
@@ -7893,21 +7960,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto432089",
+          "id": "auto398120",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto432143",
+         "renderId": "vf-auto398174",
          "renderedBox": {
           "x": 757.25146484375,
-          "y": -208.62591552734375,
+          "y": 787.84375,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 910.5823364257812,
-          "y": 951.755126953125,
+          "y": 999.5806274414062,
           "width": 12.01824951171875,
-          "height": 10.47381591796875
+          "height": 10.4737548828125
          }
         },
         {
@@ -7937,21 +8004,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto432089",
+          "id": "auto398120",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto432150",
+         "renderId": "vf-auto398181",
          "renderedBox": {
           "x": 780.411865234375,
-          "y": -201.62762451171875,
+          "y": 794.842041015625,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 943.6767578125,
-          "y": 961.755126953125,
+          "y": 1009.5806884765625,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
@@ -7981,21 +8048,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto432089",
+          "id": "auto398120",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto432157",
+         "renderId": "vf-auto398188",
          "renderedBox": {
           "x": 803.572265625,
-          "y": -205.12677001953125,
+          "y": 791.3428955078125,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 976.7711791992188,
-          "y": 956.755126953125,
+          "y": 1004.5806274414062,
           "width": 12.0181884765625,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         },
         {
@@ -8025,26 +8092,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto432089",
+          "id": "auto398120",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto432164",
+         "renderId": "vf-auto398195",
          "renderedBox": {
           "x": 826.732666015625,
-          "y": -198.12847900390625,
+          "y": 798.3411865234375,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 1009.8655395507812,
-          "y": 966.755126953125,
+          "y": 1014.5806884765625,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto432089",
+        "id": "auto398120",
         "type": "SmoBeamGroup"
        }
       }
@@ -8122,15 +8189,9 @@ var inventionJson = `{
            },
            "renderedBox": {
             "x": 578.706787109375,
-            "y": -163.33538818359375,
+            "y": 833.13427734375,
             "width": 10.83740234375,
-            "height": 12.10113525390625
-           },
-           "logicalBox": {
-            "x": 655.4559936523438,
-            "y": 1016.4717407226562,
-            "width": 15.48583984375,
-            "height": 17.29156494140625
+            "height": 12.10107421875
            }
           }
          ],
@@ -8401,6 +8462,19 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179437",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
@@ -8408,14 +8482,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 1197.2707138061523,
+     "staffY": 1244.2847747802734,
      "measureNumber": {
       "measureNumber": 8,
       "measureIndex": 8,
       "systemIndex": 0,
       "staffId": 0
      },
-     "staffWidth": 538.7600345611572,
+     "staffWidth": 538.7599430084229,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -8454,19 +8528,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto433216",
+          "id": "auto399247",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto433254",
+         "renderId": "vf-auto399285",
          "renderedBox": {
-          "x": 342.91424560546875,
-          "y": -33.46392822265625,
+          "x": 342.9141845703125,
+          "y": 962.4378051757812,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 318.5269775390625,
-          "y": 1202.0478515625,
+          "x": 318.5268859863281,
+          "y": 1249.0618896484375,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -8498,20 +8572,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto433216",
+          "id": "auto399247",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto433261",
+         "renderId": "vf-auto399292",
          "renderedBox": {
           "x": 367.3236083984375,
-          "y": -29.96478271484375,
-          "width": 8.410736083984375,
-          "height": 7.32989501953125
+          "y": 965.9369506835938,
+          "width": 8.41070556640625,
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 353.4060363769531,
-          "y": 1207.0478515625,
-          "width": 12.018280029296875,
+          "y": 1254.0618896484375,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -8542,26 +8616,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto433216",
+          "id": "auto399247",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto433268",
+         "renderId": "vf-auto399299",
          "renderedBox": {
-          "x": 391.7330322265625,
-          "y": -26.46563720703125,
+          "x": 391.7330017089844,
+          "y": 969.4360961914062,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 388.2851867675781,
-          "y": 1212.0478515625,
-          "width": 12.01824951171875,
+          "x": 388.28515625,
+          "y": 1259.0618896484375,
+          "width": 12.018218994140625,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto433216",
+        "id": "auto399247",
         "type": "SmoBeamGroup"
        }
       },
@@ -8594,20 +8668,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto433217",
+          "id": "auto399248",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto433275",
+         "renderId": "vf-auto399306",
          "renderedBox": {
-          "x": 416.1424560546875,
-          "y": -22.96649169921875,
-          "width": 8.410675048828125,
-          "height": 7.32989501953125
+          "x": 416.14239501953125,
+          "y": 972.9352416992188,
+          "width": 8.41070556640625,
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 423.1643371582031,
-          "y": 1217.0478515625,
-          "width": 12.0181884765625,
+          "x": 423.16424560546875,
+          "y": 1264.0618896484375,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -8638,20 +8712,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto433217",
+          "id": "auto399248",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto433282",
+         "renderId": "vf-auto399313",
          "renderedBox": {
-          "x": 440.5518493652344,
-          "y": -29.96478271484375,
+          "x": 440.5517883300781,
+          "y": 965.9369506835938,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 458.04345703125,
-          "y": 1207.0478515625,
-          "width": 12.018218994140625,
+          "x": 458.0433654785156,
+          "y": 1254.0618896484375,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -8682,20 +8756,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto433217",
+          "id": "auto399248",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto433289",
+         "renderId": "vf-auto399320",
          "renderedBox": {
-          "x": 464.96124267578125,
-          "y": -26.46563720703125,
+          "x": 464.961181640625,
+          "y": 969.4360961914062,
           "width": 8.410736083984375,
-          "height": 7.32989501953125
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 492.92254638671875,
-          "y": 1212.0478515625,
-          "width": 12.018310546875,
+          "x": 492.9224853515625,
+          "y": 1259.0618896484375,
+          "width": 12.018280029296875,
           "height": 10.473876953125
          }
         },
@@ -8726,26 +8800,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto433217",
+          "id": "auto399248",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto433296",
+         "renderId": "vf-auto399327",
          "renderedBox": {
-          "x": 489.37066650390625,
-          "y": -33.46392822265625,
+          "x": 489.37060546875,
+          "y": 962.4378051757812,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 527.8016967773438,
-          "y": 1202.0478515625,
+          "x": 527.8016357421875,
+          "y": 1249.0618896484375,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto433217",
+        "id": "auto399248",
         "type": "SmoBeamGroup"
        }
       }
@@ -8822,16 +8896,10 @@ var inventionJson = `{
             "pitches": []
            },
            "renderedBox": {
-            "x": 225.10775756835938,
-            "y": -2.169921875,
-            "width": 10.837371826171875,
+            "x": 225.1077423095703,
+            "y": 993.7318115234375,
+            "width": 10.837387084960938,
             "height": 12.10107421875
-           },
-           "logicalBox": {
-            "x": 150.19073486328125,
-            "y": 1246.7645263671875,
-            "width": 15.485763549804688,
-            "height": 17.29150390625
            }
           }
          ],
@@ -9102,21 +9170,34 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179440",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 568.7600345611572,
-     "staffY": 1197.2707138061523,
+     "staffX": 568.7599430084229,
+     "staffY": 1244.2847747802734,
      "measureNumber": {
       "measureNumber": 9,
       "measureIndex": 9,
       "systemIndex": 1,
       "staffId": 0
      },
-     "staffWidth": 478.2400817871094,
+     "staffWidth": 478.24017333984375,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -9155,20 +9236,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto434310",
+          "id": "auto400341",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto434342",
+         "renderId": "vf-auto400373",
          "renderedBox": {
-          "x": 675.304443359375,
-          "y": -36.96307373046875,
-          "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "x": 675.3043823242188,
+          "y": 958.9386596679688,
+          "width": 8.4107666015625,
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 793.4865112304688,
-          "y": 1197.0478515625,
-          "width": 12.01824951171875,
+          "x": 793.4863891601562,
+          "y": 1244.0618896484375,
+          "width": 12.01837158203125,
           "height": 10.473876953125
          }
         },
@@ -9199,20 +9280,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto434310",
+          "id": "auto400341",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto434349",
+         "renderId": "vf-auto400380",
          "renderedBox": {
           "x": 698.8662719726562,
-          "y": -33.46392822265625,
-          "width": 8.4107666015625,
-          "height": 7.32989501953125
+          "y": 962.4378051757812,
+          "width": 8.41070556640625,
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 827.1544799804688,
-          "y": 1202.0478515625,
-          "width": 12.01837158203125,
+          "y": 1249.0618896484375,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -9243,26 +9324,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto434310",
+          "id": "auto400341",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto434356",
+         "renderId": "vf-auto400387",
          "renderedBox": {
           "x": 722.4281616210938,
-          "y": -29.96478271484375,
+          "y": 965.9369506835938,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 860.8225708007812,
-          "y": 1207.0478515625,
+          "y": 1254.0618896484375,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto434310",
+        "id": "auto400341",
         "type": "SmoBeamGroup"
        }
       },
@@ -9295,20 +9376,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto434311",
+          "id": "auto400342",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto434363",
+         "renderId": "vf-auto400394",
          "renderedBox": {
-          "x": 745.9900512695312,
-          "y": -26.46563720703125,
-          "width": 8.41064453125,
-          "height": 7.32989501953125
+          "x": 745.989990234375,
+          "y": 969.4360961914062,
+          "width": 8.41070556640625,
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 894.4906616210938,
-          "y": 1212.0478515625,
-          "width": 12.0181884765625,
+          "x": 894.4906005859375,
+          "y": 1259.0618896484375,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -9339,20 +9420,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto434311",
+          "id": "auto400342",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto434370",
+         "renderId": "vf-auto400401",
          "renderedBox": {
           "x": 769.5518798828125,
-          "y": -33.46392822265625,
-          "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "y": 962.4378051757812,
+          "width": 8.41064453125,
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 928.15869140625,
-          "y": 1202.0478515625,
-          "width": 12.01824951171875,
+          "y": 1249.0618896484375,
+          "width": 12.01812744140625,
           "height": 10.473876953125
          }
         },
@@ -9383,19 +9464,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto434311",
+          "id": "auto400342",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto434377",
+         "renderId": "vf-auto400408",
          "renderedBox": {
           "x": 793.8135375976562,
-          "y": -36.591796875,
+          "y": 959.3099365234375,
           "width": 16.69482421875,
-          "height": 20.58331298828125
+          "height": 20.5833740234375
          },
          "logicalBox": {
           "x": 962.8267211914062,
-          "y": 1197.578369140625,
+          "y": 1244.5924072265625,
           "width": 23.8555908203125,
           "height": 29.4119873046875
          }
@@ -9427,26 +9508,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto434311",
+          "id": "auto400342",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto434386",
+         "renderId": "vf-auto400417",
          "renderedBox": {
           "x": 825.6594848632812,
-          "y": -36.96307373046875,
+          "y": 958.9386596679688,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 1008.33203125,
-          "y": 1197.0478515625,
+          "y": 1244.0618896484375,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto434311",
+        "id": "auto400342",
         "type": "SmoBeamGroup"
        }
       }
@@ -9771,6 +9852,19 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179443",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
@@ -9778,7 +9872,7 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 1678.1651785714287,
+     "staffY": 1709.9620535714287,
      "measureNumber": {
       "measureNumber": 10,
       "measureIndex": 10,
@@ -9824,21 +9918,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto435389",
+          "id": "auto401420",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto435400",
+         "renderId": "vf-auto401431",
          "renderedBox": {
           "x": 189.91342163085938,
-          "y": 303.0797119140625,
+          "y": 1288.33203125,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 99.90079498291016,
-          "y": 1682.9423828125,
+          "y": 1714.7391357421875,
           "width": 12.018241882324219,
-          "height": 10.4737548828125
+          "height": 10.4739990234375
          }
         },
         {
@@ -9868,21 +9962,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto435389",
+          "id": "auto401420",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto435407",
+         "renderId": "vf-auto401438",
          "renderedBox": {
           "x": 229.70941162109375,
-          "y": 299.951904296875,
+          "y": 1285.2042236328125,
           "width": 16.69476318359375,
           "height": 20.5833740234375
          },
          "logicalBox": {
           "x": 156.76614379882812,
-          "y": 1678.472900390625,
+          "y": 1710.269775390625,
           "width": 23.855514526367188,
-          "height": 29.412109375
+          "height": 29.4119873046875
          }
         },
         {
@@ -9912,21 +10006,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto435389",
+          "id": "auto401420",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto435416",
+         "renderId": "vf-auto401447",
          "renderedBox": {
           "x": 277.0896301269531,
-          "y": 303.0797119140625,
+          "y": 1288.33203125,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 224.46876525878906,
-          "y": 1682.9423828125,
+          "y": 1714.7391357421875,
           "width": 12.018234252929688,
-          "height": 10.4737548828125
+          "height": 10.4739990234375
          }
         },
         {
@@ -9956,26 +10050,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto435389",
+          "id": "auto401420",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto435423",
+         "renderId": "vf-auto401454",
          "renderedBox": {
           "x": 316.185791015625,
-          "y": 299.58056640625,
+          "y": 1284.8328857421875,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 280.3341064453125,
-          "y": 1677.9423828125,
+          "y": 1709.7391357421875,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.4739990234375
          }
         }
        ],
        "attrs": {
-        "id": "auto435389",
+        "id": "auto401420",
         "type": "SmoBeamGroup"
        }
       },
@@ -10008,21 +10102,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto435390",
+          "id": "auto401421",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto435430",
+         "renderId": "vf-auto401461",
          "renderedBox": {
           "x": 355.28192138671875,
-          "y": 296.0814208984375,
+          "y": 1281.333740234375,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 336.19940185546875,
-          "y": 1672.9423828125,
+          "y": 1704.7391357421875,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.4739990234375
          }
         },
         {
@@ -10052,21 +10146,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto435390",
+          "id": "auto401421",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto435437",
+         "renderId": "vf-auto401468",
          "renderedBox": {
           "x": 394.3780822753906,
-          "y": 313.5771484375,
+          "y": 1298.8294677734375,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 392.06475830078125,
-          "y": 1697.9423828125,
+          "y": 1729.7391357421875,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.4739990234375
          }
         },
         {
@@ -10096,21 +10190,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto435390",
+          "id": "auto401421",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto435444",
+         "renderId": "vf-auto401475",
          "renderedBox": {
           "x": 433.4742431640625,
-          "y": 310.0780029296875,
+          "y": 1295.330322265625,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 447.93011474609375,
-          "y": 1692.9423828125,
+          "y": 1724.7391357421875,
           "width": 12.018218994140625,
-          "height": 10.4737548828125
+          "height": 10.4739990234375
          }
         },
         {
@@ -10140,26 +10234,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto435390",
+          "id": "auto401421",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto435451",
+         "renderId": "vf-auto401482",
          "renderedBox": {
           "x": 472.5704040527344,
-          "y": 306.578857421875,
+          "y": 1291.8311767578125,
           "width": 8.410675048828125,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 503.7954406738281,
-          "y": 1687.9423828125,
+          "y": 1719.7391357421875,
           "width": 12.018218994140625,
-          "height": 10.4737548828125
+          "height": 10.4739990234375
          }
         }
        ],
        "attrs": {
-        "id": "auto435390",
+        "id": "auto401421",
         "type": "SmoBeamGroup"
        }
       }
@@ -10403,6 +10497,19 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179446",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
@@ -10410,7 +10517,7 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 565.7399845123291,
-     "staffY": 1678.1651785714287,
+     "staffY": 1709.9620535714287,
      "measureNumber": {
       "measureNumber": 11,
       "measureIndex": 11,
@@ -10456,21 +10563,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto436709",
+          "id": "auto402740",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto436714",
+         "renderId": "vf-auto402745",
          "renderedBox": {
           "x": 527.8179931640625,
-          "y": 303.0797119140625,
+          "y": 1288.33203125,
           "width": 8.4107666015625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 582.7399291992188,
-          "y": 1682.9423828125,
+          "y": 1714.7391357421875,
           "width": 12.018310546875,
-          "height": 10.4737548828125
+          "height": 10.4739990234375
          }
         },
         {
@@ -10500,21 +10607,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto436709",
+          "id": "auto402740",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto436721",
+         "renderId": "vf-auto402752",
          "renderedBox": {
           "x": 568.189697265625,
-          "y": 313.948486328125,
+          "y": 1299.2008056640625,
           "width": 16.69476318359375,
-          "height": 20.583251953125
+          "height": 20.5833740234375
          },
          "logicalBox": {
           "x": 640.4279174804688,
-          "y": 1698.472900390625,
+          "y": 1730.269775390625,
           "width": 23.85552978515625,
-          "height": 29.411865234375
+          "height": 29.4119873046875
          }
         },
         {
@@ -10544,21 +10651,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto436709",
+          "id": "auto402740",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto436730",
+         "renderId": "vf-auto402761",
          "renderedBox": {
           "x": 616.845458984375,
-          "y": 310.4493408203125,
+          "y": 1295.70166015625,
           "width": 16.69476318359375,
-          "height": 20.583251953125
+          "height": 20.5833740234375
          },
          "logicalBox": {
           "x": 709.9531860351562,
-          "y": 1693.472900390625,
+          "y": 1725.269775390625,
           "width": 23.85552978515625,
-          "height": 29.411865234375
+          "height": 29.4119873046875
          }
         },
         {
@@ -10588,26 +10695,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto436709",
+          "id": "auto402740",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto436739",
+         "renderId": "vf-auto402770",
          "renderedBox": {
           "x": 664.8013916015625,
-          "y": 313.5771484375,
+          "y": 1298.8294677734375,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 778.4784545898438,
-          "y": 1697.9423828125,
+          "y": 1729.7391357421875,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.4739990234375
          }
         }
        ],
        "attrs": {
-        "id": "auto436709",
+        "id": "auto402740",
         "type": "SmoBeamGroup"
        }
       },
@@ -10640,21 +10747,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto436710",
+          "id": "auto402741",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto436746",
+         "renderId": "vf-auto402777",
          "renderedBox": {
           "x": 704.4732055664062,
-          "y": 310.0780029296875,
+          "y": 1295.330322265625,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 835.1663818359375,
-          "y": 1692.9423828125,
+          "y": 1724.7391357421875,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.4739990234375
          }
         },
         {
@@ -10684,26 +10791,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto436710",
+          "id": "auto402741",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto436753",
+         "renderId": "vf-auto402784",
          "renderedBox": {
           "x": 744.1450805664062,
-          "y": 306.578857421875,
+          "y": 1291.8311767578125,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 891.8543701171875,
-          "y": 1687.9423828125,
+          "y": 1719.7391357421875,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.4739990234375
          }
         }
        ],
        "attrs": {
-        "id": "auto436710",
+        "id": "auto402741",
         "type": "SmoBeamGroup"
        }
       }
@@ -10920,6 +11027,19 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179449",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
@@ -10927,7 +11047,7 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 1930.8751395089287,
+     "staffY": 1961.9198172433037,
      "measureNumber": {
       "measureNumber": 12,
       "measureIndex": 12,
@@ -10973,19 +11093,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437952",
+          "id": "auto403983",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto437965",
+         "renderId": "vf-auto403996",
          "renderedBox": {
           "x": 189.91342163085938,
-          "y": 479.9332275390625,
+          "y": 1464.6591796875,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 99.90079498291016,
-          "y": 1935.652099609375,
+          "y": 1966.69677734375,
           "width": 12.018241882324219,
           "height": 10.4739990234375
          }
@@ -11017,19 +11137,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437952",
+          "id": "auto403983",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto437972",
+         "renderId": "vf-auto404003",
          "renderedBox": {
           "x": 210.39739990234375,
-          "y": 500.9281005859375,
+          "y": 1485.654052734375,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 129.17079162597656,
-          "y": 1965.6522216796875,
+          "y": 1996.6968994140625,
           "width": 12.018234252929688,
           "height": 10.473876953125
          }
@@ -11061,21 +11181,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437952",
+          "id": "auto403983",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto437979",
+         "renderId": "vf-auto404010",
          "renderedBox": {
           "x": 230.88137817382812,
-          "y": 497.428955078125,
+          "y": 1482.1549072265625,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 158.4407958984375,
-          "y": 1960.652099609375,
+          "y": 1991.6968994140625,
           "width": 12.018234252929688,
-          "height": 10.4739990234375
+          "height": 10.473876953125
          }
         },
         {
@@ -11105,26 +11225,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437952",
+          "id": "auto403983",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto437986",
+         "renderId": "vf-auto404017",
          "renderedBox": {
           "x": 251.3653564453125,
-          "y": 493.9298095703125,
+          "y": 1478.65576171875,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 187.71078491210938,
-          "y": 1955.652099609375,
+          "y": 1986.69677734375,
           "width": 12.01824951171875,
           "height": 10.4739990234375
          }
         }
        ],
        "attrs": {
-        "id": "auto437952",
+        "id": "auto403983",
         "type": "SmoBeamGroup"
        }
       },
@@ -11157,19 +11277,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437953",
+          "id": "auto403984",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto437993",
+         "renderId": "vf-auto404024",
          "renderedBox": {
           "x": 271.8493347167969,
-          "y": 490.4306640625,
+          "y": 1475.1566162109375,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 216.9807891845703,
-          "y": 1950.652099609375,
+          "y": 1981.69677734375,
           "width": 12.018234252929688,
           "height": 10.4739990234375
          }
@@ -11201,21 +11321,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437953",
+          "id": "auto403984",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto438000",
+         "renderId": "vf-auto404031",
          "renderedBox": {
           "x": 292.33331298828125,
-          "y": 497.428955078125,
+          "y": 1482.1549072265625,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 246.25079345703125,
-          "y": 1960.652099609375,
+          "y": 1991.6968994140625,
           "width": 12.018218994140625,
-          "height": 10.4739990234375
+          "height": 10.473876953125
          }
         },
         {
@@ -11245,19 +11365,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437953",
+          "id": "auto403984",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto438007",
+         "renderId": "vf-auto404038",
          "renderedBox": {
           "x": 312.8172912597656,
-          "y": 493.9298095703125,
+          "y": 1478.65576171875,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 275.5207824707031,
-          "y": 1955.652099609375,
+          "y": 1986.69677734375,
           "width": 12.01824951171875,
           "height": 10.4739990234375
          }
@@ -11289,26 +11409,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437953",
+          "id": "auto403984",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto438014",
+         "renderId": "vf-auto404045",
          "renderedBox": {
           "x": 333.30126953125,
-          "y": 500.9281005859375,
+          "y": 1485.654052734375,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 304.790771484375,
-          "y": 1965.6522216796875,
+          "y": 1996.6968994140625,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto437953",
+        "id": "auto403984",
         "type": "SmoBeamGroup"
        }
       },
@@ -11341,21 +11461,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437954",
+          "id": "auto403985",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto438021",
+         "renderId": "vf-auto404052",
          "renderedBox": {
           "x": 353.7852478027344,
-          "y": 476.4342041015625,
+          "y": 1461.1600341796875,
           "width": 8.410736083984375,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 334.060791015625,
-          "y": 1930.65234375,
+          "y": 1961.69677734375,
           "width": 12.018280029296875,
-          "height": 10.4737548828125
+          "height": 10.4739990234375
          }
         },
         {
@@ -11385,19 +11505,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437954",
+          "id": "auto403985",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto438028",
+         "renderId": "vf-auto404059",
          "renderedBox": {
           "x": 374.26922607421875,
-          "y": 479.9332275390625,
+          "y": 1464.6591796875,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 363.3307800292969,
-          "y": 1935.652099609375,
+          "y": 1966.69677734375,
           "width": 12.01824951171875,
           "height": 10.4739990234375
          }
@@ -11429,19 +11549,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437954",
+          "id": "auto403985",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto438035",
+         "renderId": "vf-auto404066",
          "renderedBox": {
           "x": 394.7532043457031,
-          "y": 483.432373046875,
+          "y": 1468.1583251953125,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 392.60076904296875,
-          "y": 1940.652099609375,
+          "y": 1971.69677734375,
           "width": 12.01824951171875,
           "height": 10.4739990234375
          }
@@ -11473,26 +11593,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437954",
+          "id": "auto403985",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto438042",
+         "renderId": "vf-auto404073",
          "renderedBox": {
           "x": 415.2371826171875,
-          "y": 476.4342041015625,
+          "y": 1461.1600341796875,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 421.87078857421875,
-          "y": 1930.65234375,
+          "y": 1961.69677734375,
           "width": 12.018218994140625,
-          "height": 10.4737548828125
+          "height": 10.4739990234375
          }
         }
        ],
        "attrs": {
-        "id": "auto437954",
+        "id": "auto403985",
         "type": "SmoBeamGroup"
        }
       },
@@ -11525,19 +11645,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437955",
+          "id": "auto403986",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto438049",
+         "renderId": "vf-auto404080",
          "renderedBox": {
           "x": 435.7211608886719,
-          "y": 479.9332275390625,
+          "y": 1464.6591796875,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 451.1407775878906,
-          "y": 1935.652099609375,
+          "y": 1966.69677734375,
           "width": 12.01824951171875,
           "height": 10.4739990234375
          }
@@ -11569,19 +11689,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437955",
+          "id": "auto403986",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto438056",
+         "renderId": "vf-auto404087",
          "renderedBox": {
           "x": 456.2051696777344,
-          "y": 483.432373046875,
+          "y": 1468.1583251953125,
           "width": 8.410675048828125,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 480.41082763671875,
-          "y": 1940.652099609375,
+          "y": 1971.69677734375,
           "width": 12.0181884765625,
           "height": 10.4739990234375
          }
@@ -11613,19 +11733,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437955",
+          "id": "auto403986",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto438063",
+         "renderId": "vf-auto404094",
          "renderedBox": {
           "x": 476.6891174316406,
-          "y": 486.9315185546875,
+          "y": 1471.657470703125,
           "width": 8.410736083984375,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 509.6807861328125,
-          "y": 1945.652099609375,
+          "y": 1976.69677734375,
           "width": 12.01824951171875,
           "height": 10.4739990234375
          }
@@ -11657,26 +11777,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437955",
+          "id": "auto403986",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto438070",
+         "renderId": "vf-auto404101",
          "renderedBox": {
           "x": 497.1731262207031,
-          "y": 479.9332275390625,
+          "y": 1464.6591796875,
           "width": 8.410675048828125,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 538.9508056640625,
-          "y": 1935.652099609375,
+          "y": 1966.69677734375,
           "width": 12.0181884765625,
           "height": 10.4739990234375
          }
         }
        ],
        "attrs": {
-        "id": "auto437955",
+        "id": "auto403986",
         "type": "SmoBeamGroup"
        }
       }
@@ -12136,6 +12256,19 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179452",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
@@ -12143,14 +12276,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 574.2999820709229,
-     "staffY": 1930.8751395089287,
+     "staffY": 1961.9198172433037,
      "measureNumber": {
       "measureNumber": 13,
       "measureIndex": 13,
       "systemIndex": 1,
       "staffId": 0
      },
-     "staffWidth": 472.9266357421875,
+     "staffWidth": 475.28643798828125,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -12189,19 +12322,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto439459",
+          "id": "auto405490",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto439466",
+         "renderId": "vf-auto405497",
          "renderedBox": {
           "x": 533.80859375,
-          "y": 483.432373046875,
+          "y": 1468.1583251953125,
           "width": 8.41064453125,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 591.300048828125,
-          "y": 1940.652099609375,
+          "y": 1971.69677734375,
           "width": 12.01812744140625,
           "height": 10.4739990234375
          }
@@ -12233,20 +12366,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto439459",
+          "id": "auto405490",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto439473",
+         "renderId": "vf-auto405504",
          "renderedBox": {
-          "x": 553.7584228515625,
-          "y": 465.936767578125,
-          "width": 8.41064453125,
+          "x": 553.861572265625,
+          "y": 1450.6627197265625,
+          "width": 8.41070556640625,
           "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 619.8067626953125,
-          "y": 1915.65234375,
-          "width": 12.01812744140625,
+          "x": 619.9541625976562,
+          "y": 1946.697021484375,
+          "width": 12.01824951171875,
           "height": 10.4737548828125
          }
         },
@@ -12277,19 +12410,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto439459",
+          "id": "auto405490",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto439480",
+         "renderId": "vf-auto405511",
          "renderedBox": {
-          "x": 573.7081909179688,
-          "y": 469.4359130859375,
+          "x": 573.9146118164062,
+          "y": 1454.161865234375,
           "width": 8.41070556640625,
           "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 648.3134155273438,
-          "y": 1920.65234375,
+          "x": 648.6083984375,
+          "y": 1951.697021484375,
           "width": 12.01824951171875,
           "height": 10.4737548828125
          }
@@ -12321,26 +12454,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto439459",
+          "id": "auto405490",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto439487",
+         "renderId": "vf-auto405518",
          "renderedBox": {
-          "x": 593.657958984375,
-          "y": 462.4376220703125,
+          "x": 593.9676513671875,
+          "y": 1447.16357421875,
           "width": 8.4107666015625,
           "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 676.820068359375,
-          "y": 1910.65234375,
-          "width": 12.018310546875,
+          "x": 677.2625732421875,
+          "y": 1941.697021484375,
+          "width": 12.01837158203125,
           "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto439459",
+        "id": "auto405490",
         "type": "SmoBeamGroup"
        }
       },
@@ -12373,19 +12506,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto439460",
+          "id": "auto405491",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto439494",
+         "renderId": "vf-auto405525",
          "renderedBox": {
-          "x": 613.6078491210938,
-          "y": 465.936767578125,
+          "x": 614.0206909179688,
+          "y": 1450.6627197265625,
           "width": 8.41070556640625,
           "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 705.326904296875,
-          "y": 1915.65234375,
+          "x": 705.9168090820312,
+          "y": 1946.697021484375,
           "width": 12.01824951171875,
           "height": 10.4737548828125
          }
@@ -12417,21 +12550,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto439460",
+          "id": "auto405491",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto439501",
+         "renderId": "vf-auto405532",
          "renderedBox": {
-          "x": 633.5576782226562,
-          "y": 476.4342041015625,
+          "x": 634.07373046875,
+          "y": 1461.1600341796875,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 733.8336181640625,
-          "y": 1930.65234375,
+          "x": 734.571044921875,
+          "y": 1961.69677734375,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.4739990234375
          }
         },
         {
@@ -12461,20 +12594,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto439460",
+          "id": "auto405491",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto439508",
+         "renderId": "vf-auto405539",
          "renderedBox": {
-          "x": 653.5074462890625,
-          "y": 472.93505859375,
-          "width": 8.4107666015625,
+          "x": 654.1267700195312,
+          "y": 1457.6610107421875,
+          "width": 8.41070556640625,
           "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 762.3402709960938,
-          "y": 1925.65234375,
-          "width": 12.01837158203125,
+          "x": 763.2252807617188,
+          "y": 1956.697021484375,
+          "width": 12.01824951171875,
           "height": 10.4737548828125
          }
         },
@@ -12505,26 +12638,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto439460",
+          "id": "auto405491",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto439515",
+         "renderId": "vf-auto405546",
          "renderedBox": {
-          "x": 673.457275390625,
-          "y": 479.9332275390625,
+          "x": 674.1798095703125,
+          "y": 1464.6591796875,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 790.8470458984375,
-          "y": 1935.652099609375,
+          "x": 791.8794555664062,
+          "y": 1966.69677734375,
           "width": 12.01824951171875,
           "height": 10.4739990234375
          }
         }
        ],
        "attrs": {
-        "id": "auto439460",
+        "id": "auto405491",
         "type": "SmoBeamGroup"
        }
       },
@@ -12557,21 +12690,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto439461",
+          "id": "auto405492",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto439522",
+         "renderId": "vf-auto405553",
          "renderedBox": {
-          "x": 694.10693359375,
-          "y": 487.302978515625,
+          "x": 694.9326782226562,
+          "y": 1472.0289306640625,
           "width": 16.69476318359375,
           "height": 20.583251953125
          },
          "logicalBox": {
-          "x": 820.353759765625,
-          "y": 1946.1829833984375,
+          "x": 821.53369140625,
+          "y": 1977.2276611328125,
           "width": 23.85552978515625,
-          "height": 29.4117431640625
+          "height": 29.411865234375
          }
         },
         {
@@ -12601,20 +12734,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto439461",
+          "id": "auto405492",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto439531",
+         "renderId": "vf-auto405562",
          "renderedBox": {
-          "x": 722.3408203125,
-          "y": 472.93505859375,
-          "width": 8.41070556640625,
+          "x": 723.2697143554688,
+          "y": 1457.6610107421875,
+          "width": 8.4107666015625,
           "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 860.6978149414062,
-          "y": 1925.65234375,
-          "width": 12.0181884765625,
+          "x": 862.0250854492188,
+          "y": 1956.697021484375,
+          "width": 12.01837158203125,
           "height": 10.4737548828125
          }
         },
@@ -12645,21 +12778,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto439461",
+          "id": "auto405492",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto439538",
+         "renderId": "vf-auto405569",
          "renderedBox": {
-          "x": 742.2906494140625,
-          "y": 476.4342041015625,
+          "x": 743.3228149414062,
+          "y": 1461.1600341796875,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 889.2045288085938,
-          "y": 1930.65234375,
-          "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "x": 890.679443359375,
+          "y": 1961.69677734375,
+          "width": 12.0181884765625,
+          "height": 10.4739990234375
          }
         },
         {
@@ -12689,26 +12822,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto439461",
+          "id": "auto405492",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto439545",
+         "renderId": "vf-auto405576",
          "renderedBox": {
-          "x": 762.240478515625,
-          "y": 479.9332275390625,
+          "x": 763.3758544921875,
+          "y": 1464.6591796875,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 917.7112426757812,
-          "y": 1935.652099609375,
+          "x": 919.3336181640625,
+          "y": 1966.69677734375,
           "width": 12.01824951171875,
           "height": 10.4739990234375
          }
         }
        ],
        "attrs": {
-        "id": "auto439461",
+        "id": "auto405492",
         "type": "SmoBeamGroup"
        }
       },
@@ -12752,20 +12885,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto439462",
+          "id": "auto405493",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto439552",
+         "renderId": "vf-auto405583",
          "renderedBox": {
-          "x": 778.7080078125,
-          "y": 462.890380859375,
-          "width": 15.375244140625,
+          "x": 779.9465942382812,
+          "y": 1447.6163330078125,
+          "width": 15.37530517578125,
           "height": 27.8719482421875
          },
          "logicalBox": {
-          "x": 941.2420654296875,
-          "y": 1911.2991943359375,
-          "width": 21.97003173828125,
+          "x": 943.0119018554688,
+          "y": 1942.3438720703125,
+          "width": 21.97015380859375,
           "height": 39.826904296875
          }
         },
@@ -12796,20 +12929,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto439462",
+          "id": "auto405493",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto439561",
+         "renderId": "vf-auto405592",
          "renderedBox": {
-          "x": 809.480224609375,
-          "y": 486.9315185546875,
+          "x": 810.92529296875,
+          "y": 1471.657470703125,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 985.213134765625,
-          "y": 1945.652099609375,
-          "width": 12.01824951171875,
+          "x": 987.278076171875,
+          "y": 1976.69677734375,
+          "width": 12.0181884765625,
           "height": 10.4739990234375
          }
         },
@@ -12840,26 +12973,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto439462",
+          "id": "auto405493",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto439568",
+         "renderId": "vf-auto405599",
          "renderedBox": {
-          "x": 829.4300537109375,
-          "y": 490.4306640625,
+          "x": 830.978271484375,
+          "y": 1475.1566162109375,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 1013.7199096679688,
-          "y": 1950.652099609375,
+          "x": 1015.9321899414062,
+          "y": 1981.69677734375,
           "width": 12.01824951171875,
           "height": 10.4739990234375
          }
         }
        ],
        "attrs": {
-        "id": "auto439462",
+        "id": "auto405493",
         "type": "SmoBeamGroup"
        }
       }
@@ -13303,6 +13436,19 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179455",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
@@ -13310,14 +13456,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 2205.5289481026784,
+     "staffY": 2234.896013532366,
      "measureNumber": {
       "measureNumber": 14,
       "measureIndex": 14,
       "systemIndex": 0,
       "staffId": 0
      },
-     "staffWidth": 417.86004066467285,
+     "staffWidth": 417.860071182251,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -13366,21 +13512,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto440925",
+          "id": "auto406956",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto440936",
+         "renderId": "vf-auto406967",
          "renderedBox": {
           "x": 191.1867218017578,
-          "y": 682.641357421875,
+          "y": 1666.1932373046875,
           "width": 8.41070556640625,
           "height": 11.9649658203125
          },
          "logicalBox": {
           "x": 101.72024536132812,
-          "y": 2225.30615234375,
+          "y": 2254.673095703125,
           "width": 12.018234252929688,
-          "height": 17.096923828125
+          "height": 17.09716796875
          }
         },
         {
@@ -13410,19 +13556,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto440925",
+          "id": "auto406956",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto440943",
+         "renderId": "vf-auto406974",
          "renderedBox": {
           "x": 212.77117919921875,
-          "y": 658.1473388671875,
+          "y": 1641.69921875,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 132.562744140625,
-          "y": 2190.30615234375,
+          "y": 2219.673095703125,
           "width": 12.018234252929688,
           "height": 10.473876953125
          }
@@ -13454,19 +13600,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto440925",
+          "id": "auto406956",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto440950",
+         "renderId": "vf-auto406981",
          "renderedBox": {
           "x": 233.08233642578125,
-          "y": 661.646484375,
+          "y": 1645.1983642578125,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 161.58578491210938,
-          "y": 2195.30615234375,
+          "y": 2224.673095703125,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -13498,26 +13644,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto440925",
+          "id": "auto406956",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto440957",
+         "renderId": "vf-auto406988",
          "renderedBox": {
           "x": 253.39349365234375,
-          "y": 665.1456298828125,
+          "y": 1648.697509765625,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 190.6088409423828,
-          "y": 2200.30615234375,
+          "y": 2229.673095703125,
           "width": 12.018234252929688,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto440925",
+        "id": "auto406956",
         "type": "SmoBeamGroup"
        }
       },
@@ -13550,19 +13696,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto440926",
+          "id": "auto406957",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto440964",
+         "renderId": "vf-auto406995",
          "renderedBox": {
           "x": 273.70465087890625,
-          "y": 668.644775390625,
+          "y": 1652.1966552734375,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 219.63189697265625,
-          "y": 2205.30615234375,
+          "y": 2234.673095703125,
           "width": 12.018234252929688,
           "height": 10.473876953125
          }
@@ -13594,19 +13740,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto440926",
+          "id": "auto406957",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto440971",
+         "renderId": "vf-auto407002",
          "renderedBox": {
           "x": 294.01580810546875,
-          "y": 661.646484375,
+          "y": 1645.1983642578125,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 248.65493774414062,
-          "y": 2195.30615234375,
+          "y": 2224.673095703125,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -13638,19 +13784,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto440926",
+          "id": "auto406957",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto440978",
+         "renderId": "vf-auto407009",
          "renderedBox": {
           "x": 314.32696533203125,
-          "y": 665.1456298828125,
+          "y": 1648.697509765625,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 277.677978515625,
-          "y": 2200.30615234375,
+          "y": 2229.673095703125,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -13682,26 +13828,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto440926",
+          "id": "auto406957",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto440985",
+         "renderId": "vf-auto407016",
          "renderedBox": {
           "x": 334.63812255859375,
-          "y": 658.1473388671875,
+          "y": 1641.69921875,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 306.7010498046875,
-          "y": 2190.30615234375,
+          "y": 2219.673095703125,
           "width": 12.018218994140625,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto440926",
+        "id": "auto406957",
         "type": "SmoBeamGroup"
        }
       }
@@ -13982,21 +14128,34 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179458",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 447.86004066467285,
-     "staffY": 2205.5289481026784,
+     "staffX": 447.860071182251,
+     "staffY": 2234.896013532366,
      "measureNumber": {
       "measureNumber": 15,
       "measureIndex": 15,
       "systemIndex": 1,
       "staffId": 0
      },
-     "staffWidth": 299.17999267578125,
+     "staffWidth": 299.1799011230469,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -14035,19 +14194,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto441928",
+          "id": "auto407959",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto441933",
+         "renderId": "vf-auto407964",
          "renderedBox": {
-          "x": 445.3222961425781,
-          "y": 661.646484375,
+          "x": 445.32232666015625,
+          "y": 1645.1983642578125,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 464.86004638671875,
-          "y": 2195.30615234375,
+          "x": 464.8600769042969,
+          "y": 2224.673095703125,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -14079,20 +14238,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto441928",
+          "id": "auto407959",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto441940",
+         "renderId": "vf-auto407971",
          "renderedBox": {
-          "x": 462.9626770019531,
-          "y": 668.644775390625,
-          "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "x": 462.96270751953125,
+          "y": 1652.1966552734375,
+          "width": 8.410675048828125,
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 490.0667724609375,
-          "y": 2205.30615234375,
-          "width": 12.018218994140625,
+          "x": 490.0668029785156,
+          "y": 2234.673095703125,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         },
@@ -14123,19 +14282,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto441928",
+          "id": "auto407959",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto441947",
+         "renderId": "vf-auto407978",
          "renderedBox": {
           "x": 480.6030578613281,
-          "y": 665.1456298828125,
+          "y": 1648.697509765625,
           "width": 8.410736083984375,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 515.2734985351562,
-          "y": 2200.30615234375,
+          "y": 2229.673095703125,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -14167,26 +14326,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto441928",
+          "id": "auto407959",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto441954",
+         "renderId": "vf-auto407985",
          "renderedBox": {
           "x": 498.2434387207031,
-          "y": 661.646484375,
+          "y": 1645.1983642578125,
           "width": 8.410736083984375,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 540.480224609375,
-          "y": 2195.30615234375,
+          "y": 2224.673095703125,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto441928",
+        "id": "auto407959",
         "type": "SmoBeamGroup"
        }
       },
@@ -14219,19 +14378,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto441929",
+          "id": "auto407960",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto441961",
+         "renderId": "vf-auto407992",
          "renderedBox": {
           "x": 515.8838500976562,
-          "y": 658.1473388671875,
+          "y": 1641.69921875,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 565.6869506835938,
-          "y": 2190.30615234375,
+          "y": 2219.673095703125,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -14263,19 +14422,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto441929",
+          "id": "auto407960",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto441968",
+         "renderId": "vf-auto407999",
          "renderedBox": {
           "x": 533.5242309570312,
-          "y": 665.1456298828125,
+          "y": 1648.697509765625,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 590.8936767578125,
-          "y": 2200.30615234375,
+          "y": 2229.673095703125,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -14307,19 +14466,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto441929",
+          "id": "auto407960",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto441975",
+         "renderId": "vf-auto408006",
          "renderedBox": {
           "x": 551.1646118164062,
-          "y": 661.646484375,
+          "y": 1645.1983642578125,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 616.1004028320312,
-          "y": 2195.30615234375,
+          "y": 2224.673095703125,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -14351,26 +14510,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto441929",
+          "id": "auto407960",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto441982",
+         "renderId": "vf-auto408013",
          "renderedBox": {
           "x": 568.8049926757812,
-          "y": 668.644775390625,
+          "y": 1652.1966552734375,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 641.30712890625,
-          "y": 2205.30615234375,
+          "y": 2234.673095703125,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto441929",
+        "id": "auto407960",
         "type": "SmoBeamGroup"
        }
       }
@@ -14641,14 +14800,27 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179461",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 747.0400333404541,
-     "staffY": 2205.5289481026784,
+     "staffX": 747.0399723052979,
+     "staffY": 2234.896013532366,
      "measureNumber": {
       "measureNumber": 16,
       "measureIndex": 16,
@@ -14704,21 +14876,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto442826",
+          "id": "auto408857",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto442831",
+         "renderId": "vf-auto408862",
          "renderedBox": {
-          "x": 655.9702758789062,
-          "y": 659.17919921875,
+          "x": 655.97021484375,
+          "y": 1642.731201171875,
           "width": 8.41070556640625,
-          "height": 13.29638671875
+          "height": 13.296142578125
          },
          "logicalBox": {
-          "x": 765.8594970703125,
-          "y": 2191.780517578125,
+          "x": 765.859375,
+          "y": 2221.147705078125,
           "width": 12.01824951171875,
-          "height": 18.99951171875
+          "height": 18.999267578125
          }
         },
         {
@@ -14748,19 +14920,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto442826",
+          "id": "auto408857",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto442838",
+         "renderId": "vf-auto408869",
          "renderedBox": {
-          "x": 674.7247924804688,
-          "y": 661.646484375,
+          "x": 674.7247314453125,
+          "y": 1645.1983642578125,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 792.658203125,
-          "y": 2195.30615234375,
+          "x": 792.6581420898438,
+          "y": 2224.673095703125,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -14792,19 +14964,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto442826",
+          "id": "auto408857",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto442845",
+         "renderId": "vf-auto408876",
          "renderedBox": {
           "x": 692.2059936523438,
-          "y": 665.1456298828125,
+          "y": 1648.697509765625,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 817.6375122070312,
-          "y": 2200.30615234375,
+          "y": 2229.673095703125,
           "width": 12.0181884765625,
           "height": 10.473876953125
          }
@@ -14836,26 +15008,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto442826",
+          "id": "auto408857",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto442852",
+         "renderId": "vf-auto408883",
          "renderedBox": {
-          "x": 709.687255859375,
-          "y": 668.644775390625,
+          "x": 709.6871948242188,
+          "y": 1652.1966552734375,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 842.6168212890625,
-          "y": 2205.30615234375,
+          "x": 842.6167602539062,
+          "y": 2234.673095703125,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto442826",
+        "id": "auto408857",
         "type": "SmoBeamGroup"
        }
       },
@@ -14888,19 +15060,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto442827",
+          "id": "auto408858",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto442859",
+         "renderId": "vf-auto408890",
          "renderedBox": {
           "x": 727.16845703125,
-          "y": 672.1439208984375,
+          "y": 1655.69580078125,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 867.5961303710938,
-          "y": 2210.30615234375,
+          "y": 2239.673095703125,
           "width": 12.0181884765625,
           "height": 10.473876953125
          }
@@ -14932,20 +15104,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto442827",
+          "id": "auto408858",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto442866",
+         "renderId": "vf-auto408897",
          "renderedBox": {
-          "x": 744.6497192382812,
-          "y": 665.1456298828125,
-          "width": 8.41064453125,
-          "height": 7.3299560546875
+          "x": 744.649658203125,
+          "y": 1648.697509765625,
+          "width": 8.41070556640625,
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 892.575439453125,
-          "y": 2200.30615234375,
-          "width": 12.0181884765625,
+          "x": 892.5753784179688,
+          "y": 2229.673095703125,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -14976,20 +15148,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto442827",
+          "id": "auto408858",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto442873",
+         "renderId": "vf-auto408904",
          "renderedBox": {
-          "x": 762.1309204101562,
-          "y": 668.644775390625,
+          "x": 762.130859375,
+          "y": 1652.1966552734375,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 917.5547485351562,
-          "y": 2205.30615234375,
-          "width": 12.0181884765625,
+          "x": 917.5546264648438,
+          "y": 2234.673095703125,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -15020,26 +15192,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto442827",
+          "id": "auto408858",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto442880",
+         "renderId": "vf-auto408911",
          "renderedBox": {
-          "x": 779.6121215820312,
-          "y": 661.646484375,
-          "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "x": 779.612060546875,
+          "y": 1645.1983642578125,
+          "width": 8.4107666015625,
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 942.5339965820312,
-          "y": 2195.30615234375,
-          "width": 12.01824951171875,
+          "x": 942.5338745117188,
+          "y": 2224.673095703125,
+          "width": 12.01837158203125,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto442827",
+        "id": "auto408858",
         "type": "SmoBeamGroup"
        }
       }
@@ -15320,6 +15492,19 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179464",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
@@ -15327,14 +15512,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 2405.488786969866,
+     "staffY": 2432.832781110491,
      "measureNumber": {
       "measureNumber": 17,
       "measureIndex": 17,
       "systemIndex": 0,
       "staffId": 0
      },
-     "staffWidth": 446.41997718811035,
+     "staffWidth": 1019.4200382232666,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -15373,19 +15558,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto443776",
+          "id": "auto409807",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto443787",
+         "renderId": "vf-auto409818",
          "renderedBox": {
           "x": 189.91342163085938,
-          "y": 805.0831298828125,
+          "y": 1787.21923828125,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 99.90079498291016,
-          "y": 2400.265869140625,
+          "y": 2427.60986328125,
           "width": 12.018241882324219,
           "height": 10.473876953125
          }
@@ -15417,20 +15602,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto443776",
+          "id": "auto409807",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto443794",
+         "renderId": "vf-auto409825",
          "renderedBox": {
-          "x": 211.6329345703125,
-          "y": 812.0814208984375,
-          "width": 8.41070556640625,
+          "x": 236.69554138183594,
+          "y": 1794.217529296875,
+          "width": 8.410720825195312,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 130.936279296875,
-          "y": 2410.265869140625,
-          "width": 12.018234252929688,
+          "x": 166.748779296875,
+          "y": 2437.60986328125,
+          "width": 12.018264770507812,
           "height": 10.473876953125
          }
         },
@@ -15461,19 +15646,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto443776",
+          "id": "auto409807",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto443801",
+         "renderId": "vf-auto409832",
          "renderedBox": {
-          "x": 233.35244750976562,
-          "y": 808.582275390625,
+          "x": 283.4776611328125,
+          "y": 1790.7183837890625,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 161.9717559814453,
-          "y": 2405.265869140625,
+          "x": 233.5967559814453,
+          "y": 2432.60986328125,
           "width": 12.018234252929688,
           "height": 10.473876953125
          }
@@ -15505,26 +15690,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto443776",
+          "id": "auto409807",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto443808",
+         "renderId": "vf-auto409839",
          "renderedBox": {
-          "x": 255.07196044921875,
-          "y": 805.0831298828125,
+          "x": 330.259765625,
+          "y": 1787.21923828125,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 193.00723266601562,
-          "y": 2400.265869140625,
+          "x": 300.4447021484375,
+          "y": 2427.60986328125,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto443776",
+        "id": "auto409807",
         "type": "SmoBeamGroup"
        }
       },
@@ -15557,20 +15742,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto443777",
+          "id": "auto409808",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto443815",
+         "renderId": "vf-auto409846",
          "renderedBox": {
-          "x": 276.7914733886719,
-          "y": 801.583984375,
+          "x": 377.0419006347656,
+          "y": 1783.7200927734375,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 224.042724609375,
-          "y": 2395.265869140625,
-          "width": 12.018234252929688,
+          "x": 367.292724609375,
+          "y": 2422.60986328125,
+          "width": 12.018218994140625,
           "height": 10.473876953125
          }
         },
@@ -15601,20 +15786,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto443777",
+          "id": "auto409808",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto443822",
+         "renderId": "vf-auto409853",
          "renderedBox": {
-          "x": 298.510986328125,
-          "y": 808.582275390625,
+          "x": 423.82403564453125,
+          "y": 1790.7183837890625,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 255.0782012939453,
-          "y": 2405.265869140625,
-          "width": 12.018234252929688,
+          "x": 434.1407165527344,
+          "y": 2432.60986328125,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -15645,20 +15830,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto443777",
+          "id": "auto409808",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto443829",
+         "renderId": "vf-auto409860",
          "renderedBox": {
-          "x": 320.2304992675781,
-          "y": 805.0831298828125,
-          "width": 8.410675048828125,
+          "x": 470.6061706542969,
+          "y": 1787.21923828125,
+          "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 286.1136779785156,
-          "y": 2400.265869140625,
-          "width": 12.0181884765625,
+          "x": 500.98870849609375,
+          "y": 2427.60986328125,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -15689,26 +15874,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto443777",
+          "id": "auto409808",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto443836",
+         "renderId": "vf-auto409867",
          "renderedBox": {
-          "x": 341.95001220703125,
-          "y": 812.0814208984375,
-          "width": 8.41070556640625,
+          "x": 517.3883056640625,
+          "y": 1794.217529296875,
+          "width": 8.41064453125,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 317.149169921875,
-          "y": 2410.265869140625,
-          "width": 12.018218994140625,
+          "x": 567.8367309570312,
+          "y": 2437.60986328125,
+          "width": 12.01812744140625,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto443777",
+        "id": "auto409808",
         "type": "SmoBeamGroup"
        }
       }
@@ -15979,25 +16164,38 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179467",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 476.41997718811035,
-     "staffY": 2405.488786969866,
+     "staffX": 30,
+     "staffY": 2628.8858816964284,
      "measureNumber": {
       "measureNumber": 18,
       "measureIndex": 18,
-      "systemIndex": 1,
+      "systemIndex": 0,
       "staffId": 0
      },
-     "staffWidth": 572.3199768066406,
+     "staffWidth": 1019.3000431060791,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
-     "adjX": 11,
+     "adjX": 64.98,
      "adjRight": 11,
      "padRight": 10,
      "rightMargin": 2,
@@ -16042,21 +16240,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto444688",
+          "id": "auto410764",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto444695",
+         "renderId": "vf-auto410777",
          "renderedBox": {
-          "x": 466.5826416015625,
-          "y": 802.615966796875,
+          "x": 191.1867218017578,
+          "y": 1921.95556640625,
           "width": 8.41070556640625,
-          "height": 13.2962646484375
+          "height": 13.29638671875
          },
          "logicalBox": {
-          "x": 495.2394104003906,
-          "y": 2396.740478515625,
-          "width": 12.01824951171875,
-          "height": 18.999267578125
+          "x": 101.72024536132812,
+          "y": 2620.137451171875,
+          "width": 12.018234252929688,
+          "height": 18.99951171875
          }
         },
         {
@@ -16086,20 +16284,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto444688",
+          "id": "auto410764",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto444702",
+         "renderId": "vf-auto410784",
          "renderedBox": {
-          "x": 491.76739501953125,
-          "y": 815.58056640625,
+          "x": 233.56100463867188,
+          "y": 1934.9202880859375,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 531.2264404296875,
-          "y": 2415.265869140625,
-          "width": 12.01824951171875,
+          "x": 162.269775390625,
+          "y": 2638.6630859375,
+          "width": 12.018234252929688,
           "height": 10.473876953125
          }
         },
@@ -16130,20 +16328,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto444688",
+          "id": "auto410764",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto444709",
+         "renderId": "vf-auto410791",
          "renderedBox": {
-          "x": 515.6788330078125,
-          "y": 812.0814208984375,
-          "width": 8.41064453125,
+          "x": 274.6619873046875,
+          "y": 1931.421142578125,
+          "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 565.39404296875,
-          "y": 2410.265869140625,
-          "width": 12.01812744140625,
+          "x": 220.99984741210938,
+          "y": 2633.6630859375,
+          "width": 12.018234252929688,
           "height": 10.473876953125
          }
         },
@@ -16174,26 +16372,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto444688",
+          "id": "auto410764",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto444716",
+         "renderId": "vf-auto410798",
          "renderedBox": {
-          "x": 539.5902709960938,
-          "y": 808.582275390625,
+          "x": 315.762939453125,
+          "y": 1927.9219970703125,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 599.5615844726562,
-          "y": 2405.265869140625,
+          "x": 279.7298889160156,
+          "y": 2628.6630859375,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto444688",
+        "id": "auto410764",
         "type": "SmoBeamGroup"
        }
       },
@@ -16226,20 +16424,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto444689",
+          "id": "auto410765",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto444723",
+         "renderId": "vf-auto410805",
          "renderedBox": {
-          "x": 563.501708984375,
-          "y": 805.0831298828125,
+          "x": 356.8639221191406,
+          "y": 1924.4228515625,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 633.7291870117188,
-          "y": 2400.265869140625,
-          "width": 12.0181884765625,
+          "x": 338.4599609375,
+          "y": 2623.6630859375,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -16270,19 +16468,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto444689",
+          "id": "auto410765",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto444730",
+         "renderId": "vf-auto410812",
          "renderedBox": {
-          "x": 587.4131469726562,
-          "y": 812.0814208984375,
+          "x": 397.96490478515625,
+          "y": 1931.421142578125,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 667.896728515625,
-          "y": 2410.265869140625,
+          "x": 397.1900329589844,
+          "y": 2633.6630859375,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -16314,20 +16512,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto444689",
+          "id": "auto410765",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto444737",
+         "renderId": "vf-auto410819",
          "renderedBox": {
-          "x": 611.3245849609375,
-          "y": 808.582275390625,
-          "width": 8.41070556640625,
+          "x": 439.06585693359375,
+          "y": 1927.9219970703125,
+          "width": 8.410736083984375,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 702.0642700195312,
-          "y": 2405.265869140625,
-          "width": 12.01824951171875,
+          "x": 455.9200744628906,
+          "y": 2628.6630859375,
+          "width": 12.018280029296875,
           "height": 10.473876953125
          }
         },
@@ -16358,26 +16556,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto444689",
+          "id": "auto410765",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto444744",
+         "renderId": "vf-auto410826",
          "renderedBox": {
-          "x": 635.2359619140625,
-          "y": 815.58056640625,
+          "x": 480.1668701171875,
+          "y": 1934.9202880859375,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 736.2317504882812,
-          "y": 2415.265869140625,
+          "x": 514.6502075195312,
+          "y": 2638.6630859375,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto444689",
+        "id": "auto410765",
         "type": "SmoBeamGroup"
        }
       },
@@ -16410,19 +16608,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto444690",
+          "id": "auto410766",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto444751",
+         "renderId": "vf-auto410833",
          "renderedBox": {
-          "x": 659.1474609375,
-          "y": 812.0814208984375,
+          "x": 521.267822265625,
+          "y": 1931.421142578125,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 770.3994140625,
-          "y": 2410.265869140625,
+          "x": 573.3802490234375,
+          "y": 2633.6630859375,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -16454,20 +16652,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto444690",
+          "id": "auto410766",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto444758",
+         "renderId": "vf-auto410840",
          "renderedBox": {
-          "x": 683.058837890625,
-          "y": 808.582275390625,
-          "width": 8.4107666015625,
+          "x": 562.3688354492188,
+          "y": 1927.9219970703125,
+          "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 804.56689453125,
-          "y": 2405.265869140625,
-          "width": 12.01837158203125,
+          "x": 632.1103515625,
+          "y": 2628.6630859375,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -16498,19 +16696,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto444690",
+          "id": "auto410766",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto444765",
+         "renderId": "vf-auto410847",
          "renderedBox": {
-          "x": 706.9703369140625,
-          "y": 805.0831298828125,
+          "x": 603.4697875976562,
+          "y": 1924.4228515625,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 838.7345581054688,
-          "y": 2400.265869140625,
+          "x": 690.8403930664062,
+          "y": 2623.6630859375,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -16542,26 +16740,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto444690",
+          "id": "auto410766",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto444772",
+         "renderId": "vf-auto410854",
          "renderedBox": {
-          "x": 730.8817138671875,
-          "y": 801.583984375,
-          "width": 8.4107666015625,
+          "x": 644.57080078125,
+          "y": 1920.9237060546875,
+          "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 872.9020385742188,
-          "y": 2395.265869140625,
-          "width": 12.01837158203125,
+          "x": 749.570556640625,
+          "y": 2618.6630859375,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto444690",
+        "id": "auto410766",
         "type": "SmoBeamGroup"
        }
       },
@@ -16594,19 +16792,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto444691",
+          "id": "auto410767",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto444779",
+         "renderId": "vf-auto410861",
          "renderedBox": {
-          "x": 754.793212890625,
-          "y": 798.0848388671875,
-          "width": 8.41064453125,
+          "x": 685.6717529296875,
+          "y": 1917.424560546875,
+          "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 907.0697021484375,
-          "y": 2390.265869140625,
+          "x": 808.3005981445312,
+          "y": 2613.6630859375,
           "width": 12.0181884765625,
           "height": 10.473876953125
          }
@@ -16638,20 +16836,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto444691",
+          "id": "auto410767",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto444786",
+         "renderId": "vf-auto410868",
          "renderedBox": {
-          "x": 778.7046508789062,
-          "y": 805.0831298828125,
-          "width": 8.41070556640625,
+          "x": 726.772705078125,
+          "y": 1924.4228515625,
+          "width": 8.4107666015625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 941.2373046875,
-          "y": 2400.265869140625,
-          "width": 12.0181884765625,
+          "x": 867.0305786132812,
+          "y": 2623.6630859375,
+          "width": 12.01837158203125,
           "height": 10.473876953125
          }
         },
@@ -16682,20 +16880,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto444691",
+          "id": "auto410767",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto444793",
+         "renderId": "vf-auto410875",
          "renderedBox": {
-          "x": 802.6160888671875,
-          "y": 801.583984375,
-          "width": 8.41064453125,
+          "x": 767.8736572265625,
+          "y": 1920.9237060546875,
+          "width": 8.4107666015625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 975.4048461914062,
-          "y": 2395.265869140625,
-          "width": 12.01812744140625,
+          "x": 925.7606201171875,
+          "y": 2618.6630859375,
+          "width": 12.01837158203125,
           "height": 10.473876953125
          }
         },
@@ -16726,26 +16924,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto444691",
+          "id": "auto410767",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto444800",
+         "renderId": "vf-auto410882",
          "renderedBox": {
-          "x": 826.5275268554688,
-          "y": 808.582275390625,
+          "x": 808.9746704101562,
+          "y": 1927.9219970703125,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 1009.5724487304688,
-          "y": 2405.265869140625,
-          "width": 12.0181884765625,
+          "x": 984.4907836914062,
+          "y": 2628.6630859375,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto444691",
+        "id": "auto410767",
         "type": "SmoBeamGroup"
        }
       }
@@ -17215,6 +17413,19 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179470",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
@@ -17222,14 +17433,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 2618.9159109933034,
+     "staffY": 2843.9901297433034,
      "measureNumber": {
       "measureNumber": 19,
       "measureIndex": 19,
       "systemIndex": 0,
       "staffId": 0
      },
-     "staffWidth": 427.2399845123291,
+     "staffWidth": 514.0399723052979,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -17268,19 +17479,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto446041",
+          "id": "auto412127",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto446054",
+         "renderId": "vf-auto412140",
          "renderedBox": {
           "x": 189.91342163085938,
-          "y": 954.445556640625,
+          "y": 2074.958984375,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 99.90079498291016,
-          "y": 2613.693115234375,
+          "y": 2838.767333984375,
           "width": 12.018241882324219,
           "height": 10.473876953125
          }
@@ -17312,21 +17523,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto446041",
+          "id": "auto412127",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto446061",
+         "renderId": "vf-auto412147",
          "renderedBox": {
-          "x": 207.6416015625,
-          "y": 950.9464111328125,
+          "x": 211.43817138671875,
+          "y": 2071.4599609375,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.32958984375
          },
          "logicalBox": {
-          "x": 125.23297119140625,
-          "y": 2608.693115234375,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
+          "x": 130.65797424316406,
+          "y": 2833.767578125,
+          "width": 12.018234252929688,
+          "height": 10.473388671875
          }
         },
         {
@@ -17356,20 +17567,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto446041",
+          "id": "auto412127",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto446068",
+         "renderId": "vf-auto412154",
          "renderedBox": {
-          "x": 225.36978149414062,
-          "y": 947.447265625,
-          "width": 8.410690307617188,
-          "height": 7.3299560546875
+          "x": 232.96290588378906,
+          "y": 2067.960693359375,
+          "width": 8.410720825195312,
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 150.56515502929688,
-          "y": 2603.693115234375,
-          "width": 12.018218994140625,
+          "x": 161.41513061523438,
+          "y": 2828.767333984375,
+          "width": 12.018264770507812,
           "height": 10.473876953125
          }
         },
@@ -17400,26 +17611,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto446041",
+          "id": "auto412127",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto446075",
+         "renderId": "vf-auto412161",
          "renderedBox": {
-          "x": 243.0979461669922,
-          "y": 943.9482421875,
-          "width": 8.41070556640625,
-          "height": 7.329833984375
+          "x": 254.48765563964844,
+          "y": 2064.46142578125,
+          "width": 8.410720825195312,
+          "height": 7.330078125
          },
          "logicalBox": {
-          "x": 175.89730834960938,
-          "y": 2598.693115234375,
-          "width": 12.018234252929688,
-          "height": 10.473876953125
+          "x": 192.1723175048828,
+          "y": 2823.76708984375,
+          "width": 12.01824951171875,
+          "height": 10.47412109375
          }
         }
        ],
        "attrs": {
-        "id": "auto446041",
+        "id": "auto412127",
         "type": "SmoBeamGroup"
        }
       },
@@ -17452,21 +17663,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto446042",
+          "id": "auto412128",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto446082",
+         "renderId": "vf-auto412168",
          "renderedBox": {
-          "x": 260.82611083984375,
-          "y": 940.4490966796875,
+          "x": 276.01239013671875,
+          "y": 2060.96240234375,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.330078125
          },
          "logicalBox": {
-          "x": 201.22946166992188,
-          "y": 2593.693115234375,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
+          "x": 222.92947387695312,
+          "y": 2818.767333984375,
+          "width": 12.018234252929688,
+          "height": 10.47412109375
          }
         },
         {
@@ -17496,20 +17707,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto446042",
+          "id": "auto412128",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto446089",
+         "renderId": "vf-auto412175",
          "renderedBox": {
-          "x": 278.5542907714844,
-          "y": 947.447265625,
+          "x": 297.5371398925781,
+          "y": 2067.960693359375,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 226.5616455078125,
-          "y": 2603.693115234375,
-          "width": 12.018234252929688,
+          "x": 253.6866455078125,
+          "y": 2828.767333984375,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -17540,21 +17751,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto446042",
+          "id": "auto412128",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto446096",
+         "renderId": "vf-auto412182",
          "renderedBox": {
-          "x": 296.282470703125,
-          "y": 943.9482421875,
+          "x": 319.0618896484375,
+          "y": 2064.46142578125,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.330078125
          },
          "logicalBox": {
-          "x": 251.89382934570312,
-          "y": 2598.693115234375,
-          "width": 12.018218994140625,
-          "height": 10.473876953125
+          "x": 284.4438171386719,
+          "y": 2823.76708984375,
+          "width": 12.01824951171875,
+          "height": 10.47412109375
          }
         },
         {
@@ -17584,26 +17795,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto446042",
+          "id": "auto412128",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto446103",
+         "renderId": "vf-auto412189",
          "renderedBox": {
-          "x": 314.0106201171875,
-          "y": 950.9464111328125,
-          "width": 8.410736083984375,
-          "height": 7.3299560546875
+          "x": 340.58660888671875,
+          "y": 2071.4599609375,
+          "width": 8.41070556640625,
+          "height": 7.32958984375
          },
          "logicalBox": {
-          "x": 277.2259521484375,
-          "y": 2608.693115234375,
-          "width": 12.018280029296875,
-          "height": 10.473876953125
+          "x": 315.2009582519531,
+          "y": 2833.767578125,
+          "width": 12.01824951171875,
+          "height": 10.473388671875
          }
         }
        ],
        "attrs": {
-        "id": "auto446042",
+        "id": "auto412128",
         "type": "SmoBeamGroup"
        }
       },
@@ -17636,21 +17847,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto446043",
+          "id": "auto412129",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto446110",
+         "renderId": "vf-auto412196",
          "renderedBox": {
-          "x": 331.73883056640625,
-          "y": 940.4490966796875,
+          "x": 362.11138916015625,
+          "y": 2060.96240234375,
           "width": 8.410675048828125,
-          "height": 7.329833984375
+          "height": 7.330078125
          },
          "logicalBox": {
-          "x": 302.5581970214844,
-          "y": 2593.693115234375,
+          "x": 345.95819091796875,
+          "y": 2818.767333984375,
           "width": 12.0181884765625,
-          "height": 10.473876953125
+          "height": 10.47412109375
          }
         },
         {
@@ -17680,26 +17891,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto446043",
+          "id": "auto412129",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto446117",
+         "renderId": "vf-auto412203",
          "renderedBox": {
-          "x": 354.5854797363281,
-          "y": 950.9464111328125,
-          "width": 8.410736083984375,
-          "height": 7.3299560546875
+          "x": 392.5511779785156,
+          "y": 2071.4599609375,
+          "width": 8.410675048828125,
+          "height": 7.32958984375
          },
          "logicalBox": {
-          "x": 335.2042541503906,
-          "y": 2608.693115234375,
-          "width": 12.018280029296875,
-          "height": 10.473876953125
+          "x": 389.4542541503906,
+          "y": 2833.767578125,
+          "width": 12.0181884765625,
+          "height": 10.473388671875
          }
         }
        ],
        "attrs": {
-        "id": "auto446043",
+        "id": "auto412129",
         "type": "SmoBeamGroup"
        }
       },
@@ -17732,21 +17943,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto446044",
+          "id": "auto412130",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto446124",
+         "renderId": "vf-auto412210",
          "renderedBox": {
-          "x": 377.43212890625,
-          "y": 957.9447021484375,
-          "width": 8.410736083984375,
-          "height": 7.3299560546875
+          "x": 422.990966796875,
+          "y": 2078.4580078125,
+          "width": 8.41070556640625,
+          "height": 7.330078125
          },
          "logicalBox": {
-          "x": 367.8503112792969,
-          "y": 2618.693115234375,
-          "width": 12.018280029296875,
-          "height": 10.473876953125
+          "x": 432.9503173828125,
+          "y": 2843.76708984375,
+          "width": 12.01824951171875,
+          "height": 10.47412109375
          }
         },
         {
@@ -17776,20 +17987,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto446044",
+          "id": "auto412130",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto446131",
+         "renderId": "vf-auto412217",
          "renderedBox": {
-          "x": 400.2788391113281,
-          "y": 961.44384765625,
-          "width": 8.410675048828125,
-          "height": 7.3299560546875
+          "x": 453.4307861328125,
+          "y": 2081.957275390625,
+          "width": 8.41070556640625,
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 400.4964904785156,
-          "y": 2623.693115234375,
-          "width": 12.0181884765625,
+          "x": 476.4464416503906,
+          "y": 2848.767333984375,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -17820,26 +18031,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto446044",
+          "id": "auto412130",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto446138",
+         "renderId": "vf-auto412224",
          "renderedBox": {
-          "x": 418.0069885253906,
-          "y": 964.9429931640625,
+          "x": 474.9555358886719,
+          "y": 2085.45654296875,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.32958984375
          },
          "logicalBox": {
-          "x": 425.82861328125,
-          "y": 2628.693115234375,
+          "x": 507.20361328125,
+          "y": 2853.767578125,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.473388671875
          }
         }
        ],
        "attrs": {
-        "id": "auto446044",
+        "id": "auto412130",
         "type": "SmoBeamGroup"
        }
       }
@@ -18218,21 +18429,34 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179473",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 457.2399845123291,
-     "staffY": 2618.9159109933034,
+     "staffX": 544.0399723052979,
+     "staffY": 2843.9901297433034,
      "measureNumber": {
       "measureNumber": 20,
       "measureIndex": 20,
       "systemIndex": 1,
       "staffId": 0
      },
-     "staffWidth": 454.320068359375,
+     "staffWidth": 503.32000732421875,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -18271,21 +18495,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto447348",
+          "id": "auto413434",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto447355",
+         "renderId": "vf-auto413441",
          "renderedBox": {
-          "x": 451.88665771484375,
-          "y": 964.9429931640625,
-          "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "x": 512.6317138671875,
+          "y": 2085.45654296875,
+          "width": 8.4107666015625,
+          "height": 7.32958984375
          },
          "logicalBox": {
-          "x": 474.239990234375,
-          "y": 2628.693115234375,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
+          "x": 561.0399169921875,
+          "y": 2853.767578125,
+          "width": 12.018310546875,
+          "height": 10.473388671875
          }
         },
         {
@@ -18315,20 +18539,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto447348",
+          "id": "auto413434",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto447362",
+         "renderId": "vf-auto413448",
          "renderedBox": {
-          "x": 470.7960205078125,
-          "y": 968.442138671875,
-          "width": 8.410675048828125,
-          "height": 7.3299560546875
+          "x": 533.684326171875,
+          "y": 2088.95556640625,
+          "width": 8.41070556640625,
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 501.260009765625,
-          "y": 2633.693115234375,
-          "width": 12.0181884765625,
+          "x": 591.1224365234375,
+          "y": 2858.767333984375,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -18359,20 +18583,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto447348",
+          "id": "auto413434",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto447369",
+         "renderId": "vf-auto413455",
          "renderedBox": {
-          "x": 489.7053527832031,
-          "y": 971.9412841796875,
-          "width": 8.410736083984375,
-          "height": 7.3299560546875
+          "x": 554.7369384765625,
+          "y": 2092.45458984375,
+          "width": 8.41070556640625,
+          "height": 7.330078125
          },
          "logicalBox": {
-          "x": 528.2799682617188,
-          "y": 2638.693115234375,
-          "width": 12.01824951171875,
+          "x": 621.2050170898438,
+          "y": 2863.767333984375,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         },
@@ -18403,26 +18627,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto447348",
+          "id": "auto413434",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto447376",
+         "renderId": "vf-auto413462",
          "renderedBox": {
-          "x": 508.61474609375,
-          "y": 975.4404296875,
-          "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "x": 575.78955078125,
+          "y": 2095.953857421875,
+          "width": 8.41064453125,
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 555.2999877929688,
-          "y": 2643.693115234375,
-          "width": 12.01824951171875,
+          "x": 651.2875366210938,
+          "y": 2868.767333984375,
+          "width": 12.01812744140625,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto447348",
+        "id": "auto413434",
         "type": "SmoBeamGroup"
        }
       },
@@ -18455,21 +18679,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto447349",
+          "id": "auto413435",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto447383",
+         "renderId": "vf-auto413469",
          "renderedBox": {
-          "x": 527.5241088867188,
-          "y": 978.9395751953125,
-          "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "x": 596.8421630859375,
+          "y": 2099.453125,
+          "width": 8.41064453125,
+          "height": 7.32958984375
          },
          "logicalBox": {
-          "x": 582.3200073242188,
-          "y": 2648.693115234375,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
+          "x": 681.3700561523438,
+          "y": 2873.767578125,
+          "width": 12.01812744140625,
+          "height": 10.473388671875
          }
         },
         {
@@ -18499,19 +18723,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto447349",
+          "id": "auto413435",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto447390",
+         "renderId": "vf-auto413476",
          "renderedBox": {
-          "x": 546.4334716796875,
-          "y": 971.9412841796875,
+          "x": 617.8946533203125,
+          "y": 2092.45458984375,
           "width": 8.4107666015625,
-          "height": 7.3299560546875
+          "height": 7.330078125
          },
          "logicalBox": {
-          "x": 609.3399658203125,
-          "y": 2638.693115234375,
+          "x": 711.452392578125,
+          "y": 2863.767333984375,
           "width": 12.01837158203125,
           "height": 10.473876953125
          }
@@ -18543,19 +18767,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto447349",
+          "id": "auto413435",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto447397",
+         "renderId": "vf-auto413483",
          "renderedBox": {
-          "x": 565.3428344726562,
-          "y": 975.4404296875,
+          "x": 638.947265625,
+          "y": 2095.953857421875,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 636.3599853515625,
-          "y": 2643.693115234375,
+          "x": 741.534912109375,
+          "y": 2868.767333984375,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -18587,26 +18811,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto447349",
+          "id": "auto413435",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto447404",
+         "renderId": "vf-auto413490",
          "renderedBox": {
-          "x": 584.252197265625,
-          "y": 968.442138671875,
-          "width": 8.4107666015625,
-          "height": 7.3299560546875
+          "x": 659.9998779296875,
+          "y": 2088.95556640625,
+          "width": 8.41070556640625,
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 663.3800048828125,
-          "y": 2633.693115234375,
-          "width": 12.018310546875,
+          "x": 771.6174926757812,
+          "y": 2858.767333984375,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto447349",
+        "id": "auto413435",
         "type": "SmoBeamGroup"
        }
       },
@@ -18639,20 +18863,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto447350",
+          "id": "auto413436",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto447411",
+         "renderId": "vf-auto413497",
          "renderedBox": {
-          "x": 603.16162109375,
-          "y": 971.9412841796875,
-          "width": 8.41064453125,
-          "height": 7.3299560546875
+          "x": 681.0524291992188,
+          "y": 2092.45458984375,
+          "width": 8.4107666015625,
+          "height": 7.330078125
          },
          "logicalBox": {
-          "x": 690.4000854492188,
-          "y": 2638.693115234375,
-          "width": 12.01812744140625,
+          "x": 801.6998901367188,
+          "y": 2863.767333984375,
+          "width": 12.01837158203125,
           "height": 10.473876953125
          }
         },
@@ -18683,20 +18907,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto447350",
+          "id": "auto413436",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto447418",
+         "renderId": "vf-auto413504",
          "renderedBox": {
-          "x": 622.0709838867188,
-          "y": 968.442138671875,
+          "x": 702.1050415039062,
+          "y": 2088.95556640625,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 717.4200439453125,
-          "y": 2633.693115234375,
-          "width": 12.01824951171875,
+          "x": 831.782470703125,
+          "y": 2858.767333984375,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         },
@@ -18727,21 +18951,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto447350",
+          "id": "auto413436",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto447425",
+         "renderId": "vf-auto413511",
          "renderedBox": {
-          "x": 640.9802856445312,
-          "y": 964.9429931640625,
-          "width": 8.4107666015625,
-          "height": 7.3299560546875
+          "x": 723.1576538085938,
+          "y": 2085.45654296875,
+          "width": 8.41070556640625,
+          "height": 7.32958984375
          },
          "logicalBox": {
-          "x": 744.43994140625,
-          "y": 2628.693115234375,
-          "width": 12.01837158203125,
-          "height": 10.473876953125
+          "x": 861.864990234375,
+          "y": 2853.767578125,
+          "width": 12.01824951171875,
+          "height": 10.473388671875
          }
         },
         {
@@ -18771,26 +18995,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto447350",
+          "id": "auto413436",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto447432",
+         "renderId": "vf-auto413518",
          "renderedBox": {
-          "x": 659.8897094726562,
-          "y": 957.9447021484375,
+          "x": 744.210205078125,
+          "y": 2078.4580078125,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.330078125
          },
          "logicalBox": {
-          "x": 771.4600219726562,
-          "y": 2618.693115234375,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
+          "x": 891.9474487304688,
+          "y": 2843.76708984375,
+          "width": 12.0181884765625,
+          "height": 10.47412109375
          }
         }
        ],
        "attrs": {
-        "id": "auto447350",
+        "id": "auto413436",
         "type": "SmoBeamGroup"
        }
       },
@@ -18823,19 +19047,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto447351",
+          "id": "auto413437",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto447439",
+         "renderId": "vf-auto413525",
          "renderedBox": {
-          "x": 678.799072265625,
-          "y": 961.44384765625,
+          "x": 765.2628173828125,
+          "y": 2081.957275390625,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 798.4800415039062,
-          "y": 2623.693115234375,
+          "x": 922.0299682617188,
+          "y": 2848.767333984375,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -18867,21 +19091,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto447351",
+          "id": "auto413437",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto447446",
+         "renderId": "vf-auto413532",
          "renderedBox": {
-          "x": 697.7084350585938,
-          "y": 964.9429931640625,
+          "x": 786.3154296875,
+          "y": 2085.45654296875,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.32958984375
          },
          "logicalBox": {
-          "x": 825.5000610351562,
-          "y": 2628.693115234375,
+          "x": 952.1124877929688,
+          "y": 2853.767578125,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.473388671875
          }
         },
         {
@@ -18911,20 +19135,20 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto447351",
+          "id": "auto413437",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto447453",
+         "renderId": "vf-auto413539",
          "renderedBox": {
-          "x": 716.6177978515625,
-          "y": 954.445556640625,
-          "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "x": 807.3680419921875,
+          "y": 2074.958984375,
+          "width": 8.41064453125,
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 852.52001953125,
-          "y": 2613.693115234375,
-          "width": 12.01824951171875,
+          "x": 982.1950073242188,
+          "y": 2838.767333984375,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         },
@@ -18955,26 +19179,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto447351",
+          "id": "auto413437",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto447460",
+         "renderId": "vf-auto413546",
          "renderedBox": {
-          "x": 735.5271606445312,
-          "y": 943.9482421875,
-          "width": 8.41070556640625,
-          "height": 7.329833984375
+          "x": 828.4205932617188,
+          "y": 2064.46142578125,
+          "width": 8.4107666015625,
+          "height": 7.330078125
          },
          "logicalBox": {
-          "x": 879.5400390625,
-          "y": 2598.693115234375,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
+          "x": 1012.2774658203125,
+          "y": 2823.76708984375,
+          "width": 12.018310546875,
+          "height": 10.47412109375
          }
         }
        ],
        "attrs": {
-        "id": "auto447351",
+        "id": "auto413437",
         "type": "SmoBeamGroup"
        }
       }
@@ -19434,25 +19658,38 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179476",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 911.5600528717041,
-     "staffY": 2618.9159109933034,
+     "staffX": 30,
+     "staffY": 3087.1124441964284,
      "measureNumber": {
       "measureNumber": 21,
       "measureIndex": 21,
-      "systemIndex": 2,
+      "systemIndex": 0,
       "staffId": 0
      },
-     "staffWidth": 53.239990234375,
+     "staffWidth": 1019.2199649810791,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
-     "adjX": 11,
+     "adjX": 64.98,
      "adjRight": 15.219999999999999,
      "padRight": 10,
      "rightMargin": 2,
@@ -19518,6 +19755,19 @@ var inventionJson = `{
        "position": 1,
        "barline": 2,
        "ctor": "SmoBarline"
+      },
+      {
+       "attrs": {
+        "id": "auto179479",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     }
@@ -19766,14 +20016,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 336.98130798339844,
+     "staffY": 386.0031433105469,
      "measureNumber": {
       "measureNumber": 0,
       "measureIndex": 0,
       "systemIndex": 0,
       "staffId": 1
      },
-     "staffWidth": 536.2199954986572,
+     "staffWidth": 536.2199039459229,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -19812,21 +20062,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto424228",
+          "id": "auto390258",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto424247",
+         "renderId": "vf-auto390278",
          "renderedBox": {
-          "x": 307.205810546875,
-          "y": -627.3207397460938,
-          "width": 8.843017578125,
-          "height": 18.0594482421875
+          "x": 307.2057800292969,
+          "y": 369.98614501953125,
+          "width": 8.843048095703125,
+          "height": 18.059417724609375
          },
          "logicalBox": {
-          "x": 267.5024108886719,
-          "y": 353.4730529785156,
-          "width": 12.635986328125,
-          "height": 25.8055419921875
+          "x": 267.50238037109375,
+          "y": 402.4949035644531,
+          "width": 12.636016845703125,
+          "height": 25.80548095703125
          }
         },
         {
@@ -19856,21 +20106,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto424228",
+          "id": "auto390258",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto424253",
+         "renderId": "vf-auto390284",
          "renderedBox": {
           "x": 333.15545654296875,
-          "y": -625.0215454101562,
-          "width": 8.410736083984375,
-          "height": 7.32989501953125
+          "y": 372.28533935546875,
+          "width": 8.41070556640625,
+          "height": 7.329864501953125
          },
          "logicalBox": {
           "x": 304.5824279785156,
-          "y": 356.7584228515625,
-          "width": 12.018280029296875,
-          "height": 10.473846435546875
+          "y": 405.7802734375,
+          "width": 12.01824951171875,
+          "height": 10.47381591796875
          }
         },
         {
@@ -19900,21 +20150,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto424228",
+          "id": "auto390258",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto424260",
+         "renderId": "vf-auto390291",
          "renderedBox": {
-          "x": 358.6728210449219,
-          "y": -628.5206909179688,
+          "x": 358.67279052734375,
+          "y": 368.78619384765625,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329864501953125
          },
          "logicalBox": {
-          "x": 341.04473876953125,
-          "y": 351.7584228515625,
-          "width": 12.01824951171875,
-          "height": 10.473846435546875
+          "x": 341.0447082519531,
+          "y": 400.7802734375,
+          "width": 12.018218994140625,
+          "height": 10.473785400390625
          }
         },
         {
@@ -19944,26 +20194,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto424228",
+          "id": "auto390258",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto424267",
+         "renderId": "vf-auto390298",
          "renderedBox": {
-          "x": 384.1901550292969,
-          "y": -632.0198364257812,
+          "x": 384.19012451171875,
+          "y": 365.28704833984375,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329864501953125
          },
          "logicalBox": {
-          "x": 377.50701904296875,
-          "y": 346.7584228515625,
-          "width": 12.018218994140625,
-          "height": 10.473846435546875
+          "x": 377.5069580078125,
+          "y": 395.7802734375,
+          "width": 12.01824951171875,
+          "height": 10.473785400390625
          }
         }
        ],
        "attrs": {
-        "id": "auto424228",
+        "id": "auto390258",
         "type": "SmoBeamGroup"
        }
       },
@@ -19996,20 +20246,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto424229",
+          "id": "auto390259",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto424274",
+         "renderId": "vf-auto390305",
          "renderedBox": {
-          "x": 409.7074890136719,
-          "y": -635.5189819335938,
-          "width": 8.410736083984375,
+          "x": 409.70745849609375,
+          "y": 361.78790283203125,
+          "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 413.9692687988281,
-          "y": 341.7584228515625,
-          "width": 12.018280029296875,
+          "x": 413.96923828125,
+          "y": 390.7802734375,
+          "width": 12.01824951171875,
           "height": 10.473846435546875
          }
         },
@@ -20040,21 +20290,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto424229",
+          "id": "auto390259",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto424281",
+         "renderId": "vf-auto390312",
          "renderedBox": {
-          "x": 435.224853515625,
-          "y": -628.5206909179688,
-          "width": 8.410675048828125,
-          "height": 7.32989501953125
+          "x": 435.22479248046875,
+          "y": 368.78619384765625,
+          "width": 8.41070556640625,
+          "height": 7.329864501953125
          },
          "logicalBox": {
-          "x": 450.43157958984375,
-          "y": 351.7584228515625,
+          "x": 450.4315185546875,
+          "y": 400.7802734375,
           "width": 12.018218994140625,
-          "height": 10.473846435546875
+          "height": 10.473785400390625
          }
         },
         {
@@ -20084,21 +20334,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto424229",
+          "id": "auto390259",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto424288",
+         "renderId": "vf-auto390319",
          "renderedBox": {
-          "x": 460.7421875,
-          "y": -632.0198364257812,
+          "x": 460.74212646484375,
+          "y": 365.28704833984375,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329864501953125
          },
          "logicalBox": {
-          "x": 486.89385986328125,
-          "y": 346.7584228515625,
+          "x": 486.8937683105469,
+          "y": 395.7802734375,
           "width": 12.01824951171875,
-          "height": 10.473846435546875
+          "height": 10.473785400390625
          }
         },
         {
@@ -20128,26 +20378,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto424229",
+          "id": "auto390259",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto424295",
+         "renderId": "vf-auto390326",
          "renderedBox": {
-          "x": 486.259521484375,
-          "y": -625.0215454101562,
-          "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "x": 486.2594299316406,
+          "y": 372.28533935546875,
+          "width": 8.410736083984375,
+          "height": 7.329864501953125
          },
          "logicalBox": {
-          "x": 523.3561401367188,
-          "y": 356.7584228515625,
+          "x": 523.3560180664062,
+          "y": 405.7802734375,
           "width": 12.01824951171875,
-          "height": 10.473846435546875
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto424229",
+        "id": "auto390259",
         "type": "SmoBeamGroup"
        }
       }
@@ -20418,21 +20668,34 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179482",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 566.2199954986572,
-     "staffY": 336.98130798339844,
+     "staffX": 566.2199039459229,
+     "staffY": 386.0031433105469,
      "measureNumber": {
       "measureNumber": 1,
       "measureIndex": 1,
       "systemIndex": 1,
       "staffId": 1
      },
-     "staffWidth": 482.2400817871094,
+     "staffWidth": 482.24017333984375,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -20471,21 +20734,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto425340",
+          "id": "auto391371",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto425346",
+         "renderId": "vf-auto391377",
          "renderedBox": {
           "x": 528.1539306640625,
-          "y": -639.0181274414062,
-          "width": 8.4107666015625,
+          "y": 358.28875732421875,
+          "width": 8.41064453125,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 583.219970703125,
-          "y": 336.7584228515625,
-          "width": 12.018310546875,
-          "height": 10.473846435546875
+          "y": 385.7802734375,
+          "width": 12.01812744140625,
+          "height": 10.47381591796875
          }
         },
         {
@@ -20525,26 +20788,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto425340",
+          "id": "auto391371",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto425353",
+         "renderId": "vf-auto391384",
          "renderedBox": {
-          "x": 564.90185546875,
-          "y": -622.6780395507812,
-          "width": 8.41064453125,
-          "height": 15.48382568359375
+          "x": 564.9017333984375,
+          "y": 374.6288757324219,
+          "width": 8.4107666015625,
+          "height": 15.4837646484375
          },
          "logicalBox": {
-          "x": 635.7298583984375,
-          "y": 360.10711669921875,
-          "width": 12.01812744140625,
-          "height": 22.12518310546875
+          "x": 635.7296752929688,
+          "y": 409.1289978027344,
+          "width": 12.018310546875,
+          "height": 22.125091552734375
          }
         }
        ],
        "attrs": {
-        "id": "auto425340",
+        "id": "auto391371",
         "type": "SmoBeamGroup"
        }
       },
@@ -20577,21 +20840,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto425341",
+          "id": "auto391372",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto425374",
+         "renderId": "vf-auto391405",
          "renderedBox": {
           "x": 681.9481811523438,
-          "y": -639.0181274414062,
+          "y": 358.28875732421875,
           "width": 8.4107666015625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 802.9798583984375,
-          "y": 336.7584228515625,
+          "y": 385.7802734375,
           "width": 12.01837158203125,
-          "height": 10.473846435546875
+          "height": 10.47381591796875
          }
         },
         {
@@ -20621,19 +20884,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto425341",
+          "id": "auto391372",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto425381",
+         "renderId": "vf-auto391412",
          "renderedBox": {
           "x": 705.9903564453125,
-          "y": -642.5172729492188,
+          "y": 354.78961181640625,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 837.3342895507812,
-          "y": 331.7583923339844,
+          "y": 380.7802429199219,
           "width": 12.0181884765625,
           "height": 10.473846435546875
          }
@@ -20665,26 +20928,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto425341",
+          "id": "auto391372",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto425388",
+         "renderId": "vf-auto391419",
          "renderedBox": {
           "x": 730.032470703125,
-          "y": -646.0164184570312,
+          "y": 351.2904968261719,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329864501953125
          },
          "logicalBox": {
           "x": 871.6885375976562,
-          "y": 326.7583923339844,
+          "y": 375.7803039550781,
           "width": 12.01824951171875,
-          "height": 10.473846435546875
+          "height": 10.473785400390625
          }
         }
        ],
        "attrs": {
-        "id": "auto425341",
+        "id": "auto391372",
         "type": "SmoBeamGroup"
        }
       },
@@ -20717,21 +20980,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto425342",
+          "id": "auto391373",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto425395",
+         "renderId": "vf-auto391426",
          "renderedBox": {
           "x": 754.0745849609375,
-          "y": -649.5155639648438,
+          "y": 347.7913513183594,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329864501953125
          },
          "logicalBox": {
           "x": 906.0428466796875,
-          "y": 321.7583923339844,
+          "y": 370.7803039550781,
           "width": 12.01824951171875,
-          "height": 10.473846435546875
+          "height": 10.473785400390625
          }
         },
         {
@@ -20761,19 +21024,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto425342",
+          "id": "auto391373",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto425402",
+         "renderId": "vf-auto391433",
          "renderedBox": {
           "x": 778.11669921875,
-          "y": -642.5172729492188,
+          "y": 354.78961181640625,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 940.3971557617188,
-          "y": 331.7583923339844,
+          "y": 380.7802429199219,
           "width": 12.01824951171875,
           "height": 10.473846435546875
          }
@@ -20805,21 +21068,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto425342",
+          "id": "auto391373",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto425409",
+         "renderId": "vf-auto391440",
          "renderedBox": {
           "x": 802.1588134765625,
-          "y": -646.0164184570312,
+          "y": 351.2904968261719,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329864501953125
          },
          "logicalBox": {
           "x": 974.75146484375,
-          "y": 326.7583923339844,
+          "y": 375.7803039550781,
           "width": 12.0181884765625,
-          "height": 10.473846435546875
+          "height": 10.473785400390625
          }
         },
         {
@@ -20849,26 +21112,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto425342",
+          "id": "auto391373",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto425416",
+         "renderId": "vf-auto391447",
          "renderedBox": {
           "x": 826.200927734375,
-          "y": -639.0181274414062,
+          "y": 358.28875732421875,
           "width": 8.4107666015625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 1009.105712890625,
-          "y": 336.7584228515625,
+          "y": 385.7802734375,
           "width": 12.01837158203125,
-          "height": 10.473846435546875
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto425342",
+        "id": "auto391373",
         "type": "SmoBeamGroup"
        }
       }
@@ -21203,6 +21466,19 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179485",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
@@ -21210,7 +21486,7 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 587.1645431518555,
+     "staffY": 636.4738006591797,
      "measureNumber": {
       "measureNumber": 2,
       "measureIndex": 2,
@@ -21256,21 +21532,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto426755",
+          "id": "auto392786",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto426766",
+         "renderId": "vf-auto392797",
          "renderedBox": {
           "x": 190.96148681640625,
-          "y": -474.4302062988281,
+          "y": 523.0778198242188,
           "width": 8.41070556640625,
-          "height": 7.329925537109375
+          "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 101.39839935302734,
-          "y": 571.941650390625,
+          "y": 621.2509155273438,
           "width": 12.018241882324219,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         },
         {
@@ -21300,21 +21576,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto426755",
+          "id": "auto392786",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto426773",
+         "renderId": "vf-auto392804",
          "renderedBox": {
           "x": 230.6330108642578,
-          "y": -470.9310607910156,
+          "y": 526.5769653320312,
           "width": 8.410720825195312,
-          "height": 7.329925537109375
+          "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 158.0858917236328,
-          "y": 576.941650390625,
+          "y": 626.2509155273438,
           "width": 12.018264770507812,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         },
         {
@@ -21344,21 +21620,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto426755",
+          "id": "auto392786",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto426780",
+         "renderId": "vf-auto392811",
          "renderedBox": {
           "x": 270.3045349121094,
-          "y": -474.4302062988281,
+          "y": 523.0778198242188,
           "width": 8.41070556640625,
-          "height": 7.329925537109375
+          "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 214.7733917236328,
-          "y": 571.941650390625,
+          "y": 621.2509155273438,
           "width": 12.018234252929688,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         },
         {
@@ -21388,26 +21664,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto426755",
+          "id": "auto392786",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto426787",
+         "renderId": "vf-auto392818",
          "renderedBox": {
           "x": 309.97607421875,
-          "y": -477.9293518066406,
+          "y": 519.5786743164062,
           "width": 8.41070556640625,
-          "height": 7.329925537109375
+          "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 271.4609069824219,
-          "y": 566.941650390625,
+          "y": 616.2509155273438,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto426755",
+        "id": "auto392786",
         "type": "SmoBeamGroup"
        }
       },
@@ -21440,21 +21716,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto426756",
+          "id": "auto392787",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto426794",
+         "renderId": "vf-auto392825",
          "renderedBox": {
           "x": 349.6475830078125,
-          "y": -481.4284973144531,
+          "y": 516.0795288085938,
           "width": 8.41070556640625,
-          "height": 7.329925537109375
+          "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 328.14837646484375,
-          "y": 561.941650390625,
+          "y": 611.2509155273438,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         },
         {
@@ -21484,19 +21760,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto426756",
+          "id": "auto392787",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto426801",
+         "renderId": "vf-auto392832",
          "renderedBox": {
           "x": 389.319091796875,
-          "y": -463.9327697753906,
+          "y": 533.5752563476562,
           "width": 8.410736083984375,
-          "height": 7.329925537109375
+          "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 384.8358459472656,
-          "y": 586.941650390625,
+          "y": 636.2509155273438,
           "width": 12.018310546875,
           "height": 10.473876953125
          }
@@ -21528,21 +21804,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto426756",
+          "id": "auto392787",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto426808",
+         "renderId": "vf-auto392839",
          "renderedBox": {
           "x": 428.9906311035156,
-          "y": -467.4319152832031,
+          "y": 530.0761108398438,
           "width": 8.41070556640625,
-          "height": 7.329925537109375
+          "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 441.52337646484375,
-          "y": 581.941650390625,
+          "y": 631.2509155273438,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         },
         {
@@ -21572,26 +21848,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto426756",
+          "id": "auto392787",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto426815",
+         "renderId": "vf-auto392846",
          "renderedBox": {
           "x": 468.66217041015625,
-          "y": -470.9310607910156,
+          "y": 526.5769653320312,
           "width": 8.41070556640625,
-          "height": 7.329925537109375
+          "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 498.2109069824219,
-          "y": 576.941650390625,
+          "y": 626.2509155273438,
           "width": 12.018218994140625,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto426756",
+        "id": "auto392787",
         "type": "SmoBeamGroup"
        }
       }
@@ -21835,6 +22111,19 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179488",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
@@ -21842,14 +22131,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 561.2999820709229,
-     "staffY": 587.1645431518555,
+     "staffY": 636.4738006591797,
      "measureNumber": {
       "measureNumber": 3,
       "measureIndex": 3,
       "systemIndex": 1,
       "staffId": 1
      },
-     "staffWidth": 486.1600341796875,
+     "staffWidth": 486.15997314453125,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -21888,21 +22177,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto428067",
+          "id": "auto394098",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto428072",
+         "renderId": "vf-auto394103",
          "renderedBox": {
           "x": 524.7108154296875,
-          "y": -474.4302062988281,
+          "y": 523.0778198242188,
           "width": 8.41070556640625,
-          "height": 7.329925537109375
+          "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 578.2999877929688,
-          "y": 571.941650390625,
+          "y": 621.2509155273438,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         },
         {
@@ -21932,19 +22221,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto428067",
+          "id": "auto394098",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto428079",
+         "renderId": "vf-auto394110",
          "renderedBox": {
           "x": 565.76806640625,
-          "y": -456.9344787597656,
+          "y": 540.5735473632812,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 636.9675903320312,
-          "y": 596.941650390625,
+          "y": 646.2509155273438,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -21976,21 +22265,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto428067",
+          "id": "auto394098",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto428086",
+         "renderId": "vf-auto394117",
          "renderedBox": {
           "x": 607.525146484375,
-          "y": -467.06060791015625,
+          "y": 530.4473876953125,
           "width": 16.69476318359375,
-          "height": 20.583343505859375
+          "height": 20.5833740234375
          },
          "logicalBox": {
           "x": 696.6351928710938,
-          "y": 582.4722290039062,
+          "y": 631.7814331054688,
           "width": 23.85552978515625,
-          "height": 29.4119873046875
+          "height": 29.41204833984375
          }
         },
         {
@@ -22020,26 +22309,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto428067",
+          "id": "auto394098",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto428095",
+         "renderId": "vf-auto394126",
          "renderedBox": {
           "x": 656.8665161132812,
-          "y": -463.9327697753906,
-          "width": 8.41070556640625,
-          "height": 7.329925537109375
+          "y": 533.5752563476562,
+          "width": 8.41064453125,
+          "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 767.14013671875,
-          "y": 586.941650390625,
-          "width": 12.01824951171875,
+          "y": 636.2509155273438,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto428067",
+        "id": "auto394098",
         "type": "SmoBeamGroup"
        }
       },
@@ -22072,21 +22361,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto428068",
+          "id": "auto394099",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto428102",
+         "renderId": "vf-auto394133",
          "renderedBox": {
           "x": 697.9237670898438,
-          "y": -467.4319152832031,
+          "y": 530.0761108398438,
           "width": 8.41070556640625,
-          "height": 7.329925537109375
+          "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 825.8077392578125,
-          "y": 581.941650390625,
+          "y": 631.2509155273438,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         },
         {
@@ -22116,26 +22405,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto428068",
+          "id": "auto394099",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto428109",
+         "renderId": "vf-auto394140",
          "renderedBox": {
-          "x": 738.9810791015625,
-          "y": -470.9310607910156,
+          "x": 738.9810180664062,
+          "y": 526.5769653320312,
           "width": 8.41070556640625,
-          "height": 7.329925537109375
+          "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 884.4754028320312,
-          "y": 576.941650390625,
+          "x": 884.475341796875,
+          "y": 626.2509155273438,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto428068",
+        "id": "auto394099",
         "type": "SmoBeamGroup"
        }
       }
@@ -22352,6 +22641,19 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179491",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
@@ -22359,14 +22661,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 812.3590316772461,
+     "staffY": 860.8240203857422,
      "measureNumber": {
       "measureNumber": 4,
       "measureIndex": 4,
       "systemIndex": 0,
       "staffId": 1
      },
-     "staffWidth": 490.0600528717041,
+     "staffWidth": 490.06011390686035,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -22405,21 +22707,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto429070",
+          "id": "auto395101",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429082",
+         "renderId": "vf-auto395113",
          "renderedBox": {
           "x": 190.96148681640625,
-          "y": -316.8326416015625,
+          "y": 680.08447265625,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 101.39839935302734,
-          "y": 797.13623046875,
+          "y": 845.60107421875,
           "width": 12.018241882324219,
-          "height": 10.4737548828125
+          "height": 10.473876953125
          }
         },
         {
@@ -22449,20 +22751,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto429070",
+          "id": "auto395101",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429089",
+         "renderId": "vf-auto395120",
          "renderedBox": {
           "x": 211.58438110351562,
-          "y": -295.83782958984375,
-          "width": 8.410690307617188,
+          "y": 701.079345703125,
+          "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 130.8668975830078,
-          "y": 827.1361694335938,
-          "width": 12.018218994140625,
+          "y": 875.6011352539062,
+          "width": 12.018234252929688,
           "height": 10.47381591796875
          }
         },
@@ -22493,21 +22795,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto429070",
+          "id": "auto395101",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429096",
+         "renderId": "vf-auto395127",
          "renderedBox": {
           "x": 232.20726013183594,
-          "y": -299.33697509765625,
+          "y": 697.5802001953125,
           "width": 8.410690307617188,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 160.3353729248047,
-          "y": 822.1361083984375,
+          "y": 870.6011352539062,
           "width": 12.018218994140625,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         },
         {
@@ -22537,26 +22839,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto429070",
+          "id": "auto395101",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429103",
+         "renderId": "vf-auto395134",
          "renderedBox": {
-          "x": 253.52996826171875,
-          "y": -309.463134765625,
-          "width": 16.69476318359375,
-          "height": 20.58343505859375
+          "x": 253.5299835205078,
+          "y": 687.4541015625,
+          "width": 16.694747924804688,
+          "height": 20.58331298828125
          },
          "logicalBox": {
-          "x": 190.80384826660156,
-          "y": 807.6666259765625,
-          "width": 23.855514526367188,
-          "height": 29.412109375
+          "x": 190.8038787841797,
+          "y": 856.1317138671875,
+          "width": 23.855484008789062,
+          "height": 29.41192626953125
          }
         }
        ],
        "attrs": {
-        "id": "auto429070",
+        "id": "auto395101",
         "type": "SmoBeamGroup"
        }
       },
@@ -22589,21 +22891,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto429071",
+          "id": "auto395102",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429112",
+         "renderId": "vf-auto395143",
          "renderedBox": {
-          "x": 282.4369201660156,
-          "y": -306.33526611328125,
+          "x": 282.43695068359375,
+          "y": 690.5819091796875,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 232.109619140625,
-          "y": 812.1361083984375,
+          "x": 232.1096649169922,
+          "y": 860.6011352539062,
           "width": 12.018234252929688,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         },
         {
@@ -22633,21 +22935,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto429071",
+          "id": "auto395102",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429119",
+         "renderId": "vf-auto395150",
          "renderedBox": {
           "x": 303.059814453125,
-          "y": -299.33697509765625,
+          "y": 697.5802001953125,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 261.578125,
-          "y": 822.1361083984375,
+          "y": 870.6011352539062,
           "width": 12.018218994140625,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         },
         {
@@ -22677,21 +22979,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto429071",
+          "id": "auto395102",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429126",
+         "renderId": "vf-auto395157",
          "renderedBox": {
           "x": 323.68267822265625,
-          "y": -302.83612060546875,
-          "width": 8.41070556640625,
+          "y": 694.0810546875,
+          "width": 8.410736083984375,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 291.04656982421875,
-          "y": 817.1361083984375,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
+          "y": 865.6011352539062,
+          "width": 12.018280029296875,
+          "height": 10.47381591796875
          }
         },
         {
@@ -22721,26 +23023,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto429071",
+          "id": "auto395102",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429133",
+         "renderId": "vf-auto395164",
          "renderedBox": {
           "x": 344.3055725097656,
-          "y": -295.83782958984375,
-          "width": 8.410675048828125,
+          "y": 701.079345703125,
+          "width": 8.410736083984375,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 320.51507568359375,
-          "y": 827.1361694335938,
-          "width": 12.0181884765625,
+          "y": 875.6011352539062,
+          "width": 12.018280029296875,
           "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto429071",
+        "id": "auto395102",
         "type": "SmoBeamGroup"
        }
       },
@@ -22773,21 +23075,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto429072",
+          "id": "auto395103",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429140",
+         "renderId": "vf-auto395171",
          "renderedBox": {
           "x": 364.928466796875,
-          "y": -306.33526611328125,
+          "y": 690.5819091796875,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 349.98358154296875,
-          "y": 812.1361083984375,
+          "y": 860.6011352539062,
           "width": 12.018218994140625,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         },
         {
@@ -22817,20 +23119,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto429072",
+          "id": "auto395103",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429147",
+         "renderId": "vf-auto395178",
          "renderedBox": {
-          "x": 393.5645446777344,
-          "y": -288.83953857421875,
+          "x": 393.5645751953125,
+          "y": 708.07763671875,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 390.90228271484375,
-          "y": 837.1361694335938,
-          "width": 12.018218994140625,
+          "x": 390.9023132324219,
+          "y": 885.6011352539062,
+          "width": 12.01824951171875,
           "height": 10.47381591796875
          }
         },
@@ -22861,20 +23163,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto429072",
+          "id": "auto395103",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429154",
+         "renderId": "vf-auto395185",
          "renderedBox": {
           "x": 422.2006530761719,
-          "y": -292.33868408203125,
-          "width": 8.410675048828125,
+          "y": 704.5784912109375,
+          "width": 8.410736083984375,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 431.821044921875,
-          "y": 832.1361694335938,
-          "width": 12.0181884765625,
+          "y": 880.6011352539062,
+          "width": 12.018280029296875,
           "height": 10.47381591796875
          }
         },
@@ -22905,26 +23207,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto429072",
+          "id": "auto395103",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto429161",
+         "renderId": "vf-auto395192",
          "renderedBox": {
-          "x": 450.8367004394531,
-          "y": -295.83782958984375,
-          "width": 8.410736083984375,
+          "x": 450.8367614746094,
+          "y": 701.079345703125,
+          "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 472.73968505859375,
-          "y": 827.1361694335938,
-          "width": 12.018280029296875,
+          "x": 472.7397766113281,
+          "y": 875.6011352539062,
+          "width": 12.01824951171875,
           "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto429072",
+        "id": "auto395103",
         "type": "SmoBeamGroup"
        }
       }
@@ -23276,21 +23578,34 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179494",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 520.0600528717041,
-     "staffY": 812.3590316772461,
+     "staffX": 520.0601139068604,
+     "staffY": 860.8240203857422,
      "measureNumber": {
       "measureNumber": 5,
       "measureIndex": 5,
       "systemIndex": 1,
       "staffId": 1
      },
-     "staffWidth": 528.320068359375,
+     "staffWidth": 528.3200073242188,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -23329,21 +23644,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto430601",
+          "id": "auto396632",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto430607",
+         "renderId": "vf-auto396638",
          "renderedBox": {
-          "x": 495.84991455078125,
-          "y": -299.33697509765625,
+          "x": 495.8499755859375,
+          "y": 697.5802001953125,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 537.06005859375,
-          "y": 822.1361083984375,
+          "x": 537.0601196289062,
+          "y": 870.6011352539062,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         },
         {
@@ -23373,21 +23688,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto430601",
+          "id": "auto396632",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto430614",
+         "renderId": "vf-auto396645",
          "renderedBox": {
           "x": 538.875732421875,
-          "y": -309.463134765625,
-          "width": 16.69476318359375,
-          "height": 20.58343505859375
+          "y": 687.4541015625,
+          "width": 16.69482421875,
+          "height": 20.58331298828125
          },
          "logicalBox": {
           "x": 598.5405883789062,
-          "y": 807.6666259765625,
-          "width": 23.85546875,
-          "height": 29.412109375
+          "y": 856.1317138671875,
+          "width": 23.8555908203125,
+          "height": 29.41192626953125
          }
         },
         {
@@ -23417,21 +23732,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto430601",
+          "id": "auto396632",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto430623",
+         "renderId": "vf-auto396654",
          "renderedBox": {
           "x": 589.4857788085938,
-          "y": -306.33526611328125,
-          "width": 8.41064453125,
+          "y": 690.5819091796875,
+          "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 670.8583374023438,
-          "y": 812.1361083984375,
-          "width": 12.0181884765625,
-          "height": 10.473876953125
+          "y": 860.6011352539062,
+          "width": 12.01824951171875,
+          "height": 10.47381591796875
          }
         },
         {
@@ -23461,26 +23776,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto430601",
+          "id": "auto396632",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto430630",
+         "renderId": "vf-auto396661",
          "renderedBox": {
-          "x": 631.8117065429688,
-          "y": -299.33697509765625,
-          "width": 8.41070556640625,
+          "x": 631.811767578125,
+          "y": 697.5802001953125,
+          "width": 8.41064453125,
           "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 731.3388061523438,
-          "y": 822.1361083984375,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
+          "x": 731.3388671875,
+          "y": 870.6011352539062,
+          "width": 12.0181884765625,
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto430601",
+        "id": "auto396632",
         "type": "SmoBeamGroup"
        }
       },
@@ -23513,21 +23828,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto430602",
+          "id": "auto396633",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto430637",
+         "renderId": "vf-auto396668",
          "renderedBox": {
           "x": 674.1376953125,
-          "y": -290.083251953125,
+          "y": 706.833984375,
           "width": 13.30950927734375,
-          "height": 8.5736083984375
+          "height": 8.57354736328125
          },
          "logicalBox": {
           "x": 791.8192749023438,
-          "y": 835.3590087890625,
+          "y": 883.8240356445312,
           "width": 19.01824951171875,
-          "height": 12.2509765625
+          "height": 12.25091552734375
          }
         },
         {
@@ -23557,26 +23872,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto430602",
+          "id": "auto396633",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto430645",
+         "renderId": "vf-auto396676",
          "renderedBox": {
-          "x": 735.520751953125,
-          "y": -292.33868408203125,
-          "width": 8.41070556640625,
+          "x": 735.5208129882812,
+          "y": 704.5784912109375,
+          "width": 8.41064453125,
           "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 879.5308837890625,
-          "y": 832.1361694335938,
-          "width": 12.01824951171875,
+          "x": 879.5309448242188,
+          "y": 880.6011352539062,
+          "width": 12.0181884765625,
           "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto430602",
+        "id": "auto396633",
         "type": "SmoBeamGroup"
        }
       },
@@ -23609,19 +23924,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto430603",
+          "id": "auto396634",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto430652",
+         "renderId": "vf-auto396683",
          "renderedBox": {
           "x": 762.9885864257812,
-          "y": -295.83782958984375,
+          "y": 701.079345703125,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 918.7802734375,
-          "y": 827.1361694335938,
+          "y": 875.6011352539062,
           "width": 12.01824951171875,
           "height": 10.47381591796875
          }
@@ -23663,26 +23978,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto430603",
+          "id": "auto396634",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto430659",
+         "renderId": "vf-auto396690",
          "renderedBox": {
           "x": 806.5878295898438,
-          "y": -271.34381103515625,
+          "y": 725.5733642578125,
           "width": 8.4107666015625,
           "height": 13.27655029296875
          },
          "logicalBox": {
           "x": 981.0801391601562,
-          "y": 862.1361694335938,
+          "y": 910.6011352539062,
           "width": 12.01837158203125,
-          "height": 18.97113037109375
+          "height": 18.97119140625
          }
         }
        ],
        "attrs": {
-        "id": "auto430603",
+        "id": "auto396634",
         "type": "SmoBeamGroup"
        }
       }
@@ -23936,6 +24251,19 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179497",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
@@ -23943,14 +24271,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 1068.9862899780273,
+     "staffY": 1116.811752319336,
      "measureNumber": {
       "measureNumber": 6,
       "measureIndex": 6,
       "systemIndex": 0,
       "staffId": 1
      },
-     "staffWidth": 536.8800296783447,
+     "staffWidth": 536.8799991607666,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -23989,19 +24317,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto431480",
+          "id": "auto397511",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto431498",
+         "renderId": "vf-auto397529",
          "renderedBox": {
           "x": 214.0375518798828,
-          "y": -102.24615478515625,
+          "y": 894.2234497070312,
           "width": 8.410690307617188,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 134.37228393554688,
-          "y": 1103.763427734375,
+          "y": 1151.5888671875,
           "width": 12.018218994140625,
           "height": 10.473876953125
          }
@@ -24033,20 +24361,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto431480",
+          "id": "auto397511",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto431505",
+         "renderId": "vf-auto397536",
          "renderedBox": {
-          "x": 236.68128967285156,
-          "y": -105.74530029296875,
-          "width": 8.410690307617188,
+          "x": 236.6812744140625,
+          "y": 890.7243041992188,
+          "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 166.72840881347656,
-          "y": 1098.763427734375,
-          "width": 12.018218994140625,
+          "x": 166.7283935546875,
+          "y": 1146.5888671875,
+          "width": 12.018234252929688,
           "height": 10.473876953125
          }
         },
@@ -24077,26 +24405,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto431480",
+          "id": "auto397511",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto431512",
+         "renderId": "vf-auto397543",
          "renderedBox": {
           "x": 259.32501220703125,
-          "y": -109.24444580078125,
+          "y": 887.2251586914062,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 199.0845184326172,
-          "y": 1093.763427734375,
+          "y": 1141.5888671875,
           "width": 12.018234252929688,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto431480",
+        "id": "auto397511",
         "type": "SmoBeamGroup"
        }
       },
@@ -24129,19 +24457,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto431481",
+          "id": "auto397512",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto431519",
+         "renderId": "vf-auto397550",
          "renderedBox": {
           "x": 281.96875,
-          "y": -112.74359130859375,
+          "y": 883.7260131835938,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 231.44064331054688,
-          "y": 1088.763427734375,
+          "y": 1136.5888671875,
           "width": 12.018234252929688,
           "height": 10.473876953125
          }
@@ -24173,19 +24501,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto431481",
+          "id": "auto397512",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto431526",
+         "renderId": "vf-auto397557",
          "renderedBox": {
           "x": 304.61248779296875,
-          "y": -105.74530029296875,
+          "y": 890.7243041992188,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 263.7967529296875,
-          "y": 1098.763427734375,
+          "y": 1146.5888671875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -24217,19 +24545,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto431481",
+          "id": "auto397512",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto431533",
+         "renderId": "vf-auto397564",
          "renderedBox": {
           "x": 327.2562255859375,
-          "y": -109.24444580078125,
+          "y": 887.2251586914062,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 296.15289306640625,
-          "y": 1093.763427734375,
+          "y": 1141.5888671875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -24261,26 +24589,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto431481",
+          "id": "auto397512",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto431540",
+         "renderId": "vf-auto397571",
          "renderedBox": {
           "x": 349.89996337890625,
-          "y": -102.24615478515625,
+          "y": 894.2234497070312,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 328.5090026855469,
-          "y": 1103.763427734375,
+          "y": 1151.5888671875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto431481",
+        "id": "auto397512",
         "type": "SmoBeamGroup"
        }
       },
@@ -24313,19 +24641,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto431482",
+          "id": "auto397513",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto431547",
+         "renderId": "vf-auto397578",
          "renderedBox": {
           "x": 372.543701171875,
-          "y": -116.24273681640625,
+          "y": 880.2268676757812,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 360.8651428222656,
-          "y": 1083.763427734375,
+          "y": 1131.5888671875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -24357,20 +24685,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto431482",
+          "id": "auto397513",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto431554",
+         "renderId": "vf-auto397585",
          "renderedBox": {
-          "x": 405.22149658203125,
-          "y": -126.74017333984375,
+          "x": 405.2214660644531,
+          "y": 869.7294311523438,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 407.55914306640625,
-          "y": 1068.763427734375,
-          "width": 12.01824951171875,
+          "x": 407.5591125488281,
+          "y": 1116.5888671875,
+          "width": 12.018218994140625,
           "height": 10.473876953125
          }
         },
@@ -24401,20 +24729,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto431482",
+          "id": "auto397513",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto431561",
+         "renderId": "vf-auto397592",
          "renderedBox": {
-          "x": 438.59912109375,
-          "y": -129.8680419921875,
-          "width": 16.69476318359375,
+          "x": 438.5990905761719,
+          "y": 866.6015625,
+          "width": 16.694793701171875,
           "height": 20.58331298828125
          },
          "logicalBox": {
-          "x": 455.2531433105469,
-          "y": 1064.2939453125,
-          "width": 23.85552978515625,
+          "x": 455.25311279296875,
+          "y": 1112.119384765625,
+          "width": 23.855560302734375,
           "height": 29.4119873046875
          }
         },
@@ -24445,26 +24773,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto431482",
+          "id": "auto397513",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto431570",
+         "renderId": "vf-auto397601",
          "renderedBox": {
           "x": 479.56097412109375,
-          "y": -126.74017333984375,
-          "width": 8.41070556640625,
+          "y": 869.7294311523438,
+          "width": 8.410675048828125,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 513.784423828125,
-          "y": 1068.763427734375,
-          "width": 12.01824951171875,
+          "y": 1116.5888671875,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto431482",
+        "id": "auto397513",
         "type": "SmoBeamGroup"
        }
       }
@@ -24816,21 +25144,34 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179500",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 566.8800296783447,
-     "staffY": 1068.9862899780273,
+     "staffX": 566.8799991607666,
+     "staffY": 1116.811752319336,
      "measureNumber": {
       "measureNumber": 7,
       "measureIndex": 7,
       "systemIndex": 1,
       "staffId": 1
      },
-     "staffWidth": 481.0799255371094,
+     "staffWidth": 481.0799560546875,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -24879,21 +25220,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto432513",
+          "id": "auto398544",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto432519",
+         "renderId": "vf-auto398550",
          "renderedBox": {
           "x": 529.88916015625,
-          "y": -136.2056884765625,
-          "width": 8.41070556640625,
-          "height": 13.2962646484375
+          "y": 860.2639770507812,
+          "width": 8.41064453125,
+          "height": 13.29620361328125
          },
          "logicalBox": {
           "x": 585.699462890625,
-          "y": 1055.2379150390625,
-          "width": 12.01824951171875,
-          "height": 18.9993896484375
+          "y": 1103.0634765625,
+          "width": 12.01812744140625,
+          "height": 18.999267578125
          }
         },
         {
@@ -24923,19 +25264,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto432513",
+          "id": "auto398544",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto432526",
+         "renderId": "vf-auto398557",
          "renderedBox": {
-          "x": 553.674072265625,
-          "y": -116.24273681640625,
+          "x": 553.6740112304688,
+          "y": 880.2268676757812,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 619.6862182617188,
-          "y": 1083.763427734375,
+          "x": 619.6861572265625,
+          "y": 1131.5888671875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -24967,19 +25308,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto432513",
+          "id": "auto398544",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto432533",
+         "renderId": "vf-auto398564",
          "renderedBox": {
-          "x": 576.1856689453125,
-          "y": -119.74188232421875,
+          "x": 576.1856079101562,
+          "y": 876.7277221679688,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 651.853515625,
-          "y": 1078.763427734375,
+          "x": 651.8534545898438,
+          "y": 1126.5888671875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -25011,26 +25352,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto432513",
+          "id": "auto398544",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto432540",
+         "renderId": "vf-auto398571",
          "renderedBox": {
-          "x": 599.3970947265625,
-          "y": -129.8680419921875,
+          "x": 599.3970336914062,
+          "y": 866.6015625,
           "width": 16.69476318359375,
           "height": 20.58331298828125
          },
          "logicalBox": {
-          "x": 685.0208740234375,
-          "y": 1064.2939453125,
-          "width": 23.85546875,
+          "x": 685.020751953125,
+          "y": 1112.119384765625,
+          "width": 23.85552978515625,
           "height": 29.4119873046875
          }
         }
        ],
        "attrs": {
-        "id": "auto432513",
+        "id": "auto398544",
         "type": "SmoBeamGroup"
        }
       },
@@ -25063,20 +25404,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto432514",
+          "id": "auto398545",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto432549",
+         "renderId": "vf-auto398580",
          "renderedBox": {
-          "x": 630.1927490234375,
-          "y": -126.74017333984375,
+          "x": 630.1926879882812,
+          "y": 869.7294311523438,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 729.0254516601562,
-          "y": 1068.763427734375,
-          "width": 12.0181884765625,
+          "x": 729.0253295898438,
+          "y": 1116.5888671875,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -25107,20 +25448,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto432514",
+          "id": "auto398545",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto432556",
+         "renderId": "vf-auto398587",
          "renderedBox": {
-          "x": 652.704345703125,
-          "y": -119.74188232421875,
-          "width": 8.41064453125,
+          "x": 652.7042846679688,
+          "y": 876.7277221679688,
+          "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
-          "x": 761.1927490234375,
-          "y": 1078.763427734375,
-          "width": 12.01812744140625,
+          "x": 761.192626953125,
+          "y": 1126.5888671875,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -25151,19 +25492,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto432514",
+          "id": "auto398545",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto432563",
+         "renderId": "vf-auto398594",
          "renderedBox": {
           "x": 675.2158813476562,
-          "y": -123.24102783203125,
+          "y": 873.2285766601562,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 793.3599243164062,
-          "y": 1073.763427734375,
+          "y": 1121.5888671875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -25195,26 +25536,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto432514",
+          "id": "auto398545",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto432570",
+         "renderId": "vf-auto398601",
          "renderedBox": {
           "x": 697.7274780273438,
-          "y": -116.24273681640625,
+          "y": 880.2268676757812,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 825.5272827148438,
-          "y": 1083.763427734375,
+          "y": 1131.5888671875,
           "width": 12.0181884765625,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto432514",
+        "id": "auto398545",
         "type": "SmoBeamGroup"
        }
       },
@@ -25247,19 +25588,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto432515",
+          "id": "auto398546",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto432577",
+         "renderId": "vf-auto398608",
          "renderedBox": {
           "x": 720.2390747070312,
-          "y": -130.23931884765625,
+          "y": 866.2302856445312,
           "width": 8.41070556640625,
           "height": 7.32989501953125
          },
          "logicalBox": {
           "x": 857.694580078125,
-          "y": 1063.763427734375,
+          "y": 1111.5888671875,
           "width": 12.0181884765625,
           "height": 10.473876953125
          }
@@ -25291,20 +25632,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto432515",
+          "id": "auto398546",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto432584",
+         "renderId": "vf-auto398615",
          "renderedBox": {
-          "x": 752.652587890625,
-          "y": -140.73675537109375,
-          "width": 8.41064453125,
+          "x": 752.6525268554688,
+          "y": 855.7328491210938,
+          "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 904.0109252929688,
-          "y": 1048.763427734375,
-          "width": 12.01812744140625,
+          "x": 904.0108642578125,
+          "y": 1096.5888671875,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         },
@@ -25335,20 +25676,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto432515",
+          "id": "auto398546",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto432591",
+         "renderId": "vf-auto398622",
          "renderedBox": {
           "x": 785.0661010742188,
-          "y": -137.23760986328125,
-          "width": 8.41070556640625,
+          "y": 859.2319946289062,
+          "width": 8.41064453125,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 950.3272705078125,
-          "y": 1053.763427734375,
-          "width": 12.01824951171875,
+          "y": 1101.5888671875,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         },
@@ -25379,26 +25720,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto432515",
+          "id": "auto398546",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto432598",
+         "renderId": "vf-auto398629",
          "renderedBox": {
           "x": 817.4795532226562,
-          "y": -140.73675537109375,
+          "y": 855.7328491210938,
           "width": 8.4107666015625,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 996.6435546875,
-          "y": 1048.763427734375,
+          "y": 1096.5888671875,
           "width": 12.01837158203125,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto432515",
+        "id": "auto398546",
         "type": "SmoBeamGroup"
        }
       }
@@ -25760,6 +26101,19 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179503",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
@@ -25767,14 +26121,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 1292.2561264038086,
+     "staffY": 1339.2699432373047,
      "measureNumber": {
       "measureNumber": 8,
       "measureIndex": 8,
       "systemIndex": 0,
       "staffId": 1
      },
-     "staffWidth": 538.7600345611572,
+     "staffWidth": 538.7599430084229,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -25823,19 +26177,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto433644",
+          "id": "auto399675",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto433656",
+         "renderId": "vf-auto399687",
          "renderedBox": {
           "x": 191.1867218017578,
-          "y": 71.50006103515625,
+          "y": 1067.4017333984375,
           "width": 8.41070556640625,
           "height": 13.276611328125
          },
          "logicalBox": {
           "x": 101.72024536132812,
-          "y": 1352.033203125,
+          "y": 1399.047119140625,
           "width": 12.018234252929688,
           "height": 18.97119140625
          }
@@ -25867,21 +26221,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto433644",
+          "id": "auto399675",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto433663",
+         "renderId": "vf-auto399694",
          "renderedBox": {
-          "x": 214.88739013671875,
-          "y": 47.006103515625,
-          "width": 8.410690307617188,
-          "height": 7.32989501953125
+          "x": 214.88735961914062,
+          "y": 1042.90771484375,
+          "width": 8.410720825195312,
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 135.58663940429688,
-          "y": 1317.033203125,
-          "width": 12.018218994140625,
-          "height": 10.473876953125
+          "x": 135.5865936279297,
+          "y": 1364.0469970703125,
+          "width": 12.018264770507812,
+          "height": 10.4737548828125
          }
         },
         {
@@ -25912,21 +26266,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto433644",
+          "id": "auto399675",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto433670",
+         "renderId": "vf-auto399701",
          "renderedBox": {
           "x": 238.71438598632812,
-          "y": 47.64227294921875,
+          "y": 1043.5439453125,
           "width": 19.932037353515625,
-          "height": 13.05035400390625
+          "height": 13.05029296875
          },
          "logicalBox": {
           "x": 169.633544921875,
-          "y": 1317.9422607421875,
+          "y": 1364.9561767578125,
           "width": 28.4813232421875,
-          "height": 18.64794921875
+          "height": 18.6478271484375
          }
         },
         {
@@ -25956,26 +26310,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto433644",
+          "id": "auto399675",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto433682",
+         "renderId": "vf-auto399713",
          "renderedBox": {
           "x": 272.6630554199219,
-          "y": 54.00439453125,
-          "width": 8.410736083984375,
-          "height": 7.32989501953125
+          "y": 1049.906005859375,
+          "width": 8.41070556640625,
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 218.14353942871094,
-          "y": 1327.033203125,
-          "width": 12.018280029296875,
-          "height": 10.473876953125
+          "y": 1374.047119140625,
+          "width": 12.018234252929688,
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto433644",
+        "id": "auto399675",
         "type": "SmoBeamGroup"
        }
       },
@@ -26008,21 +26362,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto433645",
+          "id": "auto399676",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto433689",
+         "renderId": "vf-auto399720",
          "renderedBox": {
-          "x": 295.0904235839844,
-          "y": 57.5035400390625,
-          "width": 8.410736083984375,
-          "height": 7.32989501953125
+          "x": 295.09039306640625,
+          "y": 1053.4052734375,
+          "width": 8.41070556640625,
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 250.1904754638672,
-          "y": 1332.033203125,
-          "width": 12.018295288085938,
-          "height": 10.473876953125
+          "x": 250.19044494628906,
+          "y": 1379.0472412109375,
+          "width": 12.018234252929688,
+          "height": 10.4737548828125
          }
         },
         {
@@ -26052,21 +26406,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto433645",
+          "id": "auto399676",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto433696",
+         "renderId": "vf-auto399727",
          "renderedBox": {
-          "x": 317.5177917480469,
-          "y": 50.5052490234375,
+          "x": 317.51776123046875,
+          "y": 1046.406982421875,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 282.2374267578125,
-          "y": 1322.033203125,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
+          "x": 282.2373962402344,
+          "y": 1369.0472412109375,
+          "width": 12.018218994140625,
+          "height": 10.4737548828125
          }
         },
         {
@@ -26096,21 +26450,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto433645",
+          "id": "auto399676",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto433703",
+         "renderId": "vf-auto399734",
          "renderedBox": {
           "x": 339.94512939453125,
-          "y": 54.00439453125,
-          "width": 8.410736083984375,
-          "height": 7.32989501953125
+          "y": 1049.906005859375,
+          "width": 8.41070556640625,
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 314.2843322753906,
-          "y": 1327.033203125,
-          "width": 12.018280029296875,
-          "height": 10.473876953125
+          "y": 1374.047119140625,
+          "width": 12.01824951171875,
+          "height": 10.4737548828125
          }
         },
         {
@@ -26140,26 +26494,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto433645",
+          "id": "auto399676",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto433710",
+         "renderId": "vf-auto399741",
          "renderedBox": {
-          "x": 362.3725280761719,
-          "y": 47.006103515625,
-          "width": 8.410675048828125,
-          "height": 7.32989501953125
+          "x": 362.37249755859375,
+          "y": 1042.90771484375,
+          "width": 8.41070556640625,
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 346.3313293457031,
-          "y": 1317.033203125,
-          "width": 12.0181884765625,
-          "height": 10.473876953125
+          "x": 346.331298828125,
+          "y": 1364.0469970703125,
+          "width": 12.018218994140625,
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto433645",
+        "id": "auto399676",
         "type": "SmoBeamGroup"
        }
       },
@@ -26192,21 +26546,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto433646",
+          "id": "auto399677",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto433717",
+         "renderId": "vf-auto399748",
          "renderedBox": {
-          "x": 384.7998962402344,
-          "y": 47.006103515625,
-          "width": 8.410675048828125,
-          "height": 7.32989501953125
+          "x": 384.7998352050781,
+          "y": 1042.90771484375,
+          "width": 8.41070556640625,
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 378.3782958984375,
-          "y": 1317.033203125,
-          "width": 12.0181884765625,
-          "height": 10.473876953125
+          "x": 378.3782043457031,
+          "y": 1364.0469970703125,
+          "width": 12.018218994140625,
+          "height": 10.4737548828125
          }
         },
         {
@@ -26236,21 +26590,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto433646",
+          "id": "auto399677",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto433724",
+         "renderId": "vf-auto399755",
          "renderedBox": {
-          "x": 417.044921875,
-          "y": 50.5052490234375,
+          "x": 417.0448913574219,
+          "y": 1046.406982421875,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 424.4538879394531,
-          "y": 1322.033203125,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
+          "x": 424.453857421875,
+          "y": 1369.0472412109375,
+          "width": 12.018218994140625,
+          "height": 10.4737548828125
          }
         },
         {
@@ -26280,21 +26634,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto433646",
+          "id": "auto399677",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto433731",
+         "renderId": "vf-auto399762",
          "renderedBox": {
-          "x": 449.28997802734375,
-          "y": 47.006103515625,
-          "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "x": 449.2899169921875,
+          "y": 1042.90771484375,
+          "width": 8.410736083984375,
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 470.529541015625,
-          "y": 1317.033203125,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
+          "x": 470.52947998046875,
+          "y": 1364.0469970703125,
+          "width": 12.018280029296875,
+          "height": 10.4737548828125
          }
         },
         {
@@ -26324,26 +26678,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto433646",
+          "id": "auto399677",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto433738",
+         "renderId": "vf-auto399769",
          "renderedBox": {
-          "x": 481.5350036621094,
-          "y": 54.00439453125,
+          "x": 481.53497314453125,
+          "y": 1049.906005859375,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 516.6051635742188,
-          "y": 1327.033203125,
+          "x": 516.6051025390625,
+          "y": 1374.047119140625,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto433646",
+        "id": "auto399677",
         "type": "SmoBeamGroup"
        }
       }
@@ -26706,21 +27060,34 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179506",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 568.7600345611572,
-     "staffY": 1292.2561264038086,
+     "staffX": 568.7599430084229,
+     "staffY": 1339.2699432373047,
      "measureNumber": {
       "measureNumber": 9,
       "measureIndex": 9,
       "systemIndex": 1,
       "staffId": 1
      },
-     "staffWidth": 478.2400817871094,
+     "staffWidth": 478.24017333984375,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
@@ -26759,21 +27126,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto434733",
+          "id": "auto400764",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto434740",
+         "renderId": "vf-auto400771",
          "renderedBox": {
           "x": 529.9315185546875,
-          "y": 54.00439453125,
-          "width": 8.4107666015625,
-          "height": 7.32989501953125
+          "y": 1049.906005859375,
+          "width": 8.41064453125,
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 585.760009765625,
-          "y": 1327.033203125,
-          "width": 12.018310546875,
-          "height": 10.473876953125
+          "y": 1374.047119140625,
+          "width": 12.01812744140625,
+          "height": 10.4737548828125
          }
         },
         {
@@ -26803,21 +27170,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto434733",
+          "id": "auto400764",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto434747",
+         "renderId": "vf-auto400778",
          "renderedBox": {
           "x": 553.03955078125,
-          "y": 43.5069580078125,
-          "width": 8.4107666015625,
-          "height": 7.32989501953125
+          "y": 1039.40869140625,
+          "width": 8.41064453125,
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 618.779541015625,
-          "y": 1312.033203125,
-          "width": 12.018310546875,
-          "height": 10.473876953125
+          "y": 1359.0472412109375,
+          "width": 12.0181884765625,
+          "height": 10.4737548828125
          }
         },
         {
@@ -26847,21 +27214,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto434733",
+          "id": "auto400764",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto434754",
+         "renderId": "vf-auto400785",
          "renderedBox": {
-          "x": 576.1476440429688,
-          "y": 47.006103515625,
-          "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "x": 576.1475830078125,
+          "y": 1042.90771484375,
+          "width": 8.41064453125,
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 651.7991943359375,
-          "y": 1317.033203125,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
+          "x": 651.7991333007812,
+          "y": 1364.0469970703125,
+          "width": 12.01812744140625,
+          "height": 10.4737548828125
          }
         },
         {
@@ -26891,26 +27258,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto434733",
+          "id": "auto400764",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto434761",
+         "renderId": "vf-auto400792",
          "renderedBox": {
           "x": 599.255615234375,
-          "y": 50.5052490234375,
-          "width": 8.4107666015625,
-          "height": 7.32989501953125
+          "y": 1046.406982421875,
+          "width": 8.41070556640625,
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 684.8186645507812,
-          "y": 1322.033203125,
-          "width": 12.01837158203125,
-          "height": 10.473876953125
+          "y": 1369.0472412109375,
+          "width": 12.01824951171875,
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto434733",
+        "id": "auto400764",
         "type": "SmoBeamGroup"
        }
       },
@@ -26943,21 +27310,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto434734",
+          "id": "auto400765",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto434768",
+         "renderId": "vf-auto400799",
          "renderedBox": {
-          "x": 622.3637084960938,
-          "y": 54.00439453125,
+          "x": 622.3636474609375,
+          "y": 1049.906005859375,
           "width": 8.41064453125,
-          "height": 7.32989501953125
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 717.8383178710938,
-          "y": 1327.033203125,
-          "width": 12.0181884765625,
-          "height": 10.473876953125
+          "x": 717.8382568359375,
+          "y": 1374.047119140625,
+          "width": 12.01812744140625,
+          "height": 10.4737548828125
          }
         },
         {
@@ -26987,21 +27354,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto434734",
+          "id": "auto400765",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto434775",
+         "renderId": "vf-auto400806",
          "renderedBox": {
           "x": 645.4716796875,
-          "y": 47.006103515625,
+          "y": 1042.90771484375,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 750.8577880859375,
-          "y": 1317.033203125,
+          "y": 1364.0469970703125,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
@@ -27031,21 +27398,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto434734",
+          "id": "auto400765",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto434782",
+         "renderId": "vf-auto400813",
          "renderedBox": {
-          "x": 668.5797729492188,
-          "y": 50.5052490234375,
+          "x": 668.5797119140625,
+          "y": 1046.406982421875,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 783.87744140625,
-          "y": 1322.033203125,
+          "x": 783.8773803710938,
+          "y": 1369.0472412109375,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
@@ -27075,26 +27442,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto434734",
+          "id": "auto400765",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto434789",
+         "renderId": "vf-auto400820",
          "renderedBox": {
           "x": 691.687744140625,
-          "y": 43.5069580078125,
+          "y": 1039.40869140625,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 816.89697265625,
-          "y": 1312.033203125,
+          "y": 1359.0472412109375,
           "width": 12.0181884765625,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto434734",
+        "id": "auto400765",
         "type": "SmoBeamGroup"
        }
       },
@@ -27127,21 +27494,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto434735",
+          "id": "auto400766",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto434796",
+         "renderId": "vf-auto400827",
          "renderedBox": {
-          "x": 714.7958374023438,
-          "y": 47.006103515625,
+          "x": 714.7957763671875,
+          "y": 1042.90771484375,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 849.9166259765625,
-          "y": 1317.033203125,
-          "width": 12.0181884765625,
-          "height": 10.473876953125
+          "x": 849.91650390625,
+          "y": 1364.0469970703125,
+          "width": 12.01824951171875,
+          "height": 10.4737548828125
          }
         },
         {
@@ -27171,26 +27538,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto434735",
+          "id": "auto400766",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto434803",
+         "renderId": "vf-auto400834",
          "renderedBox": {
           "x": 748.4021606445312,
-          "y": 50.5052490234375,
-          "width": 8.4107666015625,
-          "height": 7.32989501953125
+          "y": 1046.406982421875,
+          "width": 8.41070556640625,
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 897.9373779296875,
-          "y": 1322.033203125,
-          "width": 12.01837158203125,
-          "height": 10.473876953125
+          "y": 1369.0472412109375,
+          "width": 12.01824951171875,
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto434735",
+        "id": "auto400766",
         "type": "SmoBeamGroup"
        }
       },
@@ -27223,21 +27590,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto434736",
+          "id": "auto400767",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto434810",
+         "renderId": "vf-auto400841",
          "renderedBox": {
           "x": 782.008544921875,
-          "y": 47.006103515625,
+          "y": 1042.90771484375,
           "width": 8.41070556640625,
-          "height": 7.32989501953125
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 945.9583129882812,
-          "y": 1317.033203125,
+          "y": 1364.0469970703125,
           "width": 12.0181884765625,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
@@ -27267,26 +27634,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto434736",
+          "id": "auto400767",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto434817",
+         "renderId": "vf-auto400848",
          "renderedBox": {
-          "x": 815.614990234375,
-          "y": 54.00439453125,
-          "width": 8.41064453125,
-          "height": 7.32989501953125
+          "x": 815.6149291992188,
+          "y": 1049.906005859375,
+          "width": 8.41070556640625,
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 993.979248046875,
-          "y": 1327.033203125,
-          "width": 12.0181884765625,
-          "height": 10.473876953125
+          "x": 993.9791870117188,
+          "y": 1374.047119140625,
+          "width": 12.01824951171875,
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto434736",
+        "id": "auto400767",
         "type": "SmoBeamGroup"
        }
       }
@@ -27638,6 +28005,19 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179509",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
@@ -27645,7 +28025,7 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 1764.6848318917412,
+     "staffY": 1796.5442068917412,
      "measureNumber": {
       "measureNumber": 10,
       "measureIndex": 10,
@@ -27691,21 +28071,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto435833",
+          "id": "auto401864",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto435846",
+         "renderId": "vf-auto401877",
          "renderedBox": {
           "x": 189.91342163085938,
-          "y": 381.124267578125,
+          "y": 1366.42041015625,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 99.90079498291016,
-          "y": 1794.4619140625,
+          "y": 1826.3212890625,
           "width": 12.018241882324219,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
@@ -27735,19 +28115,19 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto435833",
+          "id": "auto401864",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto435853",
+         "renderId": "vf-auto401884",
          "renderedBox": {
           "x": 210.2223663330078,
-          "y": 362.180908203125,
+          "y": 1347.47705078125,
           "width": 15.71826171875,
           "height": 16.48583984375
          },
          "logicalBox": {
           "x": 128.92068481445312,
-          "y": 1767.393310546875,
+          "y": 1799.252685546875,
           "width": 22.460159301757812,
           "height": 23.5570068359375
          }
@@ -27779,21 +28159,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto435833",
+          "id": "auto401864",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto435862",
+         "renderId": "vf-auto401893",
          "renderedBox": {
           "x": 237.13902282714844,
-          "y": 374.1259765625,
+          "y": 1359.422119140625,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 167.38247680664062,
-          "y": 1784.4619140625,
+          "y": 1816.3212890625,
           "width": 12.018234252929688,
-          "height": 10.473876953125
+          "height": 10.4739990234375
          }
         },
         {
@@ -27823,26 +28203,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto435833",
+          "id": "auto401864",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto435869",
+         "renderId": "vf-auto401900",
          "renderedBox": {
           "x": 256.7481384277344,
-          "y": 377.6251220703125,
+          "y": 1362.9212646484375,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 195.40235900878906,
-          "y": 1789.4619140625,
+          "y": 1821.3212890625,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4739990234375
          }
         }
        ],
        "attrs": {
-        "id": "auto435833",
+        "id": "auto401864",
         "type": "SmoBeamGroup"
        }
       },
@@ -27875,21 +28255,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto435834",
+          "id": "auto401865",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto435876",
+         "renderId": "vf-auto401907",
          "renderedBox": {
           "x": 276.35723876953125,
-          "y": 381.124267578125,
+          "y": 1366.42041015625,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 223.42222595214844,
-          "y": 1794.4619140625,
+          "y": 1826.3212890625,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
@@ -27919,21 +28299,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto435834",
+          "id": "auto401865",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto435883",
+         "renderId": "vf-auto401914",
          "renderedBox": {
           "x": 295.9663391113281,
-          "y": 374.1259765625,
+          "y": 1359.422119140625,
           "width": 8.410736083984375,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 251.4420928955078,
-          "y": 1784.4619140625,
+          "y": 1816.3212890625,
           "width": 12.018295288085938,
-          "height": 10.473876953125
+          "height": 10.4739990234375
          }
         },
         {
@@ -27963,21 +28343,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto435834",
+          "id": "auto401865",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto435890",
+         "renderId": "vf-auto401921",
          "renderedBox": {
           "x": 315.5754699707031,
-          "y": 377.6251220703125,
+          "y": 1362.9212646484375,
           "width": 8.410675048828125,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 279.4620056152344,
-          "y": 1789.4619140625,
+          "y": 1821.3212890625,
           "width": 12.0181884765625,
-          "height": 10.473876953125
+          "height": 10.4739990234375
          }
         },
         {
@@ -28007,26 +28387,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto435834",
+          "id": "auto401865",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto435897",
+         "renderId": "vf-auto401928",
          "renderedBox": {
           "x": 335.1845703125,
-          "y": 370.6268310546875,
+          "y": 1355.9229736328125,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 307.48187255859375,
-          "y": 1779.4619140625,
+          "y": 1811.3212890625,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4739990234375
          }
         }
        ],
        "attrs": {
-        "id": "auto435834",
+        "id": "auto401865",
         "type": "SmoBeamGroup"
        }
       },
@@ -28059,21 +28439,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto435835",
+          "id": "auto401866",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto435904",
+         "renderId": "vf-auto401935",
          "renderedBox": {
           "x": 354.7936706542969,
-          "y": 374.1259765625,
+          "y": 1359.422119140625,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 335.5017395019531,
-          "y": 1784.4619140625,
+          "y": 1816.3212890625,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4739990234375
          }
         },
         {
@@ -28103,21 +28483,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto435835",
+          "id": "auto401866",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto435911",
+         "renderId": "vf-auto401942",
          "renderedBox": {
           "x": 374.40277099609375,
-          "y": 377.6251220703125,
+          "y": 1362.9212646484375,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 363.5216064453125,
-          "y": 1789.4619140625,
+          "y": 1821.3212890625,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4739990234375
          }
         },
         {
@@ -28147,21 +28527,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto435835",
+          "id": "auto401866",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto435918",
+         "renderId": "vf-auto401949",
          "renderedBox": {
           "x": 394.01190185546875,
-          "y": 381.124267578125,
+          "y": 1366.42041015625,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 391.54150390625,
-          "y": 1794.4619140625,
+          "y": 1826.3212890625,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
@@ -28191,26 +28571,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto435835",
+          "id": "auto401866",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto435925",
+         "renderId": "vf-auto401956",
          "renderedBox": {
           "x": 413.6210021972656,
-          "y": 384.6234130859375,
+          "y": 1369.9195556640625,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 419.5613708496094,
-          "y": 1799.4619140625,
+          "y": 1831.3212890625,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto435835",
+        "id": "auto401866",
         "type": "SmoBeamGroup"
        }
       },
@@ -28243,21 +28623,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto435836",
+          "id": "auto401867",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto435932",
+         "renderId": "vf-auto401963",
          "renderedBox": {
           "x": 433.2301025390625,
-          "y": 388.12255859375,
+          "y": 1373.418701171875,
           "width": 8.410736083984375,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 447.58123779296875,
-          "y": 1804.4619140625,
+          "y": 1836.3212890625,
           "width": 12.018280029296875,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
@@ -28287,21 +28667,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto435836",
+          "id": "auto401867",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto435939",
+         "renderId": "vf-auto401970",
          "renderedBox": {
           "x": 452.8392028808594,
-          "y": 381.124267578125,
+          "y": 1366.42041015625,
           "width": 8.410736083984375,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 475.6011047363281,
-          "y": 1794.4619140625,
+          "y": 1826.3212890625,
           "width": 12.018280029296875,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
@@ -28331,21 +28711,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto435836",
+          "id": "auto401867",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto435946",
+         "renderId": "vf-auto401977",
          "renderedBox": {
           "x": 472.4483337402344,
-          "y": 384.6234130859375,
+          "y": 1369.9195556640625,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 503.62103271484375,
-          "y": 1799.4619140625,
+          "y": 1831.3212890625,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
@@ -28375,26 +28755,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto435836",
+          "id": "auto401867",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto435953",
+         "renderId": "vf-auto401984",
          "renderedBox": {
           "x": 492.0574645996094,
-          "y": 377.6251220703125,
+          "y": 1362.9212646484375,
           "width": 8.410675048828125,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 531.6409301757812,
-          "y": 1789.4619140625,
+          "y": 1821.3212890625,
           "width": 12.0181884765625,
-          "height": 10.473876953125
+          "height": 10.4739990234375
          }
         }
        ],
        "attrs": {
-        "id": "auto435836",
+        "id": "auto401867",
         "type": "SmoBeamGroup"
        }
       }
@@ -28854,6 +29234,19 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179512",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
@@ -28861,7 +29254,7 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 565.7399845123291,
-     "staffY": 1764.6848318917412,
+     "staffY": 1796.5442068917412,
      "measureNumber": {
       "measureNumber": 11,
       "measureIndex": 11,
@@ -28907,21 +29300,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437036",
+          "id": "auto403067",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto437043",
+         "renderId": "vf-auto403074",
          "renderedBox": {
           "x": 527.8179931640625,
-          "y": 381.124267578125,
+          "y": 1366.42041015625,
           "width": 8.4107666015625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 582.7399291992188,
-          "y": 1794.4619140625,
+          "y": 1826.3212890625,
           "width": 12.018310546875,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
@@ -28951,21 +29344,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437036",
+          "id": "auto403067",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto437050",
+         "renderId": "vf-auto403081",
          "renderedBox": {
           "x": 547.4273681640625,
-          "y": 384.6234130859375,
+          "y": 1369.9195556640625,
           "width": 8.41064453125,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 610.7601928710938,
-          "y": 1799.4619140625,
+          "y": 1831.3212890625,
           "width": 12.01812744140625,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
@@ -28995,21 +29388,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437036",
+          "id": "auto403067",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto437057",
+         "renderId": "vf-auto403088",
          "renderedBox": {
           "x": 567.03662109375,
-          "y": 388.12255859375,
+          "y": 1373.418701171875,
           "width": 8.4107666015625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 638.7802734375,
-          "y": 1804.4619140625,
+          "y": 1836.3212890625,
           "width": 12.018310546875,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
@@ -29039,26 +29432,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437036",
+          "id": "auto403067",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto437064",
+         "renderId": "vf-auto403095",
          "renderedBox": {
           "x": 586.64599609375,
-          "y": 391.6217041015625,
+          "y": 1376.9178466796875,
           "width": 8.41064453125,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 666.800537109375,
-          "y": 1809.4619140625,
+          "y": 1841.3212890625,
           "width": 12.01812744140625,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto437036",
+        "id": "auto403067",
         "type": "SmoBeamGroup"
        }
       },
@@ -29091,21 +29484,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437037",
+          "id": "auto403068",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto437071",
+         "renderId": "vf-auto403102",
          "renderedBox": {
           "x": 606.2553100585938,
-          "y": 395.120849609375,
+          "y": 1380.4169921875,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 694.8206787109375,
-          "y": 1814.4619140625,
+          "y": 1846.3212890625,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
@@ -29135,21 +29528,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437037",
+          "id": "auto403068",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto437078",
+         "renderId": "vf-auto403109",
          "renderedBox": {
           "x": 625.8646240234375,
-          "y": 388.12255859375,
+          "y": 1373.418701171875,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 722.8408813476562,
-          "y": 1804.4619140625,
+          "y": 1836.3212890625,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
@@ -29179,21 +29572,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437037",
+          "id": "auto403068",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto437085",
+         "renderId": "vf-auto403116",
          "renderedBox": {
           "x": 645.4739379882812,
-          "y": 391.6217041015625,
+          "y": 1376.9178466796875,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 750.8610229492188,
-          "y": 1809.4619140625,
+          "y": 1841.3212890625,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
@@ -29223,26 +29616,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437037",
+          "id": "auto403068",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto437092",
+         "renderId": "vf-auto403123",
          "renderedBox": {
           "x": 665.0831909179688,
-          "y": 384.6234130859375,
+          "y": 1369.9195556640625,
           "width": 8.4107666015625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 778.881103515625,
-          "y": 1799.4619140625,
+          "y": 1831.3212890625,
           "width": 12.01837158203125,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto437037",
+        "id": "auto403068",
         "type": "SmoBeamGroup"
        }
       },
@@ -29275,21 +29668,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437038",
+          "id": "auto403069",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto437099",
+         "renderId": "vf-auto403130",
          "renderedBox": {
           "x": 684.6925659179688,
-          "y": 388.12255859375,
+          "y": 1373.418701171875,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 806.9013671875,
-          "y": 1804.4619140625,
+          "y": 1836.3212890625,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
@@ -29319,21 +29712,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437038",
+          "id": "auto403069",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto437106",
+         "renderId": "vf-auto403137",
          "renderedBox": {
           "x": 704.3018188476562,
-          "y": 391.6217041015625,
+          "y": 1376.9178466796875,
           "width": 8.4107666015625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 834.9214477539062,
-          "y": 1809.4619140625,
+          "y": 1841.3212890625,
           "width": 12.01837158203125,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
@@ -29363,21 +29756,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437038",
+          "id": "auto403069",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto437113",
+         "renderId": "vf-auto403144",
          "renderedBox": {
           "x": 723.9111938476562,
-          "y": 395.120849609375,
+          "y": 1380.4169921875,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 862.9417114257812,
-          "y": 1814.4619140625,
+          "y": 1846.3212890625,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
@@ -29407,26 +29800,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437038",
+          "id": "auto403069",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto437120",
+         "renderId": "vf-auto403151",
          "renderedBox": {
           "x": 743.5204467773438,
-          "y": 398.6199951171875,
+          "y": 1383.9161376953125,
           "width": 8.4107666015625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 890.9617919921875,
-          "y": 1819.4619140625,
+          "y": 1851.3212890625,
           "width": 12.01837158203125,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto437038",
+        "id": "auto403069",
         "type": "SmoBeamGroup"
        }
       },
@@ -29459,21 +29852,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437039",
+          "id": "auto403070",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto437127",
+         "renderId": "vf-auto403158",
          "renderedBox": {
           "x": 763.8296508789062,
-          "y": 395.4921875,
+          "y": 1380.788330078125,
           "width": 16.69476318359375,
           "height": 20.5833740234375
          },
          "logicalBox": {
           "x": 919.9820556640625,
-          "y": 1814.9925537109375,
+          "y": 1846.8519287109375,
           "width": 23.85552978515625,
-          "height": 29.4119873046875
+          "height": 29.412109375
          }
         },
         {
@@ -29503,21 +29896,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437039",
+          "id": "auto403070",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto437136",
+         "renderId": "vf-auto403167",
          "renderedBox": {
           "x": 791.7230224609375,
-          "y": 395.120849609375,
+          "y": 1380.4169921875,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 959.8395385742188,
-          "y": 1814.4619140625,
+          "y": 1846.3212890625,
           "width": 12.0181884765625,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
@@ -29547,21 +29940,21 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437039",
+          "id": "auto403070",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto437143",
+         "renderId": "vf-auto403174",
          "renderedBox": {
           "x": 811.3323364257812,
-          "y": 398.6199951171875,
+          "y": 1383.9161376953125,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 987.8596801757812,
-          "y": 1819.4619140625,
+          "y": 1851.3212890625,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         },
         {
@@ -29591,26 +29984,26 @@ var inventionJson = `{
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto437039",
+          "id": "auto403070",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto437150",
+         "renderId": "vf-auto403181",
          "renderedBox": {
           "x": 830.941650390625,
-          "y": 391.6217041015625,
+          "y": 1376.9178466796875,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
           "x": 1015.8798828125,
-          "y": 1809.4619140625,
+          "y": 1841.3212890625,
           "width": 12.0181884765625,
-          "height": 10.473876953125
+          "height": 10.4737548828125
          }
         }
        ],
        "attrs": {
-        "id": "auto437039",
+        "id": "auto403070",
         "type": "SmoBeamGroup"
        }
       }
@@ -30070,6 +30463,19 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179515",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
@@ -30077,7 +30483,7 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 2057.7594168526784,
+     "staffY": 2087.921648297991,
      "measureNumber": {
       "measureNumber": 12,
       "measureIndex": 12,
@@ -30123,21 +30529,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto438826",
+          "id": "auto404857",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto438839",
+         "renderId": "vf-auto404870",
          "renderedBox": {
           "x": 190.96148681640625,
-          "y": 558.2330322265625,
+          "y": 1542.3414306640625,
           "width": 8.41070556640625,
-          "height": 7.330078125
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 101.39839935302734,
-          "y": 2047.536376953125,
+          "y": 2077.69873046875,
           "width": 12.018241882324219,
-          "height": 10.47412109375
+          "height": 10.473876953125
          }
         },
         {
@@ -30167,26 +30573,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto438826",
+          "id": "auto404857",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto438846",
+         "renderId": "vf-auto404877",
          "renderedBox": {
           "x": 221.0794219970703,
-          "y": 547.7357177734375,
+          "y": 1531.843994140625,
           "width": 8.410720825195312,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 144.4345703125,
-          "y": 2032.53662109375,
+          "y": 2062.69873046875,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto438826",
+        "id": "auto404857",
         "type": "SmoBeamGroup"
        }
       },
@@ -30219,19 +30625,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto438827",
+          "id": "auto404858",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto438853",
+         "renderId": "vf-auto404884",
          "renderedBox": {
           "x": 251.19737243652344,
-          "y": 551.23486328125,
+          "y": 1535.3431396484375,
           "width": 13.309524536132812,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 187.4707489013672,
-          "y": 2037.53662109375,
+          "y": 2067.69873046875,
           "width": 19.018280029296875,
           "height": 10.473876953125
          }
@@ -30263,26 +30669,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto438827",
+          "id": "auto404858",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto438861",
+         "renderId": "vf-auto404892",
          "renderedBox": {
           "x": 294.2684326171875,
-          "y": 547.7357177734375,
+          "y": 1531.843994140625,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 249.0159149169922,
-          "y": 2032.53662109375,
+          "y": 2062.69873046875,
           "width": 12.018234252929688,
-          "height": 10.4737548828125
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto438827",
+        "id": "auto404858",
         "type": "SmoBeamGroup"
        }
       },
@@ -30315,19 +30721,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto438828",
+          "id": "auto404859",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto438868",
+         "renderId": "vf-auto404899",
          "renderedBox": {
           "x": 315.6322326660156,
-          "y": 554.7340087890625,
+          "y": 1538.84228515625,
           "width": 8.410675048828125,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 279.5431213378906,
-          "y": 2042.53662109375,
+          "y": 2072.69873046875,
           "width": 12.0181884765625,
           "height": 10.473876953125
          }
@@ -30359,21 +30765,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto438828",
+          "id": "auto404859",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto438875",
+         "renderId": "vf-auto404906",
          "renderedBox": {
           "x": 336.99603271484375,
-          "y": 558.2330322265625,
+          "y": 1542.3414306640625,
           "width": 8.41070556640625,
-          "height": 7.330078125
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 310.0703125,
-          "y": 2047.536376953125,
+          "y": 2077.69873046875,
           "width": 12.01824951171875,
-          "height": 10.47412109375
+          "height": 10.473876953125
          }
         },
         {
@@ -30403,19 +30809,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto438828",
+          "id": "auto404859",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto438882",
+         "renderId": "vf-auto404913",
          "renderedBox": {
           "x": 358.35986328125,
-          "y": 561.7322998046875,
+          "y": 1545.840576171875,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 340.5975646972656,
-          "y": 2052.53662109375,
+          "y": 2082.69873046875,
           "width": 12.018218994140625,
           "height": 10.473876953125
          }
@@ -30448,26 +30854,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto438828",
+          "id": "auto404859",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto438889",
+         "renderId": "vf-auto404920",
          "renderedBox": {
           "x": 381.1233215332031,
-          "y": 562.368408203125,
+          "y": 1546.4766845703125,
           "width": 19.9320068359375,
           "height": 13.0504150390625
          },
          "logicalBox": {
           "x": 373.124755859375,
-          "y": 2053.445556640625,
+          "y": 2083.607666015625,
           "width": 28.48126220703125,
           "height": 18.64794921875
          }
         }
        ],
        "attrs": {
-        "id": "auto438828",
+        "id": "auto404859",
         "type": "SmoBeamGroup"
        }
       },
@@ -30500,21 +30906,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto438829",
+          "id": "auto404860",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto438901",
+         "renderId": "vf-auto404932",
          "renderedBox": {
           "x": 414.708251953125,
-          "y": 562.1036376953125,
+          "y": 1546.2119140625,
           "width": 16.694793701171875,
-          "height": 20.583251953125
+          "height": 20.5833740234375
          },
          "logicalBox": {
           "x": 421.114990234375,
-          "y": 2053.067138671875,
+          "y": 2083.229248046875,
           "width": 23.85552978515625,
-          "height": 29.411865234375
+          "height": 29.412109375
          }
         },
         {
@@ -30544,19 +30950,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto438829",
+          "id": "auto404860",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto438910",
+         "renderId": "vf-auto404941",
          "renderedBox": {
           "x": 444.3561096191406,
-          "y": 561.7322998046875,
+          "y": 1545.840576171875,
           "width": 8.410736083984375,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 463.47943115234375,
-          "y": 2052.53662109375,
+          "y": 2082.69873046875,
           "width": 12.018280029296875,
           "height": 10.473876953125
          }
@@ -30588,21 +30994,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto438829",
+          "id": "auto404860",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto438917",
+         "renderId": "vf-auto404948",
          "renderedBox": {
           "x": 466.4197692871094,
-          "y": 558.6044921875,
+          "y": 1542.7127685546875,
           "width": 16.69476318359375,
-          "height": 20.583251953125
+          "height": 20.5833740234375
          },
          "logicalBox": {
           "x": 495.0066833496094,
-          "y": 2048.067138671875,
+          "y": 2078.229248046875,
           "width": 23.855499267578125,
-          "height": 29.411865234375
+          "height": 29.412109375
          }
         },
         {
@@ -30632,26 +31038,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto438829",
+          "id": "auto404860",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto438926",
+         "renderId": "vf-auto404957",
          "renderedBox": {
           "x": 496.067626953125,
-          "y": 558.2330322265625,
+          "y": 1542.3414306640625,
           "width": 8.410736083984375,
-          "height": 7.330078125
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 537.3711547851562,
-          "y": 2047.536376953125,
+          "y": 2077.69873046875,
           "width": 12.01824951171875,
-          "height": 10.47412109375
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto438829",
+        "id": "auto404860",
         "type": "SmoBeamGroup"
        }
       }
@@ -31004,6 +31410,19 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179518",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
@@ -31011,14 +31430,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 574.2999820709229,
-     "staffY": 2057.7594168526784,
+     "staffY": 2087.921648297991,
      "measureNumber": {
       "measureNumber": 13,
       "measureIndex": 13,
       "systemIndex": 1,
       "staffId": 1
      },
-     "staffWidth": 472.9266357421875,
+     "staffWidth": 475.28643798828125,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -31057,19 +31476,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto440269",
+          "id": "auto406300",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto440276",
+         "renderId": "vf-auto406307",
          "renderedBox": {
           "x": 533.80859375,
-          "y": 561.7322998046875,
+          "y": 1545.840576171875,
           "width": 8.41064453125,
           "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 591.300048828125,
-          "y": 2052.53662109375,
+          "y": 2082.69873046875,
           "width": 12.01812744140625,
           "height": 10.473876953125
          }
@@ -31101,20 +31520,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto440269",
+          "id": "auto406300",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto440283",
+         "renderId": "vf-auto406314",
          "renderedBox": {
-          "x": 556.6842041015625,
-          "y": 554.7340087890625,
-          "width": 8.41064453125,
+          "x": 556.7874145507812,
+          "y": 1538.84228515625,
+          "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 623.9874877929688,
-          "y": 2042.53662109375,
-          "width": 12.01812744140625,
+          "x": 624.1349487304688,
+          "y": 2072.69873046875,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -31145,21 +31564,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto440269",
+          "id": "auto406300",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto440290",
+         "renderId": "vf-auto406321",
          "renderedBox": {
-          "x": 579.559814453125,
-          "y": 558.2330322265625,
-          "width": 8.41070556640625,
-          "height": 7.330078125
+          "x": 579.7662353515625,
+          "y": 1542.3414306640625,
+          "width": 8.4107666015625,
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 656.6749267578125,
-          "y": 2047.536376953125,
-          "width": 12.01824951171875,
-          "height": 10.47412109375
+          "x": 656.9699096679688,
+          "y": 2077.69873046875,
+          "width": 12.018310546875,
+          "height": 10.473876953125
          }
         },
         {
@@ -31189,26 +31608,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto440269",
+          "id": "auto406300",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto440297",
+         "renderId": "vf-auto406328",
          "renderedBox": {
-          "x": 602.4354248046875,
-          "y": 551.23486328125,
-          "width": 8.4107666015625,
+          "x": 602.7451171875,
+          "y": 1535.3431396484375,
+          "width": 8.41064453125,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 689.3623657226562,
-          "y": 2037.53662109375,
-          "width": 12.01837158203125,
+          "x": 689.804931640625,
+          "y": 2067.69873046875,
+          "width": 12.01812744140625,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto440269",
+        "id": "auto406300",
         "type": "SmoBeamGroup"
        }
       },
@@ -31241,20 +31660,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto440270",
+          "id": "auto406301",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto440304",
+         "renderId": "vf-auto406335",
          "renderedBox": {
-          "x": 625.31103515625,
-          "y": 554.7340087890625,
+          "x": 625.7239379882812,
+          "y": 1538.84228515625,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 722.0498657226562,
-          "y": 2042.53662109375,
-          "width": 12.0181884765625,
+          "x": 722.6398315429688,
+          "y": 2072.69873046875,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -31285,21 +31704,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto440270",
+          "id": "auto406301",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto440311",
+         "renderId": "vf-auto406342",
          "renderedBox": {
-          "x": 648.1867065429688,
-          "y": 547.7357177734375,
+          "x": 648.7027587890625,
+          "y": 1531.843994140625,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 754.7373657226562,
-          "y": 2032.53662109375,
+          "x": 755.4747924804688,
+          "y": 2062.69873046875,
           "width": 12.01824951171875,
-          "height": 10.4737548828125
+          "height": 10.473876953125
          }
         },
         {
@@ -31329,19 +31748,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto440270",
+          "id": "auto406301",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto440318",
+         "renderId": "vf-auto406349",
          "renderedBox": {
-          "x": 671.0623168945312,
-          "y": 551.23486328125,
+          "x": 671.681640625,
+          "y": 1535.3431396484375,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 787.4248046875,
-          "y": 2037.53662109375,
+          "x": 788.309814453125,
+          "y": 2067.69873046875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -31373,26 +31792,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto440270",
+          "id": "auto406301",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto440325",
+         "renderId": "vf-auto406356",
          "renderedBox": {
-          "x": 693.9379272460938,
-          "y": 544.236572265625,
+          "x": 694.6604614257812,
+          "y": 1528.3448486328125,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 820.1123046875,
-          "y": 2027.53662109375,
-          "width": 12.0181884765625,
-          "height": 10.4737548828125
+          "x": 821.1447143554688,
+          "y": 2057.69873046875,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto440270",
+        "id": "auto406301",
         "type": "SmoBeamGroup"
        }
       },
@@ -31425,21 +31844,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto440271",
+          "id": "auto406302",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto440332",
+         "renderId": "vf-auto406363",
          "renderedBox": {
-          "x": 716.8135986328125,
-          "y": 547.7357177734375,
-          "width": 8.41064453125,
-          "height": 7.329833984375
+          "x": 717.6392822265625,
+          "y": 1531.843994140625,
+          "width": 8.41070556640625,
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 852.7998046875,
-          "y": 2032.53662109375,
-          "width": 12.0181884765625,
-          "height": 10.4737548828125
+          "x": 853.9796752929688,
+          "y": 2062.69873046875,
+          "width": 12.01824951171875,
+          "height": 10.473876953125
          }
         },
         {
@@ -31469,26 +31888,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto440271",
+          "id": "auto406302",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto440339",
+         "renderId": "vf-auto406370",
          "renderedBox": {
-          "x": 749.9551391601562,
-          "y": 561.7322998046875,
+          "x": 750.9873046875,
+          "y": 1545.840576171875,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 900.156494140625,
-          "y": 2052.53662109375,
+          "x": 901.63134765625,
+          "y": 2082.69873046875,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto440271",
+        "id": "auto406302",
         "type": "SmoBeamGroup"
        }
       },
@@ -31521,21 +31940,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto440272",
+          "id": "auto406303",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto440346",
+         "renderId": "vf-auto406377",
          "renderedBox": {
-          "x": 783.0966796875,
-          "y": 547.7357177734375,
-          "width": 8.4107666015625,
-          "height": 7.329833984375
+          "x": 784.3353271484375,
+          "y": 1531.843994140625,
+          "width": 8.41064453125,
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 947.5131225585938,
-          "y": 2032.53662109375,
-          "width": 12.01837158203125,
-          "height": 10.4737548828125
+          "x": 949.2830810546875,
+          "y": 2062.69873046875,
+          "width": 12.01812744140625,
+          "height": 10.473876953125
          }
         },
         {
@@ -31565,26 +31984,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto440272",
+          "id": "auto406303",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto440353",
+         "renderId": "vf-auto406384",
          "renderedBox": {
-          "x": 816.23828125,
-          "y": 572.229736328125,
+          "x": 817.683349609375,
+          "y": 1556.3380126953125,
           "width": 8.41070556640625,
           "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 994.869873046875,
-          "y": 2067.53662109375,
-          "width": 12.01824951171875,
+          "x": 996.934814453125,
+          "y": 2097.69873046875,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto440272",
+        "id": "auto406303",
         "type": "SmoBeamGroup"
        }
       }
@@ -31936,6 +32355,19 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179521",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
@@ -31943,14 +32375,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 2304.237077985491,
+     "staffY": 2333.604021344866,
      "measureNumber": {
       "measureNumber": 14,
       "measureIndex": 14,
       "systemIndex": 0,
       "staffId": 1
      },
-     "staffWidth": 417.86004066467285,
+     "staffWidth": 417.860071182251,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -31989,19 +32421,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto441383",
+          "id": "auto407414",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto441395",
+         "renderId": "vf-auto407426",
          "renderedBox": {
           "x": 190.96148681640625,
-          "y": 734.224365234375,
+          "y": 1717.776123046875,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 101.39839935302734,
-          "y": 2299.01416015625,
+          "y": 2328.381103515625,
           "width": 12.018241882324219,
           "height": 10.473876953125
          }
@@ -32033,26 +32465,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto441383",
+          "id": "auto407414",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto441402",
+         "renderId": "vf-auto407433",
          "renderedBox": {
-          "x": 215.1182098388672,
-          "y": 734.224365234375,
-          "width": 8.410720825195312,
-          "height": 7.329833984375
+          "x": 215.11822509765625,
+          "y": 1717.776123046875,
+          "width": 8.41070556640625,
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 135.9164581298828,
-          "y": 2299.01416015625,
-          "width": 12.018264770507812,
+          "x": 135.91648864746094,
+          "y": 2328.381103515625,
+          "width": 12.018234252929688,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto441383",
+        "id": "auto407414",
         "type": "SmoBeamGroup"
        }
       },
@@ -32085,19 +32517,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto441384",
+          "id": "auto407415",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto441417",
+         "renderId": "vf-auto407448",
          "renderedBox": {
           "x": 272.46337890625,
-          "y": 717.9285888671875,
+          "y": 1701.4803466796875,
           "width": 8.843017578125,
-          "height": 18.0594482421875
+          "height": 18.0595703125
          },
          "logicalBox": {
           "x": 217.85821533203125,
-          "y": 2275.728759765625,
+          "y": 2305.095703125,
           "width": 12.635971069335938,
           "height": 25.8056640625
          }
@@ -32129,20 +32561,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto441384",
+          "id": "auto407415",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto441423",
+         "renderId": "vf-auto407454",
          "renderedBox": {
-          "x": 291.27886962890625,
-          "y": 720.227783203125,
+          "x": 291.2789001464844,
+          "y": 1703.779541015625,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 244.7440643310547,
-          "y": 2279.01416015625,
-          "width": 12.018234252929688,
+          "x": 244.74411010742188,
+          "y": 2308.381103515625,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -32173,20 +32605,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto441384",
+          "id": "auto407415",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto441430",
+         "renderId": "vf-auto407461",
          "renderedBox": {
-          "x": 309.6620788574219,
-          "y": 723.7269287109375,
-          "width": 8.410736083984375,
-          "height": 7.329833984375
+          "x": 309.662109375,
+          "y": 1707.2786865234375,
+          "width": 8.41070556640625,
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 271.0122375488281,
-          "y": 2284.01416015625,
-          "width": 12.018280029296875,
+          "x": 271.01226806640625,
+          "y": 2313.381103515625,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -32217,26 +32649,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto441384",
+          "id": "auto407415",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto441437",
+         "renderId": "vf-auto407468",
          "renderedBox": {
           "x": 328.0452880859375,
-          "y": 727.22607421875,
+          "y": 1710.77783203125,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 297.2803955078125,
-          "y": 2289.01416015625,
+          "y": 2318.381103515625,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto441384",
+        "id": "auto407415",
         "type": "SmoBeamGroup"
        }
       },
@@ -32269,20 +32701,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto441385",
+          "id": "auto407416",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto441444",
+         "renderId": "vf-auto407475",
          "renderedBox": {
-          "x": 346.4284973144531,
-          "y": 730.7252197265625,
-          "width": 8.41070556640625,
-          "height": 7.329833984375
+          "x": 346.42852783203125,
+          "y": 1714.2769775390625,
+          "width": 8.410675048828125,
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 323.5485534667969,
-          "y": 2294.01416015625,
-          "width": 12.01824951171875,
+          "x": 323.5486145019531,
+          "y": 2323.381103515625,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         },
@@ -32313,20 +32745,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto441385",
+          "id": "auto407416",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto441451",
+         "renderId": "vf-auto407482",
          "renderedBox": {
           "x": 364.81170654296875,
-          "y": 723.7269287109375,
-          "width": 8.410675048828125,
-          "height": 7.329833984375
+          "y": 1707.2786865234375,
+          "width": 8.41070556640625,
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 349.8167419433594,
-          "y": 2284.01416015625,
-          "width": 12.0181884765625,
+          "y": 2313.381103515625,
+          "width": 12.018218994140625,
           "height": 10.473876953125
          }
         },
@@ -32357,20 +32789,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto441385",
+          "id": "auto407416",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto441458",
+         "renderId": "vf-auto407489",
          "renderedBox": {
           "x": 383.89471435546875,
-          "y": 720.5989990234375,
-          "width": 16.69476318359375,
-          "height": 20.58349609375
+          "y": 1704.15087890625,
+          "width": 16.694793701171875,
+          "height": 20.5833740234375
          },
          "logicalBox": {
           "x": 377.0848388671875,
-          "y": 2279.544677734375,
-          "width": 23.85552978515625,
+          "y": 2308.91162109375,
+          "width": 23.855560302734375,
           "height": 29.412109375
          }
         },
@@ -32401,26 +32833,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto441385",
+          "id": "auto407416",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto441467",
+         "renderId": "vf-auto407498",
          "renderedBox": {
-          "x": 410.5619812011719,
-          "y": 720.227783203125,
+          "x": 410.56201171875,
+          "y": 1703.779541015625,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 415.1902770996094,
-          "y": 2279.01416015625,
-          "width": 12.01824951171875,
+          "x": 415.1903381347656,
+          "y": 2308.381103515625,
+          "width": 12.018218994140625,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto441385",
+        "id": "auto407416",
         "type": "SmoBeamGroup"
        }
       }
@@ -32745,21 +33177,34 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179524",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 447.86004066467285,
-     "staffY": 2304.237077985491,
+     "staffX": 447.860071182251,
+     "staffY": 2333.604021344866,
      "measureNumber": {
       "measureNumber": 15,
       "measureIndex": 15,
       "systemIndex": 1,
       "staffId": 1
      },
-     "staffWidth": 299.17999267578125,
+     "staffWidth": 299.1799011230469,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -32798,19 +33243,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto442377",
+          "id": "auto408408",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto442390",
+         "renderId": "vf-auto408421",
          "renderedBox": {
           "x": 498.1776428222656,
-          "y": 723.7269287109375,
+          "y": 1707.2786865234375,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
           "x": 540.3861694335938,
-          "y": 2284.01416015625,
+          "y": 2313.381103515625,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -32842,20 +33287,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto442377",
+          "id": "auto408408",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto442397",
+         "renderId": "vf-auto408428",
          "renderedBox": {
-          "x": 515.8180541992188,
-          "y": 734.224365234375,
-          "width": 8.41070556640625,
-          "height": 7.329833984375
+          "x": 515.8179931640625,
+          "y": 1717.776123046875,
+          "width": 8.4107666015625,
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 565.5929565429688,
-          "y": 2299.01416015625,
-          "width": 12.01824951171875,
+          "x": 565.5928955078125,
+          "y": 2328.381103515625,
+          "width": 12.018310546875,
           "height": 10.473876953125
          }
         },
@@ -32886,20 +33331,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto442377",
+          "id": "auto408408",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto442404",
+         "renderId": "vf-auto408435",
          "renderedBox": {
-          "x": 533.4584350585938,
-          "y": 730.7252197265625,
-          "width": 8.41070556640625,
-          "height": 7.329833984375
+          "x": 533.4583740234375,
+          "y": 1714.2769775390625,
+          "width": 8.4107666015625,
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 590.7996826171875,
-          "y": 2294.01416015625,
-          "width": 12.01824951171875,
+          "x": 590.799560546875,
+          "y": 2323.381103515625,
+          "width": 12.01837158203125,
           "height": 10.473876953125
          }
         },
@@ -32930,26 +33375,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto442377",
+          "id": "auto408408",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto442411",
+         "renderId": "vf-auto408442",
          "renderedBox": {
-          "x": 551.0988159179688,
-          "y": 727.22607421875,
-          "width": 8.41070556640625,
-          "height": 7.329833984375
+          "x": 551.0987548828125,
+          "y": 1710.77783203125,
+          "width": 8.4107666015625,
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 616.0064086914062,
-          "y": 2289.01416015625,
-          "width": 12.01824951171875,
+          "x": 616.0062866210938,
+          "y": 2318.381103515625,
+          "width": 12.01837158203125,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto442377",
+        "id": "auto408408",
         "type": "SmoBeamGroup"
        }
       },
@@ -32982,20 +33427,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto442378",
+          "id": "auto408409",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto442418",
+         "renderId": "vf-auto408449",
          "renderedBox": {
-          "x": 568.7391967773438,
-          "y": 723.7269287109375,
-          "width": 8.41070556640625,
-          "height": 7.329833984375
+          "x": 568.7391357421875,
+          "y": 1707.2786865234375,
+          "width": 8.4107666015625,
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 641.213134765625,
-          "y": 2284.01416015625,
-          "width": 12.01824951171875,
+          "x": 641.2130126953125,
+          "y": 2313.381103515625,
+          "width": 12.01837158203125,
           "height": 10.473876953125
          }
         },
@@ -33026,20 +33471,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto442378",
+          "id": "auto408409",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto442425",
+         "renderId": "vf-auto408456",
          "renderedBox": {
-          "x": 586.379638671875,
-          "y": 730.7252197265625,
-          "width": 8.41064453125,
-          "height": 7.329833984375
+          "x": 586.3795166015625,
+          "y": 1714.2769775390625,
+          "width": 8.4107666015625,
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 666.419921875,
-          "y": 2294.01416015625,
-          "width": 12.01812744140625,
+          "x": 666.4197387695312,
+          "y": 2323.381103515625,
+          "width": 12.018310546875,
           "height": 10.473876953125
          }
         },
@@ -33070,20 +33515,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto442378",
+          "id": "auto408409",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto442432",
+         "renderId": "vf-auto408463",
          "renderedBox": {
-          "x": 604.02001953125,
-          "y": 727.22607421875,
-          "width": 8.41064453125,
-          "height": 7.329833984375
+          "x": 604.0198974609375,
+          "y": 1710.77783203125,
+          "width": 8.4107666015625,
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 691.6266479492188,
-          "y": 2289.01416015625,
-          "width": 12.01812744140625,
+          "x": 691.62646484375,
+          "y": 2318.381103515625,
+          "width": 12.018310546875,
           "height": 10.473876953125
          }
         },
@@ -33114,26 +33559,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto442378",
+          "id": "auto408409",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto442439",
+         "renderId": "vf-auto408470",
          "renderedBox": {
-          "x": 621.660400390625,
-          "y": 734.224365234375,
-          "width": 8.41064453125,
-          "height": 7.329833984375
+          "x": 621.6602783203125,
+          "y": 1717.776123046875,
+          "width": 8.4107666015625,
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 716.8333740234375,
-          "y": 2299.01416015625,
-          "width": 12.01812744140625,
+          "x": 716.8331909179688,
+          "y": 2328.381103515625,
+          "width": 12.018310546875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto442378",
+        "id": "auto408409",
         "type": "SmoBeamGroup"
        }
       }
@@ -33404,14 +33849,27 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179527",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 747.0400333404541,
-     "staffY": 2304.237077985491,
+     "staffX": 747.0399723052979,
+     "staffY": 2333.604021344866,
      "measureNumber": {
       "measureNumber": 16,
       "measureIndex": 16,
@@ -33457,20 +33915,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto443278",
+          "id": "auto409309",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto443291",
+         "renderId": "vf-auto409322",
          "renderedBox": {
-          "x": 707.5523071289062,
-          "y": 730.7252197265625,
+          "x": 707.55224609375,
+          "y": 1714.2769775390625,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 839.566162109375,
-          "y": 2294.01416015625,
-          "width": 12.01824951171875,
+          "x": 839.5661010742188,
+          "y": 2323.381103515625,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         },
@@ -33501,20 +33959,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto443278",
+          "id": "auto409309",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto443298",
+         "renderId": "vf-auto409329",
          "renderedBox": {
-          "x": 725.1927490234375,
-          "y": 723.7269287109375,
+          "x": 725.1926879882812,
+          "y": 1707.2786865234375,
           "width": 8.41064453125,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 864.77294921875,
-          "y": 2284.01416015625,
-          "width": 12.0181884765625,
+          "x": 864.7728881835938,
+          "y": 2313.381103515625,
+          "width": 12.01812744140625,
           "height": 10.473876953125
          }
         },
@@ -33545,20 +34003,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto443278",
+          "id": "auto409309",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto443305",
+         "renderId": "vf-auto409336",
          "renderedBox": {
-          "x": 742.8331298828125,
-          "y": 727.22607421875,
-          "width": 8.41064453125,
-          "height": 7.329833984375
+          "x": 742.8330688476562,
+          "y": 1710.77783203125,
+          "width": 8.41070556640625,
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 889.9796752929688,
-          "y": 2289.01416015625,
-          "width": 12.0181884765625,
+          "x": 889.9796142578125,
+          "y": 2318.381103515625,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -33589,26 +34047,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto443278",
+          "id": "auto409309",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto443312",
+         "renderId": "vf-auto409343",
          "renderedBox": {
-          "x": 760.4735107421875,
-          "y": 730.7252197265625,
-          "width": 8.41064453125,
-          "height": 7.329833984375
+          "x": 760.4734497070312,
+          "y": 1714.2769775390625,
+          "width": 8.41070556640625,
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 915.1864013671875,
-          "y": 2294.01416015625,
-          "width": 12.0181884765625,
+          "x": 915.1863403320312,
+          "y": 2323.381103515625,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto443278",
+        "id": "auto409309",
         "type": "SmoBeamGroup"
        }
       },
@@ -33641,19 +34099,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto443279",
+          "id": "auto409310",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto443319",
+         "renderId": "vf-auto409350",
          "renderedBox": {
-          "x": 778.1138916015625,
-          "y": 734.224365234375,
+          "x": 778.1138305664062,
+          "y": 1717.776123046875,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 940.3931274414062,
-          "y": 2299.01416015625,
+          "x": 940.39306640625,
+          "y": 2328.381103515625,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -33685,20 +34143,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto443279",
+          "id": "auto409310",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto443326",
+         "renderId": "vf-auto409357",
          "renderedBox": {
-          "x": 795.7542724609375,
-          "y": 727.22607421875,
+          "x": 795.7542114257812,
+          "y": 1710.77783203125,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 965.599853515625,
-          "y": 2289.01416015625,
-          "width": 12.01824951171875,
+          "x": 965.5997924804688,
+          "y": 2318.381103515625,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         },
@@ -33729,20 +34187,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto443279",
+          "id": "auto409310",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto443333",
+         "renderId": "vf-auto409364",
          "renderedBox": {
-          "x": 813.3946533203125,
-          "y": 730.7252197265625,
+          "x": 813.3945922851562,
+          "y": 1714.2769775390625,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 990.8065795898438,
-          "y": 2294.01416015625,
-          "width": 12.01824951171875,
+          "x": 990.8065185546875,
+          "y": 2323.381103515625,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         },
@@ -33773,26 +34231,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto443279",
+          "id": "auto409310",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto443340",
+         "renderId": "vf-auto409371",
          "renderedBox": {
-          "x": 831.0350341796875,
-          "y": 723.7269287109375,
-          "width": 8.41070556640625,
-          "height": 7.329833984375
+          "x": 831.0349731445312,
+          "y": 1707.2786865234375,
+          "width": 8.4107666015625,
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 1016.0133056640625,
-          "y": 2284.01416015625,
-          "width": 12.0181884765625,
+          "x": 1016.01318359375,
+          "y": 2313.381103515625,
+          "width": 12.018310546875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto443279",
+        "id": "auto409310",
         "type": "SmoBeamGroup"
        }
       }
@@ -34063,6 +34521,19 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179530",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
@@ -34070,14 +34541,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 2497.980486188616,
+     "staffY": 2525.324480329241,
      "measureNumber": {
       "measureNumber": 17,
       "measureIndex": 17,
       "systemIndex": 0,
       "staffId": 1
      },
-     "staffWidth": 446.41997718811035,
+     "staffWidth": 1019.4200382232666,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -34116,20 +34587,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto444231",
+          "id": "auto410262",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto444250",
+         "renderId": "vf-auto410281",
          "renderedBox": {
-          "x": 271.8092956542969,
-          "y": 862.813232421875,
-          "width": 8.410736083984375,
+          "x": 472.3101806640625,
+          "y": 1844.9493408203125,
+          "width": 8.41070556640625,
           "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 216.923583984375,
-          "y": 2482.757568359375,
-          "width": 12.018280029296875,
+          "x": 503.4236145019531,
+          "y": 2510.1015625,
+          "width": 12.018218994140625,
           "height": 10.473876953125
          }
         },
@@ -34160,20 +34631,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto444231",
+          "id": "auto410262",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto444257",
+         "renderId": "vf-auto410288",
          "renderedBox": {
-          "x": 292.94873046875,
-          "y": 873.3106689453125,
-          "width": 8.41070556640625,
+          "x": 518.51220703125,
+          "y": 1855.44677734375,
+          "width": 8.4107666015625,
           "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 247.1301727294922,
-          "y": 2497.757568359375,
-          "width": 12.018234252929688,
+          "x": 569.4426879882812,
+          "y": 2525.1015625,
+          "width": 12.018310546875,
           "height": 10.473876953125
          }
         },
@@ -34204,20 +34675,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto444231",
+          "id": "auto410262",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto444264",
+         "renderId": "vf-auto410295",
          "renderedBox": {
-          "x": 314.08819580078125,
-          "y": 869.8115234375,
+          "x": 564.7142944335938,
+          "y": 1851.9476318359375,
           "width": 8.41070556640625,
           "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 277.3368225097656,
-          "y": 2492.757568359375,
-          "width": 12.018218994140625,
+          "x": 635.4618530273438,
+          "y": 2520.1015625,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -34248,26 +34719,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto444231",
+          "id": "auto410262",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto444271",
+         "renderId": "vf-auto410302",
          "renderedBox": {
-          "x": 335.927490234375,
-          "y": 857.8663330078125,
-          "width": 15.718231201171875,
+          "x": 611.6162109375,
+          "y": 1840.00244140625,
+          "width": 15.71820068359375,
           "height": 16.48583984375
          },
          "logicalBox": {
-          "x": 308.54345703125,
-          "y": 2475.68896484375,
-          "width": 22.460113525390625,
+          "x": 702.4810180664062,
+          "y": 2503.032958984375,
+          "width": 22.4600830078125,
           "height": 23.556884765625
          }
         }
        ],
        "attrs": {
-        "id": "auto444231",
+        "id": "auto410262",
         "type": "SmoBeamGroup"
        }
       },
@@ -34300,19 +34771,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto444232",
+          "id": "auto410263",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto444280",
+         "renderId": "vf-auto410311",
          "renderedBox": {
-          "x": 364.37445068359375,
-          "y": 862.813232421875,
+          "x": 665.1257934570312,
+          "y": 1844.9493408203125,
           "width": 8.41070556640625,
           "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 349.1919250488281,
-          "y": 2482.757568359375,
+          "x": 778.9420166015625,
+          "y": 2510.1015625,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -34344,19 +34815,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto444232",
+          "id": "auto410263",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto444287",
+         "renderId": "vf-auto410318",
          "renderedBox": {
-          "x": 385.513916015625,
-          "y": 869.8115234375,
+          "x": 711.327880859375,
+          "y": 1851.9476318359375,
           "width": 8.41070556640625,
           "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 379.3985595703125,
-          "y": 2492.757568359375,
+          "x": 844.961181640625,
+          "y": 2520.1015625,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -34388,20 +34859,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto444232",
+          "id": "auto410263",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto444294",
+         "renderId": "vf-auto410325",
          "renderedBox": {
-          "x": 406.6533508300781,
-          "y": 866.3123779296875,
+          "x": 757.5299072265625,
+          "y": 1848.448486328125,
           "width": 8.41070556640625,
           "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 409.60516357421875,
-          "y": 2487.757568359375,
-          "width": 12.018218994140625,
+          "x": 910.980224609375,
+          "y": 2515.1015625,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -34432,26 +34903,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto444232",
+          "id": "auto410263",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto444301",
+         "renderId": "vf-auto410332",
          "renderedBox": {
-          "x": 427.79278564453125,
-          "y": 873.3106689453125,
-          "width": 8.410736083984375,
+          "x": 803.73193359375,
+          "y": 1855.44677734375,
+          "width": 8.41070556640625,
           "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 439.8117370605469,
-          "y": 2497.757568359375,
-          "width": 12.018280029296875,
+          "x": 976.9993286132812,
+          "y": 2525.1015625,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto444232",
+        "id": "auto410263",
         "type": "SmoBeamGroup"
        }
       }
@@ -34722,25 +35193,38 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179533",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 476.41997718811035,
-     "staffY": 2497.980486188616,
+     "staffX": 30,
+     "staffY": 2721.377458844866,
      "measureNumber": {
       "measureNumber": 18,
       "measureIndex": 18,
-      "systemIndex": 1,
+      "systemIndex": 0,
       "staffId": 1
      },
-     "staffWidth": 572.3199768066406,
+     "staffWidth": 1019.3000431060791,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
-     "adjX": 11,
+     "adjX": 66.8,
      "adjRight": 11,
      "padRight": 10,
      "rightMargin": 2,
@@ -34775,20 +35259,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto445559",
+          "id": "auto411641",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto445564",
+         "renderId": "vf-auto411652",
          "renderedBox": {
-          "x": 465.3093566894531,
-          "y": 869.8115234375,
+          "x": 190.96148681640625,
+          "y": 1989.1510009765625,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 493.41998291015625,
-          "y": 2492.757568359375,
-          "width": 12.01824951171875,
+          "x": 101.39839935302734,
+          "y": 2716.154541015625,
+          "width": 12.018241882324219,
           "height": 10.473876953125
          }
         },
@@ -34819,20 +35303,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto445559",
+          "id": "auto411641",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto445571",
+         "renderId": "vf-auto411659",
          "renderedBox": {
-          "x": 513.1494140625,
-          "y": 857.8663330078125,
-          "width": 15.71826171875,
+          "x": 273.021484375,
+          "y": 1977.2059326171875,
+          "width": 15.718231201171875,
           "height": 16.48583984375
          },
          "logicalBox": {
-          "x": 561.7796630859375,
-          "y": 2475.68896484375,
-          "width": 22.460205078125,
+          "x": 218.65570068359375,
+          "y": 2699.0859375,
+          "width": 22.460113525390625,
           "height": 23.556884765625
          }
         },
@@ -34863,19 +35347,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto445559",
+          "id": "auto411641",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto445580",
+         "renderId": "vf-auto411668",
          "renderedBox": {
-          "x": 567.5972900390625,
-          "y": 869.8115234375,
+          "x": 361.68914794921875,
+          "y": 1989.1510009765625,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 639.5814208984375,
-          "y": 2492.757568359375,
+          "x": 345.3548278808594,
+          "y": 2716.154541015625,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -34907,26 +35391,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto445559",
+          "id": "auto411641",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto445587",
+         "renderId": "vf-auto411675",
          "renderedBox": {
-          "x": 614.737548828125,
-          "y": 873.3106689453125,
+          "x": 443.04931640625,
+          "y": 1992.650146484375,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 706.941162109375,
-          "y": 2497.757568359375,
+          "x": 461.61212158203125,
+          "y": 2721.154541015625,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto445559",
+        "id": "auto411641",
         "type": "SmoBeamGroup"
        }
       },
@@ -34959,20 +35443,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto445560",
+          "id": "auto411642",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto445594",
+         "renderId": "vf-auto411682",
          "renderedBox": {
-          "x": 661.8778076171875,
-          "y": 876.809814453125,
-          "width": 8.41070556640625,
-          "height": 7.329833984375
+          "x": 524.409423828125,
+          "y": 1996.1492919921875,
+          "width": 8.4107666015625,
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 774.3009033203125,
-          "y": 2502.757568359375,
-          "width": 12.01824951171875,
+          "x": 577.8693237304688,
+          "y": 2726.154541015625,
+          "width": 12.01837158203125,
           "height": 10.473876953125
          }
         },
@@ -35003,20 +35487,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto445560",
+          "id": "auto411642",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto445601",
+         "renderId": "vf-auto411689",
          "renderedBox": {
-          "x": 709.0181274414062,
-          "y": 859.3140869140625,
-          "width": 8.41064453125,
-          "height": 7.329833984375
+          "x": 605.7695922851562,
+          "y": 1978.653564453125,
+          "width": 8.41070556640625,
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 841.6607055664062,
-          "y": 2477.757568359375,
-          "width": 12.01812744140625,
+          "x": 694.1266479492188,
+          "y": 2701.154541015625,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -35047,20 +35531,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto445560",
+          "id": "auto411642",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto445608",
+         "renderId": "vf-auto411696",
          "renderedBox": {
-          "x": 756.1583862304688,
-          "y": 862.813232421875,
+          "x": 687.1297607421875,
+          "y": 1982.1527099609375,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 909.0204467773438,
-          "y": 2482.757568359375,
-          "width": 12.01824951171875,
+          "x": 810.3839721679688,
+          "y": 2706.154541015625,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         },
@@ -35091,26 +35575,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto445560",
+          "id": "auto411642",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto445615",
+         "renderId": "vf-auto411703",
          "renderedBox": {
-          "x": 803.2986450195312,
-          "y": 866.3123779296875,
+          "x": 768.4898681640625,
+          "y": 1985.65185546875,
           "width": 8.41070556640625,
-          "height": 7.329833984375
+          "height": 7.3299560546875
          },
          "logicalBox": {
-          "x": 976.3801879882812,
-          "y": 2487.757568359375,
+          "x": 926.6411743164062,
+          "y": 2711.154541015625,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto445560",
+        "id": "auto411642",
         "type": "SmoBeamGroup"
        }
       }
@@ -35354,6 +35838,19 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179536",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
@@ -35361,14 +35858,14 @@ var inventionJson = `{
      "timeSignature": "4/4",
      "keySignature": "C",
      "staffX": 30,
-     "staffY": 2729.0077078683034,
+     "staffY": 2954.1002371651784,
      "measureNumber": {
       "measureNumber": 19,
       "measureIndex": 19,
       "systemIndex": 0,
       "staffId": 1
      },
-     "staffWidth": 427.2399845123291,
+     "staffWidth": 514.0399723052979,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -35407,21 +35904,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto446726",
+          "id": "auto412812",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto446739",
+         "renderId": "vf-auto412825",
          "renderedBox": {
           "x": 190.96148681640625,
-          "y": 1031.490966796875,
+          "y": 2152.01708984375,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.330078125
          },
          "logicalBox": {
           "x": 101.39839935302734,
-          "y": 2723.784912109375,
+          "y": 2948.87744140625,
           "width": 12.018241882324219,
-          "height": 10.473876953125
+          "height": 10.47412109375
          }
         },
         {
@@ -35451,26 +35948,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto446726",
+          "id": "auto412812",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto446746",
+         "renderId": "vf-auto412832",
          "renderedBox": {
-          "x": 215.22515869140625,
-          "y": 1013.9952392578125,
+          "x": 222.81829833984375,
+          "y": 2134.521484375,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 136.0692901611328,
-          "y": 2698.784912109375,
+          "x": 146.91928100585938,
+          "y": 2923.87744140625,
           "width": 12.018234252929688,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto446726",
+        "id": "auto412812",
         "type": "SmoBeamGroup"
        }
       },
@@ -35503,21 +36000,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto446727",
+          "id": "auto412813",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto446753",
+         "renderId": "vf-auto412839",
          "renderedBox": {
-          "x": 239.48883056640625,
-          "y": 1017.494384765625,
-          "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "x": 254.6750946044922,
+          "y": 2138.0205078125,
+          "width": 8.410720825195312,
+          "height": 7.330078125
          },
          "logicalBox": {
-          "x": 170.74017333984375,
-          "y": 2703.784912109375,
-          "width": 12.018234252929688,
-          "height": 10.473876953125
+          "x": 192.44015502929688,
+          "y": 2928.87744140625,
+          "width": 12.01824951171875,
+          "height": 10.47412109375
          }
         },
         {
@@ -35547,26 +36044,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto446727",
+          "id": "auto412813",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto446760",
+         "renderId": "vf-auto412846",
          "renderedBox": {
-          "x": 263.75250244140625,
-          "y": 1020.9935302734375,
+          "x": 286.53192138671875,
+          "y": 2141.519775390625,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 205.4110565185547,
-          "y": 2708.784912109375,
+          "x": 237.9610595703125,
+          "y": 2933.87744140625,
           "width": 12.018234252929688,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto446727",
+        "id": "auto412813",
         "type": "SmoBeamGroup"
        }
       },
@@ -35599,21 +36096,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto446728",
+          "id": "auto412814",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto446767",
+         "renderId": "vf-auto412853",
          "renderedBox": {
-          "x": 288.01617431640625,
-          "y": 1017.494384765625,
-          "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "x": 318.3887023925781,
+          "y": 2138.0205078125,
+          "width": 8.410736083984375,
+          "height": 7.330078125
          },
          "logicalBox": {
-          "x": 240.08193969726562,
-          "y": 2703.784912109375,
-          "width": 12.018234252929688,
-          "height": 10.473876953125
+          "x": 283.4819030761719,
+          "y": 2928.87744140625,
+          "width": 12.018280029296875,
+          "height": 10.47412109375
          }
         },
         {
@@ -35643,21 +36140,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto446728",
+          "id": "auto412814",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto446774",
+         "renderId": "vf-auto412860",
          "renderedBox": {
-          "x": 306.45281982421875,
-          "y": 1045.487548828125,
+          "x": 340.6219482421875,
+          "y": 2166.013671875,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.330078125
          },
          "logicalBox": {
-          "x": 266.42645263671875,
-          "y": 2743.784912109375,
-          "width": 12.01824951171875,
-          "height": 10.473876953125
+          "x": 315.25146484375,
+          "y": 2968.87744140625,
+          "width": 12.018218994140625,
+          "height": 10.47412109375
          }
         },
         {
@@ -35687,19 +36184,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto446728",
+          "id": "auto412814",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto446781",
+         "renderId": "vf-auto412867",
          "renderedBox": {
-          "x": 324.8894958496094,
-          "y": 1041.9884033203125,
+          "x": 362.8551940917969,
+          "y": 2162.5146484375,
           "width": 8.410736083984375,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 292.7710266113281,
-          "y": 2738.784912109375,
+          "x": 347.0210266113281,
+          "y": 2963.87744140625,
           "width": 12.018280029296875,
           "height": 10.473876953125
          }
@@ -35731,26 +36228,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto446728",
+          "id": "auto412814",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto446788",
+         "renderId": "vf-auto412874",
          "renderedBox": {
-          "x": 343.326171875,
-          "y": 1038.4892578125,
+          "x": 385.08843994140625,
+          "y": 2159.015380859375,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.330078125
          },
          "logicalBox": {
-          "x": 319.1155700683594,
-          "y": 2733.784912109375,
+          "x": 378.79058837890625,
+          "y": 2958.87744140625,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.47412109375
          }
         }
        ],
        "attrs": {
-        "id": "auto446728",
+        "id": "auto412814",
         "type": "SmoBeamGroup"
        }
       },
@@ -35783,20 +36280,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto446729",
+          "id": "auto412815",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto446795",
+         "renderId": "vf-auto412881",
          "renderedBox": {
-          "x": 361.7628479003906,
-          "y": 1034.9901123046875,
-          "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "x": 407.3216857910156,
+          "y": 2155.516357421875,
+          "width": 8.410675048828125,
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 345.46014404296875,
-          "y": 2728.784912109375,
-          "width": 12.01824951171875,
+          "x": 410.5601501464844,
+          "y": 2953.87744140625,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         },
@@ -35827,20 +36324,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto446729",
+          "id": "auto412815",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto446802",
+         "renderId": "vf-auto412888",
          "renderedBox": {
-          "x": 380.19952392578125,
-          "y": 1041.9884033203125,
-          "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "x": 429.554931640625,
+          "y": 2162.5146484375,
+          "width": 8.410675048828125,
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 371.8047180175781,
-          "y": 2738.784912109375,
-          "width": 12.018218994140625,
+          "x": 442.3297119140625,
+          "y": 2963.87744140625,
+          "width": 12.0181884765625,
           "height": 10.473876953125
          }
         },
@@ -35871,21 +36368,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto446729",
+          "id": "auto412815",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto446809",
+         "renderId": "vf-auto412895",
          "renderedBox": {
-          "x": 398.6361999511719,
-          "y": 1038.4892578125,
+          "x": 451.78814697265625,
+          "y": 2159.015380859375,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.330078125
          },
          "logicalBox": {
-          "x": 398.1492614746094,
-          "y": 2733.784912109375,
+          "x": 474.0992431640625,
+          "y": 2958.87744140625,
           "width": 12.01824951171875,
-          "height": 10.473876953125
+          "height": 10.47412109375
          }
         },
         {
@@ -35915,26 +36412,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto446729",
+          "id": "auto412815",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto446816",
+         "renderId": "vf-auto412902",
          "renderedBox": {
-          "x": 417.0728759765625,
-          "y": 1045.487548828125,
-          "width": 8.410675048828125,
-          "height": 7.3299560546875
+          "x": 474.0213928222656,
+          "y": 2166.013671875,
+          "width": 8.41070556640625,
+          "height": 7.330078125
          },
          "logicalBox": {
-          "x": 424.49383544921875,
-          "y": 2743.784912109375,
-          "width": 12.0181884765625,
-          "height": 10.473876953125
+          "x": 505.8688049316406,
+          "y": 2968.87744140625,
+          "width": 12.018218994140625,
+          "height": 10.47412109375
          }
         }
        ],
        "attrs": {
-        "id": "auto446729",
+        "id": "auto412815",
         "type": "SmoBeamGroup"
        }
       }
@@ -36286,21 +36783,34 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179539",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 457.2399845123291,
-     "staffY": 2729.0077078683034,
+     "staffX": 544.0399723052979,
+     "staffY": 2954.1002371651784,
      "measureNumber": {
       "measureNumber": 20,
       "measureIndex": 20,
       "systemIndex": 1,
       "staffId": 1
      },
-     "staffWidth": 454.320068359375,
+     "staffWidth": 503.32000732421875,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
@@ -36339,20 +36849,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto448216",
+          "id": "auto414302",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto448223",
+         "renderId": "vf-auto414309",
          "renderedBox": {
-          "x": 451.88665771484375,
-          "y": 1041.9884033203125,
-          "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "x": 512.6317138671875,
+          "y": 2162.5146484375,
+          "width": 8.4107666015625,
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 474.239990234375,
-          "y": 2738.784912109375,
-          "width": 12.01824951171875,
+          "x": 561.0399169921875,
+          "y": 2963.87744140625,
+          "width": 12.018310546875,
           "height": 10.473876953125
          }
         },
@@ -36383,26 +36893,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto448216",
+          "id": "auto414302",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto448230",
+         "renderId": "vf-auto414316",
          "renderedBox": {
-          "x": 486.234619140625,
-          "y": 1048.9866943359375,
+          "x": 551.2661743164062,
+          "y": 2169.512939453125,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 523.320556640625,
-          "y": 2748.784912109375,
+          "x": 616.2455444335938,
+          "y": 2973.87744140625,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto448216",
+        "id": "auto414302",
         "type": "SmoBeamGroup"
        }
       },
@@ -36435,21 +36945,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto448217",
+          "id": "auto414303",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto448237",
+         "renderId": "vf-auto414323",
          "renderedBox": {
-          "x": 520.5826416015625,
-          "y": 1045.487548828125,
+          "x": 589.900634765625,
+          "y": 2166.013671875,
           "width": 8.41064453125,
-          "height": 7.3299560546875
+          "height": 7.330078125
          },
          "logicalBox": {
-          "x": 572.4011840820312,
-          "y": 2743.784912109375,
+          "x": 671.451171875,
+          "y": 2968.87744140625,
           "width": 12.01812744140625,
-          "height": 10.473876953125
+          "height": 10.47412109375
          }
         },
         {
@@ -36479,26 +36989,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto448217",
+          "id": "auto414303",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto448244",
+         "renderId": "vf-auto414330",
          "renderedBox": {
-          "x": 554.9306640625,
-          "y": 1041.9884033203125,
-          "width": 8.41064453125,
-          "height": 7.3299560546875
+          "x": 628.5350341796875,
+          "y": 2162.5146484375,
+          "width": 8.41070556640625,
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 621.4818115234375,
-          "y": 2738.784912109375,
-          "width": 12.01812744140625,
+          "x": 726.6566772460938,
+          "y": 2963.87744140625,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto448217",
+        "id": "auto414303",
         "type": "SmoBeamGroup"
        }
       },
@@ -36531,21 +37041,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto448218",
+          "id": "auto414304",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto448251",
+         "renderId": "vf-auto414337",
          "renderedBox": {
-          "x": 589.278564453125,
-          "y": 1038.4892578125,
-          "width": 8.4107666015625,
-          "height": 7.3299560546875
+          "x": 667.1694946289062,
+          "y": 2159.015380859375,
+          "width": 8.41070556640625,
+          "height": 7.330078125
          },
          "logicalBox": {
-          "x": 670.562255859375,
-          "y": 2733.784912109375,
-          "width": 12.018310546875,
-          "height": 10.473876953125
+          "x": 781.8623046875,
+          "y": 2958.87744140625,
+          "width": 12.01824951171875,
+          "height": 10.47412109375
          }
         },
         {
@@ -36575,21 +37085,21 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto448218",
+          "id": "auto414304",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto448258",
+         "renderId": "vf-auto414344",
          "renderedBox": {
-          "x": 612.7574462890625,
-          "y": 1045.487548828125,
-          "width": 8.4107666015625,
-          "height": 7.3299560546875
+          "x": 692.7915649414062,
+          "y": 2166.013671875,
+          "width": 8.41070556640625,
+          "height": 7.330078125
          },
          "logicalBox": {
-          "x": 704.1117553710938,
-          "y": 2743.784912109375,
-          "width": 12.018310546875,
-          "height": 10.473876953125
+          "x": 818.4742431640625,
+          "y": 2968.87744140625,
+          "width": 12.0181884765625,
+          "height": 10.47412109375
          }
         },
         {
@@ -36619,20 +37129,20 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto448218",
+          "id": "auto414304",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto448265",
+         "renderId": "vf-auto414351",
          "renderedBox": {
-          "x": 636.236328125,
-          "y": 1041.9884033203125,
-          "width": 8.41064453125,
-          "height": 7.3299560546875
+          "x": 718.4136352539062,
+          "y": 2162.5146484375,
+          "width": 8.41070556640625,
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 737.6611938476562,
-          "y": 2738.784912109375,
-          "width": 12.0181884765625,
+          "x": 855.0861206054688,
+          "y": 2963.87744140625,
+          "width": 12.01824951171875,
           "height": 10.473876953125
          }
         },
@@ -36663,26 +37173,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto448218",
+          "id": "auto414304",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto448272",
+         "renderId": "vf-auto414358",
          "renderedBox": {
-          "x": 659.715087890625,
-          "y": 1038.4892578125,
-          "width": 8.4107666015625,
-          "height": 7.3299560546875
+          "x": 744.03564453125,
+          "y": 2159.015380859375,
+          "width": 8.41070556640625,
+          "height": 7.330078125
          },
          "logicalBox": {
-          "x": 771.2105102539062,
-          "y": 2733.784912109375,
-          "width": 12.01837158203125,
-          "height": 10.473876953125
+          "x": 891.697998046875,
+          "y": 2958.87744140625,
+          "width": 12.01824951171875,
+          "height": 10.47412109375
          }
         }
        ],
        "attrs": {
-        "id": "auto448218",
+        "id": "auto414304",
         "type": "SmoBeamGroup"
        }
       },
@@ -36715,19 +37225,19 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto448219",
+          "id": "auto414305",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto448279",
+         "renderId": "vf-auto414365",
          "renderedBox": {
-          "x": 683.1939697265625,
-          "y": 1034.9901123046875,
+          "x": 769.65771484375,
+          "y": 2155.516357421875,
           "width": 8.41070556640625,
-          "height": 7.3299560546875
+          "height": 7.329833984375
          },
          "logicalBox": {
-          "x": 804.760009765625,
-          "y": 2728.784912109375,
+          "x": 928.3099365234375,
+          "y": 2953.87744140625,
           "width": 12.01824951171875,
           "height": 10.473876953125
          }
@@ -36769,26 +37279,26 @@ var inventionJson = `{
          },
          "clef": "bass",
          "beam_group": {
-          "id": "auto448219",
+          "id": "auto414305",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto448286",
+         "renderId": "vf-auto414372",
          "renderedBox": {
-          "x": 718.8152465820312,
-          "y": 1051.3302001953125,
+          "x": 809.5654907226562,
+          "y": 2171.8564453125,
           "width": 8.41070556640625,
-          "height": 15.48388671875
+          "height": 15.483642578125
          },
          "logicalBox": {
-          "x": 855.6600341796875,
-          "y": 2752.133544921875,
+          "x": 985.3350219726562,
+          "y": 2977.226318359375,
           "width": 12.01824951171875,
-          "height": 22.125244140625
+          "height": 22.124755859375
          }
         }
        ],
        "attrs": {
-        "id": "auto448219",
+        "id": "auto414305",
         "type": "SmoBeamGroup"
        }
       }
@@ -37096,25 +37606,38 @@ var inventionJson = `{
        "yOffset": 30,
        "position": 0,
        "ctor": "SmoRepeatSymbol"
+      },
+      {
+       "attrs": {
+        "id": "auto179542",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     },
     {
      "timeSignature": "4/4",
      "keySignature": "C",
-     "staffX": 911.5600528717041,
-     "staffY": 2729.0077078683034,
+     "staffX": 30,
+     "staffY": 3157.8123953683034,
      "measureNumber": {
       "measureNumber": 21,
       "measureIndex": 21,
-      "systemIndex": 2,
+      "systemIndex": 0,
       "staffId": 1
      },
-     "staffWidth": 53.239990234375,
+     "staffWidth": 1019.2199649810791,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
-     "adjX": 11,
+     "adjX": 66.8,
      "adjRight": 15.219999999999999,
      "padRight": 10,
      "rightMargin": 2,
@@ -37175,6 +37698,19 @@ var inventionJson = `{
        "position": 1,
        "barline": 2,
        "ctor": "SmoBarline"
+      },
+      {
+       "attrs": {
+        "id": "auto179545",
+        "type": "SmoTempoText"
+       },
+       "tempoMode": "text",
+       "bpm": 96,
+       "display": true,
+       "beatDuration": 4096,
+       "tempoText": "Moderato",
+       "yOffset": 0,
+       "ctor": "SmoTempoText"
       }
      ]
     }
@@ -37188,33 +37724,10 @@ var inventionJson = `{
     "id": "auto243888",
     "type": "SmoScoreText"
    },
-   "backup": {
-    "x": 261.3924418604651,
-    "y": 106,
-    "text": "15 Inventions a 2 voix.",
-    "pagination": "every",
-    "position": "title",
-    "fontInfo": {
-     "size": "1.8em",
-     "family": "Times New Roman",
-     "style": "normal",
-     "weight": "normal"
-    },
-    "classes": "score-text auto243888 auto54106",
-    "boxModel": "none",
-    "justification": "left",
-    "fill": "black",
-    "width": 0,
-    "height": 0,
-    "scaleX": 1,
-    "scaleY": 1,
-    "translateX": 0,
-    "translateY": 0,
-    "autoLayout": false
-   },
-   "edited": true,
-   "x": 435,
-   "y": 93,
+   "backup": {},
+   "edited": false,
+   "x": 261.3924418604651,
+   "y": 169.59375,
    "text": "15 Inventions a 2 voix.",
    "pagination": "every",
    "position": "title",
@@ -37224,7 +37737,7 @@ var inventionJson = `{
     "style": "normal",
     "weight": "normal"
    },
-   "classes": "score-text auto243888 auto54106",
+   "classes": "score-text auto243888 auto54106 auto20193",
    "boxModel": "none",
    "justification": "left",
    "fill": "black",
@@ -37236,16 +37749,16 @@ var inventionJson = `{
    "translateY": 0,
    "autoLayout": false,
    "renderedBox": {
-    "x": 424.4253845214844,
-    "y": -827.6168212890625,
-    "height": 22.01177978515625,
-    "width": 185.24679565429688
+    "x": 302.9285888671875,
+    "y": 188.98562622070312,
+    "height": 22.011810302734375,
+    "width": 185.25772094726562
    },
    "logicalBox": {
-    "x": 435,
-    "y": 67.26567077636719,
-    "width": 264.703125,
-    "height": 31.453102111816406
+    "x": 261.3905944824219,
+    "y": 143.85935974121094,
+    "width": 264.7187805175781,
+    "height": 31.453155517578125
    }
   }
  ]
