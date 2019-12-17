@@ -23,7 +23,7 @@ class SuiStaffModifierDialog extends SuiDialogBase {
 }
 
 
-class SuiTempoDialog extends SuiStaffModifierDialog {
+class SuiTempoDialog extends SuiDialogBase {
     static get attributes() {
         return ['tempoMode', 'bpm', 'beatDuration', 'tempoText','yOffset'];
     }
@@ -45,7 +45,42 @@ class SuiTempoDialog extends SuiStaffModifierDialog {
                     label: 'Specify text and duration'
                 }
                 ]
-        } ,
+			},
+			{
+                parameterName: 'bpm',
+                smoName: 'bpm',
+                defaultValue: 120,
+                control: 'SuiRockerComponent',
+                label: 'Notes/Minute'
+            },
+		{
+			parameterName: 'duration',
+			smoName: 'duration',
+			defaultValue: '4096',
+			control: 'SuiDropdownComponent',
+			label: 'Unit for Beat',
+			options: [{
+					value: '4096',
+					label: 'Quarter Note',
+				}, {
+					value: '2048',
+					label: '1/8 note'
+				}, {
+					value: '6144',
+					label: 'Dotted 1/4 note'
+				}, {
+					value: '8192',
+					label: '1/2 note'
+				}
+			]
+		},
+		{
+			smoName:'applyToAll',
+			parameterName:'applyToAll',
+			defaultValue: false,
+			control:'SuiToggleComponent',
+			label:'Apply to all future measures?'
+		},
             {
             smoName: 'tempoText',
             parameterName: 'tempoText',
@@ -99,7 +134,7 @@ class SuiTempoDialog extends SuiStaffModifierDialog {
                 label: 'Presto'
               }, {
                 value: SmoTempoText.tempoTexts.prestissimo,
-                label: 'Prestissimo}'
+                label: 'Prestissimo'
               }
             ]
         },{
@@ -141,13 +176,17 @@ class SuiTempoDialog extends SuiStaffModifierDialog {
         Vex.Merge(this, parameters);
     }
     changed() {
-        this.modifier.backupOriginal();
-        
+		var changed = this.components.filter((comp) => {
+			return indexOf(this.components
+		});
         this.components.forEach((component) => {
-            this.modifier[component.smoName] = component.getValue();
+			if (SmoTempoText.attributes.indexOf(component.smoName) >= 0) {
+                this.modifier[component.smoName] = component.getValue();
+			}
         });
         if (this.modifier.tempoMode == SmoTempoText.tempoModes.textMode) {
             this.modifier.bpm = SmoTempoText.bpmFromText[this.modifier.tempoText];
+			
         }
         this.measures[0].addTempo(this.modifier);
         this.layout.renderMeasureModifierPreview(this.modifier,this.measures[0]);
@@ -159,7 +198,6 @@ class SuiTempoDialog extends SuiStaffModifierDialog {
         var self = this;
 		var dgDom = this.dgDom; 
         $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-            self.modifier.restoreOriginal();
             self.complete();
         });
         $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
