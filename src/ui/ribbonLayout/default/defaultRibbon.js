@@ -8,13 +8,13 @@ class defaultRibbonLayout {
 		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds)
             .concat(defaultRibbonLayout.beamIds).concat(defaultRibbonLayout.measureIds).concat(defaultRibbonLayout.staveIds)
               .concat(defaultRibbonLayout.textIds).concat(defaultRibbonLayout.playerIds).concat(defaultRibbonLayout.debugIds);
-			
+
 		return {
 			left: left,
 			top:top
 		};
 	}
-	
+
 	static get ribbonButtons() {
 		return defaultRibbonLayout.leftRibbonButtons.concat(
 			defaultRibbonLayout.navigationButtons).concat(
@@ -25,29 +25,29 @@ class defaultRibbonLayout {
 			.concat(defaultRibbonLayout.staveRibbonButtons)
             .concat(defaultRibbonLayout.textRibbonButtons).concat(defaultRibbonLayout.playerButtons).concat(defaultRibbonLayout.debugRibbonButtons);
 	}
-	
+
 	static get leftRibbonIds() {
 		return ['helpDialog', 'fileMenu','addStaffMenu', 'tempoModal','timeSignatureMenu','keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
 	}
 	static get noteButtonIds() {
 		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton',
 				'UpNoteButton', 'DownNoteButton', 'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
-	}	
+	}
 	static get navigateButtonIds()  {
 		return ['NavigationButtons', 'navLeftButton', 'navRightButton', 'navUpButton', 'navDownButton', 'navFastForward', 'navRewind',
 				'navGrowLeft', 'navGrowRight'];
 	}
-	
+
 	static get articulateButtonIds()  {
 		return ['articulationButtons', 'accentButton', 'tenutoButton', 'staccatoButton', 'marcatoButton',  'pizzicatoButton','mordentButton','mordentInvertedButton','trillButton'];
 	}
-	
+
 	static get intervalIds()  {
 		return ['CreateChordButtons', 'SecondUpButton', 'SecondDownButton', 'ThirdUpButton', 'ThirdDownButton', 'FourthUpButton', 'FourthDownButton',
 				'FifthUpButton', 'FifthDownButton','SixthUpButton', 'SixthDownButton'
 				,'SeventhUpButton', 'SeventhDownButton','OctaveUpButton','OctaveDownButton','CollapseChordButton'];
 	}
-	
+
 	static get debugIds() {
 		return ['DebugGroup','DebugButton2'];
 	}
@@ -57,22 +57,22 @@ class defaultRibbonLayout {
 	static get measureIds() {
 		return ['MeasureButtons','endRepeat','startRepeat','endBar','doubleBar','singleBarEnd','singleBarStart','nthEnding','dcAlCoda','dsAlCoda','dcAlFine','dsAlFine','coda','toCoda','segno','toSegno','fine'];
 	}
-    
+
     static get textIds() {
 		return ['TextButtons','addTextMenu','rehearsalMark','lyrics','addDynamicsMenu'];
 	}
-    
+
     static get beamIds() {
 		return ['BeamButtons','breakBeam','beamSelections','toggleBeamDirection'];
 	}
     static get staveIds() {
 		return ['StaveButtons','clefTreble','clefBass','clefTenor','clefAlto','clefMoveUp','clefMoveDown'];
 	}
-    
+
     static get playerIds() {
         return ['playerButtons','playButton','pauseButton','stopButton'];
     }
-    
+
     static get textRibbonButtons() {
         return [
         {
@@ -83,7 +83,7 @@ class defaultRibbonLayout {
 				action: 'collapseParent',
 				ctor: 'CollapseRibbonControl',
 				group: 'textEdit',
-				id: 'TextButtons'			
+				id: 'TextButtons'
 		},
         {
                 leftText: '',
@@ -93,7 +93,7 @@ class defaultRibbonLayout {
 				action: 'collapseChild',
 				ctor: 'TextButtons',
 				group: 'textEdit',
-				id: 'addTextMenu'		
+				id: 'addTextMenu'
 		},{
                 leftText: '',
 				rightText: '',
@@ -102,7 +102,7 @@ class defaultRibbonLayout {
 				action: 'collapseChild',
 				ctor: 'TextButtons',
 				group: 'textEdit',
-				id: 'rehearsalMark'		
+				id: 'rehearsalMark'
 		},{
                 leftText: '',
 				rightText: '',
@@ -111,7 +111,7 @@ class defaultRibbonLayout {
 				action: 'collapseChild',
 				ctor: 'TextButtons',
 				group: 'textEdit',
-				id: 'lyrics'		
+				id: 'lyrics'
 		} ,{
                 leftText: '',
 				rightText: '/d',
@@ -120,11 +120,11 @@ class defaultRibbonLayout {
 				action: 'collapseChild',
 				ctor: 'TextButtons',
 				group: 'textEdit',
-				id: 'addDynamicsMenu'		
-		} 
+				id: 'addDynamicsMenu'
+		}
         ];
     }
-	
+
 	static get staveRibbonButtons() {
 		return [{
 			leftText: '',
@@ -134,7 +134,7 @@ class defaultRibbonLayout {
 				action: 'collapseParent',
 				ctor: 'CollapseRibbonControl',
 				group: 'staves',
-				id: 'StaveButtons'			
+				id: 'StaveButtons'
 		},{
 			leftText: '',
 				rightText: '',
@@ -192,7 +192,7 @@ class defaultRibbonLayout {
 		}
 		];
 	}
-    
+
     static get beamRibbonButtons() {
         return [{
 			leftText: '',
@@ -202,7 +202,7 @@ class defaultRibbonLayout {
 				action: 'collapseParent',
 				ctor: 'CollapseRibbonControl',
 				group: 'beams',
-				id: 'BeamButtons'			
+				id: 'BeamButtons'
 		},{
 				leftText: '',
 				rightText: 'x',
@@ -235,7 +235,7 @@ class defaultRibbonLayout {
 			}
         ];
     }
-	
+
 	static get measureRibbonButtons() {
 		return [{
 			leftText: '',
@@ -245,7 +245,7 @@ class defaultRibbonLayout {
 				action: 'collapseParent',
 				ctor: 'CollapseRibbonControl',
 				group: 'measure',
-				id: 'MeasureButtons'			
+				id: 'MeasureButtons'
 		},{
 				leftText: '',
 				rightText: '',
@@ -296,7 +296,7 @@ class defaultRibbonLayout {
 				ctor: 'MeasureButtons',
 				group: 'measure',
 				id: 'singleBarEnd'
-			},			
+			},
 			{
 				leftText: '',
 				rightText: '',
@@ -420,7 +420,7 @@ class defaultRibbonLayout {
 				id: 'DebugButton2'
 			}];
 	}
-	
+
 	static get durationRibbonButtons() {
 		return [{
 				leftText: '',
@@ -1084,10 +1084,10 @@ class defaultRibbonLayout {
 				ctor: 'SuiFileMenu',
 				group: 'scoreEdit',
 				id: 'fileMenu'
-			}, 
+			},
 			 {
 				leftText: 'Tempo',
-				rightText: '',
+				rightText: 't',
 				icon: '',
 				classes: 'icon ',
 				action: 'modal',

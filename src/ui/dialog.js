@@ -53,7 +53,7 @@ class SuiDialogBase {
 		// TODO: adjust if db is clipped by the browser.
         var dge = $(this.dgDom.element).find('.attributeModal')
 		$(dge).css('top', '' + y + 'px');
-        
+
         var x = box.x;
         var w = $(dge).width();
         x = (x > window.innerWidth /2)  ? x - (w+25) : x + (w+25);
@@ -62,10 +62,11 @@ class SuiDialogBase {
 	_constructDialog(dialogElements, parameters) {
 		var id = parameters.id;
 		var b = htmlHelpers.buildDom;
-		var r = b('div').classes('attributeModal').css('top', parameters.top + 'px').css('left', parameters.left + 'px')
+		var r = b('div').classes('attributeModal').attr('id','attr-modal-'+id)
+            .css('top', parameters.top + 'px').css('left', parameters.left + 'px')
 			.append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move jsDbMove')))
 			.append(b('h2').text(parameters.label));
-            
+
         var ctrl = b('div').classes('smoControlContainer');
 		dialogElements.forEach((de) => {
 			var ctor = eval(de.control);
@@ -117,7 +118,7 @@ class SuiDialogBase {
 		htmlHelpers.draggable({
 			parent: $(this.dgDom.element).find('.attributeModal'),
 			handle: $(this.dgDom.element).find('.jsDbMove'),
-            animateDiv:'.draganime',            
+            animateDiv:'.draganime',
 			cb: cb,
 			moveParent: true
 		});
@@ -169,35 +170,35 @@ class SuiFileDialog extends SuiDialogBase {
         $('body').addClass('showAttributeDialog');
 		this.components.forEach((component) => {
 			component.bind();
-		});		
+		});
 		this._bindElements();
-        
+
         // make sure keyboard is unbound or we get dupicate key events.
         var self=this;
         function getKeys() {
             self.controller.unbindKeyboardForDialog(self);
         }
-        this.startPromise.then(getKeys);        
+        this.startPromise.then(getKeys);
 	}
     _bindElements() {
 		var self = this;
-		var dgDom = this.dgDom;       
+		var dgDom = this.dgDom;
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
             self.commit();
 		});
 
 		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-			self.complete();	
+			self.complete();
 		});
 
 		$(dgDom.element).find('.remove-button').remove();
 	}
 
-    
+
 }
 class SuiLoadFileDialog extends SuiFileDialog {
-   
+
     static get dialogElements() {
 		return [{
 				smoName: 'loadFile',
@@ -206,8 +207,8 @@ class SuiLoadFileDialog extends SuiFileDialog {
 				control: 'SuiFileDownloadComponent',
 				label:''
 			}];
-    }    
-    
+    }
+
     changed() {
         this.value = this.components[0].getValue();
         $(this.dgDom.element).find('.ok-button').prop('disabled',false);
@@ -232,7 +233,7 @@ class SuiLoadFileDialog extends SuiFileDialog {
         }
     }
     static createAndDisplay(params) {
-		var dg = new SuiLoadFileDialog({				
+		var dg = new SuiLoadFileDialog({
 				layout: params.controller.layout,
 				controller: params.controller,
                 closeMenuPromise:params.closeMenuPromise,
@@ -254,14 +255,14 @@ class SuiPrintFileDialog extends SuiFileDialog {
 		return [];
     }
     static createAndDisplay(params) {
-		var dg = new SuiPrintFileDialog({				
+		var dg = new SuiPrintFileDialog({
 				layout: params.controller.layout,
 				controller: params.controller,
                 closeMenuPromise:params.closeMenuPromise,
                 label: 'Print Complete'
 			});
 		dg.display();
-        
+
 	}
     constructor(parameters) {
         parameters.ctor='SuiPrintFileDialog';
@@ -271,8 +272,8 @@ class SuiPrintFileDialog extends SuiFileDialog {
     changed() {}
     _bindElements() {
         var self = this;
-        var dgDom = this.dgDom;       
-   
+        var dgDom = this.dgDom;
+
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
             $('body').removeClass('printing');
             self.complete();
@@ -280,10 +281,10 @@ class SuiPrintFileDialog extends SuiFileDialog {
 
 		$(dgDom.element).find('.cancel-button').remove();
 		$(dgDom.element).find('.remove-button').remove();
-	}       
+	}
 }
 class SuiSaveFileDialog extends SuiFileDialog {
-   
+
     static get dialogElements() {
 		return [{
 				smoName: 'saveFileName',
@@ -292,10 +293,10 @@ class SuiSaveFileDialog extends SuiFileDialog {
 				control: 'SuiTextInputComponent',
 				label:'File Name'
 			}];
-    }    
-   
+    }
+
     changed() {
-        this.value = this.components[0].getValue();        
+        this.value = this.components[0].getValue();
     }
     commit() {
         var filename = this.value;
@@ -309,10 +310,10 @@ class SuiSaveFileDialog extends SuiFileDialog {
         txt = JSON.stringify(txt,null,' ');
         htmlHelpers.addFileLink(filename,txt,$('.saveLink'));
         $('.saveLink a')[0].click();
-        this.complete();        
-    }   
+        this.complete();
+    }
     static createAndDisplay(params) {
-		var dg = new SuiSaveFileDialog({				
+		var dg = new SuiSaveFileDialog({
 				layout: params.controller.layout,
 				controller: params.controller,
                 closeMenuPromise:params.closeMenuPromise,
@@ -328,7 +329,7 @@ class SuiSaveFileDialog extends SuiFileDialog {
 
 class SuiLyricDialog extends SuiDialogBase {
     static createAndDisplay(buttonElement, buttonData, controller) {
-		var dg = new SuiLyricDialog({				
+		var dg = new SuiLyricDialog({
 				layout: controller.layout,
 				controller: controller
 			});
@@ -347,7 +348,7 @@ class SuiLyricDialog extends SuiDialogBase {
 			top: (p.layout.score.layout.pageWidth / 2) - 200,
 			left: (p.layout.score.layout.pageHeight / 2) - 200,
 			label: p.label
-		});        
+		});
         this.layout = p.layout;
 		this.controller = p.controller;
         this.tracker = this.controller.tracker;
@@ -357,9 +358,9 @@ class SuiLyricDialog extends SuiDialogBase {
         $(this.dgDom.element).find('.buttonContainer').addClass('show-text-edit');
 		this.components.forEach((component) => {
 			component.bind();
-		});		
+		});
 		this._bindElements();
-        
+
         // make sure keyboard is unbound or we get dupicate key events.
         var self=this;
         this.controller.unbindKeyboardForDialog(this);
@@ -368,7 +369,7 @@ class SuiLyricDialog extends SuiDialogBase {
         htmlHelpers.draggable({
 			parent: $(this.dgDom.element).find('.attributeModal'),
 			handle: $(this.dgDom.element).find('.jsDbMove'),
-            animateDiv:'.draganime',            
+            animateDiv:'.draganime',
 			cb: cb,
 			moveParent: true
 		});
@@ -376,15 +377,15 @@ class SuiLyricDialog extends SuiDialogBase {
     changed() {}
     _bindElements() {
         var self = this;
-        var dgDom = this.dgDom;       
-   
+        var dgDom = this.dgDom;
+
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
             self.editor.detach();
             $('.textEdit').addClass('hide');
             self.controller.bindEvents();
             self.complete();
 		});
-        
+
         // tracker, selection, controller
 		var selection = this.tracker.getExtremeSelection(-1);
 		this.editor = new editLyricSession({tracker:this.tracker,selection:selection,controller:this.controller});
@@ -393,7 +394,7 @@ class SuiLyricDialog extends SuiDialogBase {
 
 		$(dgDom.element).find('.cancel-button').remove();
 		$(dgDom.element).find('.remove-button').remove();
-	}       
+	}
 }
 class SuiTextTransformDialog  extends SuiDialogBase {
     static createAndDisplay(parameters) {
@@ -401,7 +402,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 		dg.display();
         return dg;
 	}
-    
+
     static get dialogElements() {
 		return [{
 				smoName: 'textEditor',
@@ -491,7 +492,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
                   {label:'Arial',value:'Arial'},
                   {label:'Helvetica',value:'Helvetica'}
                   ]
-                  
+
 			},
             {
 				smoName: 'fontSize',
@@ -510,15 +511,15 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 				label: 'Units',
                 options: [{value:'em',label:'em'},{value:'px',label:'px'},{value:'pt',label:'pt'}]
 			},
-            
+
             ];
     }
-    
+
     display() {
 		$('body').addClass('showAttributeDialog');
-		this.components.forEach((component) => {            
+		this.components.forEach((component) => {
 			component.bind();
-            
+
             if (component.smoName === 'textDragger') {
                 this.textDragger = component;
             }
@@ -526,14 +527,14 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			  component.setValue(this.modifier[component.parameterName]);
             }
 		});
-        
+
         var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
         var dbFontUnit  = this.components.find((c) => c.smoName === 'fontUnit');
         var fontSize = this.modifier.fontInfo.size;
         fontSize=svgHelpers.getFontSize(fontSize);
         dbFontSize.setValue(fontSize.size);
         dbFontUnit.setValue(fontSize.unit);
-        
+
 		this._bindElements();
 		this.position(this.modifier.renderedBox);
 
@@ -549,7 +550,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
             if ($(ctrl).hasClass('cbTextInPlace')) {
                 $(ctrl).addClass('fold-textmove');
             } else if ($(ctrl).hasClass('cbDragTextDialog')) {
-                $(ctrl).addClass('fold-textedit');                
+                $(ctrl).addClass('fold-textedit');
             } else {
                 $(ctrl).addClass('fold-textedit');
                 $(ctrl).addClass('fold-textmove');
@@ -561,18 +562,18 @@ class SuiTextTransformDialog  extends SuiDialogBase {
             textEditor.startEditSession();
         }
 	}
-    
+
     changed() {
-        
+
         var textEditor = this.components.find((c) => c.smoName === 'textEditor');
         this.modifier.text = textEditor.getValue();
         this.components.find((x) => {
-            if (typeof(x['getValue'])=='function') {                
+            if (typeof(x['getValue'])=='function') {
                 if (x.parameterName.indexOf('scale') == 0) {
-                   var val = x.getValue();                    
+                   var val = x.getValue();
                     var fcn = x.parameterName+'InPlace';
                     this.modifier[fcn](val);
-                } 
+                }
             }
 		});
         var xcomp = this.components.find((x) => x.smoName === 'x');
@@ -581,22 +582,22 @@ class SuiTextTransformDialog  extends SuiDialogBase {
             var val = this.textDragger.getValue();
             xcomp.setValue(val.x);
             ycomp.setValue(val.y);
-        } 
+        }
         this.modifier.x=xcomp.getValue();
         this.modifier.y=ycomp.getValue();
-        
+
         var fontComp = this.components.find((c) => c.smoName === 'fontFamily');
         this.modifier.fontInfo.family = fontComp.getValue();
-        
+
         var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
         var dbFontUnit  = this.components.find((c) => c.smoName === 'fontUnit');
         this.modifier.fontInfo.size=''+dbFontSize.getValue()+dbFontUnit.getValue();
-        
+
         // Use layout context because render may have reset svg.
         $(this.layout.context.svg).find('.' + this.modifier.attrs.id).remove();;
         this.layout.renderScoreText(this.modifier);
     }
-    
+
 
 	constructor(parameters) {
 		if (!parameters.modifier) {
@@ -609,7 +610,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			left: parameters.modifier.renderedBox.x,
 			label: 'Text Box Properties'
 		});
-       
+
         this.undo = parameters.undo;
         // Do we jump right into editing?
         this.textElement=$(parameters.context.svg).find('.' + parameters.modifier.attrs.id)[0];
@@ -617,7 +618,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         this.modifier.backupParams();
 	}
     _commit() {
-        
+
     }
     _bindElements() {
         var self = this;
@@ -767,7 +768,7 @@ class SuiLayoutDialog extends SuiDialogBase {
 		htmlHelpers.draggable({
 			parent: $(this.dgDom.element).find('.attributeModal'),
 			handle: $(this.dgDom.element).find('.icon-move'),
-            animateDiv:'.draganime',            
+            animateDiv:'.draganime',
 			cb: cb,
 			moveParent: true
 		});
@@ -784,15 +785,15 @@ class SuiLayoutDialog extends SuiDialogBase {
 		var dgDom = this.dgDom;
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-			
+
 			// TODO:  allow user to select a zoom mode.
 			self.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
 			self.layout.setViewport(true);
-			self.complete();			
+			self.complete();
 		});
 
 		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-			self._handleCancel();	
+			self._handleCancel();
 		});
 
 		$(dgDom.element).find('.remove-button').remove();
@@ -814,15 +815,15 @@ class SuiLayoutDialog extends SuiDialogBase {
 		var pageSizeComp = this.components.find((x)=>{return x.parameterName==='pageSize'});
 		var sel = pageSizeComp.getValue();
 		if (sel === 'custom') {
-			$('.attributeModal').addClass('customPage');			
+			$('.attributeModal').addClass('customPage');
 		} else {
 			$('.attributeModal').removeClass('customPage');
 			var dim = SmoScore.pageDimensions[sel];
 			var hComp = this.components.find((x)=>{return x.parameterName==='pageHeight'});
 			var wComp = this.components.find((x)=>{return x.parameterName==='pageWidth'});
 			hComp.setValue(dim.height);
-			wComp.setValue(dim.width);			
-		}		
+			wComp.setValue(dim.width);
+		}
 	}
 	changed() {
 		// this.modifier.backupOriginal();
@@ -833,7 +834,7 @@ class SuiLayoutDialog extends SuiDialogBase {
 		this.layout.setViewport();
 	}
 	static createAndDisplay(buttonElement, buttonData, controller) {
-		var dg = new SuiLayoutDialog({				
+		var dg = new SuiLayoutDialog({
 				layout: controller.layout,
 				controller: controller
 			});

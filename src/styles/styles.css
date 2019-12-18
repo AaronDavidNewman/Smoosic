@@ -15,7 +15,7 @@ h1 {
 .testTitle {
 	height: 20px;
 	font-size:1.2em;
-    margin:0;    
+    margin:0;
 }
 
 #birdy {
@@ -83,7 +83,7 @@ body.text-edit .buttonContainer.show-text-edit {
 	font-size:0.8em;
 	text-align:center;
 }
-.controls-top {	
+.controls-top {
 	width:100%;
 	min-height:50px;
 	margin-bottom:3px;
@@ -160,7 +160,7 @@ body.show-piano .piano-keys {
 	z-index: 6;
 	padding:5px;
 	border:solid #8d8 2px;
-	border-radius:3px;	
+	border-radius:3px;
 }
 
 .menu-status .help-title {
@@ -201,12 +201,12 @@ div.ribbonButtonContainer.expanded {
 }
 
 .controls-left button,
-.controls-top button 
+.controls-top button
  {
 	padding: 5px 0;
 	font-size: 0.7em;
 	border: 1px #44e solid;
-	position:relative;	
+	position:relative;
 }
 
 .controls-left button {
@@ -295,7 +295,7 @@ div.ribbonButtonContainer.expanded {
 
 #NoteButtons span.icon {
 	font-size:2em;
-} 
+}
 
 #articulationButtons  .icon-articulation{
 	left:30%;
@@ -304,7 +304,7 @@ div.ribbonButtonContainer.expanded {
 	font-size:2.4em;
 }
 
-.controls-top button.duration,.controls-top button.measure, 
+.controls-top button.duration,.controls-top button.measure,
 .controls-top button.repetext,.controls-top button.textButton,
 .controls-top button.beams
  {
@@ -355,7 +355,7 @@ div.ribbonButtonContainer.expanded {
 
 .controls-top button.duration span.ribbon-button-text,
 .controls-top button.repetext span.ribbon-button-text {
-	font-size:1.6em;	
+	font-size:1.6em;
 }
 
 .controls-top button.repetext {
@@ -473,7 +473,7 @@ button.addChord .left-text .icon {
 	font-size:1.6em;
     position:absolute;
     top:20%;
-    left:25%;    
+    left:25%;
 }
 #CreateChordButtons span.ribbon-button-text {
 	position:absolute;
@@ -513,7 +513,7 @@ button.addChord .left-text .icon {
 	font-size:1.6em;
 }
 
-.controls-top button span.ribbon-button-hotkey {	
+.controls-top button span.ribbon-button-hotkey {
 	position:absolute;
 	right:2px;
 	top:33%;
@@ -566,7 +566,7 @@ button.addChord .left-text .icon {
 }
 
 .button-container {
-	margin-left:10px;	
+	margin-left:10px;
 }
 .bug-dismiss-button {
 	position:absolute;
@@ -592,7 +592,7 @@ button.addChord .left-text .icon {
 .bug-modal {
 	width:100%;
 	height:100%;
-	margin:10px;	
+	margin:10px;
 }
 
 .svg-debug-box {
@@ -643,7 +643,7 @@ body.splashScreen .bugDialog {
 	width:64px;
 	height:64px;
 	display:inline-block;
-	
+
 }
 
 .controls-left .collapseParent ,
@@ -670,10 +670,10 @@ body.splashScreen .bugDialog {
 }
 
 @media print {
-    .controls-left,.controls-top,.testTitle { 
+    .controls-left,.controls-top,.testTitle {
        display:none;
     }
-    
+
     .musicRelief {
         overflow:hidden;
     }
@@ -723,7 +723,7 @@ body.printing .printFrame {
 	display:inline-block;
 }
 
-.controls-left  button:hover,controls-left button:focus, 
+.controls-left  button:hover,controls-left button:focus,
 .controls-top  button:hover,controls-left button:focus{
 	border:2px blue solid;
 	border-radius:3px;
@@ -864,7 +864,7 @@ body.showHelpDialog .helpDialog {
 }
 
 button.help-title:focus {
-	outline:none;	
+	outline:none;
 }
 
 .helpLine .keyBlock {
@@ -905,7 +905,7 @@ button.help-title:focus {
 .helpKey.help-ellipsis {
 	margin-left: -5px;
 	border:0;
-	width: 5px;	
+	width: 5px;
 }
 
 .keyContainer {
@@ -1022,20 +1022,42 @@ body.showAttributeDialog .attributeDialog {
 .attributeModal.tempoTextMode #dialog-tempo-duration,
 .attributeModal.tempoTextMode #dialog-tempo-bpm ,
 .attributeModal.tempoDurationMode #dialog-tempo-tempoText {
-	display:none;	
+	display:none;
 }
 
-.attributeModal #dialog-layout-pageWidth, 
+#attr-modal-dialog-dialog-tempo .smoControlContainer select {
+    margin-left:66px;
+    width:150px;
+}
+
+#attr-modal-dialog-dialog-tempo .smoControlContainer .rockerControl label,
+#attr-modal-dialog-dialog-tempo .smoControlContainer .dropdownControl label {
+    margin-left:15px;
+}
+
+#attr-modal-dialog-dialog-tempo .smoControlContainer .toggleControl input {
+    margin-left:64px;
+    height:auto;
+}
+#attr-modal-dialog-dialog-tempo .smoControlContainer .toggleControl label {
+    margin-left:15px;
+}
+#attr-modal-dialog-dialog-tempo .smoControlContainer input.rockerInput {
+    width:150px;
+}
+
+
+.attributeModal #dialog-layout-pageWidth,
 .attributeModal #dialog-layout-pageHeight {
 	display:none;
 }
 
-.attributeModal #dialog-layout-pageWidth, 
+.attributeModal #dialog-layout-pageWidth,
 .attributeModal #dialog-layout-pageHeight {
 	display:none;
 }
 
-.attributeModal.customPage #dialog-layout-pageWidth, 
+.attributeModal.customPage #dialog-layout-pageWidth,
 .attributeModal.customPage #dialog-layout-pageHeight {
 	display:block;
 }
@@ -1080,7 +1102,7 @@ body.showAttributeDialog .attributeDialog {
     margin-left:5px;
 }
 .smoControl.rockerControl[data-param="fontSize"] input {
-    width:50px;    
+    width:50px;
 }
 .smoControl.cbTextInPlace button,.smoControl.cbDragTextDialog button,
 .smoControl.cbResizeTextBox button
@@ -1112,10 +1134,3 @@ body.showAttributeDialog .attributeDialog {
 	border-radius: 5%;
 	border: 1px solid #52ba73;
 }
-
-
-
-
-
-
-

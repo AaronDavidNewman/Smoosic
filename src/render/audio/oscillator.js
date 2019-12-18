@@ -10,12 +10,12 @@ class suiAudioPitch {
         const octaves=[1,2,3,4,5,6,7];
         const letters = ["cn","c#", "dn", "d#","en", "fn", "f#","gn","g#","an", "a#","bn"];
         const lindex = [0,1,2,3,4,5,6];
-       
+
         const just = Math.pow(2,(1.0/12));
         const baseFrequency=(440/16) * Math.pow(just,3);
-        
+
         var aaccum = baseFrequency;
-        
+
         octaves.forEach((octave) => {
             var oint = parseInt(octave);
             var base = baseFrequency*Math.pow(2,oint);
@@ -26,18 +26,18 @@ class suiAudioPitch {
                 enharmonics.forEach((en) => {
                     map[en+octave.toString()] = freq;
                 });
-                lix += 1; 
+                lix += 1;
             });
         });
-        
-        return map;        
+
+        return map;
     }
-    
+
     static get pitchFrequencyMap() {
         suiAudioPitch._pmMap = typeof(suiAudioPitch['_pmMap']) == 'undefined' ? suiAudioPitch._frequencies : suiAudioPitch._pmMap;
         return suiAudioPitch._pmMap;
     }
-    
+
     static smoPitchToFrequency(smoPitch) {
         var vx = smoPitch.letter.toLowerCase() + smoPitch.accidental + smoPitch.octave.toString();
         return suiAudioPitch.pitchFrequencyMap[vx];
@@ -53,7 +53,7 @@ class suiAudioPlayer {
     static set playing(val) {
         suiAudioPlayer._playing = val;
     }
-    
+
     static get instanceId() {
         if (typeof(suiAudioPlayer._instanceId) == 'undefined') {
             suiAudioPlayer._instanceId = 0;
@@ -67,11 +67,11 @@ class suiAudioPlayer {
     }
     static get playing() {
         if (typeof(suiAudioPlayer._playing) == 'undefined') {
-            suiAudioPlayer._playing = false;            
+            suiAudioPlayer._playing = false;
         }
         return suiAudioPlayer._playing;
     }
-    
+
     static pausePlayer() {
         if (suiAudioPlayer._playingInstance) {
             var a = suiAudioPlayer._playingInstance;
@@ -86,7 +86,7 @@ class suiAudioPlayer {
         }
         suiAudioPlayer.playing = false;
     }
-    
+
     static get playingInstance() {
         if (!suiAudioPlayer._playingInstance) {
             return null;
@@ -97,15 +97,15 @@ class suiAudioPlayer {
     // the oscAr contains an oscillator for each pitch in the chord.
     // each inner oscillator is a promise, the combined promise is resolved when all
     // the beats have completed.
-    static _playChord(oscAr) {             
+    static _playChord(oscAr) {
         var par = [];
         oscAr.forEach((osc) => {
             par.push(osc.play());
         });
-        
+
         return Promise.all(par);
     }
-    
+
     // A single voice-measure.
     _playVoice(voiceOsc,updateCursor) {
         self = this;
@@ -113,7 +113,7 @@ class suiAudioPlayer {
             var recursePlayer = (ix,oscAr) => {
                 return suiAudioPlayer._playChord(voiceOsc[ix]).then(() =>{
                     if (suiAudioPlayer.playing && voiceOsc.length - 1 > ix) {
-                        
+
                         // Update the birdy that follows the music
                         if (updateCursor) {
                             self.tracker.musicCursor(self.startIndex + self.playIndex,ix+1);
@@ -124,11 +124,11 @@ class suiAudioPlayer {
                     }
                 });
             }
-            recursePlayer(0,voiceOsc);                
+            recursePlayer(0,voiceOsc);
         });
         return measureCompletePromise;
-    }    
-          
+    }
+
     static _createOscillatorsForMeasure(staff,measure) {
          var tempo = measure.getTempo();
         tempo = tempo ? tempo : new SmoTempoText();
@@ -143,11 +143,11 @@ class suiAudioPlayer {
                 ix += 1;
             });
         });
-        
-        return voiceOsc;        
+
+        return voiceOsc;
     }
-    
-    
+
+
     static _createOscillatorsAllStaffs(score,measureIx) {
         measureIx = measureIx ? measureIx : 0;
         var staffList = [];
@@ -159,19 +159,19 @@ class suiAudioPlayer {
                 measureList.push( suiAudioPlayer._createOscillatorsForMeasure(staff,measure));
             });
             staffList.push(measureList);
-        });        
+        });
         return staffList;
     }
-    
+
     _playMeasure(measureOsc,updateCursor) {
        var par = [];
        measureOsc.forEach((voiceOsc) => {
            par.push(this._playVoice(voiceOsc,updateCursor));
        });
-       
+
        return Promise.all(par);
     }
-    
+
     _playMeasureAllStaffs(measureIx,staffList) {
         var par = [];
         // only update cursor once per staff
@@ -181,10 +181,10 @@ class suiAudioPlayer {
             par.push(this._playMeasure(measureOsc,updateCursor));
             updateCursor = false;
         });
-        
+
         return par;
     }
-    
+
     play() {
         if (suiAudioPlayer.playing) {
             return;
@@ -194,12 +194,12 @@ class suiAudioPlayer {
         var playRecurse = (oscillators,ix) => {
             self.playIndex = ix;
             Promise.all(this._playMeasureAllStaffs(ix,oscillators)).then(() => {
-                if (suiAudioPlayer.playing && 
-                  suiAudioPlayer.instanceId == self.instanceId && 
+                if (suiAudioPlayer.playing &&
+                  suiAudioPlayer.instanceId == self.instanceId &&
                   ix < oscillators[0].length - 1) {
                     self.tracker.musicCursor(ix + 1,0);
                     playRecurse(oscillators,ix+1);
-                } else {                    
+                } else {
                     if (ix > oscillators[0].length - 1 || self.paused == false) {
                         suiAudioPlayer.playing = false;
                         suiAudioPlayer._playingInstance = null;
@@ -208,11 +208,11 @@ class suiAudioPlayer {
                     self.tracker.clearMusicCursor();
                 }
             });
-        }        
+        }
         suiAudioPlayer.playing = true;
         playRecurse(this.oscillators,this.playIndex);
     }
-    
+
     constructor(parameters) {
         this.instanceId = suiAudioPlayer.incrementInstanceId();
         suiAudioPlayer.playing=false;
@@ -223,12 +223,12 @@ class suiAudioPlayer {
         this.score = parameters.score;
         this.oscillators=suiAudioPlayer._createOscillatorsAllStaffs(this.score,this.startIndex);
     }
-    
+
 }
 class suiOscillator {
     static get defaults() {
-        
-        var obj = {            
+
+        var obj = {
             duration:1000,
             frequency:440,
             attackEnv:0.05,
@@ -240,7 +240,7 @@ class suiOscillator {
             waveform:'triangle',
             gain:0.4
         };
-        
+
         var wavetable = {
             real:[0,0.2,0.9,0.1,0.3],
             imaginary:[0,0.2,0.9,0.1,0.3]
@@ -248,7 +248,7 @@ class suiOscillator {
         obj.wavetable = wavetable;
         return obj;
     }
-    
+
     static playSelectionNow(selection) {
         setTimeout(function() {
         var ar = suiOscillator.fromNote(selection.measure,selection.note);
@@ -257,7 +257,7 @@ class suiOscillator {
         });
         },1);
     }
-    
+
     // AR contains an array of arrays of oscillators.
     // The outer array contains an array for each tick/note in a measure.
     // the inner array contains an oscillator for each note in the chord.
@@ -276,14 +276,17 @@ class suiOscillator {
         }
         playIx(0,ar[0]);
     }
-   
+
     static fromNote(measure,note) {
         var tempo = measure.getTempo();
         tempo = tempo ? tempo : new SmoTempoText();
         var bpm = tempo.bpm;
         var beats = note.tickCount/4096;
         var duration = (beats / bpm) * 60000;
-        
+        // adjust if bpm is over something other than 1/45 note
+        duration = duration * tempo.beatDuration/4096;
+
+
         var ar = [];
         var gain = 0.5/note.pitches.length;
         if (note.noteType == 'r') {
@@ -294,21 +297,21 @@ class suiOscillator {
             var osc = new suiOscillator({frequency:frequency,duration:duration,gain:gain});
             ar.push(osc);
         });
-        
+
         return ar;
     }
-    
+
     static get attributes() {
         return ['duration','frequency','pitch','attackEnv','sustainEnv','decayEnv','releaseEnv','sustainLevel','releaseLevel','waveform','wavetable','gain'];
     }
-    
+
     static get audio() {
         if (typeof (suiOscillator['_audio']) == 'undefined') {
             suiOscillator._audio = new AudioContext();
         }
         return suiOscillator._audio;
     }
-    
+
     _playPromise(osc,duration,gain) {
         var audio = suiOscillator.audio;
         var promise = new Promise((resolve) => {
@@ -319,7 +322,7 @@ class suiOscillator {
                 resolve();
             }, duration);
 
-            
+
             setTimeout(function() {
                // gain.gain.setTargetAtTime(0, audio.currentTime, 0.015);
                 osc.stop(0);
@@ -327,21 +330,21 @@ class suiOscillator {
                 gain.disconnect(audio.destination);
             }, duration+500);
         });
-        
+
         return promise;
     }
-    
+
     static toFloatArray(ar) {
         var rv = new Float32Array(ar.length);
         for (var i=0;i<ar.length;++i) {
             rv[i] = ar[i];
         }
-        
+
         return rv;
     }
-    
+
     play() {
-        
+
         var audio = suiOscillator.audio;
         var gain = audio.createGain();
         var osc = audio.createOscillator();
@@ -359,7 +362,7 @@ class suiOscillator {
         if (this.waveform != 'custom') {
             osc.type = this.waveform;
         } else {
-            var wave = audio.createPeriodicWave(suiOscillator.toFloatArray(this.wavetable.real), suiOscillator.toFloatArray(this.wavetable.imaginary), 
+            var wave = audio.createPeriodicWave(suiOscillator.toFloatArray(this.wavetable.real), suiOscillator.toFloatArray(this.wavetable.imaginary),
                {disableNormalization: true});
             osc.setPeriodicWave(wave);
         }
@@ -369,7 +372,7 @@ class suiOscillator {
         return this._playPromise(osc,this.duration,gain);
     }
 
-   
+
     constructor(parameters) {
         parameters = parameters ? parameters : {};
 		smoMusic.serializedMerge(suiOscillator.attributes, suiOscillator.defaults, this);
@@ -379,13 +382,13 @@ class suiOscillator {
         this.sustain = this.sustainEnv*this.duration;
         this.release = this.releaseEnv*this.duration;
         this.frequency = this.frequency/2;  // Overtones below partial
-        
-        // Note: having some trouble with FloatArray and wavetable on some browsers, so I'm not using it 
-        // use built-in instead        
+
+        // Note: having some trouble with FloatArray and wavetable on some browsers, so I'm not using it
+        // use built-in instead
         if (parameters.waveform && parameters.waveform != 'custom') {
             this.waveform = parameters.waveform;
         } else {
             this.waveform='custom';
-        }       
+        }
     }
 }

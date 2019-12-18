@@ -54,8 +54,9 @@ class SuiTempoDialog extends SuiDialogBase {
             },
 		{
 			parameterName: 'duration',
-			smoName: 'duration',
-			defaultValue: '4096',
+			smoName: 'beatDuration',
+			defaultValue: 4096,
+            dataType:'int',
 			control: 'SuiDropdownComponent',
 			label: 'Unit for Beat',
 			options: [{
@@ -73,13 +74,7 @@ class SuiTempoDialog extends SuiDialogBase {
 				}
 			]
 		},
-		{
-			smoName:'applyToAll',
-			parameterName:'applyToAll',
-			defaultValue: false,
-			control:'SuiToggleComponent',
-			label:'Apply to all future measures?'
-		},
+
             {
             smoName: 'tempoText',
             parameterName: 'tempoText',
@@ -137,6 +132,12 @@ class SuiTempoDialog extends SuiDialogBase {
               }
             ]
         },{
+			smoName:'applyToAll',
+			parameterName:'applyToAll',
+			defaultValue: false,
+			control:'SuiToggleComponent',
+			label:'Apply to all future measures?'
+		},{
                 smoName: 'display',
                 parameterName: 'display',
                 defaultValue: true,
@@ -212,7 +213,7 @@ class SuiTempoDialog extends SuiDialogBase {
         });
         if (this.modifier.tempoMode == SmoTempoText.tempoModes.textMode) {
             this.modifier.bpm = SmoTempoText.bpmFromText[this.modifier.tempoText];
-        } 
+        }
 		this._updateModeClass();
         this.refresh = true;
     }
@@ -284,7 +285,7 @@ class SuiTempoDialog extends SuiDialogBase {
                 self.complete();
                 resolve();
             });
-        });            
+        });
         this.controller.unbindKeyboardForDialog(this);
     }
 }
