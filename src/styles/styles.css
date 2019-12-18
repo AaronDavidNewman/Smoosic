@@ -1026,8 +1026,8 @@ body.showAttributeDialog .attributeDialog {
 }
 
 #attr-modal-dialog-dialog-tempo .smoControlContainer select {
-    margin-left:66px;
-    width:150px;
+    margin-left: 70px;
+    width:175px;
 }
 
 #attr-modal-dialog-dialog-tempo .smoControlContainer .rockerControl label,
@@ -1043,7 +1043,7 @@ body.showAttributeDialog .attributeDialog {
     margin-left:15px;
 }
 #attr-modal-dialog-dialog-tempo .smoControlContainer input.rockerInput {
-    width:150px;
+    width: 175px;
 }
 
 

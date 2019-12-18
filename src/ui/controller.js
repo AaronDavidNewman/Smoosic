@@ -27,7 +27,6 @@ class suiController {
         this.keyboardActive = false;
 		this.pollTime = 100;
 		this.idleRedrawTime = 2000;
-		this.waitingForIdleLayout = false;
 		this.idleLayoutTimer = 0;
 
 		this.ribbon = new RibbonButtons({
@@ -95,12 +94,8 @@ class suiController {
                 }
 			} else if (this.layout.passState === suiLayoutBase.passStates.replace) {
 				// Do we need to refresh the score?
-				if (!this.waitingForIdleLayout === false) {
-					this.waitingForIdleLayout = false;
-					this.idleLayoutTimer = Date.now();
-				} else if (Date.now() - this.idleLayoutTimer > this.idleRedrawTime) {
+				if (Date.now() - this.idleLayoutTimer > this.idleRedrawTime) {
 					this.layout.setRefresh();
-					this.waitingForIdleLayout = false;
 				}
 			}
 	}
