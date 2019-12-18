@@ -5,6 +5,10 @@ class suiEditor {
         Vex.Merge(this, params);
         this.slashMode = false;
     }
+	
+	tempoDialog() {
+		SuiTempoDialog.createAndDisplay(null,null,this.controller);
+	}
 
     // ## _render
     // utility function to render the music and update the tracker map.

@@ -1019,6 +1019,12 @@ body.showAttributeDialog .attributeDialog {
 	font-size:1.2em;
 }
 
+.attributeModal.tempoTextMode #dialog-tempo-duration,
+.attributeModal.tempoTextMode #dialog-tempo-bpm ,
+.attributeModal.tempoDurationMode #dialog-tempo-tempoText {
+	display:none;	
+}
+
 .attributeModal #dialog-layout-pageWidth, 
 .attributeModal #dialog-layout-pageHeight {
 	display:none;

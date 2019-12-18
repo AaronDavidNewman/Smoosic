@@ -153,7 +153,7 @@ class SuiFileDialog extends SuiDialogBase {
         var label = parameters.label ? parameters.label : 'Dialog Box';
 
 		super(ctor.dialogElements, {
-			id: 'dialog-layout',
+			id: 'dialog-file',
 			top: (p.layout.score.layout.pageWidth / 2) - 200,
 			left: (p.layout.score.layout.pageHeight / 2) - 200,
 			label: label

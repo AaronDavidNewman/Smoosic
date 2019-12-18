@@ -18,6 +18,7 @@ class suiController {
 		Vex.Merge(this, params);
 		this.undoBuffer = new UndoBuffer();
 		this.pasteBuffer = this.tracker.pasteBuffer;
+		this.editor.controller = this;
 		this.editor.undoBuffer = this.undoBuffer;
 		this.editor.pasteBuffer = this.pasteBuffer;
 		this.resizing = false;

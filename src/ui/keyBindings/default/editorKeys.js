@@ -163,7 +163,15 @@ class defaultEditorKeys {
 				altKey: false,
 				shiftKey: false,
 				action: "stopPlayer"
-			},  {
+			},             {
+				event: "keydown",
+				key: "t",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "tempoDialog"
+			}, 
+			{
 				event: "keydown",
 				key: "3",
 				ctrlKey: true,

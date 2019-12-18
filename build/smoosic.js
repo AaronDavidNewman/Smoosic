@@ -10775,6 +10775,10 @@ class suiEditor {
         Vex.Merge(this, params);
         this.slashMode = false;
     }
+	
+	tempoDialog() {
+		SuiTempoDialog.createAndDisplay(null,null,this.controller);
+	}
 
     // ## _render
     // utility function to render the music and update the tracker map.
@@ -12286,7 +12290,15 @@ class SuiExceptionHandler {
 				altKey: false,
 				shiftKey: false,
 				action: "stopPlayer"
-			},  {
+			},             {
+				event: "keydown",
+				key: "t",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "tempoDialog"
+			}, 
+			{
 				event: "keydown",
 				key: "3",
 				ctrlKey: true,
@@ -12812,7 +12824,7 @@ class SuiFileDialog extends SuiDialogBase {
         var label = parameters.label ? parameters.label : 'Dialog Box';
 
 		super(ctor.dialogElements, {
-			id: 'dialog-layout',
+			id: 'dialog-file',
 			top: (p.layout.score.layout.pageWidth / 2) - 200,
 			left: (p.layout.score.layout.pageHeight / 2) - 200,
 			label: label
@@ -55743,7 +55755,7 @@ class SuiTempoDialog extends SuiDialogBase {
             },
         ]
     }
-    static createAndDisplay(buttonElement,buttonData,controller) {
+    static createAndDisplay(ignore1,ignore2,controller) {
         // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
         //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
         var measures = SmoSelection.getMeasureList(controller.tracker.selections);
@@ -55758,8 +55770,6 @@ class SuiTempoDialog extends SuiDialogBase {
         var dg = new SuiTempoDialog({
             measures: measures,
             modifier: existing,
-            buttonElement: buttonElement,
-            buttonData: buttonData,
             undoBuffer:controller.undoBuffer,
             layout: controller.tracker.layout,
             controller:controller
@@ -55773,7 +55783,7 @@ class SuiTempoDialog extends SuiDialogBase {
         }
 
         super(SuiTempoDialog.dialogElements, {
-            id: 'dialog-' + parameters.modifier.attrs.id,
+            id: 'dialog-tempo',
             top: parameters.modifier.renderedBox.y,
             left: parameters.modifier.renderedBox.x,
             label: 'Tempo Properties'
@@ -55790,7 +55800,20 @@ class SuiTempoDialog extends SuiDialogBase {
                 comp.setValue(this.modifier[attr]);
             }
         });
+		this._updateModeClass();
     }
+	_updateModeClass() {
+        if (this.modifier.tempoMode == SmoTempoText.tempoModes.textMode) {
+			$('.attributeModal').addClass('tempoTextMode');
+			$('.attributeModal').removeClass('tempoDurationMode');
+        } else if (this.modifier.tempoMode == SmoTempoText.tempoModes.durationMode) {
+			$('.attributeModal').addClass('tempoDurationMode');
+			$('.attributeModal').removeClass('tempoTextMode');
+		} else {
+			$('.attributeModal').removeClass('tempoDurationMode');
+			$('.attributeModal').removeClass('tempoTextMode');
+		}
+	}
     changed() {
         this.components.forEach((component) => {
 			if (SmoTempoText.attributes.indexOf(component.smoName) >= 0) {
@@ -55799,8 +55822,8 @@ class SuiTempoDialog extends SuiDialogBase {
         });
         if (this.modifier.tempoMode == SmoTempoText.tempoModes.textMode) {
             this.modifier.bpm = SmoTempoText.bpmFromText[this.modifier.tempoText];
-
-        }
+        } 
+		this._updateModeClass();
         this.refresh = true;
     }
     // ### handleFuture
@@ -56697,6 +56720,7 @@ class suiController {
 		Vex.Merge(this, params);
 		this.undoBuffer = new UndoBuffer();
 		this.pasteBuffer = this.tracker.pasteBuffer;
+		this.editor.controller = this;
 		this.editor.undoBuffer = this.undoBuffer;
 		this.editor.pasteBuffer = this.pasteBuffer;
 		this.resizing = false;
