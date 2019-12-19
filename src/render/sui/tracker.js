@@ -208,6 +208,29 @@ class suiTracker {
     clearMusicCursor() {
         $('.workspace #birdy').remove();
     }
+	
+	scrollVisible(x,y) {
+		var y = y - this.netScroll.y;
+        var x = x - this.netScroll.x;
+		var dx = 0;
+		var dy = 0;
+		if (y < 0) {
+			dy = -y;
+		} else if (y > this.viewport.height + this.viewport.y) {
+			var offset = y - (this.viewport.height + this.viewport.y);
+			dy = offset + this.viewport.height/2;
+		} 
+		
+		if (x < 0) {
+			dx = -x;
+		} else if (x > this.viewport.width + this.viewport.x) {
+			var offset = x - (this.viewport.width + this.viewport.x);
+			dx = offset + this.viewport.width -50;
+		}
+		if (dx != 0 || dy != 0) {
+		    this.scrollOffset(dx,dy);
+		}
+	}
     
     musicCursor(measureIndex,noteIndex) {
         var key = '' + measureIndex  + '-' + noteIndex;
@@ -220,13 +243,8 @@ class suiTracker {
             var y = pos.y - this.netScroll.y;
             var x = pos.x - this.netScroll.x;
             $(rd).css('top',y).css('left',x);
-            if (y < 0) {
-                console.log('cursor above');
-            } else if (y > this.viewport.height + this.viewport.y) {
-                console.log('cursor below');
-                this.scrollOffset(0,this.viewport.height/2);
-            }
             $('.workspace').append(rd);
+			this.scrollVisible(pos.x,pos.y);
         }
     }
     

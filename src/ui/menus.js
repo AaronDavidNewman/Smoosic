@@ -446,7 +446,7 @@ class SuiTextMenu extends suiMenuBase {
             var txtObj = new ctor(menuObj.params);
             SmoUndoable.scoreOp(this.editor.score,menuObj.operation,
                txtObj, this.editor.undoBuffer,'Text Menu Command');     
-			this._editNewText(txtObj);                
+			this._editNewText(txtObj);
         }
 
 		this.complete();
