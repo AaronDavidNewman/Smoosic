@@ -177,7 +177,8 @@ class SuiTempoDialog extends SuiDialogBase {
             id: 'dialog-tempo',
             top: parameters.modifier.renderedBox.y,
             left: parameters.modifier.renderedBox.x,
-            label: 'Tempo Properties'
+            label: 'Tempo Properties',
+			tracker:parameters.tracker
         });
         this.refresh = false;
         Vex.Merge(this, parameters);
@@ -391,7 +392,8 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
             id: 'dialog-' + parameters.modifier.id,
             top: parameters.modifier.renderedBox.y,
             left: parameters.modifier.renderedBox.x,
-            label: 'Slur Properties'
+            label: 'Slur Properties',
+			tracker:parameters.tracker
         });
         Vex.Merge(this, parameters);
     }
@@ -473,7 +475,8 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
             id: 'dialog-' + parameters.modifier.id,
             top: parameters.modifier.renderedBox.y,
             left: parameters.modifier.renderedBox.x,
-            label: 'Hairpin Properties'
+            label: 'Hairpin Properties',
+			tracker:parameters.tracker
         });
         Vex.Merge(this, parameters);
 		SmoVolta.editableAttributes.forEach((attr) => {
@@ -530,7 +533,8 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
             id: 'dialog-' + parameters.modifier.id,
             top: parameters.modifier.renderedBox.y,
             left: parameters.modifier.renderedBox.x,
-            label: 'Hairpin Properties'
+            label: 'Hairpin Properties',
+			tracker:parameters.tracker
         });
         Vex.Merge(this, parameters);
 		SmoStaffHairpin.editableAttributes.forEach((attr) => {

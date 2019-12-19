@@ -46,6 +46,8 @@ class SuiDialogBase {
 				left: parameters.left,
 				label: parameters.label
 			});
+		this.tracker = parameters.tracker;
+		this.tracker.scrollVisible(parameters.left,parameters.top);
 	}
 	position(box) {
 		var y = box.y + box.height;
@@ -157,7 +159,8 @@ class SuiFileDialog extends SuiDialogBase {
 			id: 'dialog-file',
 			top: (p.layout.score.layout.pageWidth / 2) - 200,
 			left: (p.layout.score.layout.pageHeight / 2) - 200,
-			label: label
+			label: label,
+			tracker:parameters.tracker
 		});
         this.startPromise=p.closeMenuPromise;
 		this.layout = p.layout;
@@ -347,7 +350,8 @@ class SuiLyricDialog extends SuiDialogBase {
 			id: 'dialog-layout',
 			top: (p.layout.score.layout.pageWidth / 2) - 200,
 			left: (p.layout.score.layout.pageHeight / 2) - 200,
-			label: p.label
+			label: p.label,			
+			tracker:parameters.tracker
 		});
         this.layout = p.layout;
 		this.controller = p.controller;
@@ -608,7 +612,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			id: 'dialog-' + parameters.modifier.attrs.id,
 			top: parameters.modifier.renderedBox.y,
 			left: parameters.modifier.renderedBox.x,
-			label: 'Text Box Properties'
+			label: 'Text Box Properties',
+			tracker:parameters.tracker
 		});
 
         this.undo = parameters.undo;
@@ -850,7 +855,8 @@ class SuiLayoutDialog extends SuiDialogBase {
 			id: 'dialog-layout',
 			top: (p.layout.score.layout.pageWidth / 2) - 200,
 			left: (p.layout.score.layout.pageHeight / 2) - 200,
-			label: 'Score Layout'
+			label: 'Score Layout',
+			tracker:parameters.tracker
 		});
 		this.layout = p.layout;
 		this.modifier = this.layout.score.layout;
@@ -926,7 +932,8 @@ class SuiTextModifierDialog extends SuiDialogBase {
 			id: 'dialog-' + parameters.modifier.id,
 			top: parameters.modifier.renderedBox.y,
 			left: parameters.modifier.renderedBox.x,
-			label: 'Dynamics Properties'
+			label: 'Dynamics Properties',
+			tracker:parameters.tracker
 		});
 		Vex.Merge(this, parameters);
 		this.components.find((x) => {
