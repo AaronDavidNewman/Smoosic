@@ -7607,12 +7607,12 @@ class suiAudioPitch {
         const octaves=[1,2,3,4,5,6,7];
         const letters = ["cn","c#", "dn", "d#","en", "fn", "f#","gn","g#","an", "a#","bn"];
         const lindex = [0,1,2,3,4,5,6];
-       
+
         const just = Math.pow(2,(1.0/12));
         const baseFrequency=(440/16) * Math.pow(just,3);
-        
+
         var aaccum = baseFrequency;
-        
+
         octaves.forEach((octave) => {
             var oint = parseInt(octave);
             var base = baseFrequency*Math.pow(2,oint);
@@ -7623,18 +7623,18 @@ class suiAudioPitch {
                 enharmonics.forEach((en) => {
                     map[en+octave.toString()] = freq;
                 });
-                lix += 1; 
+                lix += 1;
             });
         });
-        
-        return map;        
+
+        return map;
     }
-    
+
     static get pitchFrequencyMap() {
         suiAudioPitch._pmMap = typeof(suiAudioPitch['_pmMap']) == 'undefined' ? suiAudioPitch._frequencies : suiAudioPitch._pmMap;
         return suiAudioPitch._pmMap;
     }
-    
+
     static smoPitchToFrequency(smoPitch) {
         var vx = smoPitch.letter.toLowerCase() + smoPitch.accidental + smoPitch.octave.toString();
         return suiAudioPitch.pitchFrequencyMap[vx];
@@ -7650,7 +7650,7 @@ class suiAudioPlayer {
     static set playing(val) {
         suiAudioPlayer._playing = val;
     }
-    
+
     static get instanceId() {
         if (typeof(suiAudioPlayer._instanceId) == 'undefined') {
             suiAudioPlayer._instanceId = 0;
@@ -7664,11 +7664,11 @@ class suiAudioPlayer {
     }
     static get playing() {
         if (typeof(suiAudioPlayer._playing) == 'undefined') {
-            suiAudioPlayer._playing = false;            
+            suiAudioPlayer._playing = false;
         }
         return suiAudioPlayer._playing;
     }
-    
+
     static pausePlayer() {
         if (suiAudioPlayer._playingInstance) {
             var a = suiAudioPlayer._playingInstance;
@@ -7683,7 +7683,7 @@ class suiAudioPlayer {
         }
         suiAudioPlayer.playing = false;
     }
-    
+
     static get playingInstance() {
         if (!suiAudioPlayer._playingInstance) {
             return null;
@@ -7694,15 +7694,15 @@ class suiAudioPlayer {
     // the oscAr contains an oscillator for each pitch in the chord.
     // each inner oscillator is a promise, the combined promise is resolved when all
     // the beats have completed.
-    static _playChord(oscAr) {             
+    static _playChord(oscAr) {
         var par = [];
         oscAr.forEach((osc) => {
             par.push(osc.play());
         });
-        
+
         return Promise.all(par);
     }
-    
+
     // A single voice-measure.
     _playVoice(voiceOsc,updateCursor) {
         self = this;
@@ -7710,7 +7710,7 @@ class suiAudioPlayer {
             var recursePlayer = (ix,oscAr) => {
                 return suiAudioPlayer._playChord(voiceOsc[ix]).then(() =>{
                     if (suiAudioPlayer.playing && voiceOsc.length - 1 > ix) {
-                        
+
                         // Update the birdy that follows the music
                         if (updateCursor) {
                             self.tracker.musicCursor(self.startIndex + self.playIndex,ix+1);
@@ -7721,11 +7721,11 @@ class suiAudioPlayer {
                     }
                 });
             }
-            recursePlayer(0,voiceOsc);                
+            recursePlayer(0,voiceOsc);
         });
         return measureCompletePromise;
-    }    
-          
+    }
+
     static _createOscillatorsForMeasure(staff,measure) {
          var tempo = measure.getTempo();
         tempo = tempo ? tempo : new SmoTempoText();
@@ -7740,11 +7740,11 @@ class suiAudioPlayer {
                 ix += 1;
             });
         });
-        
-        return voiceOsc;        
+
+        return voiceOsc;
     }
-    
-    
+
+
     static _createOscillatorsAllStaffs(score,measureIx) {
         measureIx = measureIx ? measureIx : 0;
         var staffList = [];
@@ -7756,19 +7756,19 @@ class suiAudioPlayer {
                 measureList.push( suiAudioPlayer._createOscillatorsForMeasure(staff,measure));
             });
             staffList.push(measureList);
-        });        
+        });
         return staffList;
     }
-    
+
     _playMeasure(measureOsc,updateCursor) {
        var par = [];
        measureOsc.forEach((voiceOsc) => {
            par.push(this._playVoice(voiceOsc,updateCursor));
        });
-       
+
        return Promise.all(par);
     }
-    
+
     _playMeasureAllStaffs(measureIx,staffList) {
         var par = [];
         // only update cursor once per staff
@@ -7778,10 +7778,10 @@ class suiAudioPlayer {
             par.push(this._playMeasure(measureOsc,updateCursor));
             updateCursor = false;
         });
-        
+
         return par;
     }
-    
+
     play() {
         if (suiAudioPlayer.playing) {
             return;
@@ -7791,12 +7791,12 @@ class suiAudioPlayer {
         var playRecurse = (oscillators,ix) => {
             self.playIndex = ix;
             Promise.all(this._playMeasureAllStaffs(ix,oscillators)).then(() => {
-                if (suiAudioPlayer.playing && 
-                  suiAudioPlayer.instanceId == self.instanceId && 
+                if (suiAudioPlayer.playing &&
+                  suiAudioPlayer.instanceId == self.instanceId &&
                   ix < oscillators[0].length - 1) {
                     self.tracker.musicCursor(ix + 1,0);
                     playRecurse(oscillators,ix+1);
-                } else {                    
+                } else {
                     if (ix > oscillators[0].length - 1 || self.paused == false) {
                         suiAudioPlayer.playing = false;
                         suiAudioPlayer._playingInstance = null;
@@ -7805,11 +7805,11 @@ class suiAudioPlayer {
                     self.tracker.clearMusicCursor();
                 }
             });
-        }        
+        }
         suiAudioPlayer.playing = true;
         playRecurse(this.oscillators,this.playIndex);
     }
-    
+
     constructor(parameters) {
         this.instanceId = suiAudioPlayer.incrementInstanceId();
         suiAudioPlayer.playing=false;
@@ -7820,12 +7820,12 @@ class suiAudioPlayer {
         this.score = parameters.score;
         this.oscillators=suiAudioPlayer._createOscillatorsAllStaffs(this.score,this.startIndex);
     }
-    
+
 }
 class suiOscillator {
     static get defaults() {
-        
-        var obj = {            
+
+        var obj = {
             duration:1000,
             frequency:440,
             attackEnv:0.05,
@@ -7837,7 +7837,7 @@ class suiOscillator {
             waveform:'triangle',
             gain:0.4
         };
-        
+
         var wavetable = {
             real:[0,0.2,0.9,0.1,0.3],
             imaginary:[0,0.2,0.9,0.1,0.3]
@@ -7845,7 +7845,7 @@ class suiOscillator {
         obj.wavetable = wavetable;
         return obj;
     }
-    
+
     static playSelectionNow(selection) {
         setTimeout(function() {
         var ar = suiOscillator.fromNote(selection.measure,selection.note);
@@ -7854,7 +7854,7 @@ class suiOscillator {
         });
         },1);
     }
-    
+
     // AR contains an array of arrays of oscillators.
     // The outer array contains an array for each tick/note in a measure.
     // the inner array contains an oscillator for each note in the chord.
@@ -7873,14 +7873,17 @@ class suiOscillator {
         }
         playIx(0,ar[0]);
     }
-   
+
     static fromNote(measure,note) {
         var tempo = measure.getTempo();
         tempo = tempo ? tempo : new SmoTempoText();
         var bpm = tempo.bpm;
         var beats = note.tickCount/4096;
         var duration = (beats / bpm) * 60000;
-        
+        // adjust if bpm is over something other than 1/45 note
+        duration = duration * tempo.beatDuration/4096;
+
+
         var ar = [];
         var gain = 0.5/note.pitches.length;
         if (note.noteType == 'r') {
@@ -7891,21 +7894,21 @@ class suiOscillator {
             var osc = new suiOscillator({frequency:frequency,duration:duration,gain:gain});
             ar.push(osc);
         });
-        
+
         return ar;
     }
-    
+
     static get attributes() {
         return ['duration','frequency','pitch','attackEnv','sustainEnv','decayEnv','releaseEnv','sustainLevel','releaseLevel','waveform','wavetable','gain'];
     }
-    
+
     static get audio() {
         if (typeof (suiOscillator['_audio']) == 'undefined') {
             suiOscillator._audio = new AudioContext();
         }
         return suiOscillator._audio;
     }
-    
+
     _playPromise(osc,duration,gain) {
         var audio = suiOscillator.audio;
         var promise = new Promise((resolve) => {
@@ -7916,7 +7919,7 @@ class suiOscillator {
                 resolve();
             }, duration);
 
-            
+
             setTimeout(function() {
                // gain.gain.setTargetAtTime(0, audio.currentTime, 0.015);
                 osc.stop(0);
@@ -7924,21 +7927,21 @@ class suiOscillator {
                 gain.disconnect(audio.destination);
             }, duration+500);
         });
-        
+
         return promise;
     }
-    
+
     static toFloatArray(ar) {
         var rv = new Float32Array(ar.length);
         for (var i=0;i<ar.length;++i) {
             rv[i] = ar[i];
         }
-        
+
         return rv;
     }
-    
+
     play() {
-        
+
         var audio = suiOscillator.audio;
         var gain = audio.createGain();
         var osc = audio.createOscillator();
@@ -7956,7 +7959,7 @@ class suiOscillator {
         if (this.waveform != 'custom') {
             osc.type = this.waveform;
         } else {
-            var wave = audio.createPeriodicWave(suiOscillator.toFloatArray(this.wavetable.real), suiOscillator.toFloatArray(this.wavetable.imaginary), 
+            var wave = audio.createPeriodicWave(suiOscillator.toFloatArray(this.wavetable.real), suiOscillator.toFloatArray(this.wavetable.imaginary),
                {disableNormalization: true});
             osc.setPeriodicWave(wave);
         }
@@ -7966,7 +7969,7 @@ class suiOscillator {
         return this._playPromise(osc,this.duration,gain);
     }
 
-   
+
     constructor(parameters) {
         parameters = parameters ? parameters : {};
 		smoMusic.serializedMerge(suiOscillator.attributes, suiOscillator.defaults, this);
@@ -7976,16 +7979,17 @@ class suiOscillator {
         this.sustain = this.sustainEnv*this.duration;
         this.release = this.releaseEnv*this.duration;
         this.frequency = this.frequency/2;  // Overtones below partial
-        
-        // Note: having some trouble with FloatArray and wavetable on some browsers, so I'm not using it 
-        // use built-in instead        
+
+        // Note: having some trouble with FloatArray and wavetable on some browsers, so I'm not using it
+        // use built-in instead
         if (parameters.waveform && parameters.waveform != 'custom') {
             this.waveform = parameters.waveform;
         } else {
             this.waveform='custom';
-        }       
+        }
     }
-};
+}
+;
 class TrackerBase {
 }
 
@@ -8195,6 +8199,29 @@ class suiTracker {
     clearMusicCursor() {
         $('.workspace #birdy').remove();
     }
+	
+	scrollVisible(x,y) {
+		var y = y - this.netScroll.y;
+        var x = x - this.netScroll.x;
+		var dx = 0;
+		var dy = 0;
+		if (y < 0) {
+			dy = -y;
+		} else if (y > this.viewport.height + this.viewport.y) {
+			var offset = y - (this.viewport.height + this.viewport.y);
+			dy = offset + this.viewport.height/2;
+		} 
+		
+		if (x < 0) {
+			dx = -x;
+		} else if (x > this.viewport.width + this.viewport.x) {
+			var offset = x - (this.viewport.width + this.viewport.x);
+			dx = offset + this.viewport.width -50;
+		}
+		if (dx != 0 || dy != 0) {
+		    this.scrollOffset(dx,dy);
+		}
+	}
     
     musicCursor(measureIndex,noteIndex) {
         var key = '' + measureIndex  + '-' + noteIndex;
@@ -8207,13 +8234,8 @@ class suiTracker {
             var y = pos.y - this.netScroll.y;
             var x = pos.x - this.netScroll.x;
             $(rd).css('top',y).css('left',x);
-            if (y < 0) {
-                console.log('cursor above');
-            } else if (y > this.viewport.height + this.viewport.y) {
-                console.log('cursor below');
-                this.scrollOffset(0,this.viewport.height/2);
-            }
             $('.workspace').append(rd);
+			this.scrollVisible(pos.x,pos.y);
         }
     }
     
@@ -11590,7 +11612,7 @@ class SuiTextMenu extends suiMenuBase {
             var txtObj = new ctor(menuObj.params);
             SmoUndoable.scoreOp(this.editor.score,menuObj.operation,
                txtObj, this.editor.undoBuffer,'Text Menu Command');     
-			this._editNewText(txtObj);                
+			this._editNewText(txtObj);
         }
 
 		this.complete();
@@ -12711,21 +12733,29 @@ class SuiDialogBase {
 
 			});
 		this.dialogElements = dialogElements;
+		this.tracker = parameters.tracker;
+		this.tracker.scrollVisible(parameters.left,parameters.top);
+		var top = parameters.top - this.tracker.netScroll.y;
+		var left = parameters.left - this.tracker.netScroll.x;
+		
 		this.dgDom = this._constructDialog(dialogElements, {
 				id: 'dialog-' + this.id,
-				top: parameters.top,
-				left: parameters.left,
+				top: top,
+				left: left,
 				label: parameters.label
 			});
 	}
 	position(box) {
-		var y = box.y + box.height;
+		var y = (box.y + box.height) - this.tracker.netScroll.y;
 
 		// TODO: adjust if db is clipped by the browser.
-        var dge = $(this.dgDom.element).find('.attributeModal')
+        var dge = $(this.dgDom.element).find('.attributeModal');
+		
+		var offset = $(dge).height() + y > window.innerHeight ? ($(dge).height() + y) -  window.innerHeight : 0;
+		y = (y < 0) ? -y : y - offset;
 		$(dge).css('top', '' + y + 'px');
-        
-        var x = box.x;
+
+        var x = box.x - this.tracker.netScroll.x;
         var w = $(dge).width();
         x = (x > window.innerWidth /2)  ? x - (w+25) : x + (w+25);
         $(dge).css('left', '' + x + 'px');
@@ -12733,10 +12763,11 @@ class SuiDialogBase {
 	_constructDialog(dialogElements, parameters) {
 		var id = parameters.id;
 		var b = htmlHelpers.buildDom;
-		var r = b('div').classes('attributeModal').css('top', parameters.top + 'px').css('left', parameters.left + 'px')
+		var r = b('div').classes('attributeModal').attr('id','attr-modal-'+id)
+            .css('top', parameters.top + 'px').css('left', parameters.left + 'px')
 			.append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move jsDbMove')))
 			.append(b('h2').text(parameters.label));
-            
+
         var ctrl = b('div').classes('smoControlContainer');
 		dialogElements.forEach((de) => {
 			var ctor = eval(de.control);
@@ -12788,7 +12819,7 @@ class SuiDialogBase {
 		htmlHelpers.draggable({
 			parent: $(this.dgDom.element).find('.attributeModal'),
 			handle: $(this.dgDom.element).find('.jsDbMove'),
-            animateDiv:'.draganime',            
+            animateDiv:'.draganime',
 			cb: cb,
 			moveParent: true
 		});
@@ -12827,7 +12858,8 @@ class SuiFileDialog extends SuiDialogBase {
 			id: 'dialog-file',
 			top: (p.layout.score.layout.pageWidth / 2) - 200,
 			left: (p.layout.score.layout.pageHeight / 2) - 200,
-			label: label
+			label: label,
+			tracker:parameters.tracker
 		});
         this.startPromise=p.closeMenuPromise;
 		this.layout = p.layout;
@@ -12840,35 +12872,35 @@ class SuiFileDialog extends SuiDialogBase {
         $('body').addClass('showAttributeDialog');
 		this.components.forEach((component) => {
 			component.bind();
-		});		
+		});
 		this._bindElements();
-        
+
         // make sure keyboard is unbound or we get dupicate key events.
         var self=this;
         function getKeys() {
             self.controller.unbindKeyboardForDialog(self);
         }
-        this.startPromise.then(getKeys);        
+        this.startPromise.then(getKeys);
 	}
     _bindElements() {
 		var self = this;
-		var dgDom = this.dgDom;       
+		var dgDom = this.dgDom;
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
             self.commit();
 		});
 
 		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-			self.complete();	
+			self.complete();
 		});
 
 		$(dgDom.element).find('.remove-button').remove();
 	}
 
-    
+
 }
 class SuiLoadFileDialog extends SuiFileDialog {
-   
+
     static get dialogElements() {
 		return [{
 				smoName: 'loadFile',
@@ -12877,8 +12909,8 @@ class SuiLoadFileDialog extends SuiFileDialog {
 				control: 'SuiFileDownloadComponent',
 				label:''
 			}];
-    }    
-    
+    }
+
     changed() {
         this.value = this.components[0].getValue();
         $(this.dgDom.element).find('.ok-button').prop('disabled',false);
@@ -12903,9 +12935,10 @@ class SuiLoadFileDialog extends SuiFileDialog {
         }
     }
     static createAndDisplay(params) {
-		var dg = new SuiLoadFileDialog({				
+		var dg = new SuiLoadFileDialog({
 				layout: params.controller.layout,
 				controller: params.controller,
+				tracker:params.controller.tracker,
                 closeMenuPromise:params.closeMenuPromise,
                 label:'Open File'
 			});
@@ -12925,14 +12958,14 @@ class SuiPrintFileDialog extends SuiFileDialog {
 		return [];
     }
     static createAndDisplay(params) {
-		var dg = new SuiPrintFileDialog({				
+		var dg = new SuiPrintFileDialog({
 				layout: params.controller.layout,
 				controller: params.controller,
                 closeMenuPromise:params.closeMenuPromise,
                 label: 'Print Complete'
 			});
 		dg.display();
-        
+
 	}
     constructor(parameters) {
         parameters.ctor='SuiPrintFileDialog';
@@ -12942,8 +12975,8 @@ class SuiPrintFileDialog extends SuiFileDialog {
     changed() {}
     _bindElements() {
         var self = this;
-        var dgDom = this.dgDom;       
-   
+        var dgDom = this.dgDom;
+
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
             $('body').removeClass('printing');
             self.complete();
@@ -12951,10 +12984,10 @@ class SuiPrintFileDialog extends SuiFileDialog {
 
 		$(dgDom.element).find('.cancel-button').remove();
 		$(dgDom.element).find('.remove-button').remove();
-	}       
+	}
 }
 class SuiSaveFileDialog extends SuiFileDialog {
-   
+
     static get dialogElements() {
 		return [{
 				smoName: 'saveFileName',
@@ -12963,10 +12996,10 @@ class SuiSaveFileDialog extends SuiFileDialog {
 				control: 'SuiTextInputComponent',
 				label:'File Name'
 			}];
-    }    
-   
+    }
+
     changed() {
-        this.value = this.components[0].getValue();        
+        this.value = this.components[0].getValue();
     }
     commit() {
         var filename = this.value;
@@ -12980,13 +13013,14 @@ class SuiSaveFileDialog extends SuiFileDialog {
         txt = JSON.stringify(txt,null,' ');
         htmlHelpers.addFileLink(filename,txt,$('.saveLink'));
         $('.saveLink a')[0].click();
-        this.complete();        
-    }   
+        this.complete();
+    }
     static createAndDisplay(params) {
-		var dg = new SuiSaveFileDialog({				
+		var dg = new SuiSaveFileDialog({
 				layout: params.controller.layout,
 				controller: params.controller,
-                closeMenuPromise:params.closeMenuPromise,
+  				tracker:params.controller.tracker,
+               closeMenuPromise:params.closeMenuPromise,
                 label:'Save File'
 			});
 		dg.display();
@@ -12999,8 +13033,9 @@ class SuiSaveFileDialog extends SuiFileDialog {
 
 class SuiLyricDialog extends SuiDialogBase {
     static createAndDisplay(buttonElement, buttonData, controller) {
-		var dg = new SuiLyricDialog({				
+		var dg = new SuiLyricDialog({
 				layout: controller.layout,
+				tracker:controller.tracker,
 				controller: controller
 			});
 		dg.display();
@@ -13017,8 +13052,9 @@ class SuiLyricDialog extends SuiDialogBase {
 			id: 'dialog-layout',
 			top: (p.layout.score.layout.pageWidth / 2) - 200,
 			left: (p.layout.score.layout.pageHeight / 2) - 200,
-			label: p.label
-		});        
+			label: p.label,			
+			tracker:parameters.tracker
+		});
         this.layout = p.layout;
 		this.controller = p.controller;
         this.tracker = this.controller.tracker;
@@ -13028,9 +13064,9 @@ class SuiLyricDialog extends SuiDialogBase {
         $(this.dgDom.element).find('.buttonContainer').addClass('show-text-edit');
 		this.components.forEach((component) => {
 			component.bind();
-		});		
+		});
 		this._bindElements();
-        
+
         // make sure keyboard is unbound or we get dupicate key events.
         var self=this;
         this.controller.unbindKeyboardForDialog(this);
@@ -13039,7 +13075,7 @@ class SuiLyricDialog extends SuiDialogBase {
         htmlHelpers.draggable({
 			parent: $(this.dgDom.element).find('.attributeModal'),
 			handle: $(this.dgDom.element).find('.jsDbMove'),
-            animateDiv:'.draganime',            
+            animateDiv:'.draganime',
 			cb: cb,
 			moveParent: true
 		});
@@ -13047,15 +13083,15 @@ class SuiLyricDialog extends SuiDialogBase {
     changed() {}
     _bindElements() {
         var self = this;
-        var dgDom = this.dgDom;       
-   
+        var dgDom = this.dgDom;
+
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
             self.editor.detach();
             $('.textEdit').addClass('hide');
             self.controller.bindEvents();
             self.complete();
 		});
-        
+
         // tracker, selection, controller
 		var selection = this.tracker.getExtremeSelection(-1);
 		this.editor = new editLyricSession({tracker:this.tracker,selection:selection,controller:this.controller});
@@ -13064,7 +13100,7 @@ class SuiLyricDialog extends SuiDialogBase {
 
 		$(dgDom.element).find('.cancel-button').remove();
 		$(dgDom.element).find('.remove-button').remove();
-	}       
+	}
 }
 class SuiTextTransformDialog  extends SuiDialogBase {
     static createAndDisplay(parameters) {
@@ -13072,7 +13108,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 		dg.display();
         return dg;
 	}
-    
+
     static get dialogElements() {
 		return [{
 				smoName: 'textEditor',
@@ -13162,7 +13198,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
                   {label:'Arial',value:'Arial'},
                   {label:'Helvetica',value:'Helvetica'}
                   ]
-                  
+
 			},
             {
 				smoName: 'fontSize',
@@ -13181,15 +13217,15 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 				label: 'Units',
                 options: [{value:'em',label:'em'},{value:'px',label:'px'},{value:'pt',label:'pt'}]
 			},
-            
+
             ];
     }
-    
+
     display() {
 		$('body').addClass('showAttributeDialog');
-		this.components.forEach((component) => {            
+		this.components.forEach((component) => {
 			component.bind();
-            
+
             if (component.smoName === 'textDragger') {
                 this.textDragger = component;
             }
@@ -13197,14 +13233,14 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			  component.setValue(this.modifier[component.parameterName]);
             }
 		});
-        
+
         var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
         var dbFontUnit  = this.components.find((c) => c.smoName === 'fontUnit');
         var fontSize = this.modifier.fontInfo.size;
         fontSize=svgHelpers.getFontSize(fontSize);
         dbFontSize.setValue(fontSize.size);
         dbFontUnit.setValue(fontSize.unit);
-        
+
 		this._bindElements();
 		this.position(this.modifier.renderedBox);
 
@@ -13220,7 +13256,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
             if ($(ctrl).hasClass('cbTextInPlace')) {
                 $(ctrl).addClass('fold-textmove');
             } else if ($(ctrl).hasClass('cbDragTextDialog')) {
-                $(ctrl).addClass('fold-textedit');                
+                $(ctrl).addClass('fold-textedit');
             } else {
                 $(ctrl).addClass('fold-textedit');
                 $(ctrl).addClass('fold-textmove');
@@ -13232,18 +13268,18 @@ class SuiTextTransformDialog  extends SuiDialogBase {
             textEditor.startEditSession();
         }
 	}
-    
+
     changed() {
-        
+
         var textEditor = this.components.find((c) => c.smoName === 'textEditor');
         this.modifier.text = textEditor.getValue();
         this.components.find((x) => {
-            if (typeof(x['getValue'])=='function') {                
+            if (typeof(x['getValue'])=='function') {
                 if (x.parameterName.indexOf('scale') == 0) {
-                   var val = x.getValue();                    
+                   var val = x.getValue();
                     var fcn = x.parameterName+'InPlace';
                     this.modifier[fcn](val);
-                } 
+                }
             }
 		});
         var xcomp = this.components.find((x) => x.smoName === 'x');
@@ -13252,22 +13288,22 @@ class SuiTextTransformDialog  extends SuiDialogBase {
             var val = this.textDragger.getValue();
             xcomp.setValue(val.x);
             ycomp.setValue(val.y);
-        } 
+        }
         this.modifier.x=xcomp.getValue();
         this.modifier.y=ycomp.getValue();
-        
+
         var fontComp = this.components.find((c) => c.smoName === 'fontFamily');
         this.modifier.fontInfo.family = fontComp.getValue();
-        
+
         var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
         var dbFontUnit  = this.components.find((c) => c.smoName === 'fontUnit');
         this.modifier.fontInfo.size=''+dbFontSize.getValue()+dbFontUnit.getValue();
-        
+
         // Use layout context because render may have reset svg.
         $(this.layout.context.svg).find('.' + this.modifier.attrs.id).remove();;
         this.layout.renderScoreText(this.modifier);
     }
-    
+
 
 	constructor(parameters) {
 		if (!parameters.modifier) {
@@ -13278,9 +13314,10 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			id: 'dialog-' + parameters.modifier.attrs.id,
 			top: parameters.modifier.renderedBox.y,
 			left: parameters.modifier.renderedBox.x,
-			label: 'Text Box Properties'
+			label: 'Text Box Properties',
+			tracker:parameters.tracker
 		});
-       
+
         this.undo = parameters.undo;
         // Do we jump right into editing?
         this.textElement=$(parameters.context.svg).find('.' + parameters.modifier.attrs.id)[0];
@@ -13288,7 +13325,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         this.modifier.backupParams();
 	}
     _commit() {
-        
+
     }
     _bindElements() {
         var self = this;
@@ -13438,7 +13475,7 @@ class SuiLayoutDialog extends SuiDialogBase {
 		htmlHelpers.draggable({
 			parent: $(this.dgDom.element).find('.attributeModal'),
 			handle: $(this.dgDom.element).find('.icon-move'),
-            animateDiv:'.draganime',            
+            animateDiv:'.draganime',
 			cb: cb,
 			moveParent: true
 		});
@@ -13455,15 +13492,15 @@ class SuiLayoutDialog extends SuiDialogBase {
 		var dgDom = this.dgDom;
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-			
+
 			// TODO:  allow user to select a zoom mode.
 			self.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
 			self.layout.setViewport(true);
-			self.complete();			
+			self.complete();
 		});
 
 		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-			self._handleCancel();	
+			self._handleCancel();
 		});
 
 		$(dgDom.element).find('.remove-button').remove();
@@ -13485,15 +13522,15 @@ class SuiLayoutDialog extends SuiDialogBase {
 		var pageSizeComp = this.components.find((x)=>{return x.parameterName==='pageSize'});
 		var sel = pageSizeComp.getValue();
 		if (sel === 'custom') {
-			$('.attributeModal').addClass('customPage');			
+			$('.attributeModal').addClass('customPage');
 		} else {
 			$('.attributeModal').removeClass('customPage');
 			var dim = SmoScore.pageDimensions[sel];
 			var hComp = this.components.find((x)=>{return x.parameterName==='pageHeight'});
 			var wComp = this.components.find((x)=>{return x.parameterName==='pageWidth'});
 			hComp.setValue(dim.height);
-			wComp.setValue(dim.width);			
-		}		
+			wComp.setValue(dim.width);
+		}
 	}
 	changed() {
 		// this.modifier.backupOriginal();
@@ -13504,7 +13541,7 @@ class SuiLayoutDialog extends SuiDialogBase {
 		this.layout.setViewport();
 	}
 	static createAndDisplay(buttonElement, buttonData, controller) {
-		var dg = new SuiLayoutDialog({				
+		var dg = new SuiLayoutDialog({
 				layout: controller.layout,
 				controller: controller
 			});
@@ -13520,7 +13557,8 @@ class SuiLayoutDialog extends SuiDialogBase {
 			id: 'dialog-layout',
 			top: (p.layout.score.layout.pageWidth / 2) - 200,
 			left: (p.layout.score.layout.pageHeight / 2) - 200,
-			label: 'Score Layout'
+			label: 'Score Layout',
+			tracker:parameters.controller.tracker
 		});
 		this.layout = p.layout;
 		this.modifier = this.layout.score.layout;
@@ -13596,7 +13634,8 @@ class SuiTextModifierDialog extends SuiDialogBase {
 			id: 'dialog-' + parameters.modifier.id,
 			top: parameters.modifier.renderedBox.y,
 			left: parameters.modifier.renderedBox.x,
-			label: 'Dynamics Properties'
+			label: 'Dynamics Properties',
+			tracker:parameters.tracker
 		});
 		Vex.Merge(this, parameters);
 		this.components.find((x) => {
@@ -14211,13 +14250,13 @@ class defaultRibbonLayout {
 		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds)
             .concat(defaultRibbonLayout.beamIds).concat(defaultRibbonLayout.measureIds).concat(defaultRibbonLayout.staveIds)
               .concat(defaultRibbonLayout.textIds).concat(defaultRibbonLayout.playerIds).concat(defaultRibbonLayout.debugIds);
-			
+
 		return {
 			left: left,
 			top:top
 		};
 	}
-	
+
 	static get ribbonButtons() {
 		return defaultRibbonLayout.leftRibbonButtons.concat(
 			defaultRibbonLayout.navigationButtons).concat(
@@ -14228,29 +14267,29 @@ class defaultRibbonLayout {
 			.concat(defaultRibbonLayout.staveRibbonButtons)
             .concat(defaultRibbonLayout.textRibbonButtons).concat(defaultRibbonLayout.playerButtons).concat(defaultRibbonLayout.debugRibbonButtons);
 	}
-	
+
 	static get leftRibbonIds() {
 		return ['helpDialog', 'fileMenu','addStaffMenu', 'tempoModal','timeSignatureMenu','keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
 	}
 	static get noteButtonIds() {
 		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton',
 				'UpNoteButton', 'DownNoteButton', 'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
-	}	
+	}
 	static get navigateButtonIds()  {
 		return ['NavigationButtons', 'navLeftButton', 'navRightButton', 'navUpButton', 'navDownButton', 'navFastForward', 'navRewind',
 				'navGrowLeft', 'navGrowRight'];
 	}
-	
+
 	static get articulateButtonIds()  {
 		return ['articulationButtons', 'accentButton', 'tenutoButton', 'staccatoButton', 'marcatoButton',  'pizzicatoButton','mordentButton','mordentInvertedButton','trillButton'];
 	}
-	
+
 	static get intervalIds()  {
 		return ['CreateChordButtons', 'SecondUpButton', 'SecondDownButton', 'ThirdUpButton', 'ThirdDownButton', 'FourthUpButton', 'FourthDownButton',
 				'FifthUpButton', 'FifthDownButton','SixthUpButton', 'SixthDownButton'
 				,'SeventhUpButton', 'SeventhDownButton','OctaveUpButton','OctaveDownButton','CollapseChordButton'];
 	}
-	
+
 	static get debugIds() {
 		return ['DebugGroup','DebugButton2'];
 	}
@@ -14260,22 +14299,22 @@ class defaultRibbonLayout {
 	static get measureIds() {
 		return ['MeasureButtons','endRepeat','startRepeat','endBar','doubleBar','singleBarEnd','singleBarStart','nthEnding','dcAlCoda','dsAlCoda','dcAlFine','dsAlFine','coda','toCoda','segno','toSegno','fine'];
 	}
-    
+
     static get textIds() {
 		return ['TextButtons','addTextMenu','rehearsalMark','lyrics','addDynamicsMenu'];
 	}
-    
+
     static get beamIds() {
 		return ['BeamButtons','breakBeam','beamSelections','toggleBeamDirection'];
 	}
     static get staveIds() {
 		return ['StaveButtons','clefTreble','clefBass','clefTenor','clefAlto','clefMoveUp','clefMoveDown'];
 	}
-    
+
     static get playerIds() {
         return ['playerButtons','playButton','pauseButton','stopButton'];
     }
-    
+
     static get textRibbonButtons() {
         return [
         {
@@ -14286,7 +14325,7 @@ class defaultRibbonLayout {
 				action: 'collapseParent',
 				ctor: 'CollapseRibbonControl',
 				group: 'textEdit',
-				id: 'TextButtons'			
+				id: 'TextButtons'
 		},
         {
                 leftText: '',
@@ -14296,7 +14335,7 @@ class defaultRibbonLayout {
 				action: 'collapseChild',
 				ctor: 'TextButtons',
 				group: 'textEdit',
-				id: 'addTextMenu'		
+				id: 'addTextMenu'
 		},{
                 leftText: '',
 				rightText: '',
@@ -14305,7 +14344,7 @@ class defaultRibbonLayout {
 				action: 'collapseChild',
 				ctor: 'TextButtons',
 				group: 'textEdit',
-				id: 'rehearsalMark'		
+				id: 'rehearsalMark'
 		},{
                 leftText: '',
 				rightText: '',
@@ -14314,7 +14353,7 @@ class defaultRibbonLayout {
 				action: 'collapseChild',
 				ctor: 'TextButtons',
 				group: 'textEdit',
-				id: 'lyrics'		
+				id: 'lyrics'
 		} ,{
                 leftText: '',
 				rightText: '/d',
@@ -14323,11 +14362,11 @@ class defaultRibbonLayout {
 				action: 'collapseChild',
 				ctor: 'TextButtons',
 				group: 'textEdit',
-				id: 'addDynamicsMenu'		
-		} 
+				id: 'addDynamicsMenu'
+		}
         ];
     }
-	
+
 	static get staveRibbonButtons() {
 		return [{
 			leftText: '',
@@ -14337,7 +14376,7 @@ class defaultRibbonLayout {
 				action: 'collapseParent',
 				ctor: 'CollapseRibbonControl',
 				group: 'staves',
-				id: 'StaveButtons'			
+				id: 'StaveButtons'
 		},{
 			leftText: '',
 				rightText: '',
@@ -14395,7 +14434,7 @@ class defaultRibbonLayout {
 		}
 		];
 	}
-    
+
     static get beamRibbonButtons() {
         return [{
 			leftText: '',
@@ -14405,7 +14444,7 @@ class defaultRibbonLayout {
 				action: 'collapseParent',
 				ctor: 'CollapseRibbonControl',
 				group: 'beams',
-				id: 'BeamButtons'			
+				id: 'BeamButtons'
 		},{
 				leftText: '',
 				rightText: 'x',
@@ -14438,7 +14477,7 @@ class defaultRibbonLayout {
 			}
         ];
     }
-	
+
 	static get measureRibbonButtons() {
 		return [{
 			leftText: '',
@@ -14448,7 +14487,7 @@ class defaultRibbonLayout {
 				action: 'collapseParent',
 				ctor: 'CollapseRibbonControl',
 				group: 'measure',
-				id: 'MeasureButtons'			
+				id: 'MeasureButtons'
 		},{
 				leftText: '',
 				rightText: '',
@@ -14499,7 +14538,7 @@ class defaultRibbonLayout {
 				ctor: 'MeasureButtons',
 				group: 'measure',
 				id: 'singleBarEnd'
-			},			
+			},
 			{
 				leftText: '',
 				rightText: '',
@@ -14623,7 +14662,7 @@ class defaultRibbonLayout {
 				id: 'DebugButton2'
 			}];
 	}
-	
+
 	static get durationRibbonButtons() {
 		return [{
 				leftText: '',
@@ -15287,10 +15326,10 @@ class defaultRibbonLayout {
 				ctor: 'SuiFileMenu',
 				group: 'scoreEdit',
 				id: 'fileMenu'
-			}, 
+			},
 			 {
 				leftText: 'Tempo',
-				rightText: '',
+				rightText: 't',
 				icon: '',
 				classes: 'icon ',
 				action: 'modal',
@@ -55664,8 +55703,9 @@ class SuiTempoDialog extends SuiDialogBase {
             },
 		{
 			parameterName: 'duration',
-			smoName: 'duration',
-			defaultValue: '4096',
+			smoName: 'beatDuration',
+			defaultValue: 4096,
+            dataType:'int',
 			control: 'SuiDropdownComponent',
 			label: 'Unit for Beat',
 			options: [{
@@ -55683,13 +55723,7 @@ class SuiTempoDialog extends SuiDialogBase {
 				}
 			]
 		},
-		{
-			smoName:'applyToAll',
-			parameterName:'applyToAll',
-			defaultValue: false,
-			control:'SuiToggleComponent',
-			label:'Apply to all future measures?'
-		},
+
             {
             smoName: 'tempoText',
             parameterName: 'tempoText',
@@ -55747,6 +55781,12 @@ class SuiTempoDialog extends SuiDialogBase {
               }
             ]
         },{
+			smoName:'applyToAll',
+			parameterName:'applyToAll',
+			defaultValue: false,
+			control:'SuiToggleComponent',
+			label:'Apply to all future measures?'
+		},{
                 smoName: 'display',
                 parameterName: 'display',
                 defaultValue: true,
@@ -55786,7 +55826,8 @@ class SuiTempoDialog extends SuiDialogBase {
             id: 'dialog-tempo',
             top: parameters.modifier.renderedBox.y,
             left: parameters.modifier.renderedBox.x,
-            label: 'Tempo Properties'
+            label: 'Tempo Properties',
+			tracker:parameters.controller.tracker
         });
         this.refresh = false;
         Vex.Merge(this, parameters);
@@ -55822,7 +55863,7 @@ class SuiTempoDialog extends SuiDialogBase {
         });
         if (this.modifier.tempoMode == SmoTempoText.tempoModes.textMode) {
             this.modifier.bpm = SmoTempoText.bpmFromText[this.modifier.tempoText];
-        } 
+        }
 		this._updateModeClass();
         this.refresh = true;
     }
@@ -55894,7 +55935,7 @@ class SuiTempoDialog extends SuiDialogBase {
                 self.complete();
                 resolve();
             });
-        });            
+        });
         this.controller.unbindKeyboardForDialog(this);
     }
 }
@@ -56000,7 +56041,8 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
             id: 'dialog-' + parameters.modifier.id,
             top: parameters.modifier.renderedBox.y,
             left: parameters.modifier.renderedBox.x,
-            label: 'Slur Properties'
+            label: 'Slur Properties',
+			tracker:parameters.tracker
         });
         Vex.Merge(this, parameters);
     }
@@ -56082,7 +56124,8 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
             id: 'dialog-' + parameters.modifier.id,
             top: parameters.modifier.renderedBox.y,
             left: parameters.modifier.renderedBox.x,
-            label: 'Hairpin Properties'
+            label: 'Hairpin Properties',
+			tracker:parameters.tracker
         });
         Vex.Merge(this, parameters);
 		SmoVolta.editableAttributes.forEach((attr) => {
@@ -56139,7 +56182,8 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
             id: 'dialog-' + parameters.modifier.id,
             top: parameters.modifier.renderedBox.y,
             left: parameters.modifier.renderedBox.x,
-            label: 'Hairpin Properties'
+            label: 'Hairpin Properties',
+			tracker:parameters.tracker
         });
         Vex.Merge(this, parameters);
 		SmoStaffHairpin.editableAttributes.forEach((attr) => {
@@ -56729,7 +56773,6 @@ class suiController {
         this.keyboardActive = false;
 		this.pollTime = 100;
 		this.idleRedrawTime = 2000;
-		this.waitingForIdleLayout = false;
 		this.idleLayoutTimer = 0;
 
 		this.ribbon = new RibbonButtons({
@@ -56797,12 +56840,8 @@ class suiController {
                 }
 			} else if (this.layout.passState === suiLayoutBase.passStates.replace) {
 				// Do we need to refresh the score?
-				if (!this.waitingForIdleLayout === false) {
-					this.waitingForIdleLayout = false;
-					this.idleLayoutTimer = Date.now();
-				} else if (Date.now() - this.idleLayoutTimer > this.idleRedrawTime) {
+				if (Date.now() - this.idleLayoutTimer > this.idleRedrawTime) {
 					this.layout.setRefresh();
-					this.waitingForIdleLayout = false;
 				}
 			}
 	}

@@ -40,23 +40,29 @@ class SuiDialogBase {
 
 			});
 		this.dialogElements = dialogElements;
-		this.dgDom = this._constructDialog(dialogElements, {
-				id: 'dialog-' + this.id,
-				top: parameters.top,
-				left: parameters.left,
-				label: parameters.label
-			});
 		this.tracker = parameters.tracker;
 		this.tracker.scrollVisible(parameters.left,parameters.top);
+		var top = parameters.top - this.tracker.netScroll.y;
+		var left = parameters.left - this.tracker.netScroll.x;
+		
+		this.dgDom = this._constructDialog(dialogElements, {
+				id: 'dialog-' + this.id,
+				top: top,
+				left: left,
+				label: parameters.label
+			});
 	}
 	position(box) {
-		var y = box.y + box.height;
+		var y = (box.y + box.height) - this.tracker.netScroll.y;
 
 		// TODO: adjust if db is clipped by the browser.
-        var dge = $(this.dgDom.element).find('.attributeModal')
+        var dge = $(this.dgDom.element).find('.attributeModal');
+		
+		var offset = $(dge).height() + y > window.innerHeight ? ($(dge).height() + y) -  window.innerHeight : 0;
+		y = (y < 0) ? -y : y - offset;
 		$(dge).css('top', '' + y + 'px');
 
-        var x = box.x;
+        var x = box.x - this.tracker.netScroll.x;
         var w = $(dge).width();
         x = (x > window.innerWidth /2)  ? x - (w+25) : x + (w+25);
         $(dge).css('left', '' + x + 'px');
@@ -239,6 +245,7 @@ class SuiLoadFileDialog extends SuiFileDialog {
 		var dg = new SuiLoadFileDialog({
 				layout: params.controller.layout,
 				controller: params.controller,
+				tracker:params.controller.tracker,
                 closeMenuPromise:params.closeMenuPromise,
                 label:'Open File'
 			});
@@ -319,7 +326,8 @@ class SuiSaveFileDialog extends SuiFileDialog {
 		var dg = new SuiSaveFileDialog({
 				layout: params.controller.layout,
 				controller: params.controller,
-                closeMenuPromise:params.closeMenuPromise,
+  				tracker:params.controller.tracker,
+               closeMenuPromise:params.closeMenuPromise,
                 label:'Save File'
 			});
 		dg.display();
@@ -334,6 +342,7 @@ class SuiLyricDialog extends SuiDialogBase {
     static createAndDisplay(buttonElement, buttonData, controller) {
 		var dg = new SuiLyricDialog({
 				layout: controller.layout,
+				tracker:controller.tracker,
 				controller: controller
 			});
 		dg.display();
@@ -856,7 +865,7 @@ class SuiLayoutDialog extends SuiDialogBase {
 			top: (p.layout.score.layout.pageWidth / 2) - 200,
 			left: (p.layout.score.layout.pageHeight / 2) - 200,
 			label: 'Score Layout',
-			tracker:parameters.tracker
+			tracker:parameters.controller.tracker
 		});
 		this.layout = p.layout;
 		this.modifier = this.layout.score.layout;

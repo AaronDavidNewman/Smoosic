@@ -178,7 +178,7 @@ class SuiTempoDialog extends SuiDialogBase {
             top: parameters.modifier.renderedBox.y,
             left: parameters.modifier.renderedBox.x,
             label: 'Tempo Properties',
-			tracker:parameters.tracker
+			tracker:parameters.controller.tracker
         });
         this.refresh = false;
         Vex.Merge(this, parameters);
