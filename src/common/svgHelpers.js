@@ -251,8 +251,8 @@ class svgHelpers {
 
 		return rv;
 	}
-	static findSmallestIntersection(clientBox, objects) {
-		var ar = svgHelpers.findIntersectingArtifact(clientBox, objects);
+	static findSmallestIntersection(clientBox, objects, netScroll) {
+		var ar = svgHelpers.findIntersectingArtifact(clientBox, objects, netScroll);
 		if (!ar.length) {
 			return null;
 		}

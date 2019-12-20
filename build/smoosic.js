@@ -908,8 +908,8 @@ class svgHelpers {
 
 		return rv;
 	}
-	static findSmallestIntersection(clientBox, objects) {
-		var ar = svgHelpers.findIntersectingArtifact(clientBox, objects);
+	static findSmallestIntersection(clientBox, objects, netScroll) {
+		var ar = svgHelpers.findIntersectingArtifact(clientBox, objects, netScroll);
 		if (!ar.length) {
 			return null;
 		}
@@ -9389,6 +9389,7 @@ class suiLayoutBase {
 class suiPiano {
 	constructor(parameters) {
 		this.elementId = parameters.elementId;
+        this.tracker = parameters.tracker;
 		this.renderElement = document.getElementById('piano-svg')
 			this.selections = [];
 		this.render();
@@ -9460,7 +9461,7 @@ class suiPiano {
 			var keyPressed = svgHelpers.findSmallestIntersection({
 					x: ev.clientX,
 					y: ev.clientY
-				}, self.objects);
+				}, self.objects,self.tracker.netScroll);
 			if (!keyPressed) {
 				return;
 			}
@@ -9490,7 +9491,7 @@ class suiPiano {
 		var keyPressed = svgHelpers.findSmallestIntersection({
 				x: ev.clientX,
 				y: ev.clientY
-			}, this.objects);
+			}, this.objects,this.tracker.netScroll);
 		if (!keyPressed) {
 			return;
 		}
@@ -56871,7 +56872,7 @@ class suiController {
 		}, 1000);
 	}
 	piano() {
-		this.piano = new suiPiano({elementId:'piano-svg'});
+		this.piano = new suiPiano({elementId:'piano-svg',tracker:this.tracker});
         $('.close-piano').click();
 	}
 	updateOffsets() {

@@ -125,7 +125,7 @@ class suiController {
 		}, 1000);
 	}
 	piano() {
-		this.piano = new suiPiano({elementId:'piano-svg'});
+		this.piano = new suiPiano({elementId:'piano-svg',tracker:this.tracker});
         $('.close-piano').click();
 	}
 	updateOffsets() {

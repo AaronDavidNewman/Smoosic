@@ -2,6 +2,7 @@
 class suiPiano {
 	constructor(parameters) {
 		this.elementId = parameters.elementId;
+        this.tracker = parameters.tracker;
 		this.renderElement = document.getElementById('piano-svg')
 			this.selections = [];
 		this.render();
@@ -73,7 +74,7 @@ class suiPiano {
 			var keyPressed = svgHelpers.findSmallestIntersection({
 					x: ev.clientX,
 					y: ev.clientY
-				}, self.objects);
+				}, self.objects,self.tracker.netScroll);
 			if (!keyPressed) {
 				return;
 			}
@@ -103,7 +104,7 @@ class suiPiano {
 		var keyPressed = svgHelpers.findSmallestIntersection({
 				x: ev.clientX,
 				y: ev.clientY
-			}, this.objects);
+			}, this.objects,this.tracker.netScroll);
 		if (!keyPressed) {
 			return;
 		}
