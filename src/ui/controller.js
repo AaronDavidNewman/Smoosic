@@ -16,6 +16,7 @@ class suiController {
 	constructor(params) {
 		Vex.Merge(this, suiController.defaults);
 		Vex.Merge(this, params);
+		window.suiControllerInstance = this;
 		this.undoBuffer = new UndoBuffer();
 		this.pasteBuffer = this.tracker.pasteBuffer;
 		this.editor.controller = this;
@@ -59,6 +60,11 @@ class suiController {
 		return '.musicRelief';
 	}
 	
+	get isLayoutQuiet() {
+		return ((this.layout.passState == suiLayoutBase.passStates.clean && this.layout.dirty == false) 
+		   || this.layout.passState == suiLayoutBase.passStates.replace);
+	}
+	
 	handleScrollEvent(ev) {
 		var self=this;
 		if (self.trackScrolling) {
@@ -67,8 +73,14 @@ class suiController {
 		self.trackScrolling = true;
 		setTimeout(function() {
             try {
-			// self.scrollRedrawStatus = true;
+		    // wait until redraw is done to track scroll events.
 			self.trackScrolling = false;
+			
+		    if (!self.isLayoutQuiet) {
+				self.handleScrollEvent();
+				return;
+			}
+			// self.scrollRedrawStatus = true;
             // self.tracker.updateMap(true);
             // Thisi s a WIP...
 			self.tracker.handleScroll($(suiController.scrollable)[0].scrollLeft,$(suiController.scrollable)[0].scrollTop);
@@ -134,7 +146,7 @@ class suiController {
 		$('.workspace-container').css('padding-left',''+padding+'px');
 		
 		// Keep track of the scroll bar so we can adjust the map
-		this.scrollPosition = $('body')[0].scrollTop;
+		// this.scrollPosition = $('body')[0].scrollTop;
 	}
 	resizeEvent() {
 		var self = this;		
@@ -144,7 +156,7 @@ class suiController {
 		setTimeout(function () {
 			console.log('resizing');
 			self.resizing = false;
-			self.layout.setViewport(true);
+			// self.layout.setViewport(true);
 			$('.musicRelief').height(window.innerHeight - $('.musicRelief').offset().top);
 			self.piano.handleResize();
 			self.updateOffsets();			
@@ -399,7 +411,7 @@ class suiController {
 		}
 
 		// TODO:  work dialogs into the scheme of things
-		if (evdata.key == 'p') {
+		if (evdata.key == 'Enter') {
 			self.trackerModifierSelect(evdata);
 		}
 
@@ -425,7 +437,8 @@ class suiController {
 
 	render() {		
 		this.layout.render();
-        if (this.layout.passState == suiLayoutBase.passStates.clean || this.layout.passState ==  suiLayoutBase.passStates.replace) {
+        if ((this.layout.passState == suiLayoutBase.passStates.clean && this.layout.dirty == false)
+ 			|| this.layout.passState ==  suiLayoutBase.passStates.replace) {
 		    this.tracker.updateMap();
         }
 	}

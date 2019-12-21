@@ -8014,6 +8014,9 @@ class suiTracker {
 		this.objects = [];
         this._scroll = {x:0,y:0};
         this._scrollInitial = {x:0,y:0};
+	    var scroller = $('.musicRelief');
+	    this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
+
 		this.selections = [];
         this.modifierSelections = [];
 		this.modifierTabs = [];
@@ -8031,6 +8034,7 @@ class suiTracker {
     
     handleScroll(x,y) {
         this._scroll = {x:x,y:y};
+		console.log('update scroll '+ x + ' '+y);
         this.viewport = svgHelpers.boxPoints(
           $('.musicRelief').offset().left,
           $('.musicRelief').offset().top,
@@ -8052,9 +8056,25 @@ class suiTracker {
     }
     
     get netScroll() {
-        return {x:this._scroll.x - this._scrollInitial.x,y:this._scroll.y - this._scrollInitial.y};
+		var xoffset = $('.musicRelief').offset().left - this._offsetInitial.x;
+		var yoffset = $('.musicRelief').offset().top - this._offsetInitial.y;
+        return {x:this._scroll.x - (this._scrollInitial.x + xoffset),y:this._scroll.y - (this._scrollInitial.y + yoffset)};
     }
 
+    // ### _checkBoxOffset
+	// If the mapped note and actual note don't match, re-render the notes so they do.
+	// Otherwise the selections are off.
+	_checkBoxOffset() {
+		var note = this.selections[0].note;
+		var ry = note.renderedBox.y;
+		var by = this.selections[0].box.y;
+		if (ry != by) {
+			this.layout.setDirty();
+		}
+				
+		console.log('tracker: log y '+ry+' rendered log y '+ by);		
+	}
+	
 	// ### renderElement
 	// the element the score is rendered on
 	get renderElement() {
@@ -8333,9 +8353,12 @@ class suiTracker {
 	// ### TODO:
 	// try to preserve the previous selection
 	_updateMap(rebox) {
+		console.log('update map');
 		var notes = [].slice.call(this.renderElement.getElementsByClassName('vf-stavenote'));
         var scroller = $('.musicRelief');
         this._scrollInitial = {x:$(scroller)[0].scrollLeft,y:$(scroller)[0].scrollTop};
+		this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
+		
 		this.groupObjectMap = {};
 		this.objectGroupMap = {};
         
@@ -8904,6 +8927,7 @@ class suiTracker {
 	triggerSelection() {
 		$('body').trigger('tracker-selection');
 	}
+	
 
 	highlightSelection() {
         var grace = this.getSelectedGraceNotes();
@@ -8922,6 +8946,7 @@ class suiTracker {
 		this.pitchIndex = -1;
 		this.eraseAllSelections();
 		if (this.selections.length === 1 && this.selections[0].box) {
+			this._checkBoxOffset();
 			this._drawRect(this.selections[0].box, 'selection');			
 			return;
 		}
@@ -9461,7 +9486,7 @@ class suiPiano {
 			var keyPressed = svgHelpers.findSmallestIntersection({
 					x: ev.clientX,
 					y: ev.clientY
-				}, self.objects,self.tracker.netScroll);
+				}, self.objects,{x:0,y:0});
 			if (!keyPressed) {
 				return;
 			}
@@ -9491,7 +9516,7 @@ class suiPiano {
 		var keyPressed = svgHelpers.findSmallestIntersection({
 				x: ev.clientX,
 				y: ev.clientY
-			}, this.objects,this.tracker.netScroll);
+			}, this.objects,{x:0,y:0});
 		if (!keyPressed) {
 			return;
 		}
@@ -11496,7 +11521,7 @@ class SuiFileMenu extends suiMenuBase {
 			this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
 			var score = SmoScore.deserialize(inventionJson);
 			this.controller.layout.score = score;
-			$('body').trigger('forceResizeEvent');
+			this.controller.layout.setViewport(true);
 		}
 		this.complete();
 	}
@@ -56763,6 +56788,7 @@ class suiController {
 	constructor(params) {
 		Vex.Merge(this, suiController.defaults);
 		Vex.Merge(this, params);
+		window.suiControllerInstance = this;
 		this.undoBuffer = new UndoBuffer();
 		this.pasteBuffer = this.tracker.pasteBuffer;
 		this.editor.controller = this;
@@ -56806,6 +56832,11 @@ class suiController {
 		return '.musicRelief';
 	}
 	
+	get isLayoutQuiet() {
+		return ((this.layout.passState == suiLayoutBase.passStates.clean && this.layout.dirty == false) 
+		   || this.layout.passState == suiLayoutBase.passStates.replace);
+	}
+	
 	handleScrollEvent(ev) {
 		var self=this;
 		if (self.trackScrolling) {
@@ -56814,8 +56845,14 @@ class suiController {
 		self.trackScrolling = true;
 		setTimeout(function() {
             try {
-			// self.scrollRedrawStatus = true;
+		    // wait until redraw is done to track scroll events.
 			self.trackScrolling = false;
+			
+		    if (!self.isLayoutQuiet) {
+				self.handleScrollEvent();
+				return;
+			}
+			// self.scrollRedrawStatus = true;
             // self.tracker.updateMap(true);
             // Thisi s a WIP...
 			self.tracker.handleScroll($(suiController.scrollable)[0].scrollLeft,$(suiController.scrollable)[0].scrollTop);
@@ -56881,7 +56918,7 @@ class suiController {
 		$('.workspace-container').css('padding-left',''+padding+'px');
 		
 		// Keep track of the scroll bar so we can adjust the map
-		this.scrollPosition = $('body')[0].scrollTop;
+		// this.scrollPosition = $('body')[0].scrollTop;
 	}
 	resizeEvent() {
 		var self = this;		
@@ -56891,7 +56928,7 @@ class suiController {
 		setTimeout(function () {
 			console.log('resizing');
 			self.resizing = false;
-			self.layout.setViewport(true);
+			// self.layout.setViewport(true);
 			$('.musicRelief').height(window.innerHeight - $('.musicRelief').offset().top);
 			self.piano.handleResize();
 			self.updateOffsets();			
@@ -57146,7 +57183,7 @@ class suiController {
 		}
 
 		// TODO:  work dialogs into the scheme of things
-		if (evdata.key == 'p') {
+		if (evdata.key == 'Enter') {
 			self.trackerModifierSelect(evdata);
 		}
 
@@ -57172,7 +57209,8 @@ class suiController {
 
 	render() {		
 		this.layout.render();
-        if (this.layout.passState == suiLayoutBase.passStates.clean || this.layout.passState ==  suiLayoutBase.passStates.replace) {
+        if ((this.layout.passState == suiLayoutBase.passStates.clean && this.layout.dirty == false)
+ 			|| this.layout.passState ==  suiLayoutBase.passStates.replace) {
 		    this.tracker.updateMap();
         }
 	}

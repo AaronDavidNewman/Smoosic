@@ -329,7 +329,7 @@ class SuiFileMenu extends suiMenuBase {
 			this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
 			var score = SmoScore.deserialize(inventionJson);
 			this.controller.layout.score = score;
-			$('body').trigger('forceResizeEvent');
+			this.controller.layout.setViewport(true);
 		}
 		this.complete();
 	}

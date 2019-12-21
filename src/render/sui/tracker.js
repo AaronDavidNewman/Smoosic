@@ -23,6 +23,9 @@ class suiTracker {
 		this.objects = [];
         this._scroll = {x:0,y:0};
         this._scrollInitial = {x:0,y:0};
+	    var scroller = $('.musicRelief');
+	    this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
+
 		this.selections = [];
         this.modifierSelections = [];
 		this.modifierTabs = [];
@@ -40,6 +43,7 @@ class suiTracker {
     
     handleScroll(x,y) {
         this._scroll = {x:x,y:y};
+		console.log('update scroll '+ x + ' '+y);
         this.viewport = svgHelpers.boxPoints(
           $('.musicRelief').offset().left,
           $('.musicRelief').offset().top,
@@ -61,9 +65,25 @@ class suiTracker {
     }
     
     get netScroll() {
-        return {x:this._scroll.x - this._scrollInitial.x,y:this._scroll.y - this._scrollInitial.y};
+		var xoffset = $('.musicRelief').offset().left - this._offsetInitial.x;
+		var yoffset = $('.musicRelief').offset().top - this._offsetInitial.y;
+        return {x:this._scroll.x - (this._scrollInitial.x + xoffset),y:this._scroll.y - (this._scrollInitial.y + yoffset)};
     }
 
+    // ### _checkBoxOffset
+	// If the mapped note and actual note don't match, re-render the notes so they do.
+	// Otherwise the selections are off.
+	_checkBoxOffset() {
+		var note = this.selections[0].note;
+		var ry = note.renderedBox.y;
+		var by = this.selections[0].box.y;
+		if (ry != by) {
+			this.layout.setDirty();
+		}
+				
+		console.log('tracker: log y '+ry+' rendered log y '+ by);		
+	}
+	
 	// ### renderElement
 	// the element the score is rendered on
 	get renderElement() {
@@ -342,9 +362,12 @@ class suiTracker {
 	// ### TODO:
 	// try to preserve the previous selection
 	_updateMap(rebox) {
+		console.log('update map');
 		var notes = [].slice.call(this.renderElement.getElementsByClassName('vf-stavenote'));
         var scroller = $('.musicRelief');
         this._scrollInitial = {x:$(scroller)[0].scrollLeft,y:$(scroller)[0].scrollTop};
+		this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
+		
 		this.groupObjectMap = {};
 		this.objectGroupMap = {};
         
@@ -913,6 +936,7 @@ class suiTracker {
 	triggerSelection() {
 		$('body').trigger('tracker-selection');
 	}
+	
 
 	highlightSelection() {
         var grace = this.getSelectedGraceNotes();
@@ -931,6 +955,7 @@ class suiTracker {
 		this.pitchIndex = -1;
 		this.eraseAllSelections();
 		if (this.selections.length === 1 && this.selections[0].box) {
+			this._checkBoxOffset();
 			this._drawRect(this.selections[0].box, 'selection');			
 			return;
 		}

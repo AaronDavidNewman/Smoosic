@@ -74,7 +74,7 @@ class suiPiano {
 			var keyPressed = svgHelpers.findSmallestIntersection({
 					x: ev.clientX,
 					y: ev.clientY
-				}, self.objects,self.tracker.netScroll);
+				}, self.objects,{x:0,y:0});
 			if (!keyPressed) {
 				return;
 			}
@@ -104,7 +104,7 @@ class suiPiano {
 		var keyPressed = svgHelpers.findSmallestIntersection({
 				x: ev.clientX,
 				y: ev.clientY
-			}, this.objects,this.tracker.netScroll);
+			}, this.objects,{x:0,y:0});
 		if (!keyPressed) {
 			return;
 		}
