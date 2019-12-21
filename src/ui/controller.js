@@ -396,10 +396,10 @@ class suiController {
 	handleKeydown(evdata) {
 		var self = this;
 
-		console.log("KeyboardEvent: key='" + event.key + "' | code='" +
-			event.code + "'"
-			 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
-		event.preventDefault();
+		console.log("KeyboardEvent: key='" + evdata.key + "' | code='" +
+			evdata.code + "'"
+			 + " shift='" + evdata.shiftKey + "' control='" + evdata.ctrlKey + "'" + " alt='" + evdata.altKey + "'");
+		evdata.preventDefault();
 
 		if (evdata.key == '?') {
 			SmoHelp.displayHelp();

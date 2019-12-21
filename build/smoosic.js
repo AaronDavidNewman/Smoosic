@@ -12751,6 +12751,7 @@ class SuiDialogFactory {
 class SuiDialogBase {
 	constructor(dialogElements, parameters) {
 		this.id = parameters.id;
+        this.boundKeyboard = false;
 		this.components = [];
 		this.closeDialogPromise = new Promise((resolve, reject) => {
 				$('body').off('dialogDismiss').on('dialogDismiss', function () {
@@ -12828,6 +12829,9 @@ class SuiDialogBase {
 	}
 
 	complete() {
+        if (this.boundKeyboard) {
+            window.removeEventListener("keydown", this.keydownHandler, true);
+        }
 		$('body').removeClass('showAttributeDialog');
 		$('body').trigger('dialogDismiss');
 		this.dgDom.trapper.close();
@@ -12850,10 +12854,25 @@ class SuiDialogBase {
 			moveParent: true
 		});
 	}
+    
+    handleKeydown(evdata) {
+        if (evdata.key == 'Escape') {
+            $(this.dgDom.element).find('.cancel-button').click();
+            evdata.preventDefault();
+            return;
+        }
+        return;
+    }
+    bindKeyboard() {
+        this.boundKeyboard = true;
+        this.keydownHandler = this.handleKeydown.bind(this);
+        window.addEventListener("keydown", this.keydownHandler, true);
+    }
 
 	_bindElements() {
 		var self = this;
 		var dgDom = this.dgDom;
+        this.bindKeyboard();
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
 			self._commit();
@@ -12921,6 +12940,7 @@ class SuiFileDialog extends SuiDialogBase {
 		});
 
 		$(dgDom.element).find('.remove-button').remove();
+        this.bindKeyboard();
 	}
 
 
@@ -13355,6 +13375,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     }
     _bindElements() {
         var self = this;
+        this.bindKeyboard();
 		var dgDom = this.dgDom;
         var textEditor = this.components.find((c) => c.smoName === 'textEditor');
         var textDragger = this.components.find((c) => c.smoName === 'textDragger');
@@ -13516,6 +13537,7 @@ class SuiLayoutDialog extends SuiDialogBase {
 	_bindElements() {
 		var self = this;
 		var dgDom = this.dgDom;
+        this.bindKeyboard();
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
 
@@ -57168,10 +57190,10 @@ class suiController {
 	handleKeydown(evdata) {
 		var self = this;
 
-		console.log("KeyboardEvent: key='" + event.key + "' | code='" +
-			event.code + "'"
-			 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
-		event.preventDefault();
+		console.log("KeyboardEvent: key='" + evdata.key + "' | code='" +
+			evdata.code + "'"
+			 + " shift='" + evdata.shiftKey + "' control='" + evdata.ctrlKey + "'" + " alt='" + evdata.altKey + "'");
+		evdata.preventDefault();
 
 		if (evdata.key == '?') {
 			SmoHelp.displayHelp();
