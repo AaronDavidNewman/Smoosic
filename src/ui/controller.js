@@ -8,7 +8,7 @@
 // Events can come from the following sources:
 // 1. menus or dialogs can send dialogDismiss or menuDismiss event, indicating a modal has been dismissed.
 // 2. window resize events
-// 3. keyboard, when in editor mode.  When modals or dialogs are active, wait for dismiss event 
+// 3. keyboard, when in editor mode.  When modals or dialogs are active, wait for dismiss event
 // 4. svg piano key events smo-piano-key
 // 5. tracker change events tracker-selection
 class suiController {
@@ -39,7 +39,7 @@ class suiController {
 				score: this.score,
 				controller: this
 			});
-            
+
         this.menus.setController(this);
 
 		// create globbal exception instance
@@ -55,16 +55,16 @@ class suiController {
 		this.piano();
 		this.updateOffsets();
 	}
-	
+
 	static get scrollable() {
 		return '.musicRelief';
 	}
-	
+
 	get isLayoutQuiet() {
-		return ((this.layout.passState == suiLayoutBase.passStates.clean && this.layout.dirty == false) 
+		return ((this.layout.passState == suiLayoutBase.passStates.clean && this.layout.dirty == false)
 		   || this.layout.passState == suiLayoutBase.passStates.replace);
 	}
-	
+
 	handleScrollEvent(ev) {
 		var self=this;
 		if (self.trackScrolling) {
@@ -75,7 +75,7 @@ class suiController {
             try {
 		    // wait until redraw is done to track scroll events.
 			self.trackScrolling = false;
-			
+
 		    if (!self.isLayoutQuiet) {
 				self.handleScrollEvent();
 				return;
@@ -89,14 +89,14 @@ class suiController {
             }
 		},500);
 	}
-	
+
 	handleRedrawTimer() {
         if ($('body').hasClass('printing')) {
             return;
         }
-		    // If there has been a change, redraw the score 
-			if (this.undoStatus != this.undoBuffer.opCount || this.layout.dirty) {				
-				this.layout.dirty=true;				
+		    // If there has been a change, redraw the score
+			if (this.undoStatus != this.undoBuffer.opCount || this.layout.dirty) {
+				this.layout.dirty=true;
 				this.undoStatus = this.undoBuffer.opCount;
 				this.idleLayoutTimer = Date.now();
                 var state = this.layout.passState;
@@ -111,10 +111,10 @@ class suiController {
 				}
 			}
 	}
-	
+
 	// ### pollRedraw
 	// if anything has changed over some period, prepare to redraw everything.
-	pollRedraw() {		
+	pollRedraw() {
 		var self=this;
 		setTimeout(function() {
 			self.handleRedrawTimer();
@@ -144,12 +144,12 @@ class suiController {
 		// the 100 is for the control offsets
 		var padding =  Math.round((this.layout.screenWidth-this.layout.pageWidth)/2)-100;
 		$('.workspace-container').css('padding-left',''+padding+'px');
-		
+
 		// Keep track of the scroll bar so we can adjust the map
 		// this.scrollPosition = $('body')[0].scrollTop;
 	}
 	resizeEvent() {
-		var self = this;		
+		var self = this;
 		if (this.resizing)
 			return;
 		this.resizing = true;
@@ -159,16 +159,16 @@ class suiController {
 			// self.layout.setViewport(true);
 			$('.musicRelief').height(window.innerHeight - $('.musicRelief').offset().top);
 			self.piano.handleResize();
-			self.updateOffsets();			
-			
+			self.updateOffsets();
+
 		}, 500);
 	}
-	
+
 	// No action at present when cursor selection changes
 	trackerChangeEvent() {
-		
+
 	}
-	
+
 	// If the user has selected a modifier via the mouse/touch, bring up mod dialog
 	// for that modifier
 	trackerModifierSelect() {
@@ -180,7 +180,7 @@ class suiController {
 		}
 		return;
 	}
-	
+
 
     // ### bindResize
 	// This handles both resizing of the music area (scrolling) and resizing of the window.
@@ -194,17 +194,17 @@ class suiController {
 			return;
 		}
 		$(suiController.scrollable).height(window.innerHeight - $('.musicRelief').offset().top);
-		
+
 		window.addEventListener('resize', function () {
 			self.resizeEvent();
 		});
-				
-		let scrollCallback = (ev) => {			
+
+		let scrollCallback = (ev) => {
             self.handleScrollEvent(ev);
 		};
 		el.onscroll = scrollCallback;
 	}
-	
+
 	static createDom() {
 		 var b = htmlHelpers.buildDom;
 		 var r=b('div').classes('dom-container')
@@ -258,7 +258,7 @@ class suiController {
 		// params.layout.setViewport();
 		return controller;
 	}
-	
+
 	static createDebugUi(score) {
 		suiController.createDom();
 		var params = suiController.keyBindingDefaults;
@@ -327,7 +327,7 @@ class suiController {
 
 	helpControls() {
 		var self = this;
-		var rebind = function () {			
+		var rebind = function () {
 			self.bindEvents();
 		}
 		/* SmoHelp.helpControls();
@@ -368,9 +368,9 @@ class suiController {
 	}
 
 	showModifierDialog(modSelection) {
-		return SuiDialogFactory.createDialog(modSelection, this.tracker.context, this.tracker, this.layout,this.undoBuffer)
+		return SuiDialogFactory.createDialog(modSelection, this.tracker.context, this.tracker, this.layout,this.undoBuffer,this)
 	}
-	
+
 	unbindKeyboardForDialog(dialog) {
 		var self=this;
 		var rebind = function () {
@@ -378,9 +378,9 @@ class suiController {
 		}
 		window.removeEventListener("keydown", this.keydownHandler, true);
         this.keyboardActive = false;
-		dialog.closeDialogPromise.then(rebind);		
+		dialog.closeDialogPromise.then(rebind);
 	}
-    
+
     unbindKeyboardForMenu(menuMgr) {
 
         window.removeEventListener("keydown", this.keydownHandler, true);
@@ -391,8 +391,8 @@ class suiController {
         this.keyboardActive = false;
         menuMgr.slashMenuMode().then(rebind);
     }
-    
-   
+
+
 	handleKeydown(evdata) {
 		var self = this;
 
@@ -435,7 +435,7 @@ class suiController {
 		this.editor = null;  */
 	}
 
-	render() {		
+	render() {
 		this.layout.render();
         if ((this.layout.passState == suiLayoutBase.passStates.clean && this.layout.dirty == false)
  			|| this.layout.passState ==  suiLayoutBase.passStates.replace) {
@@ -450,7 +450,7 @@ class suiController {
             return; // already bound.
         }
         this.keyboardActive = true;
-		
+
 		$('body').off('redrawScore').on('redrawScore',function() {
 			self.handleRedrawTimer();
 		});
@@ -474,14 +474,14 @@ class suiController {
 		$('body').off('smo-piano-key').on('smo-piano-key',function(ev,obj) {
 			obj=obj.selections;
 			self.tracker.selections.forEach((sel) => {
-                SmoUndoable.addPitch(sel, obj, self.undoBuffer);				
+                SmoUndoable.addPitch(sel, obj, self.undoBuffer);
                 suiOscillator.playSelectionNow(sel);
 			});
 		});
 		$('body').off('tracker-selection').on('tracker-selection',function(ev) {
 			self.trackerChangeEvent(ev);
 		});
-				
+
 		$('body').off('tracker-select-modifier').on('tracker-select-modifier',function(ev) {
 			self.trackerModifierSelect(ev);
 		});

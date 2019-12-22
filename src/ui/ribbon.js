@@ -279,7 +279,7 @@ class StaveButtons {
 			selections.push(SmoSelection.measureSelection(this.tracker.layout.score,staff,measure.measureNumber.measureNumber));
 		});
 		SmoUndoable.changeInstrument(this.tracker.layout.score,instrument,selections,this.editor.undoBuffer);
-		this.tracker.layout.setDirty();		
+		this.tracker.layout.setDirty();
 	}
 	clefTreble() {
 		this.addClef('treble','Treble Instrument');
@@ -312,7 +312,7 @@ class MeasureButtons {
 		this.editor = parameters.editor;
 		this.score = this.editor.score;
 	}
-	/* 
+	/*
 	 static get barlines() {
         return {
             singleBar: 0,
@@ -396,7 +396,7 @@ class MeasureButtons {
 		var endSel = this.tracker.getExtremeSelection(1);
 		this.setEnding(startSel.selector.measure,endSel.selector.measure,1);
 	}
-	
+
 	bind() {
 		var self = this;
 		$(this.buttonElement).off('click').on('click', function (ev) {
@@ -417,7 +417,7 @@ class PlayerButtons {
 		this.controller = parameters.controller;
         this.menus=parameters.controller.menus;
 	}
-    
+
     playButton() {
         this.editor.playScore();
     }
@@ -427,7 +427,7 @@ class PlayerButtons {
     pauseButton() {
         this.editor.pausePlayer();
     }
-    
+
     bind() {
 		var self = this;
 		$(this.buttonElement).off('click').on('click', function () {
@@ -446,7 +446,8 @@ class TextButtons {
         this.menus=parameters.controller.menus;
 	}
     lyrics() {
-		SuiLyricDialog.createAndDisplay(this.buttonElement, this.buttonData,this.controller);
+		SuiLyricDialog.createAndDisplay(
+            {buttonElement:this.buttonElement, buttonData:this.buttonData,controller:this.controller});
 		// tracker, selection, controller
     }
     rehearsalMark() {
@@ -469,7 +470,7 @@ class TextButtons {
         $(this.buttonElement).off('click').on('click', function () {
             self[self.buttonData.id]();
         });
-		
+
 	}
 }
 class NavigationButtons {
@@ -578,7 +579,7 @@ class CollapseRibbonControl {
 			$(leftSpan).addClass(this.buttonData.icon);
 			$(leftSpan).text(this.buttonData.leftText);
 		}
-		
+
 		// Expand may change music dom, redraw
 		$('body').trigger('forceScrollEvent');
 	}

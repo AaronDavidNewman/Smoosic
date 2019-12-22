@@ -408,8 +408,10 @@ class suiScoreLayout extends suiLayoutBase {
         var ts = Date.now();
         while (renderState.complete == false) {
             this._layoutSystem(renderState);
+            // Render a few lines at a time, unless in debug mode
             if (this.passState == suiLayoutBase.passStates.pass &&
                 renderState.complete == false
+                && !suiLayoutBase.debugLayout
                 && Date.now() - ts > 100) {
                 this.renderState = renderState;
                 this.setPassState(suiLayoutBase.passStates.incomplete,' partial '+renderState.measure.measureNumber.measureIndex);

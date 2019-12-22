@@ -37,21 +37,21 @@ class suiTracker {
         this.viewport = svgHelpers.boxPoints(
           $('.musicRelief').offset().left,
           $('.musicRelief').offset().top,
-          $('.musicRelief').width(),          
+          $('.musicRelief').width(),
           $('.musicRelief').height());
 	}
-    
+
     handleScroll(x,y) {
         this._scroll = {x:x,y:y};
 		console.log('update scroll '+ x + ' '+y);
         this.viewport = svgHelpers.boxPoints(
           $('.musicRelief').offset().left,
           $('.musicRelief').offset().top,
-          $('.musicRelief').width,          
+          $('.musicRelief').width,
           $('.musicRelief').height());
-          
+
     }
-    
+
     scrollOffset(x,y) {
         var cur = {x:this._scroll.x,y:this._scroll.y};
         setTimeout(function() {
@@ -63,7 +63,7 @@ class suiTracker {
             }
         },1);
     }
-    
+
     get netScroll() {
 		var xoffset = $('.musicRelief').offset().left - this._offsetInitial.x;
 		var yoffset = $('.musicRelief').offset().top - this._offsetInitial.y;
@@ -75,15 +75,15 @@ class suiTracker {
 	// Otherwise the selections are off.
 	_checkBoxOffset() {
 		var note = this.selections[0].note;
-		var ry = note.renderedBox.y;
-		var by = this.selections[0].box.y;
-		if (ry != by) {
+		var r = note.renderedBox;
+		var b = this.selections[0].box;
+		if (r.y != b.y || r.x != b.x) {
+			console.log('tracker: rerender conflicting map');		
 			this.layout.setDirty();
 		}
-				
-		console.log('tracker: log y '+ry+' rendered log y '+ by);		
+
 	}
-	
+
 	// ### renderElement
 	// the element the score is rendered on
 	get renderElement() {
@@ -105,7 +105,7 @@ class suiTracker {
 		});
 		return rv;
 	}
-	
+
 	_getTicksFromSelections() {
 		var rv = 0;
 		this.selections.forEach((sel) => {
@@ -113,14 +113,14 @@ class suiTracker {
 				rv += sel.note.tickCount;
 			}
 		});
-		return rv;		
+		return rv;
 	}
     // Hack - lyric should be handled consistently
     _reboxTextModifier(modifier) {
         var el;
         if (modifier.attrs.type === 'SmoLyric') {
             el = $(modifier.selector)[0];
-        } else if (modifier.attrs.type === 'SmoGraceNote') { 
+        } else if (modifier.attrs.type === 'SmoGraceNote') {
             el = this.context.svg.getElementById('vf-'+modifier.renderedId);
         } else {
             el = this.context.svg.getElementsByClassName(modifier.attrs.id)[0];
@@ -131,7 +131,7 @@ class suiTracker {
         }
         svgHelpers.updateArtifactBox(this.context.svg,el,modifier);
     }
-    
+
     _updateNoteModifier(rebox,selection,modMap,modifier,ix) {
         if (!modMap[modifier.attrs.id]) {
             if (rebox) {
@@ -169,7 +169,7 @@ class suiTracker {
 							index:ix
                 });
                 ix += 1;
-            }            
+            }
         });
 		this.objects.forEach((selection) => {
 			selection.staff.modifiers.forEach((modifier) => {
@@ -218,17 +218,17 @@ class suiTracker {
 			selection.note.textModifiers.forEach((modifier) => {
                 ix = this._updateNoteModifier(rebox,selection,modMap,modifier,ix);
 			});
-            
+
             selection.note.graceNotes.forEach((modifier) => {
                 ix = this._updateNoteModifier(rebox,selection,modMap,modifier,ix);
             });
 		});
 	}
-    
+
     clearMusicCursor() {
         $('.workspace #birdy').remove();
     }
-	
+
 	scrollVisible(x,y) {
 		var y = y - this.netScroll.y;
         var x = x - this.netScroll.x;
@@ -239,8 +239,8 @@ class suiTracker {
 		} else if (y > this.viewport.height + this.viewport.y) {
 			var offset = y - (this.viewport.height + this.viewport.y);
 			dy = offset + this.viewport.height/2;
-		} 
-		
+		}
+
 		if (x < 0) {
 			dx = -x;
 		} else if (x > this.viewport.width + this.viewport.x) {
@@ -251,7 +251,7 @@ class suiTracker {
 		    this.scrollOffset(dx,dy);
 		}
 	}
-    
+
     musicCursor(measureIndex,noteIndex) {
         var key = '' + measureIndex  + '-' + noteIndex;
         if (this.measureNoteMap[key]) {
@@ -267,34 +267,34 @@ class suiTracker {
 			this.scrollVisible(pos.x,pos.y);
         }
     }
-    
+
     // ### selectModifierById
     // programatically select a modifier by ID.  Used by text editor.
     selectId(id) {
-        this.modifierIndex = this.modifierTabs.findIndex((mm) =>  mm.modifier.attrs.id==id);        
+        this.modifierIndex = this.modifierTabs.findIndex((mm) =>  mm.modifier.attrs.id==id);
     }
-    
-    
-    // used by remove dialogs to clear removed thing 
+
+
+    // used by remove dialogs to clear removed thing
     clearModifierSelections() {
         this.modifierSelections=[];
         this.modifierIndex = -1;
         this.eraseRect('staffModifier');
     }
-  
+
 	getSelectedModifier() {
 		if (this.modifierIndex >= 0) {
 			return this.modifierTabs[this.modifierIndex];
 		}
 	}
-    
+
     getSelectedModifiers() {
         return this.modifierSelections;
     }
 
 	advanceModifierSelection(keyEv) {
 		this.eraseRect('staffModifier');
-        
+
         var offset = keyEv.key === 'ArrowLeft' ? -1 : 1;
 
 		if (!this.modifierTabs.length) {
@@ -324,18 +324,18 @@ class suiTracker {
 		}
 		this.selections.push(artifact);
 	}
-    
+
     // ### _updateNoteBox
     // Update the svg to screen coordinates based on a change in viewport.
     _updateNoteBox(svg,smoNote,selector) {
         var el = svg.getElementById(smoNote.renderId);
-        var cursorKey = '' + selector.measure + '-' + selector.tick;       
+        var cursorKey = '' + selector.measure + '-' + selector.tick;
         if (!el) {
             console.warn('no element to box');
             return;
         }
         svgHelpers.updateArtifactBox(svg,el,smoNote);
-        
+
         // TODO: fix this, only works on the first line.
         smoNote.getModifiers('SmoLyric').forEach((lyric) => {
 			var ar = Array.from(el.getElementsByClassName('vf-lyric'));
@@ -344,7 +344,7 @@ class suiTracker {
 			});
 		});
     }
-    
+
     _updateMeasureNoteMap(artifact) {
         var key = ''+artifact.selector.measure+'-'+artifact.selector.tick;
         if (!this.measureNoteMap[key]) {
@@ -354,7 +354,7 @@ class suiTracker {
             mm = {x:Math.min(artifact.box.x - this.netScroll.x,mm.x),y:Math.min(artifact.measure.renderedBox.y - this.netScroll.y,mm.y)};
         }
     }
-	
+
 	// ### updateMap
 	// This should be called after rendering the score.  It updates the score to
 	// graphics map and selects the first object.
@@ -367,10 +367,10 @@ class suiTracker {
         var scroller = $('.musicRelief');
         this._scrollInitial = {x:$(scroller)[0].scrollLeft,y:$(scroller)[0].scrollTop};
 		this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
-		
+
 		this.groupObjectMap = {};
 		this.objectGroupMap = {};
-        
+
         if (!rebox) {
             this.measureNoteMap = {}; // Map for tracker
         }
@@ -396,7 +396,7 @@ class suiTracker {
 						if (rebox) {
 							this._updateNoteBox(this.layout.svg,note,selector);
 						}
-							
+
 						var selection = new SmoSelection({
 									selector: selector,
 									_staff: staff,
@@ -414,7 +414,7 @@ class suiTracker {
 				voiceIx += 1;
 			});
 		});
-		
+
 		this._updateModifiers(rebox);
 		this.selections = [];
 		if (this.objects.length && !selCopy.length) {
@@ -438,7 +438,7 @@ class suiTracker {
 		this.pasteBuffer.clearSelections();
 		this.pasteBuffer.setSelections(this.score, this.selections);
 	}
-	
+
 	updateMap(rebox) {
         this._updateMap(rebox);
 	}
@@ -470,7 +470,7 @@ class suiTracker {
 				 && e.selector.tick === 0);
 		var tickObj = this.objects.find((e) => SmoSelector.sameNote(e.selector, selector));
 		var firstObj = this.objects[0];
-		return (tickObj) ? tickObj: 
+		return (tickObj) ? tickObj:
 		    (measureObj ? measureObj : firstObj);
 	}
 
@@ -526,7 +526,7 @@ class suiTracker {
 		}
 		return {};
 	}
-    
+
     getSelectedGraceNotes() {
         if (!this.modifierSelections.length) {
             return [];
@@ -536,14 +536,14 @@ class suiTracker {
         });
         return ff;
     }
-    
+
     isGraceNoteSelected() {
         if (this.modifierSelections.length) {
             var ff = this.modifierSelections.findIndex((mm)=> mm.modifier.attrs.type == 'SmoGraceNote');
             return ff >= 0;
         }
     }
-    
+
     _growGraceNoteSelections(offset) {
         var far = this.modifierSelections.filter((mm)=> mm.modifier.attrs.type == 'SmoGraceNote');
         if (!far.length) {
@@ -576,7 +576,7 @@ class suiTracker {
 			return 0;
 		}
 		// console.log('adding selection ' + artifact.note.id);
-        
+
         suiOscillator.playSelectionNow(artifact);
 
 		this.selections.push(artifact);
@@ -701,7 +701,7 @@ class suiTracker {
 	_replaceSelection(nselector) {
 		var artifact = SmoSelection.noteSelection(this.score, nselector.staff, nselector.measure, nselector.voice, nselector.tick);
         suiOscillator.playSelectionNow(artifact);
-        
+
         // clear modifier selections
         this.modifierSelections=[];
 		this.score.setActiveStaff(nselector.staff);
@@ -741,7 +741,7 @@ class suiTracker {
 			}
 		});
 	}
-	
+
 	_selectFromToInStaff(sel1,sel2) {
 		this.selections=[];
 		this.objects.forEach((obj) => {
@@ -759,24 +759,24 @@ class suiTracker {
 		ar.push(selection);
 		this.selections=ar;
 	}
-	
+
 	selectSuggestion(ev) {
 		if (!this.suggestion['measure']) {
 			return;
 		}
 		// console.log('adding selection ' + this.suggestion.note.id);
-		
+
 		if (this.modifierSuggestion >= 0) {
 			if (this['suggestFadeTimer']) {
 			   clearTimeout(this.suggestFadeTimer);
-    		}	
+    		}
 			this.modifierIndex = this.modifierSuggestion;
 			this.modifierSuggestion = -1;
 			this._highlightModifier();
 			$('body').trigger('tracker-select-modifier');
 			return;
 		}
-        
+
 		if (ev.shiftKey) {
 			var sel1 = this.getExtremeSelection(-1);
 			if (sel1.selector.staff === this.suggestion.selector.staff) {
@@ -787,15 +787,15 @@ class suiTracker {
 				return;
 			}
 		}
-		
+
 		if (ev.ctrlKey) {
 			this._addSelection(this.suggestion);
 			this.highlightSelection();
 			return;
 		}
-        
+
         suiOscillator.playSelectionNow(this.suggestion);
-        
+
         var preselected = SmoSelector.sameNote(this.suggestion.selector,this.selections[0].selector) && this.selections.length == 1;
 
 		this.selections = [this.suggestion];
@@ -839,7 +839,7 @@ class suiTracker {
 			}
 		}
 	}
-	
+
 	_setFadeTimer() {
 		if (this['suggestFadeTimer']) {
 			clearTimeout(this.suggestFadeTimer);
@@ -852,10 +852,10 @@ class suiTracker {
 				}
 			}, 1000);
 	}
-	
+
 
     _setModifierAsSuggestion(bb,artifact) {
-		
+
 		this.modifierSuggestion = artifact.index;
 
 		this._drawRect(artifact.box, 'suggestion');
@@ -870,7 +870,7 @@ class suiTracker {
 		if (sameSel) {
 			return ;
 		}
-		
+
 		this.modifierSuggestion = -1;
 
 		this.suggestion = artifact;
@@ -882,7 +882,7 @@ class suiTracker {
         bb = svgHelpers.boxPoints(bb.x,bb.y,bb.width,bb.height);
 		var artifacts = svgHelpers.findIntersectingArtifact(bb,this.objects,this.netScroll);
 		// TODO: handle overlapping suggestions
-		if (!artifacts.length) {			
+		if (!artifacts.length) {
 			var sel = svgHelpers.findIntersectingArtifact(bb,this.modifierTabs,this.netScroll);
 			if (sel.length) {
 				sel = sel[0];
@@ -905,7 +905,7 @@ class suiTracker {
 	eraseRect(stroke) {
 		$(this.renderElement).find('g.vf-' + stroke).remove();
 	}
-    
+
     _highlightModifier() {
         if (!this.modifierSelections.length) {
             return;
@@ -920,7 +920,7 @@ class suiTracker {
             }
         });
         this._drawRect(box, 'staffModifier');
-	}    
+	}
 
 	_highlightPitchSelection(note, index) {
 		this.eraseAllSelections();
@@ -936,7 +936,7 @@ class suiTracker {
 	triggerSelection() {
 		$('body').trigger('tracker-selection');
 	}
-	
+
 
 	highlightSelection() {
         var grace = this.getSelectedGraceNotes();
@@ -956,13 +956,13 @@ class suiTracker {
 		this.eraseAllSelections();
 		if (this.selections.length === 1 && this.selections[0].box) {
 			this._checkBoxOffset();
-			this._drawRect(this.selections[0].box, 'selection');			
+			this._drawRect(this.selections[0].box, 'selection');
 			return;
 		}
 		var sorted = this.selections.sort((a, b) => SmoSelector.gt(a.selector,b.selector) ? 1 : -1);
 		var prevSel = sorted[0];
         // rendered yet?
-        if (!prevSel.box) 
+        if (!prevSel.box)
             return;
 		var curBox = svgHelpers.smoBox(prevSel.box);
 		var boxes = [];
@@ -1008,4 +1008,3 @@ class suiTracker {
 		this.context.closeGroup(grp);
 	}
 }
-

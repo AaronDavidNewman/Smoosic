@@ -56,7 +56,7 @@ class VxSystem {
 		}
 		return null;
 	}
-	
+
 	updateLyricOffsets() {
 		var lowestYs = {};
 		var lyrics=[];
@@ -69,7 +69,7 @@ class VxSystem {
 						if (!lowestYs[lyric.verse]) {
 							lowestYs[lyric.verse] = lowest;
 						} else {
-							lowestYs[lyric.verse] = lowestYs[lyric.verse] > lowest ? lowest : lowestYs[lyric.verse];
+							lowestYs[lyric.verse] = lowestYs[lyric.verse] < lowest ? lowest : lowestYs[lyric.verse];
 						}
 						lyric.selector='#'+note.renderId+' g.lyric-'+lyric.verse;
 						lyrics.push(lyric);
@@ -83,8 +83,8 @@ class VxSystem {
 			var dom = $(this.context.svg).find(lyric.selector)[0];
 			dom.setAttributeNS('','transform','translate(0 '+lyric.adjY+')');
 		});
-		
-		
+
+
 	}
 
 	renderModifier(modifier, vxStart, vxEnd) {
@@ -155,7 +155,7 @@ class VxSystem {
 				this.context.closeGroup();
 				ending.renderedBox = svgHelpers.smoBox(group.getBoundingClientRect());
 				ending.logicalBox = svgHelpers.clientToLogical(this.context.svg, ending.renderedBox);
-				
+
 				// Adjust real height of measure to match volta height
 				voAr.forEach((mm) => {
 					var delta =  mm.logicalBox.y - ending.logicalBox.y;

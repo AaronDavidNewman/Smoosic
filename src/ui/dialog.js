@@ -1,7 +1,7 @@
 
 class SuiDialogFactory {
 
-	static createDialog(modSelection, context, tracker, layout,undoBuffer) {
+	static createDialog(modSelection, context, tracker, layout,undoBuffer,controller) {
 		var dbType = SuiDialogFactory.modifierDialogMap[modSelection.modifier.attrs.type];
 		var ctor = eval(dbType);
 		if (!ctor) {
@@ -14,7 +14,8 @@ class SuiDialogFactory {
 			context: context,
 			tracker: tracker,
 			layout: layout,
-            undo:undoBuffer
+            undo:undoBuffer,
+            controller:controller
 		});
 	}
 	static get modifierDialogMap() {
@@ -24,7 +25,8 @@ class SuiDialogFactory {
 			SmoDynamicText: 'SuiTextModifierDialog',
 			SmoVolta: 'SuiVoltaAttributeDialog',
             SmoScoreText: 'SuiTextTransformDialog',
-            SmoLoadScore:  'SuiLoadFileDialog'
+            SmoLoadScore:  'SuiLoadFileDialog',
+            SmoLyric:'SuiLyricDialog'
 		};
 	}
 }
@@ -45,7 +47,7 @@ class SuiDialogBase {
 		this.tracker.scrollVisible(parameters.left,parameters.top);
 		var top = parameters.top - this.tracker.netScroll.y;
 		var left = parameters.left - this.tracker.netScroll.x;
-		
+
 		this.dgDom = this._constructDialog(dialogElements, {
 				id: 'dialog-' + this.id,
 				top: top,
@@ -58,7 +60,7 @@ class SuiDialogBase {
 
 		// TODO: adjust if db is clipped by the browser.
         var dge = $(this.dgDom.element).find('.attributeModal');
-		
+
 		var offset = $(dge).height() + y > window.innerHeight ? ($(dge).height() + y) -  window.innerHeight : 0;
 		y = (y < 0) ? -y : y - offset;
 		$(dge).css('top', '' + y + 'px');
@@ -135,7 +137,7 @@ class SuiDialogBase {
 			moveParent: true
 		});
 	}
-    
+
     handleKeydown(evdata) {
         if (evdata.key == 'Escape') {
             $(this.dgDom.element).find('.cancel-button').click();
@@ -359,13 +361,14 @@ class SuiSaveFileDialog extends SuiFileDialog {
 }
 
 class SuiLyricDialog extends SuiDialogBase {
-    static createAndDisplay(buttonElement, buttonData, controller) {
+    static createAndDisplay(parameters) {
 		var dg = new SuiLyricDialog({
-				layout: controller.layout,
-				tracker:controller.tracker,
-				controller: controller
+				layout: parameters.controller.layout,
+				tracker:parameters.controller.tracker,
+				controller: parameters.controller
 			});
 		dg.display();
+        return dg;
 	}
     static get dialogElements() {
 		return [];
@@ -379,7 +382,7 @@ class SuiLyricDialog extends SuiDialogBase {
 			id: 'dialog-layout',
 			top: (p.layout.score.layout.pageWidth / 2) - 200,
 			left: (p.layout.score.layout.pageHeight / 2) - 200,
-			label: p.label,			
+			label: p.label,
 			tracker:parameters.tracker
 		});
         this.layout = p.layout;
