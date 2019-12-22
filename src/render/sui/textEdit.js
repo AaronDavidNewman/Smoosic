@@ -12,7 +12,7 @@ class editSvgText {
 		this.svg = document.createElementNS(ns, 'svg');
         this.editText = document.createElementNS(ns, 'text');
         this.attrAr = [];
-        
+
         // create a mirror of the node under edit by copying attributes
         // and setting up a similarly-dimensioned viewbox
         editSvgText.textAttrs.forEach((attr) => {
@@ -23,7 +23,7 @@ class editSvgText {
 			}
         });
         this.editing = this.running=false;
-        
+
         // Hide the original - TODO, handle non-white background.
         this.oldFill = this.target.getAttributeNS(null,'fill');
         this.target.setAttributeNS(null,'fill','#fff');
@@ -32,54 +32,54 @@ class editSvgText {
         this._value = this.editText.textContent;
         this.clientBox = svgHelpers.smoBox(svgHelpers.smoBox(this.target.getBoundingClientRect()));
         var svgBox = svgHelpers.smoBox(this.target.getBBox());
-        this.editText.setAttributeNS('','y',svgBox.height);        
-        
+        this.editText.setAttributeNS('','y',svgBox.height);
+
         $('.textEdit').html('');
         this.svg.appendChild(this.editText);
-        var b = htmlHelpers.buildDom;        
+        var b = htmlHelpers.buildDom;
         var r = b('span').classes('hide icon-move');
         $('.textEdit').append(r.dom());
         $('.textEdit').append(this.svg);
         $('.textEdit').removeClass('hide').attr('contentEditable','true');
         this.setEditorPosition(this.clientBox,svgBox);
     }
-    
+
     setEditorPosition(clientBox,svgBox) {
         var box = svgHelpers.pointBox(this.layout.pageWidth, this.layout.pageHeight);
         svgHelpers.svgViewport(this.svg, box.x, box.y,this.layout.svgScale);
-        
+
         $('.textEdit').css('top',this.clientBox.y-5)
           .css('left',this.clientBox.x-5)
           .width(this.clientBox.width+10)
           .height(this.clientBox.height+10);
     }
-    
+
     endSession() {
         this.editing = false;
         this.target.setAttributeNS(null,'fill',this.oldFill);
     }
-    
+
     get value() {
         return this._value;
     }
-    
+
     /* moveCursorToEnd() {
-       if (this.editText.getNumberOfChars() < 1) 
+       if (this.editText.getNumberOfChars() < 1)
            return;
        var content = this.editText.textContent;
        this.editText.textContent = content+content.substr(content.length-1,1);
        this.editText.selectSubString(content.length,1);
     }  */
-    
+
     _updateText() {
         $('.textEdit').focus();
-        
-        if (this.editText.textContent && 
+
+        if (this.editText.textContent &&
          this.editText.textContent.length &&
            this._value != this.editText.textContent) {
           // if (this.editText[0]
           // this.editText.textContent = this.editText.textContent.replace(' ','');
-          /* if (this.editText.textContent.length > 1 && 
+          /* if (this.editText.textContent.length > 1 &&
               this.editText.textContent[this.editText.textContent.length - 1] == '_') {
             this.editText.textContent = this.editText.textContent.substr(0,this.editText.textContent.length - 1);
             var self = this;
@@ -97,12 +97,12 @@ class editSvgText {
              this.clientBox.height = nbox.height;
              this.setEditorPosition(this.clientBox,svgBox);
            }
-        }  
+        }
         if (!this.editText.textContent) {
            this.editText.textContent='\xa0';
         }
     }
-    
+
     startSessionPromise() {
         var self=this;
         $('body').addClass('text-edit');
@@ -116,15 +116,15 @@ class editSvgText {
                     if (self.editing) {
                       editTimer();
                     } else {
-                      self._updateText();                      
+                      self._updateText();
                       resolve();
                     }
                 },25);
-                
-            }            
+
+            }
             editTimer();
 		});
-        
+
         return promise;
     }
 
@@ -142,11 +142,11 @@ class editLyricSession {
         this.tracker = parameters.tracker;
         this.selection = parameters.selection;
         this.controller = parameters.controller;
-        this.verse=0;
+        this.verse=parameters.verse;
 		this.bound = false;
         this.state=editLyricSession.states.stopped;
     }
-    
+
     detach() {
         this.editor.endSession();
         this.state = editLyricSession.states.stopping;
@@ -155,8 +155,26 @@ class editLyricSession {
             this.selection.measure.changed=true;
         }
     }
-	
-	_editingSession() {       
+
+    detachPromise() {
+        var self=this;
+        return new Promise((resolve) => {
+            var waiter = () => {
+            setTimeout(() => {
+                if (self.state == editLyricSession.states.stopping ||
+                 self.state == editLyricSession.states.stopped) {
+                     resolve();
+                 } else {
+                     waiter();
+                 }
+
+                },50);
+            };
+            waiter();
+        });
+    }
+
+	_editingSession() {
 		if (!this.bound) {
 			this.bindEvents();
 		}
@@ -170,16 +188,16 @@ class editLyricSession {
 
         this.editor.startSessionPromise().then(handleSkip);
 	}
-    
+
     _getOrCreateLyric(note) {
-        var lyrics =  note.getModifiers('SmoLyric');
+        var lyrics =  note.getLyricForVerse(this.verse);
         if (!lyrics.length) {
-			this.lyric = new SmoLyric({text:'\xa0'});
+			this.lyric = new SmoLyric({text:'\xa0',verse:this.verse});
         } else {
 			this.lyric = lyrics[0];
 		}
     }
-    
+
     _handleSkip() {
         var tag = this.state == editLyricSession.states.minus ? '-' :'';
         this.lyric.text = this.editor.value+tag;
@@ -187,7 +205,7 @@ class editLyricSession {
         if (this.state != editLyricSession.states.stopping) {
 			var func = (this.state == editLyricSession.states.backSpace) ? 'lastNoteSelection' : 'nextNoteSelection';
             var sel = SmoSelection[func](
-		      this.tracker.layout.score, this.selection.selector.staff, 
+		      this.tracker.layout.score, this.selection.selector.staff,
               this.selection.selector.measure, this.selection.selector.voice, this.selection.selector.tick);
             if (sel) {
                 this.selection=sel;
@@ -197,7 +215,6 @@ class editLyricSession {
         } else {
             this.detach();
         }
-        
     }
     editNote() {
 		var self=this;
@@ -209,27 +226,28 @@ class editLyricSession {
         this.selection.note.addLyric(this.lyric);
         this.tracker.layout.render();
 		_startEditing();
+        return this.detachPromise();
     }
-	
+
 	handleKeydown(event) {
 		console.log("Lyric KeyboardEvent: key='" + event.key + "' | code='" +
 			event.code + "'"
 			 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
-       
-		if (['Space', 'Minus'].indexOf(event.code) >= 0) {            
+
+		if (['Space', 'Minus'].indexOf(event.code) >= 0) {
 			this.state =  (event.key == '-') ? editLyricSession.states.minus :  editLyricSession.states.space;
-			this.state = (this.state === editLyricSession.states.space && event.shiftKey) 
+			this.state = (this.state === editLyricSession.states.space && event.shiftKey)
 			     ? editLyricSession.states.backSpace :  this.state;
             this.editor.endSession();
 		}
-		
+
 		if (event.code == 'Escape') {
             this.state = editLyricSession.states.stopping;
             this.editor.endSession();
 		}
         this.selection.measure.changed=true;
 	}
-    
+
     bindEvents() {
 		var self = this;
         this.controller.detach();

@@ -24,11 +24,11 @@ class suiMenuManager {
 			menuContainer: '.menuContainer'
 		};
 	}
-    
+
     setController(c) {
         this.controller=c;
     }
-    
+
     get score() {
         return this.layout.score;
     }
@@ -119,14 +119,14 @@ class suiMenuManager {
 		var b = htmlHelpers.buildDom;
 		var r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length)
 			.css('left', '' + this.menuPosition.x + 'px')
-			.css('top', '' + this.menuPosition.y + 'px');			
+			.css('top', '' + this.menuPosition.y + 'px');
         var hotkey=0;
 		this.menu.menuItems.forEach((item) => {
 			r.append(
 				b('li').classes('menuOption').append(
 					b('button').attr('data-value',item.value)
                     .append(b('span').classes('menuText').text(item.text))
-					
+
 					.append(
 						b('span').classes('icon icon-' + item.icon))
                      .append(b('span').classes('menu-key').text(''+hotkey))));
@@ -198,7 +198,7 @@ class suiMenuManager {
 			this.unattach();
 			return;
 		}
-		
+
 		var binding = this.menuBind.find((ev) => {
 				return ev.key === event.key
 			});
@@ -253,16 +253,16 @@ class SuiFileMenu extends suiMenuBase {
 				},{
 					icon: '',
 					text: 'Print',
-					value: 'printScore' 
+					value: 'printScore'
                 },{
 					icon: '',
 					text: 'Bach Invention',
-					value: 'bach' 
+					value: 'bach'
                 },	{
 					icon: '',
 					text: 'Cancel',
 					value: 'cancel'
-				}                
+				}
             ]
         };
      }
@@ -275,7 +275,7 @@ class SuiFileMenu extends suiMenuBase {
 			layout: this.layout,
             controller:this.controller,
             closeMenuPromise:this.closePromise
-		    });            
+		    });
         } else if (text == 'openFile') {
             SuiLoadFileDialog.createAndDisplay({
 			layout: this.layout,
@@ -316,13 +316,13 @@ class SuiFileMenu extends suiMenuBase {
                             layout: self.controller.tracker.layout,
                             controller:self.controller,
                             closeMenuPromise:self.closePromise
-                            });  
+                            });
                     } else {
                         resize();
                     }
                 },50);
             }
-            
+
             resize();
         }
          else if (text == 'bach') {
@@ -334,7 +334,7 @@ class SuiFileMenu extends suiMenuBase {
 		this.complete();
 	}
 	keydown(ev) {}
-     
+
 }
 class SuiTextMenu extends suiMenuBase {
     	constructor(params) {
@@ -393,7 +393,7 @@ class SuiTextMenu extends suiMenuBase {
 			]
 		};
 	}
-    
+
     static get menuCommandMap() {
         return {
             titleText: {
@@ -432,21 +432,51 @@ class SuiTextMenu extends suiMenuBase {
     }
     bind() {
     }
-    _editNewText(txtObj) {                
-        this.tracker.selectId(txtObj.attrs.id);
+    _editNewText(txtObj) {
+        var self = this;
+        var createDialog = () => {
+            var dialog = SuiTextTransformDialog.createAndDisplay({
+                modifier:txtObj,
+                tracker:self.tracker,
+                undo:self.controller.undoBuffer,
+                layout:self.controller.layout
+            });
+            self.controller.unbindKeyboardForDialog(dialog);
+        }
+
+
+
+        // Wait for text to be displayed before bringing up edit dialog
+        var waitForDisplay = () => {
+            return new Promise((resolve) => {
+                var waiter = ()  =>{
+                    setTimeout(() => {
+                        if (txtObj.renderedBox) {
+                            resolve();
+                        } else {
+                            waiter();
+                        }
+                    },50);
+                };
+                waiter();
+            });
+        }
+
         // Treat a created text score like a selected text score that needs to be edited.
-        $('body').trigger('tracker-select-modifier');
-                            
+        this.closePromise.then(waitForDisplay).then(createDialog);
     }
     selection(ev) {
+        var self = this;
 		var command = $(ev.currentTarget).attr('data-value');
         var menuObj = SuiTextMenu.menuCommandMap[command];
         if (menuObj) {
             var ctor = eval(menuObj.ctor);
             var txtObj = new ctor(menuObj.params);
             SmoUndoable.scoreOp(this.editor.score,menuObj.operation,
-               txtObj, this.editor.undoBuffer,'Text Menu Command');     
-			this._editNewText(txtObj);
+               txtObj, this.editor.undoBuffer,'Text Menu Command');
+            setTimeout(function() {
+                self._editNewText(txtObj);
+            },1);
         }
 
 		this.complete();
@@ -498,7 +528,7 @@ class SuiDynamicsMenu extends suiMenuBase {
 			]
 		};
 	}
-	
+
 	selection(ev) {
 		var text = $(ev.currentTarget).attr('data-value');
 
@@ -558,7 +588,7 @@ class SuiTimeSignatureMenu extends suiMenuBase {
                 ]
         };
     }
-    
+
     selection(ev) {
 		var timeSig = $(ev.currentTarget).attr('data-value');
         this.controller.layout.unrenderAll();
@@ -639,7 +669,7 @@ class suiKeySignatureMenu extends suiMenuBase {
 			menuContainer: '.menuContainer'
 		};
 	}
-    
+
 	selection(ev) {
 		var keySig = $(ev.currentTarget).attr('data-value');
 		var changed = [];
@@ -680,7 +710,7 @@ class suiStaffModifierMenu extends suiMenuBase {
 					icon: 'ending',
 					text: 'nth ending',
 					value: 'ending'
-				},				
+				},
 				 {
 					icon: '',
 					text: 'Cancel',
@@ -695,7 +725,7 @@ class suiStaffModifierMenu extends suiMenuBase {
 
 		var ft = this.tracker.getExtremeSelection(-1);
 		var tt = this.tracker.getExtremeSelection(1);
-		
+
 		if (op === 'ending') {
            SmoUndoable.scoreOp(this.score,'addEnding',
 		       new SmoVolta({startBar:ft.selector.measure,endBar:tt.selector.measure,number:1}),this.editor.undoBuffer,'add ending');

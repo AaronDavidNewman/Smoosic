@@ -28,14 +28,14 @@ class SmoNote {
     static get parameterArray() {
         return ['ticks', 'pitches', 'noteType', 'tuplet', 'attrs', 'clef', 'endBeam','beamBeats','flagState'];
     }
-    
+
     toggleFlagState() {
         this.flagState = (this.flagState + 1) % 3;
     }
-    
+
     toVexStemDirection() {
         return (this.flagState == SmoNote.flagStates.up ? VF.Stem.UP : VF.Stem.DOWN);
-		
+
     }
     get id() {
         return this.attrs.id;
@@ -94,7 +94,7 @@ class SmoNote {
         });
         return ms;
     }
-    
+
     addLyric(lyric) {
         var tms = this.textModifiers.filter((mod) => {
             return mod.attrs.type != 'SmoLyric' || mod.verse != lyric.verse;
@@ -102,19 +102,25 @@ class SmoNote {
         tms.push(lyric);
         this.textModifiers = tms;
     }
-    
-    
+
+
     removeLyric(lyric) {
         var tms = this.textModifiers.filter((mod) => {
             return mod.attrs.type != 'SmoLyric' || mod.verse != lyric.verse;
         });
         this.textModifiers = tms;
     }
-    
+
+    getLyricForVerse(verse) {
+        return this.textModifiers.filter((mod) => {
+            return mod.attrs.type == 'SmoLyric' && mod.verse == verse;
+        });
+    }
+
     getOrnaments(ornament) {
         return this.ornaments;
     }
-    
+
     toggleOrnament(ornament) {
             var aix = this.ornaments.filter((a) => {
                 return a.attrs.type === 'SmoOrnament' && a.ornament === ornament.ornament;
@@ -166,7 +172,7 @@ class SmoNote {
         if (offset >= this.graceNotes.length) {
             return;
         }
-        this.graceNotes.splice(offset,1);        
+        this.graceNotes.splice(offset,1);
     }
     getGraceNotes() {
         return this.graceNotes;
@@ -261,7 +267,7 @@ class SmoNote {
         params.noteModifiers = JSON.parse(JSON.stringify(this.textModifiers));
         params.graceNotes = JSON.parse(JSON.stringify(this.graceNotes));
         params.articulations = JSON.parse(JSON.stringify(this.articulations));
-        params.ornaments = JSON.parse(JSON.stringify(this.ornaments ));        
+        params.ornaments = JSON.parse(JSON.stringify(this.ornaments ));
     }
     serialize() {
         var params = {};
@@ -301,18 +307,18 @@ class SmoNote {
             note.textModifiers.push(SmoNoteModifierBase.deserialize(mod));
         });
         jsonObj.graceNotes = jsonObj.graceNotes ? jsonObj.graceNotes : [];
-        jsonObj.graceNotes.forEach((mod) => {            
+        jsonObj.graceNotes.forEach((mod) => {
             note.graceNotes.push(SmoNoteModifierBase.deserialize(mod));
         });
         jsonObj.ornaments = jsonObj.ornaments ? jsonObj.ornaments : [];
-        jsonObj.ornaments.forEach((mod) => {            
+        jsonObj.ornaments.forEach((mod) => {
             note.ornaments.push(SmoNoteModifierBase.deserialize(mod));
         });
         jsonObj.articulations = jsonObj.articulations ? jsonObj.articulations : [];
-        jsonObj.articulations.forEach((mod) => {            
+        jsonObj.articulations.forEach((mod) => {
             note.articulations.push(SmoNoteModifierBase.deserialize(mod));
         });
-        
+
         return note;
     }
 }
@@ -330,7 +336,7 @@ class SmoTuplet {
         }
         this._adjustTicks();
     }
-	
+
 	static get longestTuplet() {
 		return 8192;
 	}
@@ -342,7 +348,7 @@ class SmoTuplet {
         return rv;
 
     }
-	
+
 	static calculateStemTicks(totalTicks,numNotes) {
         var stemValue = totalTicks / numNotes;
         var stemTicks = SmoTuplet.longestTuplet;
@@ -361,7 +367,7 @@ class SmoTuplet {
 
 		// Add any remainders for oddlets
 		var totalTicks = noteAr.map((nn) => nn.ticks.numerator+nn.ticks.remainder).reduce((acc, nn) => acc+nn);
-		
+
         var numNotes = tuplet.numNotes;
         var stemValue = totalTicks / numNotes;
         var stemTicks = SmoTuplet.calculateStemTicks(totalTicks,numNotes);
@@ -414,7 +420,7 @@ class SmoTuplet {
 
             note.tuplet = this.attrs;
         }
-		
+
 		// put all the remainder in the first note of the tuplet
 		var noteTicks = this.notes.map((nn) => {return nn.tickCount;}).reduce((acc,dd) => {return acc+dd;});
 		this.notes[0].ticks.remainder = this.totalTicks-noteTicks;

@@ -1398,14 +1398,14 @@ class SmoNote {
     static get parameterArray() {
         return ['ticks', 'pitches', 'noteType', 'tuplet', 'attrs', 'clef', 'endBeam','beamBeats','flagState'];
     }
-    
+
     toggleFlagState() {
         this.flagState = (this.flagState + 1) % 3;
     }
-    
+
     toVexStemDirection() {
         return (this.flagState == SmoNote.flagStates.up ? VF.Stem.UP : VF.Stem.DOWN);
-		
+
     }
     get id() {
         return this.attrs.id;
@@ -1464,7 +1464,7 @@ class SmoNote {
         });
         return ms;
     }
-    
+
     addLyric(lyric) {
         var tms = this.textModifiers.filter((mod) => {
             return mod.attrs.type != 'SmoLyric' || mod.verse != lyric.verse;
@@ -1472,19 +1472,25 @@ class SmoNote {
         tms.push(lyric);
         this.textModifiers = tms;
     }
-    
-    
+
+
     removeLyric(lyric) {
         var tms = this.textModifiers.filter((mod) => {
             return mod.attrs.type != 'SmoLyric' || mod.verse != lyric.verse;
         });
         this.textModifiers = tms;
     }
-    
+
+    getLyricForVerse(verse) {
+        return this.textModifiers.filter((mod) => {
+            return mod.attrs.type == 'SmoLyric' && mod.verse == verse;
+        });
+    }
+
     getOrnaments(ornament) {
         return this.ornaments;
     }
-    
+
     toggleOrnament(ornament) {
             var aix = this.ornaments.filter((a) => {
                 return a.attrs.type === 'SmoOrnament' && a.ornament === ornament.ornament;
@@ -1536,7 +1542,7 @@ class SmoNote {
         if (offset >= this.graceNotes.length) {
             return;
         }
-        this.graceNotes.splice(offset,1);        
+        this.graceNotes.splice(offset,1);
     }
     getGraceNotes() {
         return this.graceNotes;
@@ -1631,7 +1637,7 @@ class SmoNote {
         params.noteModifiers = JSON.parse(JSON.stringify(this.textModifiers));
         params.graceNotes = JSON.parse(JSON.stringify(this.graceNotes));
         params.articulations = JSON.parse(JSON.stringify(this.articulations));
-        params.ornaments = JSON.parse(JSON.stringify(this.ornaments ));        
+        params.ornaments = JSON.parse(JSON.stringify(this.ornaments ));
     }
     serialize() {
         var params = {};
@@ -1671,18 +1677,18 @@ class SmoNote {
             note.textModifiers.push(SmoNoteModifierBase.deserialize(mod));
         });
         jsonObj.graceNotes = jsonObj.graceNotes ? jsonObj.graceNotes : [];
-        jsonObj.graceNotes.forEach((mod) => {            
+        jsonObj.graceNotes.forEach((mod) => {
             note.graceNotes.push(SmoNoteModifierBase.deserialize(mod));
         });
         jsonObj.ornaments = jsonObj.ornaments ? jsonObj.ornaments : [];
-        jsonObj.ornaments.forEach((mod) => {            
+        jsonObj.ornaments.forEach((mod) => {
             note.ornaments.push(SmoNoteModifierBase.deserialize(mod));
         });
         jsonObj.articulations = jsonObj.articulations ? jsonObj.articulations : [];
-        jsonObj.articulations.forEach((mod) => {            
+        jsonObj.articulations.forEach((mod) => {
             note.articulations.push(SmoNoteModifierBase.deserialize(mod));
         });
-        
+
         return note;
     }
 }
@@ -1700,7 +1706,7 @@ class SmoTuplet {
         }
         this._adjustTicks();
     }
-	
+
 	static get longestTuplet() {
 		return 8192;
 	}
@@ -1712,7 +1718,7 @@ class SmoTuplet {
         return rv;
 
     }
-	
+
 	static calculateStemTicks(totalTicks,numNotes) {
         var stemValue = totalTicks / numNotes;
         var stemTicks = SmoTuplet.longestTuplet;
@@ -1731,7 +1737,7 @@ class SmoTuplet {
 
 		// Add any remainders for oddlets
 		var totalTicks = noteAr.map((nn) => nn.ticks.numerator+nn.ticks.remainder).reduce((acc, nn) => acc+nn);
-		
+
         var numNotes = tuplet.numNotes;
         var stemValue = totalTicks / numNotes;
         var stemTicks = SmoTuplet.calculateStemTicks(totalTicks,numNotes);
@@ -1784,7 +1790,7 @@ class SmoTuplet {
 
             note.tuplet = this.attrs;
         }
-		
+
 		// put all the remainder in the first note of the tuplet
 		var noteTicks = this.notes.map((nn) => {return nn.tickCount;}).reduce((acc,dd) => {return acc+dd;});
 		this.notes[0].ticks.remainder = this.totalTicks-noteTicks;
@@ -10591,7 +10597,7 @@ class editSvgText {
 		this.svg = document.createElementNS(ns, 'svg');
         this.editText = document.createElementNS(ns, 'text');
         this.attrAr = [];
-        
+
         // create a mirror of the node under edit by copying attributes
         // and setting up a similarly-dimensioned viewbox
         editSvgText.textAttrs.forEach((attr) => {
@@ -10602,7 +10608,7 @@ class editSvgText {
 			}
         });
         this.editing = this.running=false;
-        
+
         // Hide the original - TODO, handle non-white background.
         this.oldFill = this.target.getAttributeNS(null,'fill');
         this.target.setAttributeNS(null,'fill','#fff');
@@ -10611,54 +10617,54 @@ class editSvgText {
         this._value = this.editText.textContent;
         this.clientBox = svgHelpers.smoBox(svgHelpers.smoBox(this.target.getBoundingClientRect()));
         var svgBox = svgHelpers.smoBox(this.target.getBBox());
-        this.editText.setAttributeNS('','y',svgBox.height);        
-        
+        this.editText.setAttributeNS('','y',svgBox.height);
+
         $('.textEdit').html('');
         this.svg.appendChild(this.editText);
-        var b = htmlHelpers.buildDom;        
+        var b = htmlHelpers.buildDom;
         var r = b('span').classes('hide icon-move');
         $('.textEdit').append(r.dom());
         $('.textEdit').append(this.svg);
         $('.textEdit').removeClass('hide').attr('contentEditable','true');
         this.setEditorPosition(this.clientBox,svgBox);
     }
-    
+
     setEditorPosition(clientBox,svgBox) {
         var box = svgHelpers.pointBox(this.layout.pageWidth, this.layout.pageHeight);
         svgHelpers.svgViewport(this.svg, box.x, box.y,this.layout.svgScale);
-        
+
         $('.textEdit').css('top',this.clientBox.y-5)
           .css('left',this.clientBox.x-5)
           .width(this.clientBox.width+10)
           .height(this.clientBox.height+10);
     }
-    
+
     endSession() {
         this.editing = false;
         this.target.setAttributeNS(null,'fill',this.oldFill);
     }
-    
+
     get value() {
         return this._value;
     }
-    
+
     /* moveCursorToEnd() {
-       if (this.editText.getNumberOfChars() < 1) 
+       if (this.editText.getNumberOfChars() < 1)
            return;
        var content = this.editText.textContent;
        this.editText.textContent = content+content.substr(content.length-1,1);
        this.editText.selectSubString(content.length,1);
     }  */
-    
+
     _updateText() {
         $('.textEdit').focus();
-        
-        if (this.editText.textContent && 
+
+        if (this.editText.textContent &&
          this.editText.textContent.length &&
            this._value != this.editText.textContent) {
           // if (this.editText[0]
           // this.editText.textContent = this.editText.textContent.replace(' ','');
-          /* if (this.editText.textContent.length > 1 && 
+          /* if (this.editText.textContent.length > 1 &&
               this.editText.textContent[this.editText.textContent.length - 1] == '_') {
             this.editText.textContent = this.editText.textContent.substr(0,this.editText.textContent.length - 1);
             var self = this;
@@ -10676,12 +10682,12 @@ class editSvgText {
              this.clientBox.height = nbox.height;
              this.setEditorPosition(this.clientBox,svgBox);
            }
-        }  
+        }
         if (!this.editText.textContent) {
            this.editText.textContent='\xa0';
         }
     }
-    
+
     startSessionPromise() {
         var self=this;
         $('body').addClass('text-edit');
@@ -10695,15 +10701,15 @@ class editSvgText {
                     if (self.editing) {
                       editTimer();
                     } else {
-                      self._updateText();                      
+                      self._updateText();
                       resolve();
                     }
                 },25);
-                
-            }            
+
+            }
             editTimer();
 		});
-        
+
         return promise;
     }
 
@@ -10721,11 +10727,11 @@ class editLyricSession {
         this.tracker = parameters.tracker;
         this.selection = parameters.selection;
         this.controller = parameters.controller;
-        this.verse=0;
+        this.verse=parameters.verse;
 		this.bound = false;
         this.state=editLyricSession.states.stopped;
     }
-    
+
     detach() {
         this.editor.endSession();
         this.state = editLyricSession.states.stopping;
@@ -10734,8 +10740,26 @@ class editLyricSession {
             this.selection.measure.changed=true;
         }
     }
-	
-	_editingSession() {       
+
+    detachPromise() {
+        var self=this;
+        return new Promise((resolve) => {
+            var waiter = () => {
+            setTimeout(() => {
+                if (self.state == editLyricSession.states.stopping ||
+                 self.state == editLyricSession.states.stopped) {
+                     resolve();
+                 } else {
+                     waiter();
+                 }
+
+                },50);
+            };
+            waiter();
+        });
+    }
+
+	_editingSession() {
 		if (!this.bound) {
 			this.bindEvents();
 		}
@@ -10749,16 +10773,16 @@ class editLyricSession {
 
         this.editor.startSessionPromise().then(handleSkip);
 	}
-    
+
     _getOrCreateLyric(note) {
-        var lyrics =  note.getModifiers('SmoLyric');
+        var lyrics =  note.getLyricForVerse(this.verse);
         if (!lyrics.length) {
-			this.lyric = new SmoLyric({text:'\xa0'});
+			this.lyric = new SmoLyric({text:'\xa0',verse:this.verse});
         } else {
 			this.lyric = lyrics[0];
 		}
     }
-    
+
     _handleSkip() {
         var tag = this.state == editLyricSession.states.minus ? '-' :'';
         this.lyric.text = this.editor.value+tag;
@@ -10766,7 +10790,7 @@ class editLyricSession {
         if (this.state != editLyricSession.states.stopping) {
 			var func = (this.state == editLyricSession.states.backSpace) ? 'lastNoteSelection' : 'nextNoteSelection';
             var sel = SmoSelection[func](
-		      this.tracker.layout.score, this.selection.selector.staff, 
+		      this.tracker.layout.score, this.selection.selector.staff,
               this.selection.selector.measure, this.selection.selector.voice, this.selection.selector.tick);
             if (sel) {
                 this.selection=sel;
@@ -10776,7 +10800,6 @@ class editLyricSession {
         } else {
             this.detach();
         }
-        
     }
     editNote() {
 		var self=this;
@@ -10788,27 +10811,28 @@ class editLyricSession {
         this.selection.note.addLyric(this.lyric);
         this.tracker.layout.render();
 		_startEditing();
+        return this.detachPromise();
     }
-	
+
 	handleKeydown(event) {
 		console.log("Lyric KeyboardEvent: key='" + event.key + "' | code='" +
 			event.code + "'"
 			 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
-       
-		if (['Space', 'Minus'].indexOf(event.code) >= 0) {            
+
+		if (['Space', 'Minus'].indexOf(event.code) >= 0) {
 			this.state =  (event.key == '-') ? editLyricSession.states.minus :  editLyricSession.states.space;
-			this.state = (this.state === editLyricSession.states.space && event.shiftKey) 
+			this.state = (this.state === editLyricSession.states.space && event.shiftKey)
 			     ? editLyricSession.states.backSpace :  this.state;
             this.editor.endSession();
 		}
-		
+
 		if (event.code == 'Escape') {
             this.state = editLyricSession.states.stopping;
             this.editor.endSession();
 		}
         this.selection.measure.changed=true;
 	}
-    
+
     bindEvents() {
 		var self = this;
         this.controller.detach();
@@ -10821,7 +10845,8 @@ class editLyricSession {
 		}
 		this.bound = true;
 	}
-};
+}
+;
 
 class suiEditor {
     constructor(params) {
@@ -11221,11 +11246,11 @@ class suiMenuManager {
 			menuContainer: '.menuContainer'
 		};
 	}
-    
+
     setController(c) {
         this.controller=c;
     }
-    
+
     get score() {
         return this.layout.score;
     }
@@ -11316,14 +11341,14 @@ class suiMenuManager {
 		var b = htmlHelpers.buildDom;
 		var r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length)
 			.css('left', '' + this.menuPosition.x + 'px')
-			.css('top', '' + this.menuPosition.y + 'px');			
+			.css('top', '' + this.menuPosition.y + 'px');
         var hotkey=0;
 		this.menu.menuItems.forEach((item) => {
 			r.append(
 				b('li').classes('menuOption').append(
 					b('button').attr('data-value',item.value)
                     .append(b('span').classes('menuText').text(item.text))
-					
+
 					.append(
 						b('span').classes('icon icon-' + item.icon))
                      .append(b('span').classes('menu-key').text(''+hotkey))));
@@ -11395,7 +11420,7 @@ class suiMenuManager {
 			this.unattach();
 			return;
 		}
-		
+
 		var binding = this.menuBind.find((ev) => {
 				return ev.key === event.key
 			});
@@ -11450,16 +11475,16 @@ class SuiFileMenu extends suiMenuBase {
 				},{
 					icon: '',
 					text: 'Print',
-					value: 'printScore' 
+					value: 'printScore'
                 },{
 					icon: '',
 					text: 'Bach Invention',
-					value: 'bach' 
+					value: 'bach'
                 },	{
 					icon: '',
 					text: 'Cancel',
 					value: 'cancel'
-				}                
+				}
             ]
         };
      }
@@ -11472,7 +11497,7 @@ class SuiFileMenu extends suiMenuBase {
 			layout: this.layout,
             controller:this.controller,
             closeMenuPromise:this.closePromise
-		    });            
+		    });
         } else if (text == 'openFile') {
             SuiLoadFileDialog.createAndDisplay({
 			layout: this.layout,
@@ -11513,13 +11538,13 @@ class SuiFileMenu extends suiMenuBase {
                             layout: self.controller.tracker.layout,
                             controller:self.controller,
                             closeMenuPromise:self.closePromise
-                            });  
+                            });
                     } else {
                         resize();
                     }
                 },50);
             }
-            
+
             resize();
         }
          else if (text == 'bach') {
@@ -11531,7 +11556,7 @@ class SuiFileMenu extends suiMenuBase {
 		this.complete();
 	}
 	keydown(ev) {}
-     
+
 }
 class SuiTextMenu extends suiMenuBase {
     	constructor(params) {
@@ -11590,7 +11615,7 @@ class SuiTextMenu extends suiMenuBase {
 			]
 		};
 	}
-    
+
     static get menuCommandMap() {
         return {
             titleText: {
@@ -11629,21 +11654,51 @@ class SuiTextMenu extends suiMenuBase {
     }
     bind() {
     }
-    _editNewText(txtObj) {                
-        this.tracker.selectId(txtObj.attrs.id);
+    _editNewText(txtObj) {
+        var self = this;
+        var createDialog = () => {
+            var dialog = SuiTextTransformDialog.createAndDisplay({
+                modifier:txtObj,
+                tracker:self.tracker,
+                undo:self.controller.undoBuffer,
+                layout:self.controller.layout
+            });
+            self.controller.unbindKeyboardForDialog(dialog);
+        }
+
+
+
+        // Wait for text to be displayed before bringing up edit dialog
+        var waitForDisplay = () => {
+            return new Promise((resolve) => {
+                var waiter = ()  =>{
+                    setTimeout(() => {
+                        if (txtObj.renderedBox) {
+                            resolve();
+                        } else {
+                            waiter();
+                        }
+                    },50);
+                };
+                waiter();
+            });
+        }
+
         // Treat a created text score like a selected text score that needs to be edited.
-        $('body').trigger('tracker-select-modifier');
-                            
+        this.closePromise.then(waitForDisplay).then(createDialog);
     }
     selection(ev) {
+        var self = this;
 		var command = $(ev.currentTarget).attr('data-value');
         var menuObj = SuiTextMenu.menuCommandMap[command];
         if (menuObj) {
             var ctor = eval(menuObj.ctor);
             var txtObj = new ctor(menuObj.params);
             SmoUndoable.scoreOp(this.editor.score,menuObj.operation,
-               txtObj, this.editor.undoBuffer,'Text Menu Command');     
-			this._editNewText(txtObj);
+               txtObj, this.editor.undoBuffer,'Text Menu Command');
+            setTimeout(function() {
+                self._editNewText(txtObj);
+            },1);
         }
 
 		this.complete();
@@ -11695,7 +11750,7 @@ class SuiDynamicsMenu extends suiMenuBase {
 			]
 		};
 	}
-	
+
 	selection(ev) {
 		var text = $(ev.currentTarget).attr('data-value');
 
@@ -11755,7 +11810,7 @@ class SuiTimeSignatureMenu extends suiMenuBase {
                 ]
         };
     }
-    
+
     selection(ev) {
 		var timeSig = $(ev.currentTarget).attr('data-value');
         this.controller.layout.unrenderAll();
@@ -11836,7 +11891,7 @@ class suiKeySignatureMenu extends suiMenuBase {
 			menuContainer: '.menuContainer'
 		};
 	}
-    
+
 	selection(ev) {
 		var keySig = $(ev.currentTarget).attr('data-value');
 		var changed = [];
@@ -11877,7 +11932,7 @@ class suiStaffModifierMenu extends suiMenuBase {
 					icon: 'ending',
 					text: 'nth ending',
 					value: 'ending'
-				},				
+				},
 				 {
 					icon: '',
 					text: 'Cancel',
@@ -11892,7 +11947,7 @@ class suiStaffModifierMenu extends suiMenuBase {
 
 		var ft = this.tracker.getExtremeSelection(-1);
 		var tt = this.tracker.getExtremeSelection(1);
-		
+
 		if (op === 'ending') {
            SmoUndoable.scoreOp(this.score,'addEnding',
 		       new SmoVolta({startBar:ft.selector.measure,endBar:tt.selector.measure,number:1}),this.editor.undoBuffer,'add ending');
@@ -13095,7 +13150,33 @@ class SuiLyricDialog extends SuiDialogBase {
         return dg;
 	}
     static get dialogElements() {
-		return [];
+		return [ {
+            smoName: 'verse',
+            parameterName: 'verse',
+            defaultValue: 0,
+            control: 'SuiDropdownComponent',
+            label:'Verse',
+            startRow:true,
+            options: [{
+                    value: 0,
+                    label: '1'
+                }, {
+                    value: 1,
+                    label: '2'
+                }, {
+                    value: 2,
+                    label: '3'
+                }
+            ]
+        },{
+				smoName: 'textEditor',
+				parameterName: 'text',
+				defaultValue: 0,
+				control: 'SuiLyricEditComponent',
+				label:'Edit Text',
+				options: []
+		}
+    ];
     }
     constructor(parameters) {
         parameters.ctor='SuiLyricDialog';
@@ -13103,7 +13184,7 @@ class SuiLyricDialog extends SuiDialogBase {
         var p = parameters;
 
 		super(SuiLyricDialog.dialogElements, {
-			id: 'dialog-layout',
+			id: 'dialog-lyrics',
 			top: (p.layout.score.layout.pageWidth / 2) - 200,
 			left: (p.layout.score.layout.pageHeight / 2) - 200,
 			label: p.label,
@@ -13112,18 +13193,31 @@ class SuiLyricDialog extends SuiDialogBase {
         this.layout = p.layout;
 		this.controller = p.controller;
         this.tracker = this.controller.tracker;
+        this.undo = this.controller.undoBuffer;
+        SmoUndoable.noop(this.layout.score,this.undo,'Undo lyrics');
 	}
     display() {
         $('body').addClass('showAttributeDialog');
-        $(this.dgDom.element).find('.buttonContainer').addClass('show-text-edit');
 		this.components.forEach((component) => {
 			component.bind();
 		});
+
+        this.editor = this.components.find((c) => c.smoName === 'textEditor');
+        this.verse = this.components.find((c) => c.smoName === 'verse');
 		this._bindElements();
 
         // make sure keyboard is unbound or we get dupicate key events.
         var self=this;
         this.controller.unbindKeyboardForDialog(this);
+
+        $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
+            if ($(ctrl).hasClass('cbLyricEdit')) {
+            } else {
+                $(ctrl).addClass('fold-textedit');
+            }
+        });
+
+       this.position(this.tracker.selections[0].note.renderedBox);
 
         var cb = function (x, y) {}
         htmlHelpers.draggable({
@@ -13134,26 +13228,24 @@ class SuiLyricDialog extends SuiDialogBase {
 			moveParent: true
 		});
 	}
-    changed() {}
+    changed() {
+        this.editor.verse = this.verse.getValue();
+    }
     _bindElements() {
         var self = this;
         var dgDom = this.dgDom;
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            self.editor.detach();
-            $('.textEdit').addClass('hide');
-            self.controller.bindEvents();
             self.complete();
+            self.layout.setDirty();
 		});
-
-        // tracker, selection, controller
-		var selection = this.tracker.getExtremeSelection(-1);
-		this.editor = new editLyricSession({tracker:this.tracker,selection:selection,controller:this.controller});
-		this.editor.editNote();
-
-
-		$(dgDom.element).find('.cancel-button').remove();
-		$(dgDom.element).find('.remove-button').remove();
+        $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+            self.layout.score = self.undo.undo(self.layout.score);
+            self.complete();
+            self.layout.setDirty();
+		});
+        $(dgDom.element).find('.remove-button').remove();
+        this.editor.startEditSession();
 	}
 }
 class SuiTextTransformDialog  extends SuiDialogBase {
@@ -13270,9 +13362,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 				control: 'SuiDropdownComponent',
 				label: 'Units',
                 options: [{value:'em',label:'em'},{value:'px',label:'px'},{value:'pt',label:'pt'}]
-			},
-
-            ];
+			}
+        ];
     }
 
     display() {
@@ -13372,10 +13463,11 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			tracker:parameters.tracker
 		});
 
-        this.undo = parameters.undo;
-        // Do we jump right into editing?
-        this.textElement=$(parameters.context.svg).find('.' + parameters.modifier.attrs.id)[0];
 		Vex.Merge(this, parameters);
+
+        // Do we jump right into editing?
+        this.undo = parameters.undo;
+        this.textElement=$(this.layout.context.svg).find('.' + parameters.modifier.attrs.id)[0];
         this.modifier.backupParams();
 	}
     _commit() {
@@ -13744,14 +13836,14 @@ class SuiRockerComponent {
 			this.type='int';
 		}
 		if (!this.increment) {
-		    this.increment = SuiRockerComponent.increments[this.type];	
+		    this.increment = SuiRockerComponent.increments[this.type];
 		}
 		if (SuiRockerComponent.dataTypes.indexOf(this.type) < 0) {
 			throw new Error('dialog element invalid type '+this.type);
 		}
-        
+
         this.id = this.id ? this.id : '';
-		
+
 		if (this.type === 'percent') {
 			this.defaultValue = 100*this.defaultValue;
 		}
@@ -13846,8 +13938,8 @@ class SuiRockerComponent {
 
 // ## SuiDragText
 // A component that lets you drag the text you are editing to anywhere on the score.
-// The text is not really part of the dialog but the location of the text appears 
-// in other dialog fields. 
+// The text is not really part of the dialog but the location of the text appears
+// in other dialog fields.
 class SuiDragText {
     constructor(dialog,parameter) {
         smoMusic.filteredMerge(
@@ -13858,9 +13950,9 @@ class SuiDragText {
         this.dragging=false;
 
         this.dialog = dialog;
-        this.value='';        
+        this.value='';
     }
-    
+
     get html() {
         var b = htmlHelpers.buildDom;
         var id = this.parameterId;
@@ -13886,7 +13978,7 @@ class SuiDragText {
           $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-move');
           $('.dom-container .textEdit').addClass('hide').removeClass('icon-move');
           this.editor = null;
-           
+
         }
     }
     getValue() {
@@ -13897,13 +13989,13 @@ class SuiDragText {
         return $(this.dialog.dgDom.element).find('#' + pid).find('button');
     }
     _handleEndDrag() {
-        var svgBox = svgHelpers.clientToLogical(this.dialog.layout.svg,svgHelpers.smoBox(this.editor.editText.getBoundingClientRect()));                
+        var svgBox = svgHelpers.clientToLogical(this.dialog.layout.svg,svgHelpers.smoBox(this.editor.editText.getBoundingClientRect()));
         var offsetBox = this.editor.editText.getBBox();
         var x = svgBox.x;
         var y = svgBox.y+svgBox.height-offsetBox.y;
         this.textElement.setAttributeNS('', 'x', '' + x);
         this.textElement.setAttributeNS('', 'y', '' + y);
-        this.value = {x:x,y:y};        
+        this.value = {x:x,y:y};
         this.dialog.changed();
     }
     startDrag() {
@@ -13929,7 +14021,7 @@ class SuiDragText {
         this.dragger = htmlHelpers.draggable({
 			parent: $('.dom-container .textEdit'),
 			handle: $('.dom-container .textEdit'),
-            animateDiv:'.draganime',            
+            animateDiv:'.draganime',
 			cb: dragCb,
             draggingCb:draggingCb,
 			moveParent: true,
@@ -13939,9 +14031,9 @@ class SuiDragText {
           this.endSession();
         }
     }
- 
+
     bind() {
-        var self=this;        
+        var self=this;
         this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
         this.fontInfo = JSON.parse(JSON.stringify(this.dialog.modifier.fontInfo));
         this.value = this.textElement.textContent;
@@ -13962,9 +14054,9 @@ class SuiResizeTextBox {
         this.editMode=false;
 
         this.dialog = dialog;
-        this.value='';        
+        this.value='';
     }
-    
+
     get html() {
         var b = htmlHelpers.buildDom;
         var id = this.parameterId;
@@ -13996,7 +14088,7 @@ class SuiResizeTextBox {
         var self=this;
         if (!this.editor) {
           this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
-          this.value = this.textElement.textContent;            
+          this.value = this.textElement.textContent;
           this.editor = new editSvgText({target:this.textElement,layout:this.dialog.layout,fontInfo:this.fontInfo});
           var button = document.getElementById(this.parameterId);
           $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
@@ -14012,7 +14104,7 @@ class SuiResizeTextBox {
           this.dialog.changed();
         }
     }
- 
+
     bind() {
         var self=this;
         this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
@@ -14037,9 +14129,9 @@ class SuiTextInPlace {
         this.editMode=false;
 
         this.dialog = dialog;
-        this.value='';        
+        this.value='';
     }
-    
+
     get html() {
         var b = htmlHelpers.buildDom;
         var id = this.parameterId;
@@ -14072,7 +14164,7 @@ class SuiTextInPlace {
         $(this._getInputElement()).find('label').text('Done Editing Text Block');
         if (!this.editor) {
           this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
-          this.value = this.textElement.textContent;            
+          this.value = this.textElement.textContent;
           this.editor = new editSvgText({target:this.textElement,layout:this.dialog.layout,fontInfo:this.fontInfo});
           var button = document.getElementById(this.parameterId);
           $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
@@ -14091,7 +14183,7 @@ class SuiTextInPlace {
           this.dialog.changed();
         }
     }
- 
+
     bind() {
         var self=this;
         this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
@@ -14100,6 +14192,95 @@ class SuiTextInPlace {
         $(this._getInputElement()).off('click').on('click',function(ev) {
             self.startEditSession();
         });
+    }
+}
+
+class SuiLyricEditComponent {
+    constructor(dialog,parameter) {
+        smoMusic.filteredMerge(
+            ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
+        if (!this.defaultValue) {
+            this.defaultValue = 0;
+        }
+        this.editMode=false;
+        this._verse = 0;
+
+        this.dialog = dialog;
+        this.value='';
+    }
+
+    set verse(val) {
+        this._verse = val;
+    }
+
+    get verse() {
+        return this._verse;
+    }
+
+    get html() {
+        var b = htmlHelpers.buildDom;
+        var id = this.parameterId;
+        var r = b('div').classes('cbLyricEdit smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+            .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
+                .attr('id', id + '-input').append(
+                b('span').classes('icon icon-pencil')))
+                .append(
+                b('label').attr('for', id + '-input').text(this.label));
+        return r;
+    }
+    get parameterId() {
+        return this.dialog.id + '-' + this.parameterName;
+    }
+    endSession() {
+        if (this.editor) {
+            this.value=this.editor.value;
+            this.editor.detach();
+        }
+    }
+    getValue() {
+        return this.value;
+    }
+    _getInputElement() {
+        var pid = this.parameterId;
+        return $(this.dialog.dgDom.element).find('#' + pid).find('button');
+    }
+
+    _startEditor() {
+        var elementDom = $('#'+this.parameterId);
+        var button = $(elementDom).find('button');
+        this.editor = new editLyricSession({tracker:this.tracker,verse:this.verse,selection:this.tracker.selections[0],controller:this.controller});
+        $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
+        $(elementDom).find('label').text('Done Editing Lyrics');
+        this.editor.editNote();
+    }
+    startEditSession(selection) {
+        var self=this;
+        var elementDom = $('#'+this.parameterId);
+        var button = $(elementDom).find('button');
+
+
+        if (!this.editor) {
+            this._startEditor();
+            $(button).off('click').on('click',function() {
+                self.dialog.changed();
+                 if (self.editor.state == editLyricSession.states.stopped || self.editor.state == editLyricSession.states.stopping)  {
+                     self._startEditor(button);
+                 } else {
+                     self.editor.detach();
+                     $(elementDom).find('label').text('Edit Lyrics');
+                     $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
+                     $('body').removeClass('text-edit');
+                     $('div.textEdit').addClass('hide');
+                 }
+          });
+        }
+    }
+
+    bind() {
+        var self=this;
+        this.tracker = this.dialog.tracker;
+        this.selection = this.dialog.selection;
+        this.controller = this.dialog.controller; // do we need this?
     }
 }
 
@@ -14127,7 +14308,7 @@ class SuiTextInputComponent {
                 b('label').attr('for', id + '-input').text(this.label));
         return r;
     }
-    
+
     getValue() {
         return this.value;
     }
@@ -14137,7 +14318,7 @@ class SuiTextInputComponent {
             self.value = $(this).val();
             self.dialog.changed();
         });
-    }    
+    }
 }
 
 // ## SuiFileDownloadComponent
@@ -14164,7 +14345,7 @@ class SuiFileDownloadComponent {
                 b('label').attr('for', id + '-input').text(this.label));
         return r;
     }
-    
+
     _handleUploadedFiles(evt)  {
         var reader = new FileReader();
         var self=this;
@@ -14183,7 +14364,7 @@ class SuiFileDownloadComponent {
             self._handleUploadedFiles(e);
         });
     }
-    
+
 }
 
 // ## SuiToggleComponent

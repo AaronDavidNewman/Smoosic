@@ -22,14 +22,14 @@ class SuiRockerComponent {
 			this.type='int';
 		}
 		if (!this.increment) {
-		    this.increment = SuiRockerComponent.increments[this.type];	
+		    this.increment = SuiRockerComponent.increments[this.type];
 		}
 		if (SuiRockerComponent.dataTypes.indexOf(this.type) < 0) {
 			throw new Error('dialog element invalid type '+this.type);
 		}
-        
+
         this.id = this.id ? this.id : '';
-		
+
 		if (this.type === 'percent') {
 			this.defaultValue = 100*this.defaultValue;
 		}
@@ -124,8 +124,8 @@ class SuiRockerComponent {
 
 // ## SuiDragText
 // A component that lets you drag the text you are editing to anywhere on the score.
-// The text is not really part of the dialog but the location of the text appears 
-// in other dialog fields. 
+// The text is not really part of the dialog but the location of the text appears
+// in other dialog fields.
 class SuiDragText {
     constructor(dialog,parameter) {
         smoMusic.filteredMerge(
@@ -136,9 +136,9 @@ class SuiDragText {
         this.dragging=false;
 
         this.dialog = dialog;
-        this.value='';        
+        this.value='';
     }
-    
+
     get html() {
         var b = htmlHelpers.buildDom;
         var id = this.parameterId;
@@ -164,7 +164,7 @@ class SuiDragText {
           $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-move');
           $('.dom-container .textEdit').addClass('hide').removeClass('icon-move');
           this.editor = null;
-           
+
         }
     }
     getValue() {
@@ -175,13 +175,13 @@ class SuiDragText {
         return $(this.dialog.dgDom.element).find('#' + pid).find('button');
     }
     _handleEndDrag() {
-        var svgBox = svgHelpers.clientToLogical(this.dialog.layout.svg,svgHelpers.smoBox(this.editor.editText.getBoundingClientRect()));                
+        var svgBox = svgHelpers.clientToLogical(this.dialog.layout.svg,svgHelpers.smoBox(this.editor.editText.getBoundingClientRect()));
         var offsetBox = this.editor.editText.getBBox();
         var x = svgBox.x;
         var y = svgBox.y+svgBox.height-offsetBox.y;
         this.textElement.setAttributeNS('', 'x', '' + x);
         this.textElement.setAttributeNS('', 'y', '' + y);
-        this.value = {x:x,y:y};        
+        this.value = {x:x,y:y};
         this.dialog.changed();
     }
     startDrag() {
@@ -207,7 +207,7 @@ class SuiDragText {
         this.dragger = htmlHelpers.draggable({
 			parent: $('.dom-container .textEdit'),
 			handle: $('.dom-container .textEdit'),
-            animateDiv:'.draganime',            
+            animateDiv:'.draganime',
 			cb: dragCb,
             draggingCb:draggingCb,
 			moveParent: true,
@@ -217,9 +217,9 @@ class SuiDragText {
           this.endSession();
         }
     }
- 
+
     bind() {
-        var self=this;        
+        var self=this;
         this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
         this.fontInfo = JSON.parse(JSON.stringify(this.dialog.modifier.fontInfo));
         this.value = this.textElement.textContent;
@@ -240,9 +240,9 @@ class SuiResizeTextBox {
         this.editMode=false;
 
         this.dialog = dialog;
-        this.value='';        
+        this.value='';
     }
-    
+
     get html() {
         var b = htmlHelpers.buildDom;
         var id = this.parameterId;
@@ -274,7 +274,7 @@ class SuiResizeTextBox {
         var self=this;
         if (!this.editor) {
           this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
-          this.value = this.textElement.textContent;            
+          this.value = this.textElement.textContent;
           this.editor = new editSvgText({target:this.textElement,layout:this.dialog.layout,fontInfo:this.fontInfo});
           var button = document.getElementById(this.parameterId);
           $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
@@ -290,7 +290,7 @@ class SuiResizeTextBox {
           this.dialog.changed();
         }
     }
- 
+
     bind() {
         var self=this;
         this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
@@ -315,9 +315,9 @@ class SuiTextInPlace {
         this.editMode=false;
 
         this.dialog = dialog;
-        this.value='';        
+        this.value='';
     }
-    
+
     get html() {
         var b = htmlHelpers.buildDom;
         var id = this.parameterId;
@@ -350,7 +350,7 @@ class SuiTextInPlace {
         $(this._getInputElement()).find('label').text('Done Editing Text Block');
         if (!this.editor) {
           this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
-          this.value = this.textElement.textContent;            
+          this.value = this.textElement.textContent;
           this.editor = new editSvgText({target:this.textElement,layout:this.dialog.layout,fontInfo:this.fontInfo});
           var button = document.getElementById(this.parameterId);
           $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
@@ -369,7 +369,7 @@ class SuiTextInPlace {
           this.dialog.changed();
         }
     }
- 
+
     bind() {
         var self=this;
         this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
@@ -378,6 +378,95 @@ class SuiTextInPlace {
         $(this._getInputElement()).off('click').on('click',function(ev) {
             self.startEditSession();
         });
+    }
+}
+
+class SuiLyricEditComponent {
+    constructor(dialog,parameter) {
+        smoMusic.filteredMerge(
+            ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
+        if (!this.defaultValue) {
+            this.defaultValue = 0;
+        }
+        this.editMode=false;
+        this._verse = 0;
+
+        this.dialog = dialog;
+        this.value='';
+    }
+
+    set verse(val) {
+        this._verse = val;
+    }
+
+    get verse() {
+        return this._verse;
+    }
+
+    get html() {
+        var b = htmlHelpers.buildDom;
+        var id = this.parameterId;
+        var r = b('div').classes('cbLyricEdit smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+            .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
+                .attr('id', id + '-input').append(
+                b('span').classes('icon icon-pencil')))
+                .append(
+                b('label').attr('for', id + '-input').text(this.label));
+        return r;
+    }
+    get parameterId() {
+        return this.dialog.id + '-' + this.parameterName;
+    }
+    endSession() {
+        if (this.editor) {
+            this.value=this.editor.value;
+            this.editor.detach();
+        }
+    }
+    getValue() {
+        return this.value;
+    }
+    _getInputElement() {
+        var pid = this.parameterId;
+        return $(this.dialog.dgDom.element).find('#' + pid).find('button');
+    }
+
+    _startEditor() {
+        var elementDom = $('#'+this.parameterId);
+        var button = $(elementDom).find('button');
+        this.editor = new editLyricSession({tracker:this.tracker,verse:this.verse,selection:this.tracker.selections[0],controller:this.controller});
+        $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
+        $(elementDom).find('label').text('Done Editing Lyrics');
+        this.editor.editNote();
+    }
+    startEditSession(selection) {
+        var self=this;
+        var elementDom = $('#'+this.parameterId);
+        var button = $(elementDom).find('button');
+
+
+        if (!this.editor) {
+            this._startEditor();
+            $(button).off('click').on('click',function() {
+                self.dialog.changed();
+                 if (self.editor.state == editLyricSession.states.stopped || self.editor.state == editLyricSession.states.stopping)  {
+                     self._startEditor(button);
+                 } else {
+                     self.editor.detach();
+                     $(elementDom).find('label').text('Edit Lyrics');
+                     $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
+                     $('body').removeClass('text-edit');
+                     $('div.textEdit').addClass('hide');
+                 }
+          });
+        }
+    }
+
+    bind() {
+        var self=this;
+        this.tracker = this.dialog.tracker;
+        this.selection = this.dialog.selection;
+        this.controller = this.dialog.controller; // do we need this?
     }
 }
 
@@ -405,7 +494,7 @@ class SuiTextInputComponent {
                 b('label').attr('for', id + '-input').text(this.label));
         return r;
     }
-    
+
     getValue() {
         return this.value;
     }
@@ -415,7 +504,7 @@ class SuiTextInputComponent {
             self.value = $(this).val();
             self.dialog.changed();
         });
-    }    
+    }
 }
 
 // ## SuiFileDownloadComponent
@@ -442,7 +531,7 @@ class SuiFileDownloadComponent {
                 b('label').attr('for', id + '-input').text(this.label));
         return r;
     }
-    
+
     _handleUploadedFiles(evt)  {
         var reader = new FileReader();
         var self=this;
@@ -461,7 +550,7 @@ class SuiFileDownloadComponent {
             self._handleUploadedFiles(e);
         });
     }
-    
+
 }
 
 // ## SuiToggleComponent

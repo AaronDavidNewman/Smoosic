@@ -371,7 +371,33 @@ class SuiLyricDialog extends SuiDialogBase {
         return dg;
 	}
     static get dialogElements() {
-		return [];
+		return [ {
+            smoName: 'verse',
+            parameterName: 'verse',
+            defaultValue: 0,
+            control: 'SuiDropdownComponent',
+            label:'Verse',
+            startRow:true,
+            options: [{
+                    value: 0,
+                    label: '1'
+                }, {
+                    value: 1,
+                    label: '2'
+                }, {
+                    value: 2,
+                    label: '3'
+                }
+            ]
+        },{
+				smoName: 'textEditor',
+				parameterName: 'text',
+				defaultValue: 0,
+				control: 'SuiLyricEditComponent',
+				label:'Edit Text',
+				options: []
+		}
+    ];
     }
     constructor(parameters) {
         parameters.ctor='SuiLyricDialog';
@@ -379,7 +405,7 @@ class SuiLyricDialog extends SuiDialogBase {
         var p = parameters;
 
 		super(SuiLyricDialog.dialogElements, {
-			id: 'dialog-layout',
+			id: 'dialog-lyrics',
 			top: (p.layout.score.layout.pageWidth / 2) - 200,
 			left: (p.layout.score.layout.pageHeight / 2) - 200,
 			label: p.label,
@@ -388,18 +414,31 @@ class SuiLyricDialog extends SuiDialogBase {
         this.layout = p.layout;
 		this.controller = p.controller;
         this.tracker = this.controller.tracker;
+        this.undo = this.controller.undoBuffer;
+        SmoUndoable.noop(this.layout.score,this.undo,'Undo lyrics');
 	}
     display() {
         $('body').addClass('showAttributeDialog');
-        $(this.dgDom.element).find('.buttonContainer').addClass('show-text-edit');
 		this.components.forEach((component) => {
 			component.bind();
 		});
+
+        this.editor = this.components.find((c) => c.smoName === 'textEditor');
+        this.verse = this.components.find((c) => c.smoName === 'verse');
 		this._bindElements();
 
         // make sure keyboard is unbound or we get dupicate key events.
         var self=this;
         this.controller.unbindKeyboardForDialog(this);
+
+        $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
+            if ($(ctrl).hasClass('cbLyricEdit')) {
+            } else {
+                $(ctrl).addClass('fold-textedit');
+            }
+        });
+
+       this.position(this.tracker.selections[0].note.renderedBox);
 
         var cb = function (x, y) {}
         htmlHelpers.draggable({
@@ -410,26 +449,24 @@ class SuiLyricDialog extends SuiDialogBase {
 			moveParent: true
 		});
 	}
-    changed() {}
+    changed() {
+        this.editor.verse = this.verse.getValue();
+    }
     _bindElements() {
         var self = this;
         var dgDom = this.dgDom;
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            self.editor.detach();
-            $('.textEdit').addClass('hide');
-            self.controller.bindEvents();
             self.complete();
+            self.layout.setDirty();
 		});
-
-        // tracker, selection, controller
-		var selection = this.tracker.getExtremeSelection(-1);
-		this.editor = new editLyricSession({tracker:this.tracker,selection:selection,controller:this.controller});
-		this.editor.editNote();
-
-
-		$(dgDom.element).find('.cancel-button').remove();
-		$(dgDom.element).find('.remove-button').remove();
+        $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+            self.layout.score = self.undo.undo(self.layout.score);
+            self.complete();
+            self.layout.setDirty();
+		});
+        $(dgDom.element).find('.remove-button').remove();
+        this.editor.startEditSession();
 	}
 }
 class SuiTextTransformDialog  extends SuiDialogBase {
@@ -546,9 +583,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 				control: 'SuiDropdownComponent',
 				label: 'Units',
                 options: [{value:'em',label:'em'},{value:'px',label:'px'},{value:'pt',label:'pt'}]
-			},
-
-            ];
+			}
+        ];
     }
 
     display() {
@@ -648,10 +684,11 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			tracker:parameters.tracker
 		});
 
-        this.undo = parameters.undo;
-        // Do we jump right into editing?
-        this.textElement=$(parameters.context.svg).find('.' + parameters.modifier.attrs.id)[0];
 		Vex.Merge(this, parameters);
+
+        // Do we jump right into editing?
+        this.undo = parameters.undo;
+        this.textElement=$(this.layout.context.svg).find('.' + parameters.modifier.attrs.id)[0];
         this.modifier.backupParams();
 	}
     _commit() {
