@@ -319,6 +319,7 @@ class suiLayoutBase {
 	}
 
     _drawPageLines() {
+        $(this.context.svg).find('.pageLine').remove();
         for (var i=1;i<this._score.layout.pages;++i) {
             var y = (this.pageHeight/this.svgScale)*i;
             svgHelpers.line(this.svg,0,y,(this.pageWidth/this.svgScale),y,

@@ -43,7 +43,6 @@ class suiTracker {
 
     handleScroll(x,y) {
         this._scroll = {x:x,y:y};
-		console.log('update scroll '+ x + ' '+y);
         this.viewport = svgHelpers.boxPoints(
           $('.musicRelief').offset().left,
           $('.musicRelief').offset().top,
@@ -78,7 +77,7 @@ class suiTracker {
 		var r = note.renderedBox;
 		var b = this.selections[0].box;
 		if (r.y != b.y || r.x != b.x) {
-			console.log('tracker: rerender conflicting map');		
+			console.log('tracker: rerender conflicting map');
 			this.layout.setDirty();
 		}
 
