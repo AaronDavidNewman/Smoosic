@@ -50,20 +50,20 @@ class SmoScore {
 	}
 	static get pageDimensions() {
 		return {
-			'letter':{width:8*96+48,height:11*96},			
+			'letter':{width:8*96+48,height:11*96},
 			'tabloid':{width:1056,height:1632},
 			'A4':{width:794,height:1122},
 			'custom':{width:1,height:1}
 		}
 	}
-    
+
 	static get orientationLabels() {
 		return ['portrait','landscape'];
 	}
 	static get orientations() {
 		return {'portrait':0,'landscape':1};
 	}
-	
+
     static get defaultAttributes() {
         return ['layout' ,'startIndex',  'renumberingMap', 'renumberIndex'];
     }
@@ -81,7 +81,7 @@ class SmoScore {
         this.staves.forEach((staff) => {
             obj.staves.push(staff.serialize());
         });
-		
+
 		this.scoreText.forEach((tt) => {
 			obj.scoreText.push(tt.serialize());
 		});
@@ -102,7 +102,9 @@ class SmoScore {
         });
 		var scoreText=[];
 		jsonObj.scoreText.forEach((tt) => {
-			scoreText.push(SmoScoreText.deserialize(tt));
+            var st = SmoScoreText.deserialize(tt);
+            st.autoLayout = false; // since this has been layed out, presumably, before save
+			scoreText.push(st);
 		});
         params.staves = staves;
 
@@ -195,9 +197,9 @@ class SmoScore {
         staff.measures[selector.measure] = measure;
     }
 
-    // ### addScoreText 
-    // 
-	
+    // ### addScoreText
+    //
+
     // ### replace staff
 	// Probably due to an undo operation, replace the staff at the given index.
     replaceStaff(index, staff) {
@@ -269,7 +271,7 @@ class SmoScore {
         this.staves = staves;
         this._numberStaves();
     }
-	
+
 	_updateScoreText(textObject,toAdd) {
 		var texts=[];
 		this.scoreText.forEach((tt) => {
@@ -282,11 +284,11 @@ class SmoScore {
 		}
 		this.scoreText = texts;
 	}
-	
+
 	addScoreText(textObject) {
 		this._updateScoreText(textObject,true);
 	}
-	
+
 	getScoreText(id) {
 		if (!this.scoreText.length) {
 			return null;
@@ -299,10 +301,10 @@ class SmoScore {
 		}
 		return null;
 	}
-	
+
 	removeScoreText(textObject) {
 		this._updateScoreText(textObject,false);
-	}	
+	}
 
     getMaxTicksMeasure(measure) {
         return this.staves[this.activeStaff].getMaxTicksMeasure(measure);
