@@ -4,7 +4,7 @@ class MeasureTest {
 		var keys = utController.createUi(SmoScore.getDefaultScore(),'Measure Test');
 		var score = keys.score;
 		var layout = keys.layout;
-		
+
 		// suiSimpleLayout.debugLayout=true;
 		var undoBuffer = keys.undoBuffer;
         score.addDefaultMeasureWithNotes(0,{});
@@ -17,7 +17,7 @@ class MeasureTest {
                 clef: 'bass'
             }});
 		// var measure = SmoSelection.measureSelection(score, 0, 0).measure;
-		
+
 		var detach = () => {
 			keys.detach();
 			keys = null;
@@ -49,7 +49,7 @@ class MeasureTest {
 			keys.render()
             return timeTest();
 		}
-		
+
 		var startRepeatTest = () => {
 			subTitle('startRepeatTest');
 			var selection = SmoSelection.measureSelection(score, 0, 0);
@@ -57,6 +57,12 @@ class MeasureTest {
 			keys.render()
             return timeTest();
 		}
+
+        var pickupTest = () => {
+            score.addPickupMeasure(0,4096+2048);
+            keys.render();
+            return timeTest();
+        }
 
 		var endRepeatTest = () => {
 			subTitle('endRepeatTest');
@@ -69,7 +75,7 @@ class MeasureTest {
 			keys.render()
             return timeTest();
 		}
-		
+
 		var serialize1 = () => {
 			score = SmoScore.deserialize(JSON.stringify(score.serialize()));
 			keys = utController.createUi(score,'Measure Test');
@@ -77,21 +83,21 @@ class MeasureTest {
 			keys.render()
             return timeTest();
 		}
-		
+
 		var doubleEndTest = () => {
 			subTitle('endRepeatTest');
 			var selection = SmoSelection.measureSelection(score, 0, 1);
 			SmoOperation.setMeasureBarline(score,selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.doubleBar}));
 			keys.render()
             return timeTest();
-		}	
+		}
 		var endEndTest = () => {
 			subTitle('endRepeatTest');
 			var selection = SmoSelection.measureSelection(score, 0, 1);
 			SmoOperation.setMeasureBarline(score,selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.endBar}));
 			keys.render()
             return timeTest();
-		}	
+		}
 		var noneEndTest = () => {
 			subTitle('noneEndTest');
 			var selection = SmoSelection.measureSelection(score, 0,1);
@@ -99,7 +105,7 @@ class MeasureTest {
 			keys.render()
             return timeTest();
 		}
-		
+
 		var symbolTest1 = () => {
 			subTitle('symbolTest1');
 			var selection = SmoSelection.measureSelection(score, 0,3);
@@ -148,7 +154,7 @@ class MeasureTest {
 			keys.render()
             return timeTest();
 		}
-		
+
 		var voltaTest1 = () => {
 			subTitle('voltaTest1');
 			var selection = SmoSelection.measureSelection(score, 0,3);
@@ -157,7 +163,7 @@ class MeasureTest {
 			keys.render()
             return timeTest();
 		}
-		
+
 		var voltaTest2 = () => {
 			subTitle('voltaTest2');
 			var selection = SmoSelection.measureSelection(score, 0,3);
@@ -165,11 +171,11 @@ class MeasureTest {
 			SmoOperation.setRepeatSymbol(score,selection,new SmoRepeatSymbol({position:SmoRepeatSymbol.positions.end,symbol:SmoRepeatSymbol.symbols.Fine}));
 			keys.render()
             return timeTest();
-		}      	       
-        
-        return drawDefaults().then(startRepeatTest).then(endRepeatTest).then(voltaTest1).then(serialize1).then(voltaTest2)
+		}
+
+        return drawDefaults().then(startRepeatTest).then(pickupTest).then(endRepeatTest).then(voltaTest1).then(serialize1).then(voltaTest2)
 		    .then(doubleEndTest).then(endEndTest).then(noneEndTest)
 		    .then(symbolTest1).then(symbolTest2).then(symbolTest3).then(symbolTest4).then(symbolTest5).then(symbolTest6)
-			.then(signalComplete); 
+			.then(signalComplete);
     }
 }

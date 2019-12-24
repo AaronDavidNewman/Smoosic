@@ -38,6 +38,18 @@ class SmoMeasure {
 		return this.voices[this.activeVoice].notes;
 	}
 
+    pickupMeasure(duration) {
+        var proto = SmoMeasure.deserialize(this.serialize());
+        proto.attrs.id =  VF.Element.newID();
+        var note = proto.voices[0].notes[0];
+        proto.voices = [];
+        note.pitches = [note.pitches[0]];
+        note.ticks.numerator = duration;
+        note.makeRest();
+        proto.voices.push({notes:[note]});
+        return proto;
+    }
+
 	// ### getRenderedNote
 	// The renderer puts a mapping between rendered svg groups and
 	// the logical notes in SMO.  The UI needs this mapping to be interactive,
@@ -103,7 +115,7 @@ class SmoMeasure {
 			});
 			params.voices.push(obj);
 		});
-		
+
 		this.modifiers.forEach((modifier) => {
 			params.modifiers.push(modifier.serialize());
 		});
@@ -139,14 +151,14 @@ class SmoMeasure {
 			var smoBeam = new SmoBeamGroup(jsonObj.beamGroups[j]);
 			beamGroups.push(smoBeam);
 		}
-		
+
 		var modifiers = [];
 		jsonObj.modifiers.forEach((modParams) => {
 			var ctor = eval(modParams.ctor);
 			var modifier = new ctor(modParams);
 			modifiers.push(modifier);
 		});
-		
+
 
 		var params = {
 			voices: voices,
@@ -280,8 +292,8 @@ class SmoMeasure {
 		});
 		return measure;
 	}
-        
-	
+
+
 	static get defaultVoice44() {
 		return SmoMeasure.getDefaultNotes({
 			clef: 'treble',
@@ -336,7 +348,7 @@ class SmoMeasure {
 	}
 	tickmap() {
 		return VX.TICKMAP(this);
-	}    
+	}
 
 	// ### getDynamicMap
 	// ### Description:
@@ -395,7 +407,7 @@ class SmoMeasure {
 		}
 		return -1;
 	}
-    
+
     _addSingletonModifier(name,parameters) {
         var ctor = eval(name);
         var ar= this.modifiers.filter(obj => obj.attrs.type != name);
@@ -406,11 +418,11 @@ class SmoMeasure {
         var ar= this.modifiers.filter(obj => obj.attrs.type != name);
         this.modifiers=ar;
     }
-    
+
     _getSingletonModifier(name) {
         return this.modifiers.find(obj => obj.attrs.type == name);
     }
-    
+
     addRehearsalMark(parameters) {
         this._addSingletonModifier('SmoRehearsalMark',parameters);
     }
@@ -420,7 +432,7 @@ class SmoMeasure {
     getRehearsalMark() {
         return this._getSingletonModifier('SmoRehearsalMark');
     }
-    
+
     addTempo(params) {
         this._addSingletonModifier('SmoTempoText',params);
     }
@@ -442,17 +454,17 @@ class SmoMeasure {
 		this.modifiers.push(mod);
 		this.setChanged();
 	}
-	
+
 	getMeasureText() {
 		return this.modifiers.filter(obj => obj.ctor === 'SmoMeasureText');
 	}
-	
+
 	removeMeasureText(id) {
 		var ar= this.modifiers.filter(obj => obj.attrs.id != id);
 		this.modifiers=ar;
 		this.setChanged();
 	}
-	
+
 	setRepeatSymbol(rs) {
 		var ar = [];
 		var toAdd = true;
@@ -583,7 +595,7 @@ class SmoMeasure {
 		}
 		this.tuplets = tuplets;
 	}
-	
+
 	get numBeats() {
 		return this.timeSignature.split('/').map(number => parseInt(number, 10))[0];
 	}

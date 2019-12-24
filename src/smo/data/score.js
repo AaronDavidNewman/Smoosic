@@ -169,6 +169,16 @@ class SmoScore {
 
     }
 
+    addPickupMeasure(measureIndex,duration) {
+        for (var i = 0; i < this.staves.length; ++i) {
+
+            var staff = this.staves[i];
+            var protomeasure = staff.measures[measureIndex].pickupMeasure(duration);
+            staff.addMeasure(measureIndex,protomeasure);
+        }
+        this._numberStaves();        
+    }
+
     // ### addMeasure
     // Give a measure prototype, create a new measure and add it to each staff, with the
     // correct settings for current time signature/clef.
