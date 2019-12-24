@@ -5,7 +5,7 @@ class suiEditor {
         Vex.Merge(this, params);
         this.slashMode = false;
     }
-	
+
 	tempoDialog() {
 		SuiTempoDialog.createAndDisplay(null,null,this.controller);
 	}
@@ -15,11 +15,11 @@ class suiEditor {
     _render() {
 		this.layout.setDirty();
     }
-	
+
 	_refresh() {
 		this.layout.setRefresh();
 	}
-    
+
     get score() {
         return this.layout.score;
     }
@@ -32,12 +32,12 @@ class suiEditor {
         SmoUndoable.batchDurationOperation(this.score, this.tracker.selections, operation, this.undoBuffer);
         this._render();
     }
-	
+
 	scoreSelectionOperation(selection,name,parameters,description) {
 		SmoUndoable.scoreSelectionOp(this.score,selection,name,parameters,
 			    this.undoBuffer,description);
 		this._render();
-				
+
 	}
 	scoreOperation(name,parameters,description) {
 		SmoUndoable.scoreOp(this.score,name,parameters,this.undoBuffer,description);
@@ -71,9 +71,11 @@ class suiEditor {
         this._render();
     }
 
-    _transpose(selection, offset) {
+    _transpose(selection, offset, playSelection) {
         this._selectionOperation(selection, 'transpose', offset);
-        suiOscillator.playSelectionNow(selection);
+        if (playSelection) {
+            suiOscillator.playSelectionNow(selection);
+        }
     }
 
     copy() {
@@ -97,7 +99,7 @@ class suiEditor {
         SmoUndoable.toggleBeamGroups(this.tracker.selections, this.undoBuffer);
         this._render();
     }
-    
+
     beamSelections() {
         if (this.tracker.selections.length < 1) {
             return;
@@ -112,7 +114,7 @@ class suiEditor {
         SmoUndoable.toggleBeamDirection(this.tracker.selections, this.undoBuffer);
         this._render();
     }
-    
+
     collapseChord() {
         SmoUndoable.noop(this.score, this.undoBuffer);
         this.tracker.selections.forEach((selection) => {
@@ -122,7 +124,7 @@ class suiEditor {
         });
         this._render();
     }
-    
+
     playScore() {
         var mm = this.tracker.getExtremeSelection(-1);
         if (suiAudioPlayer.playingInstance && suiAudioPlayer.playingInstance.paused) {
@@ -130,9 +132,9 @@ class suiEditor {
             return;
         }
 
-        new suiAudioPlayer({score:this.layout.score,startIndex:mm.selector.measure,tracker:this.tracker}).play();        
+        new suiAudioPlayer({score:this.layout.score,startIndex:mm.selector.measure,tracker:this.tracker}).play();
     }
-    
+
     stopPlayer() {
         suiAudioPlayer.stopPlayer();
     }
@@ -161,10 +163,15 @@ class suiEditor {
             grace.forEach((artifact) => {
                 SmoUndoable.transposeGraceNotes(artifact.selection,{modifiers:artifact.modifier,offset:offset},this.undoBuffer);
             });
-            
+
             return;
         }
-        this.tracker.selections.forEach((selected) => this._transpose(selected, offset,false));
+        // If there are lots of selections, just play the first note
+        var playSelection = true;
+        this.tracker.selections.forEach((selected) => {
+            this._transpose(selected, offset, playSelection);
+            playSelection = false;
+        });
         this._render();
     }
     transposeDown() {
@@ -180,7 +187,9 @@ class suiEditor {
         this.transpose(-12);
     }
     makeRest() {
-        this._singleSelectionOperation('makeRest');
+        this.tracker.selections.forEach((selection) => {
+            this._selectionOperation(selection,'makeRest');
+        });
     }
 
     _setPitch(selected, letter) {
@@ -242,7 +251,7 @@ class suiEditor {
             grace.forEach((artifact) => {
                 SmoUndoable.doubleGraceNoteDuration(artifact.selection,artifact.modifier,this.undoBuffer);
             });
-            
+
             return;
         }
         this._batchDurationOperation('doubleDuration');
@@ -254,9 +263,9 @@ class suiEditor {
             grace.forEach((artifact) => {
                 SmoUndoable.halveGraceNoteDuration(artifact.selection,artifact.modifier,this.undoBuffer);
             });
-            
+
             return;
-        }        
+        }
         this._batchDurationOperation('halveDuration');
     }
 
@@ -331,7 +340,7 @@ class suiEditor {
             'staff', this.tracker.selections[0].selector, this.tracker.selections[0].staff);
 
         this.tracker.selections.forEach((sel) => {
-            
+
             if (ctor === 'SmoArticulation') {
                 var aa = new SmoArticulation({
                     articulation: articulation

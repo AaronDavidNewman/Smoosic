@@ -3,6 +3,7 @@ class suiPiano {
 	constructor(parameters) {
 		this.elementId = parameters.elementId;
         this.tracker = parameters.tracker;
+        this.undoBuffer = parameters.undo;
 		this.renderElement = document.getElementById('piano-svg')
 			this.selections = [];
 		this.render();
@@ -99,6 +100,7 @@ class suiPiano {
 			// resize the work area.
 			$('body').trigger('forceScrollEvent');
 		});
+        this.bindKeys();
 	}
 	_updateSelections(ev) {
 		var keyPressed = svgHelpers.findSmallestIntersection({
@@ -139,18 +141,28 @@ class suiPiano {
 		var padding = Math.round(window.innerWidth - suiPiano.owidth*suiPiano.dimensions.octaves)/2;
 		$(this.renderElement).closest('div').css('margin-left',''+padding+'px');
 	}
+    bindKeys() {
+        var self = this;
+        $('body').off('smo-piano-key').on('smo-piano-key',function(ev,obj) {
+			obj=obj.selections;
+			self.tracker.selections.forEach((sel) => {
+                SmoUndoable.addPitch(sel, obj, self.undoBuffer);
+                suiOscillator.playSelectionNow(sel);
+			});
+		});
+    }
 	render() {
 		$('body').addClass('show-piano');
 		var b = svgHelpers.buildSvg;
 		var d = suiPiano.dimensions;
 		// https://www.mathpages.com/home/kmath043.htm
-		
+
 		// Width of white key at back for C,D,E
 		var b1off = d.wwidth - (d.bwidth * 2 / 3);
-		
+
 		// Width of other white keys at the back.
 		var b2off=d.wwidth-(d.bwidth*3)/4;
-		
+
 		var keyAr = [];
 		var xwhite = [{
 				note: 'C',
@@ -197,10 +209,10 @@ class suiPiano {
 		var wheight = d.wheight;
 		var bheight = d.bheight;
 		var owidth = suiPiano.wkeysPerOctave * wwidth;
-		
+
 		// Start on C2 to C6 to reduce space
 		var octaveOff = 7-d.octaves;
-		
+
 		var x = 0;
 		var y = 0;
 		var r = b('g');

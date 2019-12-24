@@ -1,6 +1,8 @@
 
 var AudioContext = window.AudioContext || window.webkitAudioContext;
 
+// ## suiAudioPitch
+// helper class to compute the frequencies of the notes.
 class suiAudioPitch {
     // ### _frequencies
     // Compute the equal-temperment frequencies of the notes.
@@ -129,7 +131,7 @@ class suiAudioPlayer {
         return measureCompletePromise;
     }
 
-    static _createOscillatorsForMeasure(staff,measure) {
+    static _createOscillatorsForMeasure(score,staff,measure) {
          var tempo = measure.getTempo();
         tempo = tempo ? tempo : new SmoTempoText();
         var tickTime = 60000/tempo.bpm;
@@ -139,7 +141,7 @@ class suiAudioPlayer {
             var pitchOsc = [];
             voiceOsc.push(pitchOsc);
             voice.notes.forEach((note) => {
-                pitchOsc.push(suiOscillator.fromNote(measure,note));
+                pitchOsc.push(suiOscillator.fromNote(measure,note,false,0.5/score.staves.length));
                 ix += 1;
             });
         });
@@ -156,7 +158,7 @@ class suiAudioPlayer {
             var measureList = [];
             var measures = staff.measures.filter((mm) => mm.measureNumber.measureIndex >= measureIx);
             measures.forEach((measure) => {
-                measureList.push( suiAudioPlayer._createOscillatorsForMeasure(staff,measure));
+                measureList.push( suiAudioPlayer._createOscillatorsForMeasure(score,staff,measure));
             });
             staffList.push(measureList);
         });
@@ -249,9 +251,9 @@ class suiOscillator {
         return obj;
     }
 
-    static playSelectionNow(selection) {
+    static playSelectionNow(selection,gain) {
         setTimeout(function() {
-        var ar = suiOscillator.fromNote(selection.measure,selection.note);
+        var ar = suiOscillator.fromNote(selection.measure,selection.note,true,gain);
         ar.forEach((osc) => {
             osc.play();
         });
@@ -277,18 +279,22 @@ class suiOscillator {
         playIx(0,ar[0]);
     }
 
-    static fromNote(measure,note) {
+    static fromNote(measure,note,isSample,gain) {
         var tempo = measure.getTempo();
         tempo = tempo ? tempo : new SmoTempoText();
         var bpm = tempo.bpm;
         var beats = note.tickCount/4096;
         var duration = (beats / bpm) * 60000;
-        // adjust if bpm is over something other than 1/45 note
-        duration = duration * tempo.beatDuration/4096;
+
+        // adjust if bpm is over something other than 1/4 note
+        duration = duration * (4096/tempo.beatDuration);
+        if (isSample)
+            duration = 250;
 
 
         var ar = [];
-        var gain = 0.5/note.pitches.length;
+        gain = gain ? gain : 0.5;
+        gain = gain/note.pitches.length
         if (note.noteType == 'r') {
             gain = 0.001;
         }

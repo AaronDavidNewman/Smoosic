@@ -428,7 +428,7 @@ class VxMeasure {
             var voice = new VF.Voice({
                     num_beats: this.smoMeasure.numBeats,
                     beat_value: this.smoMeasure.beatValue
-                });
+                }).setMode(Vex.Flow.Voice.Mode.SOFT);
             voice.addTickables(this.vexNotes);
             voiceAr.push(voice);
         }

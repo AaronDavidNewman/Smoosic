@@ -24,7 +24,7 @@ module.exports = function (grunt) {
 					'src/ui/dialog.js','src/ui/dialogComponents.js',
 					'src/ui/ribbonLayout/default/defaultRibbon.js',
 					'src/render/vex/glyphDimensions.js',
-                    'src/music/invention.js','src/music/basic.js',
+                    'src/music/invention.js','src/music/basic.js','src/music/jesuBambino.js',
                     'src/ui/ribbon.js','src/ui/dialog.js', 'src/ui/staffDialogs.js', 'src/ui/help.js', 'src/ui/controller.js'],
                 dest: 'build/<%= pkg.name %>.js'
             },
@@ -59,7 +59,7 @@ module.exports = function (grunt) {
                         cwd: 'html/',
                         src: ['*.*', '**/*'],
                         dest: 'build/html/'
-                    }					
+                    }
                 ]
             }
         }

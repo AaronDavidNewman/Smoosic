@@ -52,7 +52,7 @@ class suiController {
 			this.pollRedraw();
 		}
 
-		this.piano();
+		this.createPiano();
 		this.updateOffsets();
 	}
 
@@ -136,8 +136,8 @@ class suiController {
 			$('body').removeClass('splashScreen modal');
 		}, 1000);
 	}
-	piano() {
-		this.piano = new suiPiano({elementId:'piano-svg',tracker:this.tracker});
+	createPiano() {
+		this.piano = new suiPiano({elementId:'piano-svg',tracker:this.tracker,undo:this.undoBuffer});
         $('.close-piano').click();
 	}
 	updateOffsets() {
@@ -471,13 +471,7 @@ class suiController {
 		$(this.renderElement).off('click').on('click', function (ev) {
 			tracker.selectSuggestion(ev);
 		});
-		$('body').off('smo-piano-key').on('smo-piano-key',function(ev,obj) {
-			obj=obj.selections;
-			self.tracker.selections.forEach((sel) => {
-                SmoUndoable.addPitch(sel, obj, self.undoBuffer);
-                suiOscillator.playSelectionNow(sel);
-			});
-		});
+		
 		$('body').off('tracker-selection').on('tracker-selection',function(ev) {
 			self.trackerChangeEvent(ev);
 		});

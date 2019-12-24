@@ -258,6 +258,10 @@ class SuiFileMenu extends suiMenuBase {
 					icon: '',
 					text: 'Bach Invention',
 					value: 'bach'
+                },{
+					icon: '',
+					text: 'Jesu Bambino',
+					value: 'bambino'
                 },	{
 					icon: '',
 					text: 'Cancel',
@@ -331,6 +335,12 @@ class SuiFileMenu extends suiMenuBase {
 			this.controller.layout.score = score;
 			this.controller.layout.setViewport(true);
 		}
+        else if (text == 'bambino') {
+           this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
+           var score = SmoScore.deserialize(jesuBambino);
+           this.controller.layout.score = score;
+           this.controller.layout.setViewport(true);
+       }
 		this.complete();
 	}
 	keydown(ev) {}

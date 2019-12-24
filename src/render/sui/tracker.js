@@ -362,6 +362,7 @@ class suiTracker {
 	// try to preserve the previous selection
 	_updateMap(rebox) {
 		console.log('update map');
+        this.mapping = true;
 		var notes = [].slice.call(this.renderElement.getElementsByClassName('vf-stavenote'));
         var scroller = $('.musicRelief');
         this._scrollInitial = {x:$(scroller)[0].scrollLeft,y:$(scroller)[0].scrollTop};
@@ -436,6 +437,7 @@ class suiTracker {
 		this.triggerSelection();
 		this.pasteBuffer.clearSelections();
 		this.pasteBuffer.setSelections(this.score, this.selections);
+        this.mapping = false;
 	}
 
 	updateMap(rebox) {
@@ -576,7 +578,9 @@ class suiTracker {
 		}
 		// console.log('adding selection ' + artifact.note.id);
 
-        suiOscillator.playSelectionNow(artifact);
+        if (!this.mapping) {
+            suiOscillator.playSelectionNow(artifact);
+        }
 
 		this.selections.push(artifact);
 		this.highlightSelection();
