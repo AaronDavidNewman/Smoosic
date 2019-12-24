@@ -309,7 +309,8 @@ class VxMeasure {
 		var sym = this.smoMeasure.getRepeatSymbol();
 
         // don't create a begin bar for any but the 1st measure.
-		if (this.smoMeasure.measureNumber.systemIndex != 0 && sb.barline === SmoBarline.barlines.singleBar) {
+		if (this.smoMeasure.measureNumber.systemIndex != 0 && sb.barline === SmoBarline.barlines.singleBar
+             && this.smoMeasure.padLeft === 0) {
 		    this.stave.setBegBarType(VF.Barline.type.NONE);
 		} else {
 			this.stave.setBegBarType(sb.toVexBarline());
@@ -386,7 +387,9 @@ class VxMeasure {
 		var canceledKey = this.smoMeasure.canceledKeySignature ? smoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature,this.smoMeasure.transposeIndex)
 		   : this.smoMeasure.canceledKeySignature;
 
-        this.stave = new VF.Stave(this.smoMeasure.staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - 1);
+        var staffX = this.smoMeasure.staffX + this.smoMeasure.padLeft;
+
+        this.stave = new VF.Stave(staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - 1);
         if (this.smoMeasure.prevFrame < VxMeasure.fps) {
             this.smoMeasure.prevFrame += 1;
         }

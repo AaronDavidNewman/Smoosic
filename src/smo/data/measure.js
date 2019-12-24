@@ -15,6 +15,7 @@ class SmoMeasure {
         this.timestamp=0;
         this.prevY = 0;
         this.prevX = 0;
+        this.padLeft=0;
         this.prevFrame=0;
 		var defaults = SmoMeasure.defaults;
 
@@ -84,7 +85,7 @@ class SmoMeasure {
 		return [
 			'timeSignature', 'keySignature', 'staffX', 'staffY',
 			'measureNumber', 'staffWidth',
-			'activeVoice', 'clef', 'transposeIndex', 'activeVoice', 'adjX','adjRight', 'padRight', 'rightMargin'];
+			'activeVoice', 'clef', 'transposeIndex', 'activeVoice', 'adjX','padLeft','adjRight', 'padRight', 'rightMargin'];
 	}
 
 	// ### serialize

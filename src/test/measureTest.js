@@ -60,6 +60,8 @@ class MeasureTest {
 
         var pickupTest = () => {
             score.addPickupMeasure(0,4096+2048);
+            score.staves[0].measures[2].padLeft = 8;
+            score.staves[0].measures[2].setBarline(new SmoBarline({position:SmoBarline.positions.start,barline:SmoBarline.barlines.singleBar}));
             keys.render();
             return timeTest();
         }
