@@ -2,6 +2,9 @@
 // This file contains dialogs that affect all measures at a certain position,
 // such as tempo or time signature.
 
+class SuiMeasureDialog extends SuiDialogBase {
+    
+}
 // ## SuiTempoDialog
 // Allow user to choose a tempo or tempo change.
 class SuiTempoDialog extends SuiDialogBase {
