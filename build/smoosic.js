@@ -2248,6 +2248,7 @@ class SmoMeasure {
         this.timestamp=0;
         this.prevY = 0;
         this.prevX = 0;
+        this.padLeft=0;
         this.prevFrame=0;
 		var defaults = SmoMeasure.defaults;
 
@@ -2270,6 +2271,18 @@ class SmoMeasure {
 	get notes() {
 		return this.voices[this.activeVoice].notes;
 	}
+
+    pickupMeasure(duration) {
+        var proto = SmoMeasure.deserialize(this.serialize());
+        proto.attrs.id =  VF.Element.newID();
+        var note = proto.voices[0].notes[0];
+        proto.voices = [];
+        note.pitches = [note.pitches[0]];
+        note.ticks.numerator = duration;
+        note.makeRest();
+        proto.voices.push({notes:[note]});
+        return proto;
+    }
 
 	// ### getRenderedNote
 	// The renderer puts a mapping between rendered svg groups and
@@ -2305,7 +2318,7 @@ class SmoMeasure {
 		return [
 			'timeSignature', 'keySignature', 'staffX', 'staffY',
 			'measureNumber', 'staffWidth',
-			'activeVoice', 'clef', 'transposeIndex', 'activeVoice', 'adjX','adjRight', 'padRight', 'rightMargin'];
+			'activeVoice', 'clef', 'transposeIndex', 'activeVoice', 'adjX','padLeft','adjRight', 'padRight', 'rightMargin'];
 	}
 
 	// ### serialize
@@ -2336,7 +2349,7 @@ class SmoMeasure {
 			});
 			params.voices.push(obj);
 		});
-		
+
 		this.modifiers.forEach((modifier) => {
 			params.modifiers.push(modifier.serialize());
 		});
@@ -2372,14 +2385,14 @@ class SmoMeasure {
 			var smoBeam = new SmoBeamGroup(jsonObj.beamGroups[j]);
 			beamGroups.push(smoBeam);
 		}
-		
+
 		var modifiers = [];
 		jsonObj.modifiers.forEach((modParams) => {
 			var ctor = eval(modParams.ctor);
 			var modifier = new ctor(modParams);
 			modifiers.push(modifier);
 		});
-		
+
 
 		var params = {
 			voices: voices,
@@ -2513,8 +2526,8 @@ class SmoMeasure {
 		});
 		return measure;
 	}
-        
-	
+
+
 	static get defaultVoice44() {
 		return SmoMeasure.getDefaultNotes({
 			clef: 'treble',
@@ -2569,7 +2582,7 @@ class SmoMeasure {
 	}
 	tickmap() {
 		return VX.TICKMAP(this);
-	}    
+	}
 
 	// ### getDynamicMap
 	// ### Description:
@@ -2628,7 +2641,7 @@ class SmoMeasure {
 		}
 		return -1;
 	}
-    
+
     _addSingletonModifier(name,parameters) {
         var ctor = eval(name);
         var ar= this.modifiers.filter(obj => obj.attrs.type != name);
@@ -2639,11 +2652,11 @@ class SmoMeasure {
         var ar= this.modifiers.filter(obj => obj.attrs.type != name);
         this.modifiers=ar;
     }
-    
+
     _getSingletonModifier(name) {
         return this.modifiers.find(obj => obj.attrs.type == name);
     }
-    
+
     addRehearsalMark(parameters) {
         this._addSingletonModifier('SmoRehearsalMark',parameters);
     }
@@ -2653,7 +2666,7 @@ class SmoMeasure {
     getRehearsalMark() {
         return this._getSingletonModifier('SmoRehearsalMark');
     }
-    
+
     addTempo(params) {
         this._addSingletonModifier('SmoTempoText',params);
     }
@@ -2675,17 +2688,17 @@ class SmoMeasure {
 		this.modifiers.push(mod);
 		this.setChanged();
 	}
-	
+
 	getMeasureText() {
 		return this.modifiers.filter(obj => obj.ctor === 'SmoMeasureText');
 	}
-	
+
 	removeMeasureText(id) {
 		var ar= this.modifiers.filter(obj => obj.attrs.id != id);
 		this.modifiers=ar;
 		this.setChanged();
 	}
-	
+
 	setRepeatSymbol(rs) {
 		var ar = [];
 		var toAdd = true;
@@ -2816,7 +2829,7 @@ class SmoMeasure {
 		}
 		this.tuplets = tuplets;
 	}
-	
+
 	get numBeats() {
 		return this.timeSignature.split('/').map(number => parseInt(number, 10))[0];
 	}
@@ -3833,6 +3846,16 @@ class SmoScore {
             staff.deleteMeasure(measureIndex);
         });
 
+    }
+
+    addPickupMeasure(measureIndex,duration) {
+        for (var i = 0; i < this.staves.length; ++i) {
+
+            var staff = this.staves[i];
+            var protomeasure = staff.measures[measureIndex].pickupMeasure(duration);
+            staff.addMeasure(measureIndex,protomeasure);
+        }
+        this._numberStaves();        
     }
 
     // ### addMeasure
@@ -7208,7 +7231,8 @@ class VxMeasure {
 		var sym = this.smoMeasure.getRepeatSymbol();
 
         // don't create a begin bar for any but the 1st measure.
-		if (this.smoMeasure.measureNumber.systemIndex != 0 && sb.barline === SmoBarline.barlines.singleBar) {
+		if (this.smoMeasure.measureNumber.systemIndex != 0 && sb.barline === SmoBarline.barlines.singleBar
+             && this.smoMeasure.padLeft === 0) {
 		    this.stave.setBegBarType(VF.Barline.type.NONE);
 		} else {
 			this.stave.setBegBarType(sb.toVexBarline());
@@ -7285,7 +7309,9 @@ class VxMeasure {
 		var canceledKey = this.smoMeasure.canceledKeySignature ? smoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature,this.smoMeasure.transposeIndex)
 		   : this.smoMeasure.canceledKeySignature;
 
-        this.stave = new VF.Stave(this.smoMeasure.staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - 1);
+        var staffX = this.smoMeasure.staffX + this.smoMeasure.padLeft;
+
+        this.stave = new VF.Stave(staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - 1);
         if (this.smoMeasure.prevFrame < VxMeasure.fps) {
             this.smoMeasure.prevFrame += 1;
         }
@@ -9679,8 +9705,8 @@ class suiPiano {
 ;
 // ## suiAdjuster
 // Perform adjustments on the score based on the rendered components so we can re-render it more legibly.
-class suiLayoutAdjuster {	
-	
+class suiLayoutAdjuster {
+
 	static estimateMusicWidth(smoMeasure) {
 		var width = 0;
 		var tm = smoMeasure.tickmap();
@@ -9707,7 +9733,7 @@ class suiLayoutAdjuster {
 		if (smoMeasure.forceKeySignature) {
 			if ( smoMeasure.canceledKeySignature) {
 			    width += vexGlyph.keySignatureLength(smoMeasure.canceledKeySignature);
-			}			
+			}
             width += vexGlyph.keySignatureLength(smoMeasure.keySignature);
 		}
 		if (smoMeasure.forceClef) {
@@ -9722,7 +9748,7 @@ class suiLayoutAdjuster {
 		}
 		return width;
 	}
-	
+
 	static estimateEndSymbolWidth(smoMeasure) {
 		var width = 0;
 		var ends  = smoMeasure.getEndBarline();
@@ -9731,8 +9757,8 @@ class suiLayoutAdjuster {
 		}
 		return width;
 	}
-	
-    
+
+
 	static estimateTextOffset(renderer,smoMeasure) {
 		var leftText = smoMeasure.modifiers.filter((mm) => mm.ctor==='SmoMeasureText' && mm.position === SmoMeasureText.positions.left);
 		var rightText = smoMeasure.modifiers.filter((mm) => mm.ctor==='SmoMeasureText' && mm.position === SmoMeasureText.positions.right);
@@ -9751,26 +9777,26 @@ class suiLayoutAdjuster {
 		});
 		return svgHelpers.boxPoints(xoff,0,width,0);
 	}
-	
+
 	static estimateMeasureWidth(renderer,measure,staffBox) {
-	
+
 		// Calculate the existing staff width, based on the notes and what we expect to be rendered.
 		measure.staffWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
 		measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
 		measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
-		measure.staffWidth = measure.staffWidth  + measure.adjX + measure.adjRight;
-		
+		measure.staffWidth = measure.staffWidth  + measure.adjX + measure.adjRight + measure.padLeft;
+
 		// Calculate the space for left/right text which displaces the measure.
 		var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(renderer,measure);
 		measure.staffX += textOffsetBox.x;
 	}
-	
+
 	// ### justifyWidths
 	// After we adjust widths so each staff has enough room, evenly distribute the remainder widths to the measures.
 	static justifyWidths(score,renderer,pageSize) {
 		var context = renderer.getContext();
 		var svg = context.svg;
-		
+
 		if (suiLayoutBase.debugLayout) {
 			$(context.svg).find('g.measure-adjust-dbg').remove();
 		}
@@ -9785,7 +9811,7 @@ class suiLayoutAdjuster {
 					});
 				if (measures.length > 0) {
 					var width = measures.map((mm) => {
-							return mm.staffWidth;
+							return mm.staffWidth + mm.padLeft;
 						}).reduce((a, b) => {
 							return a + b
 						});
@@ -9826,7 +9852,7 @@ class suiLayoutAdjuster {
 		}
 		smoMeasure.logicalBox.width += acc;
 	}
-	
+
     // ### adjustWidths
 	// Set the width of each measure in a system to the max width for that column so the measures are aligned.
 	static adjustWidths(score,renderer) {
@@ -9837,10 +9863,12 @@ class suiLayoutAdjuster {
 			$(renderer.getContext().svg).find('g.measure-adjust-dbg').remove();
 		}
 
+        // go through each system, vertically
 		for (var i = 0; i <= maxLine; ++i) {
 			var systemIndex = 0;
 			while (true) {
 				var measures = [];
+                // Get all the measures on this line in this 'column'
 				score.staves.forEach((staff) => {
 					var ix = staff.measures.findIndex((x) => {
 							return x.lineIndex === i && x.measureNumber.systemIndex === systemIndex;
@@ -9852,9 +9880,10 @@ class suiLayoutAdjuster {
 				// Make sure each note head is not squishing
 				measures.forEach((mm) => {suiLayoutAdjuster._spaceNotes(svg,mm);});
 
+                // find the widest measure in this column, and adjust the others accordingly
 				if (measures.length) {
 					var widest = measures.map((x) => {
-							return x.logicalBox.width;
+							return x.logicalBox.width + x.padLeft;
 						}).reduce((a, w) => {
 							return a > w ? a : w;
 						});
@@ -9873,7 +9902,7 @@ class suiLayoutAdjuster {
 			var last = null;
 			staff.measures.forEach((measure) => {
 				if (last && measure.measureNumber.systemIndex > 0) {
-					measure.staffX = last.staffX + last.staffWidth;
+					measure.staffX = last.staffX + last.staffWidth + last.padLeft;
 				}
 				if (suiLayoutBase.debugLayout) {
 					var dbgBox = svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height);
@@ -9884,13 +9913,15 @@ class suiLayoutAdjuster {
 		});
 
 	}
-	
+
+    // ### _minMaxYModifier
+    // Helper function to calculate or update the min, max y of a staff
 	static _minMaxYModifier(staff,minMeasure,maxMeasure,minY,maxY) {
 		staff.modifiers.forEach((modifier) => {
             if (modifier.startSelector.measure >= minMeasure && modifier.startSelector <= maxMeasure) {
                 minY = modifier.logicalBox.y < minY ? modifier.logicalBox.y : minY;
                 var max = modifier.logicalBox.y + modifier.logicalBox.height;
-                maxY = max > maxY ? max : maxY;	 
+                maxY = max > maxY ? max : maxY;
             }
 			});
 
@@ -9912,7 +9943,7 @@ class suiLayoutAdjuster {
 			$(renderer.getContext().svg).find('g.measure-adjust-dbg').remove();
 		}
 		var accum = 0;
-		// iterate: system, staves within a system, measures 
+		// iterate: system, staves within a system, measures
 		for (var i = 0; i <= maxLine; ++i) {
 			for (var j = 0; j < score.staves.length; ++j) {
 				var absLine = score.staves.length * i + j;
@@ -9924,7 +9955,7 @@ class suiLayoutAdjuster {
 				if (measures.length === 0) {
 					continue;
 				}
-                
+
                 var measureNums = measures.map((mm)=> {
                     return mm.measureNumber.measureIndex;
                 });
@@ -9943,12 +9974,12 @@ class suiLayoutAdjuster {
 				var minYMeasure = measures.reduce((a, b) => {
 						return a.logicalBox.y < b.logicalBox.y ? a : b;
 					});
-					
+
 				var minYRenderedY = minYMeasure.logicalBox.y;
 				var minYStaffY = minYMeasure.staffY;
-				
+
 				var thisLineMaxY = maxYMeasure.logicalBox.y + maxYMeasure.logicalBox.height;
-				
+
 				var modAdj = suiLayoutAdjuster._minMaxYModifier(staff,measureMin,measureMax,minYRenderedY,thisLineMaxY);
 				minYRenderedY=modAdj.minY;
 				thisLineMaxY=modAdj.maxY;
@@ -9957,11 +9988,11 @@ class suiLayoutAdjuster {
 				lineIndexPerLine.push(maxYMeasure.lineIndex);
 
 				if (absLine == 0) {
-					accum = score.layout.topMargin - minYRenderedY;					
-					var staffY = minYStaffY+ accum;					
+					accum = score.layout.topMargin - minYRenderedY;
+					var staffY = minYStaffY+ accum;
 					measures.forEach((measure) => {
 						measure.staffY = staffY;
-                        vyMaxY = (vyMaxY > measure.staffY + measure.logicalBox.height) ? vyMaxY : 
+                        vyMaxY = (vyMaxY > measure.staffY + measure.logicalBox.height) ? vyMaxY :
                            measure.staffY + measure.logicalBox.height;
 						if (suiLayoutBase.debugLayout) {
 							var dbgBox = svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height);
@@ -9975,10 +10006,10 @@ class suiLayoutAdjuster {
 						delta += score.layout.interGap;
 					}
 					accum += delta;
-					var staffY = minYStaffY + accum;					
+					var staffY = minYStaffY + accum;
 					measures.forEach((measure) => {
 						measure.staffY = staffY;
-                        vyMaxY = (vyMaxY > measure.staffY + measure.logicalBox.height) ? vyMaxY : 
+                        vyMaxY = (vyMaxY > measure.staffY + measure.logicalBox.height) ? vyMaxY :
                            measure.staffY + measure.logicalBox.height;
 						if (suiLayoutBase.debugLayout) {
 							var dbgBox = svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height);
@@ -9988,12 +10019,12 @@ class suiLayoutAdjuster {
 				}
 			}
 		}
-        
+
         // Finally, make sure each system does not run into the page break;
         var page = 1;
         var pageGap = 0;
         var pbrk = page * pageHeight;
-        
+
         for (var i=0; i <= maxLine; ++i) {
             var measures=[];
             score.staves.forEach((staff) => {
@@ -10002,7 +10033,7 @@ class suiLayoutAdjuster {
                 });
                 measures = measures.concat(delta);
             });
-            
+
             var miny = measures.reduce((a, b) => {
 						return a.staffY < b.staffY ? a: b;
 					});
@@ -10013,7 +10044,7 @@ class suiLayoutAdjuster {
 						return  ay > by ? a : b;
 					});
             maxy = maxy.staffY + maxy.logicalBox.height;
-            
+
             // miny + x = pbrk + margin
             if (maxy > pbrk) {
                 pageGap += pbrk - miny + score.layout.topMargin;
@@ -10029,8 +10060,9 @@ class suiLayoutAdjuster {
         if (page != score.layout.pages) {
             score.layout.pages = page;
         }
-	}	
-};
+	}
+}
+;
 // ## suiLayoutBase
 // ## Description:
 // A layout maps the measures and notes to a spot on the page.  It
@@ -12993,6 +13025,315 @@ class SuiDialogBase {
 	}
 }
 
+
+class SuiLayoutDialog extends SuiDialogBase {
+	static get attributes() {
+		return ['pageWidth', 'pageHeight', 'leftMargin', 'topMargin', 'rightMargin', 'interGap', 'intraGap', 'zoomScale', 'svgScale'];
+	}
+	static get dialogElements() {
+		return [{
+				smoName: 'pageSize',
+				parameterName: 'pageSize',
+				defaultValue: SmoScore.pageSizes.letter,
+				control: 'SuiDropdownComponent',
+				label:'Page Size',
+				options: [{
+						value: 'letter',
+						label: 'Letter'
+					}, {
+						value: 'tabloid',
+						label: 'Tabloid (11x17)'
+					}, {
+						value: 'A4',
+						label: 'A4'
+					}, {
+						value: 'custom',
+						label: 'Custom'
+					}
+				]
+			}, {
+				smoName: 'pageWidth',
+				parameterName: 'pageWidth',
+				defaultValue: SmoScore.defaults.layout.pageWidth,
+				control: 'SuiRockerComponent',
+				label: 'Page Width (px)'
+			}, {
+				smoName: 'pageHeight',
+				parameterName: 'pageHeight',
+				defaultValue: SmoScore.defaults.layout.pageHeight,
+				control: 'SuiRockerComponent',
+				label: 'Page Height (px)'
+			}, {
+				smoName: 'orientation',
+				parameterName: 'orientation',
+				defaultValue: SmoScore.orientations.portrait,
+				control: 'SuiDropdownComponent',
+				label: 'Orientation',
+				dataType:'int',
+				options:[{
+					value:SmoScore.orientations.portrait,
+					label:'Portrait'
+				}, {
+					value:SmoScore.orientations.landscape,
+					label:'Landscape'
+				}]
+			}, {
+				smoName: 'leftMargin',
+				parameterName: 'leftMargin',
+				defaultValue: SmoScore.defaults.layout.leftMargin,
+				control: 'SuiRockerComponent',
+				label: 'Left Margin (px)'
+			}, {
+				smoName: 'rightMargin',
+				parameterName: 'rightMargin',
+				defaultValue: SmoScore.defaults.layout.rightMargin,
+				control: 'SuiRockerComponent',
+				label: 'Right Margin (px)'
+			}, {
+				smoName: 'topMargin',
+				parameterName: 'topMargin',
+				defaultValue: SmoScore.defaults.layout.topMargin,
+				control: 'SuiRockerComponent',
+				label: 'Top Margin (px)'
+			}, {
+				smoName: 'interGap',
+				parameterName: 'interGap',
+				defaultValue: SmoScore.defaults.layout.interGap,
+				control: 'SuiRockerComponent',
+				label: 'Inter-System Margin'
+			}, {
+				smoName: 'intraGap',
+				parameterName: 'intraGap',
+				defaultValue: SmoScore.defaults.layout.intraGap,
+				control: 'SuiRockerComponent',
+				label: 'Intra-System Margin'
+			}, {
+				smoName: 'zoomScale',
+				parameterName: 'zoomScale',
+				defaultValue: SmoScore.defaults.layout.zoomScale,
+				control: 'SuiRockerComponent',
+				label: '% Zoom',
+				type: 'percent'
+			}, {
+				smoName: 'svgScale',
+				parameterName: 'svgScale',
+				defaultValue: SmoScore.defaults.layout.svgScale,
+				control: 'SuiRockerComponent',
+				label: '% Note size',
+				type: 'percent'
+			}
+		];
+	}
+	backupOriginal() {
+		this.backup = JSON.parse(JSON.stringify(this.modifier));;
+	}
+	display() {
+		$('body').addClass('showAttributeDialog');
+		this.components.forEach((component) => {
+			component.bind();
+		});
+		this.components.forEach((component) => {
+			var val = this.modifier[component.parameterName];
+			component.setValue(val);
+		});
+		this._setPageSizeDefault();
+		this._bindElements();
+
+		var cb = function (x, y) {}
+		htmlHelpers.draggable({
+			parent: $(this.dgDom.element).find('.attributeModal'),
+			handle: $(this.dgDom.element).find('.icon-move'),
+            animateDiv:'.draganime',
+			cb: cb,
+			moveParent: true
+		});
+		this.controller.unbindKeyboardForDialog(this);
+
+	}
+	_handleCancel() {
+		this.layout.score.layout = this.backup;
+		this.layout.setViewport(true);
+		this.complete();
+	}
+	_bindElements() {
+		var self = this;
+		var dgDom = this.dgDom;
+        this.bindKeyboard();
+
+		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+
+			// TODO:  allow user to select a zoom mode.
+			self.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
+			self.layout.setViewport(true);
+			self.complete();
+		});
+
+		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+			self._handleCancel();
+		});
+
+		$(dgDom.element).find('.remove-button').remove();
+	}
+	_setPageSizeDefault() {
+		var value = 'custom';
+		var scoreDims = this.layout.score.layout;
+		SmoScore.pageSizes.forEach((sz) => {
+			var dim = SmoScore.pageDimensions[sz];
+			if (scoreDims.pageWidth === dim.width && scoreDims.pageHeight === dim.height) {
+				value = sz;
+			} else if (scoreDims.pageHeight === dim.width && scoreDims.pageWidth === dim.height) {
+				value = sz;
+			}
+		});
+		this.components.find((x)=>{return x.parameterName==='pageSize'}).setValue(value);
+	}
+	_handlePageSizeChange() {
+		var pageSizeComp = this.components.find((x)=>{return x.parameterName==='pageSize'});
+		var sel = pageSizeComp.getValue();
+		if (sel === 'custom') {
+			$('.attributeModal').addClass('customPage');
+		} else {
+			$('.attributeModal').removeClass('customPage');
+			var dim = SmoScore.pageDimensions[sel];
+			var hComp = this.components.find((x)=>{return x.parameterName==='pageHeight'});
+			var wComp = this.components.find((x)=>{return x.parameterName==='pageWidth'});
+			hComp.setValue(dim.height);
+			wComp.setValue(dim.width);
+		}
+	}
+	changed() {
+		// this.modifier.backupOriginal();
+		this._handlePageSizeChange();
+		this.components.forEach((component) => {
+			this.layout.score.layout[component.smoName] = component.getValue();
+		});
+		this.layout.setViewport();
+	}
+	static createAndDisplay(buttonElement, buttonData, controller) {
+		var dg = new SuiLayoutDialog({
+				layout: controller.layout,
+				controller: controller
+			});
+		dg.display();
+	}
+	constructor(parameters) {
+		if (!(parameters.layout && parameters.controller)) {
+			throw new Error('layout  dialog must have score');
+		}
+		var p = parameters;
+
+		super(SuiLayoutDialog.dialogElements, {
+			id: 'dialog-layout',
+			top: (p.layout.score.layout.pageWidth / 2) - 200,
+			left: (p.layout.score.layout.pageHeight / 2) - 200,
+			label: 'Score Layout',
+			tracker:parameters.controller.tracker
+		});
+		this.layout = p.layout;
+		this.modifier = this.layout.score.layout;
+		this.controller = p.controller;
+		this.backupOriginal();
+	}
+}
+
+class SuiTextModifierDialog extends SuiDialogBase {
+	static get dialogElements() {
+		return [{
+				smoName: 'yOffsetLine',
+				parameterName: 'yOffsetLine',
+				defaultValue: 11,
+				control: 'SuiRockerComponent',
+				label: 'Y Line'
+			}, {
+				smoName: 'yOffsetPixels',
+				parameterName: 'yOffsetPixels',
+				defaultValue: 0,
+				control: 'SuiRockerComponent',
+				label: 'Y Offset Px'
+			}, {
+				smoName: 'xOffset',
+				parameterName: 'yOffset',
+				defaultValue: 0,
+				control: 'SuiRockerComponent',
+				label: 'X Offset'
+			}, {
+				smoName: 'text',
+				parameterName: 'text',
+				defaultValue: SmoDynamicText.dynamics.P,
+				options: [{
+						value: SmoDynamicText.dynamics.P,
+						label: 'Piano'
+					}, {
+						value: SmoDynamicText.dynamics.PP,
+						label: 'Pianissimo'
+					}, {
+						value: SmoDynamicText.dynamics.MP,
+						label: 'Mezzo-Piano'
+					}, {
+						value: SmoDynamicText.dynamics.MF,
+						label: 'Mezzo-Forte'
+					}, {
+						value: SmoDynamicText.dynamics.F,
+						label: 'Forte'
+					}, {
+						value: SmoDynamicText.dynamics.FF,
+						label: 'Fortissimo'
+					}, {
+						value: SmoDynamicText.dynamics.SFZ,
+						label: 'Sforzando'
+					}
+				],
+				control: 'SuiDropdownComponent',
+				label: 'Text'
+			}
+		];
+	}
+	static createAndDisplay(parameters) {
+		var dg = new SuiTextModifierDialog(parameters);
+		dg.display();
+		return dg;
+	}
+
+	constructor(parameters) {
+		if (!parameters.modifier || !parameters.selection) {
+			throw new Error('modifier attribute dialog must have modifier and selection');
+		}
+
+		super(SuiTextModifierDialog.dialogElements, {
+			id: 'dialog-' + parameters.modifier.id,
+			top: parameters.modifier.renderedBox.y,
+			left: parameters.modifier.renderedBox.x,
+			label: 'Dynamics Properties',
+			tracker:parameters.tracker
+		});
+		Vex.Merge(this, parameters);
+		this.components.find((x) => {
+			return x.parameterName == 'text'
+		}).defaultValue = parameters.modifier.text;
+	}
+	handleRemove() {
+		$(this.context.svg).find('g.' + this.modifier.id).remove();
+        this.undo.addBuffer('remove dynamic', 'measure', this.selection.selector, this.selection.measure);
+		this.selection.note.removeModifier(this.modifier);
+		this.tracker.clearModifierSelections();
+	}
+	changed() {
+		this.modifier.backupOriginal();
+		this.components.forEach((component) => {
+			this.modifier[component.smoName] = component.getValue();
+		});
+		this.layout.renderNoteModifierPreview(this.modifier);
+	}
+}
+
+class helpModal {
+	constructor() {}
+	static createAndDisplay() {
+		SmoHelp.displayHelp();
+		return htmlHelpers.closeDialogPromise();
+	}
+}
+;
 class SuiFileDialog extends SuiDialogBase {
      constructor(parameters) {
 		if (!(parameters.controller)) {
@@ -13179,8 +13520,7 @@ class SuiSaveFileDialog extends SuiFileDialog {
         super(parameters);
 	}
 }
-
-class SuiLyricDialog extends SuiDialogBase {
+;class SuiLyricDialog extends SuiDialogBase {
     static createAndDisplay(parameters) {
 		var dg = new SuiLyricDialog({
 				layout: parameters.controller.layout,
@@ -13545,313 +13885,279 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 		});
     }
 }
+;// ## measureDialogs.js
+// This file contains dialogs that affect all measures at a certain position,
+// such as tempo or time signature.
 
-class SuiLayoutDialog extends SuiDialogBase {
-	static get attributes() {
-		return ['pageWidth', 'pageHeight', 'leftMargin', 'topMargin', 'rightMargin', 'interGap', 'intraGap', 'zoomScale', 'svgScale'];
-	}
-	static get dialogElements() {
-		return [{
-				smoName: 'pageSize',
-				parameterName: 'pageSize',
-				defaultValue: SmoScore.pageSizes.letter,
-				control: 'SuiDropdownComponent',
-				label:'Page Size',
-				options: [{
-						value: 'letter',
-						label: 'Letter'
-					}, {
-						value: 'tabloid',
-						label: 'Tabloid (11x17)'
-					}, {
-						value: 'A4',
-						label: 'A4'
-					}, {
-						value: 'custom',
-						label: 'Custom'
-					}
-				]
-			}, {
-				smoName: 'pageWidth',
-				parameterName: 'pageWidth',
-				defaultValue: SmoScore.defaults.layout.pageWidth,
-				control: 'SuiRockerComponent',
-				label: 'Page Width (px)'
-			}, {
-				smoName: 'pageHeight',
-				parameterName: 'pageHeight',
-				defaultValue: SmoScore.defaults.layout.pageHeight,
-				control: 'SuiRockerComponent',
-				label: 'Page Height (px)'
-			}, {
-				smoName: 'orientation',
-				parameterName: 'orientation',
-				defaultValue: SmoScore.orientations.portrait,
-				control: 'SuiDropdownComponent',
-				label: 'Orientation',
-				dataType:'int',
-				options:[{
-					value:SmoScore.orientations.portrait,
-					label:'Portrait'
+// ## SuiTempoDialog
+// Allow user to choose a tempo or tempo change.
+class SuiTempoDialog extends SuiDialogBase {
+    static get attributes() {
+        return ['tempoMode', 'bpm', 'beatDuration', 'tempoText','yOffset'];
+    }
+    static get dialogElements() {
+        return [{
+            smoName: 'tempoMode',
+            parameterName: 'tempoMode',
+            defaultValue: SmoTempoText.tempoModes.durationMode,
+            control: 'SuiDropdownComponent',
+            label:'Tempo Mode',
+            options: [{
+                    value: 'duration',
+                    label: 'Duration (Beats/Minute)'
+                }, {
+                    value: 'text',
+                    label: 'Tempo Text'
+                }, {
+                    value: 'custom',
+                    label: 'Specify text and duration'
+                }
+                ]
+			},
+			{
+                parameterName: 'bpm',
+                smoName: 'bpm',
+                defaultValue: 120,
+                control: 'SuiRockerComponent',
+                label: 'Notes/Minute'
+            },
+		{
+			parameterName: 'duration',
+			smoName: 'beatDuration',
+			defaultValue: 4096,
+            dataType:'int',
+			control: 'SuiDropdownComponent',
+			label: 'Unit for Beat',
+			options: [{
+					value: 4096,
+					label: 'Quarter Note',
 				}, {
-					value:SmoScore.orientations.landscape,
-					label:'Landscape'
-				}]
-			}, {
-				smoName: 'leftMargin',
-				parameterName: 'leftMargin',
-				defaultValue: SmoScore.defaults.layout.leftMargin,
-				control: 'SuiRockerComponent',
-				label: 'Left Margin (px)'
-			}, {
-				smoName: 'rightMargin',
-				parameterName: 'rightMargin',
-				defaultValue: SmoScore.defaults.layout.rightMargin,
-				control: 'SuiRockerComponent',
-				label: 'Right Margin (px)'
-			}, {
-				smoName: 'topMargin',
-				parameterName: 'topMargin',
-				defaultValue: SmoScore.defaults.layout.topMargin,
-				control: 'SuiRockerComponent',
-				label: 'Top Margin (px)'
-			}, {
-				smoName: 'interGap',
-				parameterName: 'interGap',
-				defaultValue: SmoScore.defaults.layout.interGap,
-				control: 'SuiRockerComponent',
-				label: 'Inter-System Margin'
-			}, {
-				smoName: 'intraGap',
-				parameterName: 'intraGap',
-				defaultValue: SmoScore.defaults.layout.intraGap,
-				control: 'SuiRockerComponent',
-				label: 'Intra-System Margin'
-			}, {
-				smoName: 'zoomScale',
-				parameterName: 'zoomScale',
-				defaultValue: SmoScore.defaults.layout.zoomScale,
-				control: 'SuiRockerComponent',
-				label: '% Zoom',
-				type: 'percent'
-			}, {
-				smoName: 'svgScale',
-				parameterName: 'svgScale',
-				defaultValue: SmoScore.defaults.layout.svgScale,
-				control: 'SuiRockerComponent',
-				label: '% Note size',
-				type: 'percent'
-			}
-		];
-	}
-	backupOriginal() {
-		this.backup = JSON.parse(JSON.stringify(this.modifier));;
-	}
-	display() {
-		$('body').addClass('showAttributeDialog');
-		this.components.forEach((component) => {
-			component.bind();
-		});
-		this.components.forEach((component) => {
-			var val = this.modifier[component.parameterName];
-			component.setValue(val);
-		});
-		this._setPageSizeDefault();
-		this._bindElements();
+					value: 2048,
+					label: '1/8 note'
+				}, {
+					value: 6144,
+					label: 'Dotted 1/4 note'
+				}, {
+					value: 8192,
+					label: '1/2 note'
+				}
+			]
+		},
 
-		var cb = function (x, y) {}
-		htmlHelpers.draggable({
-			parent: $(this.dgDom.element).find('.attributeModal'),
-			handle: $(this.dgDom.element).find('.icon-move'),
-            animateDiv:'.draganime',
-			cb: cb,
-			moveParent: true
-		});
-		this.controller.unbindKeyboardForDialog(this);
+            {
+            smoName: 'tempoText',
+            parameterName: 'tempoText',
+            defaultValue: SmoTempoText.tempoTexts.allegro,
+            control: 'SuiDropdownComponent',
+            label:'Tempo Text',
+            options: [{
+                value: SmoTempoText.tempoTexts.larghissimo,
+                label: 'Larghissimo'
+              }, {
+                value: SmoTempoText.tempoTexts.grave,
+                label: 'Grave'
+              }, {
+                value: SmoTempoText.tempoTexts.lento,
+                label: 'Lento'
+              }, {
+                value: SmoTempoText.tempoTexts.largo,
+                label: 'Largo'
+              }, {
+                value: SmoTempoText.tempoTexts.larghetto,
+                label: 'Larghetto'
+              }, {
+                value: SmoTempoText.tempoTexts.adagio,
+                label: 'Adagio'
+              }, {
+                value: SmoTempoText.tempoTexts.adagietto,
+                label: 'Adagietto'
+              }, {
+                value: SmoTempoText.tempoTexts.andante_moderato,
+                label: 'Andante moderato'
+              }, {
+                value: SmoTempoText.tempoTexts.andante,
+                label: 'Andante'
+              }, {
+                value: SmoTempoText.tempoTexts.andantino,
+                label: 'Andantino'
+              }, {
+                value: SmoTempoText.tempoTexts.moderator,
+                label: 'Moderato'
+              }, {
+                value: SmoTempoText.tempoTexts.allegretto,
+                label: 'Allegretto',
+              } ,{
+                value: SmoTempoText.tempoTexts.allegro,
+                label: 'Allegro'
+              }, {
+                value: SmoTempoText.tempoTexts.vivace,
+                label: 'Vivace'
+              }, {
+                value: SmoTempoText.tempoTexts.presto,
+                label: 'Presto'
+              }, {
+                value: SmoTempoText.tempoTexts.prestissimo,
+                label: 'Prestissimo'
+              }
+            ]
+        },{
+			smoName:'applyToAll',
+			parameterName:'applyToAll',
+			defaultValue: false,
+			control:'SuiToggleComponent',
+			label:'Apply to all future measures?'
+		},{
+                smoName: 'display',
+                parameterName: 'display',
+                defaultValue: true,
+                control: 'SuiToggleComponent',
+                label: 'Display Tempo'
+            },
+        ]
+    }
+    static createAndDisplay(ignore1,ignore2,controller) {
+        // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
+        //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
+        var measures = SmoSelection.getMeasureList(controller.tracker.selections);
+        var existing = measures[0].getTempo();
+        if (!existing) {
+            existing = new SmoTempoText();
+            measures[0].addTempo(existing);
+        }
+        if (!existing.renderedBox) {
+            existing.renderedBox = svgHelpers.copyBox(measures[0].renderedBox);
+        }
+        var dg = new SuiTempoDialog({
+            measures: measures,
+            modifier: existing,
+            undoBuffer:controller.undoBuffer,
+            layout: controller.tracker.layout,
+            controller:controller
+          });
+        dg.display();
+        return dg;
+    }
+    constructor(parameters) {
+        if (!parameters.modifier || !parameters.measures) {
+            throw new Error('modifier attribute dialog must have modifier and selection');
+        }
 
-	}
-	_handleCancel() {
-		this.layout.score.layout = this.backup;
-		this.layout.setViewport(true);
-		this.complete();
-	}
-	_bindElements() {
-		var self = this;
-		var dgDom = this.dgDom;
-        this.bindKeyboard();
-
-		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-
-			// TODO:  allow user to select a zoom mode.
-			self.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
-			self.layout.setViewport(true);
-			self.complete();
-		});
-
-		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-			self._handleCancel();
-		});
-
-		$(dgDom.element).find('.remove-button').remove();
-	}
-	_setPageSizeDefault() {
-		var value = 'custom';
-		var scoreDims = this.layout.score.layout;
-		SmoScore.pageSizes.forEach((sz) => {
-			var dim = SmoScore.pageDimensions[sz];
-			if (scoreDims.pageWidth === dim.width && scoreDims.pageHeight === dim.height) {
-				value = sz;
-			} else if (scoreDims.pageHeight === dim.width && scoreDims.pageWidth === dim.height) {
-				value = sz;
-			}
-		});
-		this.components.find((x)=>{return x.parameterName==='pageSize'}).setValue(value);
-	}
-	_handlePageSizeChange() {
-		var pageSizeComp = this.components.find((x)=>{return x.parameterName==='pageSize'});
-		var sel = pageSizeComp.getValue();
-		if (sel === 'custom') {
-			$('.attributeModal').addClass('customPage');
-		} else {
-			$('.attributeModal').removeClass('customPage');
-			var dim = SmoScore.pageDimensions[sel];
-			var hComp = this.components.find((x)=>{return x.parameterName==='pageHeight'});
-			var wComp = this.components.find((x)=>{return x.parameterName==='pageWidth'});
-			hComp.setValue(dim.height);
-			wComp.setValue(dim.width);
-		}
-	}
-	changed() {
-		// this.modifier.backupOriginal();
-		this._handlePageSizeChange();
-		this.components.forEach((component) => {
-			this.layout.score.layout[component.smoName] = component.getValue();
-		});
-		this.layout.setViewport();
-	}
-	static createAndDisplay(buttonElement, buttonData, controller) {
-		var dg = new SuiLayoutDialog({
-				layout: controller.layout,
-				controller: controller
-			});
-		dg.display();
-	}
-	constructor(parameters) {
-		if (!(parameters.layout && parameters.controller)) {
-			throw new Error('layout  dialog must have score');
-		}
-		var p = parameters;
-
-		super(SuiLayoutDialog.dialogElements, {
-			id: 'dialog-layout',
-			top: (p.layout.score.layout.pageWidth / 2) - 200,
-			left: (p.layout.score.layout.pageHeight / 2) - 200,
-			label: 'Score Layout',
+        super(SuiTempoDialog.dialogElements, {
+            id: 'dialog-tempo',
+            top: parameters.modifier.renderedBox.y,
+            left: parameters.modifier.renderedBox.x,
+            label: 'Tempo Properties',
 			tracker:parameters.controller.tracker
-		});
-		this.layout = p.layout;
-		this.modifier = this.layout.score.layout;
-		this.controller = p.controller;
-		this.backupOriginal();
-	}
-}
-
-class SuiTextModifierDialog extends SuiDialogBase {
-	static get dialogElements() {
-		return [{
-				smoName: 'yOffsetLine',
-				parameterName: 'yOffsetLine',
-				defaultValue: 11,
-				control: 'SuiRockerComponent',
-				label: 'Y Line'
-			}, {
-				smoName: 'yOffsetPixels',
-				parameterName: 'yOffsetPixels',
-				defaultValue: 0,
-				control: 'SuiRockerComponent',
-				label: 'Y Offset Px'
-			}, {
-				smoName: 'xOffset',
-				parameterName: 'yOffset',
-				defaultValue: 0,
-				control: 'SuiRockerComponent',
-				label: 'X Offset'
-			}, {
-				smoName: 'text',
-				parameterName: 'text',
-				defaultValue: SmoDynamicText.dynamics.P,
-				options: [{
-						value: SmoDynamicText.dynamics.P,
-						label: 'Piano'
-					}, {
-						value: SmoDynamicText.dynamics.PP,
-						label: 'Pianissimo'
-					}, {
-						value: SmoDynamicText.dynamics.MP,
-						label: 'Mezzo-Piano'
-					}, {
-						value: SmoDynamicText.dynamics.MF,
-						label: 'Mezzo-Forte'
-					}, {
-						value: SmoDynamicText.dynamics.F,
-						label: 'Forte'
-					}, {
-						value: SmoDynamicText.dynamics.FF,
-						label: 'Fortissimo'
-					}, {
-						value: SmoDynamicText.dynamics.SFZ,
-						label: 'Sforzando'
-					}
-				],
-				control: 'SuiDropdownComponent',
-				label: 'Text'
-			}
-		];
-	}
-	static createAndDisplay(parameters) {
-		var dg = new SuiTextModifierDialog(parameters);
-		dg.display();
-		return dg;
-	}
-
-	constructor(parameters) {
-		if (!parameters.modifier || !parameters.selection) {
-			throw new Error('modifier attribute dialog must have modifier and selection');
+        });
+        this.refresh = false;
+        Vex.Merge(this, parameters);
+    }
+    populateInitial() {
+        SmoTempoText.attributes.forEach((attr) => {
+            var comp = this.components.find((cc) => {
+                return cc.smoName == attr;
+            });
+            if (comp) {
+                comp.setValue(this.modifier[attr]);
+            }
+        });
+		this._updateModeClass();
+    }
+	_updateModeClass() {
+        if (this.modifier.tempoMode == SmoTempoText.tempoModes.textMode) {
+			$('.attributeModal').addClass('tempoTextMode');
+			$('.attributeModal').removeClass('tempoDurationMode');
+        } else if (this.modifier.tempoMode == SmoTempoText.tempoModes.durationMode) {
+			$('.attributeModal').addClass('tempoDurationMode');
+			$('.attributeModal').removeClass('tempoTextMode');
+		} else {
+			$('.attributeModal').removeClass('tempoDurationMode');
+			$('.attributeModal').removeClass('tempoTextMode');
 		}
-
-		super(SuiTextModifierDialog.dialogElements, {
-			id: 'dialog-' + parameters.modifier.id,
-			top: parameters.modifier.renderedBox.y,
-			left: parameters.modifier.renderedBox.x,
-			label: 'Dynamics Properties',
-			tracker:parameters.tracker
-		});
-		Vex.Merge(this, parameters);
-		this.components.find((x) => {
-			return x.parameterName == 'text'
-		}).defaultValue = parameters.modifier.text;
 	}
-	handleRemove() {
-		$(this.context.svg).find('g.' + this.modifier.id).remove();
-        this.undo.addBuffer('remove dynamic', 'measure', this.selection.selector, this.selection.measure);
-		this.selection.note.removeModifier(this.modifier);
-		this.tracker.clearModifierSelections();
-	}
-	changed() {
-		this.modifier.backupOriginal();
-		this.components.forEach((component) => {
-			this.modifier[component.smoName] = component.getValue();
-		});
-		this.layout.renderNoteModifierPreview(this.modifier);
-	}
-}
-
-class helpModal {
-	constructor() {}
-	static createAndDisplay() {
-		SmoHelp.displayHelp();
-		return htmlHelpers.closeDialogPromise();
-	}
+    changed() {
+        this.components.forEach((component) => {
+			if (SmoTempoText.attributes.indexOf(component.smoName) >= 0) {
+                this.modifier[component.smoName] = component.getValue();
+			}
+        });
+        if (this.modifier.tempoMode == SmoTempoText.tempoModes.textMode) {
+            this.modifier.bpm = SmoTempoText.bpmFromText[this.modifier.tempoText];
+        }
+		this._updateModeClass();
+        this.refresh = true;
+    }
+    // ### handleFuture
+    // Update other measures in selection, or all future measures if the user chose that.
+    handleFuture() {
+        var fc = this.components.find((comp) => {return comp.smoName == 'applyToAll'});
+        var toModify = [];
+        if (fc.getValue()) {
+            this.layout.score.staves.forEach((staff) => {
+                var toAdd = staff.measures.filter((mm) => {
+                    return mm.measureNumber.measureIndex >= this.measures[0].measureNumber.measureIndex;
+                });
+                toModify = toModify.concat(toAdd);
+            });
+        } else {
+            this.measures.forEach((measure) => {
+                this.layout.score.staves.forEach((staff) => {
+                    toModify.push(staff.measures[measure.measureNumber.measureIndex]);
+                });
+            });
+        }
+        toModify.forEach((measure) => {
+            measure.changed = true;
+            var tempo = SmoMeasureModifierBase.deserialize(this.modifier.serialize());
+            tempo.attrs.id = VF.Element.newID();
+            measure.addTempo(tempo);
+        });
+        this.layout.setDirty();
+    }
+    // ### handleRemove
+    // Removing a tempo change is like changing the measure to the previous measure's tempo.
+    // If this is the first measure, use the default value.
+    handleRemove() {
+        if (this.measures[0].measureNumber.measureIndex > 0) {
+            var target = this.measures[0].measureNumber.measureIndex - 1;
+            this.modifier = this.layout.score.staves[0].measures[target].getTempo();
+            this.handleFuture();
+        } else {
+            this.modifier = new SmoTempoText();
+        }
+        this.handleFuture();
+    }
+    // ### _backup
+    // Backup the score before changing tempo which affects score.
+    _backup() {
+        if (this.refresh) {
+            SmoUndoable.noop(this.layout.score,this.undoBuffer,'Tempo change');
+            this.layout.setDirty();
+        }
+    }
+    // ### Populate the initial values and bind to the buttons.
+    _bindElements() {
+        var self = this;
+        this.populateInitial();
+		var dgDom = this.dgDom;
+        // Create promise to release the keyboard when dialog is closed
+        this.closeDialogPromise = new Promise((resolve) => {
+            $(dgDom.element).find('.cancel-button').remove();
+            $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+                self._backup();
+                self.handleFuture();
+                self.complete();
+                resolve();
+            });
+            $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
+                self._backup();
+                self.handleRemove();
+                self.complete();
+                resolve();
+            });
+        });
+        this.controller.unbindKeyboardForDialog(this);
+    }
 }
 ;// # dbComponents - components of modal dialogs.
 
@@ -60598,274 +60904,6 @@ class CollapseRibbonControl {
     }
 }
 
-class SuiTempoDialog extends SuiDialogBase {
-    static get attributes() {
-        return ['tempoMode', 'bpm', 'beatDuration', 'tempoText','yOffset'];
-    }
-    static get dialogElements() {
-        return [{
-            smoName: 'tempoMode',
-            parameterName: 'tempoMode',
-            defaultValue: SmoTempoText.tempoModes.durationMode,
-            control: 'SuiDropdownComponent',
-            label:'Tempo Mode',
-            options: [{
-                    value: 'duration',
-                    label: 'Duration (Beats/Minute)'
-                }, {
-                    value: 'text',
-                    label: 'Tempo Text'
-                }, {
-                    value: 'custom',
-                    label: 'Specify text and duration'
-                }
-                ]
-			},
-			{
-                parameterName: 'bpm',
-                smoName: 'bpm',
-                defaultValue: 120,
-                control: 'SuiRockerComponent',
-                label: 'Notes/Minute'
-            },
-		{
-			parameterName: 'duration',
-			smoName: 'beatDuration',
-			defaultValue: 4096,
-            dataType:'int',
-			control: 'SuiDropdownComponent',
-			label: 'Unit for Beat',
-			options: [{
-					value: 4096,
-					label: 'Quarter Note',
-				}, {
-					value: 2048,
-					label: '1/8 note'
-				}, {
-					value: 6144,
-					label: 'Dotted 1/4 note'
-				}, {
-					value: 8192,
-					label: '1/2 note'
-				}
-			]
-		},
-
-            {
-            smoName: 'tempoText',
-            parameterName: 'tempoText',
-            defaultValue: SmoTempoText.tempoTexts.allegro,
-            control: 'SuiDropdownComponent',
-            label:'Tempo Text',
-            options: [{
-                value: SmoTempoText.tempoTexts.larghissimo,
-                label: 'Larghissimo'
-              }, {
-                value: SmoTempoText.tempoTexts.grave,
-                label: 'Grave'
-              }, {
-                value: SmoTempoText.tempoTexts.lento,
-                label: 'Lento'
-              }, {
-                value: SmoTempoText.tempoTexts.largo,
-                label: 'Largo'
-              }, {
-                value: SmoTempoText.tempoTexts.larghetto,
-                label: 'Larghetto'
-              }, {
-                value: SmoTempoText.tempoTexts.adagio,
-                label: 'Adagio'
-              }, {
-                value: SmoTempoText.tempoTexts.adagietto,
-                label: 'Adagietto'
-              }, {
-                value: SmoTempoText.tempoTexts.andante_moderato,
-                label: 'Andante moderato'
-              }, {
-                value: SmoTempoText.tempoTexts.andante,
-                label: 'Andante'
-              }, {
-                value: SmoTempoText.tempoTexts.andantino,
-                label: 'Andantino'
-              }, {
-                value: SmoTempoText.tempoTexts.moderator,
-                label: 'Moderato'
-              }, {
-                value: SmoTempoText.tempoTexts.allegretto,
-                label: 'Allegretto',
-              } ,{
-                value: SmoTempoText.tempoTexts.allegro,
-                label: 'Allegro'
-              }, {
-                value: SmoTempoText.tempoTexts.vivace,
-                label: 'Vivace'
-              }, {
-                value: SmoTempoText.tempoTexts.presto,
-                label: 'Presto'
-              }, {
-                value: SmoTempoText.tempoTexts.prestissimo,
-                label: 'Prestissimo'
-              }
-            ]
-        },{
-			smoName:'applyToAll',
-			parameterName:'applyToAll',
-			defaultValue: false,
-			control:'SuiToggleComponent',
-			label:'Apply to all future measures?'
-		},{
-                smoName: 'display',
-                parameterName: 'display',
-                defaultValue: true,
-                control: 'SuiToggleComponent',
-                label: 'Display Tempo'
-            },
-        ]
-    }
-    static createAndDisplay(ignore1,ignore2,controller) {
-        // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
-        //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
-        var measures = SmoSelection.getMeasureList(controller.tracker.selections);
-        var existing = measures[0].getTempo();
-        if (!existing) {
-            existing = new SmoTempoText();
-            measures[0].addTempo(existing);
-        }
-        if (!existing.renderedBox) {
-            existing.renderedBox = svgHelpers.copyBox(measures[0].renderedBox);
-        }
-        var dg = new SuiTempoDialog({
-            measures: measures,
-            modifier: existing,
-            undoBuffer:controller.undoBuffer,
-            layout: controller.tracker.layout,
-            controller:controller
-          });
-        dg.display();
-        return dg;
-    }
-    constructor(parameters) {
-        if (!parameters.modifier || !parameters.measures) {
-            throw new Error('modifier attribute dialog must have modifier and selection');
-        }
-
-        super(SuiTempoDialog.dialogElements, {
-            id: 'dialog-tempo',
-            top: parameters.modifier.renderedBox.y,
-            left: parameters.modifier.renderedBox.x,
-            label: 'Tempo Properties',
-			tracker:parameters.controller.tracker
-        });
-        this.refresh = false;
-        Vex.Merge(this, parameters);
-    }
-    populateInitial() {
-        SmoTempoText.attributes.forEach((attr) => {
-            var comp = this.components.find((cc) => {
-                return cc.smoName == attr;
-            });
-            if (comp) {
-                comp.setValue(this.modifier[attr]);
-            }
-        });
-		this._updateModeClass();
-    }
-	_updateModeClass() {
-        if (this.modifier.tempoMode == SmoTempoText.tempoModes.textMode) {
-			$('.attributeModal').addClass('tempoTextMode');
-			$('.attributeModal').removeClass('tempoDurationMode');
-        } else if (this.modifier.tempoMode == SmoTempoText.tempoModes.durationMode) {
-			$('.attributeModal').addClass('tempoDurationMode');
-			$('.attributeModal').removeClass('tempoTextMode');
-		} else {
-			$('.attributeModal').removeClass('tempoDurationMode');
-			$('.attributeModal').removeClass('tempoTextMode');
-		}
-	}
-    changed() {
-        this.components.forEach((component) => {
-			if (SmoTempoText.attributes.indexOf(component.smoName) >= 0) {
-                this.modifier[component.smoName] = component.getValue();
-			}
-        });
-        if (this.modifier.tempoMode == SmoTempoText.tempoModes.textMode) {
-            this.modifier.bpm = SmoTempoText.bpmFromText[this.modifier.tempoText];
-        }
-		this._updateModeClass();
-        this.refresh = true;
-    }
-    // ### handleFuture
-    // Update other measures in selection, or all future measures if the user chose that.
-    handleFuture() {
-        var fc = this.components.find((comp) => {return comp.smoName == 'applyToAll'});
-        var toModify = [];
-        if (fc.getValue()) {
-            this.layout.score.staves.forEach((staff) => {
-                var toAdd = staff.measures.filter((mm) => {
-                    return mm.measureNumber.measureIndex >= this.measures[0].measureNumber.measureIndex;
-                });
-                toModify = toModify.concat(toAdd);
-            });
-        } else {
-            this.measures.forEach((measure) => {
-                this.layout.score.staves.forEach((staff) => {
-                    toModify.push(staff.measures[measure.measureNumber.measureIndex]);
-                });
-            });
-        }
-        toModify.forEach((measure) => {
-            measure.changed = true;
-            var tempo = SmoMeasureModifierBase.deserialize(this.modifier.serialize());
-            tempo.attrs.id = VF.Element.newID();
-            measure.addTempo(tempo);
-        });
-        this.layout.setDirty();
-    }
-    // ### handleRemove
-    // Removing a tempo change is like changing the measure to the previous measure's tempo.
-    // If this is the first measure, use the default value.
-    handleRemove() {
-        if (this.measures[0].measureNumber.measureIndex > 0) {
-            var target = this.measures[0].measureNumber.measureIndex - 1;
-            this.modifier = this.layout.score.staves[0].measures[target].getTempo();
-            this.handleFuture();
-        } else {
-            this.modifier = new SmoTempoText();
-        }
-        this.handleFuture();
-    }
-    // ### _backup
-    // Backup the score before changing tempo which affects score.
-    _backup() {
-        if (this.refresh) {
-            SmoUndoable.noop(this.layout.score,this.undoBuffer,'Tempo change');
-            this.layout.setDirty();
-        }
-    }
-    // ### Populate the initial values and bind to the buttons.
-    _bindElements() {
-        var self = this;
-        this.populateInitial();
-		var dgDom = this.dgDom;
-        // Create promise to release the keyboard when dialog is closed
-        this.closeDialogPromise = new Promise((resolve) => {
-            $(dgDom.element).find('.cancel-button').remove();
-            $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-                self._backup();
-                self.handleFuture();
-                self.complete();
-                resolve();
-            });
-            $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-                self._backup();
-                self.handleRemove();
-                self.complete();
-                resolve();
-            });
-        });
-        this.controller.unbindKeyboardForDialog(this);
-    }
-}
 
 class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
     static get dialogElements() {
