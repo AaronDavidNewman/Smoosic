@@ -116,13 +116,14 @@ class SuiMeasureDialog extends SuiDialogBase {
         this.modifier = this.measure;
     }
     populateInitial() {
-        var padLeftCtrl = this.components.find((comp) => return comp.smoName == 'padLeft');
+        var padLeftCtrl = this.components.find((comp) => {return comp.smoName == 'padLeft';});
         padLeftCtrl.setValue(this.measure.padLeft);
     }
     _bindElements() {
 		var self = this;
 		var dgDom = this.dgDom;
         this.bindKeyboard();
+        this.populateInitial();
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
 			self.complete();
