@@ -27,7 +27,7 @@ class defaultRibbonLayout {
 	}
 
 	static get leftRibbonIds() {
-		return ['helpDialog', 'fileMenu','addStaffMenu', 'tempoModal','timeSignatureMenu','keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
+		return ['helpDialog', 'fileMenu','addStaffMenu','measureModal','tempoModal','timeSignatureMenu','keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
 	}
 	static get noteButtonIds() {
 		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton',
@@ -1113,6 +1113,15 @@ class defaultRibbonLayout {
 				group: 'scoreEdit',
 				id: 'addStaffMenu'
 			}, {
+               leftText: 'Measure',
+               rightText: '',
+               icon: '',
+               classes: 'icon ',
+               action: 'modal',
+               ctor: 'SuiMeasureDialog',
+               group: 'scoreEdit',
+               id: 'measureModal'
+           },{
 				leftText: 'Key',
 				rightText: '/k',
 				icon: '',

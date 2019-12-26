@@ -488,7 +488,7 @@ class SuiTextInputComponent {
     get html() {
         var b = htmlHelpers.buildDom;
         var id = this.parameterId;
-        var r = b('div').classes('select-file').attr('id', this.parameterId).attr('data-param', this.parameterName)
+        var r = b('div').classes('text-input smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
             .append(b('input').attr('type', 'text').classes('file-name')
                 .attr('id', id + '-input')).append(
                 b('label').attr('for', id + '-input').text(this.label));

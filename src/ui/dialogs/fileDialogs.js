@@ -55,7 +55,6 @@ class SuiFileDialog extends SuiDialogBase {
 
 }
 class SuiLoadFileDialog extends SuiFileDialog {
-
     static get dialogElements() {
 		return [{
 				smoName: 'loadFile',

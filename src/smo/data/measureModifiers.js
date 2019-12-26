@@ -231,7 +231,7 @@ class SmoVolta extends SmoMeasureModifierBase {
 
 class SmoMeasureText extends SmoMeasureModifierBase {
 	static get positions() {
-		return {above:0,below:1,left:2,right:3};
+		return {above:0,below:1,left:2,right:3,none:4};
 	}
 
 	static get justifications() {

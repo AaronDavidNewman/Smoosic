@@ -1025,24 +1025,37 @@ body.showAttributeDialog .attributeDialog {
 	display:none;
 }
 
-#attr-modal-dialog-dialog-tempo .smoControlContainer select {
+#attr-modal-dialog-dialog-tempo .smoControlContainer select,
+#attr-modal-dialog-dialog-measure .smoControlContainer select {
     margin-left: 70px;
     width:175px;
 }
 
 #attr-modal-dialog-dialog-tempo .smoControlContainer .rockerControl label,
-#attr-modal-dialog-dialog-tempo .smoControlContainer .dropdownControl label {
+#attr-modal-dialog-dialog-tempo .smoControlContainer .dropdownControl label,
+#attr-modal-dialog-dialog-measure .smoControlContainer .dropdownControl label,
+#attr-modal-dialog-dialog-tempo .smoControlContainer .toggleControl label,
+.smoControlContainer .text-input label
+ {
     margin-left:15px;
 }
 
-#attr-modal-dialog-dialog-tempo .smoControlContainer .toggleControl input {
+.smoControl.toggleControl {
+    display:flex;
+    align-items:center;
+}
+#attr-modal-dialog-dialog-tempo .smoControlContainer .toggleControl input,
+#attr-modal-dialog-dialog-measure .smoControlContainer .toggleControl input,
+ {
     margin-left:64px;
     height:auto;
 }
-#attr-modal-dialog-dialog-tempo .smoControlContainer .toggleControl label {
-    margin-left:15px;
+
+.smoControlContainer .text-input input {
+    margin-left:70px;
 }
-#attr-modal-dialog-dialog-tempo .smoControlContainer input.rockerInput {
+#attr-modal-dialog-dialog-tempo .smoControlContainer input.rockerInput,
+#attr-modal-dialog-dialog-measure .smoControlContainer input.rockerInput {
     width: 175px;
 }
 

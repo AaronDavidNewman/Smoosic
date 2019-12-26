@@ -3,7 +3,138 @@
 // such as tempo or time signature.
 
 class SuiMeasureDialog extends SuiDialogBase {
-    
+    static get attributes() {
+        return ['pickupMeasure', 'makePickup', 'padLeft', 'padAllInSystem',
+            'measureText','measureTextPosition'];
+    }
+    static get dialogElements() {
+        return [{
+            smoName: 'pickupMeasure',
+            parameterName: 'pickupMeasure',
+            defaultValue: 2048,
+            control: 'SuiDropdownComponent',
+            label:'Pickup Measure',
+            options: [{
+                    value: 2048,
+                    label: 'Eighth Note'
+                }, {
+                    value: 4096,
+                    label: 'Quarter Note'
+                }, {
+                    value: 6144,
+                    label: 'Dotted Quarter'
+                }, {
+                    value: 8192,
+                    label: 'Half Note'
+                }
+                ]
+			}, {
+    			smoName:'makePickup',
+    			parameterName:'makePickup',
+    			defaultValue: false,
+    			control:'SuiToggleComponent',
+    			label:'Make measure into pickup?'
+    		},{
+                parameterName: 'padLeft',
+                smoName: 'padLeft',
+                defaultValue: 0,
+                control: 'SuiRockerComponent',
+                label: 'Notes/Minute'
+            },{
+    			smoName:'padAllInSystem',
+    			parameterName:'padAllInSystem',
+    			defaultValue: false,
+    			control:'SuiToggleComponent',
+    			label:'Pad all measures in system?'
+    		},{
+    				smoName: 'measureText',
+    				parameterName: 'measureText',
+    				defaultValue: '',
+    				control: 'SuiTextInputComponent',
+    				label:'Measure Text'
+    		},{
+                smoName: 'measureTextPosition',
+                parameterName: 'measureTextPosition',
+                defaultValue: SmoMeasureText.positions.none,
+                control: 'SuiDropdownComponent',
+                label:'Text Position',
+                options: [{
+                        value: SmoMeasureText.positions.none,
+                        label: 'None'
+                    },{
+                        value: SmoMeasureText.positions.left,
+                        label: 'Left'
+                    }, {
+                        value: SmoMeasureText.positions.right,
+                        label: 'Right'
+                    }, {
+                        value:SmoMeasureText.positions.above,
+                        label: 'Dotted Quarter'
+                    }, {
+                        value: SmoMeasureText.positions.below,
+                        label: 'Half Note'
+                    }
+                    ]
+    			}
+        ];
+    }
+    static createAndDisplay(ignore1,ignore2,controller) {
+        // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
+        //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
+        var selection = controller.tracker.selections[0];
+        var measure = selection.measure;
+        var measureIndex = measure.measureNumber.measureIndex;
+
+        var dg = new SuiMeasureDialog({
+            measure: measure,
+            measureIndex: measureIndex,
+            undoBuffer:controller.undoBuffer,
+            layout: controller.tracker.layout,
+            controller:controller,
+            selection:selection
+          });
+        dg.display();
+        return dg;
+    }
+    changed() {
+
+    }
+    constructor(parameters) {
+        if (!parameters.measure || !parameters.selection) {
+            throw new Error('measure dialogmust have measure and selection');
+        }
+
+        super(SuiMeasureDialog.dialogElements, {
+            id: 'dialog-measure',
+            top: parameters.measure.renderedBox.y,
+            left: parameters.measure.renderedBox.x,
+            label: 'Measure Properties',
+			tracker:parameters.controller.tracker
+        });
+        this.refresh = false;
+        Vex.Merge(this, parameters);
+        this.modifier = this.measure;
+    }
+    populateInitial() {
+        var padLeftCtrl = this.components.find((comp) => return comp.smoName == 'padLeft');
+        padLeftCtrl.setValue(this.measure.padLeft);
+    }
+    _bindElements() {
+		var self = this;
+		var dgDom = this.dgDom;
+        this.bindKeyboard();
+
+		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+			self.complete();
+		});
+
+		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+			self.complete();
+		});
+		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
+			self.complete();
+		});
+	}
 }
 // ## SuiTempoDialog
 // Allow user to choose a tempo or tempo change.
