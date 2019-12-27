@@ -1025,6 +1025,29 @@ body.showAttributeDialog .attributeDialog {
 	display:none;
 }
 
+.attributeModal #dialog-measure-pickupMeasure {
+    display:none;
+}
+
+.attributeModal.pickup-select #dialog-measure-pickupMeasure {
+    display:block;
+}
+.attributeModal.pad-left-select #dialog-measure-padAllInSystem {
+    display:block;
+}
+
+.attributeModal #dialog-measure-padAllInSystem {
+    display:none;
+}
+
+.attributeModal #dialog-measure-measureTextPosition {
+    display:none;
+}
+
+.attributeModal.measure-text-set #dialog-measure-measureTextPosition {
+    display:block;
+}
+
 #attr-modal-dialog-dialog-tempo .smoControlContainer select,
 #attr-modal-dialog-dialog-measure .smoControlContainer select {
     margin-left: 70px;

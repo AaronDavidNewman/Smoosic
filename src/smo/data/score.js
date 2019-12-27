@@ -169,6 +169,16 @@ class SmoScore {
 
     }
 
+    convertToPickupMeasure(measureIndex,duration) {
+        for (var i = 0; i < this.staves.length; ++i) {
+
+            var staff = this.staves[i];
+            var protomeasure = staff.measures[measureIndex].pickupMeasure(duration);
+            staff.measures[measureIndex] = protomeasure;
+        }
+        this._numberStaves();
+    }
+
     addPickupMeasure(measureIndex,duration) {
         for (var i = 0; i < this.staves.length; ++i) {
 
@@ -176,7 +186,7 @@ class SmoScore {
             var protomeasure = staff.measures[measureIndex].pickupMeasure(duration);
             staff.addMeasure(measureIndex,protomeasure);
         }
-        this._numberStaves();        
+        this._numberStaves();
     }
 
     // ### addMeasure

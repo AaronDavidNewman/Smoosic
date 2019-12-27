@@ -398,6 +398,11 @@ class suiScoreLayout extends suiLayoutBase {
 		if (!this._score.staves.length || !this._score.staves[0].measures.length) {
 			return;
 		}
+        if (suiLayoutBase.debugLayout) {
+            $(this.context.svg).find('.measure-render-dbg').remove();
+            $(this.context.svg).find('.measure-place-dbg').remove();
+            $(this.context.svg).find('.measure-note-dbg').remove();
+        }
 
         var renderState = this.passState == suiLayoutBase.passStates.incomplete ?
             this.renderState :

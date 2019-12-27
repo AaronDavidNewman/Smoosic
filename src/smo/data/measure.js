@@ -351,6 +351,20 @@ class SmoMeasure {
 		return VX.TICKMAP(this);
 	}
 
+    getTicksFromVoice() {
+        var ticks = 0;
+        this.voices[0].notes.forEach((note) => {
+            ticks += note.tickCount;
+        });
+        return ticks;
+    }
+
+    isPickup() {
+        var ticks = this.getTicksFromVoice();
+        var goal = smoMusic.timeSignatureToTicks(this.timeSignature);
+        return (ticks < goal);
+    }
+
 	// ### getDynamicMap
 	// ### Description:
 	// returns the dynamic text for each tick index.  If

@@ -12,11 +12,18 @@ class SmoOperation {
 		score.deleteMeasure(measureIndex);
 	}
 
+    static addPickupMeasure(score,duration) {
+        score.addPickupMeasure(0,duration);
+    }
+
+    static convertToPickupMeasure(score,duration) {
+        score.convertToPickupMeasure(0,duration);
+    }
 	static toggleBeamGroup(noteSelection) {
 		noteSelection.measure.setChanged();
 		noteSelection.note.endBeam = !(noteSelection.note.endBeam);
 	}
-    
+
     static setTimeSignature(score,selections,timeSignature) {
         var selectors = [];
         selections.forEach((selection) => {
@@ -29,7 +36,7 @@ class SmoOperation {
             }
         });
         var tsTicks = smoMusic.timeSignatureToTicks(timeSignature);
-        
+
         selectors.forEach((selector) => {
             var params={};
             var attrs = SmoMeasure.defaultAttributes.filter((aa) => aa != 'timeSignature');
@@ -60,11 +67,11 @@ class SmoOperation {
                     }
                 }
                 if (ticks < tsTicks) {
-                    var adjNote = nvoice[nvoice.length - 1];
-                    adjNote.ticks.numerator += tsTicks-ticks;
+                    var adjNote = SmoNote.cloneWithDuration(nvoice[nvoice.length - 1],{numerator:tsTicks - ticks,denominator:1,remainder:0});
+                    nvoice.push(adjNote);
                 }
-                voices.push({notes:nvoice});            
-                
+                voices.push({notes:nvoice});
+
             });
             nm.voices=voices;
             score.replaceMeasure(selector,nm);
@@ -195,7 +202,7 @@ class SmoOperation {
 
 		return true;
 	}
-    
+
     static removeStaffModifier(selection,modifier) {
         selection.staff.removeStaffModifier(modifier);
     }
@@ -208,17 +215,17 @@ class SmoOperation {
 		selection.measure.setChanged();
 		selection.note.makeNote();
 	}
-    
+
     static addGraceNote(selection,offset,g) {
         selection.note.addGraceNote(offset,g);
         selection.measure.changed= true;
     }
-    
+
     static removeGraceNote(selection,offset) {
         selection.note.removeGraceNote(offset);
         selection.measure.changed= true;
     }
-    
+
     static doubleGraceNoteDuration(selection,modifiers) {
         if (!Array.isArray(modifiers)) {
             modifiers=[modifiers];
@@ -237,7 +244,7 @@ class SmoOperation {
         });
         selection.measure.changed = true;
     }
-    
+
     static transposeGraceNotes(selection,modifiers,offset) {
         if (!Array.isArray(modifiers)) {
             modifiers=[modifiers];
@@ -287,7 +294,7 @@ class SmoOperation {
 		if (nticks == note.tickCount) {
 			return;
 		}
-        
+
         // Don't dot if the thing on the right of the . is too small
         var dotCount = smoMusic.smoTicksToVexDots(nticks);
         var multiplier = Math.pow(2,dotCount);
@@ -295,7 +302,7 @@ class SmoOperation {
         if (baseDot <= 128) {
             return;
         }
-        
+
 		// If this is the ultimate note in the measure, we can't increase the length
 		if (selection.selector.tick + 1 === selection.measure.notes.length) {
 			return;
@@ -453,14 +460,14 @@ class SmoOperation {
 		selection.note.addModifier(dynamic);
 		selection.measure.setChanged();
 	}
-    
+
     static beamSelections(selections) {
         var start = selections[0].selector;
         var cur = selections[0].selector;
         var beamGroup = [];
         var ticks = 0;
         selections.forEach((selection) => {
-            if (SmoSelector.sameNote(start,selection.selector) || 
+            if (SmoSelector.sameNote(start,selection.selector) ||
                 (SmoSelector.sameMeasure(selection.selector,cur) &&
                  cur.tick == selection.selector.tick-1)) {
                 ticks += selection.note.tickCount;
@@ -476,14 +483,14 @@ class SmoOperation {
             beamGroup[beamGroup.length - 1].endBeam=true;
         }
     }
-    
+
     static toggleBeamDirection(selections) {
-        selections[0].note.toggleFlagState();               
+        selections[0].note.toggleFlagState();
         selections.forEach((selection) => {
             selection.note.flagState = selections[0].note.flagState;
         });
     }
-    
+
     static toggleOrnament(selection,ornament) {
 		selection.note.toggleOrnament(ornament);
 		selection.measure.setChanged();
@@ -498,7 +505,7 @@ class SmoOperation {
 		var startMeasure = parameters.startBar;
 		var endMeasure = parameters.endBar;
 		var s = 0;
-		
+
 		// Ending ID ties all the instances of an ending across staves
 		parameters.endingId=VF.Element.newID();
 		score.staves.forEach((staff) => {
@@ -523,22 +530,22 @@ class SmoOperation {
 			s += 1;
 		});
 	}
-	
+
 	static addScoreText(score,scoreText) {
 		score.addScoreText(scoreText);
 	}
 	static removeScoreText(score,scoreText) {
 		score.removeScoreText(scoreText);
 	}
-	
+
 	static addMeasureText(score,selection,measureText) {
 		selection.measure.addMeasureText(measureText);
 	}
-	
+
 	static removeMeasureText(score,selection,mt) {
 		selection.measure.removeMeasureText(mt.attrs.id);
 	}
-	
+
 	static addSystemText(score,selection,measureText) {
 		var mm = selection.selector.measure;
 		score.staves.forEach((staff) => {
@@ -546,7 +553,7 @@ class SmoOperation {
 			staff.measures[mm].addMeasureText(mt);
 		});
 	}
-	
+
 	static addRehearsalMark(score,selection,rehearsalMark) {
 		var mm = selection.selector.measure;
 		score.staves.forEach((staff) => {
@@ -554,28 +561,28 @@ class SmoOperation {
             staff.addRehearsalMark(selection.selector.measure,mt);
 		});
 	}
-    
+
     static addLyric(score,selection,lyric) {
         selection.note.addLyric(lyric);
     }
-    
+
     static removeLyric(score,selection,lyric) {
         selection.note.removeLyric(lyric);
     }
-    
+
     static addTempo(score,selection,tempo) {
 		score.staves.forEach((staff) => {
             staff.addTempo(tempo,selection.selector.measure);
 		});
     }
-    
+
     static removeTempo(score,selection) {
 		score.staves.forEach((staff) => {
             staff.removeTempo();
 		});
     }
 
-    
+
     static removeRehearsalMark(score,selection,rehearsalMark) {
 		score.staves.forEach((staff) => {
             staff.removeRehearsalMark(selection.selector.measure);

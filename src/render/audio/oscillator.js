@@ -252,6 +252,10 @@ class suiOscillator {
     }
 
     static playSelectionNow(selection,gain) {
+        // In the midst of re-rendering...
+        if (!selection.note) {
+            return;
+        }
         setTimeout(function() {
         var ar = suiOscillator.fromNote(selection.measure,selection.note,true,gain);
         ar.forEach((osc) => {

@@ -100,9 +100,13 @@ class suiController {
 				this.undoStatus = this.undoBuffer.opCount;
 				this.idleLayoutTimer = Date.now();
                 var state = this.layout.passState;
+                try {
 				this.render();
                 if (state == suiLayoutBase.passStates.initial) {
                     this.render();
+                }
+            } catch (ex) {
+                    SuiExceptionHandler.instance.exceptionHandler(ex);
                 }
 			} else if (this.layout.passState === suiLayoutBase.passStates.replace) {
 				// Do we need to refresh the score?
@@ -471,7 +475,7 @@ class suiController {
 		$(this.renderElement).off('click').on('click', function (ev) {
 			tracker.selectSuggestion(ev);
 		});
-		
+
 		$('body').off('tracker-selection').on('tracker-selection',function(ev) {
 			self.trackerChangeEvent(ev);
 		});

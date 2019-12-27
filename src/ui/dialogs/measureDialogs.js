@@ -33,19 +33,19 @@ class SuiMeasureDialog extends SuiDialogBase {
     			parameterName:'makePickup',
     			defaultValue: false,
     			control:'SuiToggleComponent',
-    			label:'Make measure into pickup?'
+    			label:'Convert to Pickup Measure'
     		},{
                 parameterName: 'padLeft',
                 smoName: 'padLeft',
                 defaultValue: 0,
                 control: 'SuiRockerComponent',
-                label: 'Notes/Minute'
+                label: 'Pad Left (px)'
             },{
     			smoName:'padAllInSystem',
     			parameterName:'padAllInSystem',
     			defaultValue: false,
     			control:'SuiToggleComponent',
-    			label:'Pad all measures in system?'
+    			label:'Pad all measures in system'
     		},{
     				smoName: 'measureText',
     				parameterName: 'measureText',
@@ -97,7 +97,14 @@ class SuiMeasureDialog extends SuiDialogBase {
         return dg;
     }
     changed() {
-
+        this.layout.unrenderColumn(this.measure);
+        if ((this.pickupCtrl.getValue() && this.pickupCtrl.changeFlag) || this.pickupMeasureCtrl.changeFlag) {
+            SmoUndoable.scoreOp(this.layout.score,'convertToPickupMeasure',this.pickupMeasureCtrl.getValue(),this.undoBuffer,'Create pickup measure');
+            this.layout.setDirty();
+            this.selection = SmoSelection.measureSelection(this.layout.score,this.selection.selector.staff,this.selection.selector.measure);
+            this.measure = this.selection.measure;
+        }
+        this._updateConditionals();
     }
     constructor(parameters) {
         if (!parameters.measure || !parameters.selection) {
@@ -115,14 +122,52 @@ class SuiMeasureDialog extends SuiDialogBase {
         Vex.Merge(this, parameters);
         this.modifier = this.measure;
     }
+    _updateConditionals() {
+        if (this.padLeftCtrl.getValue() != 0) {
+            $('.attributeDialog .attributeModal').addClass('pad-left-select');
+        } else {
+            $('.attributeDialog .attributeModal').removeClass('pad-left-select');
+        }
+
+        if (this.pickupCtrl.getValue()) {
+            $('.attributeDialog .attributeModal').addClass('pickup-select');
+        } else {
+            $('.attributeDialog .attributeModal').removeClass('pickup-select');
+        }
+        var str = this.measureTextCtrl.getValue();
+        if (str && str.length) {
+            $('.attributeDialog .attributeModal').addClass('measure-text-set');
+        } else {
+            $('.attributeDialog .attributeModal').removeClass('measure-text-set');
+        }
+
+    }
     populateInitial() {
-        var padLeftCtrl = this.components.find((comp) => {return comp.smoName == 'padLeft';});
-        padLeftCtrl.setValue(this.measure.padLeft);
+        this.padLeftCtrl.setValue(this.measure.padLeft);
+        var isPickup = this.measure.isPickup();
+        this.pickupCtrl.setValue(isPickup);
+        if (isPickup) {
+            this.pickupMeasureCtrl.setValue(this.measure.getTicksFromVoice())
+        }
+        this._updateConditionals();
+
+        // TODO: handle multiples (above/below)
+        var texts = this.measure.getMeasureText();
+        if (texts.length) {
+            this.measureTextCtrl.setValue(texts[0].text);
+            this.measureTextPositionCtrl.setValue(texts[0].position);
+        }
     }
     _bindElements() {
 		var self = this;
 		var dgDom = this.dgDom;
         this.bindKeyboard();
+        this.controller.unbindKeyboardForDialog(this);
+        this.padLeftCtrl = this.components.find((comp) => {return comp.smoName == 'padLeft';});
+        this.pickupCtrl = this.components.find((comp) => {return comp.smoName == 'makePickup';});
+        this.pickupMeasureCtrl = this.components.find((comp) => {return comp.smoName == 'pickupMeasure';});
+        this.measureTextCtrl = this.components.find((comp) => {return comp.smoName == 'measureText';});
+        this.measureTextPositionCtrl = this.components.find((comp) => {return comp.smoName == 'measureTextPosition';});
         this.populateInitial();
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {

@@ -1,8 +1,18 @@
 // # dbComponents - components of modal dialogs.
 
+class SuiComponentBase {
+    constructor() {
+        this.changeFlag = false;
+    }
+    handleChanged() {
+        this.changeFlag = true;
+        this.dialog.changed();
+        this.changeFlag = false;
+    }
+}
 // ## SuiRockerComponent
 // A numeric input box with +- buttons.   Adjustable type and scale
-class SuiRockerComponent {
+class SuiRockerComponent extends SuiComponentBase {
 	static get dataTypes() {
 		return ['int','float','percent'];
 	}
@@ -13,6 +23,7 @@ class SuiRockerComponent {
 		return {'int':'_getIntValue','float':'_getFloatValue','percent':'_getPercentValue'};
 	}
     constructor(dialog, parameter) {
+        super();
         smoMusic.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label','increment','type'], parameter, this);
         if (!this.defaultValue) {
@@ -55,6 +66,11 @@ class SuiRockerComponent {
     get parameterId() {
         return this.dialog.id + '-' + this.parameterName;
     }
+    handleChange() {
+        this.changeFlag = true;
+        this.dialog.changed();
+        this.changeFlag = false;
+    }
 
     bind() {
         var dialog = this.dialog;
@@ -69,7 +85,7 @@ class SuiRockerComponent {
 			    val = 100*val;
      		}
             $(input).val(val + self.increment);
-            dialog.changed();
+            self.handleChanged();
         });
         $('#' + pid).find('button.decrement').off('click').on('click',
             function (ev) {
@@ -78,11 +94,11 @@ class SuiRockerComponent {
 			    val = 100*val;
      		}
             $(input).val(val - self.increment);
-            dialog.changed();
+            self.handleChanged();
         });
         $(input).off('blur').on('blur',
             function (ev) {
-            dialog.changed();
+            self.handleChanged();
         });
     }
 
@@ -126,8 +142,9 @@ class SuiRockerComponent {
 // A component that lets you drag the text you are editing to anywhere on the score.
 // The text is not really part of the dialog but the location of the text appears
 // in other dialog fields.
-class SuiDragText {
+class SuiDragText extends SuiComponentBase {
     constructor(dialog,parameter) {
+        super();
         smoMusic.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
@@ -164,7 +181,6 @@ class SuiDragText {
           $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-move');
           $('.dom-container .textEdit').addClass('hide').removeClass('icon-move');
           this.editor = null;
-
         }
     }
     getValue() {
@@ -230,8 +246,9 @@ class SuiDragText {
 }
 
 // ## TBD: do this.
-class SuiResizeTextBox {
+class SuiResizeTextBox extends SuiComponentBase {
     constructor(dialog,parameter) {
+        super();
         smoMusic.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
@@ -287,7 +304,7 @@ class SuiResizeTextBox {
           this.value=this.editor.value;
           $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
           this.editor.endSession();
-          this.dialog.changed();
+          this.handleChanged();
         }
     }
 
@@ -305,8 +322,9 @@ class SuiResizeTextBox {
 // ## SuiTextInPlace
 // Edit the text in an SVG element, in the same scale etc. as the text in the score SVG DOM.
 // This component just manages the text editing component of hte renderer.
-class SuiTextInPlace {
+class SuiTextInPlace extends SuiComponentBase {
     constructor(dialog,parameter) {
+        super();
         smoMusic.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
@@ -366,7 +384,7 @@ class SuiTextInPlace {
           $('.textEdit').addClass('hide');
           $('body').removeClass('text-edit');
           $(this._getInputElement()).find('label').text(this.label);
-          this.dialog.changed();
+          this.handleChanged();
         }
     }
 
@@ -381,8 +399,9 @@ class SuiTextInPlace {
     }
 }
 
-class SuiLyricEditComponent {
+class SuiLyricEditComponent extends SuiComponentBase {
     constructor(dialog,parameter) {
+        super();
         smoMusic.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
@@ -448,7 +467,7 @@ class SuiLyricEditComponent {
         if (!this.editor) {
             this._startEditor();
             $(button).off('click').on('click',function() {
-                self.dialog.changed();
+                self.handleChanged();
                  if (self.editor.state == editLyricSession.states.stopped || self.editor.state == editLyricSession.states.stopping)  {
                      self._startEditor(button);
                  } else {
@@ -472,8 +491,9 @@ class SuiLyricEditComponent {
 
 // ## SuiTextInputComponent
 // Just get text from an input, such as a filename.
-class SuiTextInputComponent {
+class SuiTextInputComponent extends SuiComponentBase {
     constructor(dialog, parameter) {
+        super();
         smoMusic.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
@@ -502,15 +522,16 @@ class SuiTextInputComponent {
         var self=this;
         $('#'+this.parameterId).find('input').off('change').on('change',function(e) {
             self.value = $(this).val();
-            self.dialog.changed();
+            self.handleChanged();
         });
     }
 }
 
 // ## SuiFileDownloadComponent
 // Download a test file using the file input.
-class SuiFileDownloadComponent {
+class SuiFileDownloadComponent extends SuiComponentBase {
     constructor(dialog, parameter) {
+        super();
         smoMusic.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
@@ -537,7 +558,7 @@ class SuiFileDownloadComponent {
         var self=this;
         reader.onload = function(file) {
             self.value = file.target.result;
-            self.dialog.changed();
+            self.handleChanged();
         }
         reader.readAsText(evt.target.files[0]);
     }
@@ -555,8 +576,9 @@ class SuiFileDownloadComponent {
 
 // ## SuiToggleComponent
 // Simple on/off behavior
-class SuiToggleComponent {
+class SuiToggleComponent extends SuiComponentBase {
     constructor(dialog, parameter) {
+        super();
         smoMusic.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
@@ -596,13 +618,14 @@ class SuiToggleComponent {
         var self = this;
         $(input).off('change').on('change',
             function (ev) {
-            dialog.changed();
+            self.handleChanged();
         });
     }
 }
 
-class SuiDropdownComponent {
+class SuiDropdownComponent  extends SuiComponentBase{
     constructor(dialog, parameter) {
+        super();
         smoMusic.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label','dataType'], parameter, this);
         if (!this.defaultValue) {
@@ -652,14 +675,12 @@ class SuiDropdownComponent {
     }
 
     bind() {
-        var dialog = this.dialog;
-        var pid = this.parameterId;
         var input = this._getInputElement();
         this.setValue(this.defaultValue);
         var self = this;
         $(input).off('change').on('change',
             function (ev) {
-            dialog.changed();
+            self.handleChanged();
         });
     }
 }

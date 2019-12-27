@@ -244,6 +244,12 @@ class suiLayoutBase {
 		measure.setChanged();
 	}
 
+    unrenderColumn(measure) {
+        this.score.staves.forEach((staff) => {
+            this.unrenderMeasure(staff.measures[measure.measureNumber.measureIndex]);
+        });
+    }
+
 	// ### unrenderStaff
 	// ### Description:
 	// See unrenderMeasure.  Like that, but with a staff.
@@ -341,6 +347,8 @@ class suiLayoutBase {
         changes.forEach((change) => {
             var system = new VxSystem(this.context, change.staff.measures[0].staffY, change.measure.lineIndex);
             system.renderMeasure(change.staff.staffId, change.measure);
+            // Fix a bug: measure change needs to stay true so we recaltulate the width
+            change.measure.changed = true;
         });
     }
 
