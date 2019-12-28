@@ -2584,6 +2584,20 @@ class SmoMeasure {
 		return VX.TICKMAP(this);
 	}
 
+    getTicksFromVoice() {
+        var ticks = 0;
+        this.voices[0].notes.forEach((note) => {
+            ticks += note.tickCount;
+        });
+        return ticks;
+    }
+
+    isPickup() {
+        var ticks = this.getTicksFromVoice();
+        var goal = smoMusic.timeSignatureToTicks(this.timeSignature);
+        return (ticks < goal);
+    }
+
 	// ### getDynamicMap
 	// ### Description:
 	// returns the dynamic text for each tick index.  If
@@ -3100,7 +3114,7 @@ class SmoVolta extends SmoMeasureModifierBase {
 
 class SmoMeasureText extends SmoMeasureModifierBase {
 	static get positions() {
-		return {above:0,below:1,left:2,right:3};
+		return {above:0,below:1,left:2,right:3,none:4};
 	}
 
 	static get justifications() {
@@ -3848,6 +3862,16 @@ class SmoScore {
 
     }
 
+    convertToPickupMeasure(measureIndex,duration) {
+        for (var i = 0; i < this.staves.length; ++i) {
+
+            var staff = this.staves[i];
+            var protomeasure = staff.measures[measureIndex].pickupMeasure(duration);
+            staff.measures[measureIndex] = protomeasure;
+        }
+        this._numberStaves();
+    }
+
     addPickupMeasure(measureIndex,duration) {
         for (var i = 0; i < this.staves.length; ++i) {
 
@@ -3855,7 +3879,7 @@ class SmoScore {
             var protomeasure = staff.measures[measureIndex].pickupMeasure(duration);
             staff.addMeasure(measureIndex,protomeasure);
         }
-        this._numberStaves();        
+        this._numberStaves();
     }
 
     // ### addMeasure
@@ -4141,15 +4165,15 @@ class SmoSlur extends StaffModifierBase {
         return {
             spacing: 2,
             thickness: 2,
-            xOffset: 0,
-            yOffset: 10,			
+            xOffset: -5,
+            yOffset: 10,
             position: SmoSlur.positions.HEAD,
             position_end: SmoSlur.positions.HEAD,
             invert: false,
             cp1x: 0,
-            cp1y: 40,
+            cp1y: 15,
             cp2x: 0,
-            cp2y: 40
+            cp2y: 15
         };
     }
 
@@ -4199,7 +4223,7 @@ class SmoSlur extends StaffModifierBase {
         ];
         return ar;
     }
-		
+
     get type() {
         return this.attrs.type;
     }
@@ -5551,11 +5575,18 @@ class SmoOperation {
 		score.deleteMeasure(measureIndex);
 	}
 
+    static addPickupMeasure(score,duration) {
+        score.addPickupMeasure(0,duration);
+    }
+
+    static convertToPickupMeasure(score,duration) {
+        score.convertToPickupMeasure(0,duration);
+    }
 	static toggleBeamGroup(noteSelection) {
 		noteSelection.measure.setChanged();
 		noteSelection.note.endBeam = !(noteSelection.note.endBeam);
 	}
-    
+
     static setTimeSignature(score,selections,timeSignature) {
         var selectors = [];
         selections.forEach((selection) => {
@@ -5568,7 +5599,7 @@ class SmoOperation {
             }
         });
         var tsTicks = smoMusic.timeSignatureToTicks(timeSignature);
-        
+
         selectors.forEach((selector) => {
             var params={};
             var attrs = SmoMeasure.defaultAttributes.filter((aa) => aa != 'timeSignature');
@@ -5599,11 +5630,11 @@ class SmoOperation {
                     }
                 }
                 if (ticks < tsTicks) {
-                    var adjNote = nvoice[nvoice.length - 1];
-                    adjNote.ticks.numerator += tsTicks-ticks;
+                    var adjNote = SmoNote.cloneWithDuration(nvoice[nvoice.length - 1],{numerator:tsTicks - ticks,denominator:1,remainder:0});
+                    nvoice.push(adjNote);
                 }
-                voices.push({notes:nvoice});            
-                
+                voices.push({notes:nvoice});
+
             });
             nm.voices=voices;
             score.replaceMeasure(selector,nm);
@@ -5734,7 +5765,7 @@ class SmoOperation {
 
 		return true;
 	}
-    
+
     static removeStaffModifier(selection,modifier) {
         selection.staff.removeStaffModifier(modifier);
     }
@@ -5747,17 +5778,17 @@ class SmoOperation {
 		selection.measure.setChanged();
 		selection.note.makeNote();
 	}
-    
+
     static addGraceNote(selection,offset,g) {
         selection.note.addGraceNote(offset,g);
         selection.measure.changed= true;
     }
-    
+
     static removeGraceNote(selection,offset) {
         selection.note.removeGraceNote(offset);
         selection.measure.changed= true;
     }
-    
+
     static doubleGraceNoteDuration(selection,modifiers) {
         if (!Array.isArray(modifiers)) {
             modifiers=[modifiers];
@@ -5776,7 +5807,7 @@ class SmoOperation {
         });
         selection.measure.changed = true;
     }
-    
+
     static transposeGraceNotes(selection,modifiers,offset) {
         if (!Array.isArray(modifiers)) {
             modifiers=[modifiers];
@@ -5826,7 +5857,7 @@ class SmoOperation {
 		if (nticks == note.tickCount) {
 			return;
 		}
-        
+
         // Don't dot if the thing on the right of the . is too small
         var dotCount = smoMusic.smoTicksToVexDots(nticks);
         var multiplier = Math.pow(2,dotCount);
@@ -5834,7 +5865,7 @@ class SmoOperation {
         if (baseDot <= 128) {
             return;
         }
-        
+
 		// If this is the ultimate note in the measure, we can't increase the length
 		if (selection.selector.tick + 1 === selection.measure.notes.length) {
 			return;
@@ -5992,14 +6023,14 @@ class SmoOperation {
 		selection.note.addModifier(dynamic);
 		selection.measure.setChanged();
 	}
-    
+
     static beamSelections(selections) {
         var start = selections[0].selector;
         var cur = selections[0].selector;
         var beamGroup = [];
         var ticks = 0;
         selections.forEach((selection) => {
-            if (SmoSelector.sameNote(start,selection.selector) || 
+            if (SmoSelector.sameNote(start,selection.selector) ||
                 (SmoSelector.sameMeasure(selection.selector,cur) &&
                  cur.tick == selection.selector.tick-1)) {
                 ticks += selection.note.tickCount;
@@ -6015,14 +6046,14 @@ class SmoOperation {
             beamGroup[beamGroup.length - 1].endBeam=true;
         }
     }
-    
+
     static toggleBeamDirection(selections) {
-        selections[0].note.toggleFlagState();               
+        selections[0].note.toggleFlagState();
         selections.forEach((selection) => {
             selection.note.flagState = selections[0].note.flagState;
         });
     }
-    
+
     static toggleOrnament(selection,ornament) {
 		selection.note.toggleOrnament(ornament);
 		selection.measure.setChanged();
@@ -6037,7 +6068,7 @@ class SmoOperation {
 		var startMeasure = parameters.startBar;
 		var endMeasure = parameters.endBar;
 		var s = 0;
-		
+
 		// Ending ID ties all the instances of an ending across staves
 		parameters.endingId=VF.Element.newID();
 		score.staves.forEach((staff) => {
@@ -6062,22 +6093,22 @@ class SmoOperation {
 			s += 1;
 		});
 	}
-	
+
 	static addScoreText(score,scoreText) {
 		score.addScoreText(scoreText);
 	}
 	static removeScoreText(score,scoreText) {
 		score.removeScoreText(scoreText);
 	}
-	
+
 	static addMeasureText(score,selection,measureText) {
 		selection.measure.addMeasureText(measureText);
 	}
-	
+
 	static removeMeasureText(score,selection,mt) {
 		selection.measure.removeMeasureText(mt.attrs.id);
 	}
-	
+
 	static addSystemText(score,selection,measureText) {
 		var mm = selection.selector.measure;
 		score.staves.forEach((staff) => {
@@ -6085,7 +6116,7 @@ class SmoOperation {
 			staff.measures[mm].addMeasureText(mt);
 		});
 	}
-	
+
 	static addRehearsalMark(score,selection,rehearsalMark) {
 		var mm = selection.selector.measure;
 		score.staves.forEach((staff) => {
@@ -6093,28 +6124,28 @@ class SmoOperation {
             staff.addRehearsalMark(selection.selector.measure,mt);
 		});
 	}
-    
+
     static addLyric(score,selection,lyric) {
         selection.note.addLyric(lyric);
     }
-    
+
     static removeLyric(score,selection,lyric) {
         selection.note.removeLyric(lyric);
     }
-    
+
     static addTempo(score,selection,tempo) {
 		score.staves.forEach((staff) => {
             staff.addTempo(tempo,selection.selector.measure);
 		});
     }
-    
+
     static removeTempo(score,selection) {
 		score.staves.forEach((staff) => {
             staff.removeTempo();
 		});
     }
 
-    
+
     static removeRehearsalMark(score,selection,rehearsalMark) {
 		score.staves.forEach((staff) => {
             staff.removeRehearsalMark(selection.selector.measure);
@@ -7510,12 +7541,22 @@ class VxSystem {
 					thickness: modifier.thickness,
 					x_shift: modifier.xOffset,
 					y_shift: modifier.yOffset,
+                    spacing:modifier.spacing,
 					cps: modifier.controlPoints,
 					invert: modifier.invert,
 					position: modifier.position
 				});
 			curve.setContext(this.context).draw();
-
+            /*
+            var curve = new VF.StaveTie({
+                first_note:vxStart,
+                last_note:vxEnd,
+                first_indices:[0],
+                last_indices:[0],
+                tie_spacing:-10
+            });
+curve.setContext(this.context).draw();
+*/
 		}
 
 		this.context.closeGroup();
@@ -7881,6 +7922,10 @@ class suiOscillator {
     }
 
     static playSelectionNow(selection,gain) {
+        // In the midst of re-rendering...
+        if (!selection.note) {
+            return;
+        }
         setTimeout(function() {
         var ar = suiOscillator.fromNote(selection.measure,selection.note,true,gain);
         ar.forEach((osc) => {
@@ -9286,6 +9331,12 @@ class suiLayoutBase {
 		measure.setChanged();
 	}
 
+    unrenderColumn(measure) {
+        this.score.staves.forEach((staff) => {
+            this.unrenderMeasure(staff.measures[measure.measureNumber.measureIndex]);
+        });
+    }
+
 	// ### unrenderStaff
 	// ### Description:
 	// See unrenderMeasure.  Like that, but with a staff.
@@ -9383,6 +9434,8 @@ class suiLayoutBase {
         changes.forEach((change) => {
             var system = new VxSystem(this.context, change.staff.measures[0].staffY, change.measure.lineIndex);
             system.renderMeasure(change.staff.staffId, change.measure);
+            // Fix a bug: measure change needs to stay true so we recaltulate the width
+            change.measure.changed = true;
         });
     }
 
@@ -10462,6 +10515,11 @@ class suiScoreLayout extends suiLayoutBase {
 		if (!this._score.staves.length || !this._score.staves[0].measures.length) {
 			return;
 		}
+        if (suiLayoutBase.debugLayout) {
+            $(this.context.svg).find('.measure-render-dbg').remove();
+            $(this.context.svg).find('.measure-place-dbg').remove();
+            $(this.context.svg).find('.measure-note-dbg').remove();
+        }
 
         var renderState = this.passState == suiLayoutBase.passStates.incomplete ?
             this.renderState :
@@ -11428,6 +11486,7 @@ class suiMenuManager {
 		this.closeMenuPromise = new Promise((resolve, reject) => {
 				$('body').off('menuDismiss').on('menuDismiss', function () {
 					self.unattach();
+                    $('body').removeClass('slash-menu');
 					resolve();
 				});
 
@@ -11496,6 +11555,7 @@ class suiMenuManager {
 	bindEvents() {
 		var self = this;
         this.hotkeyBindings={};
+        $('body').addClass('slash-menu');
 
 		if (!this.bound) {
 			this.keydownHandler = this.handleKeydown.bind(this);
@@ -12971,6 +13031,12 @@ class SuiDialogBase {
 		$('body').trigger('dialogDismiss');
 		this.dgDom.trapper.close();
 	}
+    _bindComponentNames() {
+        this.components.forEach((component) => {
+			var nm = component.smoName + 'Ctrl';
+            this[nm] = component;
+		});
+    }
 
 	display() {
 		$('body').addClass('showAttributeDialog');
@@ -13390,7 +13456,6 @@ class SuiFileDialog extends SuiDialogBase {
 
 }
 class SuiLoadFileDialog extends SuiFileDialog {
-
     static get dialogElements() {
 		return [{
 				smoName: 'loadFile',
@@ -13889,6 +13954,186 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 // This file contains dialogs that affect all measures at a certain position,
 // such as tempo or time signature.
 
+class SuiMeasureDialog extends SuiDialogBase {
+    static get attributes() {
+        return ['pickupMeasure', 'makePickup', 'padLeft', 'padAllInSystem',
+            'measureText','measureTextPosition'];
+    }
+    static get dialogElements() {
+        return [{
+            smoName: 'pickupMeasure',
+            parameterName: 'pickupMeasure',
+            defaultValue: 2048,
+            control: 'SuiDropdownComponent',
+            label:'Pickup Measure',
+            options: [{
+                    value: 2048,
+                    label: 'Eighth Note'
+                }, {
+                    value: 4096,
+                    label: 'Quarter Note'
+                }, {
+                    value: 6144,
+                    label: 'Dotted Quarter'
+                }, {
+                    value: 8192,
+                    label: 'Half Note'
+                }
+                ]
+			}, {
+    			smoName:'makePickup',
+    			parameterName:'makePickup',
+    			defaultValue: false,
+    			control:'SuiToggleComponent',
+    			label:'Convert to Pickup Measure'
+    		},{
+                parameterName: 'padLeft',
+                smoName: 'padLeft',
+                defaultValue: 0,
+                control: 'SuiRockerComponent',
+                label: 'Pad Left (px)'
+            },{
+    			smoName:'padAllInSystem',
+    			parameterName:'padAllInSystem',
+    			defaultValue: false,
+    			control:'SuiToggleComponent',
+    			label:'Pad all measures in system'
+    		},{
+    				smoName: 'measureText',
+    				parameterName: 'measureText',
+    				defaultValue: '',
+    				control: 'SuiTextInputComponent',
+    				label:'Measure Text'
+    		},{
+                smoName: 'measureTextPosition',
+                parameterName: 'measureTextPosition',
+                defaultValue: SmoMeasureText.positions.none,
+                control: 'SuiDropdownComponent',
+                label:'Text Position',
+                options: [{
+                        value: SmoMeasureText.positions.none,
+                        label: 'None'
+                    },{
+                        value: SmoMeasureText.positions.left,
+                        label: 'Left'
+                    }, {
+                        value: SmoMeasureText.positions.right,
+                        label: 'Right'
+                    }, {
+                        value:SmoMeasureText.positions.above,
+                        label: 'Dotted Quarter'
+                    }, {
+                        value: SmoMeasureText.positions.below,
+                        label: 'Half Note'
+                    }
+                    ]
+    			}
+        ];
+    }
+    static createAndDisplay(ignore1,ignore2,controller) {
+        // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
+        //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
+        var selection = controller.tracker.selections[0];
+        var measure = selection.measure;
+        var measureIndex = measure.measureNumber.measureIndex;
+
+        var dg = new SuiMeasureDialog({
+            measure: measure,
+            measureIndex: measureIndex,
+            undoBuffer:controller.undoBuffer,
+            layout: controller.tracker.layout,
+            controller:controller,
+            selection:selection
+          });
+        dg.display();
+        return dg;
+    }
+    changed() {
+        this.layout.unrenderColumn(this.measure);
+        if ((this.pickupCtrl.getValue() && this.pickupCtrl.changeFlag) || this.pickupMeasureCtrl.changeFlag) {
+            SmoUndoable.scoreOp(this.layout.score,'convertToPickupMeasure',this.pickupMeasureCtrl.getValue(),this.undoBuffer,'Create pickup measure');
+            this.layout.setDirty();
+            this.selection = SmoSelection.measureSelection(this.layout.score,this.selection.selector.staff,this.selection.selector.measure);
+            this.measure = this.selection.measure;
+        }
+        this._updateConditionals();
+    }
+    constructor(parameters) {
+        if (!parameters.measure || !parameters.selection) {
+            throw new Error('measure dialogmust have measure and selection');
+        }
+
+        super(SuiMeasureDialog.dialogElements, {
+            id: 'dialog-measure',
+            top: parameters.measure.renderedBox.y,
+            left: parameters.measure.renderedBox.x,
+            label: 'Measure Properties',
+			tracker:parameters.controller.tracker
+        });
+        this.refresh = false;
+        Vex.Merge(this, parameters);
+        this.modifier = this.measure;
+    }
+    _updateConditionals() {
+        if (this.padLeftCtrl.getValue() != 0) {
+            $('.attributeDialog .attributeModal').addClass('pad-left-select');
+        } else {
+            $('.attributeDialog .attributeModal').removeClass('pad-left-select');
+        }
+
+        if (this.pickupCtrl.getValue()) {
+            $('.attributeDialog .attributeModal').addClass('pickup-select');
+        } else {
+            $('.attributeDialog .attributeModal').removeClass('pickup-select');
+        }
+        var str = this.measureTextCtrl.getValue();
+        if (str && str.length) {
+            $('.attributeDialog .attributeModal').addClass('measure-text-set');
+        } else {
+            $('.attributeDialog .attributeModal').removeClass('measure-text-set');
+        }
+
+    }
+    populateInitial() {
+        this.padLeftCtrl.setValue(this.measure.padLeft);
+        var isPickup = this.measure.isPickup();
+        this.pickupCtrl.setValue(isPickup);
+        if (isPickup) {
+            this.pickupMeasureCtrl.setValue(this.measure.getTicksFromVoice())
+        }
+        this._updateConditionals();
+
+        // TODO: handle multiples (above/below)
+        var texts = this.measure.getMeasureText();
+        if (texts.length) {
+            this.measureTextCtrl.setValue(texts[0].text);
+            this.measureTextPositionCtrl.setValue(texts[0].position);
+        }
+    }
+    _bindElements() {
+		var self = this;
+		var dgDom = this.dgDom;
+        this.bindKeyboard();
+        this.controller.unbindKeyboardForDialog(this);
+        this.padLeftCtrl = this.components.find((comp) => {return comp.smoName == 'padLeft';});
+        this.pickupCtrl = this.components.find((comp) => {return comp.smoName == 'makePickup';});
+        this.pickupMeasureCtrl = this.components.find((comp) => {return comp.smoName == 'pickupMeasure';});
+        this.measureTextCtrl = this.components.find((comp) => {return comp.smoName == 'measureText';});
+        this.measureTextPositionCtrl = this.components.find((comp) => {return comp.smoName == 'measureTextPosition';});
+        this.populateInitial();
+
+		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+			self.complete();
+		});
+
+		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+			self.complete();
+		});
+		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
+			self.complete();
+		});
+	}
+}
 // ## SuiTempoDialog
 // Allow user to choose a tempo or tempo change.
 class SuiTempoDialog extends SuiDialogBase {
@@ -14161,9 +14406,19 @@ class SuiTempoDialog extends SuiDialogBase {
 }
 ;// # dbComponents - components of modal dialogs.
 
+class SuiComponentBase {
+    constructor() {
+        this.changeFlag = false;
+    }
+    handleChanged() {
+        this.changeFlag = true;
+        this.dialog.changed();
+        this.changeFlag = false;
+    }
+}
 // ## SuiRockerComponent
 // A numeric input box with +- buttons.   Adjustable type and scale
-class SuiRockerComponent {
+class SuiRockerComponent extends SuiComponentBase {
 	static get dataTypes() {
 		return ['int','float','percent'];
 	}
@@ -14174,6 +14429,7 @@ class SuiRockerComponent {
 		return {'int':'_getIntValue','float':'_getFloatValue','percent':'_getPercentValue'};
 	}
     constructor(dialog, parameter) {
+        super();
         smoMusic.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label','increment','type'], parameter, this);
         if (!this.defaultValue) {
@@ -14216,6 +14472,11 @@ class SuiRockerComponent {
     get parameterId() {
         return this.dialog.id + '-' + this.parameterName;
     }
+    handleChange() {
+        this.changeFlag = true;
+        this.dialog.changed();
+        this.changeFlag = false;
+    }
 
     bind() {
         var dialog = this.dialog;
@@ -14230,7 +14491,7 @@ class SuiRockerComponent {
 			    val = 100*val;
      		}
             $(input).val(val + self.increment);
-            dialog.changed();
+            self.handleChanged();
         });
         $('#' + pid).find('button.decrement').off('click').on('click',
             function (ev) {
@@ -14239,11 +14500,11 @@ class SuiRockerComponent {
 			    val = 100*val;
      		}
             $(input).val(val - self.increment);
-            dialog.changed();
+            self.handleChanged();
         });
         $(input).off('blur').on('blur',
             function (ev) {
-            dialog.changed();
+            self.handleChanged();
         });
     }
 
@@ -14287,8 +14548,9 @@ class SuiRockerComponent {
 // A component that lets you drag the text you are editing to anywhere on the score.
 // The text is not really part of the dialog but the location of the text appears
 // in other dialog fields.
-class SuiDragText {
+class SuiDragText extends SuiComponentBase {
     constructor(dialog,parameter) {
+        super();
         smoMusic.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
@@ -14325,7 +14587,6 @@ class SuiDragText {
           $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-move');
           $('.dom-container .textEdit').addClass('hide').removeClass('icon-move');
           this.editor = null;
-
         }
     }
     getValue() {
@@ -14391,8 +14652,9 @@ class SuiDragText {
 }
 
 // ## TBD: do this.
-class SuiResizeTextBox {
+class SuiResizeTextBox extends SuiComponentBase {
     constructor(dialog,parameter) {
+        super();
         smoMusic.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
@@ -14448,7 +14710,7 @@ class SuiResizeTextBox {
           this.value=this.editor.value;
           $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
           this.editor.endSession();
-          this.dialog.changed();
+          this.handleChanged();
         }
     }
 
@@ -14466,8 +14728,9 @@ class SuiResizeTextBox {
 // ## SuiTextInPlace
 // Edit the text in an SVG element, in the same scale etc. as the text in the score SVG DOM.
 // This component just manages the text editing component of hte renderer.
-class SuiTextInPlace {
+class SuiTextInPlace extends SuiComponentBase {
     constructor(dialog,parameter) {
+        super();
         smoMusic.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
@@ -14527,7 +14790,7 @@ class SuiTextInPlace {
           $('.textEdit').addClass('hide');
           $('body').removeClass('text-edit');
           $(this._getInputElement()).find('label').text(this.label);
-          this.dialog.changed();
+          this.handleChanged();
         }
     }
 
@@ -14542,8 +14805,9 @@ class SuiTextInPlace {
     }
 }
 
-class SuiLyricEditComponent {
+class SuiLyricEditComponent extends SuiComponentBase {
     constructor(dialog,parameter) {
+        super();
         smoMusic.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
@@ -14609,7 +14873,7 @@ class SuiLyricEditComponent {
         if (!this.editor) {
             this._startEditor();
             $(button).off('click').on('click',function() {
-                self.dialog.changed();
+                self.handleChanged();
                  if (self.editor.state == editLyricSession.states.stopped || self.editor.state == editLyricSession.states.stopping)  {
                      self._startEditor(button);
                  } else {
@@ -14633,8 +14897,9 @@ class SuiLyricEditComponent {
 
 // ## SuiTextInputComponent
 // Just get text from an input, such as a filename.
-class SuiTextInputComponent {
+class SuiTextInputComponent extends SuiComponentBase {
     constructor(dialog, parameter) {
+        super();
         smoMusic.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
@@ -14649,7 +14914,7 @@ class SuiTextInputComponent {
     get html() {
         var b = htmlHelpers.buildDom;
         var id = this.parameterId;
-        var r = b('div').classes('select-file').attr('id', this.parameterId).attr('data-param', this.parameterName)
+        var r = b('div').classes('text-input smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
             .append(b('input').attr('type', 'text').classes('file-name')
                 .attr('id', id + '-input')).append(
                 b('label').attr('for', id + '-input').text(this.label));
@@ -14663,15 +14928,16 @@ class SuiTextInputComponent {
         var self=this;
         $('#'+this.parameterId).find('input').off('change').on('change',function(e) {
             self.value = $(this).val();
-            self.dialog.changed();
+            self.handleChanged();
         });
     }
 }
 
 // ## SuiFileDownloadComponent
 // Download a test file using the file input.
-class SuiFileDownloadComponent {
+class SuiFileDownloadComponent extends SuiComponentBase {
     constructor(dialog, parameter) {
+        super();
         smoMusic.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
@@ -14698,7 +14964,7 @@ class SuiFileDownloadComponent {
         var self=this;
         reader.onload = function(file) {
             self.value = file.target.result;
-            self.dialog.changed();
+            self.handleChanged();
         }
         reader.readAsText(evt.target.files[0]);
     }
@@ -14716,8 +14982,9 @@ class SuiFileDownloadComponent {
 
 // ## SuiToggleComponent
 // Simple on/off behavior
-class SuiToggleComponent {
+class SuiToggleComponent extends SuiComponentBase {
     constructor(dialog, parameter) {
+        super();
         smoMusic.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
@@ -14757,13 +15024,14 @@ class SuiToggleComponent {
         var self = this;
         $(input).off('change').on('change',
             function (ev) {
-            dialog.changed();
+            self.handleChanged();
         });
     }
 }
 
-class SuiDropdownComponent {
+class SuiDropdownComponent  extends SuiComponentBase{
     constructor(dialog, parameter) {
+        super();
         smoMusic.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label','dataType'], parameter, this);
         if (!this.defaultValue) {
@@ -14813,14 +15081,12 @@ class SuiDropdownComponent {
     }
 
     bind() {
-        var dialog = this.dialog;
-        var pid = this.parameterId;
         var input = this._getInputElement();
         this.setValue(this.defaultValue);
         var self = this;
         $(input).off('change').on('change',
             function (ev) {
-            dialog.changed();
+            self.handleChanged();
         });
     }
 }
@@ -14853,7 +15119,7 @@ class defaultRibbonLayout {
 	}
 
 	static get leftRibbonIds() {
-		return ['helpDialog', 'fileMenu','addStaffMenu', 'tempoModal','timeSignatureMenu','keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
+		return ['helpDialog', 'fileMenu','addStaffMenu','measureModal','tempoModal','timeSignatureMenu','keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
 	}
 	static get noteButtonIds() {
 		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton',
@@ -15939,6 +16205,15 @@ class defaultRibbonLayout {
 				group: 'scoreEdit',
 				id: 'addStaffMenu'
 			}, {
+               leftText: 'Measure',
+               rightText: '',
+               icon: '',
+               classes: 'icon ',
+               action: 'modal',
+               ctor: 'SuiMeasureDialog',
+               group: 'scoreEdit',
+               id: 'measureModal'
+           },{
 				leftText: 'Key',
 				rightText: '/k',
 				icon: '',
@@ -55957,11 +56232,12 @@ class vexGlyph {
       "systemIndex": 0,
       "staffId": 0
      },
-     "staffWidth": 237.33999633789062,
+     "staffWidth": 182.890625,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
      "adjX": 91.26,
+     "padLeft": 0,
      "adjRight": 11,
      "padRight": 10,
      "rightMargin": 2,
@@ -55972,7 +56248,7 @@ class vexGlyph {
        "notes": [
         {
          "ticks": {
-          "numerator": 12288,
+          "numerator": "2048",
           "denominator": 1,
           "remainder": 0
          },
@@ -55983,7 +56259,7 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "noteType": "r",
+         "noteType": "n",
          "attrs": {
           "id": "auto186743",
           "type": "SmoNote"
@@ -55992,87 +56268,6 @@ class vexGlyph {
          "endBeam": false,
          "beamBeats": 4096,
          "flagState": 0,
-         "noteModifiers": [],
-         "graceNotes": [],
-         "articulations": [],
-         "ornaments": []
-        },
-        {
-         "ticks": {
-          "numerator": 8192,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "b",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "noteType": "r",
-         "attrs": {
-          "id": "auto186878",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": [],
-         "graceNotes": [],
-         "articulations": [],
-         "ornaments": []
-        },
-        {
-         "ticks": {
-          "numerator": 2048,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "b",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "noteType": "r",
-         "attrs": {
-          "id": "auto187112",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": [],
-         "graceNotes": [],
-         "articulations": [],
-         "ornaments": []
-        },
-        {
-         "ticks": {
-          "numerator": 2048,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 5
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto187113",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 2048,
-         "flagState": 1,
          "noteModifiers": [],
          "graceNotes": [],
          "articulations": [],
@@ -56117,7 +56312,7 @@ class vexGlyph {
     {
      "timeSignature": "12/8",
      "keySignature": "G",
-     "staffX": 267.3399963378906,
+     "staffX": 212.890625,
      "staffY": 83.68421292304993,
      "measureNumber": {
       "measureNumber": 1,
@@ -56125,11 +56320,12 @@ class vexGlyph {
       "systemIndex": 1,
       "staffId": 0
      },
-     "staffWidth": 251.16000366210938,
+     "staffWidth": 269.1599884033203,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
      "adjX": 11,
+     "padLeft": 0,
      "adjRight": 11,
      "padRight": 10,
      "rightMargin": 2,
@@ -56393,7 +56589,7 @@ class vexGlyph {
     {
      "timeSignature": "12/8",
      "keySignature": "G",
-     "staffX": 518.5,
+     "staffX": 482.0506134033203,
      "staffY": 83.68421292304993,
      "measureNumber": {
       "measureNumber": 2,
@@ -56401,11 +56597,12 @@ class vexGlyph {
       "systemIndex": 2,
       "staffId": 0
      },
-     "staffWidth": 212.78634643554688,
+     "staffWidth": 230.78622436523438,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
      "adjX": 11,
+     "padLeft": 0,
      "adjRight": 11,
      "padRight": 10,
      "rightMargin": 2,
@@ -56440,18 +56637,18 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto23411",
+          "id": "auto17914",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto23415",
+         "renderId": "vf-auto17918",
          "renderedBox": {
-          "x": 909.931396484375,
-          "y": -482.3629150390625,
+          "x": 856.163818359375,
+          "y": 217.6370849609375,
           "width": 28.05438232421875,
           "height": 18.071746826171875
          },
          "logicalBox": {
-          "x": 535.5,
+          "x": 499.05059814453125,
           "y": 96.68421173095703,
           "width": 19.01824951171875,
           "height": 12.250961303710938
@@ -56484,18 +56681,18 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto23411",
+          "id": "auto17914",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto23423",
+         "renderId": "vf-auto17926",
          "renderedBox": {
-          "x": 958.3935546875,
-          "y": -487.1170654296875,
+          "x": 907.945068359375,
+          "y": 212.8829345703125,
           "width": 17.72845458984375,
           "height": 15.45025634765625
          },
          "logicalBox": {
-          "x": 568.3528442382812,
+          "x": 534.1534423828125,
           "y": 93.46134185791016,
           "width": 12.01824951171875,
           "height": 10.473831176757812
@@ -56528,26 +56725,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto23411",
+          "id": "auto17914",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto23430",
+         "renderId": "vf-auto17933",
          "renderedBox": {
-          "x": 989.31689453125,
-          "y": -494.49273681640625,
+          "x": 939.9747314453125,
+          "y": 205.5072784423828,
           "width": 17.72845458984375,
-          "height": 15.450286865234375
+          "height": 15.450271606445312
          },
          "logicalBox": {
-          "x": 589.3159790039062,
-          "y": 88.46131896972656,
+          "x": 555.8665771484375,
+          "y": 88.4613265991211,
           "width": 12.01824951171875,
-          "height": 10.473854064941406
+          "height": 10.473846435546875
          }
         }
        ],
        "attrs": {
-        "id": "auto23411",
+        "id": "auto17914",
         "type": "SmoBeamGroup"
        }
       }
@@ -56761,7 +56958,7 @@ class vexGlyph {
     {
      "timeSignature": "12/8",
      "keySignature": "G",
-     "staffX": 731.2863464355469,
+     "staffX": 712.8368377685547,
      "staffY": 83.68421292304993,
      "measureNumber": {
       "measureNumber": 3,
@@ -56769,11 +56966,12 @@ class vexGlyph {
       "systemIndex": 3,
       "staffId": 0
      },
-     "staffWidth": 359.2400207519531,
+     "staffWidth": 377.2400207519531,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
      "adjX": 11,
+     "padLeft": 0,
      "adjRight": 11,
      "padRight": 10,
      "rightMargin": 2,
@@ -57097,11 +57295,12 @@ class vexGlyph {
       "systemIndex": 0,
       "staffId": 1
      },
-     "staffWidth": 237.33999633789062,
+     "staffWidth": 182.890625,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
      "adjX": 93.08,
+     "padLeft": 0,
      "adjRight": 11,
      "padRight": 10,
      "rightMargin": 2,
@@ -57112,7 +57311,7 @@ class vexGlyph {
        "notes": [
         {
          "ticks": {
-          "numerator": 12288,
+          "numerator": "2048",
           "denominator": 1,
           "remainder": 0
          },
@@ -57123,7 +57322,7 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "noteType": "r",
+         "noteType": "n",
          "attrs": {
           "id": "auto205637",
           "type": "SmoNote"
@@ -57131,87 +57330,6 @@ class vexGlyph {
          "clef": "treble",
          "endBeam": false,
          "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": [],
-         "graceNotes": [],
-         "articulations": [],
-         "ornaments": []
-        },
-        {
-         "ticks": {
-          "numerator": 8192,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "b",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "noteType": "r",
-         "attrs": {
-          "id": "auto205638",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": [],
-         "graceNotes": [],
-         "articulations": [],
-         "ornaments": []
-        },
-        {
-         "ticks": {
-          "numerator": 2048,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "b",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "noteType": "r",
-         "attrs": {
-          "id": "auto205639",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 4096,
-         "flagState": 0,
-         "noteModifiers": [],
-         "graceNotes": [],
-         "articulations": [],
-         "ornaments": []
-        },
-        {
-         "ticks": {
-          "numerator": 2048,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 3
-          }
-         ],
-         "noteType": "n",
-         "attrs": {
-          "id": "auto205640",
-          "type": "SmoNote"
-         },
-         "clef": "bass",
-         "endBeam": false,
-         "beamBeats": 6144,
          "flagState": 0,
          "noteModifiers": [],
          "graceNotes": [],
@@ -57257,7 +57375,7 @@ class vexGlyph {
     {
      "timeSignature": "12/8",
      "keySignature": "G",
-     "staffX": 267.3399963378906,
+     "staffX": 212.890625,
      "staffY": 204.36842584609985,
      "measureNumber": {
       "measureNumber": 1,
@@ -57265,11 +57383,12 @@ class vexGlyph {
       "systemIndex": 1,
       "staffId": 1
      },
-     "staffWidth": 251.16000366210938,
+     "staffWidth": 269.1599884033203,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
      "adjX": 11,
+     "padLeft": 0,
      "adjRight": 11,
      "padRight": 10,
      "rightMargin": 2,
@@ -57445,7 +57564,7 @@ class vexGlyph {
     {
      "timeSignature": "12/8",
      "keySignature": "G",
-     "staffX": 518.5,
+     "staffX": 482.0506134033203,
      "staffY": 204.36842584609985,
      "measureNumber": {
       "measureNumber": 2,
@@ -57453,11 +57572,12 @@ class vexGlyph {
       "systemIndex": 2,
       "staffId": 1
      },
-     "staffWidth": 212.78634643554688,
+     "staffWidth": 230.78622436523438,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
      "adjX": 11,
+     "padLeft": 0,
      "adjRight": 11,
      "padRight": 10,
      "rightMargin": 2,
@@ -57564,7 +57684,7 @@ class vexGlyph {
     {
      "timeSignature": "12/8",
      "keySignature": "G",
-     "staffX": 731.2863464355469,
+     "staffX": 712.8368377685547,
      "staffY": 204.36842584609985,
      "measureNumber": {
       "measureNumber": 3,
@@ -57572,11 +57692,12 @@ class vexGlyph {
       "systemIndex": 3,
       "staffId": 1
      },
-     "staffWidth": 359.2400207519531,
+     "staffWidth": 377.2400207519531,
      "activeVoice": 0,
      "clef": "bass",
      "transposeIndex": 0,
      "adjX": 11,
+     "padLeft": 0,
      "adjRight": 11,
      "padRight": 10,
      "rightMargin": 2,
@@ -57849,18 +57970,19 @@ class vexGlyph {
      "timeSignature": "12/8",
      "keySignature": "G",
      "staffX": 30,
-     "staffY": 325.052668094635,
+     "staffY": 325.0526909828186,
      "measureNumber": {
       "measureNumber": 0,
       "measureIndex": 0,
       "systemIndex": 0,
       "staffId": 2
      },
-     "staffWidth": 237.33999633789062,
+     "staffWidth": 182.890625,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
      "adjX": 91.26,
+     "padLeft": 0,
      "adjRight": 11,
      "padRight": 10,
      "rightMargin": 2,
@@ -57871,7 +57993,7 @@ class vexGlyph {
        "notes": [
         {
          "ticks": {
-          "numerator": 12288,
+          "numerator": "2048",
           "denominator": 1,
           "remainder": 0
          },
@@ -57882,90 +58004,9 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "noteType": "r",
+         "noteType": "n",
          "attrs": {
           "id": "auto102954",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 6144,
-         "flagState": 0,
-         "noteModifiers": [],
-         "graceNotes": [],
-         "articulations": [],
-         "ornaments": []
-        },
-        {
-         "ticks": {
-          "numerator": 6144,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "b",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "noteType": "r",
-         "attrs": {
-          "id": "auto103274",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 6144,
-         "flagState": 0,
-         "noteModifiers": [],
-         "graceNotes": [],
-         "articulations": [],
-         "ornaments": []
-        },
-        {
-         "ticks": {
-          "numerator": 4096,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "b",
-           "accidental": "n",
-           "octave": 4
-          }
-         ],
-         "noteType": "r",
-         "attrs": {
-          "id": "auto113149",
-          "type": "SmoNote"
-         },
-         "clef": "treble",
-         "endBeam": false,
-         "beamBeats": 6144,
-         "flagState": 0,
-         "noteModifiers": [],
-         "graceNotes": [],
-         "articulations": [],
-         "ornaments": []
-        },
-        {
-         "ticks": {
-          "numerator": 2048,
-          "denominator": 1,
-          "remainder": 0
-         },
-         "pitches": [
-          {
-           "letter": "d",
-           "accidental": "n",
-           "octave": 5
-          }
-         ],
-         "noteType": "r",
-         "attrs": {
-          "id": "auto113150",
           "type": "SmoNote"
          },
          "clef": "treble",
@@ -58016,19 +58057,20 @@ class vexGlyph {
     {
      "timeSignature": "12/8",
      "keySignature": "G",
-     "staffX": 267.3399963378906,
-     "staffY": 325.052668094635,
+     "staffX": 212.890625,
+     "staffY": 325.0526909828186,
      "measureNumber": {
       "measureNumber": 1,
       "measureIndex": 1,
       "systemIndex": 1,
       "staffId": 2
      },
-     "staffWidth": 251.16000366210938,
+     "staffWidth": 269.1599884033203,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
      "adjX": 11,
+     "padLeft": 0,
      "adjRight": 11,
      "padRight": 10,
      "rightMargin": 2,
@@ -58103,19 +58145,20 @@ class vexGlyph {
     {
      "timeSignature": "12/8",
      "keySignature": "G",
-     "staffX": 518.5,
-     "staffY": 325.052668094635,
+     "staffX": 482.0506134033203,
+     "staffY": 325.0526909828186,
      "measureNumber": {
       "measureNumber": 2,
       "measureIndex": 2,
       "systemIndex": 2,
       "staffId": 2
      },
-     "staffWidth": 212.78634643554688,
+     "staffWidth": 230.78622436523438,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
      "adjX": 11,
+     "padLeft": 0,
      "adjRight": 11,
      "padRight": 10,
      "rightMargin": 2,
@@ -58271,19 +58314,20 @@ class vexGlyph {
     {
      "timeSignature": "12/8",
      "keySignature": "G",
-     "staffX": 731.2863464355469,
-     "staffY": 325.052668094635,
+     "staffX": 712.8368377685547,
+     "staffY": 325.0526909828186,
      "measureNumber": {
       "measureNumber": 3,
       "measureIndex": 3,
       "systemIndex": 3,
       "staffId": 2
      },
-     "staffWidth": 359.2400207519531,
+     "staffWidth": 377.2400207519531,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
      "adjX": 11,
+     "padLeft": 0,
      "adjRight": 11,
      "padRight": 10,
      "rightMargin": 2,
@@ -58318,19 +58362,19 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto23912",
+          "id": "auto18415",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto23918",
+         "renderId": "vf-auto18421",
          "renderedBox": {
-          "x": 1223.818603515625,
-          "y": -141.06466674804688,
+          "x": 1196.603271484375,
+          "y": 558.9353637695312,
           "width": 28.0543212890625,
           "height": 18.07171630859375
          },
          "logicalBox": {
-          "x": 748.2863159179688,
-          "y": 328.05267333984375,
+          "x": 729.8368530273438,
+          "y": 328.0527038574219,
           "width": 19.01824951171875,
           "height": 12.250946044921875
          }
@@ -58362,21 +58406,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto23912",
+          "id": "auto18415",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto23926",
+         "renderId": "vf-auto18429",
          "renderedBox": {
-          "x": 1279.3511962890625,
-          "y": -131.06756591796875,
+          "x": 1255.454833984375,
+          "y": 568.9324951171875,
           "width": 17.7283935546875,
           "height": 15.45025634765625
          },
          "logicalBox": {
-          "x": 785.9322509765625,
-          "y": 334.82977294921875,
-          "width": 12.0181884765625,
-          "height": 10.473846435546875
+          "x": 769.7327270507812,
+          "y": 334.829833984375,
+          "width": 12.01824951171875,
+          "height": 10.47381591796875
          }
         },
         {
@@ -58406,26 +58450,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto23912",
+          "id": "auto18415",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto23933",
+         "renderId": "vf-auto18436",
          "renderedBox": {
-          "x": 1312.6312255859375,
-          "y": -123.69192504882812,
-          "width": 17.7283935546875,
-          "height": 15.450286865234375
+          "x": 1289.8411865234375,
+          "y": 576.30810546875,
+          "width": 17.728515625,
+          "height": 15.45025634765625
          },
          "logicalBox": {
-          "x": 808.4930419921875,
-          "y": 339.82977294921875,
-          "width": 12.0181884765625,
-          "height": 10.473846435546875
+          "x": 793.0435180664062,
+          "y": 339.8298034667969,
+          "width": 12.01824951171875,
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto23912",
+        "id": "auto18415",
         "type": "SmoBeamGroup"
        }
       },
@@ -58458,21 +58502,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto23913",
+          "id": "auto18416",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto23940",
+         "renderId": "vf-auto18443",
          "renderedBox": {
-          "x": 1352.6121826171875,
-          "y": -131.06756591796875,
-          "width": 28.05419921875,
+          "x": 1332.0347900390625,
+          "y": 568.9324951171875,
+          "width": 28.0543212890625,
           "height": 15.45025634765625
          },
          "logicalBox": {
-          "x": 835.5963745117188,
-          "y": 334.82977294921875,
+          "x": 821.6468505859375,
+          "y": 334.829833984375,
           "width": 19.0181884765625,
-          "height": 10.473846435546875
+          "height": 10.47381591796875
          }
         },
         {
@@ -58502,21 +58546,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto23913",
+          "id": "auto18416",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto23948",
+         "renderId": "vf-auto18451",
          "renderedBox": {
-          "x": 1408.1446533203125,
-          "y": -123.69192504882812,
+          "x": 1390.8863525390625,
+          "y": 576.30810546875,
           "width": 17.728515625,
-          "height": 15.450286865234375
+          "height": 15.45025634765625
          },
          "logicalBox": {
-          "x": 873.2422485351562,
-          "y": 339.82977294921875,
+          "x": 861.542724609375,
+          "y": 339.8298034667969,
           "width": 12.018310546875,
-          "height": 10.473846435546875
+          "height": 10.47381591796875
          }
         },
         {
@@ -58546,26 +58590,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto23913",
+          "id": "auto18416",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto23955",
+         "renderId": "vf-auto18458",
          "renderedBox": {
-          "x": 1441.4246826171875,
-          "y": -116.3162841796875,
-          "width": 17.728515625,
-          "height": 15.45025634765625
+          "x": 1425.2728271484375,
+          "y": 583.6837158203125,
+          "width": 17.7283935546875,
+          "height": 15.4503173828125
          },
          "logicalBox": {
-          "x": 895.8030395507812,
+          "x": 884.8535766601562,
           "y": 344.82977294921875,
-          "width": 12.01824951171875,
-          "height": 10.473846435546875
+          "width": 12.0181884765625,
+          "height": 10.473876953125
          }
         }
        ],
        "attrs": {
-        "id": "auto23913",
+        "id": "auto18416",
         "type": "SmoBeamGroup"
        }
       },
@@ -58598,21 +58642,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto23914",
+          "id": "auto18417",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto23962",
+         "renderId": "vf-auto18465",
          "renderedBox": {
-          "x": 1481.4056396484375,
-          "y": -126.31338500976562,
-          "width": 28.0543212890625,
-          "height": 18.071746826171875
+          "x": 1467.46630859375,
+          "y": 573.6866455078125,
+          "width": 28.054443359375,
+          "height": 18.07171630859375
          },
          "logicalBox": {
-          "x": 922.9063720703125,
-          "y": 338.05267333984375,
-          "width": 19.01824951171875,
-          "height": 12.250946044921875
+          "x": 913.456787109375,
+          "y": 338.0527038574219,
+          "width": 19.018310546875,
+          "height": 12.25091552734375
          }
         },
         {
@@ -58642,21 +58686,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto23914",
+          "id": "auto18417",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto23970",
+         "renderId": "vf-auto18473",
          "renderedBox": {
-          "x": 1536.9381103515625,
-          "y": -116.3162841796875,
+          "x": 1526.31787109375,
+          "y": 583.6837158203125,
           "width": 17.728515625,
-          "height": 15.45025634765625
+          "height": 15.4503173828125
          },
          "logicalBox": {
-          "x": 960.55224609375,
+          "x": 953.3527221679688,
           "y": 344.82977294921875,
           "width": 12.01824951171875,
-          "height": 10.473846435546875
+          "height": 10.473876953125
          }
         },
         {
@@ -58686,26 +58730,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto23914",
+          "id": "auto18417",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto23977",
+         "renderId": "vf-auto18480",
          "renderedBox": {
-          "x": 1570.21826171875,
-          "y": -108.940673828125,
+          "x": 1560.704345703125,
+          "y": 591.0593872070312,
           "width": 17.7283935546875,
-          "height": 15.4503173828125
+          "height": 15.45025634765625
          },
          "logicalBox": {
-          "x": 983.1130981445312,
-          "y": 349.8297424316406,
+          "x": 976.6635131835938,
+          "y": 349.8298034667969,
           "width": 12.0181884765625,
-          "height": 10.473876953125
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto23914",
+        "id": "auto18417",
         "type": "SmoBeamGroup"
        }
       }
@@ -59069,18 +59113,19 @@ class vexGlyph {
      "timeSignature": "12/8",
      "keySignature": "G",
      "staffX": 30,
-     "staffY": 453.6618447303772,
+     "staffY": 453.6618981361389,
      "measureNumber": {
       "measureNumber": 0,
       "measureIndex": 0,
       "systemIndex": 0,
       "staffId": 3
      },
-     "staffWidth": 237.33999633789062,
+     "staffWidth": 182.890625,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
      "adjX": 91.26,
+     "padLeft": 0,
      "adjRight": 11,
      "padRight": 10,
      "rightMargin": 2,
@@ -59091,7 +59136,7 @@ class vexGlyph {
        "notes": [
         {
          "ticks": {
-          "numerator": 24576,
+          "numerator": "2048",
           "denominator": 1,
           "remainder": 0
          },
@@ -59102,7 +59147,7 @@ class vexGlyph {
            "octave": 4
           }
          ],
-         "noteType": "r",
+         "noteType": "n",
          "attrs": {
           "id": "auto53871",
           "type": "SmoNote"
@@ -59155,19 +59200,20 @@ class vexGlyph {
     {
      "timeSignature": "12/8",
      "keySignature": "G",
-     "staffX": 267.3399963378906,
-     "staffY": 453.6618447303772,
+     "staffX": 212.890625,
+     "staffY": 453.6618981361389,
      "measureNumber": {
       "measureNumber": 1,
       "measureIndex": 1,
       "systemIndex": 1,
       "staffId": 3
      },
-     "staffWidth": 251.16000366210938,
+     "staffWidth": 269.1599884033203,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
      "adjX": 11,
+     "padLeft": 0,
      "adjRight": 11,
      "padRight": 10,
      "rightMargin": 2,
@@ -59242,19 +59288,20 @@ class vexGlyph {
     {
      "timeSignature": "12/8",
      "keySignature": "G",
-     "staffX": 518.5,
-     "staffY": 453.6618447303772,
+     "staffX": 482.0506134033203,
+     "staffY": 453.6618981361389,
      "measureNumber": {
       "measureNumber": 2,
       "measureIndex": 2,
       "systemIndex": 2,
       "staffId": 3
      },
-     "staffWidth": 212.78634643554688,
+     "staffWidth": 230.78622436523438,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
      "adjX": 11,
+     "padLeft": 0,
      "adjRight": 11,
      "padRight": 10,
      "rightMargin": 2,
@@ -59329,19 +59376,20 @@ class vexGlyph {
     {
      "timeSignature": "12/8",
      "keySignature": "G",
-     "staffX": 731.2863464355469,
-     "staffY": 453.6618447303772,
+     "staffX": 712.8368377685547,
+     "staffY": 453.6618981361389,
      "measureNumber": {
       "measureNumber": 3,
       "measureIndex": 3,
       "systemIndex": 3,
       "staffId": 3
      },
-     "staffWidth": 359.2400207519531,
+     "staffWidth": 377.2400207519531,
      "activeVoice": 0,
      "clef": "treble",
      "transposeIndex": 0,
      "adjX": 11,
+     "padLeft": 0,
      "adjRight": 11,
      "padRight": 10,
      "rightMargin": 2,
@@ -59376,21 +59424,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto24408",
+          "id": "auto18911",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto24415",
+         "renderId": "vf-auto18918",
          "renderedBox": {
-          "x": 1223.818603515625,
-          "y": 66.023193359375,
+          "x": 1196.603271484375,
+          "y": 766.0232543945312,
           "width": 17.7283935546875,
           "height": 15.45025634765625
          },
          "logicalBox": {
-          "x": 748.2863159179688,
-          "y": 468.43896484375,
+          "x": 729.8368530273438,
+          "y": 468.43902587890625,
           "width": 12.0181884765625,
-          "height": 10.473846435546875
+          "height": 10.47381591796875
          }
         },
         {
@@ -59420,21 +59468,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto24408",
+          "id": "auto18911",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto24422",
+         "renderId": "vf-auto18925",
          "renderedBox": {
-          "x": 1265.274658203125,
-          "y": 66.023193359375,
-          "width": 17.7283935546875,
+          "x": 1240.27197265625,
+          "y": 766.0232543945312,
+          "width": 17.728515625,
           "height": 15.45025634765625
          },
          "logicalBox": {
-          "x": 776.3897094726562,
-          "y": 468.43896484375,
-          "width": 12.0181884765625,
-          "height": 10.473846435546875
+          "x": 759.440185546875,
+          "y": 468.43902587890625,
+          "width": 12.018310546875,
+          "height": 10.47381591796875
          }
         },
         {
@@ -59464,26 +59512,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto24408",
+          "id": "auto18911",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto24429",
+         "renderId": "vf-auto18932",
          "renderedBox": {
-          "x": 1306.730712890625,
-          "y": 66.023193359375,
-          "width": 17.7283935546875,
+          "x": 1283.940673828125,
+          "y": 766.0232543945312,
+          "width": 17.728515625,
           "height": 15.45025634765625
          },
          "logicalBox": {
-          "x": 804.4930419921875,
-          "y": 468.43896484375,
-          "width": 12.0181884765625,
-          "height": 10.473846435546875
+          "x": 789.0435180664062,
+          "y": 468.43902587890625,
+          "width": 12.01824951171875,
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto24408",
+        "id": "auto18911",
         "type": "SmoBeamGroup"
        }
       },
@@ -59516,21 +59564,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto24409",
+          "id": "auto18912",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto24436",
+         "renderId": "vf-auto18939",
          "renderedBox": {
-          "x": 1348.186767578125,
-          "y": 66.023193359375,
-          "width": 17.7283935546875,
+          "x": 1327.609375,
+          "y": 766.0232543945312,
+          "width": 17.728515625,
           "height": 15.45025634765625
          },
          "logicalBox": {
-          "x": 832.5963745117188,
-          "y": 468.43896484375,
-          "width": 12.0181884765625,
-          "height": 10.473846435546875
+          "x": 818.6468505859375,
+          "y": 468.43902587890625,
+          "width": 12.01824951171875,
+          "height": 10.47381591796875
          }
         },
         {
@@ -59560,21 +59608,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto24409",
+          "id": "auto18912",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto24443",
+         "renderId": "vf-auto18946",
          "renderedBox": {
-          "x": 1389.642822265625,
-          "y": 66.023193359375,
+          "x": 1371.2781982421875,
+          "y": 766.0232543945312,
           "width": 17.7283935546875,
           "height": 15.45025634765625
          },
          "logicalBox": {
-          "x": 860.69970703125,
-          "y": 468.43896484375,
-          "width": 12.01824951171875,
-          "height": 10.473846435546875
+          "x": 848.250244140625,
+          "y": 468.43902587890625,
+          "width": 12.0181884765625,
+          "height": 10.47381591796875
          }
         },
         {
@@ -59604,26 +59652,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto24409",
+          "id": "auto18912",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto24450",
+         "renderId": "vf-auto18953",
          "renderedBox": {
-          "x": 1431.098876953125,
-          "y": 66.023193359375,
+          "x": 1414.9468994140625,
+          "y": 766.0232543945312,
           "width": 17.7283935546875,
           "height": 15.45025634765625
          },
          "logicalBox": {
-          "x": 888.8031005859375,
-          "y": 468.43896484375,
-          "width": 12.0181884765625,
-          "height": 10.473846435546875
+          "x": 877.853515625,
+          "y": 468.43902587890625,
+          "width": 12.01824951171875,
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto24409",
+        "id": "auto18912",
         "type": "SmoBeamGroup"
        }
       },
@@ -59656,21 +59704,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto24410",
+          "id": "auto18913",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto24457",
+         "renderId": "vf-auto18960",
          "renderedBox": {
-          "x": 1472.5548095703125,
-          "y": 66.023193359375,
-          "width": 17.728515625,
+          "x": 1458.6156005859375,
+          "y": 766.0232543945312,
+          "width": 17.7283935546875,
           "height": 15.45025634765625
          },
          "logicalBox": {
-          "x": 916.9063720703125,
-          "y": 468.43896484375,
-          "width": 12.01824951171875,
-          "height": 10.473846435546875
+          "x": 907.4568481445312,
+          "y": 468.43902587890625,
+          "width": 12.0181884765625,
+          "height": 10.47381591796875
          }
         },
         {
@@ -59700,21 +59748,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto24410",
+          "id": "auto18913",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto24464",
+         "renderId": "vf-auto18967",
          "renderedBox": {
-          "x": 1514.0108642578125,
-          "y": 66.023193359375,
+          "x": 1502.2843017578125,
+          "y": 766.0232543945312,
           "width": 17.728515625,
           "height": 15.45025634765625
          },
          "logicalBox": {
-          "x": 945.0097045898438,
-          "y": 468.43896484375,
+          "x": 937.0601806640625,
+          "y": 468.43902587890625,
           "width": 12.01824951171875,
-          "height": 10.473846435546875
+          "height": 10.47381591796875
          }
         },
         {
@@ -59744,26 +59792,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto24410",
+          "id": "auto18913",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto24471",
+         "renderId": "vf-auto18974",
          "renderedBox": {
-          "x": 1555.4669189453125,
-          "y": 66.023193359375,
+          "x": 1545.9530029296875,
+          "y": 766.0232543945312,
           "width": 17.728515625,
           "height": 15.45025634765625
          },
          "logicalBox": {
-          "x": 973.113037109375,
-          "y": 468.43896484375,
-          "width": 12.018310546875,
-          "height": 10.473846435546875
+          "x": 966.6635131835938,
+          "y": 468.43902587890625,
+          "width": 12.01824951171875,
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto24410",
+        "id": "auto18913",
         "type": "SmoBeamGroup"
        }
       },
@@ -59796,21 +59844,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto24411",
+          "id": "auto18914",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto24478",
+         "renderId": "vf-auto18981",
          "renderedBox": {
-          "x": 1596.9229736328125,
-          "y": 66.023193359375,
-          "width": 17.7283935546875,
+          "x": 1589.6217041015625,
+          "y": 766.0232543945312,
+          "width": 17.728515625,
           "height": 15.45025634765625
          },
          "logicalBox": {
-          "x": 1001.2163696289062,
-          "y": 468.43896484375,
-          "width": 12.01824951171875,
-          "height": 10.473846435546875
+          "x": 996.2667846679688,
+          "y": 468.43902587890625,
+          "width": 12.018310546875,
+          "height": 10.47381591796875
          }
         },
         {
@@ -59840,21 +59888,21 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto24411",
+          "id": "auto18914",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto24485",
+         "renderId": "vf-auto18988",
          "renderedBox": {
-          "x": 1638.3790283203125,
-          "y": 66.023193359375,
-          "width": 17.728271484375,
+          "x": 1633.29052734375,
+          "y": 766.0232543945312,
+          "width": 17.7283935546875,
           "height": 15.45025634765625
          },
          "logicalBox": {
-          "x": 1029.3197021484375,
-          "y": 468.43896484375,
+          "x": 1025.8702392578125,
+          "y": 468.43902587890625,
           "width": 12.0181884765625,
-          "height": 10.473846435546875
+          "height": 10.47381591796875
          }
         },
         {
@@ -59884,26 +59932,26 @@ class vexGlyph {
          },
          "clef": "treble",
          "beam_group": {
-          "id": "auto24411",
+          "id": "auto18914",
           "type": "SmoBeamGroup"
          },
-         "renderId": "vf-auto24492",
+         "renderId": "vf-auto18995",
          "renderedBox": {
-          "x": 1679.8349609375,
-          "y": 66.023193359375,
+          "x": 1676.959228515625,
+          "y": 766.0232543945312,
           "width": 17.728515625,
           "height": 15.45025634765625
          },
          "logicalBox": {
-          "x": 1057.4229736328125,
-          "y": 468.43896484375,
+          "x": 1055.4735107421875,
+          "y": 468.43902587890625,
           "width": 12.018310546875,
-          "height": 10.473846435546875
+          "height": 10.47381591796875
          }
         }
        ],
        "attrs": {
-        "id": "auto24411",
+        "id": "auto18914",
         "type": "SmoBeamGroup"
        }
       }
@@ -60275,7 +60323,8 @@ class vexGlyph {
   }
  ],
  "scoreText": []
-}`;;
+}`;
+;
 
 // ## RibbonButtons
 // Render the ribbon buttons based on group, function, and underlying UI handler.
@@ -61011,6 +61060,17 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
         });
         Vex.Merge(this, parameters);
     }
+    populateInitial() {
+        this.components.forEach((comp) => {
+            if (typeof(this.modifier[comp.smoName]) != 'undefined') {
+                comp.setValue(this.modifier[comp.smoName]);
+            }
+        });
+    }
+    display() {
+        super.display();
+        this.populateInitial();
+    }
 }
 
 class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
@@ -61189,7 +61249,7 @@ class SmoHelp {
             $('body').removeClass('showHelpDialog');
         });
     }
-		
+
     static helpControls() {
         $('body .controls-left').html('');
         $('body .controls-left').append(RibbonHtml.ribbonButton('help-button','Help','?'));
@@ -61198,10 +61258,10 @@ class SmoHelp {
 
     static modeControls() {
         var b = htmlHelpers.buildDom;
-        var r = b('div').classes('menu-status').append(
+        var r = b('div').classes('control-menu-message').append(
                 b('div').attr('id', 'globMode').text('Next Key Chooses Menu')).append(
                 b('div').classes('mode-subtitle').append(SmoHelp.shortMenuHelpHtml));
-        $('body .controls-left').html('');
+        $('body .controls-left .controls-menu-message').html('');
         $('body .controls-left').append(r.dom());
     }
 
@@ -61757,6 +61817,9 @@ class suiController {
 		this.exhandler = new SuiExceptionHandler(this);
 
 		this.bindEvents();
+
+        // Only display the ribbon one time b/c it's expensive operation
+        this.ribbon.display();
 		this.bindResize();
 		if (!suiLayoutBase.debugLayout) {
 			this.splash();
@@ -61811,9 +61874,13 @@ class suiController {
 				this.undoStatus = this.undoBuffer.opCount;
 				this.idleLayoutTimer = Date.now();
                 var state = this.layout.passState;
+                try {
 				this.render();
                 if (state == suiLayoutBase.passStates.initial) {
                     this.render();
+                }
+            } catch (ex) {
+                    SuiExceptionHandler.instance.exceptionHandler(ex);
                 }
 			} else if (this.layout.passState === suiLayoutBase.passStates.replace) {
 				// Do we need to refresh the score?
@@ -61936,6 +62003,7 @@ class suiController {
 			    .append(b('div').classes('workspace')
 				    .append(b('div').classes('controls-top'))
 					.append(b('div').classes('controls-left'))
+                    .append(b('div').classes('controls-menu-message'))
 					.append(b('div').classes('musicRelief')
 					   .append(b('div').classes('musicContainer').attr('id','boo')))
                      .append(b('div').classes('musicReliefShadow')
@@ -62182,7 +62250,7 @@ class suiController {
 		$(this.renderElement).off('click').on('click', function (ev) {
 			tracker.selectSuggestion(ev);
 		});
-		
+
 		$('body').off('tracker-selection').on('tracker-selection',function(ev) {
 			self.trackerChangeEvent(ev);
 		});
@@ -62196,7 +62264,6 @@ class suiController {
 		this.helpControls();
 
 		window.addEventListener("keydown", this.keydownHandler, true);
-		this.ribbon.display();
 
 		window.addEventListener('error', function (e) {
 			SuiExceptionHandler.instance.exceptionHandler(e);

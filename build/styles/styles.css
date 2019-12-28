@@ -152,10 +152,14 @@ body.show-piano .piano-keys {
 .note-text {
 	font-size:.7em;
 }
-.menu-status {
+.control-menu-message {
+    display:none;
+}
+body.slash-menu .control-menu-message {
+    display:block;
 	position:absolute;
 	/* right:10px; */
-	top:150px;
+	top:350px;
 	background:#fff;
 	z-index: 6;
 	padding:5px;
@@ -163,18 +167,18 @@ body.show-piano .piano-keys {
 	border-radius:3px;
 }
 
-.menu-status .help-title {
+.control-menu-message .help-title {
 	display:none;
 }
 
-.menu-status .keyBlock {
+.control-menu-message .keyBlock {
 	width:270px;
 }
-.menu-status .keyContainer {
+.control-menu-message .keyContainer {
 	width:auto;
 }
 
-.menu-status div {
+.control-menu-messages div {
 	margin:5px;
 }
 
@@ -1025,24 +1029,60 @@ body.showAttributeDialog .attributeDialog {
 	display:none;
 }
 
-#attr-modal-dialog-dialog-tempo .smoControlContainer select {
+.attributeModal #dialog-measure-pickupMeasure {
+    display:none;
+}
+
+.attributeModal.pickup-select #dialog-measure-pickupMeasure {
+    display:block;
+}
+.attributeModal.pad-left-select #dialog-measure-padAllInSystem {
+    display:block;
+}
+
+.attributeModal #dialog-measure-padAllInSystem {
+    display:none;
+}
+
+.attributeModal #dialog-measure-measureTextPosition {
+    display:none;
+}
+
+.attributeModal.measure-text-set #dialog-measure-measureTextPosition {
+    display:block;
+}
+
+#attr-modal-dialog-dialog-tempo .smoControlContainer select,
+#attr-modal-dialog-dialog-measure .smoControlContainer select {
     margin-left: 70px;
     width:175px;
 }
 
 #attr-modal-dialog-dialog-tempo .smoControlContainer .rockerControl label,
-#attr-modal-dialog-dialog-tempo .smoControlContainer .dropdownControl label {
+#attr-modal-dialog-dialog-tempo .smoControlContainer .dropdownControl label,
+#attr-modal-dialog-dialog-measure .smoControlContainer .dropdownControl label,
+#attr-modal-dialog-dialog-tempo .smoControlContainer .toggleControl label,
+.smoControlContainer .text-input label
+ {
     margin-left:15px;
 }
 
-#attr-modal-dialog-dialog-tempo .smoControlContainer .toggleControl input {
+.smoControl.toggleControl {
+    display:flex;
+    align-items:center;
+}
+#attr-modal-dialog-dialog-tempo .smoControlContainer .toggleControl input,
+#attr-modal-dialog-dialog-measure .smoControlContainer .toggleControl input,
+ {
     margin-left:64px;
     height:auto;
 }
-#attr-modal-dialog-dialog-tempo .smoControlContainer .toggleControl label {
-    margin-left:15px;
+
+.smoControlContainer .text-input input {
+    margin-left:70px;
 }
-#attr-modal-dialog-dialog-tempo .smoControlContainer input.rockerInput {
+#attr-modal-dialog-dialog-tempo .smoControlContainer input.rockerInput,
+#attr-modal-dialog-dialog-measure .smoControlContainer input.rockerInput {
     width: 175px;
 }
 

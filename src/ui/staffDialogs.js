@@ -129,6 +129,17 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
         });
         Vex.Merge(this, parameters);
     }
+    populateInitial() {
+        this.components.forEach((comp) => {
+            if (typeof(this.modifier[comp.smoName]) != 'undefined') {
+                comp.setValue(this.modifier[comp.smoName]);
+            }
+        });
+    }
+    display() {
+        super.display();
+        this.populateInitial();
+    }
 }
 
 class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {

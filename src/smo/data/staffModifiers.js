@@ -110,15 +110,15 @@ class SmoSlur extends StaffModifierBase {
         return {
             spacing: 2,
             thickness: 2,
-            xOffset: 0,
+            xOffset: -5,
             yOffset: 10,
             position: SmoSlur.positions.HEAD,
             position_end: SmoSlur.positions.HEAD,
             invert: false,
             cp1x: 0,
-            cp1y: 10,
+            cp1y: 15,
             cp2x: 0,
-            cp2y: 10
+            cp2y: 15
         };
     }
 

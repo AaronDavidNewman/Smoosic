@@ -119,6 +119,12 @@ class SuiDialogBase {
 		$('body').trigger('dialogDismiss');
 		this.dgDom.trapper.close();
 	}
+    _bindComponentNames() {
+        this.components.forEach((component) => {
+			var nm = component.smoName + 'Ctrl';
+            this[nm] = component;
+		});
+    }
 
 	display() {
 		$('body').addClass('showAttributeDialog');
