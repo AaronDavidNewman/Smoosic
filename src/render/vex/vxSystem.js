@@ -117,12 +117,22 @@ class VxSystem {
 					thickness: modifier.thickness,
 					x_shift: modifier.xOffset,
 					y_shift: modifier.yOffset,
+                    spacing:modifier.spacing,
 					cps: modifier.controlPoints,
 					invert: modifier.invert,
 					position: modifier.position
 				});
 			curve.setContext(this.context).draw();
-
+            /*
+            var curve = new VF.StaveTie({
+                first_note:vxStart,
+                last_note:vxEnd,
+                first_indices:[0],
+                last_indices:[0],
+                tie_spacing:-10
+            });
+curve.setContext(this.context).draw();
+*/
 		}
 
 		this.context.closeGroup();

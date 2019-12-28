@@ -152,10 +152,14 @@ body.show-piano .piano-keys {
 .note-text {
 	font-size:.7em;
 }
-.menu-status {
+.control-menu-message {
+    display:none;
+}
+body.slash-menu .control-menu-message {
+    display:block;
 	position:absolute;
 	/* right:10px; */
-	top:150px;
+	top:350px;
 	background:#fff;
 	z-index: 6;
 	padding:5px;
@@ -163,18 +167,18 @@ body.show-piano .piano-keys {
 	border-radius:3px;
 }
 
-.menu-status .help-title {
+.control-menu-message .help-title {
 	display:none;
 }
 
-.menu-status .keyBlock {
+.control-menu-message .keyBlock {
 	width:270px;
 }
-.menu-status .keyContainer {
+.control-menu-message .keyContainer {
 	width:auto;
 }
 
-.menu-status div {
+.control-menu-messages div {
 	margin:5px;
 }
 

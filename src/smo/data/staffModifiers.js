@@ -111,14 +111,14 @@ class SmoSlur extends StaffModifierBase {
             spacing: 2,
             thickness: 2,
             xOffset: 0,
-            yOffset: 10,			
+            yOffset: 10,
             position: SmoSlur.positions.HEAD,
             position_end: SmoSlur.positions.HEAD,
             invert: false,
             cp1x: 0,
-            cp1y: 40,
+            cp1y: 10,
             cp2x: 0,
-            cp2y: 40
+            cp2y: 10
         };
     }
 
@@ -168,7 +168,7 @@ class SmoSlur extends StaffModifierBase {
         ];
         return ar;
     }
-		
+
     get type() {
         return this.attrs.type;
     }

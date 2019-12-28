@@ -143,6 +143,7 @@ class suiMenuManager {
 		this.closeMenuPromise = new Promise((resolve, reject) => {
 				$('body').off('menuDismiss').on('menuDismiss', function () {
 					self.unattach();
+                    $('body').removeClass('slash-menu');
 					resolve();
 				});
 
@@ -211,6 +212,7 @@ class suiMenuManager {
 	bindEvents() {
 		var self = this;
         this.hotkeyBindings={};
+        $('body').addClass('slash-menu');
 
 		if (!this.bound) {
 			this.keydownHandler = this.handleKeydown.bind(this);

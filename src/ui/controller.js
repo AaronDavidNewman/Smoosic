@@ -46,6 +46,9 @@ class suiController {
 		this.exhandler = new SuiExceptionHandler(this);
 
 		this.bindEvents();
+
+        // Only display the ribbon one time b/c it's expensive operation
+        this.ribbon.display();
 		this.bindResize();
 		if (!suiLayoutBase.debugLayout) {
 			this.splash();
@@ -229,6 +232,7 @@ class suiController {
 			    .append(b('div').classes('workspace')
 				    .append(b('div').classes('controls-top'))
 					.append(b('div').classes('controls-left'))
+                    .append(b('div').classes('controls-menu-message'))
 					.append(b('div').classes('musicRelief')
 					   .append(b('div').classes('musicContainer').attr('id','boo')))
                      .append(b('div').classes('musicReliefShadow')
@@ -489,7 +493,6 @@ class suiController {
 		this.helpControls();
 
 		window.addEventListener("keydown", this.keydownHandler, true);
-		this.ribbon.display();
 
 		window.addEventListener('error', function (e) {
 			SuiExceptionHandler.instance.exceptionHandler(e);

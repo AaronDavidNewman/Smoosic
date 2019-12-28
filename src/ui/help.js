@@ -28,7 +28,7 @@ class SmoHelp {
             $('body').removeClass('showHelpDialog');
         });
     }
-		
+
     static helpControls() {
         $('body .controls-left').html('');
         $('body .controls-left').append(RibbonHtml.ribbonButton('help-button','Help','?'));
@@ -37,10 +37,10 @@ class SmoHelp {
 
     static modeControls() {
         var b = htmlHelpers.buildDom;
-        var r = b('div').classes('menu-status').append(
+        var r = b('div').classes('control-menu-message').append(
                 b('div').attr('id', 'globMode').text('Next Key Chooses Menu')).append(
                 b('div').classes('mode-subtitle').append(SmoHelp.shortMenuHelpHtml));
-        $('body .controls-left').html('');
+        $('body .controls-left .controls-menu-message').html('');
         $('body .controls-left').append(r.dom());
     }
 
