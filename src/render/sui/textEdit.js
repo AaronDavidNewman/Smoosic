@@ -199,8 +199,8 @@ class editLyricSession {
     }
 
     _handleSkip() {
-        var tag = this.state == editLyricSession.states.minus ? '-' :'';
-        this.lyric.text = this.editor.value+tag;
+        // var tag = this.state == editLyricSession.states.minus ? '-' :'';
+        this.lyric.text = this.editor.value;
         this.selection.measure.changed = true;
         if (this.state != editLyricSession.states.stopping) {
 			var func = (this.state == editLyricSession.states.backSpace) ? 'lastNoteSelection' : 'nextNoteSelection';
@@ -216,6 +216,9 @@ class editLyricSession {
             this.detach();
         }
     }
+    _lyricRenderedPromise() {
+
+    }
     editNote() {
 		var self=this;
 		function _startEditing() {
@@ -224,6 +227,7 @@ class editLyricSession {
         this._getOrCreateLyric(this.selection.note)
 		this.fontInfo = JSON.parse(JSON.stringify(this.lyric.fontInfo));
         this.selection.note.addLyric(this.lyric);
+        this.selection.measure.changed = true;
         this.tracker.layout.render();
 		_startEditing();
         return this.detachPromise();

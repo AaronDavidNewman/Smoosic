@@ -17,7 +17,7 @@ class suiLayoutBase {
 	}
 
 	static get passStates() {
-		return {initial:0,pass:1,clean:2,replace:3,incomplete:4};
+		return {initial:0,pass:1,clean:2,replace:3,incomplete:4,debounce:5,adjustY:6,redrawMain:7};
 	}
 
 	setDirty() {
@@ -25,6 +25,7 @@ class suiLayoutBase {
 			this.dirty = true;
 			if (this.viewportChange) {
 				this.setPassState(suiLayoutBase.passStates.initial,'setDirty 1');
+                this.lowestWrappedMeasure = -1;
 			} else if (this.passState == suiLayoutBase.passStates.clean ||
 			   this.passState == suiLayoutBase.passStates.replace) {
 				this.setPassState(suiLayoutBase.passStates.replace,'setDirty 2');
@@ -92,8 +93,17 @@ class suiLayoutBase {
     }
 
 	setPassState(st,location) {
+        var oldState = this.passState;
 		console.log(location + ': passState '+this.passState+'=>'+st);
 		this.passState = st;
+        if (this.passState === suiLayoutBase.passStates.initial) {
+            // If we the render keeps bouncing because we can't figure output
+            // how to wrap the lines using the old geometry, redraw everything
+            if (oldState == suiLayoutBase.passStates.clean) {
+                this.reducedPageScore=false;
+                this.lowestWrappedMeasure = -1;
+            }
+        }
 	}
 	static get defaults() {
 		return {
@@ -181,7 +191,7 @@ class suiLayoutBase {
 		if (!selection.measure.renderedBox) {
 			return;
 		}
-		var system = new VxSystem(this.context, selection.measure.staffY, selection.measure.lineIndex);
+		var system = new VxSystem(this.context, selection.measure.staffY, selection.measure.lineIndex,this.score);
 		system.renderMeasure(selection.selector.staff, selection.measure);
 	}
 
@@ -193,7 +203,7 @@ class suiLayoutBase {
         var ix = measure.measureNumber.measureIndex;
         this._score.staves.forEach((staff) => {
             var cm = staff.measures[ix];
-    		var system = new VxSystem(this.context, cm.staffY, cm.lineIndex);
+    		var system = new VxSystem(this.context, cm.staffY, cm.lineIndex,this.score);
             system.renderMeasure(staff.staffId, cm);
         });
 	}
@@ -210,7 +220,7 @@ class suiLayoutBase {
 		if (!startSelection.measure.renderedBox) {
 			return;
 		}
-		var system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex);
+		var system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex,this.score);
 		while (startSelection && startSelection.selector.measure <= modifier.endSelector.measure) {
 			smoBeamerFactory.applyBeams(startSelection.measure);
             system.renderMeasure(startSelection.selector.staff, startSelection.measure);
@@ -221,7 +231,7 @@ class suiLayoutBase {
 			// If we go to new line, render this line part, then advance because the modifier is split
 			if (nextSelection && nextSelection.measure && nextSelection.measure.lineIndex != startSelection.measure.lineIndex) {
 				this._renderModifiers(startSelection.staff, system);
-				var system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex);
+				var system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex,this.score);
 			}
 			startSelection = nextSelection;
 		}
@@ -236,7 +246,7 @@ class suiLayoutBase {
 		if (!measure)
 			return;
 
-		$(this.svg).find('g.' + measure.attrs.id).remove();
+		$(this.renderer.getContext().svg).find('g.' + measure.attrs.id).remove();
 		measure.staffX = SmoMeasure.defaults.staffX;
 		measure.staffY = SmoMeasure.defaults.staffY;
 		measure.staffWidth = SmoMeasure.defaults.staffWidth;
@@ -258,7 +268,7 @@ class suiLayoutBase {
 			this.unrenderMeasure(measure);
 		});
 		staff.modifiers.forEach((modifier) => {
-			$(this.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
+			$(this.mainRenderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
 		});
 	}
 
@@ -345,7 +355,7 @@ class suiLayoutBase {
             });
         });
         changes.forEach((change) => {
-            var system = new VxSystem(this.context, change.staff.measures[0].staffY, change.measure.lineIndex);
+            var system = new VxSystem(this.context, change.staff.measures[0].staffY, change.measure.lineIndex,this.score);
             system.renderMeasure(change.staff.staffId, change.measure);
             // Fix a bug: measure change needs to stay true so we recaltulate the width
             change.measure.changed = true;
@@ -361,27 +371,34 @@ class suiLayoutBase {
             viewportChanged = true;
 		}
 
-		// layout a second time to adjust for issues.
-		// this.adjustWidths();
-		// this.adjustWidths();
+		// layout iteratively until we get it right, adjusting X each time.
 		var params = {useY:false,useX:false};
 		if (this.passState == suiLayoutBase.passStates.pass || this.passState == suiLayoutBase.passStates.incomplete) {
 			params.useX=true;
 		    suiLayoutAdjuster.adjustWidths(this._score,this.renderer);
 		}
 		if ((this.passState == suiLayoutBase.passStates.clean) ||
-		    (this.passState == suiLayoutBase.passStates.replace)) {
+            (this.passState == suiLayoutBase.passStates.adjustY) ||
+		    (this.passState == suiLayoutBase.passStates.replace) ||
+            (this.passState == suiLayoutBase.passStates.redrawMain)) {
 			params.useY=true;
 			params.useX=true;
 		}
-        this.renderer = (this.passState == suiLayoutBase.passStates.initial || this.passState == suiLayoutBase.passStates.pass || this.passState == suiLayoutBase.passStates.incomplete) &&
+
+        // If we are redrawing a significant portion of the screen, redraw in the shadow dom
+        // to reduce the 'flicker'
+        this.renderer =
+           (this.passState == suiLayoutBase.passStates.initial ||
+               this.passState == suiLayoutBase.passStates.pass ||
+               this.passState == suiLayoutBase.passStates.incomplete ||
+               this.passState == suiLayoutBase.passStates.adjustY) &&
             !viewportChanged ?
             this.shadowRenderer : this.mainRenderer;
 
-				// if this is debug mode, let us see it all.
-		    if (suiLayoutBase.debugLayout) {
-					this.renderer = this.mainRenderer;
-				}
+		// if this is debug mode, let us see it all.
+	    if (suiLayoutBase.debugLayout) {
+				this.renderer = this.mainRenderer;
+		}
         if (suiLayoutBase.passStates.replace == this.passState) {
             this._replaceMeasures();
         } else {
@@ -391,6 +408,18 @@ class suiLayoutBase {
         if (this.passState == suiLayoutBase.passStates.incomplete) {
             return;
         }
+        if (this.passState == suiLayoutBase.passStates.debounce) {
+            this.unrenderAll();
+            this.score.staves.forEach((staff) => {
+                staff.measures.forEach((measure) => {
+                    measure.changed = true;
+                })
+            });
+            // console.log('bouncy wraps, redraw all');
+            this.setPassState(suiLayoutBase.passStates.initial,'redraw due to bounce');
+            this.lowestWrappedMeasure = -1;
+            return;
+        }
         this._drawPageLines();
 
 		if (this.passState == suiLayoutBase.passStates.replace) {
@@ -398,26 +427,38 @@ class suiLayoutBase {
 			return;
 		}
 
-		if (params.useX == true) {
-			if (this.passState == suiLayoutBase.passStates.clean) {
-				this.dirty=false;
-			} else {
+        if (this.passState == suiLayoutBase.passStates.redrawMain) {
+            this.dirty=false;
+            this.setPassState(suiLayoutBase.passStates.clean,'render complete');
+            return;
+        }
+
+        if (params.useX == true) {
+            if (this.passState == suiLayoutBase.passStates.adjustY) {
+                this.setPassState(suiLayoutBase.passStates.redrawMain,'last shadow render successful');
+            } else {
                 var curPages = this._score.layout.pages;
-				suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth / this.svgScale);
-				suiLayoutAdjuster.adjustHeight(this._score,this.renderer,this.pageWidth/this.svgScale,this.pageHeight/this.svgScale);
+                suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth / this.svgScale);
+                suiLayoutAdjuster.adjustHeight(this._score,this.renderer,this.pageWidth/this.svgScale,this.pageHeight/this.svgScale,this.reducedPageScore);
+                // If we are bouncing near a page margin, don't reduce the page number
                 if (this._score.layout.pages  != curPages) {
-				    this.setPassState(suiLayoutBase.passStates.initial,'render 2');
-                    // Force the viewport to update the page size
-                    $('body').trigger('forceResizeEvent');
+
+                        if (this._score.layout.pages < curPages) {
+                            this.reducedPageScore = true;
+                        }
+                        this.setPassState(suiLayoutBase.passStates.initial,'render 2');
+                        // Force the viewport to update the page size
+                        $('body').trigger('forceResizeEvent');
+
                 } else {
-				    this.setPassState(suiLayoutBase.passStates.clean,'render 2');
+                    this.setPassState(suiLayoutBase.passStates.adjustY,'render 2');
                 }
-			}
-		} else {
-			// otherwise we need another pass.
-			this.dirty=true;
-			this.setPassState(suiLayoutBase.passStates.pass,'render 3');
-			console.log('layout after pass: pstate pass');
-		}
+            }
+        } else {
+            // otherwise we need another pass.
+            this.dirty=true;
+            this.setPassState(suiLayoutBase.passStates.pass,'render 3');
+            console.log('layout after pass: pstate pass');
+        }
 	}
 }

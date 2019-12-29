@@ -26,7 +26,7 @@ class suiScoreLayout extends suiLayoutBase {
 		if (this._score) {
 		    this.unrenderAll();
 		}
-		this.passState = suiLayoutBase.passStates.initial;
+		this.setPassState(suiLayoutBase.passStates.initial,'load score');
 		this.dirty=true;
 		this._score = score;
 	}
@@ -197,6 +197,7 @@ class suiScoreLayout extends suiLayoutBase {
         // start computing X again
         if (useAdjustedX && measure.measureNumber.systemIndex != 0) {
             useAdjustedX = s.calculations.useX = false;
+            s.lowestWrappedMeasure = measure.measureNumber.measureIndex;
         }
         measure.staffX = this._score.layout.leftMargin;
 
@@ -218,7 +219,7 @@ class suiScoreLayout extends suiLayoutBase {
         this._initStaffBoxes(s);
         s.lineIndex += 1;
         measure.lineIndex = s.lineIndex;
-        s.system = new VxSystem(this.context, staff.staffY, s.lineIndex);
+        s.system = new VxSystem(this.context, staff.staffY, s.lineIndex,this.score);
         s.systemIndex = 0;
 
         // If we have wrapped lines, calculate the beginning stuff again.
@@ -364,7 +365,7 @@ class suiScoreLayout extends suiLayoutBase {
         var staff = this._score.staves[0];
         var measure = staff.measures[0];
         var lineIndex = 0;
-		var system = new VxSystem(this.context, staff.measures[0].staffY, lineIndex);
+		var system = new VxSystem(this.context, staff.measures[0].staffY, lineIndex,this.score);
 
         var renderState = {
             staff:staff,
@@ -375,7 +376,8 @@ class suiScoreLayout extends suiLayoutBase {
             system:system,
             wrapped:false,
             complete:false,
-            calculations:calculations
+            calculations:calculations,
+            lowestWrappedMeasure:this.lowestWrappedMeasure
         }
         renderState.measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
         renderState.keySigLast = smoMusic.vexKeySignatureTranspose(this._previousAttr(measure.measureNumber.measureIndex, staff.staffId, 'keySignature'), measure.transposeIndex);
@@ -426,6 +428,16 @@ class suiScoreLayout extends suiLayoutBase {
 
         if (this.passState == suiLayoutBase.passStates.incomplete) {
             return;
+        }
+
+        // If we can't render things with existing geometries, redraw all.
+        if (this.passState == suiLayoutBase.passStates.pass) {
+            if (renderState.lowestWrappedMeasure < this.lowestWrappedMeasure) {
+                this.setPassState(suiLayoutBase.passStates.debounce,'measure wraps');
+                return;
+            } else {
+                this.lowestWrappedMeasure = renderState.lowestWrappedMeasure;
+            }
         }
         this._score.staves.forEach((stf) => {
 			this._renderModifiers(stf, renderState.system);

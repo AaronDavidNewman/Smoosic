@@ -76,6 +76,7 @@ class SuiLoadFileDialog extends SuiFileDialog {
                 var score = SmoScore.deserialize(this.value);
                 scoreWorks=true;
                 this.layout.score = score;
+                this.layout.setViewport(true);
                 setTimeout(function() {
                     $('body').trigger('forceResizeEvent');
                 },1);
@@ -164,7 +165,7 @@ class SuiSaveFileDialog extends SuiFileDialog {
             filename = filename + '.json';
         }
         var txt = this.layout.score.serialize();
-        txt = JSON.stringify(txt,null,' ');
+        txt = JSON.stringify(txt);
         htmlHelpers.addFileLink(filename,txt,$('.saveLink'));
         $('.saveLink a')[0].click();
         this.complete();

@@ -7,10 +7,11 @@
 //  timeSignature: '4/4',
 //  smoMeasures: []
 class VxSystem {
-	constructor(context, topY, lineIndex) {
+	constructor(context, topY, lineIndex,score) {
 		this.context = context;
 		this.leftConnector = [null, null];
 		this.lineIndex = lineIndex;
+        this.score = score;
 		this.maxStaffIndex = -1;
 		this.maxSystemIndex = -1;
 		this.width = -1;
@@ -58,33 +59,35 @@ class VxSystem {
 	}
 
 	updateLyricOffsets() {
-		var lowestYs = {};
-		var lyrics=[];
-		this.vxMeasures.forEach((mm) => {
-			var smoMeasure = mm.smoMeasure;
-			smoMeasure.voices.forEach((voice) => {
-				voice.notes.forEach((note) => {
-					note.getModifiers('SmoLyric').forEach((lyric) => {
-						var lowest = (lyric.logicalBox.y+lyric.logicalBox.height)-lyric.adjY;
-						if (!lowestYs[lyric.verse]) {
-							lowestYs[lyric.verse] = lowest;
-						} else {
-							lowestYs[lyric.verse] = lowestYs[lyric.verse] < lowest ? lowest : lowestYs[lyric.verse];
-						}
-						lyric.selector='#'+note.renderId+' g.lyric-'+lyric.verse;
-						lyrics.push(lyric);
-					});
-				});
-			});
-		});
-
-		lyrics.forEach((lyric) => {
-			lyric.adjY = lowestYs[lyric.verse] - (lyric.logicalBox.y + lyric.logicalBox.height);
-			var dom = $(this.context.svg).find(lyric.selector)[0];
-			dom.setAttributeNS('','transform','translate(0 '+lyric.adjY+')');
-		});
-
-
+        for (var i = 0;i < this.score.staves.length;++i) {
+            var lowestYs = {};
+    		var lyrics=[];
+            var vxMeasures = this.vxMeasures.filter((vx) => {
+                return vx.smoMeasure.measureNumber.staffId == i;
+            });
+            vxMeasures.forEach((mm) => {
+                var smoMeasure = mm.smoMeasure;
+                smoMeasure.voices.forEach((voice) => {
+                    voice.notes.forEach((note) => {
+                        note.getModifiers('SmoLyric').forEach((lyric) => {
+                            var lowest = (lyric.logicalBox.y+lyric.logicalBox.height);
+                            if (!lowestYs[lyric.verse]) {
+                                lowestYs[lyric.verse] = lowest;
+                            } else {
+                                lowestYs[lyric.verse] = lowestYs[lyric.verse] < lowest ? lowest : lowestYs[lyric.verse];
+                            }
+                            lyric.selector='#'+note.renderId+' g.lyric-'+lyric.verse;
+                            lyrics.push(lyric);
+                        });
+                    });
+                });
+            });
+            lyrics.forEach((lyric) => {
+    			lyric.adjY = lowestYs[lyric.verse] - (lyric.logicalBox.y + lyric.logicalBox.height);
+    			var dom = $(this.context.svg).find(lyric.selector)[0];
+    			dom.setAttributeNS('','transform','translate(0 '+lyric.adjY+')');
+    		});
+        }
 	}
 
 	renderModifier(modifier, vxStart, vxEnd) {
