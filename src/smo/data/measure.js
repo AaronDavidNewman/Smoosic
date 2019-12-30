@@ -102,11 +102,7 @@ class SmoMeasure {
 		this.tuplets.forEach((tuplet) => {
 			params.tuplets.push(JSON.parse(JSON.stringify(tuplet)));
 		});
-
-		this.beamGroups.forEach((beam) => {
-			params.beamGroups.push(JSON.parse(JSON.stringify(beam)));
-		});
-
+        
 		this.voices.forEach((voice) => {
 			var obj = {
 				notes: []
@@ -147,11 +143,11 @@ class SmoMeasure {
 			tuplets.push(tuplet);
 		}
 
-		var beamGroups = [];
+		/* var beamGroups = [];
 		for (j = 0; j < jsonObj.beamGroups.length; ++j) {
 			var smoBeam = new SmoBeamGroup(jsonObj.beamGroups[j]);
 			beamGroups.push(smoBeam);
-		}
+		}  */
 
 		var modifiers = [];
 		jsonObj.modifiers.forEach((modParams) => {
@@ -164,13 +160,15 @@ class SmoMeasure {
 		var params = {
 			voices: voices,
 			tuplets: tuplets,
-			beamGroups: beamGroups,
+			beamGroups: [],
 			modifiers:modifiers
 		};
 
 		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, jsonObj, params);
+        var rv = new SmoMeasure(params);
+        smoBeamerFactory.applyBeams(rv);
 
-		return new SmoMeasure(params);
+		return rv;
 	}
 
 	// ### defaultPitchForClef

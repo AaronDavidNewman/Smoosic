@@ -26,9 +26,6 @@ class suiController {
 		this.undoStatus=0;
 		this.trackScrolling = false;
         this.keyboardActive = false;
-		this.pollTime = 100;
-		this.idleRedrawTime = 2000;
-		this.idleLayoutTimer = 0;
 
 		this.ribbon = new RibbonButtons({
 				ribbons: defaultRibbonLayout.ribbons,
@@ -50,10 +47,8 @@ class suiController {
         // Only display the ribbon one time b/c it's expensive operation
         this.ribbon.display();
 		this.bindResize();
-		if (!suiLayoutBase.debugLayout) {
-			this.splash();
-			this.pollRedraw();
-		}
+        this.layoutDemon.undoBuffer = this.undoBuffer;
+        this.layoutDemon.startDemon();
 
 		this.createPiano();
 		this.updateOffsets();
@@ -91,42 +86,6 @@ class suiController {
                 SuiExceptionHandler.instance.exceptionHandler(e);
             }
 		},500);
-	}
-
-	handleRedrawTimer() {
-        if ($('body').hasClass('printing')) {
-            return;
-        }
-		    // If there has been a change, redraw the score
-			if (this.undoStatus != this.undoBuffer.opCount || this.layout.dirty) {
-				this.layout.dirty=true;
-				this.undoStatus = this.undoBuffer.opCount;
-				this.idleLayoutTimer = Date.now();
-                var state = this.layout.passState;
-                try {
-				this.render();
-                if (state == suiLayoutBase.passStates.initial) {
-                    this.render();
-                }
-            } catch (ex) {
-                    SuiExceptionHandler.instance.exceptionHandler(ex);
-                }
-			} else if (this.layout.passState === suiLayoutBase.passStates.replace) {
-				// Do we need to refresh the score?
-				if (Date.now() - this.idleLayoutTimer > this.idleRedrawTime) {
-					this.layout.setRefresh();
-				}
-			}
-	}
-
-	// ### pollRedraw
-	// if anything has changed over some period, prepare to redraw everything.
-	pollRedraw() {
-		var self=this;
-		setTimeout(function() {
-			self.handleRedrawTimer();
-			self.pollRedraw();
-		},self.pollTime);
 	}
 
 	splash() {
@@ -180,6 +139,7 @@ class suiController {
 	// for that modifier
 	trackerModifierSelect() {
 		var modSelection = this.tracker.getSelectedModifier();
+        this.idleLayoutTimer = Date.now();
 		if (modSelection) {
 			window.removeEventListener("keydown", this.keydownHandler, true);
 			var dialog = this.showModifierDialog(modSelection);
@@ -261,6 +221,7 @@ class suiController {
 		params.tracker = new suiTracker(params.layout);
 		params.editor = new suiEditor(params);
 		params.menus = new suiMenuManager(params);
+        params.layoutDemon = new SuiLayoutDemon(params);
 		var controller = new suiController(params);
         params.layout.score = score;
 		// params.layout.setViewport();
@@ -275,6 +236,7 @@ class suiController {
 		params.tracker = new suiTracker(params.layout);
 		params.editor = new suiEditor(params);
 		params.menus = new suiMenuManager(params);
+        params.layoutDemon = new SuiLayoutDemon(params);
 		var controller = new suiController(params);
         var score = SmoScore.deserialize(basicJson);
         params.layout.score = score;
@@ -443,13 +405,6 @@ class suiController {
 		this.editor = null;  */
 	}
 
-	render() {
-		this.layout.render();
-        if ((this.layout.passState == suiLayoutBase.passStates.clean && this.layout.dirty == false)
- 			|| this.layout.passState ==  suiLayoutBase.passStates.replace) {
-		    this.tracker.updateMap();
-        }
-	}
 
 	bindEvents() {
 		var self = this;

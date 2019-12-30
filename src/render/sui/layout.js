@@ -11,13 +11,15 @@ class suiLayoutBase {
 			type: ctor
 		};
 		this.dirty=true;
+        this.shadowRender = false;
+        this.partialRender = false;
 		this.setPassState(suiLayoutBase.initial,'ctor');
 		console.log('layout ctor: pstate initial');
 		this.viewportChange = false;
 	}
 
 	static get passStates() {
-		return {initial:0,pass:1,clean:2,replace:3,incomplete:4,debounce:5,adjustY:6,redrawMain:7};
+		return {initial:0,pass:1,clean:2,replace:3,incomplete:4,adjustY:6,redrawMain:7};
 	}
 
 	setDirty() {
@@ -25,7 +27,6 @@ class suiLayoutBase {
 			this.dirty = true;
 			if (this.viewportChange) {
 				this.setPassState(suiLayoutBase.passStates.initial,'setDirty 1');
-                this.lowestWrappedMeasure = -1;
 			} else if (this.passState == suiLayoutBase.passStates.clean ||
 			   this.passState == suiLayoutBase.passStates.replace) {
 				this.setPassState(suiLayoutBase.passStates.replace,'setDirty 2');
@@ -79,6 +80,8 @@ class suiLayoutBase {
 
     setViewport(reset) {
         this._setViewport(reset,this.elementId);
+        this.shadowRender = false;
+        this.partialRender = false;
         this.mainRenderer = this.renderer;
 
         if (this.shadowElement && !suiLayoutBase['_debugLayout']) {
@@ -101,7 +104,6 @@ class suiLayoutBase {
             // how to wrap the lines using the old geometry, redraw everything
             if (oldState == suiLayoutBase.passStates.clean) {
                 this.reducedPageScore=false;
-                this.lowestWrappedMeasure = -1;
             }
         }
 	}
@@ -392,7 +394,7 @@ class suiLayoutBase {
                this.passState == suiLayoutBase.passStates.pass ||
                this.passState == suiLayoutBase.passStates.incomplete ||
                this.passState == suiLayoutBase.passStates.adjustY) &&
-            !viewportChanged ?
+            this.shadowRender ?
             this.shadowRenderer : this.mainRenderer;
 
 		// if this is debug mode, let us see it all.
@@ -408,18 +410,7 @@ class suiLayoutBase {
         if (this.passState == suiLayoutBase.passStates.incomplete) {
             return;
         }
-        if (this.passState == suiLayoutBase.passStates.debounce) {
-            this.unrenderAll();
-            this.score.staves.forEach((staff) => {
-                staff.measures.forEach((measure) => {
-                    measure.changed = true;
-                })
-            });
-            // console.log('bouncy wraps, redraw all');
-            this.setPassState(suiLayoutBase.passStates.initial,'redraw due to bounce');
-            this.lowestWrappedMeasure = -1;
-            return;
-        }
+
         this._drawPageLines();
 
 		if (this.passState == suiLayoutBase.passStates.replace) {
@@ -430,6 +421,8 @@ class suiLayoutBase {
         if (this.passState == suiLayoutBase.passStates.redrawMain) {
             this.dirty=false;
             this.setPassState(suiLayoutBase.passStates.clean,'render complete');
+            this.shadowRender = true;
+            this.partialRender = true;
             return;
         }
 

@@ -9,6 +9,8 @@ class utController {
 		Vex.Merge(this, params);
 		this.bindEvents();
 		this.undoBuffer = new UndoBuffer();
+        this.layoutDemon.undoBuffer = this.undoBuffer;
+        this.layoutDemon.startDemon();
 	}
 
 	static createUi(score, title) {
@@ -19,6 +21,7 @@ class utController {
 		var params = {};
 		params.layout = suiScoreLayout.createScoreLayout($('#boo')[0],null, score);
 		params.tracker = new suiTracker(params.layout);
+        params.layoutDemon = new SuiLayoutDemon(params);
 		// params.tracker = new suiTracker(params.layout);
 		params.score = score;
 		// params.editor = new suiEditor(params);

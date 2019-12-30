@@ -183,16 +183,18 @@ class suiTracker {
                                 console.log('missing slur '+modifier.id);
                             }
                         }
-						this.modifierTabs.push({
-							modifier: modifier,
-							selection: selection,
-							box:svgHelpers.adjustScroll(modifier.renderedBox,this.netScroll),
-							index:ix
-						});
-						ix += 1;
-						modMap[modifier.id] = {
-							exists: true
-						};
+                        if (modifier.renderedBox) {
+    						this.modifierTabs.push({
+    							modifier: modifier,
+    							selection: selection,
+    							box:svgHelpers.adjustScroll(modifier.renderedBox,this.netScroll),
+    							index:ix
+    						});
+    						ix += 1;
+    						modMap[modifier.id] = {
+    							exists: true
+    						};
+                        }
 					}
 				}
 			});

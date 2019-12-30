@@ -141,7 +141,7 @@ class suiScoreLayout extends suiLayoutBase {
 			measure.canceledKeySignature = keySigLast;
 			measure.setChanged();
 			measure.forceKeySignature = true;
-		} else if (measure.measureNumber.measureIndex == 0 && measureKeySig != 'C') {
+		} else if (measure.measureNumber.systemIndex == 0 && measureKeySig != 'C') {
 			measure.forceKeySignature = true;
 		} else {
 			measure.forceKeySignature = false;
@@ -197,7 +197,6 @@ class suiScoreLayout extends suiLayoutBase {
         // start computing X again
         if (useAdjustedX && measure.measureNumber.systemIndex != 0) {
             useAdjustedX = s.calculations.useX = false;
-            s.lowestWrappedMeasure = measure.measureNumber.measureIndex;
         }
         measure.staffX = this._score.layout.leftMargin;
 
@@ -416,7 +415,8 @@ class suiScoreLayout extends suiLayoutBase {
         while (renderState.complete == false) {
             this._layoutSystem(renderState);
             // Render a few lines at a time, unless in debug mode
-            if (this.passState == suiLayoutBase.passStates.pass &&
+            if (this.partialRender == true &&
+                this.passState == suiLayoutBase.passStates.pass &&
                 renderState.complete == false
                 && !suiLayoutBase.debugLayout
                 && Date.now() - ts > 100) {
@@ -430,15 +430,6 @@ class suiScoreLayout extends suiLayoutBase {
             return;
         }
 
-        // If we can't render things with existing geometries, redraw all.
-        if (this.passState == suiLayoutBase.passStates.pass) {
-            if (renderState.lowestWrappedMeasure < this.lowestWrappedMeasure) {
-                this.setPassState(suiLayoutBase.passStates.debounce,'measure wraps');
-                return;
-            } else {
-                this.lowestWrappedMeasure = renderState.lowestWrappedMeasure;
-            }
-        }
         this._score.staves.forEach((stf) => {
 			this._renderModifiers(stf, renderState.system);
 		});
