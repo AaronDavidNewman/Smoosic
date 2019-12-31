@@ -324,7 +324,8 @@ class SuiFileMenu extends suiMenuBase {
                         SuiPrintFileDialog.createAndDisplay({
                             layout: self.controller.tracker.layout,
                             controller:self.controller,
-                            closeMenuPromise:self.closePromise
+                            closeMenuPromise:self.closePromise,
+                            tracker:self.tracker
                             });
                     } else {
                         resize();

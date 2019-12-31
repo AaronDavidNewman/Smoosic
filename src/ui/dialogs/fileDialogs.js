@@ -127,7 +127,8 @@ class SuiPrintFileDialog extends SuiFileDialog {
 				layout: params.controller.layout,
 				controller: params.controller,
                 closeMenuPromise:params.closeMenuPromise,
-                label: 'Print Complete'
+                label: 'Print Complete',
+                tracker:params.tracker
 			});
 		dg.display();
 
