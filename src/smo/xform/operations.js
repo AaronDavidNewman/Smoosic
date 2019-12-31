@@ -353,7 +353,28 @@ class SmoOperation {
 		var measure = selection.measure;
 		var note = selection.note;
 		if (measure && note) {
-			note.transpose(selection.selector.pitches, offset, measure.keySignature);
+            var pitchar = [];
+            note.pitches.forEach((opitch) => {
+                // Translate the pitch, ignoring enharmonic
+                var trans = smoMusic.getKeyOffset(opitch,offset);
+                var transIx = smoMusic.smoPitchToInt(trans);
+
+                // Look through the earlier notes in the measure and try
+                // to find an equivalent note, and convert it if it exists.
+                measure.voices.forEach((voice) => {
+                   for (var i = 0;i<selection.selector.tick;++i)  {
+                       var prevNote = voice.notes[i];
+                       prevNote.pitches.forEach((prevPitch) => {
+                           var prevIx = smoMusic.smoPitchToInt(prevPitch);
+                           if (prevIx == transIx) {
+                               trans = JSON.parse(JSON.stringify(prevPitch));
+                           }
+                       });
+                   }
+                });
+                pitchar.push(trans);
+            });
+            note.pitches = pitchar;
 			measure.setChanged();
 			return true;
 		}
@@ -375,6 +396,18 @@ class SmoOperation {
 		if (!Array.isArray(pitches)) {
 			pitches = [pitches];
 		}
+        var earlierAccidental = (pitch) => {
+            selection.measure.voices.forEach((voice) => {
+                for (var i=0;i<selection.selector.tick;++i) {
+                    var prevNote = voice.notes[i];
+                    prevNote.pitches.forEach((prevPitch) => {
+                        if (prevPitch.letter == pitch.letter) {
+                            pitch.accidental = prevPitch.accidental;
+                        }
+                    });
+                }
+            });
+        }
 		pitches.forEach((pitch) => {
 			var letter = pitch;
 			if (typeof(pitch) === 'string') {
@@ -386,6 +419,7 @@ class SmoOperation {
 				};
 			}
 
+            earlierAccidental(pitch);
 			note.pitches.push(pitch);
 		});
 		return true;

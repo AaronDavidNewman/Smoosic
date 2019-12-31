@@ -320,6 +320,7 @@ class suiScoreLayout extends suiLayoutBase {
         // Do we need to start a new line?  Don't start a new line on the first measure in a line...
         if (staff.staffId == 0 && s.systemIndex > 0 && staffBox.x + staffBox.width + measure.staffWidth
              > this.logicalPageWidth) {
+                 console.log('wrap mm '+ measure.measureNumber.measureIndex + ' column: ' + measure.measureNumber.systemIndex + ' line: '+measure.lineIndex)
                  s.wrapped = true;
                  s.staff=staff;
                  s.measure=measure;

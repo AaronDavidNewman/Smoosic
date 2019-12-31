@@ -73,7 +73,6 @@ class suiLayoutBase {
 
 		this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
 		this.resizing = false;
-		this.setPassState(suiLayoutBase.passStates.initial,'setViewport');
 		console.log('layout setViewport: pstate initial');
 		this.dirty=true;
 	}
@@ -433,9 +432,9 @@ class suiLayoutBase {
                 var curPages = this._score.layout.pages;
                 suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth / this.svgScale);
                 suiLayoutAdjuster.adjustHeight(this._score,this.renderer,this.pageWidth/this.svgScale,this.pageHeight/this.svgScale,this.reducedPageScore);
+
                 // If we are bouncing near a page margin, don't reduce the page number
                 if (this._score.layout.pages  != curPages) {
-
                         if (this._score.layout.pages < curPages) {
                             this.reducedPageScore = true;
                         }

@@ -5914,7 +5914,28 @@ class SmoOperation {
 		var measure = selection.measure;
 		var note = selection.note;
 		if (measure && note) {
-			note.transpose(selection.selector.pitches, offset, measure.keySignature);
+            var pitchar = [];
+            note.pitches.forEach((opitch) => {
+                // Translate the pitch, ignoring enharmonic
+                var trans = smoMusic.getKeyOffset(opitch,offset);
+                var transIx = smoMusic.smoPitchToInt(trans);
+
+                // Look through the earlier notes in the measure and try
+                // to find an equivalent note, and convert it if it exists.
+                measure.voices.forEach((voice) => {
+                   for (var i = 0;i<selection.selector.tick;++i)  {
+                       var prevNote = voice.notes[i];
+                       prevNote.pitches.forEach((prevPitch) => {
+                           var prevIx = smoMusic.smoPitchToInt(prevPitch);
+                           if (prevIx == transIx) {
+                               trans = JSON.parse(JSON.stringify(prevPitch));
+                           }
+                       });
+                   }
+                });
+                pitchar.push(trans);
+            });
+            note.pitches = pitchar;
 			measure.setChanged();
 			return true;
 		}
@@ -5936,6 +5957,18 @@ class SmoOperation {
 		if (!Array.isArray(pitches)) {
 			pitches = [pitches];
 		}
+        var earlierAccidental = (pitch) => {
+            selection.measure.voices.forEach((voice) => {
+                for (var i=0;i<selection.selector.tick;++i) {
+                    var prevNote = voice.notes[i];
+                    prevNote.pitches.forEach((prevPitch) => {
+                        if (prevPitch.letter == pitch.letter) {
+                            pitch.accidental = prevPitch.accidental;
+                        }
+                    });
+                }
+            });
+        }
 		pitches.forEach((pitch) => {
 			var letter = pitch;
 			if (typeof(pitch) === 'string') {
@@ -5947,6 +5980,7 @@ class SmoOperation {
 				};
 			}
 
+            earlierAccidental(pitch);
 			note.pitches.push(pitch);
 		});
 		return true;
@@ -9163,7 +9197,6 @@ class suiLayoutBase {
 
 		this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
 		this.resizing = false;
-		this.setPassState(suiLayoutBase.passStates.initial,'setViewport');
 		console.log('layout setViewport: pstate initial');
 		this.dirty=true;
 	}
@@ -9523,9 +9556,9 @@ class suiLayoutBase {
                 var curPages = this._score.layout.pages;
                 suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth / this.svgScale);
                 suiLayoutAdjuster.adjustHeight(this._score,this.renderer,this.pageWidth/this.svgScale,this.pageHeight/this.svgScale,this.reducedPageScore);
+
                 // If we are bouncing near a page margin, don't reduce the page number
                 if (this._score.layout.pages  != curPages) {
-
                         if (this._score.layout.pages < curPages) {
                             this.reducedPageScore = true;
                         }
@@ -10540,6 +10573,7 @@ class suiScoreLayout extends suiLayoutBase {
         // Do we need to start a new line?  Don't start a new line on the first measure in a line...
         if (staff.staffId == 0 && s.systemIndex > 0 && staffBox.x + staffBox.width + measure.staffWidth
              > this.logicalPageWidth) {
+                 console.log('wrap mm '+ measure.measureNumber.measureIndex + ' column: ' + measure.measureNumber.systemIndex + ' line: '+measure.lineIndex)
                  s.wrapped = true;
                  s.staff=staff;
                  s.measure=measure;
@@ -57609,7 +57643,6 @@ class suiController {
 		setTimeout(function () {
 			console.log('resizing');
 			self.resizing = false;
-			// self.layout.setViewport(true);
 			$('.musicRelief').height(window.innerHeight - $('.musicRelief').offset().top);
 			self.piano.handleResize();
 			self.updateOffsets();
@@ -57711,7 +57744,6 @@ class suiController {
         params.layoutDemon = new SuiLayoutDemon(params);
 		var controller = new suiController(params);
         params.layout.score = score;
-		// params.layout.setViewport();
 		return controller;
 	}
 

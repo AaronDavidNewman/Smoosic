@@ -122,7 +122,6 @@ class suiController {
 		setTimeout(function () {
 			console.log('resizing');
 			self.resizing = false;
-			// self.layout.setViewport(true);
 			$('.musicRelief').height(window.innerHeight - $('.musicRelief').offset().top);
 			self.piano.handleResize();
 			self.updateOffsets();
@@ -224,7 +223,6 @@ class suiController {
         params.layoutDemon = new SuiLayoutDemon(params);
 		var controller = new suiController(params);
         params.layout.score = score;
-		// params.layout.setViewport();
 		return controller;
 	}
 
