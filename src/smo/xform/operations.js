@@ -354,13 +354,19 @@ class SmoOperation {
 		var note = selection.note;
 		if (measure && note) {
             var pitchar = [];
+            var pitchIx = 0;
             note.pitches.forEach((opitch) => {
+                // Only translate selected pitches
+                var shouldXpose = selection.selector.pitches.length == 0 ||
+                   selection.selector.pitches.indexOf(pitchIx) >= 0;
+
                 // Translate the pitch, ignoring enharmonic
-                var trans = smoMusic.getKeyOffset(opitch,offset);
+                var trans =  shouldXpose ? smoMusic.getKeyOffset(opitch,offset)
+                   : JSON.parse(JSON.stringify(opitch));
                 if (!trans.accidental) {
                     trans.accidental = 'n';
                 }
-                var transIx = smoMusic.smoPitchToInt(trans);
+                var transInt = smoMusic.smoPitchToInt(trans);
 
                 // Look through the earlier notes in the measure and try
                 // to find an equivalent note, and convert it if it exists.
@@ -368,14 +374,15 @@ class SmoOperation {
                    for (var i = 0;i<selection.selector.tick;++i)  {
                        var prevNote = voice.notes[i];
                        prevNote.pitches.forEach((prevPitch) => {
-                           var prevIx = smoMusic.smoPitchToInt(prevPitch);
-                           if (prevIx == transIx) {
+                           var prevInt = smoMusic.smoPitchToInt(prevPitch);
+                           if (prevInt == transInt) {
                                trans = JSON.parse(JSON.stringify(prevPitch));
                            }
                        });
                    }
                 });
                 pitchar.push(trans);
+                pitchIx += 1;
             });
             note.pitches = pitchar;
 			measure.setChanged();

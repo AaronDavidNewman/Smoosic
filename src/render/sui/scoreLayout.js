@@ -317,9 +317,17 @@ class suiScoreLayout extends suiLayoutBase {
             suiLayoutAdjuster.estimateMeasureWidth(this.renderer,measure,staffBox);
         }
 
+        var newWidth = staffBox.x + staffBox.width + measure.staffWidth;
+        var wrapThreshold = this.logicalPageWidth;
+
+        // If we have wrapped on this line previously, wrap in the same place unless the location of this staff has changed quite a bit.
+        if (measure.measureNumber.systemIndex == 0 && staff.staffId == 0 && s.systemIndex > 0 && useAdjustedX) {
+            wrapThreshold = wrapThreshold * 0.5;
+        }
+
         // Do we need to start a new line?  Don't start a new line on the first measure in a line...
-        if (staff.staffId == 0 && s.systemIndex > 0 && staffBox.x + staffBox.width + measure.staffWidth
-             > this.logicalPageWidth) {
+        if (staff.staffId == 0 && s.systemIndex > 0 && newWidth
+             > wrapThreshold) {
                  console.log('wrap mm '+ measure.measureNumber.measureIndex + ' column: ' + measure.measureNumber.systemIndex + ' line: '+measure.lineIndex)
                  s.wrapped = true;
                  s.staff=staff;

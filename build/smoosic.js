@@ -5915,13 +5915,19 @@ class SmoOperation {
 		var note = selection.note;
 		if (measure && note) {
             var pitchar = [];
+            var pitchIx = 0;
             note.pitches.forEach((opitch) => {
+                // Only translate selected pitches
+                var shouldXpose = selection.selector.pitches.length == 0 ||
+                   selection.selector.pitches.indexOf(pitchIx) >= 0;
+
                 // Translate the pitch, ignoring enharmonic
-                var trans = smoMusic.getKeyOffset(opitch,offset);
+                var trans =  shouldXpose ? smoMusic.getKeyOffset(opitch,offset)
+                   : JSON.parse(JSON.stringify(opitch));
                 if (!trans.accidental) {
                     trans.accidental = 'n';
                 }
-                var transIx = smoMusic.smoPitchToInt(trans);
+                var transInt = smoMusic.smoPitchToInt(trans);
 
                 // Look through the earlier notes in the measure and try
                 // to find an equivalent note, and convert it if it exists.
@@ -5929,14 +5935,15 @@ class SmoOperation {
                    for (var i = 0;i<selection.selector.tick;++i)  {
                        var prevNote = voice.notes[i];
                        prevNote.pitches.forEach((prevPitch) => {
-                           var prevIx = smoMusic.smoPitchToInt(prevPitch);
-                           if (prevIx == transIx) {
+                           var prevInt = smoMusic.smoPitchToInt(prevPitch);
+                           if (prevInt == transInt) {
                                trans = JSON.parse(JSON.stringify(prevPitch));
                            }
                        });
                    }
                 });
                 pitchar.push(trans);
+                pitchIx += 1;
             });
             note.pitches = pitchar;
 			measure.setChanged();
@@ -7942,18 +7949,32 @@ class suiOscillator {
             duration:1000,
             frequency:440,
             attackEnv:0.05,
-            decayEnv:0.15,
-            sustainEnv:0.7,
-            releaseEnv:0.1,
+            decayEnv:0.2,
+            sustainEnv:0.65,
+            releaseEnv:0.3,
             sustainLevel:0.4,
             releaseLevel:0.1,
             waveform:'triangle',
-            gain:0.4
+            gain:0.3
         };
 
         var wavetable = {
-            real:[0,0.2,0.9,0.1,0.3],
-            imaginary:[0,0.2,0.9,0.1,0.3]
+            real:[0,
+                0.3,0,0,0,0,
+                0.1,0,0,0,0,
+                0.05,0,0,0,0,
+                0.01,0,0,0,0,
+                0.01,0,0,0,0,
+                0,0,0,0,0,
+                0,0],
+            imaginary:[0,
+                0,0,0,0,0,
+                0,0.01,0,0,0,
+                0,0,0,0,0,
+                0,0,0,0,0,
+                0,0,0,0,0,
+                0,0,0,0,0,
+                0,0]
         }
         obj.wavetable = wavetable;
         return obj;
@@ -8081,7 +8102,7 @@ class suiOscillator {
             osc.type = this.waveform;
         } else {
             var wave = audio.createPeriodicWave(suiOscillator.toFloatArray(this.wavetable.real), suiOscillator.toFloatArray(this.wavetable.imaginary),
-               {disableNormalization: true});
+               {disableNormalization: false});
             osc.setPeriodicWave(wave);
         }
         osc.frequency.value = this.frequency;
@@ -10573,9 +10594,17 @@ class suiScoreLayout extends suiLayoutBase {
             suiLayoutAdjuster.estimateMeasureWidth(this.renderer,measure,staffBox);
         }
 
+        var newWidth = staffBox.x + staffBox.width + measure.staffWidth;
+        var wrapThreshold = this.logicalPageWidth;
+
+        // If we have wrapped on this line previously, wrap in the same place unless the location of this staff has changed quite a bit.
+        if (measure.measureNumber.systemIndex == 0 && staff.staffId == 0 && s.systemIndex > 0 && useAdjustedX) {
+            wrapThreshold = wrapThreshold * 0.5;
+        }
+
         // Do we need to start a new line?  Don't start a new line on the first measure in a line...
-        if (staff.staffId == 0 && s.systemIndex > 0 && staffBox.x + staffBox.width + measure.staffWidth
-             > this.logicalPageWidth) {
+        if (staff.staffId == 0 && s.systemIndex > 0 && newWidth
+             > wrapThreshold) {
                  console.log('wrap mm '+ measure.measureNumber.measureIndex + ' column: ' + measure.measureNumber.systemIndex + ' line: '+measure.lineIndex)
                  s.wrapped = true;
                  s.staff=staff;
