@@ -234,18 +234,32 @@ class suiOscillator {
             duration:1000,
             frequency:440,
             attackEnv:0.05,
-            decayEnv:0.15,
-            sustainEnv:0.7,
-            releaseEnv:0.1,
+            decayEnv:0.2,
+            sustainEnv:0.65,
+            releaseEnv:0.3,
             sustainLevel:0.4,
             releaseLevel:0.1,
             waveform:'triangle',
-            gain:0.4
+            gain:0.3
         };
 
         var wavetable = {
-            real:[0,0.2,0.9,0.1,0.3],
-            imaginary:[0,0.2,0.9,0.1,0.3]
+            real:[0,
+                0.3,0,0,0,0,
+                0.1,0,0,0,0,
+                0.05,0,0,0,0,
+                0.01,0,0,0,0,
+                0.01,0,0,0,0,
+                0,0,0,0,0,
+                0,0],
+            imaginary:[0,
+                0,0,0,0,0,
+                0,0.01,0,0,0,
+                0,0,0,0,0,
+                0,0,0,0,0,
+                0,0,0,0,0,
+                0,0,0,0,0,
+                0,0]
         }
         obj.wavetable = wavetable;
         return obj;
@@ -373,7 +387,7 @@ class suiOscillator {
             osc.type = this.waveform;
         } else {
             var wave = audio.createPeriodicWave(suiOscillator.toFloatArray(this.wavetable.real), suiOscillator.toFloatArray(this.wavetable.imaginary),
-               {disableNormalization: true});
+               {disableNormalization: false});
             osc.setPeriodicWave(wave);
         }
         osc.frequency.value = this.frequency;
