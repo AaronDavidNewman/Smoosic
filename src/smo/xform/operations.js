@@ -357,6 +357,9 @@ class SmoOperation {
             note.pitches.forEach((opitch) => {
                 // Translate the pitch, ignoring enharmonic
                 var trans = smoMusic.getKeyOffset(opitch,offset);
+                if (!trans.accidental) {
+                    trans.accidental = 'n';
+                }
                 var transIx = smoMusic.smoPitchToInt(trans);
 
                 // Look through the earlier notes in the measure and try

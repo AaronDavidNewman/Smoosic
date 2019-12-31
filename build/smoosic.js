@@ -5918,6 +5918,9 @@ class SmoOperation {
             note.pitches.forEach((opitch) => {
                 // Translate the pitch, ignoring enharmonic
                 var trans = smoMusic.getKeyOffset(opitch,offset);
+                if (!trans.accidental) {
+                    trans.accidental = 'n';
+                }
                 var transIx = smoMusic.smoPitchToInt(trans);
 
                 // Look through the earlier notes in the measure and try
@@ -11609,6 +11612,9 @@ class suiMenuManager {
 			.css('top', '' + this.menuPosition.y + 'px');
         var hotkey=0;
 		this.menu.menuItems.forEach((item) => {
+            var vkey = (hotkey < 10) ? String.fromCharCode(48+hotkey) :
+                 String.fromCharCode(87 + hotkey) ;
+
 			r.append(
 				b('li').classes('menuOption').append(
 					b('button').attr('data-value',item.value)
@@ -11616,8 +11622,8 @@ class suiMenuManager {
 
 					.append(
 						b('span').classes('icon icon-' + item.icon))
-                     .append(b('span').classes('menu-key').text(''+hotkey))));
-            item.hotkey=hotkey;
+                     .append(b('span').classes('menu-key').text(''+vkey))));
+            item.hotkey=vkey;
             hotkey += 1;
 		});
 		$(this.menuContainer).append(r.dom());
