@@ -35,6 +35,7 @@ class SuiFileDialog extends SuiDialogBase {
             self.controller.unbindKeyboardForDialog(self);
         }
         this.startPromise.then(getKeys);
+        this.position($(this.dgDom.element)[0].getBoundingClientRect());
 	}
     _bindElements() {
 		var self = this;
@@ -51,8 +52,17 @@ class SuiFileDialog extends SuiDialogBase {
 		$(dgDom.element).find('.remove-button').remove();
         this.bindKeyboard();
 	}
+    position(box) {
+		var y = (window.innerHeight/3  + box.height);
 
+		// TODO: adjust if db is clipped by the browser.
+        var dge = $(this.dgDom.element).find('.attributeModal');
 
+		$(dge).css('top', '' + y + 'px');
+
+        var x = window.innerWidth - box.width/2;
+        $(dge).css('left', '' + x + 'px');
+	}
 }
 class SuiLoadFileDialog extends SuiFileDialog {
     static get dialogElements() {

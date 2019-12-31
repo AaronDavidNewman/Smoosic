@@ -42,9 +42,10 @@ class SuiDialogBase {
 				});
 
 			});
+        this.initialLeft = parameters.left
+        this.initialTop = parameters.top;
 		this.dialogElements = dialogElements;
 		this.tracker = parameters.tracker;
-		this.tracker.scrollVisible(parameters.left,parameters.top);
 		var top = parameters.top - this.tracker.netScroll.y;
 		var left = parameters.left - this.tracker.netScroll.x;
 
@@ -128,6 +129,7 @@ class SuiDialogBase {
 
 	display() {
 		$('body').addClass('showAttributeDialog');
+        this.tracker.scrollVisible(this.initialLeft,this.initialTop);
 		this.components.forEach((component) => {
 			component.bind();
 		});

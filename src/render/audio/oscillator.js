@@ -186,6 +186,9 @@ class suiAudioPlayer {
 
         return par;
     }
+    _populatePlayArray() {
+
+    }
 
     play() {
         if (suiAudioPlayer.playing) {
@@ -225,7 +228,6 @@ class suiAudioPlayer {
         this.score = parameters.score;
         this.oscillators=suiAudioPlayer._createOscillatorsAllStaffs(this.score,this.startIndex);
     }
-
 }
 class suiOscillator {
     static get defaults() {
