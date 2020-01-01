@@ -7823,86 +7823,110 @@ class suiAudioPlayer {
         return Promise.all(par);
     }
 
-    // A single voice-measure.
-    _playVoice(voiceOsc,updateCursor) {
-        self = this;
-        var measureCompletePromise = new Promise((resolve) => {
-            var recursePlayer = (ix,oscAr) => {
-                return suiAudioPlayer._playChord(voiceOsc[ix]).then(() =>{
-                    if (suiAudioPlayer.playing && voiceOsc.length - 1 > ix) {
-
-                        // Update the birdy that follows the music
-                        if (updateCursor) {
-                            self.tracker.musicCursor(self.startIndex + self.playIndex,ix+1);
-                        }
-                        recursePlayer(ix+1,voiceOsc);
-                    } else {
-                        resolve();
-                    }
-                });
-            }
-            recursePlayer(0,voiceOsc);
-        });
-        return measureCompletePromise;
-    }
-
-    static _createOscillatorsForMeasure(score,staff,measure) {
-         var tempo = measure.getTempo();
-        tempo = tempo ? tempo : new SmoTempoText();
-        var tickTime = 60000/tempo.bpm;
-        var voiceOsc = [];
-        measure.voices.forEach((voice) => {
-            var ix = 0;
-            var pitchOsc = [];
-            voiceOsc.push(pitchOsc);
-            voice.notes.forEach((note) => {
-                pitchOsc.push(suiOscillator.fromNote(measure,note,false,0.5/score.staves.length));
-                ix += 1;
+    _createOscillatorsFromMusicData(ar) {
+        var rv = [];
+        ar.forEach((soundData) => {
+            soundData.frequencies.forEach((frequency) => {
+                var osc = new suiOscillator({frequency:frequency,duration:soundData.duration,gain:soundData.gain});
+                rv.push(osc);
             });
         });
-
-        return voiceOsc;
+        return rv;
     }
+    _playArrayRecurse(ix,keys,notesToPlay) {
+        if (!suiAudioPlayer.playing ||
+          suiAudioPlayer.instanceId != this.instanceId) {
+              return;
+          }
+        var self = this;
+        var key = keys[ix];
+        var curTime = parseInt(key);
+        var proto = notesToPlay[key];
+        var oscs = this._createOscillatorsFromMusicData(proto);
 
-
-    static _createOscillatorsAllStaffs(score,measureIx) {
-        measureIx = measureIx ? measureIx : 0;
-        var staffList = [];
-
-        score.staves.forEach((staff) => {
-            var measureList = [];
-            var measures = staff.measures.filter((mm) => mm.measureNumber.measureIndex >= measureIx);
-            measures.forEach((measure) => {
-                measureList.push( suiAudioPlayer._createOscillatorsForMeasure(score,staff,measure));
-            });
-            staffList.push(measureList);
-        });
-        return staffList;
+        // Follow the top-staff note in this tick for the cursor
+        if (proto[0].selector.staff == 0) {
+            this.tracker.musicCursor(proto[0].selector.measure,proto[0].selector.tick);
+        }
+        if (ix < keys.length - 1) {
+            var diff = parseInt(keys[ix+1]);
+            var delay = (diff - curTime);
+            setTimeout(function() {
+                self._playArrayRecurse(ix+1,keys,notesToPlay);
+            },delay);
+        }
+        suiAudioPlayer._playChord(oscs);
     }
-
-    _playMeasure(measureOsc,updateCursor) {
-       var par = [];
-       measureOsc.forEach((voiceOsc) => {
-           par.push(this._playVoice(voiceOsc,updateCursor));
-       });
-
-       return Promise.all(par);
-    }
-
-    _playMeasureAllStaffs(measureIx,staffList) {
-        var par = [];
-        // only update cursor once per staff
-        var updateCursor = true;
-        staffList.forEach((staffOsc) => {
-            var measureOsc = staffOsc[measureIx];
-            par.push(this._playMeasure(measureOsc,updateCursor));
-            updateCursor = false;
-        });
-
-        return par;
+    _playPlayArray() {
+        var startTimes = Object.keys(this.sounds).sort((a,b) => {return a < b;});
+        this._playArrayRecurse(0,startTimes,this.sounds);
     }
     _populatePlayArray() {
+        var maxGain = 0.5/this.score.staves.length;
+        this.sounds = {};
+        this.score.staves.forEach((staff)  => {
+            var accumulator = 0;
+            for (var i = this.startIndex;i<staff.measures.length;++i) {
+                var measure=staff.measures[i];
+                var voiceIx = 0;
+                measure.voices.forEach((voice) => {
+                    var prevObj = null;
+                    var tick = 0;
+                    voice.notes.forEach((note) => {
+                        var tempo = measure.getTempo();
+                        tempo = tempo ? tempo : new SmoTempoText();
+                        var bpm = tempo.bpm;
+                        var beats = note.tickCount/4096;
+                        var duration = (beats / bpm) * 60000;
 
+                        // adjust if bpm is over something other than 1/4 note
+                        duration = duration * (4096/tempo.beatDuration);
+                        var frequencies = [];
+                        var selector = {staff:measure.measureNumber.staffId,measure:measure.measureNumber.measureIndex,voice:voiceIx,tick:tick}
+                        var slurs = staff.modifiers.filter((mod) => {
+                            return SmoSelector.sameNote(mod.endSelector,selector);
+                        });
+                        if (slurs.length && prevObj) {
+                            slurs = slurs.filter((slur) => {
+                                return SmoSelector.sameNote(prevObj.selector,slur.startSelector);
+                            });
+                        } else {
+                            slurs = [];
+                        }
+
+                        note.pitches.forEach((pitch) => {
+                            var frequency = suiAudioPitch.smoPitchToFrequency(pitch);
+                            if (slurs.length && prevObj.frequencies.indexOf(frequency) >= 0) {
+                                prevObj.duration += duration;
+                            } else {
+                                frequencies.push(frequency);
+                             }
+                        });
+
+                        if (frequencies.length && note.noteType == 'n') {
+                            var obj = {
+                                duration:duration,
+                                frequencies:frequencies,
+                                gain:maxGain/frequencies.length,
+                                selector:selector,
+                                note:note,
+                                measure:measure,
+                                staff:staff
+                            };
+                            prevObj = obj;
+                            if (this.sounds[accumulator]) {
+                                this.sounds[accumulator].push(obj);
+                            } else {
+                                this.sounds[accumulator]=[obj];
+                            }
+                        }
+                        accumulator += Math.round(duration);
+                        tick += 1;
+                    });
+                    voiceIx += 1;
+                });
+            }
+        });
     }
 
     play() {
@@ -7910,27 +7934,9 @@ class suiAudioPlayer {
             return;
         }
         suiAudioPlayer._playingInstance = this;
-        var self = this;
-        var playRecurse = (oscillators,ix) => {
-            self.playIndex = ix;
-            Promise.all(this._playMeasureAllStaffs(ix,oscillators)).then(() => {
-                if (suiAudioPlayer.playing &&
-                  suiAudioPlayer.instanceId == self.instanceId &&
-                  ix < oscillators[0].length - 1) {
-                    self.tracker.musicCursor(ix + 1,0);
-                    playRecurse(oscillators,ix+1);
-                } else {
-                    if (ix > oscillators[0].length - 1 || self.paused == false) {
-                        suiAudioPlayer.playing = false;
-                        suiAudioPlayer._playingInstance = null;
-                        self.paused = false;
-                    }
-                    self.tracker.clearMusicCursor();
-                }
-            });
-        }
+        this._populatePlayArray();
         suiAudioPlayer.playing = true;
-        playRecurse(this.oscillators,this.playIndex);
+        this._playPlayArray();
     }
 
     constructor(parameters) {
@@ -7941,7 +7947,56 @@ class suiAudioPlayer {
         this.playIndex = 0;
         this.tracker = parameters.tracker;
         this.score = parameters.score;
-        this.oscillators=suiAudioPlayer._createOscillatorsAllStaffs(this.score,this.startIndex);
+        this._populatePlayArray();
+    }
+}
+
+class suiReverb {
+    static get defaults() {
+        return {length:0.5,
+        decay:2.0 };
+    }
+
+    connect(destination) {
+        this.output.connect(destination);
+    }
+
+    disconnect() {
+        this.output.disconnect();
+    }
+
+
+    // credit: https://github.com/nick-thompson
+    _buildImpulse() {
+        if (suiReverb['impulse']) {
+            this.input.buffer = suiReverb['impulse'];
+            return;
+        }
+
+         var rate = this._context.sampleRate
+           , length = rate * this.length
+           , decay = this.decay
+           , impulse = this._context.createBuffer(2, length, rate)
+           , impulseL = impulse.getChannelData(0)
+           , impulseR = impulse.getChannelData(1)
+           , n, i;
+
+         for (i = 0; i < length; i++) {
+           n = this.reverse ? length - i : i;
+           impulseL[i] = (Math.random() * 2 - 1) * Math.pow(1 - n / length, decay);
+           impulseR[i] = (Math.random() * 2 - 1) * Math.pow(1 - n / length, decay);
+         }
+         suiReverb['impulse'] = impulse;
+
+         this.input.buffer = impulse;
+    }
+
+    constructor(context) {
+        this.input = this.output = context.createConvolver();
+        this.length = suiReverb.defaults.length;
+        this.decay = suiReverb.defaults.decay;
+        this._context = context;
+        this._buildImpulse();
     }
 }
 class suiOscillator {
@@ -7951,9 +8006,9 @@ class suiOscillator {
             duration:1000,
             frequency:440,
             attackEnv:0.05,
-            decayEnv:0.2,
+            decayEnv:0.4,
             sustainEnv:0.65,
-            releaseEnv:0.3,
+            releaseEnv:0.1,
             sustainLevel:0.4,
             releaseLevel:0.1,
             waveform:'triangle',
@@ -8090,7 +8145,8 @@ class suiOscillator {
         var gain = audio.createGain();
         var osc = audio.createOscillator();
 
-        gain.connect(audio.destination);
+        gain.connect(this.reverb.input);
+        this.reverb.connect(audio.destination);
         gain.gain.setValueAtTime(0, audio.currentTime);
         var attack = this.attack / 1000;
         var decay = this.decay/1000;
@@ -8118,6 +8174,7 @@ class suiOscillator {
         parameters = parameters ? parameters : {};
 		smoMusic.serializedMerge(suiOscillator.attributes, suiOscillator.defaults, this);
 		smoMusic.serializedMerge(suiOscillator.attributes, parameters, this);
+        this.reverb = new suiReverb(suiOscillator.audio);
         this.attack = this.attackEnv*this.duration;
         this.decay = this.decayEnv*this.duration;
         this.sustain = this.sustainEnv*this.duration;
