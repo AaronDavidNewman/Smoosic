@@ -15,7 +15,7 @@ module.exports = function (grunt) {
                     'src/smo/xform/iterator.js', 'src/smo/xform/beamers.js', 'src/smo/xform/tickDuration.js', 'src/smo/xform/selections.js',
                     'src/smo/xform/operations.js', 'src/smo/xform/undo.js', 'src/smo/xform/copypaste.js',
                     'src/render/vex/vxMeasure.js', 'src/render/vex/vxSystem.js',
-                    'src/render/audio/oscillator.js',
+                    'src/render/audio/oscillator.js','src/render/audio/player.js',
                     'src/render/sui/tracker.js', 'src/render/sui/layout.js', 'src/render/sui/piano.js',
                     'src/render/sui/layoutDemon.js',
 					'src/render/sui/adjuster.js','src/render/sui/scoreLayout.js','src/render/sui/textLayout.js','src/render/sui/textEdit.js',

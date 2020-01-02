@@ -103,6 +103,7 @@
             </Folder>
             <Folder name="audio">
                 <File name="src\render\audio\oscillator.js" />
+                <File name="src\render\audio\player.js" />
             </Folder>
         </Folder>
         <Folder name="styles">

@@ -21,13 +21,13 @@ class SmoSystemStaff {
 
         }
     }
-	
+
 	static get defaultParameters() {
 		return [
 		'staffId','staffX','staffY','adjY','staffWidth','staffHeight','startIndex',
             'renumberingMap','keySignatureMap','instrumentInfo'];
 	}
-	
+
     static get defaults() {
         return {
             staffX: 10,
@@ -48,22 +48,22 @@ class SmoSystemStaff {
             modifiers: []
         };
     }
-	
+
 	serialize() {
 		var params={};
 		smoMusic.serializedMerge(SmoSystemStaff.defaultParameters,this,params);
 		params.modifiers=[];
 		params.measures=[];
-		
-		
+
+
 		this.measures.forEach((measure) => {
 			params.measures.push(measure.serialize());
 		});
-		
+
 		this.modifiers.forEach((modifier) => {
 			params.modifiers.push(modifier.serialize());
 		});
-		
+
 		return params;
 	}
 
@@ -103,7 +103,7 @@ class SmoSystemStaff {
         });
         this.modifiers = mods;
     }
-	
+
 	getModifiersAt(selector) {
 		var rv = [];
 		this.modifiers.forEach((mod) => {
@@ -113,6 +113,18 @@ class SmoSystemStaff {
 		});
 		return rv;
 	}
+
+    getSlursStartingAt(selector) {
+        return this.modifiers.filter((mod) => {
+            return SmoSelector.sameNote(mod.startSelector,selector);
+        });
+    }
+    
+    getSlursEndingAt(selector) {
+        return this.modifiers.filter((mod) => {
+            return SmoSelector.sameNote(mod.endSelector,selector);
+        });
+    }
 
     getModifierMeasures(modifier) {
         return {
@@ -150,24 +162,24 @@ class SmoSystemStaff {
         }
         return null;
     }
-    
+
     addRehearsalMark(index,parameters) {
         var mark = new SmoRehearsalMark(parameters);
-        if (!mark.increment) {            
+        if (!mark.increment) {
             this.measures[index].addRehearsalMark(mark);
             return;
         }
-        
+
         var symbol = mark.symbol;
         for (var i=0;i<this.measures.length;++i) {
             var mm = this.measures[i];
             if (i < index) {
                 var rm = mm.getRehearsalMark();
                 if (rm && rm.cardinality==mark.cardinality && rm.increment) {
-                   symbol = rm.getIncrement();                   
+                   symbol = rm.getIncrement();
                    mark.symbol=symbol;
                 }
-            } 
+            }
             if (i === index) {
                 mm.addRehearsalMark(mark);
                 symbol = mark.getIncrement();
@@ -181,15 +193,15 @@ class SmoSystemStaff {
             }
         }
     }
-    
+
     removeTempo(index) {
-        this.measures[index].removeTempo();        
+        this.measures[index].removeTempo();
     }
-    
+
     addTempo(tempo,index) {
         this.measures[index].addTempo(tempo);
     }
-    
+
     removeRehearsalMark(index) {
         var ix = 0;
         var symbol=null;
@@ -210,11 +222,11 @@ class SmoSystemStaff {
                     symbol = mark.getIncrement();
                 }
             }
-            
+
             ix += 1;
         });
     }
-	
+
 	deleteMeasure(index) {
 		if (this.measures.length < 2) {
 			return; // don't delete last measure.
@@ -252,7 +264,7 @@ class SmoSystemStaff {
     addKeySignature(measureIndex, key) {
         this.keySignatureMap[measureIndex] = key;
 		var target = this.measures[measureIndex];
-		target.keySignature = key;		
+		target.keySignature = key;
         // this._updateKeySignatures();
     }
     removeKeySignature(measureIndex) {
