@@ -118,7 +118,9 @@ class SmoSlur extends StaffModifierBase {
             cp1x: 0,
             cp1y: 15,
             cp2x: 0,
-            cp2y: 15
+            cp2y: 15,
+            pitchesStart:[],
+            pitchesEnd:[]
         };
     }
 
@@ -131,7 +133,7 @@ class SmoSlur extends StaffModifierBase {
     }
     static get parameterArray() {
         return ['startSelector','endSelector','spacing', 'xOffset', 'yOffset', 'position', 'position_end', 'invert',
-            'cp1x', 'cp1y', 'cp2x', 'cp2y','attrs','thickness'];
+            'cp1x', 'cp1y', 'cp2x', 'cp2y','attrs','thickness','pitchesStart','pitchesEnd'];
     }
 
     serialize() {
@@ -179,11 +181,14 @@ class SmoSlur extends StaffModifierBase {
     constructor(params) {
         super('SmoSlur');
         smoMusic.serializedMerge(SmoSlur.parameterArray,SmoSlur.defaults,this);
-		Vex.Merge(this,SmoSlur.defaults);
-		smoMusic.filteredMerge(SmoSlur.parameterArray,params,this);
+		// Vex.Merge(this,SmoSlur.defaults);
+		// smoMusic.filteredMerge(SmoSlur.parameterArray,params,this);
         smoMusic.serializedMerge(SmoSlur.parameterArray, params, this);
         this.startSelector = params.startSelector;
         this.endSelector = params.endSelector;
+
+        // TODO: allow user to customize these
+        
         if (!this['attrs']) {
             this.attrs = {
                 id: VF.Element.newID(),

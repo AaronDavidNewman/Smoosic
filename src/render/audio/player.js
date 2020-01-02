@@ -104,7 +104,7 @@ class suiAudioPlayer {
         this.sounds = {};
         this.score.staves.forEach((staff)  => {
             var accumulator = 0;
-            var slurObj = [];
+            var slurs = [];
             for (var i = this.startIndex;i<staff.measures.length;++i) {
                 var measure=staff.measures[i];
                 var voiceIx = 0;
@@ -121,10 +121,10 @@ class suiAudioPlayer {
                         // adjust if bpm is over something other than 1/4 note
                         duration = duration * (4096/tempo.beatDuration);
                         var selector = {staff:measure.measureNumber.staffId,measure:measure.measureNumber.measureIndex,voice:voiceIx,tick:tick}
-                        var startSlurs = staff.getSlursStartingAt(selector);
 
                         var gain = maxGain/note.pitches.length;
                         if (note.noteType == 'n') {
+                            var pitchIx = 0;
                             note.pitches.forEach((pitch) => {
                                 var frequency = suiAudioPitch.smoPitchToFrequency(pitch);
                                 var obj = {
@@ -136,11 +136,28 @@ class suiAudioPlayer {
                                     measure:measure,
                                     staff:staff
                                 };
-                                if (this.sounds[accumulator]) {
-                                    this.sounds[accumulator].push(obj);
+                                // Keep track of slurs, don't restart the note it is
+                                // really a tie.  TODO:  deal with 1:1, 1:many etc.
+                                staff.getSlursStartingAt(selector).forEach((slur) => {
+                                    slurs.push({
+                                        obj:obj,
+                                        slur:slur
+                                    });
+                                });
+
+                                var pitchTie = slurs.filter((slur) => {
+                                    return (SmoSelector.sameNote(slur.slur.endSelector,selector) && slur.obj.frequency == frequency);
+                                });
+                                if (pitchTie.length) {
+                                    pitchTie[0].duration += obj.duration;
                                 } else {
-                                    this.sounds[accumulator]=[obj];
+                                    if (this.sounds[accumulator]) {
+                                        this.sounds[accumulator].push(obj);
+                                    } else {
+                                        this.sounds[accumulator]=[obj];
+                                    }
                                 }
+                                pitchIx += 1;
                             });
                         }
                         accumulator += Math.round(duration);
