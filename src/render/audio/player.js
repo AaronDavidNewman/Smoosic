@@ -96,7 +96,7 @@ class suiAudioPlayer {
         suiAudioPlayer._playChord(oscs);
     }
     _playPlayArray() {
-        var startTimes = Object.keys(this.sounds).sort((a,b) => {return a < b;});
+        var startTimes = Object.keys(this.sounds).sort((a,b) => {return parseInt(a) > parseInt(b);});
         this._playArrayRecurse(0,startTimes,this.sounds);
     }
     _populatePlayArray() {

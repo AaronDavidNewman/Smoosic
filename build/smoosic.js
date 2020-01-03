@@ -7975,7 +7975,7 @@ class suiOscillator {
 
         gain.connect(this.reverb.input);
         this.reverb.connect(audio.destination);
-        gain.gain.setValueAtTime(0, audio.currentTime);
+        gain.gain.setValueAtTime(0.01, audio.currentTime);
         var attack = this.attack / 1000;
         var decay = this.decay/1000;
         var sustain = this.sustain/1000;
@@ -8116,7 +8116,7 @@ class suiAudioPlayer {
         suiAudioPlayer._playChord(oscs);
     }
     _playPlayArray() {
-        var startTimes = Object.keys(this.sounds).sort((a,b) => {return a < b;});
+        var startTimes = Object.keys(this.sounds).sort((a,b) => {return parseInt(a) > parseInt(b);});
         this._playArrayRecurse(0,startTimes,this.sounds);
     }
     _populatePlayArray() {
