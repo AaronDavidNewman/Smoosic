@@ -5823,6 +5823,17 @@ class SmoOperation {
         selection.measure.changed = true;
     }
 
+    static toggleGraceNoteCourtesy(selection,modifiers) {
+        if (!Array.isArray(modifiers)) {
+            modifiers=[modifiers];
+        }
+        modifiers.forEach((mm) => {
+            mm.modifiers.pitches.forEach((pitch)=> {
+                pitch.cautionary = pitch.cautionary ? false : true;
+            });
+        });
+    }
+
     static transposeGraceNotes(selection,modifiers,offset) {
         if (!Array.isArray(modifiers)) {
             modifiers=[modifiers];
@@ -6438,10 +6449,10 @@ class SmoUndoable {
 			undoBuffer.addBuffer('staff backup for '+operation, 'staff', selections[0].selector, score);
 		} else {
 			undoBuffer.addBuffer('measure backup for '+operation, 'measure', selections[0].selector, selections[0].measure);
-		}		
+		}
 	}
 	// Add the measure/staff/score that will cover this list of selections
-	static batchDurationOperation(score,selections,operation,undoBuffer) {		
+	static batchDurationOperation(score,selections,operation,undoBuffer) {
 	    SmoUndoable.undoForSelections(score,selections,undoBuffer,operation);
 		SmoOperation.batchSelectionOperation(score,selections,operation);
 	}
@@ -6454,24 +6465,24 @@ class SmoUndoable {
     static removeGraceNote(selection,params,undoBuffer) {
         undoBuffer.addBuffer('remove grace note',
             'measure', selection.selector, selection.measure);
-        SmoOperation.removeGraceNote(selection,params.index);        
+        SmoOperation.removeGraceNote(selection,params.index);
     }
-    
+
     static transposeGraceNotes(selection,params,undoBuffer) {
         undoBuffer.addBuffer('transpose grace note',
             'measure', selection.selector, selection.measure);
-        SmoOperation.transposeGraceNotes(selection,params.modifiers,params.offset);        
+        SmoOperation.transposeGraceNotes(selection,params.modifiers,params.offset);
     }
-    static doubleGraceNoteDuration(selection,modifier,undoBuffer) { 
+    static doubleGraceNoteDuration(selection,modifier,undoBuffer) {
         undoBuffer.addBuffer('double grace note duration',
             'measure', selection.selector, selection.measure);
-        SmoOperation.doubleGraceNoteDuration(selection,modifier);            
+        SmoOperation.doubleGraceNoteDuration(selection,modifier);
     }
-    
-    static halveGraceNoteDuration(selection,modifier,undoBuffer) { 
+
+    static halveGraceNoteDuration(selection,modifier,undoBuffer) {
         undoBuffer.addBuffer('halve grace note duration',
             'measure', selection.selector, selection.measure);
-        SmoOperation.halveGraceNoteDuration(selection,modifier);            
+        SmoOperation.halveGraceNoteDuration(selection,modifier);
     }
     static setPitch(selection, pitches, undoBuffer)  {
         undoBuffer.addBuffer('pitch change ' + JSON.stringify(pitches, null, ' '),
@@ -6568,19 +6579,19 @@ class SmoUndoable {
     // easy way to back up the score for a score-wide operation
 	static noop(score,undoBuffer,label) {
         label = label ? label : 'Backup';
-        undoBuffer.addBuffer(label, 'score', null, score);		
+        undoBuffer.addBuffer(label, 'score', null, score);
 	}
-        
+
 	static measureSelectionOp(score,selection,op,params,undoBuffer,description) {
 		undoBuffer.addBuffer(description, 'measure', selection.selector, selection.measure);
 		SmoOperation[op](score,selection,params);
 	}
-    
+
     static staffSelectionOp(score,selection,op,params,undoBuffer,description) {
 		undoBuffer.addBuffer(description, 'staff', selection.selector, selection.staff);
 		SmoOperation[op](selection,params);
 	}
-	
+
 	static scoreSelectionOp(score,selection,op,params,undoBuffer,description) {
         undoBuffer.addBuffer(description, 'score', null, score);
 		SmoOperation[op](score,selection,params);
@@ -6607,9 +6618,13 @@ class SmoUndoable {
         undoBuffer.addBuffer('add instrument', 'score', null, score);
         SmoOperation.addStaff(score, parameters);
     }
+    static toggleGraceNoteCourtesyAccidental(selection,modifier,undoBuffer) {
+        undoBuffer.addBuffer('toggle grace courtesy ','measure', selection.selector, selection.measure);
+		SmoOperation.toggleGraceNoteCourtesy(selection,modifier);
+    }
 	static toggleCourtesyAccidental(selection,undoBuffer) {
         undoBuffer.addBuffer('toggle courtesy ','measure', selection.selector, selection.measure);
-		SmoOperation.toggleCourtesyAccidental(selection);		
+		SmoOperation.toggleCourtesyAccidental(selection);
 	}
     static removeStaff(score, index, undoBuffer) {
         undoBuffer.addBuffer('remove instrument', 'score', null, score);
@@ -7146,8 +7161,12 @@ class VxMeasure {
                 var gr = new VF.GraceNote(g.toVexGraceNote());
                 for (var i=0;i<g.pitches.length;++i) {
                     var pitch = g.pitches[i];
-                    if (pitch.accidental != 'n') {
-                        gr.addAccidental(i,new VF.Accidental(pitch.accidental));
+                    if (pitch.accidental != 'n' || pitch.cautionary)  {
+                        var accidental = new VF.Accidental(pitch.accidental);
+                        if (pitch.cautionary) {
+                            accidental.setAsCautionary();
+                        }
+                        gr.addAccidental(i,accidental);
                     }
                 }
                 if (g.tickCount() > 4096) {
@@ -8631,12 +8650,15 @@ class suiTracker {
 
 		this._updateModifiers(rebox);
 		this.selections = [];
+
+        // Try to restore selection.  If there were none, just select the fist
+        // thing in the score
 		if (this.objects.length && !selCopy.length) {
 			// console.log('adding selection ' + this.objects[0].note.id);
 			this.selections = [this.objects[0]];
-		} else {
+		}  else {
 			this._findClosestSelection(firstSelection.selector);
-			var first = this.selections[0];
+            var first = this.selections[0];
 			var tickSelected = first.note.tickCount;
 			while (tickSelected < ticksSelectedCopy && first) {
 				var delta = this.growSelectionRight();
@@ -9159,9 +9181,12 @@ class suiTracker {
         var grace = this.getSelectedGraceNotes();
         // If this is not a note with grace notes, logically unselect the grace notes
         if (grace.length) {
-            if (!SmoSelector.sameNote(grace[0].selection.selector,this.selections[0])) {
+            if (!SmoSelector.sameNote(grace[0].selection.selector,this.selections[0].selector)) {
                 this.modifierSelections=[];
                 this.modifierIndex = -1;
+            } else {
+                this._highlightModifier();
+                return;
             }
         }
 		if (this.pitchIndex >= 0 && this.selections.length == 1 &&
@@ -11513,6 +11538,14 @@ class suiEditor {
     }
 
     toggleCourtesyAccidental() {
+        var grace = this.tracker.getSelectedGraceNotes();
+        if (grace.length) {
+            grace.forEach((artifact) => {
+                SmoUndoable.toggleGraceNoteCourtesyAccidental(artifact.selection,{modifiers:artifact.modifier},this.undoBuffer);
+            });
+
+            return;
+        }
         if (this.tracker.selections.length < 1) {
             return;
         }
@@ -57785,14 +57818,20 @@ class suiController {
 
 	// If the user has selected a modifier via the mouse/touch, bring up mod dialog
 	// for that modifier
-	trackerModifierSelect() {
+	trackerModifierSelect(ev) {
 		var modSelection = this.tracker.getSelectedModifier();
         this.idleLayoutTimer = Date.now();
 		if (modSelection) {
-			window.removeEventListener("keydown", this.keydownHandler, true);
 			var dialog = this.showModifierDialog(modSelection);
-			this.unbindKeyboardForDialog(dialog);
-		}
+            if (dialog) {
+                this.tracker.selectSuggestion(ev);
+			    this.unbindKeyboardForDialog(dialog);
+            } else {
+                this.tracker.advanceModifierSelection(ev);
+            }
+		} else {
+            this.tracker.selectSuggestion(ev);
+        }
 		return;
 	}
 
