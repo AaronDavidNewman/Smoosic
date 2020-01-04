@@ -136,14 +136,20 @@ class suiController {
 
 	// If the user has selected a modifier via the mouse/touch, bring up mod dialog
 	// for that modifier
-	trackerModifierSelect() {
+	trackerModifierSelect(ev) {
 		var modSelection = this.tracker.getSelectedModifier();
         this.idleLayoutTimer = Date.now();
 		if (modSelection) {
-			window.removeEventListener("keydown", this.keydownHandler, true);
 			var dialog = this.showModifierDialog(modSelection);
-			this.unbindKeyboardForDialog(dialog);
-		}
+            if (dialog) {
+                this.tracker.selectSuggestion(ev);
+			    this.unbindKeyboardForDialog(dialog);
+            } else {
+                this.tracker.advanceModifierSelection(ev);
+            }
+		} else {
+            this.tracker.selectSuggestion(ev);
+        }
 		return;
 	}
 

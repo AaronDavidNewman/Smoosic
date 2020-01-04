@@ -115,10 +115,10 @@ class SmoUndoable {
 			undoBuffer.addBuffer('staff backup for '+operation, 'staff', selections[0].selector, score);
 		} else {
 			undoBuffer.addBuffer('measure backup for '+operation, 'measure', selections[0].selector, selections[0].measure);
-		}		
+		}
 	}
 	// Add the measure/staff/score that will cover this list of selections
-	static batchDurationOperation(score,selections,operation,undoBuffer) {		
+	static batchDurationOperation(score,selections,operation,undoBuffer) {
 	    SmoUndoable.undoForSelections(score,selections,undoBuffer,operation);
 		SmoOperation.batchSelectionOperation(score,selections,operation);
 	}
@@ -131,24 +131,24 @@ class SmoUndoable {
     static removeGraceNote(selection,params,undoBuffer) {
         undoBuffer.addBuffer('remove grace note',
             'measure', selection.selector, selection.measure);
-        SmoOperation.removeGraceNote(selection,params.index);        
+        SmoOperation.removeGraceNote(selection,params.index);
     }
-    
+
     static transposeGraceNotes(selection,params,undoBuffer) {
         undoBuffer.addBuffer('transpose grace note',
             'measure', selection.selector, selection.measure);
-        SmoOperation.transposeGraceNotes(selection,params.modifiers,params.offset);        
+        SmoOperation.transposeGraceNotes(selection,params.modifiers,params.offset);
     }
-    static doubleGraceNoteDuration(selection,modifier,undoBuffer) { 
+    static doubleGraceNoteDuration(selection,modifier,undoBuffer) {
         undoBuffer.addBuffer('double grace note duration',
             'measure', selection.selector, selection.measure);
-        SmoOperation.doubleGraceNoteDuration(selection,modifier);            
+        SmoOperation.doubleGraceNoteDuration(selection,modifier);
     }
-    
-    static halveGraceNoteDuration(selection,modifier,undoBuffer) { 
+
+    static halveGraceNoteDuration(selection,modifier,undoBuffer) {
         undoBuffer.addBuffer('halve grace note duration',
             'measure', selection.selector, selection.measure);
-        SmoOperation.halveGraceNoteDuration(selection,modifier);            
+        SmoOperation.halveGraceNoteDuration(selection,modifier);
     }
     static setPitch(selection, pitches, undoBuffer)  {
         undoBuffer.addBuffer('pitch change ' + JSON.stringify(pitches, null, ' '),
@@ -245,19 +245,19 @@ class SmoUndoable {
     // easy way to back up the score for a score-wide operation
 	static noop(score,undoBuffer,label) {
         label = label ? label : 'Backup';
-        undoBuffer.addBuffer(label, 'score', null, score);		
+        undoBuffer.addBuffer(label, 'score', null, score);
 	}
-        
+
 	static measureSelectionOp(score,selection,op,params,undoBuffer,description) {
 		undoBuffer.addBuffer(description, 'measure', selection.selector, selection.measure);
 		SmoOperation[op](score,selection,params);
 	}
-    
+
     static staffSelectionOp(score,selection,op,params,undoBuffer,description) {
 		undoBuffer.addBuffer(description, 'staff', selection.selector, selection.staff);
 		SmoOperation[op](selection,params);
 	}
-	
+
 	static scoreSelectionOp(score,selection,op,params,undoBuffer,description) {
         undoBuffer.addBuffer(description, 'score', null, score);
 		SmoOperation[op](score,selection,params);
@@ -284,9 +284,13 @@ class SmoUndoable {
         undoBuffer.addBuffer('add instrument', 'score', null, score);
         SmoOperation.addStaff(score, parameters);
     }
+    static toggleGraceNoteCourtesyAccidental(selection,modifier,undoBuffer) {
+        undoBuffer.addBuffer('toggle grace courtesy ','measure', selection.selector, selection.measure);
+		SmoOperation.toggleGraceNoteCourtesy(selection,modifier);
+    }
 	static toggleCourtesyAccidental(selection,undoBuffer) {
         undoBuffer.addBuffer('toggle courtesy ','measure', selection.selector, selection.measure);
-		SmoOperation.toggleCourtesyAccidental(selection);		
+		SmoOperation.toggleCourtesyAccidental(selection);
 	}
     static removeStaff(score, index, undoBuffer) {
         undoBuffer.addBuffer('remove instrument', 'score', null, score);

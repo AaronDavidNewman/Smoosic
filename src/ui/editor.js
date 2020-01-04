@@ -298,6 +298,14 @@ class suiEditor {
     }
 
     toggleCourtesyAccidental() {
+        var grace = this.tracker.getSelectedGraceNotes();
+        if (grace.length) {
+            grace.forEach((artifact) => {
+                SmoUndoable.toggleGraceNoteCourtesyAccidental(artifact.selection,{modifiers:artifact.modifier},this.undoBuffer);
+            });
+
+            return;
+        }
         if (this.tracker.selections.length < 1) {
             return;
         }

@@ -245,6 +245,17 @@ class SmoOperation {
         selection.measure.changed = true;
     }
 
+    static toggleGraceNoteCourtesy(selection,modifiers) {
+        if (!Array.isArray(modifiers)) {
+            modifiers=[modifiers];
+        }
+        modifiers.forEach((mm) => {
+            mm.modifiers.pitches.forEach((pitch)=> {
+                pitch.cautionary = pitch.cautionary ? false : true;
+            });
+        });
+    }
+
     static transposeGraceNotes(selection,modifiers,offset) {
         if (!Array.isArray(modifiers)) {
             modifiers=[modifiers];

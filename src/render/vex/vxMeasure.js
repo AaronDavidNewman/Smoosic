@@ -134,8 +134,12 @@ class VxMeasure {
                 var gr = new VF.GraceNote(g.toVexGraceNote());
                 for (var i=0;i<g.pitches.length;++i) {
                     var pitch = g.pitches[i];
-                    if (pitch.accidental != 'n') {
-                        gr.addAccidental(i,new VF.Accidental(pitch.accidental));
+                    if (pitch.accidental != 'n' || pitch.cautionary)  {
+                        var accidental = new VF.Accidental(pitch.accidental);
+                        if (pitch.cautionary) {
+                            accidental.setAsCautionary();
+                        }
+                        gr.addAccidental(i,accidental);
                     }
                 }
                 if (g.tickCount() > 4096) {

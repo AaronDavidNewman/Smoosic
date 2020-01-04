@@ -419,12 +419,15 @@ class suiTracker {
 
 		this._updateModifiers(rebox);
 		this.selections = [];
+
+        // Try to restore selection.  If there were none, just select the fist
+        // thing in the score
 		if (this.objects.length && !selCopy.length) {
 			// console.log('adding selection ' + this.objects[0].note.id);
 			this.selections = [this.objects[0]];
-		} else {
+		}  else {
 			this._findClosestSelection(firstSelection.selector);
-			var first = this.selections[0];
+            var first = this.selections[0];
 			var tickSelected = first.note.tickCount;
 			while (tickSelected < ticksSelectedCopy && first) {
 				var delta = this.growSelectionRight();
@@ -947,9 +950,12 @@ class suiTracker {
         var grace = this.getSelectedGraceNotes();
         // If this is not a note with grace notes, logically unselect the grace notes
         if (grace.length) {
-            if (!SmoSelector.sameNote(grace[0].selection.selector,this.selections[0])) {
+            if (!SmoSelector.sameNote(grace[0].selection.selector,this.selections[0].selector)) {
                 this.modifierSelections=[];
                 this.modifierIndex = -1;
+            } else {
+                this._highlightModifier();
+                return;
             }
         }
 		if (this.pitchIndex >= 0 && this.selections.length == 1 &&
