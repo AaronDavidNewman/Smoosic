@@ -1,9 +1,9 @@
 @font-face {
   font-family: 'smoosic';
   src:
-    url('fonts/smoosic.ttf?jrx7u2') format('truetype'),
-    url('fonts/smoosic.woff?jrx7u2') format('woff'),
-    url('fonts/smoosic.svg?jrx7u2#smoosic') format('svg');
+    url('fonts/smoosic.ttf?hjtzel') format('truetype'),
+    url('fonts/smoosic.woff?hjtzel') format('woff'),
+    url('fonts/smoosic.svg?hjtzel#smoosic') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -24,6 +24,15 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-grace_select:before {
+  content: "\e91b";
+}
+.icon-grace_remove:before {
+  content: "\e966";
+}
+.icon-grace_note:before {
+  content: "\e967";
+}
 .icon-pause2:before {
   content: "\ea1d";
 }
@@ -221,9 +230,6 @@
 }
 .icon-chords:before {
   content: "\e908";
-}
-.icon-courtesy:before {
-  content: "\e91b";
 }
 .icon-accident:before {
   content: "\e92a";

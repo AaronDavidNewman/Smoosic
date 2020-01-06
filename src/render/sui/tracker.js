@@ -30,6 +30,7 @@ class suiTracker {
         this.modifierSelections = [];
 		this.modifierTabs = [];
 		this.modifierIndex = -1;
+        this.localModifiers = [];
 		this.modifierSuggestion=-1;
 		this.suggestion = {};
 		this.pitchIndex = -1;
@@ -279,18 +280,54 @@ class suiTracker {
     // used by remove dialogs to clear removed thing
     clearModifierSelections() {
         this.modifierSelections=[];
+        this._createLocalModifiersList();
         this.modifierIndex = -1;
         this.eraseRect('staffModifier');
     }
 
 	getSelectedModifier() {
-		if (this.modifierIndex >= 0) {
-			return this.modifierTabs[this.modifierIndex];
-		}
+        if (this.modifierSelections.length) {
+            return this.modifierSelections[0];
+        }
 	}
 
     getSelectedModifiers() {
         return this.modifierSelections;
+    }
+    _addModifierToArray(ar) {
+        ar.forEach((mod) => {
+            if (mod.renderedBox) {
+                this.localModifiers.push({selection:sel,modifier:mod,box:mod.renderedBox});
+            }
+        });
+    }
+
+    _createLocalModifiersList() {
+        this.localModifiers = [];
+        var staffSelMap = {};
+        this.selections.forEach((sel) => {
+            sel.note.getGraceNotes().forEach((gg) => {
+                this.localModifiers.push({selection:sel,modifier:gg,box:gg.renderedBox});
+            });
+            sel.note.getModifiers('SmoDynamicText').forEach((dyn) => {
+                this.localModifiers.push({selection:sel,modifier:dyn,box:dyn.renderedBox});
+            });
+            sel.measure.getModifiersByType('SmoVolta').forEach((volta) => {
+                this.localModifiers.push({selection:sel,modifier:volta,box:volta.renderedBox});
+            });
+            sel.measure.getModifiersByType('SmoTempoText').forEach((tempo) => {
+                this.localModifiers.push({selection:sel,modifier:tempo,box:tempo.renderedBox});
+            });
+            sel.staff.getModifiers().forEach((mod) => {
+                if (SmoSelector.gteq(sel.selector,mod.startSelector) &&
+                    SmoSelector.lteq(sel.selector,mod.endSelector) &&
+                    !staffSelMap[mod.startSelector] && mod.renderedBox)  {
+                    this.localModifiers.push({selection:sel,modifier:mod,box:mod.renderedBox});
+                    // avoid duplicates
+                    staffSelMap[mod.startSelector] = true;
+                }
+            });
+        });
     }
 
 	advanceModifierSelection(keyEv) {
@@ -302,12 +339,14 @@ class suiTracker {
 			return;
 		}
 		this.modifierIndex = this.modifierIndex + offset;
-		if (this.modifierIndex >= this.modifierTabs.length || this.modifierIndex < 0) {
+        this.modifierIndex = (this.modifierIndex == -2 && this.localModifiers.length) ?
+            this.localModifiers.length - 1 : this.modifierIndex;
+		if (this.modifierIndex >= this.localModifiers.length || this.modifierIndex < 0) {
 			this.modifierIndex = -1;
             this.modifierSelections=[];
 			return;
 		}
-        this.modifierSelections = [this.modifierTabs[this.modifierIndex]];
+        this.modifierSelections = [this.localModifiers[this.modifierIndex]];
 		this._highlightModifier();
 	}
 
@@ -439,6 +478,7 @@ class suiTracker {
 			// selCopy.forEach((sel) => this._findClosestSelection(sel));
 		}
 		this.highlightSelection();
+        this._createLocalModifiersList();
 		this.triggerSelection();
 		this.pasteBuffer.clearSelections();
 		this.pasteBuffer.setSelections(this.score, this.selections);
@@ -589,6 +629,7 @@ class suiTracker {
 
 		this.selections.push(artifact);
 		this.highlightSelection();
+        this._createLocalModifiersList();
         return artifact.note.tickCount;
 	}
 
@@ -611,6 +652,7 @@ class suiTracker {
 		this.selections.push(artifact);
         suiOscillator.playSelectionNow(artifact);
 		this.highlightSelection();
+        this._createLocalModifiersList();
         return artifact.note.tickCount;
 	}
 
@@ -653,6 +695,7 @@ class suiTracker {
 			this.selections = [selObj];
 		}
 		this.highlightSelection();
+        this._createLocalModifiersList();
 		this.triggerSelection();
 	}
 
@@ -665,6 +708,7 @@ class suiTracker {
 		nselector.staff = this.score.incrementActiveStaff(offset);
 		this.selections = [this._getClosestTick(nselector)];
 		this.highlightSelection();
+        this._createLocalModifiersList();
 		this.triggerSelection();
 	}
 
@@ -711,7 +755,7 @@ class suiTracker {
         suiOscillator.playSelectionNow(artifact);
 
         // clear modifier selections
-        this.modifierSelections=[];
+        this.clearModifierSelections();
 		this.score.setActiveStaff(nselector.staff);
 		var mapped = this.objects.find((el) => {
 				return SmoSelector.sameNote(el.selector, artifact.selector);
@@ -727,6 +771,7 @@ class suiTracker {
 
 		this.selections = [mapped];
 		this.highlightSelection();
+        this._createLocalModifiersList();
 		this.triggerSelection();
 	}
 
@@ -778,7 +823,8 @@ class suiTracker {
 			if (this['suggestFadeTimer']) {
 			   clearTimeout(this.suggestFadeTimer);
     		}
-			this.modifierIndex = this.modifierSuggestion;
+			this.modifierIndex = -1;
+            this.modifierSelections = [this.modifierTabs[this.modifierSuggestion]];
 			this.modifierSuggestion = -1;
 			this._highlightModifier();
 			$('body').trigger('tracker-select-modifier');
@@ -791,6 +837,7 @@ class suiTracker {
 				var min = SmoSelector.gt(sel1.selector,this.suggestion.selector)  ? this.suggestion : sel1;
 				var max = SmoSelector.lt(min.selector,this.suggestion.selector) ? this.suggestion : sel1;
 				this._selectFromToInStaff(min,max);
+                this._createLocalModifiersList();
 				this.highlightSelection();
 				return;
 			}
@@ -798,6 +845,7 @@ class suiTracker {
 
 		if (ev.ctrlKey) {
 			this._addSelection(this.suggestion);
+            this._createLocalModifiersList();
 			this.highlightSelection();
 			return;
 		}
@@ -824,6 +872,7 @@ class suiTracker {
 			var selection = this.selections[i];
 			this.highlightSelection();
 		}
+        this._createLocalModifiersList();
 		this.triggerSelection();
 	}
 
@@ -951,8 +1000,7 @@ class suiTracker {
         // If this is not a note with grace notes, logically unselect the grace notes
         if (grace.length) {
             if (!SmoSelector.sameNote(grace[0].selection.selector,this.selections[0].selector)) {
-                this.modifierSelections=[];
-                this.modifierIndex = -1;
+                this.clearModifierSelections();
             } else {
                 this._highlightModifier();
                 return;

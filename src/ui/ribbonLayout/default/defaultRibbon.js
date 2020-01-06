@@ -30,7 +30,7 @@ class defaultRibbonLayout {
 		return ['helpDialog', 'fileMenu','addStaffMenu','measureModal','tempoModal','timeSignatureMenu','keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
 	}
 	static get noteButtonIds() {
-		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton',
+		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton','AddGraceNote','RemoveGraceNote',
 				'UpNoteButton', 'DownNoteButton', 'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
 	}
 	static get navigateButtonIds()  {
@@ -609,6 +609,24 @@ class defaultRibbonLayout {
 				group: 'notes',
 				id: 'ToggleRestButton'
 			}, {
+				leftText: '',
+				rightText: 'G',
+				icon: 'icon-grace_note',
+				classes: 'collapsed',
+				action: 'collapseChild',
+				ctor: 'NoteButtons',
+				group: 'notes',
+				id: 'AddGraceNote'
+			},{
+				leftText: '',
+				rightText: 'alt-g',
+				icon: 'icon-grace_remove',
+				classes: 'collapsed',
+				action: 'collapseChild',
+				ctor: 'NoteButtons',
+				group: 'notes',
+				id: 'RemoveGraceNote'
+			},{
 				leftText: '8va',
 				rightText: 'Shift=',
 				icon: '',

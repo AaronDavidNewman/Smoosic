@@ -437,11 +437,12 @@ class suiLayoutBase {
                 if (this._score.layout.pages  != curPages) {
                         if (this._score.layout.pages < curPages) {
                             this.reducedPageScore = true;
-                        }
-                        this.setPassState(suiLayoutBase.passStates.initial,'render 2');
-                        // Force the viewport to update the page size
-                        $('body').trigger('forceResizeEvent');
-
+                        } else {
+                            this.setViewport(true);
+                            this.setPassState(suiLayoutBase.passStates.initial,'render 2');
+                            // Force the viewport to update the page size
+                            $('body').trigger('forceResizeEvent');
+                    }
                 } else {
                     this.setPassState(suiLayoutBase.passStates.adjustY,'render 2');
                 }

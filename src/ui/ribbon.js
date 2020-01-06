@@ -211,6 +211,10 @@ class NoteButtons {
 			this.editor.toggleCourtesyAccidental();
 		} else if (this.buttonData.id === 'ToggleRestButton') {
 			this.editor.makeRest();
+		} else if (this.buttonData.id === 'AddGraceNote') {
+			this.editor.addGraceNote();
+		} else if (this.buttonData.id === 'RemoveGraceNote') {
+			this.editor.removeGraceNote();
 		} else {
 			this.editor.setPitchCommand(this.buttonData.rightText);
 		}

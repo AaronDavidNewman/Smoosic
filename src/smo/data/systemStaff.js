@@ -119,7 +119,7 @@ class SmoSystemStaff {
             return SmoSelector.sameNote(mod.startSelector,selector);
         });
     }
-    
+
     getSlursEndingAt(selector) {
         return this.modifiers.filter((mod) => {
             return SmoSelector.sameNote(mod.endSelector,selector);
@@ -131,6 +131,10 @@ class SmoSystemStaff {
             startMeasure: this.measures.find((measure) => measure.attrs.id === modifier.startMeasure),
             endMeasure: this.measures.find((measure) => measure.attrs.id === modifier.endMeasure),
         }
+    }
+
+    getModifiers() {
+        return this.modifiers;
     }
 
     applyBeams() {

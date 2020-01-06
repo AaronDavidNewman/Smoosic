@@ -490,9 +490,16 @@ button.addChord .left-text .icon {
 }
 
 #NavigationButtons.expandedChildren {
-	font-size: 1.2em;
+	font-size: 1.4em;
 	width: 50px;
 	left: 0;
+}
+#AddGraceNote,#RemoveGraceNote {
+    width:60px;
+	font-size:1.4em;
+}
+#AddGraceNote .ribbon-button-hotkey,#RemoveGraceNote .ribbon-button-hotkey {
+    font-size:0.6em;
 }
 
 #UpOctaveButton,#DownOctaveButton {

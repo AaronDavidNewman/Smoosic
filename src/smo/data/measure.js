@@ -102,7 +102,7 @@ class SmoMeasure {
 		this.tuplets.forEach((tuplet) => {
 			params.tuplets.push(JSON.parse(JSON.stringify(tuplet)));
 		});
-        
+
 		this.voices.forEach((voice) => {
 			var obj = {
 				notes: []
@@ -444,6 +444,11 @@ class SmoMeasure {
     }
     getRehearsalMark() {
         return this._getSingletonModifier('SmoRehearsalMark');
+    }
+    getModifiersByType(type) {
+        return this.modifiers.filter((mm) => {
+            return type == mm.attrs.type;
+        });
     }
 
     addTempo(params) {
