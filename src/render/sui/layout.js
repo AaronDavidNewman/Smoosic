@@ -21,7 +21,7 @@ class suiLayoutBase {
 	static get passStates() {
 		return {initial:0,pass:1,clean:2,replace:3,incomplete:4,adjustY:6,redrawMain:7};
 	}
-
+    
 	setDirty() {
 		if (!this.dirty) {
 			this.dirty = true;

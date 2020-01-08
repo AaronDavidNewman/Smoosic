@@ -132,11 +132,8 @@ class suiTracker {
         svgHelpers.updateArtifactBox(this.context.svg,el,modifier);
     }
 
-    _updateNoteModifier(rebox,selection,modMap,modifier,ix) {
+    _updateNoteModifier(selection,modMap,modifier,ix) {
         if (!modMap[modifier.attrs.id]) {
-            if (rebox) {
-                this._reboxTextModifier(modifier);
-            }
             this.modifierTabs.push({
                 modifier: modifier,
                 selection: selection,
@@ -151,17 +148,13 @@ class suiTracker {
         return ix;
     }
 
-	_updateModifiers(rebox) {
+	_updateModifiers() {
 		this.modifierTabs = [];
 		this.modifierBoxes = [];
 		var modMap = {};
 		var ix=0;
         this.layout.score.scoreText.forEach((modifier) => {
             if (!modMap[modifier.attrs.id]) {
-                if (rebox) {
-                    var el = this.context.svg.getElementsByClassName(modifier.attrs.id)[0]
-                    svgHelpers.updateArtifactBox(this.context.svg,el,modifier);
-                }
                 this.modifierTabs.push({
                     modifier: modifier,
 							selection: null,
@@ -175,15 +168,6 @@ class suiTracker {
 			selection.staff.modifiers.forEach((modifier) => {
 				if (SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
 					if (!modMap[modifier.id]) {
-                        if (rebox) {
-                            var el = this.context.svg.getElementsByClassName(modifier.id)[0];
-                            // Bug: some slurs are not showing up in the DOM.
-                            if (el) {
-                                svgHelpers.updateArtifactBox(this.context.svg,el,modifier);
-                            } else {
-                                console.log('missing slur '+modifier.id);
-                            }
-                        }
                         if (modifier.renderedBox) {
     						this.modifierTabs.push({
     							modifier: modifier,
@@ -201,10 +185,6 @@ class suiTracker {
 			});
 			selection.measure.modifiers.forEach((modifier) => {
 				if (modifier.id && !modMap[modifier.attrs.id]) {
-                    if (rebox) {
-                        var el = this.context.svg.getElementsByClassName(modifier.id)[0];
-                        svgHelpers.updateArtifactBox(this.context.svg,el,modifier);
-                    }
 					this.modifierTabs.push({
 						modifier: modifier,
 						selection: selection,
@@ -218,11 +198,11 @@ class suiTracker {
 				}
 			});
 			selection.note.textModifiers.forEach((modifier) => {
-                ix = this._updateNoteModifier(rebox,selection,modMap,modifier,ix);
+                ix = this._updateNoteModifier(selection,modMap,modifier,ix);
 			});
 
             selection.note.graceNotes.forEach((modifier) => {
-                ix = this._updateNoteModifier(rebox,selection,modMap,modifier,ix);
+                ix = this._updateNoteModifier(selection,modMap,modifier,ix);
             });
 		});
 	}
@@ -401,7 +381,7 @@ class suiTracker {
 	//
 	// ### TODO:
 	// try to preserve the previous selection
-	_updateMap(rebox) {
+	_updateMap() {
 		console.log('update map');
         this.mapping = true;
 		var notes = [].slice.call(this.renderElement.getElementsByClassName('vf-stavenote'));
@@ -411,10 +391,8 @@ class suiTracker {
 
 		this.groupObjectMap = {};
 		this.objectGroupMap = {};
+        this.measureNoteMap = {}; // Map for tracke
 
-        if (!rebox) {
-            this.measureNoteMap = {}; // Map for tracker
-        }
 		this.objects = [];
 		var selCopy = this._copySelections();
 		var ticksSelectedCopy = this._getTicksFromSelections();
@@ -432,11 +410,7 @@ class suiTracker {
 								voice: voiceIx,
 								tick: tick,
 								pitches: []
-							};
-						// if we need to update the screen based on scroll
-						if (rebox) {
-							this._updateNoteBox(this.layout.svg,note,selector);
-						}
+							};					
 
 						var selection = new SmoSelection({
 									selector: selector,
@@ -456,7 +430,7 @@ class suiTracker {
 			});
 		});
 
-		this._updateModifiers(rebox);
+		this._updateModifiers();
 		this.selections = [];
 
         // Try to restore selection.  If there were none, just select the fist
@@ -485,8 +459,8 @@ class suiTracker {
         this.mapping = false;
 	}
 
-	updateMap(rebox) {
-        this._updateMap(rebox);
+	updateMap() {
+        this._updateMap();
 	}
 
 	static stringifyBox(box) {
