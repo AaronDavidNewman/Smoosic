@@ -11,6 +11,7 @@ class SmoMeasure {
 		this.tuplets = [];
 		this.beamGroups = [];
 		this.modifiers = [];
+        this.pageGap = 0;
 		this.changed = true;
         this.timestamp=0;
         this.prevY = 0;

@@ -38,14 +38,14 @@ class svgHelpers {
 				self.e.setAttributeNS('', name, value);
 				return self;
 			}
-			
+
 			this.text = function (x, y, classes, text) {
 				x = typeof(x) == 'string' ? x : x.toString();
 				y = typeof(y) == 'string' ? y : y.toString();
 				this.e.setAttributeNS('', 'class', classes);
 				this.e.setAttributeNS('', 'x', x);
 				this.e.setAttributeNS('', 'y', y);
-				
+
 				this.e.textContent = text;
 				return this;
 			}
@@ -89,30 +89,29 @@ class svgHelpers {
 		}
 		return new smoSvgBuilder(el);
 	}
-	
+
 	// ### boxNote
 	// update the note geometry based on current viewbox conditions.
 	// This may not be the appropriate place for this...maybe in layout
 	static updateArtifactBox(svg,element,artifact) {
-		
 		artifact.renderedBox = svgHelpers.smoBox(element.getBoundingClientRect());
-		artifact.logicalBox = svgHelpers.clientToLogical(svg,
-			artifact.renderedBox);
+		artifact.logicalBox = svgHelpers.smoBox(element.getBBox());
 	}
+
     static rect(svg,box,attrs,classes) {
         var rect = document.createELementNS(svgHelpers.namespace,'rect');
         attrs.forEach((attr) => {
             var key = Object.keys(attr)[0];
             key = (key == 'strokewidth') ? 'stroke-width' : key;
             var val = attr[key];
-            rect.setAttributeNS('', key, val);            
+            rect.setAttributeNS('', key, val);
         });
         if (classes) {
             rect.setAttributeNS('','class',classes);
         }
         svg.appendChild(rect);
     }
-    
+
     static line(svg,x1,y1,x2,y2,attrs,classes) {
         var line = document.createElementNS(svgHelpers.namespace,'line');
         x1 = typeof(x1) == 'string' ? x1 : x1.toString();
@@ -129,21 +128,21 @@ class svgHelpers {
             var key = Object.keys(attr)[0];
             key = (key == 'strokewidth') ? 'stroke-width' : key;
             var val = attr[key];
-            line.setAttributeNS('', key, val);            
+            line.setAttributeNS('', key, val);
         });
         if (classes) {
             line.setAttributeNS('', 'class', classes);
         }
         svg.appendChild(line);
     }
-    
+
     static arrowDown(svg,box,attrs,classes) {
         svgHelpers.line(svg,box.x+box.width/2,box.y,box.x+box.width/2,box.y+box.height);
         var arrowY=box.y + box.height/4;
         svgHelpers.line(svg,box.x,arrowY,box.x+box.width/2,box.y+box.height);
         svgHelpers.line(svg,box.x+box.width,arrowY,box.x+box.width/2,box.y+box.height);
     }
-    
+
     static textOutlineRect(svg,textElement, color, classes) {
         var box = textElement.getBBox();
         var attrs = [{width:box.width+5,height:box.height+5,stroke:color,strokewidth:'2',fill:'none',x:box.x-5,y:box.y-5}];
@@ -194,11 +193,11 @@ class svgHelpers {
 				  .append(
 				b('line').line(Math.round(box.x-8), Math.round(box.y +box.height),box.x+6,Math.round(box.y+box.height)))
 				  .append(
-				b('line').line(Math.round(box.x-8), Math.round(box.y),Math.round(box.x+6),Math.round(box.y)));				  
+				b('line').line(Math.round(box.x-8), Math.round(box.y),Math.round(box.x+6),Math.round(box.y)));
 		}
 		svg.appendChild(r.dom());
 	}
-    
+
     static fontIntoToSvgAttributes(fontInfo) {
         var rv = [];
         var fkeys = Object.keys(fontInfo);
@@ -208,7 +207,7 @@ class svgHelpers {
 		});
         return rv;
     }
-		
+
 	static placeSvgText(svg,attributes,classes,text) {
 		var ns = svgHelpers.namespace;
 		var e = document.createElementNS(ns, 'text');
@@ -220,7 +219,7 @@ class svgHelpers {
 			e.setAttributeNS('', 'class', classes);
 		}
 		e.textContent = text;
-		svg.appendChild(e);	
+		svg.appendChild(e);
 		return e;
 	}
 
@@ -294,13 +293,13 @@ class svgHelpers {
     // Supported font units
     static get unitsPerInch() {
         var rv = {};
-        
+
         rv['pt']=72.0;
         rv['px']=96.0;
         rv['em']=6.0;
         return rv;
     }
-    
+
     // ### getFontSize
     // Given '1em' return {size:1.0,unit:em}
     static getFontSize(fs) {
@@ -308,7 +307,7 @@ class svgHelpers {
         var measure = fs.substr(fs.length-2,2);
         return {size:size,unit:measure};
     }
-    
+
     static convertFont(size,o,n) {
         return size*(svgHelpers.unitsPerInch[o]/svgHelpers.unitsPerInch[n]);
     }
@@ -358,16 +357,16 @@ class svgHelpers {
 	// return a simple box object that can be serialized, copied
 	// (from svg DOM box)
 	static smoBox(box) {
-        var x = typeof(box.x) == 'undefined' ? box.left : box.x;
-        var y = typeof(box.y) == 'undefined' ? box.top : box.y;
+        var x = typeof(box.x) == 'undefined' ? Math.round(box.left) : Math.round(box.x);
+        var y = typeof(box.y) == 'undefined' ? Math.round(box.top) : Math.round(box.y);
 		return ({
 			x: x,
 			y: y,
-			width: box.width,
-			height: box.height
+			width: Math.round(box.width),
+			height: Math.round(box.height)
 		});
 	}
-    
+
     static adjustScroll(box,scroll) {
         // WIP...
         return svgHelpers.boxPoints(box.x - scroll.x,box.y-scroll.y,box.width,box.height);

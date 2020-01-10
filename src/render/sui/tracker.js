@@ -17,8 +17,6 @@ class TrackerBase {
 class suiTracker {
 	constructor(layout) {
 		this.layout = layout;
-		this.groupObjectMap = {};
-		this.objectGroupMap = {};
         this.measureNoteMap = {};
 		this.objects = [];
         this._scroll = {x:0,y:0};
@@ -389,8 +387,6 @@ class suiTracker {
         this._scrollInitial = {x:$(scroller)[0].scrollLeft,y:$(scroller)[0].scrollTop};
 		this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
 
-		this.groupObjectMap = {};
-		this.objectGroupMap = {};
         this.measureNoteMap = {}; // Map for tracke
 
 		this.objects = [];
@@ -410,7 +406,7 @@ class suiTracker {
 								voice: voiceIx,
 								tick: tick,
 								pitches: []
-							};					
+							};
 
 						var selection = new SmoSelection({
 									selector: selector,
@@ -477,8 +473,6 @@ class suiTracker {
 		} else {
 			//console.log('note '+JSON.stringify(artifact.smoMeasure.measureNumber,null,' ')+' box: '+
 			// suiTracker.stringifyBox(box));
-			this.groupObjectMap[id] = artifact;
-			this.objectGroupMap[artifact.note.id] = artifact;
 			this.objects.push({
 				artifact: artifact
 			});
@@ -1029,14 +1023,16 @@ class suiTracker {
 			bb = [bb];
 		}
 		bb.forEach((box) => {
-			var strokes = suiTracker.strokes[stroke];
-			var strokeObj = {};
-			var margin = 5;
-			$(Object.keys(strokes)).each(function (ix, key) {
-				strokeObj[key] = strokes[key];
-			});
-            box = svgHelpers.clientToLogical(this.context.svg, svgHelpers.adjustScroll(box,this.netScroll));
-			this.context.rect(box.x - margin, box.y - margin, box.width + margin * 2, box.height + margin * 2, strokeObj);
+            if (box) {
+    			var strokes = suiTracker.strokes[stroke];
+    			var strokeObj = {};
+    			var margin = 5;
+    			$(Object.keys(strokes)).each(function (ix, key) {
+    				strokeObj[key] = strokes[key];
+    			});
+                box = svgHelpers.clientToLogical(this.context.svg, svgHelpers.adjustScroll(box,this.netScroll));
+    			this.context.rect(box.x - margin, box.y - margin, box.width + margin * 2, box.height + margin * 2, strokeObj);
+            }
 		});
 		this.context.closeGroup(grp);
 	}

@@ -393,7 +393,7 @@ class VxMeasure {
 
         var staffX = this.smoMeasure.staffX + this.smoMeasure.padLeft;
 
-        this.stave = new VF.Stave(staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - 1);
+        this.stave = new VF.Stave(staffX, this.smoMeasure.staffY + this.smoMeasure.adjY, this.smoMeasure.staffWidth - 1);
         if (this.smoMeasure.prevFrame < VxMeasure.fps) {
             this.smoMeasure.prevFrame += 1;
         }
@@ -461,13 +461,8 @@ class VxMeasure {
 
         this.context.closeGroup();
         var box = svgHelpers.smoBox(group.getBoundingClientRect());
-		var lbox = svgHelpers.clientToLogical(this.context.svg,box);
-        this.smoMeasure.renderedBox = {
-            x: box.x,
-            y: box.y,
-            height: box.height,
-            width: box.width
-        };
+		var lbox = svgHelpers.smoBox(group.getBBox());
+        this.smoMeasure.renderedBox = box;
 		this.smoMeasure.logicalBox = lbox;
         this.smoMeasure.changed = false;
 		this._setModifierBoxes();

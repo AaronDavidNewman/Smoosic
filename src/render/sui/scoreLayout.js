@@ -141,7 +141,7 @@ class suiScoreLayout extends suiLayoutBase {
 			measure.canceledKeySignature = keySigLast;
 			measure.setChanged();
 			measure.forceKeySignature = true;
-		} else if (measure.measureNumber.systemIndex == 0 && measureKeySig != 'C') {
+		} else if (systemIndex == 0 && measureKeySig != 'C') {
 			measure.forceKeySignature = true;
 		} else {
 			measure.forceKeySignature = false;
@@ -177,7 +177,9 @@ class suiScoreLayout extends suiLayoutBase {
         } else {
             s.staffBoxes[s.staff.staffId].width = (s.measure.logicalBox.x + s.measure.logicalBox.width) - s.staffBoxes[s.staff.staffId].x;
         }
-        s.staffBoxes[s.staff.staffId].y = s.measure.staffY;
+        if (s.measure.measureNumber.systemIndex === 0) {
+            s.staffBoxes[s.staff.staffId].y = s.measure.staffY + s.measure.adjY;
+        }
     }
 
     _wrapLine(renderState) {
@@ -284,6 +286,9 @@ class suiScoreLayout extends suiLayoutBase {
         var svg = this.context.svg;
 
         measure.lineIndex = s.lineIndex;
+        if (useAdjustedY) {
+            measure.adjY = 0;
+        }
 
         this._initStaffBoxes(s);
 
@@ -291,11 +296,33 @@ class suiScoreLayout extends suiLayoutBase {
         var staffBox = s.staffBoxes[staff.staffId];
 
         // If we are calculating the measures' location dynamically, always update the y
-        if (!useAdjustedY && measure.changed) { // && systemIndex === 0) {
-            measure.staffY = staffBox.y;
-                if (isNaN(measure.staffY)) {
-                    throw ("nan measure ");
+        if (!useAdjustedY) {
+            // if this is not the left-most staff, get it from the previous measure
+            if (s.systemIndex > 0) {
+                measure.staffY = this._previousAttr(measure.measureNumber.measureIndex,
+                    staff.staffId,'staffY') + this._previousAttr(measure.measureNumber.measureIndex,
+                        staff.staffId,'adjY');
+            } else if (measure.measureNumber.staffId == 0) {
+                // If this is the top staff, put it on the top of the page.
+                if (measure.lineIndex == 0) {
+                    measure.staffY = this.score.layout.topMargin;
+                } else {
+                    // Else, get it from the height of the previous system.
+                    var previous = this.score.staves[this.score.staves.length - 1].measures[measure.measureNumber.measureIndex - 1];
+                    var height = previous.logicalBox ?  previous.logicalBox.height : 0;
+                    measure.staffY = previous.staffY + height +
+                       + this.score.layout.interGap + measure.pageGap;
                 }
+            } else {
+                // Else, get it from the measure above us.
+                var previous = this.score.staves[measure.measureNumber.staffId - 1].measures[measure.measureNumber.measureIndex];
+                var height =  previous.logicalBox ?  previous.logicalBox.height : 0;
+                measure.staffY = previous.staffY + height +
+                   + this.score.layout.intraGap + measure.pageGap;
+            }
+            if (isNaN(measure.staffY)) {
+                throw ("nan measure ");
+            }
         }
 
         if (!s.pageBox['width']) {
@@ -335,6 +362,9 @@ class suiScoreLayout extends suiLayoutBase {
                  return s;
         }
 
+        if (measure.measureNumber.systemIndex == 0 && staff.staffId == 0 && s.systemIndex > 0 && measure.logicalBox) {
+            console.log('wrap is changing');
+        }
         // guess height of staff the first time
         measure.measureNumber.systemIndex = s.systemIndex;
 
@@ -344,8 +374,16 @@ class suiScoreLayout extends suiLayoutBase {
         }
 
         // When we are estimating dimensions, just draw changed measures.
-        if (useAdjustedY || useAdjustedX || measure.changed) {
+        if (true) {
             smoBeamerFactory.applyBeams(measure);
+            if (measure.measureNumber.systemIndex == 0 && useAdjustedY == false)  {
+                measure.adjY = 0;
+                s.system.renderMeasure(staff.staffId, measure);
+                if (Math.abs(measure.staffY - measure.logicalBox.y) > 1) {
+                    measure.adjY = measure.staffY-measure.logicalBox.y;
+                }
+            }
+
             s.system.renderMeasure(staff.staffId, measure);
 
             if (suiLayoutBase.debugLayout) {
