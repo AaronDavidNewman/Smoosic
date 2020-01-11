@@ -310,15 +310,25 @@ class suiScoreLayout extends suiLayoutBase {
                     // Else, get it from the height of the previous system.
                     var previous = this.score.staves[this.score.staves.length - 1].measures[measure.measureNumber.measureIndex - 1];
                     var height = previous.logicalBox ?  previous.logicalBox.height : 0;
-                    measure.staffY = previous.staffY + height +
-                       + this.score.layout.interGap + measure.pageGap;
+
+                    // First system on a page considers page gap.
+                    if (previous.pageGap < measure.pageGap) {
+                        height += measure.pageGap;
+                    }
+                    var adj = previous.staffY + height +
+                       + this.score.layout.interGap;
+                    // if the measure is higher, resist jumping up too fast.
+                    if (measure.logicalBox && adj < measure.logicalBox.y) {
+                        adj = Math.round((adj + measure.logicalBox.y)/2);
+                    }
+                    measure.staffY = adj;
                 }
             } else {
                 // Else, get it from the measure above us.
                 var previous = this.score.staves[measure.measureNumber.staffId - 1].measures[measure.measureNumber.measureIndex];
                 var height =  previous.logicalBox ?  previous.logicalBox.height : 0;
                 measure.staffY = previous.staffY + height +
-                   + this.score.layout.intraGap + measure.pageGap;
+                   + this.score.layout.intraGap;
             }
             if (isNaN(measure.staffY)) {
                 throw ("nan measure ");
@@ -340,7 +350,13 @@ class suiScoreLayout extends suiLayoutBase {
         this.calculateBeginningSymbols(s.systemIndex, measure, s.clefLast, s.keySigLast, s.timeSigLast,s.tempoLast);
 
         if (!useAdjustedX) {
-            measure.staffX = staffBox.x + staffBox.width;
+            if (s.systemIndex > 0) {
+            measure.staffX = this._previousAttr(measure.measureNumber.measureIndex,
+                staff.staffId, 'staffX') + this._previousAttr(measure.measureNumber.measureIndex,
+                    staff.staffId,'staffWidth');
+            } else {
+                measure.staffX = this.score.layout.leftMargin;
+            }
             suiLayoutAdjuster.estimateMeasureWidth(this.renderer,measure,staffBox);
         }
 
@@ -373,30 +389,27 @@ class suiScoreLayout extends suiLayoutBase {
                 svg, svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, 1), 'measure-place-dbg');
         }
 
-        // When we are estimating dimensions, just draw changed measures.
-        if (true) {
-            smoBeamerFactory.applyBeams(measure);
-            if (measure.measureNumber.systemIndex == 0 && useAdjustedY == false)  {
-                measure.adjY = 0;
-                s.system.renderMeasure(staff.staffId, measure);
-                if (Math.abs(measure.staffY - measure.logicalBox.y) > 1) {
-                    measure.adjY = measure.staffY-measure.logicalBox.y;
-                }
-            }
-
+        smoBeamerFactory.applyBeams(measure);
+        if (measure.measureNumber.systemIndex == 0 && useAdjustedY == false)  {
+            measure.adjY = 0;
             s.system.renderMeasure(staff.staffId, measure);
-
-            if (suiLayoutBase.debugLayout) {
-                svgHelpers.debugBox(svg, svgHelpers.clientToLogical(svg, measure.renderedBox), 'measure-render-dbg');
-                measure.voices.forEach((voice) => {
-                    voice.notes.forEach((note) => {
-                        var noteEl = svg.getElementById(note.renderId);
-                        svgHelpers.debugBox(svg, noteEl.getBBox(), 'measure-note-dbg');
-                    });
-                });
+            if (Math.abs(measure.staffY - measure.logicalBox.y) > 1) {
+                measure.adjY = measure.staffY-measure.logicalBox.y;
             }
-            measure.changed = false;
         }
+
+        s.system.renderMeasure(staff.staffId, measure);
+
+        if (suiLayoutBase.debugLayout) {
+            svgHelpers.debugBox(svg, svgHelpers.clientToLogical(svg, measure.renderedBox), 'measure-render-dbg');
+            measure.voices.forEach((voice) => {
+                voice.notes.forEach((note) => {
+                    var noteEl = svg.getElementById(note.renderId);
+                    svgHelpers.debugBox(svg, noteEl.getBBox(), 'measure-note-dbg');
+                });
+            });
+        }
+        measure.changed = false;
 
         // For x coordinate we adjust to the actual rendered size.  For Y, we want all staves at the same height
         // so we only consider the height of the first measure in the system
@@ -463,7 +476,7 @@ class suiScoreLayout extends suiLayoutBase {
             this._layoutSystem(renderState);
             // Render a few lines at a time, unless in debug mode
             if (this.partialRender == true &&
-                this.passState == suiLayoutBase.passStates.pass &&
+                (this.passState == suiLayoutBase.passStates.pass || this.passState == suiLayoutBase.passStates.initial) &&
                 renderState.complete == false
                 && !suiLayoutBase.debugLayout
                 && Date.now() - ts > 100) {

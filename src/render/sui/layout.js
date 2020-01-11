@@ -11,7 +11,6 @@ class suiLayoutBase {
 			type: ctor
 		};
 		this.dirty=true;
-        this.shadowRender = false;
         this.partialRender = false;
 		this.setPassState(suiLayoutBase.initial,'ctor');
 		console.log('layout ctor: pstate initial');
@@ -21,7 +20,7 @@ class suiLayoutBase {
 	static get passStates() {
 		return {initial:0,pass:1,clean:2,replace:3,incomplete:4,adjustY:6,redrawMain:7};
 	}
-    
+
 	setDirty() {
 		if (!this.dirty) {
 			this.dirty = true;
@@ -79,19 +78,7 @@ class suiLayoutBase {
 
     setViewport(reset) {
         this._setViewport(reset,this.elementId);
-        this.shadowRender = false;
         this.partialRender = false;
-        this.mainRenderer = this.renderer;
-
-        if (this.shadowElement && !suiLayoutBase['_debugLayout']) {
-            this._setViewport(reset,this.shadowElement);
-            if (reset) {
-                this.shadowRenderer = this.renderer;
-            }
-            this.renderer = this.mainRenderer;
-        } else {
-            this.shadowRenderer = this.renderer;
-        }
     }
 
 	setPassState(st,location) {
@@ -269,7 +256,7 @@ class suiLayoutBase {
 			this.unrenderMeasure(measure);
 		});
 		staff.modifiers.forEach((modifier) => {
-			$(this.mainRenderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
+			$(this.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
 		});
 	}
 
@@ -386,20 +373,7 @@ class suiLayoutBase {
 			params.useX=true;
 		}
 
-        // If we are redrawing a significant portion of the screen, redraw in the shadow dom
-        // to reduce the 'flicker'
-        this.renderer =
-           (this.passState == suiLayoutBase.passStates.initial ||
-               this.passState == suiLayoutBase.passStates.pass ||
-               this.passState == suiLayoutBase.passStates.incomplete ||
-               this.passState == suiLayoutBase.passStates.adjustY) &&
-            this.shadowRender ?
-            this.shadowRenderer : this.mainRenderer;
 
-		// if this is debug mode, let us see it all.
-	    if (suiLayoutBase.debugLayout) {
-				this.renderer = this.mainRenderer;
-		}
         if (suiLayoutBase.passStates.replace == this.passState) {
             this._replaceMeasures();
         } else {
@@ -420,14 +394,14 @@ class suiLayoutBase {
         if (this.passState == suiLayoutBase.passStates.redrawMain) {
             this.dirty=false;
             this.setPassState(suiLayoutBase.passStates.clean,'render complete');
-            this.shadowRender = true;
+            // this.shadowRender = true;
             this.partialRender = true;
             return;
         }
 
         if (params.useX == true) {
             if (this.passState == suiLayoutBase.passStates.adjustY) {
-                this.setPassState(suiLayoutBase.passStates.redrawMain,'last shadow render successful');
+                this.setPassState(suiLayoutBase.passStates.redrawMain,'penultimate render successful');
             } else {
                 var curPages = this._score.layout.pages;
                 suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth / this.svgScale);

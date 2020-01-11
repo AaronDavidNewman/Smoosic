@@ -85,7 +85,7 @@ class suiTracker {
 	// ### renderElement
 	// the element the score is rendered on
 	get renderElement() {
-		return this.layout.mainRenderer.elementId;
+		return this.layout.renderer.elementId;
 	}
 
 	get score() {
@@ -93,7 +93,7 @@ class suiTracker {
 	}
 
 	get context() {
-		return this.layout.mainRenderer.getContext();
+		return this.layout.renderer.getContext();
 	}
 
 	_copySelections() {
