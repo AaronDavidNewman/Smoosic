@@ -54,8 +54,7 @@ class SuiLayoutDemon {
 
     render() {
 		this.layout.render();
-        if ((this.layout.passState == suiLayoutBase.passStates.clean && this.layout.dirty == false)
- 			|| this.layout.passState ==  suiLayoutBase.passStates.replace) {
+        if (this.layout.passState == suiLayoutBase.passStates.clean && this.layout.dirty == false) {
 		    this.tracker.updateMap();
         }
 	}

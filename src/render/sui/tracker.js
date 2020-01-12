@@ -105,6 +105,16 @@ class suiTracker {
 		return rv;
 	}
 
+    _copySelectionsByMeasure(staffIndex,measureIndex) {
+		var rv = [];
+		this.selections.forEach((sel) => {
+            if (sel.selector.staff == staffIndex && sel.selector.measure == measureIndex) {
+			    rv.push(sel.selector)
+            }
+		});
+		return rv;
+	}
+
 	_getTicksFromSelections() {
 		var rv = 0;
 		this.selections.forEach((sel) => {
@@ -403,13 +413,23 @@ class suiTracker {
 
             delete this.measureMap[measureKey];
         }
+        // Unselect selections in this measure so we can reselect them when re-tracked
+        var ar = [];
+        this.selections.forEach((selection) => {
+            if (selection.selector.staff != selector.staff || selection.selector.measure != selector.measure) {
+                ar.push(selection);
+            }
+        });
+        this.selections = ar;
     }
 
     // ### updateMeasure
     // A measure has changed.  Update the music geometry for it
     mapMeasure(staff,measure) {
+        var mSel = this._copySelectionsByMeasure(staff.staffId,measure.measureNumber.measureIndex);
         this.clearMeasureMap(staff,measure);
         var voiceIx = 0;
+        var selectionChanged = false;
         measure.voices.forEach((voice) => {
             var tick = 0;
             voice.notes.forEach((note) => {
@@ -431,18 +451,26 @@ class suiTracker {
                             type: 'rendered'
                         });
                 this._updateMeasureNoteMap(selection);
+                var selSelected = mSel.findIndex((s) => {
+                    return s.staff === selection.selector.staff && s.measure === selection.selector.measure
+                       && s.voice === selection.selector.voice && s.tick === selection.selector.tick;
+                });
+                if (selSelected >= 0) {
+                    this.selections.push(selection);
+                    selectionChanged = true;
+                }
                 tick += 1;
             });
         });
+        if (selectionChanged) {
+            this.highlightSelection();
+        }
         voiceIx += 1;
     }
 
 	// ### updateMap
 	// This should be called after rendering the score.  It updates the score to
 	// graphics map and selects the first object.
-	//
-	// ### TODO:
-	// try to preserve the previous selection
 	_updateMap() {
 		console.log('update map');
         this.mapping = true;

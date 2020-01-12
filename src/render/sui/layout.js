@@ -345,6 +345,9 @@ class suiLayoutBase {
             system.renderMeasure(change.staff.staffId, change.measure);
             // Fix a bug: measure change needs to stay true so we recaltulate the width
             change.measure.changed = true;
+            if (this.measureMapper) {
+                this.measureMapper.mapMeasure(change.staff,change.measure);
+            }
         });
     }
 
