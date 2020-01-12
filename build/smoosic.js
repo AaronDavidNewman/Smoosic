@@ -8701,6 +8701,12 @@ class suiTracker {
     mapMeasure(staff,measure) {
         var mSel = this._copySelectionsByMeasure(staff.staffId,measure.measureNumber.measureIndex);
         this.clearMeasureMap(staff,measure);
+
+        var scroller = $('.musicRelief');
+        this._scrollInitial = {x:$(scroller)[0].scrollLeft,y:$(scroller)[0].scrollTop};
+        this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
+
+
         var voiceIx = 0;
         var selectionChanged = false;
         measure.voices.forEach((voice) => {
@@ -8748,9 +8754,6 @@ class suiTracker {
 		console.log('update map');
         this.mapping = true;
 		var notes = [].slice.call(this.renderElement.getElementsByClassName('vf-stavenote'));
-        var scroller = $('.musicRelief');
-        this._scrollInitial = {x:$(scroller)[0].scrollLeft,y:$(scroller)[0].scrollTop};
-		this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
 
         this.measureMap = {};
         this.measureNoteMap = {}; // Map for tracke
@@ -10500,12 +10503,16 @@ class suiScoreLayout extends suiLayoutBase {
 	}
 
 	set score(score) {
+        var shouldReset = false;
 		if (this._score) {
-		    this.unrenderAll();
+            shouldReset = true;
 		}
 		this.setPassState(suiLayoutBase.passStates.initial,'load score');
 		this.dirty=true;
 		this._score = score;
+        if (shouldReset) {
+            this.setViewport(true);            
+        }
 	}
 
 
@@ -11298,12 +11305,28 @@ class editLyricSession {
         });
     }
 
-	_editingSession() {
-		if (!this.bound) {
-			this.bindEvents();
-		}
-		this.textElement = $(this.tracker.layout.svg).find('#'+this.selection.note.renderId).find('g.lyric-'+this.lyric.verse)[0];
-		this.editor = new editSvgText({target:this.textElement,layout:this.tracker.layout,fontInfo:this.fontInfo});
+    _lyricAddedPromise() {
+        var self=this;
+        return new Promise((resolve) => {
+            var checkAdd = function() {
+                setTimeout(function() {
+                    self.textElement = $(self.tracker.layout.svg).find('#'+self.selection.note.renderId).find('g.lyric-'+self.lyric.verse)[0];
+                    if (self.textElement) {
+                        resolve();
+                    } else {
+                        checkAdd();
+                    }
+                },50);
+            }
+            checkAdd();
+        });
+    }
+
+    // ### _editCurrentLyric
+    // If this is a new lyric, we need to maybe wait for it to be rendered.
+    _editCurrentLyric() {
+        this.textElement = $(this.tracker.layout.svg).find('#'+this.selection.note.renderId).find('g.lyric-'+this.lyric.verse)[0];
+        this.editor = new editSvgText({target:this.textElement,layout:this.tracker.layout,fontInfo:this.fontInfo});
         this.state = editLyricSession.states.started;
         var self = this;
         function handleSkip() {
@@ -11311,6 +11334,17 @@ class editLyricSession {
         }
 
         this.editor.startSessionPromise().then(handleSkip);
+    }
+
+	_editingSession() {
+        var self = this;
+		if (!this.bound) {
+			this.bindEvents();
+		}
+        function editCurrent() {
+            self._editCurrentLyric();
+        }
+        this._lyricAddedPromise().then(editCurrent);
 	}
 
     _getOrCreateLyric(note) {
@@ -11352,7 +11386,7 @@ class editLyricSession {
 		this.fontInfo = JSON.parse(JSON.stringify(this.lyric.fontInfo));
         this.selection.note.addLyric(this.lyric);
         this.selection.measure.changed = true;
-        this.tracker.layout.render();
+        this.tracker.layout.setDirty();
 		_startEditing();
         return this.detachPromise();
     }
@@ -13414,19 +13448,31 @@ class SuiDialogBase {
 				label: parameters.label
 			});
 	}
+
+    // ### position
+    // Position the dialog near a selection.  If the dialog is not visible due
+    // to scrolling, make sure it is visible.
 	position(box) {
 		var y = (box.y + box.height) - this.tracker.netScroll.y;
 
 		// TODO: adjust if db is clipped by the browser.
         var dge = $(this.dgDom.element).find('.attributeModal');
+        var dgeHeight = $(dge).height();
+        var maxY =  $('.musicRelief').height();
+        var maxX = $('.musicRelief').width();
 
-		var offset = $(dge).height() + y > window.innerHeight ? ($(dge).height() + y) -  window.innerHeight : 0;
+		var offset = dgeHeight + y > window.innerHeight ? (dgeHeight + y) -  window.innerHeight : 0;
 		y = (y < 0) ? -y : y - offset;
+
+        y = (y > maxY || y < 0) ? maxY / 2 : y;
+
 		$(dge).css('top', '' + y + 'px');
 
         var x = box.x - this.tracker.netScroll.x;
         var w = $(dge).width();
         x = (x > window.innerWidth /2)  ? x - (w+25) : x + (w+25);
+
+        x = (x < 0 || x > maxX) ? maxX/2 : x;
         $(dge).css('left', '' + x + 'px');
 	}
 	_constructDialog(dialogElements, parameters) {

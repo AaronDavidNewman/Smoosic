@@ -428,6 +428,12 @@ class suiTracker {
     mapMeasure(staff,measure) {
         var mSel = this._copySelectionsByMeasure(staff.staffId,measure.measureNumber.measureIndex);
         this.clearMeasureMap(staff,measure);
+
+        var scroller = $('.musicRelief');
+        this._scrollInitial = {x:$(scroller)[0].scrollLeft,y:$(scroller)[0].scrollTop};
+        this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
+
+
         var voiceIx = 0;
         var selectionChanged = false;
         measure.voices.forEach((voice) => {
@@ -475,9 +481,6 @@ class suiTracker {
 		console.log('update map');
         this.mapping = true;
 		var notes = [].slice.call(this.renderElement.getElementsByClassName('vf-stavenote'));
-        var scroller = $('.musicRelief');
-        this._scrollInitial = {x:$(scroller)[0].scrollLeft,y:$(scroller)[0].scrollTop};
-		this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
 
         this.measureMap = {};
         this.measureNoteMap = {}; // Map for tracke

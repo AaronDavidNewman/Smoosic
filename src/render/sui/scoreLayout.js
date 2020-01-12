@@ -23,12 +23,16 @@ class suiScoreLayout extends suiLayoutBase {
 	}
 
 	set score(score) {
+        var shouldReset = false;
 		if (this._score) {
-		    this.unrenderAll();
+            shouldReset = true;
 		}
 		this.setPassState(suiLayoutBase.passStates.initial,'load score');
 		this.dirty=true;
 		this._score = score;
+        if (shouldReset) {
+            this.setViewport(true);            
+        }
 	}
 
 

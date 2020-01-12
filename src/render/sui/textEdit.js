@@ -174,12 +174,28 @@ class editLyricSession {
         });
     }
 
-	_editingSession() {
-		if (!this.bound) {
-			this.bindEvents();
-		}
-		this.textElement = $(this.tracker.layout.svg).find('#'+this.selection.note.renderId).find('g.lyric-'+this.lyric.verse)[0];
-		this.editor = new editSvgText({target:this.textElement,layout:this.tracker.layout,fontInfo:this.fontInfo});
+    _lyricAddedPromise() {
+        var self=this;
+        return new Promise((resolve) => {
+            var checkAdd = function() {
+                setTimeout(function() {
+                    self.textElement = $(self.tracker.layout.svg).find('#'+self.selection.note.renderId).find('g.lyric-'+self.lyric.verse)[0];
+                    if (self.textElement) {
+                        resolve();
+                    } else {
+                        checkAdd();
+                    }
+                },50);
+            }
+            checkAdd();
+        });
+    }
+
+    // ### _editCurrentLyric
+    // If this is a new lyric, we need to maybe wait for it to be rendered.
+    _editCurrentLyric() {
+        this.textElement = $(this.tracker.layout.svg).find('#'+this.selection.note.renderId).find('g.lyric-'+this.lyric.verse)[0];
+        this.editor = new editSvgText({target:this.textElement,layout:this.tracker.layout,fontInfo:this.fontInfo});
         this.state = editLyricSession.states.started;
         var self = this;
         function handleSkip() {
@@ -187,6 +203,17 @@ class editLyricSession {
         }
 
         this.editor.startSessionPromise().then(handleSkip);
+    }
+
+	_editingSession() {
+        var self = this;
+		if (!this.bound) {
+			this.bindEvents();
+		}
+        function editCurrent() {
+            self._editCurrentLyric();
+        }
+        this._lyricAddedPromise().then(editCurrent);
 	}
 
     _getOrCreateLyric(note) {
@@ -228,7 +255,7 @@ class editLyricSession {
 		this.fontInfo = JSON.parse(JSON.stringify(this.lyric.fontInfo));
         this.selection.note.addLyric(this.lyric);
         this.selection.measure.changed = true;
-        this.tracker.layout.render();
+        this.tracker.layout.setDirty();
 		_startEditing();
         return this.detachPromise();
     }

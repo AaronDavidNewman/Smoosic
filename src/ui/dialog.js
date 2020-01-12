@@ -56,19 +56,31 @@ class SuiDialogBase {
 				label: parameters.label
 			});
 	}
+
+    // ### position
+    // Position the dialog near a selection.  If the dialog is not visible due
+    // to scrolling, make sure it is visible.
 	position(box) {
 		var y = (box.y + box.height) - this.tracker.netScroll.y;
 
 		// TODO: adjust if db is clipped by the browser.
         var dge = $(this.dgDom.element).find('.attributeModal');
+        var dgeHeight = $(dge).height();
+        var maxY =  $('.musicRelief').height();
+        var maxX = $('.musicRelief').width();
 
-		var offset = $(dge).height() + y > window.innerHeight ? ($(dge).height() + y) -  window.innerHeight : 0;
+		var offset = dgeHeight + y > window.innerHeight ? (dgeHeight + y) -  window.innerHeight : 0;
 		y = (y < 0) ? -y : y - offset;
+
+        y = (y > maxY || y < 0) ? maxY / 2 : y;
+
 		$(dge).css('top', '' + y + 'px');
 
         var x = box.x - this.tracker.netScroll.x;
         var w = $(dge).width();
         x = (x > window.innerWidth /2)  ? x - (w+25) : x + (w+25);
+
+        x = (x < 0 || x > maxX) ? maxX/2 : x;
         $(dge).css('left', '' + x + 'px');
 	}
 	_constructDialog(dialogElements, parameters) {
