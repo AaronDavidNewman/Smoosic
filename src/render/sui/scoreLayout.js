@@ -417,6 +417,10 @@ class suiScoreLayout extends suiLayoutBase {
         s.pageBox = svgHelpers.unionRect(s.pageBox, measure.logicalBox);
         s.wrapped=false;
         s.measure=measure;
+
+        if (this.measureMapper) {
+            this.measureMapper.mapMeasure(staff,measure);
+        }
         return s;
     }
 

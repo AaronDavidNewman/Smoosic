@@ -224,6 +224,7 @@ class suiController {
         var score = SmoScore.deserialize(basicJson);
 		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), document.getElementById("booShadow"),score);
 		params.tracker = new suiTracker(params.layout);
+        params.layout.setMeasureMapper(params.tracker);
 		params.editor = new suiEditor(params);
 		params.menus = new suiMenuManager(params);
         params.layoutDemon = new SuiLayoutDemon(params);

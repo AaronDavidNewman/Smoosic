@@ -230,7 +230,7 @@ class suiLayoutAdjuster {
 
 	// ### adjustHeight
 	// Handle measure bumping into each other, vertically.
-	static adjustHeight(score,renderer,pageWidth,pageHeight,reducedPageScore) {
+	static adjustHeight(score,renderer,pageWidth,pageHeight) {
 		var topStaff = score.staves[0];
 		var maxLine = topStaff.measures[topStaff.measures.length - 1].lineIndex;
 		var svg = renderer.getContext().svg;
@@ -359,8 +359,9 @@ class suiLayoutAdjuster {
             }
         }
         if (page != score.layout.pages) {
-            // Don't reduce the page count twice
-            if (score.layout.pages < page || reducedPageScore == false) {
+            // Always add extra pages, but don't reduce the page count
+            // unless we are 50% from a poge break to avoid flicker
+            if (score.layout.pages < page || pbrk-maxy > (pageHeight/2)) {
                 score.layout.pages = page;
             }
         }

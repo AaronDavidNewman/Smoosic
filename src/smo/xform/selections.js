@@ -49,6 +49,16 @@ class SmoSelector {
 		return SmoSelector.lt(sel1, sel2) || SmoSelector.eq(sel1, sel2);
 	}
 
+    // ### getNoteKey
+    // Get a key useful for a hash map of notes.
+    static getNoteKey(selector) {
+        return ''+selector.staff + '-' +selector.measure  + '-' + selector.voice + '-' + selector.tick;
+    }
+
+    static getMeasureKey(selector) {
+        return ''+selector.staff + '-' +selector.measure;
+    }
+
 	// ## applyOffset
 	// ### Description:
 	// offset 'selector' the difference between src and target, return the result
@@ -228,7 +238,7 @@ class SmoSelection {
 		}
 		return null;
 	}
-	
+
 	// ### getMeasureList
 	// Gets the list of measures in an array from the selections
 	static getMeasureList(selections) {

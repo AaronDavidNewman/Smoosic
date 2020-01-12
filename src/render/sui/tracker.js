@@ -17,8 +17,9 @@ class TrackerBase {
 class suiTracker {
 	constructor(layout) {
 		this.layout = layout;
-        this.measureNoteMap = {};
-		this.objects = [];
+        this.measureMap = {};
+        this.measureNoteMap = {}; // Map for tracke
+
         this._scroll = {x:0,y:0};
         this._scrollInitial = {x:0,y:0};
 	    var scroller = $('.musicRelief');
@@ -162,7 +163,9 @@ class suiTracker {
                 ix += 1;
             }
         });
-		this.objects.forEach((selection) => {
+        var keys = Object.keys(this.measureNoteMap);
+		keys.forEach((selKey) => {
+            var selection = this.measureNoteMap[selKey];
 			selection.staff.modifiers.forEach((modifier) => {
 				if (SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
 					if (!modMap[modifier.id]) {
@@ -232,10 +235,10 @@ class suiTracker {
 		}
 	}
 
-    musicCursor(measureIndex,noteIndex) {
-        var key = '' + measureIndex  + '-' + noteIndex;
+    musicCursor(selector) {
+        var key = SmoSelector.getNoteKey(selector);
         if (this.measureNoteMap[key]) {
-            var pos = this.measureNoteMap[key];
+            var pos = this.measureNoteMap[key].scrollBox;
             var b = htmlHelpers.buildDom;
 	        var r = b('span').classes('birdy icon icon-arrow-down').attr('id','birdy');
             $('.workspace #birdy').remove();
@@ -364,13 +367,74 @@ class suiTracker {
     }
 
     _updateMeasureNoteMap(artifact) {
-        var key = ''+artifact.selector.measure+'-'+artifact.selector.tick;
-        if (!this.measureNoteMap[key]) {
-            this.measureNoteMap[key] = {x:artifact.box.x - this.netScroll.x,y:artifact.measure.renderedBox.y - this.netScroll.y};
+        var noteKey = SmoSelector.getNoteKey(artifact.selector);
+        var measureKey = SmoSelector.getMeasureKey(artifact.selector);
+
+        if (!this.measureNoteMap[noteKey]) {
+            this.measureNoteMap[noteKey] = artifact;
+            artifact.scrollBox = {x:artifact.box.x - this.netScroll.x,y:artifact.measure.renderedBox.y - this.netScroll.y};
         } else {
-            var mm = this.measureNoteMap[key];
-            mm = {x:Math.min(artifact.box.x - this.netScroll.x,mm.x),y:Math.min(artifact.measure.renderedBox.y - this.netScroll.y,mm.y)};
+            var mm = this.measureNoteMap[noteKey];
+            mm.scrollBox = {x:Math.min(artifact.box.x - this.netScroll.x,mm.x),y:Math.min(artifact.measure.renderedBox.y - this.netScroll.y,mm.y)};
         }
+
+        if (!this.measureMap[measureKey]) {
+            this.measureMap[measureKey] = {keys:{}};
+            this.measureMap[measureKey].keys[noteKey] = true;
+        } else {
+            var measureHash = this.measureMap[measureKey].keys;
+            if (!measureHash[noteKey]) {
+                measureHash[noteKey] = true;
+            }
+
+        }
+    }
+
+    // ### _clearMeasureArtifacts
+    // clear the measure from the measure and note maps so we can rebuild it.
+    clearMeasureMap(staff,measure) {
+        var selector = {staff:measure.measureNumber.staffId,measure:measure.measureNumber.measureIndex};
+        var measureKey = SmoSelector.getMeasureKey(selector);
+        if (this.measureMap[measureKey]) {
+            var nkeys = Object.keys(this.measureMap[measureKey].keys);
+            nkeys.forEach((key) => {
+                delete this.measureNoteMap[key];
+            });
+
+            delete this.measureMap[measureKey];
+        }
+    }
+
+    // ### updateMeasure
+    // A measure has changed.  Update the music geometry for it
+    mapMeasure(staff,measure) {
+        this.clearMeasureMap(staff,measure);
+        var voiceIx = 0;
+        measure.voices.forEach((voice) => {
+            var tick = 0;
+            voice.notes.forEach((note) => {
+                var selector = {
+                        staff: staff.staffId,
+                        measure: measure.measureNumber.measureIndex,
+                        voice: voiceIx,
+                        tick: tick,
+                        pitches: []
+                    };
+
+                var selection = new SmoSelection({
+                            selector: selector,
+                            _staff: staff,
+                            _measure: measure,
+                            _note: note,
+                            _pitches: [],
+                            box: svgHelpers.adjustScroll(note.renderedBox,this.netScroll),
+                            type: 'rendered'
+                        });
+                this._updateMeasureNoteMap(selection);
+                tick += 1;
+            });
+        });
+        voiceIx += 1;
     }
 
 	// ### updateMap
@@ -387,42 +451,16 @@ class suiTracker {
         this._scrollInitial = {x:$(scroller)[0].scrollLeft,y:$(scroller)[0].scrollTop};
 		this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
 
+        this.measureMap = {};
         this.measureNoteMap = {}; // Map for tracke
 
-		this.objects = [];
 		var selCopy = this._copySelections();
 		var ticksSelectedCopy = this._getTicksFromSelections();
 		var firstSelection = this.getExtremeSelection(-1);
 
 		this.layout.score.staves.forEach((staff) => {
 			staff.measures.forEach((measure) => {
-				var voiceIx = 0;
-				measure.voices.forEach((voice) => {
-					var tick = 0;
-					voice.notes.forEach((note) => {
-						var selector = {
-								staff: staff.staffId,
-								measure: measure.measureNumber.measureIndex,
-								voice: voiceIx,
-								tick: tick,
-								pitches: []
-							};
-
-						var selection = new SmoSelection({
-									selector: selector,
-									_staff: staff,
-									_measure: measure,
-									_note: note,
-									_pitches: [],
-									box: svgHelpers.adjustScroll(note.renderedBox,this.netScroll),
-									type: 'rendered'
-								});
-						this.objects.push(selection);
-                        this._updateMeasureNoteMap(selection);
-                        tick += 1;
-					});
-				});
-				voiceIx += 1;
+				this.mapMeasure(staff,measure);
 			});
 		});
 
@@ -431,9 +469,9 @@ class suiTracker {
 
         // Try to restore selection.  If there were none, just select the fist
         // thing in the score
-		if (this.objects.length && !selCopy.length) {
-			// console.log('adding selection ' + this.objects[0].note.id);
-			this.selections = [this.objects[0]];
+        var keys = Object.keys(this.measureNoteMap);
+		if (keys.length && !selCopy.length) {
+			this.selections = [this.measureNoteMap[keys[0]]];
 		}  else {
 			this._findClosestSelection(firstSelection.selector);
             var first = this.selections[0];
@@ -463,29 +501,17 @@ class suiTracker {
 		return '{x:' + box.x + ',y:' + box.y + ',width:' + box.width + ',height:' + box.height + '}';
 	}
 
-	// ### _mapNoteElementToNote
-	// given a svg note group, find the smo element that defines this note;
-	_mapNoteElementToNote(nel) {
-		var id = nel.getAttribute('id');
-		var artifact = SmoSelection.renderedNoteSelection(this.score, nel);
-		if (!artifact) {
-			console.log('note ' + id + ' not found');
-		} else {
-			//console.log('note '+JSON.stringify(artifact.smoMeasure.measureNumber,null,' ')+' box: '+
-			// suiTracker.stringifyBox(box));
-			this.objects.push({
-				artifact: artifact
-			});
-		}
-	}
-
 	_getClosestTick(selector) {
-		var measureObj = this.objects.find((e) => SmoSelector.sameMeasure(e.selector, selector)
-				 && e.selector.tick === 0);
-		var tickObj = this.objects.find((e) => SmoSelector.sameNote(e.selector, selector));
-		var firstObj = this.objects[0];
-		return (tickObj) ? tickObj:
-		    (measureObj ? measureObj : firstObj);
+        var measureKey = Object.keys(this.measureNoteMap).find((k) => {
+            return SmoSelector.sameMeasure(this.measureNoteMap[k].selector, selector)
+    				 && this.measureNoteMap[k].selector.tick === 0;
+        });
+        var tickKey = Object.keys(this.measureNoteMap).find((k) => {
+            return SmoSelector.sameNote(this.measureNoteMap[k].selector,selector);
+        });
+		var firstObj = this.measureNoteMap[Object.keys(this.measureNoteMap)[0]];
+		return tickKey ? this.measureNoteMap[tickKey]:
+		    (measureKey ? this.measureNoteMap[measureKey] : firstObj);
 	}
 
 	// ### getExtremeSelection
@@ -725,12 +751,14 @@ class suiTracker {
         // clear modifier selections
         this.clearModifierSelections();
 		this.score.setActiveStaff(nselector.staff);
-		var mapped = this.objects.find((el) => {
-				return SmoSelector.sameNote(el.selector, artifact.selector);
-			});
-		if (!mapped) {
-			return;
-		}
+        var mapKey = Object.keys(this.measureNoteMap).find((k) => {
+            return SmoSelector.sameNote(this.measureNoteMap[k].selector, artifact.selector);
+        });
+        if (!mapKey) {
+            return;
+        }
+		var mapped = this.measureNoteMap[mapKey];
+
 		// If this is a new selection, remove pitch-specific and replace with note-specific
 		if (!nselector['pitches'] || nselector.pitches.length==0) {
 			this.pitchIndex = -1;
@@ -765,11 +793,15 @@ class suiTracker {
 
 	_selectFromToInStaff(sel1,sel2) {
 		this.selections=[];
-		this.objects.forEach((obj) => {
-			if (SmoSelector.gteq(obj.selector,sel1.selector) && SmoSelector.lteq(obj.selector,sel2.selector)) {
-				this.selections.push(obj);
-			}
-		});
+        var order = [sel1,sel2].sort((a,b) => {return SmoSelector.lteq(a.selector,b.selector) ? -1 : 1});
+
+        // TODO: we could iterate directly over the selectors, that would be faster
+        Object.keys(this.measureNoteMap).forEach((k) => {
+            var obj = this.measureNoteMap[k];
+            if (SmoSelector.gteq(obj.selector,order[0].selector) && SmoSelector.lteq(obj.selector,order[1].selector)) {
+                this.selections.push(obj);
+            }
+        });
 	}
 	_addSelection(selection) {
 		var ar=this.selections.filter((sel) => {
@@ -904,8 +936,8 @@ class suiTracker {
 	}
 
 	intersectingArtifact(bb) {
-        bb = svgHelpers.boxPoints(bb.x,bb.y,bb.width,bb.height);
-		var artifacts = svgHelpers.findIntersectingArtifact(bb,this.objects,this.netScroll);
+        bb = svgHelpers.boxPoints(bb.x,bb.y,bb.width ? bb.width : 1 ,bb.height ? bb.height : 1);
+		var artifacts = svgHelpers.findIntersectingArtifactFromMap(bb,this.measureNoteMap,this.netScroll);
 		// TODO: handle overlapping suggestions
 		if (!artifacts.length) {
 			var sel = svgHelpers.findIntersectingArtifact(bb,this.modifierTabs,this.netScroll);

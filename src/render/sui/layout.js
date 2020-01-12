@@ -15,7 +15,12 @@ class suiLayoutBase {
 		this.setPassState(suiLayoutBase.initial,'ctor');
 		console.log('layout ctor: pstate initial');
 		this.viewportChange = false;
+        this.measureMapper = null;
 	}
+
+    setMeasureMapper(mapper) {
+        this.measureMapper = mapper;
+    }
 
 	static get passStates() {
 		return {initial:0,pass:1,clean:2,replace:3,incomplete:4,adjustY:6,redrawMain:7};
@@ -85,13 +90,6 @@ class suiLayoutBase {
         var oldState = this.passState;
 		console.log(location + ': passState '+this.passState+'=>'+st);
 		this.passState = st;
-        if (this.passState === suiLayoutBase.passStates.initial) {
-            // If we the render keeps bouncing because we can't figure output
-            // how to wrap the lines using the old geometry, redraw everything
-            if (oldState == suiLayoutBase.passStates.clean) {
-                this.reducedPageScore=false;
-            }
-        }
 	}
 	static get defaults() {
 		return {
@@ -405,18 +403,13 @@ class suiLayoutBase {
             } else {
                 var curPages = this._score.layout.pages;
                 suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth / this.svgScale);
-                suiLayoutAdjuster.adjustHeight(this._score,this.renderer,this.pageWidth/this.svgScale,this.pageHeight/this.svgScale,this.reducedPageScore);
+                suiLayoutAdjuster.adjustHeight(this._score,this.renderer,this.pageWidth/this.svgScale,this.pageHeight/this.svgScale);
 
-                // If we are bouncing near a page margin, don't reduce the page number
                 if (this._score.layout.pages  != curPages) {
-                        if (this._score.layout.pages < curPages) {
-                            this.reducedPageScore = true;
-                        } else {
-                            this.setViewport(true);
-                            this.setPassState(suiLayoutBase.passStates.initial,'render 2');
-                            // Force the viewport to update the page size
-                            $('body').trigger('forceResizeEvent');
-                    }
+                    this.setViewport(true);
+                    this.setPassState(suiLayoutBase.passStates.initial,'render 2');
+                    // Force the viewport to update the page size
+                    $('body').trigger('forceResizeEvent');
                 } else {
                     this.setPassState(suiLayoutBase.passStates.adjustY,'render 2');
                 }

@@ -82,7 +82,7 @@ class suiAudioPlayer {
 
         // Follow the top-staff note in this tick for the cursor
         if (proto[0].selector.staff == 0) {
-            this.tracker.musicCursor(proto[0].selector.measure,proto[0].selector.tick);
+            this.tracker.musicCursor(proto[0].selector);
         }
         if (ix < keys.length - 1) {
             var diff = parseInt(keys[ix+1]);
