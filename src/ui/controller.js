@@ -74,10 +74,6 @@ class suiController {
 		    // wait until redraw is done to track scroll events.
 			self.trackScrolling = false;
 
-		    if (!self.isLayoutQuiet) {
-				self.handleScrollEvent();
-				return;
-			}
 			// self.scrollRedrawStatus = true;
             // self.tracker.updateMap(true);
             // Thisi s a WIP...

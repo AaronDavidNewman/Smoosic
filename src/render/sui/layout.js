@@ -44,6 +44,11 @@ class suiLayoutBase {
 		this.setPassState(suiLayoutBase.passStates.initial,'setRefresh');
 	}
 
+    remapAll() {
+        this.partialRender = false;
+        this.setRefresh();
+    }
+
 	_setViewport(reset,elementId) {
 		// this.screenWidth = window.innerWidth;
 		var layout = this._score.layout;
@@ -135,6 +140,27 @@ class suiLayoutBase {
 	get svg() {
 		return this.context.svg;
 	}
+
+    get score() {
+        return this._score;
+    }
+
+    set score(score) {
+        var shouldReset = false;
+        if (this._score) {
+            shouldReset = true;
+        }
+        this.setPassState(suiLayoutBase.passStates.initial,'load score');
+        this.dirty=true;
+        this._score = score;
+        if (shouldReset) {
+            if (this.measureMap) {
+                this.measureMap.loadScore();
+            }
+            this.setViewport(true);
+        }
+    }
+
 
 	// ### render
 	// ### Description:

@@ -8342,6 +8342,22 @@ class suiTracker {
         return {x:this._scroll.x - (this._scrollInitial.x + xoffset),y:this._scroll.y - (this._scrollInitial.y + yoffset)};
     }
 
+    _fullRenderPromise() {
+        var self = this;
+        return new Promise((resolve) => {
+            var f = function() {
+                setTimeout(function() {
+                    if (self.layout.passState === suiLayoutBase.passStates.clean) {
+                        resolve();
+                    } else {
+                        f();
+                    }
+                },50);
+            }
+            f();
+        });
+    }
+
     // ### _checkBoxOffset
 	// If the mapped note and actual note don't match, re-render the notes so they do.
 	// Otherwise the selections are off.
@@ -8349,11 +8365,23 @@ class suiTracker {
 		var note = this.selections[0].note;
 		var r = note.renderedBox;
 		var b = this.selections[0].box;
-		if (r.y != b.y || r.x != b.x) {
-			console.log('tracker: rerender conflicting map');
-			this.layout.setDirty();
-		}
+        var preventScroll = $('body').hasClass('modal');
 
+		if (r.y != b.y || r.x != b.x) {
+
+            if (this.layout.passState == suiLayoutBase.passStates.replace ||
+                this.layout.passState == suiLayoutBase.passStates.clean) {
+                console.log('tracker: rerender conflicting map');
+    			this.layout.remapAll();
+            }
+            if (!preventScroll) {
+                console.log('prevent scroll conflicting map');
+                $('body').addClass('modal');
+                this._fullRenderPromise().then(() => {
+                    $('body').removeClass('modal');
+                });
+            }
+        }
 	}
 
 	// ### renderElement
@@ -8673,6 +8701,13 @@ class suiTracker {
         }
     }
 
+    loadScore() {
+        this.measureMap = {};
+        this.measureNoteMap = {};
+        this.clearModifierSelections();
+        this.selections=[];
+    }
+
     // ### _clearMeasureArtifacts
     // clear the measure from the measure and note maps so we can rebuild it.
     clearMeasureMap(staff,measure) {
@@ -8695,6 +8730,24 @@ class suiTracker {
         });
         this.selections = ar;
     }
+
+    deleteMeasure(selection) {
+        var selCopy = this._copySelectionsByMeasure(selection.selector.staff,selection.selector.measure);
+        this.clearMeasureMap(selection.staff,selection.measure);
+        if (selCopy.length) {
+            selCopy.forEach((selector) => {
+                var nsel = JSON.parse(JSON.stringify(selector));
+                if (selector.measure == 0) {
+                    nsel.measure += 1;
+                } else {
+                    nsel.measure -= 1;
+                }
+                this.selections.push(this._getClosestTick(nsel));
+            });
+        }
+    }
+
+
 
     // ### updateMeasure
     // A measure has changed.  Update the music geometry for it
@@ -8755,18 +8808,9 @@ class suiTracker {
         this.mapping = true;
 		var notes = [].slice.call(this.renderElement.getElementsByClassName('vf-stavenote'));
 
-        this.measureMap = {};
-        this.measureNoteMap = {}; // Map for tracke
-
 		var selCopy = this._copySelections();
 		var ticksSelectedCopy = this._getTicksFromSelections();
 		var firstSelection = this.getExtremeSelection(-1);
-
-		this.layout.score.staves.forEach((staff) => {
-			staff.measures.forEach((measure) => {
-				this.mapMeasure(staff,measure);
-			});
-		});
 
 		this._updateModifiers();
 		this.selections = [];
@@ -9419,6 +9463,11 @@ class suiLayoutBase {
 		this.setPassState(suiLayoutBase.passStates.initial,'setRefresh');
 	}
 
+    remapAll() {
+        this.partialRender = false;
+        this.setRefresh();
+    }
+
 	_setViewport(reset,elementId) {
 		// this.screenWidth = window.innerWidth;
 		var layout = this._score.layout;
@@ -9510,6 +9559,27 @@ class suiLayoutBase {
 	get svg() {
 		return this.context.svg;
 	}
+
+    get score() {
+        return this._score;
+    }
+
+    set score(score) {
+        var shouldReset = false;
+        if (this._score) {
+            shouldReset = true;
+        }
+        this.setPassState(suiLayoutBase.passStates.initial,'load score');
+        this.dirty=true;
+        this._score = score;
+        if (shouldReset) {
+            if (this.measureMap) {
+                this.measureMap.loadScore();
+            }
+            this.setViewport(true);
+        }
+    }
+
 
 	// ### render
 	// ### Description:
@@ -10498,22 +10568,6 @@ class suiScoreLayout extends suiLayoutBase {
 		};
 	}
 
-	get score() {
-		return this._score;
-	}
-
-	set score(score) {
-        var shouldReset = false;
-		if (this._score) {
-            shouldReset = true;
-		}
-		this.setPassState(suiLayoutBase.passStates.initial,'load score');
-		this.dirty=true;
-		this._score = score;
-        if (shouldReset) {
-            this.setViewport(true);            
-        }
-	}
 
 
 	// ### createScoreLayout
@@ -11715,10 +11769,22 @@ class suiEditor {
             return;
         }
         var selection = this.tracker.selections[0];
-        this.layout.unrenderAll();
+        var ix = selection.selector.measure;
+        this.layout.score.staves.forEach((staff) => {
+            this.layout.unrenderMeasure(staff.measures[ix]);
+
+            // A little hacky - delete the modifiers if they start or end on
+            // the measure
+            staff.modifiers.forEach((modifier) => {
+                if (modifier.startSelector.measure == ix || modifier.endSelector.measure == ix) {
+    			    $(this.layout.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
+                }
+    		});
+        });
+        this.tracker.deleteMeasure(selection);
+        // this.layout.unrenderAll();
+
         SmoUndoable.deleteMeasure(this.score, selection, this.undoBuffer);
-        this.tracker.selections = [];
-        this.tracker.clearModifierSelections();
         this._refresh();
     }
 
@@ -57975,10 +58041,6 @@ class suiController {
 		    // wait until redraw is done to track scroll events.
 			self.trackScrolling = false;
 
-		    if (!self.isLayoutQuiet) {
-				self.handleScrollEvent();
-				return;
-			}
 			// self.scrollRedrawStatus = true;
             // self.tracker.updateMap(true);
             // Thisi s a WIP...

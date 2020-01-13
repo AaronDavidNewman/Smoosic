@@ -290,10 +290,22 @@ class suiEditor {
             return;
         }
         var selection = this.tracker.selections[0];
-        this.layout.unrenderAll();
+        var ix = selection.selector.measure;
+        this.layout.score.staves.forEach((staff) => {
+            this.layout.unrenderMeasure(staff.measures[ix]);
+
+            // A little hacky - delete the modifiers if they start or end on
+            // the measure
+            staff.modifiers.forEach((modifier) => {
+                if (modifier.startSelector.measure == ix || modifier.endSelector.measure == ix) {
+    			    $(this.layout.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
+                }
+    		});
+        });
+        this.tracker.deleteMeasure(selection);
+        // this.layout.unrenderAll();
+
         SmoUndoable.deleteMeasure(this.score, selection, this.undoBuffer);
-        this.tracker.selections = [];
-        this.tracker.clearModifierSelections();
         this._refresh();
     }
 

@@ -69,6 +69,22 @@ class suiTracker {
         return {x:this._scroll.x - (this._scrollInitial.x + xoffset),y:this._scroll.y - (this._scrollInitial.y + yoffset)};
     }
 
+    _fullRenderPromise() {
+        var self = this;
+        return new Promise((resolve) => {
+            var f = function() {
+                setTimeout(function() {
+                    if (self.layout.passState === suiLayoutBase.passStates.clean) {
+                        resolve();
+                    } else {
+                        f();
+                    }
+                },50);
+            }
+            f();
+        });
+    }
+
     // ### _checkBoxOffset
 	// If the mapped note and actual note don't match, re-render the notes so they do.
 	// Otherwise the selections are off.
@@ -76,11 +92,23 @@ class suiTracker {
 		var note = this.selections[0].note;
 		var r = note.renderedBox;
 		var b = this.selections[0].box;
-		if (r.y != b.y || r.x != b.x) {
-			console.log('tracker: rerender conflicting map');
-			this.layout.setDirty();
-		}
+        var preventScroll = $('body').hasClass('modal');
 
+		if (r.y != b.y || r.x != b.x) {
+
+            if (this.layout.passState == suiLayoutBase.passStates.replace ||
+                this.layout.passState == suiLayoutBase.passStates.clean) {
+                console.log('tracker: rerender conflicting map');
+    			this.layout.remapAll();
+            }
+            if (!preventScroll) {
+                console.log('prevent scroll conflicting map');
+                $('body').addClass('modal');
+                this._fullRenderPromise().then(() => {
+                    $('body').removeClass('modal');
+                });
+            }
+        }
 	}
 
 	// ### renderElement
@@ -400,6 +428,13 @@ class suiTracker {
         }
     }
 
+    loadScore() {
+        this.measureMap = {};
+        this.measureNoteMap = {};
+        this.clearModifierSelections();
+        this.selections=[];
+    }
+
     // ### _clearMeasureArtifacts
     // clear the measure from the measure and note maps so we can rebuild it.
     clearMeasureMap(staff,measure) {
@@ -422,6 +457,24 @@ class suiTracker {
         });
         this.selections = ar;
     }
+
+    deleteMeasure(selection) {
+        var selCopy = this._copySelectionsByMeasure(selection.selector.staff,selection.selector.measure);
+        this.clearMeasureMap(selection.staff,selection.measure);
+        if (selCopy.length) {
+            selCopy.forEach((selector) => {
+                var nsel = JSON.parse(JSON.stringify(selector));
+                if (selector.measure == 0) {
+                    nsel.measure += 1;
+                } else {
+                    nsel.measure -= 1;
+                }
+                this.selections.push(this._getClosestTick(nsel));
+            });
+        }
+    }
+
+
 
     // ### updateMeasure
     // A measure has changed.  Update the music geometry for it
@@ -482,18 +535,9 @@ class suiTracker {
         this.mapping = true;
 		var notes = [].slice.call(this.renderElement.getElementsByClassName('vf-stavenote'));
 
-        this.measureMap = {};
-        this.measureNoteMap = {}; // Map for tracke
-
 		var selCopy = this._copySelections();
 		var ticksSelectedCopy = this._getTicksFromSelections();
 		var firstSelection = this.getExtremeSelection(-1);
-
-		this.layout.score.staves.forEach((staff) => {
-			staff.measures.forEach((measure) => {
-				this.mapMeasure(staff,measure);
-			});
-		});
 
 		this._updateModifiers();
 		this.selections = [];
