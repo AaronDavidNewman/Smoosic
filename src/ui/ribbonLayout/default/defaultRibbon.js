@@ -7,7 +7,8 @@ class defaultRibbonLayout {
 		var top = defaultRibbonLayout.noteButtonIds.concat(defaultRibbonLayout.navigateButtonIds).concat(defaultRibbonLayout.articulateButtonIds)
 		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds)
             .concat(defaultRibbonLayout.beamIds).concat(defaultRibbonLayout.measureIds).concat(defaultRibbonLayout.staveIds)
-              .concat(defaultRibbonLayout.textIds).concat(defaultRibbonLayout.playerIds).concat(defaultRibbonLayout.debugIds);
+              .concat(defaultRibbonLayout.textIds).concat(defaultRibbonLayout.playerIds)
+              .concat(defaultRibbonLayout.voiceButtonIds).concat(defaultRibbonLayout.debugIds);
 
 		return {
 			left: left,
@@ -23,7 +24,8 @@ class defaultRibbonLayout {
 			defaultRibbonLayout.chordButtons).concat(
 			defaultRibbonLayout.durationRibbonButtons).concat(defaultRibbonLayout.beamRibbonButtons).concat(defaultRibbonLayout.measureRibbonButtons)
 			.concat(defaultRibbonLayout.staveRibbonButtons)
-            .concat(defaultRibbonLayout.textRibbonButtons).concat(defaultRibbonLayout.playerButtons).concat(defaultRibbonLayout.debugRibbonButtons);
+            .concat(defaultRibbonLayout.textRibbonButtons).concat(defaultRibbonLayout.playerButtons)
+            .concat(defaultRibbonLayout.voiceRibbonButtons).concat(defaultRibbonLayout.debugRibbonButtons);
 	}
 
 	static get leftRibbonIds() {
@@ -33,6 +35,9 @@ class defaultRibbonLayout {
 		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton','AddGraceNote','RemoveGraceNote',
 				'UpNoteButton', 'DownNoteButton', 'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
 	}
+    static get voiceButtonIds() {
+        return ['VoiceButtons','V1Button','V2Button','V3Button','V4Button'];
+    }
 	static get navigateButtonIds()  {
 		return ['NavigationButtons', 'navLeftButton', 'navRightButton', 'navUpButton', 'navDownButton', 'navFastForward', 'navRewind',
 				'navGrowLeft', 'navGrowRight'];
@@ -508,6 +513,55 @@ class defaultRibbonLayout {
 			];
 	}
 
+    static get voiceRibbonButtons() {
+        return [{
+                leftText: '',
+                rightText: '',
+                classes: 'icon  collapseParent',
+                icon: 'icon-Vo',
+                action: 'collapseParent',
+                ctor: 'CollapseRibbonControl',
+                group: 'voices',
+                id: 'VoiceButtons'
+            }, {
+                leftText: '',
+                rightText: '',
+                icon: 'icon-glyph1',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'VoiceButtons',
+                group: 'voices',
+                id: 'V1Button'
+            }, {
+                leftText: '',
+                rightText: '',
+                icon: 'icon-glyph2',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'VoiceButtons',
+                group: 'voices',
+                id: 'V2Button'
+            }, {
+                leftText: '',
+                rightText: '',
+                icon: 'icon-glyph3',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'VoiceButtons',
+                group: 'voices',
+                id: 'V3Button'
+            }, {
+                leftText: '',
+                rightText: '',
+                icon: 'icon-glyph4',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'VoiceButtons',
+                group: 'voices',
+                id: 'V4Button'
+            }
+        ];
+    }
 	static get noteRibbonButtons() {
 		return [{
 				leftText: '',

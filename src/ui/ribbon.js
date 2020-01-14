@@ -190,6 +190,30 @@ class DurationButtons {
 	}
 }
 
+class VoiceButtons {
+	constructor(parameters) {
+		this.buttonElement = parameters.buttonElement;
+		this.buttonData = parameters.buttonData;
+		this.editor = parameters.editor;
+	}
+	setPitch() {
+		if (this.buttonData.id === 'V1Button') {
+			this.editor.transposeUp();
+		} else if (this.buttonData.id === 'V2Button') {
+			this.editor.transposeDown();
+		} else if (this.buttonData.id === 'V3Button') {
+			this.editor.upOctave();
+		} else if (this.buttonData.id === 'V4Button') {
+			this.editor.downOctave();
+		}
+    }
+	bind() {
+		var self = this;
+		$(this.buttonElement).off('click').on('click', function () {
+			self.setPitch();
+		});
+	}
+}
 class NoteButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;

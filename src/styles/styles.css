@@ -392,7 +392,7 @@ button.addChord .left-text .icon {
     left: 15%;
 }
 
-#playerButtons {
+#playerButtons,#VoiceButtons {
     width:55px;
     font-size:1.3em;
 }
