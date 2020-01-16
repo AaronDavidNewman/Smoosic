@@ -6873,13 +6873,17 @@ class PasteBuffer {
 			// IF this is a tuplet, clone all the notes at once.
 			if (note.isTuplet) {
 				var tuplet = measure.getTupletForNote(note);
+                var tupletIx = tuplet.getIndexOfNote(note) ;
 				// create a new tuplet array for the new measure.
-				if (tuplet.getIndexOfNote(note) === 0) {
+				if (tupletIx === 0) {
 					var ntuplet = SmoTuplet.cloneTuplet(tuplet);
 					this.tupletNoteMap[ntuplet.attrs.id] = ntuplet;
 					ticksToFill -= tuplet.tickCount;
 					voice.notes = voice.notes.concat(ntuplet.notes);
-				}
+				} else if (tupletIx == tuplet.notes.length - 1) {
+                    measure.removeTupletForNote(note);
+                    measure.tuplets.push(ntuplet);
+                }
 			} else if (ticksToFill >= note.tickCount) {
 				ticksToFill -= note.tickCount;
 				voice.notes.push(SmoNote.clone(note));
@@ -9138,7 +9142,7 @@ class suiTracker {
 		var artifact = SmoSelection.noteSelection(this.score, nselector.staff, nselector.measure, nselector.voice, nselector.tick);
         if (!artifact) {
             console.log('warn: selection disappeared, default to start');
-            artifact = SmoSelecction.noteSelection(this.score,0,0,0,0);
+            artifact = SmoSelection.noteSelection(this.score,0,0,0,0);
         }
         suiOscillator.playSelectionNow(artifact);
 

@@ -823,7 +823,7 @@ class suiTracker {
 		var artifact = SmoSelection.noteSelection(this.score, nselector.staff, nselector.measure, nselector.voice, nselector.tick);
         if (!artifact) {
             console.log('warn: selection disappeared, default to start');
-            artifact = SmoSelecction.noteSelection(this.score,0,0,0,0);
+            artifact = SmoSelection.noteSelection(this.score,0,0,0,0);
         }
         suiOscillator.playSelectionNow(artifact);
 
