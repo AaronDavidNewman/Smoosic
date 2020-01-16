@@ -221,7 +221,7 @@ class smoMusic {
 		}
 		return rv;
 	}
-    
+
     // ### getEnharmonic(noteProp)
 	// cycle through the enharmonics for a note.
 	static getEnharmonic(vexKey) {
@@ -235,7 +235,7 @@ class smoMusic {
 		vexKey = ar[(ix + 1) % len];
 		return vexKey;
 	}
-    
+
 	// ### getKeyFriendlyEnharmonic
 	// fix the enharmonic to match the key, if possible
 	// `getKeyFriendlyEnharmonic('b','eb');  => returns 'bb'
@@ -290,7 +290,7 @@ class smoMusic {
 		smoRv.octave += Math.sign(ori - rvi);
 		return smoRv;
 	}
-	
+
 	// ### getIntervalInKey
 	// give a pitch and a key signature, return another pitch at the given
 	// diatonic interval.  Similar to getKeyOffset but diatonic.
@@ -374,7 +374,7 @@ class smoMusic {
 			accidental: accidental
 		};
 	}
-    
+
     // ### smoPitchToVes
 	// #### Example:
     // {letter:'f',accidental:'#'} => [f#/
@@ -471,7 +471,7 @@ class smoMusic {
 			'D': 2
 		};
 	}
-	
+
 	static getSharpsInKeySignature(key) {
 		var sharpKeys = ['B','G','D','A','E','B','F#','C#'];
 		if (sharpKeys.indexOf[key] < 0) {
@@ -487,12 +487,12 @@ class smoMusic {
 		}
 		return smoMusic.keySignatureLength[key];
 	}
-    
+
     static timeSignatureToTicks(timeSignature) {
         var nd = timeSignature.split('/');
         var num = parseInt(nd[0]);
         var den = parseInt(nd[1]);
-        
+
         var base = 2048*(8/den);
         return base*num;
     }
@@ -558,7 +558,7 @@ class smoMusic {
 		}
 		return ticks;
 	}
-    
+
 
 	// ### ticksToDuration
 	// Frequently we double/halve a note duration, and we want to find the vex tick duration that goes with that.
@@ -580,7 +580,7 @@ class smoMusic {
 			}
 			return ticksToDuration;
 		}
-        if (!smoMusic._ticksToDuration) {           
+        if (!smoMusic._ticksToDuration) {
 		   _ticksToDurationsF();
         }
 		return smoMusic._ticksToDuration;
@@ -606,7 +606,29 @@ class smoMusic {
 	}
 
 
-	
+	static gcdMap(duration) {
+        var keys = Object.keys(smoMusic.ticksToDuration).map((x) => parseInt(x));
+        var dar = [];
+
+        var gcd = function(td) {
+            var rv = keys[0];
+            for (var k = 1;k<keys.length;++k) {
+                if (td % keys[k] == 0) {
+                    rv = keys[k]
+                }
+            }
+            return rv;
+        }
+        while (duration > 0 && !smoMusic.ticksToDuration[duration]) {
+            var div = gcd(duration);
+            duration = duration - div;
+            dar.push(div);
+        }
+        if (duration > 0) {
+            dar.push(duration);
+        }
+        return dar.sort((a,b) => a > b ? -1 : 1);
+    }
 
 	// ### filteredMerge
 	// Like vexMerge, but only for specific attributes.

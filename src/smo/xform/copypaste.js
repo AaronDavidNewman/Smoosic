@@ -67,7 +67,7 @@ class PasteBuffer {
 					var ntuplet = SmoTuplet.cloneTuplet(tuplet);
 					this.tupletNoteMap[ntuplet.attrs.id] = ntuplet;
 					ntuplet.notes.forEach((nnote) => {
-						
+
 						this.notes.push({
 						selector:selector,note:nnote});
 						selector = JSON.parse(JSON.stringify(selector));
@@ -91,14 +91,14 @@ class PasteBuffer {
 	clearSelections() {
 		this.notes = [];
 	}
-    
+
     _findModifier(selector) {
         var rv = this.modifiers.filter((mod) => SmoSelector.eq(selector,mod.startSelector));
         return (rv && rv.length) ? rv[0] : null;
     }
     _findPlacedModifier(selector) {
         var rv = this.modifiers.filter((mod) => SmoSelector.eq(selector,mod.endSelector));
-        return (rv && rv.length) ? rv[0] : null;        
+        return (rv && rv.length) ? rv[0] : null;
     }
 
 	// ### _populateMeasureArray
@@ -163,11 +163,14 @@ class PasteBuffer {
 				voice.notes.push(SmoNote.clone(note));
 			} else {
 				var duration = note.tickCount - ticksToFill;
-				SmoNote.cloneWithDuration(note, {
-					numerator: duration,
-					denominator: 1,
-					remainder: 0
-				});
+                var durMap = smoMusic.gcdMap(duration);
+                durMap.forEach((dd) => {
+                    SmoNote.cloneWithDuration(note, {
+    					numerator: dd,
+    					denominator: 1,
+    					remainder: 0
+    				});
+                });
 				ticksToFill = 0;
 			}
 			if (ticksToFill < 1) {
@@ -272,11 +275,14 @@ class PasteBuffer {
 						// should try to prevent this.  Just paste the first note to the
 						// last spot in the measure
 						var partial = totalDuration - currentDuration;
-						var snote = SmoNote.cloneWithDuration(tuplet.notes[0], {
-								numerator: partial,
-								denominator: 1,
-								remainder: 0
-							});
+                        var dar = smoMusic.gcdMap(partial);
+                        dar.forEach((ddd) => {
+                            var snote = SmoNote.cloneWithDuration(tuplet.notes[0], {
+    								numerator: ddd,
+    								denominator: 1,
+    								remainder: 0
+    							});
+                        });
 						snote.tuplet = null;
 						totalDuration = currentDuration;
 						voice.notes.push(snote);
@@ -306,11 +312,14 @@ class PasteBuffer {
 				// The note won't fit, so we split it in 2 and paste the remainder in the next measure.
 				// TODO:  tie the last note to this one.
 				var partial = totalDuration - currentDuration;
-				voice.notes.push(SmoNote.cloneWithDuration(note, {
-						numerator: partial,
-						denominator: 1,
-						remainder: 0
-					}));
+                var dar = smoMusic.gcdMap(partial);
+                dar.forEach((ddd) => {
+                    voice.notes.push(SmoNote.cloneWithDuration(note, {
+    						numerator: ddd,
+    						denominator: 1,
+    						remainder: 0
+    					}));
+                });
 				currentDuration += partial;
 
 				// Set the remaining length of the current note, this will be added to the

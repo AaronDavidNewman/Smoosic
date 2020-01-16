@@ -221,7 +221,7 @@ class smoMusic {
 		}
 		return rv;
 	}
-    
+
     // ### getEnharmonic(noteProp)
 	// cycle through the enharmonics for a note.
 	static getEnharmonic(vexKey) {
@@ -235,7 +235,7 @@ class smoMusic {
 		vexKey = ar[(ix + 1) % len];
 		return vexKey;
 	}
-    
+
 	// ### getKeyFriendlyEnharmonic
 	// fix the enharmonic to match the key, if possible
 	// `getKeyFriendlyEnharmonic('b','eb');  => returns 'bb'
@@ -290,7 +290,7 @@ class smoMusic {
 		smoRv.octave += Math.sign(ori - rvi);
 		return smoRv;
 	}
-	
+
 	// ### getIntervalInKey
 	// give a pitch and a key signature, return another pitch at the given
 	// diatonic interval.  Similar to getKeyOffset but diatonic.
@@ -374,7 +374,7 @@ class smoMusic {
 			accidental: accidental
 		};
 	}
-    
+
     // ### smoPitchToVes
 	// #### Example:
     // {letter:'f',accidental:'#'} => [f#/
@@ -471,7 +471,7 @@ class smoMusic {
 			'D': 2
 		};
 	}
-	
+
 	static getSharpsInKeySignature(key) {
 		var sharpKeys = ['B','G','D','A','E','B','F#','C#'];
 		if (sharpKeys.indexOf[key] < 0) {
@@ -487,12 +487,12 @@ class smoMusic {
 		}
 		return smoMusic.keySignatureLength[key];
 	}
-    
+
     static timeSignatureToTicks(timeSignature) {
         var nd = timeSignature.split('/');
         var num = parseInt(nd[0]);
         var den = parseInt(nd[1]);
-        
+
         var base = 2048*(8/den);
         return base*num;
     }
@@ -558,7 +558,7 @@ class smoMusic {
 		}
 		return ticks;
 	}
-    
+
 
 	// ### ticksToDuration
 	// Frequently we double/halve a note duration, and we want to find the vex tick duration that goes with that.
@@ -580,7 +580,7 @@ class smoMusic {
 			}
 			return ticksToDuration;
 		}
-        if (!smoMusic._ticksToDuration) {           
+        if (!smoMusic._ticksToDuration) {
 		   _ticksToDurationsF();
         }
 		return smoMusic._ticksToDuration;
@@ -606,7 +606,29 @@ class smoMusic {
 	}
 
 
-	
+	static gcdMap(duration) {
+        var keys = Object.keys(smoMusic.ticksToDuration).map((x) => parseInt(x));
+        var dar = [];
+
+        var gcd = function(td) {
+            var rv = keys[0];
+            for (var k = 1;k<keys.length;++k) {
+                if (td % keys[k] == 0) {
+                    rv = keys[k]
+                }
+            }
+            return rv;
+        }
+        while (duration > 0 && !smoMusic.ticksToDuration[duration]) {
+            var div = gcd(duration);
+            duration = duration - div;
+            dar.push(div);
+        }
+        if (duration > 0) {
+            dar.push(duration);
+        }
+        return dar.sort((a,b) => a > b ? -1 : 1);
+    }
 
 	// ### filteredMerge
 	// Like vexMerge, but only for specific attributes.
@@ -5413,7 +5435,13 @@ class SmoSelection {
 		measureIndex = measureIndex ? measureIndex : 0;
 		voiceIndex = voiceIndex ? voiceIndex : 0;
 		var staff = score.staves[staffIndex];
+        if (!staff) {
+            return null;
+        }
 		var measure = staff.measures[measureIndex];
+        if (!measure) {
+            return null;
+        }
 		var note = measure.voices[voiceIndex].notes[tickIndex];
 		var selector = {
 			staff: staffIndex,
@@ -5665,39 +5693,44 @@ class SmoOperation {
         selectors.forEach((selector) => {
             var params={};
             var attrs = SmoMeasure.defaultAttributes.filter((aa) => aa != 'timeSignature');
-            var proto = SmoSelection.measureSelection(score,selector.staff,selector.measure).measure;
-            smoMusic.serializedMerge(attrs,proto,params);
-            params.timeSignature = timeSignature;
-            var nm = SmoMeasure.getDefaultMeasure(params);
-            var spareNotes = SmoMeasure.getDefaultNotes(params);
-            var ticks = 0;
-            var voices = [];
-            proto.voices.forEach((voice) => {
-                var nvoice=[];
-                for (var i=0;i<voice.notes.length;++i) {
-                    var pnote = voice.notes[i];
-                    var nnote = SmoNote.deserialize(pnote.serialize());
-                    if (ticks + pnote.tickCount <= tsTicks) {
-                        nnote.ticks = JSON.parse(JSON.stringify(pnote.ticks))
-                        nvoice.push(nnote);
-                        ticks += nnote.tickCount;
-                    } else {
-                        var remain = (ticks + pnote.tickCount)-tsTicks;
-                        nnote.ticks = {numerator:remain,denominator:1,remainder:0};
-                        nvoice.push(nnote);
-                        ticks += nnote.tickCount;
+            var psel =  SmoSelection.measureSelection(score,selector.staff,selector.measure);
+            if (!psel['measure']) {
+                console.log('Error: score has changed in time signature change');
+            } else {
+                var proto = SmoSelection.measureSelection(score,selector.staff,selector.measure).measure;
+                smoMusic.serializedMerge(attrs,proto,params);
+                params.timeSignature = timeSignature;
+                var nm = SmoMeasure.getDefaultMeasure(params);
+                var spareNotes = SmoMeasure.getDefaultNotes(params);
+                var ticks = 0;
+                var voices = [];
+                proto.voices.forEach((voice) => {
+                    var nvoice=[];
+                    for (var i=0;i<voice.notes.length;++i) {
+                        var pnote = voice.notes[i];
+                        var nnote = SmoNote.deserialize(pnote.serialize());
+                        if (ticks + pnote.tickCount <= tsTicks) {
+                            nnote.ticks = JSON.parse(JSON.stringify(pnote.ticks))
+                            nvoice.push(nnote);
+                            ticks += nnote.tickCount;
+                        } else {
+                            var remain = (ticks + pnote.tickCount)-tsTicks;
+                            nnote.ticks = {numerator:remain,denominator:1,remainder:0};
+                            nvoice.push(nnote);
+                            ticks += nnote.tickCount;
+                        }
+                        if (ticks >= tsTicks) {
+                            break;
+                        }
                     }
-                    if (ticks >= tsTicks) {
-                        break;
+                    if (ticks < tsTicks) {
+                        var adjNote = SmoNote.cloneWithDuration(nvoice[nvoice.length - 1],{numerator:tsTicks - ticks,denominator:1,remainder:0});
+                        nvoice.push(adjNote);
                     }
-                }
-                if (ticks < tsTicks) {
-                    var adjNote = SmoNote.cloneWithDuration(nvoice[nvoice.length - 1],{numerator:tsTicks - ticks,denominator:1,remainder:0});
-                    nvoice.push(adjNote);
-                }
-                voices.push({notes:nvoice});
+                    voices.push({notes:nvoice});
 
-            });
+                });
+            }
             nm.voices=voices;
             score.replaceMeasure(selector,nm);
         });
@@ -6756,7 +6789,7 @@ class PasteBuffer {
 					var ntuplet = SmoTuplet.cloneTuplet(tuplet);
 					this.tupletNoteMap[ntuplet.attrs.id] = ntuplet;
 					ntuplet.notes.forEach((nnote) => {
-						
+
 						this.notes.push({
 						selector:selector,note:nnote});
 						selector = JSON.parse(JSON.stringify(selector));
@@ -6780,14 +6813,14 @@ class PasteBuffer {
 	clearSelections() {
 		this.notes = [];
 	}
-    
+
     _findModifier(selector) {
         var rv = this.modifiers.filter((mod) => SmoSelector.eq(selector,mod.startSelector));
         return (rv && rv.length) ? rv[0] : null;
     }
     _findPlacedModifier(selector) {
         var rv = this.modifiers.filter((mod) => SmoSelector.eq(selector,mod.endSelector));
-        return (rv && rv.length) ? rv[0] : null;        
+        return (rv && rv.length) ? rv[0] : null;
     }
 
 	// ### _populateMeasureArray
@@ -6852,11 +6885,14 @@ class PasteBuffer {
 				voice.notes.push(SmoNote.clone(note));
 			} else {
 				var duration = note.tickCount - ticksToFill;
-				SmoNote.cloneWithDuration(note, {
-					numerator: duration,
-					denominator: 1,
-					remainder: 0
-				});
+                var durMap = smoMusic.gcdMap(duration);
+                durMap.forEach((dd) => {
+                    SmoNote.cloneWithDuration(note, {
+    					numerator: dd,
+    					denominator: 1,
+    					remainder: 0
+    				});
+                });
 				ticksToFill = 0;
 			}
 			if (ticksToFill < 1) {
@@ -6961,11 +6997,14 @@ class PasteBuffer {
 						// should try to prevent this.  Just paste the first note to the
 						// last spot in the measure
 						var partial = totalDuration - currentDuration;
-						var snote = SmoNote.cloneWithDuration(tuplet.notes[0], {
-								numerator: partial,
-								denominator: 1,
-								remainder: 0
-							});
+                        var dar = smoMusic.gcdMap(partial);
+                        dar.forEach((ddd) => {
+                            var snote = SmoNote.cloneWithDuration(tuplet.notes[0], {
+    								numerator: ddd,
+    								denominator: 1,
+    								remainder: 0
+    							});
+                        });
 						snote.tuplet = null;
 						totalDuration = currentDuration;
 						voice.notes.push(snote);
@@ -6995,11 +7034,14 @@ class PasteBuffer {
 				// The note won't fit, so we split it in 2 and paste the remainder in the next measure.
 				// TODO:  tie the last note to this one.
 				var partial = totalDuration - currentDuration;
-				voice.notes.push(SmoNote.cloneWithDuration(note, {
-						numerator: partial,
-						denominator: 1,
-						remainder: 0
-					}));
+                var dar = smoMusic.gcdMap(partial);
+                dar.forEach((ddd) => {
+                    voice.notes.push(SmoNote.cloneWithDuration(note, {
+    						numerator: ddd,
+    						denominator: 1,
+    						remainder: 0
+    					}));
+                });
 				currentDuration += partial;
 
 				// Set the remaining length of the current note, this will be added to the
@@ -9094,6 +9136,10 @@ class suiTracker {
 
 	_replaceSelection(nselector) {
 		var artifact = SmoSelection.noteSelection(this.score, nselector.staff, nselector.measure, nselector.voice, nselector.tick);
+        if (!artifact) {
+            console.log('warn: selection disappeared, default to start');
+            artifact = SmoSelecction.noteSelection(this.score,0,0,0,0);
+        }
         suiOscillator.playSelectionNow(artifact);
 
         // clear modifier selections
@@ -12492,6 +12538,7 @@ class SuiTimeSignatureMenu extends suiMenuBase {
         this.controller.layout.unrenderAll();
         SmoUndoable.scoreSelectionOp(this.controller.layout.score,this.tracker.selections,
             'setTimeSignature',timeSig,this.controller.undoBuffer,'change time signature');
+        this.controller.layout.setDirty();
 		this.complete();
 	}
 	keydown(ev) {}
@@ -15671,7 +15718,8 @@ class defaultRibbonLayout {
 		var top = defaultRibbonLayout.noteButtonIds.concat(defaultRibbonLayout.navigateButtonIds).concat(defaultRibbonLayout.articulateButtonIds)
 		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds)
             .concat(defaultRibbonLayout.beamIds).concat(defaultRibbonLayout.measureIds).concat(defaultRibbonLayout.staveIds)
-              .concat(defaultRibbonLayout.textIds).concat(defaultRibbonLayout.playerIds).concat(defaultRibbonLayout.debugIds);
+              .concat(defaultRibbonLayout.textIds).concat(defaultRibbonLayout.playerIds)
+              .concat(defaultRibbonLayout.voiceButtonIds).concat(defaultRibbonLayout.debugIds);
 
 		return {
 			left: left,
@@ -15687,7 +15735,8 @@ class defaultRibbonLayout {
 			defaultRibbonLayout.chordButtons).concat(
 			defaultRibbonLayout.durationRibbonButtons).concat(defaultRibbonLayout.beamRibbonButtons).concat(defaultRibbonLayout.measureRibbonButtons)
 			.concat(defaultRibbonLayout.staveRibbonButtons)
-            .concat(defaultRibbonLayout.textRibbonButtons).concat(defaultRibbonLayout.playerButtons).concat(defaultRibbonLayout.debugRibbonButtons);
+            .concat(defaultRibbonLayout.textRibbonButtons).concat(defaultRibbonLayout.playerButtons)
+            .concat(defaultRibbonLayout.voiceRibbonButtons).concat(defaultRibbonLayout.debugRibbonButtons);
 	}
 
 	static get leftRibbonIds() {
@@ -15697,6 +15746,9 @@ class defaultRibbonLayout {
 		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton','AddGraceNote','RemoveGraceNote',
 				'UpNoteButton', 'DownNoteButton', 'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
 	}
+    static get voiceButtonIds() {
+        return ['VoiceButtons','V1Button','V2Button','V3Button','V4Button'];
+    }
 	static get navigateButtonIds()  {
 		return ['NavigationButtons', 'navLeftButton', 'navRightButton', 'navUpButton', 'navDownButton', 'navFastForward', 'navRewind',
 				'navGrowLeft', 'navGrowRight'];
@@ -16172,6 +16224,55 @@ class defaultRibbonLayout {
 			];
 	}
 
+    static get voiceRibbonButtons() {
+        return [{
+                leftText: '',
+                rightText: '',
+                classes: 'icon  collapseParent',
+                icon: 'icon-Vo',
+                action: 'collapseParent',
+                ctor: 'CollapseRibbonControl',
+                group: 'voices',
+                id: 'VoiceButtons'
+            }, {
+                leftText: '',
+                rightText: '',
+                icon: 'icon-glyph1',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'VoiceButtons',
+                group: 'voices',
+                id: 'V1Button'
+            }, {
+                leftText: '',
+                rightText: '',
+                icon: 'icon-glyph2',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'VoiceButtons',
+                group: 'voices',
+                id: 'V2Button'
+            }, {
+                leftText: '',
+                rightText: '',
+                icon: 'icon-glyph3',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'VoiceButtons',
+                group: 'voices',
+                id: 'V3Button'
+            }, {
+                leftText: '',
+                rightText: '',
+                icon: 'icon-glyph4',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'VoiceButtons',
+                group: 'voices',
+                id: 'V4Button'
+            }
+        ];
+    }
 	static get noteRibbonButtons() {
 		return [{
 				leftText: '',
@@ -56708,6 +56809,30 @@ class DurationButtons {
 	}
 }
 
+class VoiceButtons {
+	constructor(parameters) {
+		this.buttonElement = parameters.buttonElement;
+		this.buttonData = parameters.buttonData;
+		this.editor = parameters.editor;
+	}
+	setPitch() {
+		if (this.buttonData.id === 'V1Button') {
+			this.editor.transposeUp();
+		} else if (this.buttonData.id === 'V2Button') {
+			this.editor.transposeDown();
+		} else if (this.buttonData.id === 'V3Button') {
+			this.editor.upOctave();
+		} else if (this.buttonData.id === 'V4Button') {
+			this.editor.downOctave();
+		}
+    }
+	bind() {
+		var self = this;
+		$(this.buttonElement).off('click').on('click', function () {
+			self.setPitch();
+		});
+	}
+}
 class NoteButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;

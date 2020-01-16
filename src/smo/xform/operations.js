@@ -40,39 +40,44 @@ class SmoOperation {
         selectors.forEach((selector) => {
             var params={};
             var attrs = SmoMeasure.defaultAttributes.filter((aa) => aa != 'timeSignature');
-            var proto = SmoSelection.measureSelection(score,selector.staff,selector.measure).measure;
-            smoMusic.serializedMerge(attrs,proto,params);
-            params.timeSignature = timeSignature;
-            var nm = SmoMeasure.getDefaultMeasure(params);
-            var spareNotes = SmoMeasure.getDefaultNotes(params);
-            var ticks = 0;
-            var voices = [];
-            proto.voices.forEach((voice) => {
-                var nvoice=[];
-                for (var i=0;i<voice.notes.length;++i) {
-                    var pnote = voice.notes[i];
-                    var nnote = SmoNote.deserialize(pnote.serialize());
-                    if (ticks + pnote.tickCount <= tsTicks) {
-                        nnote.ticks = JSON.parse(JSON.stringify(pnote.ticks))
-                        nvoice.push(nnote);
-                        ticks += nnote.tickCount;
-                    } else {
-                        var remain = (ticks + pnote.tickCount)-tsTicks;
-                        nnote.ticks = {numerator:remain,denominator:1,remainder:0};
-                        nvoice.push(nnote);
-                        ticks += nnote.tickCount;
+            var psel =  SmoSelection.measureSelection(score,selector.staff,selector.measure);
+            if (!psel['measure']) {
+                console.log('Error: score has changed in time signature change');
+            } else {
+                var proto = SmoSelection.measureSelection(score,selector.staff,selector.measure).measure;
+                smoMusic.serializedMerge(attrs,proto,params);
+                params.timeSignature = timeSignature;
+                var nm = SmoMeasure.getDefaultMeasure(params);
+                var spareNotes = SmoMeasure.getDefaultNotes(params);
+                var ticks = 0;
+                var voices = [];
+                proto.voices.forEach((voice) => {
+                    var nvoice=[];
+                    for (var i=0;i<voice.notes.length;++i) {
+                        var pnote = voice.notes[i];
+                        var nnote = SmoNote.deserialize(pnote.serialize());
+                        if (ticks + pnote.tickCount <= tsTicks) {
+                            nnote.ticks = JSON.parse(JSON.stringify(pnote.ticks))
+                            nvoice.push(nnote);
+                            ticks += nnote.tickCount;
+                        } else {
+                            var remain = (ticks + pnote.tickCount)-tsTicks;
+                            nnote.ticks = {numerator:remain,denominator:1,remainder:0};
+                            nvoice.push(nnote);
+                            ticks += nnote.tickCount;
+                        }
+                        if (ticks >= tsTicks) {
+                            break;
+                        }
                     }
-                    if (ticks >= tsTicks) {
-                        break;
+                    if (ticks < tsTicks) {
+                        var adjNote = SmoNote.cloneWithDuration(nvoice[nvoice.length - 1],{numerator:tsTicks - ticks,denominator:1,remainder:0});
+                        nvoice.push(adjNote);
                     }
-                }
-                if (ticks < tsTicks) {
-                    var adjNote = SmoNote.cloneWithDuration(nvoice[nvoice.length - 1],{numerator:tsTicks - ticks,denominator:1,remainder:0});
-                    nvoice.push(adjNote);
-                }
-                voices.push({notes:nvoice});
+                    voices.push({notes:nvoice});
 
-            });
+                });
+            }
             nm.voices=voices;
             score.replaceMeasure(selector,nm);
         });

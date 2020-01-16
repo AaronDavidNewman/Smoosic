@@ -134,7 +134,13 @@ class SmoSelection {
 		measureIndex = measureIndex ? measureIndex : 0;
 		voiceIndex = voiceIndex ? voiceIndex : 0;
 		var staff = score.staves[staffIndex];
+        if (!staff) {
+            return null;
+        }
 		var measure = staff.measures[measureIndex];
+        if (!measure) {
+            return null;
+        }
 		var note = measure.voices[voiceIndex].notes[tickIndex];
 		var selector = {
 			staff: staffIndex,
