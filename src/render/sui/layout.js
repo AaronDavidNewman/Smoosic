@@ -154,8 +154,8 @@ class suiLayoutBase {
         this.dirty=true;
         this._score = score;
         if (shouldReset) {
-            if (this.measureMap) {
-                this.measureMap.loadScore();
+            if (this.measureMapper) {
+                this.measureMapper.loadScore();
             }
             this.setViewport(true);
         }
