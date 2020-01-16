@@ -6873,16 +6873,21 @@ class PasteBuffer {
 			// IF this is a tuplet, clone all the notes at once.
 			if (note.isTuplet) {
 				var tuplet = measure.getTupletForNote(note);
-                var tupletIx = tuplet.getIndexOfNote(note) ;
-				// create a new tuplet array for the new measure.
-				if (tupletIx === 0) {
-					var ntuplet = SmoTuplet.cloneTuplet(tuplet);
-					this.tupletNoteMap[ntuplet.attrs.id] = ntuplet;
-					ticksToFill -= tuplet.tickCount;
-					voice.notes = voice.notes.concat(ntuplet.notes);
-				} else if (tupletIx == tuplet.notes.length - 1) {
-                    measure.removeTupletForNote(note);
-                    measure.tuplets.push(ntuplet);
+                var tupletIx = tuplet.getIndexOfNote(note);
+                var ntuplet = null;
+
+                // create a new tuplet array for the new measure.
+                // and remove the old tuplet since we will be replacing it
+                for (var i = 0;i < tuplet.notes.length;++i) {
+                    if (i === 0) {
+                        ntuplet = SmoTuplet.cloneTuplet(tuplet);
+    					this.tupletNoteMap[ntuplet.attrs.id] = ntuplet;
+    					ticksToFill -= tuplet.tickCount;
+    					voice.notes = voice.notes.concat(ntuplet.notes);
+                    } else if (i === tuplet.notes.length - 1) {
+                        measure.removeTupletForNote(note);
+                        measure.tuplets.push(ntuplet);
+                    }
                 }
 			} else if (ticksToFill >= note.tickCount) {
 				ticksToFill -= note.tickCount;
@@ -7067,19 +7072,35 @@ class PasteBuffer {
 			var existingIndex = tickmap.durationMap.indexOf(startTicks);
 			existingIndex = (existingIndex < 0) ? measure.voices[voiceIndex].notes.length - 1 : existingIndex;
 			var note = measure.voices[voiceIndex].notes[existingIndex];
-			var ticksLeft = totalDuration - startTicks;
-			if (ticksLeft >= note.tickCount) {
-				startTicks += note.tickCount;
-				voice.notes.push(SmoNote.clone(note));
-			} else {
-				var remainder = totalDuration - startTicks;
-				voice.notes.push(SmoNote.cloneWithDuration(note, {
-						numerator: remainder,
-						denominator: 1,
-						remainder: 0
-					}));
-				startTicks = totalDuration;
-			}
+            if (note.isTuplet) {
+                var tuplet = measure.getTupletForNote(note);
+                var ntuplet = null;
+                for (var i = 0;i < tuplet.notes.length;++i) {
+                    if (i === 0) {
+                        ntuplet = SmoTuplet.cloneTuplet(tuplet);
+    					this.tupletNoteMap[ntuplet.attrs.id] = ntuplet;
+    					startTicks += tuplet.tickCount;
+    					voice.notes = voice.notes.concat(ntuplet.notes);
+                    } else if (i === tuplet.notes.length - 1) {
+                        measure.removeTupletForNote(note);
+                        measure.tuplets.push(ntuplet);
+                    }
+                }
+            } else {
+    			var ticksLeft = totalDuration - startTicks;
+    			if (ticksLeft >= note.tickCount) {
+    				startTicks += note.tickCount;
+    				voice.notes.push(SmoNote.clone(note));
+    			} else {
+    				var remainder = totalDuration - startTicks;
+    				voice.notes.push(SmoNote.cloneWithDuration(note, {
+    						numerator: remainder,
+    						denominator: 1,
+    						remainder: 0
+    					}));
+    				startTicks = totalDuration;
+    			}
+            }
 		}
 	}
 
