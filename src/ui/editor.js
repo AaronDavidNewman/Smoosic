@@ -28,8 +28,14 @@ class suiEditor {
 		this.tracker.moveSelectionRight();
 		this.layout.setDirty();
     }
+    _rebeam() {
+        this.tracker.getSelectedMeasures().forEach((measure) => {
+            smoBeamerFactory.applyBeams(measure);
+        });
+    }
     _batchDurationOperation(operation) {
         SmoUndoable.batchDurationOperation(this.layout.score, this.tracker.selections, operation, this.undoBuffer);
+        this._rebeam();
         this._render();
     }
 
@@ -68,6 +74,7 @@ class suiEditor {
             SmoUndoable[name](selection, this.undoBuffer);
         }
         suiOscillator.playSelectionNow(selection);
+        this._rebeam();
         this._render();
     }
 
@@ -97,6 +104,7 @@ class suiEditor {
             return;
         }
         SmoUndoable.toggleBeamGroups(this.tracker.selections, this.undoBuffer);
+        this._rebeam();
         this._render();
     }
 
@@ -105,6 +113,7 @@ class suiEditor {
             return;
         }
         SmoUndoable.beamSelections(this.tracker.selections, this.undoBuffer);
+        this._rebeam();
         this._render();
     }
     toggleBeamDirection() {

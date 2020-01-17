@@ -134,13 +134,13 @@ class suiTracker {
 	}
 
     _copySelectionsByMeasure(staffIndex,measureIndex) {
-		var rv = [];
-		this.selections.forEach((sel) => {
-            if (sel.selector.staff == staffIndex && sel.selector.measure == measureIndex) {
-			    rv.push(sel.selector)
-            }
-		});
-		return rv;
+		var rv = this.selections.filter((sel) => sel.selector.staff == staffIndex && sel.selector.measure == measureIndex);
+        var ticks = rv.length < 1 ? 0 : rv.map((sel) => sel.note.tickCount).reduce((a,b) => a + b);
+        var sels = [];
+        rv.forEach((sel) => {
+            sels.push(JSON.parse(JSON.stringify(sel.selector)));
+        });
+        return {ticks:ticks,selectors:sels};
 	}
 
 	_getTicksFromSelections() {
@@ -459,7 +459,9 @@ class suiTracker {
     }
 
     deleteMeasure(selection) {
-        var selCopy = this._copySelectionsByMeasure(selection.selector.staff,selection.selector.measure);
+        var selCopy = this._copySelectionsByMeasure(selection.selector.staff,selection.selector.measure)
+            .selectors;
+
         this.clearMeasureMap(selection.staff,selection.measure);
         if (selCopy.length) {
             selCopy.forEach((selector) => {
@@ -479,7 +481,7 @@ class suiTracker {
     // ### updateMeasure
     // A measure has changed.  Update the music geometry for it
     mapMeasure(staff,measure) {
-        var mSel = this._copySelectionsByMeasure(staff.staffId,measure.measureNumber.measureIndex);
+        var sels = this._copySelectionsByMeasure(staff.staffId,measure.measureNumber.measureIndex);
         this.clearMeasureMap(staff,measure);
 
         var scroller = $('.musicRelief');
@@ -489,6 +491,7 @@ class suiTracker {
 
         var voiceIx = 0;
         var selectionChanged = false;
+        var selectedTicks = 0;
         measure.voices.forEach((voice) => {
             var tick = 0;
             voice.notes.forEach((note) => {
@@ -510,14 +513,15 @@ class suiTracker {
                             type: 'rendered'
                         });
                 this._updateMeasureNoteMap(selection);
-                var selSelected = mSel.findIndex((s) => {
-                    return s.staff === selection.selector.staff && s.measure === selection.selector.measure
-                       && s.voice === selection.selector.voice && s.tick === selection.selector.tick;
-                });
-                if (selSelected >= 0) {
+                if (sels.selectors.length && selection.selector.tick == sels.selectors[0].tick) {
                     this.selections.push(selection);
+                    selectedTicks += selection.note.tickCount;
                     selectionChanged = true;
+                } else if (selectedTicks > 0 && selectedTicks < sels.ticks) {
+                    this.selections.push(selection);
+                    selectedTicks += selection.note.tickCount;
                 }
+
                 tick += 1;
             });
         });
@@ -858,16 +862,18 @@ class suiTracker {
 	}
 	// ## measureIterator
 	// Description: iterate over the any measures that are part of the selection
-	iterateMeasures(callback) {
+	getSelectedMeasures() {
 		var set = [];
+        var rv = [];
 		this.selections.forEach((sel) => {
 			var measure = SmoSelection.measureSelection(this.score, sel.selector.staff, sel.selector.measure).measure;
 			var ix = measure.measureNumber.measureIndex;
 			if (set.indexOf(ix) === -1) {
 				set.push(ix);
-				callback(measure);
+				rv.push(measure);
 			}
 		});
+        return rv;
 	}
 
 	_selectFromToInStaff(sel1,sel2) {
