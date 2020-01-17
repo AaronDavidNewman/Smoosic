@@ -2407,6 +2407,7 @@ class SmoMeasure {
 	// but can also be used to restore a measure due to an undo operation.
 	static deserialize(jsonObj) {
 		var voices = [];
+        var noteSum = [];
 		for (var j = 0; j < jsonObj.voices.length; ++j) {
 			var voice = jsonObj.voices[j];
 			var notes = [];
@@ -2417,12 +2418,18 @@ class SmoMeasure {
 				var noteParams = voice.notes[i];
 				var smoNote = SmoNote.deserialize(noteParams);
 				notes.push(smoNote);
+                noteSum.push(smoNote);
 			}
 		}
 
 		var tuplets = [];
 		for (j = 0; j < jsonObj.tuplets.length; ++j) {
-			var tuplet = new SmoTuplet(jsonObj.tuplets[j]);
+            var tupJson = jsonObj.tuplets[j];
+            var noteAr = noteSum.filter((nn) => {
+                return nn.isTuplet && nn.tuplet.id === tupJson.attrs.id;
+            });
+            tupJson.notes = noteAr;
+			var tuplet = new SmoTuplet(tupJson);
 			tuplets.push(tuplet);
 		}
 
@@ -6873,22 +6880,14 @@ class PasteBuffer {
 			// IF this is a tuplet, clone all the notes at once.
 			if (note.isTuplet) {
 				var tuplet = measure.getTupletForNote(note);
-                var tupletIx = tuplet.getIndexOfNote(note);
-                var ntuplet = null;
-
-                // create a new tuplet array for the new measure.
-                // and remove the old tuplet since we will be replacing it
-                for (var i = 0;i < tuplet.notes.length;++i) {
-                    if (i === 0) {
-                        ntuplet = SmoTuplet.cloneTuplet(tuplet);
-    					this.tupletNoteMap[ntuplet.attrs.id] = ntuplet;
-    					ticksToFill -= tuplet.tickCount;
-    					voice.notes = voice.notes.concat(ntuplet.notes);
-                    } else if (i === tuplet.notes.length - 1) {
-                        measure.removeTupletForNote(note);
-                        measure.tuplets.push(ntuplet);
-                    }
+                if (!tuplet) {
+                    continue;  // we remove the tuplet after first iteration
                 }
+                var ntuplet = SmoTuplet.cloneTuplet(tuplet);
+                voice.notes = voice.notes.concat(ntuplet.notes);
+                measure.removeTupletForNote(note);
+                measure.tuplets.push(ntuplet);
+                ticksToFill -= tuplet.tickCount;
 			} else if (ticksToFill >= note.tickCount) {
 				ticksToFill -= note.tickCount;
 				voice.notes.push(SmoNote.clone(note));
@@ -6989,53 +6988,33 @@ class PasteBuffer {
             this._populateModifier(selection.selector,startSelector,this.score.staves[selection.selector.staff]);
 			if (note.isTuplet) {
 				var tuplet = this.tupletNoteMap[note.tuplet.id];
-				var index = tuplet.getIndexOfNote(note);
-				// If the tuplet fits in the rest of the measure, just paste all the notes
-				// Note they are not cloned.
-				if (index === 0) {
-					if (currentDuration + tuplet.tickCount <= totalDuration && this.remainder === 0) {
-						currentDuration += tuplet.tickCount;
-						tuplet.notes.forEach((tnote) => {
-							voice.notes.push(tnote);
-						});
-						this.noteIndex += 1;
-						measure.tuplets.push(tuplet);
-						startSelector.tick += tuplet.notes.length;
-					} else {
-						// The tuplet won't fit.  There is no way to split up a tuplet, we
-						// should try to prevent this.  Just paste the first note to the
-						// last spot in the measure
-						var partial = totalDuration - currentDuration;
-                        var dar = smoMusic.gcdMap(partial);
-                        dar.forEach((ddd) => {
-                            var snote = SmoNote.cloneWithDuration(tuplet.notes[0], {
-    								numerator: ddd,
-    								denominator: 1,
-    								remainder: 0
-    							});
-                        });
-						snote.tuplet = null;
-						totalDuration = currentDuration;
-						voice.notes.push(snote);
-						this.noteIndex += 1;
-						this.startSelector.tick += 1;
-					}
-				} else {
-					this.noteIndex += 1;
-				}
+                var ntuplet = SmoTuplet.cloneTuplet(tuplet);
+                this.noteIndex += ntuplet.notes.length;
+                startSelector.tick += ntuplet.notes.length;
+                currentDuration += tuplet.tickCount;
+                for (var i =  0;i < ntuplet.notes.length;++i) {
+                    var tn = ntuplet.notes[i];
+                    tn.clef = measure.clef;
+                    voice.notes.push(tn);
+                }
+                measure.tuplets.push(ntuplet);
 			} else if (currentDuration + note.tickCount <= totalDuration && this.remainder === 0) {
 				// The whole note fits in the measure, paste it.
-				voice.notes.push(SmoNote.clone(note));
+                var nnote = SmoNote.clone(note);
+                nnote.clef = measure.clef;
+				voice.notes.push(nnote);
 				currentDuration += note.tickCount;
 				this.noteIndex += 1;
 				startSelector.tick += 1;
 			} else if (this.remainder > 0) {
 				// This is a note that spilled over the last measure
-				voice.notes.push(SmoNote.cloneWithDuration(note, {
+                var nnote = SmoNote.cloneWithDuration(note, {
 						numerator: this.remainder,
 						denominator: 1,
 						remainder: 0
-					}));
+					});
+                nnote.clef = measure.clef;
+				voice.notes.push(nnote);
 
 				currentDuration += this.remainder;
 				this.remainder = 0;
@@ -7075,17 +7054,11 @@ class PasteBuffer {
             if (note.isTuplet) {
                 var tuplet = measure.getTupletForNote(note);
                 var ntuplet = null;
-                for (var i = 0;i < tuplet.notes.length;++i) {
-                    if (i === 0) {
-                        ntuplet = SmoTuplet.cloneTuplet(tuplet);
-    					this.tupletNoteMap[ntuplet.attrs.id] = ntuplet;
-    					startTicks += tuplet.tickCount;
-    					voice.notes = voice.notes.concat(ntuplet.notes);
-                    } else if (i === tuplet.notes.length - 1) {
-                        measure.removeTupletForNote(note);
-                        measure.tuplets.push(ntuplet);
-                    }
-                }
+                var ntuplet = SmoTuplet.cloneTuplet(tuplet);
+                startTicks += tuplet.tickCount;
+                voice.notes = voice.notes.concat(ntuplet.notes);
+                measure.tuplets.push(ntuplet);
+                measure.removeTupletForNote(note);
             } else {
     			var ticksLeft = totalDuration - startTicks;
     			if (ticksLeft >= note.tickCount) {
@@ -7125,14 +7098,6 @@ class PasteBuffer {
 			// TODO: figure out how to do this with multiple voices
 			ser.voices = [vobj];
 			var nmeasure = SmoMeasure.deserialize(ser);
-			var tupletKeys = Object.keys(this.tupletNoteMap);
-			nmeasure.tuplets = [];
-			// since we are deserializing the measure that had different tuplets, need to create the correct tuplet.
-			tupletKeys.forEach((key) => {
-				if (vobj.notes.findIndex((nn) => {return nn.tuplet && nn.tuplet.id===key}) >= 0) {
-				    nmeasure.tuplets.push(this.tupletNoteMap[key]);
-				}
-			});
 			this.score.replaceMeasure(measureSel, nmeasure);
 			measureSel.measure += 1;
 		}
@@ -11579,18 +11544,18 @@ class suiEditor {
 		this.layout.setDirty();
     }
     _batchDurationOperation(operation) {
-        SmoUndoable.batchDurationOperation(this.score, this.tracker.selections, operation, this.undoBuffer);
+        SmoUndoable.batchDurationOperation(this.layout.score, this.tracker.selections, operation, this.undoBuffer);
         this._render();
     }
 
 	scoreSelectionOperation(selection,name,parameters,description) {
-		SmoUndoable.scoreSelectionOp(this.score,selection,name,parameters,
+		SmoUndoable.scoreSelectionOp(this.layout.score,selection,name,parameters,
 			    this.undoBuffer,description);
 		this._render();
 
 	}
 	scoreOperation(name,parameters,description) {
-		SmoUndoable.scoreOp(this.score,name,parameters,this.undoBuffer,description);
+		SmoUndoable.scoreOp(this.layout.score,name,parameters,this.undoBuffer,description);
 		this._render();
 	}
 
@@ -11632,14 +11597,14 @@ class suiEditor {
         if (this.tracker.selections.length < 1) {
             return;
         }
-        this.pasteBuffer.setSelections(this.score, this.tracker.selections);
+        this.pasteBuffer.setSelections(this.layout.score, this.tracker.selections);
     }
     paste() {
         if (this.tracker.selections.length < 1) {
             return;
         }
         this.layout.unrenderAll();
-        SmoUndoable.pasteBuffer(this.score, this.pasteBuffer, this.tracker.selections, this.undoBuffer, 'paste')
+        SmoUndoable.pasteBuffer(this.layout.score, this.pasteBuffer, this.tracker.selections, this.undoBuffer, 'paste')
         this._refresh();
     }
     toggleBeamGroup() {
@@ -11666,7 +11631,7 @@ class suiEditor {
     }
 
     collapseChord() {
-        SmoUndoable.noop(this.score, this.undoBuffer);
+        SmoUndoable.noop(this.layout.score, this.undoBuffer);
         this.tracker.selections.forEach((selection) => {
             var p = selection.note.pitches[0];
             p = JSON.parse(JSON.stringify(p));
@@ -11744,10 +11709,10 @@ class suiEditor {
 
     _setPitch(selected, letter) {
         var selector = selected.selector;
-        var hintSel = SmoSelection.lastNoteSelection(this.score,
+        var hintSel = SmoSelection.lastNoteSelection(this.layout.score,
                 selector.staff, selector.measure, selector.voice, selector.tick);
         if (!hintSel) {
-            hintSel = SmoSelection.nextNoteSelection(this.score,
+            hintSel = SmoSelection.nextNoteSelection(this.layout.score,
                     selector.staff, selector.measure, selector.voice, selector.tick);
         }
 
@@ -11831,7 +11796,7 @@ class suiEditor {
 				pos += 1;
 			}
             nmeasure.measureNumber.measureIndex = pos;
-            SmoUndoable.addMeasure(this.score, pos, nmeasure, this.undoBuffer);
+            SmoUndoable.addMeasure(this.layout.score, pos, nmeasure, this.undoBuffer);
             this._refresh();
         }
     }
@@ -11855,7 +11820,7 @@ class suiEditor {
         this.tracker.deleteMeasure(selection);
         // this.layout.unrenderAll();
 
-        SmoUndoable.deleteMeasure(this.score, selection, this.undoBuffer);
+        SmoUndoable.deleteMeasure(this.layout.score, selection, this.undoBuffer);
         this._refresh();
     }
 
@@ -11883,7 +11848,7 @@ class suiEditor {
 
     rerender(keyEvent) {
         this.layout.unrenderAll();
-        SmoUndoable.noop(this.score, this.undoBuffer);
+        SmoUndoable.noop(this.layout.score, this.undoBuffer);
         this.undo();
         this._render();
     }

@@ -151,22 +151,14 @@ class PasteBuffer {
 			// IF this is a tuplet, clone all the notes at once.
 			if (note.isTuplet) {
 				var tuplet = measure.getTupletForNote(note);
-                var tupletIx = tuplet.getIndexOfNote(note);
-                var ntuplet = null;
-
-                // create a new tuplet array for the new measure.
-                // and remove the old tuplet since we will be replacing it
-                for (var i = 0;i < tuplet.notes.length;++i) {
-                    if (i === 0) {
-                        ntuplet = SmoTuplet.cloneTuplet(tuplet);
-    					this.tupletNoteMap[ntuplet.attrs.id] = ntuplet;
-    					ticksToFill -= tuplet.tickCount;
-    					voice.notes = voice.notes.concat(ntuplet.notes);
-                    } else if (i === tuplet.notes.length - 1) {
-                        measure.removeTupletForNote(note);
-                        measure.tuplets.push(ntuplet);
-                    }
+                if (!tuplet) {
+                    continue;  // we remove the tuplet after first iteration
                 }
+                var ntuplet = SmoTuplet.cloneTuplet(tuplet);
+                voice.notes = voice.notes.concat(ntuplet.notes);
+                measure.removeTupletForNote(note);
+                measure.tuplets.push(ntuplet);
+                ticksToFill -= tuplet.tickCount;
 			} else if (ticksToFill >= note.tickCount) {
 				ticksToFill -= note.tickCount;
 				voice.notes.push(SmoNote.clone(note));
@@ -267,53 +259,33 @@ class PasteBuffer {
             this._populateModifier(selection.selector,startSelector,this.score.staves[selection.selector.staff]);
 			if (note.isTuplet) {
 				var tuplet = this.tupletNoteMap[note.tuplet.id];
-				var index = tuplet.getIndexOfNote(note);
-				// If the tuplet fits in the rest of the measure, just paste all the notes
-				// Note they are not cloned.
-				if (index === 0) {
-					if (currentDuration + tuplet.tickCount <= totalDuration && this.remainder === 0) {
-						currentDuration += tuplet.tickCount;
-						tuplet.notes.forEach((tnote) => {
-							voice.notes.push(tnote);
-						});
-						this.noteIndex += 1;
-						measure.tuplets.push(tuplet);
-						startSelector.tick += tuplet.notes.length;
-					} else {
-						// The tuplet won't fit.  There is no way to split up a tuplet, we
-						// should try to prevent this.  Just paste the first note to the
-						// last spot in the measure
-						var partial = totalDuration - currentDuration;
-                        var dar = smoMusic.gcdMap(partial);
-                        dar.forEach((ddd) => {
-                            var snote = SmoNote.cloneWithDuration(tuplet.notes[0], {
-    								numerator: ddd,
-    								denominator: 1,
-    								remainder: 0
-    							});
-                        });
-						snote.tuplet = null;
-						totalDuration = currentDuration;
-						voice.notes.push(snote);
-						this.noteIndex += 1;
-						this.startSelector.tick += 1;
-					}
-				} else {
-					this.noteIndex += 1;
-				}
+                var ntuplet = SmoTuplet.cloneTuplet(tuplet);
+                this.noteIndex += ntuplet.notes.length;
+                startSelector.tick += ntuplet.notes.length;
+                currentDuration += tuplet.tickCount;
+                for (var i =  0;i < ntuplet.notes.length;++i) {
+                    var tn = ntuplet.notes[i];
+                    tn.clef = measure.clef;
+                    voice.notes.push(tn);
+                }
+                measure.tuplets.push(ntuplet);
 			} else if (currentDuration + note.tickCount <= totalDuration && this.remainder === 0) {
 				// The whole note fits in the measure, paste it.
-				voice.notes.push(SmoNote.clone(note));
+                var nnote = SmoNote.clone(note);
+                nnote.clef = measure.clef;
+				voice.notes.push(nnote);
 				currentDuration += note.tickCount;
 				this.noteIndex += 1;
 				startSelector.tick += 1;
 			} else if (this.remainder > 0) {
 				// This is a note that spilled over the last measure
-				voice.notes.push(SmoNote.cloneWithDuration(note, {
+                var nnote = SmoNote.cloneWithDuration(note, {
 						numerator: this.remainder,
 						denominator: 1,
 						remainder: 0
-					}));
+					});
+                nnote.clef = measure.clef;
+				voice.notes.push(nnote);
 
 				currentDuration += this.remainder;
 				this.remainder = 0;
@@ -353,17 +325,11 @@ class PasteBuffer {
             if (note.isTuplet) {
                 var tuplet = measure.getTupletForNote(note);
                 var ntuplet = null;
-                for (var i = 0;i < tuplet.notes.length;++i) {
-                    if (i === 0) {
-                        ntuplet = SmoTuplet.cloneTuplet(tuplet);
-    					this.tupletNoteMap[ntuplet.attrs.id] = ntuplet;
-    					startTicks += tuplet.tickCount;
-    					voice.notes = voice.notes.concat(ntuplet.notes);
-                    } else if (i === tuplet.notes.length - 1) {
-                        measure.removeTupletForNote(note);
-                        measure.tuplets.push(ntuplet);
-                    }
-                }
+                var ntuplet = SmoTuplet.cloneTuplet(tuplet);
+                startTicks += tuplet.tickCount;
+                voice.notes = voice.notes.concat(ntuplet.notes);
+                measure.tuplets.push(ntuplet);
+                measure.removeTupletForNote(note);
             } else {
     			var ticksLeft = totalDuration - startTicks;
     			if (ticksLeft >= note.tickCount) {
@@ -403,14 +369,6 @@ class PasteBuffer {
 			// TODO: figure out how to do this with multiple voices
 			ser.voices = [vobj];
 			var nmeasure = SmoMeasure.deserialize(ser);
-			var tupletKeys = Object.keys(this.tupletNoteMap);
-			nmeasure.tuplets = [];
-			// since we are deserializing the measure that had different tuplets, need to create the correct tuplet.
-			tupletKeys.forEach((key) => {
-				if (vobj.notes.findIndex((nn) => {return nn.tuplet && nn.tuplet.id===key}) >= 0) {
-				    nmeasure.tuplets.push(this.tupletNoteMap[key]);
-				}
-			});
 			this.score.replaceMeasure(measureSel, nmeasure);
 			measureSel.measure += 1;
 		}

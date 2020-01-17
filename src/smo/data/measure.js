@@ -125,6 +125,7 @@ class SmoMeasure {
 	// but can also be used to restore a measure due to an undo operation.
 	static deserialize(jsonObj) {
 		var voices = [];
+        var noteSum = [];
 		for (var j = 0; j < jsonObj.voices.length; ++j) {
 			var voice = jsonObj.voices[j];
 			var notes = [];
@@ -135,12 +136,18 @@ class SmoMeasure {
 				var noteParams = voice.notes[i];
 				var smoNote = SmoNote.deserialize(noteParams);
 				notes.push(smoNote);
+                noteSum.push(smoNote);
 			}
 		}
 
 		var tuplets = [];
 		for (j = 0; j < jsonObj.tuplets.length; ++j) {
-			var tuplet = new SmoTuplet(jsonObj.tuplets[j]);
+            var tupJson = jsonObj.tuplets[j];
+            var noteAr = noteSum.filter((nn) => {
+                return nn.isTuplet && nn.tuplet.id === tupJson.attrs.id;
+            });
+            tupJson.notes = noteAr;
+			var tuplet = new SmoTuplet(tupJson);
 			tuplets.push(tuplet);
 		}
 

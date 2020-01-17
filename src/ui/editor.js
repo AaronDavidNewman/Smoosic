@@ -29,18 +29,18 @@ class suiEditor {
 		this.layout.setDirty();
     }
     _batchDurationOperation(operation) {
-        SmoUndoable.batchDurationOperation(this.score, this.tracker.selections, operation, this.undoBuffer);
+        SmoUndoable.batchDurationOperation(this.layout.score, this.tracker.selections, operation, this.undoBuffer);
         this._render();
     }
 
 	scoreSelectionOperation(selection,name,parameters,description) {
-		SmoUndoable.scoreSelectionOp(this.score,selection,name,parameters,
+		SmoUndoable.scoreSelectionOp(this.layout.score,selection,name,parameters,
 			    this.undoBuffer,description);
 		this._render();
 
 	}
 	scoreOperation(name,parameters,description) {
-		SmoUndoable.scoreOp(this.score,name,parameters,this.undoBuffer,description);
+		SmoUndoable.scoreOp(this.layout.score,name,parameters,this.undoBuffer,description);
 		this._render();
 	}
 
@@ -82,14 +82,14 @@ class suiEditor {
         if (this.tracker.selections.length < 1) {
             return;
         }
-        this.pasteBuffer.setSelections(this.score, this.tracker.selections);
+        this.pasteBuffer.setSelections(this.layout.score, this.tracker.selections);
     }
     paste() {
         if (this.tracker.selections.length < 1) {
             return;
         }
         this.layout.unrenderAll();
-        SmoUndoable.pasteBuffer(this.score, this.pasteBuffer, this.tracker.selections, this.undoBuffer, 'paste')
+        SmoUndoable.pasteBuffer(this.layout.score, this.pasteBuffer, this.tracker.selections, this.undoBuffer, 'paste')
         this._refresh();
     }
     toggleBeamGroup() {
@@ -116,7 +116,7 @@ class suiEditor {
     }
 
     collapseChord() {
-        SmoUndoable.noop(this.score, this.undoBuffer);
+        SmoUndoable.noop(this.layout.score, this.undoBuffer);
         this.tracker.selections.forEach((selection) => {
             var p = selection.note.pitches[0];
             p = JSON.parse(JSON.stringify(p));
@@ -194,10 +194,10 @@ class suiEditor {
 
     _setPitch(selected, letter) {
         var selector = selected.selector;
-        var hintSel = SmoSelection.lastNoteSelection(this.score,
+        var hintSel = SmoSelection.lastNoteSelection(this.layout.score,
                 selector.staff, selector.measure, selector.voice, selector.tick);
         if (!hintSel) {
-            hintSel = SmoSelection.nextNoteSelection(this.score,
+            hintSel = SmoSelection.nextNoteSelection(this.layout.score,
                     selector.staff, selector.measure, selector.voice, selector.tick);
         }
 
@@ -281,7 +281,7 @@ class suiEditor {
 				pos += 1;
 			}
             nmeasure.measureNumber.measureIndex = pos;
-            SmoUndoable.addMeasure(this.score, pos, nmeasure, this.undoBuffer);
+            SmoUndoable.addMeasure(this.layout.score, pos, nmeasure, this.undoBuffer);
             this._refresh();
         }
     }
@@ -305,7 +305,7 @@ class suiEditor {
         this.tracker.deleteMeasure(selection);
         // this.layout.unrenderAll();
 
-        SmoUndoable.deleteMeasure(this.score, selection, this.undoBuffer);
+        SmoUndoable.deleteMeasure(this.layout.score, selection, this.undoBuffer);
         this._refresh();
     }
 
@@ -333,7 +333,7 @@ class suiEditor {
 
     rerender(keyEvent) {
         this.layout.unrenderAll();
-        SmoUndoable.noop(this.score, this.undoBuffer);
+        SmoUndoable.noop(this.layout.score, this.undoBuffer);
         this.undo();
         this._render();
     }
