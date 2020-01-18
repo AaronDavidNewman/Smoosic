@@ -64,10 +64,10 @@ class VxMeasure {
     // ## TODO:
     // use x position of ticks in other voices, pitch of note, and consider
     // stem direction modifier.
-    applyStemDirection(vxParams) {
+    applyStemDirection(vxParams,voiceIx) {
         if (this.smoMeasure.voices.length === 1) {
             vxParams.auto_stem = true;
-        } else if (this.smoMeasure.activeVoice % 2) {
+        } else if (voiceIx % 2) {
             vxParams.stem_direction = -1;
         } else {
             vxParams.stem_direction = 1;
@@ -161,7 +161,7 @@ class VxMeasure {
 
     // ## Description:
     // convert a smoNote into a vxNote so it can be rasterized
-    _createVexNote(smoNote, tickIndex) {
+    _createVexNote(smoNote, tickIndex,voiceIx) {
 		// If this is a tuplet, we only get the duration so the appropriate stem
 		// can be rendered.  Vex calculates the actual ticks later when the tuplet is made
 		var duration =
@@ -177,7 +177,7 @@ class VxMeasure {
             duration: duration + smoNote.noteType
         };
 
-        this.applyStemDirection(noteParams);
+        this.applyStemDirection(noteParams,voiceIx);
         var vexNote = new VF.StaveNote(noteParams);
         if (smoNote.tickCount >= 4096) {
             var stemDirection = smoNote.flagState == SmoNote.flagStates.auto ?
@@ -239,14 +239,22 @@ class VxMeasure {
 
     // ## Description:
     // create an a array of VF.StaveNote objects to render the active voice.
-    createVexNotes() {
+    createVexNotes(voiceIx,active) {
         this.vexNotes = [];
         this.noteToVexMap = {};
-
-        for (var i = 0; i < this.smoMeasure.notes.length; ++i) {
-            var smoNote = this.smoMeasure.notes[i];
-            var vexNote = this._createVexNote(smoNote, i);
+        var styles = [{fillStyle:'grey',strokeStyle:'grey'},
+         {fillStyle:'rgb(32,128,32)',strokeStyle:'rgb(32,32,32)'},
+         {fillStyle:'#222',strokeStyle:'#222'},
+         {fillStyle:'#333',strokeStyle:'#333'}];
+        var voice =  this.smoMeasure.voices[voiceIx];
+        for (var i = 0;
+            i < voice.notes.length; ++i) {
+            var smoNote = voice.notes[i];
+            var vexNote = this._createVexNote(smoNote, i,voiceIx);
             this.noteToVexMap[smoNote.attrs.id] = vexNote;
+            if (active != voiceIx) {
+                vexNote.setStyle(styles[voiceIx]);
+            }
             this.vexNotes.push(vexNote);
         }
 		this._renderArticulations();
@@ -426,8 +434,7 @@ class VxMeasure {
         // If there are multiple voices, add them all to the formatter at the same time so they don't collide
         for (var j = 0; j < this.smoMeasure.voices.length; ++j) {
 
-            this.smoMeasure.activeVoice = j;
-            this.createVexNotes();
+            this.createVexNotes(j,this.smoMeasure.getActiveVoice());
             this.createVexTuplets();
             this.createVexBeamGroups();
 

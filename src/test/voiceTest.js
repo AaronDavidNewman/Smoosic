@@ -9,11 +9,7 @@ class VoiceTest {
 		var score = keys.score;
 		var layout = keys.layout;
 
-		var measure = SmoSelection.measureSelection(score, 0, 0).measure;
-		var voice2 = SmoMeasure.defaultVoice44;
-		measure.voices.push({
-			notes: voice2
-		});
+		var measure = SmoSelection.measureSelection(score, 0, 0);
 
 		var detach = () => {
 			keys.detach();
@@ -48,30 +44,28 @@ class VoiceTest {
 			keys.layout.render();
             return timeTest();
 		}
-		var accidentalTest = () => {
-			var target = SmoSelection.pitchSelection(score, 0, 0, 0, 1, [0]);
-			subTitle('accidental test');
-			SmoOperation.transpose(target, -1);
-			/* if (target) {
-			target.note.transpose([0],-1);
-			}  */
+        var _transposeVoice = (vix,pitches) => {
+            var org = measure.measure.getActiveVoice();
+            measure.measure.setActiveVoice(vix);
+            var nix = 0;
+            measure.measure.getNotes().forEach((note) => {
+                var sel = SmoSelection.noteSelection(score,0,0,vix,nix);
+                SmoOperation.setPitch(sel,pitches);
+                nix += 1;
+            });
+
+            measure.measure.setActiveVoice(org);
+        }
+		var populateTest = () => {
+
+			subTitle('create voice test');
+            _transposeVoice(0,[{letter:'b',accidental:'b',octave:4}]);
+			measure.measure.populateVoice(1);
+            _transposeVoice(1,[{letter:'a',accidental:'n',octave:4}]);
 			keys.layout.render();
             return timeTest();
 		}
 
-		var serializeTest = () => {
-			subTitle('serialize test');
-			layout.unrenderAll();
-			$('#boo').html('');
-			var ser = score.serialize();
-			var string = JSON.stringify(ser);
-			score = SmoScore.deserialize(string);
-			keys.detach();
-			keys = utController.createUi(score,'Serializer Test');
-			keys.layout.render();
-            return timeTest();
-		}
-
-		return drawDefaults().then(accidentalTest).then(serializeTest).then(signalComplete);
+		return drawDefaults().then(populateTest).then(signalComplete);
 	}
 }

@@ -76,9 +76,23 @@ class SmoMeasure {
 	set notes(val) {
 		this.voices[this.activeVoice].notes = val;
 	}
+
+    getNotes() {
+        return this.voices[this.activeVoice].notes;
+    }
 	get stemDirection() {
-		return this.activeVoice % 2 ? -1 : 1;
+		return 1;
 	}
+
+    getActiveVoice() {
+        return this.activeVoice;
+    }
+
+    setActiveVoice(vix) {
+        if (vix >= 0 && vix < this.voices.length) {
+            this.activeVoice=vix;
+        }
+    }
 
 	// ### defaultAttributes
 	// attributes that are to be serialized for a measure.
@@ -428,6 +442,14 @@ class SmoMeasure {
 		}
 		return -1;
 	}
+
+    populateVoice(index) {
+        if (index !=  this.voices.length ) {
+            return;
+        }
+        this.voices.push({notes:SmoMeasure.getDefaultNotes(this)});
+        this.activeVoice = index;
+    }
 
     _addSingletonModifier(name,parameters) {
         var ctor = eval(name);
