@@ -311,7 +311,8 @@ class SuiTempoDialog extends SuiDialogBase {
     static createAndDisplay(ignore1,ignore2,controller) {
         // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
         //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
-        var measures = SmoSelection.getMeasureList(controller.tracker.selections);
+        var measures = SmoSelection.getMeasureList(controller.tracker.selections)
+           .map((sel) => sel.measure);
         var existing = measures[0].getTempo();
         if (!existing) {
             existing = new SmoTempoText();

@@ -10,6 +10,8 @@ class utController {
 		this.bindEvents();
 		this.undoBuffer = new UndoBuffer();
         this.layoutDemon.undoBuffer = this.undoBuffer;
+        this.exhandler = new SuiExceptionHandler(this);
+
         this.layoutDemon.startDemon();
 	}
 

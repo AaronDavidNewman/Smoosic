@@ -192,7 +192,7 @@ class TextTest {
 			tt.scaleY=1.0;
 			tt.translateX=0;
 			tt.translateY=0;
-            delay = 2000;
+            delay = 500;
 
 			mt = new SmoMeasureText({position:SmoMeasureText.positions.left,text:'Measure Text'});
 			var selection = SmoSelection.measureSelection(score, 0, 0);

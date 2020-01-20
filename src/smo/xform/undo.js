@@ -188,6 +188,23 @@ class SmoUndoable {
         undoBuffer.addBuffer('dot duration', 'measure', selection.selector, selection.measure);
         SmoOperation.dotDuration(selection);
     }
+    static populateVoice(selections,voiceIx,undoBuffer) {
+        var measures = SmoSelection.getMeasureList(selections);
+        measures.forEach((selection) => {
+            undoBuffer.addBuffer('populate voice', 'measure',
+               selection.selector, selection.measure);
+            SmoOperation.populateVoice(selection,voiceIx);
+        });
+    }
+
+    static depopulateVoice(selections,voiceIx,undoBuffer) {
+        var measures = SmoSelection.getMeasureList(selections);
+        measures.forEach((selection) => {
+            undoBuffer.addBuffer('populate voice', 'measure',
+               selection.selector, selection.measure);
+            SmoOperation.depopulateVoice(selection,voiceIx);
+        });
+    }
     static toggleBeamGroups(selections, undoBuffer) {
         var measureUndoHash = {};
         selections.forEach((selection) => {

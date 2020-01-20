@@ -24,6 +24,31 @@ class SmoOperation {
 		noteSelection.note.endBeam = !(noteSelection.note.endBeam);
 	}
 
+    static setActiveVoice(score,voiceIx) {
+        score.staves.forEach((staff) => {
+            staff.measures.forEach((measure) => {
+                measure.setActiveVoice(voiceIx);
+            });
+        });
+    }
+
+    static depopulateVoice(selection,voiceIx) {
+        var ix = 0;
+        var voices = [];
+        var measure = selection.measure;
+        measure.voices.forEach((voice) => {
+            if (measure.voices.length <2 || ix != voiceIx)  {
+                voices.push(voice);
+            }
+            ix += 1;
+        });
+        measure.voices = voices;
+    }
+
+    static populateVoice(selection,voiceIx) {
+        selection.measure.populateVoice(voiceIx);
+    }
+
     static setTimeSignature(score,selections,timeSignature) {
         var selectors = [];
         selections.forEach((selection) => {

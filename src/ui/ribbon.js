@@ -301,7 +301,8 @@ class StaveButtons {
 			clef:clef
 		}
 		var staff = this.tracker.selections[0].selector.staff;
-		var measures = SmoSelection.getMeasureList(this.tracker.selections);
+		var measures = SmoSelection.getMeasureList(this.tracker.selections)
+            .map((sel) => sel.measure);
 		var selections=[];
 		measures.forEach((measure) => {
 			selections.push(SmoSelection.measureSelection(this.tracker.layout.score,staff,measure.measureNumber.measureNumber));

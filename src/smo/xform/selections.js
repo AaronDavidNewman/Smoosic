@@ -252,13 +252,18 @@ class SmoSelection {
 		if (!selections.length) {
 			return rv;
 		}
-		var cur = selections[0];
-		rv.push(cur.measure);
-		for (var i=1;i<selections.length;++i) {
+		for (var i=0;i<selections.length;++i) {
 			var sel = selections[i];
-			if (sel.selector.measure != cur.selector.measure) {
-				rv.push(sel.measure);
-				cur=sel;
+			if (i == 0 ||
+                 (sel.selector.measure != cur.selector.measure)) {
+				rv.push({
+                    selector:{
+                        staff:sel.selector.staff,
+                        measure:sel.selector.measure
+                    },
+                    staff:sel.staff,
+                    measure:sel.measure
+                    });
 			}
 		}
 		return rv;

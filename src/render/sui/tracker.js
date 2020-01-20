@@ -543,6 +543,10 @@ class suiTracker {
 		var ticksSelectedCopy = this._getTicksFromSelections();
 		var firstSelection = this.getExtremeSelection(-1);
 
+        //if (!firstSelection) {
+        //    return;
+        //}
+
 		this._updateModifiers();
 		this.selections = [];
 
@@ -550,8 +554,12 @@ class suiTracker {
         // thing in the score
         var keys = Object.keys(this.measureNoteMap);
 		if (keys.length && !selCopy.length) {
+            // If there is nothing rendered, don't update tracker
 			this.selections = [this.measureNoteMap[keys[0]]];
 		}  else {
+            if (!firstSelection) {
+                return;
+            }
 			this._findClosestSelection(firstSelection.selector);
             var first = this.selections[0];
 			var tickSelected = first.note.tickCount;

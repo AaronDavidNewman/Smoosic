@@ -179,6 +179,7 @@ class VxMeasure {
 
         this.applyStemDirection(noteParams,voiceIx);
         var vexNote = new VF.StaveNote(noteParams);
+        vexNote.attrs.classes = 'voice-'+voiceIx;
         if (smoNote.tickCount >= 4096) {
             var stemDirection = smoNote.flagState == SmoNote.flagStates.auto ?
                 vexNote.getStemDirection() : smoNote.toVexStemDirection();

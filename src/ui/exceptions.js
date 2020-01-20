@@ -13,10 +13,13 @@ class SuiExceptionHandler {
 	}
     exceptionHandler(e) {
         var self = this;
-        if (suiController.reentry) {
+        if (window['suiController'] && window['suiController'].reentry) {
             return;
         }
-        suiController.reentry = true;
+
+        if (window['suiController']) {
+            suiController.reentry = true;
+        }
         var scoreString = 'Could not serialize score.';
         try {
             scoreString = this.score.serialize();
@@ -85,6 +88,6 @@ class SuiExceptionHandler {
             this.thrown = true;
             throw(e);
         }
-        
+
     }
 }
