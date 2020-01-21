@@ -4,10 +4,12 @@
 class suiLayoutAdjuster {
 
 	static estimateMusicWidth(smoMeasure) {
-		var width = 0;
-		var tm = smoMeasure.tickmap();
+		var widths = [];
+        var voiceIx = 0;
 		smoMeasure.voices.forEach((voice) => {
 			var tickIndex = 0;
+            var width = 0;
+            var tm = smoMeasure.tickmapForVoice(voiceIx);
 			voice.notes.forEach((note) => {
 				width += vexGlyph.dimensions.noteHead.width + vexGlyph.dimensions.noteHead.spacingRight;
 				width += vexGlyph.dimensions.dot.width * note.dots + vexGlyph.dimensions.dot.spacingRight * note.dots;
@@ -20,8 +22,11 @@ class suiLayoutAdjuster {
 				});
 				tickIndex += 1;
 			});
+            voiceIx += 1;
+            widths.push(width);
 		});
-		return width;
+        widths.sort((a,b) => a > b ? -1 : 1);
+		return widths[0];
 	}
 
 	static estimateStartSymbolWidth(smoMeasure) {
@@ -136,21 +141,30 @@ class suiLayoutAdjuster {
 	}
 
 	static _spaceNotes(svg,smoMeasure) {
-		var g = svg.getElementById(smoMeasure.attrs.id);
-        if (!g) {
-            return;
-        }
-		var notes = Array.from(g.getElementsByClassName('vf-stavenote'));
-		var acc = 0;
-		for (var i = 1; i < notes.length; ++i) {
-			var b1 = notes[i - 1].getBBox();
-			var b2 = notes[i].getBBox();
-			var dif = b2.x - (b1.x + b1.width);
-			if (dif < 10) {
-				acc += 10 - dif;
-			}
-		}
-		smoMeasure.logicalBox.width += acc;
+        var accs=[];
+        var voiceIx = 0;
+        smoMeasure.voices.forEach((voice) => {
+
+    		var g = svg.getElementById(smoMeasure.attrs.id);
+            if (!g) {
+                return;
+            }
+            var voiceClass = 'voice-' + voiceIx;
+    		var notes = Array.from(g.getElementsByClassName(voiceClass));
+    		var acc = 0;
+    		for (var i = 1; i < notes.length; ++i) {
+    			var b1 = notes[i - 1].getBBox();
+    			var b2 = notes[i].getBBox();
+    			var dif = b2.x - (b1.x + b1.width);
+    			if (dif < 10) {
+    				acc += 10 - dif;
+    			}
+    		}
+            accs.push(acc);
+            voiceIx += 1;
+        });
+
+		smoMeasure.logicalBox.width += accs.sort((a,b) => a > b ? -1 : 1)[0];
 	}
 
     // ### adjustWidths

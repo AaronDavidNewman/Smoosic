@@ -256,6 +256,9 @@ class SmoNote {
     // Clone the note, but use the different duration.  Changes the length
     // of the note but nothing else.
     static cloneWithDuration(note, ticks) {
+        if (typeof(ticks) === 'number') {
+            ticks = {numerator:ticks,denominator:1,remainder:0};
+        }
         var rv = SmoNote.clone(note);
 
         rv.ticks = ticks;

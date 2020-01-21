@@ -22,7 +22,6 @@ class VxMeasure {
         this.beamToVexMap = {};
         this.tupletToVexMap = {};
         this.modifierOptions = {};
-        this.tickmap = this.smoMeasure.tickmap();
 
         this.vexNotes = [];
         this.vexBeamGroups = [];
@@ -55,9 +54,6 @@ class VxMeasure {
     applyModifiers() {
         smoModifierFactory.applyModifiers(this.smoMeasure);
     }
-    tickmap() {
-        return VX.TICKMAP(this.smoMeasure);
-    }
 
     // ## Description:
     // decide whether to force stem direction for multi-voice, or use the default.
@@ -74,13 +70,14 @@ class VxMeasure {
         }
     }
 
-	_createAccidentals(smoNote,vexNote,tickIndex) {
+	_createAccidentals(smoNote,vexNote,tickIndex,voiceIx) {
+        var tickmap = this.smoMeasure.tickmapForVoice(voiceIx);
         for (var i = 0; i < smoNote.pitches.length; ++i) {
             var pitch = smoNote.pitches[i];
             var accidental = pitch.accidental ? pitch.accidental : 'n';
 
             // was this accidental declared earlier in the measure?
-            var declared = this.tickmap.getActiveAccidental(pitch,tickIndex,this.smoMeasure.keySignature);
+            var declared = tickmap.getActiveAccidental(pitch,tickIndex,this.smoMeasure.keySignature);
 
             if (accidental != declared || pitch.cautionary) {
                 var acc = new VF.Accidental(accidental);
@@ -188,7 +185,7 @@ class VxMeasure {
         }
         smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
 
-		this._createAccidentals(smoNote,vexNote,tickIndex);
+		this._createAccidentals(smoNote,vexNote,tickIndex,voiceIx);
         this._createLyric(smoNote,vexNote);
         this._createOrnaments(smoNote,vexNote);
         this._createGraceNotes(smoNote,vexNote);

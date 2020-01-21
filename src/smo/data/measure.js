@@ -371,6 +371,12 @@ class SmoMeasure {
 		return VX.TICKMAP(this);
 	}
 
+    tickmapForVoice(voiceIx) {
+        var iterator = new smoTickIterator(this,{voice:voiceIx});
+        iterator.iterate(smoTickIterator.nullActor,this);
+        return iterator;
+    }
+
     getTicksFromVoice() {
         var ticks = 0;
         this.voices[0].notes.forEach((note) => {

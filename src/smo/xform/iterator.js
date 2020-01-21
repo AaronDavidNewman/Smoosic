@@ -44,13 +44,14 @@ VX = Vex.Xform;
 class smoTickIterator {
 
     constructor(measure, options) {
-        this.notes = measure.notes;
         this.keySignature = measure.keySignature;
+
+        Vex.Merge(this, options);
+        this.voice = typeof(options['voice']) == 'number' ? options.voice : measure.activeVoice;
+        this.notes = measure.voices[this.voice].notes;
         this.index = 0;
         this.startIndex = 0;
         this.endIndex = this.notes.length;
-
-        Vex.Merge(this, options);
 
         // so a client can tell if the iterator's been run or not
         var states = ['CREATED', 'RUNNING', 'COMPLETE'];
@@ -72,9 +73,6 @@ class smoTickIterator {
 
         this.hasRun = false;
         this.beattime = 4096;
-        if (this.voice)
-            this.beattime = this.voice.time.resolution / this.voice.time.num_beats;
-
     }
 
     // empty function for a default iterator (tickmap)
@@ -96,7 +94,7 @@ class smoTickIterator {
             }
         });
     }
-	
+
 	// ### updateAccidentalMap
 	// Keep a running tally of the accidentals based on the key and previous accidentals.
     static updateAccidentalMap(note, iterator, keySignature, accidentalMap) {
@@ -270,7 +268,7 @@ class smoMeasureIterator {
 }
 
 /* iterate over a set of notes, creating a map of notes to ticks */
-VX.TICKMAP = (measure) => {
+VX.TICKMAP = (measure,options) => {
     var iterator = new smoTickIterator(measure);
     iterator.iterate(smoTickIterator.nullActor, measure);
     return iterator;

@@ -118,7 +118,7 @@ class SmoOperation {
 			};
 			selection.measure.setChanged();
 			if (!measureTicks[measureSel]) {
-				var tm = selection.measure.tickmap();
+				var tm = selection.measure.tickmapForVoice(selection.selector.voice);
 				var tickOffset = tm.durationMap[selection.selector.tick];
 				var selector = JSON.parse(JSON.stringify(selection.selector));
 				measureTicks.push({
@@ -129,7 +129,7 @@ class SmoOperation {
 		});
 		measureTicks.forEach((measureTick) => {
 			var selection = SmoSelection.measureSelection(score, measureTick.selector.staff, measureTick.selector.measure);
-			var tickmap = selection.measure.tickmap();
+			var tickmap = selection.measure.tickmapForVoice(selection.selector.voice);
 			var ix = tickmap.durationMap.indexOf(measureTick.tickOffset);
 			if (ix >= 0) {
 				var nsel = SmoSelection.noteSelection(score, measureTick.selector.staff, measureTick.selector.measure,
@@ -145,31 +145,14 @@ class SmoOperation {
 	static doubleDuration(selection) {
 		var note = selection.note;
 		var measure = selection.measure;
+        var selector = selection.selector;
+        var notes = measure.voices[selector.voice].notes;
 		var tuplet = measure.getTupletForNote(note);
 		if (!tuplet) {
-			/* if (selection.note.dots > 0) {
-				return;
-			} */
-			var nticks = note.tickCount * 2;
-			var actor = new SmoStretchNoteActor({
-					startIndex: selection.selector.tick,
-					tickmap: measure.tickmap(),
-					newTicks: nticks
-				});
-			SmoTickTransformer.applyTransform(measure, actor);
+            SmoDuration.doubleDurationNonTuplet(selection);
+
 		} else {
-			var startIndex = tuplet.getIndexOfNote(note);
-			var endIndex = startIndex + 1;
-			if (endIndex >= tuplet.notes.length) {
-				return;
-			}
-			var actor = new SmoStretchTupletActor({
-					changeIndex: measure.tupletIndex(tuplet),
-					startIndex: startIndex,
-					endIndex: endIndex,
-					measure: measure
-				});
-			SmoTickTransformer.applyTransform(measure, actor);
+            SmoDuration.doubleDurationTuplet(selection);
 		}
 		selection.measure.setChanged();
 		return true;
@@ -195,7 +178,7 @@ class SmoOperation {
 			}
 			var actor = new SmoContractNoteActor({
 					startIndex: selection.selector.tick,
-					tickmap: measure.tickmap(),
+					tickmap: measure.tickmapForVoice(selection.selector.voice),
 					newTicks: nticks
 				});
 			SmoTickTransformer.applyTransform(measure, actor);
@@ -217,6 +200,7 @@ class SmoOperation {
 	static makeTuplet(selection, numNotes) {
 		var note = selection.note;
 		var measure = selection.measure;
+
 		if (measure.getTupletForNote(note))
 			return;
 		var nticks = note.tickCount;
@@ -225,9 +209,9 @@ class SmoOperation {
 				index: selection.selector.tick,
 				totalTicks: nticks,
 				numNotes: numNotes,
-				measure: measure
+				selection: selection
 			});
-		SmoTickTransformer.applyTransform(measure, actor);
+		SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
 		selection.measure.setChanged();
 
 		return true;
@@ -358,7 +342,7 @@ class SmoOperation {
 		}
 		var actor = new SmoStretchNoteActor({
 				startIndex: selection.selector.tick,
-				tickmap: measure.tickmap(),
+				tickmap: measure.tickmapForVoice(selection.selector.voice),
 				newTicks: nticks
 			});
 		SmoTickTransformer.applyTransform(measure, actor);
@@ -379,7 +363,7 @@ class SmoOperation {
 		}
 		var actor = new SmoContractNoteActor({
 				startIndex: selection.selector.tick,
-				tickmap: measure.tickmap(),
+				tickmap: measure.tickmapForVoice(selection.selector.voice),
 				newTicks: nticks
 			});
 		SmoTickTransformer.applyTransform(measure, actor);

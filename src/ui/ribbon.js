@@ -195,17 +195,25 @@ class VoiceButtons {
 		this.buttonElement = parameters.buttonElement;
 		this.buttonData = parameters.buttonData;
 		this.editor = parameters.editor;
+        this.tracker = parameters.tracker
 	}
 	setPitch() {
+        var voiceIx = 0;
 		if (this.buttonData.id === 'V1Button') {
-			this.editor.transposeUp();
+            SmoOperation.setActiveVoice(this.tracker.layout.score,voiceIx);
+            return;
 		} else if (this.buttonData.id === 'V2Button') {
-			this.editor.transposeDown();
+			voiceIx = 1;
 		} else if (this.buttonData.id === 'V3Button') {
 			this.editor.upOctave();
+            voiceIx = 2;
 		} else if (this.buttonData.id === 'V4Button') {
 			this.editor.downOctave();
+            voiceIx = 3;
 		}
+        SmoUndoable.populateVoice(this.tracker.selections,voiceIx,this.editor.undoBuffer);
+        SmoOperation.setActiveVoice(this.tracker.layout.score,voiceIx);
+        this.tracker.layout.setDirty();
     }
 	bind() {
 		var self = this;

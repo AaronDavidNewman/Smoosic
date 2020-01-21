@@ -6,16 +6,19 @@ class BeamModifierBase {
 
 class smoBeamerFactory {
     static applyBeams(measure) {
-        var beamer = new smoBeamModifier(measure);
-        var apply = new smoBeamerIterator(measure, [beamer]);
-        apply.run();
+        for (var i = 0;i < measure.voices.length;++i) {
+            var beamer = new smoBeamModifier(measure);
+            var apply = new smoBeamerIterator(measure, [beamer],i);
+            apply.run();
+        }
     }
 }
 
 class smoBeamerIterator {
-    constructor(measure, actors) {
+    constructor(measure, actors,i) {
         this.actors = actors;
         this.measure = measure;
+        this.voice = i;
     }
 
     get iterator() {
@@ -26,7 +29,7 @@ class smoBeamerIterator {
     //  ###  Description:  start the iteration on this set of notes
     run() {
         var self = this;
-        var iterator = new smoTickIterator(this.measure);
+        var iterator = new smoTickIterator(this.measure,{voice:this.voice});
         iterator.iterate((iterator, note, accidentalMap) => {
             for (var i = 0; i < self.actors.length; ++i) {
                 self.actors[i].beamNote(iterator, note, accidentalMap);
