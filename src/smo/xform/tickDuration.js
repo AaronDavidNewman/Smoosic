@@ -48,14 +48,18 @@ class SmoDuration {
         var notes = selection.measure.voices[selection.selector.voice].notes;
         var tuplet = selection.measure.getTupletForNote(selection.note);
         var measure = selection.measure
-        var oldLength = tuplet.notes.length;
+        var startIndex = selection.selector.tick - tuplet.startIndex;
         var tupletIndex = measure.tupletIndex(tuplet);
 
-        tuplet.combine(selection.selector.tick, selection.selector.tick + 1);
+        var startLength = tuplet.notes.length;
+        tuplet.combine(startIndex,startIndex + 1);
+        if (tuplet.notes.length >= startLength) {
+            return;
+        }
         var newNotes = [];
         var i;
 
-        for (i = 0;i < selection.selector.tick;++i) {
+        for (i = 0;i < tuplet.startIndex;++i) {
             newNotes.push(notes[i]);
         }
         tuplet.notes.forEach((note) => {
