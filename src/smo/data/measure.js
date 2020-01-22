@@ -455,6 +455,7 @@ class SmoMeasure {
         }
         this.voices.push({notes:SmoMeasure.getDefaultNotes(this)});
         this.activeVoice = index;
+        this.changed = true;
     }
 
     _addSingletonModifier(name,parameters) {

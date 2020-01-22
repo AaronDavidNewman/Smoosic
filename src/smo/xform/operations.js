@@ -182,6 +182,7 @@ class SmoOperation {
 					newTicks: nticks
 				});
 			SmoTickTransformer.applyTransform(measure, actor);
+            smoBeamerFactory.applyBeams(measure);
 
 		} else {
 			var startIndex = measure.tupletIndex(tuplet) + tuplet.getIndexOfNote(note);

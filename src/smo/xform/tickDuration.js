@@ -96,7 +96,8 @@ class SmoTickTransformer {
 		measure.clearBeamGroups();
         var transformer = new SmoTickTransformer(measure, actAr,voiceIndex);
         transformer.run();
-        measure.notes = transformer.notes;
+        var vix = measure.getActiveVoice();
+        measure.voices[vix].notes = transformer.notes;
 	}
     // ## transformNote
     // call the actors for each note, and put the result in the note array.
@@ -386,7 +387,8 @@ class SmoMakeTupletActor extends TickTransformBase {
                 bracketed: true,
                 startIndex: iterator.index,
                 durationMap: this.durationMap,
-                location: 1
+                location: 1,
+                voice:iterator.voice
             });
         this.measure.tuplets.push(tuplet);
         return this.tuplet;

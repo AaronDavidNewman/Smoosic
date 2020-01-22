@@ -61,11 +61,12 @@ class smoBeamModifier extends BeamModifierBase {
         return this.measure.beamGroups;
     }
 
-    _completeGroup() {
+    _completeGroup(voice) {
         // don't beam groups of 1
         if (this.currentGroup.length > 1) {
             this.measure.beamGroups.push(new SmoBeamGroup({
-                    notes: this.currentGroup
+                    notes: this.currentGroup,
+                    voice:voice
                 }));
         }
     }
@@ -98,7 +99,7 @@ class smoBeamModifier extends BeamModifierBase {
             }
             // Ultimate note in tuplet
             if (ult.attrs.id === note.attrs.id) {
-                this._completeGroup();
+                this._completeGroup(iterator.voice);
                 this._advanceGroup();
             }
             return note;
@@ -106,19 +107,19 @@ class smoBeamModifier extends BeamModifierBase {
 
         // don't beam > 1/4 note in 4/4 time
         if (iterator.delta >= 4096) {
-			this._completeGroup();
+			this._completeGroup(iterator.voice);
             this._advanceGroup();
             return note;
         }
 
         this.currentGroup.push(note);
         if (note.endBeam) {
-            this._completeGroup();
+            this._completeGroup(iterator.voice);
             this._advanceGroup();
         }
 
         if (this.duration == this.beamBeats) {
-            this._completeGroup();
+            this._completeGroup(iterator.voice);
             this._advanceGroup();
             return note;
         }

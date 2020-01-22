@@ -111,7 +111,7 @@ class PasteBuffer {
 		var measureSelection = SmoSelection.measureSelection(this.score, this.destination.staff, this.destination.measure);
 		var measure = measureSelection.measure;
 		this.measures.push(measure);
-		var tickmap = measure.tickmap();
+		var tickmap = measure.tickmapForVoice(this.destination.voice);
 		var startSel = this.notes[0].selector;
 		var currentDuration = tickmap.durationMap[this.destination.tick];
 		var rv = [];
@@ -191,14 +191,14 @@ class PasteBuffer {
 		var measureVoices = [];
 
 		var measure = measures[0];
-		var tickmap = measure.tickmap();
+		var tickmap = measure.tickmapForVoice(this.destination.voice);
 		var startSelector = JSON.parse(JSON.stringify(this.destination));
 		var measureTuplets = [];
 		var voice = this._populatePre(voiceIndex, measure, this.destination.tick, tickmap);
 		measureVoices.push(voice);
 		while (this.measureIndex < measures.length) {
 			measure = measures[this.measureIndex];
-			tickmap = measure.tickmap();
+			tickmap = measure.tickmapForVoice(this.destination.voice);
 			this._populateNew(voice, voiceIndex, measure, tickmap, startSelector);
 			if (this.noteIndex < this.notes.length && this.measureIndex < measures.length) {
 				voice = {

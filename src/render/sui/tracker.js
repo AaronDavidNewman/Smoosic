@@ -483,6 +483,10 @@ class suiTracker {
     mapMeasure(staff,measure) {
         var sels = this._copySelectionsByMeasure(staff.staffId,measure.measureNumber.measureIndex);
         this.clearMeasureMap(staff,measure);
+        var vix = measure.getActiveVoice();
+        sels.selectors.forEach((sel) => {
+            sel.voice = vix;
+        });
 
         var scroller = $('.musicRelief');
         this._scrollInitial = {x:$(scroller)[0].scrollLeft,y:$(scroller)[0].scrollTop};
@@ -513,22 +517,23 @@ class suiTracker {
                             type: 'rendered'
                         });
                 this._updateMeasureNoteMap(selection);
-                if (sels.selectors.length && selection.selector.tick == sels.selectors[0].tick) {
+                if (sels.selectors.length && selection.selector.tick == sels.selectors[0].tick &&
+                     selection.selector.voice == vix) {
                     this.selections.push(selection);
                     selectedTicks += selection.note.tickCount;
                     selectionChanged = true;
-                } else if (selectedTicks > 0 && selectedTicks < sels.ticks) {
+                } else if (selectedTicks > 0 && selectedTicks < sels.ticks && selection.selector.voice == vix) {
                     this.selections.push(selection);
                     selectedTicks += selection.note.tickCount;
                 }
 
                 tick += 1;
             });
+            voiceIx += 1;
         });
         if (selectionChanged) {
             this.highlightSelection();
         }
-        voiceIx += 1;
     }
 
 	// ### updateMap
@@ -631,7 +636,13 @@ class suiTracker {
 			scopyMeasure.tick = (offset < 0) ? targetMeasure.measure.notes.length - 1 : 0;
 		}
 
-		if (testSelection.measure.notes.length > scopyTick.tick && scopyTick.tick >= 0) {
+		if (testSelection.measure.voices.length > scopyTick.voice &&
+            testSelection.measure.voices[scopyTick.voice].notes.length > scopyTick.tick && scopyTick.tick >= 0) {
+            if (testSelection.selector.voice != testSelection.measure.getActiveVoice()) {
+                scopyTick.voice = testSelection.measure.getActiveVoice();
+                testSelection = this._getClosestTick(scopyTick);
+                return testSelection.selector;
+            }
 			return scopyTick;
 		} else if (targetMeasure &&
 			scopyMeasure.measure < testSelection.staff.measures.length && scopyMeasure.measure >= 0) {

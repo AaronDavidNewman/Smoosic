@@ -193,9 +193,9 @@ class VxMeasure {
         return vexNote;
     }
 
-	_renderArticulations(smoNote,articulation) {
+	_renderArticulations(vix) {
 		var i=0;
-		this.smoMeasure.notes.forEach((smoNote) => {
+		this.smoMeasure.voices[vix].notes.forEach((smoNote) => {
 			smoNote.articulations.forEach((art) => {
 				var vx = this.noteToVexMap[smoNote.id];
 				var position = SmoArticulation.positionToVex[art.position];
@@ -223,14 +223,17 @@ class VxMeasure {
 		this.context.closeGroup();
 	}
 
-	renderDynamics() {
-		this.smoMeasure.notes.forEach((smoNote) => {
-			var mods = smoNote.textModifiers.filter((mod) => {
-				return mod.attrs.type === 'SmoDynamicText';
-			});
-			mods.forEach((tm) => {
-				this._renderNoteGlyph(smoNote,tm);
-			});
+	renderDynamics(vix) {
+		this.smoMeasure.voices.forEach((voice) => {
+
+            voice.notes.forEach((smoNote) => {
+    			var mods = smoNote.textModifiers.filter((mod) => {
+    				return mod.attrs.type === 'SmoDynamicText';
+    			});
+    			mods.forEach((tm) => {
+    				this._renderNoteGlyph(smoNote,tm);
+    			});
+            });
 		});
 	}
 
@@ -255,20 +258,23 @@ class VxMeasure {
             }
             this.vexNotes.push(vexNote);
         }
-		this._renderArticulations();
+		this._renderArticulations(voiceIx);
     }
 
     // ### createVexBeamGroups
     // create the VX beam groups. VexFlow has auto-beaming logic, but we use
 	// our own because the user can specify stem directions, breaks etc.
-    createVexBeamGroups() {
+    createVexBeamGroups(vix) {
         this.vexBeamGroups = [];
         this.beamToVexMap = {};
         for (var i = 0; i < this.smoMeasure.beamGroups.length; ++i) {
             var bg = this.smoMeasure.beamGroups[i];
+            if (bg.voice != vix) {
+                continue;
+            }
             var vexNotes = [];
             var stemDirection = VF.Stem.DOWN;
-            for (var j = 0; j < bg.notes.length; ++j) {
+            for (var j = 0;j < bg.notes.length; ++j) {
                 var note = bg.notes[j];
                 var vexNote = this.noteToVexMap[note.attrs.id]
                     if (j === 0) {
@@ -288,11 +294,14 @@ class VxMeasure {
     // ### createVexTuplets
     // Create the VF tuplet objects based on the smo tuplet objects
     // that have been defined.
-    createVexTuplets() {
+    createVexTuplets(vix) {
         this.vexTuplets = [];
         this.tupletToVexMap = {};
         for (var i = 0; i < this.smoMeasure.tuplets.length; ++i) {
             var tp = this.smoMeasure.tuplets[i];
+            if (tp.voice != vix) {
+                continue;
+            }
             var vexNotes = [];
             for (var j = 0; j < tp.notes.length; ++j) {
                 var smoNote = tp.notes[j];
@@ -433,8 +442,8 @@ class VxMeasure {
         for (var j = 0; j < this.smoMeasure.voices.length; ++j) {
 
             this.createVexNotes(j,this.smoMeasure.getActiveVoice());
-            this.createVexTuplets();
-            this.createVexBeamGroups();
+            this.createVexTuplets(j);
+            this.createVexBeamGroups(j);
 
             // Create a voice in 4/4 and add above notes
             var voice = new VF.Voice({
