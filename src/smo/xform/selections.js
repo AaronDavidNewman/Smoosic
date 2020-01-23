@@ -141,6 +141,12 @@ class SmoSelection {
         if (!measure) {
             return null;
         }
+        if (measure.voices.length <= voiceIndex) {
+            return null;
+        }
+        if (measure.voices[voiceIndex].notes.length <= tickIndex) {
+            return null;
+        }
 		var note = measure.voices[voiceIndex].notes[tickIndex];
 		var selector = {
 			staff: staffIndex,

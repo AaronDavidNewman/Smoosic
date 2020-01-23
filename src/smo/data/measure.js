@@ -279,7 +279,8 @@ class SmoMeasure {
 			};
             beamBeats = 2048*3;
 		}
-		var pitches = SmoMeasure.defaultPitchForClef[params.clef];
+		var pitches =
+           JSON.parse(JSON.stringify(SmoMeasure.defaultPitchForClef[params.clef]));
 		var rv = [];
 
 		for (var i = 0; i < meterNumbers[0]; ++i) {

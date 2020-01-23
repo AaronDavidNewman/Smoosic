@@ -632,8 +632,11 @@ class suiTracker {
 		scopyMeasure.measure += increment;
 		var targetMeasure = SmoSelection.measureSelection(this.score, testSelection.selector.staff,
 				scopyMeasure.measure);
+        if (targetMeasure && targetMeasure.measure && targetMeasure.measure.voices.length <= scopyMeasure.voice) {
+            scopyMeasure.voice = 0;
+        }
 		if (targetMeasure && targetMeasure.measure) {
-			scopyMeasure.tick = (offset < 0) ? targetMeasure.measure.notes.length - 1 : 0;
+			scopyMeasure.tick = (offset < 0) ? targetMeasure.measure.voices[scopyMeasure.voice].notes.length - 1 : 0;
 		}
 
 		if (testSelection.measure.voices.length > scopyTick.voice &&
@@ -844,6 +847,12 @@ class suiTracker {
 
 	_replaceSelection(nselector) {
 		var artifact = SmoSelection.noteSelection(this.score, nselector.staff, nselector.measure, nselector.voice, nselector.tick);
+        if (!artifact) {
+            artifact = SmoSelection.noteSelection(this.score, nselector.staff, nselector.measure, 0, nselector.tick);
+        }
+        if (!artifact) {
+            artifact = SmoSelection.noteSelection(this.score, nselector.staff, nselector.measure, 0,0);
+        }
         if (!artifact) {
             console.log('warn: selection disappeared, default to start');
             artifact = SmoSelection.noteSelection(this.score,0,0,0,0);

@@ -205,6 +205,9 @@ class SmoScore {
                 protomeasure = staff.measures[staff.measures.length - 1];
             }
             var nmeasure = SmoMeasure.getDefaultMeasureWithNotes(protomeasure);
+            if (nmeasure.voices.length <= nmeasure.getActiveVoice()) {
+                nmeasure.setActiveVoice(0);
+            }
             staff.addMeasure(measureIndex, nmeasure);
         }
         this._numberStaves();
