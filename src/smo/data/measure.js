@@ -37,7 +37,8 @@ class SmoMeasure {
 		}
 	}
 	get notes() {
-		return this.voices[this.activeVoice].notes;
+        throw('measure.notes is obsolete, use voice');
+		// return this.voices[this.activeVoice].notes;
 	}
 
     pickupMeasure(duration) {

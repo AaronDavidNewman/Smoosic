@@ -49,13 +49,6 @@ class TimeSignatureTest {
             SmoOperation.doubleDuration(selection);
             var selection = SmoSelection.noteSelection(score, 0, 0, 0, 0);
             SmoOperation.dotDuration(selection);
-            /* var tickmap = measure.tickmap();
-            var actor = new SmoStretchNoteActor({
-            startIndex: 0,
-            tickmap: tickmap,
-            newTicks:6144
-            });
-            SmoTickTransformer.applyTransform(measure,actor);   */
 			layout.render();
             return timeTest();
         }
@@ -67,7 +60,7 @@ class TimeSignatureTest {
 			layout.render();
             return timeTest();
         }
-		
+
         var breakBeamTest2 = () => {
             subTitle('break beam 2');
             var selection = SmoSelection.noteSelection(score, 0, 0, 0, 0);
@@ -77,7 +70,7 @@ class TimeSignatureTest {
 			layout.render();
             return timeTest();
         }
-		
+
 		var unbreakBeamTest = () => {
             subTitle('unbreak beam');
             var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
@@ -90,13 +83,6 @@ class TimeSignatureTest {
             subTitle('contract 6/8 test');
             var selection = SmoSelection.noteSelection(score, 0, 0, 0, 0);
             SmoOperation.halveDuration(selection);
-            /* var tickmap = measure.tickmap();
-            var actor = new SmoContractNoteActor({
-            startIndex: 0,
-            tickmap: tickmap,
-            newTicks:6144/3
-            });
-            SmoTickTransformer.applyTransform(measure,actor);  */
 			layout.render();
             return timeTest();
         }
@@ -110,25 +96,17 @@ class TimeSignatureTest {
             selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
             SmoOperation.dotDuration(selection);
 
-            /* var tickmap = measure.tickmap();
-            var actor = new SmoMakeTupletActor({
-            index: 0,
-            totalTicks: 6144,
-            numNotes: 2,
-            measure: measure
-            });
-            SmoTickTransformer.applyTransform(measure,actor);  */
 			layout.render();
             return timeTest();
         }
-        
+
         var unmakeDupletTest = () => {
             subTitle('duplet 6/8 test');
             var selection = SmoSelection.noteSelection(score, 0, 0, 0, 0);
-            SmoOperation.undotDuration(selection);            
+            SmoOperation.undotDuration(selection);
             selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
-            SmoOperation.undotDuration(selection);            
-            
+            SmoOperation.undotDuration(selection);
+
             selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
             SmoOperation.doubleDuration(selection);
             selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
@@ -148,7 +126,7 @@ class TimeSignatureTest {
             SmoOperation.beamSelections(group1);
             SmoOperation.beamSelections(group2);
 			layout.render();
-            return timeTest();            
+            return timeTest();
         }
         var flipBeams1 = () => {
             subTitle('flip beams 1');
@@ -157,7 +135,7 @@ class TimeSignatureTest {
             group2.push(SmoSelection.noteSelection(score, 0, 0, 0, 5));
             SmoOperation.toggleBeamDirection(group2);
 			layout.render();
-            return timeTest();            
+            return timeTest();
         }
 
         return drawDefaults().then(breakBeamTest).then(breakBeamTest2).then(unbreakBeamTest)

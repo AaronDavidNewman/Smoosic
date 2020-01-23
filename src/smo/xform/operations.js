@@ -129,7 +129,7 @@ class SmoOperation {
 		});
 		measureTicks.forEach((measureTick) => {
 			var selection = SmoSelection.measureSelection(score, measureTick.selector.staff, measureTick.selector.measure);
-			var tickmap = selection.measure.tickmapForVoice(selection.selector.voice);
+			var tickmap = selection.measure.tickmapForVoice(measureTick.selector.voice);
 			var ix = tickmap.durationMap.indexOf(measureTick.tickOffset);
 			if (ix >= 0) {
 				var nsel = SmoSelection.noteSelection(score, measureTick.selector.staff, measureTick.selector.measure,
@@ -181,16 +181,17 @@ class SmoOperation {
 					tickmap: measure.tickmapForVoice(selection.selector.voice),
 					newTicks: nticks
 				});
-			SmoTickTransformer.applyTransform(measure, actor);
+			SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
             smoBeamerFactory.applyBeams(measure);
 
 		} else {
 			var startIndex = measure.tupletIndex(tuplet) + tuplet.getIndexOfNote(note);
 			var actor = new SmoContractTupletActor({
 					changeIndex: startIndex,
-					measure: measure
+					measure: measure,
+                    voice:selection.selector.voice
 				});
-			SmoTickTransformer.applyTransform(measure, actor);
+			SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
 		}
 		selection.measure.setChanged();
 	}
@@ -303,7 +304,7 @@ class SmoOperation {
 				endIndex: endIndex,
 				measure: measure
 			});
-		SmoTickTransformer.applyTransform(measure, actor);
+		SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
 		measure.setChanged();
 		return true;
 	}
@@ -330,15 +331,15 @@ class SmoOperation {
         }
 
 		// If this is the ultimate note in the measure, we can't increase the length
-		if (selection.selector.tick + 1 === selection.measure.notes.length) {
+		if (selection.selector.tick + 1 === selection.measure.voices[selection.selector.voice].notes.length) {
 			return;
 		}
-		if (selection.measure.notes[selection.selector.tick + 1].tickCount > selection.note.tickCount) {
+		if (selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].tickCount > selection.note.tickCount) {
 			console.log('too long');
 			return;
 		}
 		// is dot too short?
-		if (!smoMusic.ticksToDuration[selection.measure.notes[selection.selector.tick + 1].tickCount/2]) {
+		if (!smoMusic.ticksToDuration[selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].tickCount/2]) {
 			return;
 		}
 		var actor = new SmoStretchNoteActor({
@@ -346,7 +347,7 @@ class SmoOperation {
 				tickmap: measure.tickmapForVoice(selection.selector.voice),
 				newTicks: nticks
 			});
-		SmoTickTransformer.applyTransform(measure, actor);
+		SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
 		measure.setChanged();
 		return true;
 	}
@@ -367,7 +368,7 @@ class SmoOperation {
 				tickmap: measure.tickmapForVoice(selection.selector.voice),
 				newTicks: nticks
 			});
-		SmoTickTransformer.applyTransform(measure, actor);
+		SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
 		selection.measure.setChanged();
 		return true;
 	}

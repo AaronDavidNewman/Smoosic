@@ -78,7 +78,7 @@ class SmoDuration {
 //  create and delete notes, as opposed to modifiers which act on existing notes.
 class SmoTickTransformer {
     constructor(measure, actors, voiceIndex) {
-        this.notes = measure.notes;
+        this.notes = measure.voices[voiceIndex].notes;
         this.measure = measure;
         this.voice = typeof(voiceIndex) === 'number' ?  voiceIndex : 0;
         this.vxNotes = [];
@@ -258,7 +258,7 @@ class SmoContractTupletActor extends TickTransformBase {
     constructor(params) {
         super();
         Vex.Merge(this, params);
-        this.tuplet = this.measure.getTupletForNote(this.measure.notes[this.changeIndex]);
+        this.tuplet = this.measure.getTupletForNote(this.measure.voices[this.voice].notes[this.changeIndex]);
         this.oldLength = this.tuplet.notes.length;
         this.tupletIndex = this.measure.tupletIndex(this.tuplet);
         this.splitIndex = this.changeIndex - this.tupletIndex;
