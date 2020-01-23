@@ -38,7 +38,7 @@ class ChordTest {
 			layout.render();
             return timeTest();
 		}
-
+		
 		var preBeamTest = () => {
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
 			SmoOperation.halveDuration(selection);
@@ -49,14 +49,14 @@ class ChordTest {
 			layout.render();
             return timeTest();
 		}
-
+		
 		var breakBeamTest = () => {
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
 			SmoOperation.toggleBeamGroup(selection);
 			layout.render();
             return timeTest();
 		}
-
+		
 		var undoBeamTest = () => {
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
 			SmoOperation.doubleDuration(selection);
@@ -65,7 +65,7 @@ class ChordTest {
 			layout.render();
             return timeTest();
 		}
-
+		
 		var accidentalTest = () => {
 			var selection = SmoSelection.pitchSelection(score, 0, 0, 0, 1, [0]);
 			subTitle('accidental test');
@@ -161,7 +161,7 @@ class ChordTest {
 			layout.render();
             return timeTest();
 		}
-
+		
 		var enharmonicTest1 = () => {
 			subTitle('courtesy accidental test');
 			var target = SmoSelection.pitchSelection(score, 0, 0, 0, 2, [1]);
@@ -544,7 +544,6 @@ class TimeSignatureTest {
             subTitle('contract 6/8 test');
             var selection = SmoSelection.noteSelection(score, 0, 0, 0, 0);
             SmoOperation.halveDuration(selection);
-
 			layout.render();
             return timeTest();
         }
@@ -558,7 +557,6 @@ class TimeSignatureTest {
             selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
             SmoOperation.dotDuration(selection);
 
-        
 			layout.render();
             return timeTest();
         }
@@ -792,7 +790,7 @@ class TupletTest {
 			layout.render();
             return timeTest();
 		}
-
+		
 		var breakTupletBarTest = () => {
 			subTitle('make tuplet');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
@@ -1738,7 +1736,7 @@ class PasteTest {
 		var undo = keys.undoBuffer;
 		var score = keys.score;
 		var layout = keys.layout;
-
+        
 
 		var detach = () => {
 			keys.detach();
@@ -1906,13 +1904,10 @@ class VoiceTest {
 		$('h1.testTitle').text('Voice Test');
 
 		var score = keys.score;
+        var undoBuffer = keys.undoBuffer;
 		var layout = keys.layout;
 
-		var measure = SmoSelection.measureSelection(score, 0, 0).measure;
-		var voice2 = SmoMeasure.defaultVoice44;
-		measure.voices.push({
-			notes: voice2
-		});
+		var measure = SmoSelection.measureSelection(score, 0, 0);
 
 		var detach = () => {
 			keys.detach();
@@ -1928,7 +1923,7 @@ class VoiceTest {
 					setTimeout(() => {
 						resolve();
 					},
-						200);
+						750);
 				});
 			return promise;
 		}
@@ -1947,31 +1942,66 @@ class VoiceTest {
 			keys.layout.render();
             return timeTest();
 		}
-		var accidentalTest = () => {
-			var target = SmoSelection.pitchSelection(score, 0, 0, 0, 1, [0]);
-			subTitle('accidental test');
-			SmoOperation.transpose(target, -1);
-			/* if (target) {
-			target.note.transpose([0],-1);
-			}  */
+        var _transposeVoice = (vix,pitches) => {
+            var org = measure.measure.getActiveVoice();
+            SmoOperation.setActiveVoice(score,vix);
+            var nix = 0;
+            measure.measure.getNotes().forEach((note) => {
+                var sel = SmoSelection.noteSelection(score,0,0,vix,nix);
+                SmoOperation.setPitch(sel,pitches);
+                nix += 1;
+            });
+
+            SmoOperation.setActiveVoice(score,org);
+        }
+		var populateTest = () => {
+			subTitle('create voice test');
+            _transposeVoice(0,[{letter:'a',accidental:'n',octave:4}]);
+            SmoUndoable.populateVoice([measure],1,undoBuffer);
+            _transposeVoice(1,[{letter:'f',accidental:'n',octave:4}]);
 			keys.layout.render();
             return timeTest();
 		}
 
-		var serializeTest = () => {
-			subTitle('serialize test');
-			layout.unrenderAll();
-			$('#boo').html('');
-			var ser = score.serialize();
-			var string = JSON.stringify(ser);
-			score = SmoScore.deserialize(string);
-			keys.detach();
-			keys = utController.createUi(score,'Serializer Test');
-			keys.layout.render();
+        var durationChange = () => {
+            subTitle('duration change');
+            SmoOperation.setActiveVoice(score,0);
+            var sel = SmoSelection.noteSelection(score,0,0,1,2);
+            SmoOperation.dotDuration(sel);
+            keys.layout.render();
             return timeTest();
-		}
+        }
 
-		return drawDefaults().then(accidentalTest).then(serializeTest).then(signalComplete);
+        var durationChange2 = () => {
+            subTitle('duration change 2');
+            SmoOperation.setActiveVoice(score,1);
+            var sel = SmoSelection.noteSelection(score,0,0,0,1);
+            SmoOperation.doubleDuration(sel);
+            keys.layout.render();
+            return timeTest();
+        }
+
+        var populateVoice2 = () => {
+            subTitle('populate voice 2');
+            SmoUndoable.populateVoice([measure],2,undoBuffer);
+            _transposeVoice(2,[{letter:'d',accidental:'n',octave:5}]);
+            SmoUndoable.populateVoice([measure],3,undoBuffer);
+            _transposeVoice(3,[{letter:'c',accidental:'n',octave:5}]);
+            SmoOperation.setActiveVoice(score,0);
+            keys.layout.render();
+            return timeTest();
+        }
+
+        var depopulateVoice = () => {
+            subTitle('depopulate voice');
+            SmoUndoable.depopulateVoice([measure],2,undoBuffer);
+            keys.layout.render();
+            return timeTest();
+        }
+
+		return drawDefaults().then(populateTest).
+           then(durationChange).then(durationChange2).then(populateVoice2)
+           .then(depopulateVoice).then(signalComplete);
 	}
 }
 ;
@@ -2004,7 +2034,7 @@ class TrackerTest {
 			subTitle('');
 			return timeTest();
 		}
-
+		
 		var remap = function() {
 				return keys.tracker.updateMap();
 		}
@@ -2012,7 +2042,7 @@ class TrackerTest {
 		var drawDefaults = () => {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
 			// measure.applyModifiers();
-
+			
 			layout.render();
             remap();
             return timeTest();
@@ -2073,22 +2103,22 @@ class TrackerTest {
 }
 ;
 class ClefTest {
-
+   
     static CommonTests() {
 		$('h1.testTitle').text('Clef Test');
 		var score=SmoScore.getEmptyScore();
-
+		
 		var pasteBuffer = new PasteBuffer();
-
+		
         score.addDefaultMeasureWithNotes(0,{});
         score.addDefaultMeasureWithNotes(1,{});
         score.addDefaultMeasureWithNotes(2,{});
-
+		
         var keys = utController.createUi(score,'Clef tests');
 		var undo = keys.undoBuffer;
 		var score = keys.score;
-		var layout = keys.layout;
-
+		var layout = keys.layout;		
+		
 		var detach = () => {
 			keys.detach();
 			keys=null;
@@ -2121,8 +2151,8 @@ class ClefTest {
 			keys.render()
             return timeTest();
         }
-
-
+		
+		
 		var bassClefTest = () => {
 			subTitle('bass clef test');
 			SmoOperation.addStaff(score,{
@@ -2134,7 +2164,7 @@ class ClefTest {
 			keys.render()
             return timeTest();
 		}
-
+		
 		var clefChangeTest = () => {
 			subTitle('change instrument mid-system');
 			var instrument = {
@@ -2156,7 +2186,7 @@ class ClefTest {
 			keys.render()
             return timeTest();
 		}
-
+		
 		var bassDurationTest = () => {
 			subTitle('change duration in bass clef');
 			var note = SmoSelection.noteSelection(score,1,0,0,1);
@@ -2164,7 +2194,7 @@ class ClefTest {
 			keys.render()
             return timeTest();
 		}
-
+		
 		var tenorClefTest = () => {
 			subTitle('add cello clef');
 			keys.layout.unrenderAll();
@@ -2178,7 +2208,7 @@ class ClefTest {
 			keys.render()
             return timeTest();
 		}
-
+		
 		var altoClefTest = () => {
 			subTitle('add viola clef');
 			SmoOperation.addStaff(score, {
@@ -2190,7 +2220,7 @@ class ClefTest {
 			keys.render()
             return timeTest();
 		}
-
+		
 		var baritoneClefTest = () => {
 			subTitle('remove and add clef');
 			keys.layout.unrenderAll();
@@ -2204,7 +2234,7 @@ class ClefTest {
 			keys.render()
             return timeTest();
 		}
-
+		
 		var baritoneClefTest2 = () => {
 			subTitle('remove and add clef 2');
 			keys.layout.unrenderAll();
@@ -2218,7 +2248,7 @@ class ClefTest {
 			keys.render()
             return timeTest();
 		}
-
+		
 		var trumpetClefTest = () => {
 			subTitle('clef with instrument in different key');
 			keys.layout.unrenderAll();
@@ -2232,7 +2262,7 @@ class ClefTest {
 			keys.render()
             return timeTest();
 		}
-
+      
         return drawDefaults().then(bassClefTest).then(clefChangeTest).then(bassRenderTest).then(bassDurationTest).then(tenorClefTest)
 		   .then(altoClefTest).then(baritoneClefTest).then(baritoneClefTest2).then(trumpetClefTest).then(signalComplete);
     }
@@ -2625,7 +2655,7 @@ class TextTest {
 			tt.scaleY=1.0;
 			tt.translateX=0;
 			tt.translateY=0;
-            delay = 2000;
+            delay = 500;
 
 			mt = new SmoMeasureText({position:SmoMeasureText.positions.left,text:'Measure Text'});
 			var selection = SmoSelection.measureSelection(score, 0, 0);
