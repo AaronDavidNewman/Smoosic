@@ -201,6 +201,11 @@ class VoiceButtons {
         var voiceIx = 0;
 		if (this.buttonData.id === 'V1Button') {
             SmoOperation.setActiveVoice(this.tracker.layout.score,voiceIx);
+            var ml = SmoSelection.getMeasureList(this.tracker.selections);
+            ml.forEach((sel) => {
+                sel.measure.setChanged();
+            });
+            this.tracker.layout.setDirty();
             return;
 		} else if (this.buttonData.id === 'V2Button') {
 			voiceIx = 1;

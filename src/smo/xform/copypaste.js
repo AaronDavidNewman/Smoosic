@@ -348,6 +348,20 @@ class PasteBuffer {
 		}
 	}
 
+    _pasteVoiceSer(ser,vobj,voiceIx) {
+        var voices = [];
+        var ix = 0;
+        ser.voices.forEach((vc) => {
+            if(ix != voiceIx) {
+                voices.push(vc);
+            } else {
+                voices.push(vobj);
+            }
+            ix += 1;
+        });
+        ser.voices = voices;
+    }
+
 	pasteSelections(score, selector) {
 		this.destination = selector;
 		if (this.notes.length < 1) {
@@ -366,8 +380,9 @@ class PasteBuffer {
 			nvoice.notes.forEach((note) => {
 				vobj.notes.push(note.serialize());
 			});
+
 			// TODO: figure out how to do this with multiple voices
-			ser.voices = [vobj];
+            this._pasteVoiceSer(ser,vobj,this.destination.voice);
 			var nmeasure = SmoMeasure.deserialize(ser);
 			this.score.replaceMeasure(measureSel, nmeasure);
 			measureSel.measure += 1;

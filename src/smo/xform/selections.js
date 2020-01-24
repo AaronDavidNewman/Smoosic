@@ -285,12 +285,15 @@ class SmoSelection {
 		if (tickIndex > 0) {
 			return SmoSelection.noteSelection(score, staffIndex, measureIndex, voiceIndex, lastTick);
 		}
-		if (measureIndex > 0) {
+		if (lastMeasure >= 0) {
 			measure = staff.measures[lastMeasure];
-			var noteIndex = staff.measures[lastMeasure].voices[voiceIndex].notes.length - 1;
+            if (voiceIndex >= measure.voices.length) {
+                return null;
+            }
+			var noteIndex = measure.voices[voiceIndex].notes.length - 1;
 			return SmoSelection.noteSelection(score, staffIndex, lastMeasure, voiceIndex, noteIndex);
 		}
-		return null;
+		return SmoSelection.noteSelection(score, staffIndex, 0, 0,0);
 	}
 
 	// ### selectionsSameMeasure
