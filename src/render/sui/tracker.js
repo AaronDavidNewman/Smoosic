@@ -407,6 +407,12 @@ class suiTracker {
     _updateMeasureNoteMap(artifact) {
         var noteKey = SmoSelector.getNoteKey(artifact.selector);
         var measureKey = SmoSelector.getMeasureKey(artifact.selector);
+        var activeVoice = artifact.measure.getActiveVoice();
+        if (artifact.selector.voice != activeVoice) {
+            $('#'+artifact.note.renderId).find('.vf-notehead path').each(function(ix,el) {
+                el.setAttributeNS('', 'fill', 'rgb(128,128,128)');
+            });
+        }
 
         if (!this.measureNoteMap[noteKey]) {
             this.measureNoteMap[noteKey] = artifact;
@@ -506,6 +512,8 @@ class suiTracker {
                         tick: tick,
                         pitches: []
                     };
+
+                var voice = measure.getActiveVoice();
 
                 var selection = new SmoSelection({
                             selector: selector,
@@ -751,12 +759,13 @@ class suiTracker {
         return artifact.note.tickCount;
 	}
 
-	moveSelectionRight() {
+    // if we are being moved right programmatically, avoid playing the selected note.
+	moveSelectionRight(evKey,skipPLay) {
 		if (this.selections.length == 0) {
 			return;
 		}
 		var nselect = this._getOffsetSelection(1);
-		this._replaceSelection(nselect);
+		this._replaceSelection(nselect,skipPLay);
 	}
 
 	moveSelectionLeft() {
@@ -845,7 +854,7 @@ class suiTracker {
 		return this.selections.length > 0;
 	}
 
-	_replaceSelection(nselector) {
+	_replaceSelection(nselector,skipPlay) {
 		var artifact = SmoSelection.noteSelection(this.score, nselector.staff, nselector.measure, nselector.voice, nselector.tick);
         if (!artifact) {
             artifact = SmoSelection.noteSelection(this.score, nselector.staff, nselector.measure, 0, nselector.tick);
@@ -857,7 +866,9 @@ class suiTracker {
             console.log('warn: selection disappeared, default to start');
             artifact = SmoSelection.noteSelection(this.score,0,0,0,0);
         }
-        suiOscillator.playSelectionNow(artifact);
+        if (!skipPlay) {
+            suiOscillator.playSelectionNow(artifact);
+        }
 
         // clear modifier selections
         this.clearModifierSelections();
@@ -902,6 +913,7 @@ class suiTracker {
 			}
 		});
         return rv;
+
 	}
 
 	_selectFromToInStaff(sel1,sel2) {
@@ -1107,6 +1119,16 @@ class suiTracker {
 		$('body').trigger('tracker-selection');
 	}
 
+    _highlightActiveVoice(selection) {
+        var selector = selection.selector;
+        for (var i =1;i<=4;++i) {
+            var cl = 'v'+i.toString()+'-active';
+            $('body').removeClass(cl);
+        }
+        var cl = 'v'+(selector.voice + 1).toString()+'-active';
+        $('body').addClass(cl);
+    }
+
 
 	highlightSelection() {
         var grace = this.getSelectedGraceNotes();
@@ -1122,6 +1144,7 @@ class suiTracker {
 		if (this.pitchIndex >= 0 && this.selections.length == 1 &&
 			this.pitchIndex < this.selections[0].note.pitches.length) {
 			this._highlightPitchSelection(this.selections[0].note, this.pitchIndex);
+            this._highlightActiveVoice(this.selections[0]);
 			return;
 		}
 		this.pitchIndex = -1;
@@ -1129,6 +1152,7 @@ class suiTracker {
 		if (this.selections.length === 1 && this.selections[0].box) {
 			this._checkBoxOffset();
 			this._drawRect(this.selections[0].box, 'selection');
+            this._highlightActiveVoice(this.selections[0]);
 			return;
 		}
 		var sorted = this.selections.sort((a, b) => SmoSelector.gt(a.selector,b.selector) ? 1 : -1);
@@ -1147,6 +1171,7 @@ class suiTracker {
 				boxes.push(curBox);
 				curBox = sel.box;
 			}
+            this._highlightActiveVoice(sel);
 			prevSel = sel;
 		}
 		boxes.push(curBox);

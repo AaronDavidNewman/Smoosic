@@ -243,19 +243,12 @@ class VxMeasure {
     createVexNotes(voiceIx,active) {
         this.vexNotes = [];
         this.noteToVexMap = {};
-        var styles = [{fillStyle:'grey',strokeStyle:'grey'},
-         {fillStyle:'rgb(32,128,32)',strokeStyle:'rgb(32,32,32)'},
-         {fillStyle:'#222',strokeStyle:'#222'},
-         {fillStyle:'#333',strokeStyle:'#333'}];
         var voice =  this.smoMeasure.voices[voiceIx];
         for (var i = 0;
             i < voice.notes.length; ++i) {
             var smoNote = voice.notes[i];
             var vexNote = this._createVexNote(smoNote, i,voiceIx);
             this.noteToVexMap[smoNote.attrs.id] = vexNote;
-            if (active != voiceIx) {
-                vexNote.setStyle(styles[voiceIx]);
-            }
             this.vexNotes.push(vexNote);
         }
 		this._renderArticulations(voiceIx);

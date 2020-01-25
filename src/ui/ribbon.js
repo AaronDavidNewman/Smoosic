@@ -590,6 +590,7 @@ class ArticulationButtons {
 	}
 }
 
+
 class CollapseRibbonControl {
 	static get paramArray() {
 		return ['ribbonButtons', 'editor', 'controller', 'tracker', 'menus', 'buttonData', 'buttonElement'];

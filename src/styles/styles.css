@@ -397,6 +397,18 @@ button.addChord .left-text .icon {
     font-size:1.3em;
 }
 
+.v1-active #V1Button {
+    background-color:green;
+}
+.v2-active #V2Button {
+    background-color:green;
+}
+.v3-active #V3Button {
+    background-color:green;
+}
+.v4-active #V4Button {
+    background-color:green;
+}
 
 #addTextMenu .left-text {
     left:18%;

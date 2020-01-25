@@ -28,7 +28,7 @@ class TrackerTest {
 			subTitle('');
 			return timeTest();
 		}
-		
+
 		var remap = function() {
 				return keys.tracker.updateMap();
 		}
@@ -36,7 +36,7 @@ class TrackerTest {
 		var drawDefaults = () => {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
 			// measure.applyModifiers();
-			
+
 			layout.render();
             remap();
             return timeTest();
@@ -57,7 +57,7 @@ class TrackerTest {
 
 		var selectionTest1 = () => {
 			subTitle('move selection right');
-			keys.tracker.moveSelectionRight()
+			keys.tracker.moveSelectionRight(null)
 			return timeTest();
 		}
 

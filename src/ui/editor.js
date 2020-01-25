@@ -25,7 +25,7 @@ class suiEditor {
     }
 
     _renderAndAdvance() {
-		this.tracker.moveSelectionRight();
+		this.tracker.moveSelectionRight(null,true);
 		this.layout.setDirty();
     }
     _rebeam() {

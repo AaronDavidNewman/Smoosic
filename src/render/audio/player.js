@@ -107,9 +107,13 @@ class suiAudioPlayer {
             var slurs = [];
             for (var i = this.startIndex;i<staff.measures.length;++i) {
                 var measure=staff.measures[i];
+                var oldAccumulator = accumulator;
                 var voiceIx = 0;
                 measure.voices.forEach((voice) => {
                     var prevObj = null;
+                    if (voiceIx != 0) {
+                        accumulator = oldAccumulator;
+                    }
                     var tick = 0;
                     voice.notes.forEach((note) => {
                         var tempo = measure.getTempo();

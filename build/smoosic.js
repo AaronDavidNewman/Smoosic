@@ -5703,12 +5703,15 @@ class SmoSelection {
 		if (tickIndex > 0) {
 			return SmoSelection.noteSelection(score, staffIndex, measureIndex, voiceIndex, lastTick);
 		}
-		if (measureIndex > 0) {
+		if (lastMeasure >= 0) {
 			measure = staff.measures[lastMeasure];
-			var noteIndex = staff.measures[lastMeasure].voices[voiceIndex].notes.length - 1;
+            if (voiceIndex >= measure.voices.length) {
+                return null;
+            }
+			var noteIndex = measure.voices[voiceIndex].notes.length - 1;
 			return SmoSelection.noteSelection(score, staffIndex, lastMeasure, voiceIndex, noteIndex);
 		}
-		return null;
+		return SmoSelection.noteSelection(score, staffIndex, 0, 0,0);
 	}
 
 	// ### selectionsSameMeasure
@@ -7228,6 +7231,20 @@ class PasteBuffer {
 		}
 	}
 
+    _pasteVoiceSer(ser,vobj,voiceIx) {
+        var voices = [];
+        var ix = 0;
+        ser.voices.forEach((vc) => {
+            if(ix != voiceIx) {
+                voices.push(vc);
+            } else {
+                voices.push(vobj);
+            }
+            ix += 1;
+        });
+        ser.voices = voices;
+    }
+
 	pasteSelections(score, selector) {
 		this.destination = selector;
 		if (this.notes.length < 1) {
@@ -7246,8 +7263,9 @@ class PasteBuffer {
 			nvoice.notes.forEach((note) => {
 				vobj.notes.push(note.serialize());
 			});
+
 			// TODO: figure out how to do this with multiple voices
-			ser.voices = [vobj];
+            this._pasteVoiceSer(ser,vobj,this.destination.voice);
 			var nmeasure = SmoMeasure.deserialize(ser);
 			this.score.replaceMeasure(measureSel, nmeasure);
 			measureSel.measure += 1;
@@ -7500,19 +7518,12 @@ class VxMeasure {
     createVexNotes(voiceIx,active) {
         this.vexNotes = [];
         this.noteToVexMap = {};
-        var styles = [{fillStyle:'grey',strokeStyle:'grey'},
-         {fillStyle:'rgb(32,128,32)',strokeStyle:'rgb(32,32,32)'},
-         {fillStyle:'#222',strokeStyle:'#222'},
-         {fillStyle:'#333',strokeStyle:'#333'}];
         var voice =  this.smoMeasure.voices[voiceIx];
         for (var i = 0;
             i < voice.notes.length; ++i) {
             var smoNote = voice.notes[i];
             var vexNote = this._createVexNote(smoNote, i,voiceIx);
             this.noteToVexMap[smoNote.attrs.id] = vexNote;
-            if (active != voiceIx) {
-                vexNote.setStyle(styles[voiceIx]);
-            }
             this.vexNotes.push(vexNote);
         }
 		this._renderArticulations(voiceIx);
@@ -8385,9 +8396,13 @@ class suiAudioPlayer {
             var slurs = [];
             for (var i = this.startIndex;i<staff.measures.length;++i) {
                 var measure=staff.measures[i];
+                var oldAccumulator = accumulator;
                 var voiceIx = 0;
                 measure.voices.forEach((voice) => {
                     var prevObj = null;
+                    if (voiceIx != 0) {
+                        accumulator = oldAccumulator;
+                    }
                     var tick = 0;
                     voice.notes.forEach((note) => {
                         var tempo = measure.getTempo();
@@ -8877,6 +8892,12 @@ class suiTracker {
     _updateMeasureNoteMap(artifact) {
         var noteKey = SmoSelector.getNoteKey(artifact.selector);
         var measureKey = SmoSelector.getMeasureKey(artifact.selector);
+        var activeVoice = artifact.measure.getActiveVoice();
+        if (artifact.selector.voice != activeVoice) {
+            $('#'+artifact.note.renderId).find('.vf-notehead path').each(function(ix,el) {
+                el.setAttributeNS('', 'fill', 'rgb(128,128,128)');
+            });
+        }
 
         if (!this.measureNoteMap[noteKey]) {
             this.measureNoteMap[noteKey] = artifact;
@@ -8976,6 +8997,8 @@ class suiTracker {
                         tick: tick,
                         pitches: []
                     };
+
+                var voice = measure.getActiveVoice();
 
                 var selection = new SmoSelection({
                             selector: selector,
@@ -9221,12 +9244,13 @@ class suiTracker {
         return artifact.note.tickCount;
 	}
 
-	moveSelectionRight() {
+    // if we are being moved right programmatically, avoid playing the selected note.
+	moveSelectionRight(evKey,skipPLay) {
 		if (this.selections.length == 0) {
 			return;
 		}
 		var nselect = this._getOffsetSelection(1);
-		this._replaceSelection(nselect);
+		this._replaceSelection(nselect,skipPLay);
 	}
 
 	moveSelectionLeft() {
@@ -9315,7 +9339,7 @@ class suiTracker {
 		return this.selections.length > 0;
 	}
 
-	_replaceSelection(nselector) {
+	_replaceSelection(nselector,skipPlay) {
 		var artifact = SmoSelection.noteSelection(this.score, nselector.staff, nselector.measure, nselector.voice, nselector.tick);
         if (!artifact) {
             artifact = SmoSelection.noteSelection(this.score, nselector.staff, nselector.measure, 0, nselector.tick);
@@ -9327,7 +9351,9 @@ class suiTracker {
             console.log('warn: selection disappeared, default to start');
             artifact = SmoSelection.noteSelection(this.score,0,0,0,0);
         }
-        suiOscillator.playSelectionNow(artifact);
+        if (!skipPlay) {
+            suiOscillator.playSelectionNow(artifact);
+        }
 
         // clear modifier selections
         this.clearModifierSelections();
@@ -9372,6 +9398,7 @@ class suiTracker {
 			}
 		});
         return rv;
+
 	}
 
 	_selectFromToInStaff(sel1,sel2) {
@@ -9577,6 +9604,16 @@ class suiTracker {
 		$('body').trigger('tracker-selection');
 	}
 
+    _highlightActiveVoice(selection) {
+        var selector = selection.selector;
+        for (var i =1;i<=4;++i) {
+            var cl = 'v'+i.toString()+'-active';
+            $('body').removeClass(cl);
+        }
+        var cl = 'v'+(selector.voice + 1).toString()+'-active';
+        $('body').addClass(cl);
+    }
+
 
 	highlightSelection() {
         var grace = this.getSelectedGraceNotes();
@@ -9592,6 +9629,7 @@ class suiTracker {
 		if (this.pitchIndex >= 0 && this.selections.length == 1 &&
 			this.pitchIndex < this.selections[0].note.pitches.length) {
 			this._highlightPitchSelection(this.selections[0].note, this.pitchIndex);
+            this._highlightActiveVoice(this.selections[0]);
 			return;
 		}
 		this.pitchIndex = -1;
@@ -9599,6 +9637,7 @@ class suiTracker {
 		if (this.selections.length === 1 && this.selections[0].box) {
 			this._checkBoxOffset();
 			this._drawRect(this.selections[0].box, 'selection');
+            this._highlightActiveVoice(this.selections[0]);
 			return;
 		}
 		var sorted = this.selections.sort((a, b) => SmoSelector.gt(a.selector,b.selector) ? 1 : -1);
@@ -9617,6 +9656,7 @@ class suiTracker {
 				boxes.push(curBox);
 				curBox = sel.box;
 			}
+            this._highlightActiveVoice(sel);
 			prevSel = sel;
 		}
 		boxes.push(curBox);
@@ -11753,7 +11793,7 @@ class suiEditor {
     }
 
     _renderAndAdvance() {
-		this.tracker.moveSelectionRight();
+		this.tracker.moveSelectionRight(null,true);
 		this.layout.setDirty();
     }
     _rebeam() {
@@ -57039,6 +57079,11 @@ class VoiceButtons {
         var voiceIx = 0;
 		if (this.buttonData.id === 'V1Button') {
             SmoOperation.setActiveVoice(this.tracker.layout.score,voiceIx);
+            var ml = SmoSelection.getMeasureList(this.tracker.selections);
+            ml.forEach((sel) => {
+                sel.measure.setChanged();
+            });
+            this.tracker.layout.setDirty();
             return;
 		} else if (this.buttonData.id === 'V2Button') {
 			voiceIx = 1;
@@ -57422,6 +57467,7 @@ class ArticulationButtons {
 		});
 	}
 }
+
 
 class CollapseRibbonControl {
 	static get paramArray() {
