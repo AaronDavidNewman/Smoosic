@@ -47,6 +47,7 @@ class SmoOperation {
 
     static populateVoice(selection,voiceIx) {
         selection.measure.populateVoice(voiceIx);
+        selection.measure.setChanged();
     }
 
     static setTimeSignature(score,selections,timeSignature) {
@@ -398,7 +399,8 @@ class SmoOperation {
                 // Look through the earlier notes in the measure and try
                 // to find an equivalent note, and convert it if it exists.
                 measure.voices.forEach((voice) => {
-                   for (var i = 0;i<selection.selector.tick;++i)  {
+                   for (var i = 0;i<selection.selector.tick
+                         && i < voice.notes.length;++i)  {
                        var prevNote = voice.notes[i];
                        prevNote.pitches.forEach((prevPitch) => {
                            var prevInt = smoMusic.smoPitchToInt(prevPitch);

@@ -52,6 +52,7 @@ class suiLayoutBase {
     numberMeasures() {
         var staff = this.score.staves[0];
         var measures = staff.measures.filter((measure) => measure.measureNumber.systemIndex == 0);
+        $('.measure-number').remove();
 
         measures.forEach((measure) => {
             var at = [];
@@ -274,10 +275,10 @@ class suiLayoutBase {
 		if (!measure)
 			return;
 
-		$(this.renderer.getContext().svg).find('g.' + measure.attrs.id).remove();
-		measure.staffX = SmoMeasure.defaults.staffX;
+		$(this.renderer.getContext().svg).find('g.' + measure.getClassId()).remove();
+		/* measure.staffX = SmoMeasure.defaults.staffX;
 		measure.staffY = SmoMeasure.defaults.staffY;
-		measure.staffWidth = SmoMeasure.defaults.staffWidth;
+		measure.staffWidth = SmoMeasure.defaults.staffWidth;  */
 		measure.adjY = 0;
 		measure.setChanged();
 	}

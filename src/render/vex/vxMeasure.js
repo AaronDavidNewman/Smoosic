@@ -389,10 +389,12 @@ class VxMeasure {
     // ## Description:
     // Render all the notes in my smoMeasure.  All rendering logic is called from here.
     render() {
-        $(this.context.svg).find('g.' + this.smoMeasure.attrs.id).remove();
+        $(this.context.svg).find('g.' + this.smoMeasure.getClassId()).remove();
 
         var group = this.context.openGroup();
+        var mmClass = this.smoMeasure.getClassId();
         group.classList.add(this.smoMeasure.attrs.id);
+        group.classList.add(mmClass);
 		group.id=this.smoMeasure.attrs.id;
 
 		var key = smoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature,this.smoMeasure.transposeIndex);

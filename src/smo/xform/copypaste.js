@@ -384,9 +384,16 @@ class PasteBuffer {
 			// TODO: figure out how to do this with multiple voices
             this._pasteVoiceSer(ser,vobj,this.destination.voice);
 			var nmeasure = SmoMeasure.deserialize(ser);
+            nmeasure.renderedBox = svgHelpers.smoBox(measure.renderedBox);
+            nmeasure.logicalBox = svgHelpers.smoBox(measure.logicalBox);
+            nmeasure.staffX = measure.logicalBox.x;
+            nmeasure.staffWidth = measure.logicalBox.width;
+            nmeasure.staffY = measure.logicalBox.y;
+            ['forceClef','forceKeySignature','forceTimeSignature','forceTempo'].forEach((flag) => {
+                nmeasure[flag] = measure[flag];
+            });
 			this.score.replaceMeasure(measureSel, nmeasure);
 			measureSel.measure += 1;
 		}
-
 	}
 }

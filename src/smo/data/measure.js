@@ -41,6 +41,12 @@ class SmoMeasure {
 		// return this.voices[this.activeVoice].notes;
 	}
 
+    // ### getClassId
+    // create a identifier unique to this measure index so it can be easily removed.
+    getClassId() {
+        return 'mm-'+this.measureNumber.staffId+'-'+this.measureNumber.measureIndex;
+    }
+
     pickupMeasure(duration) {
         var proto = SmoMeasure.deserialize(this.serialize());
         proto.attrs.id =  VF.Element.newID();
