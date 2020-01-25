@@ -294,12 +294,17 @@ class SmoSystemStaff {
     }
     numberMeasures() {
         this.renumberIndex = this.startIndex;
+        var currentOffset = 0;
+        if (this.measures[0].getTicksFromVoice(0) < smoMusic.timeSignatureToTicks(this.measures[0].timeSignature)) {
+            currentOffset = -1;
+        }
 
         for (var i = 0; i < this.measures.length; ++i) {
             var measure = this.measures[i];
 
             this.renumberIndex = this.renumberingMap[i] ? this.renumberingMap[i].startIndex : this.renumberIndex;
-            var localIndex = this.renumberIndex + i;
+            var localIndex = this.renumberIndex + i + currentOffset;
+            // If this is the first full measure, call it '1'
             var numberObj = {
                 measureNumber: localIndex,
                 measureIndex: i + this.startIndex,

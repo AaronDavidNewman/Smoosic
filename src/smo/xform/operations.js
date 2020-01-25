@@ -435,8 +435,12 @@ class SmoOperation {
 		}
         var earlierAccidental = (pitch) => {
             selection.measure.voices.forEach((voice) => {
-                for (var i=0;i<selection.selector.tick;++i) {
+                for (var i=0;i<selection.selector.tick
+                       && i < voice.notes.length;++i) {
                     var prevNote = voice.notes[i];
+                    if (prevNote == null || prevNote.pitches == null) {
+                        console.log('this will die null');
+                    }
                     prevNote.pitches.forEach((prevPitch) => {
                         if (prevPitch.letter == pitch.letter) {
                             pitch.accidental = prevPitch.accidental;

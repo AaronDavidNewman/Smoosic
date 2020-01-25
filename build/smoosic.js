@@ -3744,12 +3744,17 @@ class SmoSystemStaff {
     }
     numberMeasures() {
         this.renumberIndex = this.startIndex;
+        var currentOffset = 0;
+        if (this.measures[0].getTicksFromVoice(0) < smoMusic.timeSignatureToTicks(this.measures[0].timeSignature)) {
+            currentOffset = -1;
+        }
 
         for (var i = 0; i < this.measures.length; ++i) {
             var measure = this.measures[i];
 
             this.renumberIndex = this.renumberingMap[i] ? this.renumberingMap[i].startIndex : this.renumberIndex;
-            var localIndex = this.renumberIndex + i;
+            var localIndex = this.renumberIndex + i + currentOffset;
+            // If this is the first full measure, call it '1'
             var numberObj = {
                 measureNumber: localIndex,
                 measureIndex: i + this.startIndex,
@@ -6221,8 +6226,12 @@ class SmoOperation {
 		}
         var earlierAccidental = (pitch) => {
             selection.measure.voices.forEach((voice) => {
-                for (var i=0;i<selection.selector.tick;++i) {
+                for (var i=0;i<selection.selector.tick
+                       && i < voice.notes.length;++i) {
                     var prevNote = voice.notes[i];
+                    if (prevNote == null || prevNote.pitches == null) {
+                        console.log('this will die null');
+                    }
                     prevNote.pitches.forEach((prevPitch) => {
                         if (prevPitch.letter == pitch.letter) {
                             pitch.accidental = prevPitch.accidental;
@@ -9743,6 +9752,22 @@ class suiLayoutBase {
         this.setRefresh();
     }
 
+    numberMeasures() {
+        var staff = this.score.staves[0];
+        var measures = staff.measures.filter((measure) => measure.measureNumber.systemIndex == 0);
+
+        measures.forEach((measure) => {
+            var at = [];
+            if (measure.measureNumber.measureNumber > 0) {
+                at.push({y:measure.logicalBox.y - 10});
+                at.push({x:measure.logicalBox.x});
+                at.push({fontFamily:'Helvitica'});
+                at.push({fontSize:'8pt'});
+                svgHelpers.placeSvgText(this.context.svg,at,'measure-number',(measure.measureNumber.measureNumber + 1).toString());
+            }
+        });
+    }
+
 	_setViewport(reset,elementId) {
 		// this.screenWidth = window.innerWidth;
 		var layout = this._score.layout;
@@ -10115,6 +10140,7 @@ class suiLayoutBase {
         if (this.passState == suiLayoutBase.passStates.redrawMain) {
             this.dirty=false;
             this.setPassState(suiLayoutBase.passStates.clean,'render complete');
+            this.numberMeasures();
             // this.shadowRender = true;
             this.partialRender = true;
             return;

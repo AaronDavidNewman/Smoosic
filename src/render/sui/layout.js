@@ -49,6 +49,22 @@ class suiLayoutBase {
         this.setRefresh();
     }
 
+    numberMeasures() {
+        var staff = this.score.staves[0];
+        var measures = staff.measures.filter((measure) => measure.measureNumber.systemIndex == 0);
+
+        measures.forEach((measure) => {
+            var at = [];
+            if (measure.measureNumber.measureNumber > 0) {
+                at.push({y:measure.logicalBox.y - 10});
+                at.push({x:measure.logicalBox.x});
+                at.push({fontFamily:'Helvitica'});
+                at.push({fontSize:'8pt'});
+                svgHelpers.placeSvgText(this.context.svg,at,'measure-number',(measure.measureNumber.measureNumber + 1).toString());
+            }
+        });
+    }
+
 	_setViewport(reset,elementId) {
 		// this.screenWidth = window.innerWidth;
 		var layout = this._score.layout;
@@ -421,6 +437,7 @@ class suiLayoutBase {
         if (this.passState == suiLayoutBase.passStates.redrawMain) {
             this.dirty=false;
             this.setPassState(suiLayoutBase.passStates.clean,'render complete');
+            this.numberMeasures();
             // this.shadowRender = true;
             this.partialRender = true;
             return;
