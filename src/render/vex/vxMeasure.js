@@ -74,13 +74,17 @@ class VxMeasure {
         var tickmap = this.smoMeasure.tickmapForVoice(voiceIx);
         for (var i = 0; i < smoNote.pitches.length; ++i) {
             var pitch = smoNote.pitches[i];
-            var accidental = pitch.accidental ? pitch.accidental : 'n';
+            var duration = this.tickmapObject.tickmaps[voiceIx].durationMap[tickIndex];
+            var keyAccidental = smoMusic.getAccidentalForKeySignature(pitch,this.smoMeasure.keySignature);
+            var accidentals = this.tickmapObject.accidentalArray.filter((ar) =>
+                ar.duration < duration && ar.pitches[pitch.letter]);
+            var acLen = accidentals.length;
+            var declared = acLen > 0 ?
+                accidentals[acLen - 1].pitches[pitch.letter].pitch.accidental: keyAccidental;
 
-            // was this accidental declared earlier in the measure?
-            var declared = tickmap.getActiveAccidental(pitch,tickIndex,this.smoMeasure.keySignature);
-
-            if (accidental != declared || pitch.cautionary) {
-                var acc = new VF.Accidental(accidental);
+            if (declared != pitch.accidental
+                || pitch.cautionary) {
+                var acc = new VF.Accidental(pitch.accidental);
 
                 if (pitch.cautionary) {
                     acc.setAsCautionary();
@@ -430,6 +434,8 @@ class VxMeasure {
 
 		this.handleMeasureModifiers();
 		this.stave.draw();
+
+        this.tickmapObject = this.smoMeasure.createMeasureTickmaps();
 
         var voiceAr = [];
 

@@ -383,6 +383,11 @@ class SmoOperation {
 		if (measure && note) {
             var pitchar = [];
             var pitchIx = 0;
+            var voiceIx = 0;
+            var accidentalMap = {};
+            var activeTm = measure.tickmapForVoice(measure.getActiveVoice());
+            var targetDuration = activeTm.durationMap[selection.selector.tick];
+
             note.pitches.forEach((opitch) => {
                 // Only translate selected pitches
                 var shouldXpose = selection.selector.pitches.length == 0 ||
@@ -398,6 +403,7 @@ class SmoOperation {
 
                 // Look through the earlier notes in the measure and try
                 // to find an equivalent note, and convert it if it exists.
+                var voiceIx = 0;
                 measure.voices.forEach((voice) => {
                    for (var i = 0;i<selection.selector.tick
                          && i < voice.notes.length;++i)  {

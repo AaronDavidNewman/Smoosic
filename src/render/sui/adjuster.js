@@ -6,21 +6,30 @@ class suiLayoutAdjuster {
 	static estimateMusicWidth(smoMeasure) {
 		var widths = [];
         var voiceIx = 0;
+        var tmObj = smoMeasure.createMeasureTickmaps();
 		smoMeasure.voices.forEach((voice) => {
 			var tickIndex = 0;
             var width = 0;
-            var tm = smoMeasure.tickmapForVoice(voiceIx);
+            var duration = 0;
+            var tm = tmObj.tickmaps[voiceIx];
 			voice.notes.forEach((note) => {
 				width += vexGlyph.dimensions.noteHead.width + vexGlyph.dimensions.noteHead.spacingRight;
 				width += vexGlyph.dimensions.dot.width * note.dots + vexGlyph.dimensions.dot.spacingRight * note.dots;
 				note.pitches.forEach((pitch) => {
-					var declared = tm.getActiveAccidental(pitch, tickIndex, smoMeasure.keySignature);
+                    var keyAccidental = smoMusic.getAccidentalForKeySignature(pitch,smoMeasure.keySignature);
+                    var accidentals = tmObj.accidentalArray.filter((ar) =>
+                        ar.duration < duration && ar.pitches[pitch.letter]);
+                    var acLen = accidentals.length;
+                    var declared = acLen > 0 ?
+                        accidentals[acLen - 1].pitches[pitch.letter].pitch.accidental: keyAccidental;
 
-					if (pitch.accidental != declared || pitch.cautionary) {
+                    if (declared != pitch.accidental
+                        || pitch.cautionary) {
 						width += vexGlyph.accidental(pitch.accidental).width;
 					}
 				});
 				tickIndex += 1;
+                duration += note.tickCount;
 			});
             voiceIx += 1;
             widths.push(width);

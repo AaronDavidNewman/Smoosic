@@ -1,40 +1,33 @@
 
 class BeamModifierBase {
     constructor() {}
-    beamNote(note, iterator, accidentalMap) {}
+    beamNote(note, tickmap, accidentalMap) {}
 }
 
 class smoBeamerFactory {
     static applyBeams(measure) {
         for (var i = 0;i < measure.voices.length;++i) {
             var beamer = new smoBeamModifier(measure);
-            var apply = new smoBeamerIterator(measure, [beamer],i);
+            var apply = new smoBeamerIterator(measure, beamer,i);
             apply.run();
         }
     }
 }
 
 class smoBeamerIterator {
-    constructor(measure, actors,i) {
-        this.actors = actors;
+    constructor(measure, actor,voice) {
+        this.actor = actor;
         this.measure = measure;
-        this.voice = i;
-    }
-
-    get iterator() {
-        return this._iterator;
+        this.voice = voice;
     }
 
     //  ### run
     //  ###  Description:  start the iteration on this set of notes
     run() {
-        var self = this;
-        var iterator = new smoTickIterator(this.measure,{voice:this.voice});
-        iterator.iterate((iterator, note, accidentalMap) => {
-            for (var i = 0; i < self.actors.length; ++i) {
-                self.actors[i].beamNote(iterator, note, accidentalMap);
-            }
-        });
+        var tickmap = this.measure.tickmapForVoice(this.voice);
+        for (var i = 0;i < tickmap.durationMap.length;++i) {
+            this.actor.beamNote(tickmap, i,this.measure.voices[this.voice].notes[i]);
+        }
     }
 }
 
@@ -75,10 +68,10 @@ class smoBeamModifier extends BeamModifierBase {
         this.currentGroup = [];
         this.duration = 0;
     }
-    beamNote(iterator, note, accidentalMap) {
+    beamNote(tickmap, index, note, accidentalMap) {
         this.beamBeats = note.beamBeats;
 
-        this.duration += iterator.delta;
+        this.duration += tickmap.deltaMap[index];
 
         // beam tuplets
         if (note.isTuplet) {
@@ -99,34 +92,33 @@ class smoBeamModifier extends BeamModifierBase {
             }
             // Ultimate note in tuplet
             if (ult.attrs.id === note.attrs.id) {
-                this._completeGroup(iterator.voice);
+                this._completeGroup(tickmap.voice);
                 this._advanceGroup();
             }
             return note;
         }
 
         // don't beam > 1/4 note in 4/4 time
-        if (iterator.delta >= 4096) {
-			this._completeGroup(iterator.voice);
+        if (tickmap.deltaMap[index] >= 4096) {
+			this._completeGroup(tickmap.voice);
             this._advanceGroup();
             return note;
         }
 
         this.currentGroup.push(note);
         if (note.endBeam) {
-            this._completeGroup(iterator.voice);
+            this._completeGroup(tickmap.voice);
             this._advanceGroup();
         }
 
         if (this.duration == this.beamBeats) {
-            this._completeGroup(iterator.voice);
+            this._completeGroup(tickmap.voice);
             this._advanceGroup();
             return note;
         }
 
         // If this does not align on a beat, don't beam it
         if (this.duration > this.beamBeats) {
-			// ||            ((iterator.totalDuration - this.duration) % this.beamBeats != 0)) {
             this._advanceGroup()
             return note;
         }

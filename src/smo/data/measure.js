@@ -375,14 +375,53 @@ class SmoMeasure {
 			activeVoice: 0
 		};
 	}
-	tickmap() {
-		return VX.TICKMAP(this);
-	}
-
     tickmapForVoice(voiceIx) {
-        var iterator = new smoTickIterator(this,{voice:voiceIx});
-        iterator.iterate(smoTickIterator.nullActor,this);
-        return iterator;
+        var tickmap = new smoTickIterator(this,{voice:voiceIx});
+        tickmap.iterate(smoTickIterator.nullActor,this);
+        return tickmap;
+    }
+
+    // ### createMeasureTickmaps
+    // A tickmap is a map of notes to ticks for the measure.  It is speciifc per-voice
+    // since each voice may have different numbers of ticks.  The accidental map is
+    // overall since accidentals in one voice apply to accidentals in the other
+    // voices.  So we return the tickmaps and the overall accidental map.
+    createMeasureTickmaps() {
+        var tickmapArray=[];
+        var accidentalMap = {};
+        for (var i = 0;i< this.voices.length;++i) {
+            tickmapArray.push(this.tickmapForVoice(i));
+        }
+
+        for (var i = 0;i< this.voices.length;++i) {
+            var voice = this.voices[i];
+            var tickmap = tickmapArray[i];
+            var durationKeys = Object.keys(tickmap.durationAccidentalMap)
+
+            durationKeys.forEach((durationKey) => {
+                if (!accidentalMap[durationKey]) {
+                    accidentalMap[durationKey] = tickmap.durationAccidentalMap[durationKey];
+                } else {
+                    var amap = accidentalMap[durationKey];
+                    var amapKeys = Object.keys(amap);
+                    var pitchKeys = Object.keys(tickmap.durationAccidentalMap[durationKey]);
+                    pitchKeys.forEach((pitchKey) => {
+                        if (!amap[pitchKey]) {
+                            amap[pitchKey] = tickmap.durationAccidentalMap[durationKey][pitchKey];
+                        }
+                    });
+                }
+            });
+        }
+        var accidentalArray = [];
+        Object.keys(accidentalMap).forEach((durationKey) => {
+            accidentalArray.push({duration:durationKey,pitches:accidentalMap[durationKey]});
+        });
+        return {
+            tickmaps:tickmapArray,
+            accidentalMap:accidentalMap,
+            accidentalArray:accidentalArray
+        };
     }
 
     getTicksFromVoice() {

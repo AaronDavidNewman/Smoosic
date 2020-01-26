@@ -532,6 +532,20 @@ class smoMusic {
 		return km.scaleMap[letter];
 	}
 
+    static getAccidentalForKeySignature(smoPitch,keySignature) {
+        var vexKey = smoMusic.getKeySignatureKey(smoPitch.letter,keySignature);
+        return vexKey.length == 1 ? 'n' : vexKey.substr(1,vexKey.length - 1);
+    }
+
+    // ### isPitchInKeySignature
+    // Return true if the pitch is not an accidental in the give key, e.g.
+    // f# in 'g' or c in 'Bb'
+    static isPitchInKeySignature(smoPitch,keySignature) {
+        var vexKey = smoMusic.getKeySignatureKey(smoPitch.letter,keySignature);
+        return (vexKey.length == 1 && smoPitch.accidental == 'n' ||
+            (vexKey[1]==smoPitch.accidental));
+    }
+
 	// ### Description:
 	// Get ticks for this note with an added dot.  Return
 	// identity if that is not a supported value.

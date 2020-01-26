@@ -113,12 +113,12 @@ class SmoTickTransformer {
     // 4. if an array of notes is returned, it is concatenated to the existing note array and no more actors are called.
     //     Note that *return note;* and *return [note];* produce the same result.
     // 5. if an empty array [] is returned, that copy is not added to the result.  The note is effectively deleted.
-    transformTick(iterator, note) {
+    transformTick(tickmap, index,note) {
         var self = this;
 
         for (var i = 0; i < this.actors.length; ++i) {
 			var actor=this.actors[i];
-            var newNote = actor.transformTick(note, iterator, iterator.accidentalMap);
+            var newNote = actor.transformTick(note, tickmap, index);
             if (newNote == null) {
 				this.vxNotes.push(note); // no change
                 continue;
@@ -137,11 +137,10 @@ class SmoTickTransformer {
 
     run() {
         var self = this;
-        var iterator = new smoTickIterator(this.measure,{voice:this.voice});
-        iterator.iterate((iterator, note, accidentalMap) => {
-            self.transformTick(iterator, note, accidentalMap);
-        });
-
+        var tickmap = this.measure.tickmapForVoice(this.voice);
+        for (var i = 0;i < tickmap.durationMap.length;++i) {
+            this.transformTick(tickmap,i,this.measure.voices[this.voice].notes[i]);
+        }
         this.notes = this.vxNotes;
         return this.vxNotes;
     }
@@ -151,7 +150,7 @@ class SmoTickTransformer {
 // Any number of transformers can be applied to a note.
 class TickTransformBase {
     constructor() {}
-    transformTick(note, iterator, accidentalMap) {
+    transformTick(note, tickmap, index) {
         return note;
     }
 }
@@ -164,8 +163,8 @@ class SmoContractNoteActor extends TickTransformBase {
         super();
         Vex.Merge(this, params);
     }
-    transformTick(note, iterator, accidentalMap) {
-        if (iterator.index == this.startIndex) {
+    transformTick(note, tickmap, index) {
+        if (index == this.startIndex) {
             var notes = [];
             var noteCount = Math.floor(note.ticks.numerator / this.newTicks);
             var notes = [];
@@ -222,7 +221,7 @@ class SmoStretchTupletActor extends TickTransformBase {
         this.tuplet.combine(this.startIndex, this.endIndex);
         this.durationMap = this.tuplet.durationMap;
     }
-    transformTick(note, iterator, accidentalMap) {
+    transformTick(note, tickmap,index) {
 
         /*
         ## Strategy:
@@ -237,11 +236,11 @@ class SmoStretchTupletActor extends TickTransformBase {
         A | B | C
          */
 
-        if (iterator.index < this.tupletIndex)
+        if (index < this.tupletIndex)
             return note;
-        if (iterator.index >= this.tupletIndex + this.oldLength)
+        if (index >= this.tupletIndex + this.oldLength)
             return note;
-        if (iterator.index === this.tupletIndex) {
+        if (index === this.tupletIndex) {
             return this.tuplet.notes;
         }
         return [];
@@ -264,12 +263,12 @@ class SmoContractTupletActor extends TickTransformBase {
         this.splitIndex = this.changeIndex - this.tupletIndex;
         this.tuplet.split(this.splitIndex);
     }
-    transformTick(note, iterator, accidentalMap) {
-        if (iterator.index < this.tupletIndex)
+    transformTick(note, tickmap, index, accidentalMap) {
+        if (index < this.tupletIndex)
             return note;
-        if (iterator.index >= this.tupletIndex + this.oldLength)
+        if (index >= this.tupletIndex + this.oldLength)
             return note;
-        if (iterator.index == this.changeIndex) {
+        if (index == this.changeIndex) {
             return this.tuplet.notes;
         }
         return [];
@@ -287,11 +286,11 @@ class SmoUnmakeTupletActor extends TickTransformBase {
         super();
         Vex.Merge(this, parameters);
     }
-    transformTick(note, iterator, accidentalMap) {
-        if (iterator.index < this.startIndex || iterator.index > this.endIndex) {
+    transformTick(note, tickmap, index, accidentalMap) {
+        if (index < this.startIndex || index > this.endIndex) {
             return null;
         }
-        if (iterator.index == this.startIndex) {
+        if (index == this.startIndex) {
             var tuplet = this.measure.getTupletForNote(note);
             var ticks = tuplet.totalTicks;
             var nn = SmoNote.cloneWithDuration(note, {numerator:ticks,denominator:1,remainder:0});
@@ -363,12 +362,12 @@ class SmoMakeTupletActor extends TickTransformBase {
         }
         return rv;
     }
-    transformTick(note, iterator, accidentalMap) {
+    transformTick(note, tickmap, index) {
         // if our tuplet replaces this note, make sure we make it go away.
-        if (iterator.index > this.index && iterator.index <= this.rangeToSkip[1]) {
+        if (index > this.index && index <= this.rangeToSkip[1]) {
             return [];
         }
-        if (iterator.index != this.index) {
+        if (index != this.index) {
             return null;
         }
         for (var i = 0; i < this.numNotes; ++i) {
@@ -385,10 +384,10 @@ class SmoMakeTupletActor extends TickTransformBase {
                 totalTicks: this.totalTicks,
                 ratioed: false,
                 bracketed: true,
-                startIndex: iterator.index,
+                startIndex: index,
                 durationMap: this.durationMap,
                 location: 1,
-                voice:iterator.voice
+                voice:tickmap.voice
             });
         this.measure.tuplets.push(tuplet);
         return this.tuplet;
@@ -448,12 +447,12 @@ class SmoStretchNoteActor extends TickTransformBase {
             }
         }
     }
-    transformTick(note, iterator, accidentalMap) {
+    transformTick(note, tickmap, index) {
         if (this.durationMap.length == 0) {
             return null;
         }
-        if (iterator.index >= this.startIndex && iterator.index < this.startIndex + this.durationMap.length) {
-            var mapIndex = iterator.index - this.startIndex;
+        if (index >= this.startIndex && index < this.startIndex + this.durationMap.length) {
+            var mapIndex = index - this.startIndex;
             var ticks = this.durationMap[mapIndex];
             if (ticks == 0) {
                 return [];

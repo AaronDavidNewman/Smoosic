@@ -105,6 +105,13 @@ class suiLayoutBase {
 
     setViewport(reset) {
         this._setViewport(reset,this.elementId);
+        this.score.staves.forEach((staff) => {
+            staff.measures.forEach((measure) => {
+                if (measure.logicalBox) {
+                    delete measure.logicalBox;
+                }
+            });
+        });
         this.partialRender = false;
     }
 

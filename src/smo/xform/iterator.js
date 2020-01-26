@@ -70,6 +70,7 @@ class smoTickIterator {
 
         this.tupletMap = {};
         this.accidentalMap = [];
+        this.durationAccidentalMap={};
 
         this.hasRun = false;
         this.beattime = 4096;
@@ -87,16 +88,21 @@ class smoTickIterator {
         keyKeys.forEach((keyKey) => {
             var vexKey = keys[keyKey];
             if (vexKey.length > 1 && (vexKey[1] === 'b' || vexKey[1] === '#')) {
-                map[vexKey[0]] = {
+                var pitch = {
                     letter: vexKey[0],
                     accidental: vexKey[1]
                 };
+                map[vexKey[0]] = {
+                    duration:0,
+                    pitch:pitch
+                }
             }
         });
     }
 
 	// ### updateAccidentalMap
-	// Keep a running tally of the accidentals based on the key and previous accidentals.
+	// Keep a running tally of the accidentals for this voice
+    // based on the key and previous accidentals.
     static updateAccidentalMap(note, iterator, keySignature, accidentalMap) {
         var sigObj = {};
         var newObj = {};
@@ -115,15 +121,17 @@ class smoTickIterator {
             if (sigObj && sigObj[letter]) {
                 var currentVal = sigObj[letter].key + sigObj[letter].accidental;
                 if (sigLetter != currentVal) {
-                    newObj[letter] = pitch;
+                    newObj[letter] = {pitch:pitch,duration:iterator.duration};
                 }
             } else {
                 if (sigLetter != sigKey) {
-                    newObj[letter] = pitch;
+                    newObj[letter] = {pitch:pitch,duration:iterator.duration};
                 }
             }
         }
         accidentalMap.push(newObj);
+        // Mark the accidental with the start of this note.
+        iterator.durationAccidentalMap[iterator.durationMap[iterator.index]] = newObj;
     }
 
 	// ### getActiveAccidental
@@ -147,7 +155,7 @@ class smoTickIterator {
                 var mapAcc = mapLetter.accidental ? mapLetter.accidental : 'n';
 
                 // if the letters match and the accidental...
-                if (mapLetter.letter.toLowerCase() === letter) {
+                if (mapLetter.pitch.letter.toLowerCase() === letter) {
                     return mapAcc;
                 }
             }
@@ -249,27 +257,4 @@ class smoTickIterator {
         // this.startRange = this.index;
         return rv;
     }
-}
-
-class smoMeasureIterator {
-    constructor(system, options) {
-        this.measures = system.measures;
-        this.index = this.startIndex = 0;
-        this.endIndex = this.measures.length;
-        Vex.Merge(this, options);
-    }
-
-    iterate(actor) {
-        for (this.index = this.startIndex; this.index < this.endIndex; this.index += 1) {
-            var measure = this.measures[this.index];
-            actor(this, measure);
-        }
-    }
-}
-
-/* iterate over a set of notes, creating a map of notes to ticks */
-VX.TICKMAP = (measure,options) => {
-    var iterator = new smoTickIterator(measure);
-    iterator.iterate(smoTickIterator.nullActor, measure);
-    return iterator;
 }
