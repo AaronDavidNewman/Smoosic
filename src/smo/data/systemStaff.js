@@ -352,6 +352,15 @@ class SmoSystemStaff {
         } else {
             this.measures.splice(index, 0, measure);
         }
+        var modifiers = this.modifiers.filter((mod) => mod.startSelector.measure >= index);
+        modifiers.forEach((mod) => {
+            if (mod.startSelector.measure < this.measures.length) {
+                mod.startSelector.measure += 1;
+            }
+            if (mod.endSelector.measure < this.measures.length) {
+                mod.endSelector.measure += 1;
+            }
+        });
 
         this.numberMeasures();
     }

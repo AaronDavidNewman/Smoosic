@@ -305,6 +305,7 @@ class suiEditor {
         var ix = selection.selector.measure;
         this.layout.score.staves.forEach((staff) => {
             this.layout.unrenderMeasure(staff.measures[ix]);
+            this.layout.unrenderMeasure(staff.measures[staff.measures.length-1]);
 
             // A little hacky - delete the modifiers if they start or end on
             // the measure

@@ -980,7 +980,7 @@ class suiTracker {
 
         suiOscillator.playSelectionNow(this.suggestion);
 
-        var preselected = SmoSelector.sameNote(this.suggestion.selector,this.selections[0].selector) && this.selections.length == 1;
+        var preselected = this.selections[0] ? SmoSelector.sameNote(this.suggestion.selector,this.selections[0].selector) && this.selections.length == 1 : false;
 
 		this.selections = [this.suggestion];
         if (preselected && this.modifierTabs.length) {
