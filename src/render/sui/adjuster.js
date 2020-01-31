@@ -103,6 +103,11 @@ class suiLayoutAdjuster {
 		// Calculate the space for left/right text which displaces the measure.
 		var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(renderer,measure);
 		measure.staffX += textOffsetBox.x;
+        measure.adjY = 0;
+
+        if (measure.forceClef) {
+            measure.adjY = vexGlyph.clef(measure.clef).yTop;
+        }
 	}
 
 	// ### justifyWidths
@@ -164,16 +169,23 @@ class suiLayoutAdjuster {
     		for (var i = 1; i < notes.length; ++i) {
     			var b1 = notes[i - 1].getBBox();
     			var b2 = notes[i].getBBox();
+                var n1 = smoMeasure.voices[voiceIx].notes[i - 1];
+                var n2 = smoMeasure.voices[voiceIx].notes[i];
+                if (!n1 || !n2)
+                  continue;
     			var dif = b2.x - (b1.x + b1.width);
-    			if (dif < 10) {
+                var lyrics = n1.getModifiers('SmoLyric').length ||
+                  n2.getModifiers('SmoLyric').length;
+    			if (dif < 10 && !lyrics) {
     				acc += 10 - dif;
     			}
     		}
             accs.push(acc);
             voiceIx += 1;
         });
-
-		smoMeasure.logicalBox.width += accs.sort((a,b) => a > b ? -1 : 1)[0];
+        if (accs.length) {
+		    smoMeasure.logicalBox.width += accs.sort((a,b) => a > b ? -1 : 1)[0];
+        }
 	}
 
     // ### adjustWidths

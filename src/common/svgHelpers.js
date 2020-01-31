@@ -160,6 +160,8 @@ class svgHelpers {
 	static debugBox(svg, box, classes, voffset) {
 		voffset = voffset ? voffset : 0;
 		classes = classes ? classes : '';
+        if (!box)
+           return;
 		classes += ' svg-debug-box';
 		var b = svgHelpers.buildSvg;
 		var mid = box.x + box.width / 2;
@@ -231,7 +233,7 @@ class svgHelpers {
 		// box.y = box.y - this.renderElement.offsetTop;
 		// box.x = box.x - this.renderElement.offsetLeft;
 		var rv = [];
-	
+
 		Object.keys(map).forEach((k) => {
             var object = map[k];
 			// Measure has been updated, but not drawn.
@@ -444,6 +446,8 @@ class svgHelpers {
 	// return a box or point in svg coordintes from screen coordinates
 	static clientToLogical(svg, point) {
 		var pt = svg.createSVGPoint();
+        if (!point)
+           return;
         var x = typeof(point.x) != 'undefined' ? point.x : point.left;
         var y = typeof(point.y) != 'undefined' ? point.y : point.top;
 		pt.x = x;

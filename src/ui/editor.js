@@ -293,6 +293,7 @@ class suiEditor {
             nmeasure.measureNumber.measureIndex = pos;
             nmeasure.setActiveVoice(0);
             SmoUndoable.addMeasure(this.layout.score, pos, nmeasure, this.undoBuffer);
+            this.layout.clearLine(measure);
             this._refresh();
         }
     }

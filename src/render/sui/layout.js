@@ -115,6 +115,19 @@ class suiLayoutBase {
         this.partialRender = false;
     }
 
+    clearLine(measure) {
+        var lineIndex = measure.lineIndex;
+        var startIndex = (lineIndex > 1 ? lineIndex - 1: 0);
+        for (var i = startIndex;i<lineIndex+1;++i) {
+            this.score.staves.forEach((staff) => {
+                var mms = staff.measures.filter((mm) => mm.lineIndex === i);
+                mms.forEach((mm) => {
+                    delete mm.logicalBox;
+                });
+            });
+        }
+    }
+
 	setPassState(st,location) {
         var oldState = this.passState;
 		console.log(location + ': passState '+this.passState+'=>'+st);
@@ -320,6 +333,10 @@ class suiLayoutBase {
 					modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
 			var endNote = SmoSelection.noteSelection(this._score,
 					modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
+            if (!startNote || !endNote) {
+                console.log('missing modifier...');
+                return;
+            }
 
 			var vxStart = system.getVxNote(startNote.note);
 			var vxEnd = system.getVxNote(endNote.note);
@@ -435,6 +452,12 @@ class suiLayoutBase {
             return;
         }
 
+        if (this.passState == suiLayoutBase.passStates.initial) {
+            suiLayoutAdjuster.adjustWidths(this._score,this.renderer);
+            suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth / this.svgScale);
+            suiLayoutAdjuster.adjustHeight(this._score,this.renderer,this.pageWidth/this.svgScale,this.pageHeight/this.svgScale);
+        }
+
         this._drawPageLines();
 
 		if (this.passState == suiLayoutBase.passStates.replace) {
@@ -460,10 +483,10 @@ class suiLayoutBase {
                 suiLayoutAdjuster.adjustHeight(this._score,this.renderer,this.pageWidth/this.svgScale,this.pageHeight/this.svgScale);
 
                 if (this._score.layout.pages  != curPages) {
-                    this.setViewport(true);
+                    this.setViewport(false);
                     this.setPassState(suiLayoutBase.passStates.initial,'render 2');
                     // Force the viewport to update the page size
-                    $('body').trigger('forceResizeEvent');
+                    // $('body').trigger('forceResizeEvent');
                 } else {
                     this.setPassState(suiLayoutBase.passStates.adjustY,'render 2');
                 }

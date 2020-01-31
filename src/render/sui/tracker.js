@@ -487,6 +487,9 @@ class suiTracker {
     // ### updateMeasure
     // A measure has changed.  Update the music geometry for it
     mapMeasure(staff,measure) {
+        if (!measure.renderedBox) {
+            return;
+        }
         var sels = this._copySelectionsByMeasure(staff.staffId,measure.measureNumber.measureIndex);
         this.clearMeasureMap(staff,measure);
         var vix = measure.getActiveVoice();

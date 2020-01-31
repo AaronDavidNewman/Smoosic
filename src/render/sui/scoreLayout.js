@@ -300,9 +300,9 @@ class suiScoreLayout extends suiLayoutBase {
                     var height = previous.logicalBox ?  previous.logicalBox.height : 0;
 
                     // First system on a page considers page gap.
-                    if (previous.pageGap < measure.pageGap) {
+                    // if (previous.pageGap < measure.pageGap) {
                         height += measure.pageGap;
-                    }
+                    // }
                     var adj = previous.staffY + height +
                        + this.score.layout.interGap;
                     // if the measure is higher, resist jumping up too fast.
@@ -378,22 +378,33 @@ class suiScoreLayout extends suiLayoutBase {
         }
 
         smoBeamerFactory.applyBeams(measure);
-        if (measure.measureNumber.systemIndex == 0 && useAdjustedY == false)  {
-            measure.adjY = 0;
+        if (this.passState == suiLayoutBase.passStates.initial) {
+            if (!measure.logicalBox) {
+              measure.logicalBox = svgHelpers.boxPoints(measure.staffX,measure.staffY,measure.staffWidth,50+measure.adjY);
+          } else {
+              ;
+          }
+        }
+        if (measure.measureNumber.systemIndex == 0 && useAdjustedY == false && (this.passState != suiLayoutBase.passStates.initial))  {
+            // measure.adjY = 0;
             s.system.renderMeasure(staff.staffId, measure);
             if (Math.abs(measure.staffY - measure.logicalBox.y) > 1) {
                 measure.adjY = measure.staffY-measure.logicalBox.y;
+                s.system.renderMeasure(staff.staffId, measure);
             }
+        } else if (this.passState != suiLayoutBase.passStates.initial) {
+            s.system.renderMeasure(staff.staffId, measure);
         }
 
-        s.system.renderMeasure(staff.staffId, measure);
 
-        if (suiLayoutBase.debugLayout) {
+        if (suiLayoutBase.debugLayout && measure.renderedBox) {
             svgHelpers.debugBox(svg, svgHelpers.clientToLogical(svg, measure.renderedBox), 'measure-render-dbg');
             measure.voices.forEach((voice) => {
                 voice.notes.forEach((note) => {
                     var noteEl = svg.getElementById(note.renderId);
-                    svgHelpers.debugBox(svg, noteEl.getBBox(), 'measure-note-dbg');
+                    if (noteEl) {
+                     svgHelpers.debugBox(svg, noteEl.getBBox(), 'measure-note-dbg');
+                    }
                 });
             });
         }
@@ -468,7 +479,7 @@ class suiScoreLayout extends suiLayoutBase {
             this._layoutSystem(renderState);
             // Render a few lines at a time, unless in debug mode
             if (this.partialRender == true &&
-                (this.passState == suiLayoutBase.passStates.pass || this.passState == suiLayoutBase.passStates.initial) &&
+                (this.passState == suiLayoutBase.passStates.pass) &&
                 renderState.complete == false
                 && !suiLayoutBase.debugLayout
                 && Date.now() - ts > 100) {
