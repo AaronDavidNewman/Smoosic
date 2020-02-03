@@ -371,18 +371,19 @@ class suiLayoutAdjuster {
             });
             measures.forEach((mm) => {
                 mm.staffY += pageGap;
+                mm.pageGap = pageGap;
             });
 
-            var miny = measures.reduce((a, b) => {
+            var minyMeasure = measures.reduce((a, b) => {
 						return a.staffY < b.staffY ? a: b;
 					});
-            miny = miny.staffY + pageGap;
-            var maxy = measures.reduce((a, b) => {
+            var miny = minyMeasure.staffY;
+            var maxyMeasure = measures.reduce((a, b) => {
                 var ay = a.staffY + a.logicalBox.height;
                 var by = b.staffY+ b.logicalBox.height;
 						return  ay > by ? a : b;
 					});
-            maxy = maxy.staffY + maxy.logicalBox.height;
+            var maxy = maxyMeasure.staffY + maxyMeasure.logicalBox.height;
 
             // miny + x = pbrk + margin
             if (maxy > pbrk) {
@@ -394,9 +395,10 @@ class suiLayoutAdjuster {
                 page += 1;
                 pbrk = page * pageHeight;
                 pageGap += ngap;
+                miny += ngap; // for debug box.
             }
             layoutDebug.debugBox(
-                svg, svgHelpers.boxPoints(score.layout.leftMargin, miny, score.layout.pageWidth,maxy),
+                svg, svgHelpers.boxPoints(score.layout.leftMargin, miny, score.layout.pageWidth,maxy-miny),
                'system');
 
         }
