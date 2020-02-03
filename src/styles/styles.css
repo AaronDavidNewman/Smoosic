@@ -622,6 +622,16 @@ button.addChord .left-text .icon {
 	font-size:0.55em;
 	fill:#99e;
 }
+.system-place-dbg text {
+    fill:#111;
+	font-size:1em;
+}
+
+.system-place-dbg line {
+    stroke:#111;
+	stroke-width:2;
+    stroke-dasharray:2;
+}
 .measure-adjust-dbg text {
 	fill:#492;
 	font-size:1em;

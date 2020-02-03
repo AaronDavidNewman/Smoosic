@@ -233,7 +233,7 @@ class suiController {
 		suiController.createDom();
 		var params = suiController.keyBindingDefaults;
 		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), document.getElementById("booShadow"), score);
-		suiLayoutBase.debugLayout=true;
+		layoutDebug.setAll();
 		params.tracker = new suiTracker(params.layout);
 		params.editor = new suiEditor(params);
 		params.menus = new suiMenuManager(params);

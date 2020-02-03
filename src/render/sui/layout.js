@@ -1,4 +1,79 @@
 
+class layoutDebug {
+    static get values() {
+        return {
+            pre:1,
+            post:2,
+            adjust:4,
+            system:8,
+            note:16
+        }
+    }
+
+    static get classes() {
+        return {
+            pre:'measure-place-dbg',
+            post:'measure-render-dbg',
+            adjust:'measure-adjust-dbg',
+            system:'system-place-dbg',
+            note:'measure-note-dbg'
+        }
+    }
+
+	static get mask() {
+        if (typeof(layoutDebug._flags) == 'undefined') {
+            layoutDebug._flags = 0;
+        }
+        return layoutDebug._flags;
+	}
+
+    static set mask(value) {
+        layoutDebug._flags = value;
+    }
+
+    static flagSet(value) {
+        return layoutDebug.mask & layoutDebug.values[value];
+    }
+
+    static clearAll(svg) {
+        layoutDebug._flags = 0;
+    }
+    static setAll() {
+        layoutDebug._flags = 1+2+4+8+16;
+    }
+    static clearDebugBoxes(value) {
+        if (layoutDebug.flagSet(value)) {
+            var selector = 'g.'+layoutDebug.classes[value];
+            $(selector).remove();
+        }
+    }
+    static debugBox(svg,box,flag) {
+        if (!box.height) {
+            box.height=1;
+        }
+        if (layoutDebug.flagSet(flag)) {
+            svgHelpers.debugBox(svg, box, layoutDebug.classes[flag]);
+        }
+    }
+    static clearFlag(value) {
+        clearFlagSvg(value);
+
+        var flag = layoutDebug.values[value];
+        if (typeof(layoutDebug._flags) == 'undefined') {
+            layoutDebug._flags = 0;
+        }
+        layoutDebug._flags = layoutDebug._flags & (~flag);
+    }
+
+	static setFlag(value) {
+        var flag = layoutDebug.values[value];
+        if (typeof(layoutDebug._flags) == 'undefined') {
+            layoutDebug._flags = flag;
+            return;
+        }
+        layoutDebug._flags |= flag;
+	}
+}
 // ## suiLayoutBase
 // ## Description:
 // A layout maps the measures and notes to a spot on the page.  It
@@ -25,6 +100,8 @@ class suiLayoutBase {
 	static get passStates() {
 		return {initial:0,pass:1,clean:2,replace:3,incomplete:4,adjustY:6,redrawMain:7};
 	}
+
+
 
 	setDirty() {
 		if (!this.dirty) {
@@ -107,7 +184,7 @@ class suiLayoutBase {
         this._setViewport(reset,this.elementId);
         this.score.staves.forEach((staff) => {
             staff.measures.forEach((measure) => {
-                if (measure.logicalBox) {
+                if (measure.logicalBox && reset) {
                     delete measure.logicalBox;
                 }
             });
@@ -150,6 +227,7 @@ class suiLayoutBase {
 			}
 		};
 	}
+
 	static get debugLayout() {
 		suiLayoutBase['_debugLayout'] = suiLayoutBase['_debugLayout'] ? suiLayoutBase._debugLayout : false
 			return suiLayoutBase._debugLayout;
@@ -418,6 +496,19 @@ class suiLayoutBase {
         });
     }
 
+    _adjustHeight() {
+        var curPages = this._score.layout.pages;
+        suiLayoutAdjuster.adjustHeight(this._score,this.renderer,this.pageWidth/this.svgScale,this.pageHeight/this.svgScale);
+        if (this._score.layout.pages  != curPages) {
+            this.setViewport(false);
+            this.setPassState(suiLayoutBase.passStates.initial,'render 2');
+            // Force the viewport to update the page size
+            // $('body').trigger('forceResizeEvent');
+        } else {
+            this.setPassState(suiLayoutBase.passStates.adjustY,'render 2');
+        }
+    }
+
 	render() {
         var viewportChanged = false;
 		if (this.viewportChange) {
@@ -455,7 +546,7 @@ class suiLayoutBase {
         if (this.passState == suiLayoutBase.passStates.initial) {
             suiLayoutAdjuster.adjustWidths(this._score,this.renderer);
             suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth / this.svgScale);
-            suiLayoutAdjuster.adjustHeight(this._score,this.renderer,this.pageWidth/this.svgScale,this.pageHeight/this.svgScale);
+            this._adjustHeight();
         }
 
         this._drawPageLines();
@@ -480,16 +571,7 @@ class suiLayoutBase {
             } else {
                 var curPages = this._score.layout.pages;
                 suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth / this.svgScale);
-                suiLayoutAdjuster.adjustHeight(this._score,this.renderer,this.pageWidth/this.svgScale,this.pageHeight/this.svgScale);
-
-                if (this._score.layout.pages  != curPages) {
-                    this.setViewport(false);
-                    this.setPassState(suiLayoutBase.passStates.initial,'render 2');
-                    // Force the viewport to update the page size
-                    // $('body').trigger('forceResizeEvent');
-                } else {
-                    this.setPassState(suiLayoutBase.passStates.adjustY,'render 2');
-                }
+                this._adjustHeight();
             }
         } else {
             // otherwise we need another pass.

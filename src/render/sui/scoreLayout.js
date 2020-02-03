@@ -194,11 +194,7 @@ class suiScoreLayout extends suiLayoutBase {
             this._renderModifiers(stf, s.system);
         });
         if (!useAdjustedY && measure.changed) {
-            if (suiLayoutBase.debugLayout) {
-               svgHelpers.debugBox(
-            svg, svgHelpers.boxPoints(measure.staffX, s.pageBox.y + s.pageBox.height, 1, this._score.layout.interGap),
-              'measure-place-dbg');
-            }
+            layoutDebug.debugBox(svg,svgHelpers.boxPoints(measure.staffX, s.pageBox.y + s.pageBox.height, 1, this._score.layout.interGap),'pre');
             measure.staffY = s.pageBox.y + s.pageBox.height + this._score.layout.interGap;
             if (isNaN(measure.staffY)) {
                 throw ("nan measure ");
@@ -272,6 +268,9 @@ class suiScoreLayout extends suiLayoutBase {
         var useAdjustedY = s.calculations.useY;
 		var useAdjustedX = s.calculations.useX;
         var svg = this.context.svg;
+        layoutDebug.clearDebugBoxes('pre');
+        layoutDebug.clearDebugBoxes('post');
+        layoutDebug.clearDebugBoxes('note');
 
         measure.lineIndex = s.lineIndex;
         if (useAdjustedY) {
@@ -371,11 +370,7 @@ class suiScoreLayout extends suiLayoutBase {
         }
         // guess height of staff the first time
         measure.measureNumber.systemIndex = s.systemIndex;
-
-        if (suiLayoutBase.debugLayout) {
-            svgHelpers.debugBox(
-                svg, svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, 1), 'measure-place-dbg');
-        }
+        layoutDebug.debugBox(svg,svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth),'pre');
 
         smoBeamerFactory.applyBeams(measure);
         if (this.passState == suiLayoutBase.passStates.initial) {
@@ -397,17 +392,18 @@ class suiScoreLayout extends suiLayoutBase {
         }
 
 
-        if (suiLayoutBase.debugLayout && measure.renderedBox) {
-            svgHelpers.debugBox(svg, svgHelpers.clientToLogical(svg, measure.renderedBox), 'measure-render-dbg');
+        layoutDebug.debugBox(svg,  measure.logicalBox, 'post');
+        if (layoutDebug.flagSet('note') && measure.logicalBox) {
             measure.voices.forEach((voice) => {
                 voice.notes.forEach((note) => {
                     var noteEl = svg.getElementById(note.renderId);
                     if (noteEl) {
-                     svgHelpers.debugBox(svg, noteEl.getBBox(), 'measure-note-dbg');
+                       layoutDebug.debugBox(svg, noteEl.getBBox(), 'note');
                     }
                 });
             });
         }
+
         measure.changed = false;
 
         // For x coordinate we adjust to the actual rendered size.  For Y, we want all staves at the same height
@@ -481,7 +477,7 @@ class suiScoreLayout extends suiLayoutBase {
             if (this.partialRender == true &&
                 (this.passState == suiLayoutBase.passStates.pass) &&
                 renderState.complete == false
-                && !suiLayoutBase.debugLayout
+                && layoutDebug.mask == 0
                 && Date.now() - ts > 100) {
                 this.renderState = renderState;
                 this.setPassState(suiLayoutBase.passStates.incomplete,' partial '+renderState.measure.measureNumber.measureIndex);

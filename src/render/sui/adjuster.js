@@ -116,7 +116,7 @@ class suiLayoutAdjuster {
 		var context = renderer.getContext();
 		var svg = context.svg;
 
-		if (suiLayoutBase.debugLayout) {
+		if (layoutDebug.flagSet['adjust']) {
 			$(context.svg).find('g.measure-adjust-dbg').remove();
 		}
 		var topStaff = score.staves[0];
@@ -142,7 +142,7 @@ class suiLayoutAdjuster {
 							mm.staffWidth += just;
 							mm.staffX += accum;
 							accum += just;
-							if (suiLayoutBase.debugLayout) {
+							if (layoutDebug.flagSet['adjust']) {
 								var dbgBox = svgHelpers.boxPoints(
 										mm.staffX, mm.staffY, mm.staffWidth, mm.logicalBox.height);
 								svgHelpers.debugBox(svg, dbgBox, 'measure-adjust-dbg', 10);
@@ -274,9 +274,8 @@ class suiLayoutAdjuster {
 		var lineIndexPerLine = [];
         var vyMaxY = 0;
 
-		if (suiLayoutBase.debugLayout) {
-			$(renderer.getContext().svg).find('g.measure-adjust-dbg').remove();
-		}
+		layoutDebug.clearDebugBoxes('adjust');
+
 		var accum = 0;
 		// iterate: system, staves within a system, measures
 		for (var i = 0; i <= maxLine; ++i) {
@@ -329,7 +328,7 @@ class suiLayoutAdjuster {
 						measure.staffY = staffY;
                         vyMaxY = (vyMaxY > measure.staffY + measure.logicalBox.height) ? vyMaxY :
                            measure.staffY + measure.logicalBox.height;
-						if (suiLayoutBase.debugLayout) {
+						if (layoutDebug.flagSet('adjust')) {
 							var dbgBox = svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height);
 							svgHelpers.debugBox(svg, dbgBox, 'measure-adjust-dbg', 10);
 						}
@@ -355,6 +354,8 @@ class suiLayoutAdjuster {
 			}
 		}
 
+        layoutDebug.clearDebugBoxes('system');
+
         // Finally, make sure each system does not run into the page break;
         var page = 1;
         var pageGap = 0;
@@ -368,11 +369,14 @@ class suiLayoutAdjuster {
                 });
                 measures = measures.concat(delta);
             });
+            measures.forEach((mm) => {
+                mm.staffY += pageGap;
+            });
 
             var miny = measures.reduce((a, b) => {
 						return a.staffY < b.staffY ? a: b;
 					});
-            miny = miny.staffY;
+            miny = miny.staffY + pageGap;
             var maxy = measures.reduce((a, b) => {
                 var ay = a.staffY + a.logicalBox.height;
                 var by = b.staffY+ b.logicalBox.height;
@@ -382,16 +386,19 @@ class suiLayoutAdjuster {
 
             // miny + x = pbrk + margin
             if (maxy > pbrk) {
-                pageGap += pbrk - miny + score.layout.topMargin;
+                var ngap = pbrk - miny + score.layout.topMargin;
+                measures.forEach((mm) => {
+                    mm.staffY += ngap;
+                    mm.pageGap = ngap + pageGap;
+                });
                 page += 1;
                 pbrk = page * pageHeight;
+                pageGap += ngap;
             }
-            if (pageGap > 0) {
-                measures.forEach((mm) => {
-                    mm.staffY += pageGap;
-                    mm.pageGap = pageGap;
-                });
-            }
+            layoutDebug.debugBox(
+                svg, svgHelpers.boxPoints(score.layout.leftMargin, miny, score.layout.pageWidth,maxy),
+               'system');
+
         }
         if (page != score.layout.pages) {
             // Always add extra pages, but don't reduce the page count
