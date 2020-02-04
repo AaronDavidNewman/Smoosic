@@ -853,6 +853,8 @@ class svgHelpers {
 	static debugBox(svg, box, classes, voffset) {
 		voffset = voffset ? voffset : 0;
 		classes = classes ? classes : '';
+        if (!box)
+           return;
 		classes += ' svg-debug-box';
 		var b = svgHelpers.buildSvg;
 		var mid = box.x + box.width / 2;
@@ -924,7 +926,7 @@ class svgHelpers {
 		// box.y = box.y - this.renderElement.offsetTop;
 		// box.x = box.x - this.renderElement.offsetLeft;
 		var rv = [];
-	
+
 		Object.keys(map).forEach((k) => {
             var object = map[k];
 			// Measure has been updated, but not drawn.
@@ -1137,6 +1139,8 @@ class svgHelpers {
 	// return a box or point in svg coordintes from screen coordinates
 	static clientToLogical(svg, point) {
 		var pt = svg.createSVGPoint();
+        if (!point)
+           return;
         var x = typeof(point.x) != 'undefined' ? point.x : point.left;
         var y = typeof(point.y) != 'undefined' ? point.y : point.top;
 		pt.x = x;
@@ -3861,6 +3865,15 @@ class SmoSystemStaff {
         } else {
             this.measures.splice(index, 0, measure);
         }
+        var modifiers = this.modifiers.filter((mod) => mod.startSelector.measure >= index);
+        modifiers.forEach((mod) => {
+            if (mod.startSelector.measure < this.measures.length) {
+                mod.startSelector.measure += 1;
+            }
+            if (mod.endSelector.measure < this.measures.length) {
+                mod.endSelector.measure += 1;
+            }
+        });
 
         this.numberMeasures();
     }
@@ -9039,6 +9052,9 @@ class suiTracker {
     // ### updateMeasure
     // A measure has changed.  Update the music geometry for it
     mapMeasure(staff,measure) {
+        if (!measure.renderedBox) {
+            return;
+        }
         var sels = this._copySelectionsByMeasure(staff.staffId,measure.measureNumber.measureIndex);
         this.clearMeasureMap(staff,measure);
         var vix = measure.getActiveVoice();
@@ -9077,9 +9093,18 @@ class suiTracker {
                             type: 'rendered'
                         });
                 this._updateMeasureNoteMap(selection);
+                // TODO: this just replaces the first selection...
                 if (sels.selectors.length && selection.selector.tick == sels.selectors[0].tick &&
                      selection.selector.voice == vix) {
                     this.selections.push(selection);
+                    // Reselect any pitches.
+                    if (sels.selectors[0].pitches.length > 0) {
+                        sels.selectors[0].pitches.forEach((pitchIx) => {
+                            if (selection.pitches.length > pitchIx) {
+                                selection.selector.pitches.push(pitchIx);
+                            }
+                        });
+                    }
                     selectedTicks += selection.note.tickCount;
                     selectionChanged = true;
                 } else if (selectedTicks > 0 && selectedTicks < sels.ticks && selection.selector.voice == vix) {
@@ -9529,9 +9554,14 @@ class suiTracker {
 
         suiOscillator.playSelectionNow(this.suggestion);
 
-        var preselected = SmoSelector.sameNote(this.suggestion.selector,this.selections[0].selector) && this.selections.length == 1;
+        var preselected = this.selections[0] ? SmoSelector.sameNote(this.suggestion.selector,this.selections[0].selector) && this.selections.length == 1 : false;
 
-		this.selections = [this.suggestion];
+        if (preselected && this.selections[0].note.pitches.length > 1) {
+            this.pitchIndex =  (this.pitchIndex + 1) % this.selections[0].note.pitches.length;
+            this.selections[0].selector.pitches = [this.pitchIndex];
+        } else {
+            this.selections = [this.suggestion];
+        }
         if (preselected && this.modifierTabs.length) {
             var mods  = this.modifierTabs.filter((mm) => mm.selection && SmoSelector.sameNote(mm.selection.selector,this.selections[0].selector));
             if (mods.length) {
@@ -9760,6 +9790,81 @@ class suiTracker {
 	}
 }
 ;
+class layoutDebug {
+    static get values() {
+        return {
+            pre:1,
+            post:2,
+            adjust:4,
+            system:8,
+            note:16
+        }
+    }
+
+    static get classes() {
+        return {
+            pre:'measure-place-dbg',
+            post:'measure-render-dbg',
+            adjust:'measure-adjust-dbg',
+            system:'system-place-dbg',
+            note:'measure-note-dbg'
+        }
+    }
+
+	static get mask() {
+        if (typeof(layoutDebug._flags) == 'undefined') {
+            layoutDebug._flags = 0;
+        }
+        return layoutDebug._flags;
+	}
+
+    static set mask(value) {
+        layoutDebug._flags = value;
+    }
+
+    static flagSet(value) {
+        return layoutDebug.mask & layoutDebug.values[value];
+    }
+
+    static clearAll(svg) {
+        layoutDebug._flags = 0;
+    }
+    static setAll() {
+        layoutDebug._flags = 1+2+4+8+16;
+    }
+    static clearDebugBoxes(value) {
+        if (layoutDebug.flagSet(value)) {
+            var selector = 'g.'+layoutDebug.classes[value];
+            $(selector).remove();
+        }
+    }
+    static debugBox(svg,box,flag) {
+        if (!box.height) {
+            box.height=1;
+        }
+        if (layoutDebug.flagSet(flag)) {
+            svgHelpers.debugBox(svg, box, layoutDebug.classes[flag]);
+        }
+    }
+    static clearFlag(value) {
+        clearFlagSvg(value);
+
+        var flag = layoutDebug.values[value];
+        if (typeof(layoutDebug._flags) == 'undefined') {
+            layoutDebug._flags = 0;
+        }
+        layoutDebug._flags = layoutDebug._flags & (~flag);
+    }
+
+	static setFlag(value) {
+        var flag = layoutDebug.values[value];
+        if (typeof(layoutDebug._flags) == 'undefined') {
+            layoutDebug._flags = flag;
+            return;
+        }
+        layoutDebug._flags |= flag;
+	}
+}
 // ## suiLayoutBase
 // ## Description:
 // A layout maps the measures and notes to a spot on the page.  It
@@ -9786,6 +9891,8 @@ class suiLayoutBase {
 	static get passStates() {
 		return {initial:0,pass:1,clean:2,replace:3,incomplete:4,adjustY:6,redrawMain:7};
 	}
+
+
 
 	setDirty() {
 		if (!this.dirty) {
@@ -9868,12 +9975,25 @@ class suiLayoutBase {
         this._setViewport(reset,this.elementId);
         this.score.staves.forEach((staff) => {
             staff.measures.forEach((measure) => {
-                if (measure.logicalBox) {
+                if (measure.logicalBox && reset) {
                     delete measure.logicalBox;
                 }
             });
         });
         this.partialRender = false;
+    }
+
+    clearLine(measure) {
+        var lineIndex = measure.lineIndex;
+        var startIndex = (lineIndex > 1 ? lineIndex - 1: 0);
+        for (var i = startIndex;i<lineIndex+1;++i) {
+            this.score.staves.forEach((staff) => {
+                var mms = staff.measures.filter((mm) => mm.lineIndex === i);
+                mms.forEach((mm) => {
+                    delete mm.logicalBox;
+                });
+            });
+        }
     }
 
 	setPassState(st,location) {
@@ -9898,6 +10018,7 @@ class suiLayoutBase {
 			}
 		};
 	}
+
 	static get debugLayout() {
 		suiLayoutBase['_debugLayout'] = suiLayoutBase['_debugLayout'] ? suiLayoutBase._debugLayout : false
 			return suiLayoutBase._debugLayout;
@@ -10081,6 +10202,10 @@ class suiLayoutBase {
 					modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
 			var endNote = SmoSelection.noteSelection(this._score,
 					modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
+            if (!startNote || !endNote) {
+                console.log('missing modifier...');
+                return;
+            }
 
 			var vxStart = system.getVxNote(startNote.note);
 			var vxEnd = system.getVxNote(endNote.note);
@@ -10162,6 +10287,19 @@ class suiLayoutBase {
         });
     }
 
+    _adjustHeight() {
+        var curPages = this._score.layout.pages;
+        suiLayoutAdjuster.adjustHeight(this._score,this.renderer,this.pageWidth/this.svgScale,this.pageHeight/this.svgScale);
+        if (this._score.layout.pages  != curPages) {
+            this.setViewport(false);
+            this.setPassState(suiLayoutBase.passStates.initial,'render 2');
+            // Force the viewport to update the page size
+            // $('body').trigger('forceResizeEvent');
+        } else {
+            this.setPassState(suiLayoutBase.passStates.adjustY,'render 2');
+        }
+    }
+
 	render() {
         var viewportChanged = false;
 		if (this.viewportChange) {
@@ -10196,6 +10334,12 @@ class suiLayoutBase {
             return;
         }
 
+        if (this.passState == suiLayoutBase.passStates.initial) {
+            suiLayoutAdjuster.adjustWidths(this._score,this.renderer);
+            suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth / this.svgScale);
+            this._adjustHeight();
+        }
+
         this._drawPageLines();
 
 		if (this.passState == suiLayoutBase.passStates.replace) {
@@ -10218,16 +10362,7 @@ class suiLayoutBase {
             } else {
                 var curPages = this._score.layout.pages;
                 suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth / this.svgScale);
-                suiLayoutAdjuster.adjustHeight(this._score,this.renderer,this.pageWidth/this.svgScale,this.pageHeight/this.svgScale);
-
-                if (this._score.layout.pages  != curPages) {
-                    this.setViewport(true);
-                    this.setPassState(suiLayoutBase.passStates.initial,'render 2');
-                    // Force the viewport to update the page size
-                    $('body').trigger('forceResizeEvent');
-                } else {
-                    this.setPassState(suiLayoutBase.passStates.adjustY,'render 2');
-                }
+                this._adjustHeight();
             }
         } else {
             // otherwise we need another pass.
@@ -10651,6 +10786,11 @@ class suiLayoutAdjuster {
 		// Calculate the space for left/right text which displaces the measure.
 		var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(renderer,measure);
 		measure.staffX += textOffsetBox.x;
+        measure.adjY = 0;
+
+        if (measure.forceClef) {
+            measure.adjY = vexGlyph.clef(measure.clef).yTop;
+        }
 	}
 
 	// ### justifyWidths
@@ -10659,7 +10799,7 @@ class suiLayoutAdjuster {
 		var context = renderer.getContext();
 		var svg = context.svg;
 
-		if (suiLayoutBase.debugLayout) {
+		if (layoutDebug.flagSet['adjust']) {
 			$(context.svg).find('g.measure-adjust-dbg').remove();
 		}
 		var topStaff = score.staves[0];
@@ -10685,7 +10825,7 @@ class suiLayoutAdjuster {
 							mm.staffWidth += just;
 							mm.staffX += accum;
 							accum += just;
-							if (suiLayoutBase.debugLayout) {
+							if (layoutDebug.flagSet['adjust']) {
 								var dbgBox = svgHelpers.boxPoints(
 										mm.staffX, mm.staffY, mm.staffWidth, mm.logicalBox.height);
 								svgHelpers.debugBox(svg, dbgBox, 'measure-adjust-dbg', 10);
@@ -10712,16 +10852,23 @@ class suiLayoutAdjuster {
     		for (var i = 1; i < notes.length; ++i) {
     			var b1 = notes[i - 1].getBBox();
     			var b2 = notes[i].getBBox();
+                var n1 = smoMeasure.voices[voiceIx].notes[i - 1];
+                var n2 = smoMeasure.voices[voiceIx].notes[i];
+                if (!n1 || !n2)
+                  continue;
     			var dif = b2.x - (b1.x + b1.width);
-    			if (dif < 10) {
+                var lyrics = n1.getModifiers('SmoLyric').length ||
+                  n2.getModifiers('SmoLyric').length;
+    			if (dif < 10 && !lyrics) {
     				acc += 10 - dif;
     			}
     		}
             accs.push(acc);
             voiceIx += 1;
         });
-
-		smoMeasure.logicalBox.width += accs.sort((a,b) => a > b ? -1 : 1)[0];
+        if (accs.length) {
+		    smoMeasure.logicalBox.width += accs.sort((a,b) => a > b ? -1 : 1)[0];
+        }
 	}
 
     // ### adjustWidths
@@ -10810,9 +10957,8 @@ class suiLayoutAdjuster {
 		var lineIndexPerLine = [];
         var vyMaxY = 0;
 
-		if (suiLayoutBase.debugLayout) {
-			$(renderer.getContext().svg).find('g.measure-adjust-dbg').remove();
-		}
+		layoutDebug.clearDebugBoxes('adjust');
+
 		var accum = 0;
 		// iterate: system, staves within a system, measures
 		for (var i = 0; i <= maxLine; ++i) {
@@ -10865,7 +11011,7 @@ class suiLayoutAdjuster {
 						measure.staffY = staffY;
                         vyMaxY = (vyMaxY > measure.staffY + measure.logicalBox.height) ? vyMaxY :
                            measure.staffY + measure.logicalBox.height;
-						if (suiLayoutBase.debugLayout) {
+						if (layoutDebug.flagSet('adjust')) {
 							var dbgBox = svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height);
 							svgHelpers.debugBox(svg, dbgBox, 'measure-adjust-dbg', 10);
 						}
@@ -10891,6 +11037,8 @@ class suiLayoutAdjuster {
 			}
 		}
 
+        layoutDebug.clearDebugBoxes('system');
+
         // Finally, make sure each system does not run into the page break;
         var page = 1;
         var pageGap = 0;
@@ -10904,30 +11052,38 @@ class suiLayoutAdjuster {
                 });
                 measures = measures.concat(delta);
             });
+            measures.forEach((mm) => {
+                mm.staffY += pageGap;
+                mm.pageGap = pageGap;
+            });
 
-            var miny = measures.reduce((a, b) => {
+            var minyMeasure = measures.reduce((a, b) => {
 						return a.staffY < b.staffY ? a: b;
 					});
-            miny = miny.staffY;
-            var maxy = measures.reduce((a, b) => {
+            var miny = minyMeasure.staffY;
+            var maxyMeasure = measures.reduce((a, b) => {
                 var ay = a.staffY + a.logicalBox.height;
                 var by = b.staffY+ b.logicalBox.height;
 						return  ay > by ? a : b;
 					});
-            maxy = maxy.staffY + maxy.logicalBox.height;
+            var maxy = maxyMeasure.staffY + maxyMeasure.logicalBox.height;
 
             // miny + x = pbrk + margin
             if (maxy > pbrk) {
-                pageGap += pbrk - miny + score.layout.topMargin;
+                var ngap = pbrk - miny + score.layout.topMargin;
+                measures.forEach((mm) => {
+                    mm.staffY += ngap;
+                    mm.pageGap = ngap + pageGap;
+                });
                 page += 1;
                 pbrk = page * pageHeight;
+                pageGap += ngap;
+                miny += ngap; // for debug box.
             }
-            if (pageGap > 0) {
-                measures.forEach((mm) => {
-                    mm.staffY += pageGap;
-                    mm.pageGap = pageGap;
-                });
-            }
+            layoutDebug.debugBox(
+                svg, svgHelpers.boxPoints(score.layout.leftMargin, miny, score.layout.pageWidth,maxy-miny),
+               'system');
+
         }
         if (page != score.layout.pages) {
             // Always add extra pages, but don't reduce the page count
@@ -11134,11 +11290,7 @@ class suiScoreLayout extends suiLayoutBase {
             this._renderModifiers(stf, s.system);
         });
         if (!useAdjustedY && measure.changed) {
-            if (suiLayoutBase.debugLayout) {
-               svgHelpers.debugBox(
-            svg, svgHelpers.boxPoints(measure.staffX, s.pageBox.y + s.pageBox.height, 1, this._score.layout.interGap),
-              'measure-place-dbg');
-            }
+            layoutDebug.debugBox(svg,svgHelpers.boxPoints(measure.staffX, s.pageBox.y + s.pageBox.height, 1, this._score.layout.interGap),'pre');
             measure.staffY = s.pageBox.y + s.pageBox.height + this._score.layout.interGap;
             if (isNaN(measure.staffY)) {
                 throw ("nan measure ");
@@ -11212,6 +11364,9 @@ class suiScoreLayout extends suiLayoutBase {
         var useAdjustedY = s.calculations.useY;
 		var useAdjustedX = s.calculations.useX;
         var svg = this.context.svg;
+        layoutDebug.clearDebugBoxes('pre');
+        layoutDebug.clearDebugBoxes('post');
+        layoutDebug.clearDebugBoxes('note');
 
         measure.lineIndex = s.lineIndex;
         if (useAdjustedY) {
@@ -11240,9 +11395,9 @@ class suiScoreLayout extends suiLayoutBase {
                     var height = previous.logicalBox ?  previous.logicalBox.height : 0;
 
                     // First system on a page considers page gap.
-                    if (previous.pageGap < measure.pageGap) {
+                    // if (previous.pageGap < measure.pageGap) {
                         height += measure.pageGap;
-                    }
+                    // }
                     var adj = previous.staffY + height +
                        + this.score.layout.interGap;
                     // if the measure is higher, resist jumping up too fast.
@@ -11311,32 +11466,40 @@ class suiScoreLayout extends suiLayoutBase {
         }
         // guess height of staff the first time
         measure.measureNumber.systemIndex = s.systemIndex;
-
-        if (suiLayoutBase.debugLayout) {
-            svgHelpers.debugBox(
-                svg, svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, 1), 'measure-place-dbg');
-        }
+        layoutDebug.debugBox(svg,svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth),'pre');
 
         smoBeamerFactory.applyBeams(measure);
-        if (measure.measureNumber.systemIndex == 0 && useAdjustedY == false)  {
-            measure.adjY = 0;
+        if (this.passState == suiLayoutBase.passStates.initial) {
+            if (!measure.logicalBox) {
+              measure.logicalBox = svgHelpers.boxPoints(measure.staffX,measure.staffY,measure.staffWidth,50+measure.adjY);
+          } else {
+              ;
+          }
+        }
+        if (measure.measureNumber.systemIndex == 0 && useAdjustedY == false && (this.passState != suiLayoutBase.passStates.initial))  {
+            // measure.adjY = 0;
             s.system.renderMeasure(staff.staffId, measure);
             if (Math.abs(measure.staffY - measure.logicalBox.y) > 1) {
                 measure.adjY = measure.staffY-measure.logicalBox.y;
+                s.system.renderMeasure(staff.staffId, measure);
             }
+        } else if (this.passState != suiLayoutBase.passStates.initial) {
+            s.system.renderMeasure(staff.staffId, measure);
         }
 
-        s.system.renderMeasure(staff.staffId, measure);
 
-        if (suiLayoutBase.debugLayout) {
-            svgHelpers.debugBox(svg, svgHelpers.clientToLogical(svg, measure.renderedBox), 'measure-render-dbg');
+        layoutDebug.debugBox(svg,  measure.logicalBox, 'post');
+        if (layoutDebug.flagSet('note') && measure.logicalBox) {
             measure.voices.forEach((voice) => {
                 voice.notes.forEach((note) => {
                     var noteEl = svg.getElementById(note.renderId);
-                    svgHelpers.debugBox(svg, noteEl.getBBox(), 'measure-note-dbg');
+                    if (noteEl) {
+                       layoutDebug.debugBox(svg, noteEl.getBBox(), 'note');
+                    }
                 });
             });
         }
+
         measure.changed = false;
 
         // For x coordinate we adjust to the actual rendered size.  For Y, we want all staves at the same height
@@ -11408,9 +11571,9 @@ class suiScoreLayout extends suiLayoutBase {
             this._layoutSystem(renderState);
             // Render a few lines at a time, unless in debug mode
             if (this.partialRender == true &&
-                (this.passState == suiLayoutBase.passStates.pass || this.passState == suiLayoutBase.passStates.initial) &&
+                (this.passState == suiLayoutBase.passStates.pass) &&
                 renderState.complete == false
-                && !suiLayoutBase.debugLayout
+                && layoutDebug.mask == 0
                 && Date.now() - ts > 100) {
                 this.renderState = renderState;
                 this.setPassState(suiLayoutBase.passStates.incomplete,' partial '+renderState.measure.measureNumber.measureIndex);
@@ -12162,6 +12325,7 @@ class suiEditor {
             nmeasure.measureNumber.measureIndex = pos;
             nmeasure.setActiveVoice(0);
             SmoUndoable.addMeasure(this.layout.score, pos, nmeasure, this.undoBuffer);
+            this.layout.clearLine(measure);
             this._refresh();
         }
     }
@@ -12173,6 +12337,7 @@ class suiEditor {
         var ix = selection.selector.measure;
         this.layout.score.staves.forEach((staff) => {
             this.layout.unrenderMeasure(staff.measures[ix]);
+            this.layout.unrenderMeasure(staff.measures[staff.measures.length-1]);
 
             // A little hacky - delete the modifiers if they start or end on
             // the measure
@@ -58701,7 +58866,7 @@ class suiController {
 		suiController.createDom();
 		var params = suiController.keyBindingDefaults;
 		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), document.getElementById("booShadow"), score);
-		suiLayoutBase.debugLayout=true;
+		layoutDebug.setAll();
 		params.tracker = new suiTracker(params.layout);
 		params.editor = new suiEditor(params);
 		params.menus = new suiMenuManager(params);

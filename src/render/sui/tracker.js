@@ -528,9 +528,18 @@ class suiTracker {
                             type: 'rendered'
                         });
                 this._updateMeasureNoteMap(selection);
+                // TODO: this just replaces the first selection...
                 if (sels.selectors.length && selection.selector.tick == sels.selectors[0].tick &&
                      selection.selector.voice == vix) {
                     this.selections.push(selection);
+                    // Reselect any pitches.
+                    if (sels.selectors[0].pitches.length > 0) {
+                        sels.selectors[0].pitches.forEach((pitchIx) => {
+                            if (selection.pitches.length > pitchIx) {
+                                selection.selector.pitches.push(pitchIx);
+                            }
+                        });
+                    }
                     selectedTicks += selection.note.tickCount;
                     selectionChanged = true;
                 } else if (selectedTicks > 0 && selectedTicks < sels.ticks && selection.selector.voice == vix) {
@@ -982,7 +991,12 @@ class suiTracker {
 
         var preselected = this.selections[0] ? SmoSelector.sameNote(this.suggestion.selector,this.selections[0].selector) && this.selections.length == 1 : false;
 
-		this.selections = [this.suggestion];
+        if (preselected && this.selections[0].note.pitches.length > 1) {
+            this.pitchIndex =  (this.pitchIndex + 1) % this.selections[0].note.pitches.length;
+            this.selections[0].selector.pitches = [this.pitchIndex];
+        } else {
+            this.selections = [this.suggestion];
+        }
         if (preselected && this.modifierTabs.length) {
             var mods  = this.modifierTabs.filter((mm) => mm.selection && SmoSelector.sameNote(mm.selection.selector,this.selections[0].selector));
             if (mods.length) {
