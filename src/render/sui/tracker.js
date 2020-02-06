@@ -69,6 +69,11 @@ class suiTracker {
         return {x:this._scroll.x - (this._scrollInitial.x + xoffset),y:this._scroll.y - (this._scrollInitial.y + yoffset)};
     }
 
+    get invScroll() {
+        var vect = this.netScroll;
+        return {x:vect.x*(-1),y:vect.y*(-1)};
+    }
+
     _fullRenderPromise() {
         var self = this;
         return new Promise((resolve) => {
@@ -1129,7 +1134,8 @@ class suiTracker {
 			return;
 		}
 		var headEl = heads[index];
-		var box = svgHelpers.smoBox(headEl.getBoundingClientRect());
+		var box = svgHelpers.adjustScroll(svgHelpers.smoBox(headEl.getBoundingClientRect()),
+          this.invScroll);
 		this._drawRect(box, 'staffModifier');
 	}
 	triggerSelection() {
