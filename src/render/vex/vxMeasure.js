@@ -26,6 +26,8 @@ class VxMeasure {
         this.vexNotes = [];
         this.vexBeamGroups = [];
         this.vexTuplets = [];
+        this.vexBeamGroups = [];
+        this.beamToVexMap = {};
     }
 
 	static get adjLeftPixels() {
@@ -262,8 +264,6 @@ class VxMeasure {
     // create the VX beam groups. VexFlow has auto-beaming logic, but we use
 	// our own because the user can specify stem directions, breaks etc.
     createVexBeamGroups(vix) {
-        this.vexBeamGroups = [];
-        this.beamToVexMap = {};
         for (var i = 0; i < this.smoMeasure.beamGroups.length; ++i) {
             var bg = this.smoMeasure.beamGroups[i];
             if (bg.voice != vix) {

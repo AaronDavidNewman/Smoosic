@@ -7,7 +7,7 @@ class BeamModifierBase {
 class smoBeamerFactory {
     static applyBeams(measure) {
         for (var i = 0;i < measure.voices.length;++i) {
-            var beamer = new smoBeamModifier(measure);
+            var beamer = new smoBeamModifier(measure,i);
             var apply = new smoBeamerIterator(measure, beamer,i);
             apply.run();
         }
@@ -32,10 +32,10 @@ class smoBeamerIterator {
 }
 
 class smoBeamModifier extends BeamModifierBase {
-    constructor(measure) {
+    constructor(measure,voice) {
         super();
         this.measure = measure;
-        this.measure.beamGroups = [];
+        this._removeVoiceBeam(measure,voice);
         this.duration = 0;
         this.timeSignature = measure.timeSignature;
         this.meterNumbers = this.timeSignature.split('/').map(number => parseInt(number, 10));
@@ -52,6 +52,16 @@ class smoBeamModifier extends BeamModifierBase {
 
     get beamGroups() {
         return this.measure.beamGroups;
+    }
+    _removeVoiceBeam(measure,voice) {
+        var beamGroups = [];
+        measure.beamGroups.forEach((gr) => {
+            if (gr.voice != voice) {
+                beamGroups.push(gr);
+            }
+        });
+
+        measure.beamGroups = beamGroups;
     }
 
     _completeGroup(voice) {

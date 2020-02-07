@@ -4886,7 +4886,7 @@ class BeamModifierBase {
 class smoBeamerFactory {
     static applyBeams(measure) {
         for (var i = 0;i < measure.voices.length;++i) {
-            var beamer = new smoBeamModifier(measure);
+            var beamer = new smoBeamModifier(measure,i);
             var apply = new smoBeamerIterator(measure, beamer,i);
             apply.run();
         }
@@ -4911,10 +4911,10 @@ class smoBeamerIterator {
 }
 
 class smoBeamModifier extends BeamModifierBase {
-    constructor(measure) {
+    constructor(measure,voice) {
         super();
         this.measure = measure;
-        this.measure.beamGroups = [];
+        this._removeVoiceBeam(measure,voice);
         this.duration = 0;
         this.timeSignature = measure.timeSignature;
         this.meterNumbers = this.timeSignature.split('/').map(number => parseInt(number, 10));
@@ -4931,6 +4931,16 @@ class smoBeamModifier extends BeamModifierBase {
 
     get beamGroups() {
         return this.measure.beamGroups;
+    }
+    _removeVoiceBeam(measure,voice) {
+        var beamGroups = [];
+        measure.beamGroups.forEach((gr) => {
+            if (gr.voice != voice) {
+                beamGroups.push(gr);
+            }
+        });
+
+        measure.beamGroups = beamGroups;
     }
 
     _completeGroup(voice) {
@@ -7373,6 +7383,8 @@ class VxMeasure {
         this.vexNotes = [];
         this.vexBeamGroups = [];
         this.vexTuplets = [];
+        this.vexBeamGroups = [];
+        this.beamToVexMap = {};
     }
 
 	static get adjLeftPixels() {
@@ -7609,8 +7621,6 @@ class VxMeasure {
     // create the VX beam groups. VexFlow has auto-beaming logic, but we use
 	// our own because the user can specify stem directions, breaks etc.
     createVexBeamGroups(vix) {
-        this.vexBeamGroups = [];
-        this.beamToVexMap = {};
         for (var i = 0; i < this.smoMeasure.beamGroups.length; ++i) {
             var bg = this.smoMeasure.beamGroups[i];
             if (bg.voice != vix) {
@@ -16769,7 +16779,7 @@ class defaultRibbonLayout {
             }, {
                 leftText: '',
                 rightText: '',
-                icon: 'icon-glyph1',
+                icon: 'icon-V1',
                 classes: 'collapsed',
                 action: 'collapseChild',
                 ctor: 'VoiceButtons',
@@ -16778,7 +16788,7 @@ class defaultRibbonLayout {
             }, {
                 leftText: '',
                 rightText: '',
-                icon: 'icon-glyph2',
+                icon: 'icon-V2',
                 classes: 'collapsed',
                 action: 'collapseChild',
                 ctor: 'VoiceButtons',
@@ -16787,7 +16797,7 @@ class defaultRibbonLayout {
             }, {
                 leftText: '',
                 rightText: '',
-                icon: 'icon-glyph3',
+                icon: 'icon-V3',
                 classes: 'collapsed',
                 action: 'collapseChild',
                 ctor: 'VoiceButtons',
@@ -16796,7 +16806,7 @@ class defaultRibbonLayout {
             }, {
                 leftText: '',
                 rightText: '',
-                icon: 'icon-glyph4',
+                icon: 'icon-V4',
                 classes: 'collapsed',
                 action: 'collapseChild',
                 ctor: 'VoiceButtons',

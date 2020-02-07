@@ -526,7 +526,7 @@ class defaultRibbonLayout {
             }, {
                 leftText: '',
                 rightText: '',
-                icon: 'icon-glyph1',
+                icon: 'icon-V1',
                 classes: 'collapsed',
                 action: 'collapseChild',
                 ctor: 'VoiceButtons',
@@ -535,7 +535,7 @@ class defaultRibbonLayout {
             }, {
                 leftText: '',
                 rightText: '',
-                icon: 'icon-glyph2',
+                icon: 'icon-V2',
                 classes: 'collapsed',
                 action: 'collapseChild',
                 ctor: 'VoiceButtons',
@@ -544,7 +544,7 @@ class defaultRibbonLayout {
             }, {
                 leftText: '',
                 rightText: '',
-                icon: 'icon-glyph3',
+                icon: 'icon-V3',
                 classes: 'collapsed',
                 action: 'collapseChild',
                 ctor: 'VoiceButtons',
@@ -553,7 +553,7 @@ class defaultRibbonLayout {
             }, {
                 leftText: '',
                 rightText: '',
-                icon: 'icon-glyph4',
+                icon: 'icon-V4',
                 classes: 'collapsed',
                 action: 'collapseChild',
                 ctor: 'VoiceButtons',

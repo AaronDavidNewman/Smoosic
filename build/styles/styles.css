@@ -397,6 +397,10 @@ button.addChord .left-text .icon {
     font-size:1.3em;
 }
 
+[data-group="voices"] .expanded .icon {
+    font-size:1.7em;
+}
+
 .v1-active #V1Button {
     background-color:green;
 }
