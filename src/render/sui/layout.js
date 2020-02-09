@@ -87,6 +87,7 @@ class suiLayoutBase {
 		};
 		this.dirty=true;
         this.partialRender = false;
+        this.stateRepCount=0;
 		this.setPassState(suiLayoutBase.initial,'ctor');
 		console.log('layout ctor: pstate initial');
 		this.viewportChange = false;
@@ -207,7 +208,17 @@ class suiLayoutBase {
 
 	setPassState(st,location) {
         var oldState = this.passState;
-		console.log(location + ': passState '+this.passState+'=>'+st);
+        if (oldState != st) {
+            this.stateRepCount = 0;
+        } else {
+            this.stateRepCount += 1;
+        }
+
+        var msg = location + ': passState '+this.passState+'=>'+st;
+        if (this.stateRepCount > 0) {
+            msg += ' ('+this.stateRepCount+')';
+        }
+		console.log(msg);
 		this.passState = st;
 	}
 	static get defaults() {
@@ -469,7 +480,7 @@ class suiLayoutBase {
         $(this.context.svg).find('.pageLine').remove();
         for (var i=1;i<this._score.layout.pages;++i) {
             var y = (this.pageHeight/this.svgScale)*i;
-            svgHelpers.line(this.svg,0,y,(this.pageWidth/this.svgScale),y,
+            svgHelpers.line(this.svg,0,y,this.score.layout.pageWidth/this.score.layout.svgScale,y,
                 [{'stroke': '#321'},
                     {'stroke-width': '2'},
                         {'stroke-dasharray': '4,1'},
@@ -498,7 +509,7 @@ class suiLayoutBase {
 
     _adjustHeight() {
         var curPages = this._score.layout.pages;
-        suiLayoutAdjuster.adjustHeight(this._score,this.renderer,this.pageWidth/this.svgScale,this.pageHeight/this.svgScale);
+        suiLayoutAdjuster.adjustHeight(this._score,this.renderer,this.pageHeight/this.svgScale);
         if (this._score.layout.pages  != curPages) {
             this.setViewport(false);
             this.setPassState(suiLayoutBase.passStates.initial,'render 2');
@@ -545,7 +556,7 @@ class suiLayoutBase {
 
         if (this.passState == suiLayoutBase.passStates.initial) {
             suiLayoutAdjuster.adjustWidths(this._score,this.renderer);
-            suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth / this.svgScale);
+            suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth);
             this._adjustHeight();
         }
 
@@ -570,7 +581,7 @@ class suiLayoutBase {
                 this.setPassState(suiLayoutBase.passStates.redrawMain,'penultimate render successful');
             } else {
                 var curPages = this._score.layout.pages;
-                suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth / this.svgScale);
+                suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth);
                 this._adjustHeight();
             }
         } else {

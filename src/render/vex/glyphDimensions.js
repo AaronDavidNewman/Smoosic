@@ -2,7 +2,7 @@
 
 class vexGlyph {
 	static accidental(a) {
-       return vexGlyph.accidentals[a];				    
+       return vexGlyph.accidentals[a];
 	}
 	static barWidth(b) {
 		var str = SmoBarline.barlineString(b);
@@ -19,8 +19,8 @@ class vexGlyph {
 		};
 	}
 	static keySignatureLength(key) {
-		return smoMusic.getSharpsInKeySignature(key)*vexGlyph.dimensions['sharp'].width + 
-		    smoMusic.getFlatsInKeySignature(key)*vexGlyph.dimensions['flat'].width + 
+		return smoMusic.getSharpsInKeySignature(key)*vexGlyph.dimensions['sharp'].width +
+		    smoMusic.getFlatsInKeySignature(key)*vexGlyph.dimensions['flat'].width +
 			vexGlyph.dimensions['keySignature'].spacingRight;
 	}
 	static get timeSignature() {
@@ -29,7 +29,7 @@ class vexGlyph {
 	static get dot() {
 		return vexGlyph.dimensions['dot'];
 	}
-	
+
 	static clef(c) {
 		var key = c.toLowerCase()+'Clef';
 		if (!vexGlyph.dimensions[key]) {
@@ -52,7 +52,7 @@ class vexGlyph {
                 yTop:0,
                 yBottom:0,
 				spacingRight:10
-			},			
+			},
 			doubleBar: {
 				width:3.22,
 				height:40.99,
@@ -79,7 +79,7 @@ class vexGlyph {
 				height:10.48,
                 yTop:0,
                 yBottom:0,
-				spacingRight:15,
+				spacingRight:10,
 			},
 			dot: {
 				width:5,

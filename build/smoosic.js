@@ -4055,6 +4055,7 @@ class SmoScore {
             var staff = this.staves[i];
             var protomeasure = staff.measures[measureIndex].pickupMeasure(duration);
             staff.measures[measureIndex] = protomeasure;
+            smoBeamerFactory.applyBeams(staff.measures[measureIndex]);
         }
         this._numberStaves();
     }
@@ -5892,6 +5893,11 @@ class SmoOperation {
             ix += 1;
         });
         measure.voices = voices;
+        smoBeamerFactory.applyBeams(measure);
+
+        if (measure.getActiveVoice() >= measure.voices.length) {
+            measure.setActiveVoice(0);
+        }
     }
 
     static populateVoice(selection,voiceIx) {
@@ -6420,6 +6426,7 @@ class SmoOperation {
         selections[0].note.toggleFlagState();
         selections.forEach((selection) => {
             selection.note.flagState = selections[0].note.flagState;
+            selection.measure.setChanged()
         });
     }
 
@@ -9894,6 +9901,7 @@ class suiLayoutBase {
 		};
 		this.dirty=true;
         this.partialRender = false;
+        this.stateRepCount=0;
 		this.setPassState(suiLayoutBase.initial,'ctor');
 		console.log('layout ctor: pstate initial');
 		this.viewportChange = false;
@@ -10014,7 +10022,17 @@ class suiLayoutBase {
 
 	setPassState(st,location) {
         var oldState = this.passState;
-		console.log(location + ': passState '+this.passState+'=>'+st);
+        if (oldState != st) {
+            this.stateRepCount = 0;
+        } else {
+            this.stateRepCount += 1;
+        }
+
+        var msg = location + ': passState '+this.passState+'=>'+st;
+        if (this.stateRepCount > 0) {
+            msg += ' ('+this.stateRepCount+')';
+        }
+		console.log(msg);
 		this.passState = st;
 	}
 	static get defaults() {
@@ -10276,7 +10294,7 @@ class suiLayoutBase {
         $(this.context.svg).find('.pageLine').remove();
         for (var i=1;i<this._score.layout.pages;++i) {
             var y = (this.pageHeight/this.svgScale)*i;
-            svgHelpers.line(this.svg,0,y,(this.pageWidth/this.svgScale),y,
+            svgHelpers.line(this.svg,0,y,this.score.layout.pageWidth/this.score.layout.svgScale,y,
                 [{'stroke': '#321'},
                     {'stroke-width': '2'},
                         {'stroke-dasharray': '4,1'},
@@ -10305,7 +10323,7 @@ class suiLayoutBase {
 
     _adjustHeight() {
         var curPages = this._score.layout.pages;
-        suiLayoutAdjuster.adjustHeight(this._score,this.renderer,this.pageWidth/this.svgScale,this.pageHeight/this.svgScale);
+        suiLayoutAdjuster.adjustHeight(this._score,this.renderer,this.pageHeight/this.svgScale);
         if (this._score.layout.pages  != curPages) {
             this.setViewport(false);
             this.setPassState(suiLayoutBase.passStates.initial,'render 2');
@@ -10352,7 +10370,7 @@ class suiLayoutBase {
 
         if (this.passState == suiLayoutBase.passStates.initial) {
             suiLayoutAdjuster.adjustWidths(this._score,this.renderer);
-            suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth / this.svgScale);
+            suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth);
             this._adjustHeight();
         }
 
@@ -10377,7 +10395,7 @@ class suiLayoutBase {
                 this.setPassState(suiLayoutBase.passStates.redrawMain,'penultimate render successful');
             } else {
                 var curPages = this._score.layout.pages;
-                suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth / this.svgScale);
+                suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth);
                 this._adjustHeight();
             }
         } else {
@@ -10833,7 +10851,6 @@ class suiLayoutAdjuster {
 						}).reduce((a, b) => {
 							return a + b
 						});
-					width += measures[0].staffX + score.layout.leftMargin;
 					var just = Math.round((pageSize - width) / measures.length) - 1;
 					if (just > 0) {
 						var accum = 0;
@@ -10841,7 +10858,7 @@ class suiLayoutAdjuster {
 							mm.staffWidth += just;
 							mm.staffX += accum;
 							accum += just;
-							if (layoutDebug.flagSet['adjust']) {
+							if (layoutDebug.flagSet('adjust')) {
 								var dbgBox = svgHelpers.boxPoints(
 										mm.staffX, mm.staffY, mm.staffWidth, mm.logicalBox.height);
 								svgHelpers.debugBox(svg, dbgBox, 'measure-adjust-dbg', 10);
@@ -10874,16 +10891,18 @@ class suiLayoutAdjuster {
                   continue;
     			var dif = b2.x - (b1.x + b1.width);
                 var lyrics = n1.getModifiers('SmoLyric').length ||
-                  n2.getModifiers('SmoLyric').length;
-    			if (dif < 10 && !lyrics) {
-    				acc += 10 - dif;
+                     n2.getModifiers('SmoLyric').length;
+    			if (!lyrics && dif < 5) {
+    				acc += 5 - dif;
     			}
     		}
             accs.push(acc);
             voiceIx += 1;
         });
         if (accs.length) {
-		    smoMeasure.logicalBox.width += accs.sort((a,b) => a > b ? -1 : 1)[0];
+            var delta = accs.sort((a,b) => a > b ? -1 : 1)[0];
+		    smoMeasure.logicalBox.width += delta;
+            smoMeasure.staffWidth += delta;
         }
 	}
 
@@ -10917,7 +10936,7 @@ class suiLayoutAdjuster {
                 // find the widest measure in this column, and adjust the others accordingly
 				if (measures.length) {
 					var widest = measures.map((x) => {
-							return x.logicalBox.width + x.padLeft;
+							return x.staffWidth + x.padLeft;
 						}).reduce((a, w) => {
 							return a > w ? a : w;
 						});
@@ -10964,10 +10983,14 @@ class suiLayoutAdjuster {
 
 	// ### adjustHeight
 	// Handle measure bumping into each other, vertically.
-	static adjustHeight(score,renderer,pageWidth,pageHeight) {
+	static adjustHeight(score,renderer,pageHeight) {
 		var topStaff = score.staves[0];
 		var maxLine = topStaff.measures[topStaff.measures.length - 1].lineIndex;
 		var svg = renderer.getContext().svg;
+        var dbgPageWidth =  (score.layout.pageWidth - (score.layout.rightMargin+score.layout.leftMargin))/
+                               score.layout.svgScale;
+        var dbgMargin = score.layout.leftMargin/score.layout.svgScale;
+
 		// array of the max Y measure per line, used to space next line down
 		var maxYPerLine = [];
 		var lineIndexPerLine = [];
@@ -11097,7 +11120,9 @@ class suiLayoutAdjuster {
                 miny += ngap; // for debug box.
             }
             layoutDebug.debugBox(
-                svg, svgHelpers.boxPoints(score.layout.leftMargin, miny, score.layout.pageWidth,maxy-miny),
+                svg, svgHelpers.boxPoints(dbgMargin, miny,
+                     dbgPageWidth,
+                     maxy-miny),
                'system');
 
         }
@@ -11153,8 +11178,6 @@ class suiScoreLayout extends suiLayoutBase {
 			clefWidth: 70,
 			staffWidth: 250,
 			totalWidth: 250,
-			leftMargin: 15,
-			topMargin: 15,
 			pageWidth: 8 * 96 + 48,
 			pageHeight: 11 * 96,
 			svgScale: 0.7,
@@ -11175,18 +11198,21 @@ class suiScoreLayout extends suiLayoutBase {
 		});
 		$(this.renderer.getContext().svg).find('g.lineBracket').remove();
 	}
-	get pageMarginWidth() {
-		return this.pageWidth - this.rightMargin * 2;
+
+    get pageMarginWidth() {
+		return (this.score.layout.pageWidth -
+            (this.score.layout.leftMargin +this.score.layout.rightMargin))/this.score.layout.svgScale;
 	}
 	get pageMarginHeight() {
-		return this.pageHeight - this.topMargin * 2;
+		return (this.pageHeight -
+            (this.score.layout.leftMargin +this.score.layout.rightMargin))/this.score.layout.svgScale;
 	}
 
 	get logicalPageWidth() {
-		return this.pageMarginWidth/this.svgScale;
+		return this.pageMarginWidth;
 	}
 	get logicalPageHeight() {
-		return this.pageMarginHeight/this.svgScale;
+		return this.pageMarginHeigh;
 	}
 
     _previousAttrFunc(i,j,attr) {
@@ -11380,9 +11406,6 @@ class suiScoreLayout extends suiLayoutBase {
         var useAdjustedY = s.calculations.useY;
 		var useAdjustedX = s.calculations.useX;
         var svg = this.context.svg;
-        layoutDebug.clearDebugBoxes('pre');
-        layoutDebug.clearDebugBoxes('post');
-        layoutDebug.clearDebugBoxes('note');
 
         measure.lineIndex = s.lineIndex;
         if (useAdjustedY) {
@@ -11404,6 +11427,10 @@ class suiScoreLayout extends suiLayoutBase {
             } else if (measure.measureNumber.staffId == 0) {
                 // If this is the top staff, put it on the top of the page.
                 if (measure.lineIndex == 0) {
+                    layoutDebug.clearDebugBoxes('pre');
+                    layoutDebug.clearDebugBoxes('post');
+                    layoutDebug.clearDebugBoxes('note');
+
                     measure.staffY = this.score.layout.topMargin;
                 } else {
                     // Else, get it from the height of the previous system.
@@ -11417,7 +11444,7 @@ class suiScoreLayout extends suiLayoutBase {
                     var adj = previous.staffY + height +
                        + this.score.layout.interGap;
                     // if the measure is higher, resist jumping up too fast.
-                    if (measure.logicalBox && adj < measure.logicalBox.y) {
+                    if (measure.logicalBox && adj < measure.logicalBox.y && this.partialRender) {
                         adj = Math.round((adj + measure.logicalBox.y)/2);
                     }
                     measure.staffY = adj;
@@ -11460,11 +11487,15 @@ class suiScoreLayout extends suiLayoutBase {
         }
 
         var newWidth = staffBox.x + staffBox.width + measure.staffWidth;
-        var wrapThreshold = this.logicalPageWidth;
+        // The left margin is included in the width, so don't add it twice
+        var wrapThreshold = this.logicalPageWidth + this.score.layout.leftMargin;
 
         // If we have wrapped on this line previously, wrap in the same place unless the location of this staff has changed quite a bit.
         if (measure.measureNumber.systemIndex == 0 && staff.staffId == 0 && s.systemIndex > 0 && useAdjustedX) {
             wrapThreshold = wrapThreshold * 0.5;
+        } else if (measure.measureNumber.systemIndex == 0 && measure.staffWidth > wrapThreshold) {
+            // If we are the first line but we need to wrap, just shrink the line
+            measure.staffWidth = wrapThreshold - measure.staffX;
         }
 
         // Do we need to start a new line?  Don't start a new line on the first measure in a line...
@@ -11501,6 +11532,8 @@ class suiScoreLayout extends suiLayoutBase {
             }
         } else if (this.passState != suiLayoutBase.passStates.initial) {
             s.system.renderMeasure(staff.staffId, measure);
+        } else if (measure.logicalBox && measure.changed && this.passState == suiLayoutBase.passStates.initial)  {
+            measure.logicalBox.width = measure.staffWidth;
         }
 
 
@@ -16289,7 +16322,7 @@ class defaultRibbonLayout {
 				'UpNoteButton', 'DownNoteButton', 'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
 	}
     static get voiceButtonIds() {
-        return ['VoiceButtons','V1Button','V2Button','V3Button','V4Button'];
+        return ['VoiceButtons','V1Button','V2Button','V3Button','V4Button','VXButton'];
     }
 	static get navigateButtonIds()  {
 		return ['NavigationButtons', 'navLeftButton', 'navRightButton', 'navUpButton', 'navDownButton', 'navFastForward', 'navRewind',
@@ -16812,6 +16845,15 @@ class defaultRibbonLayout {
                 ctor: 'VoiceButtons',
                 group: 'voices',
                 id: 'V4Button'
+            }, {
+                leftText: '',
+                rightText: '',
+                icon: 'icon-Vx',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'VoiceButtons',
+                group: 'voices',
+                id: 'VXButton'
             }
         ];
     }
@@ -17492,7 +17534,7 @@ class defaultRibbonLayout {
 
 class vexGlyph {
 	static accidental(a) {
-       return vexGlyph.accidentals[a];				    
+       return vexGlyph.accidentals[a];
 	}
 	static barWidth(b) {
 		var str = SmoBarline.barlineString(b);
@@ -17509,8 +17551,8 @@ class vexGlyph {
 		};
 	}
 	static keySignatureLength(key) {
-		return smoMusic.getSharpsInKeySignature(key)*vexGlyph.dimensions['sharp'].width + 
-		    smoMusic.getFlatsInKeySignature(key)*vexGlyph.dimensions['flat'].width + 
+		return smoMusic.getSharpsInKeySignature(key)*vexGlyph.dimensions['sharp'].width +
+		    smoMusic.getFlatsInKeySignature(key)*vexGlyph.dimensions['flat'].width +
 			vexGlyph.dimensions['keySignature'].spacingRight;
 	}
 	static get timeSignature() {
@@ -17519,7 +17561,7 @@ class vexGlyph {
 	static get dot() {
 		return vexGlyph.dimensions['dot'];
 	}
-	
+
 	static clef(c) {
 		var key = c.toLowerCase()+'Clef';
 		if (!vexGlyph.dimensions[key]) {
@@ -17542,7 +17584,7 @@ class vexGlyph {
                 yTop:0,
                 yBottom:0,
 				spacingRight:10
-			},			
+			},
 			doubleBar: {
 				width:3.22,
 				height:40.99,
@@ -17569,7 +17611,7 @@ class vexGlyph {
 				height:10.48,
                 yTop:0,
                 yBottom:0,
-				spacingRight:15,
+				spacingRight:10,
 			},
 			dot: {
 				width:5,
@@ -57358,6 +57400,15 @@ class VoiceButtons {
 		this.editor = parameters.editor;
         this.tracker = parameters.tracker
 	}
+    _depopulateVoice() {
+        var selections = SmoSelection.getMeasureList(this.tracker.selections);
+        selections.forEach((selection) => {
+            SmoUndoable.depopulateVoice([selection],selection.measure.getActiveVoice(),
+               this.editor.undoBuffer);
+            selection.measure.setChanged();
+        });
+        this.tracker.layout.setDirty();
+    }
 	setPitch() {
         var voiceIx = 0;
 		if (this.buttonData.id === 'V1Button') {
@@ -57376,7 +57427,9 @@ class VoiceButtons {
 		} else if (this.buttonData.id === 'V4Button') {
 			this.editor.downOctave();
             voiceIx = 3;
-		}
+		} else if (this.buttonData.id === 'VXButton') {
+        	return this._depopulateVoice();
+        }
         SmoUndoable.populateVoice(this.tracker.selections,voiceIx,this.editor.undoBuffer);
         SmoOperation.setActiveVoice(this.tracker.layout.score,voiceIx);
         this.tracker.layout.setDirty();

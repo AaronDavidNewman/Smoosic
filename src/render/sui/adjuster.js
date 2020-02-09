@@ -134,7 +134,6 @@ class suiLayoutAdjuster {
 						}).reduce((a, b) => {
 							return a + b
 						});
-					width += measures[0].staffX + score.layout.leftMargin;
 					var just = Math.round((pageSize - width) / measures.length) - 1;
 					if (just > 0) {
 						var accum = 0;
@@ -142,7 +141,7 @@ class suiLayoutAdjuster {
 							mm.staffWidth += just;
 							mm.staffX += accum;
 							accum += just;
-							if (layoutDebug.flagSet['adjust']) {
+							if (layoutDebug.flagSet('adjust')) {
 								var dbgBox = svgHelpers.boxPoints(
 										mm.staffX, mm.staffY, mm.staffWidth, mm.logicalBox.height);
 								svgHelpers.debugBox(svg, dbgBox, 'measure-adjust-dbg', 10);
@@ -175,16 +174,18 @@ class suiLayoutAdjuster {
                   continue;
     			var dif = b2.x - (b1.x + b1.width);
                 var lyrics = n1.getModifiers('SmoLyric').length ||
-                  n2.getModifiers('SmoLyric').length;
-    			if (dif < 10 && !lyrics) {
-    				acc += 10 - dif;
+                     n2.getModifiers('SmoLyric').length;
+    			if (!lyrics && dif < 5) {
+    				acc += 5 - dif;
     			}
     		}
             accs.push(acc);
             voiceIx += 1;
         });
         if (accs.length) {
-		    smoMeasure.logicalBox.width += accs.sort((a,b) => a > b ? -1 : 1)[0];
+            var delta = accs.sort((a,b) => a > b ? -1 : 1)[0];
+		    smoMeasure.logicalBox.width += delta;
+            smoMeasure.staffWidth += delta;
         }
 	}
 
@@ -218,7 +219,7 @@ class suiLayoutAdjuster {
                 // find the widest measure in this column, and adjust the others accordingly
 				if (measures.length) {
 					var widest = measures.map((x) => {
-							return x.logicalBox.width + x.padLeft;
+							return x.staffWidth + x.padLeft;
 						}).reduce((a, w) => {
 							return a > w ? a : w;
 						});
@@ -265,10 +266,14 @@ class suiLayoutAdjuster {
 
 	// ### adjustHeight
 	// Handle measure bumping into each other, vertically.
-	static adjustHeight(score,renderer,pageWidth,pageHeight) {
+	static adjustHeight(score,renderer,pageHeight) {
 		var topStaff = score.staves[0];
 		var maxLine = topStaff.measures[topStaff.measures.length - 1].lineIndex;
 		var svg = renderer.getContext().svg;
+        var dbgPageWidth =  (score.layout.pageWidth - (score.layout.rightMargin+score.layout.leftMargin))/
+                               score.layout.svgScale;
+        var dbgMargin = score.layout.leftMargin/score.layout.svgScale;
+
 		// array of the max Y measure per line, used to space next line down
 		var maxYPerLine = [];
 		var lineIndexPerLine = [];
@@ -398,7 +403,9 @@ class suiLayoutAdjuster {
                 miny += ngap; // for debug box.
             }
             layoutDebug.debugBox(
-                svg, svgHelpers.boxPoints(score.layout.leftMargin, miny, score.layout.pageWidth,maxy-miny),
+                svg, svgHelpers.boxPoints(dbgMargin, miny,
+                     dbgPageWidth,
+                     maxy-miny),
                'system');
 
         }

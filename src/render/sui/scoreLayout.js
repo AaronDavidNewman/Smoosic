@@ -41,8 +41,6 @@ class suiScoreLayout extends suiLayoutBase {
 			clefWidth: 70,
 			staffWidth: 250,
 			totalWidth: 250,
-			leftMargin: 15,
-			topMargin: 15,
 			pageWidth: 8 * 96 + 48,
 			pageHeight: 11 * 96,
 			svgScale: 0.7,
@@ -63,18 +61,21 @@ class suiScoreLayout extends suiLayoutBase {
 		});
 		$(this.renderer.getContext().svg).find('g.lineBracket').remove();
 	}
-	get pageMarginWidth() {
-		return this.pageWidth - this.rightMargin * 2;
+
+    get pageMarginWidth() {
+		return (this.score.layout.pageWidth -
+            (this.score.layout.leftMargin +this.score.layout.rightMargin))/this.score.layout.svgScale;
 	}
 	get pageMarginHeight() {
-		return this.pageHeight - this.topMargin * 2;
+		return (this.pageHeight -
+            (this.score.layout.leftMargin +this.score.layout.rightMargin))/this.score.layout.svgScale;
 	}
 
 	get logicalPageWidth() {
-		return this.pageMarginWidth/this.svgScale;
+		return this.pageMarginWidth;
 	}
 	get logicalPageHeight() {
-		return this.pageMarginHeight/this.svgScale;
+		return this.pageMarginHeigh;
 	}
 
     _previousAttrFunc(i,j,attr) {
@@ -268,9 +269,6 @@ class suiScoreLayout extends suiLayoutBase {
         var useAdjustedY = s.calculations.useY;
 		var useAdjustedX = s.calculations.useX;
         var svg = this.context.svg;
-        layoutDebug.clearDebugBoxes('pre');
-        layoutDebug.clearDebugBoxes('post');
-        layoutDebug.clearDebugBoxes('note');
 
         measure.lineIndex = s.lineIndex;
         if (useAdjustedY) {
@@ -292,6 +290,10 @@ class suiScoreLayout extends suiLayoutBase {
             } else if (measure.measureNumber.staffId == 0) {
                 // If this is the top staff, put it on the top of the page.
                 if (measure.lineIndex == 0) {
+                    layoutDebug.clearDebugBoxes('pre');
+                    layoutDebug.clearDebugBoxes('post');
+                    layoutDebug.clearDebugBoxes('note');
+
                     measure.staffY = this.score.layout.topMargin;
                 } else {
                     // Else, get it from the height of the previous system.
@@ -305,7 +307,7 @@ class suiScoreLayout extends suiLayoutBase {
                     var adj = previous.staffY + height +
                        + this.score.layout.interGap;
                     // if the measure is higher, resist jumping up too fast.
-                    if (measure.logicalBox && adj < measure.logicalBox.y) {
+                    if (measure.logicalBox && adj < measure.logicalBox.y && this.partialRender) {
                         adj = Math.round((adj + measure.logicalBox.y)/2);
                     }
                     measure.staffY = adj;
@@ -348,11 +350,15 @@ class suiScoreLayout extends suiLayoutBase {
         }
 
         var newWidth = staffBox.x + staffBox.width + measure.staffWidth;
-        var wrapThreshold = this.logicalPageWidth;
+        // The left margin is included in the width, so don't add it twice
+        var wrapThreshold = this.logicalPageWidth + this.score.layout.leftMargin;
 
         // If we have wrapped on this line previously, wrap in the same place unless the location of this staff has changed quite a bit.
         if (measure.measureNumber.systemIndex == 0 && staff.staffId == 0 && s.systemIndex > 0 && useAdjustedX) {
             wrapThreshold = wrapThreshold * 0.5;
+        } else if (measure.measureNumber.systemIndex == 0 && measure.staffWidth > wrapThreshold) {
+            // If we are the first line but we need to wrap, just shrink the line
+            measure.staffWidth = wrapThreshold - measure.staffX;
         }
 
         // Do we need to start a new line?  Don't start a new line on the first measure in a line...
@@ -389,6 +395,8 @@ class suiScoreLayout extends suiLayoutBase {
             }
         } else if (this.passState != suiLayoutBase.passStates.initial) {
             s.system.renderMeasure(staff.staffId, measure);
+        } else if (measure.logicalBox && measure.changed && this.passState == suiLayoutBase.passStates.initial)  {
+            measure.logicalBox.width = measure.staffWidth;
         }
 
 

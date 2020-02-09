@@ -97,7 +97,7 @@ class VoiceTest {
 
         var depopulateVoice = () => {
             subTitle('depopulate voice');
-            SmoUndoable.depopulateVoice([measure],2,undoBuffer);
+            SmoUndoable.depopulateVoice([measure],0,undoBuffer);
             keys.layout.render();
             return timeTest();
         }

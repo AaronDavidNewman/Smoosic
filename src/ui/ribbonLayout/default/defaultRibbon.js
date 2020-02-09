@@ -36,7 +36,7 @@ class defaultRibbonLayout {
 				'UpNoteButton', 'DownNoteButton', 'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
 	}
     static get voiceButtonIds() {
-        return ['VoiceButtons','V1Button','V2Button','V3Button','V4Button'];
+        return ['VoiceButtons','V1Button','V2Button','V3Button','V4Button','VXButton'];
     }
 	static get navigateButtonIds()  {
 		return ['NavigationButtons', 'navLeftButton', 'navRightButton', 'navUpButton', 'navDownButton', 'navFastForward', 'navRewind',
@@ -559,6 +559,15 @@ class defaultRibbonLayout {
                 ctor: 'VoiceButtons',
                 group: 'voices',
                 id: 'V4Button'
+            }, {
+                leftText: '',
+                rightText: '',
+                icon: 'icon-Vx',
+                classes: 'collapsed',
+                action: 'collapseChild',
+                ctor: 'VoiceButtons',
+                group: 'voices',
+                id: 'VXButton'
             }
         ];
     }

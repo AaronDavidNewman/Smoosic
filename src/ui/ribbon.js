@@ -197,6 +197,15 @@ class VoiceButtons {
 		this.editor = parameters.editor;
         this.tracker = parameters.tracker
 	}
+    _depopulateVoice() {
+        var selections = SmoSelection.getMeasureList(this.tracker.selections);
+        selections.forEach((selection) => {
+            SmoUndoable.depopulateVoice([selection],selection.measure.getActiveVoice(),
+               this.editor.undoBuffer);
+            selection.measure.setChanged();
+        });
+        this.tracker.layout.setDirty();
+    }
 	setPitch() {
         var voiceIx = 0;
 		if (this.buttonData.id === 'V1Button') {
@@ -215,7 +224,9 @@ class VoiceButtons {
 		} else if (this.buttonData.id === 'V4Button') {
 			this.editor.downOctave();
             voiceIx = 3;
-		}
+		} else if (this.buttonData.id === 'VXButton') {
+        	return this._depopulateVoice();
+        }
         SmoUndoable.populateVoice(this.tracker.selections,voiceIx,this.editor.undoBuffer);
         SmoOperation.setActiveVoice(this.tracker.layout.score,voiceIx);
         this.tracker.layout.setDirty();
