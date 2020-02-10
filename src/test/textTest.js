@@ -197,7 +197,7 @@ class TextTest {
 			mt = new SmoMeasureText({position:SmoMeasureText.positions.left,text:'Measure Text'});
 			var selection = SmoSelection.measureSelection(score, 0, 0);
             selection.measure.padLeft = 12;
-			SmoUndoable.scoreSelectionOp(score,selection,'addMeasureText',mt,undo,'test measureText1');
+			SmoUndoable.measureSelectionOp(score,selection,'addMeasureText',mt,undo,'test measureText1');
 
 			keys.render()
             return timeTest();

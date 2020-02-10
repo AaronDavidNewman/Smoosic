@@ -24,6 +24,11 @@ class SmoOperation {
 		noteSelection.note.endBeam = !(noteSelection.note.endBeam);
 	}
 
+    static padMeasureLeft(selection,padding) {
+        selection.measure.padLeft = padding;
+        selection.measure.setChanged();
+    }
+
     static setActiveVoice(score,voiceIx) {
         score.staves.forEach((staff) => {
             staff.measures.forEach((measure) => {
@@ -628,6 +633,11 @@ class SmoOperation {
 	}
 
 	static addMeasureText(score,selection,measureText) {
+        var current = selection.measure.getMeasureText();
+        // TODO: should we allow multiples per position
+        current.forEach((mod) => {
+            selection.measure.removeMeasureText(mod.attrs.id);
+        });
 		selection.measure.addMeasureText(measureText);
 	}
 

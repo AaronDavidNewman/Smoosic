@@ -123,6 +123,14 @@ class SmoSelection {
 		});
 	}
 
+    static measuresInColumn(score,staffIndex) {
+        var rv = [];
+        for (var i = 0;i<score.staves.length;++i) {
+            rv.push(SmoSelection.measureSelection(score,i,staffIndex));
+        }
+        return rv;
+    }
+
 	static noteFromSelection(score, selection) {
 		return SmoSelection(score, selection.staffIndex, selection.measureIndex, selection.voiceIndex, selection.tickIndex);
 	}

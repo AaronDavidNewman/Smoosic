@@ -518,6 +518,10 @@ class SuiTextInputComponent extends SuiComponentBase {
     getValue() {
         return this.value;
     }
+    setValue(val) {
+        this.value = val;
+        $('#'+this.parameterId).find('input').val(val);
+    }
     bind() {
         var self=this;
         $('#'+this.parameterId).find('input').off('change').on('change',function(e) {

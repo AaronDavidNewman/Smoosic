@@ -55,13 +55,10 @@ class SuiMeasureDialog extends SuiDialogBase {
     		},{
                 smoName: 'measureTextPosition',
                 parameterName: 'measureTextPosition',
-                defaultValue: SmoMeasureText.positions.none,
+                defaultValue: SmoMeasureText.positions.above,
                 control: 'SuiDropdownComponent',
                 label:'Text Position',
                 options: [{
-                        value: SmoMeasureText.positions.none,
-                        label: 'None'
-                    },{
                         value: SmoMeasureText.positions.left,
                         label: 'Left'
                     }, {
@@ -69,10 +66,10 @@ class SuiMeasureDialog extends SuiDialogBase {
                         label: 'Right'
                     }, {
                         value:SmoMeasureText.positions.above,
-                        label: 'Dotted Quarter'
+                        label: 'Above'
                     }, {
                         value: SmoMeasureText.positions.below,
-                        label: 'Half Note'
+                        label: 'Below'
                     }
                     ]
     			}
@@ -90,6 +87,7 @@ class SuiMeasureDialog extends SuiDialogBase {
             measureIndex: measureIndex,
             undoBuffer:controller.undoBuffer,
             layout: controller.tracker.layout,
+            tracker:controller.tracker,
             controller:controller,
             selection:selection
           });
@@ -97,13 +95,38 @@ class SuiMeasureDialog extends SuiDialogBase {
         return dg;
     }
     changed() {
-        this.layout.unrenderColumn(this.measure);
-        if ((this.pickupCtrl.getValue() && this.pickupCtrl.changeFlag) || this.pickupMeasureCtrl.changeFlag) {
+        if (this.pickupCtrl.changeFlag || this.pickupMeasureCtrl.changeFlag) {
+            this.layout.unrenderColumn(this.measure);
             SmoUndoable.scoreOp(this.layout.score,'convertToPickupMeasure',this.pickupMeasureCtrl.getValue(),this.undoBuffer,'Create pickup measure');
             this.layout.setDirty();
             this.selection = SmoSelection.measureSelection(this.layout.score,this.selection.selector.staff,this.selection.selector.measure);
             this.measure = this.selection.measure;
         }
+        if (this.padLeftCtrl.changeFlag || this.padAllInSystemCtrl.changeFlag) {
+            this.layout.unrenderColumn(this.measure);
+            var selections = this.padAllInSystemCtrl.getValue() ?
+               SmoSelection.measuresInColumn(this.layout.score,this.selection.measure.measureNumber.measureIndex) :
+               SmoSelection.measureSelection(this.layout.score,this.selection.selector.staff,this.selection.selector.measure);
+            SmoUndoable.padMeasuresLeft(selections,this.padLeftCtrl.getValue(),this.undoBuffer);
+            this.layout.setDirty();
+        }
+        if (this.measureTextCtrl.changeFlag || this.measureTextPositionCtrl.changeFlag) {
+            var position = this.measureTextPositionCtrl.getValue();
+            var text = this.measureTextCtrl.getValue();
+            if (text.length == 0) {
+                var tms = this.selection.measure.getMeasureText();
+                tms.forEach((tm) => {
+                    SmoUndoable.measureSelectionOp(this.layout.score,
+                        this.selection,'removeMeasureText',tm,this.undoBuffer,'Remove measure text');
+                });
+
+            } else {
+                var mt = new SmoMeasureText({position:parseInt(position),text:this.measureTextCtrl.getValue()});
+                SmoUndoable.measureSelectionOp(this.layout.score,this.selection,'addMeasureText',mt,this.undoBuffer,'Add measure text');
+            }
+            this.layout.setDirty();
+        }
+        //
         this._updateConditionals();
     }
     constructor(parameters) {
@@ -123,7 +146,7 @@ class SuiMeasureDialog extends SuiDialogBase {
         this.modifier = this.measure;
     }
     _updateConditionals() {
-        if (this.padLeftCtrl.getValue() != 0) {
+        if (this.padLeftCtrl.getValue() != 0 || this.padLeftCtrl.changeFlag) {
             $('.attributeDialog .attributeModal').addClass('pad-left-select');
         } else {
             $('.attributeDialog .attributeModal').removeClass('pad-left-select');
@@ -140,7 +163,6 @@ class SuiMeasureDialog extends SuiDialogBase {
         } else {
             $('.attributeDialog .attributeModal').removeClass('measure-text-set');
         }
-
     }
     populateInitial() {
         this.padLeftCtrl.setValue(this.measure.padLeft);
@@ -164,6 +186,7 @@ class SuiMeasureDialog extends SuiDialogBase {
         this.bindKeyboard();
         this.controller.unbindKeyboardForDialog(this);
         this.padLeftCtrl = this.components.find((comp) => {return comp.smoName == 'padLeft';});
+        this.padAllInSystemCtrl = this.components.find((comp) => {return comp.smoName == 'padAllInSystem';});
         this.pickupCtrl = this.components.find((comp) => {return comp.smoName == 'makePickup';});
         this.pickupMeasureCtrl = this.components.find((comp) => {return comp.smoName == 'pickupMeasure';});
         this.measureTextCtrl = this.components.find((comp) => {return comp.smoName == 'measureText';});
@@ -171,6 +194,7 @@ class SuiMeasureDialog extends SuiDialogBase {
         this.populateInitial();
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+            self.controller.layout.setDirty();
 			self.complete();
 		});
 

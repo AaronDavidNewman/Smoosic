@@ -253,7 +253,7 @@ class SmoMeasureText extends SmoMeasureModifierBase {
 		return SmoMeasureText.toVexJustification[this.justification];
 	}
 	toVexPosition() {
-		return SmoMeasureText.toVexPosition[this.position];
+		return SmoMeasureText.toVexPosition[parseInt(this.position)];
 	}
 	static get attributes() {
 		return ['position','fontInfo','text','adjustX','adjustY','justification'];

@@ -407,7 +407,7 @@ class VxMeasure {
 
         var staffX = this.smoMeasure.staffX + this.smoMeasure.padLeft;
 
-        this.stave = new VF.Stave(staffX, this.smoMeasure.staffY + this.smoMeasure.adjY, this.smoMeasure.staffWidth - 1);
+        this.stave = new VF.Stave(staffX, this.smoMeasure.staffY + this.smoMeasure.adjY, this.smoMeasure.staffWidth - (1+this.smoMeasure.padLeft));
         if (this.smoMeasure.prevFrame < VxMeasure.fps) {
             this.smoMeasure.prevFrame += 1;
         }
@@ -457,7 +457,7 @@ class VxMeasure {
 
 		// Need to format for x position, then set y position before drawing dynamics.
         this.formatter = new VF.Formatter().joinVoices(voiceAr).format(voiceAr, this.smoMeasure.staffWidth-
-		    (this.smoMeasure.adjX + this.smoMeasure.adjRight));
+		    (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft));
 
         for (var j = 0; j < voiceAr.length; ++j) {
             voiceAr[j].draw(this.context, this.stave);

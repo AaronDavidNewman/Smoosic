@@ -139,6 +139,15 @@ class SmoUndoable {
             'measure', selection.selector, selection.measure);
         SmoOperation.transposeGraceNotes(selection,params.modifiers,params.offset);
     }
+    static padMeasuresLeft(selections,padding,undoBuffer) {
+        if (!Array.isArray(selections)) {
+            selections=[selections];
+        }
+        selections.forEach((selection) => {
+            undoBuffer.addBuffer('pad measure','measure',selection.selector,selection.measure);
+            SmoOperation.padMeasureLeft(selection,padding);
+        });
+    }
     static doubleGraceNoteDuration(selection,modifier,undoBuffer) {
         undoBuffer.addBuffer('double grace note duration',
             'measure', selection.selector, selection.measure);
