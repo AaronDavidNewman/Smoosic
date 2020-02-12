@@ -96,7 +96,7 @@ class suiLayoutAdjuster {
 		measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
 		measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
 		measure.staffWidth = measure.staffWidth  + measure.adjX + measure.adjRight + measure.padLeft;
-        if (measure.logicalBox && measure.staffWidth < prevWidth) {
+        if (measure.changed == false && measure.logicalBox && measure.staffWidth < prevWidth) {
             measure.staffWidth = Math.round((measure.staffWidth + prevWidth)/2);
         }
 
