@@ -95,7 +95,7 @@ class suiLayoutAdjuster {
 		measure.staffWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
 		measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
 		measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
-		measure.staffWidth = measure.staffWidth  + measure.adjX + measure.adjRight + measure.padLeft;
+		measure.staffWidth = measure.staffWidth  + measure.adjX + measure.adjRight;
         if (measure.changed == false && measure.logicalBox && measure.staffWidth < prevWidth) {
             measure.staffWidth = Math.round((measure.staffWidth + prevWidth)/2);
         }
@@ -130,7 +130,7 @@ class suiLayoutAdjuster {
 					});
 				if (measures.length > 0) {
 					var width = measures.map((mm) => {
-							return mm.staffWidth + mm.padLeft;
+							return mm.staffWidth;
 						}).reduce((a, b) => {
 							return a + b
 						});

@@ -345,9 +345,10 @@ class VxMeasure {
 				shift_x:tm.adjustX,shift_y:tm.adjustY,justification:tm.toVexJustification()
 			});
 			vm.setFont(tm.fontInfo);   */
+            var offset = tm.position === SmoMeasureText.positions.left ? this.smoMeasure.padLeft : 0;
 			this.stave.setText(
 			    tm.text,tm.toVexPosition(),{
-				shift_x:tm.adjustX,shift_y:tm.adjustY,justification:tm.toVexJustification()
+				shift_x:tm.adjustX + offset,shift_y:tm.adjustY,justification:tm.toVexJustification()
 			});
 			// hack - we can't create staveText directly so this is the only way I could set the font
 			var ar = this.stave.getModifiers();
@@ -410,6 +411,13 @@ class VxMeasure {
         this.stave = new VF.Stave(staffX, this.smoMeasure.staffY + this.smoMeasure.adjY, this.smoMeasure.staffWidth - (1+this.smoMeasure.padLeft));
         if (this.smoMeasure.prevFrame < VxMeasure.fps) {
             this.smoMeasure.prevFrame += 1;
+        }
+
+        // If there is padLeft, draw an invisible box so the padding is included in the measure box
+        if (this.smoMeasure.padLeft) {
+            this.context.rect(this.smoMeasure.staffX,this.smoMeasure.staffY,this.smoMeasure.padLeft,50, {
+                fill:'none','stroke-width':1,stroke:'black'
+            });
         }
 
 		this.stave.options.space_above_staff_ln=0; // don't let vex place the staff, we want to.

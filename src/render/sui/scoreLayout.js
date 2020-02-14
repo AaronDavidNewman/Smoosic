@@ -342,9 +342,7 @@ class suiScoreLayout extends suiLayoutBase {
             if (s.systemIndex > 0) {
             measure.staffX = this._previousAttr(measure.measureNumber.measureIndex,
                 staff.staffId, 'staffX') + this._previousAttr(measure.measureNumber.measureIndex,
-                    staff.staffId,'staffWidth')
-                    + this._previousAttr(measure.measureNumber.measureIndex,
-                        staff.staffId,'padLeft');
+                    staff.staffId,'staffWidth');
             } else {
                 measure.staffX = this.score.layout.leftMargin;
             }
