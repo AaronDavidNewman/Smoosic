@@ -184,6 +184,17 @@ class suiScoreLayout extends suiLayoutBase {
         if (useAdjustedY) {
             s.system.cap();
         }
+
+        this._score.staves.forEach((stf) => {
+            this._renderModifiers(stf, s.system);
+        });
+        // If we wrapped in a row that is not top staff, start rendering
+        // at the top staff
+        measure = this.score.staves[0].measures[measure.measureNumber.measureIndex];
+        staff = this.score.staves[0];
+        s.measure = measure;
+        s.staff = staff;
+
         // If we have wrapped at a place other than the wrap point, give up and
         // start computing X again
         if (useAdjustedX && measure.measureNumber.systemIndex != 0) {
@@ -191,9 +202,6 @@ class suiScoreLayout extends suiLayoutBase {
         }
         measure.staffX = this._score.layout.leftMargin;
 
-        this._score.staves.forEach((stf) => {
-            this._renderModifiers(stf, s.system);
-        });
         if (!useAdjustedY && measure.changed) {
             layoutDebug.debugBox(svg,svgHelpers.boxPoints(measure.staffX, s.pageBox.y + s.pageBox.height, 1, this._score.layout.interGap),'pre');
             measure.staffY = s.pageBox.y + s.pageBox.height + this._score.layout.interGap;
@@ -234,15 +242,31 @@ class suiScoreLayout extends suiLayoutBase {
 
         return s;
     }
+    // justify the columns as we go if we are calculating X, so that we wrapped
+    // in the correct place.
+    _adjustColumnBoxes(renderState) {
+        var ar=[];
+        var s = renderState;
+        Object.keys(s.staffBoxes).forEach((k)=> {ar.push(s.staffBoxes[k])});
+        var widths = ar.map((x) => x.width+x.x).reduce((a,b) => a > b ? a : b);
+        ar.forEach((box) => {
+            box.x += (widths - (box.x + box.width));
+        });
+    }
 
     _layoutSystem(renderState) {
         var s = renderState;
 		var svg = this.context.svg;
+        var currentLine = 0;
 
         while (!s.wrapped && !s.complete) {
              this._layoutColumn(s);
              if (s.wrapped) {
                  break;
+             }
+             var useX = s.calculations.useX;
+             if (!useX) {
+                 this._adjustColumnBoxes(s);
              }
              var staff = this._score.staves[0];
              var measure = staff.measures.find((m) => m.measureNumber.measureIndex == s.measure.measureNumber.measureIndex+1);
@@ -250,6 +274,11 @@ class suiScoreLayout extends suiLayoutBase {
             if (measure) {
                 s.staff = staff;
                 s.measure = measure;
+                // If we are expecting to wrap here, do so.
+                if (useX && measure.lineIndex > s.lineIndex) {
+                    s.wrapped = true;
+                    break;
+                }
                 s.systemIndex += 1;
             } else {
                 s.complete = true;
@@ -340,16 +369,16 @@ class suiScoreLayout extends suiLayoutBase {
 
         if (!useAdjustedX) {
             if (s.systemIndex > 0) {
-            measure.staffX = this._previousAttr(measure.measureNumber.measureIndex,
-                staff.staffId, 'staffX') + this._previousAttr(measure.measureNumber.measureIndex,
-                    staff.staffId,'staffWidth');
+            measure.staffX = staffBox.x + staffBox.width;
             } else {
                 measure.staffX = this.score.layout.leftMargin;
             }
             suiLayoutAdjuster.estimateMeasureWidth(this.renderer,measure,staffBox);
         }
 
-        var newWidth = staffBox.x + staffBox.width + measure.staffWidth;
+        // the width of this measure is the existing width, plus left margin, plus measure width
+        // Don't use staffBox.x since it may have been adjusted
+        var newWidth = Math.floor(measure.staffX + measure.staffWidth);
         // The left margin is included in the width, so don't add it twice
         var wrapThreshold = this.logicalPageWidth + this.score.layout.leftMargin;
 
@@ -358,11 +387,11 @@ class suiScoreLayout extends suiLayoutBase {
             wrapThreshold = wrapThreshold * 0.5;
         } else if (measure.measureNumber.systemIndex == 0 && measure.staffWidth > wrapThreshold) {
             // If we are the first line but we need to wrap, just shrink the line
-            measure.staffWidth = wrapThreshold - measure.staffX;
+            measure.setWidth(wrapThreshold - measure.staffX,'scoreLayout wrap line width');
         }
 
         // Do we need to start a new line?  Don't start a new line on the first measure in a line...
-        if (staff.staffId == 0 && s.systemIndex > 0 && newWidth
+        if (s.systemIndex > 0 && newWidth
              > wrapThreshold) {
                  console.log('wrap mm '+ measure.measureNumber.measureIndex + ' column: ' + measure.measureNumber.systemIndex + ' line: '+measure.lineIndex)
                  s.wrapped = true;
@@ -401,7 +430,7 @@ class suiScoreLayout extends suiLayoutBase {
 
 
         layoutDebug.debugBox(svg,  measure.logicalBox, 'post');
-        if (layoutDebug.flagSet('note') && measure.logicalBox) {
+        /* if (layoutDebug.flagSet('note') && measure.logicalBox) {
             measure.voices.forEach((voice) => {
                 voice.notes.forEach((note) => {
                     var noteEl = svg.getElementById(note.renderId);
@@ -410,7 +439,7 @@ class suiScoreLayout extends suiLayoutBase {
                     }
                 });
             });
-        }
+        }  */
 
         measure.changed = false;
 
@@ -466,11 +495,6 @@ class suiScoreLayout extends suiLayoutBase {
 		if (!this._score.staves.length || !this._score.staves[0].measures.length) {
 			return;
 		}
-        if (suiLayoutBase.debugLayout) {
-            $(this.context.svg).find('.measure-render-dbg').remove();
-            $(this.context.svg).find('.measure-place-dbg').remove();
-            $(this.context.svg).find('.measure-note-dbg').remove();
-        }
 
         var renderState = this.passState == suiLayoutBase.passStates.incomplete ?
             this.renderState :

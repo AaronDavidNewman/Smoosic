@@ -6,7 +6,8 @@ class layoutDebug {
             post:2,
             adjust:4,
             system:8,
-            note:16
+            note:16,
+            adjustHeight:32
         }
     }
 
@@ -16,7 +17,8 @@ class layoutDebug {
             post:'measure-render-dbg',
             adjust:'measure-adjust-dbg',
             system:'system-place-dbg',
-            note:'measure-note-dbg'
+            note:'measure-note-dbg',
+            adjustHeight:'measure-adjustHeight-dbg'
         }
     }
 
@@ -39,7 +41,7 @@ class layoutDebug {
         layoutDebug._flags = 0;
     }
     static setAll() {
-        layoutDebug._flags = 1+2+4+8+16;
+        layoutDebug._flags = 1+2+4+8+16+32;
     }
     static clearDebugBoxes(value) {
         if (layoutDebug.flagSet(value)) {
@@ -385,9 +387,6 @@ class suiLayoutBase {
 			return;
 
 		$(this.renderer.getContext().svg).find('g.' + measure.getClassId()).remove();
-		/* measure.staffX = SmoMeasure.defaults.staffX;
-		measure.staffY = SmoMeasure.defaults.staffY;
-		measure.staffWidth = SmoMeasure.defaults.staffWidth;  */
 		measure.adjY = 0;
 		measure.setChanged();
 	}

@@ -13,8 +13,9 @@ class suiLayoutAdjuster {
             var duration = 0;
             var tm = tmObj.tickmaps[voiceIx];
 			voice.notes.forEach((note) => {
-				width += vexGlyph.dimensions.noteHead.width + vexGlyph.dimensions.noteHead.spacingRight;
-				width += vexGlyph.dimensions.dot.width * note.dots + vexGlyph.dimensions.dot.spacingRight * note.dots;
+                var noteWidth = 0;
+				noteWidth += vexGlyph.dimensions.noteHead.width + vexGlyph.dimensions.noteHead.spacingRight;
+				noteWidth += vexGlyph.dimensions.dot.width * note.dots + vexGlyph.dimensions.dot.spacingRight * note.dots;
 				note.pitches.forEach((pitch) => {
                     var keyAccidental = smoMusic.getAccidentalForKeySignature(pitch,smoMeasure.keySignature);
                     var accidentals = tmObj.accidentalArray.filter((ar) =>
@@ -25,11 +26,27 @@ class suiLayoutAdjuster {
 
                     if (declared != pitch.accidental
                         || pitch.cautionary) {
-						width += vexGlyph.accidental(pitch.accidental).width;
+						noteWidth += vexGlyph.accidental(pitch.accidental).width;
 					}
 				});
+
+                var verse = 0;
+                var lyric;
+                while (lyric = note.getLyricForVerse(verse)) {
+                    // TODO: kerning and all that...
+                    if (!lyric.length) {
+                        break;
+                    }
+                    // why did I make this return an array?
+                    var lyricWidth = 5*lyric[0].text.length;
+                    noteWidth = Math.max(lyricWidth,noteWidth);
+
+                    verse += 1;
+                }
+
 				tickIndex += 1;
                 duration += note.tickCount;
+                width += noteWidth;
 			});
             voiceIx += 1;
             widths.push(width);
@@ -91,14 +108,17 @@ class suiLayoutAdjuster {
 	static estimateMeasureWidth(renderer,measure,staffBox) {
 
 		// Calculate the existing staff width, based on the notes and what we expect to be rendered.
+        var gravity = false;
         var prevWidth = measure.staffWidth;
-		measure.staffWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
+		var measureWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
 		measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
 		measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
-		measure.staffWidth = measure.staffWidth  + measure.adjX + measure.adjRight;
+		measureWidth += measure.adjX + measure.adjRight;
         if (measure.changed == false && measure.logicalBox && measure.staffWidth < prevWidth) {
-            measure.staffWidth = Math.round((measure.staffWidth + prevWidth)/2);
+            measureWidth = Math.round((measure.staffWidth + prevWidth)/2);
+            gravity = true;
         }
+        measure.setWidth(measureWidth,'estimateMeasureWidth adjX adjRight gravity: '+gravity);
 
 		// Calculate the space for left/right text which displaces the measure.
 		var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(renderer,measure);
@@ -134,11 +154,12 @@ class suiLayoutAdjuster {
 						}).reduce((a, b) => {
 							return a + b
 						});
-					var just = Math.round((pageSize - width) / measures.length) - 1;
+                    // round justification down so it does not cause un-necessary wrapping
+					var just = Math.floor((pageSize - width) / measures.length) - 1;
 					if (just > 0) {
 						var accum = 0;
 						measures.forEach((mm) => {
-							mm.staffWidth += just;
+							mm.setWidth(Math.floor(mm.staffWidth + just),'justifyWidths 1');
 							mm.staffX += accum;
 							accum += just;
 							if (layoutDebug.flagSet('adjust')) {
@@ -153,51 +174,13 @@ class suiLayoutAdjuster {
 		}
 	}
 
-	static _spaceNotes(svg,smoMeasure) {
-        var accs=[];
-        var voiceIx = 0;
-        smoMeasure.voices.forEach((voice) => {
-
-    		var g = svg.getElementById(smoMeasure.attrs.id);
-            if (!g) {
-                return;
-            }
-            var voiceClass = 'voice-' + voiceIx;
-    		var notes = Array.from(g.getElementsByClassName(voiceClass));
-    		var acc = 0;
-    		for (var i = 1; i < notes.length; ++i) {
-    			var b1 = notes[i - 1].getBBox();
-    			var b2 = notes[i].getBBox();
-                var n1 = smoMeasure.voices[voiceIx].notes[i - 1];
-                var n2 = smoMeasure.voices[voiceIx].notes[i];
-                if (!n1 || !n2)
-                  continue;
-    			var dif = b2.x - (b1.x + b1.width);
-                var lyrics = n1.getModifiers('SmoLyric').length ||
-                     n2.getModifiers('SmoLyric').length;
-    			if (!lyrics && dif < 5) {
-    				acc += 5 - dif;
-    			}
-    		}
-            accs.push(acc);
-            voiceIx += 1;
-        });
-        if (accs.length) {
-            var delta = accs.sort((a,b) => a > b ? -1 : 1)[0];
-		    smoMeasure.logicalBox.width += delta;
-            smoMeasure.staffWidth += delta;
-        }
-	}
-
     // ### adjustWidths
 	// Set the width of each measure in a system to the max width for that column so the measures are aligned.
 	static adjustWidths(score,renderer) {
 		var topStaff = score.staves[0];
 		var maxLine = topStaff.measures[topStaff.measures.length - 1].lineIndex;
 		var svg = renderer.getContext().svg;
-		if (suiLayoutBase.debugLayout) {
-			$(renderer.getContext().svg).find('g.measure-adjust-dbg').remove();
-		}
+		layoutDebug.clearDebugBoxes('adjust');
 
         // go through each system, vertically
 		for (var i = 0; i <= maxLine; ++i) {
@@ -214,7 +197,7 @@ class suiLayoutAdjuster {
 					}
 				});
 				// Make sure each note head is not squishing
-				measures.forEach((mm) => {suiLayoutAdjuster._spaceNotes(svg,mm);});
+				// measures.forEach((mm) => {suiLayoutAdjuster._spaceNotes(svg,mm);});
 
                 // find the widest measure in this column, and adjust the others accordingly
 				if (measures.length) {
@@ -224,7 +207,7 @@ class suiLayoutAdjuster {
 							return a > w ? a : w;
 						});
 					measures.forEach((measure) => {
-						measure.staffWidth = widest;
+						measure.setWidth(widest,'adjustWidths widest in column');
 						measure.setChanged();
 					});
 				}
@@ -240,10 +223,7 @@ class suiLayoutAdjuster {
 				if (last && measure.measureNumber.systemIndex > 0) {
 					measure.staffX = last.staffX + last.staffWidth + last.padLeft;
 				}
-				if (suiLayoutBase.debugLayout) {
-					var dbgBox = svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height);
-					svgHelpers.debugBox(svg, dbgBox, 'measure-adjust-dbg', 10);
-				}
+                layoutDebug.debugBox(svg,svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height),'adjust');
 				last = measure;
 			});
 		});
@@ -279,7 +259,7 @@ class suiLayoutAdjuster {
 		var lineIndexPerLine = [];
         var vyMaxY = 0;
 
-		layoutDebug.clearDebugBoxes('adjust');
+		layoutDebug.clearDebugBoxes('adjustHeight');
 
 		var accum = 0;
 		// iterate: system, staves within a system, measures
@@ -333,10 +313,9 @@ class suiLayoutAdjuster {
 						measure.staffY = staffY;
                         vyMaxY = (vyMaxY > measure.staffY + measure.logicalBox.height) ? vyMaxY :
                            measure.staffY + measure.logicalBox.height;
-						if (layoutDebug.flagSet('adjust')) {
-							var dbgBox = svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height);
-							svgHelpers.debugBox(svg, dbgBox, 'measure-adjust-dbg', 10);
-						}
+                        layoutDebug.debugBox(svg,
+                            svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height),
+                            'adjustHeight');
 					});
 				} else {
 					var my = maxYPerLine[absLine - 1]  + score.layout.intraGap;
@@ -350,10 +329,9 @@ class suiLayoutAdjuster {
 						measure.staffY = staffY;
                         vyMaxY = (vyMaxY > measure.staffY + measure.logicalBox.height) ? vyMaxY :
                            measure.staffY + measure.logicalBox.height;
-						if (suiLayoutBase.debugLayout) {
-							var dbgBox = svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height);
-							svgHelpers.debugBox(svg, dbgBox, 'measure-adjust-dbg', 10);
-						}
+                           layoutDebug.debugBox(svg,
+                               svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height),
+                               'adjustHeight');
 					});
 				}
 			}

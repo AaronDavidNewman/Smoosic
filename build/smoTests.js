@@ -2329,7 +2329,7 @@ class MeasureTest {
 
         var pickupTest = () => {
             score.addPickupMeasure(0,4096+2048);
-            score.staves[0].measures[2].padLeft = 8;
+            SmoUndoable.padMeasuresLeft(SmoSelection.measureSelection(score,0,2),8,undoBuffer);
             score.staves[0].measures[2].setBarline(new SmoBarline({position:SmoBarline.positions.start,barline:SmoBarline.barlines.singleBar}));
             keys.render();
             return timeTest();
@@ -2660,7 +2660,7 @@ class TextTest {
 			mt = new SmoMeasureText({position:SmoMeasureText.positions.left,text:'Measure Text'});
 			var selection = SmoSelection.measureSelection(score, 0, 0);
             selection.measure.padLeft = 12;
-			SmoUndoable.scoreSelectionOp(score,selection,'addMeasureText',mt,undo,'test measureText1');
+			SmoUndoable.measureSelectionOp(score,selection,'addMeasureText',mt,undo,'test measureText1');
 
 			keys.render()
             return timeTest();

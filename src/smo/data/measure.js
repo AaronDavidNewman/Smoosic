@@ -9,6 +9,7 @@
 class SmoMeasure {
 	constructor(params) {
 		this.tuplets = [];
+        this.svg = {};
 		this.beamGroups = [];
 		this.modifiers = [];
         this.pageGap = 0;
@@ -18,6 +19,9 @@ class SmoMeasure {
         this.prevX = 0;
         this.padLeft=0;
         this.prevFrame=0;
+        this.svg.staffWidth=200;
+        this.svg.history=[];
+        this.svg.unjustifiedWidth = this.svg.staffWidth;
 		var defaults = SmoMeasure.defaults;
 
 		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, defaults, this);
@@ -36,10 +40,19 @@ class SmoMeasure {
 			// inherit attrs id for deserialized
 		}
 	}
-	get notes() {
-        throw('measure.notes is obsolete, use voice');
-		// return this.voices[this.activeVoice].notes;
-	}
+
+    get staffWidth() {
+        return this.svg.staffWidth;
+    }
+
+    setWidth(width,description) {
+        this.svg.history.push('setWidth '+this.staffWidth+'=> '+width + ' ' + description);
+        this.svg.staffWidth = width;
+    }
+
+    saveUnjustifiedWidth() {
+        this.svg.unjustifiedWidth = this.svg.staffWidth;
+    }
 
     // ### getClassId
     // create a identifier unique to this measure index so it can be easily removed.
@@ -105,8 +118,8 @@ class SmoMeasure {
 	// attributes that are to be serialized for a measure.
 	static get defaultAttributes() {
 		return [
-			'timeSignature', 'keySignature', 'staffX', 'staffY',
-			'measureNumber', 'staffWidth',
+			'timeSignature', 'keySignature', 'staffY',
+			'measureNumber',
 			'activeVoice', 'clef', 'transposeIndex', 'activeVoice', 'adjX','padLeft','adjRight', 'padRight', 'rightMargin'];
 	}
 
@@ -350,10 +363,10 @@ class SmoMeasure {
 			timeSignature: '4/4',
 			keySignature: "C",
 			canceledKeySignature: null,
-			staffX: 10,
 			adjX: 0,
 			adjRight:0,
 			padRight: 10,
+            padLeft:0,
 			transposeIndex: 0,
 			modifiers: modifiers,
 			rightMargin: 2,
@@ -365,7 +378,6 @@ class SmoMeasure {
 				measureNumber: 0,
 				staffId: 0
 			},
-			staffWidth: 200,
 			clef: 'treble',
 			changed: true,
 			forceClef: false,

@@ -644,6 +644,17 @@ button.addChord .left-text .icon {
 	stroke:#492;
 	stroke-width:2;
 }
+
+.measure-adjustHeight-dbg text {
+	fill:#511;
+	font-size:1em;
+}
+.measure-adjustHeight-dbg line {
+	stroke:#511;
+	stroke-width:2;
+    stroke-dasharray:2;
+}
+
 .measure-note-dbg line {
 	stroke:#fc9;
 	stroke-width:1;

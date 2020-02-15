@@ -416,7 +416,7 @@ class VxMeasure {
         // If there is padLeft, draw an invisible box so the padding is included in the measure box
         if (this.smoMeasure.padLeft) {
             this.context.rect(this.smoMeasure.staffX,this.smoMeasure.staffY,this.smoMeasure.padLeft,50, {
-                fill:'none','stroke-width':1,stroke:'black'
+                fill:'none','stroke-width':1,stroke:'white'
             });
         }
 
