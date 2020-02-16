@@ -25,7 +25,7 @@ class SmoGraceNote extends SmoNoteModifierBase {
             endBeam:false,
             clef:'treble',
             slash:false,
-            
+
             ticks: {
                 numerator: 4096,
                 denominator: 1,
@@ -49,7 +49,7 @@ class SmoGraceNote extends SmoNoteModifierBase {
     tickCount() {
         return this.ticks.numerator / this.ticks.denominator + this.ticks.remainder;
     }
-    
+
     toVexGraceNote() {
         var p = smoMusic.smoPitchesToVex(this.pitches);
         var rv = {duration:smoMusic.closestVexDuration(this.tickCount()),keys:p};
@@ -61,7 +61,7 @@ class SmoGraceNote extends SmoNoteModifierBase {
     	smoMusic.serializedMerge(SmoGraceNote.parameterArray,SmoGraceNote.defaults,this);
 		smoMusic.serializedMerge(SmoGraceNote.parameterArray, parameters, this);
     }
-    
+
 }
 
 class SmoOrnament extends SmoNoteModifierBase {
@@ -101,10 +101,10 @@ class SmoOrnament extends SmoNoteModifierBase {
         return {
             ornament:SmoOrnament.ornaments.mordent,
             position:SmoOrnament.positions.above,
-            offset:SmoOrnament.offsets.on            
+            offset:SmoOrnament.offsets.on
         };
     }
-    
+
     constructor(parameters) {
 		super('SmoOrnament');
 		smoMusic.serializedMerge(SmoOrnament.attrArray,SmoOrnament.defaults,this);
@@ -210,17 +210,20 @@ class SmoLyric extends SmoNoteModifierBase {
 			translateY:0,
 		};
 	}
-    
+
     static get attributes() {
         return ['text','endChar','fontInfo','classes','verse',
 		    'fill','scaleX','scaleY','translateX','translateY'];
     }
-    
+
     constructor(parameters) {
 		super('SmoLyric');
 		smoMusic.serializedMerge(SmoLyric.attributes, SmoLyric.defaults,this);
 		smoMusic.serializedMerge(SmoLyric.attributes, parameters, this);
+
+        // calculated adjustments for alignment purposes
 		this.adjY=0;
+        this.adjX = 0;
 
 		if (!this['attrs']) {
 			this.attrs = {

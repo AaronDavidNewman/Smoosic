@@ -171,6 +171,49 @@ class smoMusic {
 
 		return smoMusic.smoPitchToInt(pp1) == smoMusic.smoPitchToInt(pp2);
 	}
+    static _clefToLedgerMap() {
+        return {
+            alto:{up:59,down:40},
+            tenor:{up:53,down:34},
+            treble:{up:68,down:49},
+            bass:{up:48,down:29}
+        }
+    }
+
+    // ### pitchToLedgerLineInt
+    // The magnitude (pitchToLedgerLineInt()+1)/2 is the count.  If the
+    // result is odd, the note is above/below the ledger line.  If the
+    // result is even, it is on the line.  If hte result is negative, it is
+    // below the staff.  This is used for estimating staff height.
+    static pitchToLedgerLineInt(clef,pitch) {
+        var entry = smoMusic._clefToLedgerMap[clef];
+        var intval = smoMusic.smoPitchToInt(pitch);
+        if (entry.up >= intval) {
+            return intval - entry.up;
+        }
+        if (entry.down >= intval) {
+            return intval - entry.down;
+        }
+        return 0;
+    }
+
+    // ### pitchToVexKey
+    // convert from SMO to VEX format so we can use the VexFlow tables and methods
+    // example:
+    // 	`{letter,octave,accidental}` object to vexKey string `'f#'`
+    static pitchToVexKey(smoPitch) {
+        // Convert to vex keys, where f# is a string like 'f#'.
+        var vexKey = smoPitch.letter.toLowerCase();
+        if (smoPitch.accidental.length === 0) {
+            vexKey = vexKey + 'n';
+        } else {
+            vexKey = vexKey + smoPitch.accidental;
+        }
+        if (smoPitch['octave']) {
+            vexKey = vexKey + '/' + smoPitch.octave;
+        }
+        return vexKey;
+    }
 
 	static smoPitchToInt(pitch) {
 		var intVal = VF.Music.noteValues[
@@ -393,23 +436,6 @@ class smoMusic {
 		return vexKey;
 	}
 
-	// ### pitchToVexKey
-	// convert from SMO to VEX format so we can use the VexFlow tables and methods
-	// example:
-	// 	`{letter,octave,accidental}` object to vexKey string `'f#'`
-	static pitchToVexKey(smoPitch) {
-		// Convert to vex keys, where f# is a string like 'f#'.
-		var vexKey = smoPitch.letter.toLowerCase();
-		if (smoPitch.accidental.length === 0) {
-			vexKey = vexKey + 'n';
-		} else {
-			vexKey = vexKey + smoPitch.accidental;
-		}
-		if (smoPitch['octave']) {
-			vexKey = vexKey + '/' + smoPitch.octave;
-		}
-		return vexKey;
-	}
 
 	// ### getKeyOffset
 	// Given a vex noteProp and an offset, offset that number
@@ -2025,7 +2051,7 @@ class SmoGraceNote extends SmoNoteModifierBase {
             endBeam:false,
             clef:'treble',
             slash:false,
-            
+
             ticks: {
                 numerator: 4096,
                 denominator: 1,
@@ -2049,7 +2075,7 @@ class SmoGraceNote extends SmoNoteModifierBase {
     tickCount() {
         return this.ticks.numerator / this.ticks.denominator + this.ticks.remainder;
     }
-    
+
     toVexGraceNote() {
         var p = smoMusic.smoPitchesToVex(this.pitches);
         var rv = {duration:smoMusic.closestVexDuration(this.tickCount()),keys:p};
@@ -2061,7 +2087,7 @@ class SmoGraceNote extends SmoNoteModifierBase {
     	smoMusic.serializedMerge(SmoGraceNote.parameterArray,SmoGraceNote.defaults,this);
 		smoMusic.serializedMerge(SmoGraceNote.parameterArray, parameters, this);
     }
-    
+
 }
 
 class SmoOrnament extends SmoNoteModifierBase {
@@ -2101,10 +2127,10 @@ class SmoOrnament extends SmoNoteModifierBase {
         return {
             ornament:SmoOrnament.ornaments.mordent,
             position:SmoOrnament.positions.above,
-            offset:SmoOrnament.offsets.on            
+            offset:SmoOrnament.offsets.on
         };
     }
-    
+
     constructor(parameters) {
 		super('SmoOrnament');
 		smoMusic.serializedMerge(SmoOrnament.attrArray,SmoOrnament.defaults,this);
@@ -2210,17 +2236,20 @@ class SmoLyric extends SmoNoteModifierBase {
 			translateY:0,
 		};
 	}
-    
+
     static get attributes() {
         return ['text','endChar','fontInfo','classes','verse',
 		    'fill','scaleX','scaleY','translateX','translateY'];
     }
-    
+
     constructor(parameters) {
 		super('SmoLyric');
 		smoMusic.serializedMerge(SmoLyric.attributes, SmoLyric.defaults,this);
 		smoMusic.serializedMerge(SmoLyric.attributes, parameters, this);
+
+        // calculated adjustments for alignment purposes
 		this.adjY=0;
+        this.adjX = 0;
 
 		if (!this['attrs']) {
 			this.attrs = {
@@ -2323,8 +2352,10 @@ class SmoMeasure {
         this.padLeft=0;
         this.prevFrame=0;
         this.svg.staffWidth=200;
+        this.svg.staffX = 0;
+        this.svg.staffY = 0;
         this.svg.history=[];
-        this.svg.unjustifiedWidth = this.svg.staffWidth;
+        this.svg.logicalBox={};
 		var defaults = SmoMeasure.defaults;
 
 		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, defaults, this);
@@ -2349,8 +2380,50 @@ class SmoMeasure {
     }
 
     setWidth(width,description) {
-        this.svg.history.push('setWidth '+this.staffWidth+'=> '+width + ' ' + description);
+        if (layoutDebug.flagSet('measureHistory')) {
+           this.svg.history.push('setWidth '+this.staffWidth+'=> '+width + ' ' + description);
+        }
         this.svg.staffWidth = width;
+    }
+
+    get staffX() {
+        return this.svg.staffX;
+    }
+
+    setX(x,description) {
+        if (layoutDebug.flagSet('measureHistory')) {
+           this.svg.history.push('setX '+this.svg.staffX+'=> '+x + ' ' + description);
+        }
+        this.svg.staffX = x;
+
+    }
+
+    get staffY() {
+        return this.svg.staffY;
+    }
+
+    setY(y,description) {
+        if (layoutDebug.flagSet('measureHistory')) {
+           this.svg.history.push('setY '+this.svg.staffY+'=> '+y + ' ' + description);
+        }
+        this.svg.staffY = y;
+    }
+
+    get logicalBox() {
+        return this.svg.logicalBox['x'] ? this.svg.logicalBox : null;
+    }
+
+    deleteLogicalBox() {
+        this.svg.logicalBox = {};
+    }
+
+    setBox(box,description) {
+        if (layoutDebug.flagSet('measureHistory')) {
+
+           this.svg.history.push(JSON.stringify(this.svg.logicalBox) +' => '+
+              JSON.stringify(box));
+        }
+        this.svg.logicalBox = box;
     }
 
     saveUnjustifiedWidth() {
@@ -2421,7 +2494,7 @@ class SmoMeasure {
 	// attributes that are to be serialized for a measure.
 	static get defaultAttributes() {
 		return [
-			'timeSignature', 'keySignature', 'staffY',
+			'timeSignature', 'keySignature',
 			'measureNumber',
 			'activeVoice', 'clef', 'transposeIndex', 'activeVoice', 'adjX','padLeft','adjRight', 'padRight', 'rightMargin'];
 	}
@@ -7392,7 +7465,7 @@ class PasteBuffer {
             nmeasure.logicalBox = svgHelpers.smoBox(measure.logicalBox);
             nmeasure.staffX = measure.logicalBox.x;
             nmeasure.setWidth( measure.logicalBox.width,'copypaste');
-            nmeasure.staffY = measure.logicalBox.y;
+            nmeasure.setY(measure.logicalBox.y,'copypaste');
             ['forceClef','forceKeySignature','forceTimeSignature','forceTempo'].forEach((flag) => {
                 nmeasure[flag] = measure[flag];
             });
@@ -7516,14 +7589,18 @@ class VxMeasure {
 
     }
 
-    _createLyric(smoNote,vexNote) {
+    _createLyric(smoNote,vexNote,x_shift) {
         var lyrics = smoNote.getModifiers('SmoLyric');
         var ix = 0;
         lyrics.forEach((ll) => {
             var y = ll.verse*10;
             var vexL = new VF.Annotation(ll.text);
+
+            // If we adjusted this note for the lyric, adjust the lyric as well.
+            ll.adjX = x_shift;
             vexL.setFont(ll.fontInfo.family, ll.fontInfo.size,ll.fontInfo.weight);
             vexL.setYShift(y); // need this?
+            // vexL.setXShift(x_shift);
 			vexL.setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);
             vexNote.addAnnotation(0,vexL);
             const classString = 'lyric lyric-'+ll.verse;
@@ -7567,7 +7644,7 @@ class VxMeasure {
 
     // ## Description:
     // convert a smoNote into a vxNote so it can be rasterized
-    _createVexNote(smoNote, tickIndex,voiceIx) {
+    _createVexNote(smoNote, tickIndex,voiceIx,x_shift) {
 		// If this is a tuplet, we only get the duration so the appropriate stem
 		// can be rendered.  Vex calculates the actual ticks later when the tuplet is made
 		var duration =
@@ -7593,9 +7670,10 @@ class VxMeasure {
 
         }
         smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
+        vexNote.x_shift=x_shift;
 
 		this._createAccidentals(smoNote,vexNote,tickIndex,voiceIx);
-        this._createLyric(smoNote,vexNote);
+        this._createLyric(smoNote,vexNote,x_shift);
         this._createOrnaments(smoNote,vexNote);
         this._createGraceNotes(smoNote,vexNote);
 
@@ -7653,10 +7731,16 @@ class VxMeasure {
         this.vexNotes = [];
         this.noteToVexMap = {};
         var voice =  this.smoMeasure.voices[voiceIx];
+        var shiftIndex = 0;
         for (var i = 0;
             i < voice.notes.length; ++i) {
             var smoNote = voice.notes[i];
-            var vexNote = this._createVexNote(smoNote, i,voiceIx);
+            // TODO: handle multiple verses, should be widest of each
+            if (smoNote.getLyricForVerse(0).length) {
+                var lyric = smoNote.getLyricForVerse(0)[0];
+                // shiftIndex += lyric.text.length;
+            }
+            var vexNote = this._createVexNote(smoNote, i,voiceIx,shiftIndex);
             this.noteToVexMap[smoNote.attrs.id] = vexNote;
             this.vexNotes.push(vexNote);
         }
@@ -7794,6 +7878,25 @@ class VxMeasure {
         });
     }
 
+    // ### _updateLyricXOffsets
+    // We update lyric positions twice.  Update the x position when the measure is rendered
+    // so the selectable bounding box has the correct width, then the y when the whole line has been
+    // rendered and we can align the lyrics.
+     _updateLyricXOffsets() {
+         this.smoMeasure.voices.forEach((vv) => {
+             vv.notes.forEach((nn) => {
+                 nn.getModifiers('SmoLyric').forEach((lyric) => {
+                     lyric.selector='#'+nn.renderId+' g.lyric-'+lyric.verse;
+
+                     var dom = $(this.context.svg).find(lyric.selector)[0];
+                     if (dom) {
+                         dom.setAttributeNS('','transform','translate('+lyric.adjX+' '+lyric.adjY+')');
+                     }
+                 });
+             });
+         });
+     }
+
     // ## Description:
     // Render all the notes in my smoMeasure.  All rendering logic is called from here.
     render() {
@@ -7883,15 +7986,16 @@ class VxMeasure {
             tuplet.setContext(self.context).draw();
         });
 		this.renderDynamics();
+        this._updateLyricXOffsets();
+        this._setModifierBoxes();
 		// this.smoMeasure.adjX = this.stave.start_x - (this.smoMeasure.staffX);
 
         this.context.closeGroup();
         var box = svgHelpers.smoBox(group.getBoundingClientRect());
 		var lbox = svgHelpers.smoBox(group.getBBox());
         this.smoMeasure.renderedBox = box;
-		this.smoMeasure.logicalBox = lbox;
+		this.smoMeasure.setBox(lbox,'vxMeasure bounding box');
         this.smoMeasure.changed = false;
-		this._setModifierBoxes();
     }
 }
 ;// ## Description:
@@ -7972,7 +8076,6 @@ class VxSystem {
                             } else {
                                 lowestYs[lyric.verse] = lowestYs[lyric.verse] < lowest ? lowest : lowestYs[lyric.verse];
                             }
-                            lyric.selector='#'+note.renderId+' g.lyric-'+lyric.verse;
                             lyrics.push(lyric);
                         });
                     });
@@ -7981,7 +8084,7 @@ class VxSystem {
             lyrics.forEach((lyric) => {
     			lyric.adjY = lowestYs[lyric.verse] - (lyric.logicalBox.y + lyric.logicalBox.height);
     			var dom = $(this.context.svg).find(lyric.selector)[0];
-    			dom.setAttributeNS('','transform','translate(0 '+lyric.adjY+')');
+    			dom.setAttributeNS('','transform','translate('+lyric.adjX+' '+lyric.adjY+')');
     		});
         }
 	}
@@ -8069,8 +8172,9 @@ curve.setContext(this.context).draw();
 				voAr.forEach((mm) => {
 					var delta =  mm.logicalBox.y - ending.logicalBox.y;
 					if (delta > 0) {
-						mm.logicalBox.y -= delta;
-						mm.logicalBox.height += delta;
+						mm.setBox(svgHelpers.boxPoints(
+                            mm.logicalBox.x,mm.logicalBox.y - delta,mm.logicalBox.width,mm.logicalBox.height+delta),
+                            'vxSystem adjust for volta');
 					}
 				});
 			});
@@ -9868,7 +9972,8 @@ class layoutDebug {
             adjust:4,
             system:8,
             note:16,
-            adjustHeight:32
+            adjustHeight:32,
+            measureHistory:64
         }
     }
 
@@ -9879,7 +9984,8 @@ class layoutDebug {
             adjust:'measure-adjust-dbg',
             system:'system-place-dbg',
             note:'measure-note-dbg',
-            adjustHeight:'measure-adjustHeight-dbg'
+            adjustHeight:'measure-adjustHeight-dbg',
+            measureHistory:''
         }
     }
 
@@ -9902,7 +10008,7 @@ class layoutDebug {
         layoutDebug._flags = 0;
     }
     static setAll() {
-        layoutDebug._flags = 1+2+4+8+16+32;
+        layoutDebug._flags = 1+2+4+8+16+32+64;
     }
     static clearDebugBoxes(value) {
         if (layoutDebug.flagSet(value)) {
@@ -10049,7 +10155,7 @@ class suiLayoutBase {
         this.score.staves.forEach((staff) => {
             staff.measures.forEach((measure) => {
                 if (measure.logicalBox && reset) {
-                    delete measure.logicalBox;
+                    delete measure.deleteLogicalBox();
                 }
             });
         });
@@ -10801,7 +10907,8 @@ class suiLayoutAdjuster {
                         break;
                     }
                     // why did I make this return an array?
-                    var lyricWidth = 5*lyric[0].text.length;
+                    // oh...because of voices
+                    var lyricWidth = 6*lyric[0].text.length + 10;
                     noteWidth = Math.max(lyricWidth,noteWidth);
 
                     verse += 1;
@@ -10885,7 +10992,7 @@ class suiLayoutAdjuster {
 
 		// Calculate the space for left/right text which displaces the measure.
 		var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(renderer,measure);
-		measure.staffX += textOffsetBox.x;
+		measure.setX(measure.staffX  + textOffsetBox.x,'estimateMeasureWidth');
         measure.adjY = 0;
 
         if (measure.forceClef) {
@@ -10923,7 +11030,7 @@ class suiLayoutAdjuster {
 						var accum = 0;
 						measures.forEach((mm) => {
 							mm.setWidth(Math.floor(mm.staffWidth + just),'justifyWidths 1');
-							mm.staffX += accum;
+							mm.setX(mm.staffX+ accum,'justifyWidths');
 							accum += just;
 							if (layoutDebug.flagSet('adjust')) {
 								var dbgBox = svgHelpers.boxPoints(
@@ -10984,7 +11091,7 @@ class suiLayoutAdjuster {
 			var last = null;
 			staff.measures.forEach((measure) => {
 				if (last && measure.measureNumber.systemIndex > 0) {
-					measure.staffX = last.staffX + last.staffWidth + last.padLeft;
+					measure.setX( last.staffX + last.staffWidth + last.padLeft,'adjust widths');
 				}
                 layoutDebug.debugBox(svg,svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height),'adjust');
 				last = measure;
@@ -11073,7 +11180,7 @@ class suiLayoutAdjuster {
 					accum = score.layout.topMargin - minYRenderedY;
 					var staffY = minYStaffY+ accum;
 					measures.forEach((measure) => {
-						measure.staffY = staffY;
+						measure.setY(staffY,'adjustHeight 1');
                         vyMaxY = (vyMaxY > measure.staffY + measure.logicalBox.height) ? vyMaxY :
                            measure.staffY + measure.logicalBox.height;
                         layoutDebug.debugBox(svg,
@@ -11089,7 +11196,7 @@ class suiLayoutAdjuster {
 					accum += delta;
 					var staffY = minYStaffY + accum;
 					measures.forEach((measure) => {
-						measure.staffY = staffY;
+						measure.setY(staffY,'adjustHeight');
                         vyMaxY = (vyMaxY > measure.staffY + measure.logicalBox.height) ? vyMaxY :
                            measure.staffY + measure.logicalBox.height;
                            layoutDebug.debugBox(svg,
@@ -11116,7 +11223,7 @@ class suiLayoutAdjuster {
                 measures = measures.concat(delta);
             });
             measures.forEach((mm) => {
-                mm.staffY += pageGap;
+                mm.setY(mm.staffY+pageGap,'adjustHeight for page start');
                 mm.pageGap = pageGap;
             });
 
@@ -11135,7 +11242,7 @@ class suiLayoutAdjuster {
             if (maxy > pbrk) {
                 var ngap = pbrk - miny + score.layout.topMargin;
                 measures.forEach((mm) => {
-                    mm.staffY += ngap;
+                    mm.setY(mm.staffY+ngap,'adjustHeight for page gap');
                     mm.pageGap = ngap + pageGap;
                 });
                 page += 1;
@@ -11361,11 +11468,11 @@ class suiScoreLayout extends suiLayoutBase {
         if (useAdjustedX && measure.measureNumber.systemIndex != 0) {
             useAdjustedX = s.calculations.useX = false;
         }
-        measure.staffX = this._score.layout.leftMargin;
+        measure.setX(this._score.layout.leftMargin,'scoreLayout initial');
 
         if (!useAdjustedY && measure.changed) {
             layoutDebug.debugBox(svg,svgHelpers.boxPoints(measure.staffX, s.pageBox.y + s.pageBox.height, 1, this._score.layout.interGap),'pre');
-            measure.staffY = s.pageBox.y + s.pageBox.height + this._score.layout.interGap;
+            measure.setY(s.pageBox.y + s.pageBox.height + this._score.layout.interGap,'scoreLayout');
             if (isNaN(measure.staffY)) {
                 throw ("nan measure ");
             }
@@ -11471,12 +11578,13 @@ class suiScoreLayout extends suiLayoutBase {
         var staffBox = s.staffBoxes[staff.staffId];
 
         // If we are calculating the measures' location dynamically, always update the y
+        // TODO: is all this code reachable
         if (!useAdjustedY) {
             // if this is not the left-most staff, get it from the previous measure
             if (s.systemIndex > 0) {
-                measure.staffY = this._previousAttr(measure.measureNumber.measureIndex,
+                measure.setY(this._previousAttr(measure.measureNumber.measureIndex,
                     staff.staffId,'staffY') + this._previousAttr(measure.measureNumber.measureIndex,
-                        staff.staffId,'adjY');
+                        staff.staffId,'adjY'),'scoreLayout estimate index > 0');
             } else if (measure.measureNumber.staffId == 0) {
                 // If this is the top staff, put it on the top of the page.
                 if (measure.lineIndex == 0) {
@@ -11484,9 +11592,9 @@ class suiScoreLayout extends suiLayoutBase {
                     layoutDebug.clearDebugBoxes('post');
                     layoutDebug.clearDebugBoxes('note');
 
-                    measure.staffY = this.score.layout.topMargin;
+                    measure.setY(this.score.layout.topMargin,'scoreLayout top measure');
                 } else {
-                    // Else, get it from the height of the previous system.
+                    // Else, we have wrapped since the last render.  Get it from the height of the previous system.
                     var previous = this.score.staves[this.score.staves.length - 1].measures[measure.measureNumber.measureIndex - 1];
                     var height = previous.logicalBox ?  previous.logicalBox.height : 0;
 
@@ -11500,14 +11608,14 @@ class suiScoreLayout extends suiLayoutBase {
                     if (measure.logicalBox && adj < measure.logicalBox.y && this.partialRender) {
                         adj = Math.round((adj + measure.logicalBox.y)/2);
                     }
-                    measure.staffY = adj;
+                    measure.setY(adj,'scoreLayout estimate top measure');
                 }
             } else {
                 // Else, get it from the measure above us.
                 var previous = this.score.staves[measure.measureNumber.staffId - 1].measures[measure.measureNumber.measureIndex];
                 var height =  previous.logicalBox ?  previous.logicalBox.height : 0;
-                measure.staffY = previous.staffY + height +
-                   + this.score.layout.intraGap;
+                measure.setY(previous.staffY + height +
+                   + this.score.layout.intraGap),'scoreLayout estimate inner system measure';
             }
             if (isNaN(measure.staffY)) {
                 throw ("nan measure ");
@@ -11530,9 +11638,9 @@ class suiScoreLayout extends suiLayoutBase {
 
         if (!useAdjustedX) {
             if (s.systemIndex > 0) {
-            measure.staffX = staffBox.x + staffBox.width;
+            measure.setX(staffBox.x + staffBox.width,'scoreLayout, inner measure');
             } else {
-                measure.staffX = this.score.layout.leftMargin;
+                measure.setX(this.score.layout.leftMargin,'scoreLayout left measue');
             }
             suiLayoutAdjuster.estimateMeasureWidth(this.renderer,measure,staffBox);
         }
@@ -11571,7 +11679,7 @@ class suiScoreLayout extends suiLayoutBase {
         smoBeamerFactory.applyBeams(measure);
         if (this.passState == suiLayoutBase.passStates.initial) {
             if (!measure.logicalBox) {
-              measure.logicalBox = svgHelpers.boxPoints(measure.staffX,measure.staffY,measure.staffWidth,50+measure.adjY);
+              measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY,measure.staffWidth,50+measure.adjY),'scoreLayout estimate');
           } else {
               ;
           }
@@ -11586,7 +11694,8 @@ class suiScoreLayout extends suiLayoutBase {
         } else if (this.passState != suiLayoutBase.passStates.initial) {
             s.system.renderMeasure(staff.staffId, measure);
         } else if (measure.logicalBox && measure.changed && this.passState == suiLayoutBase.passStates.initial)  {
-            measure.logicalBox.width = measure.staffWidth;
+            measure.setBox(svgHelpers.boxPoints(measure.logicalBox.x,measure.logicalBox.y,measure.staffWidth,measure.logicalBox.height)
+           ,'scoreLayout adjust width of rendered box');
         }
 
 
@@ -17687,7 +17796,7 @@ class vexGlyph {
 				height:10.48,
                 yTop:0,
                 yBottom:0,
-				spacingRight:5,
+				spacingRight:10,
 			},
 			dot: {
 				width:5,

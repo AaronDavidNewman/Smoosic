@@ -76,7 +76,6 @@ class VxSystem {
                             } else {
                                 lowestYs[lyric.verse] = lowestYs[lyric.verse] < lowest ? lowest : lowestYs[lyric.verse];
                             }
-                            lyric.selector='#'+note.renderId+' g.lyric-'+lyric.verse;
                             lyrics.push(lyric);
                         });
                     });
@@ -85,7 +84,7 @@ class VxSystem {
             lyrics.forEach((lyric) => {
     			lyric.adjY = lowestYs[lyric.verse] - (lyric.logicalBox.y + lyric.logicalBox.height);
     			var dom = $(this.context.svg).find(lyric.selector)[0];
-    			dom.setAttributeNS('','transform','translate(0 '+lyric.adjY+')');
+    			dom.setAttributeNS('','transform','translate('+lyric.adjX+' '+lyric.adjY+')');
     		});
         }
 	}
@@ -173,8 +172,9 @@ curve.setContext(this.context).draw();
 				voAr.forEach((mm) => {
 					var delta =  mm.logicalBox.y - ending.logicalBox.y;
 					if (delta > 0) {
-						mm.logicalBox.y -= delta;
-						mm.logicalBox.height += delta;
+						mm.setBox(svgHelpers.boxPoints(
+                            mm.logicalBox.x,mm.logicalBox.y - delta,mm.logicalBox.width,mm.logicalBox.height+delta),
+                            'vxSystem adjust for volta');
 					}
 				});
 			});

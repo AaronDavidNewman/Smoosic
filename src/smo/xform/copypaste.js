@@ -388,7 +388,7 @@ class PasteBuffer {
             nmeasure.logicalBox = svgHelpers.smoBox(measure.logicalBox);
             nmeasure.staffX = measure.logicalBox.x;
             nmeasure.setWidth( measure.logicalBox.width,'copypaste');
-            nmeasure.staffY = measure.logicalBox.y;
+            nmeasure.setY(measure.logicalBox.y,'copypaste');
             ['forceClef','forceKeySignature','forceTimeSignature','forceTempo'].forEach((flag) => {
                 nmeasure[flag] = measure[flag];
             });

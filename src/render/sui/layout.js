@@ -7,7 +7,8 @@ class layoutDebug {
             adjust:4,
             system:8,
             note:16,
-            adjustHeight:32
+            adjustHeight:32,
+            measureHistory:64
         }
     }
 
@@ -18,7 +19,8 @@ class layoutDebug {
             adjust:'measure-adjust-dbg',
             system:'system-place-dbg',
             note:'measure-note-dbg',
-            adjustHeight:'measure-adjustHeight-dbg'
+            adjustHeight:'measure-adjustHeight-dbg',
+            measureHistory:''
         }
     }
 
@@ -41,7 +43,7 @@ class layoutDebug {
         layoutDebug._flags = 0;
     }
     static setAll() {
-        layoutDebug._flags = 1+2+4+8+16+32;
+        layoutDebug._flags = 1+2+4+8+16+32+64;
     }
     static clearDebugBoxes(value) {
         if (layoutDebug.flagSet(value)) {
@@ -188,7 +190,7 @@ class suiLayoutBase {
         this.score.staves.forEach((staff) => {
             staff.measures.forEach((measure) => {
                 if (measure.logicalBox && reset) {
-                    delete measure.logicalBox;
+                    delete measure.deleteLogicalBox();
                 }
             });
         });

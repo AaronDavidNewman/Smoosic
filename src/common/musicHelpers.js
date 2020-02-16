@@ -171,6 +171,49 @@ class smoMusic {
 
 		return smoMusic.smoPitchToInt(pp1) == smoMusic.smoPitchToInt(pp2);
 	}
+    static _clefToLedgerMap() {
+        return {
+            alto:{up:59,down:40},
+            tenor:{up:53,down:34},
+            treble:{up:68,down:49},
+            bass:{up:48,down:29}
+        }
+    }
+
+    // ### pitchToLedgerLineInt
+    // The magnitude (pitchToLedgerLineInt()+1)/2 is the count.  If the
+    // result is odd, the note is above/below the ledger line.  If the
+    // result is even, it is on the line.  If hte result is negative, it is
+    // below the staff.  This is used for estimating staff height.
+    static pitchToLedgerLineInt(clef,pitch) {
+        var entry = smoMusic._clefToLedgerMap[clef];
+        var intval = smoMusic.smoPitchToInt(pitch);
+        if (entry.up >= intval) {
+            return intval - entry.up;
+        }
+        if (entry.down >= intval) {
+            return intval - entry.down;
+        }
+        return 0;
+    }
+
+    // ### pitchToVexKey
+    // convert from SMO to VEX format so we can use the VexFlow tables and methods
+    // example:
+    // 	`{letter,octave,accidental}` object to vexKey string `'f#'`
+    static pitchToVexKey(smoPitch) {
+        // Convert to vex keys, where f# is a string like 'f#'.
+        var vexKey = smoPitch.letter.toLowerCase();
+        if (smoPitch.accidental.length === 0) {
+            vexKey = vexKey + 'n';
+        } else {
+            vexKey = vexKey + smoPitch.accidental;
+        }
+        if (smoPitch['octave']) {
+            vexKey = vexKey + '/' + smoPitch.octave;
+        }
+        return vexKey;
+    }
 
 	static smoPitchToInt(pitch) {
 		var intVal = VF.Music.noteValues[
@@ -393,23 +436,6 @@ class smoMusic {
 		return vexKey;
 	}
 
-	// ### pitchToVexKey
-	// convert from SMO to VEX format so we can use the VexFlow tables and methods
-	// example:
-	// 	`{letter,octave,accidental}` object to vexKey string `'f#'`
-	static pitchToVexKey(smoPitch) {
-		// Convert to vex keys, where f# is a string like 'f#'.
-		var vexKey = smoPitch.letter.toLowerCase();
-		if (smoPitch.accidental.length === 0) {
-			vexKey = vexKey + 'n';
-		} else {
-			vexKey = vexKey + smoPitch.accidental;
-		}
-		if (smoPitch['octave']) {
-			vexKey = vexKey + '/' + smoPitch.octave;
-		}
-		return vexKey;
-	}
 
 	// ### getKeyOffset
 	// Given a vex noteProp and an offset, offset that number

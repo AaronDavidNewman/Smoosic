@@ -38,7 +38,8 @@ class suiLayoutAdjuster {
                         break;
                     }
                     // why did I make this return an array?
-                    var lyricWidth = 5*lyric[0].text.length;
+                    // oh...because of voices
+                    var lyricWidth = 6*lyric[0].text.length + 10;
                     noteWidth = Math.max(lyricWidth,noteWidth);
 
                     verse += 1;
@@ -122,7 +123,7 @@ class suiLayoutAdjuster {
 
 		// Calculate the space for left/right text which displaces the measure.
 		var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(renderer,measure);
-		measure.staffX += textOffsetBox.x;
+		measure.setX(measure.staffX  + textOffsetBox.x,'estimateMeasureWidth');
         measure.adjY = 0;
 
         if (measure.forceClef) {
@@ -160,7 +161,7 @@ class suiLayoutAdjuster {
 						var accum = 0;
 						measures.forEach((mm) => {
 							mm.setWidth(Math.floor(mm.staffWidth + just),'justifyWidths 1');
-							mm.staffX += accum;
+							mm.setX(mm.staffX+ accum,'justifyWidths');
 							accum += just;
 							if (layoutDebug.flagSet('adjust')) {
 								var dbgBox = svgHelpers.boxPoints(
@@ -221,7 +222,7 @@ class suiLayoutAdjuster {
 			var last = null;
 			staff.measures.forEach((measure) => {
 				if (last && measure.measureNumber.systemIndex > 0) {
-					measure.staffX = last.staffX + last.staffWidth + last.padLeft;
+					measure.setX( last.staffX + last.staffWidth + last.padLeft,'adjust widths');
 				}
                 layoutDebug.debugBox(svg,svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height),'adjust');
 				last = measure;
@@ -310,7 +311,7 @@ class suiLayoutAdjuster {
 					accum = score.layout.topMargin - minYRenderedY;
 					var staffY = minYStaffY+ accum;
 					measures.forEach((measure) => {
-						measure.staffY = staffY;
+						measure.setY(staffY,'adjustHeight 1');
                         vyMaxY = (vyMaxY > measure.staffY + measure.logicalBox.height) ? vyMaxY :
                            measure.staffY + measure.logicalBox.height;
                         layoutDebug.debugBox(svg,
@@ -326,7 +327,7 @@ class suiLayoutAdjuster {
 					accum += delta;
 					var staffY = minYStaffY + accum;
 					measures.forEach((measure) => {
-						measure.staffY = staffY;
+						measure.setY(staffY,'adjustHeight');
                         vyMaxY = (vyMaxY > measure.staffY + measure.logicalBox.height) ? vyMaxY :
                            measure.staffY + measure.logicalBox.height;
                            layoutDebug.debugBox(svg,
@@ -353,7 +354,7 @@ class suiLayoutAdjuster {
                 measures = measures.concat(delta);
             });
             measures.forEach((mm) => {
-                mm.staffY += pageGap;
+                mm.setY(mm.staffY+pageGap,'adjustHeight for page start');
                 mm.pageGap = pageGap;
             });
 
@@ -372,7 +373,7 @@ class suiLayoutAdjuster {
             if (maxy > pbrk) {
                 var ngap = pbrk - miny + score.layout.topMargin;
                 measures.forEach((mm) => {
-                    mm.staffY += ngap;
+                    mm.setY(mm.staffY+ngap,'adjustHeight for page gap');
                     mm.pageGap = ngap + pageGap;
                 });
                 page += 1;

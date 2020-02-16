@@ -113,14 +113,18 @@ class VxMeasure {
 
     }
 
-    _createLyric(smoNote,vexNote) {
+    _createLyric(smoNote,vexNote,x_shift) {
         var lyrics = smoNote.getModifiers('SmoLyric');
         var ix = 0;
         lyrics.forEach((ll) => {
             var y = ll.verse*10;
             var vexL = new VF.Annotation(ll.text);
+
+            // If we adjusted this note for the lyric, adjust the lyric as well.
+            ll.adjX = x_shift;
             vexL.setFont(ll.fontInfo.family, ll.fontInfo.size,ll.fontInfo.weight);
             vexL.setYShift(y); // need this?
+            // vexL.setXShift(x_shift);
 			vexL.setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);
             vexNote.addAnnotation(0,vexL);
             const classString = 'lyric lyric-'+ll.verse;
@@ -164,7 +168,7 @@ class VxMeasure {
 
     // ## Description:
     // convert a smoNote into a vxNote so it can be rasterized
-    _createVexNote(smoNote, tickIndex,voiceIx) {
+    _createVexNote(smoNote, tickIndex,voiceIx,x_shift) {
 		// If this is a tuplet, we only get the duration so the appropriate stem
 		// can be rendered.  Vex calculates the actual ticks later when the tuplet is made
 		var duration =
@@ -190,9 +194,10 @@ class VxMeasure {
 
         }
         smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
+        vexNote.x_shift=x_shift;
 
 		this._createAccidentals(smoNote,vexNote,tickIndex,voiceIx);
-        this._createLyric(smoNote,vexNote);
+        this._createLyric(smoNote,vexNote,x_shift);
         this._createOrnaments(smoNote,vexNote);
         this._createGraceNotes(smoNote,vexNote);
 
@@ -250,10 +255,16 @@ class VxMeasure {
         this.vexNotes = [];
         this.noteToVexMap = {};
         var voice =  this.smoMeasure.voices[voiceIx];
+        var shiftIndex = 0;
         for (var i = 0;
             i < voice.notes.length; ++i) {
             var smoNote = voice.notes[i];
-            var vexNote = this._createVexNote(smoNote, i,voiceIx);
+            // TODO: handle multiple verses, should be widest of each
+            if (smoNote.getLyricForVerse(0).length) {
+                var lyric = smoNote.getLyricForVerse(0)[0];
+                // shiftIndex += lyric.text.length;
+            }
+            var vexNote = this._createVexNote(smoNote, i,voiceIx,shiftIndex);
             this.noteToVexMap[smoNote.attrs.id] = vexNote;
             this.vexNotes.push(vexNote);
         }
@@ -391,6 +402,25 @@ class VxMeasure {
         });
     }
 
+    // ### _updateLyricXOffsets
+    // We update lyric positions twice.  Update the x position when the measure is rendered
+    // so the selectable bounding box has the correct width, then the y when the whole line has been
+    // rendered and we can align the lyrics.
+     _updateLyricXOffsets() {
+         this.smoMeasure.voices.forEach((vv) => {
+             vv.notes.forEach((nn) => {
+                 nn.getModifiers('SmoLyric').forEach((lyric) => {
+                     lyric.selector='#'+nn.renderId+' g.lyric-'+lyric.verse;
+
+                     var dom = $(this.context.svg).find(lyric.selector)[0];
+                     if (dom) {
+                         dom.setAttributeNS('','transform','translate('+lyric.adjX+' '+lyric.adjY+')');
+                     }
+                 });
+             });
+         });
+     }
+
     // ## Description:
     // Render all the notes in my smoMeasure.  All rendering logic is called from here.
     render() {
@@ -480,14 +510,15 @@ class VxMeasure {
             tuplet.setContext(self.context).draw();
         });
 		this.renderDynamics();
+        this._updateLyricXOffsets();
+        this._setModifierBoxes();
 		// this.smoMeasure.adjX = this.stave.start_x - (this.smoMeasure.staffX);
 
         this.context.closeGroup();
         var box = svgHelpers.smoBox(group.getBoundingClientRect());
 		var lbox = svgHelpers.smoBox(group.getBBox());
         this.smoMeasure.renderedBox = box;
-		this.smoMeasure.logicalBox = lbox;
+		this.smoMeasure.setBox(lbox,'vxMeasure bounding box');
         this.smoMeasure.changed = false;
-		this._setModifierBoxes();
     }
 }

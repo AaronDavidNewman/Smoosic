@@ -20,8 +20,10 @@ class SmoMeasure {
         this.padLeft=0;
         this.prevFrame=0;
         this.svg.staffWidth=200;
+        this.svg.staffX = 0;
+        this.svg.staffY = 0;
         this.svg.history=[];
-        this.svg.unjustifiedWidth = this.svg.staffWidth;
+        this.svg.logicalBox={};
 		var defaults = SmoMeasure.defaults;
 
 		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, defaults, this);
@@ -46,8 +48,50 @@ class SmoMeasure {
     }
 
     setWidth(width,description) {
-        this.svg.history.push('setWidth '+this.staffWidth+'=> '+width + ' ' + description);
+        if (layoutDebug.flagSet('measureHistory')) {
+           this.svg.history.push('setWidth '+this.staffWidth+'=> '+width + ' ' + description);
+        }
         this.svg.staffWidth = width;
+    }
+
+    get staffX() {
+        return this.svg.staffX;
+    }
+
+    setX(x,description) {
+        if (layoutDebug.flagSet('measureHistory')) {
+           this.svg.history.push('setX '+this.svg.staffX+'=> '+x + ' ' + description);
+        }
+        this.svg.staffX = x;
+
+    }
+
+    get staffY() {
+        return this.svg.staffY;
+    }
+
+    setY(y,description) {
+        if (layoutDebug.flagSet('measureHistory')) {
+           this.svg.history.push('setY '+this.svg.staffY+'=> '+y + ' ' + description);
+        }
+        this.svg.staffY = y;
+    }
+
+    get logicalBox() {
+        return this.svg.logicalBox['x'] ? this.svg.logicalBox : null;
+    }
+
+    deleteLogicalBox() {
+        this.svg.logicalBox = {};
+    }
+
+    setBox(box,description) {
+        if (layoutDebug.flagSet('measureHistory')) {
+
+           this.svg.history.push(JSON.stringify(this.svg.logicalBox) +' => '+
+              JSON.stringify(box));
+        }
+        this.svg.logicalBox = box;
     }
 
     saveUnjustifiedWidth() {
@@ -118,7 +162,7 @@ class SmoMeasure {
 	// attributes that are to be serialized for a measure.
 	static get defaultAttributes() {
 		return [
-			'timeSignature', 'keySignature', 'staffY',
+			'timeSignature', 'keySignature',
 			'measureNumber',
 			'activeVoice', 'clef', 'transposeIndex', 'activeVoice', 'adjX','padLeft','adjRight', 'padRight', 'rightMargin'];
 	}
