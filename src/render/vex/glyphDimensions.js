@@ -18,6 +18,10 @@ class vexGlyph {
 		'n':vexGlyph.dimensions.natural
 		};
 	}
+
+    static get tempo() {
+        return vexGlyph.dimensions['tempo'];
+    }
 	static keySignatureLength(key) {
 		return smoMusic.getSharpsInKeySignature(key)*vexGlyph.dimensions['sharp'].width +
 		    smoMusic.getFlatsInKeySignature(key)*vexGlyph.dimensions['flat'].width +
@@ -29,6 +33,13 @@ class vexGlyph {
 	static get dot() {
 		return vexGlyph.dimensions['dot'];
 	}
+
+    static get stem() {
+        return vexGlyph.dimensions['stem'];
+    }
+    static get flag() {
+        return vexGlyph.dimensions['flag'];
+    }
 
 	static clef(c) {
 		var key = c.toLowerCase()+'Clef';
@@ -90,7 +101,7 @@ class vexGlyph {
 				width: 25.5,
 				height: 68.32,
                 yTop:14,
-                yBottom:0,
+                yBottom:20,
 				spacingRight: 10,
 			},
 			bassClef: {
@@ -121,6 +132,13 @@ class vexGlyph {
                 yBottom:0,
 				spacingRight: 5
 			},
+            tempo : {
+                width:10,
+                height:37,
+                yTop:37,
+                yBottom:0,
+                spacingRight:0
+            },
 			flat: {
 				width: 7.44,
 				height: 23.55,
@@ -162,7 +180,20 @@ class vexGlyph {
                 yTop:0,
                 yBottom:0,
 				spacingRight:2
-			}
+			},stem: {
+                width:1,
+                height:35,
+                yTop:0,
+                yBottom:0,
+				spacingRight:0
+            },flag: {
+                width:10,
+                height:29,
+                yTop:0,
+                yBottom:0,
+				spacingRight:0
+            }
+
 		};
 	}
 }

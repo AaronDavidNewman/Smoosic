@@ -124,12 +124,87 @@ class suiLayoutAdjuster {
 		// Calculate the space for left/right text which displaces the measure.
 		var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(renderer,measure);
 		measure.setX(measure.staffX  + textOffsetBox.x,'estimateMeasureWidth');
-        measure.adjY = 0;
 
-        if (measure.forceClef) {
-            measure.adjY = vexGlyph.clef(measure.clef).yTop;
-        }
 	}
+    static _beamGroupForNote(measure,note) {
+        var rv = null;
+        if (!note.beam_group) {
+            return null;
+        }
+        measure.beamGroups.forEach((bg) => {
+            if (!rv) {
+                if (bg.notes.findIndex((nn) => note.beam_group && note.beam_group.id == bg.attrs.id) >= 0) {
+                    rv = bg;
+                }
+            }
+        });
+        return rv;
+    }
+
+    // ### _highestLowestHead
+    // highest value is actually the one lowest on the page
+    static _highestLowestHead(measure,note) {
+        var hilo = {hi:0,lo:9999999};
+        note.pitches.forEach((pitch) => {
+            // 10 pixels per line
+            var px = 10*smoMusic.pitchToLedgerLine(measure.clef,pitch);
+            hilo.lo = Math.min(hilo.lo,px);
+            hilo.hi = Math.max(hilo.hi,px);
+        });
+        return hilo;
+    }
+
+    static estimateMeasureHeight(renderer,measure,layout) {
+        var heightOffset = 50;  // assume 5 lines, todo is non-5-line staffs
+        var yOffset = 0;
+        if (measure.forceClef) {
+            heightOffset += vexGlyph.clef(measure.clef).yTop + vexGlyph.clef(measure.clef).yBottom;
+            yOffset = yOffset - vexGlyph.clef(measure.clef).yTop;
+        }
+
+        if (measure.forceTempo) {
+            yOffset = Math.min(-1*vexGlyph.tempo.yTop,yOffset);
+        }
+        var hasDynamic = false;
+
+        measure.voices.forEach((voice) => {
+            voice.notes.forEach((note) => {
+                var bg = suiLayoutAdjuster._beamGroupForNote(measure,note);
+                var flag = SmoNote.flagStates.auto;
+                if (bg && note.noteType == 'n') {
+                    flag = bg.notes[0].flagState;
+                    // an  auto-flag note is up if the 1st note is middle line
+                    if (flag == SmoNote.flagStates.auto) {
+                        var pitch = bg.notes[0].pitches[0];
+                        flag = smoMusic.pitchToLedgerLine(measure.clef,pitch)
+                           >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
+                    }
+                }  else {
+                    var flag = note.flagState;
+                    // an  auto-flag note is up if the 1st note is middle line
+                    if (flag == SmoNote.flagStates.auto) {
+                        var pitch = note.pitches[0];
+                        flag = smoMusic.pitchToLedgerLine(measure.clef,pitch)
+                           >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
+                    }
+                }
+                var hiloHead = suiLayoutAdjuster._highestLowestHead(measure,note);
+                if (flag == SmoNote.flagStates.down) {
+                    yOffset = Math.min(hiloHead.lo,yOffset);
+                    heightOffset = Math.max(hiloHead.hi + vexGlyph.stem.height,heightOffset);
+                } else {
+                    yOffset = Math.min(hiloHead.lo - vexGlyph.stem.height,yOffset);
+                    heightOffset = Math.max(hiloHead.hi,heightOffset);
+                }
+                var dynamics = note.getModifiers('SmoDynamicText');
+                dynamics.forEach((dyn) => {
+                    heightOffset = Math.max(10*dyn.yOffsetLine + 30,heightOffset);
+                    yOffset = Math.min(10*dyn.yOffsetLine,yOffset)
+                });
+            });
+        });
+        return {heightOffset:heightOffset - yOffset,yOffset:yOffset};
+    }
 
 	// ### justifyWidths
 	// After we adjust widths so each staff has enough room, evenly distribute the remainder widths to the measures.
@@ -308,10 +383,9 @@ class suiLayoutAdjuster {
 				lineIndexPerLine.push(maxYMeasure.lineIndex);
 
 				if (absLine == 0) {
-					accum = score.layout.topMargin - minYRenderedY;
-					var staffY = minYStaffY+ accum;
+
 					measures.forEach((measure) => {
-						measure.setY(staffY,'adjustHeight 1');
+						measure.setY(minYStaffY,'adjustHeight 1');
                         vyMaxY = (vyMaxY > measure.staffY + measure.logicalBox.height) ? vyMaxY :
                            measure.staffY + measure.logicalBox.height;
                         layoutDebug.debugBox(svg,

@@ -190,7 +190,8 @@ class suiLayoutBase {
         this.score.staves.forEach((staff) => {
             staff.measures.forEach((measure) => {
                 if (measure.logicalBox && reset) {
-                    delete measure.deleteLogicalBox();
+                    measure.deleteLogicalBox();
+                    measure.svg.history=['reset'];
                 }
             });
         });
@@ -389,7 +390,7 @@ class suiLayoutBase {
 			return;
 
 		$(this.renderer.getContext().svg).find('g.' + measure.getClassId()).remove();
-		measure.adjY = 0;
+		measure.setYTop(0,'unrender');
 		measure.setChanged();
 	}
 
@@ -534,6 +535,7 @@ class suiLayoutBase {
 		var params = {useY:false,useX:false};
 		if (this.passState == suiLayoutBase.passStates.pass || this.passState == suiLayoutBase.passStates.incomplete) {
 			params.useX=true;
+            params.useY=true;
 		    suiLayoutAdjuster.adjustWidths(this._score,this.renderer);
 		}
 		if ((this.passState == suiLayoutBase.passStates.clean) ||

@@ -167,7 +167,7 @@ class suiScoreLayout extends suiLayoutBase {
             s.staffBoxes[s.staff.staffId].width = (s.measure.logicalBox.x + s.measure.logicalBox.width) - s.staffBoxes[s.staff.staffId].x;
         }
         if (s.measure.measureNumber.systemIndex === 0) {
-            s.staffBoxes[s.staff.staffId].y = s.measure.staffY + s.measure.adjY;
+            s.staffBoxes[s.staff.staffId].y = s.measure.staffY + s.measure.yTop;
         }
     }
 
@@ -203,11 +203,12 @@ class suiScoreLayout extends suiLayoutBase {
         measure.setX(this._score.layout.leftMargin,'scoreLayout initial');
 
         if (!useAdjustedY && measure.changed) {
-            layoutDebug.debugBox(svg,svgHelpers.boxPoints(measure.staffX, s.pageBox.y + s.pageBox.height, 1, this._score.layout.interGap),'pre');
-            measure.setY(s.pageBox.y + s.pageBox.height + this._score.layout.interGap,'scoreLayout');
+            // var offsets = suiLayoutAdjuster.estimateMeasureHeight(this.renderer,measure,this.score.layout);
+            // measure.setY(s.pageBox.y + s.pageBox.height + offsets.yOffset,'scoreLayout wrap');
+            /* layoutDebug.debugBox(svg,svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, offsets.heightOffset),'pre');
             if (isNaN(measure.staffY)) {
                 throw ("nan measure ");
-            }
+            }  */
         }
         this._resetStaffBoxes(s);
         this._initStaffBoxes(s);
@@ -299,9 +300,16 @@ class suiScoreLayout extends suiLayoutBase {
 		var useAdjustedX = s.calculations.useX;
         var svg = this.context.svg;
 
+        if (measure.measureNumber.staffId == 0  && measure.lineIndex == 0 && measure.measureNumber.measureIndex == 0) {
+           // If this is the top staff, put it on the top of the page.
+               layoutDebug.clearDebugBoxes('pre');
+               layoutDebug.clearDebugBoxes('post');
+               layoutDebug.clearDebugBoxes('note');
+        }
+
         measure.lineIndex = s.lineIndex;
         if (useAdjustedY) {
-            measure.adjY = 0;
+            measure.setYTop( 0,'scoreLayout initialize');
         }
 
         this._initStaffBoxes(s);
@@ -309,54 +317,8 @@ class suiScoreLayout extends suiLayoutBase {
         // The SVG X,Y of this staff.  Set it initially to the UL corner of page.  Width,height filled in later.
         var staffBox = s.staffBoxes[staff.staffId];
 
-        // If we are calculating the measures' location dynamically, always update the y
-        // TODO: is all this code reachable
-        if (!useAdjustedY) {
-            // if this is not the left-most staff, get it from the previous measure
-            if (s.systemIndex > 0) {
-                measure.setY(this._previousAttr(measure.measureNumber.measureIndex,
-                    staff.staffId,'staffY') + this._previousAttr(measure.measureNumber.measureIndex,
-                        staff.staffId,'adjY'),'scoreLayout estimate index > 0');
-            } else if (measure.measureNumber.staffId == 0) {
-                // If this is the top staff, put it on the top of the page.
-                if (measure.lineIndex == 0) {
-                    layoutDebug.clearDebugBoxes('pre');
-                    layoutDebug.clearDebugBoxes('post');
-                    layoutDebug.clearDebugBoxes('note');
+        var staffHeight = 50;
 
-                    measure.setY(this.score.layout.topMargin,'scoreLayout top measure');
-                } else {
-                    // Else, we have wrapped since the last render.  Get it from the height of the previous system.
-                    var previous = this.score.staves[this.score.staves.length - 1].measures[measure.measureNumber.measureIndex - 1];
-                    var height = previous.logicalBox ?  previous.logicalBox.height : 0;
-
-                    // First system on a page considers page gap.
-                    // if (previous.pageGap < measure.pageGap) {
-                        height += measure.pageGap;
-                    // }
-                    var adj = previous.staffY + height +
-                       + this.score.layout.interGap;
-                    // if the measure is higher, resist jumping up too fast.
-                    if (measure.logicalBox && adj < measure.logicalBox.y && this.partialRender) {
-                        adj = Math.round((adj + measure.logicalBox.y)/2);
-                    }
-                    measure.setY(adj,'scoreLayout estimate top measure');
-                }
-            } else {
-                // Else, get it from the measure above us.
-                var previous = this.score.staves[measure.measureNumber.staffId - 1].measures[measure.measureNumber.measureIndex];
-                var height =  previous.logicalBox ?  previous.logicalBox.height : 0;
-                measure.setY(previous.staffY + height +
-                   + this.score.layout.intraGap),'scoreLayout estimate inner system measure';
-            }
-            if (isNaN(measure.staffY)) {
-                throw ("nan measure ");
-            }
-        }
-
-        if (!s.pageBox['width']) {
-            s.pageBox = svgHelpers.copyBox(staffBox);
-        }
         s.measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
         s.keySigLast = smoMusic.vexKeySignatureTranspose(this._previousAttr(measure.measureNumber.measureIndex,
             staff.staffId, 'keySignature'), measure.transposeIndex);
@@ -367,6 +329,48 @@ class suiScoreLayout extends suiLayoutBase {
             staff.staffId, 'clef');
 
         this.calculateBeginningSymbols(s.systemIndex, measure, s.clefLast, s.keySigLast, s.timeSigLast,s.tempoLast);
+
+        // If we are calculating the measures' location dynamically, always update the y
+        // TODO: is all this code reachable
+        if (!useAdjustedY) {
+            // if this is not the left-most staff, get it from the previous measure
+            if (s.systemIndex > 0) {
+                measure.setY(this._previousAttr(measure.measureNumber.measureIndex,
+                    staff.staffId,'staffY') - this._previousAttr(measure.measureNumber.measureIndex,
+                        staff.staffId,'yTop'),'scoreLayout estimate index > 0');
+            } else if (measure.measureNumber.staffId == 0  && measure.lineIndex == 0) {
+                // If this is the top staff, put it on the top of the page.
+
+                var offsets = suiLayoutAdjuster.estimateMeasureHeight(this.renderer,measure,this.score.layout);
+                measure.setYTop(offsets.yOffset,'estimate height 2');
+                measure.setY(this.score.layout.topMargin +
+                     (measure.lineIndex*this.score.layout.interGap),'score layout estimate Height 2');
+                measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY + offsets.yOffset,measure.staffWidth,offsets.heightOffset)
+                  ,'score layout estimate Height 2');
+            } else {
+                // Else, get it from the measure above us.
+                var offsets = suiLayoutAdjuster.estimateMeasureHeight(this.renderer,measure,this.score.layout);
+                var previous;
+                if (measure.measureNumber.staffId > 0){
+                    previous = this.score.staves[measure.measureNumber.staffId - 1].measures[measure.measureNumber.measureIndex];
+                }  else {
+                    previous = this.score.staves[this.score.staves.length-1].measures.find((mm) => mm.lineIndex == measure.lineIndex - 1);
+                }
+                measure.setYTop(offsets.yOffset,'estimate height 3');
+                if (measure.lineIndex > 0) {
+                    offsets.yOffset += this.score.layout.interGap;
+                }
+                measure.setY(previous.staffY + this.score.layout.intraGap + previous.logicalBox.height ,'scoreLayout estimate height 3');
+                measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY + offsets.yOffset,measure.staffWidth,offsets.heightOffset), 'score Layout estimateHeight 3');
+            }
+            if (isNaN(measure.staffY)) {
+                throw ("nan measure ");
+            }
+        }
+
+        if (!s.pageBox['width']) {
+            s.pageBox = svgHelpers.copyBox(staffBox);
+        }
 
         if (!useAdjustedX) {
             if (s.systemIndex > 0) {
@@ -411,18 +415,15 @@ class suiScoreLayout extends suiLayoutBase {
         smoBeamerFactory.applyBeams(measure);
         if (this.passState == suiLayoutBase.passStates.initial) {
             if (!measure.logicalBox) {
-              measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY,measure.staffWidth,50+measure.adjY),'scoreLayout estimate');
+              measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY,measure.staffWidth,50+measure.yTop),'scoreLayout estimate');
           } else {
-              ;
+              console.log('reachability');
           }
         }
         if (measure.measureNumber.systemIndex == 0 && useAdjustedY == false && (this.passState != suiLayoutBase.passStates.initial))  {
-            // measure.adjY = 0;
+            // currently unreachable
             s.system.renderMeasure(staff.staffId, measure);
-            if (Math.abs(measure.staffY - measure.logicalBox.y) > 1) {
-                measure.adjY = measure.staffY-measure.logicalBox.y;
-                s.system.renderMeasure(staff.staffId, measure);
-            }
+
         } else if (this.passState != suiLayoutBase.passStates.initial) {
             s.system.renderMeasure(staff.staffId, measure);
         } else if (measure.logicalBox && measure.changed && this.passState == suiLayoutBase.passStates.initial)  {

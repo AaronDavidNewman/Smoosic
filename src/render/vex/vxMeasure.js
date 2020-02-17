@@ -438,7 +438,7 @@ class VxMeasure {
 
         var staffX = this.smoMeasure.staffX + this.smoMeasure.padLeft;
 
-        this.stave = new VF.Stave(staffX, this.smoMeasure.staffY + this.smoMeasure.adjY, this.smoMeasure.staffWidth - (1+this.smoMeasure.padLeft));
+        this.stave = new VF.Stave(staffX, this.smoMeasure.staffY , this.smoMeasure.staffWidth - (1+this.smoMeasure.padLeft));
         if (this.smoMeasure.prevFrame < VxMeasure.fps) {
             this.smoMeasure.prevFrame += 1;
         }

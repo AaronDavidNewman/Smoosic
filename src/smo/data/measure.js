@@ -24,6 +24,8 @@ class SmoMeasure {
         this.svg.staffY = 0;
         this.svg.history=[];
         this.svg.logicalBox={};
+        this.svg.yTop = 0;
+
 		var defaults = SmoMeasure.defaults;
 
 		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, defaults, this);
@@ -31,7 +33,6 @@ class SmoMeasure {
 		this.voices = params.voices ? params.voices : [];
 		this.tuplets = params.tuplets ? params.tuplets : [];
 		this.modifiers = params.modifiers ? params.modifiers : defaults.modifiers;
-		this.adjY = 0;
 
 		if (!this['attrs']) {
 			this.attrs = {
@@ -81,6 +82,17 @@ class SmoMeasure {
         return this.svg.logicalBox['x'] ? this.svg.logicalBox : null;
     }
 
+    get yTop() {
+        return this.svg.yTop;
+    }
+
+    setYTop(y,description) {
+        if (layoutDebug.flagSet('measureHistory')) {
+           this.svg.history.push('yTop '+this.svg.yTop+'=> '+y + ' ' + description);
+        }
+        this.svg.yTop = y;
+    }
+
     deleteLogicalBox() {
         this.svg.logicalBox = {};
     }
@@ -88,7 +100,7 @@ class SmoMeasure {
     setBox(box,description) {
         if (layoutDebug.flagSet('measureHistory')) {
 
-           this.svg.history.push(JSON.stringify(this.svg.logicalBox) +' => '+
+           this.svg.history.push(description+' ' +JSON.stringify(this.svg.logicalBox) +' => '+
               JSON.stringify(box));
         }
         this.svg.logicalBox = box;
