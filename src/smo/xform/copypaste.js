@@ -385,8 +385,8 @@ class PasteBuffer {
             this._pasteVoiceSer(ser,vobj,this.destination.voice);
 			var nmeasure = SmoMeasure.deserialize(ser);
             nmeasure.renderedBox = svgHelpers.smoBox(measure.renderedBox);
-            nmeasure.logicalBox = svgHelpers.smoBox(measure.logicalBox);
-            nmeasure.staffX = measure.logicalBox.x;
+            nmeasure.setBox(svgHelpers.smoBox(measure.logicalBox),'copypaste');
+            nmeasure.setX(measure.logicalBox.x,'copyPaste');
             nmeasure.setWidth( measure.logicalBox.width,'copypaste');
             nmeasure.setY(measure.logicalBox.y,'copypaste');
             ['forceClef','forceKeySignature','forceTimeSignature','forceTempo'].forEach((flag) => {

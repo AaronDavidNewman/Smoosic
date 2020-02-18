@@ -79,7 +79,7 @@ class SmoMeasure {
     }
 
     get logicalBox() {
-        return this.svg.logicalBox['x'] ? this.svg.logicalBox : null;
+        return typeof(this.svg.logicalBox['x']) == 'number'  ? this.svg.logicalBox : null;
     }
 
     get yTop() {
@@ -93,8 +93,9 @@ class SmoMeasure {
         this.svg.yTop = y;
     }
 
-    deleteLogicalBox() {
+    deleteLogicalBox(description) {
         this.svg.logicalBox = {};
+        this.svg.history.push('delete box ' +description);
     }
 
     setBox(box,description) {

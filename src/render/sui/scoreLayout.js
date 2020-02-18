@@ -334,14 +334,18 @@ class suiScoreLayout extends suiLayoutBase {
         // TODO: is all this code reachable
         if (!useAdjustedY) {
             // if this is not the left-most staff, get it from the previous measure
+            var offsets = suiLayoutAdjuster.estimateMeasureHeight(this.renderer,measure,this.score.layout);
             if (s.systemIndex > 0) {
-                measure.setY(this._previousAttr(measure.measureNumber.measureIndex,
+                /* measure.setY(this._previousAttr(measure.measureNumber.measureIndex,
                     staff.staffId,'staffY') - this._previousAttr(measure.measureNumber.measureIndex,
-                        staff.staffId,'yTop'),'scoreLayout estimate index > 0');
+                        staff.staffId,'yTop'),'scoreLayout estimate index > 0');  */
+                measure.setY(this._previousAttr(measure.measureNumber.measureIndex,
+                    staff.staffId,'staffY'),'scoreLayout match earlier measure on this staff');
+                measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY,measure.staffWidth,offsets.heightOffset)
+                  ,'score layout estimate Height 2');
             } else if (measure.measureNumber.staffId == 0  && measure.lineIndex == 0) {
                 // If this is the top staff, put it on the top of the page.
 
-                var offsets = suiLayoutAdjuster.estimateMeasureHeight(this.renderer,measure,this.score.layout);
                 measure.setYTop(offsets.yOffset,'estimate height 2');
                 measure.setY(this.score.layout.topMargin +
                      (measure.lineIndex*this.score.layout.interGap),'score layout estimate Height 2');
@@ -349,7 +353,6 @@ class suiScoreLayout extends suiLayoutBase {
                   ,'score layout estimate Height 2');
             } else {
                 // Else, get it from the measure above us.
-                var offsets = suiLayoutAdjuster.estimateMeasureHeight(this.renderer,measure,this.score.layout);
                 var previous;
                 if (measure.measureNumber.staffId > 0){
                     previous = this.score.staves[measure.measureNumber.staffId - 1].measures[measure.measureNumber.measureIndex];
@@ -413,13 +416,7 @@ class suiScoreLayout extends suiLayoutBase {
         layoutDebug.debugBox(svg,svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth),'pre');
 
         smoBeamerFactory.applyBeams(measure);
-        if (this.passState == suiLayoutBase.passStates.initial) {
-            if (!measure.logicalBox) {
-              measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY,measure.staffWidth,50+measure.yTop),'scoreLayout estimate');
-          } else {
-              console.log('reachability');
-          }
-        }
+        
         if (measure.measureNumber.systemIndex == 0 && useAdjustedY == false && (this.passState != suiLayoutBase.passStates.initial))  {
             // currently unreachable
             s.system.renderMeasure(staff.staffId, measure);

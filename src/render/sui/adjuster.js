@@ -124,6 +124,8 @@ class suiLayoutAdjuster {
 		// Calculate the space for left/right text which displaces the measure.
 		var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(renderer,measure);
 		measure.setX(measure.staffX  + textOffsetBox.x,'estimateMeasureWidth');
+        measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY,measure.staffWidth,measure.logicalBox.height),
+           'estimate measure width');
 
 	}
     static _beamGroupForNote(measure,note) {
@@ -203,7 +205,7 @@ class suiLayoutAdjuster {
                 });
             });
         });
-        return {heightOffset:heightOffset - yOffset,yOffset:yOffset};
+        return {heightOffset:heightOffset,yOffset:yOffset};
     }
 
 	// ### justifyWidths
@@ -382,7 +384,7 @@ class suiLayoutAdjuster {
 				maxYPerLine.push(thisLineMaxY);
 				lineIndexPerLine.push(maxYMeasure.lineIndex);
 
-				if (absLine == 0) {
+				/* if (absLine == 0) {
 
 					measures.forEach((measure) => {
 						measure.setY(minYStaffY,'adjustHeight 1');
@@ -408,7 +410,7 @@ class suiLayoutAdjuster {
                                svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height),
                                'adjustHeight');
 					});
-				}
+				}  */
 			}
 		}
 

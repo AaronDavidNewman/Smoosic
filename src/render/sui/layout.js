@@ -190,8 +190,8 @@ class suiLayoutBase {
         this.score.staves.forEach((staff) => {
             staff.measures.forEach((measure) => {
                 if (measure.logicalBox && reset) {
-                    measure.deleteLogicalBox();
                     measure.svg.history=['reset'];
+                    measure.deleteLogicalBox('reset viewport');
                 }
             });
         });
