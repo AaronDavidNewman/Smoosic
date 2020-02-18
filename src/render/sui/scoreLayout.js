@@ -363,7 +363,7 @@ class suiScoreLayout extends suiLayoutBase {
                 if (measure.lineIndex > 0) {
                     offsets.yOffset += this.score.layout.interGap;
                 }
-                measure.setY(previous.staffY + this.score.layout.intraGap + previous.logicalBox.height ,'scoreLayout estimate height 3');
+                measure.setY(previous.staffY + this.score.layout.intraGap + previous.logicalBox.height - measure.yTop ,'scoreLayout estimate height 3');
                 measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY + offsets.yOffset,measure.staffWidth,offsets.heightOffset), 'score Layout estimateHeight 3');
             }
             if (isNaN(measure.staffY)) {
@@ -416,7 +416,7 @@ class suiScoreLayout extends suiLayoutBase {
         layoutDebug.debugBox(svg,svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth),'pre');
 
         smoBeamerFactory.applyBeams(measure);
-        
+
         if (measure.measureNumber.systemIndex == 0 && useAdjustedY == false && (this.passState != suiLayoutBase.passStates.initial))  {
             // currently unreachable
             s.system.renderMeasure(staff.staffId, measure);
