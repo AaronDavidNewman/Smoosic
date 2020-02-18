@@ -378,6 +378,7 @@ class MeasureButtons {
     }*/
 	setEnding(startBar,endBar,number) {
 		this.editor.scoreOperation('addEnding',new SmoVolta({startBar:startBar,endBar:endBar,number:number}));
+
 	}
 	setBarline(selection,position,barline,description) {
 		this.editor.scoreSelectionOperation(selection, 'setMeasureBarline', new SmoBarline({position:position,barline:barline})
@@ -456,6 +457,7 @@ class MeasureButtons {
 			var id = self.buttonData.id;
 			if (typeof(self[id]) === 'function') {
 				self[id]();
+                self.tracker.layout.setDirty();
 			}
 		});
 	}

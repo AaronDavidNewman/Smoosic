@@ -171,30 +171,11 @@ class smoMusic {
 
 		return smoMusic.smoPitchToInt(pp1) == smoMusic.smoPitchToInt(pp2);
 	}
-    static _clefToLedgerMap() {
-        return {
-            alto:{up:59,down:40},
-            tenor:{up:53,down:34},
-            treble:{up:68,down:49},
-            bass:{up:48,down:29}
-        }
-    }
 
     // ### pitchToLedgerLineInt
-    // The magnitude (pitchToLedgerLineInt()+1)/2 is the count.  If the
-    // result is odd, the note is above/below the ledger line.  If the
-    // result is even, it is on the line.  If hte result is negative, it is
-    // below the staff.  This is used for estimating staff height.
-    static pitchToLedgerLineInt(clef,pitch) {
-        var entry = smoMusic._clefToLedgerMap[clef];
-        var intval = smoMusic.smoPitchToInt(pitch);
-        if (entry.up >= intval) {
-            return intval - entry.up;
-        }
-        if (entry.down >= intval) {
-            return intval - entry.down;
-        }
-        return 0;
+    static pitchToLedgerLine(clef,pitch) {
+        // return the distance from the top ledger line, as 0.5 per line/space
+        return -1.0*(VF.keyProperties(smoMusic.pitchToVexKey(pitch,clef)).line-5.5);
     }
 
     // ### pitchToVexKey
@@ -2356,6 +2337,8 @@ class SmoMeasure {
         this.svg.staffY = 0;
         this.svg.history=[];
         this.svg.logicalBox={};
+        this.svg.yTop = 0;
+
 		var defaults = SmoMeasure.defaults;
 
 		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, defaults, this);
@@ -2363,7 +2346,6 @@ class SmoMeasure {
 		this.voices = params.voices ? params.voices : [];
 		this.tuplets = params.tuplets ? params.tuplets : [];
 		this.modifiers = params.modifiers ? params.modifiers : defaults.modifiers;
-		this.adjY = 0;
 
 		if (!this['attrs']) {
 			this.attrs = {
@@ -2410,17 +2392,29 @@ class SmoMeasure {
     }
 
     get logicalBox() {
-        return this.svg.logicalBox['x'] ? this.svg.logicalBox : null;
+        return typeof(this.svg.logicalBox['x']) == 'number'  ? this.svg.logicalBox : null;
     }
 
-    deleteLogicalBox() {
+    get yTop() {
+        return this.svg.yTop;
+    }
+
+    setYTop(y,description) {
+        if (layoutDebug.flagSet('measureHistory')) {
+           this.svg.history.push('yTop '+this.svg.yTop+'=> '+y + ' ' + description);
+        }
+        this.svg.yTop = y;
+    }
+
+    deleteLogicalBox(description) {
         this.svg.logicalBox = {};
+        this.svg.history.push('delete box ' +description);
     }
 
     setBox(box,description) {
         if (layoutDebug.flagSet('measureHistory')) {
 
-           this.svg.history.push(JSON.stringify(this.svg.logicalBox) +' => '+
+           this.svg.history.push(description+' ' +JSON.stringify(this.svg.logicalBox) +' => '+
               JSON.stringify(box));
         }
         this.svg.logicalBox = box;
@@ -7462,8 +7456,8 @@ class PasteBuffer {
             this._pasteVoiceSer(ser,vobj,this.destination.voice);
 			var nmeasure = SmoMeasure.deserialize(ser);
             nmeasure.renderedBox = svgHelpers.smoBox(measure.renderedBox);
-            nmeasure.logicalBox = svgHelpers.smoBox(measure.logicalBox);
-            nmeasure.staffX = measure.logicalBox.x;
+            nmeasure.setBox(svgHelpers.smoBox(measure.logicalBox),'copypaste');
+            nmeasure.setX(measure.logicalBox.x,'copyPaste');
             nmeasure.setWidth( measure.logicalBox.width,'copypaste');
             nmeasure.setY(measure.logicalBox.y,'copypaste');
             ['forceClef','forceKeySignature','forceTimeSignature','forceTempo'].forEach((flag) => {
@@ -7914,7 +7908,7 @@ class VxMeasure {
 
         var staffX = this.smoMeasure.staffX + this.smoMeasure.padLeft;
 
-        this.stave = new VF.Stave(staffX, this.smoMeasure.staffY + this.smoMeasure.adjY, this.smoMeasure.staffWidth - (1+this.smoMeasure.padLeft));
+        this.stave = new VF.Stave(staffX, this.smoMeasure.staffY , this.smoMeasure.staffWidth - (1+this.smoMeasure.padLeft));
         if (this.smoMeasure.prevFrame < VxMeasure.fps) {
             this.smoMeasure.prevFrame += 1;
         }
@@ -10155,7 +10149,8 @@ class suiLayoutBase {
         this.score.staves.forEach((staff) => {
             staff.measures.forEach((measure) => {
                 if (measure.logicalBox && reset) {
-                    delete measure.deleteLogicalBox();
+                    measure.svg.history=['reset'];
+                    measure.deleteLogicalBox('reset viewport');
                 }
             });
         });
@@ -10354,7 +10349,7 @@ class suiLayoutBase {
 			return;
 
 		$(this.renderer.getContext().svg).find('g.' + measure.getClassId()).remove();
-		measure.adjY = 0;
+		measure.setYTop(0,'unrender');
 		measure.setChanged();
 	}
 
@@ -10465,6 +10460,8 @@ class suiLayoutBase {
         changes.forEach((change) => {
             var system = new VxSystem(this.context, change.staff.measures[0].staffY, change.measure.lineIndex,this.score);
             system.renderMeasure(change.staff.staffId, change.measure);
+            system.renderEndings();
+
             // Fix a bug: measure change needs to stay true so we recaltulate the width
             change.measure.changed = true;
             if (this.measureMapper) {
@@ -10499,6 +10496,7 @@ class suiLayoutBase {
 		var params = {useY:false,useX:false};
 		if (this.passState == suiLayoutBase.passStates.pass || this.passState == suiLayoutBase.passStates.incomplete) {
 			params.useX=true;
+            params.useY=true;
 		    suiLayoutAdjuster.adjustWidths(this._score,this.renderer);
 		}
 		if ((this.passState == suiLayoutBase.passStates.clean) ||
@@ -10993,12 +10991,89 @@ class suiLayoutAdjuster {
 		// Calculate the space for left/right text which displaces the measure.
 		var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(renderer,measure);
 		measure.setX(measure.staffX  + textOffsetBox.x,'estimateMeasureWidth');
-        measure.adjY = 0;
+        measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY,measure.staffWidth,measure.logicalBox.height),
+           'estimate measure width');
 
-        if (measure.forceClef) {
-            measure.adjY = vexGlyph.clef(measure.clef).yTop;
-        }
 	}
+    static _beamGroupForNote(measure,note) {
+        var rv = null;
+        if (!note.beam_group) {
+            return null;
+        }
+        measure.beamGroups.forEach((bg) => {
+            if (!rv) {
+                if (bg.notes.findIndex((nn) => note.beam_group && note.beam_group.id == bg.attrs.id) >= 0) {
+                    rv = bg;
+                }
+            }
+        });
+        return rv;
+    }
+
+    // ### _highestLowestHead
+    // highest value is actually the one lowest on the page
+    static _highestLowestHead(measure,note) {
+        var hilo = {hi:0,lo:9999999};
+        note.pitches.forEach((pitch) => {
+            // 10 pixels per line
+            var px = 10*smoMusic.pitchToLedgerLine(measure.clef,pitch);
+            hilo.lo = Math.min(hilo.lo,px);
+            hilo.hi = Math.max(hilo.hi,px);
+        });
+        return hilo;
+    }
+
+    static estimateMeasureHeight(renderer,measure,layout) {
+        var heightOffset = 50;  // assume 5 lines, todo is non-5-line staffs
+        var yOffset = 0;
+        if (measure.forceClef) {
+            heightOffset += vexGlyph.clef(measure.clef).yTop + vexGlyph.clef(measure.clef).yBottom;
+            yOffset = yOffset - vexGlyph.clef(measure.clef).yTop;
+        }
+
+        if (measure.forceTempo) {
+            yOffset = Math.min(-1*vexGlyph.tempo.yTop,yOffset);
+        }
+        var hasDynamic = false;
+
+        measure.voices.forEach((voice) => {
+            voice.notes.forEach((note) => {
+                var bg = suiLayoutAdjuster._beamGroupForNote(measure,note);
+                var flag = SmoNote.flagStates.auto;
+                if (bg && note.noteType == 'n') {
+                    flag = bg.notes[0].flagState;
+                    // an  auto-flag note is up if the 1st note is middle line
+                    if (flag == SmoNote.flagStates.auto) {
+                        var pitch = bg.notes[0].pitches[0];
+                        flag = smoMusic.pitchToLedgerLine(measure.clef,pitch)
+                           >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
+                    }
+                }  else {
+                    var flag = note.flagState;
+                    // an  auto-flag note is up if the 1st note is middle line
+                    if (flag == SmoNote.flagStates.auto) {
+                        var pitch = note.pitches[0];
+                        flag = smoMusic.pitchToLedgerLine(measure.clef,pitch)
+                           >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
+                    }
+                }
+                var hiloHead = suiLayoutAdjuster._highestLowestHead(measure,note);
+                if (flag == SmoNote.flagStates.down) {
+                    yOffset = Math.min(hiloHead.lo,yOffset);
+                    heightOffset = Math.max(hiloHead.hi + vexGlyph.stem.height,heightOffset);
+                } else {
+                    yOffset = Math.min(hiloHead.lo - vexGlyph.stem.height,yOffset);
+                    heightOffset = Math.max(hiloHead.hi,heightOffset);
+                }
+                var dynamics = note.getModifiers('SmoDynamicText');
+                dynamics.forEach((dyn) => {
+                    heightOffset = Math.max(10*dyn.yOffsetLine + 30,heightOffset);
+                    yOffset = Math.min(10*dyn.yOffsetLine,yOffset)
+                });
+            });
+        });
+        return {heightOffset:heightOffset,yOffset:yOffset};
+    }
 
 	// ### justifyWidths
 	// After we adjust widths so each staff has enough room, evenly distribute the remainder widths to the measures.
@@ -11176,11 +11251,10 @@ class suiLayoutAdjuster {
 				maxYPerLine.push(thisLineMaxY);
 				lineIndexPerLine.push(maxYMeasure.lineIndex);
 
-				if (absLine == 0) {
-					accum = score.layout.topMargin - minYRenderedY;
-					var staffY = minYStaffY+ accum;
+				/* if (absLine == 0) {
+
 					measures.forEach((measure) => {
-						measure.setY(staffY,'adjustHeight 1');
+						measure.setY(minYStaffY,'adjustHeight 1');
                         vyMaxY = (vyMaxY > measure.staffY + measure.logicalBox.height) ? vyMaxY :
                            measure.staffY + measure.logicalBox.height;
                         layoutDebug.debugBox(svg,
@@ -11203,7 +11277,7 @@ class suiLayoutAdjuster {
                                svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height),
                                'adjustHeight');
 					});
-				}
+				}  */
 			}
 		}
 
@@ -11435,7 +11509,7 @@ class suiScoreLayout extends suiLayoutBase {
             s.staffBoxes[s.staff.staffId].width = (s.measure.logicalBox.x + s.measure.logicalBox.width) - s.staffBoxes[s.staff.staffId].x;
         }
         if (s.measure.measureNumber.systemIndex === 0) {
-            s.staffBoxes[s.staff.staffId].y = s.measure.staffY + s.measure.adjY;
+            s.staffBoxes[s.staff.staffId].y = s.measure.staffY + s.measure.yTop;
         }
     }
 
@@ -11471,11 +11545,12 @@ class suiScoreLayout extends suiLayoutBase {
         measure.setX(this._score.layout.leftMargin,'scoreLayout initial');
 
         if (!useAdjustedY && measure.changed) {
-            layoutDebug.debugBox(svg,svgHelpers.boxPoints(measure.staffX, s.pageBox.y + s.pageBox.height, 1, this._score.layout.interGap),'pre');
-            measure.setY(s.pageBox.y + s.pageBox.height + this._score.layout.interGap,'scoreLayout');
+            // var offsets = suiLayoutAdjuster.estimateMeasureHeight(this.renderer,measure,this.score.layout);
+            // measure.setY(s.pageBox.y + s.pageBox.height + offsets.yOffset,'scoreLayout wrap');
+            /* layoutDebug.debugBox(svg,svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, offsets.heightOffset),'pre');
             if (isNaN(measure.staffY)) {
                 throw ("nan measure ");
-            }
+            }  */
         }
         this._resetStaffBoxes(s);
         this._initStaffBoxes(s);
@@ -11567,9 +11642,16 @@ class suiScoreLayout extends suiLayoutBase {
 		var useAdjustedX = s.calculations.useX;
         var svg = this.context.svg;
 
+        if (measure.measureNumber.staffId == 0  && measure.lineIndex == 0 && measure.measureNumber.measureIndex == 0) {
+           // If this is the top staff, put it on the top of the page.
+               layoutDebug.clearDebugBoxes('pre');
+               layoutDebug.clearDebugBoxes('post');
+               layoutDebug.clearDebugBoxes('note');
+        }
+
         measure.lineIndex = s.lineIndex;
         if (useAdjustedY) {
-            measure.adjY = 0;
+            measure.setYTop( 0,'scoreLayout initialize');
         }
 
         this._initStaffBoxes(s);
@@ -11577,54 +11659,8 @@ class suiScoreLayout extends suiLayoutBase {
         // The SVG X,Y of this staff.  Set it initially to the UL corner of page.  Width,height filled in later.
         var staffBox = s.staffBoxes[staff.staffId];
 
-        // If we are calculating the measures' location dynamically, always update the y
-        // TODO: is all this code reachable
-        if (!useAdjustedY) {
-            // if this is not the left-most staff, get it from the previous measure
-            if (s.systemIndex > 0) {
-                measure.setY(this._previousAttr(measure.measureNumber.measureIndex,
-                    staff.staffId,'staffY') + this._previousAttr(measure.measureNumber.measureIndex,
-                        staff.staffId,'adjY'),'scoreLayout estimate index > 0');
-            } else if (measure.measureNumber.staffId == 0) {
-                // If this is the top staff, put it on the top of the page.
-                if (measure.lineIndex == 0) {
-                    layoutDebug.clearDebugBoxes('pre');
-                    layoutDebug.clearDebugBoxes('post');
-                    layoutDebug.clearDebugBoxes('note');
+        var staffHeight = 50;
 
-                    measure.setY(this.score.layout.topMargin,'scoreLayout top measure');
-                } else {
-                    // Else, we have wrapped since the last render.  Get it from the height of the previous system.
-                    var previous = this.score.staves[this.score.staves.length - 1].measures[measure.measureNumber.measureIndex - 1];
-                    var height = previous.logicalBox ?  previous.logicalBox.height : 0;
-
-                    // First system on a page considers page gap.
-                    // if (previous.pageGap < measure.pageGap) {
-                        height += measure.pageGap;
-                    // }
-                    var adj = previous.staffY + height +
-                       + this.score.layout.interGap;
-                    // if the measure is higher, resist jumping up too fast.
-                    if (measure.logicalBox && adj < measure.logicalBox.y && this.partialRender) {
-                        adj = Math.round((adj + measure.logicalBox.y)/2);
-                    }
-                    measure.setY(adj,'scoreLayout estimate top measure');
-                }
-            } else {
-                // Else, get it from the measure above us.
-                var previous = this.score.staves[measure.measureNumber.staffId - 1].measures[measure.measureNumber.measureIndex];
-                var height =  previous.logicalBox ?  previous.logicalBox.height : 0;
-                measure.setY(previous.staffY + height +
-                   + this.score.layout.intraGap),'scoreLayout estimate inner system measure';
-            }
-            if (isNaN(measure.staffY)) {
-                throw ("nan measure ");
-            }
-        }
-
-        if (!s.pageBox['width']) {
-            s.pageBox = svgHelpers.copyBox(staffBox);
-        }
         s.measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
         s.keySigLast = smoMusic.vexKeySignatureTranspose(this._previousAttr(measure.measureNumber.measureIndex,
             staff.staffId, 'keySignature'), measure.transposeIndex);
@@ -11635,6 +11671,51 @@ class suiScoreLayout extends suiLayoutBase {
             staff.staffId, 'clef');
 
         this.calculateBeginningSymbols(s.systemIndex, measure, s.clefLast, s.keySigLast, s.timeSigLast,s.tempoLast);
+
+        // If we are calculating the measures' location dynamically, always update the y
+        // TODO: is all this code reachable
+        if (!useAdjustedY) {
+            // if this is not the left-most staff, get it from the previous measure
+            var offsets = suiLayoutAdjuster.estimateMeasureHeight(this.renderer,measure,this.score.layout);
+            if (s.systemIndex > 0) {
+                /* measure.setY(this._previousAttr(measure.measureNumber.measureIndex,
+                    staff.staffId,'staffY') - this._previousAttr(measure.measureNumber.measureIndex,
+                        staff.staffId,'yTop'),'scoreLayout estimate index > 0');  */
+                measure.setY(this._previousAttr(measure.measureNumber.measureIndex,
+                    staff.staffId,'staffY'),'scoreLayout match earlier measure on this staff');
+                measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY,measure.staffWidth,offsets.heightOffset)
+                  ,'score layout estimate Height 2');
+            } else if (measure.measureNumber.staffId == 0  && measure.lineIndex == 0) {
+                // If this is the top staff, put it on the top of the page.
+
+                measure.setYTop(offsets.yOffset,'estimate height 2');
+                measure.setY(this.score.layout.topMargin +
+                     (measure.lineIndex*this.score.layout.interGap),'score layout estimate Height 2');
+                measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY + offsets.yOffset,measure.staffWidth,offsets.heightOffset)
+                  ,'score layout estimate Height 2');
+            } else {
+                // Else, get it from the measure above us.
+                var previous;
+                if (measure.measureNumber.staffId > 0){
+                    previous = this.score.staves[measure.measureNumber.staffId - 1].measures[measure.measureNumber.measureIndex];
+                }  else {
+                    previous = this.score.staves[this.score.staves.length-1].measures.find((mm) => mm.lineIndex == measure.lineIndex - 1);
+                }
+                measure.setYTop(offsets.yOffset,'estimate height 3');
+                if (measure.lineIndex > 0) {
+                    offsets.yOffset += this.score.layout.interGap;
+                }
+                measure.setY(previous.staffY + this.score.layout.intraGap + previous.logicalBox.height ,'scoreLayout estimate height 3');
+                measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY + offsets.yOffset,measure.staffWidth,offsets.heightOffset), 'score Layout estimateHeight 3');
+            }
+            if (isNaN(measure.staffY)) {
+                throw ("nan measure ");
+            }
+        }
+
+        if (!s.pageBox['width']) {
+            s.pageBox = svgHelpers.copyBox(staffBox);
+        }
 
         if (!useAdjustedX) {
             if (s.systemIndex > 0) {
@@ -11677,20 +11758,11 @@ class suiScoreLayout extends suiLayoutBase {
         layoutDebug.debugBox(svg,svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth),'pre');
 
         smoBeamerFactory.applyBeams(measure);
-        if (this.passState == suiLayoutBase.passStates.initial) {
-            if (!measure.logicalBox) {
-              measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY,measure.staffWidth,50+measure.adjY),'scoreLayout estimate');
-          } else {
-              ;
-          }
-        }
+        
         if (measure.measureNumber.systemIndex == 0 && useAdjustedY == false && (this.passState != suiLayoutBase.passStates.initial))  {
-            // measure.adjY = 0;
+            // currently unreachable
             s.system.renderMeasure(staff.staffId, measure);
-            if (Math.abs(measure.staffY - measure.logicalBox.y) > 1) {
-                measure.adjY = measure.staffY-measure.logicalBox.y;
-                s.system.renderMeasure(staff.staffId, measure);
-            }
+
         } else if (this.passState != suiLayoutBase.passStates.initial) {
             s.system.renderMeasure(staff.staffId, measure);
         } else if (measure.logicalBox && measure.changed && this.passState == suiLayoutBase.passStates.initial)  {
@@ -17735,6 +17807,10 @@ class vexGlyph {
 		'n':vexGlyph.dimensions.natural
 		};
 	}
+
+    static get tempo() {
+        return vexGlyph.dimensions['tempo'];
+    }
 	static keySignatureLength(key) {
 		return smoMusic.getSharpsInKeySignature(key)*vexGlyph.dimensions['sharp'].width +
 		    smoMusic.getFlatsInKeySignature(key)*vexGlyph.dimensions['flat'].width +
@@ -17746,6 +17822,13 @@ class vexGlyph {
 	static get dot() {
 		return vexGlyph.dimensions['dot'];
 	}
+
+    static get stem() {
+        return vexGlyph.dimensions['stem'];
+    }
+    static get flag() {
+        return vexGlyph.dimensions['flag'];
+    }
 
 	static clef(c) {
 		var key = c.toLowerCase()+'Clef';
@@ -17807,7 +17890,7 @@ class vexGlyph {
 				width: 25.5,
 				height: 68.32,
                 yTop:14,
-                yBottom:0,
+                yBottom:14,
 				spacingRight: 10,
 			},
 			bassClef: {
@@ -17838,6 +17921,13 @@ class vexGlyph {
                 yBottom:0,
 				spacingRight: 5
 			},
+            tempo : {
+                width:10,
+                height:37,
+                yTop:37,
+                yBottom:0,
+                spacingRight:0
+            },
 			flat: {
 				width: 7.44,
 				height: 23.55,
@@ -17879,7 +17969,20 @@ class vexGlyph {
                 yTop:0,
                 yBottom:0,
 				spacingRight:2
-			}
+			},stem: {
+                width:1,
+                height:35,
+                yTop:0,
+                yBottom:0,
+				spacingRight:0
+            },flag: {
+                width:10,
+                height:29,
+                yTop:0,
+                yBottom:0,
+				spacingRight:0
+            }
+
 		};
 	}
 }
@@ -18266,6 +18369,7 @@ class MeasureButtons {
     }*/
 	setEnding(startBar,endBar,number) {
 		this.editor.scoreOperation('addEnding',new SmoVolta({startBar:startBar,endBar:endBar,number:number}));
+
 	}
 	setBarline(selection,position,barline,description) {
 		this.editor.scoreSelectionOperation(selection, 'setMeasureBarline', new SmoBarline({position:position,barline:barline})
@@ -18344,6 +18448,7 @@ class MeasureButtons {
 			var id = self.buttonData.id;
 			if (typeof(self[id]) === 'function') {
 				self[id]();
+                self.tracker.layout.setDirty();
 			}
 		});
 	}

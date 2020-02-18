@@ -501,6 +501,8 @@ class suiLayoutBase {
         changes.forEach((change) => {
             var system = new VxSystem(this.context, change.staff.measures[0].staffY, change.measure.lineIndex,this.score);
             system.renderMeasure(change.staff.staffId, change.measure);
+            system.renderEndings();
+
             // Fix a bug: measure change needs to stay true so we recaltulate the width
             change.measure.changed = true;
             if (this.measureMapper) {
