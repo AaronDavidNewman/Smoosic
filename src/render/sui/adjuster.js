@@ -200,13 +200,42 @@ class suiLayoutAdjuster {
                 }
                 var dynamics = note.getModifiers('SmoDynamicText');
                 dynamics.forEach((dyn) => {
-                    heightOffset = Math.max(10*dyn.yOffsetLine + 30,heightOffset);
-                    yOffset = Math.min(10*dyn.yOffsetLine,yOffset)
+                    heightOffset = Math.max((10*dyn.yOffsetLine - 50) + 11,heightOffset);
+                    yOffset = Math.min(10*dyn.yOffsetLine - 50,yOffset)
                 });
             });
         });
         return {heightOffset:heightOffset,yOffset:yOffset};
     }
+
+    // ### _adjustTopYLeft
+    // Adjust the start y for all the measures to the left of this systems
+    // once we know that it will not wrap.
+    static adjustYEstimates(score,lineIndex) {
+        var rightMeasures = [];
+        score.staves.forEach((staff) => {
+            var mms = staff.measures.filter((mm) => mm.lineIndex == lineIndex);
+            rightMeasures.push(mms.reduce((a,b) => a.measureNumber > b.measureNumber ? a : b));
+        });
+        rightMeasures.forEach((rightmost) => {
+            var measure = rightmost;
+            var staff = score.staves[measure.measureNumber.staffId];
+            var index = measure.measureNumber.measureIndex;
+            while (index > 0 && staff.measures[index-1].lineIndex == lineIndex) {
+                var prev = staff.measures[index-1];
+                index -= 1;
+                if (prev.yTop > measure.yTop) {
+                    prev.setY(prev.staffY + prev.yTop,'_adjustYEstimates 1');
+                    var ll = prev.logicalBox;
+                    prev.setBox(svgHelpers.boxPoints(ll.x,ll.y - prev.yTop,ll.width,ll.height),'_adjustYEstimates 1');
+                    prev.setYTop(measure.yTop,'_adjustYEstimates');
+                    prev.setY(prev.staffY - prev.yTop,'_adjustYEstimates 2');
+                    prev.setBox(svgHelpers.boxPoints(ll.x,ll.y + prev.yTop,ll.width,ll.height),'_adjustYEstimates 2');
+                }
+            }
+        });
+    }
+
 
 	// ### justifyWidths
 	// After we adjust widths so each staff has enough room, evenly distribute the remainder widths to the measures.

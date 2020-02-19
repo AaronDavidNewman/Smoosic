@@ -183,6 +183,8 @@ class suiScoreLayout extends suiLayoutBase {
         s.system.renderEndings();
         if (useAdjustedY) {
             s.system.cap();
+        } else {
+            suiLayoutAdjuster.adjustYEstimates(this.score,measure.lineIndex);
         }
 
         this._score.staves.forEach((stf) => {
@@ -283,6 +285,9 @@ class suiScoreLayout extends suiLayoutBase {
                 s.systemIndex += 1;
             } else {
                 s.complete = true;
+                if (!s.calculations.useY) {
+                    suiLayoutAdjuster.adjustYEstimates(this.score,s.measure.lineIndex);
+                }
             }
         }
 
@@ -291,6 +296,7 @@ class suiScoreLayout extends suiLayoutBase {
             s.wrapped = false;
         }
     }
+
 
     _layoutMeasure(renderState) {
         var s = renderState;
@@ -339,17 +345,21 @@ class suiScoreLayout extends suiLayoutBase {
                 /* measure.setY(this._previousAttr(measure.measureNumber.measureIndex,
                     staff.staffId,'staffY') - this._previousAttr(measure.measureNumber.measureIndex,
                         staff.staffId,'yTop'),'scoreLayout estimate index > 0');  */
-                measure.setY(this._previousAttr(measure.measureNumber.measureIndex,
-                    staff.staffId,'staffY'),'scoreLayout match earlier measure on this staff');
-                measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY,measure.staffWidth,offsets.heightOffset)
+                var prevYTop = this._previousAttr(measure.measureNumber.measureIndex,staff.staffId,'yTop');
+                var prevY = this._previousAttr(measure.measureNumber.measureIndex,staff.staffId,'staffY') + prevYTop;
+                measure.setYTop(Math.min(offsets.yOffset,prevYTop),'scoreLayout inner');
+                measure.setY(
+                    prevY
+                     - measure.yTop,'scoreLayout match earlier measure on this staff');
+                measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY + measure.yTop,measure.staffWidth,offsets.heightOffset)
                   ,'score layout estimate Height 2');
             } else if (measure.measureNumber.staffId == 0  && measure.lineIndex == 0) {
                 // If this is the top staff, put it on the top of the page.
 
                 measure.setYTop(offsets.yOffset,'estimate height 2');
                 measure.setY(this.score.layout.topMargin +
-                     (measure.lineIndex*this.score.layout.interGap),'score layout estimate Height 2');
-                measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY + offsets.yOffset,measure.staffWidth,offsets.heightOffset)
+                     (measure.lineIndex*this.score.layout.interGap) - offsets.yOffset,'score layout estimate Height 2');
+                measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY + offsets.yOffset ,measure.staffWidth,offsets.heightOffset)
                   ,'score layout estimate Height 2');
             } else {
                 // Else, get it from the measure above us.
