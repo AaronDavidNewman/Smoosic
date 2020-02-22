@@ -296,6 +296,16 @@ class SmoScore {
         this._numberStaves();
     }
 
+    swapStaves(index1,index2) {
+        if (this.staves.length < index1 || this.staves.length < index2) {
+            return;
+        }
+        var tmpStaff = this.staves[index1];
+        this.staves[index1] = this.staves[index2];
+        this.staves[index2] = tmpStaff;
+        this._numberStaves();
+    }
+
 	_updateScoreText(textObject,toAdd) {
 		var texts=[];
 		this.scoreText.forEach((tt) => {

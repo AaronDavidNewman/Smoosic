@@ -346,6 +346,17 @@ class StaveButtons {
 	clefTenor() {
 		this.addClef('tenor','Tenor Instrument');
 	}
+    _clefMove(index,direction) {
+        SmoUndoable.scoreSelectionOp(this.tracker.layout.score,this.tracker.selections[0],'moveStaffUpDown',
+           index,this.editor.undoBuffer,'Move staff '+direction);
+        this.tracker.layout.rerenderAll();
+    }
+    clefMoveUp() {
+        this._clefMove(-1,'up');
+    }
+    clefMoveDown() {
+        this._clefMove(1,'down');
+    }
 	bind() {
 		var self = this;
 		$(this.buttonElement).off('click').on('click', function (ev) {

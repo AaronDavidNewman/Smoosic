@@ -37,6 +37,14 @@ class SmoOperation {
         });
     }
 
+    static moveStaffUpDown(score,selection,index) {
+        var index1 = selection.selector.staff;
+        var index2 = selection.selector.staff + index;
+        if (index2 < score.staves.length && index2 >= 0) {
+            score.swapStaves(index1,index2);
+        }
+    }
+
     static depopulateVoice(selection,voiceIx) {
         var ix = 0;
         var voices = [];

@@ -94,7 +94,8 @@ class suiLayoutBase {
         this.stateRepCount=0;
 		this.setPassState(suiLayoutBase.initial,'ctor');
 		console.log('layout ctor: pstate initial');
-		this.viewportChange = false;
+		this.viewportChanged = false;
+        this._resetViewport = false;
         this.measureMapper = null;
 	}
 
@@ -111,7 +112,7 @@ class suiLayoutBase {
 	setDirty() {
 		if (!this.dirty) {
 			this.dirty = true;
-			if (this.viewportChange) {
+			if (this.viewportChanged) {
 				this.setPassState(suiLayoutBase.passStates.initial,'setDirty 1');
 			} else if (this.passState == suiLayoutBase.passStates.clean ||
 			   this.passState == suiLayoutBase.passStates.replace) {
@@ -125,6 +126,11 @@ class suiLayoutBase {
 		this.dirty=true;
 		this.setPassState(suiLayoutBase.passStates.initial,'setRefresh');
 	}
+    rerenderAll() {
+        this.dirty=true;
+		this.setPassState(suiLayoutBase.passStates.initial,'rerenderAll');
+        this._resetViewport = true;
+    }
 
     remapAll() {
         this.partialRender = false;
@@ -173,7 +179,7 @@ class suiLayoutBase {
 		if (reset) {
 		    $(elementId).html('');
     		this.renderer = new VF.Renderer(elementId, VF.Renderer.Backends.SVG);
-            this.viewportChange = true;
+            this.viewportChanged = true;
 		}
 		// this.renderer.resize(this.pageWidth, this.pageHeight);
 
@@ -525,12 +531,14 @@ class suiLayoutBase {
     }
 
 	render() {
-        var viewportChanged = false;
-		if (this.viewportChange) {
+        if (this._resetViewport) {
+            this.setViewport(true);
+            this._resetViewport = false;
+        }
+		if (this.viewportChanged) {
 			this.unrenderAll();
 			this.setPassState(suiLayoutBase.passStates.initial,'render 1');
-			this.viewportChange = false;
-            viewportChanged = true;
+			this.viewportChanged = false;
 		}
 
 		// layout iteratively until we get it right, adjusting X each time.
