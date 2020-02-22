@@ -32,14 +32,15 @@ class defaultRibbonLayout {
 		return ['helpDialog', 'fileMenu','addStaffMenu','measureModal','tempoModal','timeSignatureMenu','keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
 	}
 	static get noteButtonIds() {
-		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton','AddGraceNote','RemoveGraceNote',
-				'UpNoteButton', 'DownNoteButton', 'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
+		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton',
+            'UpNoteButton', 'DownNoteButton', 'moreNoteButtons','AddGraceNote','RemoveGraceNote',
+				'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
 	}
     static get voiceButtonIds() {
         return ['VoiceButtons','V1Button','V2Button','V3Button','V4Button','VXButton'];
     }
 	static get navigateButtonIds()  {
-		return ['NavigationButtons', 'navLeftButton', 'navRightButton', 'navUpButton', 'navDownButton', 'navFastForward', 'navRewind',
+		return ['NavigationButtons', 'navLeftButton', 'navRightButton', 'navUpButton', 'navDownButton', 'moreNavButtons','navFastForward', 'navRewind',
 				'navGrowLeft', 'navGrowRight'];
 	}
 
@@ -71,7 +72,7 @@ class defaultRibbonLayout {
 		return ['BeamButtons','breakBeam','beamSelections','toggleBeamDirection'];
 	}
     static get staveIds() {
-		return ['StaveButtons','clefTreble','clefBass','clefTenor','clefAlto','clefMoveUp','clefMoveDown'];
+		return ['StaveButtons','clefTreble','clefBass','clefTenor','clefAlto','clefAddRemove','clefMoveUp','clefMoveDown'];
 	}
 
     static get playerIds() {
@@ -176,6 +177,15 @@ class defaultRibbonLayout {
 				ctor: 'StaveButtons',
 				group: 'staves',
 				id: 'clefAlto'
+		},{
+			leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed staves',
+				icon: 'icon-plus',
+				action: 'collapseChildMenu',
+				ctor: 'SuiAddStaffMenu',
+				group: 'staves',
+				id: 'clefAddRemove'
 		},{
 			leftText: '',
 				rightText: '',
@@ -671,12 +681,21 @@ class defaultRibbonLayout {
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'ToggleRestButton'
+			},{
+				leftText: '...',
+				rightText: '',
+				icon: 'icon-circle-left',
+				classes: 'collapsed expander',
+				action: 'collapseMore',
+				ctor: 'ExtendedCollapseParent',
+				group: 'notes',
+				id: 'moreNoteButtons'
 			}, {
 				leftText: '',
 				rightText: 'G',
 				icon: 'icon-grace_note',
 				classes: 'collapsed',
-				action: 'collapseChild',
+				action: 'collapseGrandchild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'AddGraceNote'
@@ -685,7 +704,7 @@ class defaultRibbonLayout {
 				rightText: 'alt-g',
 				icon: 'icon-grace_remove',
 				classes: 'collapsed',
-				action: 'collapseChild',
+				action: 'collapseGrandchild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'RemoveGraceNote'
@@ -694,7 +713,7 @@ class defaultRibbonLayout {
 				rightText: 'Shift=',
 				icon: '',
 				classes: 'collapsed',
-				action: 'collapseChild',
+				action: 'collapseGrandchild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'UpOctaveButton'
@@ -703,7 +722,7 @@ class defaultRibbonLayout {
 				rightText: 'Shift-',
 				icon: '',
 				classes: 'collapsed',
-				action: 'collapseChild',
+				action: 'collapseGrandchild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'DownOctaveButton'
@@ -712,7 +731,7 @@ class defaultRibbonLayout {
 				rightText: 'ShiftE',
 				icon: 'icon-accident',
 				classes: 'collapsed',
-				action: 'collapseChild',
+				action: 'collapseGrandchild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'ToggleAccidental'
@@ -721,7 +740,7 @@ class defaultRibbonLayout {
 				rightText: 'ShiftF',
 				icon: 'icon-courtesy',
 				classes: 'collapsed',
-				action: 'collapseChild',
+				action: 'collapseGrandchild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'ToggleCourtesy'
@@ -903,11 +922,20 @@ class defaultRibbonLayout {
 				group: 'navigation',
 				id: 'navDownButton'
 			}, {
+				leftText: '...',
+				rightText: '',
+				icon: '',
+				classes: 'collapsed expander',
+				action: 'collapseMore',
+				ctor: 'ExtendedCollapseParent',
+				group: 'navigation',
+				id: 'moreNavButtons'
+			},{
 				leftText: '',
 				rightText: '',
 				icon: 'icon-fforward',
 				classes: 'collapsed',
-				action: 'collapseChild',
+				action: 'collapseGrandchild',
 				ctor: 'NavigationButtons',
 				group: 'navigation',
 				id: 'navFastForward'
@@ -916,7 +944,7 @@ class defaultRibbonLayout {
 				rightText: '',
 				icon: 'icon-rewind',
 				classes: 'collapsed',
-				action: 'collapseChild',
+				action: 'collapseGrandchild',
 				ctor: 'NavigationButtons',
 				group: 'navigation',
 				id: 'navRewind'
@@ -925,7 +953,7 @@ class defaultRibbonLayout {
 				rightText: '',
 				icon: 'icon-note_select_left',
 				classes: 'collapsed selection-icon',
-				action: 'collapseChild',
+				action: 'collapseGrandchild',
 				ctor: 'NavigationButtons',
 				group: 'navigation',
 				id: 'navGrowLeft'
@@ -934,7 +962,7 @@ class defaultRibbonLayout {
 				rightText: '',
 				icon: 'icon-note_select_right',
 				classes: 'collapsed selection-icon',
-				action: 'collapseChild',
+				action: 'collapseGrandchild',
 				ctor: 'NavigationButtons',
 				group: 'navigation',
 				id: 'navGrowRight'

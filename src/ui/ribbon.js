@@ -3,15 +3,15 @@
 // ## RibbonButtons
 // Render the ribbon buttons based on group, function, and underlying UI handler.
 // Also handles UI events.
-// ## RibbonButton methods
+// ### RibbonButton methods
 // ---
 class RibbonButtons {
 	static get paramArray() {
 		return ['ribbonButtons', 'ribbons', 'editor', 'controller', 'tracker', 'menus'];
 	}
-	static ribbonButton(buttonId, buttonClass, buttonText, buttonIcon, buttonKey) {
+	static _buttonHtml(containerClass,buttonId, buttonClass, buttonText, buttonIcon, buttonKey) {
 		var b = htmlHelpers.buildDom;
-		var r = b('div').classes('ribbonButtonContainer').append(b('button').attr('id', buttonId).classes(buttonClass).append(
+		var r = b('div').classes(containerClass).append(b('button').attr('id', buttonId).classes(buttonClass).append(
 					b('span').classes('left-text').append(
 					    b('span').classes('text-span').text(buttonText)).append(
 					b('span').classes('ribbon-button-text icon ' + buttonIcon))).append(
@@ -34,19 +34,6 @@ class RibbonButtons {
         this.controller.unbindKeyboardForMenu(this.menus);
 		this.menus.createMenu(buttonData.ctor);
 	}
-	_bindCollapsibleAction(buttonElement, buttonData) {
-		// collapseParent
-		this.collapsables.push(new CollapseRibbonControl({
-				ribbonButtons: this.ribbonButtons,
-				menus: this.menus,
-				tracker: this.tracker,
-				controller: this.controller,
-				editor: this.editor,
-				buttonElement: buttonElement,
-				buttonData: buttonData
-			}));
-	}
-
 	_rebindController() {
 		this.controller.render();
 		this.controller.bindEvents();
@@ -56,7 +43,7 @@ class RibbonButtons {
 			this._executeButtonModal(buttonElement, buttonData);
 			return;
 		}
-		if (buttonData.action === 'menu') {
+		if (buttonData.action === 'menu' || buttonData.action === 'collapseChildMenu') {
 			this._executeButtonMenu(buttonElement, buttonData);
 			return;
 		}
@@ -68,56 +55,99 @@ class RibbonButtons {
 			self._executeButton(buttonElement, buttonData);
 		});
 	}
-	_createButtonHtml(buttonAr, selector) {
+    _createCollapsibleButtonGroups(selector) {
+        // Now all the button elements have been bound.  Join child and parent buttons
+        // For all the children of a button group, add it to the parent group
+        this.collapseChildren.forEach((b) => {
+            var containerClass = 'ribbonButtonContainer';
+            if (b.action == 'collapseGrandchild') {
+                containerClass = 'ribbonButtonContainerMore'
+            }
+            var buttonHtml = RibbonButtons._buttonHtml(
+                containerClass,b.id, b.classes, b.leftText, b.icon, b.rightText);
+            if (b.dataElements) {
+                var bkeys = Object.keys(b.dataElements);
+                bkeys.forEach((bkey) => {
+                    var de = b.dataElements[bkey];
+                    $(buttonHtml).find('button').attr('data-' + bkey, de);
+                });
+            }
+            // Bind the child button actions
+            var parent = $(selector).find('.collapseContainer[data-group="' + b.group + '"]');
+            $(parent).append(buttonHtml);
+            var el = $(selector).find('#' + b.id);
+            this._bindButton(el, b);
+        });
+
+        this.collapsables.forEach((cb) => {
+            // Bind the events of the parent button
+            cb.bind();
+        });
+    }
+
+    static isCollapsible(action) {
+        return ['collapseChild','collapseChildMenu','collapseGrandchild','collapseMore'].indexOf(action) >= 0;
+    }
+
+    static isBindable(action) {
+        return ['collapseChildMenu','menu','modal'].indexOf(action) >= 0;
+    }
+
+    // ### _createButtonHtml
+    // For each button, create the html and bind the events based on
+    // the button's configured action.
+	_createRibbonHtml(buttonAr, selector) {
 		buttonAr.forEach((buttonId) => {
-			var b = this.ribbonButtons.find((e) => {
+			var buttonData = this.ribbonButtons.find((e) => {
 					return e.id === buttonId;
 				});
-			if (b) {
-				if (b.action === 'collapseChild') {
-					this.collapseChildren.push(b);
-				} else {
+			if (buttonData) {
+                // collapse child is hidden until the parent button is selected, exposing the button group
+				if (RibbonButtons.isCollapsible(buttonData.action)) {
+					this.collapseChildren.push(buttonData);
+                }
+				if (buttonData.action != 'collapseChild') {
 
-					var buttonHtml = RibbonButtons.ribbonButton(b.id, b.classes, b.leftText, b.icon, b.rightText);
-					$(buttonHtml).attr('data-group', b.group);
+                    // else the button has a specific action, such as a menu or dialog, or a parent button
+
+					var buttonHtml = RibbonButtons._buttonHtml('ribbonButtonContainer',
+                        buttonData.id, buttonData.classes, buttonData.leftText, buttonData.icon, buttonData.rightText);
+					$(buttonHtml).attr('data-group', buttonData.group);
 
 					$(selector).append(buttonHtml);
-					var el = $(selector).find('#' + b.id);
-					this._bindButton(el, b);
-					if (b.action == 'collapseParent') {
+					var buttonElement = $(selector).find('#' + buttonData.id);
+					this._bindButton(buttonElement, buttonData);
+					if (buttonData.action == 'collapseParent') {
 						$(buttonHtml).addClass('collapseContainer');
-						this._bindCollapsibleAction(el, b);
+                        // collapseParent
+                		this.collapsables.push(new CollapseRibbonControl({
+                				ribbonButtons: this.ribbonButtons,
+                				menus: this.menus,
+                				tracker: this.tracker,
+                				controller: this.controller,
+                				editor: this.editor,
+                				buttonElement: buttonElement,
+                				buttonData: buttonData
+                			}));
 					}
 				}
 			}
 		});
-		this.collapseChildren.forEach((b) => {
-			var buttonHtml = RibbonButtons.ribbonButton(b.id, b.classes, b.leftText, b.icon, b.rightText);
-			if (b.dataElements) {
-				var bkeys = Object.keys(b.dataElements);
-				bkeys.forEach((bkey) => {
-					var de = b.dataElements[bkey];
-					$(buttonHtml).find('button').attr('data-' + bkey, de);
-				});
-			}
-			var parent = $(selector).find('.collapseContainer[data-group="' + b.group + '"]');
-			$(parent).append(buttonHtml);
-			var el = $(selector).find('#' + b.id);
-			this._bindButton(el, b);
-		});
-		this.collapsables.forEach((cb) => {
-			cb.bind();
-		});
 	}
+    createRibbon(buttonDataArray,parentElement) {
+        this._createRibbonHtml(buttonDataArray, parentElement);
+        this._createCollapsibleButtonGroups(parentElement);
+    }
+
 	display() {
 		$('body .controls-left').html('');
 		$('body .controls-top').html('');
 
 		var buttonAr = this.ribbons['left'];
-		this._createButtonHtml(buttonAr, 'body .controls-left');
+		this.createRibbon(buttonAr, 'body .controls-left');
 
 		buttonAr = this.ribbons['top'];
-		this._createButtonHtml(buttonAr, 'body .controls-top');
+		this.createRibbon(buttonAr, 'body .controls-top');
 	}
 }
 
@@ -135,6 +165,19 @@ class DebugButtons {
     }
 }
 
+class ExtendedCollapseParent {
+    constructor(parameters) {
+		this.buttonElement = parameters.buttonElement;
+		this.buttonData = parameters.buttonData;
+		this.editor = parameters.editor;
+	}
+    bind() {
+		var self = this;
+		$(this.buttonElement).off('click').on('click', function () {
+			$(this).closest('.collapseContainer').toggleClass('expanded-more');
+		});
+    }
+}
 class BeamButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
@@ -622,7 +665,8 @@ class CollapseRibbonControl {
 	constructor(parameters) {
 		smoMusic.filteredMerge(CollapseRibbonControl.paramArray, parameters, this);
 		this.childButtons = parameters.ribbonButtons.filter((cb) => {
-				return cb.group === this.buttonData.group && cb.action === 'collapseChild';
+				return cb.group === this.buttonData.group &&
+                    RibbonButtons.isCollapsible(cb.action)
 			});
 	}
 	_toggleExpand() {
@@ -666,7 +710,9 @@ class CollapseRibbonControl {
 					tracker: this.tracker,
 					controller: this.controller
 				});
-			btn.bind();
+            if (typeof(btn.bind) == 'function') {
+                btn.bind();
+            }
 		});
 	}
 }
