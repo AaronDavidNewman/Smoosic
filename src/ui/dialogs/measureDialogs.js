@@ -206,6 +206,130 @@ class SuiMeasureDialog extends SuiDialogBase {
 		});
 	}
 }
+class SuiTimeSignatureDialog extends SuiDialogBase {
+    static get dialogElements() {
+        return [{
+            smoName: 'numerator',
+            parameterName: 'numerator',
+            defaultValue: 3,
+            control: 'SuiRockerComponent',
+            label:'Beats/Measure',
+            },
+		{
+			parameterName: 'denominator',
+			smoName: 'denominator',
+			defaultValue: 8,
+            dataType:'int',
+			control: 'SuiDropdownComponent',
+			label: 'Beat Value',
+			options: [{
+					value: 8,
+					label: '8',
+				}, {
+					value: 4,
+					label: '4'
+				}, {
+					value: 2,
+					label: '2'
+				}
+			]
+		} ];
+     }
+     populateInitial() {
+         var num,den;
+         var nd = this.measure.timeSignature.split('/');
+         var num = parseInt(nd[0]);
+         var den = parseInt(nd[1]);
+
+         this.numeratorCtrl.setValue(num);
+         this.denominatorCtrl.setValue(den);
+     }
+
+    changed() {
+        // no dynamic change for time  signatures
+    }
+     static createAndDisplay(params) {
+         // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
+         //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
+
+         var dg = new SuiTimeSignatureDialog({
+             selections: params.controller.tracker.selections,
+             undoBuffer: params.controller.undoBuffer,
+             layout: params.controller.tracker.layout,
+             controller:params.controller,
+             closeMenuPromise:params.closeMenuPromise
+           });
+         dg.display();
+         return dg;
+     }
+     changeTimeSignature() {
+         var ts = '' + this.numeratorCtrl.getValue() + '/'+this.denominatorCtrl.getValue();
+         SmoUndoable.multiSelectionOperation(this.tracker.layout.score,
+             this.tracker.selections,
+             'setTimeSignature',ts,this.undoBuffer);
+          this.tracker.layout.setDirty();
+     }
+     _bindElements() {
+         var self = this;
+ 		var dgDom = this.dgDom;
+         this.numeratorCtrl = this.components.find((comp) => {return comp.smoName == 'numerator';});
+         this.denominatorCtrl = this.components.find((comp) => {return comp.smoName == 'denominator';});
+         this.populateInitial();
+
+ 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+            self.changeTimeSignature();
+ 			self.complete();
+ 		});
+
+ 		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+ 			self.complete();
+ 		});
+ 		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
+ 			self.complete();
+ 		});
+     }
+     display() {
+         $('body').addClass('showAttributeDialog');
+          this.tracker.scrollVisible(this.initialLeft,this.initialTop);
+         this.components.forEach((component) => {
+             component.bind();
+         });
+         this._bindElements();
+         this.position(this.measure.renderedBox);
+
+         var cb = function (x, y) {}
+         htmlHelpers.draggable({
+             parent: $(this.dgDom.element).find('.attributeModal'),
+             handle: $(this.dgDom.element).find('.jsDbMove'),
+              animateDiv:'.draganime',
+             cb: cb,
+             moveParent: true
+         });
+
+         var self=this;
+         function getKeys() {
+             self.controller.unbindKeyboardForDialog(self);
+         }
+         this.startPromise.then(getKeys);
+     }
+     constructor(parameters) {
+         var measure = parameters.selections[0].measure;
+
+         super(SuiTimeSignatureDialog.dialogElements, {
+             id: 'time-signature-measure',
+             top: measure.renderedBox.y,
+             left: measure.renderedBox.x,
+             label: 'Custom Time Signature',
+ 			 tracker:parameters.controller.tracker
+         });
+         this.measure = measure;
+         this.refresh = false;
+         this.startPromise=parameters.closeMenuPromise;
+         Vex.Merge(this, parameters);
+     }
+ }
+
+
 // ## SuiTempoDialog
 // Allow user to choose a tempo or tempo change.
 class SuiTempoDialog extends SuiDialogBase {

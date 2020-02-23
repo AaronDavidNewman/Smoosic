@@ -122,6 +122,10 @@ class SmoUndoable {
 	    SmoUndoable.undoForSelections(score,selections,undoBuffer,operation);
 		SmoOperation.batchSelectionOperation(score,selections,operation);
 	}
+    static multiSelectionOperation(score,selections,operation,parameter,undoBuffer) {
+        SmoUndoable.undoForSelections(score,selections,undoBuffer,operation);
+        SmoOperation[operation](score,selections,parameter);
+    }
     static addGraceNote(selection,undoBuffer) {
         undoBuffer.addBuffer('grace note ' + JSON.stringify(selection.note.pitches, null, ' '),
             'measure', selection.selector, selection.measure);

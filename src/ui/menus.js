@@ -598,6 +598,10 @@ class SuiTimeSignatureMenu extends suiMenuBase {
 					value: '5/8',
 				},{
 					icon: '',
+					text: 'Other',
+					value: 'Other',
+				},{
+					icon: '',
 					text: 'Cancel',
 					value: 'cancel'
 				}
@@ -606,6 +610,17 @@ class SuiTimeSignatureMenu extends suiMenuBase {
     }
 
     selection(ev) {
+        var text = $(ev.currentTarget).attr('data-value');
+
+        if (text == 'Other') {
+                SuiTimeSignatureDialog.createAndDisplay({
+    			layout: this.layout,
+                controller:this.controller,
+                closeMenuPromise:this.closePromise
+    		    });
+                this.complete();
+                return;
+        }
 		var timeSig = $(ev.currentTarget).attr('data-value');
         this.controller.layout.unrenderAll();
         SmoUndoable.scoreSelectionOp(this.controller.layout.score,this.tracker.selections,
