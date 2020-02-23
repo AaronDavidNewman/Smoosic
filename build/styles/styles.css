@@ -186,6 +186,19 @@ body.slash-menu .control-menu-message {
     display:none;
 }
 
+.ribbonButtonContainer button.expander span.left-text .text-span {
+    font-size:1.6em;
+    left:18%;
+}
+.ribbonButtonContainer.expanded-more button.expander span.left-text .text-span {
+    display:none;
+}
+.ribbonButtonContainer button.expander span.icon-circle-left {
+    display:none;
+}
+.collapseContainer.expanded-more button.expander span.icon-circle-left {
+    display:block;
+}
 body.layout-debug .ribbonButtonContainer[data-group="debug"] {
     display:block;
 }
@@ -274,6 +287,19 @@ div.ribbonButtonContainer.expanded {
     font-size:1.2em;
 }
 
+#clefAddRemove .icon {
+    font-size:0.7em;
+    top:18%;
+}
+
+.controls-top .collapseContainer .ribbonButtonContainerMore {
+    display:none;
+}
+
+.controls-top div.collapseContainer.expanded-more .ribbonButtonContainerMore {
+    display:inline-block;
+}
+
 .ribbonButtonContainer .icon.staves.expanded {
     width:55px;
     font-size:1.6em;
@@ -287,8 +313,9 @@ div.ribbonButtonContainer.expanded {
     left:25%;
 }
 
-#clefMoveUp,#clefMoveDown {
-    font-size:1em;
+#clefMoveUp .icon,#clefMoveDown .icon{
+    font-size:0.7em;
+    top:18%;
 }
 
 #StaveButtons span.icon {

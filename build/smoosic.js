@@ -1100,6 +1100,10 @@ class svgHelpers {
 
     static adjustScroll(box,scroll) {
         // WIP...
+        if (typeof(box) == 'undefined' || typeof(scroll) == 'undefined') {
+            console.log('bad values to scroll thing');
+            return;
+        }
         return svgHelpers.boxPoints(box.x - scroll.x,box.y-scroll.y,box.width,box.height);
         // return box;
     }
@@ -4256,6 +4260,16 @@ class SmoScore {
         this._numberStaves();
     }
 
+    swapStaves(index1,index2) {
+        if (this.staves.length < index1 || this.staves.length < index2) {
+            return;
+        }
+        var tmpStaff = this.staves[index1];
+        this.staves[index1] = this.staves[index2];
+        this.staves[index2] = tmpStaff;
+        this._numberStaves();
+    }
+
 	_updateScoreText(textObject,toAdd) {
 		var texts=[];
 		this.scoreText.forEach((tt) => {
@@ -5975,6 +5989,14 @@ class SmoOperation {
         });
     }
 
+    static moveStaffUpDown(score,selection,index) {
+        var index1 = selection.selector.staff;
+        var index2 = selection.selector.staff + index;
+        if (index2 < score.staves.length && index2 >= 0) {
+            score.swapStaves(index1,index2);
+        }
+    }
+
     static depopulateVoice(selection,voiceIx) {
         var ix = 0;
         var voices = [];
@@ -6860,6 +6882,10 @@ class SmoUndoable {
 	    SmoUndoable.undoForSelections(score,selections,undoBuffer,operation);
 		SmoOperation.batchSelectionOperation(score,selections,operation);
 	}
+    static multiSelectionOperation(score,selections,operation,parameter,undoBuffer) {
+        SmoUndoable.undoForSelections(score,selections,undoBuffer,operation);
+        SmoOperation[operation](score,selections,parameter);
+    }
     static addGraceNote(selection,undoBuffer) {
         undoBuffer.addBuffer('grace note ' + JSON.stringify(selection.note.pitches, null, ' '),
             'measure', selection.selector, selection.measure);
@@ -9147,6 +9173,11 @@ class suiTracker {
             });
         }
 
+        // not has not been drawn yet.
+        if (!artifact.box) {
+            return;
+        }
+
         if (!this.measureNoteMap[noteKey]) {
             this.measureNoteMap[noteKey] = artifact;
             artifact.scrollBox = {x:artifact.box.x - this.netScroll.x,y:artifact.measure.renderedBox.y - this.netScroll.y};
@@ -10050,11 +10081,14 @@ class suiLayoutBase {
 			type: ctor
 		};
 		this.dirty=true;
+        this.renderTime=250;  // ms to render before time slicing
         this.partialRender = false;
         this.stateRepCount=0;
+        this.viewportPages = 1;
 		this.setPassState(suiLayoutBase.initial,'ctor');
 		console.log('layout ctor: pstate initial');
-		this.viewportChange = false;
+		this.viewportChanged = false;
+        this._resetViewport = false;
         this.measureMapper = null;
 	}
 
@@ -10071,9 +10105,7 @@ class suiLayoutBase {
 	setDirty() {
 		if (!this.dirty) {
 			this.dirty = true;
-			if (this.viewportChange) {
-				this.setPassState(suiLayoutBase.passStates.initial,'setDirty 1');
-			} else if (this.passState == suiLayoutBase.passStates.clean ||
+			if (this.passState == suiLayoutBase.passStates.clean ||
 			   this.passState == suiLayoutBase.passStates.replace) {
 				this.setPassState(suiLayoutBase.passStates.replace,'setDirty 2');
 			} else {
@@ -10085,6 +10117,11 @@ class suiLayoutBase {
 		this.dirty=true;
 		this.setPassState(suiLayoutBase.passStates.initial,'setRefresh');
 	}
+    rerenderAll() {
+        this.dirty=true;
+		this.setPassState(suiLayoutBase.passStates.initial,'rerenderAll');
+        this._resetViewport = true;
+    }
 
     remapAll() {
         this.partialRender = false;
@@ -10125,6 +10162,7 @@ class suiLayoutBase {
 		this.pageWidth =  (this.orientation  === SmoScore.orientations.portrait) ? w: h;
 		this.pageHeight = (this.orientation  === SmoScore.orientations.portrait) ? h : w;
         this.totalHeight = this.pageHeight * this.score.layout.pages;
+        this.viewportPages = this.score.layout.pages;
 
 		this.leftMargin=this._score.layout.leftMargin;
         this.rightMargin = this._score.layout.rightMargin;
@@ -10133,7 +10171,7 @@ class suiLayoutBase {
 		if (reset) {
 		    $(elementId).html('');
     		this.renderer = new VF.Renderer(elementId, VF.Renderer.Backends.SVG);
-            this.viewportChange = true;
+            this.viewportChanged = true;
 		}
 		// this.renderer.resize(this.pageWidth, this.pageHeight);
 
@@ -10473,7 +10511,7 @@ class suiLayoutBase {
 
     _adjustHeight() {
         var curPages = this._score.layout.pages;
-        suiLayoutAdjuster.adjustHeight(this._score,this.renderer,this.pageHeight/this.svgScale);
+        // suiLayoutAdjuster.adjustHeight(this._score,this.renderer,this.pageHeight/this.svgScale);
         if (this._score.layout.pages  != curPages) {
             this.setViewport(false);
             this.setPassState(suiLayoutBase.passStates.initial,'render 2');
@@ -10485,13 +10523,10 @@ class suiLayoutBase {
     }
 
 	render() {
-        var viewportChanged = false;
-		if (this.viewportChange) {
-			this.unrenderAll();
-			this.setPassState(suiLayoutBase.passStates.initial,'render 1');
-			this.viewportChange = false;
-            viewportChanged = true;
-		}
+        if (this._resetViewport) {
+            this.setViewport(true);
+            this._resetViewport = false;
+        }
 
 		// layout iteratively until we get it right, adjusting X each time.
 		var params = {useY:false,useX:false};
@@ -10522,7 +10557,6 @@ class suiLayoutBase {
         if (this.passState == suiLayoutBase.passStates.initial) {
             suiLayoutAdjuster.adjustWidths(this._score,this.renderer);
             suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth);
-            this._adjustHeight();
         }
 
         this._drawPageLines();
@@ -10532,8 +10566,17 @@ class suiLayoutBase {
 			return;
 		}
 
-        if (this.passState == suiLayoutBase.passStates.redrawMain) {
+        // if (this.passState == suiLayoutBase.passStates.redrawMain) {
+        if (params.useX == true) {
+            if (this.score.layout.pages != this.viewportPages) {
+                this.setViewport(true);
+                this.setPassState(suiLayoutBase.passStates.adjustY,
+                    'page change reset viewport - re-render pages');
+                return;
+            }
+
             this.dirty=false;
+
             this.setPassState(suiLayoutBase.passStates.clean,'render complete');
             this.numberMeasures();
             // this.shadowRender = true;
@@ -10541,20 +10584,9 @@ class suiLayoutBase {
             return;
         }
 
-        if (params.useX == true) {
-            if (this.passState == suiLayoutBase.passStates.adjustY) {
-                this.setPassState(suiLayoutBase.passStates.redrawMain,'penultimate render successful');
-            } else {
-                var curPages = this._score.layout.pages;
-                suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth);
-                this._adjustHeight();
-            }
-        } else {
-            // otherwise we need another pass.
-            this.dirty=true;
-            this.setPassState(suiLayoutBase.passStates.pass,'render 3');
-            console.log('layout after pass: pstate pass');
-        }
+        this.dirty=true;
+        this.setPassState(suiLayoutBase.passStates.pass,'render 3');
+        console.log('layout after pass: pstate pass');
 	}
 }
 ;
@@ -11076,6 +11108,43 @@ class suiLayoutAdjuster {
         return {heightOffset:heightOffset,yOffset:yOffset};
     }
 
+    static adjustSystemForPage(score,lineIndex,svgScale) {
+        // svgScale = 1.0;
+        var ar = [];
+        var pageSize = score.layout.pageHeight / svgScale;
+        var bm = score.layout.bottomMargin/svgScale;
+        var tm = score.layout.topMargin/svgScale;
+        score.staves.forEach((staff) => {
+            var mar = staff.measures.filter((mm) => mm.lineIndex == lineIndex);
+            ar = ar.concat(mar);
+        });
+        var minMeasure  = ar[0];
+        var maxMeasure = minMeasure;
+        ar.forEach((mm) => {
+            minMeasure = (mm.logicalBox.y < minMeasure.logicalBox.y)
+               ? mm : minMeasure;
+            maxMeasure =  (mm.logicalBox.y + mm.logicalBox.height >
+                maxMeasure.logicalBox.y + maxMeasure.logicalBox.height)
+               ? mm : maxMeasure;
+        });
+        var height = (maxMeasure.logicalBox.y + maxMeasure.logicalBox.height) -
+            minMeasure.logicalBox.y;
+        var page = Math.floor((minMeasure.logicalBox.y + pageSize)
+            / pageSize);
+        var thresh = pageSize * page - bm;
+        var maxHeight = maxMeasure.logicalBox.y + maxMeasure.logicalBox.height;
+        if (maxHeight > thresh && height < score.layout.pageHeight) {
+            page += 1;
+            var adj = (thresh-minMeasure.logicalBox.y)  + bm + tm;
+            ar.forEach((mm) => {
+                mm.setBox(svgHelpers.boxPoints(mm.logicalBox.x,mm.logicalBox.y + adj,
+                    mm.logicalBox.width,mm.logicalBox.height),'adjustSystemForPage');
+                mm.setY(mm.staffY + adj,'adjustSystemForPage');
+            });
+        }
+        return page;
+    }
+
     // ### _adjustTopYLeft
     // Adjust the start y for all the measures to the left of this systems
     // once we know that it will not wrap.
@@ -11217,157 +11286,6 @@ class suiLayoutAdjuster {
 			});
 
 		return {minY:minY,maxY:maxY};
-	}
-
-	// ### adjustHeight
-	// Handle measure bumping into each other, vertically.
-	static adjustHeight(score,renderer,pageHeight) {
-		var topStaff = score.staves[0];
-		var maxLine = topStaff.measures[topStaff.measures.length - 1].lineIndex;
-		var svg = renderer.getContext().svg;
-        var dbgPageWidth =  (score.layout.pageWidth - (score.layout.rightMargin+score.layout.leftMargin))/
-                               score.layout.svgScale;
-        var dbgMargin = score.layout.leftMargin/score.layout.svgScale;
-
-		// array of the max Y measure per line, used to space next line down
-		var maxYPerLine = [];
-		var lineIndexPerLine = [];
-        var vyMaxY = 0;
-
-		layoutDebug.clearDebugBoxes('adjustHeight');
-
-		var accum = 0;
-		// iterate: system, staves within a system, measures
-		for (var i = 0; i <= maxLine; ++i) {
-			for (var j = 0; j < score.staves.length; ++j) {
-				var absLine = score.staves.length * i + j;
-				var staff = score.staves[j];
-				var measures = staff.measures.filter((mm) => {
-						return mm.lineIndex === i
-					});
-
-				if (measures.length === 0) {
-					continue;
-				}
-
-                var measureNums = measures.map((mm)=> {
-                    return mm.measureNumber.measureIndex;
-                });
-                var measureMax = measureNums.reduce((a,b) => a > b ? a : b);
-                var measureMin = measureNums.reduce((a,b) => a < b ? a : b);
-
-				// maxYMeasure is measure on this line with y closest to bottom of page (maxYMeasure y point)
-				var maxYMeasure = measures.reduce((a, b) => {
-						if (a.logicalBox.y + a.logicalBox.height >
-							b.logicalBox.y + b.logicalBox.height) {
-							return a;
-						}
-						return b;
-					});
-				// minYMeasure is measure on this line with y closest to top of the page
-				var minYMeasure = measures.reduce((a, b) => {
-						return a.logicalBox.y < b.logicalBox.y ? a : b;
-					});
-
-				var minYRenderedY = minYMeasure.logicalBox.y;
-				var minYStaffY = minYMeasure.staffY;
-
-				var thisLineMaxY = maxYMeasure.logicalBox.y + maxYMeasure.logicalBox.height;
-
-				var modAdj = suiLayoutAdjuster._minMaxYModifier(staff,measureMin,measureMax,minYRenderedY,thisLineMaxY);
-				minYRenderedY=modAdj.minY;
-				thisLineMaxY=modAdj.maxY;
-
-				maxYPerLine.push(thisLineMaxY);
-				lineIndexPerLine.push(maxYMeasure.lineIndex);
-
-				/* if (absLine == 0) {
-
-					measures.forEach((measure) => {
-						measure.setY(minYStaffY,'adjustHeight 1');
-                        vyMaxY = (vyMaxY > measure.staffY + measure.logicalBox.height) ? vyMaxY :
-                           measure.staffY + measure.logicalBox.height;
-                        layoutDebug.debugBox(svg,
-                            svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height),
-                            'adjustHeight');
-					});
-				} else {
-					var my = maxYPerLine[absLine - 1]  + score.layout.intraGap;
-					var delta = my - minYRenderedY;
-					if (lineIndexPerLine[absLine - 1] < minYMeasure.lineIndex) {
-						delta += score.layout.interGap;
-					}
-					accum += delta;
-					var staffY = minYStaffY + accum;
-					measures.forEach((measure) => {
-						measure.setY(staffY,'adjustHeight');
-                        vyMaxY = (vyMaxY > measure.staffY + measure.logicalBox.height) ? vyMaxY :
-                           measure.staffY + measure.logicalBox.height;
-                           layoutDebug.debugBox(svg,
-                               svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height),
-                               'adjustHeight');
-					});
-				}  */
-			}
-		}
-
-        layoutDebug.clearDebugBoxes('system');
-
-        // Finally, make sure each system does not run into the page break;
-        var page = 1;
-        var pageGap = 0;
-        var pbrk = page * pageHeight;
-
-        for (var i=0; i <= maxLine; ++i) {
-            var measures=[];
-            score.staves.forEach((staff) => {
-                var delta = staff.measures.filter((mm) => {
-                            return mm.lineIndex === i
-                });
-                measures = measures.concat(delta);
-            });
-            measures.forEach((mm) => {
-                mm.setY(mm.staffY+pageGap,'adjustHeight for page start');
-                mm.pageGap = pageGap;
-            });
-
-            var minyMeasure = measures.reduce((a, b) => {
-						return a.staffY < b.staffY ? a: b;
-					});
-            var miny = minyMeasure.staffY;
-            var maxyMeasure = measures.reduce((a, b) => {
-                var ay = a.staffY + a.logicalBox.height;
-                var by = b.staffY+ b.logicalBox.height;
-						return  ay > by ? a : b;
-					});
-            var maxy = maxyMeasure.staffY + maxyMeasure.logicalBox.height;
-
-            // miny + x = pbrk + margin
-            if (maxy > pbrk) {
-                var ngap = pbrk - miny + score.layout.topMargin;
-                measures.forEach((mm) => {
-                    mm.setY(mm.staffY+ngap,'adjustHeight for page gap');
-                    mm.pageGap = ngap + pageGap;
-                });
-                page += 1;
-                pbrk = page * pageHeight;
-                pageGap += ngap;
-                miny += ngap; // for debug box.
-            }
-            layoutDebug.debugBox(
-                svg, svgHelpers.boxPoints(dbgMargin, miny,
-                     dbgPageWidth,
-                     maxy-miny),
-               'system');
-
-        }
-        if (page != score.layout.pages) {
-            // Always add extra pages, but don't reduce the page count
-            // unless we are 50% from a poge break to avoid flicker
-            if (score.layout.pages < page || pbrk-maxy > (pageHeight/2)) {
-                score.layout.pages = page;
-            }
-        }
 	}
 }
 ;
@@ -11628,6 +11546,10 @@ class suiScoreLayout extends suiLayoutBase {
             box.x += (widths - (box.x + box.width));
         });
     }
+    _adjustPages() {
+        var pageCfg = this.score.layout.pages;
+
+    }
 
     _layoutSystem(renderState) {
         var s = renderState;
@@ -11637,6 +11559,10 @@ class suiScoreLayout extends suiLayoutBase {
         while (!s.wrapped && !s.complete) {
              this._layoutColumn(s);
              if (s.wrapped) {
+                 if (!s.calculations.useY) {
+                      this.score.layout.pages =
+                      suiLayoutAdjuster.adjustSystemForPage(this.score,s.measure.lineIndex,this.score.layout.svgScale);
+                 }
                  break;
              }
              var useX = s.calculations.useX;
@@ -11652,6 +11578,10 @@ class suiScoreLayout extends suiLayoutBase {
                 // If we are expecting to wrap here, do so.
                 if (useX && measure.lineIndex > s.lineIndex) {
                     s.wrapped = true;
+                    if (!s.calculations.useY) {
+                       this.score.layout.pages =
+                         suiLayoutAdjuster.adjustSystemForPage(this.score,measure.lineIndex,this.score.layout.svgScale);
+                    }
                     break;
                 }
                 s.systemIndex += 1;
@@ -11659,6 +11589,8 @@ class suiScoreLayout extends suiLayoutBase {
                 s.complete = true;
                 if (!s.calculations.useY) {
                     suiLayoutAdjuster.adjustYEstimates(this.score,s.measure.lineIndex);
+                    this.score.layout.pages =
+                      suiLayoutAdjuster.adjustSystemForPage(this.score,s.lineIndex,this.score.layout.svgScale);
                 }
             }
         }
@@ -11892,7 +11824,7 @@ class suiScoreLayout extends suiLayoutBase {
                 (this.passState == suiLayoutBase.passStates.pass) &&
                 renderState.complete == false
                 && layoutDebug.mask == 0
-                && Date.now() - ts > 100) {
+                && Date.now() - ts > this.renderTime) {
                 this.renderState = renderState;
                 this.setPassState(suiLayoutBase.passStates.incomplete,' partial '+renderState.measure.measureNumber.measureIndex);
                 break;
@@ -13364,6 +13296,10 @@ class SuiTimeSignatureMenu extends suiMenuBase {
 					value: '5/8',
 				},{
 					icon: '',
+					text: 'Other',
+					value: 'Other',
+				},{
+					icon: '',
 					text: 'Cancel',
 					value: 'cancel'
 				}
@@ -13372,6 +13308,17 @@ class SuiTimeSignatureMenu extends suiMenuBase {
     }
 
     selection(ev) {
+        var text = $(ev.currentTarget).attr('data-value');
+
+        if (text == 'Other') {
+                SuiTimeSignatureDialog.createAndDisplay({
+    			layout: this.layout,
+                controller:this.controller,
+                closeMenuPromise:this.closePromise
+    		    });
+                this.complete();
+                return;
+        }
 		var timeSig = $(ev.currentTarget).attr('data-value');
         this.controller.layout.unrenderAll();
         SmoUndoable.scoreSelectionOp(this.controller.layout.score,this.tracker.selections,
@@ -15620,6 +15567,130 @@ class SuiMeasureDialog extends SuiDialogBase {
 		});
 	}
 }
+class SuiTimeSignatureDialog extends SuiDialogBase {
+    static get dialogElements() {
+        return [{
+            smoName: 'numerator',
+            parameterName: 'numerator',
+            defaultValue: 3,
+            control: 'SuiRockerComponent',
+            label:'Beats/Measure',
+            },
+		{
+			parameterName: 'denominator',
+			smoName: 'denominator',
+			defaultValue: 8,
+            dataType:'int',
+			control: 'SuiDropdownComponent',
+			label: 'Beat Value',
+			options: [{
+					value: 8,
+					label: '8',
+				}, {
+					value: 4,
+					label: '4'
+				}, {
+					value: 2,
+					label: '2'
+				}
+			]
+		} ];
+     }
+     populateInitial() {
+         var num,den;
+         var nd = this.measure.timeSignature.split('/');
+         var num = parseInt(nd[0]);
+         var den = parseInt(nd[1]);
+
+         this.numeratorCtrl.setValue(num);
+         this.denominatorCtrl.setValue(den);
+     }
+
+    changed() {
+        // no dynamic change for time  signatures
+    }
+     static createAndDisplay(params) {
+         // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
+         //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
+
+         var dg = new SuiTimeSignatureDialog({
+             selections: params.controller.tracker.selections,
+             undoBuffer: params.controller.undoBuffer,
+             layout: params.controller.tracker.layout,
+             controller:params.controller,
+             closeMenuPromise:params.closeMenuPromise
+           });
+         dg.display();
+         return dg;
+     }
+     changeTimeSignature() {
+         var ts = '' + this.numeratorCtrl.getValue() + '/'+this.denominatorCtrl.getValue();
+         SmoUndoable.multiSelectionOperation(this.tracker.layout.score,
+             this.tracker.selections,
+             'setTimeSignature',ts,this.undoBuffer);
+          this.tracker.layout.setDirty();
+     }
+     _bindElements() {
+         var self = this;
+ 		var dgDom = this.dgDom;
+         this.numeratorCtrl = this.components.find((comp) => {return comp.smoName == 'numerator';});
+         this.denominatorCtrl = this.components.find((comp) => {return comp.smoName == 'denominator';});
+         this.populateInitial();
+
+ 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+            self.changeTimeSignature();
+ 			self.complete();
+ 		});
+
+ 		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+ 			self.complete();
+ 		});
+ 		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
+ 			self.complete();
+ 		});
+     }
+     display() {
+         $('body').addClass('showAttributeDialog');
+          this.tracker.scrollVisible(this.initialLeft,this.initialTop);
+         this.components.forEach((component) => {
+             component.bind();
+         });
+         this._bindElements();
+         this.position(this.measure.renderedBox);
+
+         var cb = function (x, y) {}
+         htmlHelpers.draggable({
+             parent: $(this.dgDom.element).find('.attributeModal'),
+             handle: $(this.dgDom.element).find('.jsDbMove'),
+              animateDiv:'.draganime',
+             cb: cb,
+             moveParent: true
+         });
+
+         var self=this;
+         function getKeys() {
+             self.controller.unbindKeyboardForDialog(self);
+         }
+         this.startPromise.then(getKeys);
+     }
+     constructor(parameters) {
+         var measure = parameters.selections[0].measure;
+
+         super(SuiTimeSignatureDialog.dialogElements, {
+             id: 'time-signature-measure',
+             top: measure.renderedBox.y,
+             left: measure.renderedBox.x,
+             label: 'Custom Time Signature',
+ 			 tracker:parameters.controller.tracker
+         });
+         this.measure = measure;
+         this.refresh = false;
+         this.startPromise=parameters.closeMenuPromise;
+         Vex.Merge(this, parameters);
+     }
+ }
+
+
 // ## SuiTempoDialog
 // Allow user to choose a tempo or tempo change.
 class SuiTempoDialog extends SuiDialogBase {
@@ -16615,14 +16686,15 @@ class defaultRibbonLayout {
 		return ['helpDialog', 'fileMenu','addStaffMenu','measureModal','tempoModal','timeSignatureMenu','keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
 	}
 	static get noteButtonIds() {
-		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton','AddGraceNote','RemoveGraceNote',
-				'UpNoteButton', 'DownNoteButton', 'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
+		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton',
+            'UpNoteButton', 'DownNoteButton', 'moreNoteButtons','AddGraceNote','RemoveGraceNote',
+				'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
 	}
     static get voiceButtonIds() {
         return ['VoiceButtons','V1Button','V2Button','V3Button','V4Button','VXButton'];
     }
 	static get navigateButtonIds()  {
-		return ['NavigationButtons', 'navLeftButton', 'navRightButton', 'navUpButton', 'navDownButton', 'navFastForward', 'navRewind',
+		return ['NavigationButtons', 'navLeftButton', 'navRightButton', 'navUpButton', 'navDownButton', 'moreNavButtons','navFastForward', 'navRewind',
 				'navGrowLeft', 'navGrowRight'];
 	}
 
@@ -16654,7 +16726,7 @@ class defaultRibbonLayout {
 		return ['BeamButtons','breakBeam','beamSelections','toggleBeamDirection'];
 	}
     static get staveIds() {
-		return ['StaveButtons','clefTreble','clefBass','clefTenor','clefAlto','clefMoveUp','clefMoveDown'];
+		return ['StaveButtons','clefTreble','clefBass','clefTenor','clefAlto','clefAddRemove','clefMoveUp','clefMoveDown'];
 	}
 
     static get playerIds() {
@@ -16759,6 +16831,15 @@ class defaultRibbonLayout {
 				ctor: 'StaveButtons',
 				group: 'staves',
 				id: 'clefAlto'
+		},{
+			leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed staves',
+				icon: 'icon-plus',
+				action: 'collapseChildMenu',
+				ctor: 'SuiAddStaffMenu',
+				group: 'staves',
+				id: 'clefAddRemove'
 		},{
 			leftText: '',
 				rightText: '',
@@ -17254,12 +17335,21 @@ class defaultRibbonLayout {
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'ToggleRestButton'
+			},{
+				leftText: '...',
+				rightText: '',
+				icon: 'icon-circle-left',
+				classes: 'collapsed expander',
+				action: 'collapseMore',
+				ctor: 'ExtendedCollapseParent',
+				group: 'notes',
+				id: 'moreNoteButtons'
 			}, {
 				leftText: '',
 				rightText: 'G',
 				icon: 'icon-grace_note',
 				classes: 'collapsed',
-				action: 'collapseChild',
+				action: 'collapseGrandchild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'AddGraceNote'
@@ -17268,7 +17358,7 @@ class defaultRibbonLayout {
 				rightText: 'alt-g',
 				icon: 'icon-grace_remove',
 				classes: 'collapsed',
-				action: 'collapseChild',
+				action: 'collapseGrandchild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'RemoveGraceNote'
@@ -17277,7 +17367,7 @@ class defaultRibbonLayout {
 				rightText: 'Shift=',
 				icon: '',
 				classes: 'collapsed',
-				action: 'collapseChild',
+				action: 'collapseGrandchild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'UpOctaveButton'
@@ -17286,7 +17376,7 @@ class defaultRibbonLayout {
 				rightText: 'Shift-',
 				icon: '',
 				classes: 'collapsed',
-				action: 'collapseChild',
+				action: 'collapseGrandchild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'DownOctaveButton'
@@ -17295,7 +17385,7 @@ class defaultRibbonLayout {
 				rightText: 'ShiftE',
 				icon: 'icon-accident',
 				classes: 'collapsed',
-				action: 'collapseChild',
+				action: 'collapseGrandchild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'ToggleAccidental'
@@ -17304,7 +17394,7 @@ class defaultRibbonLayout {
 				rightText: 'ShiftF',
 				icon: 'icon-courtesy',
 				classes: 'collapsed',
-				action: 'collapseChild',
+				action: 'collapseGrandchild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'ToggleCourtesy'
@@ -17486,11 +17576,20 @@ class defaultRibbonLayout {
 				group: 'navigation',
 				id: 'navDownButton'
 			}, {
+				leftText: '...',
+				rightText: '',
+				icon: '',
+				classes: 'collapsed expander',
+				action: 'collapseMore',
+				ctor: 'ExtendedCollapseParent',
+				group: 'navigation',
+				id: 'moreNavButtons'
+			},{
 				leftText: '',
 				rightText: '',
 				icon: 'icon-fforward',
 				classes: 'collapsed',
-				action: 'collapseChild',
+				action: 'collapseGrandchild',
 				ctor: 'NavigationButtons',
 				group: 'navigation',
 				id: 'navFastForward'
@@ -17499,7 +17598,7 @@ class defaultRibbonLayout {
 				rightText: '',
 				icon: 'icon-rewind',
 				classes: 'collapsed',
-				action: 'collapseChild',
+				action: 'collapseGrandchild',
 				ctor: 'NavigationButtons',
 				group: 'navigation',
 				id: 'navRewind'
@@ -17508,7 +17607,7 @@ class defaultRibbonLayout {
 				rightText: '',
 				icon: 'icon-note_select_left',
 				classes: 'collapsed selection-icon',
-				action: 'collapseChild',
+				action: 'collapseGrandchild',
 				ctor: 'NavigationButtons',
 				group: 'navigation',
 				id: 'navGrowLeft'
@@ -17517,7 +17616,7 @@ class defaultRibbonLayout {
 				rightText: '',
 				icon: 'icon-note_select_right',
 				classes: 'collapsed selection-icon',
-				action: 'collapseChild',
+				action: 'collapseGrandchild',
 				ctor: 'NavigationButtons',
 				group: 'navigation',
 				id: 'navGrowRight'
@@ -18034,15 +18133,15 @@ class vexGlyph {
 // ## RibbonButtons
 // Render the ribbon buttons based on group, function, and underlying UI handler.
 // Also handles UI events.
-// ## RibbonButton methods
+// ### RibbonButton methods
 // ---
 class RibbonButtons {
 	static get paramArray() {
 		return ['ribbonButtons', 'ribbons', 'editor', 'controller', 'tracker', 'menus'];
 	}
-	static ribbonButton(buttonId, buttonClass, buttonText, buttonIcon, buttonKey) {
+	static _buttonHtml(containerClass,buttonId, buttonClass, buttonText, buttonIcon, buttonKey) {
 		var b = htmlHelpers.buildDom;
-		var r = b('div').classes('ribbonButtonContainer').append(b('button').attr('id', buttonId).classes(buttonClass).append(
+		var r = b('div').classes(containerClass).append(b('button').attr('id', buttonId).classes(buttonClass).append(
 					b('span').classes('left-text').append(
 					    b('span').classes('text-span').text(buttonText)).append(
 					b('span').classes('ribbon-button-text icon ' + buttonIcon))).append(
@@ -18065,19 +18164,6 @@ class RibbonButtons {
         this.controller.unbindKeyboardForMenu(this.menus);
 		this.menus.createMenu(buttonData.ctor);
 	}
-	_bindCollapsibleAction(buttonElement, buttonData) {
-		// collapseParent
-		this.collapsables.push(new CollapseRibbonControl({
-				ribbonButtons: this.ribbonButtons,
-				menus: this.menus,
-				tracker: this.tracker,
-				controller: this.controller,
-				editor: this.editor,
-				buttonElement: buttonElement,
-				buttonData: buttonData
-			}));
-	}
-
 	_rebindController() {
 		this.controller.render();
 		this.controller.bindEvents();
@@ -18087,7 +18173,7 @@ class RibbonButtons {
 			this._executeButtonModal(buttonElement, buttonData);
 			return;
 		}
-		if (buttonData.action === 'menu') {
+		if (buttonData.action === 'menu' || buttonData.action === 'collapseChildMenu') {
 			this._executeButtonMenu(buttonElement, buttonData);
 			return;
 		}
@@ -18099,56 +18185,99 @@ class RibbonButtons {
 			self._executeButton(buttonElement, buttonData);
 		});
 	}
-	_createButtonHtml(buttonAr, selector) {
+    _createCollapsibleButtonGroups(selector) {
+        // Now all the button elements have been bound.  Join child and parent buttons
+        // For all the children of a button group, add it to the parent group
+        this.collapseChildren.forEach((b) => {
+            var containerClass = 'ribbonButtonContainer';
+            if (b.action == 'collapseGrandchild') {
+                containerClass = 'ribbonButtonContainerMore'
+            }
+            var buttonHtml = RibbonButtons._buttonHtml(
+                containerClass,b.id, b.classes, b.leftText, b.icon, b.rightText);
+            if (b.dataElements) {
+                var bkeys = Object.keys(b.dataElements);
+                bkeys.forEach((bkey) => {
+                    var de = b.dataElements[bkey];
+                    $(buttonHtml).find('button').attr('data-' + bkey, de);
+                });
+            }
+            // Bind the child button actions
+            var parent = $(selector).find('.collapseContainer[data-group="' + b.group + '"]');
+            $(parent).append(buttonHtml);
+            var el = $(selector).find('#' + b.id);
+            this._bindButton(el, b);
+        });
+
+        this.collapsables.forEach((cb) => {
+            // Bind the events of the parent button
+            cb.bind();
+        });
+    }
+
+    static isCollapsible(action) {
+        return ['collapseChild','collapseChildMenu','collapseGrandchild','collapseMore'].indexOf(action) >= 0;
+    }
+
+    static isBindable(action) {
+        return ['collapseChildMenu','menu','modal'].indexOf(action) >= 0;
+    }
+
+    // ### _createButtonHtml
+    // For each button, create the html and bind the events based on
+    // the button's configured action.
+	_createRibbonHtml(buttonAr, selector) {
 		buttonAr.forEach((buttonId) => {
-			var b = this.ribbonButtons.find((e) => {
+			var buttonData = this.ribbonButtons.find((e) => {
 					return e.id === buttonId;
 				});
-			if (b) {
-				if (b.action === 'collapseChild') {
-					this.collapseChildren.push(b);
-				} else {
+			if (buttonData) {
+                // collapse child is hidden until the parent button is selected, exposing the button group
+				if (RibbonButtons.isCollapsible(buttonData.action)) {
+					this.collapseChildren.push(buttonData);
+                }
+				if (buttonData.action != 'collapseChild') {
 
-					var buttonHtml = RibbonButtons.ribbonButton(b.id, b.classes, b.leftText, b.icon, b.rightText);
-					$(buttonHtml).attr('data-group', b.group);
+                    // else the button has a specific action, such as a menu or dialog, or a parent button
+
+					var buttonHtml = RibbonButtons._buttonHtml('ribbonButtonContainer',
+                        buttonData.id, buttonData.classes, buttonData.leftText, buttonData.icon, buttonData.rightText);
+					$(buttonHtml).attr('data-group', buttonData.group);
 
 					$(selector).append(buttonHtml);
-					var el = $(selector).find('#' + b.id);
-					this._bindButton(el, b);
-					if (b.action == 'collapseParent') {
+					var buttonElement = $(selector).find('#' + buttonData.id);
+					this._bindButton(buttonElement, buttonData);
+					if (buttonData.action == 'collapseParent') {
 						$(buttonHtml).addClass('collapseContainer');
-						this._bindCollapsibleAction(el, b);
+                        // collapseParent
+                		this.collapsables.push(new CollapseRibbonControl({
+                				ribbonButtons: this.ribbonButtons,
+                				menus: this.menus,
+                				tracker: this.tracker,
+                				controller: this.controller,
+                				editor: this.editor,
+                				buttonElement: buttonElement,
+                				buttonData: buttonData
+                			}));
 					}
 				}
 			}
 		});
-		this.collapseChildren.forEach((b) => {
-			var buttonHtml = RibbonButtons.ribbonButton(b.id, b.classes, b.leftText, b.icon, b.rightText);
-			if (b.dataElements) {
-				var bkeys = Object.keys(b.dataElements);
-				bkeys.forEach((bkey) => {
-					var de = b.dataElements[bkey];
-					$(buttonHtml).find('button').attr('data-' + bkey, de);
-				});
-			}
-			var parent = $(selector).find('.collapseContainer[data-group="' + b.group + '"]');
-			$(parent).append(buttonHtml);
-			var el = $(selector).find('#' + b.id);
-			this._bindButton(el, b);
-		});
-		this.collapsables.forEach((cb) => {
-			cb.bind();
-		});
 	}
+    createRibbon(buttonDataArray,parentElement) {
+        this._createRibbonHtml(buttonDataArray, parentElement);
+        this._createCollapsibleButtonGroups(parentElement);
+    }
+
 	display() {
 		$('body .controls-left').html('');
 		$('body .controls-top').html('');
 
 		var buttonAr = this.ribbons['left'];
-		this._createButtonHtml(buttonAr, 'body .controls-left');
+		this.createRibbon(buttonAr, 'body .controls-left');
 
 		buttonAr = this.ribbons['top'];
-		this._createButtonHtml(buttonAr, 'body .controls-top');
+		this.createRibbon(buttonAr, 'body .controls-top');
 	}
 }
 
@@ -18166,6 +18295,19 @@ class DebugButtons {
     }
 }
 
+class ExtendedCollapseParent {
+    constructor(parameters) {
+		this.buttonElement = parameters.buttonElement;
+		this.buttonData = parameters.buttonData;
+		this.editor = parameters.editor;
+	}
+    bind() {
+		var self = this;
+		$(this.buttonElement).off('click').on('click', function () {
+			$(this).closest('.collapseContainer').toggleClass('expanded-more');
+		});
+    }
+}
 class BeamButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
@@ -18377,6 +18519,17 @@ class StaveButtons {
 	clefTenor() {
 		this.addClef('tenor','Tenor Instrument');
 	}
+    _clefMove(index,direction) {
+        SmoUndoable.scoreSelectionOp(this.tracker.layout.score,this.tracker.selections[0],'moveStaffUpDown',
+           index,this.editor.undoBuffer,'Move staff '+direction);
+        this.tracker.layout.rerenderAll();
+    }
+    clefMoveUp() {
+        this._clefMove(-1,'up');
+    }
+    clefMoveDown() {
+        this._clefMove(1,'down');
+    }
 	bind() {
 		var self = this;
 		$(this.buttonElement).off('click').on('click', function (ev) {
@@ -18642,7 +18795,8 @@ class CollapseRibbonControl {
 	constructor(parameters) {
 		smoMusic.filteredMerge(CollapseRibbonControl.paramArray, parameters, this);
 		this.childButtons = parameters.ribbonButtons.filter((cb) => {
-				return cb.group === this.buttonData.group && cb.action === 'collapseChild';
+				return cb.group === this.buttonData.group &&
+                    RibbonButtons.isCollapsible(cb.action)
 			});
 	}
 	_toggleExpand() {
@@ -18686,7 +18840,9 @@ class CollapseRibbonControl {
 					tracker: this.tracker,
 					controller: this.controller
 				});
-			btn.bind();
+            if (typeof(btn.bind) == 'function') {
+                btn.bind();
+            }
 		});
 	}
 }

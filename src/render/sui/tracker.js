@@ -419,6 +419,11 @@ class suiTracker {
             });
         }
 
+        // not has not been drawn yet.
+        if (!artifact.box) {
+            return;
+        }
+
         if (!this.measureNoteMap[noteKey]) {
             this.measureNoteMap[noteKey] = artifact;
             artifact.scrollBox = {x:artifact.box.x - this.netScroll.x,y:artifact.measure.renderedBox.y - this.netScroll.y};

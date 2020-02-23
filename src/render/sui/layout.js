@@ -90,8 +90,10 @@ class suiLayoutBase {
 			type: ctor
 		};
 		this.dirty=true;
+        this.renderTime=250;  // ms to render before time slicing
         this.partialRender = false;
         this.stateRepCount=0;
+        this.viewportPages = 1;
 		this.setPassState(suiLayoutBase.initial,'ctor');
 		console.log('layout ctor: pstate initial');
 		this.viewportChanged = false;
@@ -112,9 +114,7 @@ class suiLayoutBase {
 	setDirty() {
 		if (!this.dirty) {
 			this.dirty = true;
-			if (this.viewportChanged) {
-				this.setPassState(suiLayoutBase.passStates.initial,'setDirty 1');
-			} else if (this.passState == suiLayoutBase.passStates.clean ||
+			if (this.passState == suiLayoutBase.passStates.clean ||
 			   this.passState == suiLayoutBase.passStates.replace) {
 				this.setPassState(suiLayoutBase.passStates.replace,'setDirty 2');
 			} else {
@@ -171,6 +171,7 @@ class suiLayoutBase {
 		this.pageWidth =  (this.orientation  === SmoScore.orientations.portrait) ? w: h;
 		this.pageHeight = (this.orientation  === SmoScore.orientations.portrait) ? h : w;
         this.totalHeight = this.pageHeight * this.score.layout.pages;
+        this.viewportPages = this.score.layout.pages;
 
 		this.leftMargin=this._score.layout.leftMargin;
         this.rightMargin = this._score.layout.rightMargin;
@@ -519,7 +520,7 @@ class suiLayoutBase {
 
     _adjustHeight() {
         var curPages = this._score.layout.pages;
-        suiLayoutAdjuster.adjustHeight(this._score,this.renderer,this.pageHeight/this.svgScale);
+        // suiLayoutAdjuster.adjustHeight(this._score,this.renderer,this.pageHeight/this.svgScale);
         if (this._score.layout.pages  != curPages) {
             this.setViewport(false);
             this.setPassState(suiLayoutBase.passStates.initial,'render 2');
@@ -535,11 +536,6 @@ class suiLayoutBase {
             this.setViewport(true);
             this._resetViewport = false;
         }
-		if (this.viewportChanged) {
-			this.unrenderAll();
-			this.setPassState(suiLayoutBase.passStates.initial,'render 1');
-			this.viewportChanged = false;
-		}
 
 		// layout iteratively until we get it right, adjusting X each time.
 		var params = {useY:false,useX:false};
@@ -570,7 +566,6 @@ class suiLayoutBase {
         if (this.passState == suiLayoutBase.passStates.initial) {
             suiLayoutAdjuster.adjustWidths(this._score,this.renderer);
             suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth);
-            this._adjustHeight();
         }
 
         this._drawPageLines();
@@ -580,8 +575,17 @@ class suiLayoutBase {
 			return;
 		}
 
-        if (this.passState == suiLayoutBase.passStates.redrawMain) {
+        // if (this.passState == suiLayoutBase.passStates.redrawMain) {
+        if (params.useX == true) {
+            if (this.score.layout.pages != this.viewportPages) {
+                this.setViewport(true);
+                this.setPassState(suiLayoutBase.passStates.adjustY,
+                    'page change reset viewport - re-render pages');
+                return;
+            }
+
             this.dirty=false;
+
             this.setPassState(suiLayoutBase.passStates.clean,'render complete');
             this.numberMeasures();
             // this.shadowRender = true;
@@ -589,19 +593,8 @@ class suiLayoutBase {
             return;
         }
 
-        if (params.useX == true) {
-            if (this.passState == suiLayoutBase.passStates.adjustY) {
-                this.setPassState(suiLayoutBase.passStates.redrawMain,'penultimate render successful');
-            } else {
-                var curPages = this._score.layout.pages;
-                suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth);
-                this._adjustHeight();
-            }
-        } else {
-            // otherwise we need another pass.
-            this.dirty=true;
-            this.setPassState(suiLayoutBase.passStates.pass,'render 3');
-            console.log('layout after pass: pstate pass');
-        }
+        this.dirty=true;
+        this.setPassState(suiLayoutBase.passStates.pass,'render 3');
+        console.log('layout after pass: pstate pass');
 	}
 }

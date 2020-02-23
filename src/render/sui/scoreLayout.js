@@ -256,6 +256,10 @@ class suiScoreLayout extends suiLayoutBase {
             box.x += (widths - (box.x + box.width));
         });
     }
+    _adjustPages() {
+        var pageCfg = this.score.layout.pages;
+
+    }
 
     _layoutSystem(renderState) {
         var s = renderState;
@@ -265,6 +269,10 @@ class suiScoreLayout extends suiLayoutBase {
         while (!s.wrapped && !s.complete) {
              this._layoutColumn(s);
              if (s.wrapped) {
+                 if (!s.calculations.useY) {
+                      this.score.layout.pages =
+                      suiLayoutAdjuster.adjustSystemForPage(this.score,s.measure.lineIndex,this.score.layout.svgScale);
+                 }
                  break;
              }
              var useX = s.calculations.useX;
@@ -280,6 +288,10 @@ class suiScoreLayout extends suiLayoutBase {
                 // If we are expecting to wrap here, do so.
                 if (useX && measure.lineIndex > s.lineIndex) {
                     s.wrapped = true;
+                    if (!s.calculations.useY) {
+                       this.score.layout.pages =
+                         suiLayoutAdjuster.adjustSystemForPage(this.score,measure.lineIndex,this.score.layout.svgScale);
+                    }
                     break;
                 }
                 s.systemIndex += 1;
@@ -287,6 +299,8 @@ class suiScoreLayout extends suiLayoutBase {
                 s.complete = true;
                 if (!s.calculations.useY) {
                     suiLayoutAdjuster.adjustYEstimates(this.score,s.measure.lineIndex);
+                    this.score.layout.pages =
+                      suiLayoutAdjuster.adjustSystemForPage(this.score,s.lineIndex,this.score.layout.svgScale);
                 }
             }
         }
@@ -520,7 +534,7 @@ class suiScoreLayout extends suiLayoutBase {
                 (this.passState == suiLayoutBase.passStates.pass) &&
                 renderState.complete == false
                 && layoutDebug.mask == 0
-                && Date.now() - ts > 100) {
+                && Date.now() - ts > this.renderTime) {
                 this.renderState = renderState;
                 this.setPassState(suiLayoutBase.passStates.incomplete,' partial '+renderState.measure.measureNumber.measureIndex);
                 break;

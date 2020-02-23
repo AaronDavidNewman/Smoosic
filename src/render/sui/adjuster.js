@@ -208,6 +208,43 @@ class suiLayoutAdjuster {
         return {heightOffset:heightOffset,yOffset:yOffset};
     }
 
+    static adjustSystemForPage(score,lineIndex,svgScale) {
+        // svgScale = 1.0;
+        var ar = [];
+        var pageSize = score.layout.pageHeight / svgScale;
+        var bm = score.layout.bottomMargin/svgScale;
+        var tm = score.layout.topMargin/svgScale;
+        score.staves.forEach((staff) => {
+            var mar = staff.measures.filter((mm) => mm.lineIndex == lineIndex);
+            ar = ar.concat(mar);
+        });
+        var minMeasure  = ar[0];
+        var maxMeasure = minMeasure;
+        ar.forEach((mm) => {
+            minMeasure = (mm.logicalBox.y < minMeasure.logicalBox.y)
+               ? mm : minMeasure;
+            maxMeasure =  (mm.logicalBox.y + mm.logicalBox.height >
+                maxMeasure.logicalBox.y + maxMeasure.logicalBox.height)
+               ? mm : maxMeasure;
+        });
+        var height = (maxMeasure.logicalBox.y + maxMeasure.logicalBox.height) -
+            minMeasure.logicalBox.y;
+        var page = Math.floor((minMeasure.logicalBox.y + pageSize)
+            / pageSize);
+        var thresh = pageSize * page - bm;
+        var maxHeight = maxMeasure.logicalBox.y + maxMeasure.logicalBox.height;
+        if (maxHeight > thresh && height < score.layout.pageHeight) {
+            page += 1;
+            var adj = (thresh-minMeasure.logicalBox.y)  + bm + tm;
+            ar.forEach((mm) => {
+                mm.setBox(svgHelpers.boxPoints(mm.logicalBox.x,mm.logicalBox.y + adj,
+                    mm.logicalBox.width,mm.logicalBox.height),'adjustSystemForPage');
+                mm.setY(mm.staffY + adj,'adjustSystemForPage');
+            });
+        }
+        return page;
+    }
+
     // ### _adjustTopYLeft
     // Adjust the start y for all the measures to the left of this systems
     // once we know that it will not wrap.
@@ -349,156 +386,5 @@ class suiLayoutAdjuster {
 			});
 
 		return {minY:minY,maxY:maxY};
-	}
-
-	// ### adjustHeight
-	// Handle measure bumping into each other, vertically.
-	static adjustHeight(score,renderer,pageHeight) {
-		var topStaff = score.staves[0];
-		var maxLine = topStaff.measures[topStaff.measures.length - 1].lineIndex;
-		var svg = renderer.getContext().svg;
-        var dbgPageWidth =  (score.layout.pageWidth - (score.layout.rightMargin+score.layout.leftMargin))/
-                               score.layout.svgScale;
-        var dbgMargin = score.layout.leftMargin/score.layout.svgScale;
-
-		// array of the max Y measure per line, used to space next line down
-		var maxYPerLine = [];
-		var lineIndexPerLine = [];
-        var vyMaxY = 0;
-
-		layoutDebug.clearDebugBoxes('adjustHeight');
-
-		var accum = 0;
-		// iterate: system, staves within a system, measures
-		for (var i = 0; i <= maxLine; ++i) {
-			for (var j = 0; j < score.staves.length; ++j) {
-				var absLine = score.staves.length * i + j;
-				var staff = score.staves[j];
-				var measures = staff.measures.filter((mm) => {
-						return mm.lineIndex === i
-					});
-
-				if (measures.length === 0) {
-					continue;
-				}
-
-                var measureNums = measures.map((mm)=> {
-                    return mm.measureNumber.measureIndex;
-                });
-                var measureMax = measureNums.reduce((a,b) => a > b ? a : b);
-                var measureMin = measureNums.reduce((a,b) => a < b ? a : b);
-
-				// maxYMeasure is measure on this line with y closest to bottom of page (maxYMeasure y point)
-				var maxYMeasure = measures.reduce((a, b) => {
-						if (a.logicalBox.y + a.logicalBox.height >
-							b.logicalBox.y + b.logicalBox.height) {
-							return a;
-						}
-						return b;
-					});
-				// minYMeasure is measure on this line with y closest to top of the page
-				var minYMeasure = measures.reduce((a, b) => {
-						return a.logicalBox.y < b.logicalBox.y ? a : b;
-					});
-
-				var minYRenderedY = minYMeasure.logicalBox.y;
-				var minYStaffY = minYMeasure.staffY;
-
-				var thisLineMaxY = maxYMeasure.logicalBox.y + maxYMeasure.logicalBox.height;
-
-				var modAdj = suiLayoutAdjuster._minMaxYModifier(staff,measureMin,measureMax,minYRenderedY,thisLineMaxY);
-				minYRenderedY=modAdj.minY;
-				thisLineMaxY=modAdj.maxY;
-
-				maxYPerLine.push(thisLineMaxY);
-				lineIndexPerLine.push(maxYMeasure.lineIndex);
-
-				/* if (absLine == 0) {
-
-					measures.forEach((measure) => {
-						measure.setY(minYStaffY,'adjustHeight 1');
-                        vyMaxY = (vyMaxY > measure.staffY + measure.logicalBox.height) ? vyMaxY :
-                           measure.staffY + measure.logicalBox.height;
-                        layoutDebug.debugBox(svg,
-                            svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height),
-                            'adjustHeight');
-					});
-				} else {
-					var my = maxYPerLine[absLine - 1]  + score.layout.intraGap;
-					var delta = my - minYRenderedY;
-					if (lineIndexPerLine[absLine - 1] < minYMeasure.lineIndex) {
-						delta += score.layout.interGap;
-					}
-					accum += delta;
-					var staffY = minYStaffY + accum;
-					measures.forEach((measure) => {
-						measure.setY(staffY,'adjustHeight');
-                        vyMaxY = (vyMaxY > measure.staffY + measure.logicalBox.height) ? vyMaxY :
-                           measure.staffY + measure.logicalBox.height;
-                           layoutDebug.debugBox(svg,
-                               svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height),
-                               'adjustHeight');
-					});
-				}  */
-			}
-		}
-
-        layoutDebug.clearDebugBoxes('system');
-
-        // Finally, make sure each system does not run into the page break;
-        var page = 1;
-        var pageGap = 0;
-        var pbrk = page * pageHeight;
-
-        for (var i=0; i <= maxLine; ++i) {
-            var measures=[];
-            score.staves.forEach((staff) => {
-                var delta = staff.measures.filter((mm) => {
-                            return mm.lineIndex === i
-                });
-                measures = measures.concat(delta);
-            });
-            measures.forEach((mm) => {
-                mm.setY(mm.staffY+pageGap,'adjustHeight for page start');
-                mm.pageGap = pageGap;
-            });
-
-            var minyMeasure = measures.reduce((a, b) => {
-						return a.staffY < b.staffY ? a: b;
-					});
-            var miny = minyMeasure.staffY;
-            var maxyMeasure = measures.reduce((a, b) => {
-                var ay = a.staffY + a.logicalBox.height;
-                var by = b.staffY+ b.logicalBox.height;
-						return  ay > by ? a : b;
-					});
-            var maxy = maxyMeasure.staffY + maxyMeasure.logicalBox.height;
-
-            // miny + x = pbrk + margin
-            if (maxy > pbrk) {
-                var ngap = pbrk - miny + score.layout.topMargin;
-                measures.forEach((mm) => {
-                    mm.setY(mm.staffY+ngap,'adjustHeight for page gap');
-                    mm.pageGap = ngap + pageGap;
-                });
-                page += 1;
-                pbrk = page * pageHeight;
-                pageGap += ngap;
-                miny += ngap; // for debug box.
-            }
-            layoutDebug.debugBox(
-                svg, svgHelpers.boxPoints(dbgMargin, miny,
-                     dbgPageWidth,
-                     maxy-miny),
-               'system');
-
-        }
-        if (page != score.layout.pages) {
-            // Always add extra pages, but don't reduce the page count
-            // unless we are 50% from a poge break to avoid flicker
-            if (score.layout.pages < page || pbrk-maxy > (pageHeight/2)) {
-                score.layout.pages = page;
-            }
-        }
 	}
 }
