@@ -14,8 +14,9 @@ class suiLayoutAdjuster {
             var tm = tmObj.tickmaps[voiceIx];
 			voice.notes.forEach((note) => {
                 var noteWidth = 0;
+                var dots = (note.dots ? note.dots : 0);
 				noteWidth += vexGlyph.dimensions.noteHead.width + vexGlyph.dimensions.noteHead.spacingRight;
-				noteWidth += vexGlyph.dimensions.dot.width * note.dots + vexGlyph.dimensions.dot.spacingRight * note.dots;
+				noteWidth += vexGlyph.dimensions.dot.width * dots + vexGlyph.dimensions.dot.spacingRight * dots;
 				note.pitches.forEach((pitch) => {
                     var keyAccidental = smoMusic.getAccidentalForKeySignature(pitch,smoMeasure.keySignature);
                     var accidentals = tmObj.accidentalArray.filter((ar) =>

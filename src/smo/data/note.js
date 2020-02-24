@@ -46,6 +46,9 @@ class SmoNote {
             return 0;
         }
         var vexDuration = smoMusic.ticksToDuration[this.tickCount];
+        if (!vexDuration) {
+            return 0;
+        }
         return vexDuration.split('d').length - 1;
     }
 
