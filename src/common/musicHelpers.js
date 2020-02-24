@@ -686,6 +686,41 @@ class smoMusic {
 			}
 		});
 	}
+    static serializedMergeNonDefault(defaults,attrs,src,dest) {
+        attrs.forEach(function (attr) {
+			if (typeof(src[attr]) != 'undefined') {
+				// copy the number 0
+				if (typeof(src[attr]) === 'number' ||
+					typeof(src[attr]) === 'boolean') {
+                        if (src[attr] != defaults[attr]) {
+					        dest[attr] = src[attr];
+                        }
+					// copy the empty array
+				} else if (Array.isArray(src[attr])) {
+                    var defval = JSON.stringify(defaults[attr]);
+                    var srcval = JSON.stringify(src[attr]);
+                    if (defval != srcval) {
+					    dest[attr] = JSON.parse(srcval);
+                    }
+				} else {
+					// but don't copy empty/null objects
+					if (src[attr]) {
+						if (typeof(src[attr]) == 'object') {
+                            var defval = JSON.stringify(defaults[attr]);
+                            var srcval = JSON.stringify(src[attr]);
+                            if (defval != srcval) {
+                                dest[attr] = JSON.parse(srcval);
+                            }
+						} else {
+                            if (src[attr] != defaults[attr]) {
+							    dest[attr] = src[attr];
+                            }
+						}
+					}
+				}
+			}
+		});
+    }
 
 	static stringifyAttrs(attrs, obj) {
 		var rv = '';

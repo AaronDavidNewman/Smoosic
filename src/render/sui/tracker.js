@@ -116,6 +116,11 @@ class suiTracker {
         }
 	}
 
+    replaceSelectedMeasures() {
+        var mm = SmoSelection.getMeasureList(this.selections);
+        this.layout.addToReplaceQueue(mm);
+    }
+
 	// ### renderElement
 	// the element the score is rendered on
 	get renderElement() {

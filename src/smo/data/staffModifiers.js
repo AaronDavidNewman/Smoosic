@@ -43,9 +43,12 @@ class SmoStaffHairpin extends StaffModifierBase {
 	static get editableAttributes() {
 		return ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height'];
 	}
+    static get attributes() {
+        return ['position', 'startSelector','endSelector','attrs','xOffset', 'yOffset', 'hairpinType', 'height'];
+    }
     serialize() {
         var params = {};
-        smoMusic.filteredMerge(['position', 'startSelector','endSelector','attrs','xOffset', 'yOffset', 'hairpinType', 'height'], this, params);
+        smoMusic.serializedMergeNonDefault(SmoStaffHairpin.defaults,SmoStaffHairpin.attributes,this,params);
         params.ctor = 'SmoStaffHairpin';
         return params;
     }
@@ -138,7 +141,10 @@ class SmoSlur extends StaffModifierBase {
 
     serialize() {
         var params = {};
-        smoMusic.filteredMerge(SmoSlur.parameterArray, this, params);
+        smoMusic.serializedMergeNonDefault(SmoSlur.defaults,
+            SmoSlur.parameterArray,this,params);
+
+        // smoMusic.filteredMerge(SmoSlur.parameterArray, this, params);
         params.ctor = 'SmoSlur';
         return params;
     }
@@ -188,7 +194,7 @@ class SmoSlur extends StaffModifierBase {
         this.endSelector = params.endSelector;
 
         // TODO: allow user to customize these
-        
+
         if (!this['attrs']) {
             this.attrs = {
                 id: VF.Element.newID(),

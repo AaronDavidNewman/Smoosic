@@ -255,7 +255,7 @@ class editLyricSession {
 		this.fontInfo = JSON.parse(JSON.stringify(this.lyric.fontInfo));
         this.selection.note.addLyric(this.lyric);
         this.selection.measure.changed = true;
-        this.tracker.layout.setDirty();
+        this.tracker.replaceSelectedMeasures();
 		_startEditing();
         return this.detachPromise();
     }

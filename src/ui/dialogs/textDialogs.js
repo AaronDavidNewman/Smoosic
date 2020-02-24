@@ -96,12 +96,12 @@ class SuiLyricDialog extends SuiDialogBase {
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
             self.complete();
-            self.layout.setDirty();
+            self.tracker.replaceSelectedMeasures();
 		});
         $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
             self.layout.score = self.undo.undo(self.layout.score);
             self.complete();
-            self.layout.setDirty();
+            self.tracker.replaceSelectedMeasures();
 		});
         $(dgDom.element).find('.remove-button').remove();
         this.editor.startEditSession();

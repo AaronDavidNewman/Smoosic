@@ -13,7 +13,7 @@ class suiEditor {
     // ## _render
     // utility function to render the music and update the tracker map.
     _render() {
-		this.layout.setDirty();
+		this.tracker.replaceSelectedMeasures();
     }
 
 	_refresh() {
@@ -26,7 +26,7 @@ class suiEditor {
 
     _renderAndAdvance() {
 		this.tracker.moveSelectionRight(null,true);
-		this.layout.setDirty();
+		this.tracker.replaceSelectedMeasures();
     }
     _rebeam() {
         this.tracker.getSelectedMeasures().forEach((measure) => {

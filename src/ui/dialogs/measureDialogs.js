@@ -98,8 +98,8 @@ class SuiMeasureDialog extends SuiDialogBase {
         if (this.pickupCtrl.changeFlag || this.pickupMeasureCtrl.changeFlag) {
             this.layout.unrenderColumn(this.measure);
             SmoUndoable.scoreOp(this.layout.score,'convertToPickupMeasure',this.pickupMeasureCtrl.getValue(),this.undoBuffer,'Create pickup measure');
-            this.layout.setDirty();
             this.selection = SmoSelection.measureSelection(this.layout.score,this.selection.selector.staff,this.selection.selector.measure);
+            this.tracker.replaceSelectedMeasures();
             this.measure = this.selection.measure;
         }
         if (this.padLeftCtrl.changeFlag || this.padAllInSystemCtrl.changeFlag) {
@@ -108,7 +108,7 @@ class SuiMeasureDialog extends SuiDialogBase {
                SmoSelection.measuresInColumn(this.layout.score,this.selection.measure.measureNumber.measureIndex) :
                SmoSelection.measureSelection(this.layout.score,this.selection.selector.staff,this.selection.selector.measure);
             SmoUndoable.padMeasuresLeft(selections,this.padLeftCtrl.getValue(),this.undoBuffer);
-            this.layout.setDirty();
+            this.tracker.replaceSelectedMeasures();
         }
         if (this.measureTextCtrl.changeFlag || this.measureTextPositionCtrl.changeFlag) {
             var position = this.measureTextPositionCtrl.getValue();
@@ -124,7 +124,7 @@ class SuiMeasureDialog extends SuiDialogBase {
                 var mt = new SmoMeasureText({position:parseInt(position),text:this.measureTextCtrl.getValue()});
                 SmoUndoable.measureSelectionOp(this.layout.score,this.selection,'addMeasureText',mt,this.undoBuffer,'Add measure text');
             }
-            this.layout.setDirty();
+            this.tracker.replaceSelectedMeasures();
         }
         //
         this._updateConditionals();
@@ -194,7 +194,7 @@ class SuiMeasureDialog extends SuiDialogBase {
         this.populateInitial();
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            self.controller.layout.setDirty();
+            self.controller.tracker.replaceSelectedMeasures();
 			self.complete();
 		});
 
@@ -267,7 +267,7 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
          SmoUndoable.multiSelectionOperation(this.tracker.layout.score,
              this.tracker.selections,
              'setTimeSignature',ts,this.undoBuffer);
-          this.tracker.layout.setDirty();
+          this.tracker.replaceSelectedMeasures();
      }
      _bindElements() {
          var self = this;
@@ -554,7 +554,7 @@ class SuiTempoDialog extends SuiDialogBase {
             tempo.attrs.id = VF.Element.newID();
             measure.addTempo(tempo);
         });
-        this.layout.setDirty();
+        this.controller.tracker.replaceSelectedMeasures();
     }
     // ### handleRemove
     // Removing a tempo change is like changing the measure to the previous measure's tempo.

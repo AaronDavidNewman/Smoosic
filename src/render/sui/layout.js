@@ -90,6 +90,7 @@ class suiLayoutBase {
 			type: ctor
 		};
 		this.dirty=true;
+        this.replaceQ=[];
         this.renderTime=250;  // ms to render before time slicing
         this.partialRender = false;
         this.stateRepCount=0;
@@ -109,6 +110,17 @@ class suiLayoutBase {
 		return {initial:0,pass:1,clean:2,replace:3,incomplete:4,adjustY:6,redrawMain:7};
 	}
 
+    addToReplaceQueue(selection) {
+        if (this.passState == suiLayoutBase.passStates.clean ||
+            this.passState == suiLayoutBase.passStates.replace) {
+          if (Array.isArray(selection)) {
+              this.replaceQ = this.replaceQ.concat(selection);
+          } else {
+              this.replaceQ.push(selection)
+          }
+          this.setDirty();
+       }
+    }
 
 
 	setDirty() {
@@ -505,8 +517,8 @@ class suiLayoutBase {
                 changes.push({staff:s,measure:mm});
             });
         });
-        changes.forEach((change) => {
-            var system = new VxSystem(this.context, change.staff.measures[0].staffY, change.measure.lineIndex,this.score);
+        this.replaceQ.forEach((change) => {
+            var system = new VxSystem(this.context, change.measure.staffY, change.measure.lineIndex,this.score);
             system.renderMeasure(change.staff.staffId, change.measure);
             system.renderEndings();
 
@@ -516,6 +528,7 @@ class suiLayoutBase {
                 this.measureMapper.mapMeasure(change.staff,change.measure);
             }
         });
+        this.replaceQ = [];
     }
 
     _adjustHeight() {

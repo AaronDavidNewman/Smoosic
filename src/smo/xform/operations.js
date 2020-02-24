@@ -63,6 +63,10 @@ class SmoOperation {
         }
     }
 
+    static addMicrotoneToNote(selection,tone) {
+
+    }
+
     static populateVoice(selection,voiceIx) {
         selection.measure.populateVoice(voiceIx);
         selection.measure.setChanged();

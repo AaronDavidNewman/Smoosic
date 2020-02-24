@@ -185,9 +185,8 @@ class SmoMeasure {
 	// note modifiers, etc.
 	serialize() {
 		var params = {};
-		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, this, params);
+		smoMusic.serializedMergeNonDefault(SmoMeasure.defaults,SmoMeasure.defaultAttributes, this, params);
 		params.tuplets = [];
-		params.beamGroups = [];
 		params.voices = [];
 		params.modifiers=[];
 
@@ -424,6 +423,7 @@ class SmoMeasure {
 			adjRight:0,
 			padRight: 10,
             padLeft:0,
+            tuplets:[],
 			transposeIndex: 0,
 			modifiers: modifiers,
 			rightMargin: 2,

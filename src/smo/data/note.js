@@ -26,7 +26,7 @@ class SmoNote {
         return {auto:0,up:1,down:2};
     }
     static get parameterArray() {
-        return ['ticks', 'pitches', 'noteType', 'tuplet', 'attrs', 'clef', 'endBeam','beamBeats','flagState'];
+        return ['ticks', 'pitches', 'noteType', 'tuplet', 'attrs', 'clef', 'endBeam','beamBeats','flagState','tones'];
     }
 
     toggleFlagState() {
@@ -200,6 +200,19 @@ class SmoNote {
         return this['tuplet'] && this.tuplet['id'];
     }
 
+    addMicrotone(tone) {
+        var ar = this.tones.filter((tn) => tn.pitch != tone.pitch);
+        ar.push(tone);
+    }
+    removeToneForPitch(pitch) {
+        var ar = this.tones.filter((tn) => pitch != tone.pitch);
+        ar.push(tone);
+    }
+
+    getMicrotones() {
+        return this.tones;
+    }
+
     transpose(pitchArray, offset, keySignature) {
         return SmoNote._transpose(this,pitchArray,offset,keySignature);
     }
@@ -267,15 +280,18 @@ class SmoNote {
     }
 
     _serializeModifiers(params) {
-        params.noteModifiers = JSON.parse(JSON.stringify(this.textModifiers));
-        params.graceNotes = JSON.parse(JSON.stringify(this.graceNotes));
-        params.articulations = JSON.parse(JSON.stringify(this.articulations));
-        params.ornaments = JSON.parse(JSON.stringify(this.ornaments ));
+        ['textModifiers','graceNotes','articulations','ornaments'].forEach((attr) => {
+            if (this[attr] && this[attr].length) {
+                params[attr] =  JSON.parse(JSON.stringify(this[attr]));
+            }
+        });
     }
     serialize() {
         var params = {};
-        smoMusic.serializedMerge(SmoNote.parameterArray, this, params);
-        params.ticks = JSON.parse(JSON.stringify(params.ticks));
+        smoMusic.serializedMergeNonDefault(SmoNote.defaults,SmoNote.parameterArray, this, params);
+        if (params.ticks) {
+            params.ticks = JSON.parse(JSON.stringify(params.ticks));
+        }
         this._serializeModifiers(params);
         return params;
     }
@@ -287,6 +303,7 @@ class SmoNote {
             articulations: [],
             graceNotes:[],
             ornaments:[],
+            tones:[],
             endBeam: false,
             beamBeats:4096,
             flagState:SmoNote.flagStates.auto,
@@ -306,21 +323,22 @@ class SmoNote {
     static deserialize(jsonObj) {
         var note = new SmoNote(jsonObj);
         note.attrs.id = jsonObj.attrs.id;
-        jsonObj.noteModifiers.forEach((mod) => {
-            note.textModifiers.push(SmoNoteModifierBase.deserialize(mod));
+        ['textModifiers','graceNotes','ornaments','articulations'].forEach((attr) =>
+        {
+            if (!jsonObj[attr]) {
+                note[attr] = [];
+            } else {
+                jsonObj[attr].forEach((mod) => {
+                    note[attr].push(SmoNoteModifierBase.deserialize(mod));
+                });
+            }
         });
-        jsonObj.graceNotes = jsonObj.graceNotes ? jsonObj.graceNotes : [];
-        jsonObj.graceNotes.forEach((mod) => {
-            note.graceNotes.push(SmoNoteModifierBase.deserialize(mod));
-        });
-        jsonObj.ornaments = jsonObj.ornaments ? jsonObj.ornaments : [];
-        jsonObj.ornaments.forEach((mod) => {
-            note.ornaments.push(SmoNoteModifierBase.deserialize(mod));
-        });
-        jsonObj.articulations = jsonObj.articulations ? jsonObj.articulations : [];
-        jsonObj.articulations.forEach((mod) => {
-            note.articulations.push(SmoNoteModifierBase.deserialize(mod));
-        });
+        // Due to a bug, text modifiers were serialized into noteModifiers array
+        if (jsonObj.noteModifiers) {
+            jsonObj.noteModifiers.forEach((mod) => {
+                note.textModifiers.push(mod);
+            });
+        }
 
         return note;
     }

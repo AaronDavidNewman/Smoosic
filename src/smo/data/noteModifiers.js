@@ -64,6 +64,50 @@ class SmoGraceNote extends SmoNoteModifierBase {
 
 }
 
+class SmoMicrotone extends SmoNoteModifierBase {
+    static get smoToVex() {
+        return {
+            flat75sz:'db',
+            flat25sz:'d',
+            flat25ar:'bs',
+            flat125ar:'afhf',
+            sharp75:'++',
+            sharp125:'ashs',
+            sharp25:'+',
+            sori:'o',
+            koron:'k'
+        }
+    }
+
+    static get pitchCoeff() {
+        return {
+        flat75sz:-0.75,
+        flat25sz:-0.25,
+        flat25ar:-0.25,
+        flat125ar:-1.25,
+        sharp75:0.75,
+        sharp125:1.25,
+        sharp25:0.25,
+        sori:0.25,
+        koron:-0.25
+        };
+    }
+    static get defaults() {
+        return {
+            tone:'flat24sz',
+            pitch:0
+        };
+    }
+    static get attrArray() {
+		return ['tone', 'pitch'];
+	}
+
+    constructor(parameters) {
+        super('SmoOrnament');
+        smoMusic.serializedMerge(SmoMicrotone.attrArray,SmoMicrotone.defaults,this);
+        smoMusic.serializedMerge(SmoMicrotone.attrArray, parameters, this);
+    }
+}
 class SmoOrnament extends SmoNoteModifierBase {
     static get ornaments() {
 		return {

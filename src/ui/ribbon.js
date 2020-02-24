@@ -247,7 +247,7 @@ class VoiceButtons {
                this.editor.undoBuffer);
             selection.measure.setChanged();
         });
-        this.tracker.layout.setDirty();
+        this.tracker.replaceSelectedMeasures();
     }
 	setPitch() {
         var voiceIx = 0;
@@ -257,7 +257,7 @@ class VoiceButtons {
             ml.forEach((sel) => {
                 sel.measure.setChanged();
             });
-            this.tracker.layout.setDirty();
+            this.tracker.replaceSelectedMeasures();
             return;
 		} else if (this.buttonData.id === 'V2Button') {
 			voiceIx = 1;
@@ -272,7 +272,7 @@ class VoiceButtons {
         }
         SmoUndoable.populateVoice(this.tracker.selections,voiceIx,this.editor.undoBuffer);
         SmoOperation.setActiveVoice(this.tracker.layout.score,voiceIx);
-        this.tracker.layout.setDirty();
+        this.tracker.replaceSelectedMeasures();
     }
 	bind() {
 		var self = this;
@@ -375,7 +375,7 @@ class StaveButtons {
 			selections.push(SmoSelection.measureSelection(this.tracker.layout.score,staff,measure.measureNumber.measureNumber));
 		});
 		SmoUndoable.changeInstrument(this.tracker.layout.score,instrument,selections,this.editor.undoBuffer);
-		this.tracker.layout.setDirty();
+		this.tracker.replaceSelectedMeasures();
 	}
 	clefTreble() {
 		this.addClef('treble','Treble Instrument');
@@ -511,7 +511,7 @@ class MeasureButtons {
 			var id = self.buttonData.id;
 			if (typeof(self[id]) === 'function') {
 				self[id]();
-                self.tracker.layout.setDirty();
+                self.tracker.replaceSelectedMeasures();
 			}
 		});
 	}

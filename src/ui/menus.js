@@ -625,7 +625,7 @@ class SuiTimeSignatureMenu extends suiMenuBase {
         this.controller.layout.unrenderAll();
         SmoUndoable.scoreSelectionOp(this.controller.layout.score,this.tracker.selections,
             'setTimeSignature',timeSig,this.controller.undoBuffer,'change time signature');
-        this.controller.layout.setDirty();
+        this.controller.tracker.replaceSelectedMeasures();
 		this.complete();
 	}
 	keydown(ev) {}
