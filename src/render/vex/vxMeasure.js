@@ -72,6 +72,14 @@ class VxMeasure {
         }
     }
 
+    // We add microtones to the notes, without regard really to how they interact
+    _createMicrotones(smoNote,vexNote) {
+        var tones = smoNote.getMicrotones();
+        tones.forEach((tone) => {
+            var acc = new VF.Accidental(tone,pitch,tone.toVex);
+        });
+    }
+
 	_createAccidentals(smoNote,vexNote,tickIndex,voiceIx) {
         var tickmap = this.smoMeasure.tickmapForVoice(voiceIx);
         for (var i = 0; i < smoNote.pitches.length; ++i) {
@@ -97,6 +105,7 @@ class VxMeasure {
         for (var i = 0; i < smoNote.dots; ++i) {
             vexNote.addDotToAll();
         }
+        this._createMicrotones(smoNote,vexNote);
 	}
 
     _createOrnaments(smoNote,vexNote) {

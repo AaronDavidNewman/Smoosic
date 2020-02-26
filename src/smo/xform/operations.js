@@ -37,6 +37,17 @@ class SmoOperation {
         });
     }
 
+    static addRemoveMicrotone(selections,tone) {
+        selections.forEach((sel) => {
+            if (sel.note.tones.findIndex((tt) => tt.tone==tone.tone
+              && tt.pitch==tone.pitch) >= 0) {
+                  sel.note.removeMicrotone(tone);
+              } else {
+                  sel.note.addMicrotone(tone);
+              }
+        });
+    }
+
     static moveStaffUpDown(score,selection,index) {
         var index1 = selection.selector.staff;
         var index2 = selection.selector.staff + index;

@@ -92,6 +92,10 @@ class SmoMicrotone extends SmoNoteModifierBase {
         koron:-0.25
         };
     }
+
+    get toVex() {
+        return SmoMicrotone.smoToVex[this.tone];
+    }
     static get defaults() {
         return {
             tone:'flat24sz',

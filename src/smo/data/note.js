@@ -207,8 +207,9 @@ class SmoNote {
         var ar = this.tones.filter((tn) => tn.pitch != tone.pitch);
         ar.push(tone);
     }
-    removeToneForPitch(pitch) {
-        var ar = this.tones.filter((tn) => pitch != tone.pitch);
+    removeTone(tone) {
+        var ar = this.tones.filter((tn) => tn.pitch != tone.pitch
+            && tone.tone != tn.tone);
         ar.push(tone);
     }
 
