@@ -318,9 +318,12 @@ class SuiLayoutDialog extends SuiDialogBase {
 		this.controller.unbindKeyboardForDialog(this);
 
 	}
+    _updateLayout() {
+        this.layout.rerenderAll();
+    }
 	_handleCancel() {
 		this.layout.score.layout = this.backup;
-		this.layout.setViewport(true);
+		this._updateLayout();
 		this.complete();
 	}
 	_bindElements() {
@@ -332,7 +335,7 @@ class SuiLayoutDialog extends SuiDialogBase {
 
 			// TODO:  allow user to select a zoom mode.
 			self.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
-			self.layout.setViewport(true);
+			self._updateLayout();
 			self.complete();
 		});
 

@@ -199,9 +199,12 @@ class suiScoreLayout extends suiLayoutBase {
 
         // If we have wrapped at a place other than the wrap point, give up and
         // start computing X again
+        // TODO: this can also be done dynamically, no need to change.
+        /*
         if (useAdjustedX && measure.measureNumber.systemIndex != 0) {
             useAdjustedX = s.calculations.useX = false;
         }
+        */
         measure.setX(this._score.layout.leftMargin,'scoreLayout initial');
 
         if (!useAdjustedY && measure.changed) {

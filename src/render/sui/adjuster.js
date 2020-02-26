@@ -123,8 +123,8 @@ class suiLayoutAdjuster {
         measure.setWidth(measureWidth,'estimateMeasureWidth adjX adjRight gravity: '+gravity);
 
 		// Calculate the space for left/right text which displaces the measure.
-		var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(renderer,measure);
-		measure.setX(measure.staffX  + textOffsetBox.x,'estimateMeasureWidth');
+		// var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(renderer,measure);
+		// measure.setX(measure.staffX  + textOffsetBox.x,'estimateMeasureWidth');
         measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY,measure.staffWidth,measure.logicalBox.height),
            'estimate measure width');
 
@@ -274,6 +274,29 @@ class suiLayoutAdjuster {
         });
     }
 
+    static adjustWidthEstimates(score,lineIndex) {
+        var ar = [];
+        var pageSize = score.layout.pageHeight / svgScale;
+        var bm = score.layout.bottomMargin/svgScale;
+        var tm = score.layout.topMargin/svgScale;
+
+        score.staves.forEach((staff) => {
+            var mar = staff.measures.filter((mm) => mm.lineIndex == lineIndex);
+            ar = ar.concat(mar);
+        });
+        var maxSystem = ar.map((mm) => {
+                return mm.measureNumber.systemIndex;
+            }).reduce((a, b) => {
+                return a > b ? a : b
+            });
+
+        for (var i = 0;i <= maxSystem;++i) {
+            var ixar = ar.filter((mm) => mm.measureNumber.systemIndex == i);
+            var minx = ixar.map((mm) => mm.staffX).reduce((a,b) => {return (a < b) ? a : b});
+            var minw = ixar.map((mm) => mm.staffWidth).reduce((a,b) => {return (a > b) ? a : b});
+        }
+    }
+
 
 	// ### justifyWidths
 	// After we adjust widths so each staff has enough room, evenly distribute the remainder widths to the measures.
@@ -347,7 +370,7 @@ class suiLayoutAdjuster {
                 // find the widest measure in this column, and adjust the others accordingly
 				if (measures.length) {
 					var widest = measures.map((x) => {
-							return x.staffWidth + x.padLeft;
+							return x.staffWidth;
 						}).reduce((a, w) => {
 							return a > w ? a : w;
 						});
@@ -366,7 +389,7 @@ class suiLayoutAdjuster {
 			var last = null;
 			staff.measures.forEach((measure) => {
 				if (last && measure.measureNumber.systemIndex > 0) {
-					measure.setX( last.staffX + last.staffWidth + last.padLeft,'adjust widths');
+					measure.setX( last.staffX + last.staffWidth,'adjust widths');
 				}
                 layoutDebug.debugBox(svg,svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, measure.logicalBox.height),'adjust');
 				last = measure;
