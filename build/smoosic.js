@@ -209,9 +209,11 @@ class smoMusic {
 				return VF.Music.noteValues[key].int_val === letterInt;
 			});
 		var octave = Math.floor(intValue / 12);
+        var accidental = noteKey.substring(1, noteKey.length);
+        accidental = accidental ? accidental : 'n';
 		return {
 			letter: noteKey[0],
-			accidental: noteKey.substring(1, noteKey.length),
+			accidental: accidental,
 			octave: octave
 		};
 	}
