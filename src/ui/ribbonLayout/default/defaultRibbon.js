@@ -4,7 +4,8 @@ class defaultRibbonLayout {
 
 	static get ribbons() {
 		var left = defaultRibbonLayout.leftRibbonIds;
-		var top = defaultRibbonLayout.noteButtonIds.concat(defaultRibbonLayout.navigateButtonIds).concat(defaultRibbonLayout.articulateButtonIds)
+		var top = defaultRibbonLayout.noteButtonIds.concat(defaultRibbonLayout.navigateButtonIds)
+        .concat(defaultRibbonLayout.articulateButtonIds).concat(defaultRibbonLayout.microtoneIds)
 		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds)
             .concat(defaultRibbonLayout.beamIds).concat(defaultRibbonLayout.measureIds).concat(defaultRibbonLayout.staveIds)
               .concat(defaultRibbonLayout.textIds).concat(defaultRibbonLayout.playerIds)
@@ -21,6 +22,7 @@ class defaultRibbonLayout {
 			defaultRibbonLayout.navigationButtons).concat(
 			defaultRibbonLayout.noteRibbonButtons).concat(
 			defaultRibbonLayout.articulationButtons).concat(
+            defaultRibbonLayout.microtoneButtons).concat(
 			defaultRibbonLayout.chordButtons).concat(
 			defaultRibbonLayout.durationRibbonButtons).concat(defaultRibbonLayout.beamRibbonButtons).concat(defaultRibbonLayout.measureRibbonButtons)
 			.concat(defaultRibbonLayout.staveRibbonButtons)
@@ -79,6 +81,10 @@ class defaultRibbonLayout {
         return ['playerButtons','playButton','pauseButton','stopButton'];
     }
 
+    static get microtoneIds() {
+        return ['MicrotoneButtons','flat75sz','flat25sz','flat25ar','flat125ar','sharp75','sharp125','sharp25','sori','koron'];
+    }
+
     static get textRibbonButtons() {
         return [
         {
@@ -129,6 +135,91 @@ class defaultRibbonLayout {
 				id: 'addDynamicsMenu'
 		}
         ];
+    }
+
+    static get microtoneButtons() {
+        return [{
+			leftText: '',
+				rightText: '',
+				classes: 'icon  collapseParent microtones',
+				icon: 'icon-microtone',
+				action: 'collapseParent',
+				ctor: 'CollapseRibbonControl',
+				group: 'microtone',
+				id: 'MicrotoneButtons'
+		}, {
+            leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed microtones',
+				icon: 'icon-flat25sz',
+				action: 'collapseChild',
+				ctor: 'MicrotoneButtons',
+				group: 'microtone',
+				id: 'flat25sz'
+        }, {
+            leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed microtones',
+				icon: 'icon-flat75sz',
+				action: 'collapseChild',
+				ctor: 'MicrotoneButtons',
+				group: 'microtone',
+				id: 'flat75sz'
+        },{
+            leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed microtones',
+				icon: 'icon-flat25ar',
+				action: 'collapseChild',
+				ctor: 'MicrotoneButtons',
+				group: 'microtone',
+				id: 'flat25ar'
+        },{
+            leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed microtones',
+				icon: 'icon-sharp75',
+				action: 'collapseChild',
+				ctor: 'MicrotoneButtons',
+				group: 'microtone',
+				id: 'sharp75'
+        },{
+            leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed microtones',
+				icon: 'icon-sharp125',
+				action: 'collapseChild',
+				ctor: 'MicrotoneButtons',
+				group: 'microtone',
+				id: 'sharp125'
+        },{
+            leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed microtones',
+				icon: 'icon-sharp25',
+				action: 'collapseChild',
+				ctor: 'MicrotoneButtons',
+				group: 'microtone',
+				id: 'sharp25'
+        },{
+            leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed microtones',
+				icon: 'icon-sori',
+				action: 'collapseChild',
+				ctor: 'MicrotoneButtons',
+				group: 'microtone',
+				id: 'sori'
+        },{
+            leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed microtones',
+				icon: 'icon-koron',
+				action: 'collapseChild',
+				ctor: 'MicrotoneButtons',
+				group: 'microtone',
+				id: 'koron'
+        }];
     }
 
 	static get staveRibbonButtons() {

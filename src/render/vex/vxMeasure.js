@@ -76,7 +76,8 @@ class VxMeasure {
     _createMicrotones(smoNote,vexNote) {
         var tones = smoNote.getMicrotones();
         tones.forEach((tone) => {
-            var acc = new VF.Accidental(tone,pitch,tone.toVex);
+            var acc = new VF.Accidental(tone.toVex);
+            vexNote.addAccidental(tone.pitch,acc);
         });
     }
 

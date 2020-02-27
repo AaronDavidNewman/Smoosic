@@ -98,7 +98,7 @@ class SmoMicrotone extends SmoNoteModifierBase {
     }
     static get defaults() {
         return {
-            tone:'flat24sz',
+            tone:'flat25sz',
             pitch:0
         };
     }
@@ -107,7 +107,7 @@ class SmoMicrotone extends SmoNoteModifierBase {
 	}
 
     constructor(parameters) {
-        super('SmoOrnament');
+        super('SmoMicrotone');
         smoMusic.serializedMerge(SmoMicrotone.attrArray,SmoMicrotone.defaults,this);
         smoMusic.serializedMerge(SmoMicrotone.attrArray, parameters, this);
     }

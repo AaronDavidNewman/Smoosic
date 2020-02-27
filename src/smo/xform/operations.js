@@ -37,7 +37,7 @@ class SmoOperation {
         });
     }
 
-    static addRemoveMicrotone(selections,tone) {
+    static addRemoveMicrotone(ignore,selections,tone) {
         selections.forEach((sel) => {
             if (sel.note.tones.findIndex((tt) => tt.tone==tone.tone
               && tt.pitch==tone.pitch) >= 0) {

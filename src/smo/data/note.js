@@ -206,10 +206,12 @@ class SmoNote {
     addMicrotone(tone) {
         var ar = this.tones.filter((tn) => tn.pitch != tone.pitch);
         ar.push(tone);
+        this.tones = ar;
     }
-    removeTone(tone) {
+    removeMicrotone(tone) {
         var ar = this.tones.filter((tn) => tn.pitch != tone.pitch
             && tone.tone != tn.tone);
+            this.tones = ar;
         ar.push(tone);
     }
 

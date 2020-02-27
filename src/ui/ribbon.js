@@ -200,6 +200,25 @@ class BeamButtons {
 		});
     }
 }
+class MicrotoneButtons {
+    constructor(parameters) {
+		this.buttonElement = parameters.buttonElement;
+		this.buttonData = parameters.buttonData;
+		this.editor = parameters.editor;
+        this.tracker = parameters.tracker
+	}
+    applyButton(el) {
+        var tn = new SmoMicrotone({tone:el.id,pitch:0});
+        SmoUndoable.multiSelectionOperation(this.tracker.layout.score,
+             this.tracker.selections,'addRemoveMicrotone',tn,this.editor.undoBuffer);
+    }
+    bind() {
+		var self = this;
+		$(this.buttonElement).off('click').on('click', function () {
+            self.applyButton(self.buttonData);
+		});
+	}
+}
 class DurationButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
@@ -238,7 +257,7 @@ class VoiceButtons {
 		this.buttonElement = parameters.buttonElement;
 		this.buttonData = parameters.buttonData;
 		this.editor = parameters.editor;
-        this.tracker = parameters.tracker
+        this.tracker = parameters.tracker;
 	}
     _depopulateVoice() {
         var selections = SmoSelection.getMeasureList(this.tracker.selections);
