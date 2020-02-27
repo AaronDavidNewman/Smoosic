@@ -40,9 +40,25 @@ class suiAudioPitch {
         return suiAudioPitch._pmMap;
     }
 
-    static smoPitchToFrequency(smoPitch) {
+    static _rawPitchToFrequency(smoPitch) {
         var vx = smoPitch.letter.toLowerCase() + smoPitch.accidental + smoPitch.octave.toString();
         return suiAudioPitch.pitchFrequencyMap[vx];
+    }
+
+    static smoPitchToFrequency(smoNote,smoPitch,ix) {
+
+        var rv = suiAudioPitch._rawPitchToFrequency(smoPitch);
+        var mt = smoNote.tones.filter((tt) => tt.pitch == ix);
+        if (mt.length) {
+            var tone = mt[0];
+            var coeff = tone.toPitchCoeff;
+            var pitchInt = smoMusic.smoPitchToInt(smoPitch);
+            pitchInt += (coeff > 0) ? 1 : -1;
+            var otherSmo = smoMusic.smoIntToPitch(pitchInt);
+            var otherPitch = suiAudioPitch._rawPitchToFrequency(otherSmo);
+            rv += Math.abs(rv - otherPitch)*coeff;
+        }
+        return rv;
     }
 }
 
@@ -184,10 +200,12 @@ class suiOscillator {
         if (note.noteType == 'r') {
             gain = 0.001;
         }
+        var i = 0;
         note.pitches.forEach((pitch) => {
-            var frequency = suiAudioPitch.smoPitchToFrequency(pitch);
+            var frequency = suiAudioPitch.smoPitchToFrequency(note,pitch,i);
             var osc = new suiOscillator({frequency:frequency,duration:duration,gain:gain});
             ar.push(osc);
+            i += 1;
         });
 
         return ar;

@@ -93,6 +93,10 @@ class SmoMicrotone extends SmoNoteModifierBase {
         };
     }
 
+    get toPitchCoeff() {
+        return SmoMicrotone.pitchCoeff[this.tone];
+    }
+
     get toVex() {
         return SmoMicrotone.smoToVex[this.tone];
     }

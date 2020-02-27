@@ -208,7 +208,14 @@ class MicrotoneButtons {
         this.tracker = parameters.tracker
 	}
     applyButton(el) {
-        var tn = new SmoMicrotone({tone:el.id,pitch:0});
+        var pitch = 0;
+        if (this.tracker.selections.length == 1 &&
+            this.tracker.selections[0].selector.pitches &&
+            this.tracker.selections[0].selector.pitches.length
+        ) {
+            pitch = this.tracker.selections[0].selector.pitches[0];
+        }
+        var tn = new SmoMicrotone({tone:el.id,pitch:pitch});
         SmoUndoable.multiSelectionOperation(this.tracker.layout.score,
              this.tracker.selections,'addRemoveMicrotone',tn,this.editor.undoBuffer);
     }

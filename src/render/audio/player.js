@@ -130,7 +130,7 @@ class suiAudioPlayer {
                         if (note.noteType == 'n') {
                             var pitchIx = 0;
                             note.pitches.forEach((pitch) => {
-                                var frequency = suiAudioPitch.smoPitchToFrequency(pitch);
+                                var frequency = suiAudioPitch.smoPitchToFrequency(note,pitch,pitchIx);
                                 var obj = {
                                     duration:duration,
                                     frequency: frequency,

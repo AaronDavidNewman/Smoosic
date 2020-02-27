@@ -1690,10 +1690,12 @@ class SmoNote {
     addMicrotone(tone) {
         var ar = this.tones.filter((tn) => tn.pitch != tone.pitch);
         ar.push(tone);
+        this.tones = ar;
     }
-    removeToneForPitch(pitch) {
-        var ar = this.tones.filter((tn) => pitch != tone.pitch);
-        ar.push(tone);
+    removeMicrotone(tone) {
+        var ar = this.tones.filter((tn) => tn.pitch != tone.pitch
+            && tone.tone != tn.tone);
+        this.tones = ar;        
     }
 
     getMicrotones() {
@@ -2160,9 +2162,17 @@ class SmoMicrotone extends SmoNoteModifierBase {
         koron:-0.25
         };
     }
+
+    get toPitchCoeff() {
+        return SmoMicrotone.pitchCoeff[this.tone];
+    }
+
+    get toVex() {
+        return SmoMicrotone.smoToVex[this.tone];
+    }
     static get defaults() {
         return {
-            tone:'flat24sz',
+            tone:'flat25sz',
             pitch:0
         };
     }
@@ -2171,7 +2181,7 @@ class SmoMicrotone extends SmoNoteModifierBase {
 	}
 
     constructor(parameters) {
-        super('SmoOrnament');
+        super('SmoMicrotone');
         smoMusic.serializedMerge(SmoMicrotone.attrArray,SmoMicrotone.defaults,this);
         smoMusic.serializedMerge(SmoMicrotone.attrArray, parameters, this);
     }
@@ -6095,6 +6105,17 @@ class SmoOperation {
         });
     }
 
+    static addRemoveMicrotone(ignore,selections,tone) {
+        selections.forEach((sel) => {
+            if (sel.note.tones.findIndex((tt) => tt.tone==tone.tone
+              && tt.pitch==tone.pitch) >= 0) {
+                  sel.note.removeMicrotone(tone);
+              } else {
+                  sel.note.addMicrotone(tone);
+              }
+        });
+    }
+
     static moveStaffUpDown(score,selection,index) {
         var index1 = selection.selector.staff;
         var index2 = selection.selector.staff + index;
@@ -7679,6 +7700,15 @@ class VxMeasure {
         }
     }
 
+    // We add microtones to the notes, without regard really to how they interact
+    _createMicrotones(smoNote,vexNote) {
+        var tones = smoNote.getMicrotones();
+        tones.forEach((tone) => {
+            var acc = new VF.Accidental(tone.toVex);
+            vexNote.addAccidental(tone.pitch,acc);
+        });
+    }
+
 	_createAccidentals(smoNote,vexNote,tickIndex,voiceIx) {
         var tickmap = this.smoMeasure.tickmapForVoice(voiceIx);
         for (var i = 0; i < smoNote.pitches.length; ++i) {
@@ -7704,6 +7734,7 @@ class VxMeasure {
         for (var i = 0; i < smoNote.dots; ++i) {
             vexNote.addDotToAll();
         }
+        this._createMicrotones(smoNote,vexNote);
 	}
 
     _createOrnaments(smoNote,vexNote) {
@@ -8420,9 +8451,25 @@ class suiAudioPitch {
         return suiAudioPitch._pmMap;
     }
 
-    static smoPitchToFrequency(smoPitch) {
+    static _rawPitchToFrequency(smoPitch) {
         var vx = smoPitch.letter.toLowerCase() + smoPitch.accidental + smoPitch.octave.toString();
         return suiAudioPitch.pitchFrequencyMap[vx];
+    }
+
+    static smoPitchToFrequency(smoNote,smoPitch,ix) {
+
+        var rv = suiAudioPitch._rawPitchToFrequency(smoPitch);
+        var mt = smoNote.tones.filter((tt) => tt.pitch == ix);
+        if (mt.length) {
+            var tone = mt[0];
+            var coeff = tone.toPitchCoeff;
+            var pitchInt = smoMusic.smoPitchToInt(smoPitch);
+            pitchInt += (coeff > 0) ? 1 : -1;
+            var otherSmo = smoMusic.smoIntToPitch(pitchInt);
+            var otherPitch = suiAudioPitch._rawPitchToFrequency(otherSmo);
+            rv += Math.abs(rv - otherPitch)*coeff;
+        }
+        return rv;
     }
 }
 
@@ -8564,10 +8611,12 @@ class suiOscillator {
         if (note.noteType == 'r') {
             gain = 0.001;
         }
+        var i = 0;
         note.pitches.forEach((pitch) => {
-            var frequency = suiAudioPitch.smoPitchToFrequency(pitch);
+            var frequency = suiAudioPitch.smoPitchToFrequency(note,pitch,i);
             var osc = new suiOscillator({frequency:frequency,duration:duration,gain:gain});
             ar.push(osc);
+            i += 1;
         });
 
         return ar;
@@ -8798,7 +8847,7 @@ class suiAudioPlayer {
                         if (note.noteType == 'n') {
                             var pitchIx = 0;
                             note.pitches.forEach((pitch) => {
-                                var frequency = suiAudioPitch.smoPitchToFrequency(pitch);
+                                var frequency = suiAudioPitch.smoPitchToFrequency(note,pitch,pitchIx);
                                 var obj = {
                                     duration:duration,
                                     frequency: frequency,
@@ -16816,7 +16865,8 @@ class defaultRibbonLayout {
 
 	static get ribbons() {
 		var left = defaultRibbonLayout.leftRibbonIds;
-		var top = defaultRibbonLayout.noteButtonIds.concat(defaultRibbonLayout.navigateButtonIds).concat(defaultRibbonLayout.articulateButtonIds)
+		var top = defaultRibbonLayout.noteButtonIds.concat(defaultRibbonLayout.navigateButtonIds)
+        .concat(defaultRibbonLayout.articulateButtonIds).concat(defaultRibbonLayout.microtoneIds)
 		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds)
             .concat(defaultRibbonLayout.beamIds).concat(defaultRibbonLayout.measureIds).concat(defaultRibbonLayout.staveIds)
               .concat(defaultRibbonLayout.textIds).concat(defaultRibbonLayout.playerIds)
@@ -16833,6 +16883,7 @@ class defaultRibbonLayout {
 			defaultRibbonLayout.navigationButtons).concat(
 			defaultRibbonLayout.noteRibbonButtons).concat(
 			defaultRibbonLayout.articulationButtons).concat(
+            defaultRibbonLayout.microtoneButtons).concat(
 			defaultRibbonLayout.chordButtons).concat(
 			defaultRibbonLayout.durationRibbonButtons).concat(defaultRibbonLayout.beamRibbonButtons).concat(defaultRibbonLayout.measureRibbonButtons)
 			.concat(defaultRibbonLayout.staveRibbonButtons)
@@ -16891,6 +16942,10 @@ class defaultRibbonLayout {
         return ['playerButtons','playButton','pauseButton','stopButton'];
     }
 
+    static get microtoneIds() {
+        return ['MicrotoneButtons','flat75sz','flat25sz','flat25ar','flat125ar','sharp75','sharp125','sharp25','sori','koron'];
+    }
+
     static get textRibbonButtons() {
         return [
         {
@@ -16941,6 +16996,91 @@ class defaultRibbonLayout {
 				id: 'addDynamicsMenu'
 		}
         ];
+    }
+
+    static get microtoneButtons() {
+        return [{
+			leftText: '',
+				rightText: '',
+				classes: 'icon  collapseParent microtones',
+				icon: 'icon-microtone',
+				action: 'collapseParent',
+				ctor: 'CollapseRibbonControl',
+				group: 'microtone',
+				id: 'MicrotoneButtons'
+		}, {
+            leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed microtones',
+				icon: 'icon-flat25sz',
+				action: 'collapseChild',
+				ctor: 'MicrotoneButtons',
+				group: 'microtone',
+				id: 'flat25sz'
+        }, {
+            leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed microtones',
+				icon: 'icon-flat75sz',
+				action: 'collapseChild',
+				ctor: 'MicrotoneButtons',
+				group: 'microtone',
+				id: 'flat75sz'
+        },{
+            leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed microtones',
+				icon: 'icon-flat25ar',
+				action: 'collapseChild',
+				ctor: 'MicrotoneButtons',
+				group: 'microtone',
+				id: 'flat25ar'
+        },{
+            leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed microtones',
+				icon: 'icon-sharp75',
+				action: 'collapseChild',
+				ctor: 'MicrotoneButtons',
+				group: 'microtone',
+				id: 'sharp75'
+        },{
+            leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed microtones',
+				icon: 'icon-sharp125',
+				action: 'collapseChild',
+				ctor: 'MicrotoneButtons',
+				group: 'microtone',
+				id: 'sharp125'
+        },{
+            leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed microtones',
+				icon: 'icon-sharp25',
+				action: 'collapseChild',
+				ctor: 'MicrotoneButtons',
+				group: 'microtone',
+				id: 'sharp25'
+        },{
+            leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed microtones',
+				icon: 'icon-sori',
+				action: 'collapseChild',
+				ctor: 'MicrotoneButtons',
+				group: 'microtone',
+				id: 'sori'
+        },{
+            leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed microtones',
+				icon: 'icon-koron',
+				action: 'collapseChild',
+				ctor: 'MicrotoneButtons',
+				group: 'microtone',
+				id: 'koron'
+        }];
     }
 
 	static get staveRibbonButtons() {
@@ -18488,6 +18628,32 @@ class BeamButtons {
 		});
     }
 }
+class MicrotoneButtons {
+    constructor(parameters) {
+		this.buttonElement = parameters.buttonElement;
+		this.buttonData = parameters.buttonData;
+		this.editor = parameters.editor;
+        this.tracker = parameters.tracker
+	}
+    applyButton(el) {
+        var pitch = 0;
+        if (this.tracker.selections.length == 1 &&
+            this.tracker.selections[0].selector.pitches &&
+            this.tracker.selections[0].selector.pitches.length
+        ) {
+            pitch = this.tracker.selections[0].selector.pitches[0];
+        }
+        var tn = new SmoMicrotone({tone:el.id,pitch:pitch});
+        SmoUndoable.multiSelectionOperation(this.tracker.layout.score,
+             this.tracker.selections,'addRemoveMicrotone',tn,this.editor.undoBuffer);
+    }
+    bind() {
+		var self = this;
+		$(this.buttonElement).off('click').on('click', function () {
+            self.applyButton(self.buttonData);
+		});
+	}
+}
 class DurationButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
@@ -18526,7 +18692,7 @@ class VoiceButtons {
 		this.buttonElement = parameters.buttonElement;
 		this.buttonData = parameters.buttonData;
 		this.editor = parameters.editor;
-        this.tracker = parameters.tracker
+        this.tracker = parameters.tracker;
 	}
     _depopulateVoice() {
         var selections = SmoSelection.getMeasureList(this.tracker.selections);

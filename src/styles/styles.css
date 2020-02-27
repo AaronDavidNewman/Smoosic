@@ -251,6 +251,17 @@ div.ribbonButtonContainer.expanded {
 	top:33%;
 }
 
+button#MicrotoneButtons  {
+    width:35px;
+}
+.ribbonButtonContainer[data-group="microtone"] {
+    font-size:1.5em;
+}
+
+.ribbonButtonContainer[data-group="microtone"] button.expanded span.ribbon-button-text {
+    top:10px;
+    left:4px;
+}
 #addDynamicsMenu {
 	font-size:.9em;
 }
