@@ -26,7 +26,7 @@ class SmoNote {
         return {auto:0,up:1,down:2};
     }
     static get parameterArray() {
-        return ['ticks', 'pitches', 'noteType', 'tuplet', 'attrs', 'clef', 'endBeam','beamBeats','flagState','tones'];
+        return ['ticks', 'pitches', 'noteType', 'tuplet', 'attrs', 'clef', 'endBeam','beamBeats','flagState'];
     }
 
     toggleFlagState() {
@@ -211,7 +211,7 @@ class SmoNote {
     removeMicrotone(tone) {
         var ar = this.tones.filter((tn) => tn.pitch != tone.pitch
             && tone.tone != tn.tone);
-        this.tones = ar;        
+        this.tones = ar;
     }
 
     getMicrotones() {
@@ -285,7 +285,7 @@ class SmoNote {
     }
 
     _serializeModifiers(params) {
-        ['textModifiers','graceNotes','articulations','ornaments'].forEach((attr) => {
+        ['textModifiers','graceNotes','articulations','ornaments','tones'].forEach((attr) => {
             if (this[attr] && this[attr].length) {
                 params[attr] =  JSON.parse(JSON.stringify(this[attr]));
             }
@@ -328,7 +328,7 @@ class SmoNote {
     static deserialize(jsonObj) {
         var note = new SmoNote(jsonObj);
         note.attrs.id = jsonObj.attrs.id;
-        ['textModifiers','graceNotes','ornaments','articulations'].forEach((attr) =>
+        ['textModifiers','graceNotes','ornaments','articulations','tones'].forEach((attr) =>
         {
             if (!jsonObj[attr]) {
                 note[attr] = [];

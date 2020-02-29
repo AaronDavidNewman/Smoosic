@@ -45,6 +45,7 @@ class SmoOperation {
               } else {
                   sel.note.addMicrotone(tone);
               }
+              sel.measure.setChanged();
         });
     }
 
@@ -72,10 +73,6 @@ class SmoOperation {
         if (measure.getActiveVoice() >= measure.voices.length) {
             measure.setActiveVoice(0);
         }
-    }
-
-    static addMicrotoneToNote(selection,tone) {
-
     }
 
     static populateVoice(selection,voiceIx) {

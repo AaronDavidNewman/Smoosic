@@ -267,6 +267,10 @@ class SuiFileMenu extends suiMenuBase {
 					icon: '',
 					text: 'Jesu Bambino',
 					value: 'bambino'
+                },{
+					icon: '',
+					text: 'Microtone Sample',
+					value: 'microtone'
                 },	{
 					icon: '',
 					text: 'Cancel',
@@ -346,7 +350,12 @@ class SuiFileMenu extends suiMenuBase {
            var score = SmoScore.deserialize(jesuBambino);
            this.controller.layout.score = score;
            this.controller.layout.setViewport(true);
-       }
+       } else if (text == 'microtone') {
+          this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
+          var score = SmoScore.deserialize(microJson);
+          this.controller.layout.score = score;
+          this.controller.layout.setViewport(true);
+      }
 		this.complete();
 	}
 	keydown(ev) {}

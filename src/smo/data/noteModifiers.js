@@ -81,15 +81,15 @@ class SmoMicrotone extends SmoNoteModifierBase {
 
     static get pitchCoeff() {
         return {
-        flat75sz:-0.75,
-        flat25sz:-0.25,
-        flat25ar:-0.25,
-        flat125ar:-1.25,
-        sharp75:0.75,
-        sharp125:1.25,
-        sharp25:0.25,
-        sori:0.25,
-        koron:-0.25
+        flat75sz:-1.5,
+        flat25sz:-0.5,
+        flat25ar:-0.5,
+        flat125ar:-2.5,
+        sharp75:1.5,
+        sharp125:2.5,
+        sharp25:0.5,
+        sori:0.5,
+        koron:-0.5
         };
     }
 

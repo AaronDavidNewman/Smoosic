@@ -218,6 +218,8 @@ class MicrotoneButtons {
         var tn = new SmoMicrotone({tone:el.id,pitch:pitch});
         SmoUndoable.multiSelectionOperation(this.tracker.layout.score,
              this.tracker.selections,'addRemoveMicrotone',tn,this.editor.undoBuffer);
+        suiOscillator.playSelectionNow(this.tracker.selections[0]);
+        this.tracker.layout.addToReplaceQueue(this.tracker.selections[0]);
     }
     bind() {
 		var self = this;
