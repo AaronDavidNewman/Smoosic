@@ -20230,6 +20230,31 @@ class suiController {
 		svg.setAttributeNS('','viewBox','0 0 '+suiPiano.owidth*suiPiano.dimensions.octaves+' '+suiPiano.dimensions.wheight);
 		pianoDom.appendChild(svg);
 	}
+    static _nvQueryPair(str) {
+        var ar = str.split('=');
+        var rv = {};
+        for (var i =  0;i < ar.length - 1;i += 2) {
+            var name = decodeURIComponent(ar[i]);
+            rv[name] = decodeURIComponent(ar[i+1]);
+        }
+        return rv;
+    }
+
+    static scoreFromQueryString() {
+        var score = SmoScore.deserialize(basicJson);
+        if (window.location.search) {
+            var cmd = window.location.search.substring(1,window.location.search.length);
+            var pairs = suiController._nvQueryPair(cmd);
+            if (pairs['score']) {
+                try {
+                    score = SmoScore.deserialize(eval(pairs['score']));
+                } catch (exp) {
+                    console.log('could not parse '+exp);
+                }
+            }
+        }
+        return score;
+    }
 
 	// ## createUi
 	// ### Description:
@@ -20240,7 +20265,7 @@ class suiController {
 			$('h1.testTitle').text(title);
 		}
 		var params = suiController.keyBindingDefaults;
-        var score = SmoScore.deserialize(basicJson);
+        var score = suiController.scoreFromQueryString();
 		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), document.getElementById("booShadow"),score);
 		params.tracker = new suiTracker(params.layout);
         params.layout.setMeasureMapper(params.tracker);
