@@ -46,8 +46,8 @@ class SuiDialogBase {
         this.initialTop = parameters.top;
 		this.dialogElements = dialogElements;
 		this.tracker = parameters.tracker;
-		var top = parameters.top - this.tracker.netScroll.y;
-		var left = parameters.left - this.tracker.netScroll.x;
+		var top = parameters.top - this.tracker.scroller.netScroll.y;
+		var left = parameters.left - this.tracker.scroller.netScroll.x;
 
 		this.dgDom = this._constructDialog(dialogElements, {
 				id: 'dialog-' + this.id,
@@ -61,7 +61,7 @@ class SuiDialogBase {
     // Position the dialog near a selection.  If the dialog is not visible due
     // to scrolling, make sure it is visible.
 	position(box) {
-		var y = (box.y + box.height) - this.tracker.netScroll.y;
+		var y = (box.y + box.height) - this.tracker.scroller.netScroll.y;
 
 		// TODO: adjust if db is clipped by the browser.
         var dge = $(this.dgDom.element).find('.attributeModal');
@@ -76,7 +76,7 @@ class SuiDialogBase {
 
 		$(dge).css('top', '' + y + 'px');
 
-        var x = box.x - this.tracker.netScroll.x;
+        var x = box.x - this.tracker.scroller.netScroll.x;
         var w = $(dge).width();
         x = (x > window.innerWidth /2)  ? x - (w+25) : x + (w+25);
 
@@ -141,7 +141,7 @@ class SuiDialogBase {
 
 	display() {
 		$('body').addClass('showAttributeDialog');
-        this.tracker.scrollVisible(this.initialLeft,this.initialTop);
+        this.tracker.scroller.scrollVisible(this.initialLeft,this.initialTop);
 		this.components.forEach((component) => {
 			component.bind();
 		});

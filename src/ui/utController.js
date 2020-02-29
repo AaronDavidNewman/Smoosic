@@ -22,7 +22,8 @@ class utController {
 		}
 		var params = {};
 		params.layout = suiScoreLayout.createScoreLayout($('#boo')[0],null, score);
-		params.tracker = new suiTracker(params.layout);
+        params.scroller = new suiScroller();
+		params.tracker = new suiTracker(params.layout,params.scroller);
         params.layoutDemon = new SuiLayoutDemon(params);
 		// params.tracker = new suiTracker(params.layout);
 		params.score = score;

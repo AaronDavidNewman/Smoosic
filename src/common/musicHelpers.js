@@ -663,6 +663,59 @@ class smoMusic {
 			}
 		});
 	}
+
+    // used to generate a tokenization scheme that I will use to make
+    // saved files smaller
+    static jsonTokens(json) {
+        var map = {};
+        var label = 'a';
+        var n1 = 0;
+        var n2=-1;
+        var addMap = (key) => {
+            if (!map[key]) {
+                map[key] = label;
+                n1 += 1;
+                if (n1 > 25) {
+                    n2 += 1;
+                    n1 = 0;
+                }
+                label = String.fromCharCode(97+n1);
+                if (n2 >= 0) {
+                    label += String.fromCharCode(97+n2);
+                }
+            }
+        }
+        var _tokenRecurse = (obj) =>  {
+            var keys = Object.keys(obj);
+            keys.forEach((key) => {
+                var val = obj[key];
+                if (typeof(val) == 'string' || typeof(val) == 'number') {
+                    addMap(key);
+                }
+                if (typeof(val) == 'object') {
+                    if (Array.isArray(val)) {
+                        addMap(key);
+                        val.forEach((arobj) => {
+                            if (arobj && typeof(arobj) == 'object') {
+                                _tokenRecurse(arobj);
+                            }
+                        });
+                    } else {
+                        addMap(key);
+                      _tokenRecurse(val);
+                   }
+                }
+
+            });
+        }
+        _tokenRecurse(json);
+        var mkar = Object.keys(map);
+        var m2 = {};
+        mkar.forEach((mk) => {
+            m2[map[mk]] = mk;
+        })
+        console.log(JSON.stringify(m2,null,' '));
+    }
 	// ### serializedMerge
 	// serialization-friendly, so merged, copied objects are deep-copied
 	static serializedMerge(attrs, src, dest) {

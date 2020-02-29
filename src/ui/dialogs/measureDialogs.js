@@ -290,7 +290,7 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
      }
      display() {
          $('body').addClass('showAttributeDialog');
-          this.tracker.scrollVisible(this.initialLeft,this.initialTop);
+          this.tracker.scroller.scrollVisible(this.initialLeft,this.initialTop);
          this.components.forEach((component) => {
              component.bind();
          });

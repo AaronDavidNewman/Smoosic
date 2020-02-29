@@ -193,6 +193,9 @@ class suiLayoutBase {
 		    $(elementId).html('');
     		this.renderer = new VF.Renderer(elementId, VF.Renderer.Backends.SVG);
             this.viewportChanged = true;
+            if (this.measureMapper) {
+                this.measureMapper.scroller.scrollAbsolute(0,0);
+            }
 		}
 		// this.renderer.resize(this.pageWidth, this.pageHeight);
 

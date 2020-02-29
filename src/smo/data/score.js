@@ -85,6 +85,7 @@ class SmoScore {
 		this.scoreText.forEach((tt) => {
 			obj.scoreText.push(tt.serialize());
 		});
+        // smoMusic.jsonTokens(obj);
         return obj;
     }
     // ### deserialize

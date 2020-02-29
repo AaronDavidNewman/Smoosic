@@ -15,15 +15,11 @@ class TrackerBase {
 // ### class methods:
 // ---
 class suiTracker {
-	constructor(layout) {
+	constructor(layout,scroller) {
 		this.layout = layout;
         this.measureMap = {};
         this.measureNoteMap = {}; // Map for tracke
-
-        this._scroll = {x:0,y:0};
-        this._scrollInitial = {x:0,y:0};
-	    var scroller = $('.musicRelief');
-	    this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
+        this.scroller = scroller;
 
 		this.selections = [];
         this.modifierSelections = [];
@@ -34,45 +30,7 @@ class suiTracker {
 		this.suggestion = {};
 		this.pitchIndex = -1;
 		this.pasteBuffer = new PasteBuffer();
-        this.viewport = svgHelpers.boxPoints(
-          $('.musicRelief').offset().left,
-          $('.musicRelief').offset().top,
-          $('.musicRelief').width(),
-          $('.musicRelief').height());
 	}
-
-    handleScroll(x,y) {
-        this._scroll = {x:x,y:y};
-        this.viewport = svgHelpers.boxPoints(
-          $('.musicRelief').offset().left,
-          $('.musicRelief').offset().top,
-          $('.musicRelief').width,
-          $('.musicRelief').height());
-
-    }
-
-    scrollOffset(x,y) {
-        var cur = {x:this._scroll.x,y:this._scroll.y};
-        setTimeout(function() {
-            if (x) {
-                $('.musicRelief')[0].scrollLeft = cur.x + x;
-            }
-            if (y) {
-                $('.musicRelief')[0].scrollTop = cur.y + y;
-            }
-        },1);
-    }
-
-    get netScroll() {
-		var xoffset = $('.musicRelief').offset().left - this._offsetInitial.x;
-		var yoffset = $('.musicRelief').offset().top - this._offsetInitial.y;
-        return {x:this._scroll.x - (this._scrollInitial.x + xoffset),y:this._scroll.y - (this._scrollInitial.y + yoffset)};
-    }
-
-    get invScroll() {
-        var vect = this.netScroll;
-        return {x:vect.x*(-1),y:vect.y*(-1)};
-    }
 
     _fullRenderPromise() {
         var self = this;
@@ -184,7 +142,7 @@ class suiTracker {
             this.modifierTabs.push({
                 modifier: modifier,
                 selection: selection,
-                box:svgHelpers.adjustScroll(modifier.renderedBox,this.netScroll),
+                box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
                 index:ix
             });
             ix += 1;
@@ -205,7 +163,7 @@ class suiTracker {
                 this.modifierTabs.push({
                     modifier: modifier,
 							selection: null,
-							box:svgHelpers.adjustScroll(modifier.renderedBox,this.netScroll),
+							box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
 							index:ix
                 });
                 ix += 1;
@@ -221,7 +179,7 @@ class suiTracker {
     						this.modifierTabs.push({
     							modifier: modifier,
     							selection: selection,
-    							box:svgHelpers.adjustScroll(modifier.renderedBox,this.netScroll),
+    							box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
     							index:ix
     						});
     						ix += 1;
@@ -237,7 +195,7 @@ class suiTracker {
 					this.modifierTabs.push({
 						modifier: modifier,
 						selection: selection,
-						box:svgHelpers.adjustScroll(modifier.renderedBox,this.netScroll),
+						box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
 						index:ix
 					});
 					ix += 1;
@@ -260,28 +218,6 @@ class suiTracker {
         $('.workspace #birdy').remove();
     }
 
-	scrollVisible(x,y) {
-		var y = y - this.netScroll.y;
-        var x = x - this.netScroll.x;
-		var dx = 0;
-		var dy = 0;
-		if (y < 0) {
-			dy = -y;
-		} else if (y > this.viewport.height + this.viewport.y) {
-			var offset = y - (this.viewport.height + this.viewport.y);
-			dy = offset + this.viewport.height/2;
-		}
-
-		if (x < 0) {
-			dx = -x;
-		} else if (x > this.viewport.width + this.viewport.x) {
-			var offset = x - (this.viewport.width + this.viewport.x);
-			dx = offset + this.viewport.width -50;
-		}
-		if (dx != 0 || dy != 0) {
-		    this.scrollOffset(dx,dy);
-		}
-	}
 
     musicCursor(selector) {
         var key = SmoSelector.getNoteKey(selector);
@@ -291,11 +227,11 @@ class suiTracker {
 	        var r = b('span').classes('birdy icon icon-arrow-down').attr('id','birdy');
             $('.workspace #birdy').remove();
             var rd = r.dom();
-            var y = pos.y - this.netScroll.y;
-            var x = pos.x - this.netScroll.x;
+            var y = pos.y - this.scroller.netScroll.y;
+            var x = pos.x - this.scroller.netScroll.x;
             $(rd).css('top',y).css('left',x);
             $('.workspace').append(rd);
-			this.scrollVisible(pos.x,pos.y);
+			this.scroller.scrollVisible(pos.x,pos.y);
         }
     }
 
@@ -431,10 +367,10 @@ class suiTracker {
 
         if (!this.measureNoteMap[noteKey]) {
             this.measureNoteMap[noteKey] = artifact;
-            artifact.scrollBox = {x:artifact.box.x - this.netScroll.x,y:artifact.measure.renderedBox.y - this.netScroll.y};
+            artifact.scrollBox = {x:artifact.box.x - this.scroller.netScroll.x,y:artifact.measure.renderedBox.y - this.scroller.netScroll.y};
         } else {
             var mm = this.measureNoteMap[noteKey];
-            mm.scrollBox = {x:Math.min(artifact.box.x - this.netScroll.x,mm.x),y:Math.min(artifact.measure.renderedBox.y - this.netScroll.y,mm.y)};
+            mm.scrollBox = {x:Math.min(artifact.box.x - this.scroller.netScroll.x,mm.x),y:Math.min(artifact.measure.renderedBox.y - this.scroller.netScroll.y,mm.y)};
         }
 
         if (!this.measureMap[measureKey]) {
@@ -539,7 +475,7 @@ class suiTracker {
                             _measure: measure,
                             _note: note,
                             _pitches: [],
-                            box: svgHelpers.adjustScroll(note.renderedBox,this.netScroll),
+                            box: svgHelpers.adjustScroll(note.renderedBox,this.scroller.netScroll),
                             type: 'rendered'
                         });
                 this._updateMeasureNoteMap(selection);
@@ -1094,10 +1030,10 @@ class suiTracker {
 
 	intersectingArtifact(bb) {
         bb = svgHelpers.boxPoints(bb.x,bb.y,bb.width ? bb.width : 1 ,bb.height ? bb.height : 1);
-		var artifacts = svgHelpers.findIntersectingArtifactFromMap(bb,this.measureNoteMap,this.netScroll);
+		var artifacts = svgHelpers.findIntersectingArtifactFromMap(bb,this.measureNoteMap,this.scroller.netScroll);
 		// TODO: handle overlapping suggestions
 		if (!artifacts.length) {
-			var sel = svgHelpers.findIntersectingArtifact(bb,this.modifierTabs,this.netScroll);
+			var sel = svgHelpers.findIntersectingArtifact(bb,this.modifierTabs,this.scroller.netScroll);
 			if (sel.length) {
 				sel = sel[0];
 				this._setModifierAsSuggestion(bb, sel);
@@ -1145,7 +1081,7 @@ class suiTracker {
 		}
 		var headEl = heads[index];
 		var box = svgHelpers.adjustScroll(svgHelpers.smoBox(headEl.getBoundingClientRect()),
-          this.invScroll);
+          this.scroller.invScroll);
 		this._drawRect(box, 'staffModifier');
 	}
 	triggerSelection() {
@@ -1233,7 +1169,7 @@ class suiTracker {
     			$(Object.keys(strokes)).each(function (ix, key) {
     				strokeObj[key] = strokes[key];
     			});
-                box = svgHelpers.clientToLogical(this.context.svg, svgHelpers.adjustScroll(box,this.netScroll));
+                box = svgHelpers.clientToLogical(this.context.svg, svgHelpers.adjustScroll(box,this.scroller.netScroll));
     			this.context.rect(box.x - margin, box.y - margin, box.width + margin * 2, box.height + margin * 2, strokeObj);
             }
 		});

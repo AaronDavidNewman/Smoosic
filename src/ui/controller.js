@@ -77,7 +77,7 @@ class suiController {
 			// self.scrollRedrawStatus = true;
             // self.tracker.updateMap(true);
             // Thisi s a WIP...
-			self.tracker.handleScroll($(suiController.scrollable)[0].scrollLeft,$(suiController.scrollable)[0].scrollTop);
+			self.scroller.handleScroll($(suiController.scrollable)[0].scrollLeft,$(suiController.scrollable)[0].scrollTop);
             } catch(e) {
                 SuiExceptionHandler.instance.exceptionHandler(e);
             }
@@ -244,7 +244,8 @@ class suiController {
 		var params = suiController.keyBindingDefaults;
         var score = suiController.scoreFromQueryString();
 		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), document.getElementById("booShadow"),score);
-		params.tracker = new suiTracker(params.layout);
+        params.scroller = new suiScroller();
+		params.tracker = new suiTracker(params.layout,params.scroller);
         params.layout.setMeasureMapper(params.tracker);
 		params.editor = new suiEditor(params);
 		params.menus = new suiMenuManager(params);
@@ -259,7 +260,8 @@ class suiController {
 		var params = suiController.keyBindingDefaults;
 		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), document.getElementById("booShadow"), score);
 		layoutDebug.setAll();
-		params.tracker = new suiTracker(params.layout);
+        params.scroller = new suiScroller();
+		params.tracker = new suiTracker(params.layout,params.scroller);
 		params.editor = new suiEditor(params);
 		params.menus = new suiMenuManager(params);
         params.layoutDemon = new SuiLayoutDemon(params);

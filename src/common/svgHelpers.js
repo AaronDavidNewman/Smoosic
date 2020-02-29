@@ -397,6 +397,9 @@ class svgHelpers {
 		});
 	}
 
+    // ### adjustScroll
+    // Add the scroll to the screen coordinates so we can find the mapped
+    // location of something.
     static adjustScroll(box,scroll) {
         // WIP...
         if (typeof(box) == 'undefined' || typeof(scroll) == 'undefined') {
