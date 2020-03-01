@@ -188,7 +188,7 @@ class vexGlyph {
 				spacingRight:0
             },flag: {
                 width:10,
-                height:29,
+                height:35,
                 yTop:0,
                 yBottom:0,
 				spacingRight:0

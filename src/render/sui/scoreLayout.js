@@ -331,9 +331,6 @@ class suiScoreLayout extends suiLayoutBase {
         }
 
         measure.lineIndex = s.lineIndex;
-        if (useAdjustedY) {
-            measure.setYTop( 0,'scoreLayout initialize');
-        }
 
         this._initStaffBoxes(s);
 
@@ -387,9 +384,7 @@ class suiScoreLayout extends suiLayoutBase {
                     previous = this.score.staves[this.score.staves.length-1].measures.find((mm) => mm.lineIndex == measure.lineIndex - 1);
                 }
                 measure.setYTop(offsets.yOffset,'estimate height 3');
-                if (measure.lineIndex > 0) {
-                    offsets.yOffset += this.score.layout.interGap;
-                }
+                
                 measure.setY(previous.staffY + this.score.layout.intraGap + previous.logicalBox.height - measure.yTop ,'scoreLayout estimate height 3');
                 measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY + offsets.yOffset,measure.staffWidth,offsets.heightOffset), 'score Layout estimateHeight 3');
             }

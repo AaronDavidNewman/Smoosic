@@ -175,7 +175,7 @@ class smoMusic {
     // ### pitchToLedgerLineInt
     static pitchToLedgerLine(clef,pitch) {
         // return the distance from the top ledger line, as 0.5 per line/space
-        return -1.0*(VF.keyProperties(smoMusic.pitchToVexKey(pitch,clef)).line-5.5)
+        return -1.0*(VF.keyProperties(smoMusic.pitchToVexKey(pitch,clef)).line-4.5)
          - VF.clefProperties.values[clef].line_shift;
     }
 

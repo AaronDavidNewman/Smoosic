@@ -175,7 +175,7 @@ class smoMusic {
     // ### pitchToLedgerLineInt
     static pitchToLedgerLine(clef,pitch) {
         // return the distance from the top ledger line, as 0.5 per line/space
-        return -1.0*(VF.keyProperties(smoMusic.pitchToVexKey(pitch,clef)).line-5.5)
+        return -1.0*(VF.keyProperties(smoMusic.pitchToVexKey(pitch,clef)).line-4.5)
          - VF.clefProperties.values[clef].line_shift;
     }
 
@@ -11899,9 +11899,6 @@ class suiScoreLayout extends suiLayoutBase {
         }
 
         measure.lineIndex = s.lineIndex;
-        if (useAdjustedY) {
-            measure.setYTop( 0,'scoreLayout initialize');
-        }
 
         this._initStaffBoxes(s);
 
@@ -11955,9 +11952,7 @@ class suiScoreLayout extends suiLayoutBase {
                     previous = this.score.staves[this.score.staves.length-1].measures.find((mm) => mm.lineIndex == measure.lineIndex - 1);
                 }
                 measure.setYTop(offsets.yOffset,'estimate height 3');
-                if (measure.lineIndex > 0) {
-                    offsets.yOffset += this.score.layout.interGap;
-                }
+                
                 measure.setY(previous.staffY + this.score.layout.intraGap + previous.logicalBox.height - measure.yTop ,'scoreLayout estimate height 3');
                 measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY + offsets.yOffset,measure.staffWidth,offsets.heightOffset), 'score Layout estimateHeight 3');
             }
@@ -18501,7 +18496,7 @@ class vexGlyph {
 				spacingRight:0
             },flag: {
                 width:10,
-                height:29,
+                height:35,
                 yTop:0,
                 yBottom:0,
 				spacingRight:0
