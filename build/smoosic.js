@@ -8989,6 +8989,14 @@ class suiScroller  {
           $('.musicRelief').height());
 	}
 
+    // ### setScrollInitial
+    // tracker is going to remap the music, make sure we take the current scroll into account.
+    setScrollInitial() {
+        var scroller = $('.musicRelief');
+        this._scrollInitial = {x:$(scroller)[0].scrollLeft,y:$(scroller)[0].scrollTop};
+        this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
+    }
+
     // ### handleScroll
     // handle scroll events.
     handleScroll(x,y) {
@@ -9516,10 +9524,7 @@ class suiTracker {
             sel.voice = vix;
         });
 
-        var scroller = $('.musicRelief');
-        this._scrollInitial = {x:$(scroller)[0].scrollLeft,y:$(scroller)[0].scrollTop};
-        this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
-
+        this.scroller.setScrollInitial();
 
         var voiceIx = 0;
         var selectionChanged = false;
@@ -9691,20 +9696,6 @@ class suiTracker {
 			return scopyMeasure;
 		}
 		return testSelection.selector;
-	}
-
-	static unionRect(b1, b2) {
-		return svgHelpers.unionRect(b1, b2);
-	}
-
-	get selectedArtifact() {
-		for (var i = 0; i < this.selections.length; ++i) {
-			var selection = this.selections[i];
-			if (selection['artifact']) {
-				return selection.artifact;
-			}
-		}
-		return {};
 	}
 
     getSelectedGraceNotes() {
@@ -10214,15 +10205,7 @@ class suiTracker {
 		boxes.push(curBox);
 		this._drawRect(boxes, 'selection');
 	}
-	_outerSelection() {
-		if (this.selections.length == 0)
-			return null;
-		var rv = this.selections[0].box;
-		for (var i = 1; i < this.selections.length; ++i) {
-			rv = suiTracker.unionRect(rv, this.selections[i].box);
-		}
-		return rv;
-	}
+
 	_drawRect(bb, stroke) {
 		this.eraseRect(stroke);
 		var grp = this.context.openGroup(stroke, stroke + '-');
@@ -20472,16 +20455,6 @@ class suiController {
 		return {
 			keyBind: suiController.keyBindingDefaults
 		};
-	}
-	remap() {
-		var self=this;
-		setTimeout(function() {
-			if (self.layout.dirty == false) {
-				self.tracker.updateMap();
-			} else {
-				self.remap();
-			}
-		},100);
 	}
 
 	showModifierDialog(modSelection) {

@@ -354,16 +354,6 @@ class suiController {
 			keyBind: suiController.keyBindingDefaults
 		};
 	}
-	remap() {
-		var self=this;
-		setTimeout(function() {
-			if (self.layout.dirty == false) {
-				self.tracker.updateMap();
-			} else {
-				self.remap();
-			}
-		},100);
-	}
 
 	showModifierDialog(modSelection) {
 		return SuiDialogFactory.createDialog(modSelection, this.tracker.context, this.tracker, this.layout,this.undoBuffer,this)

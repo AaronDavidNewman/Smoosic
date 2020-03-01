@@ -29,16 +29,11 @@ class TrackerTest {
 			return timeTest();
 		}
 
-		var remap = function() {
-				return keys.tracker.updateMap();
-		}
-
 		var drawDefaults = () => {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
 			// measure.applyModifiers();
 
 			layout.render();
-            remap();
             return timeTest();
 		}
 
@@ -51,7 +46,6 @@ class TrackerTest {
 			subTitle('track multiple staves');
 			score.addStaff();
 			return layout.render();
-            remap();
             return timeTest();
 		}
 

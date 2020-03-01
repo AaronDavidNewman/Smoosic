@@ -20,6 +20,14 @@ class suiScroller  {
           $('.musicRelief').height());
 	}
 
+    // ### setScrollInitial
+    // tracker is going to remap the music, make sure we take the current scroll into account.
+    setScrollInitial() {
+        var scroller = $('.musicRelief');
+        this._scrollInitial = {x:$(scroller)[0].scrollLeft,y:$(scroller)[0].scrollTop};
+        this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
+    }
+
     // ### handleScroll
     // handle scroll events.
     handleScroll(x,y) {
