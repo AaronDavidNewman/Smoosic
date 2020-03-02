@@ -14638,14 +14638,11 @@ class SuiDialogBase {
 			});
 	}
 
-    // ### position
-    // Position the dialog near a selection.  If the dialog is not visible due
-    // to scrolling, make sure it is visible.
-	position(box) {
-		var y = (box.y + box.height) - this.tracker.scroller.netScroll.y;
+    static position(box,dgDom,scroller) {
+        var y = (box.y + box.height) - scroller.netScroll.y;
 
 		// TODO: adjust if db is clipped by the browser.
-        var dge = $(this.dgDom.element).find('.attributeModal');
+        var dge = $(dgDom.element).find('.attributeModal');
         var dgeHeight = $(dge).height();
         var maxY =  $('.musicRelief').height();
         var maxX = $('.musicRelief').width();
@@ -14657,12 +14654,19 @@ class SuiDialogBase {
 
 		$(dge).css('top', '' + y + 'px');
 
-        var x = box.x - this.tracker.scroller.netScroll.x;
+        var x = box.x - scroller.netScroll.x;
         var w = $(dge).width();
         x = (x > window.innerWidth /2)  ? x - (w+25) : x + (w+25);
 
         x = (x < 0 || x > maxX) ? maxX/2 : x;
         $(dge).css('left', '' + x + 'px');
+    }
+
+    // ### position
+    // Position the dialog near a selection.  If the dialog is not visible due
+    // to scrolling, make sure it is visible.
+	position(box) {
+        SuiDialogBase.position(box,this.dgDom,this.tracker.scroller);
 	}
 	_constructDialog(dialogElements, parameters) {
 		var id = parameters.id;
@@ -14897,6 +14901,9 @@ class SuiLayoutDialog extends SuiDialogBase {
 			moveParent: true
 		});
 		this.controller.unbindKeyboardForDialog(this);
+
+        var box = svgHelpers.boxPoints(250,250,1,1);
+        SuiDialogBase.position(box,this.dgDom,this.tracker.scroller);
 
 	}
     _updateLayout() {
@@ -16990,7 +16997,7 @@ class defaultRibbonLayout {
 	}
 
 	static get articulateButtonIds()  {
-		return ['articulationButtons', 'accentButton', 'tenutoButton', 'staccatoButton', 'marcatoButton',  'pizzicatoButton','mordentButton','mordentInvertedButton','trillButton'];
+		return ['articulationButtons', 'accentButton', 'tenutoButton', 'staccatoButton', 'marcatoButton', 'fermataButton', 'pizzicatoButton','mordentButton','mordentInvertedButton','trillButton'];
 	}
 
 	static get intervalIds()  {
@@ -17871,6 +17878,15 @@ class defaultRibbonLayout {
 				group: 'articulations',
 				id: 'marcatoButton'
 			}, {
+				leftText: '',
+				rightText: '',
+				icon: 'icon-fermata',
+				classes: 'icon collapsed articulation',
+				action: 'collapseChild',
+				ctor: 'ArticulationButtons',
+				group: 'articulations',
+				id: 'fermataButton'
+			},  {
 				leftText: '',
 				rightText: 'l',
 				icon: 'icon-pitz_above',

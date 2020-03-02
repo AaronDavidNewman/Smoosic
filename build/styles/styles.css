@@ -287,6 +287,10 @@ button#MicrotoneButtons  {
 	left:-5px;
 }
 
+#fermataButton .icon {
+    left:20%;
+    font-size:1.4em;
+}
 #articulationButtons .left-text {
     font-size: 1.4em;
     position: absolute;

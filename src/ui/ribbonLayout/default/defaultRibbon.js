@@ -47,7 +47,7 @@ class defaultRibbonLayout {
 	}
 
 	static get articulateButtonIds()  {
-		return ['articulationButtons', 'accentButton', 'tenutoButton', 'staccatoButton', 'marcatoButton',  'pizzicatoButton','mordentButton','mordentInvertedButton','trillButton'];
+		return ['articulationButtons', 'accentButton', 'tenutoButton', 'staccatoButton', 'marcatoButton', 'fermataButton', 'pizzicatoButton','mordentButton','mordentInvertedButton','trillButton'];
 	}
 
 	static get intervalIds()  {
@@ -928,6 +928,15 @@ class defaultRibbonLayout {
 				group: 'articulations',
 				id: 'marcatoButton'
 			}, {
+				leftText: '',
+				rightText: '',
+				icon: 'icon-fermata',
+				classes: 'icon collapsed articulation',
+				action: 'collapseChild',
+				ctor: 'ArticulationButtons',
+				group: 'articulations',
+				id: 'fermataButton'
+			},  {
 				leftText: '',
 				rightText: 'l',
 				icon: 'icon-pitz_above',
