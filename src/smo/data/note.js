@@ -289,7 +289,7 @@ class SmoNote {
             if (this[attr] && this[attr].length) {
                 params[attr] = [];
                 this[attr].forEach((mod) => {
-                    params[attr].push(mod);
+                    params[attr].push(mod.serialize());
                 });
             }
         });

@@ -10,8 +10,6 @@ class SmoNoteModifierBase {
 	static deserialize(jsonObj) {
 		var ctor = eval(jsonObj.ctor);
 		var rv = new ctor(jsonObj);
-		rv.attrs.id = jsonObj.attrs.id;
-		rv.attrs.type = jsonObj.attrs.type;
 		return rv;
 	}
 }
@@ -44,7 +42,7 @@ class SmoGraceNote extends SmoNoteModifierBase {
         return {auto:0,up:1,down:2};
     }
     static get parameterArray() {
-        return ['ticks', 'pitches', 'noteType', 'clef', 'endBeam','beamBeats','flagState','slash'];
+        return ['ticks', 'pitches', 'noteType', 'clef', 'endBeam','beamBeats','flagState','slash','ctor'];
     }
     tickCount() {
         return this.ticks.numerator / this.ticks.denominator + this.ticks.remainder;
@@ -114,7 +112,7 @@ class SmoMicrotone extends SmoNoteModifierBase {
         };
     }
     static get parameterArray() {
-		return ['tone', 'pitch'];
+		return ['tone', 'pitch','ctor'];
 	}
     serialize() {
         var params = {};
@@ -146,7 +144,7 @@ class SmoOrnament extends SmoNoteModifierBase {
 		};
 	}
     static get parameterArray() {
-		return ['position', 'offset','ornament'];
+		return ['position', 'offset','ornament','ctor'];
 	}
 
     static get positions() {
@@ -226,7 +224,7 @@ class SmoArticulation extends SmoNoteModifierBase {
 		};
 	}
 	static get parameterArray() {
-		return ['position', 'articulation'];
+		return ['position', 'articulation','ctor'];
 	}
 
 	static get positionToVex() {
@@ -254,7 +252,7 @@ class SmoArticulation extends SmoNoteModifierBase {
 		smoSerialize.serializedMerge(SmoArticulation.parameterArray, parameters, this);
 		this.selector = parameters.selector;
 	}
-	
+
 }
 
 class SmoLyric extends SmoNoteModifierBase {
@@ -281,7 +279,7 @@ class SmoLyric extends SmoNoteModifierBase {
 
     static get parameterArray() {
         return ['text','endChar','fontInfo','classes','verse',
-		    'fill','scaleX','scaleY','translateX','translateY'];
+		    'fill','scaleX','scaleY','translateX','translateY','ctor'];
     }
     serialize() {
         var params = {};
@@ -358,7 +356,7 @@ class SmoDynamicText extends SmoNoteModifierBase {
 	}
 
 	static get parameterArray() {
-		return ['xOffset', 'fontSize', 'yOffsetLine', 'yOffsetPixels', 'text'];
+		return ['xOffset', 'fontSize', 'yOffsetLine', 'yOffsetPixels', 'text','ctor'];
 	}
 	backupOriginal() {
 		if (!this['original']) {
