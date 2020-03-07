@@ -44,7 +44,7 @@ class SmoGraceNote extends SmoNoteModifierBase {
         return {auto:0,up:1,down:2};
     }
     static get parameterArray() {
-        return ['ticks', 'pitches', 'noteType', 'attrs', 'clef', 'endBeam','beamBeats','flagState','slash'];
+        return ['ticks', 'pitches', 'noteType', 'clef', 'endBeam','beamBeats','flagState','slash'];
     }
     tickCount() {
         return this.ticks.numerator / this.ticks.denominator + this.ticks.remainder;
@@ -54,6 +54,13 @@ class SmoGraceNote extends SmoNoteModifierBase {
         var p = smoMusic.smoPitchesToVex(this.pitches);
         var rv = {duration:smoMusic.closestVexDuration(this.tickCount()),keys:p};
         return rv;
+    }
+
+    serialize() {
+        var params = {};
+        smoSerialize.serializedMergeNonDefault(SmoGraceNote.defaults,
+           SmoGraceNote.parameterArray,this,params);
+        return params;
     }
 
     constructor(parameters) {
@@ -106,14 +113,19 @@ class SmoMicrotone extends SmoNoteModifierBase {
             pitch:0
         };
     }
-    static get attrArray() {
+    static get parameterArray() {
 		return ['tone', 'pitch'];
 	}
-
+    serialize() {
+        var params = {};
+        smoSerialize.serializedMergeNonDefault(SmoMicrotone.defaults,
+           SmoMicrotone.parameterArray,this,params);
+        return params;
+    }
     constructor(parameters) {
         super('SmoMicrotone');
-        smoSerialize.serializedMerge(SmoMicrotone.attrArray,SmoMicrotone.defaults,this);
-        smoSerialize.serializedMerge(SmoMicrotone.attrArray, parameters, this);
+        smoSerialize.serializedMerge(SmoMicrotone.parameterArray,SmoMicrotone.defaults,this);
+        smoSerialize.serializedMerge(SmoMicrotone.parameterArray, parameters, this);
     }
 }
 class SmoOrnament extends SmoNoteModifierBase {
@@ -133,7 +145,7 @@ class SmoOrnament extends SmoNoteModifierBase {
             prailprail:'prailprail'
 		};
 	}
-    static get attrArray() {
+    static get parameterArray() {
 		return ['position', 'offset','ornament'];
 	}
 
@@ -156,11 +168,16 @@ class SmoOrnament extends SmoNoteModifierBase {
             offset:SmoOrnament.offsets.on
         };
     }
-
+    serialize() {
+        var params = {};
+        smoSerialize.serializedMergeNonDefault(SmoOrnament.defaults,
+           SmoOrnament.parameterArray,this,params);
+        return params;
+    }
     constructor(parameters) {
 		super('SmoOrnament');
-		smoSerialize.serializedMerge(SmoOrnament.attrArray,SmoOrnament.defaults,this);
-		smoSerialize.serializedMerge(SmoOrnament.attrArray, parameters, this);
+		smoSerialize.serializedMerge(SmoOrnament.parameterArray,SmoOrnament.defaults,this);
+		smoSerialize.serializedMerge(SmoOrnament.parameterArray, parameters, this);
 		this.selector = parameters.selector;
 	}
 }
@@ -208,7 +225,7 @@ class SmoArticulation extends SmoNoteModifierBase {
 			'a@a': "fermata"
 		};
 	}
-	static get attrArray() {
+	static get parameterArray() {
 		return ['position', 'articulation'];
 	}
 
@@ -225,20 +242,19 @@ class SmoArticulation extends SmoNoteModifierBase {
 		};
 
 	}
+    serialize() {
+        var params = {};
+        smoSerialize.serializedMergeNonDefault(SmoArticulation.defaults,
+           SmoArticulation.parameterArray,this,params);
+        return params;
+    }
 	constructor(parameters) {
 		super('SmoArticulation');
-		smoSerialize.serializedMerge(SmoArticulation.attrArray,SmoArticulation.defaults,this);
-		smoSerialize.serializedMerge(SmoArticulation.attrArray, parameters, this);
+		smoSerialize.serializedMerge(SmoArticulation.parameterArray,SmoArticulation.defaults,this);
+		smoSerialize.serializedMerge(SmoArticulation.parameterArray, parameters, this);
 		this.selector = parameters.selector;
 	}
-	get id() {
-		return this.attrs.id;
-	}
-	set id(ignore) {}
-	get type() {
-		return this.attrs.type;
-	}
-	set type(ignore) {}
+	
 }
 
 class SmoLyric extends SmoNoteModifierBase {
@@ -263,15 +279,21 @@ class SmoLyric extends SmoNoteModifierBase {
 		};
 	}
 
-    static get attributes() {
+    static get parameterArray() {
         return ['text','endChar','fontInfo','classes','verse',
 		    'fill','scaleX','scaleY','translateX','translateY'];
+    }
+    serialize() {
+        var params = {};
+        smoSerialize.serializedMergeNonDefault(SmoLyric.defaults,
+           SmoLyric.parameterArray,this,params);
+        return params;
     }
 
     constructor(parameters) {
 		super('SmoLyric');
-		smoSerialize.serializedMerge(SmoLyric.attributes, SmoLyric.defaults,this);
-		smoSerialize.serializedMerge(SmoLyric.attributes, parameters, this);
+		smoSerialize.serializedMerge(SmoLyric.parameterArray, SmoLyric.defaults,this);
+		smoSerialize.serializedMerge(SmoLyric.parameterArray, parameters, this);
 
         // calculated adjustments for alignment purposes
 		this.adjY=0;
@@ -314,10 +336,16 @@ class SmoDynamicText extends SmoNoteModifierBase {
 		};
 	}
 
+    serialize() {
+        var params = {};
+        smoSerialize.serializedMergeNonDefault(SmoDynamicText.defaults,
+           SmoDynamicText.parameterArray,this,params);
+        return params;
+    }
 	constructor(parameters) {
 		super('SmoDynamicText');
 		Vex.Merge(this, SmoDynamicText.defaults);
-		smoSerialize.filteredMerge(SmoDynamicText.attrArray, parameters, this);
+		smoSerialize.filteredMerge(SmoDynamicText.parameterArray, parameters, this);
 		this.selector = parameters.selector;
 
 		if (!this['attrs']) {
@@ -328,29 +356,22 @@ class SmoDynamicText extends SmoNoteModifierBase {
 		} else {
 		}
 	}
-	get id() {
-		return this.attrs.id;
-	}
-	set id(ignore) {}
-	get type() {
-		return this.attrs.type;
-	}
-	set type(ignore) {}
-	static get attrArray() {
+
+	static get parameterArray() {
 		return ['xOffset', 'fontSize', 'yOffsetLine', 'yOffsetPixels', 'text'];
 	}
 	backupOriginal() {
 		if (!this['original']) {
 			this.original = {};
 			smoSerialize.filteredMerge(
-				SmoDynamicText.attrArray,
+				SmoDynamicText.parameterArray,
 				this, this.original);
 		}
 	}
 	restoreOriginal() {
 		if (this['original']) {
 			smoSerialize.filteredMerge(
-				SmoDynamicText.attrArray,
+				SmoDynamicText.parameterArray,
 				this.original, this);
 			this.original = null;
 		}

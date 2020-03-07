@@ -13,9 +13,7 @@ class SmoScoreModifierBase {
     }
     static deserialize(jsonObj) {
         var ctor = eval(jsonObj.ctor);
-        var rv = new ctor(jsonObj);
-        rv.attrs.id = jsonObj.attrs.id;
-        rv.attrs.type = jsonObj.attrs.type;
+        var rv = new ctor(jsonObj);        
         return rv;
     }
 }
@@ -109,7 +107,8 @@ class SmoScoreText extends SmoScoreModifierBase {
     }
 
 	serialize() {
-		var params = JSON.parse(JSON.stringify(this));
+		var params = {};
+        smoSerialize.serializedMergeNonDefault(SmoScoreText.defaults,SmoScoreText.attributes,this,params);
         params.ctor = 'SmoScoreText';
         return params;
 	}

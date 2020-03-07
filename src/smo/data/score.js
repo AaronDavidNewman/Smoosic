@@ -85,13 +85,18 @@ class SmoScore {
 		this.scoreText.forEach((tt) => {
 			obj.scoreText.push(tt.serialize());
 		});
-        // smoMusic.jsonTokens(obj);
+        smoSerialize.jsonTokens(obj);
+        obj = smoSerialize.detokenize(obj,smoSerialize.tokenValues);
+        obj.dictionary = smoSerialize.tokenMap;
         return obj;
     }
     // ### deserialize
     // ### Restore an earlier JSON string.  Unlike other deserialize methods, this one expects the string.
     static deserialize(jsonString) {
         var jsonObj = JSON.parse(jsonString);
+        if (jsonObj.dictionary) {
+            jsonObj = smoSerialize.detokenize(jsonObj,jsonObj.dictionary);
+        }
         var params = {};
         var staves = [];
         smoSerialize.serializedMerge(

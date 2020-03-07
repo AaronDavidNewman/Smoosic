@@ -60,7 +60,7 @@ class SmoBarline extends SmoMeasureModifierBase {
     }
 	serialize() {
         var params = {};
-        smoSerialize.filteredMerge(SmoBarline.attributes, this, params);
+        smoSerialize.serializedMergeNonDefault(SmoBarline.defaults,SmoBarline.attributes,this,params);
         params.ctor = 'SmoBarline';
         return params;
 	}
@@ -135,7 +135,7 @@ class SmoRepeatSymbol extends SmoMeasureModifierBase {
     }
 	serialize() {
         var params = {};
-        smoSerialize.filteredMerge(SmoRepeatSymbol.attributes, this, params);
+        smoSerialize.serializedMergeNonDefault(SmoRepeatSymbol.defaults,SmoRepeatSymbol.attributes,this,params);
         params.ctor = 'SmoRepeatSymbol';
         return params;
 	}
@@ -179,7 +179,7 @@ class SmoVolta extends SmoMeasureModifierBase {
 
 	serialize() {
         var params = {};
-        smoSerialize.filteredMerge(SmoVolta.attributes, this, params);
+        smoSerialize.serializedMergeNonDefault(SmoVolta.defaults,SmoVolta.attributes,this,params);
         params.ctor = 'SmoVolta';
         return params;
 	}
@@ -276,7 +276,7 @@ class SmoMeasureText extends SmoMeasureModifierBase {
 	}
 	serialize() {
         var params = {};
-        smoSerialize.filteredMerge(SmoMeasureText.attributes, this, params);
+        smoSerialize.serializedMergeNonDefault(SmoMeasureText.defaults,SmoMeasureText.attributes,this,params)
         params.ctor = 'SmoMeasureText';
         return params;
 	}
@@ -335,7 +335,7 @@ class SmoRehearsalMark extends SmoMeasureModifierBase {
     }
 	serialize() {
         var params = {};
-        smoSerialize.filteredMerge(SmoRehearsalMark.attributes, this, params);
+        smoSerialize.serializedMergeNonDefault(SmoRehearsalMark.defaults,SmoRehearsalMark.attributes,this,params)
         params.ctor = 'SmoRehearsalMark';
         return params;
 	}
@@ -394,7 +394,7 @@ class SmoTempoText extends SmoMeasureModifierBase {
 		};
 	}
 	static get attributes() {
-		return ['attrs','tempoMode', 'bpm', 'display','tempoMode', 'beatDuration', 'tempoText','yOffset'];
+		return ['tempoMode', 'bpm', 'display','tempoMode', 'beatDuration', 'tempoText','yOffset'];
 	}
     _toVexTextTempo() {
         return {name:this.tempoText};
@@ -460,7 +460,7 @@ class SmoTempoText extends SmoMeasureModifierBase {
     }
     serialize() {
         var params = {};
-        smoSerialize.filteredMerge(SmoTempoText.attributes, this, params);
+        smoSerialize.serializedMergeNonDefault(SmoTempoText.defaults,SmoTempoText.attributes,this,params)
         params.ctor = 'SmoTempoText';
         return params;
 	}

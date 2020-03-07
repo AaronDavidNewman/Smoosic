@@ -34,6 +34,8 @@ class SmoMeasure {
 		this.tuplets = params.tuplets ? params.tuplets : [];
 		this.modifiers = params.modifiers ? params.modifiers : defaults.modifiers;
 
+        this.setDefaultBarlines();
+
 		if (!this['attrs']) {
 			this.attrs = {
 				id: VF.Element.newID(),
@@ -177,7 +179,7 @@ class SmoMeasure {
 		return [
 			'timeSignature', 'keySignature',
 			'measureNumber',
-			'activeVoice', 'clef', 'transposeIndex', 'activeVoice', 'adjX','padLeft','adjRight', 'padRight', 'rightMargin'];
+			'activeVoice', 'clef', 'transposeIndex', 'activeVoice', 'adjX','padLeft', 'padRight', 'rightMargin'];
 	}
 
 	// ### serialize
@@ -205,7 +207,18 @@ class SmoMeasure {
 		});
 
 		this.modifiers.forEach((modifier) => {
-			params.modifiers.push(modifier.serialize());
+            /* don't serialize default modifiers */
+            if (modifier.ctor == 'SmoBarline' && modifier.position == SmoBarline.positions.start && modifier.barline == SmoBarline.barlines.singleBar) {
+                ;
+            }
+            else if (modifier.ctor == 'SmoBarline' && modifier.position == SmoBarline.positions.end && modifier.barline == SmoBarline.barlines.singleBar) {
+                ;
+            }
+            else if (modifier.ctor == 'SmoRepeatSymbol' && modifier.position == SmoRepeatSymbol.positions.start && modifier.symbol == SmoRepeatSymbol.symbols.None) {
+                ;
+            } else {
+			    params.modifiers.push(modifier.serialize());
+            }
 		});
 		return params;
 	}
@@ -398,6 +411,21 @@ class SmoMeasure {
 			timeSignature: '4/4'
 		});
 	}
+
+    setDefaultBarlines() {
+        if (!this.getStartBarline()) {
+            this.modifiers.push(new SmoBarline({
+    				position: SmoBarline.positions.start,
+    				barline: SmoBarline.barlines.singleBar
+    			}));
+        }
+        if (!this.getEndBarline()) {
+            this.modifiers.push(new SmoBarline({
+    				position: SmoBarline.positions.end,
+    				barline: SmoBarline.barlines.singleBar
+    			}));
+        }
+    }
 	static get defaults() {
 		// var noteDefault = SmoMeasure.defaultVoice44;
 		const modifiers = [];

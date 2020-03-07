@@ -13,10 +13,8 @@ class StaffModifierBase {
         this.ctor = ctor;
     }
     static deserialize(params) {
-        var ctor = eval(params.attrs.type);
+        var ctor = eval(params.ctor);
         var rv = new ctor(params);
-        rv.attrs.id = params.attrs.id;
-        rv.attrs.type = params.attrs.type;
 		return rv;
     }
 }
@@ -44,7 +42,7 @@ class SmoStaffHairpin extends StaffModifierBase {
 		return ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height'];
 	}
     static get attributes() {
-        return ['position', 'startSelector','endSelector','attrs','xOffset', 'yOffset', 'hairpinType', 'height'];
+        return ['position', 'startSelector','endSelector','xOffset', 'yOffset', 'hairpinType', 'height'];
     }
     serialize() {
         var params = {};
@@ -136,7 +134,7 @@ class SmoSlur extends StaffModifierBase {
     }
     static get parameterArray() {
         return ['startSelector','endSelector','spacing', 'xOffset', 'yOffset', 'position', 'position_end', 'invert',
-            'cp1x', 'cp1y', 'cp2x', 'cp2y','attrs','thickness','pitchesStart','pitchesEnd'];
+            'cp1x', 'cp1y', 'cp2x', 'cp2y','thickness','pitchesStart','pitchesEnd'];
     }
 
     serialize() {
