@@ -3,6 +3,9 @@
 // ## SmoSystemStaff
 // ## Description:
 // A staff is a line of music that can span multiple measures.
+// A system is a line of music for each staff in the score.  So a staff
+// spans multiple systems.
+// A staff modifier connects 2 points in the staff.
 class SmoSystemStaff {
     constructor(params) {
         this.measures = [];
@@ -22,12 +25,16 @@ class SmoSystemStaff {
         }
     }
 
+    // ### defaultParameters
+    // the parameters that get saved with the score.
 	static get defaultParameters() {
 		return [
 		'staffId','staffX','staffY','adjY','staffWidth','staffHeight','startIndex',
             'renumberingMap','keySignatureMap','instrumentInfo'];
 	}
 
+    // ### defaults
+    // default values for all instances
     static get defaults() {
         return {
             staffX: 10,
@@ -49,6 +56,8 @@ class SmoSystemStaff {
         };
     }
 
+    // ### serialize
+    // JSONify self.
 	serialize() {
 		var params={};
 		smoMusic.serializedMerge(SmoSystemStaff.defaultParameters,this,params);
@@ -67,6 +76,8 @@ class SmoSystemStaff {
 		return params;
 	}
 
+     // ### deserialize
+     // parse formerly serialized staff.
     static deserialize(jsonObj) {
         var params = {};
         smoMusic.serializedMerge(
@@ -89,6 +100,9 @@ class SmoSystemStaff {
 		return rv;
     }
 
+   // ### addStaffModifier
+   // add a staff modifier, or replace a modifier of same type
+   // with same endpoints.
     addStaffModifier(modifier) {
         this.removeStaffModifier(modifier);
         this.modifiers.push(modifier);
@@ -116,7 +130,8 @@ class SmoSystemStaff {
 
     getSlursStartingAt(selector) {
         return this.modifiers.filter((mod) => {
-            return SmoSelector.sameNote(mod.startSelector,selector);
+            return SmoSelector.sameNote(mod.startSelector,selector)
+               && mod.attrs.type == 'SmoSlur';
         });
     }
 

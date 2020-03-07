@@ -1,4 +1,8 @@
+// # Dialog base classes
 
+// ## SuiDialogFactory
+// Automatic dialog constructors for dialogs without too many parameters
+// that operated on a selection.
 class SuiDialogFactory {
 
 	static createDialog(modSelection, context, tracker, layout,undoBuffer,controller) {
@@ -31,7 +35,11 @@ class SuiDialogFactory {
 	}
 }
 
+// ## SuiDialogBase
+// Base class for dialogs.
 class SuiDialogBase {
+    // ### SuiDialogBase ctor
+    // Creates the DOM element for the dialog and gets some initial elements
 	constructor(dialogElements, parameters) {
 		this.id = parameters.id;
         this.boundKeyboard = false;
@@ -57,6 +65,9 @@ class SuiDialogBase {
 			});
 	}
 
+    // ### position
+    // For dialogs based on selections, tries to place the dialog near the selection and also
+    // to scroll so the dialog is in view
     static position(box,dgDom,scroller) {
         var y = (box.y + box.height) - scroller.netScroll.y;
 
@@ -87,6 +98,7 @@ class SuiDialogBase {
 	position(box) {
         SuiDialogBase.position(box,this.dgDom,this.tracker.scroller);
 	}
+    // ### build the html for the dialog, based on the instance-specific components.
 	_constructDialog(dialogElements, parameters) {
 		var id = parameters.id;
 		var b = htmlHelpers.buildDom;
@@ -121,6 +133,8 @@ class SuiDialogBase {
 		};
 	}
 
+    // ### _commit
+    // generic logic to commit changes to a momdifier.
 	_commit() {
 		this.modifier.restoreOriginal();
 		this.components.forEach((component) => {
@@ -128,6 +142,9 @@ class SuiDialogBase {
 		});
 	}
 
+     // ### Complete
+     // Dialogs take over the keyboard, so release that and trigger an event
+     // that the dialog is closing that can resolve any outstanding promises.
 	complete() {
         if (this.boundKeyboard) {
             window.removeEventListener("keydown", this.keydownHandler, true);
@@ -136,6 +153,9 @@ class SuiDialogBase {
 		$('body').trigger('dialogDismiss');
 		this.dgDom.trapper.close();
 	}
+
+    // ### _bindComponentNames
+    // helper method to give components class names based on their static configuration
     _bindComponentNames() {
         this.components.forEach((component) => {
 			var nm = component.smoName + 'Ctrl';
@@ -143,6 +163,8 @@ class SuiDialogBase {
 		});
     }
 
+   // ### display
+   // make3 the modal visible.  bind events and elements.
 	display() {
 		$('body').addClass('showAttributeDialog');
         this.tracker.scroller.scrollVisible(this.initialLeft,this.initialTop);
@@ -162,6 +184,8 @@ class SuiDialogBase {
 		});
 	}
 
+    // ### handleKeydown
+    // allow a dialog to be dismissed by esc.
     handleKeydown(evdata) {
         if (evdata.key == 'Escape') {
             $(this.dgDom.element).find('.cancel-button').click();
@@ -170,12 +194,17 @@ class SuiDialogBase {
         }
         return;
     }
+
+    // ### bindKeyboard
+    // generic logic to grab keyboard elements for modal
     bindKeyboard() {
         this.boundKeyboard = true;
         this.keydownHandler = this.handleKeydown.bind(this);
         window.addEventListener("keydown", this.keydownHandler, true);
     }
 
+   // ### _bindElements
+   // bing the generic controls in most dialogs.
 	_bindElements() {
 		var self = this;
 		var dgDom = this.dgDom;
@@ -198,10 +227,12 @@ class SuiDialogBase {
 }
 
 
+// ## SuiLayoutDialog
+// The layout dialog has page layout and zoom logic.  It is not based on a selection but score-wide
 class SuiLayoutDialog extends SuiDialogBase {
-	static get attributes() {
-		return ['pageWidth', 'pageHeight', 'leftMargin', 'topMargin', 'rightMargin', 'interGap', 'intraGap', 'zoomScale', 'svgScale'];
-	}
+
+   // ### dialogElements
+   // all dialogs have elements define the controls of the dialog.
 	static get dialogElements() {
 		return [{
 				smoName: 'pageSize',
@@ -296,6 +327,8 @@ class SuiLayoutDialog extends SuiDialogBase {
 			}
 		];
 	}
+    // ### backupOriginal
+    // backup the original layout parameters for trial period
 	backupOriginal() {
 		this.backup = JSON.parse(JSON.stringify(this.modifier));;
 	}
@@ -325,6 +358,9 @@ class SuiLayoutDialog extends SuiDialogBase {
         SuiDialogBase.position(box,this.dgDom,this.tracker.scroller);
 
 	}
+    // ### _updateLayout
+    // even if the layout is not changed, we re-render the entire score by resetting
+    // the svg context.
     _updateLayout() {
         this.layout.rerenderAll();
     }
@@ -365,6 +401,8 @@ class SuiLayoutDialog extends SuiDialogBase {
 		});
 		this.components.find((x)=>{return x.parameterName==='pageSize'}).setValue(value);
 	}
+    // ### _handlePageSizeChange
+    // see if the dimensions have changed.
 	_handlePageSizeChange() {
 		var pageSizeComp = this.components.find((x)=>{return x.parameterName==='pageSize'});
 		var sel = pageSizeComp.getValue();
@@ -379,6 +417,8 @@ class SuiLayoutDialog extends SuiDialogBase {
 			wComp.setValue(dim.width);
 		}
 	}
+    // ### changed
+    // One of the components has had a changed value.
 	changed() {
 		// this.modifier.backupOriginal();
 		this._handlePageSizeChange();
@@ -387,6 +427,9 @@ class SuiLayoutDialog extends SuiDialogBase {
 		});
 		this.layout.setViewport();
 	}
+
+    // ### createAndDisplay
+    // static method to create the object and then display it.
 	static createAndDisplay(buttonElement, buttonData, controller) {
 		var dg = new SuiLayoutDialog({
 				layout: controller.layout,
@@ -414,6 +457,9 @@ class SuiLayoutDialog extends SuiDialogBase {
 	}
 }
 
+// ## SuiTextModifierDialog
+// This is a poorly named class, it just allows you to placeText
+// dynamic text so it doesn't collide with something.
 class SuiTextModifierDialog extends SuiDialogBase {
 	static get dialogElements() {
 		return [{
