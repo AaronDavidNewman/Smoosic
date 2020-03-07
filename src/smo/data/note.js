@@ -9,7 +9,7 @@ class SmoNote {
     // see defaults for params format.
     constructor(params) {
         Vex.Merge(this, SmoNote.defaults);
-        smoMusic.serializedMerge(SmoNote.parameterArray, params, this);
+        smoSerialize.serializedMerge(SmoNote.parameterArray, params, this);
 
         // this.keys=JSON.parse(JSON.stringify(this.keys));
 
@@ -293,7 +293,7 @@ class SmoNote {
     }
     serialize() {
         var params = {};
-        smoMusic.serializedMergeNonDefault(SmoNote.defaults,SmoNote.parameterArray, this, params);
+        smoSerialize.serializedMergeNonDefault(SmoNote.defaults,SmoNote.parameterArray, this, params);
         if (params.ticks) {
             params.ticks = JSON.parse(JSON.stringify(params.ticks));
         }
@@ -370,7 +370,7 @@ class SmoTuplet {
     get clonedParams() {
         var paramAr = ['stemTicks', 'ticks', 'totalTicks', 'durationMap']
         var rv = {};
-        smoMusic.serializedMerge(paramAr, this, rv);
+        smoSerialize.serializedMerge(paramAr, this, rv);
         return rv;
 
     }

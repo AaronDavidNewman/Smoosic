@@ -24,7 +24,7 @@ class SuiRockerComponent extends SuiComponentBase {
 	}
     constructor(dialog, parameter) {
         super();
-        smoMusic.filteredMerge(
+        smoSerialize.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label','increment','type'], parameter, this);
         if (!this.defaultValue) {
             this.defaultValue = 0;
@@ -145,7 +145,7 @@ class SuiRockerComponent extends SuiComponentBase {
 class SuiDragText extends SuiComponentBase {
     constructor(dialog,parameter) {
         super();
-        smoMusic.filteredMerge(
+        smoSerialize.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
             this.defaultValue = 0;
@@ -249,7 +249,7 @@ class SuiDragText extends SuiComponentBase {
 class SuiResizeTextBox extends SuiComponentBase {
     constructor(dialog,parameter) {
         super();
-        smoMusic.filteredMerge(
+        smoSerialize.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
             this.defaultValue = 0;
@@ -325,7 +325,7 @@ class SuiResizeTextBox extends SuiComponentBase {
 class SuiTextInPlace extends SuiComponentBase {
     constructor(dialog,parameter) {
         super();
-        smoMusic.filteredMerge(
+        smoSerialize.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
             this.defaultValue = 0;
@@ -402,7 +402,7 @@ class SuiTextInPlace extends SuiComponentBase {
 class SuiLyricEditComponent extends SuiComponentBase {
     constructor(dialog,parameter) {
         super();
-        smoMusic.filteredMerge(
+        smoSerialize.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
             this.defaultValue = 0;
@@ -494,7 +494,7 @@ class SuiLyricEditComponent extends SuiComponentBase {
 class SuiTextInputComponent extends SuiComponentBase {
     constructor(dialog, parameter) {
         super();
-        smoMusic.filteredMerge(
+        smoSerialize.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
             this.defaultValue = 0;
@@ -536,7 +536,7 @@ class SuiTextInputComponent extends SuiComponentBase {
 class SuiFileDownloadComponent extends SuiComponentBase {
     constructor(dialog, parameter) {
         super();
-        smoMusic.filteredMerge(
+        smoSerialize.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
             this.defaultValue = 0;
@@ -583,7 +583,7 @@ class SuiFileDownloadComponent extends SuiComponentBase {
 class SuiToggleComponent extends SuiComponentBase {
     constructor(dialog, parameter) {
         super();
-        smoMusic.filteredMerge(
+        smoSerialize.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
             this.defaultValue = 0;
@@ -630,7 +630,7 @@ class SuiToggleComponent extends SuiComponentBase {
 class SuiDropdownComponent  extends SuiComponentBase{
     constructor(dialog, parameter) {
         super();
-        smoMusic.filteredMerge(
+        smoSerialize.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label','dataType'], parameter, this);
         if (!this.defaultValue) {
             this.defaultValue = 0;

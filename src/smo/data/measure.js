@@ -28,8 +28,8 @@ class SmoMeasure {
 
 		var defaults = SmoMeasure.defaults;
 
-		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, defaults, this);
-		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, params, this);
+		smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, defaults, this);
+		smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, params, this);
 		this.voices = params.voices ? params.voices : [];
 		this.tuplets = params.tuplets ? params.tuplets : [];
 		this.modifiers = params.modifiers ? params.modifiers : defaults.modifiers;
@@ -185,7 +185,7 @@ class SmoMeasure {
 	// note modifiers, etc.
 	serialize() {
 		var params = {};
-		smoMusic.serializedMergeNonDefault(SmoMeasure.defaults,SmoMeasure.defaultAttributes, this, params);
+		smoSerialize.serializedMergeNonDefault(SmoMeasure.defaults,SmoMeasure.defaultAttributes, this, params);
 		params.tuplets = [];
 		params.voices = [];
 		params.modifiers=[];
@@ -262,7 +262,7 @@ class SmoMeasure {
 			modifiers:modifiers
 		};
 
-		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, jsonObj, params);
+		smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, jsonObj, params);
         var rv = new SmoMeasure(params);
         smoBeamerFactory.applyBeams(rv);
 
@@ -376,8 +376,8 @@ class SmoMeasure {
 	// For create the initial or new measure, get a measure with notes.
 	static getDefaultMeasure(params) {
 		var obj = {};
-		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, SmoMeasure.defaults, obj);
-		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, params, obj);
+		smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, SmoMeasure.defaults, obj);
+		smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, params, obj);
 		return new SmoMeasure(obj);
 	}
 

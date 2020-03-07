@@ -19,7 +19,7 @@ class RibbonButtons {
 		return r.dom();
 	}
 	constructor(parameters) {
-		smoMusic.filteredMerge(RibbonButtons.paramArray, parameters, this);
+		smoSerialize.filteredMerge(RibbonButtons.paramArray, parameters, this);
 		this.ribbonButtons = parameters.ribbonButtons;
 		this.ribbons = parameters.ribbons;
 		this.collapsables = [];
@@ -691,7 +691,7 @@ class CollapseRibbonControl {
 		return ['ribbonButtons', 'editor', 'controller', 'tracker', 'menus', 'buttonData', 'buttonElement'];
 	}
 	constructor(parameters) {
-		smoMusic.filteredMerge(CollapseRibbonControl.paramArray, parameters, this);
+		smoSerialize.filteredMerge(CollapseRibbonControl.paramArray, parameters, this);
 		this.childButtons = parameters.ribbonButtons.filter((cb) => {
 				return cb.group === this.buttonData.group &&
                     RibbonButtons.isCollapsible(cb.action)

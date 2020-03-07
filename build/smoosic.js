@@ -654,6 +654,19 @@ class smoMusic {
         return dar.sort((a,b) => a > b ? -1 : 1);
     }
 
+}
+;
+VF = Vex.Flow;
+Vex.Xform = (typeof(Vex.Xform) == 'undefined' ? {}
+	 : Vex.Xform);
+VX = Vex.Xform;
+
+// ## smoSerialize
+// Helper functions that perform serialized merges, general JSON
+// types of routines.
+// ---
+class smoSerialize {
+
 	// ### filteredMerge
 	// Like vexMerge, but only for specific attributes.
 	static filteredMerge(attrs, src, dest) {
@@ -1551,7 +1564,7 @@ class SmoNote {
     // see defaults for params format.
     constructor(params) {
         Vex.Merge(this, SmoNote.defaults);
-        smoMusic.serializedMerge(SmoNote.parameterArray, params, this);
+        smoSerialize.serializedMerge(SmoNote.parameterArray, params, this);
 
         // this.keys=JSON.parse(JSON.stringify(this.keys));
 
@@ -1835,7 +1848,7 @@ class SmoNote {
     }
     serialize() {
         var params = {};
-        smoMusic.serializedMergeNonDefault(SmoNote.defaults,SmoNote.parameterArray, this, params);
+        smoSerialize.serializedMergeNonDefault(SmoNote.defaults,SmoNote.parameterArray, this, params);
         if (params.ticks) {
             params.ticks = JSON.parse(JSON.stringify(params.ticks));
         }
@@ -1912,7 +1925,7 @@ class SmoTuplet {
     get clonedParams() {
         var paramAr = ['stemTicks', 'ticks', 'totalTicks', 'durationMap']
         var rv = {};
-        smoMusic.serializedMerge(paramAr, this, rv);
+        smoSerialize.serializedMerge(paramAr, this, rv);
         return rv;
 
     }
@@ -2186,8 +2199,8 @@ class SmoGraceNote extends SmoNoteModifierBase {
 
     constructor(parameters) {
         super('SmoGraceNote');
-    	smoMusic.serializedMerge(SmoGraceNote.parameterArray,SmoGraceNote.defaults,this);
-		smoMusic.serializedMerge(SmoGraceNote.parameterArray, parameters, this);
+    	smoSerialize.serializedMerge(SmoGraceNote.parameterArray,SmoGraceNote.defaults,this);
+		smoSerialize.serializedMerge(SmoGraceNote.parameterArray, parameters, this);
     }
 
 }
@@ -2240,8 +2253,8 @@ class SmoMicrotone extends SmoNoteModifierBase {
 
     constructor(parameters) {
         super('SmoMicrotone');
-        smoMusic.serializedMerge(SmoMicrotone.attrArray,SmoMicrotone.defaults,this);
-        smoMusic.serializedMerge(SmoMicrotone.attrArray, parameters, this);
+        smoSerialize.serializedMerge(SmoMicrotone.attrArray,SmoMicrotone.defaults,this);
+        smoSerialize.serializedMerge(SmoMicrotone.attrArray, parameters, this);
     }
 }
 class SmoOrnament extends SmoNoteModifierBase {
@@ -2287,8 +2300,8 @@ class SmoOrnament extends SmoNoteModifierBase {
 
     constructor(parameters) {
 		super('SmoOrnament');
-		smoMusic.serializedMerge(SmoOrnament.attrArray,SmoOrnament.defaults,this);
-		smoMusic.serializedMerge(SmoOrnament.attrArray, parameters, this);
+		smoSerialize.serializedMerge(SmoOrnament.attrArray,SmoOrnament.defaults,this);
+		smoSerialize.serializedMerge(SmoOrnament.attrArray, parameters, this);
 		this.selector = parameters.selector;
 	}
 }
@@ -2355,8 +2368,8 @@ class SmoArticulation extends SmoNoteModifierBase {
 	}
 	constructor(parameters) {
 		super('SmoArticulation');
-		smoMusic.serializedMerge(SmoArticulation.attrArray,SmoArticulation.defaults,this);
-		smoMusic.serializedMerge(SmoArticulation.attrArray, parameters, this);
+		smoSerialize.serializedMerge(SmoArticulation.attrArray,SmoArticulation.defaults,this);
+		smoSerialize.serializedMerge(SmoArticulation.attrArray, parameters, this);
 		this.selector = parameters.selector;
 	}
 	get id() {
@@ -2398,8 +2411,8 @@ class SmoLyric extends SmoNoteModifierBase {
 
     constructor(parameters) {
 		super('SmoLyric');
-		smoMusic.serializedMerge(SmoLyric.attributes, SmoLyric.defaults,this);
-		smoMusic.serializedMerge(SmoLyric.attributes, parameters, this);
+		smoSerialize.serializedMerge(SmoLyric.attributes, SmoLyric.defaults,this);
+		smoSerialize.serializedMerge(SmoLyric.attributes, parameters, this);
 
         // calculated adjustments for alignment purposes
 		this.adjY=0;
@@ -2445,7 +2458,7 @@ class SmoDynamicText extends SmoNoteModifierBase {
 	constructor(parameters) {
 		super('SmoDynamicText');
 		Vex.Merge(this, SmoDynamicText.defaults);
-		smoMusic.filteredMerge(SmoDynamicText.attrArray, parameters, this);
+		smoSerialize.filteredMerge(SmoDynamicText.attrArray, parameters, this);
 		this.selector = parameters.selector;
 
 		if (!this['attrs']) {
@@ -2470,14 +2483,14 @@ class SmoDynamicText extends SmoNoteModifierBase {
 	backupOriginal() {
 		if (!this['original']) {
 			this.original = {};
-			smoMusic.filteredMerge(
+			smoSerialize.filteredMerge(
 				SmoDynamicText.attrArray,
 				this, this.original);
 		}
 	}
 	restoreOriginal() {
 		if (this['original']) {
-			smoMusic.filteredMerge(
+			smoSerialize.filteredMerge(
 				SmoDynamicText.attrArray,
 				this.original, this);
 			this.original = null;
@@ -2514,8 +2527,8 @@ class SmoMeasure {
 
 		var defaults = SmoMeasure.defaults;
 
-		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, defaults, this);
-		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, params, this);
+		smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, defaults, this);
+		smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, params, this);
 		this.voices = params.voices ? params.voices : [];
 		this.tuplets = params.tuplets ? params.tuplets : [];
 		this.modifiers = params.modifiers ? params.modifiers : defaults.modifiers;
@@ -2671,7 +2684,7 @@ class SmoMeasure {
 	// note modifiers, etc.
 	serialize() {
 		var params = {};
-		smoMusic.serializedMergeNonDefault(SmoMeasure.defaults,SmoMeasure.defaultAttributes, this, params);
+		smoSerialize.serializedMergeNonDefault(SmoMeasure.defaults,SmoMeasure.defaultAttributes, this, params);
 		params.tuplets = [];
 		params.voices = [];
 		params.modifiers=[];
@@ -2748,7 +2761,7 @@ class SmoMeasure {
 			modifiers:modifiers
 		};
 
-		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, jsonObj, params);
+		smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, jsonObj, params);
         var rv = new SmoMeasure(params);
         smoBeamerFactory.applyBeams(rv);
 
@@ -2862,8 +2875,8 @@ class SmoMeasure {
 	// For create the initial or new measure, get a measure with notes.
 	static getDefaultMeasure(params) {
 		var obj = {};
-		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, SmoMeasure.defaults, obj);
-		smoMusic.serializedMerge(SmoMeasure.defaultAttributes, params, obj);
+		smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, SmoMeasure.defaults, obj);
+		smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, params, obj);
 		return new SmoMeasure(obj);
 	}
 
@@ -3352,7 +3365,7 @@ class SmoBarline extends SmoMeasureModifierBase {
     }
 	serialize() {
         var params = {};
-        smoMusic.filteredMerge(SmoBarline.attributes, this, params);
+        smoSerialize.filteredMerge(SmoBarline.attributes, this, params);
         params.ctor = 'SmoBarline';
         return params;
 	}
@@ -3360,8 +3373,8 @@ class SmoBarline extends SmoMeasureModifierBase {
     constructor(parameters) {
         super('SmoBarline');
         parameters = parameters ? parameters : {};
-        smoMusic.serializedMerge(SmoBarline.attributes, SmoBarline.defaults, this);
-        smoMusic.serializedMerge(SmoBarline.attributes, parameters, this);
+        smoSerialize.serializedMerge(SmoBarline.attributes, SmoBarline.defaults, this);
+        smoSerialize.serializedMerge(SmoBarline.attributes, parameters, this);
     }
 
     static get toVexBarline() {
@@ -3427,15 +3440,15 @@ class SmoRepeatSymbol extends SmoMeasureModifierBase {
     }
 	serialize() {
         var params = {};
-        smoMusic.filteredMerge(SmoRepeatSymbol.attributes, this, params);
+        smoSerialize.filteredMerge(SmoRepeatSymbol.attributes, this, params);
         params.ctor = 'SmoRepeatSymbol';
         return params;
 	}
     constructor(parameters) {
         super('SmoRepeatSymbol');
-        smoMusic.serializedMerge(SmoRepeatSymbol.attributes, SmoRepeatSymbol.defaults, this);
+        smoSerialize.serializedMerge(SmoRepeatSymbol.attributes, SmoRepeatSymbol.defaults, this);
 		this.xOffset = SmoRepeatSymbol.defaultXOffset[parameters.symbol];
-        smoMusic.serializedMerge(SmoRepeatSymbol.attributes, parameters, this);
+        smoSerialize.serializedMerge(SmoRepeatSymbol.attributes, parameters, this);
     }
 }
 
@@ -3452,8 +3465,8 @@ class SmoVolta extends SmoMeasureModifierBase {
         } else {
             console.log('inherit attrs');
         }
-        smoMusic.serializedMerge(SmoVolta.attributes, SmoVolta.defaults, this);
-		smoMusic.serializedMerge(SmoVolta.attributes, parameters, this);
+        smoSerialize.serializedMerge(SmoVolta.attributes, SmoVolta.defaults, this);
+		smoSerialize.serializedMerge(SmoVolta.attributes, parameters, this);
     }
 	get id() {
 		return this.attrs.id;
@@ -3471,7 +3484,7 @@ class SmoVolta extends SmoMeasureModifierBase {
 
 	serialize() {
         var params = {};
-        smoMusic.filteredMerge(SmoVolta.attributes, this, params);
+        smoSerialize.filteredMerge(SmoVolta.attributes, this, params);
         params.ctor = 'SmoVolta';
         return params;
 	}
@@ -3490,14 +3503,14 @@ class SmoVolta extends SmoMeasureModifierBase {
 	 backupOriginal() {
         if (!this['original']) {
             this.original = {};
-            smoMusic.filteredMerge(
+            smoSerialize.filteredMerge(
                 SmoVolta.attributes,
                 this, this.original);
         }
     }
     restoreOriginal() {
         if (this['original']) {
-            smoMusic.filteredMerge(
+            smoSerialize.filteredMerge(
                 SmoVolta.attributes,
                 this.original, this);
             this.original = null;
@@ -3568,7 +3581,7 @@ class SmoMeasureText extends SmoMeasureModifierBase {
 	}
 	serialize() {
         var params = {};
-        smoMusic.filteredMerge(SmoMeasureText.attributes, this, params);
+        smoSerialize.filteredMerge(SmoMeasureText.attributes, this, params);
         params.ctor = 'SmoMeasureText';
         return params;
 	}
@@ -3576,8 +3589,8 @@ class SmoMeasureText extends SmoMeasureModifierBase {
 	constructor(parameters) {
 		super('SmoMeasureText');
         parameters = parameters ? parameters : {};
-        smoMusic.serializedMerge(SmoMeasureText.attributes, SmoMeasureText.defaults, this);
-        smoMusic.serializedMerge(SmoMeasureText.attributes, parameters, this);
+        smoSerialize.serializedMerge(SmoMeasureText.attributes, SmoMeasureText.defaults, this);
+        smoSerialize.serializedMerge(SmoMeasureText.attributes, parameters, this);
 
 		// right-justify left text and left-justify right text by default
 		if (!parameters['justification']) {
@@ -3627,15 +3640,15 @@ class SmoRehearsalMark extends SmoMeasureModifierBase {
     }
 	serialize() {
         var params = {};
-        smoMusic.filteredMerge(SmoRehearsalMark.attributes, this, params);
+        smoSerialize.filteredMerge(SmoRehearsalMark.attributes, this, params);
         params.ctor = 'SmoRehearsalMark';
         return params;
 	}
 	constructor(parameters) {
 		super('SmoRehearsalMark');
         parameters = parameters ? parameters : {};
-        smoMusic.serializedMerge(SmoRehearsalMark.attributes, SmoRehearsalMark.defaults, this);
-        smoMusic.serializedMerge(SmoRehearsalMark.attributes, parameters, this);
+        smoSerialize.serializedMerge(SmoRehearsalMark.attributes, SmoRehearsalMark.defaults, this);
+        smoSerialize.serializedMerge(SmoRehearsalMark.attributes, parameters, this);
         if (!parameters.symbol) {
             this.symbol=this.getInitial();
         }
@@ -3745,22 +3758,22 @@ class SmoTempoText extends SmoMeasureModifierBase {
     }
     backupOriginal() {
         this.backup = {};
-        smoMusic.serializedMerge(SmoTempoText.attributes, this, this.backup);
+        smoSerialize.serializedMerge(SmoTempoText.attributes, this, this.backup);
     }
     restoreOriginal() {
-        smoMusic.serializedMerge(SmoTempoText.attributes, this.backup, this);
+        smoSerialize.serializedMerge(SmoTempoText.attributes, this.backup, this);
     }
     serialize() {
         var params = {};
-        smoMusic.filteredMerge(SmoTempoText.attributes, this, params);
+        smoSerialize.filteredMerge(SmoTempoText.attributes, this, params);
         params.ctor = 'SmoTempoText';
         return params;
 	}
 	constructor(parameters) {
 		super('SmoTempoText');
         parameters = parameters ? parameters : {};
-		smoMusic.serializedMerge(SmoTempoText.attributes, SmoTempoText.defaults, this);
-		smoMusic.serializedMerge(SmoTempoText.attributes, parameters, this);
+		smoSerialize.serializedMerge(SmoTempoText.attributes, SmoTempoText.defaults, this);
+		smoSerialize.serializedMerge(SmoTempoText.attributes, parameters, this);
 	}
 }
 ;
@@ -3825,7 +3838,7 @@ class SmoSystemStaff {
     // JSONify self.
 	serialize() {
 		var params={};
-		smoMusic.serializedMerge(SmoSystemStaff.defaultParameters,this,params);
+		smoSerialize.serializedMerge(SmoSystemStaff.defaultParameters,this,params);
 		params.modifiers=[];
 		params.measures=[];
 
@@ -3845,7 +3858,7 @@ class SmoSystemStaff {
      // parse formerly serialized staff.
     static deserialize(jsonObj) {
         var params = {};
-        smoMusic.serializedMerge(
+        smoSerialize.serializedMerge(
             ['staffId','staffX', 'staffY', 'staffWidth', 'startIndex', 'renumberingMap', 'renumberIndex', 'instrumentInfo'],
             jsonObj, params);
         params.measures = [];
@@ -3873,6 +3886,8 @@ class SmoSystemStaff {
         this.modifiers.push(modifier);
     }
 
+    // ### removeStaffModifier
+    // Remove a modifier of given type and location
     removeStaffModifier(modifier) {
         var mods = [];
         this.modifiers.forEach((mod) => {
@@ -3883,6 +3898,8 @@ class SmoSystemStaff {
         this.modifiers = mods;
     }
 
+    // ### getModifiersAt
+    // get any modifiers at the selected location
 	getModifiersAt(selector) {
 		var rv = [];
 		this.modifiers.forEach((mod) => {
@@ -3893,6 +3910,8 @@ class SmoSystemStaff {
 		return rv;
 	}
 
+    // ### getSlursStartingAt
+    // like it says.  Used by audio player to slur notes
     getSlursStartingAt(selector) {
         return this.modifiers.filter((mod) => {
             return SmoSelector.sameNote(mod.startSelector,selector)
@@ -3900,23 +3919,21 @@ class SmoSystemStaff {
         });
     }
 
+    // ### getSlursEndingAt
+    // like it says.
     getSlursEndingAt(selector) {
         return this.modifiers.filter((mod) => {
             return SmoSelector.sameNote(mod.endSelector,selector);
         });
     }
 
-    getModifierMeasures(modifier) {
-        return {
-            startMeasure: this.measures.find((measure) => measure.attrs.id === modifier.startMeasure),
-            endMeasure: this.measures.find((measure) => measure.attrs.id === modifier.endMeasure),
-        }
-    }
-
+    // ### accesor getModifiers
     getModifiers() {
         return this.modifiers;
     }
 
+    // ### applyBeams
+    // group all the measures' notes into beam groups.
     applyBeams() {
         for (var i = 0; i < this.measures.length; ++i) {
             var measure = this.measures[i];
@@ -3924,6 +3941,8 @@ class SmoSystemStaff {
         }
     }
 
+    // ### getRenderedNote
+    // used by mapper to get the rendered note from it's SVG DOM ID.
     getRenderedNote(id) {
         for (var i = 0; i < this.measures.length; ++i) {
             var measure = this.measures[i];
@@ -3947,6 +3966,9 @@ class SmoSystemStaff {
         return null;
     }
 
+    // ### addRehearsalMark
+    // for all measures in the system, and also bump the
+    // auto-indexing
     addRehearsalMark(index,parameters) {
         var mark = new SmoRehearsalMark(parameters);
         if (!mark.increment) {
@@ -3986,6 +4008,9 @@ class SmoSystemStaff {
         this.measures[index].addTempo(tempo);
     }
 
+    // ### removeRehearsalMark
+    // for all measures in the system, and also decrement the
+    // auto-indexing
     removeRehearsalMark(index) {
         var ix = 0;
         var symbol=null;
@@ -4011,6 +4036,8 @@ class SmoSystemStaff {
         });
     }
 
+    // ### deleteMeasure
+    // delete the measure, and any staff modifiers that start/end there.
 	deleteMeasure(index) {
 		if (this.measures.length < 2) {
 			return; // don't delete last measure.
@@ -4039,18 +4066,19 @@ class SmoSystemStaff {
 		this.numberMeasures();
 	}
 
-    getMaxTicksMeasure(measure) {
-        if (this.measures.length < measure) {
-            return 0;
-        }
-        return this.measures[measure].notes.length;
-    }
+    // ### addKeySignature
+    // Add key signature to the given measure and update map so we know
+    // when it changes, cancels etc.
     addKeySignature(measureIndex, key) {
         this.keySignatureMap[measureIndex] = key;
 		var target = this.measures[measureIndex];
 		target.keySignature = key;
         // this._updateKeySignatures();
     }
+
+    // ### removeKeySignature
+    // remove key signature and update map so we know
+    // when it changes, cancels etc.
     removeKeySignature(measureIndex) {
         var keys = Object.keys(this.keySignatureMap);
         var nmap = {};
@@ -4072,6 +4100,9 @@ class SmoSystemStaff {
             measure.setKeySignature(nextSig);
         }
     }
+
+    // ### numberMeasures
+    // After anything that might change the measure numbers, update them iteratively
     numberMeasures() {
         this.renumberIndex = this.startIndex;
         var currentOffset = 0;
@@ -4219,7 +4250,7 @@ class SmoScore {
     // ### Serialize the score.  The resulting JSON string will contain all the staves, measures, etc.
     serialize() {
         var params = {};
-        smoMusic.serializedMerge(SmoScore.defaultAttributes, this, params);
+        smoSerialize.serializedMerge(SmoScore.defaultAttributes, this, params);
         var obj = {
             score: params,
             staves: [],
@@ -4241,7 +4272,7 @@ class SmoScore {
         var jsonObj = JSON.parse(jsonString);
         var params = {};
         var staves = [];
-        smoMusic.serializedMerge(
+        smoSerialize.serializedMerge(
             SmoScore.defaultAttributes,
             jsonObj.score, params);
         jsonObj.staves.forEach((staffObj) => {
@@ -4409,7 +4440,7 @@ class SmoScore {
         for (var i = 0; i < proto.measures.length; ++i) {
             var newParams = {};
             var measure = proto.measures[i];
-            smoMusic.serializedMerge(SmoMeasure.defaultAttributes, measure, newParams);
+            smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, measure, newParams);
             newParams.clef = parameters.instrumentInfo.clef;
             newParams.transposeIndex = parameters.instrumentInfo.keyOffset;
             var newMeasure = SmoMeasure.getDefaultMeasureWithNotes(newParams);
@@ -4488,9 +4519,6 @@ class SmoScore {
 		this._updateScoreText(textObject,false);
 	}
 
-    getMaxTicksMeasure(measure) {
-        return this.staves[this.activeStaff].getMaxTicksMeasure(measure);
-    }
     get measures() {
         if (this.staves.length === 0)
             return [];
@@ -4551,7 +4579,7 @@ class SmoStaffHairpin extends StaffModifierBase {
     constructor(params) {
         super('SmoStaffHairpin');
         Vex.Merge(this, SmoStaffHairpin.defaults);
-        smoMusic.filteredMerge(['position', 'xOffset', 'yOffset', 'hairpinType', 'height'], params, this);
+        smoSerialize.filteredMerge(['position', 'xOffset', 'yOffset', 'hairpinType', 'height'], params, this);
         this.startSelector = params.startSelector;
         this.endSelector = params.endSelector;
 
@@ -4572,7 +4600,7 @@ class SmoStaffHairpin extends StaffModifierBase {
     }
     serialize() {
         var params = {};
-        smoMusic.serializedMergeNonDefault(SmoStaffHairpin.defaults,SmoStaffHairpin.attributes,this,params);
+        smoSerialize.serializedMergeNonDefault(SmoStaffHairpin.defaults,SmoStaffHairpin.attributes,this,params);
         params.ctor = 'SmoStaffHairpin';
         return params;
     }
@@ -4586,14 +4614,14 @@ class SmoStaffHairpin extends StaffModifierBase {
     backupOriginal() {
         if (!this['original']) {
             this.original = {};
-            smoMusic.filteredMerge(
+            smoSerialize.filteredMerge(
                 ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height', 'position', 'hairpinType'],
                 this, this.original);
         }
     }
     restoreOriginal() {
         if (this['original']) {
-            smoMusic.filteredMerge(
+            smoSerialize.filteredMerge(
                 ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height', 'position', 'hairpinType'],
                 this.original, this);
             this.original = null;
@@ -4665,7 +4693,7 @@ class SmoSlur extends StaffModifierBase {
 
     serialize() {
         var params = {};
-        smoMusic.serializedMergeNonDefault(SmoSlur.defaults,
+        smoSerialize.serializedMergeNonDefault(SmoSlur.defaults,
             SmoSlur.parameterArray,this,params);
 
         // smoMusic.filteredMerge(SmoSlur.parameterArray, this, params);
@@ -4676,14 +4704,14 @@ class SmoSlur extends StaffModifierBase {
     backupOriginal() {
         if (!this['original']) {
             this.original = {};
-            smoMusic.filteredMerge(
+            smoSerialize.filteredMerge(
                 SmoSlur.parameterArray,
                 this, this.original);
         }
     }
     restoreOriginal() {
         if (this['original']) {
-            smoMusic.filteredMerge(
+            smoSerialize.filteredMerge(
                 SmoSlur.parameterArray,
                 this.original, this);
             this.original = null;
@@ -4710,10 +4738,10 @@ class SmoSlur extends StaffModifierBase {
 
     constructor(params) {
         super('SmoSlur');
-        smoMusic.serializedMerge(SmoSlur.parameterArray,SmoSlur.defaults,this);
+        smoSerialize.serializedMerge(SmoSlur.parameterArray,SmoSlur.defaults,this);
 		// Vex.Merge(this,SmoSlur.defaults);
 		// smoMusic.filteredMerge(SmoSlur.parameterArray,params,this);
-        smoMusic.serializedMerge(SmoSlur.parameterArray, params, this);
+        smoSerialize.serializedMerge(SmoSlur.parameterArray, params, this);
         this.startSelector = params.startSelector;
         this.endSelector = params.endSelector;
 
@@ -4829,12 +4857,12 @@ class SmoScoreText extends SmoScoreModifierBase {
 	// For animation or estimation, create a copy of the attributes that can be modified without affecting settings.
 	backupParams() {
 		this.backup={};
-		smoMusic.serializedMerge(SmoScoreText.attributes, this, this.backup);
+		smoSerialize.serializedMerge(SmoScoreText.attributes, this, this.backup);
 		return this.backup;
 	}
 
     restoreParams() {
-        smoMusic.serializedMerge(SmoScoreText.attributes, this.backup, this);
+        smoSerialize.serializedMerge(SmoScoreText.attributes, this.backup, this);
     }
 
 	serialize() {
@@ -4871,8 +4899,8 @@ class SmoScoreText extends SmoScoreModifierBase {
         this.backup={};
         this.edited = false; // indicate to UI that the actual text has not been edited.
 
-		smoMusic.serializedMerge(SmoScoreText.attributes, SmoScoreText.defaults, this);
-        smoMusic.serializedMerge(SmoScoreText.attributes, parameters, this);
+		smoSerialize.serializedMerge(SmoScoreText.attributes, SmoScoreText.defaults, this);
+        smoSerialize.serializedMerge(SmoScoreText.attributes, parameters, this);
 		if (!this.classes) {
 			this.classes='';
 		}
@@ -6243,7 +6271,7 @@ class SmoOperation {
                 console.log('Error: score has changed in time signature change');
             } else {
                 var proto = SmoSelection.measureSelection(score,selector.staff,selector.measure).measure;
-                smoMusic.serializedMerge(attrs,proto,params);
+                smoSerialize.serializedMerge(attrs,proto,params);
                 params.timeSignature = timeSignature;
                 var nm = SmoMeasure.getDefaultMeasure(params);
                 var spareNotes = SmoMeasure.getDefaultNotes(params);
@@ -8768,8 +8796,8 @@ class suiOscillator {
 
     constructor(parameters) {
         parameters = parameters ? parameters : {};
-		smoMusic.serializedMerge(suiOscillator.attributes, suiOscillator.defaults, this);
-		smoMusic.serializedMerge(suiOscillator.attributes, parameters, this);
+		smoSerialize.serializedMerge(suiOscillator.attributes, suiOscillator.defaults, this);
+		smoSerialize.serializedMerge(suiOscillator.attributes, parameters, this);
         this.reverb = new suiReverb(suiOscillator.audio);
         this.attack = this.attackEnv*this.duration;
         this.decay = this.decayEnv*this.duration;
@@ -16345,7 +16373,7 @@ class SuiRockerComponent extends SuiComponentBase {
 	}
     constructor(dialog, parameter) {
         super();
-        smoMusic.filteredMerge(
+        smoSerialize.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label','increment','type'], parameter, this);
         if (!this.defaultValue) {
             this.defaultValue = 0;
@@ -16466,7 +16494,7 @@ class SuiRockerComponent extends SuiComponentBase {
 class SuiDragText extends SuiComponentBase {
     constructor(dialog,parameter) {
         super();
-        smoMusic.filteredMerge(
+        smoSerialize.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
             this.defaultValue = 0;
@@ -16570,7 +16598,7 @@ class SuiDragText extends SuiComponentBase {
 class SuiResizeTextBox extends SuiComponentBase {
     constructor(dialog,parameter) {
         super();
-        smoMusic.filteredMerge(
+        smoSerialize.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
             this.defaultValue = 0;
@@ -16646,7 +16674,7 @@ class SuiResizeTextBox extends SuiComponentBase {
 class SuiTextInPlace extends SuiComponentBase {
     constructor(dialog,parameter) {
         super();
-        smoMusic.filteredMerge(
+        smoSerialize.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
             this.defaultValue = 0;
@@ -16723,7 +16751,7 @@ class SuiTextInPlace extends SuiComponentBase {
 class SuiLyricEditComponent extends SuiComponentBase {
     constructor(dialog,parameter) {
         super();
-        smoMusic.filteredMerge(
+        smoSerialize.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
             this.defaultValue = 0;
@@ -16815,7 +16843,7 @@ class SuiLyricEditComponent extends SuiComponentBase {
 class SuiTextInputComponent extends SuiComponentBase {
     constructor(dialog, parameter) {
         super();
-        smoMusic.filteredMerge(
+        smoSerialize.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
             this.defaultValue = 0;
@@ -16857,7 +16885,7 @@ class SuiTextInputComponent extends SuiComponentBase {
 class SuiFileDownloadComponent extends SuiComponentBase {
     constructor(dialog, parameter) {
         super();
-        smoMusic.filteredMerge(
+        smoSerialize.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
             this.defaultValue = 0;
@@ -16904,7 +16932,7 @@ class SuiFileDownloadComponent extends SuiComponentBase {
 class SuiToggleComponent extends SuiComponentBase {
     constructor(dialog, parameter) {
         super();
-        smoMusic.filteredMerge(
+        smoSerialize.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
         if (!this.defaultValue) {
             this.defaultValue = 0;
@@ -16951,7 +16979,7 @@ class SuiToggleComponent extends SuiComponentBase {
 class SuiDropdownComponent  extends SuiComponentBase{
     constructor(dialog, parameter) {
         super();
-        smoMusic.filteredMerge(
+        smoSerialize.filteredMerge(
             ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label','dataType'], parameter, this);
         if (!this.defaultValue) {
             this.defaultValue = 0;
@@ -18607,7 +18635,7 @@ class RibbonButtons {
 		return r.dom();
 	}
 	constructor(parameters) {
-		smoMusic.filteredMerge(RibbonButtons.paramArray, parameters, this);
+		smoSerialize.filteredMerge(RibbonButtons.paramArray, parameters, this);
 		this.ribbonButtons = parameters.ribbonButtons;
 		this.ribbons = parameters.ribbons;
 		this.collapsables = [];
@@ -19279,7 +19307,7 @@ class CollapseRibbonControl {
 		return ['ribbonButtons', 'editor', 'controller', 'tracker', 'menus', 'buttonData', 'buttonElement'];
 	}
 	constructor(parameters) {
-		smoMusic.filteredMerge(CollapseRibbonControl.paramArray, parameters, this);
+		smoSerialize.filteredMerge(CollapseRibbonControl.paramArray, parameters, this);
 		this.childButtons = parameters.ribbonButtons.filter((cb) => {
 				return cb.group === this.buttonData.group &&
                     RibbonButtons.isCollapsible(cb.action)

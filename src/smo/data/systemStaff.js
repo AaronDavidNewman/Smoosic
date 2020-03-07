@@ -60,7 +60,7 @@ class SmoSystemStaff {
     // JSONify self.
 	serialize() {
 		var params={};
-		smoMusic.serializedMerge(SmoSystemStaff.defaultParameters,this,params);
+		smoSerialize.serializedMerge(SmoSystemStaff.defaultParameters,this,params);
 		params.modifiers=[];
 		params.measures=[];
 
@@ -80,7 +80,7 @@ class SmoSystemStaff {
      // parse formerly serialized staff.
     static deserialize(jsonObj) {
         var params = {};
-        smoMusic.serializedMerge(
+        smoSerialize.serializedMerge(
             ['staffId','staffX', 'staffY', 'staffWidth', 'startIndex', 'renumberingMap', 'renumberIndex', 'instrumentInfo'],
             jsonObj, params);
         params.measures = [];
@@ -108,6 +108,8 @@ class SmoSystemStaff {
         this.modifiers.push(modifier);
     }
 
+    // ### removeStaffModifier
+    // Remove a modifier of given type and location
     removeStaffModifier(modifier) {
         var mods = [];
         this.modifiers.forEach((mod) => {
@@ -118,6 +120,8 @@ class SmoSystemStaff {
         this.modifiers = mods;
     }
 
+    // ### getModifiersAt
+    // get any modifiers at the selected location
 	getModifiersAt(selector) {
 		var rv = [];
 		this.modifiers.forEach((mod) => {
@@ -128,6 +132,8 @@ class SmoSystemStaff {
 		return rv;
 	}
 
+    // ### getSlursStartingAt
+    // like it says.  Used by audio player to slur notes
     getSlursStartingAt(selector) {
         return this.modifiers.filter((mod) => {
             return SmoSelector.sameNote(mod.startSelector,selector)
@@ -135,23 +141,21 @@ class SmoSystemStaff {
         });
     }
 
+    // ### getSlursEndingAt
+    // like it says.
     getSlursEndingAt(selector) {
         return this.modifiers.filter((mod) => {
             return SmoSelector.sameNote(mod.endSelector,selector);
         });
     }
 
-    getModifierMeasures(modifier) {
-        return {
-            startMeasure: this.measures.find((measure) => measure.attrs.id === modifier.startMeasure),
-            endMeasure: this.measures.find((measure) => measure.attrs.id === modifier.endMeasure),
-        }
-    }
-
+    // ### accesor getModifiers
     getModifiers() {
         return this.modifiers;
     }
 
+    // ### applyBeams
+    // group all the measures' notes into beam groups.
     applyBeams() {
         for (var i = 0; i < this.measures.length; ++i) {
             var measure = this.measures[i];
@@ -159,6 +163,8 @@ class SmoSystemStaff {
         }
     }
 
+    // ### getRenderedNote
+    // used by mapper to get the rendered note from it's SVG DOM ID.
     getRenderedNote(id) {
         for (var i = 0; i < this.measures.length; ++i) {
             var measure = this.measures[i];
@@ -182,6 +188,9 @@ class SmoSystemStaff {
         return null;
     }
 
+    // ### addRehearsalMark
+    // for all measures in the system, and also bump the
+    // auto-indexing
     addRehearsalMark(index,parameters) {
         var mark = new SmoRehearsalMark(parameters);
         if (!mark.increment) {
@@ -221,6 +230,9 @@ class SmoSystemStaff {
         this.measures[index].addTempo(tempo);
     }
 
+    // ### removeRehearsalMark
+    // for all measures in the system, and also decrement the
+    // auto-indexing
     removeRehearsalMark(index) {
         var ix = 0;
         var symbol=null;
@@ -246,6 +258,8 @@ class SmoSystemStaff {
         });
     }
 
+    // ### deleteMeasure
+    // delete the measure, and any staff modifiers that start/end there.
 	deleteMeasure(index) {
 		if (this.measures.length < 2) {
 			return; // don't delete last measure.
@@ -274,18 +288,19 @@ class SmoSystemStaff {
 		this.numberMeasures();
 	}
 
-    getMaxTicksMeasure(measure) {
-        if (this.measures.length < measure) {
-            return 0;
-        }
-        return this.measures[measure].notes.length;
-    }
+    // ### addKeySignature
+    // Add key signature to the given measure and update map so we know
+    // when it changes, cancels etc.
     addKeySignature(measureIndex, key) {
         this.keySignatureMap[measureIndex] = key;
 		var target = this.measures[measureIndex];
 		target.keySignature = key;
         // this._updateKeySignatures();
     }
+
+    // ### removeKeySignature
+    // remove key signature and update map so we know
+    // when it changes, cancels etc.
     removeKeySignature(measureIndex) {
         var keys = Object.keys(this.keySignatureMap);
         var nmap = {};
@@ -307,6 +322,9 @@ class SmoSystemStaff {
             measure.setKeySignature(nextSig);
         }
     }
+
+    // ### numberMeasures
+    // After anything that might change the measure numbers, update them iteratively
     numberMeasures() {
         this.renumberIndex = this.startIndex;
         var currentOffset = 0;

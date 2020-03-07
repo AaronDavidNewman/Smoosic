@@ -58,8 +58,8 @@ class SmoGraceNote extends SmoNoteModifierBase {
 
     constructor(parameters) {
         super('SmoGraceNote');
-    	smoMusic.serializedMerge(SmoGraceNote.parameterArray,SmoGraceNote.defaults,this);
-		smoMusic.serializedMerge(SmoGraceNote.parameterArray, parameters, this);
+    	smoSerialize.serializedMerge(SmoGraceNote.parameterArray,SmoGraceNote.defaults,this);
+		smoSerialize.serializedMerge(SmoGraceNote.parameterArray, parameters, this);
     }
 
 }
@@ -112,8 +112,8 @@ class SmoMicrotone extends SmoNoteModifierBase {
 
     constructor(parameters) {
         super('SmoMicrotone');
-        smoMusic.serializedMerge(SmoMicrotone.attrArray,SmoMicrotone.defaults,this);
-        smoMusic.serializedMerge(SmoMicrotone.attrArray, parameters, this);
+        smoSerialize.serializedMerge(SmoMicrotone.attrArray,SmoMicrotone.defaults,this);
+        smoSerialize.serializedMerge(SmoMicrotone.attrArray, parameters, this);
     }
 }
 class SmoOrnament extends SmoNoteModifierBase {
@@ -159,8 +159,8 @@ class SmoOrnament extends SmoNoteModifierBase {
 
     constructor(parameters) {
 		super('SmoOrnament');
-		smoMusic.serializedMerge(SmoOrnament.attrArray,SmoOrnament.defaults,this);
-		smoMusic.serializedMerge(SmoOrnament.attrArray, parameters, this);
+		smoSerialize.serializedMerge(SmoOrnament.attrArray,SmoOrnament.defaults,this);
+		smoSerialize.serializedMerge(SmoOrnament.attrArray, parameters, this);
 		this.selector = parameters.selector;
 	}
 }
@@ -227,8 +227,8 @@ class SmoArticulation extends SmoNoteModifierBase {
 	}
 	constructor(parameters) {
 		super('SmoArticulation');
-		smoMusic.serializedMerge(SmoArticulation.attrArray,SmoArticulation.defaults,this);
-		smoMusic.serializedMerge(SmoArticulation.attrArray, parameters, this);
+		smoSerialize.serializedMerge(SmoArticulation.attrArray,SmoArticulation.defaults,this);
+		smoSerialize.serializedMerge(SmoArticulation.attrArray, parameters, this);
 		this.selector = parameters.selector;
 	}
 	get id() {
@@ -270,8 +270,8 @@ class SmoLyric extends SmoNoteModifierBase {
 
     constructor(parameters) {
 		super('SmoLyric');
-		smoMusic.serializedMerge(SmoLyric.attributes, SmoLyric.defaults,this);
-		smoMusic.serializedMerge(SmoLyric.attributes, parameters, this);
+		smoSerialize.serializedMerge(SmoLyric.attributes, SmoLyric.defaults,this);
+		smoSerialize.serializedMerge(SmoLyric.attributes, parameters, this);
 
         // calculated adjustments for alignment purposes
 		this.adjY=0;
@@ -317,7 +317,7 @@ class SmoDynamicText extends SmoNoteModifierBase {
 	constructor(parameters) {
 		super('SmoDynamicText');
 		Vex.Merge(this, SmoDynamicText.defaults);
-		smoMusic.filteredMerge(SmoDynamicText.attrArray, parameters, this);
+		smoSerialize.filteredMerge(SmoDynamicText.attrArray, parameters, this);
 		this.selector = parameters.selector;
 
 		if (!this['attrs']) {
@@ -342,14 +342,14 @@ class SmoDynamicText extends SmoNoteModifierBase {
 	backupOriginal() {
 		if (!this['original']) {
 			this.original = {};
-			smoMusic.filteredMerge(
+			smoSerialize.filteredMerge(
 				SmoDynamicText.attrArray,
 				this, this.original);
 		}
 	}
 	restoreOriginal() {
 		if (this['original']) {
-			smoMusic.filteredMerge(
+			smoSerialize.filteredMerge(
 				SmoDynamicText.attrArray,
 				this.original, this);
 			this.original = null;

@@ -100,12 +100,12 @@ class SmoScoreText extends SmoScoreModifierBase {
 	// For animation or estimation, create a copy of the attributes that can be modified without affecting settings.
 	backupParams() {
 		this.backup={};
-		smoMusic.serializedMerge(SmoScoreText.attributes, this, this.backup);
+		smoSerialize.serializedMerge(SmoScoreText.attributes, this, this.backup);
 		return this.backup;
 	}
 
     restoreParams() {
-        smoMusic.serializedMerge(SmoScoreText.attributes, this.backup, this);
+        smoSerialize.serializedMerge(SmoScoreText.attributes, this.backup, this);
     }
 
 	serialize() {
@@ -142,8 +142,8 @@ class SmoScoreText extends SmoScoreModifierBase {
         this.backup={};
         this.edited = false; // indicate to UI that the actual text has not been edited.
 
-		smoMusic.serializedMerge(SmoScoreText.attributes, SmoScoreText.defaults, this);
-        smoMusic.serializedMerge(SmoScoreText.attributes, parameters, this);
+		smoSerialize.serializedMerge(SmoScoreText.attributes, SmoScoreText.defaults, this);
+        smoSerialize.serializedMerge(SmoScoreText.attributes, parameters, this);
 		if (!this.classes) {
 			this.classes='';
 		}

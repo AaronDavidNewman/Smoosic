@@ -72,7 +72,7 @@ class SmoScore {
     // ### Serialize the score.  The resulting JSON string will contain all the staves, measures, etc.
     serialize() {
         var params = {};
-        smoMusic.serializedMerge(SmoScore.defaultAttributes, this, params);
+        smoSerialize.serializedMerge(SmoScore.defaultAttributes, this, params);
         var obj = {
             score: params,
             staves: [],
@@ -94,7 +94,7 @@ class SmoScore {
         var jsonObj = JSON.parse(jsonString);
         var params = {};
         var staves = [];
-        smoMusic.serializedMerge(
+        smoSerialize.serializedMerge(
             SmoScore.defaultAttributes,
             jsonObj.score, params);
         jsonObj.staves.forEach((staffObj) => {
@@ -262,7 +262,7 @@ class SmoScore {
         for (var i = 0; i < proto.measures.length; ++i) {
             var newParams = {};
             var measure = proto.measures[i];
-            smoMusic.serializedMerge(SmoMeasure.defaultAttributes, measure, newParams);
+            smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, measure, newParams);
             newParams.clef = parameters.instrumentInfo.clef;
             newParams.transposeIndex = parameters.instrumentInfo.keyOffset;
             var newMeasure = SmoMeasure.getDefaultMeasureWithNotes(newParams);
@@ -341,9 +341,6 @@ class SmoScore {
 		this._updateScoreText(textObject,false);
 	}
 
-    getMaxTicksMeasure(measure) {
-        return this.staves[this.activeStaff].getMaxTicksMeasure(measure);
-    }
     get measures() {
         if (this.staves.length === 0)
             return [];

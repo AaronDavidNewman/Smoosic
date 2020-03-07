@@ -27,7 +27,7 @@ class SmoStaffHairpin extends StaffModifierBase {
     constructor(params) {
         super('SmoStaffHairpin');
         Vex.Merge(this, SmoStaffHairpin.defaults);
-        smoMusic.filteredMerge(['position', 'xOffset', 'yOffset', 'hairpinType', 'height'], params, this);
+        smoSerialize.filteredMerge(['position', 'xOffset', 'yOffset', 'hairpinType', 'height'], params, this);
         this.startSelector = params.startSelector;
         this.endSelector = params.endSelector;
 
@@ -48,7 +48,7 @@ class SmoStaffHairpin extends StaffModifierBase {
     }
     serialize() {
         var params = {};
-        smoMusic.serializedMergeNonDefault(SmoStaffHairpin.defaults,SmoStaffHairpin.attributes,this,params);
+        smoSerialize.serializedMergeNonDefault(SmoStaffHairpin.defaults,SmoStaffHairpin.attributes,this,params);
         params.ctor = 'SmoStaffHairpin';
         return params;
     }
@@ -62,14 +62,14 @@ class SmoStaffHairpin extends StaffModifierBase {
     backupOriginal() {
         if (!this['original']) {
             this.original = {};
-            smoMusic.filteredMerge(
+            smoSerialize.filteredMerge(
                 ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height', 'position', 'hairpinType'],
                 this, this.original);
         }
     }
     restoreOriginal() {
         if (this['original']) {
-            smoMusic.filteredMerge(
+            smoSerialize.filteredMerge(
                 ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height', 'position', 'hairpinType'],
                 this.original, this);
             this.original = null;
@@ -141,7 +141,7 @@ class SmoSlur extends StaffModifierBase {
 
     serialize() {
         var params = {};
-        smoMusic.serializedMergeNonDefault(SmoSlur.defaults,
+        smoSerialize.serializedMergeNonDefault(SmoSlur.defaults,
             SmoSlur.parameterArray,this,params);
 
         // smoMusic.filteredMerge(SmoSlur.parameterArray, this, params);
@@ -152,14 +152,14 @@ class SmoSlur extends StaffModifierBase {
     backupOriginal() {
         if (!this['original']) {
             this.original = {};
-            smoMusic.filteredMerge(
+            smoSerialize.filteredMerge(
                 SmoSlur.parameterArray,
                 this, this.original);
         }
     }
     restoreOriginal() {
         if (this['original']) {
-            smoMusic.filteredMerge(
+            smoSerialize.filteredMerge(
                 SmoSlur.parameterArray,
                 this.original, this);
             this.original = null;
@@ -186,10 +186,10 @@ class SmoSlur extends StaffModifierBase {
 
     constructor(params) {
         super('SmoSlur');
-        smoMusic.serializedMerge(SmoSlur.parameterArray,SmoSlur.defaults,this);
+        smoSerialize.serializedMerge(SmoSlur.parameterArray,SmoSlur.defaults,this);
 		// Vex.Merge(this,SmoSlur.defaults);
 		// smoMusic.filteredMerge(SmoSlur.parameterArray,params,this);
-        smoMusic.serializedMerge(SmoSlur.parameterArray, params, this);
+        smoSerialize.serializedMerge(SmoSlur.parameterArray, params, this);
         this.startSelector = params.startSelector;
         this.endSelector = params.endSelector;
 

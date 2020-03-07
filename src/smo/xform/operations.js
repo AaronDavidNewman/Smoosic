@@ -101,7 +101,7 @@ class SmoOperation {
                 console.log('Error: score has changed in time signature change');
             } else {
                 var proto = SmoSelection.measureSelection(score,selector.staff,selector.measure).measure;
-                smoMusic.serializedMerge(attrs,proto,params);
+                smoSerialize.serializedMerge(attrs,proto,params);
                 params.timeSignature = timeSignature;
                 var nm = SmoMeasure.getDefaultMeasure(params);
                 var spareNotes = SmoMeasure.getDefaultNotes(params);

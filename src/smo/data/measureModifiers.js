@@ -60,7 +60,7 @@ class SmoBarline extends SmoMeasureModifierBase {
     }
 	serialize() {
         var params = {};
-        smoMusic.filteredMerge(SmoBarline.attributes, this, params);
+        smoSerialize.filteredMerge(SmoBarline.attributes, this, params);
         params.ctor = 'SmoBarline';
         return params;
 	}
@@ -68,8 +68,8 @@ class SmoBarline extends SmoMeasureModifierBase {
     constructor(parameters) {
         super('SmoBarline');
         parameters = parameters ? parameters : {};
-        smoMusic.serializedMerge(SmoBarline.attributes, SmoBarline.defaults, this);
-        smoMusic.serializedMerge(SmoBarline.attributes, parameters, this);
+        smoSerialize.serializedMerge(SmoBarline.attributes, SmoBarline.defaults, this);
+        smoSerialize.serializedMerge(SmoBarline.attributes, parameters, this);
     }
 
     static get toVexBarline() {
@@ -135,15 +135,15 @@ class SmoRepeatSymbol extends SmoMeasureModifierBase {
     }
 	serialize() {
         var params = {};
-        smoMusic.filteredMerge(SmoRepeatSymbol.attributes, this, params);
+        smoSerialize.filteredMerge(SmoRepeatSymbol.attributes, this, params);
         params.ctor = 'SmoRepeatSymbol';
         return params;
 	}
     constructor(parameters) {
         super('SmoRepeatSymbol');
-        smoMusic.serializedMerge(SmoRepeatSymbol.attributes, SmoRepeatSymbol.defaults, this);
+        smoSerialize.serializedMerge(SmoRepeatSymbol.attributes, SmoRepeatSymbol.defaults, this);
 		this.xOffset = SmoRepeatSymbol.defaultXOffset[parameters.symbol];
-        smoMusic.serializedMerge(SmoRepeatSymbol.attributes, parameters, this);
+        smoSerialize.serializedMerge(SmoRepeatSymbol.attributes, parameters, this);
     }
 }
 
@@ -160,8 +160,8 @@ class SmoVolta extends SmoMeasureModifierBase {
         } else {
             console.log('inherit attrs');
         }
-        smoMusic.serializedMerge(SmoVolta.attributes, SmoVolta.defaults, this);
-		smoMusic.serializedMerge(SmoVolta.attributes, parameters, this);
+        smoSerialize.serializedMerge(SmoVolta.attributes, SmoVolta.defaults, this);
+		smoSerialize.serializedMerge(SmoVolta.attributes, parameters, this);
     }
 	get id() {
 		return this.attrs.id;
@@ -179,7 +179,7 @@ class SmoVolta extends SmoMeasureModifierBase {
 
 	serialize() {
         var params = {};
-        smoMusic.filteredMerge(SmoVolta.attributes, this, params);
+        smoSerialize.filteredMerge(SmoVolta.attributes, this, params);
         params.ctor = 'SmoVolta';
         return params;
 	}
@@ -198,14 +198,14 @@ class SmoVolta extends SmoMeasureModifierBase {
 	 backupOriginal() {
         if (!this['original']) {
             this.original = {};
-            smoMusic.filteredMerge(
+            smoSerialize.filteredMerge(
                 SmoVolta.attributes,
                 this, this.original);
         }
     }
     restoreOriginal() {
         if (this['original']) {
-            smoMusic.filteredMerge(
+            smoSerialize.filteredMerge(
                 SmoVolta.attributes,
                 this.original, this);
             this.original = null;
@@ -276,7 +276,7 @@ class SmoMeasureText extends SmoMeasureModifierBase {
 	}
 	serialize() {
         var params = {};
-        smoMusic.filteredMerge(SmoMeasureText.attributes, this, params);
+        smoSerialize.filteredMerge(SmoMeasureText.attributes, this, params);
         params.ctor = 'SmoMeasureText';
         return params;
 	}
@@ -284,8 +284,8 @@ class SmoMeasureText extends SmoMeasureModifierBase {
 	constructor(parameters) {
 		super('SmoMeasureText');
         parameters = parameters ? parameters : {};
-        smoMusic.serializedMerge(SmoMeasureText.attributes, SmoMeasureText.defaults, this);
-        smoMusic.serializedMerge(SmoMeasureText.attributes, parameters, this);
+        smoSerialize.serializedMerge(SmoMeasureText.attributes, SmoMeasureText.defaults, this);
+        smoSerialize.serializedMerge(SmoMeasureText.attributes, parameters, this);
 
 		// right-justify left text and left-justify right text by default
 		if (!parameters['justification']) {
@@ -335,15 +335,15 @@ class SmoRehearsalMark extends SmoMeasureModifierBase {
     }
 	serialize() {
         var params = {};
-        smoMusic.filteredMerge(SmoRehearsalMark.attributes, this, params);
+        smoSerialize.filteredMerge(SmoRehearsalMark.attributes, this, params);
         params.ctor = 'SmoRehearsalMark';
         return params;
 	}
 	constructor(parameters) {
 		super('SmoRehearsalMark');
         parameters = parameters ? parameters : {};
-        smoMusic.serializedMerge(SmoRehearsalMark.attributes, SmoRehearsalMark.defaults, this);
-        smoMusic.serializedMerge(SmoRehearsalMark.attributes, parameters, this);
+        smoSerialize.serializedMerge(SmoRehearsalMark.attributes, SmoRehearsalMark.defaults, this);
+        smoSerialize.serializedMerge(SmoRehearsalMark.attributes, parameters, this);
         if (!parameters.symbol) {
             this.symbol=this.getInitial();
         }
@@ -453,21 +453,21 @@ class SmoTempoText extends SmoMeasureModifierBase {
     }
     backupOriginal() {
         this.backup = {};
-        smoMusic.serializedMerge(SmoTempoText.attributes, this, this.backup);
+        smoSerialize.serializedMerge(SmoTempoText.attributes, this, this.backup);
     }
     restoreOriginal() {
-        smoMusic.serializedMerge(SmoTempoText.attributes, this.backup, this);
+        smoSerialize.serializedMerge(SmoTempoText.attributes, this.backup, this);
     }
     serialize() {
         var params = {};
-        smoMusic.filteredMerge(SmoTempoText.attributes, this, params);
+        smoSerialize.filteredMerge(SmoTempoText.attributes, this, params);
         params.ctor = 'SmoTempoText';
         return params;
 	}
 	constructor(parameters) {
 		super('SmoTempoText');
         parameters = parameters ? parameters : {};
-		smoMusic.serializedMerge(SmoTempoText.attributes, SmoTempoText.defaults, this);
-		smoMusic.serializedMerge(SmoTempoText.attributes, parameters, this);
+		smoSerialize.serializedMerge(SmoTempoText.attributes, SmoTempoText.defaults, this);
+		smoSerialize.serializedMerge(SmoTempoText.attributes, parameters, this);
 	}
 }

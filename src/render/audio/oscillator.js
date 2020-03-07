@@ -286,8 +286,8 @@ class suiOscillator {
 
     constructor(parameters) {
         parameters = parameters ? parameters : {};
-		smoMusic.serializedMerge(suiOscillator.attributes, suiOscillator.defaults, this);
-		smoMusic.serializedMerge(suiOscillator.attributes, parameters, this);
+		smoSerialize.serializedMerge(suiOscillator.attributes, suiOscillator.defaults, this);
+		smoSerialize.serializedMerge(suiOscillator.attributes, parameters, this);
         this.reverb = new suiReverb(suiOscillator.audio);
         this.attack = this.attackEnv*this.duration;
         this.decay = this.decayEnv*this.duration;
