@@ -183,6 +183,9 @@ class SuiMeasureDialog extends SuiDialogBase {
         if (isPickup) {
             this.pickupMeasureCtrl.setValue(this.measure.getTicksFromVoice())
         }
+
+        var isSystemBreak = this.measure.getForceSystemBreak();
+        this.systemBreakCtrl.setValue(isSystemBreak);
         this._updateConditionals();
 
         // TODO: handle multiples (above/below)

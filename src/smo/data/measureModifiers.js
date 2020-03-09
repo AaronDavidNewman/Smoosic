@@ -16,8 +16,6 @@ class SmoMeasureModifierBase {
     static deserialize(jsonObj) {
         var ctor = eval(jsonObj.ctor);
         var rv = new ctor(jsonObj);
-        rv.attrs.id = jsonObj.attrs.id;
-        rv.attrs.type = jsonObj.attrs.type;
         return rv;
     }
 }
@@ -152,14 +150,7 @@ class SmoVolta extends SmoMeasureModifierBase {
         super('SmoVolta');
 		this.original={};
 
-		if (!this['attrs']) {
-            this.attrs = {
-                id: VF.Element.newID(),
-                type: 'SmoVolta'
-            };
-        } else {
-            console.log('inherit attrs');
-        }
+
         smoSerialize.serializedMerge(SmoVolta.attributes, SmoVolta.defaults, this);
 		smoSerialize.serializedMerge(SmoVolta.attributes, parameters, this);
     }
@@ -394,7 +385,7 @@ class SmoTempoText extends SmoMeasureModifierBase {
 		};
 	}
 	static get attributes() {
-		return ['tempoMode', 'bpm', 'display','tempoMode', 'beatDuration', 'tempoText','yOffset'];
+		return ['tempoMode', 'bpm', 'display', 'beatDuration', 'tempoText','yOffset'];
 	}
     _toVexTextTempo() {
         return {name:this.tempoText};

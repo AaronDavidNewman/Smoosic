@@ -262,7 +262,7 @@ class SmoLyric extends SmoNoteModifierBase {
             endChar:'',
             verse:0,
 			fontInfo: {
-				size: 10,
+				size: 12,
 				family: 'times',
 				style: 'normal',
 				weight: 'normal'
