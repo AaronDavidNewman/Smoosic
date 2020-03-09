@@ -2,6 +2,17 @@
 // An operation works on a selection or set of selections to edit the music
 class SmoOperation {
 
+   static setForcePageBreak(score,selection,value) {
+       score.staves.forEach((staff) => {
+          staff.measures[selection.selector.measure].setForcePageBreak(value);
+       });
+   }
+   static setForceSystemBreak(score,selection,value) {
+       score.staves.forEach((staff) => {
+          staff.measures[selection.selector.measure].setForceSystemBreak(value);
+       });
+   }
+
 	static addKeySignature(score, selection, keySignature) {
 		score.addKeySignature(selection.selector.measure, keySignature);
 	}
@@ -731,7 +742,6 @@ class SmoOperation {
 	}
 
 	// ## interval
-	// ## Description:
 	// Add a pitch at the specified interval to the chord in the selection.
 	static interval(selection, interval) {
 		var measure = selection.measure;

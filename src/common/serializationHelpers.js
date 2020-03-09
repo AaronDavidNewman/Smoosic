@@ -138,7 +138,8 @@ class smoSerialize {
      "hd": "ornament",
      "id": "tempoMode",
      "jd": "tempoText",
-     "kd": "barline"}`
+     "kd": "barline",
+     "ld": "systemBreak"}`
       ;
      return JSON.parse(_tm);
     }

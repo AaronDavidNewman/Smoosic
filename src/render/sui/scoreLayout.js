@@ -384,7 +384,7 @@ class suiScoreLayout extends suiLayoutBase {
                     previous = this.score.staves[this.score.staves.length-1].measures.find((mm) => mm.lineIndex == measure.lineIndex - 1);
                 }
                 measure.setYTop(offsets.yOffset,'estimate height 3');
-                
+
                 measure.setY(previous.staffY + this.score.layout.intraGap + previous.logicalBox.height - measure.yTop ,'scoreLayout estimate height 3');
                 measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY + offsets.yOffset,measure.staffWidth,offsets.heightOffset), 'score Layout estimateHeight 3');
             }
@@ -421,9 +421,10 @@ class suiScoreLayout extends suiLayoutBase {
         }
 
         // Do we need to start a new line?  Don't start a new line on the first measure in a line...
-        if (s.systemIndex > 0 && newWidth
-             > wrapThreshold) {
-                 console.log('wrap mm '+ measure.measureNumber.measureIndex + ' column: ' + measure.measureNumber.systemIndex + ' line: '+measure.lineIndex)
+        if (s.systemIndex > 0 && (newWidth
+             > wrapThreshold || measure.getForceSystemBreak())) {
+                 console.log('wrap mm '+ measure.measureNumber.measureIndex + ' column: ' + measure.measureNumber.systemIndex +
+                  ' line: '+measure.lineIndex + ' force: '+measure.getForceSystemBreak());
                  s.wrapped = true;
                  s.staff=staff;
                  s.measure=measure;

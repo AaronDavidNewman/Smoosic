@@ -175,13 +175,6 @@ class SmoSlur extends StaffModifierBase {
         return ar;
     }
 
-    get type() {
-        return this.attrs.type;
-    }
-    get id() {
-        return this.attrs.id;
-    }
-
     constructor(params) {
         super('SmoSlur');
         smoSerialize.serializedMerge(SmoSlur.parameterArray,SmoSlur.defaults,this);

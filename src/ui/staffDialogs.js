@@ -1,6 +1,6 @@
 class SuiStaffModifierDialog extends SuiDialogBase {
 	 handleRemove() {
-        $(this.context.svg).find('g.' + this.modifier.id).remove();
+        $(this.context.svg).find('g.' + this.modifier.attrs.id).remove();
         SmoUndoable.staffSelectionOp(this.layout.score,this.selection,'removeStaffModifier',this.modifier,this.undo,'remove slur');
         this.tracker.clearModifierSelections();
     }
@@ -121,7 +121,7 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
         }
 
         super(SuiSlurAttributesDialog.dialogElements, {
-            id: 'dialog-' + parameters.modifier.id,
+            id: 'dialog-' + parameters.modifier.attrs.id,
             top: parameters.modifier.renderedBox.y,
             left: parameters.modifier.renderedBox.x,
             label: 'Slur Properties',
@@ -215,7 +215,7 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
         }
 
         super(SuiVoltaAttributeDialog.dialogElements, {
-            id: 'dialog-' + parameters.modifier.id,
+            id: 'dialog-' + parameters.modifier.attrs.id,
             top: parameters.modifier.renderedBox.y,
             left: parameters.modifier.renderedBox.x,
             label: 'Hairpin Properties',
@@ -273,7 +273,7 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
         }
 
         super(SuiHairpinAttributesDialog.dialogElements, {
-            id: 'dialog-' + parameters.modifier.id,
+            id: 'dialog-' + parameters.modifier.attrs.id,
             top: parameters.modifier.renderedBox.y,
             left: parameters.modifier.renderedBox.x,
             label: 'Hairpin Properties',

@@ -297,6 +297,10 @@ class svgHelpers {
 		return rv;
 	}
 
+    static translateElement(g,x,y) {
+        g.setAttributeNS('','transform','translate('+x+' '+y+')');
+    }
+
 	// ### measureBBox
 	// Return the bounding box of the measure
 	static measureBBox(b1, measure, staff) {
@@ -460,7 +464,7 @@ class svgHelpers {
 		pt.x = x;
 		pt.y = y;
 		var sp = pt.matrixTransform(svg.getScreenCTM().inverse());
-		if (!point['width']) {
+		if (typeof(point['width']) == 'undefined') {
 			return {
 				x: sp.x,
 				y: sp.y

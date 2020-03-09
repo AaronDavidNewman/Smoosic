@@ -218,7 +218,7 @@ class VxMeasure {
 		var i=0;
 		this.smoMeasure.voices[vix].notes.forEach((smoNote) => {
 			smoNote.articulations.forEach((art) => {
-				var vx = this.noteToVexMap[smoNote.id];
+				var vx = this.noteToVexMap[smoNote.attrs.id];
 				var position = SmoArticulation.positionToVex[art.position];
 				var vexArt = SmoArticulation.articulationToVex[art.articulation];
 				var vxArt=new VF.Articulation(vexArt).setPosition(position);
@@ -228,12 +228,12 @@ class VxMeasure {
 	}
 
 	_renderNoteGlyph(smoNote,textObj) {
-		var x = this.noteToVexMap[smoNote.id].getAbsoluteX();
+		var x = this.noteToVexMap[smoNote.attrs.id].getAbsoluteX();
 		// the -3 is copied from vexflow textDynamics
 		var y=this.stave.getYForLine(textObj.yOffsetLine-3) + textObj.yOffsetPixels;
 		var group = this.context.openGroup();
-        group.classList.add(textObj.id+'-'+smoNote.id);
-		group.classList.add(textObj.id);
+        group.classList.add(textObj.attrs.id+'-'+smoNote.attrs.id);
+		group.classList.add(textObj.attrs.id);
 		textObj.text.split('').forEach((ch)=> {
 			const glyphCode = VF.TextDynamics.GLYPHS[ch];
 			const glyph=new Vex.Flow.Glyph(glyphCode.code, textObj.fontSize);
@@ -269,10 +269,11 @@ class VxMeasure {
         for (var i = 0;
             i < voice.notes.length; ++i) {
             var smoNote = voice.notes[i];
-            // TODO: handle multiple verses, should be widest of each
+            // This is a bit of a hack.  Lyrics cause vex to bunch up notes
+            // at the end of a measure, this resists that.
             if (smoNote.getLyricForVerse(0).length) {
                 var lyric = smoNote.getLyricForVerse(0)[0];
-                // shiftIndex += lyric.text.length;
+                shiftIndex -= 1;
             }
             var vexNote = this._createVexNote(smoNote, i,voiceIx,shiftIndex);
             this.noteToVexMap[smoNote.attrs.id] = vexNote;

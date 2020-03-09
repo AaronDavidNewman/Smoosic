@@ -174,7 +174,7 @@ class suiTracker {
             var selection = this.measureNoteMap[selKey];
 			selection.staff.modifiers.forEach((modifier) => {
 				if (SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
-					if (!modMap[modifier.id]) {
+					if (!modMap[modifier.attrs.id]) {
                         if (modifier.renderedBox) {
     						this.modifierTabs.push({
     							modifier: modifier,
@@ -183,7 +183,7 @@ class suiTracker {
     							index:ix
     						});
     						ix += 1;
-    						modMap[modifier.id] = {
+    						modMap[modifier.attrs.id] = {
     							exists: true
     						};
                         }
@@ -191,7 +191,8 @@ class suiTracker {
 				}
 			});
 			selection.measure.modifiers.forEach((modifier) => {
-				if (modifier.id && !modMap[modifier.attrs.id]) {
+				if (modifier.attrs.id && !modMap[modifier.attrs.id]
+                   && modifier.renderedBox) {
 					this.modifierTabs.push({
 						modifier: modifier,
 						selection: selection,

@@ -98,6 +98,19 @@ class SmoNote {
         return ms;
     }
 
+    longestLyric() {
+        var tms = this.textModifiers.filter((mod) => {
+            return mod.attrs.type == 'SmoLyric';
+        });
+        if (!tms.length) {
+            return null;
+        }
+        return tms.reduce((m1,m2) => {
+            return m1.text.length > m2.text.length;
+        });
+
+    }
+
     addLyric(lyric) {
         var tms = this.textModifiers.filter((mod) => {
             return mod.attrs.type != 'SmoLyric' || mod.verse != lyric.verse;
@@ -256,7 +269,7 @@ class SmoNote {
     }
 
     describe() {
-        return this.id + ' ' + this.tickCount;
+        return this.attrs.id + ' ' + this.tickCount;
     }
 
     static clone(note) {
@@ -458,7 +471,7 @@ class SmoTuplet {
         var rv = -1;
         for (var i = 0; i < this.notes.length; ++i) {
             var tn = this.notes[i];
-            if (note.id === tn.id) {
+            if (note.attrs.id === tn.attrs.id) {
                 rv = i;
             }
         }

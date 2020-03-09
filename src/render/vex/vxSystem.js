@@ -51,8 +51,8 @@ class VxSystem {
 		}
 		for (var i = 0; i < this.measures.length; ++i) {
 			var mm = this.measures[i];
-			if (mm.noteToVexMap[smoNote.id]) {
-				return mm.noteToVexMap[smoNote.id];
+			if (mm.noteToVexMap[smoNote.attrs.id]) {
+				return mm.noteToVexMap[smoNote.attrs.id];
 			}
 		}
 		return null;
@@ -89,7 +89,9 @@ class VxSystem {
         }
 	}
 
-	renderModifier(modifier, vxStart, vxEnd) {
+     // ### renderModifier
+     // render a line-type modifier that is associated with a staff (e.g. slur)
+	renderModifier(modifier, vxStart, vxEnd,smoStart,smoEnd) {
 		// if it is split between lines, render one artifact for each line, with a common class for
 		// both if it is removed.
 		if (vxStart) {
@@ -97,10 +99,12 @@ class VxSystem {
         }
         var artifactId = modifier.attrs.id + '-' + this.lineIndex;
 		var group = this.context.openGroup();
-		group.classList.add(modifier.id);
+        var xtranslate = 0;
+        var ytranslate = 0;
+		group.classList.add(modifier.attrs.id);
 		group.classList.add(artifactId);
-		if ((modifier.type == 'SmoStaffHairpin' && modifier.hairpinType == SmoStaffHairpin.types.CRESCENDO) ||
-			(modifier.type == 'SmoStaffHairpin' && modifier.hairpinType == SmoStaffHairpin.types.DECRESCENDO)) {
+		if ((modifier.ctor == 'SmoStaffHairpin' && modifier.hairpinType == SmoStaffHairpin.types.CRESCENDO) ||
+			(modifier.ctor == 'SmoStaffHairpin' && modifier.hairpinType == SmoStaffHairpin.types.DECRESCENDO)) {
 			var hairpin = new VF.StaveHairpin({
 					first_note: vxStart,
 					last_note: vxEnd
@@ -112,7 +116,15 @@ class VxSystem {
 				right_shift_px: modifier.xOffsetRight
 			});
 			hairpin.setContext(this.context).setPosition(modifier.position).draw();
-		} else if (modifier.type == 'SmoSlur') {
+		} else if (modifier.ctor == 'SmoSlur') {
+            var lyric = smoStart.note.longestLyric();
+            var xoffset = 0;
+            if (lyric) {
+                // If there is a lyric, the bounding box of the start note is stretched to the right.
+                // slide the slur left, and also make it a bit wider.
+                xtranslate = (-1*lyric.text.length * 6);
+                xoffset += (xtranslate/2) - SmoSlur.defaults.xOffset;
+            }
 			var curve = new VF.Curve(
 					vxStart, vxEnd, //first_indices:[0],last_indices:[0]});
 				{
@@ -124,20 +136,26 @@ class VxSystem {
 					invert: modifier.invert,
 					position: modifier.position
 				});
-			curve.setContext(this.context).draw();
-            /*
+            curve.setContext(this.context).draw();
+
+
+/*
             var curve = new VF.StaveTie({
                 first_note:vxStart,
                 last_note:vxEnd,
                 first_indices:[0],
                 last_indices:[0],
-                tie_spacing:-10
+                tie_spacing:modifier.spacing
             });
 curve.setContext(this.context).draw();
 */
 		}
 
 		this.context.closeGroup();
+        if (xoffset) {
+            var slurBox = $('.'+artifactId)[0];
+            svgHelpers.translateElement(slurBox,xoffset,0);
+        }
 		return svgHelpers.smoBox(group.getBoundingClientRect());
 	}
 

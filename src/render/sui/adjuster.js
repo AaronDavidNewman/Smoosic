@@ -69,7 +69,8 @@ class suiLayoutAdjuster {
 			width += vexGlyph.clef(smoMeasure.clef).width + vexGlyph.clef(smoMeasure.clef).spacingRight;
 		}
 		if (smoMeasure.forceTimeSignature) {
-			width += vexGlyph.dimensions.timeSignature.width + vexGlyph.dimensions.timeSignature.spacingRight;
+            var digits = smoMeasure.timeSignature.split('/')[0].length;                    
+			width += vexGlyph.dimensions.timeSignature.width*digits + vexGlyph.dimensions.timeSignature.spacingRight;
 		}
 		var starts = smoMeasure.getStartBarline();
 		if (starts) {

@@ -113,7 +113,7 @@ class SmoSystemStaff {
     removeStaffModifier(modifier) {
         var mods = [];
         this.modifiers.forEach((mod) => {
-            if (mod.id != modifier.id) {
+            if (mod.attrs.id != modifier.attrs.id) {
                 mods.push(mod);
             }
         });
@@ -182,7 +182,7 @@ class SmoSystemStaff {
                         maxMeasureIndex: this.measures.length
                     },
                     type: note.smoNote.attrs.type,
-                    id: note.smoNote.id
+                    id: note.smoNote.attrs.id
                 };
         }
         return null;

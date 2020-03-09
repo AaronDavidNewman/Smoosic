@@ -98,7 +98,7 @@ class suiEditor {
 
         SmoUndoable.pasteBuffer(this.layout.score, this.pasteBuffer, this.tracker.selections, this.undoBuffer, 'paste')
         this._rebeam();
-        this._render();
+        this._refresh();
     }
     toggleBeamGroup() {
         if (this.tracker.selections.length < 1) {

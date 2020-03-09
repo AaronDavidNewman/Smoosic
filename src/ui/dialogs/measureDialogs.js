@@ -72,7 +72,13 @@ class SuiMeasureDialog extends SuiDialogBase {
                         label: 'Below'
                     }
                     ]
-    			}
+    			},{
+        			smoName:'systemBreak',
+        			parameterName:'systemBreak',
+        			defaultValue: false,
+        			control:'SuiToggleComponent',
+        			label: 'System break before this measure'
+        		}
         ];
     }
     static createAndDisplay(ignore1,ignore2,controller) {
@@ -101,6 +107,12 @@ class SuiMeasureDialog extends SuiDialogBase {
             this.selection = SmoSelection.measureSelection(this.layout.score,this.selection.selector.staff,this.selection.selector.measure);
             this.tracker.replaceSelectedMeasures();
             this.measure = this.selection.measure;
+        }
+        if (this.systemBreakCtrl.changeFlag) {
+            SmoUndoable.scoreSelectionOp(this.layout.score,
+                this.tracker.selections[0],'setForceSystemBreak',this.systemBreakCtrl.getValue(),
+                  this.undoBuffer,'change system break flag');
+            this.layout.setRefresh();
         }
         if (this.padLeftCtrl.changeFlag || this.padAllInSystemCtrl.changeFlag) {
             this.layout.unrenderColumn(this.measure);
@@ -191,6 +203,7 @@ class SuiMeasureDialog extends SuiDialogBase {
         this.pickupMeasureCtrl = this.components.find((comp) => {return comp.smoName == 'pickupMeasure';});
         this.measureTextCtrl = this.components.find((comp) => {return comp.smoName == 'measureText';});
         this.measureTextPositionCtrl = this.components.find((comp) => {return comp.smoName == 'measureTextPosition';});
+        this.systemBreakCtrl = this.components.find((comp) => {return comp.smoName == 'systemBreak';});
         this.populateInitial();
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {

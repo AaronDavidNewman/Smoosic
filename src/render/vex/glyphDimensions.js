@@ -55,7 +55,7 @@ class vexGlyph {
 				height:41,
                 yTop:0,
                 yBottom:0,
-				spacingRight:10
+				spacingRight:1
 			},
 			endBar: {
 				width:5.22,

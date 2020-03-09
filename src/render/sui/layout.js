@@ -490,7 +490,7 @@ class suiLayoutBase {
 				return;
 
 			// TODO: notes may have changed, get closest if these exact endpoints don't exist
-			modifier.renderedBox = system.renderModifier(modifier, vxStart, vxEnd);
+			modifier.renderedBox = system.renderModifier(modifier, vxStart, vxEnd,startNote,endNote);
 			modifier.logicalBox = svgHelpers.clientToLogical(svg,modifier.renderedBox);
 
 			// TODO: consider staff height with these.
@@ -513,17 +513,12 @@ class suiLayoutBase {
     }
 
     _replaceMeasures() {
-        var changes = [];
-        this._score.staves.forEach((s) => {
-            var mms = s.measures.filter((m) => {return m.changed;});
-            mms.forEach((mm) => {
-                changes.push({staff:s,measure:mm});
-            });
-        });
+
         this.replaceQ.forEach((change) => {
             var system = new VxSystem(this.context, change.measure.staffY, change.measure.lineIndex,this.score);
             system.renderMeasure(change.staff.staffId, change.measure);
             system.renderEndings();
+            this._renderModifiers(change.staff, system);
 
             // Fix a bug: measure change needs to stay true so we recaltulate the width
             change.measure.changed = true;

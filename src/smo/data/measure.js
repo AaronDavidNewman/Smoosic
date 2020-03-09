@@ -46,138 +46,12 @@ class SmoMeasure {
 		}
 	}
 
-    get staffWidth() {
-        return this.svg.staffWidth;
-    }
-
-    setWidth(width,description) {
-        if (layoutDebug.flagSet('measureHistory')) {
-           this.svg.history.push('setWidth '+this.staffWidth+'=> '+width + ' ' + description);
-        }
-        this.svg.staffWidth = width;
-    }
-
-    get staffX() {
-        return this.svg.staffX;
-    }
-
-    setX(x,description) {
-        if (layoutDebug.flagSet('measureHistory')) {
-           this.svg.history.push('setX '+this.svg.staffX+'=> '+x + ' ' + description);
-        }
-        this.svg.staffX = x;
-
-    }
-
-    get staffY() {
-        return this.svg.staffY;
-    }
-
-    setY(y,description) {
-        if (layoutDebug.flagSet('measureHistory')) {
-           this.svg.history.push('setY '+this.svg.staffY+'=> '+y + ' ' + description);
-        }
-        this.svg.staffY = y;
-    }
-
-    get logicalBox() {
-        return typeof(this.svg.logicalBox['x']) == 'number'  ? this.svg.logicalBox : null;
-    }
-
-    get yTop() {
-        return this.svg.yTop;
-    }
-
-    setYTop(y,description) {
-        if (layoutDebug.flagSet('measureHistory')) {
-           this.svg.history.push('yTop '+this.svg.yTop+'=> '+y + ' ' + description);
-        }
-        this.svg.yTop = y;
-    }
-
-    deleteLogicalBox(description) {
-        this.svg.logicalBox = {};
-        this.svg.history.push('delete box ' +description);
-    }
-
-    setBox(box,description) {
-        if (layoutDebug.flagSet('measureHistory')) {
-
-           this.svg.history.push(description+' ' +JSON.stringify(this.svg.logicalBox) +' => '+
-              JSON.stringify(box));
-        }
-        this.svg.logicalBox = box;
-    }
-
-    saveUnjustifiedWidth() {
-        this.svg.unjustifiedWidth = this.svg.staffWidth;
-    }
-
-    // ### getClassId
-    // create a identifier unique to this measure index so it can be easily removed.
-    getClassId() {
-        return 'mm-'+this.measureNumber.staffId+'-'+this.measureNumber.measureIndex;
-    }
-
-    pickupMeasure(duration) {
-        var proto = SmoMeasure.deserialize(this.serialize());
-        proto.attrs.id =  VF.Element.newID();
-        var note = proto.voices[0].notes[0];
-        proto.voices = [];
-        note.pitches = [note.pitches[0]];
-        note.ticks.numerator = duration;
-        note.makeRest();
-        proto.voices.push({notes:[note]});
-        return proto;
-    }
-
-	// ### getRenderedNote
-	// The renderer puts a mapping between rendered svg groups and
-	// the logical notes in SMO.  The UI needs this mapping to be interactive,
-	// figure out where a note is rendered, what its bounding box is, etc.
-	getRenderedNote(id) {
-		for (var j = 0; j < this.voices.length; ++j) {
-			var voice = this.voices[j];
-			for (var i = 0; i < voice.notes.length; ++i) {
-				var note = voice.notes[i];
-				if (note.renderId === id) {
-					return {
-						smoNote: note,
-						voice: j,
-						tick: i
-					};
-				}
-			}
-		}
-		return null;
-	}
-
-	set notes(val) {
-		this.voices[this.activeVoice].notes = val;
-	}
-
-    getNotes() {
-        return this.voices[this.activeVoice].notes;
-    }
-	get stemDirection() {
-		return 1;
-	}
-
-    getActiveVoice() {
-        return this.activeVoice;
-    }
-
-    setActiveVoice(vix) {
-        if (vix >= 0 && vix < this.voices.length) {
-            this.activeVoice=vix;
-        }
-    }
 
 	// ### defaultAttributes
 	// attributes that are to be serialized for a measure.
 	static get defaultAttributes() {
 		return [
-			'timeSignature', 'keySignature',
+			'timeSignature', 'keySignature','systemBreak','pageBreak',
 			'measureNumber',
 			'activeVoice', 'clef', 'transposeIndex', 'activeVoice', 'adjX','padLeft', 'padRight', 'rightMargin'];
 	}
@@ -280,9 +154,9 @@ class SmoMeasure {
         smoBeamerFactory.applyBeams(rv);
 
 		return rv;
-	}
+    }
 
-	// ### defaultPitchForClef
+    // ### defaultPitchForClef
 	// Accessor for clef objects, which are set at a measure level.
 	// #### TODO: learn what all these clefs are
 	static get defaultPitchForClef() {
@@ -448,6 +322,8 @@ class SmoMeasure {
 			keySignature: "C",
 			canceledKeySignature: null,
 			adjX: 0,
+            pageBreak:false,
+            systemBreak:false,
 			adjRight:0,
 			padRight: 10,
             padLeft:0,
@@ -472,6 +348,151 @@ class SmoMeasure {
 			activeVoice: 0
 		};
 	}
+
+    setForcePageBreak(val) {
+        this.pageBreak = val;
+    }
+
+    setForceSystemBreak(val) {
+        this.systemBreak = val;
+    }
+
+    getForceSystemBreak() {
+        return this.systemBreak;
+    }
+
+    getForcePageBreak() {
+        return this.pageBreak;
+    }
+
+    // ###   SVG mixins
+    // We store some rendering data in the instance for UI mapping.
+    get staffWidth() {
+        return this.svg.staffWidth;
+    }
+
+    setWidth(width,description) {
+        if (layoutDebug.flagSet('measureHistory')) {
+           this.svg.history.push('setWidth '+this.staffWidth+'=> '+width + ' ' + description);
+        }
+        this.svg.staffWidth = width;
+    }
+
+    get staffX() {
+        return this.svg.staffX;
+    }
+
+    setX(x,description) {
+        if (layoutDebug.flagSet('measureHistory')) {
+           this.svg.history.push('setX '+this.svg.staffX+'=> '+x + ' ' + description);
+        }
+        this.svg.staffX = x;
+
+    }
+
+    get staffY() {
+        return this.svg.staffY;
+    }
+
+    setY(y,description) {
+        if (layoutDebug.flagSet('measureHistory')) {
+           this.svg.history.push('setY '+this.svg.staffY+'=> '+y + ' ' + description);
+        }
+        this.svg.staffY = y;
+    }
+
+    get logicalBox() {
+        return typeof(this.svg.logicalBox['x']) == 'number'  ? this.svg.logicalBox : null;
+    }
+
+    get yTop() {
+        return this.svg.yTop;
+    }
+
+    setYTop(y,description) {
+        if (layoutDebug.flagSet('measureHistory')) {
+           this.svg.history.push('yTop '+this.svg.yTop+'=> '+y + ' ' + description);
+        }
+        this.svg.yTop = y;
+    }
+
+    deleteLogicalBox(description) {
+        this.svg.logicalBox = {};
+        this.svg.history.push('delete box ' +description);
+    }
+
+    setBox(box,description) {
+        if (layoutDebug.flagSet('measureHistory')) {
+
+           this.svg.history.push(description+' ' +JSON.stringify(this.svg.logicalBox) +' => '+
+              JSON.stringify(box));
+        }
+        this.svg.logicalBox = box;
+    }
+
+    saveUnjustifiedWidth() {
+        this.svg.unjustifiedWidth = this.svg.staffWidth;
+    }
+
+    // ### getClassId
+    // create a identifier unique to this measure index so it can be easily removed.
+    getClassId() {
+        return 'mm-'+this.measureNumber.staffId+'-'+this.measureNumber.measureIndex;
+    }
+
+    pickupMeasure(duration) {
+        var proto = SmoMeasure.deserialize(this.serialize());
+        proto.attrs.id =  VF.Element.newID();
+        var note = proto.voices[0].notes[0];
+        proto.voices = [];
+        note.pitches = [note.pitches[0]];
+        note.ticks.numerator = duration;
+        note.makeRest();
+        proto.voices.push({notes:[note]});
+        return proto;
+    }
+
+	// ### getRenderedNote
+	// The renderer puts a mapping between rendered svg groups and
+	// the logical notes in SMO.  The UI needs this mapping to be interactive,
+	// figure out where a note is rendered, what its bounding box is, etc.
+	getRenderedNote(id) {
+		for (var j = 0; j < this.voices.length; ++j) {
+			var voice = this.voices[j];
+			for (var i = 0; i < voice.notes.length; ++i) {
+				var note = voice.notes[i];
+				if (note.renderId === id) {
+					return {
+						smoNote: note,
+						voice: j,
+						tick: i
+					};
+				}
+			}
+		}
+		return null;
+	}
+
+	/* set notes(val) {
+		this.voices[this.activeVoice].notes = val;
+	}  */
+
+    getNotes() {
+        return this.voices[this.activeVoice].notes;
+    }
+
+    getActiveVoice() {
+        return this.activeVoice;
+    }
+
+    setActiveVoice(vix) {
+        if (vix >= 0 && vix < this.voices.length) {
+            this.activeVoice=vix;
+        }
+    }
+
+
+
     tickmapForVoice(voiceIx) {
         var tickmap = new smoTickIterator(this,{voice:voiceIx});
         tickmap.iterate(smoTickIterator.nullActor,this);
@@ -569,6 +590,9 @@ class SmoMeasure {
 		this.beamGroups = [];
 	}
 
+    // ### tuplet methods.
+
+    // #### tupletNotes
 	tupletNotes(tuplet) {
 		var notes = [];
 		for (var j = 0; j < this.voices.length; ++j) {
@@ -581,6 +605,9 @@ class SmoMeasure {
 		}
 		return notes;
 	}
+
+    // #### tupletIndex
+    // return the index of the given tuplet
 	tupletIndex(tuplet) {
 		for (var j = 0; j < this.voices.length; ++j) {
 			var notes = this.voices[j].notes;
@@ -593,6 +620,34 @@ class SmoMeasure {
 		return -1;
 	}
 
+    // #### getTupletForNote
+    // Finds the tuplet for a given note, or null if there isn't one.
+    getTupletForNote(note) {
+		if (!note.isTuplet) {
+			return null;
+		}
+		for (var i = 0; i < this.tuplets.length; ++i) {
+			var tuplet = this.tuplets[i];
+			if (tuplet.attrs.id === note.tuplet.id) {
+				return tuplet;
+			}
+		}
+		return null;
+	}
+	removeTupletForNote(note) {
+		var tuplets = [];
+		for (var i = 0; i < this.tuplets.length; ++i) {
+			var tuplet = this.tuplets[i];
+			if (note.tuplet.id !== tuplet.attrs.id) {
+				tuplets.push(tuplet);
+			}
+		}
+		this.tuplets = tuplets;
+	}
+
+    // ### populateVoice
+    // Create a new voice in this measure, and populate it with the default note
+    // for this measure/key/clef
     populateVoice(index) {
         if (index !=  this.voices.length ) {
             return;
@@ -602,6 +657,7 @@ class SmoMeasure {
         this.changed = true;
     }
 
+    // ### measure modifier mixins
     _addSingletonModifier(name,parameters) {
         var ctor = eval(name);
         var ar= this.modifiers.filter(obj => obj.attrs.type != name);
@@ -772,28 +828,7 @@ class SmoMeasure {
 		return rv;
 	}
 
-	getTupletForNote(note) {
-		if (!note.isTuplet) {
-			return null;
-		}
-		for (var i = 0; i < this.tuplets.length; ++i) {
-			var tuplet = this.tuplets[i];
-			if (tuplet.attrs.id === note.tuplet.id) {
-				return tuplet;
-			}
-		}
-		return null;
-	}
-	removeTupletForNote(note) {
-		var tuplets = [];
-		for (var i = 0; i < this.tuplets.length; ++i) {
-			var tuplet = this.tuplets[i];
-			if (note.tuplet.id !== tuplet.attrs.id) {
-				tuplets.push(tuplet);
-			}
-		}
-		this.tuplets = tuplets;
-	}
+
 
 	get numBeats() {
 		return this.timeSignature.split('/').map(number => parseInt(number, 10))[0];
