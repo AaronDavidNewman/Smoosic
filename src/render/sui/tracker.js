@@ -223,7 +223,11 @@ class suiTracker {
     musicCursor(selector) {
         var key = SmoSelector.getNoteKey(selector);
         if (this.measureNoteMap[key]) {
+            var measureSel = SmoSelection.measureSelection(this.layout.score,
+                this.layout.score.staves.length-1,selector.measure);
+
             var pos = this.measureNoteMap[key].scrollBox;
+            // pos.y = measureSel.measure.renderedBox.y;
             var b = htmlHelpers.buildDom;
 	        var r = b('span').classes('birdy icon icon-arrow-down').attr('id','birdy');
             $('.workspace #birdy').remove();
@@ -232,7 +236,8 @@ class suiTracker {
             var x = pos.x - this.scroller.netScroll.x;
             $(rd).css('top',y).css('left',x);
             $('.workspace').append(rd);
-			this.scroller.scrollVisible(pos.x,pos.y);
+			this.scroller.scrollVisible(pos.x,measureSel.measure.renderedBox.y +
+                measureSel.measure.renderedBox.height);
         }
     }
 
