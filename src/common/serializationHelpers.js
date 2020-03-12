@@ -20,6 +20,10 @@ class smoSerialize {
 		});
 	}
 
+    static get localScore() {
+        return '_smoosicScore';
+    }
+
     // This is the token map we use to reduce the size of
     // serialized data.
     static get tokenMap() {

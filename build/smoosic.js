@@ -677,6 +677,10 @@ class smoSerialize {
 		});
 	}
 
+    static get localScore() {
+        return '_smoosicScore';
+    }
+
     // This is the token map we use to reduce the size of
     // serialized data.
     static get tokenMap() {
@@ -9384,7 +9388,7 @@ class suiScroller  {
         this.viewport = svgHelpers.boxPoints(
           $('.musicRelief').offset().left,
           $('.musicRelief').offset().top,
-          $('.musicRelief').width,
+          $('.musicRelief').width(),
           $('.musicRelief').height());
     }
 
@@ -9393,6 +9397,46 @@ class suiScroller  {
         $('.musicRelief')[0].scrollTop = y;
         this.netScroll.x = x;
         this.netScroll.y = y;
+    }
+
+    scrollVisibleBox(box) {
+
+        var xoff = 0;
+        var yoff = 0;
+        var curBox = this.scrollBox;
+        if (box.width > curBox.width || box.height > curBox.height) {
+            return;
+        }
+        if (box.height < curBox.height) {
+            if (box.y < curBox.y) {
+                yoff = box.y - curBox.y;
+            }
+            else if (box.y + box.height > curBox.y + curBox.height) {
+                yoff = box.y + box.height - (curBox.y + curBox.height);
+            }
+        }
+
+        if (box.x < curBox.width) {
+            if (box.x < curBox.x) {
+                xoff = box.x - curBox.x;
+            } else if (box.x + box.width > curBox.x + curBox.width) {
+                xoff = box.x + box.width - (curBox.x + curBox.width);
+            }
+        }
+
+        if (xoff != 0 || yoff != 0) {
+            this.scrollOffset(xoff,yoff);
+        }
+    }
+
+    // ### scrollBox
+    // get the current viewport, in scrolled coordinates.
+    get scrollBox() {
+        return svgHelpers.boxPoints(this.viewport.x + this.netScroll.x,
+         this.viewport.y + this.netScroll.y,
+         this.viewport.width,
+          this.viewport.height
+      );
     }
 
 
@@ -9679,7 +9723,13 @@ class suiTracker {
     musicCursor(selector) {
         var key = SmoSelector.getNoteKey(selector);
         if (this.measureNoteMap[key]) {
+            var measureSel = SmoSelection.measureSelection(this.layout.score,
+                this.layout.score.staves.length-1,selector.measure);
+            var measure = measureSel.measure;
+            var mbox = measure.renderedBox;
+
             var pos = this.measureNoteMap[key].scrollBox;
+            // pos.y = measureSel.measure.renderedBox.y;
             var b = htmlHelpers.buildDom;
 	        var r = b('span').classes('birdy icon icon-arrow-down').attr('id','birdy');
             $('.workspace #birdy').remove();
@@ -9688,7 +9738,12 @@ class suiTracker {
             var x = pos.x - this.scroller.netScroll.x;
             $(rd).css('top',y).css('left',x);
             $('.workspace').append(rd);
-			this.scroller.scrollVisible(pos.x,pos.y);
+            // todo, need lower right for x
+            var measureRight = mbox.x + mbox.width;
+            var measureBottom = mbox.y +
+                  mbox.height;
+            this.scroller.scrollVisibleBox(svgHelpers.boxPoints(
+                mbox.x,mbox.y,mbox.width,mbox.height));
         }
     }
 
@@ -13608,6 +13663,10 @@ class SuiFileMenu extends suiMenuBase {
 					text: 'Save',
 					value: 'saveFile'
 				},{
+					icon: 'folder-save',
+					text: 'Quick Save',
+					value: 'quickSave'
+				},{
 					icon: '',
 					text: 'Print',
 					value: 'printScore'
@@ -13654,6 +13713,9 @@ class SuiFileMenu extends suiMenuBase {
             setTimeout(function() {
             $('body').trigger('forceResizeEvent');
             },1);
+        } else if (text == 'quickSave') {
+            var scoreStr = JSON.stringify(this.controller.layout.score.serialize());
+            localStorage.setItem(smoSerialize.localScore,scoreStr);
         } else if (text == 'printScore') {
             $('.printFrame').html('');
             var svgDoc = $('#boo svg')[0];
@@ -20781,6 +20843,15 @@ class suiController {
                     score = SmoScore.deserialize(eval(pairs['score']));
                 } catch (exp) {
                     console.log('could not parse '+exp);
+                }
+            }
+        } else {
+            var scoreStr = localStorage.getItem(smoSerialize.localScore);
+            if (scoreStr && scoreStr.length) {
+                try {
+                    score = SmoScore.deserialize(scoreStr);
+                } catch (exp) {
+                    console.log('could not parse '+scoreStr);
                 }
             }
         }

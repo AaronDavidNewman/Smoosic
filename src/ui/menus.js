@@ -256,6 +256,10 @@ class SuiFileMenu extends suiMenuBase {
 					text: 'Save',
 					value: 'saveFile'
 				},{
+					icon: 'folder-save',
+					text: 'Quick Save',
+					value: 'quickSave'
+				},{
 					icon: '',
 					text: 'Print',
 					value: 'printScore'
@@ -302,6 +306,9 @@ class SuiFileMenu extends suiMenuBase {
             setTimeout(function() {
             $('body').trigger('forceResizeEvent');
             },1);
+        } else if (text == 'quickSave') {
+            var scoreStr = JSON.stringify(this.controller.layout.score.serialize());
+            localStorage.setItem(smoSerialize.localScore,scoreStr);
         } else if (text == 'printScore') {
             $('.printFrame').html('');
             var svgDoc = $('#boo svg')[0];

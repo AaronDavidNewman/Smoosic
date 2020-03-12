@@ -225,6 +225,8 @@ class suiTracker {
         if (this.measureNoteMap[key]) {
             var measureSel = SmoSelection.measureSelection(this.layout.score,
                 this.layout.score.staves.length-1,selector.measure);
+            var measure = measureSel.measure;
+            var mbox = measure.renderedBox;
 
             var pos = this.measureNoteMap[key].scrollBox;
             // pos.y = measureSel.measure.renderedBox.y;
@@ -236,8 +238,12 @@ class suiTracker {
             var x = pos.x - this.scroller.netScroll.x;
             $(rd).css('top',y).css('left',x);
             $('.workspace').append(rd);
-			this.scroller.scrollVisible(pos.x,measureSel.measure.renderedBox.y +
-                measureSel.measure.renderedBox.height);
+            // todo, need lower right for x
+            var measureRight = mbox.x + mbox.width;
+            var measureBottom = mbox.y +
+                  mbox.height;
+            this.scroller.scrollVisibleBox(svgHelpers.boxPoints(
+                mbox.x,mbox.y,mbox.width,mbox.height));
         }
     }
 

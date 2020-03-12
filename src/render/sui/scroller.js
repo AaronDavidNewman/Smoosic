@@ -35,7 +35,7 @@ class suiScroller  {
         this.viewport = svgHelpers.boxPoints(
           $('.musicRelief').offset().left,
           $('.musicRelief').offset().top,
-          $('.musicRelief').width,
+          $('.musicRelief').width(),
           $('.musicRelief').height());
     }
 
@@ -44,6 +44,46 @@ class suiScroller  {
         $('.musicRelief')[0].scrollTop = y;
         this.netScroll.x = x;
         this.netScroll.y = y;
+    }
+
+    scrollVisibleBox(box) {
+
+        var xoff = 0;
+        var yoff = 0;
+        var curBox = this.scrollBox;
+        if (box.width > curBox.width || box.height > curBox.height) {
+            return;
+        }
+        if (box.height < curBox.height) {
+            if (box.y < curBox.y) {
+                yoff = box.y - curBox.y;
+            }
+            else if (box.y + box.height > curBox.y + curBox.height) {
+                yoff = box.y + box.height - (curBox.y + curBox.height);
+            }
+        }
+
+        if (box.x < curBox.width) {
+            if (box.x < curBox.x) {
+                xoff = box.x - curBox.x;
+            } else if (box.x + box.width > curBox.x + curBox.width) {
+                xoff = box.x + box.width - (curBox.x + curBox.width);
+            }
+        }
+
+        if (xoff != 0 || yoff != 0) {
+            this.scrollOffset(xoff,yoff);
+        }
+    }
+
+    // ### scrollBox
+    // get the current viewport, in scrolled coordinates.
+    get scrollBox() {
+        return svgHelpers.boxPoints(this.viewport.x + this.netScroll.x,
+         this.viewport.y + this.netScroll.y,
+         this.viewport.width,
+          this.viewport.height
+      );
     }
 
 

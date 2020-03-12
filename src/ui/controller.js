@@ -229,6 +229,15 @@ class suiController {
                     console.log('could not parse '+exp);
                 }
             }
+        } else {
+            var scoreStr = localStorage.getItem(smoSerialize.localScore);
+            if (scoreStr && scoreStr.length) {
+                try {
+                    score = SmoScore.deserialize(scoreStr);
+                } catch (exp) {
+                    console.log('could not parse '+scoreStr);
+                }
+            }
         }
         return score;
     }
