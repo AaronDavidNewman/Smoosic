@@ -22,6 +22,7 @@ class VxMeasure {
         this.beamToVexMap = {};
         this.tupletToVexMap = {};
         this.modifierOptions = {};
+        this.lyricShift = 0;
 
         this.vexNotes = [];
         this.vexBeamGroups = [];
@@ -131,10 +132,8 @@ class VxMeasure {
             var vexL = new VF.Annotation(ll.text);
 
             // If we adjusted this note for the lyric, adjust the lyric as well.
-            ll.adjX = x_shift;
             vexL.setFont(ll.fontInfo.family, ll.fontInfo.size,ll.fontInfo.weight);
             vexL.setYShift(y); // need this?
-            // vexL.setXShift(x_shift);
 			vexL.setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);
             vexNote.addAnnotation(0,vexL);
             const classString = 'lyric lyric-'+ll.verse;
@@ -204,7 +203,7 @@ class VxMeasure {
 
         }
         smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
-        vexNote.x_shift=x_shift;
+        // vexNote.x_shift=x_shift;
 
 		this._createAccidentals(smoNote,vexNote,tickIndex,voiceIx);
         this._createLyric(smoNote,vexNote,x_shift);
@@ -273,8 +272,11 @@ class VxMeasure {
             // at the end of a measure, this resists that.
             if (smoNote.getLyricForVerse(0).length) {
                 var lyric = smoNote.getLyricForVerse(0)[0];
-                shiftIndex -= 1;
+                if (lyric.text.trim().length) {
+                    shiftIndex -= 1;
+                }
             }
+            this.lyricShift += shiftIndex;
             var vexNote = this._createVexNote(smoNote, i,voiceIx,shiftIndex);
             this.noteToVexMap[smoNote.attrs.id] = vexNote;
             this.vexNotes.push(vexNote);
@@ -423,9 +425,9 @@ class VxMeasure {
                  nn.getModifiers('SmoLyric').forEach((lyric) => {
                      lyric.selector='#'+nn.renderId+' g.lyric-'+lyric.verse;
 
-                     var dom = $(this.context.svg).find(lyric.selector)[0];
+                     var dom = $(this.context.svg).find(lyric.selector).closest('g.vf-modifiers')[0];
                      if (dom) {
-                         dom.setAttributeNS('','transform','translate('+lyric.adjX+' '+lyric.adjY+')');
+                         // dom.setAttributeNS('','transform','translate('+lyric.adjX+' '+lyric.adjY+')');
                      }
                  });
              });
@@ -506,7 +508,7 @@ class VxMeasure {
 
 		// Need to format for x position, then set y position before drawing dynamics.
         this.formatter = new VF.Formatter().joinVoices(voiceAr).format(voiceAr, this.smoMeasure.staffWidth-
-		    (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft));
+		    (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft)+this.lyricShift);
 
         for (var j = 0; j < voiceAr.length; ++j) {
             voiceAr[j].draw(this.context, this.stave);

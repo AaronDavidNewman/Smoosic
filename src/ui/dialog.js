@@ -167,12 +167,14 @@ class SuiDialogBase {
    // make3 the modal visible.  bind events and elements.
 	display() {
 		$('body').addClass('showAttributeDialog');
-        this.tracker.scroller.scrollVisible(this.initialLeft,this.initialTop);
 		this.components.forEach((component) => {
 			component.bind();
 		});
 		this._bindElements();
 		this.position(this.modifier.renderedBox);
+        this.tracker.scroller.scrollVisibleBox(
+            svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
+        );
 
 		var cb = function (x, y) {}
 		htmlHelpers.draggable({
@@ -546,7 +548,7 @@ class SuiTextModifierDialog extends SuiDialogBase {
 		this.components.forEach((component) => {
 			this.modifier[component.smoName] = component.getValue();
 		});
-		this.layout.renderNoteModifierPreview(this.modifier);
+		this.layout.renderNoteModifierPreview(this.modifier,this.selection);
 	}
 }
 

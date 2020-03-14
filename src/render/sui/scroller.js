@@ -46,6 +46,9 @@ class suiScroller  {
         this.netScroll.y = y;
     }
 
+    // ### scrollVisible
+    // Scroll such that the box is fully visible, if possible (if it is
+    // not larger than the screen)
     scrollVisibleBox(box) {
 
         var xoff = 0;
@@ -85,34 +88,6 @@ class suiScroller  {
           this.viewport.height
       );
     }
-
-
-    // ### scrollVisible
-    // Scroll such that the area x,y is visible.
-    scrollVisible(x,y) {
-        var y = y - this.netScroll.y;
-        var x = x - this.netScroll.x;
-        var dx = 0;
-        var dy = 0;
-        if (y < 0) {
-            dy = -y;
-        } else if (y > this.viewport.height + this.viewport.y) {
-            var offset = y - (this.viewport.height + this.viewport.y);
-            dy = offset + this.viewport.height/2;
-        }
-
-        if (x < 0) {
-            dx = -x;
-        } else if (x > this.viewport.width + this.viewport.x) {
-            var offset = x - (this.viewport.width + this.viewport.x);
-            dx = offset + this.viewport.width -50;
-        }
-        if (dx != 0 || dy != 0) {
-            this.scrollOffset(dx,dy);
-        }
-    }
-
-
 
     // ### scrollOffset
     // scroll the offset from the starting scroll point

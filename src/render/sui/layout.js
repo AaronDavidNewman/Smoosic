@@ -351,8 +351,8 @@ class suiLayoutBase {
 	// ### Description:
 	// For dialogs that allow you to manually modify elements that are automatically rendered, we allow a preview so the
 	// changes can be undone before the buffer closes.
-	renderNoteModifierPreview(modifier) {
-		var selection = SmoSelection.noteSelection(this._score, modifier.selector.staff, modifier.selector.measure, modifier.selector.voice, modifier.selector.tick);
+	renderNoteModifierPreview(modifier,selection) {
+		var selection = SmoSelection.noteSelection(this._score, selection.selector.staff, selection.selector.measure, selection.selector.voice, selection.selector.tick);
 		if (!selection.measure.renderedBox) {
 			return;
 		}

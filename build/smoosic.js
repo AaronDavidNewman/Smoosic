@@ -8071,6 +8071,7 @@ class VxMeasure {
         this.beamToVexMap = {};
         this.tupletToVexMap = {};
         this.modifierOptions = {};
+        this.lyricShift = 0;
 
         this.vexNotes = [];
         this.vexBeamGroups = [];
@@ -8180,10 +8181,8 @@ class VxMeasure {
             var vexL = new VF.Annotation(ll.text);
 
             // If we adjusted this note for the lyric, adjust the lyric as well.
-            ll.adjX = x_shift;
             vexL.setFont(ll.fontInfo.family, ll.fontInfo.size,ll.fontInfo.weight);
             vexL.setYShift(y); // need this?
-            // vexL.setXShift(x_shift);
 			vexL.setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);
             vexNote.addAnnotation(0,vexL);
             const classString = 'lyric lyric-'+ll.verse;
@@ -8253,7 +8252,7 @@ class VxMeasure {
 
         }
         smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
-        vexNote.x_shift=x_shift;
+        // vexNote.x_shift=x_shift;
 
 		this._createAccidentals(smoNote,vexNote,tickIndex,voiceIx);
         this._createLyric(smoNote,vexNote,x_shift);
@@ -8322,8 +8321,11 @@ class VxMeasure {
             // at the end of a measure, this resists that.
             if (smoNote.getLyricForVerse(0).length) {
                 var lyric = smoNote.getLyricForVerse(0)[0];
-                shiftIndex -= 1;
+                if (lyric.text.trim().length) {
+                    shiftIndex -= 1;
+                }
             }
+            this.lyricShift += shiftIndex;
             var vexNote = this._createVexNote(smoNote, i,voiceIx,shiftIndex);
             this.noteToVexMap[smoNote.attrs.id] = vexNote;
             this.vexNotes.push(vexNote);
@@ -8472,9 +8474,9 @@ class VxMeasure {
                  nn.getModifiers('SmoLyric').forEach((lyric) => {
                      lyric.selector='#'+nn.renderId+' g.lyric-'+lyric.verse;
 
-                     var dom = $(this.context.svg).find(lyric.selector)[0];
+                     var dom = $(this.context.svg).find(lyric.selector).closest('g.vf-modifiers')[0];
                      if (dom) {
-                         dom.setAttributeNS('','transform','translate('+lyric.adjX+' '+lyric.adjY+')');
+                         // dom.setAttributeNS('','transform','translate('+lyric.adjX+' '+lyric.adjY+')');
                      }
                  });
              });
@@ -8555,7 +8557,7 @@ class VxMeasure {
 
 		// Need to format for x position, then set y position before drawing dynamics.
         this.formatter = new VF.Formatter().joinVoices(voiceAr).format(voiceAr, this.smoMeasure.staffWidth-
-		    (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft));
+		    (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft)+this.lyricShift);
 
         for (var j = 0; j < voiceAr.length; ++j) {
             voiceAr[j].draw(this.context, this.stave);
@@ -9399,6 +9401,9 @@ class suiScroller  {
         this.netScroll.y = y;
     }
 
+    // ### scrollVisible
+    // Scroll such that the box is fully visible, if possible (if it is
+    // not larger than the screen)
     scrollVisibleBox(box) {
 
         var xoff = 0;
@@ -9438,34 +9443,6 @@ class suiScroller  {
           this.viewport.height
       );
     }
-
-
-    // ### scrollVisible
-    // Scroll such that the area x,y is visible.
-    scrollVisible(x,y) {
-        var y = y - this.netScroll.y;
-        var x = x - this.netScroll.x;
-        var dx = 0;
-        var dy = 0;
-        if (y < 0) {
-            dy = -y;
-        } else if (y > this.viewport.height + this.viewport.y) {
-            var offset = y - (this.viewport.height + this.viewport.y);
-            dy = offset + this.viewport.height/2;
-        }
-
-        if (x < 0) {
-            dx = -x;
-        } else if (x > this.viewport.width + this.viewport.x) {
-            var offset = x - (this.viewport.width + this.viewport.x);
-            dx = offset + this.viewport.width -50;
-        }
-        if (dx != 0 || dy != 0) {
-            this.scrollOffset(dx,dy);
-        }
-    }
-
-
 
     // ### scrollOffset
     // scroll the offset from the starting scroll point
@@ -11016,8 +10993,8 @@ class suiLayoutBase {
 	// ### Description:
 	// For dialogs that allow you to manually modify elements that are automatically rendered, we allow a preview so the
 	// changes can be undone before the buffer closes.
-	renderNoteModifierPreview(modifier) {
-		var selection = SmoSelection.noteSelection(this._score, modifier.selector.staff, modifier.selector.measure, modifier.selector.voice, modifier.selector.tick);
+	renderNoteModifierPreview(modifier,selection) {
+		var selection = SmoSelection.noteSelection(this._score, selection.selector.staff, selection.selector.measure, selection.selector.voice, selection.selector.tick);
 		if (!selection.measure.renderedBox) {
 			return;
 		}
@@ -15189,12 +15166,14 @@ class SuiDialogBase {
    // make3 the modal visible.  bind events and elements.
 	display() {
 		$('body').addClass('showAttributeDialog');
-        this.tracker.scroller.scrollVisible(this.initialLeft,this.initialTop);
 		this.components.forEach((component) => {
 			component.bind();
 		});
 		this._bindElements();
 		this.position(this.modifier.renderedBox);
+        this.tracker.scroller.scrollVisibleBox(
+            svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
+        );
 
 		var cb = function (x, y) {}
 		htmlHelpers.draggable({
@@ -15568,7 +15547,7 @@ class SuiTextModifierDialog extends SuiDialogBase {
 		this.components.forEach((component) => {
 			this.modifier[component.smoName] = component.getValue();
 		});
-		this.layout.renderNoteModifierPreview(this.modifier);
+		this.layout.renderNoteModifierPreview(this.modifier,this.selection);
 	}
 }
 
@@ -16450,12 +16429,15 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
      }
      display() {
          $('body').addClass('showAttributeDialog');
-          this.tracker.scroller.scrollVisible(this.initialLeft,this.initialTop);
          this.components.forEach((component) => {
              component.bind();
          });
          this._bindElements();
          this.position(this.measure.renderedBox);
+         this.tracker.scroller.scrollVisibleBox(
+             svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
+         );
+
 
          var cb = function (x, y) {}
          htmlHelpers.draggable({
