@@ -251,6 +251,7 @@ class SmoArticulation extends SmoNoteModifierBase {
 		smoSerialize.serializedMerge(SmoArticulation.parameterArray,SmoArticulation.defaults,this);
 		smoSerialize.serializedMerge(SmoArticulation.parameterArray, parameters, this);
 		this.selector = parameters.selector;
+        this.adjX = 0;
 	}
 
 }

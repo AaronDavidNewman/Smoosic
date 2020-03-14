@@ -272,11 +272,9 @@ class VxMeasure {
             // at the end of a measure, this resists that.
             if (smoNote.getLyricForVerse(0).length) {
                 var lyric = smoNote.getLyricForVerse(0)[0];
-                if (lyric.text.trim().length) {
-                    shiftIndex -= 1;
-                }
+                var lyricLen = lyric.text.trim().length;
+                this.lyricShift += (lyricLen < 4 ? 0 : lyricLen - 4);
             }
-            this.lyricShift += shiftIndex;
             var vexNote = this._createVexNote(smoNote, i,voiceIx,shiftIndex);
             this.noteToVexMap[smoNote.attrs.id] = vexNote;
             this.vexNotes.push(vexNote);
@@ -416,19 +414,12 @@ class VxMeasure {
     }
 
     // ### _updateLyricXOffsets
-    // We update lyric positions twice.  Update the x position when the measure is rendered
-    // so the selectable bounding box has the correct width, then the y when the whole line has been
-    // rendered and we can align the lyrics.
-     _updateLyricXOffsets() {
+    // Create the DOM modifiers for the rendered lyrics.
+     _updateLyricDomSelectors() {
          this.smoMeasure.voices.forEach((vv) => {
              vv.notes.forEach((nn) => {
                  nn.getModifiers('SmoLyric').forEach((lyric) => {
                      lyric.selector='#'+nn.renderId+' g.lyric-'+lyric.verse;
-
-                     var dom = $(this.context.svg).find(lyric.selector).closest('g.vf-modifiers')[0];
-                     if (dom) {
-                         // dom.setAttributeNS('','transform','translate('+lyric.adjX+' '+lyric.adjY+')');
-                     }
                  });
              });
          });
@@ -523,7 +514,7 @@ class VxMeasure {
             tuplet.setContext(self.context).draw();
         });
 		this.renderDynamics();
-        this._updateLyricXOffsets();
+        this._updateLyricDomSelectors();
         this._setModifierBoxes();
 		// this.smoMeasure.adjX = this.stave.start_x - (this.smoMeasure.staffX);
 
