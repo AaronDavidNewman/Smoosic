@@ -143,7 +143,19 @@ class smoSerialize {
      "id": "tempoMode",
      "jd": "tempoText",
      "kd": "barline",
-     "ld": "systemBreak"}`
+     "ld": "systemBreak",
+     "md": "graceNotes",
+    "nd": "tones",
+    "od": "tuplet",
+    "pd": "beam_group",
+    "qd": "renderId",
+    "rd": "numNotes",
+    "sd": "totalTicks",
+    "td": "stemTicks",
+    "ud": "durationMap",
+    "vd": "bracketed",
+    "wd": "ratioed",
+    "xd": "location"}`
       ;
      return JSON.parse(_tm);
     }
@@ -192,9 +204,9 @@ class smoSerialize {
                         output[dkey] = [];
                         val.forEach((arobj) => {
                             if (typeof(arobj) == 'string' || typeof(arobj) == 'number' || typeof(arobj) == 'boolean') {
-                                output[dkey].push(val);
+                                output[dkey].push(arobj);
                             }
-                            if (arobj && typeof(arobj) == 'object') {
+                            else if (arobj && typeof(arobj) == 'object') {
                                 var nobj = {};
                                 _tokenRecurse(arobj,nobj);
                                 output[dkey].push(nobj);

@@ -800,7 +800,19 @@ class smoSerialize {
      "id": "tempoMode",
      "jd": "tempoText",
      "kd": "barline",
-     "ld": "systemBreak"}`
+     "ld": "systemBreak",
+     "md": "graceNotes",
+    "nd": "tones",
+    "od": "tuplet",
+    "pd": "beam_group",
+    "qd": "renderId",
+    "rd": "numNotes",
+    "sd": "totalTicks",
+    "td": "stemTicks",
+    "ud": "durationMap",
+    "vd": "bracketed",
+    "wd": "ratioed",
+    "xd": "location"}`
       ;
      return JSON.parse(_tm);
     }
@@ -849,9 +861,9 @@ class smoSerialize {
                         output[dkey] = [];
                         val.forEach((arobj) => {
                             if (typeof(arobj) == 'string' || typeof(arobj) == 'number' || typeof(arobj) == 'boolean') {
-                                output[dkey].push(val);
+                                output[dkey].push(arobj);
                             }
-                            if (arobj && typeof(arobj) == 'object') {
+                            else if (arobj && typeof(arobj) == 'object') {
                                 var nobj = {};
                                 _tokenRecurse(arobj,nobj);
                                 output[dkey].push(nobj);
@@ -2151,7 +2163,7 @@ class SmoTuplet {
     constructor(params) {
         this.notes = params.notes;
         Vex.Merge(this, SmoTuplet.defaults);
-        Vex.Merge(this, params);
+        smoSerialize.serializedMerge(SmoTuplet.parameterArray, params, this);
         if (!this['attrs']) {
             this.attrs = {
                 id: VF.Element.newID(),
@@ -2167,11 +2179,22 @@ class SmoTuplet {
 	}
 
     get clonedParams() {
-        var paramAr = ['stemTicks', 'ticks', 'totalTicks', 'durationMap']
+        var paramAr = ['stemTicks', 'ticks', 'totalTicks', 'durationMap'];
         var rv = {};
         smoSerialize.serializedMerge(paramAr, this, rv);
         return rv;
 
+    }
+
+    static get parameterArray() {
+        return ['stemTicks', 'ticks', 'totalTicks', 'durationMap','attrs','ratioed','bracketed','voice'];
+    }
+
+    serialize() {
+        var params = {};
+        smoSerialize.serializedMergeNonDefault(SmoTuplet.defaults,
+           SmoTuplet.parameterArray,this,params);
+        return params;
     }
 
 	static calculateStemTicks(totalTicks,numNotes) {
@@ -2359,6 +2382,7 @@ class SmoTuplet {
             stemTicks: 2048, // the stem ticks, for drawing purposes.  >16th, draw as 8th etc.
             durationMap: [1.0, 1.0, 1.0],
             bracketed: true,
+            voice:0,
             ratioed: false
         }
     }
@@ -2830,7 +2854,7 @@ class SmoMeasure {
 		params.modifiers=[];
 
 		this.tuplets.forEach((tuplet) => {
-			params.tuplets.push(JSON.parse(JSON.stringify(tuplet)));
+			params.tuplets.push(tuplet.serialize());
 		});
 
 		this.voices.forEach((voice) => {
@@ -8328,6 +8352,10 @@ class VxMeasure {
             var vexNote = this._createVexNote(smoNote, i,voiceIx,shiftIndex);
             this.noteToVexMap[smoNote.attrs.id] = vexNote;
             this.vexNotes.push(vexNote);
+            if (isNaN(smoNote.ticks.numerator) || isNaN(smoNote.ticks.denominator)
+                || isNaN(smoNote.ticks.remainder)) {
+                    throw ("vxMeasure: NaN in ticks");
+                }
         }
 		this._renderArticulations(voiceIx);
     }
@@ -8548,8 +8576,9 @@ class VxMeasure {
         }
 
 		// Need to format for x position, then set y position before drawing dynamics.
-        this.formatter = new VF.Formatter().joinVoices(voiceAr).format(voiceAr, this.smoMeasure.staffWidth-
-		    (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft)+this.lyricShift);
+        this.formatter = new VF.Formatter().joinVoices(voiceAr).format(voiceAr,
+              this.smoMeasure.staffWidth-
+		     (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft)+this.lyricShift);
 
         for (var j = 0; j < voiceAr.length; ++j) {
             voiceAr[j].draw(this.context, this.stave);
@@ -8834,7 +8863,7 @@ curve.setContext(this.context).draw();
 		group.classList.add('lineBracket');
 		if (this.leftConnector[0] && this.leftConnector[1]) {
 			var c1 = new VF.StaveConnector(this.leftConnector[0], this.leftConnector[1])
-				.setType(VF.StaveConnector.type.BRACKET);
+				.setType(VF.StaveConnector.type.SINGLE);
 			var c2 = new VF.StaveConnector(this.leftConnector[0], this.leftConnector[1])
 				.setType(VF.StaveConnector.type.SINGLE);
 			c1.setContext(this.context).draw();

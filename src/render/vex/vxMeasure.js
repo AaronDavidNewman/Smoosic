@@ -278,6 +278,10 @@ class VxMeasure {
             var vexNote = this._createVexNote(smoNote, i,voiceIx,shiftIndex);
             this.noteToVexMap[smoNote.attrs.id] = vexNote;
             this.vexNotes.push(vexNote);
+            if (isNaN(smoNote.ticks.numerator) || isNaN(smoNote.ticks.denominator)
+                || isNaN(smoNote.ticks.remainder)) {
+                    throw ("vxMeasure: NaN in ticks");
+                }
         }
 		this._renderArticulations(voiceIx);
     }
@@ -498,8 +502,9 @@ class VxMeasure {
         }
 
 		// Need to format for x position, then set y position before drawing dynamics.
-        this.formatter = new VF.Formatter().joinVoices(voiceAr).format(voiceAr, this.smoMeasure.staffWidth-
-		    (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft)+this.lyricShift);
+        this.formatter = new VF.Formatter().joinVoices(voiceAr).format(voiceAr,
+              this.smoMeasure.staffWidth-
+		     (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft)+this.lyricShift);
 
         for (var j = 0; j < voiceAr.length; ++j) {
             voiceAr[j].draw(this.context, this.stave);

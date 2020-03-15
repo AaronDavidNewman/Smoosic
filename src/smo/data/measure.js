@@ -67,7 +67,7 @@ class SmoMeasure {
 		params.modifiers=[];
 
 		this.tuplets.forEach((tuplet) => {
-			params.tuplets.push(JSON.parse(JSON.stringify(tuplet)));
+			params.tuplets.push(tuplet.serialize());
 		});
 
 		this.voices.forEach((voice) => {

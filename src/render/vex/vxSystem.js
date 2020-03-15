@@ -256,7 +256,7 @@ curve.setContext(this.context).draw();
 		group.classList.add('lineBracket');
 		if (this.leftConnector[0] && this.leftConnector[1]) {
 			var c1 = new VF.StaveConnector(this.leftConnector[0], this.leftConnector[1])
-				.setType(VF.StaveConnector.type.BRACKET);
+				.setType(VF.StaveConnector.type.SINGLE);
 			var c2 = new VF.StaveConnector(this.leftConnector[0], this.leftConnector[1])
 				.setType(VF.StaveConnector.type.SINGLE);
 			c1.setContext(this.context).draw();

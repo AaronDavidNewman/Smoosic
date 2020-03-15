@@ -367,7 +367,7 @@ class SmoTuplet {
     constructor(params) {
         this.notes = params.notes;
         Vex.Merge(this, SmoTuplet.defaults);
-        Vex.Merge(this, params);
+        smoSerialize.serializedMerge(SmoTuplet.parameterArray, params, this);
         if (!this['attrs']) {
             this.attrs = {
                 id: VF.Element.newID(),
@@ -383,11 +383,22 @@ class SmoTuplet {
 	}
 
     get clonedParams() {
-        var paramAr = ['stemTicks', 'ticks', 'totalTicks', 'durationMap']
+        var paramAr = ['stemTicks', 'ticks', 'totalTicks', 'durationMap'];
         var rv = {};
         smoSerialize.serializedMerge(paramAr, this, rv);
         return rv;
 
+    }
+
+    static get parameterArray() {
+        return ['stemTicks', 'ticks', 'totalTicks', 'durationMap','attrs','ratioed','bracketed','voice'];
+    }
+
+    serialize() {
+        var params = {};
+        smoSerialize.serializedMergeNonDefault(SmoTuplet.defaults,
+           SmoTuplet.parameterArray,this,params);
+        return params;
     }
 
 	static calculateStemTicks(totalTicks,numNotes) {
@@ -575,6 +586,7 @@ class SmoTuplet {
             stemTicks: 2048, // the stem ticks, for drawing purposes.  >16th, draw as 8th etc.
             durationMap: [1.0, 1.0, 1.0],
             bracketed: true,
+            voice:0,
             ratioed: false
         }
     }
