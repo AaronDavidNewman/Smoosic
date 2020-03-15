@@ -391,7 +391,7 @@ class SmoTuplet {
     }
 
     static get parameterArray() {
-        return ['stemTicks', 'ticks', 'totalTicks', 'durationMap','attrs','ratioed','bracketed','voice'];
+        return ['stemTicks', 'ticks', 'totalTicks', 'durationMap','attrs','ratioed','bracketed','voice','startIndex'];
     }
 
     serialize() {

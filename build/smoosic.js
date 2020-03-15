@@ -2187,7 +2187,7 @@ class SmoTuplet {
     }
 
     static get parameterArray() {
-        return ['stemTicks', 'ticks', 'totalTicks', 'durationMap','attrs','ratioed','bracketed','voice'];
+        return ['stemTicks', 'ticks', 'totalTicks', 'durationMap','attrs','ratioed','bracketed','voice','startIndex'];
     }
 
     serialize() {
@@ -5431,17 +5431,7 @@ class smoTickIterator {
         }
         return defaultAccidental;
     }
-    getTupletInfo(index) {
-        var tuplets = Object.keys(this.tupletMap);
-        for (var i = 0; i < tuplets.length; ++i) {
-            var tupletInfo = this.tupletMap[tuplets[i]];
-            if (tupletInfo.startIndex <= index && tupletInfo.endIndex >= index) {
-                return tupletInfo;
-            }
-        }
-        return {};
-    }
-
+    
     // ### _iterate
     // Internal callback for iterator.
     _iterate(actor) {
@@ -18885,7 +18875,7 @@ class vexGlyph {
 				height:41,
                 yTop:0,
                 yBottom:0,
-				spacingRight:1
+				spacingRight:5
 			},
 			endBar: {
 				width:5.22,

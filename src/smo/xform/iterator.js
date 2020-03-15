@@ -162,17 +162,7 @@ class smoTickIterator {
         }
         return defaultAccidental;
     }
-    getTupletInfo(index) {
-        var tuplets = Object.keys(this.tupletMap);
-        for (var i = 0; i < tuplets.length; ++i) {
-            var tupletInfo = this.tupletMap[tuplets[i]];
-            if (tupletInfo.startIndex <= index && tupletInfo.endIndex >= index) {
-                return tupletInfo;
-            }
-        }
-        return {};
-    }
-
+    
     // ### _iterate
     // Internal callback for iterator.
     _iterate(actor) {
