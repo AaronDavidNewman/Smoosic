@@ -383,11 +383,8 @@ class SmoMeasure {
     }
 
     setX(x,description) {
-        if (layoutDebug.flagSet('measureHistory')) {
-           this.svg.history.push('setX '+this.svg.staffX+'=> '+x + ' ' + description);
-        }
+        layoutDebug.measureHistory(this,'staffX',x,description);
         this.svg.staffX = x;
-
     }
 
     get staffY() {
@@ -395,9 +392,7 @@ class SmoMeasure {
     }
 
     setY(y,description) {
-        if (layoutDebug.flagSet('measureHistory')) {
-           this.svg.history.push('setY '+this.svg.staffY+'=> '+y + ' ' + description);
-        }
+        layoutDebug.measureHistory(this,'staffY',y,description);
         this.svg.staffY = y;
     }
 
@@ -410,9 +405,7 @@ class SmoMeasure {
     }
 
     setYTop(y,description) {
-        if (layoutDebug.flagSet('measureHistory')) {
-           this.svg.history.push('yTop '+this.svg.yTop+'=> '+y + ' ' + description);
-        }
+        layoutDebug.measureHistory(this,'yTop',y,description);
         this.svg.yTop = y;
     }
 
@@ -422,11 +415,7 @@ class SmoMeasure {
     }
 
     setBox(box,description) {
-        if (layoutDebug.flagSet('measureHistory')) {
-
-           this.svg.history.push(description+' ' +JSON.stringify(this.svg.logicalBox) +' => '+
-              JSON.stringify(box));
-        }
+        layoutDebug.measureHistory(this,'logicalBox',box,description);
         this.svg.logicalBox = box;
     }
 

@@ -59,10 +59,10 @@ class suiScroller  {
         }
         if (box.height < curBox.height) {
             if (box.y < curBox.y) {
-                yoff = box.y - curBox.y;
+                yoff = box.y - (curBox.y + 25);
             }
             else if (box.y + box.height > curBox.y + curBox.height) {
-                yoff = box.y + box.height - (curBox.y + curBox.height);
+                yoff = box.y + box.height - (curBox.y + curBox.height) + 25;
             }
         }
 

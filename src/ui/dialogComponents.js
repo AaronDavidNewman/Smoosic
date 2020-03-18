@@ -438,6 +438,8 @@ class SuiLyricEditComponent extends SuiComponentBase {
     }
     endSession() {
         if (this.editor) {
+            layoutDebug.addTextDebug('SuiLyricEditComponent:endSession ');
+
             this.value=this.editor.value;
             this.editor.detach();
         }
@@ -453,6 +455,7 @@ class SuiLyricEditComponent extends SuiComponentBase {
     _startEditor() {
         var elementDom = $('#'+this.parameterId);
         var button = $(elementDom).find('button');
+        layoutDebug.addTextDebug('SuiLyricEditComponent: create editor for ' + this.tracker.selections[0].note.attrs.id);
         this.editor = new editLyricSession({tracker:this.tracker,verse:this.verse,selection:this.tracker.selections[0],controller:this.controller});
         $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
         $(elementDom).find('label').text('Done Editing Lyrics');
@@ -462,15 +465,18 @@ class SuiLyricEditComponent extends SuiComponentBase {
         var self=this;
         var elementDom = $('#'+this.parameterId);
         var button = $(elementDom).find('button');
-
+        layoutDebug.addTextDebug('SuiLyricEditComponent: create editor request');
 
         if (!this.editor) {
+            layoutDebug.addTextDebug('SuiLyricEditComponent: initial create editor request');
             this._startEditor();
             $(button).off('click').on('click',function() {
                 self.handleChanged();
                  if (self.editor.state == editLyricSession.states.stopped || self.editor.state == editLyricSession.states.stopping)  {
+                     layoutDebug.addTextDebug('SuiLyricEditComponent: restarting button');
                      self._startEditor(button);
                  } else {
+                     layoutDebug.addTextDebug('SuiLyricEditComponent: stopping editor button');
                      self.editor.detach();
                      $(elementDom).find('label').text('Edit Lyrics');
                      $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
@@ -621,6 +627,56 @@ class SuiToggleComponent extends SuiComponentBase {
         this.setValue(this.defaultValue);
         var self = this;
         $(input).off('change').on('change',
+            function (ev) {
+            self.handleChanged();
+        });
+    }
+}
+
+// ## SuiToggleComponent
+// Simple on/off behavior
+class SuiButtonComponent extends SuiComponentBase {
+    constructor(dialog, parameter) {
+        super();
+        smoSerialize.filteredMerge(
+            ['parameterName', 'smoName', 'defaultValue', 'control', 'label','additionalClasses'], parameter, this);
+        if (!this.defaultValue) {
+            this.defaultValue = 0;
+        }
+        this.dialog = dialog;
+    }
+    get html() {
+        var b = htmlHelpers.buildDom;
+        var id = this.parameterId;
+        var classNames = this['additionalClasses'] ? this['additionalClasses'] + ' buttonComponent' : 'buttonComponent';
+        var r = b('div').classes('buttonControl smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+            .append(b('button').attr('type', 'button').classes(classNames)
+                .attr('id', id + '-input')).append(
+                b('label').attr('for', id + '-input').text(this.label));
+        return r;
+    }
+    _getInputElement() {
+        var pid = this.parameterId;
+        return $(this.dialog.dgDom.element).find('#' + pid).find('button');
+    }
+    get parameterId() {
+        return this.dialog.id + '-' + this.parameterName;
+    }
+
+    setValue(value) {
+        return;
+    }
+    getValue() {
+        return null;
+    }
+
+    bind() {
+        var dialog = this.dialog;
+        var pid = this.parameterId;
+        var input = this._getInputElement();
+        this.setValue(this.defaultValue);
+        var self = this;
+        $(input).off('click').on('click',
             function (ev) {
             self.handleChanged();
         });

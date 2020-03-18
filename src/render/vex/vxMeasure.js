@@ -130,6 +130,7 @@ class VxMeasure {
         lyrics.forEach((ll) => {
             var y = ll.verse*10;
             var vexL = new VF.Annotation(ll.text);
+            vexL.setAttribute(ll.attrs.id); //
 
             // If we adjusted this note for the lyric, adjust the lyric as well.
             vexL.setFont(ll.fontInfo.family, ll.fontInfo.size,ll.fontInfo.weight);
@@ -403,10 +404,10 @@ class VxMeasure {
 
                 // TODO: fix this, only works on the first line.
                 smoNote.getModifiers('SmoLyric').forEach((lyric) => {
-                    var ar = Array.from(el.getElementsByClassName('vf-lyric'));
-                    ar.forEach((lbox) => {
-                        svgHelpers.updateArtifactBox(this.context.svg,lbox,lyric);
-                    });
+                    if (lyric.selector) {
+                        svgHelpers.updateArtifactBox(this.context.svg,$(lyric.selector)[0],lyric);
+                        // lyric.logicalBox = svgHelpers.smoBox($(lyric.selector)[0].getBBox());
+                    }
                 });
                 smoNote.graceNotes.forEach((g) => {
                     var gel = this.context.svg.getElementById('vf-'+g.renderedId);

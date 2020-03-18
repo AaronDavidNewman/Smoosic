@@ -12,6 +12,7 @@ class editSvgText {
 		this.svg = document.createElementNS(ns, 'svg');
         this.editText = document.createElementNS(ns, 'text');
         this.attrAr = [];
+        this.id = VF.Element.newID();
 
         // create a mirror of the node under edit by copying attributes
         // and setting up a similarly-dimensioned viewbox
@@ -42,6 +43,7 @@ class editSvgText {
         $('.textEdit').append(this.svg);
         $('.textEdit').removeClass('hide').attr('contentEditable','true');
         this.setEditorPosition(this.clientBox,svgBox);
+        layoutDebug.addTextDebug('editSvgText: ctor '+this.id);
     }
 
     setEditorPosition(clientBox,svgBox) {
@@ -56,6 +58,7 @@ class editSvgText {
 
     endSession() {
         this.editing = false;
+        layoutDebug.addTextDebug('editSvgText: endSession for '+this.id);
         this.target.setAttributeNS(null,'fill',this.oldFill);
     }
 
@@ -109,6 +112,7 @@ class editSvgText {
 
         this.editing=true;
         this.running = true;
+        layoutDebug.addTextDebug('editSvgText: create startSessionPromise '+this.id);
         const promise = new Promise((resolve, reject) => {
             function editTimer() {
                 setTimeout(function() {
@@ -117,6 +121,7 @@ class editSvgText {
                       editTimer();
                     } else {
                       self._updateText();
+                      layoutDebug.addTextDebug('editSvgText: resolve session promise '+self.id);
                       resolve();
                     }
                 },25);
@@ -145,11 +150,14 @@ class editLyricSession {
         this.verse=parameters.verse;
 		this.bound = false;
         this.state=editLyricSession.states.stopped;
+        layoutDebug.addTextDebug('editLyricSession: create note '+this.selection.note.attrs.id);
     }
 
     detach() {
-        this.editor.endSession();
+        layoutDebug.addTextDebug('editLyricSession: detach() from '+this.selection.note.attrs.id);
         this.state = editLyricSession.states.stopping;
+        this.editor.endSession();
+        this.lyric.text = this.editor.value;
 		window.removeEventListener("keydown", this.keydownHandler, true);
         if (this.selection) {
             this.selection.measure.changed=true;
@@ -158,11 +166,13 @@ class editLyricSession {
 
     detachPromise() {
         var self=this;
+        layoutDebug.addTextDebug('editLyricSession:create detach promise from '+this.selection.note.attrs.id);
         return new Promise((resolve) => {
             var waiter = () => {
             setTimeout(() => {
                 if (self.state == editLyricSession.states.stopping ||
                  self.state == editLyricSession.states.stopped) {
+                     layoutDebug.addTextDebug('editLyricSession:resolve detach promise from '+self.selection.note.attrs.id);
                      resolve();
                  } else {
                      waiter();
@@ -174,13 +184,17 @@ class editLyricSession {
         });
     }
 
+    // ### _lyricAddedPromise
+    // Don't edit the lyric until the DOM part has been added by the editor, so pend on a promise that has happened.
     _lyricAddedPromise() {
         var self=this;
+        layoutDebug.addTextDebug('editLyricSession:create _lyricAddedPromise promise from '+self.selection.note.attrs.id);
         return new Promise((resolve) => {
             var checkAdd = function() {
                 setTimeout(function() {
                     self.textElement = $(self.tracker.layout.svg).find('#'+self.selection.note.renderId).find('g.lyric-'+self.lyric.verse)[0];
                     if (self.textElement) {
+                        layoutDebug.addTextDebug('editLyricSession:resolve _lyricAddedPromise promise for  '+self.selection.note.attrs.id);
                         resolve();
                     } else {
                         checkAdd();
@@ -192,25 +206,34 @@ class editLyricSession {
     }
 
     // ### _editCurrentLyric
-    // If this is a new lyric, we need to maybe wait for it to be rendered.
+    // The DOM is ready.  Create the editor and wait for it to finish.
     _editCurrentLyric() {
         this.textElement = $(this.tracker.layout.svg).find('#'+this.selection.note.renderId).find('g.lyric-'+this.lyric.verse)[0];
+        if (this.editor) {
+            layoutDebug.addTextDebug('editLyricSession: _editCurrentLyric dispense with editor ' + this.editor.id);
+        }
         this.editor = new editSvgText({target:this.textElement,layout:this.tracker.layout,fontInfo:this.fontInfo});
         this.state = editLyricSession.states.started;
         var self = this;
         function handleSkip() {
-            self._handleSkip();
+            layoutDebug.addTextDebug('editLyricSession:startSession promise rcvd, editor is done, handleSkip for  '+self.selection.note.attrs.id);
+            // Only skip to the next lyric if the session is still going on.
+            if (self.state != editLyricSession.states.stopped && self.state != editLyricSession.states.stopping) {
+                self._handleSkip();
+            }
         }
 
         this.editor.startSessionPromise().then(handleSkip);
     }
 
+    // Start the editing session by creating editor, and wait for the editor to create the DOM element.
 	_editingSession() {
         var self = this;
 		if (!this.bound) {
 			this.bindEvents();
 		}
         function editCurrent() {
+            layoutDebug.addTextDebug('editLyricSession:_lyricAddedPromise promise rcvd, _editCurrentLyric for  '+self.selection.note.attrs.id);
             self._editCurrentLyric();
         }
         this._lyricAddedPromise().then(editCurrent);
@@ -235,17 +258,17 @@ class editLyricSession {
 		      this.tracker.layout.score, this.selection.selector.staff,
               this.selection.selector.measure, this.selection.selector.voice, this.selection.selector.tick);
             if (sel) {
+                layoutDebug.addTextDebug('editLyricSession:_handleSkip,  moving on to '+sel.note.attrs.id);
                 this.selection=sel;
                 this._getOrCreateLyric(this.selection.note);
                 this.editNote();
             }
         } else {
+            layoutDebug.addTextDebug('editLyricSession:_handleSkip, no more lyrics');
             this.detach();
         }
     }
-    _lyricRenderedPromise() {
 
-    }
     editNote() {
 		var self=this;
 		function _startEditing() {
@@ -260,6 +283,16 @@ class editLyricSession {
         return this.detachPromise();
     }
 
+    nextWord() {
+        this.state = editLyricSession.states.space;
+        this._handleSkip();
+    }
+
+    previousWord() {
+        this.state = editLyricSession.states.backSpace;
+        this._handleSkip();
+    }
+
 	handleKeydown(event) {
 		console.log("Lyric KeyboardEvent: key='" + event.key + "' | code='" +
 			event.code + "'"
@@ -269,13 +302,17 @@ class editLyricSession {
 			this.state =  (event.key == '-') ? editLyricSession.states.minus :  editLyricSession.states.space;
 			this.state = (this.state === editLyricSession.states.space && event.shiftKey)
 			     ? editLyricSession.states.backSpace :  this.state;
+            layoutDebug.addTextDebug('editLyricSession:  handleKeydown skip key for  '+this.selection.note.attrs.id);
             this.editor.endSession();
+            return;
 		}
 
 		if (event.code == 'Escape') {
             this.state = editLyricSession.states.stopping;
             this.editor.endSession();
+            return;
 		}
+        layoutDebug.addTextDebug('editLyricSession:  handleKeydown pass on event for  '+this.selection.note.attrs.id);
         this.selection.measure.changed=true;
 	}
 

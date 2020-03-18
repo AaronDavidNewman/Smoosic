@@ -34,6 +34,22 @@ class SuiLyricDialog extends SuiDialogBase {
 				control: 'SuiLyricEditComponent',
 				label:'Edit Text',
 				options: []
+		},{
+				smoName: 'previousWord',
+				parameterName: 'previousWord',
+				defaultValue: 0,
+                additionalClasses:'icon-arrow-left',
+				control: 'SuiButtonComponent',
+				label:'Previous Word',
+				options: []
+		},{
+				smoName: 'nextWord',
+				parameterName: 'nextWord',
+				defaultValue: 0,
+                additionalClasses:'icon-arrow-right',
+				control: 'SuiButtonComponent',
+				label:'Next Word',
+				options: []
 		}
     ];
     }
@@ -87,12 +103,31 @@ class SuiLyricDialog extends SuiDialogBase {
 			moveParent: true
 		});
 	}
+    _focusSelection() {
+        if (this.editor.editor.selection &&
+            this.editor.editor.selection.note &&
+            this.editor.editor.selection.note.renderedBox) {
+                this.tracker.scroller.scrollVisibleBox(this.editor.editor.selection.note.renderedBox);
+            }
+    }
     changed() {
         this.editor.verse = this.verse.getValue();
+
+        if (this.nextWordControl.changeFlag) {
+            this.editor.editor.nextWord();
+            this._focusSelection();
+        }
+        if (this.previousWordControl.changeFlag) {
+            this.editor.editor.previousWord();
+            this._focusSelection();
+        }
     }
     _bindElements() {
         var self = this;
         var dgDom = this.dgDom;
+
+        this.nextWordControl = this.components.find((comp) => {return comp.smoName == 'nextWord';});
+        this.previousWordControl = this.components.find((comp) => {return comp.smoName == 'previousWord';});
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
             self.complete();

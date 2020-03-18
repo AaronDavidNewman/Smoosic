@@ -58,31 +58,53 @@ class VxSystem {
 		return null;
 	}
 
+    // ### updateLyricOffsets
+    // Adjust the y position for all lyrics in the line so they are even.
 	updateLyricOffsets() {
         for (var i = 0;i < this.score.staves.length;++i) {
-            var lowestYs = {};
-    		var lyrics=[];
+            // is this necessary? They should all be from the current line
             var vxMeasures = this.vxMeasures.filter((vx) => {
                 return vx.smoMeasure.measureNumber.staffId == i;
             });
+            // All the lyrics on this line
+            var lyrics=[];
+
+            // The vertical bounds on each line
+            var verseLimits={};
+
+            // The
+            var lyricVerseMap = {};
             vxMeasures.forEach((mm) => {
                 var smoMeasure = mm.smoMeasure;
+
+                // Get lyrics from any voice.
                 smoMeasure.voices.forEach((voice) => {
                     voice.notes.forEach((note) => {
-                        note.getModifiers('SmoLyric').forEach((lyric) => {
-                            var lowest = (lyric.logicalBox.y+lyric.logicalBox.height);
-                            if (!lowestYs[lyric.verse]) {
-                                lowestYs[lyric.verse] = lowest;
-                            } else {
-                                lowestYs[lyric.verse] = lowestYs[lyric.verse] < lowest ? lowest : lowestYs[lyric.verse];
+                        note.getModifiers('SmoLyric').forEach((ll) => {
+                            if (!lyricVerseMap[ll.verse]) {
+                                lyricVerseMap[ll.verse] = [];
                             }
-                            lyrics.push(lyric);
+                            if (ll.logicalBox) {
+                                lyricVerseMap[ll.verse].push(ll);
+                                lyrics.push(ll);
+                            }
                         });
                     });
                 });
             });
+            var vkey = Object.keys(lyricVerseMap).sort((a,b) => a-b);
+            vkey.forEach((verse) => {
+                verseLimits[verse] = {highest:-1,bottom:-1};
+                lyricVerseMap[verse].forEach((ll) => {
+                    verseLimits[verse].highest = Math.max(ll.logicalBox.height,verseLimits[verse].highest);
+                    verseLimits[verse].bottom = Math.max(ll.logicalBox.y + ll.logicalBox.height,verseLimits[verse].bottom);
+                });
+            });
+            for (var j = 1; j < vkey.length;++j) {
+                verseLimits[j].bottom = verseLimits[j-1].bottom + verseLimits[j-1].highest;
+            }
             lyrics.forEach((lyric) => {
-    			lyric.adjY = lowestYs[lyric.verse] - (lyric.logicalBox.y + lyric.logicalBox.height);
+    			lyric.adjY = verseLimits[lyric.verse].bottom -  lyric.logicalBox.y;
     			var dom = $(this.context.svg).find(lyric.selector)[0];
     			dom.setAttributeNS('','transform','translate('+lyric.adjX+' '+lyric.adjY+')');
     		});
@@ -119,7 +141,7 @@ class VxSystem {
 		} else if (modifier.ctor == 'SmoSlur') {
             var lyric = smoStart.note.longestLyric();
             var xoffset = 0;
-            if (lyric) {
+            if (lyric && lyric.text) {
                 // If there is a lyric, the bounding box of the start note is stretched to the right.
                 // slide the slur left, and also make it a bit wider.
                 xtranslate = (-1*lyric.text.length * 6);

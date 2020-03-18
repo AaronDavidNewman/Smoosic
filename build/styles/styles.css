@@ -33,6 +33,37 @@ h1 {
 	position:absolute;
 	z-index:11;
 }
+
+
+#dialog-lyrics-nextWord,
+#dialog-lyrics-previousWord {
+    display:none;
+}
+
+#dialog-lyrics-text,
+#dialog-lyrics-verse {
+    display:flex;
+    flex:1 1 auto;
+}
+
+body.text-edit #dialog-lyrics-nextWord,
+body.text-edit #dialog-lyrics-previousWord {
+    display:flex;
+    justify-content:center;
+}
+
+body.text-edit #dialog-lyrics-nextWord,
+body.text-edit #dialog-lyrics-previousWord {
+    flex:1 1 auto;
+}
+
+body.text-edit #dialog-lyrics-verse {
+    display:none;
+}
+body.text-edit #dialog-lyrics-text {
+    flex: 0 0 100%;
+    justify-content:center;
+}
 body.text-edit .fold-textedit {
     display:none;
 }

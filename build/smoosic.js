@@ -3170,11 +3170,8 @@ class SmoMeasure {
     }
 
     setX(x,description) {
-        if (layoutDebug.flagSet('measureHistory')) {
-           this.svg.history.push('setX '+this.svg.staffX+'=> '+x + ' ' + description);
-        }
+        layoutDebug.measureHistory(this,'staffX',x,description);
         this.svg.staffX = x;
-
     }
 
     get staffY() {
@@ -3182,9 +3179,7 @@ class SmoMeasure {
     }
 
     setY(y,description) {
-        if (layoutDebug.flagSet('measureHistory')) {
-           this.svg.history.push('setY '+this.svg.staffY+'=> '+y + ' ' + description);
-        }
+        layoutDebug.measureHistory(this,'staffY',y,description);
         this.svg.staffY = y;
     }
 
@@ -3197,9 +3192,7 @@ class SmoMeasure {
     }
 
     setYTop(y,description) {
-        if (layoutDebug.flagSet('measureHistory')) {
-           this.svg.history.push('yTop '+this.svg.yTop+'=> '+y + ' ' + description);
-        }
+        layoutDebug.measureHistory(this,'yTop',y,description);
         this.svg.yTop = y;
     }
 
@@ -3209,11 +3202,7 @@ class SmoMeasure {
     }
 
     setBox(box,description) {
-        if (layoutDebug.flagSet('measureHistory')) {
-
-           this.svg.history.push(description+' ' +JSON.stringify(this.svg.logicalBox) +' => '+
-              JSON.stringify(box));
-        }
+        layoutDebug.measureHistory(this,'logicalBox',box,description);
         this.svg.logicalBox = box;
     }
 
@@ -8194,6 +8183,7 @@ class VxMeasure {
         lyrics.forEach((ll) => {
             var y = ll.verse*10;
             var vexL = new VF.Annotation(ll.text);
+            vexL.setAttribute(ll.attrs.id); //
 
             // If we adjusted this note for the lyric, adjust the lyric as well.
             vexL.setFont(ll.fontInfo.family, ll.fontInfo.size,ll.fontInfo.weight);
@@ -8467,10 +8457,10 @@ class VxMeasure {
 
                 // TODO: fix this, only works on the first line.
                 smoNote.getModifiers('SmoLyric').forEach((lyric) => {
-                    var ar = Array.from(el.getElementsByClassName('vf-lyric'));
-                    ar.forEach((lbox) => {
-                        svgHelpers.updateArtifactBox(this.context.svg,lbox,lyric);
-                    });
+                    if (lyric.selector) {
+                        svgHelpers.updateArtifactBox(this.context.svg,$(lyric.selector)[0],lyric);
+                        // lyric.logicalBox = svgHelpers.smoBox($(lyric.selector)[0].getBBox());
+                    }
                 });
                 smoNote.graceNotes.forEach((g) => {
                     var gel = this.context.svg.getElementById('vf-'+g.renderedId);
@@ -8655,31 +8645,53 @@ class VxSystem {
 		return null;
 	}
 
+    // ### updateLyricOffsets
+    // Adjust the y position for all lyrics in the line so they are even.
 	updateLyricOffsets() {
         for (var i = 0;i < this.score.staves.length;++i) {
-            var lowestYs = {};
-    		var lyrics=[];
+            // is this necessary? They should all be from the current line
             var vxMeasures = this.vxMeasures.filter((vx) => {
                 return vx.smoMeasure.measureNumber.staffId == i;
             });
+            // All the lyrics on this line
+            var lyrics=[];
+
+            // The vertical bounds on each line
+            var verseLimits={};
+
+            // The
+            var lyricVerseMap = {};
             vxMeasures.forEach((mm) => {
                 var smoMeasure = mm.smoMeasure;
+
+                // Get lyrics from any voice.
                 smoMeasure.voices.forEach((voice) => {
                     voice.notes.forEach((note) => {
-                        note.getModifiers('SmoLyric').forEach((lyric) => {
-                            var lowest = (lyric.logicalBox.y+lyric.logicalBox.height);
-                            if (!lowestYs[lyric.verse]) {
-                                lowestYs[lyric.verse] = lowest;
-                            } else {
-                                lowestYs[lyric.verse] = lowestYs[lyric.verse] < lowest ? lowest : lowestYs[lyric.verse];
+                        note.getModifiers('SmoLyric').forEach((ll) => {
+                            if (!lyricVerseMap[ll.verse]) {
+                                lyricVerseMap[ll.verse] = [];
                             }
-                            lyrics.push(lyric);
+                            if (ll.logicalBox) {
+                                lyricVerseMap[ll.verse].push(ll);
+                                lyrics.push(ll);
+                            }
                         });
                     });
                 });
             });
+            var vkey = Object.keys(lyricVerseMap).sort((a,b) => a-b);
+            vkey.forEach((verse) => {
+                verseLimits[verse] = {highest:-1,bottom:-1};
+                lyricVerseMap[verse].forEach((ll) => {
+                    verseLimits[verse].highest = Math.max(ll.logicalBox.height,verseLimits[verse].highest);
+                    verseLimits[verse].bottom = Math.max(ll.logicalBox.y + ll.logicalBox.height,verseLimits[verse].bottom);
+                });
+            });
+            for (var j = 1; j < vkey.length;++j) {
+                verseLimits[j].bottom = verseLimits[j-1].bottom + verseLimits[j-1].highest;
+            }
             lyrics.forEach((lyric) => {
-    			lyric.adjY = lowestYs[lyric.verse] - (lyric.logicalBox.y + lyric.logicalBox.height);
+    			lyric.adjY = verseLimits[lyric.verse].bottom -  lyric.logicalBox.y;
     			var dom = $(this.context.svg).find(lyric.selector)[0];
     			dom.setAttributeNS('','transform','translate('+lyric.adjX+' '+lyric.adjY+')');
     		});
@@ -8716,7 +8728,7 @@ class VxSystem {
 		} else if (modifier.ctor == 'SmoSlur') {
             var lyric = smoStart.note.longestLyric();
             var xoffset = 0;
-            if (lyric) {
+            if (lyric && lyric.text) {
                 // If there is a lyric, the bounding box of the start note is stretched to the right.
                 // slide the slur left, and also make it a bit wider.
                 xtranslate = (-1*lyric.text.length * 6);
@@ -9425,10 +9437,10 @@ class suiScroller  {
         }
         if (box.height < curBox.height) {
             if (box.y < curBox.y) {
-                yoff = box.y - curBox.y;
+                yoff = box.y - (curBox.y + 25);
             }
             else if (box.y + box.height > curBox.y + curBox.height) {
-                yoff = box.y + box.height - (curBox.y + curBox.height);
+                yoff = box.y + box.height - (curBox.y + curBox.height) + 25;
             }
         }
 
@@ -10661,7 +10673,8 @@ class layoutDebug {
             system:8,
             note:16,
             adjustHeight:32,
-            measureHistory:64
+            measureHistory:64,
+            textEditorHistory:128
         }
     }
 
@@ -10673,7 +10686,8 @@ class layoutDebug {
             system:'system-place-dbg',
             note:'measure-note-dbg',
             adjustHeight:'measure-adjustHeight-dbg',
-            measureHistory:''
+            measureHistory:'',
+            textEditorHistory:''
         }
     }
 
@@ -10696,7 +10710,7 @@ class layoutDebug {
         layoutDebug._flags = 0;
     }
     static setAll() {
-        layoutDebug._flags = 1+2+4+8+16+32+64;
+        layoutDebug._flags = 1+2+4+8+16+32+64+128;
     }
     static clearDebugBoxes(value) {
         if (layoutDebug.flagSet(value)) {
@@ -10730,7 +10744,34 @@ class layoutDebug {
         }
         layoutDebug._flags |= flag;
 	}
+
+    static get textDebug() {
+        if (!layoutDebug['_textDebug']) {
+            layoutDebug['_textDebug'] = [];
+        }
+        return layoutDebug['_textDebug']
+    }
+
+    static addTextDebug(value) {
+        if (!layoutDebug.mask & layoutDebug.textEditorHistory) {
+            return;
+        }
+        if (!layoutDebug['_textDebug']) {
+            layoutDebug['_textDebug'] = [];
+        }
+        layoutDebug['_textDebug'].push(value);
+        console.log(value);
+    }
+
+    static measureHistory(measure,oldVal,newVal,description) {
+        if (layoutDebug.flagSet('measureHistory')) {
+            var oldExp = (typeof(measure.svg[oldVal]) == 'object') ? JSON.stringify(measure.svg[oldVal]).replace(/"/g,'') : measure.svg[oldVal];
+            var newExp = (typeof(newVal) == 'object') ? JSON.stringify(newVal).replace(/"/g,'') : newVal;
+            measure.svg.history.push(oldVal + ': '+oldExp +'=> '+newExp + ' ' + description);
+        }
+    }
 }
+;
 // ## suiLayoutBase
 // ## Description:
 // A layout maps the measures and notes to a spot on the page.  It
@@ -12697,6 +12738,7 @@ class editSvgText {
 		this.svg = document.createElementNS(ns, 'svg');
         this.editText = document.createElementNS(ns, 'text');
         this.attrAr = [];
+        this.id = VF.Element.newID();
 
         // create a mirror of the node under edit by copying attributes
         // and setting up a similarly-dimensioned viewbox
@@ -12727,6 +12769,7 @@ class editSvgText {
         $('.textEdit').append(this.svg);
         $('.textEdit').removeClass('hide').attr('contentEditable','true');
         this.setEditorPosition(this.clientBox,svgBox);
+        layoutDebug.addTextDebug('editSvgText: ctor '+this.id);
     }
 
     setEditorPosition(clientBox,svgBox) {
@@ -12741,6 +12784,7 @@ class editSvgText {
 
     endSession() {
         this.editing = false;
+        layoutDebug.addTextDebug('editSvgText: endSession for '+this.id);
         this.target.setAttributeNS(null,'fill',this.oldFill);
     }
 
@@ -12794,6 +12838,7 @@ class editSvgText {
 
         this.editing=true;
         this.running = true;
+        layoutDebug.addTextDebug('editSvgText: create startSessionPromise '+this.id);
         const promise = new Promise((resolve, reject) => {
             function editTimer() {
                 setTimeout(function() {
@@ -12802,6 +12847,7 @@ class editSvgText {
                       editTimer();
                     } else {
                       self._updateText();
+                      layoutDebug.addTextDebug('editSvgText: resolve session promise '+self.id);
                       resolve();
                     }
                 },25);
@@ -12830,11 +12876,14 @@ class editLyricSession {
         this.verse=parameters.verse;
 		this.bound = false;
         this.state=editLyricSession.states.stopped;
+        layoutDebug.addTextDebug('editLyricSession: create note '+this.selection.note.attrs.id);
     }
 
     detach() {
-        this.editor.endSession();
+        layoutDebug.addTextDebug('editLyricSession: detach() from '+this.selection.note.attrs.id);
         this.state = editLyricSession.states.stopping;
+        this.editor.endSession();
+        this.lyric.text = this.editor.value;
 		window.removeEventListener("keydown", this.keydownHandler, true);
         if (this.selection) {
             this.selection.measure.changed=true;
@@ -12843,11 +12892,13 @@ class editLyricSession {
 
     detachPromise() {
         var self=this;
+        layoutDebug.addTextDebug('editLyricSession:create detach promise from '+this.selection.note.attrs.id);
         return new Promise((resolve) => {
             var waiter = () => {
             setTimeout(() => {
                 if (self.state == editLyricSession.states.stopping ||
                  self.state == editLyricSession.states.stopped) {
+                     layoutDebug.addTextDebug('editLyricSession:resolve detach promise from '+self.selection.note.attrs.id);
                      resolve();
                  } else {
                      waiter();
@@ -12859,13 +12910,17 @@ class editLyricSession {
         });
     }
 
+    // ### _lyricAddedPromise
+    // Don't edit the lyric until the DOM part has been added by the editor, so pend on a promise that has happened.
     _lyricAddedPromise() {
         var self=this;
+        layoutDebug.addTextDebug('editLyricSession:create _lyricAddedPromise promise from '+self.selection.note.attrs.id);
         return new Promise((resolve) => {
             var checkAdd = function() {
                 setTimeout(function() {
                     self.textElement = $(self.tracker.layout.svg).find('#'+self.selection.note.renderId).find('g.lyric-'+self.lyric.verse)[0];
                     if (self.textElement) {
+                        layoutDebug.addTextDebug('editLyricSession:resolve _lyricAddedPromise promise for  '+self.selection.note.attrs.id);
                         resolve();
                     } else {
                         checkAdd();
@@ -12877,25 +12932,34 @@ class editLyricSession {
     }
 
     // ### _editCurrentLyric
-    // If this is a new lyric, we need to maybe wait for it to be rendered.
+    // The DOM is ready.  Create the editor and wait for it to finish.
     _editCurrentLyric() {
         this.textElement = $(this.tracker.layout.svg).find('#'+this.selection.note.renderId).find('g.lyric-'+this.lyric.verse)[0];
+        if (this.editor) {
+            layoutDebug.addTextDebug('editLyricSession: _editCurrentLyric dispense with editor ' + this.editor.id);
+        }
         this.editor = new editSvgText({target:this.textElement,layout:this.tracker.layout,fontInfo:this.fontInfo});
         this.state = editLyricSession.states.started;
         var self = this;
         function handleSkip() {
-            self._handleSkip();
+            layoutDebug.addTextDebug('editLyricSession:startSession promise rcvd, editor is done, handleSkip for  '+self.selection.note.attrs.id);
+            // Only skip to the next lyric if the session is still going on.
+            if (self.state != editLyricSession.states.stopped && self.state != editLyricSession.states.stopping) {
+                self._handleSkip();
+            }
         }
 
         this.editor.startSessionPromise().then(handleSkip);
     }
 
+    // Start the editing session by creating editor, and wait for the editor to create the DOM element.
 	_editingSession() {
         var self = this;
 		if (!this.bound) {
 			this.bindEvents();
 		}
         function editCurrent() {
+            layoutDebug.addTextDebug('editLyricSession:_lyricAddedPromise promise rcvd, _editCurrentLyric for  '+self.selection.note.attrs.id);
             self._editCurrentLyric();
         }
         this._lyricAddedPromise().then(editCurrent);
@@ -12920,17 +12984,17 @@ class editLyricSession {
 		      this.tracker.layout.score, this.selection.selector.staff,
               this.selection.selector.measure, this.selection.selector.voice, this.selection.selector.tick);
             if (sel) {
+                layoutDebug.addTextDebug('editLyricSession:_handleSkip,  moving on to '+sel.note.attrs.id);
                 this.selection=sel;
                 this._getOrCreateLyric(this.selection.note);
                 this.editNote();
             }
         } else {
+            layoutDebug.addTextDebug('editLyricSession:_handleSkip, no more lyrics');
             this.detach();
         }
     }
-    _lyricRenderedPromise() {
 
-    }
     editNote() {
 		var self=this;
 		function _startEditing() {
@@ -12945,6 +13009,16 @@ class editLyricSession {
         return this.detachPromise();
     }
 
+    nextWord() {
+        this.state = editLyricSession.states.space;
+        this._handleSkip();
+    }
+
+    previousWord() {
+        this.state = editLyricSession.states.backSpace;
+        this._handleSkip();
+    }
+
 	handleKeydown(event) {
 		console.log("Lyric KeyboardEvent: key='" + event.key + "' | code='" +
 			event.code + "'"
@@ -12954,13 +13028,17 @@ class editLyricSession {
 			this.state =  (event.key == '-') ? editLyricSession.states.minus :  editLyricSession.states.space;
 			this.state = (this.state === editLyricSession.states.space && event.shiftKey)
 			     ? editLyricSession.states.backSpace :  this.state;
+            layoutDebug.addTextDebug('editLyricSession:  handleKeydown skip key for  '+this.selection.note.attrs.id);
             this.editor.endSession();
+            return;
 		}
 
 		if (event.code == 'Escape') {
             this.state = editLyricSession.states.stopping;
             this.editor.endSession();
+            return;
 		}
+        layoutDebug.addTextDebug('editLyricSession:  handleKeydown pass on event for  '+this.selection.note.attrs.id);
         this.selection.measure.changed=true;
 	}
 
@@ -15803,6 +15881,22 @@ class SuiSaveFileDialog extends SuiFileDialog {
 				control: 'SuiLyricEditComponent',
 				label:'Edit Text',
 				options: []
+		},{
+				smoName: 'previousWord',
+				parameterName: 'previousWord',
+				defaultValue: 0,
+                additionalClasses:'icon-arrow-left',
+				control: 'SuiButtonComponent',
+				label:'Previous Word',
+				options: []
+		},{
+				smoName: 'nextWord',
+				parameterName: 'nextWord',
+				defaultValue: 0,
+                additionalClasses:'icon-arrow-right',
+				control: 'SuiButtonComponent',
+				label:'Next Word',
+				options: []
 		}
     ];
     }
@@ -15856,12 +15950,31 @@ class SuiSaveFileDialog extends SuiFileDialog {
 			moveParent: true
 		});
 	}
+    _focusSelection() {
+        if (this.editor.editor.selection &&
+            this.editor.editor.selection.note &&
+            this.editor.editor.selection.note.renderedBox) {
+                this.tracker.scroller.scrollVisibleBox(this.editor.editor.selection.note.renderedBox);
+            }
+    }
     changed() {
         this.editor.verse = this.verse.getValue();
+
+        if (this.nextWordControl.changeFlag) {
+            this.editor.editor.nextWord();
+            this._focusSelection();
+        }
+        if (this.previousWordControl.changeFlag) {
+            this.editor.editor.previousWord();
+            this._focusSelection();
+        }
     }
     _bindElements() {
         var self = this;
         var dgDom = this.dgDom;
+
+        this.nextWordControl = this.components.find((comp) => {return comp.smoName == 'nextWord';});
+        this.previousWordControl = this.components.find((comp) => {return comp.smoName == 'previousWord';});
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
             self.complete();
@@ -17194,6 +17307,8 @@ class SuiLyricEditComponent extends SuiComponentBase {
     }
     endSession() {
         if (this.editor) {
+            layoutDebug.addTextDebug('SuiLyricEditComponent:endSession ');
+
             this.value=this.editor.value;
             this.editor.detach();
         }
@@ -17209,6 +17324,7 @@ class SuiLyricEditComponent extends SuiComponentBase {
     _startEditor() {
         var elementDom = $('#'+this.parameterId);
         var button = $(elementDom).find('button');
+        layoutDebug.addTextDebug('SuiLyricEditComponent: create editor for ' + this.tracker.selections[0].note.attrs.id);
         this.editor = new editLyricSession({tracker:this.tracker,verse:this.verse,selection:this.tracker.selections[0],controller:this.controller});
         $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
         $(elementDom).find('label').text('Done Editing Lyrics');
@@ -17218,15 +17334,18 @@ class SuiLyricEditComponent extends SuiComponentBase {
         var self=this;
         var elementDom = $('#'+this.parameterId);
         var button = $(elementDom).find('button');
-
+        layoutDebug.addTextDebug('SuiLyricEditComponent: create editor request');
 
         if (!this.editor) {
+            layoutDebug.addTextDebug('SuiLyricEditComponent: initial create editor request');
             this._startEditor();
             $(button).off('click').on('click',function() {
                 self.handleChanged();
                  if (self.editor.state == editLyricSession.states.stopped || self.editor.state == editLyricSession.states.stopping)  {
+                     layoutDebug.addTextDebug('SuiLyricEditComponent: restarting button');
                      self._startEditor(button);
                  } else {
+                     layoutDebug.addTextDebug('SuiLyricEditComponent: stopping editor button');
                      self.editor.detach();
                      $(elementDom).find('label').text('Edit Lyrics');
                      $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
@@ -17377,6 +17496,56 @@ class SuiToggleComponent extends SuiComponentBase {
         this.setValue(this.defaultValue);
         var self = this;
         $(input).off('change').on('change',
+            function (ev) {
+            self.handleChanged();
+        });
+    }
+}
+
+// ## SuiToggleComponent
+// Simple on/off behavior
+class SuiButtonComponent extends SuiComponentBase {
+    constructor(dialog, parameter) {
+        super();
+        smoSerialize.filteredMerge(
+            ['parameterName', 'smoName', 'defaultValue', 'control', 'label','additionalClasses'], parameter, this);
+        if (!this.defaultValue) {
+            this.defaultValue = 0;
+        }
+        this.dialog = dialog;
+    }
+    get html() {
+        var b = htmlHelpers.buildDom;
+        var id = this.parameterId;
+        var classNames = this['additionalClasses'] ? this['additionalClasses'] + ' buttonComponent' : 'buttonComponent';
+        var r = b('div').classes('buttonControl smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+            .append(b('button').attr('type', 'button').classes(classNames)
+                .attr('id', id + '-input')).append(
+                b('label').attr('for', id + '-input').text(this.label));
+        return r;
+    }
+    _getInputElement() {
+        var pid = this.parameterId;
+        return $(this.dialog.dgDom.element).find('#' + pid).find('button');
+    }
+    get parameterId() {
+        return this.dialog.id + '-' + this.parameterName;
+    }
+
+    setValue(value) {
+        return;
+    }
+    getValue() {
+        return null;
+    }
+
+    bind() {
+        var dialog = this.dialog;
+        var pid = this.parameterId;
+        var input = this._getInputElement();
+        this.setValue(this.defaultValue);
+        var self = this;
+        $(input).off('click').on('click',
             function (ev) {
             self.handleChanged();
         });
