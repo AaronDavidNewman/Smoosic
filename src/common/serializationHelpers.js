@@ -155,7 +155,10 @@ class smoSerialize {
     "ud": "durationMap",
     "vd": "bracketed",
     "wd": "ratioed",
-    "xd": "location"}`
+    "xd": "location",
+     "yd": "systemGroups",
+     "zd": "leftConnector"
+    }`
       ;
      return JSON.parse(_tm);
     }

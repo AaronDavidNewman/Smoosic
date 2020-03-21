@@ -114,22 +114,24 @@ class SmoScore {
         });
 		var scoreText=[];
 		jsonObj.scoreText.forEach((tt) => {
-            var st = SmoScoreText.deserialize(tt);
+            var st = SmoScoreModifierBase.deserialize(tt);
             st.autoLayout = false; // since this has been layed out, presumably, before save
 			scoreText.push(st);
 		});
+        var systemGroups = [];
         if (jsonObj['systemGroups']) {
 
            jsonObj.systemGroups.forEach((tt) => {
-            var st = SmoScoreText.deserialize(tt);
+            var st = SmoScoreModifierBase.deserialize(tt);
             st.autoLayout = false; // since this has been layed out, presumably, before save
-			scoreText.push(st);
+			systemGroups.push(st);
 		  });
         }
         params.staves = staves;
 
         let score = new SmoScore(params);
 		score.scoreText=scoreText;
+        score.systemGroups = systemGroups;
 		return score;
     }
 

@@ -45,6 +45,29 @@ class SmoSystemGroup extends SmoScoreModifierBase {
             endSelector:{staff:0,measure:0}
         }
     }
+    leftConnectorVx() {
+        switch (this.leftConnector) {
+            case SmoSystemGroup.connectorTypes.single:
+               return VF.StaveConnector.type.SINGLE_LEFT;
+            case SmoSystemGroup.connectorTypes.double:
+               return VF.StaveConnector.type.DOUBLE_LEFT;
+            case SmoSystemGroup.connectorTypes.brace:
+               return VF.StaveConnector.type.BRACE;
+           case SmoSystemGroup.connectorTypes.bracket:
+           default:
+             return VF.StaveConnector.type.BRACKET;
+
+        };
+    }
+    rightConnectorVx() {
+        switch (this.rightConnector) {
+            case SmoSystemGroup.connectorTypes.single:
+               return StaveConnector.type.SINGLE_RIGHT;
+            case SmoSystemGroup.connectorTypes.double:
+            default:
+               return StaveConnector.type.DOUBLE_RIGHT;
+        };
+    }
     static get connectorTypes() {
         return {brace:0,bracket:1,single:2,double:3};
     }

@@ -287,6 +287,23 @@ curve.setContext(this.context).draw();
         }
 
 		// Keep track of the y coordinate for the nth staff
+        var renderedConnection = {};
+        if (systemIndex == 0 && lastStaff) {
+            this.vxMeasures.forEach((vv) => {
+                var systemGroup = this.score.getSystemGroupForStaff(vv.selection);
+                if (systemGroup && !renderedConnection[systemGroup.attrs.id]) {
+                    renderedConnection[systemGroup.attrs.id] = 1;
+                    var startSel = this.vxMeasures[systemGroup.startSelector.staff];
+                    var endSel = this.vxMeasures[systemGroup.endSelector.staff];
+                    if (startSel && endSel) {
+                        var c1 = new VF.StaveConnector(startSel.stave, endSel.stave)
+            				.setType(systemGroup.leftConnectorVx());
+                        c1.setContext(this.context).draw();
+
+                    }
+                }
+            });
+        }
 
 
 		// keep track of left-hand side for system connectors
