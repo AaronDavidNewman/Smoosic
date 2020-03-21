@@ -17,6 +17,7 @@ class VxSystem {
 		this.width = -1;
 		this.smoMeasures = [];
 		this.vxMeasures = [];
+        this.staves = [];
 		this.endcaps = [];
 		this.endings = [];
 		this.box = {
@@ -235,26 +236,65 @@ curve.setContext(this.context).draw();
 	// ## Description:
 	// Create the graphical (VX) notes and render them on svg.  Also render the tuplets and beam
 	// groups
-	renderMeasure(staffIndex, smoMeasure) {
+	renderMeasure(staff, smoMeasure,measureMapper) {
+        var staffId = staff.staffId;
 		var systemIndex = smoMeasure.measureNumber.systemIndex;
+        var selection = SmoSelection.measureSelection(this.score,staff.staffId,smoMeasure.measureNumber.measureIndex);
 		this.smoMeasures.push(smoMeasure);
+        if (this.staves.length <= staffId) {
+            this.staves.push(staff);
+        }
 
 		var vxMeasure = new VxMeasure(this.context, {
-				smoMeasure: smoMeasure
+				selection: selection
 			});
 
-		vxMeasure.render();
-		this.vxMeasures.push(vxMeasure);
+        // create the vex notes, beam groups etc. for the measure
+		vxMeasure.preFormat();
+        this.vxMeasures.push(vxMeasure);
+
+        var lastStaff = (staffId == this.score.staves.length-1);
+        var smoGroupMap = {};
+
+        // If this is the last staff in the column, render the column with justification
+        if (lastStaff) {
+            var ar = vxMeasure.voiceAr;
+            this.vxMeasures.forEach((vv) => {
+                if (!vv.rendered) {
+                    var systemGroup = this.score.getSystemGroupForStaff(vv.selection);
+                    var justifyGroup = systemGroup ? systemGroup.attrs.id : vv.selection.staff.attrs.id;
+                    if (!smoGroupMap[justifyGroup]) {
+                        smoGroupMap[justifyGroup] = {firstMeasure:vv,voices:[]};
+                    }
+                    smoGroupMap[justifyGroup].voices =
+                        smoGroupMap[justifyGroup].voices.concat(vv.voiceAr);
+                }
+            });
+
+        }
+        var keys = Object.keys(smoGroupMap);
+        keys.forEach((key) => {
+            smoGroupMap[key].firstMeasure.format(smoGroupMap[key].voices);
+        });
+        if (lastStaff) {
+            this.vxMeasures.forEach((vv) => {
+                if (!vv.rendered) {
+                  vv.render();
+                  var tmpStaff = this.staves.find((ss) => ss.staffId == vv.smoMeasure.measureNumber.staffId);
+                  measureMapper.mapMeasure(tmpStaff,vv.smoMeasure);
+                }
+            });
+        }
 
 		// Keep track of the y coordinate for the nth staff
 
 
 		// keep track of left-hand side for system connectors
 		if (systemIndex === 0) {
-			if (staffIndex === 0) {
+			if (staffId === 0) {
 				this.leftConnector[0] = vxMeasure.stave;
-			} else if (staffIndex > this.maxStaffIndex) {
-				this.maxStaffIndex = staffIndex;
+			} else if (staffId > this.maxStaffIndex) {
+				this.maxStaffIndex = staffId;
 				this.leftConnector[1] = vxMeasure.stave;
 			}
 		} else if (smoMeasure.measureNumber.systemIndex > this.maxSystemIndex) {

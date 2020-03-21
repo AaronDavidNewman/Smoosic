@@ -50,6 +50,14 @@ class SuiLyricDialog extends SuiDialogBase {
 				control: 'SuiButtonComponent',
 				label:'Next Word',
 				options: []
+		},{
+				smoName: 'removeLyric',
+				parameterName: 'removeLyric',
+				defaultValue: 0,
+                additionalClasses:'icon-cross',
+				control: 'SuiButtonComponent',
+				label:'Remove Lyric',
+				options: []
 		}
     ];
     }
@@ -112,6 +120,9 @@ class SuiLyricDialog extends SuiDialogBase {
     }
     changed() {
         this.editor.verse = this.verse.getValue();
+        if (this.removeLyricControl.changeFlag) {
+            this.editor.removeLyric();
+        }
 
         if (this.nextWordControl.changeFlag) {
             this.editor.editor.nextWord();
@@ -128,6 +139,7 @@ class SuiLyricDialog extends SuiDialogBase {
 
         this.nextWordControl = this.components.find((comp) => {return comp.smoName == 'nextWord';});
         this.previousWordControl = this.components.find((comp) => {return comp.smoName == 'previousWord';});
+        this.removeLyricControl = this.components.find((comp) => {return comp.smoName == 'removeLyric';});
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
             self.complete();

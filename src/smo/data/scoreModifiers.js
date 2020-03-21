@@ -13,11 +13,55 @@ class SmoScoreModifierBase {
     }
     static deserialize(jsonObj) {
         var ctor = eval(jsonObj.ctor);
-        var rv = new ctor(jsonObj);        
+        var rv = new ctor(jsonObj);
         return rv;
     }
 }
 
+class SmoSystemGroup extends SmoScoreModifierBase {
+    constructor(params) {
+        super('SmoSystemGroup');
+        smoSerialize.serializedMerge(SmoSystemGroup.attributes,SmoSystemGroup.defaults,this);
+        smoSerialize.serializedMerge(SmoSystemGroup.attributes, params, this);
+
+        if (!this['attrs']) {
+            this.attrs = {
+                id: VF.Element.newID(),
+                type: 'SmoStaffHairpin'
+            };
+        } else {
+            console.log('inherit attrs');
+        }
+    }
+    static get defaults() {
+        return {
+            leftConnector:SmoSystemGroup.connectorTypes.single,
+            rightConnector:SmoSystemGroup.connectorTypes.single,
+            mapType:SmoSystemGroup.mapTypes.allMeasures,
+            text:'',
+            shortText:'',
+            justify:true,
+            startSelector:{staff:0,measure:0},
+            endSelector:{staff:0,measure:0}
+        }
+    }
+    static get connectorTypes() {
+        return {brace:0,bracket:1,single:2,double:3};
+    }
+    static get mapTypes() {
+        return {allMeasures:0,range:1};
+    }
+    static get attributes() {
+        return ['leftConnector', 'rightConnector','text','shortText','justify',
+       'startSelector','endSelector','mapType'];
+    }
+    serialize() {
+		var params = {};
+        smoSerialize.serializedMergeNonDefault(SmoSystemGroup.defaults,SmoSystemGroup.attributes,this,params);
+        params.ctor = 'SmoSystemGroup';
+        return params;
+	}
+}
 // ## SmoScoreText
 // Identify some text in the score, not associated with any musical element, like page
 // decorations, titles etc.

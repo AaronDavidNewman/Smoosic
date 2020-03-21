@@ -42,7 +42,8 @@ class SmoScore {
             measureTickmap: [],
             staves: [],
             activeStaff: 0,
-			scoreText:[]
+			scoreText:[],
+            systemGroups:[]
         };
     }
 	static get pageSizes() {
@@ -76,7 +77,8 @@ class SmoScore {
         var obj = {
             score: params,
             staves: [],
-			scoreText:[]
+			scoreText:[],
+            systemGroups:[]
         };
         this.staves.forEach((staff) => {
             obj.staves.push(staff.serialize());
@@ -85,11 +87,15 @@ class SmoScore {
 		this.scoreText.forEach((tt) => {
 			obj.scoreText.push(tt.serialize());
 		});
+        this.systemGroups.forEach((gg) => {
+            obj.systemGroups.push(gg.serialize());
+        });
         smoSerialize.jsonTokens(obj);
         obj = smoSerialize.detokenize(obj,smoSerialize.tokenValues);
         obj.dictionary = smoSerialize.tokenMap;
         return obj;
     }
+
     // ### deserialize
     // ### Restore an earlier JSON string.  Unlike other deserialize methods, this one expects the string.
     static deserialize(jsonString) {
@@ -112,6 +118,14 @@ class SmoScore {
             st.autoLayout = false; // since this has been layed out, presumably, before save
 			scoreText.push(st);
 		});
+        if (jsonObj['systemGroups']) {
+
+           jsonObj.systemGroups.forEach((tt) => {
+            var st = SmoScoreText.deserialize(tt);
+            st.autoLayout = false; // since this has been layed out, presumably, before save
+			scoreText.push(st);
+		  });
+        }
         params.staves = staves;
 
         let score = new SmoScore(params);
@@ -225,6 +239,30 @@ class SmoScore {
     replaceMeasure(selector, measure) {
         var staff = this.staves[selector.staff];
         staff.measures[selector.measure] = measure;
+    }
+
+    getSystemGroupForStaff(selection) {
+        var exist = this.systemGroups.find((sg) => {
+            return sg.startSelector.staff <= selection.staff.staffId &&
+            sg.endSelector.staff >= selection.staff.staffId &&
+            (sg.mapType == SmoSystemGroup.mapTypes.allMeasures ||
+            (sg.startSelector.measure <= selection.measure.measureNumber.measureIndex &&
+            sg.endSelector.measure >= selection.measure.measureNumber.measureIndex));
+        });
+        return exist;
+    }
+
+    addOrReplaceSystemGroup(newGroup) {
+        var ar = [];
+        this.systemGroups = this.systemGroups.filter((sg) => {
+            return sg.startSelector.staff >= newGroup.startSelector.staff ||
+               sg.endSelector.staff <= newGroup.startSelector.staff ||
+               (newGroup.mapType == SmoSystemGroup.mapType.measureMap &&
+                sg.mapType ==  SmoSystemGroup.mapType.measureMap &&
+                (sg.startSelector.measure >= newGroup.startSelector.measure ||
+                sg.endSelector.measure <= newGroup.startSelector.measure))
+        });
+        this.systemGroups.push(newGroup);
     }
 
     // ### addScoreText

@@ -17,12 +17,13 @@ class VxMeasure {
         this.context = context;
         Vex.Merge(this, VxMeasure.defaults);
         Vex.Merge(this, options);
-        this.smoMeasure = this.smoMeasure ? this.smoMeasure : new SmoMeasure(options);
+        this.rendered = false;
+        this.selection = options.selection;
+        this.smoMeasure = this.selection.measure;
         this.noteToVexMap = {};
         this.beamToVexMap = {};
         this.tupletToVexMap = {};
         this.modifierOptions = {};
-        this.lyricShift = 0;
 
         this.vexNotes = [];
         this.vexBeamGroups = [];
@@ -269,13 +270,6 @@ class VxMeasure {
         for (var i = 0;
             i < voice.notes.length; ++i) {
             var smoNote = voice.notes[i];
-            // This is a bit of a hack.  Lyrics cause vex to bunch up notes
-            // at the end of a measure, this resists that.
-            if (smoNote.getLyricForVerse(0).length) {
-                var lyric = smoNote.getLyricForVerse(0)[0];
-                var lyricLen = lyric.text.trim().length;
-                this.lyricShift += (lyricLen < 4 ? 0 : lyricLen - 4);
-            }
             var vexNote = this._createVexNote(smoNote, i,voiceIx,shiftIndex);
             this.noteToVexMap[smoNote.attrs.id] = vexNote;
             this.vexNotes.push(vexNote);
@@ -432,14 +426,9 @@ class VxMeasure {
 
     // ## Description:
     // Render all the notes in my smoMeasure.  All rendering logic is called from here.
-    render() {
+    preFormat() {
         $(this.context.svg).find('g.' + this.smoMeasure.getClassId()).remove();
 
-        var group = this.context.openGroup();
-        var mmClass = this.smoMeasure.getClassId();
-        group.classList.add(this.smoMeasure.attrs.id);
-        group.classList.add(mmClass);
-		group.id=this.smoMeasure.attrs.id;
 
 		var key = smoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature,this.smoMeasure.transposeIndex);
 		var canceledKey = this.smoMeasure.canceledKeySignature ? smoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature,this.smoMeasure.transposeIndex)
@@ -480,11 +469,10 @@ class VxMeasure {
         this.stave.setContext(this.context);
 
 		this.handleMeasureModifiers();
-		this.stave.draw();
 
         this.tickmapObject = this.smoMeasure.createMeasureTickmaps();
 
-        var voiceAr = [];
+        this.voiceAr = [];
 
         // If there are multiple voices, add them all to the formatter at the same time so they don't collide
         for (var j = 0; j < this.smoMeasure.voices.length; ++j) {
@@ -499,16 +487,29 @@ class VxMeasure {
                     beat_value: this.smoMeasure.beatValue
                 }).setMode(Vex.Flow.Voice.Mode.SOFT);
             voice.addTickables(this.vexNotes);
-            voiceAr.push(voice);
+            this.voiceAr.push(voice);
         }
 
 		// Need to format for x position, then set y position before drawing dynamics.
-        this.formatter = new VF.Formatter().joinVoices(voiceAr).format(voiceAr,
-              this.smoMeasure.staffWidth-
-		     (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft)+this.lyricShift);
+        this.formatter = new VF.Formatter().joinVoices(this.voiceAr);
 
-        for (var j = 0; j < voiceAr.length; ++j) {
-            voiceAr[j].draw(this.context, this.stave);
+    }
+    format(voices) {
+        this.formatter.format(voices,
+              this.smoMeasure.staffWidth-
+             (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft));
+    }
+    render() {
+         var group = this.context.openGroup();
+         var mmClass = this.smoMeasure.getClassId();
+         group.classList.add(this.smoMeasure.attrs.id);
+         group.classList.add(mmClass);
+         group.id=this.smoMeasure.attrs.id;
+
+        this.stave.draw();
+
+        for (var j = 0; j < this.voiceAr.length; ++j) {
+            this.voiceAr[j].draw(this.context, this.stave);
         }
 
         var self = this;
@@ -519,16 +520,17 @@ class VxMeasure {
         this.vexTuplets.forEach(function (tuplet) {
             tuplet.setContext(self.context).draw();
         });
-		this.renderDynamics();
+        this.renderDynamics();
         this._updateLyricDomSelectors();
         this._setModifierBoxes();
-		// this.smoMeasure.adjX = this.stave.start_x - (this.smoMeasure.staffX);
+        // this.smoMeasure.adjX = this.stave.start_x - (this.smoMeasure.staffX);
 
         this.context.closeGroup();
         var box = svgHelpers.smoBox(group.getBoundingClientRect());
-		var lbox = svgHelpers.smoBox(group.getBBox());
+        var lbox = svgHelpers.smoBox(group.getBBox());
         this.smoMeasure.renderedBox = box;
-		this.smoMeasure.setBox(lbox,'vxMeasure bounding box');
+        this.smoMeasure.setBox(lbox,'vxMeasure bounding box');
         this.smoMeasure.changed = false;
+        this.rendered = true;
     }
 }

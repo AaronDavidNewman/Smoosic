@@ -27,6 +27,25 @@ class SmoOperation {
         score.addPickupMeasure(0,duration);
     }
 
+    static addConnectorDown(score,selections,parameters) {
+        var msel = SmoSelection.getMeasureList(selections);
+        var len = msel.length - 1;
+        if (score.staves.length <= msel[len].selector.staff) {
+            return;
+        }
+        var existing = score.getSystemGroupForStaff(msel[0]);
+        if (existing && existing.endSelector.staff < selections[len].selector.staff) {
+            existing.endSelector.staff = msel[len].selector.staff+1;
+        } else {
+            parameters.startSelector = {staff:msel[0].selector.staff,measure:msel[0].selector.measure};
+            parameters.endSelector = {staff:msel[len].selector.staff + 1,measure:msel[len].selector.measure};
+            score.addOrReplaceSystemGroup(new SmoSystemGroup(parameters));
+        }
+        msel.forEach((mm) => {
+            mm.measure.setChanged();
+        });
+    }
+
     static convertToPickupMeasure(score,duration) {
         score.convertToPickupMeasure(0,duration);
     }

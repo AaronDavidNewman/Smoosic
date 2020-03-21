@@ -74,7 +74,9 @@ class defaultRibbonLayout {
 		return ['BeamButtons','breakBeam','beamSelections','toggleBeamDirection'];
 	}
     static get staveIds() {
-		return ['StaveButtons','clefTreble','clefBass','clefTenor','clefAlto','clefAddRemove','clefMoveUp','clefMoveDown'];
+		return ['StaveButtons','clefTreble','clefBass','clefAddRemove','clefMoveUp','clefMoveDown','moreStaffButtons',
+        'clefTenor','clefAlto',
+           'staffBracketLower','staffBraceLower','staffDoubleConnectorLower','staffSingleConnectorLower'];
 	}
 
     static get playerIds() {
@@ -250,25 +252,8 @@ class defaultRibbonLayout {
 				ctor: 'StaveButtons',
 				group: 'staves',
 				id: 'clefBass'
-		},{
-			leftText: '',
-				rightText: '',
-				classes: 'icon  collapsed staves',
-				icon: 'icon-tenor',
-				action: 'collapseChild',
-				ctor: 'StaveButtons',
-				group: 'staves',
-				id: 'clefTenor'
-		},{
-			leftText: '',
-				rightText: '',
-				classes: 'icon  collapsed staves',
-				icon: 'icon-alto',
-				action: 'collapseChild',
-				ctor: 'StaveButtons',
-				group: 'staves',
-				id: 'clefAlto'
-		},{
+		}
+        ,{
 			leftText: '',
 				rightText: '',
 				classes: 'icon  collapsed staves',
@@ -277,7 +262,8 @@ class defaultRibbonLayout {
 				ctor: 'SuiAddStaffMenu',
 				group: 'staves',
 				id: 'clefAddRemove'
-		},{
+		},
+        {
 			leftText: '',
 				rightText: '',
 				classes: 'icon  collapsed staves',
@@ -295,7 +281,54 @@ class defaultRibbonLayout {
 				ctor: 'StaveButtons',
 				group: 'staves',
 				id: 'clefMoveDown'
+		},
+        {
+            leftText: '...',
+            rightText: '',
+            icon: 'icon-circle-left',
+            classes: 'collapsed expander',
+            action: 'collapseMore',
+            ctor: 'ExtendedCollapseParent',
+            group: 'staves',
+            id: 'moreStaffButtons'
+        },{
+			leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed staves',
+				icon: 'icon-tenor',
+				action: 'collapseGrandchild',
+				ctor: 'StaveButtons',
+				group: 'staves',
+				id: 'clefTenor'
+		},{
+			leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed staves',
+				icon: 'icon-alto',
+				action: 'collapseGrandchild',
+				ctor: 'StaveButtons',
+				group: 'staves',
+				id: 'clefAlto'
+		},{
+			leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed staves',
+				icon: 'icon-brace',
+				action: 'collapseGrandchild',
+				ctor: 'StaveButtons',
+				group: 'staves',
+				id: 'staffBraceLower'
+		},{
+			leftText: '',
+				rightText: '',
+				classes: 'icon  collapsed staves',
+				icon: 'icon-bracket',
+				action: 'collapseGrandchild',
+				ctor: 'StaveButtons',
+				group: 'staves',
+				id: 'staffBracketLower'
 		}
+
 		];
 	}
 

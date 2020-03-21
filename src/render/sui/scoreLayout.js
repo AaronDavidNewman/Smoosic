@@ -442,10 +442,10 @@ class suiScoreLayout extends suiLayoutBase {
 
         if (measure.measureNumber.systemIndex == 0 && useAdjustedY == false && (this.passState != suiLayoutBase.passStates.initial))  {
             // currently unreachable
-            s.system.renderMeasure(staff.staffId, measure);
+            s.system.renderMeasure(staff, measure,this.measureMapper);
 
         } else if (this.passState != suiLayoutBase.passStates.initial) {
-            s.system.renderMeasure(staff.staffId, measure);
+            s.system.renderMeasure(staff, measure,this.measureMapper);
         } else if (measure.logicalBox && measure.changed && this.passState == suiLayoutBase.passStates.initial)  {
             measure.setBox(svgHelpers.boxPoints(measure.logicalBox.x,measure.logicalBox.y,measure.staffWidth,measure.logicalBox.height)
            ,'scoreLayout adjust width of rendered box');
@@ -472,10 +472,6 @@ class suiScoreLayout extends suiLayoutBase {
         s.pageBox = svgHelpers.unionRect(s.pageBox, measure.logicalBox);
         s.wrapped=false;
         s.measure=measure;
-
-        if (this.measureMapper) {
-            this.measureMapper.mapMeasure(staff,measure);
-        }
         return s;
     }
 

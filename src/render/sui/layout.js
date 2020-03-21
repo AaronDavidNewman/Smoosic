@@ -134,7 +134,7 @@ class suiLayoutBase {
             staff.measures.forEach((measure) => {
                 if (measure.logicalBox && reset) {
                     measure.svg.history=['reset'];
-                    measure.deleteLogicalBox('reset viewport');
+                    // measure.deleteLogicalBox('reset viewport');
                 }
             });
         });
@@ -435,17 +435,19 @@ class suiLayoutBase {
 
     _replaceMeasures() {
 
+        var rendered = {};
+
         this.replaceQ.forEach((change) => {
             var system = new VxSystem(this.context, change.measure.staffY, change.measure.lineIndex,this.score);
-            system.renderMeasure(change.staff.staffId, change.measure);
+            var selections = SmoSelection.measuresInColumn(this.score,change.measure.measureNumber.measureIndex);
+            selections.forEach((selection) => {
+                system.renderMeasure(selection.staff, selection.measure,this.measureMapper);
+            });
             system.renderEndings();
             this._renderModifiers(change.staff, system);
 
             // Fix a bug: measure change needs to stay true so we recaltulate the width
             change.measure.changed = true;
-            if (this.measureMapper) {
-                this.measureMapper.mapMeasure(change.staff,change.measure);
-            }
         });
         this.replaceQ = [];
     }

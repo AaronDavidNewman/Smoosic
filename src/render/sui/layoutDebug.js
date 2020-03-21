@@ -54,6 +54,9 @@ class layoutDebug {
         }
     }
     static debugBox(svg,box,flag) {
+        if (!box) {
+            return;
+        }
         if (!box.height) {
             box.height=1;
         }

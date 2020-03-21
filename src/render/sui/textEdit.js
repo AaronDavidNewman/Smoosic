@@ -138,6 +138,9 @@ class editSvgText {
     }
 }
 
+// ## editLyricSession
+// Another interface between UI and renderer, let the user enter lyrics while
+// navigating through the notes.
 class editLyricSession {
 	static get states() {
         return {stopped:0,started:1,minus:2,space:3,backSpace:4,stopping:5};
@@ -247,6 +250,13 @@ class editLyricSession {
 			this.lyric = lyrics[0];
 		}
     }
+    removeLyric() {
+        if (this.selection && this.lyric) {
+            this.selection.note.removeLyric(this.lyric);
+            this.tracker.replaceSelectedMeasures();
+            this._handleSkip();
+        }
+    }
 
     _handleSkip() {
         // var tag = this.state == editLyricSession.states.minus ? '-' :'';
@@ -254,12 +264,16 @@ class editLyricSession {
         this.selection.measure.changed = true;
         if (this.state != editLyricSession.states.stopping) {
 			var func = (this.state == editLyricSession.states.backSpace) ? 'lastNoteSelection' : 'nextNoteSelection';
+            var trackerFunc =  (this.state == editLyricSession.states.backSpace) ?
+                'moveSelectionLeft' : 'moveSelectionRight';
             var sel = SmoSelection[func](
 		      this.tracker.layout.score, this.selection.selector.staff,
               this.selection.selector.measure, this.selection.selector.voice, this.selection.selector.tick);
             if (sel) {
                 layoutDebug.addTextDebug('editLyricSession:_handleSkip,  moving on to '+sel.note.attrs.id);
                 this.selection=sel;
+                this.tracker[trackerFunc]();
+
                 this._getOrCreateLyric(this.selection.note);
                 this.editNote();
             }

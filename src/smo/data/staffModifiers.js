@@ -18,6 +18,7 @@ class StaffModifierBase {
 		return rv;
     }
 }
+
 // ## SmoStaffHairpin
 // ## Descpription:
 // crescendo/decrescendo

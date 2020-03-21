@@ -461,6 +461,9 @@ class SuiLyricEditComponent extends SuiComponentBase {
         $(elementDom).find('label').text('Done Editing Lyrics');
         this.editor.editNote();
     }
+    removeLyric() {
+        this.editor.removeLyric();
+    }
     startEditSession(selection) {
         var self=this;
         var elementDom = $('#'+this.parameterId);

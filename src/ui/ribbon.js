@@ -428,6 +428,19 @@ class StaveButtons {
     clefMoveDown() {
         this._clefMove(1,'down');
     }
+    _addStaffGroup(type) {
+        SmoUndoable.addConnectorDown(this.tracker.layout.score,
+            this.tracker.selections,
+        {mapType:SmoSystemGroup.mapTypes.allMeasures,leftConnector:type,
+            rightConnector:SmoSystemGroup.connectorTypes.single},
+            this.editor.undoBuffer);
+    }
+    staffBraceLower() {
+        this._addStaffGroup(SmoSystemGroup.connectorTypes.brace);
+    }
+    staffBracketLower() {
+        this._addStaffGroup(SmoSystemGroup.connectorTypes.bracket);
+    }
 	bind() {
 		var self = this;
 		$(this.buttonElement).off('click').on('click', function (ev) {
