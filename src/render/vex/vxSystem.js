@@ -288,7 +288,13 @@ curve.setContext(this.context).draw();
 
 		// Keep track of the y coordinate for the nth staff
         var renderedConnection = {};
+        var brackets = false;
+
         if (systemIndex == 0 && lastStaff) {
+            $(this.context.svg).find('g.lineBracket-' + this.lineIndex).remove();
+            var group = this.context.openGroup();
+            group.classList.add('lineBracket-' + this.lineIndex);
+            group.classList.add('lineBracket');
             this.vxMeasures.forEach((vv) => {
                 var systemGroup = this.score.getSystemGroupForStaff(vv.selection);
                 if (systemGroup && !renderedConnection[systemGroup.attrs.id]) {
@@ -299,11 +305,38 @@ curve.setContext(this.context).draw();
                         var c1 = new VF.StaveConnector(startSel.stave, endSel.stave)
             				.setType(systemGroup.leftConnectorVx());
                         c1.setContext(this.context).draw();
+                        brackets = true;
 
                     }
                 }
             });
-        }
+
+            if (!brackets && this.vxMeasures.length > 1)  {
+               var c2 = new VF.StaveConnector(this.vxMeasures[0].stave,this.vxMeasures[this.vxMeasures.length - 1].stave,
+                  VF.StaveConnector.type.SINGLE_LEFT);
+                  c2.setContext(this.context).draw();
+           }
+           this.context.closeGroup();
+       }  else if (lastStaff && smoMeasure.measureNumber.measureIndex + 1 < staff.measures.length) {
+           if (staff.measures[smoMeasure.measureNumber.measureIndex + 1].measureNumber.systemIndex == 0) {
+               var endMeasure = vxMeasure;
+               var startMeasure = this.vxMeasures.find((vv) => vv.selection.selector.staff == 0 &&
+                   vv.selection.selector.measure == vxMeasure.selection.selector.measure);
+              if (endMeasure && startMeasure) {
+                  $(this.context.svg).find('g.endBracket-' + this.lineIndex).remove();
+                  var group = this.context.openGroup();
+                  group.classList.add('endBracket-' + this.lineIndex);
+                  group.classList.add('endBracket');
+               var c2 = new VF.StaveConnector(startMeasure.stave,endMeasure.stave)
+                  .setType(VF.StaveConnector.type.SINGLE_RIGHT);
+                  c2.setContext(this.context).draw();
+                  this.context.closeGroup();
+              }
+           }
+
+       }
+
+
 
 
 		// keep track of left-hand side for system connectors
@@ -329,18 +362,6 @@ curve.setContext(this.context).draw();
 	// ## Description:
 	// draw the system brackets.  I don't know why I call them a cap.
 	cap() {
-		$(this.context.svg).find('g.lineBracket-' + this.lineIndex).remove();
-		var group = this.context.openGroup();
-		group.classList.add('lineBracket-' + this.lineIndex);
-		group.classList.add('lineBracket');
-		if (this.leftConnector[0] && this.leftConnector[1]) {
-			var c1 = new VF.StaveConnector(this.leftConnector[0], this.leftConnector[1])
-				.setType(VF.StaveConnector.type.SINGLE);
-			var c2 = new VF.StaveConnector(this.leftConnector[0], this.leftConnector[1])
-				.setType(VF.StaveConnector.type.SINGLE);
-			c1.setContext(this.context).draw();
-			c2.setContext(this.context).draw();
-		}
-		this.context.closeGroup();
+	
 	}
 }

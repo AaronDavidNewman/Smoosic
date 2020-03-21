@@ -505,6 +505,9 @@ class suiTracker {
                 } else if (selectedTicks > 0 && selectedTicks < sels.ticks && selection.selector.voice == vix) {
                     this.selections.push(selection);
                     selectedTicks += selection.note.tickCount;
+                } else if (this.selections.length == 0) {
+                    this.selections=[selection];
+                    selectionChanged=true;
                 }
 
                 tick += 1;

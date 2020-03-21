@@ -400,7 +400,7 @@ class StaveButtons {
             .map((sel) => sel.measure);
 		var selections=[];
 		measures.forEach((measure) => {
-			selections.push(SmoSelection.measureSelection(this.tracker.layout.score,staff,measure.measureNumber.measureNumber));
+			selections.push(SmoSelection.measureSelection(this.tracker.layout.score,staff,measure.measureNumber.measureIndex));
 		});
 		SmoUndoable.changeInstrument(this.tracker.layout.score,instrument,selections,this.editor.undoBuffer);
 		this.tracker.replaceSelectedMeasures();
