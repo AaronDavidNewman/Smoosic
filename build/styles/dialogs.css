@@ -1,0 +1,502 @@
+
+
+.draganime.hide,.textEdit.hide {
+	display:none;
+}
+
+.draganime {
+	display:block;
+	border:blue 2px solid;
+	position:absolute;
+	z-index:11;
+}
+
+#dialog-lyrics-nextWord,
+#dialog-lyrics-previousWord {
+    display:none;
+}
+
+#dialog-lyrics-text,
+#dialog-lyrics-verse {
+    display:flex;
+    flex:1 1 auto;
+}
+
+body.text-edit #dialog-lyrics-nextWord,
+body.text-edit #dialog-lyrics-previousWord,
+body.text-edit #dialog-lyrics-removeLyric {
+    display:flex;
+    justify-content:center;
+}
+
+body.text-edit #dialog-lyrics-nextWord,
+body.text-edit #dialog-lyrics-previousWord {
+    flex:1 1 auto;
+}
+
+body.text-edit #dialog-lyrics-verse {
+    display:none;
+}
+body.text-edit #dialog-lyrics-text {
+    flex: 0 0 100%;
+    justify-content:center;
+}
+body.text-edit .fold-textedit {
+    display:none;
+}
+
+body.text-move .fold-textmove{
+    display:none;
+}
+
+body.text-edit .cbTextInPlace label {
+    width:100%;
+}
+
+body.text-move .cbDragTextDialog label {
+    width:100%;
+}
+
+body.text-edit .buttonContainer,
+body.text-move .buttonContainer {
+    display:none;
+}
+
+body.text-edit .buttonContainer.show-text-edit {
+    display:block;
+}
+
+.textEdit  {
+	display:block;
+	border:#3e3 2px dashed;
+	position:absolute;
+	z-index:11;
+}
+.textEdit span.icon-move.hide {
+    display:none;
+}
+.textEdit span.icon-move {
+    position:absolute;
+    left:2;
+    top:2;
+}
+/* text edit svg overlay */
+.textEdit {
+    border:#9cc 4px dotted;
+    overflow:hidden;
+    background:#fff;
+}
+.subTitle {
+	height: 14px;
+	font-size:0.8em;
+	text-align:center;
+}
+
+.helpKey.help-ellipsis {
+	margin-left: -5px;
+	border:0;
+	width: 5px;
+}
+
+.keyContainer {
+	width: 270px;
+	display:inline-block;
+}
+
+.keyBlock label {
+	margin-left:7px;
+	margin-right:7px;
+}
+
+body.showAttributeDialog .attributeDialog {
+	display:block;
+	z-index:3;
+}
+
+.attributeDialog {
+	position:relative;
+	display:none;
+}
+
+.attributeModal {
+	position:absolute;
+    width:380px;
+	background: #fff;
+	border-style: groove;
+	border-width: 2px;
+	border-color: #9ac;
+	padding: 3px;
+}
+
+.attributeModal .buttonContainer {
+	margin:10px;
+}
+
+.attributeModal .buttonContainer .button-left {
+	margin-right:5px;
+}
+.attributeModal .buttonContainer .button-center {
+	margin-right:5px;
+	margin-left:5px;
+}
+
+.attributeModal .buttonContainer .button-right {
+	margin-left:5px;
+}
+
+
+.attributeModal .buttonContainer button {
+	border-radius:3px;
+	padding: 2px 4px;
+	width:100px;
+	height:25px;
+}
+
+.attributeModal .buttonContainer .ok-button {
+	border:#9cee9d 1px ridge;
+}
+
+.attributeModal .buttonContainer .ok-button:hover {
+	background:#334488;
+	color: #fff;
+	transition-duration: 0.5s;
+	transition-timing-function:ease;
+}
+
+.attributeModal .buttonContainer .cancel-button:hover {
+	background:#884433;
+	color: #fff;
+	transition-duration: 0.5s;
+	transition-timing-function:ease;
+}
+
+.attributeModal .buttonContainer .remove-button:hover {
+	background:#664433;
+	color: #ded;
+	transition-duration: 0.5s;
+	transition-timing-function:ease;
+}
+
+.attributeModal .buttonContainer .remove-button:hover .icon-cancel-circle  {
+	background:#664433;
+	color: #ded;
+}
+
+.attributeModal .buttonContainer .remove-button .icon-cancel-circle {
+	float:left;
+	color:#933;
+}
+
+.attributeModal .buttonContainer .ok-button:hover {
+	background:#334488;
+	color: #fff;
+	transition-duration: 0.5s;
+	transition-timing-function:ease;
+}
+
+
+.attributeModal .buttonContainer .cancel-button {
+	border:#dc8899 1px ridge;
+}
+
+.attributeModal .buttonContainer .remove-button {
+	border:#dc8899 1px ridge;
+}
+
+
+.attributeModal h2 {
+	text-align:center;
+	font-size:1.2em;
+}
+
+.attributeModal.tempoTextMode #dialog-tempo-duration,
+.attributeModal.tempoTextMode #dialog-tempo-bpm ,
+.attributeModal.tempoDurationMode #dialog-tempo-tempoText {
+	display:none;
+}
+
+.attributeModal #dialog-measure-pickupMeasure {
+    display:none;
+}
+
+.attributeModal.pickup-select #dialog-measure-pickupMeasure {
+    display:block;
+}
+.attributeModal.pad-left-select #dialog-measure-padAllInSystem {
+    display:block;
+}
+
+.attributeModal #dialog-measure-padAllInSystem {
+    display:none;
+}
+
+.attributeModal #dialog-measure-measureTextPosition {
+    display:none;
+}
+
+.attributeModal.measure-text-set #dialog-measure-measureTextPosition {
+    display:block;
+}
+
+#attr-modal-dialog-dialog-tempo .smoControlContainer select,
+#attr-modal-dialog-dialog-measure .smoControlContainer select {
+    margin-left: 70px;
+    width:175px;
+}
+
+#attr-modal-dialog-dialog-tempo .smoControlContainer .rockerControl label,
+#attr-modal-dialog-dialog-tempo .smoControlContainer .dropdownControl label,
+#attr-modal-dialog-dialog-measure .smoControlContainer .dropdownControl label,
+#attr-modal-dialog-dialog-tempo .smoControlContainer .toggleControl label,
+.smoControlContainer .text-input label
+ {
+    margin-left:15px;
+}
+
+.smoControl.toggleControl {
+    display:flex;
+    align-items:center;
+}
+#attr-modal-dialog-dialog-tempo .smoControlContainer .toggleControl input,
+#attr-modal-dialog-dialog-measure .smoControlContainer .toggleControl input,
+ {
+    margin-left:64px;
+    height:auto;
+}
+
+.smoControlContainer .text-input input {
+    margin-left:70px;
+}
+#attr-modal-dialog-dialog-tempo .smoControlContainer input.rockerInput,
+#attr-modal-dialog-dialog-measure .smoControlContainer input.rockerInput {
+    width: 175px;
+}
+
+
+.attributeModal #dialog-layout-pageWidth,
+.attributeModal #dialog-layout-pageHeight {
+	display:none;
+}
+
+.attributeModal #dialog-layout-pageWidth,
+.attributeModal #dialog-layout-pageHeight {
+	display:none;
+}
+
+.attributeModal.customPage #dialog-layout-pageWidth,
+.attributeModal.customPage #dialog-layout-pageHeight {
+	display:block;
+}
+
+
+.buttonContainer {
+	text-align:center;
+	margin-top:3px;
+}
+
+.buttonContainer button {
+	margin-right:5px;
+}
+
+.attributeModal .smoControlContainer {
+    display:flex;
+    flex-flow: row wrap;
+}
+
+.attributeModal .smoControl {
+	margin-top:5px;
+	margin-bottom:5px;
+}
+
+.smoControl button, .smoControl input,.smoControl select {
+	margin-right:2px;
+	height: 30px;
+	border-radius: 5%;
+	border: 1px solid #52ba73;
+}
+
+.smoControl.cbTextInPlace,.smoControl.cbDragTextDialog ,.smoControl.cbResizeTextBox  {
+    position:relative;
+    min-width:110px;
+}
+
+.cbTextInPlace button span.icon-checkmark {
+    color:#9b9;
+}
+
+.smoControl select label {
+    margin-left:5px;
+}
+.smoControl.rockerControl[data-param="fontSize"] input {
+    width:50px;
+}
+.smoControl.cbTextInPlace button,.smoControl.cbDragTextDialog button,
+.smoControl.cbResizeTextBox button
+ {
+    width:32px;
+}
+.smoControl.cbTextInPlace label, .smoControl.cbDragTextDialog label,
+.smoControl.cbResizeTextBox label{
+    position:absolute;
+    top:5px;
+    left:35px;
+}
+
+.smoControl.cbTextInPlace span.icon {
+    font-size:1.6em;
+}
+
+.rockerControl button {
+	width:32px;
+}
+
+.rockerControl button.decrement {
+	margin-right:5px;
+}
+
+.dropdownControl select {
+	margin-left: 7px;
+	height: 30px;
+	border-radius: 5%;
+	border: 1px solid #52ba73;
+}
+
+
+.bugDialog {
+	position:absolute;
+	width:80%;
+	height:70%;
+    width:40%;
+	height:40%;
+	left:30%;
+	top:10%;
+	background: #fff;
+	z-index: 9;
+	border: 1px red dashed;
+	display:none;
+}
+
+.splashScreen .bugDialog {
+	position:absolute;
+    width:40%;
+	height:40%;
+	left:30%;
+	top:10%;
+	border:3px blue inset;
+	background: #fff;
+	padding:100px 10px;
+	z-index: 9;
+}
+
+.splashScreen .splash-title {
+    font-size: 3em;
+	font-family: sans-serif;
+	font-style:default;
+}
+.splashScreen .splash-shine {
+    font-size: 3em;
+	font-family: sans-serif;
+	font-style:italic;
+}
+
+.button-container {
+	margin-left:10px;
+}
+.bug-dismiss-button {
+	position:absolute;
+	right:0px;
+	top:0px;
+	color:red;
+}
+#bug-text-area {
+    display: block;
+    width: 80%;
+    height: 60%;
+    border: block solid 1px;
+    font-family: monospace;
+    border: black solid 1px;
+    margin: 10px;
+	overflow-y: scroll;
+}
+
+.bug-submit-report {
+	margin-left:10px;
+}
+
+.bug-modal {
+	width:100%;
+	height:100%;
+	margin:10px;
+}
+
+
+
+body.bugReport .bugDialog {
+	display:block;
+}
+
+body.splashScreen .bugDialog {
+	display:block;
+}
+.bug-logo {
+	width:64px;
+	height:64px;
+	display:inline-block;
+
+}
+
+
+body.showHelpDialog .helpDialog {
+	display:block;
+	position:absolute;
+	z-index: 5;
+	background: #eef;
+	right:0;
+	margin: 8px;
+	min-width:350px;
+	top: 35px;
+	padding: 10px;
+	border: 1px dashed #334;
+	/* border-radius: 5px; */
+}
+
+.helpLine {
+	margin-bottom:15px;
+}
+
+.help-title span.icon {
+	font-size:.6em;
+	position:absolute;
+	left: 3px;
+	border: 1px black solid;
+}
+
+button.help-title:focus {
+	outline:none;
+}
+
+.helpLine .keyBlock {
+	display:none;
+}
+
+.helpLine.showSection .keyBlock {
+	display:block;
+}
+
+.helpLine .help-title {
+	background: #eef;
+	text-align: left;
+	border: none;
+	width: 80%;
+	border-bottom: 1px black dotted;
+}
+.helpKey {
+    border: 1px solid #222;
+    border-radius: 4px;
+    width: 30px;
+    height: 20px;
+    display: inline-block;
+    text-align: center;
+    padding-top: 6px;
+    margin-right: 5px;
+}

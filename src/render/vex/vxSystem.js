@@ -280,8 +280,11 @@ curve.setContext(this.context).draw();
             this.vxMeasures.forEach((vv) => {
                 if (!vv.rendered) {
                   vv.render();
-                  var tmpStaff = this.staves.find((ss) => ss.staffId == vv.smoMeasure.measureNumber.staffId);
-                  measureMapper.mapMeasure(tmpStaff,vv.smoMeasure);
+                  // unit test codes don't have tracker.
+                  if (measureMapper) {
+                      var tmpStaff = this.staves.find((ss) => ss.staffId == vv.smoMeasure.measureNumber.staffId);
+                      measureMapper.mapMeasure(tmpStaff,vv.smoMeasure);
+                  }
                 }
             });
         }
@@ -362,6 +365,6 @@ curve.setContext(this.context).draw();
 	// ## Description:
 	// draw the system brackets.  I don't know why I call them a cap.
 	cap() {
-	
+
 	}
 }
