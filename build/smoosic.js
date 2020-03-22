@@ -14000,7 +14000,7 @@ class SuiFileMenu extends suiMenuBase {
                 },{
 					icon: '',
 					text: 'Precious Lord',
-					value: 'preciouslord'
+					value: 'preciousLord'
                 },	{
 					icon: '',
 					text: 'Cancel',
