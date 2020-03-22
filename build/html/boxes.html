@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<title>Smoosic Editor</title>
 		<link href="https://aarondavidnewman.github.io/Smoosic/build/styles/fonts.css" rel="stylesheet">
-		<link href="https://aarondavidnewman.github.io/Smoosic/build/styles/styles.css" rel="stylesheet">
+		<link href="https://aarondavidnewman.github.io/Smoosic/build/styles/media.css" rel="stylesheet">
 		<script type="text/javascript" src="http://aarondavidnewman.github.io/vexflow/releases/vexflow-debug.js" ></script>
         <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.slim.js" ></script>
 		<script type="text/javascript" src="https://aarondavidnewman.github.io/Smoosic/build/smoosic.js" ></script>
@@ -20,7 +20,7 @@
 	var stroke={'stroke': '#33a','stroke-width': 2,'fill': 'none'};
 	var lbox1 = svgHelpers.clientToLogical(context.svg,cbox1);
 	context.rect(lbox1.x, lbox1.y, lbox1.width, lbox1.height, stroke);
-	
+
 	var box2={x:30,y:260,width:800,height:108};
 	var cbox2=svgHelpers.logicalToClient(context.svg,box2);
 	var lbox2=svgHelpers.clientToLogical(context.svg,cbox2);
@@ -28,11 +28,11 @@
 	context.rect(lbox2.x,lbox2.y,lbox2.width,lbox2.height);
 	});
 
-</script>		
+</script>
 </head>
 <body>
 <div class="musicRelief">
-    <div class="musicContainer" id="boo" style="width:916px;height:1056px;left:552px;">	
+    <div class="musicContainer" id="boo" style="width:916px;height:1056px;left:552px;">
 	</div>
 </div>
 </body>

@@ -1,0 +1,453 @@
+
+
+.controls-top {
+	width:100%;
+	min-height:50px;
+	margin-bottom:3px;
+	background-color: #fff;
+	background:transparent;
+	display:flex;
+	flex-flow:row wrap;
+}
+
+.controls-left button,.controls-top button {
+	background-color:#fff;
+}
+
+.ribbonButtonContainer[data-group="debug"] {
+    display:none;
+}
+
+.ribbonButtonContainer button.expander span.left-text .text-span {
+    font-size:1.6em;
+    left:18%;
+}
+.ribbonButtonContainer.expanded-more button.expander span.left-text .text-span {
+    display:none;
+}
+.ribbonButtonContainer button.expander span.icon-circle-left {
+    display:none;
+}
+.collapseContainer.expanded-more button.expander span.icon-circle-left {
+    display:block;
+}
+
+body.layout-debug .ribbonButtonContainer[data-group="debug"] {
+    display:block;
+}
+
+div.ribbonButtonContainer.expanded {
+	margin-right:5px;
+}
+
+.controls-left {
+	position: absolute;
+	left: 10px;
+	margin-top: 33px;
+	background-color: #fff;
+	background:transparent;
+	display:flex;
+	flex-direction:column;
+}
+
+.controls-left button,
+.controls-top button
+ {
+	padding: 5px 0;
+	font-size: 0.7em;
+	border: 1px #44e solid;
+	position:relative;
+}
+
+.controls-left button {
+	height: 25px;
+	width: 100px;
+	padding-left: 3px;
+	text-align:left;
+	font-family:serif;
+	font-size:1em;
+}
+
+.controls-top button {
+	width:30px;
+	height:50px;
+	font-size:0.7em;
+}
+
+.controls-top div {
+	display:inline-block;
+}
+.controls-left button span.ribbon-button-text,
+.controls-top button span.ribbon-button-text {
+	position:absolute;
+	left:2px;
+	top:33%;
+}
+
+button#MicrotoneButtons  {
+    width:35px;
+}
+.ribbonButtonContainer[data-group="microtone"] {
+    font-size:1.5em;
+}
+
+.ribbonButtonContainer[data-group="microtone"] button.expanded span.ribbon-button-text {
+    top:10px;
+    left:4px;
+}
+#addDynamicsMenu {
+	font-size:.9em;
+}
+
+#addDynamicsMenu .left-text {
+	left:0;
+	top:20%;
+}
+#TextButtons {
+    font-size:1.2em;
+}
+
+#TextButtons .ribbon-button-text{
+    top:15%;
+    left:18%;
+}
+
+#lyrics {
+    width:65px;
+}
+
+#lyrics .ribbon-button-text {
+	left:-5px;
+}
+
+#fermataButton .icon {
+    left:20%;
+    font-size:1.4em;
+}
+#articulationButtons .left-text {
+    font-size: 1.4em;
+    position: absolute;
+    top: 10%;
+    left: 12%;
+}
+#StaveButtons {
+    width:55px;
+    font-size:1.2em;
+}
+
+#clefAddRemove .icon {
+    font-size:0.7em;
+    top:18%;
+}
+
+.controls-top .collapseContainer .ribbonButtonContainerMore {
+    display:none;
+}
+
+.controls-top div.collapseContainer.expanded-more .ribbonButtonContainerMore {
+    display:inline-block;
+}
+
+.ribbonButtonContainer .icon.staves.expanded {
+    width:55px;
+    font-size:1.6em;
+}
+
+.ribbonButtonContainer .icon.staves.expanded .left-text span.icon {
+    left:20%;
+}
+
+.ribbonButtonContainer .icon.staves.expanded .left-text span.icon.icon-treble  {
+    left:25%;
+}
+
+#clefMoveUp .icon,#clefMoveDown .icon{
+    font-size:0.7em;
+    top:18%;
+}
+
+#StaveButtons span.icon {
+    font-size:1.6em;
+    top:0;
+    left:20%;
+}
+
+#NoteButtons span.icon {
+	font-size:2em;
+}
+
+#articulationButtons  .icon-articulation{
+	left:30%;
+}
+#ArticulationButtons .icon-articulation:before {
+	font-size:2.4em;
+}
+
+.controls-top button.duration,.controls-top button.measure,
+.controls-top button.repetext,.controls-top button.textButton,
+.controls-top button.beams
+ {
+	width:55px;
+}
+
+.controls-top button.beams {
+    font-size:1.2em;
+}
+
+#toggleBeamDirection {
+    width:75px;
+}
+
+#beamSelections {
+    width:115px;
+}
+
+#toggleBeamDirection .left-text,
+#beamSelections .left-text,
+#breakBeam .left-text {
+    font-size: 1.6em;
+    position: absolute;
+    top: 20%;
+    left: 0;
+}
+
+.controls-top button.beams .ribbon-button-hotkey {
+    font-size:0.6em;
+}
+
+.controls-top button.textButton {
+    font-size:1.2em;
+}
+
+.controls-top button.textButton span.left-text {
+    left:18%;
+    top:12%;
+    position:absolute;
+}
+.controls-top button.duration.expanded.tuplet span.ribbon-button-hotkey  {
+	font-size:1em;
+}
+.controls-top button.duration.expanded span.ribbon-button-text.icon {
+	font-size:2.2em;
+	top:25%;
+}
+
+.controls-top button.duration span.ribbon-button-text,
+.controls-top button.repetext span.ribbon-button-text {
+	font-size:1.6em;
+}
+
+.controls-top button.repetext {
+	font-style:italic;
+}
+.controls-top button.duration span.ribbon-button-hotkey {
+	font-size:1.6em;
+}
+
+
+.controls-top .text-span {
+	position:absolute;
+	top: 30%;
+	left: 0;
+}
+
+button.addChord .left-text .icon {
+	left:2em;
+}
+
+.ribbonButtonContainer button.player{
+    width:55px;
+}
+
+.controls-top .ribbonButtonContainer button.player span.ribbon-button-text {
+    top:25%;
+}
+#playerButtons .ribbon-button-text {
+    top: 15%;
+    left: 15%;
+}
+
+#playerButtons,#VoiceButtons {
+    width:55px;
+    font-size:1.3em;
+}
+
+[data-group="voices"] .expanded .icon {
+    font-size:1.7em;
+}
+
+.v1-active #V1Button {
+    background-color:green;
+}
+.v2-active #V2Button {
+    background-color:green;
+}
+.v3-active #V3Button {
+    background-color:green;
+}
+.v4-active #V4Button {
+    background-color:green;
+}
+
+#addTextMenu .left-text {
+    left:18%;
+    top: 15%;
+    font-size: 1em;
+    position:absolute;
+}
+#DurationButtons .left-text {
+    position:absolute;
+    font-size:1.2em;
+    left:12%;
+    top:12%;
+}
+
+#MeasureButtons .left-text {
+    position:absolute;
+    top: 12%;
+    left: 15%;
+    font-size: 1.9em;
+}
+
+#GrowDuration .ribbon-button-hotkey ,
+#LessDuration .ribbon-button-hotkey {
+	font-size:3em;
+	top:0;
+}
+
+#TripletButton {
+    width:65px;
+}
+#SeptupletButton {
+	width:90px;
+}
+
+#QuintupletButton {
+	width:75px;
+}
+
+#toCoda .icon  {
+	left:10px;
+}
+
+.controls-top button.articulation {
+	width:50px;
+}
+
+.controls-top button.articulation span.ribbon-button-text.icon {
+	top:30%;
+}
+
+.controls-top button.selection-icon span.ribbon-button-text.icon {
+	top:30%;
+	left: 20%;
+}
+
+.controls-top button.articulation span.ribbon-button-text.icon:before {
+	font-size:1.8em;
+}
+.controls-top button.selection-icon {
+	width:50px;
+}
+.controls-top button.selection-icon span.ribbon-button-text.icon:before {
+	font-size: 2.2em;
+}
+
+.controls-top button.addChord {
+	width:55px;
+}
+
+.controls-top button.addChord.dirdown {
+	width:70px;
+}
+
+#CreateChordButtons {
+    width:45px;
+}
+#CreateChordButtons .left-text {
+	font-size:1.6em;
+    position:absolute;
+    top:20%;
+    left:25%;
+}
+#CreateChordButtons span.ribbon-button-text {
+	position:absolute;
+	left:30%;
+	top:30%;
+}
+#NavigationButtons {
+	width:55px;
+	font-size:1.7em;
+}
+
+#NavigationButtons.expandedChildren {
+	font-size: 1.4em;
+	width: 50px;
+	left: 0;
+}
+#AddGraceNote,#RemoveGraceNote {
+    width:60px;
+	font-size:1.4em;
+}
+#AddGraceNote .ribbon-button-hotkey,#RemoveGraceNote .ribbon-button-hotkey {
+    font-size:0.6em;
+}
+
+#UpOctaveButton,#DownOctaveButton {
+	width:50px;
+	font-size:0.6em;
+}
+#ToggleAccidental ,#ToggleCourtesy {
+	font-size:1em;
+	width:60px;
+}
+#ToggleAccidental .ribbon-button-hotkey,#ToggleCourtesy .ribbon-button-hotkey  {
+	font-size:0.7em;
+}
+
+.controls-left button.icon span.icon,
+.controls-top button.icon span.icon {
+	top:10%;
+}
+
+.controls-left button.icon span.icon:before,
+.controls-top button.icon span.icon:before{
+	font-size:1.6em;
+}
+
+.controls-top button span.ribbon-button-hotkey {
+	position:absolute;
+	right:2px;
+	top:33%;
+}
+
+.controls-left .articulations button span.ribbon-button-text {
+	font-size:2em;
+}
+.controls-left button span.ribbon-button-hotkey {
+	position:absolute;
+	right: 4px;
+	top: 20%;
+}
+.controls-left .collapseParent ,
+.controls-top .collapseParent {
+	border-left:4px inset #44e;
+}
+
+.controls-top .collapseContainer .expandedChildren {
+	font-size: 1.2em;
+	height: 55px;
+	top: -15px;
+}
+
+.controls-left .collapseContainer .expandedChildren {
+	font-size: 1.2em;
+	text-align:left;
+	padding: 0;
+	width: 80px;
+	left: -5px;
+}
+
+.collapsed {
+	display:none;
+}
