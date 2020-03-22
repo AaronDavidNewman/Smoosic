@@ -151,6 +151,7 @@ class editLyricSession {
         this.selection = parameters.selection;
         this.controller = parameters.controller;
         this.verse=parameters.verse;
+        this.notifier = parameters.notifier;
 		this.bound = false;
         this.state=editLyricSession.states.stopped;
         layoutDebug.addTextDebug('editLyricSession: create note '+this.selection.note.attrs.id);
@@ -244,6 +245,7 @@ class editLyricSession {
 
     _getOrCreateLyric(note) {
         var lyrics =  note.getLyricForVerse(this.verse);
+        layoutDebug.addTextDebug('editLyricSession:new lyric created  ');
         if (!lyrics.length) {
 			this.lyric = new SmoLyric({text:'\xa0',verse:this.verse});
         } else {
@@ -264,17 +266,13 @@ class editLyricSession {
         this.selection.measure.changed = true;
         if (this.state != editLyricSession.states.stopping) {
 			var func = (this.state == editLyricSession.states.backSpace) ? 'lastNoteSelection' : 'nextNoteSelection';
-            var trackerFunc =  (this.state == editLyricSession.states.backSpace) ?
-                'moveSelectionLeft' : 'moveSelectionRight';
             var sel = SmoSelection[func](
 		      this.tracker.layout.score, this.selection.selector.staff,
               this.selection.selector.measure, this.selection.selector.voice, this.selection.selector.tick);
             if (sel) {
                 layoutDebug.addTextDebug('editLyricSession:_handleSkip,  moving on to '+sel.note.attrs.id);
                 this.selection=sel;
-                this.tracker[trackerFunc]();
-
-                this._getOrCreateLyric(this.selection.note);
+                this.notifier.notifySelectionChanged(this.selection);
                 this.editNote();
             }
         } else {
@@ -297,14 +295,21 @@ class editLyricSession {
         return this.detachPromise();
     }
 
+    _skipNext() {
+        var self=this;
+        setTimeout(function() {
+            self._handleSkip();
+        },1);
+    }
+
     nextWord() {
         this.state = editLyricSession.states.space;
-        this._handleSkip();
+        this._skipNext();
     }
 
     previousWord() {
         this.state = editLyricSession.states.backSpace;
-        this._handleSkip();
+        this._skipNext();
     }
 
 	handleKeydown(event) {

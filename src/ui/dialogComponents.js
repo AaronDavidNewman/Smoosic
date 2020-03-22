@@ -411,6 +411,7 @@ class SuiLyricEditComponent extends SuiComponentBase {
         this._verse = 0;
 
         this.dialog = dialog;
+        this.selection = null;
         this.value='';
     }
 
@@ -452,11 +453,19 @@ class SuiLyricEditComponent extends SuiComponentBase {
         return $(this.dialog.dgDom.element).find('#' + pid).find('button');
     }
 
+    notifySelectionChanged(selection) {
+        layoutDebug.addTextDebug('SuiLyricEditComponent: lyric notification for ' + selection.note.attrs.id);
+        if (this.selection == null || SmoSelector.neq(selection.selector,this.selection.selector)) {
+            this.selection = selection;
+            this.handleChanged();
+        }
+    }
+
     _startEditor() {
         var elementDom = $('#'+this.parameterId);
         var button = $(elementDom).find('button');
         layoutDebug.addTextDebug('SuiLyricEditComponent: create editor for ' + this.tracker.selections[0].note.attrs.id);
-        this.editor = new editLyricSession({tracker:this.tracker,verse:this.verse,selection:this.tracker.selections[0],controller:this.controller});
+        this.editor = new editLyricSession({tracker:this.tracker,verse:this.verse,selection:this.tracker.selections[0],controller:this.controller,notifier:this});
         $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
         $(elementDom).find('label').text('Done Editing Lyrics');
         this.editor.editNote();

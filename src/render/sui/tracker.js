@@ -764,6 +764,14 @@ class suiTracker {
 		this.triggerSelection();
 	}
 
+    setSelection(selection) {
+        var selObj = this._getClosestTick(selection);
+        if (selObj) {
+			this.selections = [selObj];
+		}
+		this.highlightSelection();
+    }
+
 	_moveStaffOffset(offset) {
 		if (this.selections.length == 0) {
 			return;

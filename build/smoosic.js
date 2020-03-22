@@ -10478,6 +10478,14 @@ class suiTracker {
 		this.triggerSelection();
 	}
 
+    setSelection(selection) {
+        var selObj = this._getClosestTick(selection);
+        if (selObj) {
+			this.selections = [selObj];
+		}
+		this.highlightSelection();
+    }
+
 	_moveStaffOffset(offset) {
 		if (this.selections.length == 0) {
 			return;
@@ -13095,6 +13103,7 @@ class editLyricSession {
         this.selection = parameters.selection;
         this.controller = parameters.controller;
         this.verse=parameters.verse;
+        this.notifier = parameters.notifier;
 		this.bound = false;
         this.state=editLyricSession.states.stopped;
         layoutDebug.addTextDebug('editLyricSession: create note '+this.selection.note.attrs.id);
@@ -13188,6 +13197,7 @@ class editLyricSession {
 
     _getOrCreateLyric(note) {
         var lyrics =  note.getLyricForVerse(this.verse);
+        layoutDebug.addTextDebug('editLyricSession:new lyric created  ');
         if (!lyrics.length) {
 			this.lyric = new SmoLyric({text:'\xa0',verse:this.verse});
         } else {
@@ -13208,17 +13218,13 @@ class editLyricSession {
         this.selection.measure.changed = true;
         if (this.state != editLyricSession.states.stopping) {
 			var func = (this.state == editLyricSession.states.backSpace) ? 'lastNoteSelection' : 'nextNoteSelection';
-            var trackerFunc =  (this.state == editLyricSession.states.backSpace) ?
-                'moveSelectionLeft' : 'moveSelectionRight';
             var sel = SmoSelection[func](
 		      this.tracker.layout.score, this.selection.selector.staff,
               this.selection.selector.measure, this.selection.selector.voice, this.selection.selector.tick);
             if (sel) {
                 layoutDebug.addTextDebug('editLyricSession:_handleSkip,  moving on to '+sel.note.attrs.id);
                 this.selection=sel;
-                this.tracker[trackerFunc]();
-
-                this._getOrCreateLyric(this.selection.note);
+                this.notifier.notifySelectionChanged(this.selection);
                 this.editNote();
             }
         } else {
@@ -13241,14 +13247,21 @@ class editLyricSession {
         return this.detachPromise();
     }
 
+    _skipNext() {
+        var self=this;
+        setTimeout(function() {
+            self._handleSkip();
+        },1);
+    }
+
     nextWord() {
         this.state = editLyricSession.states.space;
-        this._handleSkip();
+        this._skipNext();
     }
 
     previousWord() {
         this.state = editLyricSession.states.backSpace;
-        this._handleSkip();
+        this._skipNext();
     }
 
 	handleKeydown(event) {
@@ -16199,15 +16212,21 @@ class SuiSaveFileDialog extends SuiFileDialog {
     }
     changed() {
         this.editor.verse = this.verse.getValue();
+        if (this.editor.changeFlag && this.editor.selection) {
+            this.tracker.setSelection(this.editor.selection.selector);
+        }
         if (this.removeLyricControl.changeFlag) {
+            layoutDebug.addTextDebug('SuiLyricEditDialog:remove lyric ');
             this.editor.removeLyric();
         }
 
         if (this.nextWordControl.changeFlag) {
+            layoutDebug.addTextDebug('SuiLyricEditDialog: next word button ');
             this.editor.editor.nextWord();
             this._focusSelection();
         }
         if (this.previousWordControl.changeFlag) {
+            layoutDebug.addTextDebug('SuiLyricEditDialog: previous word button ');
             this.editor.editor.previousWord();
             this._focusSelection();
         }
@@ -17524,6 +17543,7 @@ class SuiLyricEditComponent extends SuiComponentBase {
         this._verse = 0;
 
         this.dialog = dialog;
+        this.selection = null;
         this.value='';
     }
 
@@ -17565,11 +17585,19 @@ class SuiLyricEditComponent extends SuiComponentBase {
         return $(this.dialog.dgDom.element).find('#' + pid).find('button');
     }
 
+    notifySelectionChanged(selection) {
+        layoutDebug.addTextDebug('SuiLyricEditComponent: lyric notification for ' + selection.note.attrs.id);
+        if (this.selection == null || SmoSelector.neq(selection.selector,this.selection.selector)) {
+            this.selection = selection;
+            this.handleChanged();
+        }
+    }
+
     _startEditor() {
         var elementDom = $('#'+this.parameterId);
         var button = $(elementDom).find('button');
         layoutDebug.addTextDebug('SuiLyricEditComponent: create editor for ' + this.tracker.selections[0].note.attrs.id);
-        this.editor = new editLyricSession({tracker:this.tracker,verse:this.verse,selection:this.tracker.selections[0],controller:this.controller});
+        this.editor = new editLyricSession({tracker:this.tracker,verse:this.verse,selection:this.tracker.selections[0],controller:this.controller,notifier:this});
         $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
         $(elementDom).find('label').text('Done Editing Lyrics');
         this.editor.editNote();

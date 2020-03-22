@@ -120,15 +120,21 @@ class SuiLyricDialog extends SuiDialogBase {
     }
     changed() {
         this.editor.verse = this.verse.getValue();
+        if (this.editor.changeFlag && this.editor.selection) {
+            this.tracker.setSelection(this.editor.selection.selector);
+        }
         if (this.removeLyricControl.changeFlag) {
+            layoutDebug.addTextDebug('SuiLyricEditDialog:remove lyric ');
             this.editor.removeLyric();
         }
 
         if (this.nextWordControl.changeFlag) {
+            layoutDebug.addTextDebug('SuiLyricEditDialog: next word button ');
             this.editor.editor.nextWord();
             this._focusSelection();
         }
         if (this.previousWordControl.changeFlag) {
+            layoutDebug.addTextDebug('SuiLyricEditDialog: previous word button ');
             this.editor.editor.previousWord();
             this._focusSelection();
         }
