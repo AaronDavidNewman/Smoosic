@@ -385,7 +385,7 @@ class suiScoreLayout extends suiLayoutBase {
                 }
                 measure.setYTop(offsets.yOffset,'estimate height 3');
 
-                measure.setY(previous.staffY + this.score.layout.intraGap + previous.logicalBox.height - measure.yTop ,'scoreLayout estimate height 3');
+                measure.setY(previous.staffY + this.score.layout.interGap + previous.logicalBox.height - measure.yTop ,'scoreLayout estimate height 3');
                 measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY + offsets.yOffset,measure.staffWidth,offsets.heightOffset), 'score Layout estimateHeight 3');
             }
             if (isNaN(measure.staffY)) {

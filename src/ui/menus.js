@@ -275,6 +275,10 @@ class SuiFileMenu extends suiMenuBase {
 					icon: '',
 					text: 'Microtone Sample',
 					value: 'microtone'
+                },{
+					icon: '',
+					text: 'Precious Lord',
+					value: 'preciouslord'
                 },	{
 					icon: '',
 					text: 'Cancel',
@@ -345,8 +349,7 @@ class SuiFileMenu extends suiMenuBase {
             }
 
             resize();
-        }
-         else if (text == 'bach') {
+        } else if (text == 'bach') {
 			this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
 			var score = SmoScore.deserialize(inventionJson);
 			this.controller.layout.score = score;
@@ -362,7 +365,12 @@ class SuiFileMenu extends suiMenuBase {
           var score = SmoScore.deserialize(microJson);
           this.controller.layout.score = score;
           this.controller.layout.setViewport(true);
-      }
+      }     else if (text == 'preciousLord') {
+         this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
+         var score = SmoScore.deserialize(preciousLord);
+         this.controller.layout.score = score;
+         this.controller.layout.setViewport(true);
+     }
 		this.complete();
 	}
 	keydown(ev) {}

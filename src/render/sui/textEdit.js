@@ -256,7 +256,7 @@ class editLyricSession {
         if (this.selection && this.lyric) {
             this.selection.note.removeLyric(this.lyric);
             this.tracker.replaceSelectedMeasures();
-            this._handleSkip();
+            this._deferSkip();
         }
     }
 
@@ -295,7 +295,11 @@ class editLyricSession {
         return this.detachPromise();
     }
 
-    _skipNext() {
+    // ### _deferSkip
+    // skip to the next word, but not in the current call stack.  Used to handl
+    // interactions with the dialog, where the dialog must reset changed flags
+    // before  selection is changed
+    _deferSkip() {
         var self=this;
         setTimeout(function() {
             self._handleSkip();
@@ -304,12 +308,12 @@ class editLyricSession {
 
     nextWord() {
         this.state = editLyricSession.states.space;
-        this._skipNext();
+        this._deferSkip();
     }
 
     previousWord() {
         this.state = editLyricSession.states.backSpace;
-        this._skipNext();
+        this._deferSkip();
     }
 
 	handleKeydown(event) {
