@@ -805,6 +805,9 @@ body.splashScreen .bugDialog {
         padding-left: 0;
         background: #999;
     }
+    iframe {
+        border:0;
+    }
 	.musicReliefShadow {
 		display:none;
 	}
@@ -813,6 +816,9 @@ body.splashScreen .bugDialog {
 
 body.printing .workspace-container {
     display:none;
+}
+body.printing iframe {
+    border:none;    
 }
 body.printing .printFrame {
     display:block;

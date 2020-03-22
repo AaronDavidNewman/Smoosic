@@ -10869,6 +10869,10 @@ class suiTracker {
 
 	_drawRect(bb, stroke) {
 		this.eraseRect(stroke);
+        // Don't highlight in print mode.
+        if ($('body').hasClass('printing')) {
+            return;
+        }
 		var grp = this.context.openGroup(stroke, stroke + '-');
 		if (!Array.isArray(bb)) {
 			bb = [bb];
@@ -14048,6 +14052,7 @@ class SuiFileMenu extends suiMenuBase {
             $(iframe).attr('height',h);
             iframe.srcdoc=svgString;
             $('body').addClass('printing');
+            this.tracker.highlightSelection();
             $('.printFrame')[0].appendChild(iframe);
             $('.printFrame').width(w);
             $('.printFrame').height(h);

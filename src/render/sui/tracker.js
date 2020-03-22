@@ -1155,6 +1155,10 @@ class suiTracker {
 
 	_drawRect(bb, stroke) {
 		this.eraseRect(stroke);
+        // Don't highlight in print mode.
+        if ($('body').hasClass('printing')) {
+            return;
+        }
 		var grp = this.context.openGroup(stroke, stroke + '-');
 		if (!Array.isArray(bb)) {
 			bb = [bb];

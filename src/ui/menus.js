@@ -326,6 +326,7 @@ class SuiFileMenu extends suiMenuBase {
             $(iframe).attr('height',h);
             iframe.srcdoc=svgString;
             $('body').addClass('printing');
+            this.tracker.highlightSelection();
             $('.printFrame')[0].appendChild(iframe);
             $('.printFrame').width(w);
             $('.printFrame').height(h);
