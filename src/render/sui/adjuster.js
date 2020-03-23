@@ -69,7 +69,7 @@ class suiLayoutAdjuster {
 			width += vexGlyph.clef(smoMeasure.clef).width + vexGlyph.clef(smoMeasure.clef).spacingRight;
 		}
 		if (smoMeasure.forceTimeSignature) {
-            var digits = smoMeasure.timeSignature.split('/')[0].length;                    
+            var digits = smoMeasure.timeSignature.split('/')[0].length;
 			width += vexGlyph.dimensions.timeSignature.width*digits + vexGlyph.dimensions.timeSignature.spacingRight;
 		}
 		var starts = smoMeasure.getStartBarline();
@@ -108,7 +108,7 @@ class suiLayoutAdjuster {
 		return svgHelpers.boxPoints(xoff,0,width,0);
 	}
 
-	static estimateMeasureWidth(renderer,measure,staffBox) {
+	static estimateMeasureWidth(measure) {
 
 		// Calculate the existing staff width, based on the notes and what we expect to be rendered.
         var gravity = false;
@@ -158,7 +158,13 @@ class suiLayoutAdjuster {
         return hilo;
     }
 
-    static estimateMeasureHeight(renderer,measure,layout) {
+    // ### estimateMeasureHeight
+    // The baseline is the top line of the staff.  aboveBaseline is a negative number
+    // that indicates how high above the baseline the measure goes.  belowBaseline
+    // is a positive number that indicates how far below the baseline the measure goes.
+    // the height of the measure is below-above.  Vex always renders a staff such that
+    // the y coordinate passed in for the stave is on the baseline.
+    static estimateMeasureHeight(measure,layout) {
         var heightOffset = 50;  // assume 5 lines, todo is non-5-line staffs
         var yOffset = 0;
         if (measure.forceClef) {
@@ -207,7 +213,7 @@ class suiLayoutAdjuster {
                 });
             });
         });
-        return {heightOffset:heightOffset,yOffset:yOffset};
+        return {belowBaseline:heightOffset,aboveBaseline:yOffset};
     }
 
     static adjustSystemForPage(score,lineIndex,svgScale) {

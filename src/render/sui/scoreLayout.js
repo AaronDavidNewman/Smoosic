@@ -90,6 +90,15 @@ class suiScoreLayout extends suiLayoutBase {
 		return (i > 0 ? staff.measures[i - 1][attr] : measure[attr]);
 	}
 
+    // ### _measureToLeft
+    // measure to 'left' is on previous row if this is the first column in a system
+    // but we still use it to compute beginning symbols (key sig etc.)
+    _measureToLeft(measure) {
+        var j = measure.measureNumber.staffId;
+        var i = measure.measureNumber.measureIndex;
+		return (i > 0 ? this._score.staves[j].measures[i - 1] :null);
+    }
+
 	renderScoreText(tt) {
 		var svg = this.context.svg;
 		var classes = tt.attrs.id+' '+'score-text'+' '+tt.classes;
@@ -208,12 +217,12 @@ class suiScoreLayout extends suiLayoutBase {
         measure.setX(this._score.layout.leftMargin,'scoreLayout initial');
 
         if (!useAdjustedY && measure.changed) {
-            // var offsets = suiLayoutAdjuster.estimateMeasureHeight(this.renderer,measure,this.score.layout);
-            // measure.setY(s.pageBox.y + s.pageBox.height + offsets.yOffset,'scoreLayout wrap');
-            /* layoutDebug.debugBox(svg,svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, offsets.heightOffset),'pre');
+            var offsets = suiLayoutAdjuster.estimateMeasureHeight(measure,this.score.layout);
+            measure.setY(s.pageBox.y + s.pageBox.height + offsets.aboveBaseline,'scoreLayout wrap');
+            layoutDebug.debugBox(svg,svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth, offsets.belowBaseline),'pre');
             if (isNaN(measure.staffY)) {
                 throw ("nan measure ");
-            }  */
+            }
         }
         this._resetStaffBoxes(s);
         this._initStaffBoxes(s);
@@ -225,7 +234,7 @@ class suiScoreLayout extends suiLayoutBase {
         // If we have wrapped lines, calculate the beginning stuff again.
         this.calculateBeginningSymbols(s.systemIndex, measure, s.clefLast, s.keySigLast, s.timeSigLast,s.tempoLast);
         if (!useAdjustedX) {
-            suiLayoutAdjuster.estimateMeasureWidth(this.renderer,measure,s.staffBoxes[staff.staffId]);
+            suiLayoutAdjuster.estimateMeasureWidth(measure);
         }
         measure.systemIndex = 0;
     }
@@ -313,6 +322,61 @@ class suiScoreLayout extends suiLayoutBase {
             s.wrapped = false;
         }
     }
+    _getMeasuresInColumn(ix) {
+        rv = [];
+        this.score.staves.forEach((staff) => {
+            var inst = staff.measures.find((ss) => ss.measureNumber.measureIndex == ix);
+            if (inst) {
+                rv.push(inst);
+            }
+        });
+
+        return rv;
+    }
+
+    _estimateMeasureDimensions() {
+        var measureIx = 0;
+        var systemIndex = 0;
+        var measuresInColumn = this._estimateColumns(measureIx,systemIndex);
+
+    }
+
+    _estimateColumns(measureIx,systemIndex,x,y) {
+        var s = {};
+        var measures = this._getMeasuresAtIndex(measureIx);
+        var lineIndex = 0;
+        var rowInSystem = 0;
+        measures.forEach((measure) => {
+            var staff = this.score.staves[measure.measureNumber.staffId];
+            measure.measureNumber.systemIndex = systemIndex;
+            measure.svg.rowInSystem = rowInSystem;
+
+            // use measure to left to figure out whether I need to render key signature, etc.
+            // If I am the first measure, just use self and we always render them on the first measure.
+            var measureToLeft = _measureToLeft(systemIndex,staff.staffId);
+            if (!measureToLeft) {
+                measureToLeft = measure;
+            }
+            s.measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
+            s.keySigLast = smoMusic.vexKeySignatureTranspose(this._previousAttr(measure.measureNumber.measureIndex,
+                staff.staffId, 'keySignature'), measure.transposeIndex);
+            s.tempoLast = this._previousAttrFunc(measure.measureNumber.measureIndex,staff.staffId,'getTempo');
+            s.timeSigLast = this._previousAttr(measure.measureNumber.measureIndex,
+                staff.staffId, 'timeSignature');
+            s.clefLast = this._previousAttr(measure.measureNumber.measureIndex,
+                staff.staffId, 'clef');
+            this.calculateBeginningSymbols(s.systemIndex, measure, s.clefLast, s.keySigLast, s.timeSigLast,s.tempoLast);
+
+            // calculate vertical offsets from the baseline
+            var offsets = suiLayoutAdjuster.estimateMeasureHeight(measure,this.score.layout);
+            measure.svg.yAbove = offsets.aboveBaseline;
+            measure.svg.yBelow = offsets.belowBaseline;
+            measure.setX(x);
+            suiLayoutAdjuster.estimateMeasureWidth(measure);
+            rowInSystem += 1;
+        });
+        return measures;
+    }
 
 
     _layoutMeasure(renderState) {
@@ -354,26 +418,26 @@ class suiScoreLayout extends suiLayoutBase {
         // TODO: is all this code reachable
         if (!useAdjustedY) {
             // if this is not the left-most staff, get it from the previous measure
-            var offsets = suiLayoutAdjuster.estimateMeasureHeight(this.renderer,measure,this.score.layout);
+            var offsets = suiLayoutAdjuster.estimateMeasureHeight(measure,this.score.layout);
             if (s.systemIndex > 0) {
                 /* measure.setY(this._previousAttr(measure.measureNumber.measureIndex,
                     staff.staffId,'staffY') - this._previousAttr(measure.measureNumber.measureIndex,
                         staff.staffId,'yTop'),'scoreLayout estimate index > 0');  */
                 var prevYTop = this._previousAttr(measure.measureNumber.measureIndex,staff.staffId,'yTop');
                 var prevY = this._previousAttr(measure.measureNumber.measureIndex,staff.staffId,'staffY') + prevYTop;
-                measure.setYTop(Math.min(offsets.yOffset,prevYTop),'scoreLayout inner');
+                measure.setYTop(Math.min(offsets.aboveBaseline,prevYTop),'scoreLayout inner');
                 measure.setY(
                     prevY
                      - measure.yTop,'scoreLayout match earlier measure on this staff');
-                measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY + measure.yTop,measure.staffWidth,offsets.heightOffset)
+                measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY + measure.yTop,measure.staffWidth,offsets.belowBaseline)
                   ,'score layout estimate Height 2');
             } else if (measure.measureNumber.staffId == 0  && measure.lineIndex == 0) {
                 // If this is the top staff, put it on the top of the page.
 
-                measure.setYTop(offsets.yOffset,'estimate height 2');
+                measure.setYTop(offsets.aboveBaseline,'estimate height 2');
                 measure.setY(this.score.layout.topMargin +
-                     (measure.lineIndex*this.score.layout.interGap) - offsets.yOffset,'score layout estimate Height 2');
-                measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY + offsets.yOffset ,measure.staffWidth,offsets.heightOffset)
+                     (measure.lineIndex*this.score.layout.interGap) - offsets.aboveBaseline,'score layout estimate Height 2');
+                measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY + offsets.aboveBaseline ,measure.staffWidth,offsets.belowBaseline)
                   ,'score layout estimate Height 2');
             } else {
                 // Else, get it from the measure above us.
@@ -383,10 +447,10 @@ class suiScoreLayout extends suiLayoutBase {
                 }  else {
                     previous = this.score.staves[this.score.staves.length-1].measures.find((mm) => mm.lineIndex == measure.lineIndex - 1);
                 }
-                measure.setYTop(offsets.yOffset,'estimate height 3');
+                measure.setYTop(offsets.aboveBaseline,'estimate height 3');
 
                 measure.setY(previous.staffY + this.score.layout.interGap + previous.logicalBox.height - measure.yTop ,'scoreLayout estimate height 3');
-                measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY + offsets.yOffset,measure.staffWidth,offsets.heightOffset), 'score Layout estimateHeight 3');
+                measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY + offsets.aboveBaseline,measure.staffWidth,offsets.belowBaseline), 'score Layout estimateHeight 3');
             }
             if (isNaN(measure.staffY)) {
                 throw ("nan measure ");
@@ -403,7 +467,7 @@ class suiScoreLayout extends suiLayoutBase {
             } else {
                 measure.setX(this.score.layout.leftMargin,'scoreLayout left measue');
             }
-            suiLayoutAdjuster.estimateMeasureWidth(this.renderer,measure,staffBox);
+            suiLayoutAdjuster.estimateMeasureWidth(measure);
         }
 
         // the width of this measure is the existing width, plus left margin, plus measure width
