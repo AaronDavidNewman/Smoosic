@@ -197,7 +197,6 @@ class SmoScore {
             var staff = this.staves[i];
             var protomeasure = staff.measures[measureIndex].pickupMeasure(duration);
             staff.measures[measureIndex] = protomeasure;
-            smoBeamerFactory.applyBeams(staff.measures[measureIndex]);
         }
         this._numberStaves();
     }

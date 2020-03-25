@@ -358,7 +358,7 @@ class suiScoreLayout extends suiLayoutBase {
         var keys = Object.keys(mscore);
         keys.forEach((key) => {
             var columns = {};
-            var vxStaff = new VxSystem(this.context,0,parseInt(key),this.score);
+            var vxSystem = new VxSystem(this.context,0,parseInt(key),this.score);
             mscore[key].forEach((measure) => {
                 if (!columns[measure.measureNumber.systemIndex]) {
                     columns[measure.measureNumber.systemIndex] = [];
@@ -369,12 +369,15 @@ class suiScoreLayout extends suiLayoutBase {
             var colKeys = Object.keys(columns);
             colKeys.forEach((colKey) => {
                 columns[colKey].forEach((measure) => {
-                    vxStaff.renderMeasure(measure,this.measureMapper);
+                    vxSystem.renderMeasure(measure,this.measureMapper);
                 });
             });
 
-            vxStaff.renderEndings();
-            vxStaff.updateLyricOffsets();
+            vxSystem.renderEndings();
+            vxSystem.updateLyricOffsets();
+            this._score.staves.forEach((stf) => {
+    			this._renderModifiers(stf, vxSystem);
+    		});
 
         });
         this._renderScoreModifiers();
@@ -410,7 +413,7 @@ class suiScoreLayout extends suiLayoutBase {
 
     }
 
-    _estimateMeasureDimensions() {
+    layout() {
         var measureIx = 0;
         var systemIndex = 0;
 
@@ -489,6 +492,7 @@ class suiScoreLayout extends suiLayoutBase {
             }
         }
         this.renderAllMeasures();
+
     }
 
     // ### _estimateColumns
@@ -501,6 +505,7 @@ class suiScoreLayout extends suiLayoutBase {
         var measures = this._getMeasuresInColumn(measureIx);
         var rowInSystem = 0;
         measures.forEach((measure) => {
+            smoBeamerFactory.applyBeams(measure);
             var staff = this.score.staves[measure.measureNumber.staffId];
             measure.measureNumber.systemIndex = systemIndex;
             measure.svg.rowInSystem = rowInSystem;
@@ -540,239 +545,4 @@ class suiScoreLayout extends suiLayoutBase {
         return rv;
     }
 
-
-    _layoutMeasure(renderState) {
-        var s = renderState;
-        var measure = s.measure;
-        var staff = s.staff;
-        var useAdjustedY = s.calculations.useY;
-		var useAdjustedX = s.calculations.useX;
-        var svg = this.context.svg;
-
-        if (measure.measureNumber.staffId == 0  && measure.lineIndex == 0 && measure.measureNumber.measureIndex == 0) {
-           // If this is the top staff, put it on the top of the page.
-               layoutDebug.clearDebugBoxes('pre');
-               layoutDebug.clearDebugBoxes('post');
-               layoutDebug.clearDebugBoxes('note');
-        }
-
-        measure.lineIndex = s.lineIndex;
-
-        this._initStaffBoxes(s);
-
-        // The SVG X,Y of this staff.  Set it initially to the UL corner of page.  Width,height filled in later.
-        var staffBox = s.staffBoxes[staff.staffId];
-
-        var staffHeight = 50;
-
-        s.measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
-        s.keySigLast = smoMusic.vexKeySignatureTranspose(this._previousAttr(measure.measureNumber.measureIndex,
-            staff.staffId, 'keySignature'), measure.transposeIndex);
-        s.tempoLast = this._previousAttrFunc(measure.measureNumber.measureIndex,staff.staffId,'getTempo');
-        s.timeSigLast = this._previousAttr(measure.measureNumber.measureIndex,
-            staff.staffId, 'timeSignature');
-        s.clefLast = this._previousAttr(measure.measureNumber.measureIndex,
-            staff.staffId, 'clef');
-
-        this.calculateBeginningSymbols(s.systemIndex, measure, s.clefLast, s.keySigLast, s.timeSigLast,s.tempoLast);
-
-        // If we are calculating the measures' location dynamically, always update the y
-        // TODO: is all this code reachable
-        if (!useAdjustedY) {
-            // if this is not the left-most staff, get it from the previous measure
-            var offsets = suiLayoutAdjuster.estimateMeasureHeight(measure,this.score.layout);
-            if (s.systemIndex > 0) {
-                /* measure.setY(this._previousAttr(measure.measureNumber.measureIndex,
-                    staff.staffId,'staffY') - this._previousAttr(measure.measureNumber.measureIndex,
-                        staff.staffId,'yTop'),'scoreLayout estimate index > 0');  */
-                var prevYTop = this._previousAttr(measure.measureNumber.measureIndex,staff.staffId,'yTop');
-                var prevY = this._previousAttr(measure.measureNumber.measureIndex,staff.staffId,'staffY') + prevYTop;
-                measure.setYTop(Math.min(offsets.aboveBaseline,prevYTop),'scoreLayout inner');
-                measure.setY(
-                    prevY
-                     - measure.yTop,'scoreLayout match earlier measure on this staff');
-                measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY + measure.yTop,measure.staffWidth,offsets.belowBaseline)
-                  ,'score layout estimate Height 2');
-            } else if (measure.measureNumber.staffId == 0  && measure.lineIndex == 0) {
-                // If this is the top staff, put it on the top of the page.
-
-                measure.setYTop(offsets.aboveBaseline,'estimate height 2');
-                measure.setY(this.score.layout.topMargin +
-                     (measure.lineIndex*this.score.layout.interGap) - offsets.aboveBaseline,'score layout estimate Height 2');
-                measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY + offsets.aboveBaseline ,measure.staffWidth,offsets.belowBaseline)
-                  ,'score layout estimate Height 2');
-            } else {
-                // Else, get it from the measure above us.
-                var previous;
-                if (measure.measureNumber.staffId > 0){
-                    previous = this.score.staves[measure.measureNumber.staffId - 1].measures[measure.measureNumber.measureIndex];
-                }  else {
-                    previous = this.score.staves[this.score.staves.length-1].measures.find((mm) => mm.lineIndex == measure.lineIndex - 1);
-                }
-                measure.setYTop(offsets.aboveBaseline,'estimate height 3');
-
-                measure.setY(previous.staffY + this.score.layout.interGap + previous.logicalBox.height - measure.yTop ,'scoreLayout estimate height 3');
-                measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY + offsets.aboveBaseline,measure.staffWidth,offsets.belowBaseline), 'score Layout estimateHeight 3');
-            }
-            if (isNaN(measure.staffY)) {
-                throw ("nan measure ");
-            }
-        }
-
-        if (!s.pageBox['width']) {
-            s.pageBox = svgHelpers.copyBox(staffBox);
-        }
-
-        if (!useAdjustedX) {
-            if (s.systemIndex > 0) {
-            measure.setX(staffBox.x + staffBox.width,'scoreLayout, inner measure');
-            } else {
-                measure.setX(this.score.layout.leftMargin,'scoreLayout left measue');
-            }
-            suiLayoutAdjuster.estimateMeasureWidth(measure);
-        }
-
-        // the width of this measure is the existing width, plus left margin, plus measure width
-        // Don't use staffBox.x since it may have been adjusted
-        var newWidth = Math.floor(measure.staffX + measure.staffWidth);
-        // The left margin is included in the width, so don't add it twice
-        var wrapThreshold = this.logicalPageWidth + this.score.layout.leftMargin;
-
-        // If we have wrapped on this line previously, wrap in the same place unless the location of this staff has changed quite a bit.
-        if (measure.measureNumber.systemIndex == 0 && staff.staffId == 0 && s.systemIndex > 0 && useAdjustedX) {
-            wrapThreshold = wrapThreshold * 0.5;
-        } else if (measure.measureNumber.systemIndex == 0 && measure.staffWidth > wrapThreshold) {
-            // If we are the first line but we need to wrap, just shrink the line
-            measure.setWidth(wrapThreshold - measure.staffX,'scoreLayout wrap line width');
-        }
-
-        // Do we need to start a new line?  Don't start a new line on the first measure in a line...
-        if (s.systemIndex > 0 && (newWidth
-             > wrapThreshold || measure.getForceSystemBreak())) {
-                 console.log('wrap mm '+ measure.measureNumber.measureIndex + ' column: ' + measure.measureNumber.systemIndex +
-                  ' line: '+measure.lineIndex + ' force: '+measure.getForceSystemBreak());
-                 s.wrapped = true;
-                 s.staff=staff;
-                 s.measure=measure;
-                 return s;
-        }
-
-        if (measure.measureNumber.systemIndex == 0 && staff.staffId == 0 && s.systemIndex > 0 && measure.logicalBox) {
-            console.log('wrap is changing');
-        }
-        // guess height of staff the first time
-        measure.measureNumber.systemIndex = s.systemIndex;
-        layoutDebug.debugBox(svg,svgHelpers.boxPoints(measure.staffX, measure.staffY, measure.staffWidth),'pre');
-
-        smoBeamerFactory.applyBeams(measure);
-
-        if (measure.measureNumber.systemIndex == 0 && useAdjustedY == false && (this.passState != suiLayoutBase.passStates.initial))  {
-            // currently unreachable
-            s.system.renderMeasure(measure,this.measureMapper);
-
-        } else if (this.passState != suiLayoutBase.passStates.initial) {
-            s.system.renderMeasure(measure,this.measureMapper);
-        } else if (measure.logicalBox && measure.changed && this.passState == suiLayoutBase.passStates.initial)  {
-            measure.setBox(svgHelpers.boxPoints(measure.logicalBox.x,measure.logicalBox.y,measure.staffWidth,measure.logicalBox.height)
-           ,'scoreLayout adjust width of rendered box');
-        }
-
-
-        layoutDebug.debugBox(svg,  measure.logicalBox, 'post');
-        /* if (layoutDebug.flagSet('note') && measure.logicalBox) {
-            measure.voices.forEach((voice) => {
-                voice.notes.forEach((note) => {
-                    var noteEl = svg.getElementById(note.renderId);
-                    if (noteEl) {
-                       layoutDebug.debugBox(svg, noteEl.getBBox(), 'note');
-                    }
-                });
-            });
-        }  */
-
-        measure.changed = false;
-
-        // For x coordinate we adjust to the actual rendered size.  For Y, we want all staves at the same height
-        // so we only consider the height of the first measure in the system
-        this._updateStaffBoxes(s);
-        s.pageBox = svgHelpers.unionRect(s.pageBox, measure.logicalBox);
-        s.wrapped=false;
-        s.measure=measure;
-        return s;
-    }
-
-    _initializeRenderState(calculations) {
-        var staff = this._score.staves[0];
-        var measure = staff.measures[0];
-        var lineIndex = 0;
-		var system = new VxSystem(this.context, staff.measures[0].staffY, lineIndex,this.score);
-
-        var renderState = {
-            staff:staff,
-            measure:staff.measures[0],
-            lineIndex:0,
-            pageBox:{},
-            systemIndex:0,
-            system:system,
-            wrapped:false,
-            complete:false,
-            calculations:calculations,
-            lowestWrappedMeasure:this.lowestWrappedMeasure
-        }
-        renderState.measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
-        renderState.keySigLast = smoMusic.vexKeySignatureTranspose(this._previousAttr(measure.measureNumber.measureIndex, staff.staffId, 'keySignature'), measure.transposeIndex);
-        renderState.timeSigLast = this._previousAttr(measure.measureNumber.measureIndex, staff.staffId, 'timeSignature');
-        renderState.clefLast = this._previousAttr(measure.measureNumber.measureIndex, staff.staffId, 'clef');
-        renderState.tempoLast = this._previousAttrFunc(measure.measureNumber.measureIndex,staff.staffId,'getTempo');
-
-        this._resetStaffBoxes(renderState);
-        return renderState;
-    }
-
-    // ### layout
-	//  Render the music, keeping track of the bounding boxes of all the
-	// elements.  Re-render a second time to adjust measure widths to prevent notes
-	// from overlapping.  Then render all the modifiers.
-	// * useAdjustedY is false if we are dynamically rendering the score, and we use other
-	// measures to find our sweet spot.  If true, we assume the coordinates are correct and we use those.
-    layout(calculations) {
-        return;
-        // bounding box of all artifacts in a system
-		if (!this._score.staves.length || !this._score.staves[0].measures.length) {
-			return;
-		}
-
-        var renderState = this.passState == suiLayoutBase.passStates.incomplete ?
-            this.renderState :
-            this._initializeRenderState(calculations);
-        if (this.passState == suiLayoutBase.passStates.incomplete) {
-            this.setPassState(suiLayoutBase.passStates.pass,'completing');
-        }
-        var ts = Date.now();
-        while (renderState.complete == false) {
-            this._layoutSystem(renderState);
-            // Render a few lines at a time, unless in debug mode
-            if (this.partialRender == true &&
-                (this.passState == suiLayoutBase.passStates.pass) &&
-                renderState.complete == false
-                && layoutDebug.mask == 0
-                && Date.now() - ts > this.renderTime) {
-                this.renderState = renderState;
-                this.setPassState(suiLayoutBase.passStates.incomplete,' partial '+renderState.measure.measureNumber.measureIndex);
-                break;
-            }
-        }
-
-        if (this.passState == suiLayoutBase.passStates.incomplete) {
-            return;
-        }
-
-        this._score.staves.forEach((stf) => {
-			this._renderModifiers(stf, renderState.system);
-		});
-		this._renderScoreModifiers();
-		if (calculations.useY) {
-			renderState.system.cap();
-		}
-    }
 }

@@ -28,7 +28,7 @@ class suiLayoutBase {
     }
 
 	static get passStates() {
-		return {initial:0,pass:1,clean:2,replace:3,incomplete:4};
+		return {initial:0,clean:2,replace:3};
 	}
 
     addToReplaceQueue(selection) {
@@ -47,11 +47,8 @@ class suiLayoutBase {
 	setDirty() {
 		if (!this.dirty) {
 			this.dirty = true;
-			if (this.passState == suiLayoutBase.passStates.clean ||
-			   this.passState == suiLayoutBase.passStates.replace) {
-				this.setPassState(suiLayoutBase.passStates.replace,'setDirty 2');
-			} else {
-				this.setPassState(suiLayoutBase.passStates.pass,'setDirty 3');
+			if (this.passState == suiLayoutBase.passStates.clean) {
+                this.setPassState(suiLayoutBase.passStates.replace);
 			}
 		}
 	}
@@ -309,7 +306,7 @@ class suiLayoutBase {
 		var system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex,this.score);
 		while (startSelection && startSelection.selector.measure <= modifier.endSelector.measure) {
 			smoBeamerFactory.applyBeams(startSelection.measure);
-            system.renderMeasure(startSelection.selector.staff, startSelection.measure);
+            system.renderMeasure(startSelection.measure);
             this._renderModifiers(startSelection.staff, system);
 
 			var nextSelection = SmoSelection.measureSelection(this._score, startSelection.selector.staff, startSelection.selector.measure + 1);
@@ -438,6 +435,7 @@ class suiLayoutBase {
         var rendered = {};
 
         this.replaceQ.forEach((change) => {
+            smoBeamerFactory.applyBeams(change.measure);
             var system = new VxSystem(this.context, change.measure.staffY, change.measure.lineIndex,this.score);
             var selections = SmoSelection.measuresInColumn(this.score,change.measure.measureNumber.measureIndex);
             selections.forEach((selection) => {
@@ -472,69 +470,14 @@ class suiLayoutBase {
         }
 
 		// layout iteratively until we get it right, adjusting X each time.
-		var params = {useY:false,useX:false};
-		if (this.passState == suiLayoutBase.passStates.pass || this.passState == suiLayoutBase.passStates.incomplete) {
-			params.useX=true;
-            params.useY=true;
-		    suiLayoutAdjuster.adjustWidths(this._score,this.renderer);
-		}
-		if ((this.passState == suiLayoutBase.passStates.clean) ||
-            (this.passState == suiLayoutBase.passStates.adjustY) ||
-		    (this.passState == suiLayoutBase.passStates.replace) ||
-            (this.passState == suiLayoutBase.passStates.redrawMain)) {
-			params.useY=true;
-			params.useX=true;
-		}
-
-
         if (suiLayoutBase.passStates.replace == this.passState) {
             this._replaceMeasures();
-        } else {
-            if (params.useX != true) {
-                this._estimateMeasureDimensions();
-                params.useX = true;
-                params.useY = true;
-                this.setPassState(suiLayoutBase.passStates.pass,'xxx');
-            }
-           this.layout(params);
+        } else if (suiLayoutBase.passStates.initial == this.passState) {
+           this.layout();
+           this._drawPageLines();
+           this.setPassState(suiLayoutBase.passStates.clean);
         }
+        this.dirty = false;
 
-        if (this.passState == suiLayoutBase.passStates.incomplete) {
-            return;
-        }
-
-        if (this.passState == suiLayoutBase.passStates.initial) {
-            suiLayoutAdjuster.adjustWidths(this._score,this.renderer);
-            suiLayoutAdjuster.justifyWidths(this._score,this.renderer,this.pageMarginWidth);
-        }
-
-        this._drawPageLines();
-
-		if (this.passState == suiLayoutBase.passStates.replace) {
-			this.dirty=false;
-			return;
-		}
-
-        // if (this.passState == suiLayoutBase.passStates.redrawMain) {
-        if (params.useX == true) {
-            if (this.score.layout.pages != this.viewportPages) {
-                this.setViewport(true);
-                this.setPassState(suiLayoutBase.passStates.adjustY,
-                    'page change reset viewport - re-render pages');
-                return;
-            }
-
-            this.dirty=false;
-
-            this.setPassState(suiLayoutBase.passStates.clean,'render complete');
-            this.numberMeasures();
-            // this.shadowRender = true;
-            this.partialRender = true;
-            return;
-        }
-
-        this.dirty=true;
-        this.setPassState(suiLayoutBase.passStates.pass,'render 3');
-        console.log('layout after pass: pstate pass');
 	}
 }

@@ -504,6 +504,7 @@ class SuiTextMenu extends suiMenuBase {
         }
 
         // Treat a created text score like a selected text score that needs to be edited.
+        this.controller.layout.setRefresh();
         this.closePromise.then(waitForDisplay).then(createDialog);
     }
     selection(ev) {

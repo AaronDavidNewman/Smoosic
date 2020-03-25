@@ -98,7 +98,6 @@ class SmoOperation {
             ix += 1;
         });
         measure.voices = voices;
-        smoBeamerFactory.applyBeams(measure);
 
         if (measure.getActiveVoice() >= measure.voices.length) {
             measure.setActiveVoice(0);

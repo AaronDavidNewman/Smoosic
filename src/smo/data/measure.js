@@ -151,7 +151,6 @@ class SmoMeasure {
 
 		smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, jsonObj, params);
         var rv = new SmoMeasure(params);
-        smoBeamerFactory.applyBeams(rv);
 
 		return rv;
     }

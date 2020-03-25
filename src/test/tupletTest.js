@@ -36,7 +36,7 @@ class TupletTest {
 
 		var drawDefaults = () => {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
-			layout.render();
+			layout.layout();
             return timeTest();
 		}
 
@@ -46,15 +46,15 @@ class TupletTest {
 			SmoOperation.makeTuplet(selection, 3);
      		var measureS = SmoSelection.measureSelection(score, 0, 0);
 			console.log(JSON.stringify(score.serialize(), null, ' '));
-			layout.render();
+			layout.layout();
             return timeTest();
 		}
-		
+
 		var breakTupletBarTest = () => {
 			subTitle('make tuplet');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
 			SmoOperation.toggleBeamGroup(selection);
-			layout.render();
+			layout.layout();
             return timeTest();
 		}
 
@@ -62,7 +62,7 @@ class TupletTest {
 			subTitle('make tuplet');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
 			SmoOperation.toggleBeamGroup(selection);
-			layout.render();
+			layout.layout();
             return timeTest();
 		}
 
@@ -70,7 +70,7 @@ class TupletTest {
 			subTitle('stretch tuplet');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
 			SmoOperation.doubleDuration(selection);
-			layout.render();
+			layout.layout();
             return timeTest();
 		}
 
@@ -78,7 +78,7 @@ class TupletTest {
 			subTitle('contract tuplet');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
 			SmoOperation.halveDuration(selection);
-			layout.render();
+			layout.layout();
             return timeTest();
 		}
 
@@ -94,7 +94,7 @@ class TupletTest {
 			subTitle('contract tuplet 2');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
 			SmoOperation.halveDuration(selection);
-			layout.render();
+			layout.layout();
             return timeTest();
 		}
 		var contractTupletTest3 = () => {
@@ -106,7 +106,7 @@ class TupletTest {
 			subTitle('unmake tuplet');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
 			SmoOperation.unmakeTuplet(selection);
-			layout.render();
+			layout.layout();
             return timeTest();
 		}
 
@@ -114,7 +114,7 @@ class TupletTest {
 			subTitle('make tuplet 5-let');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 3);
 			SmoOperation.makeTuplet(selection, 5);
-			layout.render();
+			layout.layout();
             return timeTest();
 		}
 

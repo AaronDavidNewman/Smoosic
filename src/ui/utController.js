@@ -71,13 +71,7 @@ class utController {
 
 	render() {
         var ix = 0;
-        this.layout.setRefresh();
-		while(this.layout.dirty) {
-            this.layout.render();
-            ix += 1;
-            if (ix>20)
-                break;
-        }
+        this.layout.layout();		
 	}
 
 	bindEvents() {}

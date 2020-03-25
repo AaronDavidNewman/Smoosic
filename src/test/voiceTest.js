@@ -42,7 +42,7 @@ class VoiceTest {
 			// measure.applyModifiers();
 			subTitle('notes in 2 voices');
 
-			keys.layout.render();
+			keys.render();
             return timeTest();
 		}
         var _transposeVoice = (vix,pitches) => {
@@ -62,7 +62,7 @@ class VoiceTest {
             _transposeVoice(0,[{letter:'a',accidental:'n',octave:4}]);
             SmoUndoable.populateVoice([measure],1,undoBuffer);
             _transposeVoice(1,[{letter:'f',accidental:'n',octave:4}]);
-			keys.layout.render();
+			keys.render();
             return timeTest();
 		}
 
@@ -71,7 +71,7 @@ class VoiceTest {
             SmoOperation.setActiveVoice(score,0);
             var sel = SmoSelection.noteSelection(score,0,0,1,2);
             SmoOperation.dotDuration(sel);
-            keys.layout.render();
+            keys.render();
             return timeTest();
         }
 
@@ -80,7 +80,7 @@ class VoiceTest {
             SmoOperation.setActiveVoice(score,1);
             var sel = SmoSelection.noteSelection(score,0,0,0,1);
             SmoOperation.doubleDuration(sel);
-            keys.layout.render();
+            keys.render();
             return timeTest();
         }
 
@@ -91,14 +91,14 @@ class VoiceTest {
             SmoUndoable.populateVoice([measure],3,undoBuffer);
             _transposeVoice(3,[{letter:'c',accidental:'n',octave:5}]);
             SmoOperation.setActiveVoice(score,0);
-            keys.layout.render();
+            keys.render();
             return timeTest();
         }
 
         var depopulateVoice = () => {
             subTitle('depopulate voice');
             SmoUndoable.depopulateVoice([measure],0,undoBuffer);
-            keys.layout.render();
+            keys.render();
             return timeTest();
         }
 

@@ -39,7 +39,7 @@ class TimeSignatureTest {
 
         var drawDefaults = () => {
             // music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
-			layout.render();
+			layout.layout();
             return timeTest();
         }
 
@@ -49,7 +49,7 @@ class TimeSignatureTest {
             SmoOperation.doubleDuration(selection);
             var selection = SmoSelection.noteSelection(score, 0, 0, 0, 0);
             SmoOperation.dotDuration(selection);
-			layout.render();
+			layout.layout();
             return timeTest();
         }
 
@@ -57,7 +57,7 @@ class TimeSignatureTest {
             subTitle('break beam');
             var selection = SmoSelection.noteSelection(score, 0, 0, 0, 0);
             SmoOperation.toggleBeamGroup(selection);
-			layout.render();
+			layout.layout();
             return timeTest();
         }
 
@@ -67,7 +67,7 @@ class TimeSignatureTest {
             SmoOperation.toggleBeamGroup(selection);
 			selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
 			SmoOperation.toggleBeamGroup(selection);
-			layout.render();
+			layout.layout();
             return timeTest();
         }
 
@@ -75,7 +75,7 @@ class TimeSignatureTest {
             subTitle('unbreak beam');
             var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
             SmoOperation.toggleBeamGroup(selection);
-			layout.render();
+			layout.layout();
             return timeTest();
         }
 
@@ -83,7 +83,7 @@ class TimeSignatureTest {
             subTitle('contract 6/8 test');
             var selection = SmoSelection.noteSelection(score, 0, 0, 0, 0);
             SmoOperation.halveDuration(selection);
-			layout.render();
+			layout.layout();
             return timeTest();
         }
 
@@ -96,7 +96,7 @@ class TimeSignatureTest {
             selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
             SmoOperation.dotDuration(selection);
 
-			layout.render();
+			layout.layout();
             return timeTest();
         }
 
@@ -111,7 +111,7 @@ class TimeSignatureTest {
             SmoOperation.doubleDuration(selection);
             selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
             SmoOperation.doubleDuration(selection);
-			layout.render();
+			layout.layout();
             return timeTest();
         }
         var changeBeamGroup = () => {
@@ -125,7 +125,7 @@ class TimeSignatureTest {
             group2.push(SmoSelection.noteSelection(score, 0, 0, 0, 5));
             SmoOperation.beamSelections(group1);
             SmoOperation.beamSelections(group2);
-			layout.render();
+			layout.layout();
             return timeTest();
         }
         var flipBeams1 = () => {
@@ -134,7 +134,7 @@ class TimeSignatureTest {
             group2.push(SmoSelection.noteSelection(score, 0, 0, 0, 4));
             group2.push(SmoSelection.noteSelection(score, 0, 0, 0, 5));
             SmoOperation.toggleBeamDirection(group2);
-			layout.render();
+			layout.layout();
             return timeTest();
         }
 
