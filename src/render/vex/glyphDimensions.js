@@ -105,7 +105,7 @@ class vexGlyph {
 				spacingRight: 10,
 			},
 			bassClef: {
-				width: 32.32,
+				width: 26,
 				height: 31.88,
                 yTop:0,
                 yBottom:0,

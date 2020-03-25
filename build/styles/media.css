@@ -9,6 +9,12 @@ h1 {
 	text-align:center;
 }
 
+.subTitle {
+	height: 14px;
+	font-size:0.8em;
+	text-align:center;
+}
+
 .dom-container {
 	background-color:#999;
 }
