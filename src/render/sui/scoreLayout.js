@@ -323,7 +323,7 @@ class suiScoreLayout extends suiLayoutBase {
         }
     }
     _getMeasuresInColumn(ix) {
-        rv = [];
+        var rv = [];
         this.score.staves.forEach((staff) => {
             var inst = staff.measures.find((ss) => ss.measureNumber.measureIndex == ix);
             if (inst) {
@@ -333,49 +333,211 @@ class suiScoreLayout extends suiLayoutBase {
 
         return rv;
     }
+    get scaledScoreLayout() {
+        var svgScale = this.score.layout.svgScale;
+        var rv = JSON.parse(JSON.stringify(this.score.layout));
+        var attrs = ['topMargin','bottomMargin','interGap','intraGap','pageHeight','pageWidth','leftMargin','rightMargin'];
+        attrs.forEach((attr) => {
+            rv[attr] = rv[attr] / svgScale;
+        });
+
+        return rv;
+    }
+
+    renderAllMeasures() {
+        var mscore = {};
+        this.score.staves.forEach((staff) => {
+            staff.measures.forEach((measure) => {
+                if (!mscore[measure.lineIndex]) {
+                    mscore[measure.lineIndex] = [];
+                }
+                mscore[measure.lineIndex].push(measure);
+            });
+        });
+
+        var keys = Object.keys(mscore);
+        keys.forEach((key) => {
+            var columns = {};
+            var vxStaff = new VxSystem(this.context,0,parseInt(key),this.score);
+            mscore[key].forEach((measure) => {
+                if (!columns[measure.measureNumber.systemIndex]) {
+                    columns[measure.measureNumber.systemIndex] = [];
+                }
+                columns[measure.measureNumber.systemIndex].push(measure);
+            });
+
+            var colKeys = Object.keys(columns);
+            colKeys.forEach((colKey) => {
+                columns[colKey].forEach((measure) => {
+                    vxStaff.renderMeasure(measure,this.measureMapper);
+                });
+            });
+
+            vxStaff.renderEndings();
+            vxStaff.updateLyricOffsets();
+
+        });
+        this._renderScoreModifiers();
+
+    }
+
+    _justifyY(svg,scoreLayout,measureEstimate,currentLine) {
+        // We estimate the staves at the same absolute y value.  Now, move them down so the top of the staves align for all measures in a  row.
+        for (var i =0;i< measureEstimate.measures.length;++i) {
+            var rowAdj = currentLine.filter((mm) => mm.svg.rowInSystem == i);
+            // lowest staff has greatest staffY value.
+            var lowestStaff = rowAdj.reduce((a,b) => {
+                return a.staffY > b.staffY ? a : b;
+            });
+            rowAdj.forEach((measure) => {
+                var adj = lowestStaff.staffY - measure.staffY;
+                measure.setY(measure.staffY + adj);
+                measure.setBox(svgHelpers.boxPoints(measure.logicalBox.x,measure.logicalBox.y + adj,measure.logicalBox.width,measure.logicalBox.height));
+            });
+            var rightStaff = rowAdj.reduce((a,b) => {
+               return a.staffX + a.staffWidth > b.staffX + b.staffWidth ?  a : b});
+
+            var justifyX = Math.round((scoreLayout.pageWidth - (scoreLayout.leftMargin + scoreLayout.rightMargin + rightStaff.staffX + rightStaff.staffWidth))
+                 / rowAdj.length);
+            rowAdj.forEach((measure) => {
+                measure.setWidth(measure.staffWidth + justifyX,'_estimateMeasureDimensions justify');
+                var offset = measure.measureNumber.systemIndex * justifyX;
+                measure.setX(measure.staffX + offset);
+                measure.setBox(svgHelpers.boxPoints(measure.logicalBox.x + offset,measure.logicalBox.y,measure.staffWidth,measure.logicalBox.height,));
+                layoutDebug.debugBox(svg,measure.logicalBox,'adjust');
+            });
+         }
+
+    }
 
     _estimateMeasureDimensions() {
         var measureIx = 0;
         var systemIndex = 0;
-        var measuresInColumn = this._estimateColumns(measureIx,systemIndex);
 
+        layoutDebug.clearDebugBoxes('pre');
+        layoutDebug.clearDebugBoxes('post');
+        layoutDebug.clearDebugBoxes('note');
+
+        var svg = this.context.svg;
+        var scoreLayout = this.scaledScoreLayout;
+
+        var y = scoreLayout.topMargin;
+        var x = scoreLayout.leftMargin;
+        var currentLine = []; // the system we are esimating
+        var pages = 1;
+
+        var lineIndex = 0;
+        while (measureIx < this.score.staves[0].measures.length) {
+
+            var measureEstimate = this._estimateColumn(scoreLayout,measureIx,systemIndex,lineIndex,x,y);
+            x = measureEstimate.x;
+
+            if (systemIndex > 0 &&
+                  (measureEstimate.measures[0].getForceSystemBreak() || measureEstimate.x > (scoreLayout.pageWidth - scoreLayout.leftMargin))) {
+
+                  this._justifyY(svg,scoreLayout,measureEstimate,currentLine);
+                  // find the measure with the lowest y extend (greatest y value), not necessarily one with lowest
+                  // start of staff.
+                  var bottomMeasure = currentLine.reduce((a,b) => {
+                      return a.logicalBox.y + a.logicalBox.height > b.logicalBox.y + b.logicalBox.height ? a : b;
+                  });
+
+                  // See if this measure breaks a page.
+                  var maxY = bottomMeasure.logicalBox.y +  bottomMeasure.logicalBox.height;
+                  if (maxY > (pages * scoreLayout.pageHeight) - scoreLayout.bottomMargin) {
+                      // When adjusting the page, make it so the top staff of the system
+                      // clears the bottom of the page.
+                      var topMeasure = currentLine.reduce((a,b) => {
+                          return a.logicalBox.y < b.logicalBox.y ? a : b;
+                      });
+                      var minMaxY = topMeasure.logicalBox.y;
+                      var pageAdj = (pages * scoreLayout.pageHeight) - minMaxY;
+                      pageAdj = pageAdj + scoreLayout.topMargin;
+                      pages += 1;
+                      currentLine.forEach((measure) => {
+                          measure.setBox(svgHelpers.boxPoints(
+                              measure.logicalBox.x,measure.logicalBox.y + pageAdj,measure.logicalBox.width,measure.logicalBox.height));
+                          measure.setY(measure.staffY + pageAdj);
+                      });
+                  }
+
+                  currentLine.forEach((measure) => {
+                     layoutDebug.debugBox(svg,measure.logicalBox,'system');
+                  });
+
+
+                // Now start rendering on the next system.
+                y = bottomMeasure.logicalBox.height + bottomMeasure.logicalBox.y + this.score.layout.interGap;
+                currentLine = [];
+                systemIndex = 0;
+                x = scoreLayout.leftMargin;
+                lineIndex += 1;
+                measureEstimate = this._estimateColumn(scoreLayout,measureIx,systemIndex,lineIndex,x,y);
+                x = measureEstimate.x;
+            }
+
+
+            measureEstimate.measures.forEach((measure) => {
+               layoutDebug.debugBox(svg,measure.logicalBox,'pre');
+            });
+
+            currentLine = currentLine.concat(measureEstimate.measures);
+            measureIx += 1;
+            systemIndex += 1;
+            if (measureIx >= this.score.staves[0].measures.length) {
+                this._justifyY(svg,scoreLayout,measureEstimate,currentLine);
+            }
+        }
+        this.renderAllMeasures();
     }
 
-    _estimateColumns(measureIx,systemIndex,x,y) {
+    // ### _estimateColumns
+    // the new logic to estimate the dimensions of a column of music, corresponding to
+    // a certain measure index.
+    // returns:
+    // {measures,y,x}  the x and y at the left/bottom of the render
+    _estimateColumn(scoreLayout,measureIx,systemIndex,lineIndex,x,y) {
         var s = {};
-        var measures = this._getMeasuresAtIndex(measureIx);
-        var lineIndex = 0;
+        var measures = this._getMeasuresInColumn(measureIx);
         var rowInSystem = 0;
         measures.forEach((measure) => {
             var staff = this.score.staves[measure.measureNumber.staffId];
             measure.measureNumber.systemIndex = systemIndex;
             measure.svg.rowInSystem = rowInSystem;
+            measure.lineIndex = lineIndex;
 
             // use measure to left to figure out whether I need to render key signature, etc.
             // If I am the first measure, just use self and we always render them on the first measure.
-            var measureToLeft = _measureToLeft(systemIndex,staff.staffId);
+            var measureToLeft = this._measureToLeft(measure);
             if (!measureToLeft) {
                 measureToLeft = measure;
             }
             s.measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
-            s.keySigLast = smoMusic.vexKeySignatureTranspose(this._previousAttr(measure.measureNumber.measureIndex,
-                staff.staffId, 'keySignature'), measure.transposeIndex);
-            s.tempoLast = this._previousAttrFunc(measure.measureNumber.measureIndex,staff.staffId,'getTempo');
-            s.timeSigLast = this._previousAttr(measure.measureNumber.measureIndex,
-                staff.staffId, 'timeSignature');
-            s.clefLast = this._previousAttr(measure.measureNumber.measureIndex,
-                staff.staffId, 'clef');
-            this.calculateBeginningSymbols(s.systemIndex, measure, s.clefLast, s.keySigLast, s.timeSigLast,s.tempoLast);
+            s.keySigLast = smoMusic.vexKeySignatureTranspose(measureToLeft.keySignature,measure.transposeIndex);
+            s.tempoLast = measureToLeft.getTempo();
+            s.timeSigLast = measureToLeft.timeSignature;
+            s.clefLast = measureToLeft.clef;
+            this.calculateBeginningSymbols(systemIndex, measure, s.clefLast, s.keySigLast, s.timeSigLast,s.tempoLast);
 
             // calculate vertical offsets from the baseline
             var offsets = suiLayoutAdjuster.estimateMeasureHeight(measure,this.score.layout);
-            measure.svg.yAbove = offsets.aboveBaseline;
-            measure.svg.yBelow = offsets.belowBaseline;
+            measure.setYTop(offsets.aboveBaseline);
+            measure.setY(y - measure.yTop,'_estimateColumns height');
             measure.setX(x);
+            measure.setBox(svgHelpers.boxPoints(measure.staffX,y,measure.staffWidth,offsets.belowBaseline-offsets.aboveBaseline));
             suiLayoutAdjuster.estimateMeasureWidth(measure);
+            y = y + measure.logicalBox.height + scoreLayout.intraGap;
             rowInSystem += 1;
         });
-        return measures;
+
+        // justify this column to the maximum width
+        var maxMeasure = measures.reduce((a,b) => a.staffX+a.staffWidth > b.staffX+b.staffWidth ? a : b);
+        var maxX = maxMeasure.staffX + maxMeasure.staffWidth;
+        measures.forEach((measure) => {
+            measure.setWidth(measure.staffWidth + (maxX - (measure.staffX + measure.staffWidth)));
+        });
+        var rv = {measures:measures,y:y,x:maxX};
+        return rv;
     }
 
 
@@ -506,10 +668,10 @@ class suiScoreLayout extends suiLayoutBase {
 
         if (measure.measureNumber.systemIndex == 0 && useAdjustedY == false && (this.passState != suiLayoutBase.passStates.initial))  {
             // currently unreachable
-            s.system.renderMeasure(staff, measure,this.measureMapper);
+            s.system.renderMeasure(measure,this.measureMapper);
 
         } else if (this.passState != suiLayoutBase.passStates.initial) {
-            s.system.renderMeasure(staff, measure,this.measureMapper);
+            s.system.renderMeasure(measure,this.measureMapper);
         } else if (measure.logicalBox && measure.changed && this.passState == suiLayoutBase.passStates.initial)  {
             measure.setBox(svgHelpers.boxPoints(measure.logicalBox.x,measure.logicalBox.y,measure.staffWidth,measure.logicalBox.height)
            ,'scoreLayout adjust width of rendered box');
@@ -574,6 +736,7 @@ class suiScoreLayout extends suiLayoutBase {
 	// * useAdjustedY is false if we are dynamically rendering the score, and we use other
 	// measures to find our sweet spot.  If true, we assume the coordinates are correct and we use those.
     layout(calculations) {
+        return;
         // bounding box of all artifacts in a system
 		if (!this._score.staves.length || !this._score.staves[0].measures.length) {
 			return;

@@ -236,7 +236,8 @@ curve.setContext(this.context).draw();
 	// ## Description:
 	// Create the graphical (VX) notes and render them on svg.  Also render the tuplets and beam
 	// groups
-	renderMeasure(staff, smoMeasure,measureMapper) {
+	renderMeasure(smoMeasure,measureMapper) {
+        var staff = this.score.staves[smoMeasure.measureNumber.staffId];
         var staffId = staff.staffId;
 		var systemIndex = smoMeasure.measureNumber.systemIndex;
         var selection = SmoSelection.measureSelection(this.score,staff.staffId,smoMeasure.measureNumber.measureIndex);

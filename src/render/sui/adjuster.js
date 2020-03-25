@@ -121,12 +121,13 @@ class suiLayoutAdjuster {
             measureWidth = Math.round((measure.staffWidth + prevWidth)/2);
             gravity = true;
         }
+        var y = measure.logicalBox ? measure.logicalBox.y : measure.staffY;
         measure.setWidth(measureWidth,'estimateMeasureWidth adjX adjRight gravity: '+gravity);
 
 		// Calculate the space for left/right text which displaces the measure.
 		// var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(renderer,measure);
 		// measure.setX(measure.staffX  + textOffsetBox.x,'estimateMeasureWidth');
-        measure.setBox(svgHelpers.boxPoints(measure.staffX,measure.staffY,measure.staffWidth,measure.logicalBox.height),
+        measure.setBox(svgHelpers.boxPoints(measure.staffX,y,measure.staffWidth,measure.logicalBox.height),
            'estimate measure width');
 
 	}

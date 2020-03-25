@@ -28,7 +28,7 @@ class suiLayoutBase {
     }
 
 	static get passStates() {
-		return {initial:0,pass:1,clean:2,replace:3,incomplete:4,adjustY:6,redrawMain:7};
+		return {initial:0,pass:1,clean:2,replace:3,incomplete:4};
 	}
 
     addToReplaceQueue(selection) {
@@ -441,7 +441,7 @@ class suiLayoutBase {
             var system = new VxSystem(this.context, change.measure.staffY, change.measure.lineIndex,this.score);
             var selections = SmoSelection.measuresInColumn(this.score,change.measure.measureNumber.measureIndex);
             selections.forEach((selection) => {
-                system.renderMeasure(selection.staff, selection.measure,this.measureMapper);
+                system.renderMeasure(selection.measure,this.measureMapper);
             });
             system.renderEndings();
             this._renderModifiers(change.staff, system);
@@ -490,6 +490,12 @@ class suiLayoutBase {
         if (suiLayoutBase.passStates.replace == this.passState) {
             this._replaceMeasures();
         } else {
+            if (params.useX != true) {
+                this._estimateMeasureDimensions();
+                params.useX = true;
+                params.useY = true;
+                this.setPassState(suiLayoutBase.passStates.pass,'xxx');
+            }
            this.layout(params);
         }
 

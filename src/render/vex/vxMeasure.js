@@ -425,7 +425,8 @@ class VxMeasure {
      }
 
     // ## Description:
-    // Render all the notes in my smoMeasure.  All rendering logic is called from here.
+    // Create all Vex notes and modifiers.  We defer the format and rendering so
+    // we can align across multiple staves
     preFormat() {
         $(this.context.svg).find('g.' + this.smoMeasure.getClassId()).remove();
 
