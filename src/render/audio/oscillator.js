@@ -119,17 +119,17 @@ class suiOscillator {
             frequency:440,
             attackEnv:0.05,
             decayEnv:0.4,
-            sustainEnv:0.65,
+            sustainEnv:0.45,
             releaseEnv:0.1,
             sustainLevel:0.4,
             releaseLevel:0.1,
-            waveform:'triangle',
-            gain:0.3
+            waveform:'custom',
+            gain:0.1
         };
 
         var wavetable = {
             real:[0,
-                0.3,0,0,0,0,
+                0.3,0.3,0,0,0,
                 0.1,0,0,0,0,
                 0.05,0,0,0,0,
                 0.01,0,0,0,0,
@@ -137,7 +137,7 @@ class suiOscillator {
                 0,0,0,0,0,
                 0,0],
             imaginary:[0,
-                0,0,0,0,0,
+                0,0.05,0,0,0,
                 0,0.01,0,0,0,
                 0,0,0,0,0,
                 0,0,0,0,0,
@@ -195,7 +195,7 @@ class suiOscillator {
 
 
         var ar = [];
-        gain = gain ? gain : 0.5;
+        gain = gain ? gain : 0.2;
         gain = gain/note.pitches.length
         if (note.noteType == 'r') {
             gain = 0.001;

@@ -8,6 +8,10 @@ class suiAudioPlayer {
         suiAudioPlayer._playing = val;
     }
 
+    static get maxGain() {
+        return 0.2;
+    }
+
     static get instanceId() {
         if (typeof(suiAudioPlayer._instanceId) == 'undefined') {
             suiAudioPlayer._instanceId = 0;
@@ -100,7 +104,7 @@ class suiAudioPlayer {
         this._playArrayRecurse(0,startTimes,this.sounds);
     }
     _populatePlayArray() {
-        var maxGain = 0.5/this.score.staves.length;
+        var maxGain = suiAudioPlayer.maxGain/this.score.staves.length;
         this.sounds = {};
         this.score.staves.forEach((staff)  => {
             var accumulator = 0;

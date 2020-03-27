@@ -9211,17 +9211,17 @@ class suiOscillator {
             frequency:440,
             attackEnv:0.05,
             decayEnv:0.4,
-            sustainEnv:0.65,
+            sustainEnv:0.45,
             releaseEnv:0.1,
             sustainLevel:0.4,
             releaseLevel:0.1,
-            waveform:'triangle',
-            gain:0.3
+            waveform:'custom',
+            gain:0.1
         };
 
         var wavetable = {
             real:[0,
-                0.3,0,0,0,0,
+                0.3,0.3,0,0,0,
                 0.1,0,0,0,0,
                 0.05,0,0,0,0,
                 0.01,0,0,0,0,
@@ -9229,7 +9229,7 @@ class suiOscillator {
                 0,0,0,0,0,
                 0,0],
             imaginary:[0,
-                0,0,0,0,0,
+                0,0.05,0,0,0,
                 0,0.01,0,0,0,
                 0,0,0,0,0,
                 0,0,0,0,0,
@@ -9287,7 +9287,7 @@ class suiOscillator {
 
 
         var ar = [];
-        gain = gain ? gain : 0.5;
+        gain = gain ? gain : 0.2;
         gain = gain/note.pitches.length
         if (note.noteType == 'r') {
             gain = 0.001;
@@ -9406,6 +9406,10 @@ class suiAudioPlayer {
         suiAudioPlayer._playing = val;
     }
 
+    static get maxGain() {
+        return 0.2;
+    }
+
     static get instanceId() {
         if (typeof(suiAudioPlayer._instanceId) == 'undefined') {
             suiAudioPlayer._instanceId = 0;
@@ -9498,7 +9502,7 @@ class suiAudioPlayer {
         this._playArrayRecurse(0,startTimes,this.sounds);
     }
     _populatePlayArray() {
-        var maxGain = 0.5/this.score.staves.length;
+        var maxGain = suiAudioPlayer.maxGain/this.score.staves.length;
         this.sounds = {};
         this.score.staves.forEach((staff)  => {
             var accumulator = 0;
@@ -12205,6 +12209,7 @@ class suiScoreLayout extends suiLayoutBase {
 
         });
         this._renderScoreModifiers();
+        this.numberMeasures();
     }
 
     // ### _justifyY
@@ -12369,8 +12374,10 @@ class suiScoreLayout extends suiLayoutBase {
         // justify this column to the maximum width
         var maxMeasure = measures.reduce((a,b) => a.staffX+a.staffWidth > b.staffX+b.staffWidth ? a : b);
         var maxX = maxMeasure.staffX + maxMeasure.staffWidth;
+        var maxAdj = measures.reduce((a,b) => a.adjX > b.adjX  ? a.adjX  : b.adjX);
         measures.forEach((measure) => {
             measure.setWidth(measure.staffWidth + (maxX - (measure.staffX + measure.staffWidth)));
+            measure.adjX = maxAdj;
         });
         var rv = {measures:measures,y:y,x:maxX};
         return rv;
@@ -18979,7 +18986,7 @@ class vexGlyph {
 				spacingRight: 10,
 			},
 			bassClef: {
-				width: 26,
+				width: 25,
 				height: 31.88,
                 yTop:0,
                 yBottom:0,

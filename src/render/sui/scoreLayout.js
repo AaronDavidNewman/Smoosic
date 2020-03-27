@@ -186,6 +186,7 @@ class suiScoreLayout extends suiLayoutBase {
 
         });
         this._renderScoreModifiers();
+        this.numberMeasures();
     }
 
     // ### _justifyY
@@ -350,8 +351,10 @@ class suiScoreLayout extends suiLayoutBase {
         // justify this column to the maximum width
         var maxMeasure = measures.reduce((a,b) => a.staffX+a.staffWidth > b.staffX+b.staffWidth ? a : b);
         var maxX = maxMeasure.staffX + maxMeasure.staffWidth;
+        var maxAdj = measures.reduce((a,b) => a.adjX > b.adjX  ? a.adjX  : b.adjX);
         measures.forEach((measure) => {
             measure.setWidth(measure.staffWidth + (maxX - (measure.staffX + measure.staffWidth)));
+            measure.adjX = maxAdj;
         });
         var rv = {measures:measures,y:y,x:maxX};
         return rv;
