@@ -16001,10 +16001,25 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 				control: 'SuiDropdownComponent',
 				label: 'Units',
                 options: [{value:'em',label:'em'},{value:'px',label:'px'},{value:'pt',label:'pt'}]
+			},
+            { // {title:'title',copyright:'copyright',footer:'footer',header:'header',custom:'custom'}
+				smoName: 'position',
+				parameterName: 'position',
+				defaultValue: SmoScoreText.positions.custom,
+				control: 'SuiDropdownComponent',
+				label:'Text Position',
+                startRow:true,
+				options: [{value:'title',label:'Title'},
+                  {value:'copyright',label:'Copyright'},
+                  {label:'Footer',value:'footer'},
+                  {label:'Header',value:'header'},
+                  {label:'Custom',value:'custom'}
+                  ]
+
 			}
         ];
     }
-    
+
     display() {
 		$('body').addClass('showAttributeDialog');
 		this.components.forEach((component) => {
@@ -16024,6 +16039,9 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         fontSize=svgHelpers.getFontSize(fontSize);
         dbFontSize.setValue(fontSize.size);
         dbFontUnit.setValue(fontSize.unit);
+
+        this.positionComponent = this.components.find((c) => c.smoName == 'position');
+        this.positionComponent.setValue(this.modifier.position);
 
 		this._bindElements();
 		this.position(this.modifier.renderedBox);
@@ -16066,6 +16084,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
                 }
             }
 		});
+        this.modifier.position = this.positionComponent.getValue();
         var xcomp = this.components.find((x) => x.smoName === 'x');
         var ycomp = this.components.find((x) => x.smoName === 'y');
         if (this.textDragger.dragging) {
@@ -19760,15 +19779,19 @@ class TextButtons {
     }
 
     _addTextPromise(txtObj) {
+        var self = this;
         var createDialog = () => {
-            SuiTextTransformDialog.createAndDisplay(
+            var dialog = SuiTextTransformDialog.createAndDisplay(
                 {
                     modifier:txtObj,
                     buttonElement:this.buttonElement,
                     buttonData:this.buttonData,
                     controller:this.controller,
                     tracker: this.controller.tracker,
-                    layout:this.controller.layout});
+                    layout:this.controller.layout
+                });
+
+            self.controller.unbindKeyboardForDialog(dialog);
         }
 
         // Wait for text to be displayed before bringing up edit dialog

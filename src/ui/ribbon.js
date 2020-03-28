@@ -611,15 +611,19 @@ class TextButtons {
     }
 
     _addTextPromise(txtObj) {
+        var self = this;
         var createDialog = () => {
-            SuiTextTransformDialog.createAndDisplay(
+            var dialog = SuiTextTransformDialog.createAndDisplay(
                 {
                     modifier:txtObj,
                     buttonElement:this.buttonElement,
                     buttonData:this.buttonData,
                     controller:this.controller,
                     tracker: this.controller.tracker,
-                    layout:this.controller.layout});
+                    layout:this.controller.layout
+                });
+
+            self.controller.unbindKeyboardForDialog(dialog);
         }
 
         // Wait for text to be displayed before bringing up edit dialog
