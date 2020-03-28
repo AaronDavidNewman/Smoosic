@@ -277,6 +277,9 @@ class SmoLyric extends SmoNoteModifierBase {
 			translateY:0,
 		};
 	}
+    static get parsers() {
+        return {lyric:0,anaylysis:1,chord:2}
+    }
 
     static get parameterArray() {
         return ['text','endChar','fontInfo','classes','verse',
@@ -287,6 +290,12 @@ class SmoLyric extends SmoNoteModifierBase {
         smoSerialize.serializedMergeNonDefault(SmoLyric.defaults,
            SmoLyric.parameterArray,this,params);
         return params;
+    }
+
+    updateText(text) {
+        // TODO: handle different parsers
+        text = text ? text: '';
+        this.text = text.trim();
     }
 
     constructor(parameters) {

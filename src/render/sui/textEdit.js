@@ -140,7 +140,8 @@ class editSvgText {
 
 // ## editLyricSession
 // Another interface between UI and renderer, let the user enter lyrics while
-// navigating through the notes.
+// navigating through the notes.  This class handles the session of editing
+// a single note, and also the logic of skipping from note to note.
 class editLyricSession {
 	static get states() {
         return {stopped:0,started:1,minus:2,space:3,backSpace:4,stopping:5};
@@ -224,6 +225,8 @@ class editLyricSession {
             // Only skip to the next lyric if the session is still going on.
             if (self.state != editLyricSession.states.stopped && self.state != editLyricSession.states.stopping) {
                 self._handleSkip();
+            } else {  // session is stopping due to esc.
+                self.notifier.forceEndSession();
             }
         }
 
@@ -322,12 +325,16 @@ class editLyricSession {
 			 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
 
 		if (['Space', 'Minus'].indexOf(event.code) >= 0) {
-			this.state =  (event.key == '-') ? editLyricSession.states.minus :  editLyricSession.states.space;
-			this.state = (this.state === editLyricSession.states.space && event.shiftKey)
-			     ? editLyricSession.states.backSpace :  this.state;
-            layoutDebug.addTextDebug('editLyricSession:  handleKeydown skip key for  '+this.selection.note.attrs.id);
-            this.editor.endSession();
-            return;
+            if (editLyricSession.states.minus && event.shiftKey) {
+                // allow underscore
+            } else {
+                this.state =  (event.code == 'Minus') ? editLyricSession.states.minus :  editLyricSession.states.space;
+    			this.state = (this.state === editLyricSession.states.space && event.shiftKey)
+    			     ? editLyricSession.states.backSpace :  this.state;
+                layoutDebug.addTextDebug('editLyricSession:  handleKeydown skip key for  '+this.selection.note.attrs.id);
+                this.editor.endSession();
+                return;
+            }
 		}
 
 		if (event.code == 'Escape') {

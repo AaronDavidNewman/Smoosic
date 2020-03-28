@@ -407,7 +407,6 @@ class SuiLyricEditComponent extends SuiComponentBase {
         if (!this.defaultValue) {
             this.defaultValue = 0;
         }
-        this.editMode=false;
         this._verse = 0;
 
         this.dialog = dialog;
@@ -445,6 +444,15 @@ class SuiLyricEditComponent extends SuiComponentBase {
             this.editor.detach();
         }
     }
+    // If the user pressed esc., force the end of the session
+    forceEndSession() {
+        var elementDom = $('#'+this.parameterId);
+        this.editor.detach();
+        $(elementDom).find('label').text('Edit Lyrics');
+        $(this.editorButton).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
+        $('body').removeClass('text-edit');
+        $('div.textEdit').addClass('hide');
+    }
     getValue() {
         return this.value;
     }
@@ -454,7 +462,11 @@ class SuiLyricEditComponent extends SuiComponentBase {
     }
 
     notifySelectionChanged(selection) {
-        layoutDebug.addTextDebug('SuiLyricEditComponent: lyric notification for ' + selection.note.attrs.id);
+        if (!selection) {
+            layoutDebug.addTextDebug('SuiLyricEditComponent: lyric notification for ' + selection.note.attrs.id);
+        } else {
+            layoutDebug.addTextDebug('SuiLyricEditComponent: no selection');
+        }
         if (this.selection == null || SmoSelector.neq(selection.selector,this.selection.selector)) {
             this.selection = selection;
             this.handleChanged();
@@ -473,27 +485,27 @@ class SuiLyricEditComponent extends SuiComponentBase {
     removeLyric() {
         this.editor.removeLyric();
     }
-    startEditSession(selection) {
-        var self=this;
+    get editorButton() {
         var elementDom = $('#'+this.parameterId);
         var button = $(elementDom).find('button');
+        return button;
+    }
+    startEditSession(selection) {
+        var self=this;
         layoutDebug.addTextDebug('SuiLyricEditComponent: create editor request');
 
         if (!this.editor) {
             layoutDebug.addTextDebug('SuiLyricEditComponent: initial create editor request');
             this._startEditor();
-            $(button).off('click').on('click',function() {
+            $(this.editorButton).off('click').on('click',function() {
                 self.handleChanged();
-                 if (self.editor.state == editLyricSession.states.stopped || self.editor.state == editLyricSession.states.stopping)  {
+                 if (self.editor.state == editLyricSession.states.stopped ||
+                     self.editor.state == editLyricSession.states.stopping)  {
                      layoutDebug.addTextDebug('SuiLyricEditComponent: restarting button');
-                     self._startEditor(button);
+                     self._startEditor();
                  } else {
                      layoutDebug.addTextDebug('SuiLyricEditComponent: stopping editor button');
-                     self.editor.detach();
-                     $(elementDom).find('label').text('Edit Lyrics');
-                     $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
-                     $('body').removeClass('text-edit');
-                     $('div.textEdit').addClass('hide');
+                     self.forceEndSession();
                  }
           });
         }

@@ -124,7 +124,7 @@ class suiTracker {
     _reboxTextModifier(modifier) {
         var el;
         if (modifier.attrs.type === 'SmoLyric') {
-            el = $(modifier.selector)[0];
+            // el = $(modifier.selector)[0];
         } else if (modifier.attrs.type === 'SmoGraceNote') {
             el = this.context.svg.getElementById('vf-'+modifier.renderedId);
         } else {
@@ -346,20 +346,14 @@ class suiTracker {
     // Update the svg to screen coordinates based on a change in viewport.
     _updateNoteBox(svg,smoNote,selector) {
         var el = svg.getElementById(smoNote.renderId);
-        var cursorKey = '' + selector.measure + '-' + selector.tick;
         if (!el) {
             console.warn('no element to box');
             return;
         }
         svgHelpers.updateArtifactBox(svg,el,smoNote);
 
-        // TODO: fix this, only works on the first line.
-        smoNote.getModifiers('SmoLyric').forEach((lyric) => {
-			var ar = Array.from(el.getElementsByClassName('vf-lyric'));
-			ar.forEach((lbox) => {
-                svgHelpers.updateArtifactBox(svg,lbox,lyric);
-			});
-		}); 
+        // removed lyrics - we don't select those directly
+        // so no need to track them.
     }
 
     _updateMeasureNoteMap(artifact) {

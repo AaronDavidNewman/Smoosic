@@ -61,6 +61,7 @@ class VxSystem {
 
     // ### updateLyricOffsets
     // Adjust the y position for all lyrics in the line so they are even.
+    // Also replace '-' with a longer dash do indicate 'until the next measure'
 	updateLyricOffsets() {
         for (var i = 0;i < this.score.staves.length;++i) {
             // is this necessary? They should all be from the current line
@@ -69,6 +70,7 @@ class VxSystem {
             });
             // All the lyrics on this line
             var lyrics=[];
+            var lyricsDash = [];
 
             // The vertical bounds on each line
             var verseLimits={};
@@ -108,7 +110,28 @@ class VxSystem {
     			lyric.adjY = verseLimits[lyric.verse].bottom -  lyric.logicalBox.y;
     			var dom = $(this.context.svg).find(lyric.selector)[0];
     			dom.setAttributeNS('','transform','translate('+lyric.adjX+' '+lyric.adjY+')');
+                // Keep track of lyrics that are 'dash'
+                if (lyric.text.trim() == '-') {
+                    lyricsDash.push(lyric);
+                }
     		});
+
+            lyricsDash.forEach((lyric) => {
+                var parent = $(this.context.svg).find(lyric.selector)[0];
+                var line = document.createElementNS(svgHelpers.namespace,'line');
+                var ymax = lyric.logicalBox.y + lyric.logicalBox.height/2;
+                var offset = lyric.logicalBox.width/2;
+                line.setAttributeNS('', 'x1', lyric.logicalBox.x - offset);
+                line.setAttributeNS('', 'y1', ymax);
+                line.setAttributeNS('', 'x2', lyric.logicalBox.x + lyric.logicalBox.width + offset);
+                line.setAttributeNS('', 'y2', ymax);
+                line.setAttributeNS('','stroke-width',1);
+                line.setAttributeNS('','fill','none');
+                line.setAttributeNS('','stroke','#999999');
+                parent.appendChild(line);
+                var text = $(this.context.svg).find(lyric.selector).find('text')[0];
+                text.setAttributeNS('','fill','#fff');
+            });
         }
 	}
 

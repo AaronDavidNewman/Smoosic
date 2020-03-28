@@ -346,7 +346,7 @@ class SuiFileMenu extends suiMenuBase {
                     } else {
                         resize();
                     }
-                },50);
+                },500);
             }
 
             resize();

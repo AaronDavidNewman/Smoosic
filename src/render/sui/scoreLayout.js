@@ -221,6 +221,29 @@ class suiScoreLayout extends suiLayoutBase {
 
     }
 
+    // ### _checkPageBreak
+    // See if this line breaks the page boundary
+    _checkPageBreak(scoreLayout,currentLine,bottomMeasure) {
+        // See if this measure breaks a page.
+        var maxY = bottomMeasure.logicalBox.y +  bottomMeasure.logicalBox.height;
+        if (maxY > (scoreLayout.pages * scoreLayout.pageHeight) - scoreLayout.bottomMargin) {
+            // When adjusting the page, make it so the top staff of the system
+            // clears the bottom of the page.
+            var topMeasure = currentLine.reduce((a,b) => {
+                return a.logicalBox.y < b.logicalBox.y ? a : b;
+            });
+            var minMaxY = topMeasure.logicalBox.y;
+            var pageAdj = (scoreLayout.pages * scoreLayout.pageHeight) - minMaxY;
+            pageAdj = pageAdj + scoreLayout.topMargin;
+            scoreLayout.pages += 1;
+            currentLine.forEach((measure) => {
+                measure.setBox(svgHelpers.boxPoints(
+                    measure.logicalBox.x,measure.logicalBox.y + pageAdj,measure.logicalBox.width,measure.logicalBox.height));
+                measure.setY(measure.staffY + pageAdj);
+            });
+        }
+    }
+
     layout() {
         var measureIx = 0;
         var systemIndex = 0;
@@ -233,11 +256,11 @@ class suiScoreLayout extends suiLayoutBase {
 
         var svg = this.context.svg;
         var scoreLayout = this.scaledScoreLayout;
+        scoreLayout.pages = 1;
 
         var y = scoreLayout.topMargin;
         var x = scoreLayout.leftMargin;
         var currentLine = []; // the system we are esimating
-        var pages = 1;
 
         var lineIndex = 0;
         while (measureIx < this.score.staves[0].measures.length) {
@@ -255,32 +278,14 @@ class suiScoreLayout extends suiLayoutBase {
                       return a.logicalBox.y + a.logicalBox.height > b.logicalBox.y + b.logicalBox.height ? a : b;
                   });
 
-                  // See if this measure breaks a page.
-                  var maxY = bottomMeasure.logicalBox.y +  bottomMeasure.logicalBox.height;
-                  if (maxY > (pages * scoreLayout.pageHeight) - scoreLayout.bottomMargin) {
-                      // When adjusting the page, make it so the top staff of the system
-                      // clears the bottom of the page.
-                      var topMeasure = currentLine.reduce((a,b) => {
-                          return a.logicalBox.y < b.logicalBox.y ? a : b;
-                      });
-                      var minMaxY = topMeasure.logicalBox.y;
-                      var pageAdj = (pages * scoreLayout.pageHeight) - minMaxY;
-                      pageAdj = pageAdj + scoreLayout.topMargin;
-                      pages += 1;
+                  this._checkPageBreak(scoreLayout,currentLine,bottomMeasure);
+
+                  if (layoutDebug.mask & layoutDebug.values.system) {
                       currentLine.forEach((measure) => {
-                          measure.setBox(svgHelpers.boxPoints(
-                              measure.logicalBox.x,measure.logicalBox.y + pageAdj,measure.logicalBox.width,measure.logicalBox.height));
-                          measure.setY(measure.staffY + pageAdj);
+                         layoutDebug.debugBox(svg,measure.logicalBox,'system');
+                         layoutDebug.debugBox(svg,svgHelpers.boxPoints(measure.staffX,measure.logicalBox.y,measure.adjX,measure.logicalBox.height),'post');
                       });
                   }
-
-              if (layoutDebug.mask & layoutDebug.values.system) {
-                  currentLine.forEach((measure) => {
-                     layoutDebug.debugBox(svg,measure.logicalBox,'system');
-                     layoutDebug.debugBox(svg,svgHelpers.boxPoints(measure.staffX,measure.logicalBox.y,measure.adjX,measure.logicalBox.height),'post');
-                  });
-              }
-
 
                 // Now start rendering on the next system.
                 y = bottomMeasure.logicalBox.height + bottomMeasure.logicalBox.y + this.score.layout.interGap;
@@ -292,7 +297,6 @@ class suiScoreLayout extends suiLayoutBase {
                 x = measureEstimate.x;
             }
 
-
             measureEstimate.measures.forEach((measure) => {
                layoutDebug.debugBox(svg,measure.logicalBox,'pre');
             });
@@ -300,12 +304,23 @@ class suiScoreLayout extends suiLayoutBase {
             currentLine = currentLine.concat(measureEstimate.measures);
             measureIx += 1;
             systemIndex += 1;
+            // If this is the last measure but we have not filled the x extent,
+            // still justify the vertical staves and check for page break.
             if (measureIx >= this.score.staves[0].measures.length) {
                 this._justifyY(svg,scoreLayout,measureEstimate,currentLine);
+
+                var bottomMeasure = currentLine.reduce((a,b) => {
+                    return a.logicalBox.y + a.logicalBox.height > b.logicalBox.y + b.logicalBox.height ? a : b;
+                });
+
+                this._checkPageBreak(scoreLayout,currentLine,bottomMeasure);
             }
         }
+        if (scoreLayout.pages != this.score.layout.pages) {
+            this.score.layout.pages = scoreLayout.pages;
+            this.setViewport(true);
+        }
         this.renderAllMeasures();
-
     }
 
     // ### _estimateColumns

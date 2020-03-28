@@ -415,7 +415,8 @@ class suiLayoutBase {
 			// TODO: handle dynamics split across systems.
 		});
 
-		system.updateLyricOffsets();
+        // Note: this is done elsewhere, after system is rendered.
+		// system.updateLyricOffsets();
 	}
 
     _drawPageLines() {
@@ -443,6 +444,7 @@ class suiLayoutBase {
             });
             system.renderEndings();
             this._renderModifiers(change.staff, system);
+            system.updateLyricOffsets();
 
             // Fix a bug: measure change needs to stay true so we recaltulate the width
             change.measure.changed = true;
