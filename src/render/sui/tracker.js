@@ -359,7 +359,7 @@ class suiTracker {
 			ar.forEach((lbox) => {
                 svgHelpers.updateArtifactBox(svg,lbox,lyric);
 			});
-		});
+		}); 
     }
 
     _updateMeasureNoteMap(artifact) {

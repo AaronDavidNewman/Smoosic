@@ -441,8 +441,8 @@ class SuiTextMenu extends suiMenuBase {
                 ctor:'SmoScoreText',
                 operation:'addScoreText',
                 params: {
-                    position:'title',
-                    text:'Title',
+                    position:'custom',
+                    text:'Score Text',
                 }
             },
             headerText: {

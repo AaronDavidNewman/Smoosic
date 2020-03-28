@@ -609,8 +609,47 @@ class TextButtons {
       this.controller.unbindKeyboardForMenu(this.menus);
       this.menus.createMenu(cmd);
     }
+
+    _addTextPromise(txtObj) {
+        var createDialog = () => {
+            SuiTextTransformDialog.createAndDisplay(
+                {
+                    modifier:txtObj,
+                    buttonElement:this.buttonElement,
+                    buttonData:this.buttonData,
+                    controller:this.controller,
+                    tracker: this.controller.tracker,
+                    layout:this.controller.layout});
+        }
+
+        // Wait for text to be displayed before bringing up edit dialog
+        var waitForDisplay = () => {
+            return new Promise((resolve) => {
+                var waiter = ()  =>{
+                    setTimeout(() => {
+                        if (txtObj.renderedBox) {
+                            resolve();
+                        } else {
+                            waiter();
+                        }
+                    },50);
+                };
+                waiter();
+            });
+        }
+
+        // Treat a created text score like a selected text score that needs to be edited.
+        this.controller.layout.setRefresh();
+        waitForDisplay().then(createDialog);
+    }
     addTextMenu() {
-        this._invokeMenu('SuiTextMenu');
+        var self=this;
+        var txtObj = new SmoScoreText({position:SmoScoreText.positions.custom});
+        SmoUndoable.scoreOp(this.editor.score,'addScoreText',
+           txtObj, this.editor.undoBuffer,'Text Menu Command');
+        setTimeout(function() {
+            self._addTextPromise(txtObj);
+        },1);
     }
 	addDynamicsMenu() {
         this._invokeMenu('SuiDynamicsMenu');

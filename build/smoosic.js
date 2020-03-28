@@ -10079,7 +10079,7 @@ class suiTracker {
 			ar.forEach((lbox) => {
                 svgHelpers.updateArtifactBox(svg,lbox,lyric);
 			});
-		});
+		}); 
     }
 
     _updateMeasureNoteMap(artifact) {
@@ -12104,7 +12104,7 @@ class suiScoreLayout extends suiLayoutBase {
 	renderScoreText(tt) {
 		var svg = this.context.svg;
 		var classes = tt.attrs.id+' '+'score-text'+' '+tt.classes;
-		var args = {svg:this.svg,width:this.logicalPageWidth,height:this.logicalPageHeight,layout:this._score.layout};
+		var args = {svg:this.svg,width:tt.width,height:tt.height,layout:this._score.layout};
 		if (tt.autoLayout === true) {
 			var fcn = tt.position+'TextPlacement';
 			suiTextLayout[fcn](tt,args);
@@ -12374,7 +12374,8 @@ class suiScoreLayout extends suiLayoutBase {
         // justify this column to the maximum width
         var maxMeasure = measures.reduce((a,b) => a.staffX+a.staffWidth > b.staffX+b.staffWidth ? a : b);
         var maxX = maxMeasure.staffX + maxMeasure.staffWidth;
-        var maxAdj = measures.reduce((a,b) => a.adjX > b.adjX  ? a.adjX  : b.adjX);
+        var maxAdjMeasure =measures.reduce((a,b) => a.adjX > b.adjX  ? a  : b);
+        var maxAdj = maxAdjMeasure.adjX;
         measures.forEach((measure) => {
             measure.setWidth(measure.staffWidth + (maxX - (measure.staffX + measure.staffWidth)));
             measure.adjX = maxAdj;
@@ -13739,8 +13740,8 @@ class SuiTextMenu extends suiMenuBase {
                 ctor:'SmoScoreText',
                 operation:'addScoreText',
                 params: {
-                    position:'title',
-                    text:'Title',
+                    position:'custom',
+                    text:'Score Text',
                 }
             },
             headerText: {
@@ -15953,7 +15954,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			}
         ];
     }
-
+    
     display() {
 		$('body').addClass('showAttributeDialog');
 		this.components.forEach((component) => {
@@ -16058,8 +16059,9 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         this.textElement=$(this.layout.context.svg).find('.' + parameters.modifier.attrs.id)[0];
         this.modifier.backupParams();
 	}
-    _commit() {
-
+    _complete() {
+        this.tracker.updateMap(); // update the text map
+        this.complete();
     }
     _bindElements() {
         var self = this;
@@ -16075,20 +16077,20 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
             textEditor.endSession();
             textDragger.endSession();
-			self.complete();
+			self._complete();
 		});
 
 		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
             textEditor.endSession();
             textDragger.endSession();
             self.modifier.restoreParams();
-			self.complete();
+			self._complete();
 		});
 		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
             textEditor.endSession();
             textDragger.endSession();
             SmoUndoable.scoreOp(self.layout.score,'removeScoreText',self.modifier,self.undo,'remove text from dialog');
-			self.complete();
+			self._complete();
 		});
     }
 }
@@ -19694,8 +19696,47 @@ class TextButtons {
       this.controller.unbindKeyboardForMenu(this.menus);
       this.menus.createMenu(cmd);
     }
+
+    _addTextPromise(txtObj) {
+        var createDialog = () => {
+            SuiTextTransformDialog.createAndDisplay(
+                {
+                    modifier:txtObj,
+                    buttonElement:this.buttonElement,
+                    buttonData:this.buttonData,
+                    controller:this.controller,
+                    tracker: this.controller.tracker,
+                    layout:this.controller.layout});
+        }
+
+        // Wait for text to be displayed before bringing up edit dialog
+        var waitForDisplay = () => {
+            return new Promise((resolve) => {
+                var waiter = ()  =>{
+                    setTimeout(() => {
+                        if (txtObj.renderedBox) {
+                            resolve();
+                        } else {
+                            waiter();
+                        }
+                    },50);
+                };
+                waiter();
+            });
+        }
+
+        // Treat a created text score like a selected text score that needs to be edited.
+        this.controller.layout.setRefresh();
+        waitForDisplay().then(createDialog);
+    }
     addTextMenu() {
-        this._invokeMenu('SuiTextMenu');
+        var self=this;
+        var txtObj = new SmoScoreText({position:SmoScoreText.positions.custom});
+        SmoUndoable.scoreOp(this.editor.score,'addScoreText',
+           txtObj, this.editor.undoBuffer,'Text Menu Command');
+        setTimeout(function() {
+            self._addTextPromise(txtObj);
+        },1);
     }
 	addDynamicsMenu() {
         this._invokeMenu('SuiDynamicsMenu');

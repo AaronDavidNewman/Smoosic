@@ -277,7 +277,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			}
         ];
     }
-
+    
     display() {
 		$('body').addClass('showAttributeDialog');
 		this.components.forEach((component) => {
@@ -382,8 +382,9 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         this.textElement=$(this.layout.context.svg).find('.' + parameters.modifier.attrs.id)[0];
         this.modifier.backupParams();
 	}
-    _commit() {
-
+    _complete() {
+        this.tracker.updateMap(); // update the text map
+        this.complete();
     }
     _bindElements() {
         var self = this;
@@ -399,20 +400,20 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
             textEditor.endSession();
             textDragger.endSession();
-			self.complete();
+			self._complete();
 		});
 
 		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
             textEditor.endSession();
             textDragger.endSession();
             self.modifier.restoreParams();
-			self.complete();
+			self._complete();
 		});
 		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
             textEditor.endSession();
             textDragger.endSession();
             SmoUndoable.scoreOp(self.layout.score,'removeScoreText',self.modifier,self.undo,'remove text from dialog');
-			self.complete();
+			self._complete();
 		});
     }
 }

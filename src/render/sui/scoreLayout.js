@@ -81,7 +81,7 @@ class suiScoreLayout extends suiLayoutBase {
 	renderScoreText(tt) {
 		var svg = this.context.svg;
 		var classes = tt.attrs.id+' '+'score-text'+' '+tt.classes;
-		var args = {svg:this.svg,width:this.logicalPageWidth,height:this.logicalPageHeight,layout:this._score.layout};
+		var args = {svg:this.svg,width:tt.width,height:tt.height,layout:this._score.layout};
 		if (tt.autoLayout === true) {
 			var fcn = tt.position+'TextPlacement';
 			suiTextLayout[fcn](tt,args);
@@ -351,7 +351,8 @@ class suiScoreLayout extends suiLayoutBase {
         // justify this column to the maximum width
         var maxMeasure = measures.reduce((a,b) => a.staffX+a.staffWidth > b.staffX+b.staffWidth ? a : b);
         var maxX = maxMeasure.staffX + maxMeasure.staffWidth;
-        var maxAdj = measures.reduce((a,b) => a.adjX > b.adjX  ? a.adjX  : b.adjX);
+        var maxAdjMeasure =measures.reduce((a,b) => a.adjX > b.adjX  ? a  : b);
+        var maxAdj = maxAdjMeasure.adjX;
         measures.forEach((measure) => {
             measure.setWidth(measure.staffWidth + (maxX - (measure.staffX + measure.staffWidth)));
             measure.adjX = maxAdj;
