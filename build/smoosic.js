@@ -2689,6 +2689,9 @@ class SmoLyric extends SmoNoteModifierBase {
 			translateY:0,
 		};
 	}
+    static get parsers() {
+        return {lyric:0,anaylysis:1,chord:2}
+    }
 
     static get parameterArray() {
         return ['text','endChar','fontInfo','classes','verse',
@@ -2699,6 +2702,12 @@ class SmoLyric extends SmoNoteModifierBase {
         smoSerialize.serializedMergeNonDefault(SmoLyric.defaults,
            SmoLyric.parameterArray,this,params);
         return params;
+    }
+
+    updateText(text) {
+        // TODO: handle different parsers
+        text = text ? text: '';
+        this.text = text.trim();
     }
 
     constructor(parameters) {
@@ -8782,6 +8791,7 @@ class VxSystem {
 
     // ### updateLyricOffsets
     // Adjust the y position for all lyrics in the line so they are even.
+    // Also replace '-' with a longer dash do indicate 'until the next measure'
 	updateLyricOffsets() {
         for (var i = 0;i < this.score.staves.length;++i) {
             // is this necessary? They should all be from the current line
@@ -8790,6 +8800,7 @@ class VxSystem {
             });
             // All the lyrics on this line
             var lyrics=[];
+            var lyricsDash = [];
 
             // The vertical bounds on each line
             var verseLimits={};
@@ -8829,7 +8840,28 @@ class VxSystem {
     			lyric.adjY = verseLimits[lyric.verse].bottom -  lyric.logicalBox.y;
     			var dom = $(this.context.svg).find(lyric.selector)[0];
     			dom.setAttributeNS('','transform','translate('+lyric.adjX+' '+lyric.adjY+')');
+                // Keep track of lyrics that are 'dash'
+                if (lyric.text.trim() == '-') {
+                    lyricsDash.push(lyric);
+                }
     		});
+
+            lyricsDash.forEach((lyric) => {
+                var parent = $(this.context.svg).find(lyric.selector)[0];
+                var line = document.createElementNS(svgHelpers.namespace,'line');
+                var ymax = lyric.logicalBox.y + lyric.logicalBox.height/2;
+                var offset = lyric.logicalBox.width/2;
+                line.setAttributeNS('', 'x1', lyric.logicalBox.x - offset);
+                line.setAttributeNS('', 'y1', ymax);
+                line.setAttributeNS('', 'x2', lyric.logicalBox.x + lyric.logicalBox.width + offset);
+                line.setAttributeNS('', 'y2', ymax);
+                line.setAttributeNS('','stroke-width',1);
+                line.setAttributeNS('','fill','none');
+                line.setAttributeNS('','stroke','#999999');
+                parent.appendChild(line);
+                var text = $(this.context.svg).find(lyric.selector).find('text')[0];
+                text.setAttributeNS('','fill','#fff');
+            });
         }
 	}
 
@@ -9844,7 +9876,7 @@ class suiTracker {
     _reboxTextModifier(modifier) {
         var el;
         if (modifier.attrs.type === 'SmoLyric') {
-            el = $(modifier.selector)[0];
+            // el = $(modifier.selector)[0];
         } else if (modifier.attrs.type === 'SmoGraceNote') {
             el = this.context.svg.getElementById('vf-'+modifier.renderedId);
         } else {
@@ -10066,20 +10098,14 @@ class suiTracker {
     // Update the svg to screen coordinates based on a change in viewport.
     _updateNoteBox(svg,smoNote,selector) {
         var el = svg.getElementById(smoNote.renderId);
-        var cursorKey = '' + selector.measure + '-' + selector.tick;
         if (!el) {
             console.warn('no element to box');
             return;
         }
         svgHelpers.updateArtifactBox(svg,el,smoNote);
 
-        // TODO: fix this, only works on the first line.
-        smoNote.getModifiers('SmoLyric').forEach((lyric) => {
-			var ar = Array.from(el.getElementsByClassName('vf-lyric'));
-			ar.forEach((lbox) => {
-                svgHelpers.updateArtifactBox(svg,lbox,lyric);
-			});
-		}); 
+        // removed lyrics - we don't select those directly
+        // so no need to track them.
     }
 
     _updateMeasureNoteMap(artifact) {
@@ -11426,7 +11452,8 @@ class suiLayoutBase {
 			// TODO: handle dynamics split across systems.
 		});
 
-		system.updateLyricOffsets();
+        // Note: this is done elsewhere, after system is rendered.
+		// system.updateLyricOffsets();
 	}
 
     _drawPageLines() {
@@ -11454,6 +11481,7 @@ class suiLayoutBase {
             });
             system.renderEndings();
             this._renderModifiers(change.staff, system);
+            system.updateLyricOffsets();
 
             // Fix a bug: measure change needs to stay true so we recaltulate the width
             change.measure.changed = true;
@@ -12244,6 +12272,29 @@ class suiScoreLayout extends suiLayoutBase {
 
     }
 
+    // ### _checkPageBreak
+    // See if this line breaks the page boundary
+    _checkPageBreak(scoreLayout,currentLine,bottomMeasure) {
+        // See if this measure breaks a page.
+        var maxY = bottomMeasure.logicalBox.y +  bottomMeasure.logicalBox.height;
+        if (maxY > (scoreLayout.pages * scoreLayout.pageHeight) - scoreLayout.bottomMargin) {
+            // When adjusting the page, make it so the top staff of the system
+            // clears the bottom of the page.
+            var topMeasure = currentLine.reduce((a,b) => {
+                return a.logicalBox.y < b.logicalBox.y ? a : b;
+            });
+            var minMaxY = topMeasure.logicalBox.y;
+            var pageAdj = (scoreLayout.pages * scoreLayout.pageHeight) - minMaxY;
+            pageAdj = pageAdj + scoreLayout.topMargin;
+            scoreLayout.pages += 1;
+            currentLine.forEach((measure) => {
+                measure.setBox(svgHelpers.boxPoints(
+                    measure.logicalBox.x,measure.logicalBox.y + pageAdj,measure.logicalBox.width,measure.logicalBox.height));
+                measure.setY(measure.staffY + pageAdj);
+            });
+        }
+    }
+
     layout() {
         var measureIx = 0;
         var systemIndex = 0;
@@ -12256,11 +12307,11 @@ class suiScoreLayout extends suiLayoutBase {
 
         var svg = this.context.svg;
         var scoreLayout = this.scaledScoreLayout;
+        scoreLayout.pages = 1;
 
         var y = scoreLayout.topMargin;
         var x = scoreLayout.leftMargin;
         var currentLine = []; // the system we are esimating
-        var pages = 1;
 
         var lineIndex = 0;
         while (measureIx < this.score.staves[0].measures.length) {
@@ -12278,32 +12329,14 @@ class suiScoreLayout extends suiLayoutBase {
                       return a.logicalBox.y + a.logicalBox.height > b.logicalBox.y + b.logicalBox.height ? a : b;
                   });
 
-                  // See if this measure breaks a page.
-                  var maxY = bottomMeasure.logicalBox.y +  bottomMeasure.logicalBox.height;
-                  if (maxY > (pages * scoreLayout.pageHeight) - scoreLayout.bottomMargin) {
-                      // When adjusting the page, make it so the top staff of the system
-                      // clears the bottom of the page.
-                      var topMeasure = currentLine.reduce((a,b) => {
-                          return a.logicalBox.y < b.logicalBox.y ? a : b;
-                      });
-                      var minMaxY = topMeasure.logicalBox.y;
-                      var pageAdj = (pages * scoreLayout.pageHeight) - minMaxY;
-                      pageAdj = pageAdj + scoreLayout.topMargin;
-                      pages += 1;
+                  this._checkPageBreak(scoreLayout,currentLine,bottomMeasure);
+
+                  if (layoutDebug.mask & layoutDebug.values.system) {
                       currentLine.forEach((measure) => {
-                          measure.setBox(svgHelpers.boxPoints(
-                              measure.logicalBox.x,measure.logicalBox.y + pageAdj,measure.logicalBox.width,measure.logicalBox.height));
-                          measure.setY(measure.staffY + pageAdj);
+                         layoutDebug.debugBox(svg,measure.logicalBox,'system');
+                         layoutDebug.debugBox(svg,svgHelpers.boxPoints(measure.staffX,measure.logicalBox.y,measure.adjX,measure.logicalBox.height),'post');
                       });
                   }
-
-              if (layoutDebug.mask & layoutDebug.values.system) {
-                  currentLine.forEach((measure) => {
-                     layoutDebug.debugBox(svg,measure.logicalBox,'system');
-                     layoutDebug.debugBox(svg,svgHelpers.boxPoints(measure.staffX,measure.logicalBox.y,measure.adjX,measure.logicalBox.height),'post');
-                  });
-              }
-
 
                 // Now start rendering on the next system.
                 y = bottomMeasure.logicalBox.height + bottomMeasure.logicalBox.y + this.score.layout.interGap;
@@ -12315,7 +12348,6 @@ class suiScoreLayout extends suiLayoutBase {
                 x = measureEstimate.x;
             }
 
-
             measureEstimate.measures.forEach((measure) => {
                layoutDebug.debugBox(svg,measure.logicalBox,'pre');
             });
@@ -12323,12 +12355,23 @@ class suiScoreLayout extends suiLayoutBase {
             currentLine = currentLine.concat(measureEstimate.measures);
             measureIx += 1;
             systemIndex += 1;
+            // If this is the last measure but we have not filled the x extent,
+            // still justify the vertical staves and check for page break.
             if (measureIx >= this.score.staves[0].measures.length) {
                 this._justifyY(svg,scoreLayout,measureEstimate,currentLine);
+
+                var bottomMeasure = currentLine.reduce((a,b) => {
+                    return a.logicalBox.y + a.logicalBox.height > b.logicalBox.y + b.logicalBox.height ? a : b;
+                });
+
+                this._checkPageBreak(scoreLayout,currentLine,bottomMeasure);
             }
         }
+        if (scoreLayout.pages != this.score.layout.pages) {
+            this.score.layout.pages = scoreLayout.pages;
+            this.setViewport(true);
+        }
         this.renderAllMeasures();
-
     }
 
     // ### _estimateColumns
@@ -12669,7 +12712,8 @@ class editSvgText {
 
 // ## editLyricSession
 // Another interface between UI and renderer, let the user enter lyrics while
-// navigating through the notes.
+// navigating through the notes.  This class handles the session of editing
+// a single note, and also the logic of skipping from note to note.
 class editLyricSession {
 	static get states() {
         return {stopped:0,started:1,minus:2,space:3,backSpace:4,stopping:5};
@@ -12753,6 +12797,8 @@ class editLyricSession {
             // Only skip to the next lyric if the session is still going on.
             if (self.state != editLyricSession.states.stopped && self.state != editLyricSession.states.stopping) {
                 self._handleSkip();
+            } else {  // session is stopping due to esc.
+                self.notifier.forceEndSession();
             }
         }
 
@@ -12851,12 +12897,16 @@ class editLyricSession {
 			 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
 
 		if (['Space', 'Minus'].indexOf(event.code) >= 0) {
-			this.state =  (event.key == '-') ? editLyricSession.states.minus :  editLyricSession.states.space;
-			this.state = (this.state === editLyricSession.states.space && event.shiftKey)
-			     ? editLyricSession.states.backSpace :  this.state;
-            layoutDebug.addTextDebug('editLyricSession:  handleKeydown skip key for  '+this.selection.note.attrs.id);
-            this.editor.endSession();
-            return;
+            if (editLyricSession.states.minus && event.shiftKey) {
+                // allow underscore
+            } else {
+                this.state =  (event.code == 'Minus') ? editLyricSession.states.minus :  editLyricSession.states.space;
+    			this.state = (this.state === editLyricSession.states.space && event.shiftKey)
+    			     ? editLyricSession.states.backSpace :  this.state;
+                layoutDebug.addTextDebug('editLyricSession:  handleKeydown skip key for  '+this.selection.note.attrs.id);
+                this.editor.endSession();
+                return;
+            }
 		}
 
 		if (event.code == 'Escape') {
@@ -13645,7 +13695,7 @@ class SuiFileMenu extends suiMenuBase {
                     } else {
                         resize();
                     }
-                },50);
+                },500);
             }
 
             resize();
@@ -17125,7 +17175,6 @@ class SuiLyricEditComponent extends SuiComponentBase {
         if (!this.defaultValue) {
             this.defaultValue = 0;
         }
-        this.editMode=false;
         this._verse = 0;
 
         this.dialog = dialog;
@@ -17163,6 +17212,15 @@ class SuiLyricEditComponent extends SuiComponentBase {
             this.editor.detach();
         }
     }
+    // If the user pressed esc., force the end of the session
+    forceEndSession() {
+        var elementDom = $('#'+this.parameterId);
+        this.editor.detach();
+        $(elementDom).find('label').text('Edit Lyrics');
+        $(this.editorButton).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
+        $('body').removeClass('text-edit');
+        $('div.textEdit').addClass('hide');
+    }
     getValue() {
         return this.value;
     }
@@ -17172,7 +17230,11 @@ class SuiLyricEditComponent extends SuiComponentBase {
     }
 
     notifySelectionChanged(selection) {
-        layoutDebug.addTextDebug('SuiLyricEditComponent: lyric notification for ' + selection.note.attrs.id);
+        if (!selection) {
+            layoutDebug.addTextDebug('SuiLyricEditComponent: lyric notification for ' + selection.note.attrs.id);
+        } else {
+            layoutDebug.addTextDebug('SuiLyricEditComponent: no selection');
+        }
         if (this.selection == null || SmoSelector.neq(selection.selector,this.selection.selector)) {
             this.selection = selection;
             this.handleChanged();
@@ -17191,27 +17253,27 @@ class SuiLyricEditComponent extends SuiComponentBase {
     removeLyric() {
         this.editor.removeLyric();
     }
-    startEditSession(selection) {
-        var self=this;
+    get editorButton() {
         var elementDom = $('#'+this.parameterId);
         var button = $(elementDom).find('button');
+        return button;
+    }
+    startEditSession(selection) {
+        var self=this;
         layoutDebug.addTextDebug('SuiLyricEditComponent: create editor request');
 
         if (!this.editor) {
             layoutDebug.addTextDebug('SuiLyricEditComponent: initial create editor request');
             this._startEditor();
-            $(button).off('click').on('click',function() {
+            $(this.editorButton).off('click').on('click',function() {
                 self.handleChanged();
-                 if (self.editor.state == editLyricSession.states.stopped || self.editor.state == editLyricSession.states.stopping)  {
+                 if (self.editor.state == editLyricSession.states.stopped ||
+                     self.editor.state == editLyricSession.states.stopping)  {
                      layoutDebug.addTextDebug('SuiLyricEditComponent: restarting button');
-                     self._startEditor(button);
+                     self._startEditor();
                  } else {
                      layoutDebug.addTextDebug('SuiLyricEditComponent: stopping editor button');
-                     self.editor.detach();
-                     $(elementDom).find('label').text('Edit Lyrics');
-                     $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
-                     $('body').removeClass('text-edit');
-                     $('div.textEdit').addClass('hide');
+                     self.forceEndSession();
                  }
           });
         }
