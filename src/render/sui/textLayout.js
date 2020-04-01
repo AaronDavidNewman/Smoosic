@@ -1,12 +1,12 @@
 
 class suiTextLayout {
-	
+
 	static _getTextBox(scoreText,parameters) {
 		var svg = parameters.svg;
 		if (scoreText.width && scoreText.height && scoreText.boxModel == SmoScoreText.boxModels.wrap) {
 			return svgHelpers.boxPoints(scoreText.x,scoreText.y,scoreText.width,scoreText.height);
 		}
-		return svgHelpers.getTextBox(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);		
+		return svgHelpers.getTextBox(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);
 	}
 	static _saveBox(scoreText,parameters,el) {
 		var svg = parameters.svg;
@@ -29,7 +29,7 @@ class suiTextLayout {
 		scoreText.autoLayout=false; // use custom placement or calculated placement next time
 		suiTextLayout.placeText(scoreText,parameters);
 	}
-	
+
 	static headerTextPlacement(scoreText,parameters) {
 		var svg = parameters.svg;
 		var bbox = suiTextLayout._getTextBox(scoreText,parameters);
@@ -38,7 +38,7 @@ class suiTextLayout {
 		scoreText.autoLayout=false;
 		suiTextLayout.placeText(scoreText,parameters);
 	}
-	
+
 	static footerTextPlacement(scoreText,parameters) {
 		var svg = parameters.svg;
 		var bbox = suiTextLayout._getTextBox(scoreText,parameters);
@@ -47,7 +47,7 @@ class suiTextLayout {
 		scoreText.autoLayout=false;
 		suiTextLayout.placeText(scoreText,parameters);
 	}
-	
+
 	static copyrightTextPlacement(scoreText,parameters) {
 		var svg = parameters.svg;
 		var bbox = suiTextLayout._getTextBox(scoreText,parameters);
@@ -56,25 +56,25 @@ class suiTextLayout {
 		suiTextLayout.placeText(scoreText,parameters);
 		scoreText.autoLayout=false;
 	}
-	
+
 	static placeText(scoreText,parameters) {
 		var svg = parameters.svg;
 		if (scoreText.width && scoreText.height && scoreText.boxModel == SmoScoreText.boxModels.wrap) {
     		suiTextLayout.placeWithWrap(scoreText,parameters);
 		} else {
-			var el = svgHelpers.placeSvgText(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);	
+			var el = svgHelpers.placeSvgText(svg,scoreText.toSvgAttributes(),scoreText.classes,parameters.text,scoreText.attrs.id);
             suiTextLayout._saveBox(scoreText,parameters,el);
 		}
 	}
-	
-	
+
+
 	static _placeWithWrap(scoreText,parameters,justification) {
 		var justifyOnly=false;
 		if (!justification.length) {
 			justifyOnly=true;
 		}
 		var svg = parameters.svg;
-		var words = scoreText.text.split(' ');		
+		var words = scoreText.text.split(' ');
 		var curx = scoreText.x;
 		var left = curx;
 		var right = scoreText.x+scoreText.width;
@@ -93,7 +93,7 @@ class suiTextLayout {
 		if(!justifyOnly) {
 		    justification.splice(0,1);
 		}
-		
+
 		words.forEach((word) => {
 			var bbox = svgHelpers.getTextBox(svg,SmoScoreText.toSvgAttributes(params),scoreText.classes,word);
 			delta = right - (bbox.width + bbox.x);
@@ -101,9 +101,9 @@ class suiTextLayout {
 				params.x=bbox.x;
 				params.y=cury;
 				if (!justifyOnly) {
-                   params.x += justifyAmount;					
+                   params.x += justifyAmount;
 				   svgHelpers.placeSvgText(svg,SmoScoreText.toSvgAttributes(params),scoreText.classes,word);
-				} 
+				}
 			} else {
 				if (!justifyOnly) {
 					justifyAmount = justification[0];
@@ -125,16 +125,16 @@ class suiTextLayout {
 			}
 			curx += bbox.width + 5;
 			params.x = curx;
-			// calculate delta in case this is last time			
-			delta = right - curx; 
-		});	
+			// calculate delta in case this is last time
+			delta = right - curx;
+		});
 		delta = scoreText.justification === SmoScoreText.justifications.right ? delta :
 					    (scoreText.justification === SmoScoreText.justifications.center ? delta/2 : 0);
-        justification.push(delta-5);		
+        justification.push(delta-5);
 	}
 	static placeWithWrap(scoreText,parameters) {
 		var justification=[];
-		
+
 		// One pass is to compute justification for the box model.
 		suiTextLayout._placeWithWrap(scoreText,parameters,justification);
 		suiTextLayout._placeWithWrap(scoreText,parameters,justification);

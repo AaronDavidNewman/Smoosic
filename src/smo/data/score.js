@@ -116,6 +116,7 @@ class SmoScore {
 		jsonObj.scoreText.forEach((tt) => {
             var st = SmoScoreModifierBase.deserialize(tt);
             st.autoLayout = false; // since this has been layed out, presumably, before save
+            st.classes = 'score-text '+ st.attrs.id;
 			scoreText.push(st);
 		});
         var systemGroups = [];

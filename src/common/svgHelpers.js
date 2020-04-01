@@ -210,7 +210,7 @@ class svgHelpers {
         return rv;
     }
 
-	static placeSvgText(svg,attributes,classes,text) {
+	static placeSvgText(svg,attributes,classes,text,id) {
 		var ns = svgHelpers.namespace;
 		var e = document.createElementNS(ns, 'text');
 		attributes.forEach((attr) => {
@@ -220,7 +220,11 @@ class svgHelpers {
 		if (classes) {
 			e.setAttributeNS('', 'class', classes);
 		}
-		e.textContent = text;
+        var dp = new DOMParser();
+        var id = id ? id : 'smootext';
+        var tn = dp.parseFromString('<tspan xmlns="http://www.w3.org/2000/svg" id="'+id+'">'+text+'</tspan>','application/xml');
+        var st = tn.getElementById(id);
+		e.appendChild(st);
 		svg.appendChild(e);
 		return e;
 	}

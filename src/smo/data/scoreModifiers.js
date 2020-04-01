@@ -91,7 +91,7 @@ class SmoSystemGroup extends SmoScoreModifierBase {
 class SmoScoreText extends SmoScoreModifierBase {
 
     static get paginations() {
-		return {every:'every',even:'even',odd:'odd',once:'once'}
+		return {every:'every',even:'even',odd:'odd',once:'once',subsequent:'subsequent'}
 	}
 	static get positions() {
 		return {title:'title',copyright:'copyright',footer:'footer',header:'header',custom:'custom'};
@@ -131,7 +131,7 @@ class SmoScoreText extends SmoScoreModifierBase {
 			scaleY:1.0,
 			translateX:0,
 			translateY:0,
-			pagination:'every',
+			pagination:'once',
 			position:'custom',
 			autoLayout:false // set to true if one of the pre-canned positions are used.
         };
@@ -171,7 +171,7 @@ class SmoScoreText extends SmoScoreModifierBase {
 
     restoreParams() {
         smoSerialize.serializedMerge(SmoScoreText.attributes, this.backup, this);
-    }
+    }//
 
 	serialize() {
 		var params = {};
@@ -216,10 +216,6 @@ class SmoScoreText extends SmoScoreModifierBase {
         if (this.classes.indexOf(this.attrs.id) < 0) {
             this.classes += ' '+this.attrs.id;
         }
-		if (!parameters.pagination) {
-			this.pagination = this.position==SmoScoreText.positions.custom || this.position==SmoScoreText.positions.title ?
-              SmoScoreText.paginations.every : 	SmoScoreText.paginations.once;
-		}
 		if (this.boxModel === SmoScoreText.boxModels.wrap) {
 			this.width = parameters.width ? this.width : 200;
 			this.height = parameters.height ? this.height : 150;

@@ -157,7 +157,8 @@ class smoSerialize {
     "wd": "ratioed",
     "xd": "location",
      "yd": "systemGroups",
-     "zd": "leftConnector"
+     "zd": "leftConnector",
+     "ae": "padLeft"
     }`
       ;
      return JSON.parse(_tm);

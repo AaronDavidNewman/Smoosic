@@ -141,14 +141,17 @@ class suiPiano {
 		var padding = Math.round(window.innerWidth - suiPiano.owidth*suiPiano.dimensions.octaves)/2;
 		$(this.renderElement).closest('div').css('margin-left',''+padding+'px');
 	}
+    playNote(selections) {
+        this.tracker.selections.forEach((sel) => {
+            SmoUndoable.addPitch(sel, selections, this.undoBuffer);
+            suiOscillator.playSelectionNow(sel);
+        });
+        this.tracker.replaceSelectedMeasures();
+    }
     bindKeys() {
         var self = this;
         $('body').off('smo-piano-key').on('smo-piano-key',function(ev,obj) {
-			obj=obj.selections;
-			self.tracker.selections.forEach((sel) => {
-                SmoUndoable.addPitch(sel, obj, self.undoBuffer);
-                suiOscillator.playSelectionNow(sel);
-			});
+			self.playNote(obj.selections);
 		});
     }
 	render() {

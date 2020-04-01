@@ -648,7 +648,17 @@ class TextButtons {
     }
     addTextMenu() {
         var self=this;
+        var scrollPosition = this.tracker.scroller.absScroll;
+        console.log('text ribbon: scroll y is '+scrollPosition.y);
+
+        scrollPosition.y = scrollPosition.y / (this.tracker.layout.score.layout.svgScale * this.tracker.layout.score.layout.zoomScale);
+        scrollPosition.x = scrollPosition.x / (this.tracker.layout.score.layout.svgScale * this.tracker.layout.score.layout.zoomScale);
+        console.log('text ribbon: converted scroll y is '+scrollPosition.y);
+        // scrollPosition = svgHelpers.clientToLogical(this.tracker.context.svg,scrollPosition);
+        // console.log('text ribbon: svg scroll y is '+scrollPosition.y);
         var txtObj = new SmoScoreText({position:SmoScoreText.positions.custom});
+        txtObj.x = scrollPosition.x + 100;
+        txtObj.y = scrollPosition.y + 100;
         SmoUndoable.scoreOp(this.editor.score,'addScoreText',
            txtObj, this.editor.undoBuffer,'Text Menu Command');
         setTimeout(function() {

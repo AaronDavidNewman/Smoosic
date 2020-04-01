@@ -80,7 +80,9 @@ class suiScroller  {
     }
 
     // ### scrollBox
-    // get the current viewport, in scrolled coordinates.
+    // get the current viewport, in scrolled coordinates.  When tracker maps the
+    // music element to client coordinates, these are the coordinates used in the
+    // map
     get scrollBox() {
         return svgHelpers.boxPoints(this.viewport.x + this.netScroll.x,
          this.viewport.y + this.netScroll.y,
@@ -89,9 +91,21 @@ class suiScroller  {
       );
     }
 
+    get absScroll() {
+        var x = $('.musicRelief').offset().left + $('.musicRelief')[0].scrollLeft;
+        var y = $('.musicRelief').offset().top + $('.musicRelief')[0].scrollTop;
+        return svgHelpers.boxPoints(x,
+         y,
+         this.viewport.width,
+          this.viewport.height
+      );
+
+    }
+
     // ### scrollOffset
     // scroll the offset from the starting scroll point
     scrollOffset(x,y) {
+        var self = this;
         var cur = {x:this._scroll.x,y:this._scroll.y};
         setTimeout(function() {
             if (x) {
@@ -100,6 +114,8 @@ class suiScroller  {
             if (y) {
                 $('.musicRelief')[0].scrollTop = cur.y + y;
             }
+
+            self.handleScroll( $('.musicRelief')[0].scrollLeft,$('.musicRelief')[0].scrollTop);
         },1);
     }
 

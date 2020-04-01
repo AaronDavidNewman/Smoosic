@@ -120,8 +120,12 @@ class SuiLyricDialog extends SuiDialogBase {
     }
     changed() {
         this.editor.verse = this.verse.getValue();
+        // Note, when selection changes, we need to wait for the text edit session
+        // to start on the new selection.  Then this.editor.changeFlag is set and
+        // we can focus on the selection if it is not visible.
         if (this.editor.changeFlag && this.editor.selection) {
             this.tracker.setSelection(this.editor.selection.selector);
+            this._focusSelection();
         }
         if (this.removeLyricControl.changeFlag) {
             layoutDebug.addTextDebug('SuiLyricEditDialog:remove lyric ');
@@ -131,12 +135,10 @@ class SuiLyricDialog extends SuiDialogBase {
         if (this.nextWordControl.changeFlag) {
             layoutDebug.addTextDebug('SuiLyricEditDialog: next word button ');
             this.editor.editor.nextWord();
-            this._focusSelection();
         }
         if (this.previousWordControl.changeFlag) {
             layoutDebug.addTextDebug('SuiLyricEditDialog: previous word button ');
             this.editor.editor.previousWord();
-            this._focusSelection();
         }
     }
     _bindElements() {
@@ -148,13 +150,15 @@ class SuiLyricDialog extends SuiDialogBase {
         this.removeLyricControl = this.components.find((comp) => {return comp.smoName == 'removeLyric';});
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            self.complete();
             self.tracker.replaceSelectedMeasures();
+            self.tracker.layout.setDirty();
+            self.complete();
 		});
         $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
             self.layout.score = self.undo.undo(self.layout.score);
-            self.complete();
             self.tracker.replaceSelectedMeasures();
+            self.tracker.layout.setDirty();
+            self.complete();
 		});
         $(dgDom.element).find('.remove-button').remove();
         this.editor.startEditSession();
@@ -275,20 +279,19 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 				label: 'Units',
                 options: [{value:'em',label:'em'},{value:'px',label:'px'},{value:'pt',label:'pt'}]
 			},
-            { // {title:'title',copyright:'copyright',footer:'footer',header:'header',custom:'custom'}
-				smoName: 'position',
-				parameterName: 'position',
-				defaultValue: SmoScoreText.positions.custom,
+            { // {every:'every',even:'even',odd:'odd',once:'once'}
+				smoName: 'pagination',
+				parameterName: 'pagination',
+				defaultValue: SmoScoreText.paginations.every,
 				control: 'SuiDropdownComponent',
-				label:'Text Position',
+				label:'Page Behavior',
                 startRow:true,
-				options: [{value:'title',label:'Title'},
-                  {value:'copyright',label:'Copyright'},
-                  {label:'Footer',value:'footer'},
-                  {label:'Header',value:'header'},
-                  {label:'Custom',value:'custom'}
+				options: [{value:'once',label:'Once'},
+                  {value:'every',label:'Every'},
+                  {label:'Even',value:'even'},
+                  {label:'Odd',value:'odd'},
+                  {label:'Subsequent',value:'subsequent'}
                   ]
-
 			}
         ];
     }
@@ -313,8 +316,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         dbFontSize.setValue(fontSize.size);
         dbFontUnit.setValue(fontSize.unit);
 
-        this.positionComponent = this.components.find((c) => c.smoName == 'position');
-        this.positionComponent.setValue(this.modifier.position);
+        this.paginationsComponent = this.components.find((c) => c.smoName == 'pagination');
+        this.paginationsComponent.setValue(this.modifier.pagination);
 
 		this._bindElements();
 		this.position(this.modifier.renderedBox);
@@ -357,7 +360,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
                 }
             }
 		});
-        this.modifier.position = this.positionComponent.getValue();
+
         var xcomp = this.components.find((x) => x.smoName === 'x');
         var ycomp = this.components.find((x) => x.smoName === 'y');
         if (this.textDragger.dragging) {
@@ -370,6 +373,10 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 
         var fontComp = this.components.find((c) => c.smoName === 'fontFamily');
         this.modifier.fontInfo.family = fontComp.getValue();
+
+        if (this.paginationsComponent.changeFlag) {
+            this.modifier.pagination = this.paginationsComponent.getValue();
+        }
 
         var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
         var dbFontUnit  = this.components.find((c) => c.smoName === 'fontUnit');
@@ -397,12 +404,13 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 		Vex.Merge(this, parameters);
 
         // Do we jump right into editing?
-        this.undo = parameters.undo;
+        this.undo = parameters.controller.undoBuffer;
         this.textElement=$(this.layout.context.svg).find('.' + parameters.modifier.attrs.id)[0];
         this.modifier.backupParams();
 	}
     _complete() {
         this.tracker.updateMap(); // update the text map
+        this.layout.setDirty();
         this.complete();
     }
     _bindElements() {

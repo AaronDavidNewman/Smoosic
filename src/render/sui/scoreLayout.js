@@ -80,14 +80,43 @@ class suiScoreLayout extends suiLayoutBase {
 
 	renderScoreText(tt) {
 		var svg = this.context.svg;
+        var scoreLayout = this.scaledScoreLayout;
 		var classes = tt.attrs.id+' '+'score-text'+' '+tt.classes;
-		var args = {svg:this.svg,width:tt.width,height:tt.height,layout:this._score.layout};
+        var text = tt.text.replace('###',1); /// page number
+        text = text.replace('@@@',scoreLayout.pages); /// page number
+		var args = {svg:this.svg,width:tt.width,height:tt.height,layout:this._score.layout,text:text};
 		if (tt.autoLayout === true) {
 			var fcn = tt.position+'TextPlacement';
 			suiTextLayout[fcn](tt,args);
 		} else {
-			suiTextLayout.placeText(tt,args);
+		    suiTextLayout.placeText(tt,args);
 		}
+
+        // Update paginated score text
+        if (tt.pagination != SmoScoreText.paginations.once) {
+            for (var i = 1;i<scoreLayout.pages;++i) {
+                if (tt.pagination == SmoScoreText.paginations.even &&
+                    i % 2 > 0)  {
+                        continue;
+                    }
+                else if (tt.pagination == SmoScoreText.paginations.odd &&
+                   i % 2 == 0) {
+                    continue;
+                }
+                else if (tt.pagination == SmoScoreText.paginations.subsequent
+                   && i == 1) {
+                       continue;
+                   }
+
+                var xx = new SmoScoreText(tt);
+                xx.classes = 'score-text '+xx.attrs.id;
+                xx.text = xx.text.replace('###',i + 1); /// page number
+                xx.text = xx.text.replace('@@@',scoreLayout.pages); /// page number
+                xx.y += scoreLayout.pageHeight*i;
+                args.text = xx.text;
+                suiTextLayout.placeText(xx,args);
+            }
+        }
 	}
 	_renderScoreModifiers() {
 		var svg = this.context.svg;
