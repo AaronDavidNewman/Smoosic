@@ -191,7 +191,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 				parameterName: 'textBox',
 				defaultValue: 0,
 				control: 'SuiResizeTextBox',
-				label:'Coming Soon',
+				label:'Resize Text',
 				options: []
 			},
             {
@@ -279,6 +279,13 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 				label: 'Units',
                 options: [{value:'em',label:'em'},{value:'px',label:'px'},{value:'pt',label:'pt'}]
 			},
+            {
+				smoName: 'wrap',
+				parameterName: 'wrap',
+                defaultValue: false,
+    			control:'SuiToggleComponent',
+				label: 'Wrap Text'
+			},
             { // {every:'every',even:'even',odd:'odd',once:'once'}
 				smoName: 'pagination',
 				parameterName: 'pagination',
@@ -301,13 +308,11 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 		this.components.forEach((component) => {
 			component.bind();
 
-            if (component.smoName === 'textDragger') {
-                this.textDragger = component;
-            }
             if (typeof(component['setValue'])=='function' && this.modifier[component.parameterName]) {
 			  component.setValue(this.modifier[component.parameterName]);
             }
 		});
+        this._bindComponentNames();
 
         var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
         var dbFontUnit  = this.components.find((c) => c.smoName === 'fontUnit');
@@ -315,6 +320,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         fontSize=svgHelpers.getFontSize(fontSize);
         dbFontSize.setValue(fontSize.size);
         dbFontUnit.setValue(fontSize.unit);
+
+        this.wrapCtrl.setValue(this.modifier.boxModel != SmoScoreText.boxModels.none);
 
         this.paginationsComponent = this.components.find((c) => c.smoName == 'pagination');
         this.paginationsComponent.setValue(this.modifier.pagination);
@@ -331,19 +338,27 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			moveParent: true
 		});
         $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
-            if ($(ctrl).hasClass('cbTextInPlace')) {
-                $(ctrl).addClass('fold-textmove');
-            } else if ($(ctrl).hasClass('cbDragTextDialog')) {
-                $(ctrl).addClass('fold-textedit');
-            } else {
-                $(ctrl).addClass('fold-textedit');
-                $(ctrl).addClass('fold-textmove');
-            }
-        });
+           if ($(ctrl).hasClass('cbTextInPlace')) {
+               $(ctrl).addClass('fold-textmove');
+               $(ctrl).addClass('fold-textresize');
+           } else if ($(ctrl).hasClass('cbDragTextDialog')) {
+               $(ctrl).addClass('fold-textedit');
+               $(ctrl).addClass('fold-textresize');
+           } else if ($(ctrl).hasClass('cbResizeTextBox')) {
+               $(ctrl).addClass('fold-textedit');
+               $(ctrl).addClass('fold-textmove');
+           } else {
+               $(ctrl).addClass('fold-textedit');
+               $(ctrl).addClass('fold-textmove');
+               $(ctrl).addClass('fold-textresize');
+           }
+       });
+
+        // If this control has not been edited this session, assume they want to
+        // edit the text and just right into that.
         if (!this.modifier.edited) {
             this.modifier.edited = true;
-            var textEditor = this.components.find((c) => c.smoName === 'textEditor');
-            textEditor.startEditSession();
+            this.textEditorCtrl.startEditSession();
         }
 	}
 
@@ -351,6 +366,28 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 
         var textEditor = this.components.find((c) => c.smoName === 'textEditor');
         this.modifier.text = textEditor.getValue();
+
+        if (this.wrapCtrl.changeFlag) {
+            var boxModel = this.wrapCtrl.getValue() ? SmoScoreText.boxModels.wrap :
+                SmoScoreText.boxModels.none;
+            this.modifier.boxModel = boxModel;
+            if (boxModel ==  SmoScoreText.boxModels.wrap) {
+                this.modifier.scaleX = this.modifier.scaleY = 1.0;
+                this.modifier.translateX = this.modifier.translateY = 1.0;
+                this.modifier.width = this.modifier.logicalBox.width;
+                this.modifier.height = this.modifier.logicalBox.height;
+            }
+
+        }
+
+        // If we resized the text, set the size components from the actual text
+        // object that was resized.
+        if (this.textResizerCtrl.changeFlag) {
+            this.xCtrl.setValue(this.modifier.x);
+            this.yCtrl.setValue(this.modifier.y);
+            this.scaleXCtrl.setValue(this.modifier.scaleX);
+            this.scaleYCtrl.setValue(this.modifier.scaleY);
+        }
         this.components.find((x) => {
             if (typeof(x['getValue'])=='function') {
                 if (x.parameterName.indexOf('scale') == 0) {
@@ -363,8 +400,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 
         var xcomp = this.components.find((x) => x.smoName === 'x');
         var ycomp = this.components.find((x) => x.smoName === 'y');
-        if (this.textDragger.dragging) {
-            var val = this.textDragger.getValue();
+        if (this.textDraggerCtrl.dragging) {
+            var val = this.textDraggerCtrl.getValue();
             xcomp.setValue(val.x);
             ycomp.setValue(val.y);
         }
@@ -417,28 +454,26 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         var self = this;
         this.bindKeyboard();
 		var dgDom = this.dgDom;
-        var textEditor = this.components.find((c) => c.smoName === 'textEditor');
-        var textDragger = this.components.find((c) => c.smoName === 'textDragger');
         var fontComp = this.components.find((c) => c.smoName === 'fontFamily');
 
         fontComp.setValue(this.modifier.fontInfo.family);
 
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            textEditor.endSession();
-            textDragger.endSession();
+            self.textEditorCtrl.endSession();
+            self.textDraggerCtrl.endSession();
 			self._complete();
 		});
 
 		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-            textEditor.endSession();
-            textDragger.endSession();
+            self.textEditorCtrl.endSession();
+            self.textDraggerCtrl.endSession();
             self.modifier.restoreParams();
 			self._complete();
 		});
 		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-            textEditor.endSession();
-            textDragger.endSession();
+            self.textEditorCtrl.endSession();
+            self.textDraggerCtrl.endSession();
             SmoUndoable.scoreOp(self.layout.score,'removeScoreText',self.modifier,self.undo,'remove text from dialog');
 			self._complete();
 		});

@@ -1618,16 +1618,16 @@ class htmlHelpers {
 	static get focusableElements() {
 		return ['a', 'input', 'select', 'textarea', 'button', 'li[tabindex]', 'div[tabindex]'];
 	}
-    static addFileLink(filename,txt,parent) {        
+    static addFileLink(filename,txt,parent) {
         var anchor = $('<a></a>');
         var url = URL.createObjectURL(new Blob([txt],{type:'application/octet-stream'}));
         $(anchor).attr('href',url);
         $(anchor).attr('download',filename);
         $(anchor).text('save');
         $(parent).html('');
-        $(parent).append(anchor);    
+        $(parent).append(anchor);
     }
-    
+
 	static inputTrapper(selector) {
 		var trapper = function () {
 			this.parent = $(selector);
@@ -1720,7 +1720,7 @@ class draggable {
 		this.handle = parameters.handle;
         this.animeClass = parameters.animateDiv;
         this.dragParent = parameters.dragParent;
-        
+
 		this.svg=parameters['svg'];
 		this.width = $(this.parent).outerWidth();
 		this.height = $(this.parent).outerHeight();
@@ -1758,7 +1758,7 @@ class draggable {
 		this.lastY = e.clientY;
 		$(this.animeClass).css('left', this.lastX);
 		$(this.animeClass).css('top', this.lastY);
-        
+
         if (this.dragParent) {
             $(this.parent).css('left', this.lastX + 'px');
 			$(this.parent).css('top', this.lastY + 'px');
@@ -5540,7 +5540,7 @@ class smoTickIterator {
         }
         return defaultAccidental;
     }
-    
+
     // ### _iterate
     // Internal callback for iterator.
     _iterate(actor) {
@@ -12840,7 +12840,7 @@ class editLyricSession {
         if (this.editor) {
             layoutDebug.addTextDebug('editLyricSession: _editCurrentLyric dispense with editor ' + this.editor.id);
         }
-        this.editor = new editSvgText({target:this.textElement,layout:this.tracker.layout,fontInfo:this.fontInfo});
+        this.editor = new editSvgText({target:this.textElement,xOffset:0,yOffset:0,layout:this.tracker.layout,fontInfo:this.fontInfo});
         this.state = editLyricSession.states.started;
         var self = this;
         function handleSkip() {
@@ -14374,7 +14374,7 @@ class utController {
 
 	render() {
         var ix = 0;
-        this.layout.layout();		
+        this.layout.layout();
 	}
 
 	bindEvents() {}
@@ -14645,7 +14645,7 @@ class SuiExceptionHandler {
 				altKey: false,
 				shiftKey: false,
 				action: "tempoDialog"
-			}, 
+			},
 			{
 				event: "keydown",
 				key: "3",
@@ -14928,7 +14928,7 @@ class SuiExceptionHandler {
 }
 ;
 class defaultTrackerKeys {
-	
+
 	static get keys() {
 		return [{
 				event: "keydown",
@@ -17058,10 +17058,11 @@ class SuiDragText extends SuiComponentBase {
         var draggingCb = function() {
             self._handleDragging();
         }
-        this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
+        var modifier = this.dialog.modifier;
+        this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
         var value = this.textElement.getBBox();
         this.value = {x:value.x,y:value.y};
-        this.editor = new editSvgText({target:this.textElement,layout:this.dialog.layout,fontInfo:this.fontInfo});
+        this.editor = new editSvgText({target:this.textElement,xOffset:modifer.translateX,yOffset:modifier.translateY,layout:this.dialog.layout,fontInfo:this.fontInfo});
         var button = document.getElementById(this.parameterId);
         $(button).find('span.icon').removeClass('icon-move').addClass('icon-checkmark');
         $('.textEdit').removeClass('hide');
@@ -17136,9 +17137,12 @@ class SuiResizeTextBox extends SuiComponentBase {
     startEditSession() {
         var self=this;
         if (!this.editor) {
-          this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
+          var modifier = this.dialog.modifier;
+          this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
           this.value = this.textElement.textContent;
-          this.editor = new editSvgText({target:this.textElement,layout:this.dialog.layout,fontInfo:this.fontInfo});
+          this.editor = new editSvgText({target:this.textElement,
+              xOffset:modifier.translateX,yOffset:modifier.translateY,
+              layout:this.dialog.layout,fontInfo:this.fontInfo});
           var button = document.getElementById(this.parameterId);
           $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
           this.editor.startSessionPromise().then(function() {

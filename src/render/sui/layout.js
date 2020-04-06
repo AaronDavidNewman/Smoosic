@@ -117,7 +117,7 @@ class suiLayoutBase {
 		}
 		// this.renderer.resize(this.pageWidth, this.pageHeight);
 
-		svgHelpers.svgViewport(this.context.svg, this.pageWidth, this.totalHeight, this.svgScale);
+		svgHelpers.svgViewport(this.context.svg, 0, 0, this.pageWidth, this.totalHeight, this.svgScale);
 
 		this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
 		this.resizing = false;

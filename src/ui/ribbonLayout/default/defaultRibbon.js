@@ -9,7 +9,7 @@ class defaultRibbonLayout {
 		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds)
             .concat(defaultRibbonLayout.beamIds).concat(defaultRibbonLayout.measureIds).concat(defaultRibbonLayout.staveIds)
               .concat(defaultRibbonLayout.textIds).concat(defaultRibbonLayout.playerIds)
-              .concat(defaultRibbonLayout.voiceButtonIds).concat(defaultRibbonLayout.debugIds);
+              .concat(defaultRibbonLayout.voiceButtonIds).concat(defaultRibbonLayout.displayIds).concat(defaultRibbonLayout.debugIds);
 
 		return {
 			left: left,
@@ -27,7 +27,7 @@ class defaultRibbonLayout {
 			defaultRibbonLayout.durationRibbonButtons).concat(defaultRibbonLayout.beamRibbonButtons).concat(defaultRibbonLayout.measureRibbonButtons)
 			.concat(defaultRibbonLayout.staveRibbonButtons)
             .concat(defaultRibbonLayout.textRibbonButtons).concat(defaultRibbonLayout.playerButtons)
-            .concat(defaultRibbonLayout.voiceRibbonButtons).concat(defaultRibbonLayout.debugRibbonButtons);
+            .concat(defaultRibbonLayout.voiceRibbonButtons).concat(defaultRibbonLayout.displayButtons).concat(defaultRibbonLayout.debugRibbonButtons);
 	}
 
 	static get leftRibbonIds() {
@@ -87,6 +87,11 @@ class defaultRibbonLayout {
         return ['MicrotoneButtons','flat75sz','flat25sz','flat25ar','flat125ar','sharp75','sharp125','sharp25','sori','koron'];
     }
 
+    static get displayIds() {
+        return ['displaySettings','refresh','zoomout','zoomin'];
+    }
+
+
     static get textRibbonButtons() {
         return [
         {
@@ -137,6 +142,47 @@ class defaultRibbonLayout {
 				id: 'addDynamicsMenu'
 		}
         ];
+    }
+    static get displayButtons() {
+        return [{
+			leftText: '',
+				rightText: '',
+				classes: 'icon  hide',
+				icon: 'icon-zoomplus',
+				action: 'collapseParent',
+				ctor: 'CollapseRibbonControl',
+				group: 'displaySettings',
+				id: 'displaySettings'
+		},{
+            leftText: '',
+				rightText: '',
+				classes: 'icon   refresh',
+				icon: 'icon-refresh',
+				action: 'collapseChild',
+				ctor: 'DisplaySettings',
+				group: 'displaySettings',
+				id: 'refresh'
+        },{
+            leftText: '',
+				rightText: '',
+				classes: 'icon   refresh',
+				icon: 'icon-zoomplus',
+				action: 'collapseChild',
+				ctor: 'DisplaySettings',
+				group: 'displaySettings',
+				id: 'zoomout'
+        },{
+            leftText: '',
+				rightText: '',
+				classes: 'icon   refresh',
+				icon: 'icon-zoomminus',
+				action: 'collapseChild',
+				ctor: 'DisplaySettings',
+				group: 'displaySettings',
+				id: 'zoomin'
+        },
+
+    ];
     }
 
     static get microtoneButtons() {

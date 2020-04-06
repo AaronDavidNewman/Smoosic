@@ -99,17 +99,18 @@ class svgHelpers {
 	}
 
     static rect(svg,box,attrs,classes) {
-        var rect = document.createELementNS(svgHelpers.namespace,'rect');
-        attrs.forEach((attr) => {
-            var key = Object.keys(attr)[0];
+        var rect = document.createElementNS(svgHelpers.namespace,'rect');
+        var attrKeys = Object.keys(attrs);
+        attrKeys.forEach((key) => {
+            var val = attrs[key];
             key = (key == 'strokewidth') ? 'stroke-width' : key;
-            var val = attr[key];
             rect.setAttributeNS('', key, val);
         });
         if (classes) {
             rect.setAttributeNS('','class',classes);
         }
         svg.appendChild(rect);
+        return rect;
     }
 
     static line(svg,x1,y1,x2,y2,attrs,classes) {
@@ -126,8 +127,8 @@ class svgHelpers {
         attrs = (attrs) ? attrs : [];
         attrs.forEach((attr) => {
             var key = Object.keys(attr)[0];
-            key = (key == 'strokewidth') ? 'stroke-width' : key;
             var val = attr[key];
+            key = (key == 'strokewidth') ? 'stroke-width' : key;
             line.setAttributeNS('', key, val);
         });
         if (classes) {
@@ -439,10 +440,10 @@ class svgHelpers {
 
 	// ### svgViewport
 	// set `svg` element to `width`,`height` and viewport `scale`
-	static svgViewport(svg, width, height, scale) {
+	static svgViewport(svg, xOffset,yOffset,width, height, scale) {
 		svg.setAttributeNS('', 'width', '' + width);
 		svg.setAttributeNS('', 'height', '' + height);
-		svg.setAttributeNS('', 'viewBox', '0 0 ' + Math.round(width / scale) + ' ' +
+		svg.setAttributeNS('', 'viewBox', ''+xOffset + ' ' + yOffset + ' ' + Math.round(width / scale) + ' ' +
 			Math.round(height / scale));
 	}
 

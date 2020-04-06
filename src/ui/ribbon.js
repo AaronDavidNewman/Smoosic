@@ -586,6 +586,39 @@ class PlayerButtons {
     }
 }
 
+class DisplaySettings {
+    constructor(parameters) {
+    this.buttonElement = parameters.buttonElement;
+    this.buttonData = parameters.buttonData;
+    this.tracker = parameters.tracker;
+    this.layout = this.tracker.layout;
+    this.controller = parameters.controller;
+    }
+
+    refresh() {
+        this.layout.setViewport(true);
+        this.layout.setRefresh();
+    }
+    zoomout() {
+        this.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
+        this.layout.score.layout.zoomScale = this.layout.score.layout.zoomScale * 1.1;
+        this.layout.setViewport();
+        this.layout.setRefresh();
+    }
+    zoomin() {
+        this.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
+        this.layout.score.layout.zoomScale = this.layout.score.layout.zoomScale / 1.1;
+        this.layout.setViewport();
+        this.layout.setRefresh();
+    }
+
+    bind() {
+        var self = this;
+        $(this.buttonElement).off('click').on('click', function () {
+            self[self.buttonData.id]();
+        });
+    }
+}
 class TextButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;

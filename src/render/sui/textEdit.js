@@ -3,14 +3,23 @@
 
 // ## editSvgText
 // A class that implements very basic text editing behavior in an svg text node
+// params must supply the following:
+// 1. target: an svg text element
+// 2. textObject: a text object described below.
+// 3. layout: the page layout information, used to create the shadow editor in the DOM
+// The textObject must have the following attributes:
+// 1. text (the text to render initially)
+// 2. translateX, translateY, scaleX, scaleY for svg text element
+// 3. fontInfo from smoScoreText and other text objects
 class editSvgText {
     constructor(params) {
         this.target = params.target;
         var ns = svgHelpers.namespace;
         this.layout = params.layout;
-        this.fontInfo = params.fontInfo;
+        this.fontInfo = params.textObject.fontInfo;
 		this.svg = document.createElementNS(ns, 'svg');
         this.editText = document.createElementNS(ns, 'text');
+        this.textObject = params.textObject;
         this.attrAr = [];
         this.id = VF.Element.newID();
 
@@ -29,10 +38,16 @@ class editSvgText {
         this.oldFill = this.target.getAttributeNS(null,'fill');
         this.target.setAttributeNS(null,'fill','#fff');
 
-        this.editText.textContent=this.target.textContent;
-        this._value = this.editText.textContent;
-        this.clientBox = svgHelpers.smoBox(svgHelpers.smoBox(this.target.getBoundingClientRect()));
+        this.editText.textContent=this.textObject.text;
+        this._value = this.textObject.text;
         var svgBox = svgHelpers.smoBox(this.target.getBBox());
+        this.clientBox = svgHelpers.smoBox(svgHelpers.smoBox(this.target.getBoundingClientRect()));
+        if (this.textObject.boxModel != 'none') {
+            svgBox = svgHelpers.boxPoints(this.textObject.x,this.textObject.y,this.textObject.width,this.textObject.height);
+            var boxDims = svgHelpers.logicalToClient(this.svg,svgBox);
+            this.clientBox.width = boxDims.width;
+            this.clientBox.height = boxDims.height;
+        }
         this.editText.setAttributeNS('','y',svgBox.height);
 
         $('.textEdit').html('');
@@ -42,13 +57,13 @@ class editSvgText {
         $('.textEdit').append(r.dom());
         $('.textEdit').append(this.svg);
         $('.textEdit').removeClass('hide').attr('contentEditable','true');
-        this.setEditorPosition(this.clientBox,svgBox);
+        this.setEditorPosition(this.clientBox,svgBox,params);
         layoutDebug.addTextDebug('editSvgText: ctor '+this.id);
     }
 
     setEditorPosition(clientBox,svgBox) {
         var box = svgHelpers.pointBox(this.layout.pageWidth, this.layout.pageHeight);
-        svgHelpers.svgViewport(this.svg, box.x, box.y,this.layout.svgScale);
+        svgHelpers.svgViewport(this.svg, this.textObject.translateX,this.textObject.translateY, box.x,box.y,this.layout.svgScale);
 
         $('.textEdit').css('top',this.clientBox.y-5)
           .css('left',this.clientBox.x-5)
@@ -98,7 +113,7 @@ class editSvgText {
           if (nbox.width > this.clientBox.width) {
              this.clientBox.width = nbox.width + nbox.width*.3;
              this.clientBox.height = nbox.height;
-             this.setEditorPosition(this.clientBox,svgBox);
+             this.setEditorPosition(this.clientBox,svgBox,{xOffset:0,yOffset:0});
            }
         }
         if (!this.editText.textContent) {
@@ -217,7 +232,9 @@ class editLyricSession {
         if (this.editor) {
             layoutDebug.addTextDebug('editLyricSession: _editCurrentLyric dispense with editor ' + this.editor.id);
         }
-        this.editor = new editSvgText({target:this.textElement,layout:this.tracker.layout,fontInfo:this.fontInfo});
+        this.editor = new editSvgText({target:this.textElement,
+            textObject:this.lyric,
+            layout:this.tracker.layout});
         this.state = editLyricSession.states.started;
         var self = this;
         function handleSkip() {

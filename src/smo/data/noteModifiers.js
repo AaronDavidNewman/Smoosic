@@ -303,6 +303,11 @@ class SmoLyric extends SmoNoteModifierBase {
 		smoSerialize.serializedMerge(SmoLyric.parameterArray, SmoLyric.defaults,this);
 		smoSerialize.serializedMerge(SmoLyric.parameterArray, parameters, this);
 
+        // Return these for the text editor that expects them.
+        this.translateX = this.translateY = 0;
+        this.scaleX = this.scaleY = 1.0;
+        this.boxModel = 'none';
+
         // calculated adjustments for alignment purposes
 		this.adjY=0;
         this.adjX = 0;

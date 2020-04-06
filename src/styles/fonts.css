@@ -1,9 +1,9 @@
 @font-face {
   font-family: 'smoosic';
   src:
-    url('fonts/smoosic.ttf?26iv15') format('truetype'),
-    url('fonts/smoosic.woff?26iv15') format('woff'),
-    url('fonts/smoosic.svg?26iv15#smoosic') format('svg');
+    url('fonts/smoosic.ttf?golass') format('truetype'),
+    url('fonts/smoosic.woff?golass') format('woff'),
+    url('fonts/smoosic.svg?golass#smoosic') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -24,6 +24,15 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-refresh:before {
+  content: "\e97e";
+}
+.icon-zoomminus:before {
+  content: "\e97f";
+}
+.icon-zoomplus:before {
+  content: "\e980";
+}
 .icon-bracket:before {
   content: "\e97d";
 }

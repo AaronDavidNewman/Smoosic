@@ -194,9 +194,17 @@ class SuiDragText extends SuiComponentBase {
         var svgBox = svgHelpers.clientToLogical(this.dialog.layout.svg,svgHelpers.smoBox(this.editor.editText.getBoundingClientRect()));
         var offsetBox = this.editor.editText.getBBox();
         var x = svgBox.x;
-        var y = svgBox.y+svgBox.height-offsetBox.y;
+        var y = svgBox.y+svgBox.height;
+        console.log('new box ' + svgHelpers.stringify(svgBox));
+        console.log('tx: '+this.dialog.modifier.translateX + ' scaleX: ' + this.dialog.modifier.scaleX);
+        // the translate from the drag happens in the client space happens at scale of 1,
+        // where in the svg space the translate is scaled by the scale.  So adjust for that.
+        x = this.oldBox.x + (x - this.oldBox.x)/this.dialog.modifier.scaleX;
+        y = this.oldBox.y + (y - this.oldBox.y)/this.dialog.modifier.scaleY;
         this.textElement.setAttributeNS('', 'x', '' + x);
         this.textElement.setAttributeNS('', 'y', '' + y);
+        this.oldBox.x = x;
+        this.oldBox.y = y;
         this.value = {x:x,y:y};
         this.dialog.changed();
     }
@@ -209,13 +217,15 @@ class SuiDragText extends SuiComponentBase {
         var dragCb = function() {
             self._handleEndDrag();
         }
-        var draggingCb = function() {
-            self._handleDragging();
-        }
-        this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
-        var value = this.textElement.getBBox();
-        this.value = {x:value.x,y:value.y};
-        this.editor = new editSvgText({target:this.textElement,layout:this.dialog.layout,fontInfo:this.fontInfo});
+
+        var modifier = this.dialog.modifier;
+        this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
+        this.oldBox = this.textElement.getBBox();
+        this.value = {x:this.oldBox.x,y:this.oldBox.y};
+        console.log('old box ' + svgHelpers.stringify(this.oldBox));
+        this.editor = new editSvgText({target:this.textElement,
+            textObject:modifier,
+            layout:this.dialog.layout});
         var button = document.getElementById(this.parameterId);
         $(button).find('span.icon').removeClass('icon-move').addClass('icon-checkmark');
         $('.textEdit').removeClass('hide');
@@ -225,7 +235,6 @@ class SuiDragText extends SuiComponentBase {
 			handle: $('.dom-container .textEdit'),
             animateDiv:'.draganime',
 			cb: dragCb,
-            draggingCb:draggingCb,
 			moveParent: true,
             dragParent: true
 		});
@@ -255,6 +264,7 @@ class SuiResizeTextBox extends SuiComponentBase {
             this.defaultValue = 0;
         }
         this.editMode=false;
+        this.resizing = false;
 
         this.dialog = dialog;
         this.value='';
@@ -274,11 +284,32 @@ class SuiResizeTextBox extends SuiComponentBase {
     get parameterId() {
         return this.dialog.id + '-' + this.parameterName;
     }
-    endSession() {
-        if (this.editor) {
-            this.value=this.editor.value;
-            this.editor.endSession();
+    setSizedValue() {
+        var newBox = svgHelpers.smoBox($('.textEdit')[0].getBoundingClientRect());
+        if (this.dialog.modifier.boxModel == SmoScoreText.boxModels.none) {
+            this.dialog.modifier.scaleXInPlace(this.dialog.modifier.scaleX * (newBox.width / this.originalBox.width));
+            this.dialog.modifier.scaleYInPlace(this.dialog.modifier.scaleY * (newBox.height / this.originalBox.height));
+        } else {
+            var svgBox = svgHelpers.clientToLogical(this.dialog.layout.svg,svgHelpers.smoBox(newBox));
+            this.dialog.modifier.width = svgBox.width;
+            this.dialog.modifier.height = svgBox.height;
+            this.dialog.modifier.transateX = 0;this.dialog.modifier.transateY = 0;
+            this.dialog.modifier.scaleX = 1;this.dialog.modifier.scaleY = 1;
         }
+    }
+    endSession() {
+        this.setSizedValue();
+        this.resizing = false;
+        /* if (this.editor) {
+          this.editor.endSession();
+      }   */
+        $('body').removeClass('text-resize');
+        $('.textEdit').addClass('hide');
+        $(this._getInputElement()).find('label').text('Resize Text');
+        $(this._getInputElement()).find('span.icon').removeClass('icon-checkmark').addClass('icon-enlarge');
+        this.changeFlag = true;
+        this.dialog.changed();
+        this.bind();
     }
     getValue() {
         return this.value;
@@ -287,25 +318,53 @@ class SuiResizeTextBox extends SuiComponentBase {
         var pid = this.parameterId;
         return $(this.dialog.dgDom.element).find('#' + pid).find('button');
     }
+    _setEditTextSize(shadowText) {
+        var textNode = $('.textEdit svg text')[0];
+        var tx = this.shadowText.translateX; // - modifier.backup.translateX;
+        var ty = this.shadowText.translateY; // - modifier.backup.translateY;
+        textNode.setAttributeNS('','transform','translate('+tx+' '+ty+') scale ('+this.shadowText.scaleX+' '+this.shadowText.scaleY+')');
+
+        var svg = $('.textEdit svg')[0];
+        svg.viewBox.baseVal.x=this.shadowText.translateX;
+        svg.viewBox.baseVal.y=this.shadowText.translateY;
+    }
+    _resizeEditNode() {
+        var textNode = $('.textEdit svg text')[0];
+        var newBox = svgHelpers.smoBox($('.textEdit')[0].getBoundingClientRect());
+        this.shadowText.scaleXInPlace(this.shadowText.scaleX * (newBox.width / this.shadowBox.width));
+        this.shadowText.scaleYInPlace(this.shadowText.scaleY * (newBox.height / this.shadowBox.height));
+        this.shadowBox.width = newBox.width;this.shadowBox.height = newBox.height;
+        this._setEditTextSize(this.shadowText);
+    }
     startEditSession() {
-        var self=this;
-        if (!this.editor) {
-          this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
-          this.value = this.textElement.textContent;
-          this.editor = new editSvgText({target:this.textElement,layout:this.dialog.layout,fontInfo:this.fontInfo});
-          var button = document.getElementById(this.parameterId);
-          $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
-          this.editor.startSessionPromise().then(function() {
-              self.value=self.editor.value;
-              self.editor=null;
-          });
-        } else {
-          var button = document.getElementById(this.parameterId);
-          this.value=this.editor.value;
-          $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
-          this.editor.endSession();
-          this.handleChanged();
-        }
+        var self = this;
+        this.resizing = true;
+        var modifier = this.dialog.modifier;
+        var ser = modifier.serialize();
+        this.shadowText = new SmoScoreText(ser);
+
+
+        this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
+        /* this.editor = new editSvgText({target:this.textElement,
+            xOffset:modifier.translateX,yOffset:modifier.translateY,
+            layout:this.dialog.layout,fontInfo:modifier.fontInfo});   */
+
+        $('body').addClass('text-resize');
+        $(this._getInputElement()).find('label').text('Done Resizing Text Block');
+        $(this._getInputElement()).find('span.icon').removeClass('icon-enlarge').addClass('icon-checkmark');
+
+        $('.textEdit').removeClass('hide');
+        this.originalBox = svgHelpers.smoBox($('.textEdit')[0].getBoundingClientRect());
+        this.shadowBox = JSON.parse(JSON.stringify(this.originalBox));
+
+        this._setEditTextSize(modifier);
+
+        $(this._getInputElement()).off('click').on('click',function(ev) {
+            self.endSession();
+        });
+        $('.textEdit').off('mouseup').on('mouseup',function(ev) {
+            self._resizeEditNode();
+        });
     }
 
     bind() {
@@ -367,9 +426,12 @@ class SuiTextInPlace extends SuiComponentBase {
         var self=this;
         $(this._getInputElement()).find('label').text('Done Editing Text Block');
         if (!this.editor) {
-          this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.modifier.attrs.id)[0];
+          var modifier = this.dialog.modifier;
+          this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
           this.value = this.textElement.textContent;
-          this.editor = new editSvgText({target:this.textElement,layout:this.dialog.layout,fontInfo:this.fontInfo});
+          this.editor = new editSvgText({target:this.textElement,
+              textObject:modifier,
+              layout:this.dialog.layout});
           var button = document.getElementById(this.parameterId);
           $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
           this.editor.startSessionPromise().then(function() {

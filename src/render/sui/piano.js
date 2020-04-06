@@ -130,7 +130,8 @@ class suiPiano {
 	}
 	_renderclose() {
 		var b = htmlHelpers.buildDom;
-		var r = b('button').classes('icon icon-cross close close-piano');
+		var r = b('div').classes('close-container').append(
+            b('button').classes('icon icon-cross close close-piano'));
 		$(this.renderElement).closest('div').append(r.dom());
 	}
 	handleResize() {

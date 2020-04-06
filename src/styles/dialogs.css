@@ -41,24 +41,26 @@ body.text-edit #dialog-lyrics-text {
     flex: 0 0 100%;
     justify-content:center;
 }
-body.text-edit .fold-textedit {
+
+body.text-edit .fold-textedit,
+body.text-move .fold-textmove,
+body.text-resize .fold-textresize {
     display:none;
 }
 
-body.text-move .fold-textmove{
-    display:none;
+body.text-resize .textEdit {
+  resize: both;
 }
 
-body.text-edit .cbTextInPlace label {
-    width:100%;
-}
-
-body.text-move .cbDragTextDialog label {
+body.text-edit .cbTextInPlace label,
+body.text-move .cbDragTextDialog label,
+body.text-resize .cbResizeTextBox  label {
     width:100%;
 }
 
 body.text-edit .buttonContainer,
-body.text-move .buttonContainer {
+body.text-move .buttonContainer,
+body.text-resize .buttonContainer {
     display:none;
 }
 
