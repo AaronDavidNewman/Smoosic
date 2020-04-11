@@ -41,6 +41,12 @@ class SuiMeasureDialog extends SuiDialogBase {
                 control: 'SuiRockerComponent',
                 label: 'Pad Left (px)'
             },{
+                parameterName: 'customStretch',
+                smoName: 'customStretch',
+                defaultValue: 0,
+                control: 'SuiRockerComponent',
+                label: 'Stretch Contents'
+            },{
     			smoName:'padAllInSystem',
     			parameterName:'padAllInSystem',
     			defaultValue: false,
@@ -107,6 +113,10 @@ class SuiMeasureDialog extends SuiDialogBase {
             this.selection = SmoSelection.measureSelection(this.layout.score,this.selection.selector.staff,this.selection.selector.measure);
             this.tracker.replaceSelectedMeasures();
             this.measure = this.selection.measure;
+        }
+        if (this.customStretchCtrl.changeFlag) {
+            this.measure.customStretch = this.customStretchCtrl.getValue();
+            this.tracker.replaceSelectedMeasures();
         }
         if (this.systemBreakCtrl.changeFlag) {
             SmoUndoable.scoreSelectionOp(this.layout.score,
@@ -179,6 +189,7 @@ class SuiMeasureDialog extends SuiDialogBase {
     populateInitial() {
         this.padLeftCtrl.setValue(this.measure.padLeft);
         var isPickup = this.measure.isPickup();
+        this.customStretchCtrl.setValue(this.measure.customStretch);
         this.pickupCtrl.setValue(isPickup);
         if (isPickup) {
             this.pickupMeasureCtrl.setValue(this.measure.getTicksFromVoice())
@@ -200,6 +211,7 @@ class SuiMeasureDialog extends SuiDialogBase {
 		var dgDom = this.dgDom;
         this.bindKeyboard();
         this.controller.unbindKeyboardForDialog(this);
+        this.customStretchCtrl = this.components.find((comp) => {return comp.smoName == 'customStretch';});
         this.padLeftCtrl = this.components.find((comp) => {return comp.smoName == 'padLeft';});
         this.padAllInSystemCtrl = this.components.find((comp) => {return comp.smoName == 'padAllInSystem';});
         this.pickupCtrl = this.components.find((comp) => {return comp.smoName == 'makePickup';});

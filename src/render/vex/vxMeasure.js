@@ -498,7 +498,7 @@ class VxMeasure {
     format(voices) {
         this.formatter.format(voices,
               this.smoMeasure.staffWidth-
-             (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft));
+             (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft) + this.smoMeasure.customStretch);
     }
     render() {
          var group = this.context.openGroup();

@@ -158,7 +158,8 @@ class smoSerialize {
     "xd": "location",
      "yd": "systemGroups",
      "zd": "leftConnector",
-     "ae": "padLeft"
+     "ae": "padLeft",
+     "be": "customStretch"
     }`
       ;
      return JSON.parse(_tm);

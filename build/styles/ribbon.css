@@ -87,6 +87,24 @@ div.ribbonButtonContainer.expanded {
 button#MicrotoneButtons  {
     width:35px;
 }
+
+.hide {
+    display:none;
+}
+
+.ribbonButtonContainer[data-group="displaySettings"] {
+    margin-left:10px;
+}
+.ribbonButtonContainer[data-group="displaySettings"] button {
+    width:35px;
+    height:40px;
+}
+
+.controls-top .ribbonButtonContainer[data-group="displaySettings"] button .icon {
+    top:25%;
+    left:25%;
+}
+
 .ribbonButtonContainer[data-group="microtone"] {
     font-size:1.5em;
 }
