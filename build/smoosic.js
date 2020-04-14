@@ -5499,6 +5499,9 @@ class smoTickIterator {
             sigObj = accidentalMap[iterator.index - 1];
         }
         for (var i = 0; i < note.pitches.length; ++i) {
+            if (note.noteType != 'n') {
+                continue;
+            }
             var pitch = note.pitches[i];
             var letter = pitch.letter.toLowerCase();
             var sigLetter = letter + pitch.accidental;
@@ -5548,7 +5551,7 @@ class smoTickIterator {
         }
         return defaultAccidental;
     }
-    
+
     // ### _iterate
     // Internal callback for iterator.
     _iterate(actor) {
@@ -7123,7 +7126,7 @@ class SmoOperation {
                         console.log('this will die null');
                     }
                     prevNote.pitches.forEach((prevPitch) => {
-                        if (prevPitch.letter == pitch.letter) {
+                        if (prevNote.noteType == 'n' && prevPitch.letter == pitch.letter) {
                             pitch.accidental = prevPitch.accidental;
                         }
                     });
@@ -8298,8 +8301,8 @@ class VxMeasure {
             var declared = acLen > 0 ?
                 accidentals[acLen - 1].pitches[pitch.letter].pitch.accidental: keyAccidental;
 
-            if (declared != pitch.accidental
-                || pitch.cautionary) {
+            if ((declared != pitch.accidental
+                || pitch.cautionary) && smoNote.noteType == 'n') {
                 var acc = new VF.Accidental(pitch.accidental);
 
                 if (pitch.cautionary) {
@@ -13037,8 +13040,8 @@ class suiEditor {
     }
 
     _renderAndAdvance() {
+        this.tracker.replaceSelectedMeasures();
 		this.tracker.moveSelectionRight(null,true);
-		this.tracker.replaceSelectedMeasures();
     }
     _rebeam() {
         this.tracker.getSelectedMeasures().forEach((measure) => {
@@ -13212,6 +13215,7 @@ class suiEditor {
         this.tracker.selections.forEach((selection) => {
             this._selectionOperation(selection,'makeRest');
         });
+        this.tracker.replaceSelectedMeasures();
     }
 
     _setPitch(selected, letter) {

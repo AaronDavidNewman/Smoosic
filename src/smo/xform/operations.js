@@ -509,7 +509,7 @@ class SmoOperation {
                         console.log('this will die null');
                     }
                     prevNote.pitches.forEach((prevPitch) => {
-                        if (prevPitch.letter == pitch.letter) {
+                        if (prevNote.noteType == 'n' && prevPitch.letter == pitch.letter) {
                             pitch.accidental = prevPitch.accidental;
                         }
                     });

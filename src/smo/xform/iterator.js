@@ -113,6 +113,9 @@ class smoTickIterator {
             sigObj = accidentalMap[iterator.index - 1];
         }
         for (var i = 0; i < note.pitches.length; ++i) {
+            if (note.noteType != 'n') {
+                continue;
+            }
             var pitch = note.pitches[i];
             var letter = pitch.letter.toLowerCase();
             var sigLetter = letter + pitch.accidental;
@@ -162,7 +165,7 @@ class smoTickIterator {
         }
         return defaultAccidental;
     }
-    
+
     // ### _iterate
     // Internal callback for iterator.
     _iterate(actor) {

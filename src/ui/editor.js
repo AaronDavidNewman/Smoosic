@@ -25,8 +25,8 @@ class suiEditor {
     }
 
     _renderAndAdvance() {
+        this.tracker.replaceSelectedMeasures();
 		this.tracker.moveSelectionRight(null,true);
-		this.tracker.replaceSelectedMeasures();
     }
     _rebeam() {
         this.tracker.getSelectedMeasures().forEach((measure) => {
@@ -200,6 +200,7 @@ class suiEditor {
         this.tracker.selections.forEach((selection) => {
             this._selectionOperation(selection,'makeRest');
         });
+        this.tracker.replaceSelectedMeasures();
     }
 
     _setPitch(selected, letter) {

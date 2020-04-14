@@ -95,8 +95,8 @@ class VxMeasure {
             var declared = acLen > 0 ?
                 accidentals[acLen - 1].pitches[pitch.letter].pitch.accidental: keyAccidental;
 
-            if (declared != pitch.accidental
-                || pitch.cautionary) {
+            if ((declared != pitch.accidental
+                || pitch.cautionary) && smoNote.noteType == 'n') {
                 var acc = new VF.Accidental(pitch.accidental);
 
                 if (pitch.cautionary) {
