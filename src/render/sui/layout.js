@@ -275,7 +275,7 @@ class suiLayoutBase {
 			return;
 		}
 		var system = new VxSystem(this.context, selection.measure.staffY, selection.measure.lineIndex,this.score);
-		system.renderMeasure(selection.selector.staff, selection.measure);
+		system.renderMeasure(selection.measure,this.mapper);
 	}
 
     // ### renderNoteModifierPreview

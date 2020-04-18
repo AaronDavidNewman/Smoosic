@@ -69,6 +69,57 @@ class SmoScore {
         return ['layout' ,'startIndex',  'renumberingMap', 'renumberIndex'];
     }
 
+    serializeColumnMapped() {
+        var attrColumnHash = {};
+        var attrCurrentValue  = {};
+        this.staves[0].measures.forEach((measure) => {
+            SmoMeasure.columnMappedAttributes.forEach((attr) => {
+                if (measure[attr]) {
+                    if (!attrColumnHash[attr]) {
+                        attrColumnHash[attr] = {};
+                        attrCurrentValue[attr] = {};
+                    }
+                    var curAttrHash  = attrColumnHash[attr];
+                    if (measure[attr].ctor && measure[attr].ctor == 'SmoTempoText') {
+                        if (measure[attr].compare(attrCurrentValue[attr]) == false) {
+                            curAttrHash[measure.measureNumber.measureIndex] = measure[attr];
+                            attrCurrentValue[attr] = measure[attr];
+                        }
+                    } else if (attrCurrentValue[attr] != measure[attr]) {
+                        curAttrHash[measure.measureNumber.measureIndex] = measure[attr];
+                        attrCurrentValue[attr] = measure[attr];
+                    }
+                }
+            });
+        });
+        return attrColumnHash;
+    }
+    static deserializeColumnMapped(scoreObj) {
+        // var attrColumnHash = scoreObj
+        if (!scoreObj.columnAttributeMap) {
+            return;
+        }
+        var attrs = Object.keys(scoreObj.columnAttributeMap);
+        attrs.forEach((attr) => {
+            var curHash = scoreObj.columnAttributeMap[attr];
+            var attrKeys = Object.keys(curHash);
+            attrKeys.sort((a,b) => parseInt(a) > parseInt(b) ? 1 : -1);
+            scoreObj.staves.forEach((staff) => {
+                var mapIx = 0;
+                var curValue = curHash[attrKeys[mapIx.toString()]];
+                staff.measures.forEach((measure) => {
+                    if (attrKeys.length > mapIx + 1) {
+                        if (measure.measureNumber.measureIndex >= attrKeys[mapIx + 1]) {
+                            mapIx += 1;
+                            curValue = curHash[attrKeys[mapIx.toString()]];
+                        }
+                    }
+                    measure[attr] = curValue;
+                });
+            });
+        });
+    }
+
     // ### serialize
     // ### Serialize the score.  The resulting JSON string will contain all the staves, measures, etc.
     serialize() {
@@ -90,6 +141,7 @@ class SmoScore {
         this.systemGroups.forEach((gg) => {
             obj.systemGroups.push(gg.serialize());
         });
+        obj.columnAttributeMap = this.serializeColumnMapped();
         smoSerialize.jsonTokens(obj);
         obj = smoSerialize.detokenize(obj,smoSerialize.tokenValues);
         obj.dictionary = smoSerialize.tokenMap;
@@ -105,6 +157,8 @@ class SmoScore {
         }
         var params = {};
         var staves = [];
+        // Explode the sparse arrays of attributes into the measures
+        this.deserializeColumnMapped(jsonObj);
         smoSerialize.serializedMerge(
             SmoScore.defaultAttributes,
             jsonObj.score, params);

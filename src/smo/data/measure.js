@@ -53,15 +53,27 @@ class SmoMeasure {
 		return [
 			'timeSignature', 'keySignature','systemBreak','pageBreak',
 			'measureNumber',
-			'activeVoice', 'clef', 'transposeIndex', 'activeVoice', 'adjX','customStretch','padLeft', 'padRight', 'rightMargin'];
+			'activeVoice', 'clef', 'transposeIndex', 'adjX','customStretch','padLeft', 'padRight', 'rightMargin'];
 	}
+    static get columnMappedAttributes() {
+        return ['timeSignature','keySignature','tempo'];
+    }
+    static get serializableAttributes() {
+        var rv = [];
+        SmoMeasure.defaultAttributes.forEach((attr) => {
+            if (SmoMeasure.columnMappedAttributes.indexOf(attr) < 0) {
+                rv.push(attr);
+            }
+        });
+        return rv;
+    }
 
 	// ### serialize
 	// Convert this measure object to a JSON object, recursively serializing all the notes,
 	// note modifiers, etc.
 	serialize() {
 		var params = {};
-		smoSerialize.serializedMergeNonDefault(SmoMeasure.defaults,SmoMeasure.defaultAttributes, this, params);
+		smoSerialize.serializedMergeNonDefault(SmoMeasure.defaults,SmoMeasure.serializableAttributes, this, params);
 		params.tuplets = [];
 		params.voices = [];
 		params.modifiers=[];
@@ -86,6 +98,10 @@ class SmoMeasure {
                 ;
             }
             else if (modifier.ctor == 'SmoBarline' && modifier.position == SmoBarline.positions.end && modifier.barline == SmoBarline.barlines.singleBar) {
+                ;
+            }
+            // we don't save tempo text as a modifier anymore
+            else if (modifier.ctor == 'SmoTempoText') {
                 ;
             }
             else if (modifier.ctor == 'SmoRepeatSymbol' && modifier.position == SmoRepeatSymbol.positions.start && modifier.symbol == SmoRepeatSymbol.symbols.None) {
@@ -141,7 +157,6 @@ class SmoMeasure {
 			modifiers.push(modifier);
 		});
 
-
 		var params = {
 			voices: voices,
 			tuplets: tuplets,
@@ -151,6 +166,16 @@ class SmoMeasure {
 
 		smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, jsonObj, params);
         var rv = new SmoMeasure(params);
+        if (jsonObj.tempo) {
+            rv.tempo = new SmoTempoText(jsonObj.tempo);
+        }
+
+        // Handle migration for measure-mapped parameters
+        rv.modifiers.forEach((mod) => {
+            if (mod.ctor == 'SmoTempoText') {
+                rv.tempo = mod;
+            }
+        });
 
 		return rv;
     }
@@ -345,7 +370,8 @@ class SmoMeasure {
 			forceKeySignature: false,
 			forceTimeSignature: false,
 			voices: [],
-			activeVoice: 0
+			activeVoice: 0,
+            tempo:new SmoTempoText()
 		};
 	}
 
@@ -384,7 +410,7 @@ class SmoMeasure {
 
     setX(x,description) {
         layoutDebug.measureHistory(this,'staffX',x,description);
-        this.svg.staffX = x;
+        this.svg.staffX = Math.round(x);
     }
 
     get staffY() {
@@ -393,7 +419,7 @@ class SmoMeasure {
 
     setY(y,description) {
         layoutDebug.measureHistory(this,'staffY',y,description);
-        this.svg.staffY = y;
+        this.svg.staffY = Math.round(y);
     }
 
     get logicalBox() {
@@ -416,7 +442,7 @@ class SmoMeasure {
 
     setBox(box,description) {
         layoutDebug.measureHistory(this,'logicalBox',box,description);
-        this.svg.logicalBox = box;
+        this.svg.logicalBox = svgHelpers.smoBox(box);
     }
 
     saveUnjustifiedWidth() {
@@ -678,13 +704,13 @@ class SmoMeasure {
     }
 
     addTempo(params) {
-        this._addSingletonModifier('SmoTempoText',params);
+        this.tempo = new SmoTempoText(params);
     }
     removeTempo(params) {
-        this._removeSingletonModifier('SmoTempoText',params);
+        this.tempo = new SmoTempoText();
     }
     getTempo() {
-        return this._getSingletonModifier('SmoTempoText');
+        return this.tempo;
     }
 	addMeasureText(mod) {
 		var added = false;

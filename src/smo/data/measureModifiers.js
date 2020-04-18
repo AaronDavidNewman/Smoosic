@@ -387,6 +387,15 @@ class SmoTempoText extends SmoMeasureModifierBase {
 	static get attributes() {
 		return ['tempoMode', 'bpm', 'display', 'beatDuration', 'tempoText','yOffset'];
 	}
+    compare(instance) {
+        var rv = true;
+        SmoTempoText.attributes.forEach((attr) => {
+            if (this[attr] != instance[attr]) {
+                rv = false;
+            }
+        });
+        return rv;
+    }
     _toVexTextTempo() {
         return {name:this.tempoText};
     }
@@ -408,6 +417,7 @@ class SmoTempoText extends SmoMeasureModifierBase {
     		    t1.tempoText == t2.tempoText;
     	}
     }
+
     static get bpmFromText() {
         // TODO: learn these
         var rv = {};

@@ -1445,8 +1445,8 @@ class svgHelpers {
         var x = typeof(box.x) == 'undefined' ? Math.round(box.left) : Math.round(box.x);
         var y = typeof(box.y) == 'undefined' ? Math.round(box.top) : Math.round(box.y);
 		return ({
-			x: x,
-			y: y,
+			x: Math.round(x),
+			y: Math.round(y),
 			width: Math.round(box.width),
 			height: Math.round(box.height)
 		});
@@ -2864,15 +2864,27 @@ class SmoMeasure {
 		return [
 			'timeSignature', 'keySignature','systemBreak','pageBreak',
 			'measureNumber',
-			'activeVoice', 'clef', 'transposeIndex', 'activeVoice', 'adjX','customStretch','padLeft', 'padRight', 'rightMargin'];
+			'activeVoice', 'clef', 'transposeIndex', 'adjX','customStretch','padLeft', 'padRight', 'rightMargin'];
 	}
+    static get columnMappedAttributes() {
+        return ['timeSignature','keySignature','tempo'];
+    }
+    static get serializableAttributes() {
+        var rv = [];
+        SmoMeasure.defaultAttributes.forEach((attr) => {
+            if (SmoMeasure.columnMappedAttributes.indexOf(attr) < 0) {
+                rv.push(attr);
+            }
+        });
+        return rv;
+    }
 
 	// ### serialize
 	// Convert this measure object to a JSON object, recursively serializing all the notes,
 	// note modifiers, etc.
 	serialize() {
 		var params = {};
-		smoSerialize.serializedMergeNonDefault(SmoMeasure.defaults,SmoMeasure.defaultAttributes, this, params);
+		smoSerialize.serializedMergeNonDefault(SmoMeasure.defaults,SmoMeasure.serializableAttributes, this, params);
 		params.tuplets = [];
 		params.voices = [];
 		params.modifiers=[];
@@ -2897,6 +2909,10 @@ class SmoMeasure {
                 ;
             }
             else if (modifier.ctor == 'SmoBarline' && modifier.position == SmoBarline.positions.end && modifier.barline == SmoBarline.barlines.singleBar) {
+                ;
+            }
+            // we don't save tempo text as a modifier anymore
+            else if (modifier.ctor == 'SmoTempoText') {
                 ;
             }
             else if (modifier.ctor == 'SmoRepeatSymbol' && modifier.position == SmoRepeatSymbol.positions.start && modifier.symbol == SmoRepeatSymbol.symbols.None) {
@@ -2952,7 +2968,6 @@ class SmoMeasure {
 			modifiers.push(modifier);
 		});
 
-
 		var params = {
 			voices: voices,
 			tuplets: tuplets,
@@ -2962,6 +2977,16 @@ class SmoMeasure {
 
 		smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, jsonObj, params);
         var rv = new SmoMeasure(params);
+        if (jsonObj.tempo) {
+            rv.tempo = new SmoTempoText(jsonObj.tempo);
+        }
+
+        // Handle migration for measure-mapped parameters
+        rv.modifiers.forEach((mod) => {
+            if (mod.ctor == 'SmoTempoText') {
+                rv.tempo = mod;
+            }
+        });
 
 		return rv;
     }
@@ -3156,7 +3181,8 @@ class SmoMeasure {
 			forceKeySignature: false,
 			forceTimeSignature: false,
 			voices: [],
-			activeVoice: 0
+			activeVoice: 0,
+            tempo:new SmoTempoText()
 		};
 	}
 
@@ -3195,7 +3221,7 @@ class SmoMeasure {
 
     setX(x,description) {
         layoutDebug.measureHistory(this,'staffX',x,description);
-        this.svg.staffX = x;
+        this.svg.staffX = Math.round(x);
     }
 
     get staffY() {
@@ -3204,7 +3230,7 @@ class SmoMeasure {
 
     setY(y,description) {
         layoutDebug.measureHistory(this,'staffY',y,description);
-        this.svg.staffY = y;
+        this.svg.staffY = Math.round(y);
     }
 
     get logicalBox() {
@@ -3227,7 +3253,7 @@ class SmoMeasure {
 
     setBox(box,description) {
         layoutDebug.measureHistory(this,'logicalBox',box,description);
-        this.svg.logicalBox = box;
+        this.svg.logicalBox = svgHelpers.smoBox(box);
     }
 
     saveUnjustifiedWidth() {
@@ -3489,13 +3515,13 @@ class SmoMeasure {
     }
 
     addTempo(params) {
-        this._addSingletonModifier('SmoTempoText',params);
+        this.tempo = new SmoTempoText(params);
     }
     removeTempo(params) {
-        this._removeSingletonModifier('SmoTempoText',params);
+        this.tempo = new SmoTempoText();
     }
     getTempo() {
-        return this._getSingletonModifier('SmoTempoText');
+        return this.tempo;
     }
 	addMeasureText(mod) {
 		var added = false;
@@ -4056,6 +4082,15 @@ class SmoTempoText extends SmoMeasureModifierBase {
 	static get attributes() {
 		return ['tempoMode', 'bpm', 'display', 'beatDuration', 'tempoText','yOffset'];
 	}
+    compare(instance) {
+        var rv = true;
+        SmoTempoText.attributes.forEach((attr) => {
+            if (this[attr] != instance[attr]) {
+                rv = false;
+            }
+        });
+        return rv;
+    }
     _toVexTextTempo() {
         return {name:this.tempoText};
     }
@@ -4077,6 +4112,7 @@ class SmoTempoText extends SmoMeasureModifierBase {
     		    t1.tempoText == t2.tempoText;
     	}
     }
+
     static get bpmFromText() {
         // TODO: learn these
         var rv = {};
@@ -4602,6 +4638,57 @@ class SmoScore {
         return ['layout' ,'startIndex',  'renumberingMap', 'renumberIndex'];
     }
 
+    serializeColumnMapped() {
+        var attrColumnHash = {};
+        var attrCurrentValue  = {};
+        this.staves[0].measures.forEach((measure) => {
+            SmoMeasure.columnMappedAttributes.forEach((attr) => {
+                if (measure[attr]) {
+                    if (!attrColumnHash[attr]) {
+                        attrColumnHash[attr] = {};
+                        attrCurrentValue[attr] = {};
+                    }
+                    var curAttrHash  = attrColumnHash[attr];
+                    if (measure[attr].ctor && measure[attr].ctor == 'SmoTempoText') {
+                        if (measure[attr].compare(attrCurrentValue[attr]) == false) {
+                            curAttrHash[measure.measureNumber.measureIndex] = measure[attr];
+                            attrCurrentValue[attr] = measure[attr];
+                        }
+                    } else if (attrCurrentValue[attr] != measure[attr]) {
+                        curAttrHash[measure.measureNumber.measureIndex] = measure[attr];
+                        attrCurrentValue[attr] = measure[attr];
+                    }
+                }
+            });
+        });
+        return attrColumnHash;
+    }
+    static deserializeColumnMapped(scoreObj) {
+        // var attrColumnHash = scoreObj
+        if (!scoreObj.columnAttributeMap) {
+            return;
+        }
+        var attrs = Object.keys(scoreObj.columnAttributeMap);
+        attrs.forEach((attr) => {
+            var curHash = scoreObj.columnAttributeMap[attr];
+            var attrKeys = Object.keys(curHash);
+            attrKeys.sort((a,b) => parseInt(a) > parseInt(b) ? 1 : -1);
+            scoreObj.staves.forEach((staff) => {
+                var mapIx = 0;
+                var curValue = curHash[attrKeys[mapIx.toString()]];
+                staff.measures.forEach((measure) => {
+                    if (attrKeys.length > mapIx + 1) {
+                        if (measure.measureNumber.measureIndex >= attrKeys[mapIx + 1]) {
+                            mapIx += 1;
+                            curValue = curHash[attrKeys[mapIx.toString()]];
+                        }
+                    }
+                    measure[attr] = curValue;
+                });
+            });
+        });
+    }
+
     // ### serialize
     // ### Serialize the score.  The resulting JSON string will contain all the staves, measures, etc.
     serialize() {
@@ -4623,6 +4710,7 @@ class SmoScore {
         this.systemGroups.forEach((gg) => {
             obj.systemGroups.push(gg.serialize());
         });
+        obj.columnAttributeMap = this.serializeColumnMapped();
         smoSerialize.jsonTokens(obj);
         obj = smoSerialize.detokenize(obj,smoSerialize.tokenValues);
         obj.dictionary = smoSerialize.tokenMap;
@@ -4638,6 +4726,8 @@ class SmoScore {
         }
         var params = {};
         var staves = [];
+        // Explode the sparse arrays of attributes into the measures
+        this.deserializeColumnMapped(jsonObj);
         smoSerialize.serializedMerge(
             SmoScore.defaultAttributes,
             jsonObj.score, params);
@@ -8842,15 +8932,15 @@ class VxSystem {
             vkey.forEach((verse) => {
                 verseLimits[verse] = {highest:-1,bottom:-1};
                 lyricVerseMap[verse].forEach((ll) => {
-                    verseLimits[verse].highest = Math.max(ll.logicalBox.height,verseLimits[verse].highest);
-                    verseLimits[verse].bottom = Math.max(ll.logicalBox.y + ll.logicalBox.height,verseLimits[verse].bottom);
+                    verseLimits[verse].highest = Math.round(Math.max(ll.logicalBox.height,verseLimits[verse].highest));
+                    verseLimits[verse].bottom = Math.round(Math.max(ll.logicalBox.y + ll.logicalBox.height,verseLimits[verse].bottom));
                 });
             });
             for (var j = 1; j < vkey.length;++j) {
                 verseLimits[j].bottom = verseLimits[j-1].bottom + verseLimits[j-1].highest;
             }
             lyrics.forEach((lyric) => {
-    			lyric.adjY = verseLimits[lyric.verse].bottom -  lyric.logicalBox.y;
+    			lyric.adjY = Math.round(verseLimits[lyric.verse].bottom -  lyric.logicalBox.y);
     			var dom = $(this.context.svg).find(lyric.selector)[0];
     			dom.setAttributeNS('','transform','translate('+lyric.adjX+' '+lyric.adjY+')');
                 // Keep track of lyrics that are 'dash'
@@ -8862,8 +8952,8 @@ class VxSystem {
             lyricsDash.forEach((lyric) => {
                 var parent = $(this.context.svg).find(lyric.selector)[0];
                 var line = document.createElementNS(svgHelpers.namespace,'line');
-                var ymax = lyric.logicalBox.y + lyric.logicalBox.height/2;
-                var offset = lyric.logicalBox.width/2;
+                var ymax = Math.round(lyric.logicalBox.y + lyric.logicalBox.height/2);
+                var offset = Math.round(lyric.logicalBox.width/2);
                 line.setAttributeNS('', 'x1', lyric.logicalBox.x - offset);
                 line.setAttributeNS('', 'y1', ymax);
                 line.setAttributeNS('', 'x2', lyric.logicalBox.x + lyric.logicalBox.width + offset);
@@ -11341,7 +11431,7 @@ class suiLayoutBase {
 			return;
 		}
 		var system = new VxSystem(this.context, selection.measure.staffY, selection.measure.lineIndex,this.score);
-		system.renderMeasure(selection.selector.staff, selection.measure);
+		system.renderMeasure(selection.measure,this.mapper);
 	}
 
     // ### renderNoteModifierPreview

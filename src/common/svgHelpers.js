@@ -399,8 +399,8 @@ class svgHelpers {
         var x = typeof(box.x) == 'undefined' ? Math.round(box.left) : Math.round(box.x);
         var y = typeof(box.y) == 'undefined' ? Math.round(box.top) : Math.round(box.y);
 		return ({
-			x: x,
-			y: y,
+			x: Math.round(x),
+			y: Math.round(y),
 			width: Math.round(box.width),
 			height: Math.round(box.height)
 		});

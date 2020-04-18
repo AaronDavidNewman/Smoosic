@@ -99,15 +99,15 @@ class VxSystem {
             vkey.forEach((verse) => {
                 verseLimits[verse] = {highest:-1,bottom:-1};
                 lyricVerseMap[verse].forEach((ll) => {
-                    verseLimits[verse].highest = Math.max(ll.logicalBox.height,verseLimits[verse].highest);
-                    verseLimits[verse].bottom = Math.max(ll.logicalBox.y + ll.logicalBox.height,verseLimits[verse].bottom);
+                    verseLimits[verse].highest = Math.round(Math.max(ll.logicalBox.height,verseLimits[verse].highest));
+                    verseLimits[verse].bottom = Math.round(Math.max(ll.logicalBox.y + ll.logicalBox.height,verseLimits[verse].bottom));
                 });
             });
             for (var j = 1; j < vkey.length;++j) {
                 verseLimits[j].bottom = verseLimits[j-1].bottom + verseLimits[j-1].highest;
             }
             lyrics.forEach((lyric) => {
-    			lyric.adjY = verseLimits[lyric.verse].bottom -  lyric.logicalBox.y;
+    			lyric.adjY = Math.round(verseLimits[lyric.verse].bottom -  lyric.logicalBox.y);
     			var dom = $(this.context.svg).find(lyric.selector)[0];
     			dom.setAttributeNS('','transform','translate('+lyric.adjX+' '+lyric.adjY+')');
                 // Keep track of lyrics that are 'dash'
@@ -119,8 +119,8 @@ class VxSystem {
             lyricsDash.forEach((lyric) => {
                 var parent = $(this.context.svg).find(lyric.selector)[0];
                 var line = document.createElementNS(svgHelpers.namespace,'line');
-                var ymax = lyric.logicalBox.y + lyric.logicalBox.height/2;
-                var offset = lyric.logicalBox.width/2;
+                var ymax = Math.round(lyric.logicalBox.y + lyric.logicalBox.height/2);
+                var offset = Math.round(lyric.logicalBox.width/2);
                 line.setAttributeNS('', 'x1', lyric.logicalBox.x - offset);
                 line.setAttributeNS('', 'y1', ymax);
                 line.setAttributeNS('', 'x2', lyric.logicalBox.x + lyric.logicalBox.width + offset);
