@@ -116,7 +116,7 @@ class suiLayoutAdjuster {
 		var measureWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
 		measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
 		measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
-		measureWidth += measure.adjX + measure.adjRight;
+		measureWidth += measure.adjX + measure.adjRight + measure.customStretch;
         if (measure.changed == false && measure.logicalBox && measure.staffWidth < prevWidth) {
             measureWidth = Math.round((measure.staffWidth + prevWidth)/2);
             gravity = true;

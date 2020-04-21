@@ -922,7 +922,7 @@ class smoSerialize {
 
         var exist = smoSerialize.tokenValues;
         var addMap = (key) => {
-            if (!exist[key] && !map[key]) {
+            if (!exist[key] && !map[key] && key.length > keyLabel.length) {
                 map[key] = keyLabel;
                 keyLabel = smoSerialize.incrementIdentifier(keyLabel);
             }
@@ -2864,8 +2864,15 @@ class SmoMeasure {
 		return [
 			'timeSignature', 'keySignature','systemBreak','pageBreak',
 			'measureNumber',
-			'activeVoice', 'clef', 'transposeIndex', 'adjX','customStretch','padLeft', 'padRight', 'rightMargin'];
+			'activeVoice', 'clef', 'transposeIndex', 'adjX','customStretch','customProportion','padLeft', 'padRight', 'rightMargin'];
 	}
+
+    static get formattingOptions() {
+        return ['customStretch','customProportion'];
+    }
+    static get systemOptions() {
+        return ['systemBreak','pageBreak'];
+    }
     static get columnMappedAttributes() {
         return ['timeSignature','keySignature','tempo'];
     }
@@ -3165,7 +3172,9 @@ class SmoMeasure {
             tuplets:[],
 			transposeIndex: 0,
             customStretch:0,
+            customProportion:2,
 			modifiers: modifiers,
+            autoJustify:false,
 			rightMargin: 2,
 			staffY: 40,
 			// bars: [1, 1], // follows enumeration in VF.Barline
@@ -4584,6 +4593,9 @@ class SmoScore {
             this._numberStaves();
         }
     }
+    static get engravingFonts() {
+        return {Bravura:'Bravura',Gonville:'Gonville',Petaluma:'Petaluma'};
+    }
 	static get zoomModes() {
 		return {fitWidth:0,wholePage:1,zoomScale:2}
 	}
@@ -4604,6 +4616,7 @@ class SmoScore {
 				zoomMode:SmoScore.zoomModes.fitWidth,
                 pages:1
 			},
+            engravingFont:SmoScore.engravingFonts.Bravura,
             staffWidth: 1600,
             startIndex: 0,
             renumberingMap: {},
@@ -4635,7 +4648,7 @@ class SmoScore {
 	}
 
     static get defaultAttributes() {
-        return ['layout' ,'startIndex',  'renumberingMap', 'renumberIndex'];
+        return ['layout' ,'startIndex',  'renumberingMap', 'renumberIndex','engravingFont'];
     }
 
     serializeColumnMapped() {
@@ -8788,13 +8801,15 @@ class VxMeasure {
         }
 
 		// Need to format for x position, then set y position before drawing dynamics.
-        this.formatter = new VF.Formatter().joinVoices(this.voiceAr);
+        this.formatter = new VF.Formatter({softmaxFactor:this.smoMeasure.customProportion}).joinVoices(this.voiceAr);
+        // this.formatter = new VF.Formatter().joinVoices(this.voiceAr);
 
     }
     format(voices) {
         this.formatter.format(voices,
               this.smoMeasure.staffWidth-
-             (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft) + this.smoMeasure.customStretch);
+             (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft)); 
+        // this.formatter.format(voices);
     }
     render() {
          var group = this.context.openGroup();
@@ -9127,7 +9142,6 @@ curve.setContext(this.context).draw();
                         smoGroupMap[justifyGroup].voices.concat(vv.voiceAr);
                 }
             });
-
         }
         var keys = Object.keys(smoGroupMap);
         keys.forEach((key) => {
@@ -11183,6 +11197,18 @@ class suiLayoutBase {
         this.measureMapper = mapper;
     }
 
+    static get Fonts() {
+        return {
+            Bravura: [VF.Fonts.Bravura, VF.Fonts.Gonville, VF.Fonts.Custom],
+            Gonville: [VF.Fonts.Gonville, VF.Fonts.Bravura, VF.Fonts.Custom],
+            Petaluma: [VF.Fonts.Petaluma, VF.Fonts.Gonville, VF.Fonts.Custom]
+        };
+    }
+
+    static setFont(font) {
+        VF.DEFAULT_FONT_STACK=suiLayoutBase.Fonts[font];
+    }
+
 	static get passStates() {
 		return {initial:0,clean:2,replace:3};
 	}
@@ -11230,12 +11256,22 @@ class suiLayoutBase {
 
         measures.forEach((measure) => {
             var at = [];
-            if (measure.measureNumber.measureNumber > 0) {
+            if (measure.measureNumber.measureNumber > 0 && measure.measureNumber.systemIndex == 0) {
                 at.push({y:measure.logicalBox.y - 10});
                 at.push({x:measure.logicalBox.x});
                 at.push({fontFamily:'Helvitica'});
                 at.push({fontSize:'8pt'});
                 svgHelpers.placeSvgText(this.context.svg,at,'measure-number',(measure.measureNumber.measureNumber + 1).toString());
+
+                var formatIndex = SmoMeasure.systemOptions.findIndex((option) => measure[option] != SmoMeasure.defaults[option]);
+                if (formatIndex >= 0) {
+                    var at=[];
+                    at.push({y:measure.logicalBox.y - 5});
+                    at.push({x:measure.logicalBox.x + 25});
+                    at.push({fontFamily:'Helvitica'});
+                    at.push({fontSize:'8pt'});
+                    svgHelpers.placeSvgText(this.context.svg,at,'measure-format','&#x21b0;');
+                }
             }
         });
     }
@@ -11378,6 +11414,7 @@ class suiLayoutBase {
             shouldReset = true;
         }
         this.setPassState(suiLayoutBase.passStates.initial,'load score');
+        suiLayoutBase.setFont(score.engravingFont);
         this.dirty=true;
         this._score = score;
         if (shouldReset) {
@@ -12070,7 +12107,7 @@ class suiLayoutAdjuster {
 		var measureWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
 		measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
 		measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
-		measureWidth += measure.adjX + measure.adjRight;
+		measureWidth += measure.adjX + measure.adjRight + measure.customStretch;
         if (measure.changed == false && measure.logicalBox && measure.staffWidth < prevWidth) {
             measureWidth = Math.round((measure.staffWidth + prevWidth)/2);
             gravity = true;
@@ -12378,6 +12415,16 @@ class suiScoreLayout extends suiLayoutBase {
             colKeys.forEach((colKey) => {
                 columns[colKey].forEach((measure) => {
                     vxSystem.renderMeasure(measure,this.measureMapper);
+                    var formatIndex = SmoMeasure.formattingOptions.findIndex((option) => measure[option] != SmoMeasure.defaults[option]);
+                    if (formatIndex >= 0) {
+                        var at=[];
+                        at.push({y:measure.logicalBox.y - 5});
+                        at.push({x:measure.logicalBox.x + 25});
+                        at.push({fontFamily:'Helvitica'});
+                        at.push({fontSize:'8pt'});
+                        svgHelpers.placeSvgText(this.context.svg,at,'measure-format','*');
+                    }
+
                 });
             });
 
@@ -12563,7 +12610,7 @@ class suiScoreLayout extends suiLayoutBase {
 
             // Add custom width to measure:
             measure.setBox(svgHelpers.boxPoints(measure.staffX,y,measure.staffWidth,offsets.belowBaseline-offsets.aboveBaseline));
-            suiLayoutAdjuster.estimateMeasureWidth(measure);            
+            suiLayoutAdjuster.estimateMeasureWidth(measure);
             y = y + measure.logicalBox.height + scoreLayout.intraGap;
             rowInSystem += 1;
         });
@@ -15424,6 +15471,23 @@ class SuiLayoutDialog extends SuiDialogBase {
 					label:'Landscape'
 				}]
 			}, {
+				smoName: 'engravingFont',
+				parameterName: 'engravingFont',
+				defaultValue: SmoScore.engravingFonts.Bravura,
+				control: 'SuiDropdownComponent',
+				label:'Engraving Font',
+				options: [{
+						value: 'Bravura',
+						label: 'Bravura'
+					}, {
+						value: 'Gonville',
+						label: 'Gonville'
+					}, {
+						value: 'Petaluma',
+						label: 'Petaluma'
+					}
+				]
+			},{
 				smoName: 'leftMargin',
 				parameterName: 'leftMargin',
 				defaultValue: SmoScore.defaults.layout.leftMargin,
@@ -15516,6 +15580,7 @@ class SuiLayoutDialog extends SuiDialogBase {
 		var self = this;
 		var dgDom = this.dgDom;
         this.bindKeyboard();
+        this._bindComponentNames();
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
 
@@ -15566,8 +15631,14 @@ class SuiLayoutDialog extends SuiDialogBase {
 		// this.modifier.backupOriginal();
 		this._handlePageSizeChange();
 		this.components.forEach((component) => {
-			this.layout.score.layout[component.smoName] = component.getValue();
+            if (typeof(this.layout.score.layout[component.smoName]) != 'undefined') {
+			    this.layout.score.layout[component.smoName] = component.getValue();
+            }
 		});
+        if (this.engravingFontCtrl.changeFlag)  {
+            this.layout.score.engravingFont = this.engravingFontCtrl.getValue();
+            suiLayoutBase.setFont(this.layout.score.engravingFont);
+        }
 		this.layout.setViewport();
 	}
 
@@ -16428,6 +16499,13 @@ class SuiMeasureDialog extends SuiDialogBase {
                 control: 'SuiRockerComponent',
                 label: 'Stretch Contents'
             },{
+                parameterName: 'customProportion',
+                smoName: 'customProportion',
+                defaultValue: SmoMeasure.defaults.customProportion,
+                control: 'SuiRockerComponent',
+                increment:10,
+                label: 'Adjust Proportional Spacing'
+            },{
     			smoName:'padAllInSystem',
     			parameterName:'padAllInSystem',
     			defaultValue: false,
@@ -16488,7 +16566,7 @@ class SuiMeasureDialog extends SuiDialogBase {
         return dg;
     }
     changed() {
-        if (this.pickupCtrl.changeFlag || this.pickupMeasureCtrl.changeFlag) {
+        if (this.pickupMeasureCtrl.changeFlag || this.pickupMeasureCtrl.changeFlag) {
             this.layout.unrenderColumn(this.measure);
             SmoUndoable.scoreOp(this.layout.score,'convertToPickupMeasure',this.pickupMeasureCtrl.getValue(),this.undoBuffer,'Create pickup measure');
             this.selection = SmoSelection.measureSelection(this.layout.score,this.selection.selector.staff,this.selection.selector.measure);
@@ -16496,7 +16574,13 @@ class SuiMeasureDialog extends SuiDialogBase {
             this.measure = this.selection.measure;
         }
         if (this.customStretchCtrl.changeFlag) {
+            var delta = this.measure.customStretch;
             this.measure.customStretch = this.customStretchCtrl.getValue();
+            this.measure.setWidth(this.measure.staffWidth - (delta - this.measure.customStretch));
+            this.tracker.replaceSelectedMeasures();
+        }
+        if (this.customProportionCtrl.changeFlag) {
+            this.measure.customProportion = this.customProportionCtrl.getValue();
             this.tracker.replaceSelectedMeasures();
         }
         if (this.systemBreakCtrl.changeFlag) {
@@ -16555,7 +16639,7 @@ class SuiMeasureDialog extends SuiDialogBase {
             $('.attributeDialog .attributeModal').removeClass('pad-left-select');
         }
 
-        if (this.pickupCtrl.getValue()) {
+        if (this.pickupMeasureCtrl.getValue()) {
             $('.attributeDialog .attributeModal').addClass('pickup-select');
         } else {
             $('.attributeDialog .attributeModal').removeClass('pickup-select');
@@ -16569,9 +16653,12 @@ class SuiMeasureDialog extends SuiDialogBase {
     }
     populateInitial() {
         this.padLeftCtrl.setValue(this.measure.padLeft);
+        this.originalStretch = this.measure.customStretch;
+        this.originalProportion = this.measure.customProportion;
         var isPickup = this.measure.isPickup();
         this.customStretchCtrl.setValue(this.measure.customStretch);
-        this.pickupCtrl.setValue(isPickup);
+        this.customProportionCtrl.setValue(this.measure.customProportion);
+        this.pickupMeasureCtrl.setValue(isPickup);
         if (isPickup) {
             this.pickupMeasureCtrl.setValue(this.measure.getTicksFromVoice())
         }
@@ -16587,19 +16674,17 @@ class SuiMeasureDialog extends SuiDialogBase {
             this.measureTextPositionCtrl.setValue(texts[0].position);
         }
     }
+    _cancelEdits() {
+        this.measure.customStretch = this.originalStretch;
+        this.measure.customProportion = this.originalProportion;
+        this.layout.setRefresh();
+    }
     _bindElements() {
 		var self = this;
 		var dgDom = this.dgDom;
         this.bindKeyboard();
         this.controller.unbindKeyboardForDialog(this);
-        this.customStretchCtrl = this.components.find((comp) => {return comp.smoName == 'customStretch';});
-        this.padLeftCtrl = this.components.find((comp) => {return comp.smoName == 'padLeft';});
-        this.padAllInSystemCtrl = this.components.find((comp) => {return comp.smoName == 'padAllInSystem';});
-        this.pickupCtrl = this.components.find((comp) => {return comp.smoName == 'makePickup';});
-        this.pickupMeasureCtrl = this.components.find((comp) => {return comp.smoName == 'pickupMeasure';});
-        this.measureTextCtrl = this.components.find((comp) => {return comp.smoName == 'measureText';});
-        this.measureTextPositionCtrl = this.components.find((comp) => {return comp.smoName == 'measureTextPosition';});
-        this.systemBreakCtrl = this.components.find((comp) => {return comp.smoName == 'systemBreak';});
+        this._bindComponentNames();
         this.populateInitial();
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
@@ -16608,6 +16693,7 @@ class SuiMeasureDialog extends SuiDialogBase {
 		});
 
 		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+            self._cancelEdits();
 			self.complete();
 		});
 		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {

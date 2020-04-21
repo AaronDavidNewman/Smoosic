@@ -492,13 +492,15 @@ class VxMeasure {
         }
 
 		// Need to format for x position, then set y position before drawing dynamics.
-        this.formatter = new VF.Formatter().joinVoices(this.voiceAr);
+        this.formatter = new VF.Formatter({softmaxFactor:this.smoMeasure.customProportion}).joinVoices(this.voiceAr);
+        // this.formatter = new VF.Formatter().joinVoices(this.voiceAr);
 
     }
     format(voices) {
         this.formatter.format(voices,
               this.smoMeasure.staffWidth-
-             (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft) + this.smoMeasure.customStretch);
+             (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft)); 
+        // this.formatter.format(voices);
     }
     render() {
          var group = this.context.openGroup();

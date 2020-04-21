@@ -88,6 +88,11 @@ h1 {
 	stroke-width:2;
 }
 
+.measure-format  {
+    fill:#229cee;
+
+}
+
 @media print {
     .controls-left,.controls-top,.testTitle {
        display:none;

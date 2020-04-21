@@ -204,6 +204,16 @@ class suiScoreLayout extends suiLayoutBase {
             colKeys.forEach((colKey) => {
                 columns[colKey].forEach((measure) => {
                     vxSystem.renderMeasure(measure,this.measureMapper);
+                    var formatIndex = SmoMeasure.formattingOptions.findIndex((option) => measure[option] != SmoMeasure.defaults[option]);
+                    if (formatIndex >= 0) {
+                        var at=[];
+                        at.push({y:measure.logicalBox.y - 5});
+                        at.push({x:measure.logicalBox.x + 25});
+                        at.push({fontFamily:'Helvitica'});
+                        at.push({fontSize:'8pt'});
+                        svgHelpers.placeSvgText(this.context.svg,at,'measure-format','*');
+                    }
+
                 });
             });
 
@@ -389,7 +399,7 @@ class suiScoreLayout extends suiLayoutBase {
 
             // Add custom width to measure:
             measure.setBox(svgHelpers.boxPoints(measure.staffX,y,measure.staffWidth,offsets.belowBaseline-offsets.aboveBaseline));
-            suiLayoutAdjuster.estimateMeasureWidth(measure);            
+            suiLayoutAdjuster.estimateMeasureWidth(measure);
             y = y + measure.logicalBox.height + scoreLayout.intraGap;
             rowInSystem += 1;
         });

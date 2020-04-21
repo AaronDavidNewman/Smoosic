@@ -265,7 +265,7 @@ class smoSerialize {
 
         var exist = smoSerialize.tokenValues;
         var addMap = (key) => {
-            if (!exist[key] && !map[key]) {
+            if (!exist[key] && !map[key] && key.length > keyLabel.length) {
                 map[key] = keyLabel;
                 keyLabel = smoSerialize.incrementIdentifier(keyLabel);
             }

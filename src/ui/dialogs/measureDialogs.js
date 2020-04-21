@@ -47,6 +47,13 @@ class SuiMeasureDialog extends SuiDialogBase {
                 control: 'SuiRockerComponent',
                 label: 'Stretch Contents'
             },{
+                parameterName: 'customProportion',
+                smoName: 'customProportion',
+                defaultValue: SmoMeasure.defaults.customProportion,
+                control: 'SuiRockerComponent',
+                increment:10,
+                label: 'Adjust Proportional Spacing'
+            },{
     			smoName:'padAllInSystem',
     			parameterName:'padAllInSystem',
     			defaultValue: false,
@@ -107,7 +114,7 @@ class SuiMeasureDialog extends SuiDialogBase {
         return dg;
     }
     changed() {
-        if (this.pickupCtrl.changeFlag || this.pickupMeasureCtrl.changeFlag) {
+        if (this.pickupMeasureCtrl.changeFlag || this.pickupMeasureCtrl.changeFlag) {
             this.layout.unrenderColumn(this.measure);
             SmoUndoable.scoreOp(this.layout.score,'convertToPickupMeasure',this.pickupMeasureCtrl.getValue(),this.undoBuffer,'Create pickup measure');
             this.selection = SmoSelection.measureSelection(this.layout.score,this.selection.selector.staff,this.selection.selector.measure);
@@ -115,7 +122,13 @@ class SuiMeasureDialog extends SuiDialogBase {
             this.measure = this.selection.measure;
         }
         if (this.customStretchCtrl.changeFlag) {
+            var delta = this.measure.customStretch;
             this.measure.customStretch = this.customStretchCtrl.getValue();
+            this.measure.setWidth(this.measure.staffWidth - (delta - this.measure.customStretch));
+            this.tracker.replaceSelectedMeasures();
+        }
+        if (this.customProportionCtrl.changeFlag) {
+            this.measure.customProportion = this.customProportionCtrl.getValue();
             this.tracker.replaceSelectedMeasures();
         }
         if (this.systemBreakCtrl.changeFlag) {
@@ -174,7 +187,7 @@ class SuiMeasureDialog extends SuiDialogBase {
             $('.attributeDialog .attributeModal').removeClass('pad-left-select');
         }
 
-        if (this.pickupCtrl.getValue()) {
+        if (this.pickupMeasureCtrl.getValue()) {
             $('.attributeDialog .attributeModal').addClass('pickup-select');
         } else {
             $('.attributeDialog .attributeModal').removeClass('pickup-select');
@@ -188,9 +201,12 @@ class SuiMeasureDialog extends SuiDialogBase {
     }
     populateInitial() {
         this.padLeftCtrl.setValue(this.measure.padLeft);
+        this.originalStretch = this.measure.customStretch;
+        this.originalProportion = this.measure.customProportion;
         var isPickup = this.measure.isPickup();
         this.customStretchCtrl.setValue(this.measure.customStretch);
-        this.pickupCtrl.setValue(isPickup);
+        this.customProportionCtrl.setValue(this.measure.customProportion);
+        this.pickupMeasureCtrl.setValue(isPickup);
         if (isPickup) {
             this.pickupMeasureCtrl.setValue(this.measure.getTicksFromVoice())
         }
@@ -206,19 +222,17 @@ class SuiMeasureDialog extends SuiDialogBase {
             this.measureTextPositionCtrl.setValue(texts[0].position);
         }
     }
+    _cancelEdits() {
+        this.measure.customStretch = this.originalStretch;
+        this.measure.customProportion = this.originalProportion;
+        this.layout.setRefresh();
+    }
     _bindElements() {
 		var self = this;
 		var dgDom = this.dgDom;
         this.bindKeyboard();
         this.controller.unbindKeyboardForDialog(this);
-        this.customStretchCtrl = this.components.find((comp) => {return comp.smoName == 'customStretch';});
-        this.padLeftCtrl = this.components.find((comp) => {return comp.smoName == 'padLeft';});
-        this.padAllInSystemCtrl = this.components.find((comp) => {return comp.smoName == 'padAllInSystem';});
-        this.pickupCtrl = this.components.find((comp) => {return comp.smoName == 'makePickup';});
-        this.pickupMeasureCtrl = this.components.find((comp) => {return comp.smoName == 'pickupMeasure';});
-        this.measureTextCtrl = this.components.find((comp) => {return comp.smoName == 'measureText';});
-        this.measureTextPositionCtrl = this.components.find((comp) => {return comp.smoName == 'measureTextPosition';});
-        this.systemBreakCtrl = this.components.find((comp) => {return comp.smoName == 'systemBreak';});
+        this._bindComponentNames();
         this.populateInitial();
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
@@ -227,6 +241,7 @@ class SuiMeasureDialog extends SuiDialogBase {
 		});
 
 		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+            self._cancelEdits();
 			self.complete();
 		});
 		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {

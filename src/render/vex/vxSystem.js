@@ -294,7 +294,6 @@ curve.setContext(this.context).draw();
                         smoGroupMap[justifyGroup].voices.concat(vv.voiceAr);
                 }
             });
-
         }
         var keys = Object.keys(smoGroupMap);
         keys.forEach((key) => {

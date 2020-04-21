@@ -27,6 +27,18 @@ class suiLayoutBase {
         this.measureMapper = mapper;
     }
 
+    static get Fonts() {
+        return {
+            Bravura: [VF.Fonts.Bravura, VF.Fonts.Gonville, VF.Fonts.Custom],
+            Gonville: [VF.Fonts.Gonville, VF.Fonts.Bravura, VF.Fonts.Custom],
+            Petaluma: [VF.Fonts.Petaluma, VF.Fonts.Gonville, VF.Fonts.Custom]
+        };
+    }
+
+    static setFont(font) {
+        VF.DEFAULT_FONT_STACK=suiLayoutBase.Fonts[font];
+    }
+
 	static get passStates() {
 		return {initial:0,clean:2,replace:3};
 	}
@@ -74,12 +86,22 @@ class suiLayoutBase {
 
         measures.forEach((measure) => {
             var at = [];
-            if (measure.measureNumber.measureNumber > 0) {
+            if (measure.measureNumber.measureNumber > 0 && measure.measureNumber.systemIndex == 0) {
                 at.push({y:measure.logicalBox.y - 10});
                 at.push({x:measure.logicalBox.x});
                 at.push({fontFamily:'Helvitica'});
                 at.push({fontSize:'8pt'});
                 svgHelpers.placeSvgText(this.context.svg,at,'measure-number',(measure.measureNumber.measureNumber + 1).toString());
+
+                var formatIndex = SmoMeasure.systemOptions.findIndex((option) => measure[option] != SmoMeasure.defaults[option]);
+                if (formatIndex >= 0) {
+                    var at=[];
+                    at.push({y:measure.logicalBox.y - 5});
+                    at.push({x:measure.logicalBox.x + 25});
+                    at.push({fontFamily:'Helvitica'});
+                    at.push({fontSize:'8pt'});
+                    svgHelpers.placeSvgText(this.context.svg,at,'measure-format','&#x21b0;');
+                }
             }
         });
     }
@@ -222,6 +244,7 @@ class suiLayoutBase {
             shouldReset = true;
         }
         this.setPassState(suiLayoutBase.passStates.initial,'load score');
+        suiLayoutBase.setFont(score.engravingFont);
         this.dirty=true;
         this._score = score;
         if (shouldReset) {

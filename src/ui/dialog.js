@@ -283,6 +283,23 @@ class SuiLayoutDialog extends SuiDialogBase {
 					label:'Landscape'
 				}]
 			}, {
+				smoName: 'engravingFont',
+				parameterName: 'engravingFont',
+				defaultValue: SmoScore.engravingFonts.Bravura,
+				control: 'SuiDropdownComponent',
+				label:'Engraving Font',
+				options: [{
+						value: 'Bravura',
+						label: 'Bravura'
+					}, {
+						value: 'Gonville',
+						label: 'Gonville'
+					}, {
+						value: 'Petaluma',
+						label: 'Petaluma'
+					}
+				]
+			},{
 				smoName: 'leftMargin',
 				parameterName: 'leftMargin',
 				defaultValue: SmoScore.defaults.layout.leftMargin,
@@ -375,6 +392,7 @@ class SuiLayoutDialog extends SuiDialogBase {
 		var self = this;
 		var dgDom = this.dgDom;
         this.bindKeyboard();
+        this._bindComponentNames();
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
 
@@ -425,8 +443,14 @@ class SuiLayoutDialog extends SuiDialogBase {
 		// this.modifier.backupOriginal();
 		this._handlePageSizeChange();
 		this.components.forEach((component) => {
-			this.layout.score.layout[component.smoName] = component.getValue();
+            if (typeof(this.layout.score.layout[component.smoName]) != 'undefined') {
+			    this.layout.score.layout[component.smoName] = component.getValue();
+            }
 		});
+        if (this.engravingFontCtrl.changeFlag)  {
+            this.layout.score.engravingFont = this.engravingFontCtrl.getValue();
+            suiLayoutBase.setFont(this.layout.score.engravingFont);
+        }
 		this.layout.setViewport();
 	}
 

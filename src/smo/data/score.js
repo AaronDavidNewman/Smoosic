@@ -15,6 +15,9 @@ class SmoScore {
             this._numberStaves();
         }
     }
+    static get engravingFonts() {
+        return {Bravura:'Bravura',Gonville:'Gonville',Petaluma:'Petaluma'};
+    }
 	static get zoomModes() {
 		return {fitWidth:0,wholePage:1,zoomScale:2}
 	}
@@ -35,6 +38,7 @@ class SmoScore {
 				zoomMode:SmoScore.zoomModes.fitWidth,
                 pages:1
 			},
+            engravingFont:SmoScore.engravingFonts.Bravura,
             staffWidth: 1600,
             startIndex: 0,
             renumberingMap: {},
@@ -66,7 +70,7 @@ class SmoScore {
 	}
 
     static get defaultAttributes() {
-        return ['layout' ,'startIndex',  'renumberingMap', 'renumberIndex'];
+        return ['layout' ,'startIndex',  'renumberingMap', 'renumberIndex','engravingFont'];
     }
 
     serializeColumnMapped() {

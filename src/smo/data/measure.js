@@ -53,8 +53,15 @@ class SmoMeasure {
 		return [
 			'timeSignature', 'keySignature','systemBreak','pageBreak',
 			'measureNumber',
-			'activeVoice', 'clef', 'transposeIndex', 'adjX','customStretch','padLeft', 'padRight', 'rightMargin'];
+			'activeVoice', 'clef', 'transposeIndex', 'adjX','customStretch','customProportion','padLeft', 'padRight', 'rightMargin'];
 	}
+
+    static get formattingOptions() {
+        return ['customStretch','customProportion'];
+    }
+    static get systemOptions() {
+        return ['systemBreak','pageBreak'];
+    }
     static get columnMappedAttributes() {
         return ['timeSignature','keySignature','tempo'];
     }
@@ -354,7 +361,9 @@ class SmoMeasure {
             tuplets:[],
 			transposeIndex: 0,
             customStretch:0,
+            customProportion:2,
 			modifiers: modifiers,
+            autoJustify:false,
 			rightMargin: 2,
 			staffY: 40,
 			// bars: [1, 1], // follows enumeration in VF.Barline

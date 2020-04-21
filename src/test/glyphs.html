@@ -2,10 +2,10 @@
 
 <head>
   <title>Vex Glyphs</title>
-      <script type="text/javascript" src="https://npmcdn.com/vexflow/releases/vexflow-debug.js"></script>
+  <script type="text/javascript" src="http://aarondavidnewman.github.io/vexflow/releases/vexflow-debug.js"></script>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.js"
             integrity="sha256-fNXJFIlca05BIO2Y5zh1xrShK3ME+/lYZ0j+ChxX2DA="
-			
+
             crossorigin="anonymous"></script>
   <style type="text/css">
     body {
@@ -44,74 +44,96 @@
 
   <script>
     $(function() {
-      var canvas = document.getElementById("glyphs");
-      var x = 0;
+          var canvas = document.getElementById("glyphs");
+          var x = 0;
 
-      // Get number of glyphs and rename elements
-      var counter = 0;
-      for (var glyph in Vex.Flow.Font.glyphs) {
-        Vex.Flow.Font.glyphs[glyph] = Vex.Flow.Font.glyphs[glyph];
-        counter++;
-      }
+          // Get number of glyphs and rename elements
+          var counter = 0;
+          for (var glyph in Vex.Flow.Font.glyphs) {
+            Vex.Flow.Font.glyphs[glyph] = Vex.Flow.Font.glyphs[glyph];
+            counter++;
+          }
 
-      var canvas_height = ((counter + 1) / (800 / (60 * 2))) * 60;
-      canvas.height = canvas_height;
-      canvas.width = 800;
-	  var vfSvg = new Vex.Flow.Renderer(canvas, Vex.Flow.Renderer.Backends.SVG);
+          var canvas_height = ((counter + 1) / (800 / (60 * 2))) * 60;
+          canvas.height = canvas_height;
+          canvas.width = 800;
+    	  var vfSvg = new Vex.Flow.Renderer(canvas, Vex.Flow.Renderer.Backends.SVG);
+          window.VF=Vex.Flow;
 
-      var ctx = vfSvg.getContext();
-      ctx.font = "10pt Courier";
+          const fontStacks = [
+              [VF.Fonts.Bravura, VF.Fonts.Gonville, VF.Fonts.Custom],
+               [VF.Fonts.Gonville, VF.Fonts.Bravura, VF.Fonts.Custom],
+               [VF.Fonts.Petaluma, VF.Fonts.Gonville, VF.Fonts.Custom]];
 
-      var y = 60;
-      for (var glyph in Vex.Flow.Font.glyphs) {
-        ctx.fillStyle = "#222";
-        ctx.fillText(glyph, x, y);
-        x += 60;
+          var ctx = vfSvg.getContext();
+          ctx.font = "10pt Courier";
 
-        ctx.strokeStyle = "#aaa";
-        ctx.beginPath();
-        ctx.moveTo(x - 5, y);
-        ctx.lineTo(x + 5, y);
-        ctx.stroke()
+          var y = 60;
+          const lineHeight=90;
+          const lineWidth=60;
+          const textYOffset=60;
+          const xMax=800;
 
-        ctx.beginPath();
-        ctx.moveTo(x, y - 5);
-        ctx.lineTo(x, y + 5);
-        ctx.stroke()
+          fontStacks.forEach((fontStack) => {
+              VF.DEFAULT_FONT_STACK = fontStack;
+              var glyphDir = fontStack[0].fontData.glyphs;
+              x=0;
+              ctx.fillStyle = "#222";
+              ctx.fillText(fontStack[0].name, x, y);
+              var glyphNames = Object.keys(glyphDir);
+              y+=20;
+              glyphNames.forEach((glyph)  => {
+                ctx.fillStyle = "#222";
+                ctx.fillText(glyph.substring(0,10), x, y+textYOffset);
+                x += lineWidth/2;
 
-        ctx.fillStyle = "green";
+                ctx.strokeStyle = "#aaa";
+                ctx.beginPath();
+                var rendery=y+lineHeight/4;
+                ctx.moveTo(x - 5, rendery);
+                ctx.lineTo(x + 5, rendery);
+                ctx.stroke()
 
-        if (Vex.Flow.Font.glyphs[glyph].o) {
-          g = new Vex.Flow.Glyph(glyph, 38);
-          g.render(ctx, x, y);
-          
-          ctx.font = "6pt Arial";
-          var metrics = g.getMetrics();
-          ctx.fillText(Math.floor(g.getMetrics().width), x - 35, y - 15 );
-          ctx.fillText(Math.floor(g.getMetrics().height), x - 35, y - 8 );
-          // ctx.fillText(Math.floor(g.getMetrics().x_min), x - 25, y - 1 );
-          // ctx.fillText(Math.floor(g.getMetrics().x_max), x - 25, y + 8 );
-          // ctx.restore();
-        }
-        x += 60;
+                ctx.beginPath();
+                ctx.moveTo(x, rendery - 5);
+                ctx.lineTo(x, rendery + 5);
+                ctx.stroke()
 
-        if (x >= 800) {
-          x = 0;
-          y += 60;
-        }
-      }
+                ctx.fillStyle = "green";
+
+                  g = new Vex.Flow.Glyph(glyph, 28);
+                  g.render(ctx, x, rendery);
+
+                  ctx.font = "6pt Arial";
+                  var metrics = g.getMetrics();
+                  // ctx.fillText(Math.floor(g.getMetrics().width), x - 35, y - 15 );
+                  // ctx.fillText(Math.floor(g.getMetrics().height), x - 35, y - 8 );
+                  // ctx.fillText(Math.floor(g.getMetrics().x_min), x - 25, y - 1 );
+                  // ctx.fillText(Math.floor(g.getMetrics().x_max), x - 25, y + 8 );
+                  // ctx.restore();
+                x += lineWidth;
+
+                if (x >= 800) {
+                  x = 0;
+                  y += lineHeight;
+                }
+            });
+            y+=lineHeight;
+
+        });
     });
+
   </script>
 </head>
 
 <body>
   <center>
-    <h1>Gonville Glyphs</h1>
+    <h1>Font Glyphs</h1>
     <p>
       <i>Cross indicates render coordinates.</i>
     </p>
 
-  <svg id="glyphs" width="800" height="1600">
+  <svg id="glyphs" width="800" height="6400">
     HTML5 Canvas not supported on this browser.
   </svg>
 
