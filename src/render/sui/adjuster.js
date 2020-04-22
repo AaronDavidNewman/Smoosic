@@ -40,7 +40,7 @@ class suiLayoutAdjuster {
                     }
                     // why did I make this return an array?
                     // oh...because of voices
-                    var lyricWidth = 6*lyric[0].text.length + 10;
+                    var lyricWidth = 7*lyric[0].text.length + 10;
                     noteWidth = Math.max(lyricWidth,noteWidth);
 
                     verse += 1;

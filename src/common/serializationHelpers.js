@@ -159,7 +159,11 @@ class smoSerialize {
      "yd": "systemGroups",
      "zd": "leftConnector",
      "ae": "padLeft",
-     "be": "customStretch"
+     "be": "customStretch",
+      "ce": "engravingFont",
+      "de": "customProportion",
+      "ee": "columnAttributeMap",
+      "fe": "tempo"
     }`
       ;
      return JSON.parse(_tm);

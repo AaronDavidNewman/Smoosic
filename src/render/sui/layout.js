@@ -83,6 +83,7 @@ class suiLayoutBase {
         var staff = this.score.staves[0];
         var measures = staff.measures.filter((measure) => measure.measureNumber.systemIndex == 0);
         $('.measure-number').remove();
+        var printing = $('body').hasClass('print-render');
 
         measures.forEach((measure) => {
             var at = [];
@@ -94,7 +95,7 @@ class suiLayoutBase {
                 svgHelpers.placeSvgText(this.context.svg,at,'measure-number',(measure.measureNumber.measureNumber + 1).toString());
 
                 var formatIndex = SmoMeasure.systemOptions.findIndex((option) => measure[option] != SmoMeasure.defaults[option]);
-                if (formatIndex >= 0) {
+                if (formatIndex >= 0 && !printing) {
                     var at=[];
                     at.push({y:measure.logicalBox.y - 5});
                     at.push({x:measure.logicalBox.x + 25});

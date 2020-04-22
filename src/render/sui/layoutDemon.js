@@ -16,9 +16,9 @@ class SuiLayoutDemon {
 	}
 
     handleRedrawTimer() {
-        if ($('body').hasClass('printing')) {
+        /* if ($('body').hasClass('printing')) {
             return;
-        }
+        }  */
 	    // If there has been a change, redraw the score
 		if (this.undoStatus != this.undoBuffer.opCount || this.layout.dirty) {
 			this.layout.dirty=true;

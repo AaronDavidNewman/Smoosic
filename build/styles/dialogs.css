@@ -447,7 +447,9 @@ body.splashScreen .bugDialog {
 
 }
 
-
+.helpDialog  {
+    display:none;
+}
 body.showHelpDialog .helpDialog {
 	display:block;
 	position:absolute;

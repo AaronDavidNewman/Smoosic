@@ -239,7 +239,9 @@ class SuiFileMenu extends suiMenuBase {
     constructor(params) {
 		params = (params ? params : {});
 		Vex.Merge(params, SuiFileMenu.defaults);
-		super(params);
+        super(params);
+        this.tracker = this.controller.tracker;
+        this.layout = this.controller.layout;
 	}
      static get defaults() {
 		return {
@@ -287,6 +289,67 @@ class SuiFileMenu extends suiMenuBase {
             ]
         };
      }
+     printRenderPromise() {
+         $('body').addClass('print-render');
+         $('.printFrame').html('');
+         var layout = this.layout;
+         var tracker = this.tracker;
+         layout.setRefresh();
+         var promise = new Promise((resolve) => {
+             var poll = () => {
+
+
+            setTimeout(() => {
+                if (!layout.dirty) {
+                    tracker.highlightSelection();
+                    $('body').removeClass('print-render');
+                    $('body').addClass('printing');
+                    resolve();
+                }else {
+                    poll();
+                }
+            },500);
+            }
+            poll();
+         });
+         return promise;
+     }
+     systemPrint() {
+         var self = this;
+         var svgDoc = $('#boo svg')[0];
+         var s = new XMLSerializer();
+         var svgString = s.serializeToString(svgDoc);
+         var iframe = document.createElement("iframe");
+         var scale = 1.0/this.layout.score.layout.zoomScale;
+         var w=Math.round(scale * $('#boo').width());
+         var h=Math.round(scale * $('#boo').height());
+         $(iframe).attr('width',w);
+         $(iframe).attr('height',h);
+         iframe.srcdoc=svgString;
+         $('.printFrame')[0].appendChild(iframe);
+         $('.printFrame').width(w);
+         $('.printFrame').height(h);
+         function resize() {
+             setTimeout(function() {
+                 var svg = $(window.frames[0].document.getElementsByTagName('svg'));
+                 if (svg && svg.length) {
+                     $(window.frames[0].document.getElementsByTagName('svg')).height(h);
+                     $(window.frames[0].document.getElementsByTagName('svg')).width(w);
+                     window.print();
+                     SuiPrintFileDialog.createAndDisplay({
+                         layout: self.layout,
+                         controller:self.controller,
+                         closeMenuPromise:self.closePromise,
+                         tracker:self.tracker
+                         });
+                 } else {
+                     resize();
+                 }
+             },500);
+         }
+
+         resize();
+     }
      selection(ev) {
 		var text = $(ev.currentTarget).attr('data-value');
         var self=this;
@@ -314,42 +377,11 @@ class SuiFileMenu extends suiMenuBase {
             var scoreStr = JSON.stringify(this.controller.layout.score.serialize());
             localStorage.setItem(smoSerialize.localScore,scoreStr);
         } else if (text == 'printScore') {
-            $('.printFrame').html('');
-            var svgDoc = $('#boo svg')[0];
-            var s = new XMLSerializer();
-            var svgString = s.serializeToString(svgDoc);
-            var iframe = document.createElement("iframe");
-            var scale = 1.0/this.controller.layout.score.layout.zoomScale;
-            var w=Math.round(scale * $('#boo').width());
-            var h=Math.round(scale * $('#boo').height());
-            $(iframe).attr('width',w);
-            $(iframe).attr('height',h);
-            iframe.srcdoc=svgString;
-            $('body').addClass('printing');
-            this.tracker.highlightSelection();
-            $('.printFrame')[0].appendChild(iframe);
-            $('.printFrame').width(w);
-            $('.printFrame').height(h);
-            function resize() {
-                setTimeout(function() {
-                    var svg = $(window.frames[0].document.getElementsByTagName('svg'));
-                    if (svg && svg.length) {
-                        $(window.frames[0].document.getElementsByTagName('svg')).height(h);
-                        $(window.frames[0].document.getElementsByTagName('svg')).width(w);
-                        window.print();
-                        SuiPrintFileDialog.createAndDisplay({
-                            layout: self.controller.tracker.layout,
-                            controller:self.controller,
-                            closeMenuPromise:self.closePromise,
-                            tracker:self.tracker
-                            });
-                    } else {
-                        resize();
-                    }
-                },500);
+            var systemPrint = () => {
+                self.systemPrint();
             }
+            this.printRenderPromise().then(systemPrint);
 
-            resize();
         } else if (text == 'bach') {
 			this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
 			var score = SmoScore.deserialize(inventionJson);

@@ -90,7 +90,10 @@ h1 {
 
 .measure-format  {
     fill:#229cee;
+}
 
+body.print-render .measure-format {
+    dislay:none;
 }
 
 @media print {

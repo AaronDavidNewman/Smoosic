@@ -180,6 +180,8 @@ class suiScoreLayout extends suiLayoutBase {
 
     renderAllMeasures() {
         var mscore = {};
+        $('.measure-format').remove();
+        var printing = $('body').hasClass('print-render');
         this.score.staves.forEach((staff) => {
             staff.measures.forEach((measure) => {
                 if (!mscore[measure.lineIndex]) {
@@ -205,7 +207,7 @@ class suiScoreLayout extends suiLayoutBase {
                 columns[colKey].forEach((measure) => {
                     vxSystem.renderMeasure(measure,this.measureMapper);
                     var formatIndex = SmoMeasure.formattingOptions.findIndex((option) => measure[option] != SmoMeasure.defaults[option]);
-                    if (formatIndex >= 0) {
+                    if (formatIndex >= 0 && !printing) {
                         var at=[];
                         at.push({y:measure.logicalBox.y - 5});
                         at.push({x:measure.logicalBox.x + 25});
