@@ -445,6 +445,10 @@ class suiLayoutBase {
 
     _drawPageLines() {
         $(this.context.svg).find('.pageLine').remove();
+        var printing = $('body').hasClass('print-render');
+        if (printing) {
+            return;
+        }
         for (var i=1;i<this._score.layout.pages;++i) {
             var y = (this.pageHeight/this.svgScale)*i;
             svgHelpers.line(this.svg,0,y,this.score.layout.pageWidth/this.score.layout.svgScale,y,

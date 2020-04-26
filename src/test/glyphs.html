@@ -3,6 +3,8 @@
 <head>
   <title>Vex Glyphs</title>
   <script type="text/javascript" src="http://aarondavidnewman.github.io/vexflow/releases/vexflow-debug.js"></script>
+
+  <!-- script type="text/javascript" src="../../../vexflow/build/vexflow-debug.js"></script   -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.js"
             integrity="sha256-fNXJFIlca05BIO2Y5zh1xrShK3ME+/lYZ0j+ChxX2DA="
 
@@ -78,16 +80,22 @@
               VF.DEFAULT_FONT_STACK = fontStack;
               var glyphDir = fontStack[0].fontData.glyphs;
               x=0;
-              ctx.fillStyle = "#222";
-              ctx.fillText(fontStack[0].name, x, y);
+              ctx.save();
+              ctx.setFillStyle("#222");
+              var stackName = fontStack[0].name;
+              ctx.fillText(stackName, x, y);
+              ctx.restore();
               var glyphNames = Object.keys(glyphDir);
               y+=20;
               glyphNames.forEach((glyph)  => {
+                ctx.save();
                 ctx.fillStyle = "#222";
                 ctx.fillText(glyph.substring(0,10), x, y+textYOffset);
+                ctx.restore();
                 x += lineWidth/2;
 
-                ctx.strokeStyle = "#aaa";
+                ctx.save();
+                ctx.setStrokeStyle("#9ca");
                 ctx.beginPath();
                 var rendery=y+lineHeight/4;
                 ctx.moveTo(x - 5, rendery);
@@ -98,14 +106,19 @@
                 ctx.moveTo(x, rendery - 5);
                 ctx.lineTo(x, rendery + 5);
                 ctx.stroke()
-
-                ctx.fillStyle = "green";
+                ctx.restore();
+var g = ctx.openGroup();
+g.classList.add(stackName+'-'+glyph);
+                ctx.setFillStyle("black");
 
                   g = new Vex.Flow.Glyph(glyph, 28);
                   g.render(ctx, x, rendery);
+                  ctx.closeGroup();
 
-                  ctx.font = "6pt Arial";
+ctx.save();
+                  ctx.setFont("Arial","4","normal");
                   var metrics = g.getMetrics();
+                  ctx.restore();
                   // ctx.fillText(Math.floor(g.getMetrics().width), x - 35, y - 15 );
                   // ctx.fillText(Math.floor(g.getMetrics().height), x - 35, y - 8 );
                   // ctx.fillText(Math.floor(g.getMetrics().x_min), x - 25, y - 1 );
