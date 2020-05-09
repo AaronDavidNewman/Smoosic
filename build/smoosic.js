@@ -2682,16 +2682,16 @@ class SmoArticulation extends SmoNoteModifierBase {
 class SmoLyric extends SmoNoteModifierBase {
 	static get defaults() {
 		return {
-            text:'',
-            endChar:'',
-            verse:0,
+      text:'\xa0',
+      endChar:'',
+      verse:0,
 			fontInfo: {
 				size: 12,
 				family: 'times',
 				style: 'normal',
 				weight: 'normal'
 			},
-            fill:'black',
+      fill:'black',
 			rotate:0,
 			classes:'score-text',
 			scaleX:1.0,
@@ -2700,48 +2700,53 @@ class SmoLyric extends SmoNoteModifierBase {
 			translateY:0,
 		};
 	}
-    static get parsers() {
-        return {lyric:0,anaylysis:1,chord:2}
-    }
+  static get parsers() {
+      return {lyric:0,anaylysis:1,chord:2}
+  }
 
-    static get parameterArray() {
-        return ['text','endChar','fontInfo','classes','verse',
-		    'fill','scaleX','scaleY','translateX','translateY','ctor'];
-    }
-    serialize() {
-        var params = {};
-        smoSerialize.serializedMergeNonDefault(SmoLyric.defaults,
-           SmoLyric.parameterArray,this,params);
-        return params;
-    }
+  static get parameterArray() {
+      return ['text','endChar','fontInfo','classes','verse',
+	    'fill','scaleX','scaleY','translateX','translateY','ctor'];
+  }
+  serialize() {
+      var params = {};
+      smoSerialize.serializedMergeNonDefault(SmoLyric.defaults,
+         SmoLyric.parameterArray,this,params);
+      return params;
+  }
 
-    updateText(text) {
-        // TODO: handle different parsers
-        text = text ? text: '';
-        this.text = text.trim();
-    }
+  setText(text) {
+    this.text = text;
+  }
 
-    constructor(parameters) {
-		super('SmoLyric');
-		smoSerialize.serializedMerge(SmoLyric.parameterArray, SmoLyric.defaults,this);
-		smoSerialize.serializedMerge(SmoLyric.parameterArray, parameters, this);
+  updateText(text) {
+      // TODO: handle different parsers
+      text = text ? text: '';
+      this.text = text.trim();
+  }
 
-        // Return these for the text editor that expects them.
-        this.translateX = this.translateY = 0;
-        this.scaleX = this.scaleY = 1.0;
-        this.boxModel = 'none';
+  constructor(parameters) {
+  	super('SmoLyric');
+  	smoSerialize.serializedMerge(SmoLyric.parameterArray, SmoLyric.defaults,this);
+  	smoSerialize.serializedMerge(SmoLyric.parameterArray, parameters, this);
 
-        // calculated adjustments for alignment purposes
-		this.adjY=0;
-        this.adjX = 0;
+    // Return these for the text editor that expects them.
+    this.translateX = this.translateY = 0;
+    this.scaleX = this.scaleY = 1.0;
+    this.boxModel = 'none';
 
-		if (!this['attrs']) {
-			this.attrs = {
-				id: VF.Element.newID(),
-				type: 'SmoLyric'
-			};
-		} else {
-		}
+    // calculated adjustments for alignment purposes
+	  this.adjY=0;
+    this.adjX = 0;
+
+	  if (!this['attrs']) {
+		  this.attrs = {
+			  id: VF.Element.newID(),
+			  type: 'SmoLyric'
+		  };
+  	} else {
+
+  	}
 	}
 }
 
@@ -13000,7 +13005,7 @@ class editLyricSession {
         layoutDebug.addTextDebug('editLyricSession: detach() from '+this.selection.note.attrs.id);
         this.state = editLyricSession.states.stopping;
         this.editor.endSession();
-        this.lyric.text = this.editor.value;
+        this.lyric.setText(this.editor.value);
 		window.removeEventListener("keydown", this.keydownHandler, true);
         if (this.selection) {
             this.selection.measure.changed=true;
@@ -13066,7 +13071,7 @@ class editLyricSession {
             if (self.state != editLyricSession.states.stopped && self.state != editLyricSession.states.stopping) {
                 self._handleSkip();
             } else {  // session is stopping due to esc.
-                self.notifier.forceEndSession();
+                self.notifier.detachCompleteEvent();
             }
         }
 
@@ -13087,13 +13092,13 @@ class editLyricSession {
 	}
 
     _getOrCreateLyric(note) {
-        var lyrics =  note.getLyricForVerse(this.verse);
-        layoutDebug.addTextDebug('editLyricSession:new lyric created  ');
-        if (!lyrics.length) {
-			this.lyric = new SmoLyric({text:'\xa0',verse:this.verse});
-        } else {
-			this.lyric = lyrics[0];
-		}
+      var lyrics =  note.getLyricForVerse(this.verse);
+      layoutDebug.addTextDebug('editLyricSession:new lyric created  ');
+      if (!lyrics.length) {
+  			this.lyric = new SmoLyric({verse:this.verse});
+      } else {
+		   this.lyric = lyrics[0];
+	    }
     }
     removeLyric() {
         if (this.selection && this.lyric) {
@@ -13105,7 +13110,7 @@ class editLyricSession {
 
     _handleSkip() {
         // var tag = this.state == editLyricSession.states.minus ? '-' :'';
-        this.lyric.text = this.editor.value;
+        this.lyric.setText(this.editor.value);
         this.selection.measure.changed = true;
         if (this.state != editLyricSession.states.stopping) {
 			var func = (this.state == editLyricSession.states.backSpace) ? 'lastNoteSelection' : 'nextNoteSelection';
@@ -13149,12 +13154,15 @@ class editLyricSession {
         },1);
     }
 
-    nextWord() {
+    // ### moveSelectionRight
+    // Selection can move automatically based on key events, but there are Also
+    // UI ways to force it.
+    moveSelectionRight() {
         this.state = editLyricSession.states.space;
         this._deferSkip();
     }
 
-    previousWord() {
+    moveSelectionLeft() {
         this.state = editLyricSession.states.backSpace;
         this._deferSkip();
     }
@@ -13198,6 +13206,73 @@ class editLyricSession {
 		}
 		this.bound = true;
 	}
+}
+
+// ## editNoteText
+// Manage editing text for a note, and navigating, adding and removing.
+class noteTextEditSession {
+  constructor(changeNotifier,tracker,controller,verse,selection) {
+    this.notifier = changeNotifier;
+    this.tracker = tracker;
+    this.controller = controller;
+    this.verse = verse;
+    this.selection = selection;
+  }
+
+  get isRunning() {
+    return !(this.editor === null || (
+      this.editor.state === editLyricSession.states.stopped ||
+      this.editor.state === editLyricSession.states.stopping ));
+  }
+
+  notifySelectionChanged(selection) {
+    if (selection) {
+        layoutDebug.addTextDebug('SuiLyricEditComponent: lyric notification for ' + selection.note.attrs.id);
+    } else {
+        layoutDebug.addTextDebug('SuiLyricEditComponent: no selection');
+    }
+    if (this.selection == null || SmoSelector.neq(selection.selector,this.selection.selector)) {
+        this.selection = selection;
+        this.notifier.notifySelectionChanged();
+    }
+  }
+
+  removeText() {
+      this.editor.removeLyric();
+  }
+
+  moveSelectionRight() {
+    this.editor.moveSelectionRight();
+  }
+
+  moveSelectionLeft() {
+    this.editor.moveSelectionLeft();
+  }
+
+  toggleSessionStateEvent() {
+    if (this.editor.state == editLyricSession.states.stopped ||
+        this.editor.state == editLyricSession.states.stopping)  {
+        layoutDebug.addTextDebug('SuiLyricEditComponent: restarting button');
+        this.startEditingSession();
+    } else {
+        layoutDebug.addTextDebug('SuiLyricEditComponent: stopping editor button');
+        this.forceEndSessionEvent();
+    }
+  }
+
+  // Inform client that the edit session is complete
+  detachCompleteEvent() {
+    this.notifier.notifySelectionChanged();
+  }
+
+  startEditingSession() {
+    layoutDebug.addTextDebug('SuiLyricEditComponent: initial create editor request');
+    this.editor = new editLyricSession({tracker:this.tracker,verse:this.verse,selection:this.tracker.selections[0],controller:this.controller,notifier:this});
+    this.editor.editNote();
+  }
+  forceEndSessionEvent() {
+    this.editor.detach();
+  }
 }
 ;
 
@@ -16061,161 +16136,122 @@ class SuiSaveFileDialog extends SuiFileDialog {
         return dg;
 	}
     static get dialogElements() {
-		return [ {
-            smoName: 'verse',
-            parameterName: 'verse',
-            defaultValue: 0,
-            control: 'SuiDropdownComponent',
-            label:'Verse',
-            startRow:true,
-            options: [{
-                    value: 0,
-                    label: '1'
-                }, {
-                    value: 1,
-                    label: '2'
-                }, {
-                    value: 2,
-                    label: '3'
-                }
-            ]
-        },{
+		return [
+      {
+          smoName: 'verse',
+          parameterName: 'verse',
+          defaultValue: 0,
+          control: 'SuiDropdownComponent',
+          label:'Verse',
+          startRow:true,
+          options: [{
+                  value: 0,
+                  label: '1'
+              }, {
+                  value: 1,
+                  label: '2'
+              }, {
+                  value: 2,
+                  label: '3'
+              }
+          ]
+        }, {
 				smoName: 'textEditor',
 				parameterName: 'text',
 				defaultValue: 0,
 				control: 'SuiLyricEditComponent',
 				label:'Edit Text',
 				options: []
-		},{
-				smoName: 'previousWord',
-				parameterName: 'previousWord',
-				defaultValue: 0,
-                additionalClasses:'icon-arrow-left',
-				control: 'SuiButtonComponent',
-				label:'Previous Word',
-				options: []
-		},{
-				smoName: 'nextWord',
-				parameterName: 'nextWord',
-				defaultValue: 0,
-                additionalClasses:'icon-arrow-right',
-				control: 'SuiButtonComponent',
-				label:'Next Word',
-				options: []
-		},{
-				smoName: 'removeLyric',
-				parameterName: 'removeLyric',
-				defaultValue: 0,
-                additionalClasses:'icon-cross',
-				control: 'SuiButtonComponent',
-				label:'Remove Lyric',
-				options: []
-		}
+		  }
     ];
     }
-    constructor(parameters) {
-        parameters.ctor='SuiLyricDialog';
-        parameters.label = 'Done Editing Lyrics';
-        var p = parameters;
+  constructor(parameters) {
+    parameters.ctor='SuiLyricDialog';
+    parameters.label = 'Done Editing Lyrics';
+    var p = parameters;
 
-		super(SuiLyricDialog.dialogElements, {
-			id: 'dialog-lyrics',
-			top: (p.layout.score.layout.pageWidth / 2) - 200,
-			left: (p.layout.score.layout.pageHeight / 2) - 200,
-			label: p.label,
-			tracker:parameters.tracker
-		});
+  	super(SuiLyricDialog.dialogElements, {
+  		id: 'dialog-lyrics',
+  		top: (p.layout.score.layout.pageWidth / 2) - 200,
+  		left: (p.layout.score.layout.pageHeight / 2) - 200,
+  		label: p.label,
+  		tracker:parameters.tracker
+  	});
         this.layout = p.layout;
-		this.controller = p.controller;
+  	this.controller = p.controller;
         this.tracker = this.controller.tracker;
         this.undo = this.controller.undoBuffer;
         SmoUndoable.noop(this.layout.score,this.undo,'Undo lyrics');
-	}
-    display() {
-        $('body').addClass('showAttributeDialog');
+  }
+  display() {
+      $('body').addClass('showAttributeDialog');
 		this.components.forEach((component) => {
 			component.bind();
 		});
 
-        this.editor = this.components.find((c) => c.smoName === 'textEditor');
-        this.verse = this.components.find((c) => c.smoName === 'verse');
+    this.editor = this.components.find((c) => c.smoName === 'textEditor');
+    this.verse = this.components.find((c) => c.smoName === 'verse');
 		this._bindElements();
 
-        // make sure keyboard is unbound or we get dupicate key events.
-        var self=this;
-        this.controller.unbindKeyboardForDialog(this);
+    // make sure keyboard is unbound or we get dupicate key events.
+    var self=this;
+    this.controller.unbindKeyboardForDialog(this);
 
-        $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
-            if ($(ctrl).hasClass('cbLyricEdit')) {
-            } else {
-                $(ctrl).addClass('fold-textedit');
-            }
-        });
+    $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
+        if ($(ctrl).hasClass('cbLyricEdit')) {
+        } else {
+            $(ctrl).addClass('fold-textedit');
+        }
+    });
 
-       this.position(this.tracker.selections[0].note.renderedBox);
+     this.position(this.tracker.selections[0].note.renderedBox);
 
-        var cb = function (x, y) {}
-        htmlHelpers.draggable({
+      var cb = function (x, y) {}
+      htmlHelpers.draggable({
 			parent: $(this.dgDom.element).find('.attributeModal'),
 			handle: $(this.dgDom.element).find('.jsDbMove'),
             animateDiv:'.draganime',
-			cb: cb,
+      			cb: cb,
 			moveParent: true
 		});
 	}
-    _focusSelection() {
-        if (this.editor.editor.selection &&
-            this.editor.editor.selection.note &&
-            this.editor.editor.selection.note.renderedBox) {
-                this.tracker.scroller.scrollVisibleBox(this.editor.editor.selection.note.renderedBox);
-            }
-    }
-    changed() {
-        this.editor.verse = this.verse.getValue();
-        // Note, when selection changes, we need to wait for the text edit session
-        // to start on the new selection.  Then this.editor.changeFlag is set and
-        // we can focus on the selection if it is not visible.
-        if (this.editor.changeFlag && this.editor.selection) {
-            this.tracker.setSelection(this.editor.selection.selector);
-            this._focusSelection();
-        }
-        if (this.removeLyricControl.changeFlag) {
-            layoutDebug.addTextDebug('SuiLyricEditDialog:remove lyric ');
-            this.editor.removeLyric();
-        }
-
-        if (this.nextWordControl.changeFlag) {
-            layoutDebug.addTextDebug('SuiLyricEditDialog: next word button ');
-            this.editor.editor.nextWord();
-        }
-        if (this.previousWordControl.changeFlag) {
-            layoutDebug.addTextDebug('SuiLyricEditDialog: previous word button ');
-            this.editor.editor.previousWord();
-        }
-    }
-    _bindElements() {
-        var self = this;
-        var dgDom = this.dgDom;
-
-        this.nextWordControl = this.components.find((comp) => {return comp.smoName == 'nextWord';});
-        this.previousWordControl = this.components.find((comp) => {return comp.smoName == 'previousWord';});
-        this.removeLyricControl = this.components.find((comp) => {return comp.smoName == 'removeLyric';});
+  _focusSelection() {
+      if (this.editor.editor.selection &&
+          this.editor.editor.selection.note &&
+          this.editor.editor.selection.note.renderedBox) {
+              this.tracker.scroller.scrollVisibleBox(this.editor.editor.selection.note.renderedBox);
+          }
+  }
+  changed() {
+      this.editor.verse = this.verse.getValue();      
+      // Note, when selection changes, we need to wait for the text edit session
+      // to start on the new selection.  Then this.editor.changeFlag is set and
+      // we can focus on the selection if it is not visible.
+      if (this.editor.changeFlag && this.editor.selection) {
+          this.tracker.setSelection(this.editor.selection.selector);
+          this._focusSelection();
+      }
+  }
+  _bindElements() {
+    var self = this;
+    var dgDom = this.dgDom;
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
             self.tracker.replaceSelectedMeasures();
             self.tracker.layout.setDirty();
             self.complete();
 		});
-        $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+    $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
             self.layout.score = self.undo.undo(self.layout.score);
             self.tracker.replaceSelectedMeasures();
             self.tracker.layout.setDirty();
             self.complete();
 		});
-        $(dgDom.element).find('.remove-button').remove();
-        this.editor.startEditSession();
+    $(dgDom.element).find('.remove-button').remove();
+    this.editor.startEditSession();
 	}
 }
+
 class SuiTextTransformDialog  extends SuiDialogBase {
     static createAndDisplay(parameters) {
 		var dg = new SuiTextTransformDialog(parameters);
@@ -16364,19 +16400,19 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			  component.setValue(this.modifier[component.parameterName]);
             }
 		});
-        this._bindComponentNames();
+    this._bindComponentNames();
 
-        var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
-        var dbFontUnit  = this.components.find((c) => c.smoName === 'fontUnit');
-        var fontSize = this.modifier.fontInfo.size;
-        fontSize=svgHelpers.getFontSize(fontSize);
-        dbFontSize.setValue(fontSize.size);
-        dbFontUnit.setValue(fontSize.unit);
+    var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
+    var dbFontUnit  = this.components.find((c) => c.smoName === 'fontUnit');
+    var fontSize = this.modifier.fontInfo.size;
+    fontSize=svgHelpers.getFontSize(fontSize);
+    dbFontSize.setValue(fontSize.size);
+    dbFontUnit.setValue(fontSize.unit);
 
-        this.wrapCtrl.setValue(this.modifier.boxModel != SmoScoreText.boxModels.none);
+    this.wrapCtrl.setValue(this.modifier.boxModel != SmoScoreText.boxModels.none);
 
-        this.paginationsComponent = this.components.find((c) => c.smoName == 'pagination');
-        this.paginationsComponent.setValue(this.modifier.pagination);
+    this.paginationsComponent = this.components.find((c) => c.smoName == 'pagination');
+    this.paginationsComponent.setValue(this.modifier.pagination);
 
 		this._bindElements();
 		this.position(this.modifier.renderedBox);
@@ -17670,28 +17706,32 @@ class SuiLyricEditComponent extends SuiComponentBase {
         var b = htmlHelpers.buildDom;
         var id = this.parameterId;
         var r = b('div').classes('cbLyricEdit smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
-            .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
-                .attr('id', id + '-input').append(
-                b('span').classes('icon icon-pencil')))
-                .append(
-                b('label').attr('for', id + '-input').text(this.label));
-        return r;
+          .append(b('div').classes('toggleEdit')
+            .append(b('button').classes('toggleTextEdit')
+              .attr('id', id + '-toggleInput').append(
+              b('span').classes('icon icon-pencil'))).append(
+              b('label').attr('for', id + '-toggleInput').text(this.label)))
+
+          .append(b('div').classes('controlDiv')
+            .append(b('span')
+              .append(
+                b('button').attr('id', id + '-left').classes('icon-arrow-left buttonComponent')))
+            .append(b('span')
+              .append(
+                b('button').attr('id', id + '-right').classes('icon-arrow-right buttonComponent')))
+            .append(b('span')
+              .append(
+                b('button').attr('id', id + '-remove').classes('icon-cross buttonComponent')))
+        );
+      return r;
     }
     get parameterId() {
         return this.dialog.id + '-' + this.parameterName;
     }
-    endSession() {
-        if (this.editor) {
-            layoutDebug.addTextDebug('SuiLyricEditComponent:endSession ');
 
-            this.value=this.editor.value;
-            this.editor.detach();
-        }
-    }
     // If the user pressed esc., force the end of the session
-    forceEndSession() {
+    endSessionDom() {
         var elementDom = $('#'+this.parameterId);
-        this.editor.detach();
         $(elementDom).find('label').text('Edit Lyrics');
         $(this.editorButton).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
         $('body').removeClass('text-edit');
@@ -17702,11 +17742,11 @@ class SuiLyricEditComponent extends SuiComponentBase {
     }
     _getInputElement() {
         var pid = this.parameterId;
-        return $(this.dialog.dgDom.element).find('#' + pid).find('button');
+        return $(this.dialog.dgDom.element).find('#' + pid).find('button.toggleTextEdit');
     }
 
     notifySelectionChanged(selection) {
-        if (!selection) {
+        if (selection) {
             layoutDebug.addTextDebug('SuiLyricEditComponent: lyric notification for ' + selection.note.attrs.id);
         } else {
             layoutDebug.addTextDebug('SuiLyricEditComponent: no selection');
@@ -17715,52 +17755,74 @@ class SuiLyricEditComponent extends SuiComponentBase {
             this.selection = selection;
             this.handleChanged();
         }
-    }
-
-    _startEditor() {
-        var elementDom = $('#'+this.parameterId);
-        var button = $(elementDom).find('button');
-        layoutDebug.addTextDebug('SuiLyricEditComponent: create editor for ' + this.tracker.selections[0].note.attrs.id);
-        this.editor = new editLyricSession({tracker:this.tracker,verse:this.verse,selection:this.tracker.selections[0],controller:this.controller,notifier:this});
-        $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
-        $(elementDom).find('label').text('Done Editing Lyrics');
-        this.editor.editNote();
-    }
-    removeLyric() {
-        this.editor.removeLyric();
-    }
-    get editorButton() {
-        var elementDom = $('#'+this.parameterId);
-        var button = $(elementDom).find('button');
-        return button;
-    }
-    startEditSession(selection) {
-        var self=this;
-        layoutDebug.addTextDebug('SuiLyricEditComponent: create editor request');
-
-        if (!this.editor) {
-            layoutDebug.addTextDebug('SuiLyricEditComponent: initial create editor request');
-            this._startEditor();
-            $(this.editorButton).off('click').on('click',function() {
-                self.handleChanged();
-                 if (self.editor.state == editLyricSession.states.stopped ||
-                     self.editor.state == editLyricSession.states.stopping)  {
-                     layoutDebug.addTextDebug('SuiLyricEditComponent: restarting button');
-                     self._startEditor();
-                 } else {
-                     layoutDebug.addTextDebug('SuiLyricEditComponent: stopping editor button');
-                     self.forceEndSession();
-                 }
-          });
+        if (!this.editor.isRunning) {
+          this.endSessionDom();
         }
     }
 
-    bind() {
-        var self=this;
-        this.tracker = this.dialog.tracker;
-        this.selection = this.dialog.selection;
-        this.controller = this.dialog.controller; // do we need this?
+    moveSelectionRight() {
+      this.editor.moveSelectionRight();
     }
+    moveSelectionLeft() {
+      this.editor.moveSelectionLeft();
+    }
+    removeText() {
+      this.editor.removeText();
+    }
+
+    _startEditorDom() {
+        var elementDom = $('#'+this.parameterId);
+        var button = $(elementDom).find('button.toggleTextEdit');
+        layoutDebug.addTextDebug('SuiLyricEditComponent: create editor for ' + this.tracker.selections[0].note.attrs.id);
+        $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
+        $(elementDom).find('label').text('Done Editing Lyrics');
+    }
+    get editorButton() {
+        var elementDom = $('#'+this.parameterId);
+        var button = $(elementDom).find('button.toggleTextEdit');
+        return button;
+    }
+    toggleSessionButton() {
+      this.handleChanged();
+      if (!this.editor.isRunning) {
+        this.editor.verse = this.verse;
+        this._startEditorDom();
+        layoutDebug.addTextDebug('SuiLyricEditComponent: restarting button');
+       } else {
+         this.endSessionDom();
+         layoutDebug.addTextDebug('SuiLyricEditComponent: stopping editor button');
+       }
+       this.editor.toggleSessionStateEvent();
+    }
+  startEditSession(selection) {
+    var self=this;
+    layoutDebug.addTextDebug('SuiLyricEditComponent: create editor request');
+    this._startEditorDom();
+    this.editor = new noteTextEditSession(this,this.tracker,this.controller,this.verse,this.selection);
+    this.editor.startEditingSession();
+    this._bind();
+  }
+  bind() {
+    this.tracker = this.dialog.tracker;
+    this.selection = this.dialog.selection;
+    this.controller = this.dialog.controller; // do we need this
+  }
+
+  _bind() {
+    var self=this;
+    $('#'+this.parameterId+'-left').off('click').on('click',function() {
+      self.moveSelectionLeft();
+    });
+    $('#'+this.parameterId+'-right').off('click').on('click',function() {
+      self.moveSelectionRight();
+    });
+    $('#'+this.parameterId+'-remove').off('click').on('click',function() {
+      self.removeText();
+    });
+    $(this.editorButton).off('click').on('click',function() {
+      self.toggleSessionButton();
+    });
+  }
 }
 
 // ## SuiTextInputComponent
