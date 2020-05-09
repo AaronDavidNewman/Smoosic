@@ -9,161 +9,122 @@ class SuiLyricDialog extends SuiDialogBase {
         return dg;
 	}
     static get dialogElements() {
-		return [ {
-            smoName: 'verse',
-            parameterName: 'verse',
-            defaultValue: 0,
-            control: 'SuiDropdownComponent',
-            label:'Verse',
-            startRow:true,
-            options: [{
-                    value: 0,
-                    label: '1'
-                }, {
-                    value: 1,
-                    label: '2'
-                }, {
-                    value: 2,
-                    label: '3'
-                }
-            ]
-        },{
+		return [
+      {
+          smoName: 'verse',
+          parameterName: 'verse',
+          defaultValue: 0,
+          control: 'SuiDropdownComponent',
+          label:'Verse',
+          startRow:true,
+          options: [{
+                  value: 0,
+                  label: '1'
+              }, {
+                  value: 1,
+                  label: '2'
+              }, {
+                  value: 2,
+                  label: '3'
+              }
+          ]
+        }, {
 				smoName: 'textEditor',
 				parameterName: 'text',
 				defaultValue: 0,
 				control: 'SuiLyricEditComponent',
 				label:'Edit Text',
 				options: []
-		},{
-				smoName: 'previousWord',
-				parameterName: 'previousWord',
-				defaultValue: 0,
-                additionalClasses:'icon-arrow-left',
-				control: 'SuiButtonComponent',
-				label:'Previous Word',
-				options: []
-		},{
-				smoName: 'nextWord',
-				parameterName: 'nextWord',
-				defaultValue: 0,
-                additionalClasses:'icon-arrow-right',
-				control: 'SuiButtonComponent',
-				label:'Next Word',
-				options: []
-		},{
-				smoName: 'removeLyric',
-				parameterName: 'removeLyric',
-				defaultValue: 0,
-                additionalClasses:'icon-cross',
-				control: 'SuiButtonComponent',
-				label:'Remove Lyric',
-				options: []
-		}
+		  }
     ];
     }
-    constructor(parameters) {
-        parameters.ctor='SuiLyricDialog';
-        parameters.label = 'Done Editing Lyrics';
-        var p = parameters;
+  constructor(parameters) {
+    parameters.ctor='SuiLyricDialog';
+    parameters.label = 'Done Editing Lyrics';
+    var p = parameters;
 
-		super(SuiLyricDialog.dialogElements, {
-			id: 'dialog-lyrics',
-			top: (p.layout.score.layout.pageWidth / 2) - 200,
-			left: (p.layout.score.layout.pageHeight / 2) - 200,
-			label: p.label,
-			tracker:parameters.tracker
-		});
+  	super(SuiLyricDialog.dialogElements, {
+  		id: 'dialog-lyrics',
+  		top: (p.layout.score.layout.pageWidth / 2) - 200,
+  		left: (p.layout.score.layout.pageHeight / 2) - 200,
+  		label: p.label,
+  		tracker:parameters.tracker
+  	});
         this.layout = p.layout;
-		this.controller = p.controller;
+  	this.controller = p.controller;
         this.tracker = this.controller.tracker;
         this.undo = this.controller.undoBuffer;
         SmoUndoable.noop(this.layout.score,this.undo,'Undo lyrics');
-	}
-    display() {
-        $('body').addClass('showAttributeDialog');
+  }
+  display() {
+      $('body').addClass('showAttributeDialog');
 		this.components.forEach((component) => {
 			component.bind();
 		});
 
-        this.editor = this.components.find((c) => c.smoName === 'textEditor');
-        this.verse = this.components.find((c) => c.smoName === 'verse');
+    this.editor = this.components.find((c) => c.smoName === 'textEditor');
+    this.verse = this.components.find((c) => c.smoName === 'verse');
 		this._bindElements();
 
-        // make sure keyboard is unbound or we get dupicate key events.
-        var self=this;
-        this.controller.unbindKeyboardForDialog(this);
+    // make sure keyboard is unbound or we get dupicate key events.
+    var self=this;
+    this.controller.unbindKeyboardForDialog(this);
 
-        $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
-            if ($(ctrl).hasClass('cbLyricEdit')) {
-            } else {
-                $(ctrl).addClass('fold-textedit');
-            }
-        });
+    $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
+        if ($(ctrl).hasClass('cbLyricEdit')) {
+        } else {
+            $(ctrl).addClass('fold-textedit');
+        }
+    });
 
-       this.position(this.tracker.selections[0].note.renderedBox);
+     this.position(this.tracker.selections[0].note.renderedBox);
 
-        var cb = function (x, y) {}
-        htmlHelpers.draggable({
+      var cb = function (x, y) {}
+      htmlHelpers.draggable({
 			parent: $(this.dgDom.element).find('.attributeModal'),
 			handle: $(this.dgDom.element).find('.jsDbMove'),
             animateDiv:'.draganime',
-			cb: cb,
+      			cb: cb,
 			moveParent: true
 		});
 	}
-    _focusSelection() {
-        if (this.editor.editor.selection &&
-            this.editor.editor.selection.note &&
-            this.editor.editor.selection.note.renderedBox) {
-                this.tracker.scroller.scrollVisibleBox(this.editor.editor.selection.note.renderedBox);
-            }
-    }
-    changed() {
-        this.editor.verse = this.verse.getValue();
-        // Note, when selection changes, we need to wait for the text edit session
-        // to start on the new selection.  Then this.editor.changeFlag is set and
-        // we can focus on the selection if it is not visible.
-        if (this.editor.changeFlag && this.editor.selection) {
-            this.tracker.setSelection(this.editor.selection.selector);
-            this._focusSelection();
-        }
-        if (this.removeLyricControl.changeFlag) {
-            layoutDebug.addTextDebug('SuiLyricEditDialog:remove lyric ');
-            this.editor.removeLyric();
-        }
-
-        if (this.nextWordControl.changeFlag) {
-            layoutDebug.addTextDebug('SuiLyricEditDialog: next word button ');
-            this.editor.editor.nextWord();
-        }
-        if (this.previousWordControl.changeFlag) {
-            layoutDebug.addTextDebug('SuiLyricEditDialog: previous word button ');
-            this.editor.editor.previousWord();
-        }
-    }
-    _bindElements() {
-        var self = this;
-        var dgDom = this.dgDom;
-
-        this.nextWordControl = this.components.find((comp) => {return comp.smoName == 'nextWord';});
-        this.previousWordControl = this.components.find((comp) => {return comp.smoName == 'previousWord';});
-        this.removeLyricControl = this.components.find((comp) => {return comp.smoName == 'removeLyric';});
+  _focusSelection() {
+      if (this.editor.editor.selection &&
+          this.editor.editor.selection.note &&
+          this.editor.editor.selection.note.renderedBox) {
+              this.tracker.scroller.scrollVisibleBox(this.editor.editor.selection.note.renderedBox);
+          }
+  }
+  changed() {
+      this.editor.verse = this.verse.getValue();      
+      // Note, when selection changes, we need to wait for the text edit session
+      // to start on the new selection.  Then this.editor.changeFlag is set and
+      // we can focus on the selection if it is not visible.
+      if (this.editor.changeFlag && this.editor.selection) {
+          this.tracker.setSelection(this.editor.selection.selector);
+          this._focusSelection();
+      }
+  }
+  _bindElements() {
+    var self = this;
+    var dgDom = this.dgDom;
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
             self.tracker.replaceSelectedMeasures();
             self.tracker.layout.setDirty();
             self.complete();
 		});
-        $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+    $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
             self.layout.score = self.undo.undo(self.layout.score);
             self.tracker.replaceSelectedMeasures();
             self.tracker.layout.setDirty();
             self.complete();
 		});
-        $(dgDom.element).find('.remove-button').remove();
-        this.editor.startEditSession();
+    $(dgDom.element).find('.remove-button').remove();
+    this.editor.startEditSession();
 	}
 }
+
 class SuiTextTransformDialog  extends SuiDialogBase {
     static createAndDisplay(parameters) {
 		var dg = new SuiTextTransformDialog(parameters);
@@ -312,19 +273,19 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			  component.setValue(this.modifier[component.parameterName]);
             }
 		});
-        this._bindComponentNames();
+    this._bindComponentNames();
 
-        var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
-        var dbFontUnit  = this.components.find((c) => c.smoName === 'fontUnit');
-        var fontSize = this.modifier.fontInfo.size;
-        fontSize=svgHelpers.getFontSize(fontSize);
-        dbFontSize.setValue(fontSize.size);
-        dbFontUnit.setValue(fontSize.unit);
+    var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
+    var dbFontUnit  = this.components.find((c) => c.smoName === 'fontUnit');
+    var fontSize = this.modifier.fontInfo.size;
+    fontSize=svgHelpers.getFontSize(fontSize);
+    dbFontSize.setValue(fontSize.size);
+    dbFontUnit.setValue(fontSize.unit);
 
-        this.wrapCtrl.setValue(this.modifier.boxModel != SmoScoreText.boxModels.none);
+    this.wrapCtrl.setValue(this.modifier.boxModel != SmoScoreText.boxModels.none);
 
-        this.paginationsComponent = this.components.find((c) => c.smoName == 'pagination');
-        this.paginationsComponent.setValue(this.modifier.pagination);
+    this.paginationsComponent = this.components.find((c) => c.smoName == 'pagination');
+    this.paginationsComponent.setValue(this.modifier.pagination);
 
 		this._bindElements();
 		this.position(this.modifier.renderedBox);

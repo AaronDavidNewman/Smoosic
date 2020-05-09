@@ -177,7 +177,7 @@ class editLyricSession {
         layoutDebug.addTextDebug('editLyricSession: detach() from '+this.selection.note.attrs.id);
         this.state = editLyricSession.states.stopping;
         this.editor.endSession();
-        this.lyric.text = this.editor.value;
+        this.lyric.setText(this.editor.value);
 		window.removeEventListener("keydown", this.keydownHandler, true);
         if (this.selection) {
             this.selection.measure.changed=true;
@@ -243,7 +243,7 @@ class editLyricSession {
             if (self.state != editLyricSession.states.stopped && self.state != editLyricSession.states.stopping) {
                 self._handleSkip();
             } else {  // session is stopping due to esc.
-                self.notifier.forceEndSession();
+                self.notifier.detachCompleteEvent();
             }
         }
 
@@ -264,13 +264,13 @@ class editLyricSession {
 	}
 
     _getOrCreateLyric(note) {
-        var lyrics =  note.getLyricForVerse(this.verse);
-        layoutDebug.addTextDebug('editLyricSession:new lyric created  ');
-        if (!lyrics.length) {
-			this.lyric = new SmoLyric({text:'\xa0',verse:this.verse});
-        } else {
-			this.lyric = lyrics[0];
-		}
+      var lyrics =  note.getLyricForVerse(this.verse);
+      layoutDebug.addTextDebug('editLyricSession:new lyric created  ');
+      if (!lyrics.length) {
+  			this.lyric = new SmoLyric({verse:this.verse});
+      } else {
+		   this.lyric = lyrics[0];
+	    }
     }
     removeLyric() {
         if (this.selection && this.lyric) {
@@ -282,7 +282,7 @@ class editLyricSession {
 
     _handleSkip() {
         // var tag = this.state == editLyricSession.states.minus ? '-' :'';
-        this.lyric.text = this.editor.value;
+        this.lyric.setText(this.editor.value);
         this.selection.measure.changed = true;
         if (this.state != editLyricSession.states.stopping) {
 			var func = (this.state == editLyricSession.states.backSpace) ? 'lastNoteSelection' : 'nextNoteSelection';
@@ -326,12 +326,15 @@ class editLyricSession {
         },1);
     }
 
-    nextWord() {
+    // ### moveSelectionRight
+    // Selection can move automatically based on key events, but there are Also
+    // UI ways to force it.
+    moveSelectionRight() {
         this.state = editLyricSession.states.space;
         this._deferSkip();
     }
 
-    previousWord() {
+    moveSelectionLeft() {
         this.state = editLyricSession.states.backSpace;
         this._deferSkip();
     }
@@ -375,4 +378,71 @@ class editLyricSession {
 		}
 		this.bound = true;
 	}
+}
+
+// ## editNoteText
+// Manage editing text for a note, and navigating, adding and removing.
+class noteTextEditSession {
+  constructor(changeNotifier,tracker,controller,verse,selection) {
+    this.notifier = changeNotifier;
+    this.tracker = tracker;
+    this.controller = controller;
+    this.verse = verse;
+    this.selection = selection;
+  }
+
+  get isRunning() {
+    return !(this.editor === null || (
+      this.editor.state === editLyricSession.states.stopped ||
+      this.editor.state === editLyricSession.states.stopping ));
+  }
+
+  notifySelectionChanged(selection) {
+    if (selection) {
+        layoutDebug.addTextDebug('SuiLyricEditComponent: lyric notification for ' + selection.note.attrs.id);
+    } else {
+        layoutDebug.addTextDebug('SuiLyricEditComponent: no selection');
+    }
+    if (this.selection == null || SmoSelector.neq(selection.selector,this.selection.selector)) {
+        this.selection = selection;
+        this.notifier.notifySelectionChanged();
+    }
+  }
+
+  removeText() {
+      this.editor.removeLyric();
+  }
+
+  moveSelectionRight() {
+    this.editor.moveSelectionRight();
+  }
+
+  moveSelectionLeft() {
+    this.editor.moveSelectionLeft();
+  }
+
+  toggleSessionStateEvent() {
+    if (this.editor.state == editLyricSession.states.stopped ||
+        this.editor.state == editLyricSession.states.stopping)  {
+        layoutDebug.addTextDebug('SuiLyricEditComponent: restarting button');
+        this.startEditingSession();
+    } else {
+        layoutDebug.addTextDebug('SuiLyricEditComponent: stopping editor button');
+        this.forceEndSessionEvent();
+    }
+  }
+
+  // Inform client that the edit session is complete
+  detachCompleteEvent() {
+    this.notifier.notifySelectionChanged();
+  }
+
+  startEditingSession() {
+    layoutDebug.addTextDebug('SuiLyricEditComponent: initial create editor request');
+    this.editor = new editLyricSession({tracker:this.tracker,verse:this.verse,selection:this.tracker.selections[0],controller:this.controller,notifier:this});
+    this.editor.editNote();
+  }
+  forceEndSessionEvent() {
+    this.editor.detach();
+  }
 }

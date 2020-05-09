@@ -11,9 +11,8 @@
 	z-index:11;
 }
 
-#dialog-lyrics-nextWord,
-#dialog-lyrics-previousWord {
-    display:none;
+#dialog-lyrics-text .controlDiv  {
+  display:none;
 }
 
 #dialog-lyrics-text,
@@ -22,24 +21,29 @@
     flex:1 1 auto;
 }
 
-body.text-edit #dialog-lyrics-nextWord,
-body.text-edit #dialog-lyrics-previousWord,
-body.text-edit #dialog-lyrics-removeLyric {
-    display:flex;
-    justify-content:center;
-}
-
-body.text-edit #dialog-lyrics-nextWord,
-body.text-edit #dialog-lyrics-previousWord {
-    flex:1 1 auto;
-}
 
 body.text-edit #dialog-lyrics-verse {
     display:none;
 }
+
 body.text-edit #dialog-lyrics-text {
+  display:flex;
+  flex-flow: row wrap;
+}
+body.text-edit #dialog-lyrics-text div.toggleEdit,
+body.text-edit #dialog-lyrics-text div.controlDiv {
+    display:flex;
     flex: 0 0 100%;
     justify-content:center;
+    align-items:center;
+}
+
+body.text-edit #dialog-lyrics-text div.controlDiv span {
+  display:flex;
+  flex:1 1 auto;
+  justify-content:center;
+  align-items:center;
+  margin:5px;
 }
 
 body.text-edit .fold-textedit,
