@@ -121,13 +121,15 @@ class editSvgText {
         }
     }
 
-    startSessionPromise() {
+    // ### endTextEditSessionPromise
+    // return a promise that is resolved when the current text edit session ends.
+    endTextEditSessionPromise() {
         var self=this;
         $('body').addClass('text-edit');
 
         this.editing=true;
         this.running = true;
-        layoutDebug.addTextDebug('editSvgText: create startSessionPromise '+this.id);
+        layoutDebug.addTextDebug('editSvgText: create endTextEditSessionPromise '+this.id);
         const promise = new Promise((resolve, reject) => {
             function editTimer() {
                 setTimeout(function() {
@@ -184,9 +186,11 @@ class editLyricSession {
         }
     }
 
-    detachPromise() {
+    // ### detachEditorCompletePromise
+    // A promise that is resolved when SVG editor is fully detached.
+    detachEditorCompletePromise() {
         var self=this;
-        layoutDebug.addTextDebug('editLyricSession:create detach promise from '+this.selection.note.attrs.id);
+        layoutDebug.addTextDebug('editLyricSession:create detachEditorCompletePromise from '+this.selection.note.attrs.id);
         return new Promise((resolve) => {
             var waiter = () => {
             setTimeout(() => {
@@ -247,7 +251,7 @@ class editLyricSession {
             }
         }
 
-        this.editor.startSessionPromise().then(handleSkip);
+        this.editor.endTextEditSessionPromise().then(handleSkip);
     }
 
     // Start the editing session by creating editor, and wait for the editor to create the DOM element.
@@ -312,7 +316,7 @@ class editLyricSession {
         this.selection.measure.changed = true;
         this.tracker.replaceSelectedMeasures();
 		_startEditing();
-        return this.detachPromise();
+        return this.detachEditorCompletePromise();
     }
 
     // ### _deferSkip

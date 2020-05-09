@@ -434,7 +434,7 @@ class SuiTextInPlace extends SuiComponentBase {
               layout:this.dialog.layout});
           var button = document.getElementById(this.parameterId);
           $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
-          this.editor.startSessionPromise().then(function() {
+          this.editor.endTextEditSessionPromise().then(function() {
               self.value=self.editor.value;
               self.editor=null;
           });
