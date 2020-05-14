@@ -44,8 +44,11 @@ class SuiDialogBase {
 		this.id = parameters.id;
         this.boundKeyboard = false;
 		this.components = [];
+
+    console.log('creating close dialog promise in SuiDialogBase');
 		this.closeDialogPromise = new Promise((resolve, reject) => {
 				$('body').off('dialogDismiss').on('dialogDismiss', function () {
+          console.log('dialog dismiss DOM event received, resolve closeDialogPromise');
 					resolve();
 				});
 
@@ -150,6 +153,7 @@ class SuiDialogBase {
             window.removeEventListener("keydown", this.keydownHandler, true);
         }
 		$('body').removeClass('showAttributeDialog');
+    console.log('dialog complete method called, triggering dialog close');
 		$('body').trigger('dialogDismiss');
 		this.dgDom.trapper.close();
 	}

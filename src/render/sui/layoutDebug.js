@@ -9,7 +9,8 @@ class layoutDebug {
             note:16,
             adjustHeight:32,
             measureHistory:64,
-            textEditorHistory:128
+            textEditorHistory:128,
+            dialogEvents:256
         }
     }
 
@@ -22,7 +23,8 @@ class layoutDebug {
             note:'measure-note-dbg',
             adjustHeight:'measure-adjustHeight-dbg',
             measureHistory:'',
-            textEditorHistory:''
+            textEditorHistory:'',
+            dialogEvents:''
         }
     }
 
@@ -45,7 +47,10 @@ class layoutDebug {
         layoutDebug._flags = 0;
     }
     static setAll() {
-        layoutDebug._flags = 1+2+4+8+16+32+64+128;
+        layoutDebug._flags = 1+2+4+8+16+32+64+128+256;
+    }
+    static setRenderFlags() {
+      layoutDebug._flags = 1+2+4+8+16+32;
     }
     static clearDebugBoxes(value) {
         if (layoutDebug.flagSet(value)) {
@@ -99,6 +104,17 @@ class layoutDebug {
         }
         layoutDebug['_textDebug'].push(value);
         console.log(value);
+    }
+
+    static addDialogDebug(value) {
+      if (!layoutDebug.mask & layoutDebug.dialogEvents) {
+          return;
+      }
+      if (!layoutDebug['_dialogEvents']) {
+          layoutDebug['_dialogEvents'] = [];
+      }
+      layoutDebug['_dialogEvents'].push(value);
+      console.log(value);
     }
 
     static measureHistory(measure,oldVal,newVal,description) {

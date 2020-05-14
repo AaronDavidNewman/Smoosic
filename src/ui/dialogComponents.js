@@ -422,6 +422,7 @@ class SuiTextInPlace extends SuiComponentBase {
         var pid = this.parameterId;
         return $(this.dialog.dgDom.element).find('#' + pid).find('button');
     }
+    
     startEditSession() {
         var self=this;
         $(this._getInputElement()).find('label').text('Done Editing Text Block');
@@ -435,6 +436,7 @@ class SuiTextInPlace extends SuiComponentBase {
           var button = document.getElementById(this.parameterId);
           $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
           this.editor.endTextEditSessionPromise().then(function() {
+              layoutDebug.addTextDebug('endTextEditSessionPromise recvd by dialog component');
               self.value=self.editor.value;
               self.editor=null;
           });

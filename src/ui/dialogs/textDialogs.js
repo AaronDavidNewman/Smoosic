@@ -96,7 +96,7 @@ class SuiLyricDialog extends SuiDialogBase {
           }
   }
   changed() {
-      this.editor.verse = this.verse.getValue();      
+      this.editor.verse = this.verse.getValue();
       // Note, when selection changes, we need to wait for the text edit session
       // to start on the new selection.  Then this.editor.changeFlag is set and
       // we can focus on the selection if it is not visible.
@@ -126,10 +126,10 @@ class SuiLyricDialog extends SuiDialogBase {
 }
 
 class SuiTextTransformDialog  extends SuiDialogBase {
-    static createAndDisplay(parameters) {
+  static createAndDisplay(parameters) {
 		var dg = new SuiTextTransformDialog(parameters);
 		dg.display();
-        return dg;
+    return dg;
 	}
 
     static get dialogElements() {
@@ -263,16 +263,44 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			}
         ];
     }
+display() {
+  var self=this;
+  // Wait for text to be displayed before bringing up edit dialog
+  var waitForDisplay = () => {
+    return new Promise((resolve) => {
+      var waiter = ()  => {
+        setTimeout(() => {
+          if (self.modifier.renderedBox) {
+            console.log('text box has been created');
+            resolve();
+          } else {
+            waiter();
+          }
+        },50);
+      };
+      waiter();
+    });
+  }
 
-    display() {
-		$('body').addClass('showAttributeDialog');
-		this.components.forEach((component) => {
-			component.bind();
+  function callDisplay() {
+    setTimeout(function() {
+      self._display();
+    },1);
+  }
 
-            if (typeof(component['setValue'])=='function' && this.modifier[component.parameterName]) {
-			  component.setValue(this.modifier[component.parameterName]);
-            }
-		});
+  waitForDisplay().then(callDisplay);
+}
+  _display() {
+    console.log('text box creationg complete')
+    this.textElement=$(this.layout.context.svg).find('.' + this.modifier.attrs.id)[0];
+
+  	$('body').addClass('showAttributeDialog');
+  	this.components.forEach((component) => {
+  		component.bind();
+      if (typeof(component['setValue'])=='function' && this.modifier[component.parameterName]) {
+  		  component.setValue(this.modifier[component.parameterName]);
+      }
+  	});
     this._bindComponentNames();
 
     var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
@@ -287,156 +315,173 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     this.paginationsComponent = this.components.find((c) => c.smoName == 'pagination');
     this.paginationsComponent.setValue(this.modifier.pagination);
 
-		this._bindElements();
-		this.position(this.modifier.renderedBox);
+  	this._bindElements();
+  	this.position(this.modifier.renderedBox);
 
-		var cb = function (x, y) {}
-		htmlHelpers.draggable({
-			parent: $(this.dgDom.element).find('.attributeModal'),
-			handle: $(this.dgDom.element).find('span.jsDbMove'),
+  	var cb = function (x, y) {}
+  	htmlHelpers.draggable({
+  		parent: $(this.dgDom.element).find('.attributeModal'),
+  		handle: $(this.dgDom.element).find('span.jsDbMove'),
             animateDiv:'.draganime',
-			cb: cb,
-			moveParent: true
-		});
-        $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
-           if ($(ctrl).hasClass('cbTextInPlace')) {
-               $(ctrl).addClass('fold-textmove');
-               $(ctrl).addClass('fold-textresize');
-           } else if ($(ctrl).hasClass('cbDragTextDialog')) {
-               $(ctrl).addClass('fold-textedit');
-               $(ctrl).addClass('fold-textresize');
-           } else if ($(ctrl).hasClass('cbResizeTextBox')) {
-               $(ctrl).addClass('fold-textedit');
-               $(ctrl).addClass('fold-textmove');
-           } else {
-               $(ctrl).addClass('fold-textedit');
-               $(ctrl).addClass('fold-textmove');
-               $(ctrl).addClass('fold-textresize');
-           }
-       });
+  		cb: cb,
+  		moveParent: true
+  	});
+    $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
+      if ($(ctrl).hasClass('cbTextInPlace')) {
+         $(ctrl).addClass('fold-textmove');
+         $(ctrl).addClass('fold-textresize');
+      } else if ($(ctrl).hasClass('cbDragTextDialog')) {
+      $(ctrl).addClass('fold-textedit');
+      $(ctrl).addClass('fold-textresize');
+      } else if ($(ctrl).hasClass('cbResizeTextBox')) {
+        $(ctrl).addClass('fold-textedit');
+        $(ctrl).addClass('fold-textmove');
+      } else {
+        $(ctrl).addClass('fold-textedit');
+        $(ctrl).addClass('fold-textmove');
+        $(ctrl).addClass('fold-textresize');
+      }
+    });
 
-        // If this control has not been edited this session, assume they want to
-        // edit the text and just right into that.
-        if (!this.modifier.edited) {
-            this.modifier.edited = true;
-            this.textEditorCtrl.startEditSession();
-        }
+    // If this control has not been edited this session, assume they want to
+    // edit the text and just right into that.
+    if (!this.modifier.edited) {
+        this.modifier.edited = true;
+        this.textEditorCtrl.startEditSession();
+    }
 	}
 
-    changed() {
+  changed() {
+    var textEditor = this.components.find((c) => c.smoName === 'textEditor');
+    this.modifier.text = textEditor.getValue();
 
-        var textEditor = this.components.find((c) => c.smoName === 'textEditor');
-        this.modifier.text = textEditor.getValue();
-
-        if (this.wrapCtrl.changeFlag) {
-            var boxModel = this.wrapCtrl.getValue() ? SmoScoreText.boxModels.wrap :
-                SmoScoreText.boxModels.none;
-            this.modifier.boxModel = boxModel;
-            if (boxModel ==  SmoScoreText.boxModels.wrap) {
-                this.modifier.scaleX = this.modifier.scaleY = 1.0;
-                this.modifier.translateX = this.modifier.translateY = 1.0;
-                this.modifier.width = this.modifier.logicalBox.width;
-                this.modifier.height = this.modifier.logicalBox.height;
-            }
-
+    if (this.wrapCtrl.changeFlag) {
+      var boxModel = this.wrapCtrl.getValue() ? SmoScoreText.boxModels.wrap :
+          SmoScoreText.boxModels.none;
+      this.modifier.boxModel = boxModel;
+      if (boxModel ==  SmoScoreText.boxModels.wrap) {
+        this.modifier.scaleX = this.modifier.scaleY = 1.0;
+        this.modifier.translateX = this.modifier.translateY = 1.0;
+        this.modifier.width = this.modifier.logicalBox.width;
+        this.modifier.height = this.modifier.logicalBox.height;
+      }
+    }
+    // If we resized the text, set the size components from the actual text
+    // object that was resized.
+    if (this.textResizerCtrl.changeFlag) {
+    this.xCtrl.setValue(this.modifier.x);
+    this.yCtrl.setValue(this.modifier.y);
+    this.scaleXCtrl.setValue(this.modifier.scaleX);
+    this.scaleYCtrl.setValue(this.modifier.scaleY);
+    }
+    this.components.find((x) => {
+    if (typeof(x['getValue'])=='function') {
+        if (x.parameterName.indexOf('scale') == 0) {
+           var val = x.getValue();
+            var fcn = x.parameterName+'InPlace';
+            this.modifier[fcn](val);
         }
+    }
+  });
 
-        // If we resized the text, set the size components from the actual text
-        // object that was resized.
-        if (this.textResizerCtrl.changeFlag) {
-            this.xCtrl.setValue(this.modifier.x);
-            this.yCtrl.setValue(this.modifier.y);
-            this.scaleXCtrl.setValue(this.modifier.scaleX);
-            this.scaleYCtrl.setValue(this.modifier.scaleY);
-        }
-        this.components.find((x) => {
-            if (typeof(x['getValue'])=='function') {
-                if (x.parameterName.indexOf('scale') == 0) {
-                   var val = x.getValue();
-                    var fcn = x.parameterName+'InPlace';
-                    this.modifier[fcn](val);
-                }
-            }
-		});
+    var xcomp = this.components.find((x) => x.smoName === 'x');
+    var ycomp = this.components.find((x) => x.smoName === 'y');
+    if (this.textDraggerCtrl.dragging) {
+        var val = this.textDraggerCtrl.getValue();
+        xcomp.setValue(val.x);
+        ycomp.setValue(val.y);
+    }
+    this.modifier.x=xcomp.getValue();
+    this.modifier.y=ycomp.getValue();
 
-        var xcomp = this.components.find((x) => x.smoName === 'x');
-        var ycomp = this.components.find((x) => x.smoName === 'y');
-        if (this.textDraggerCtrl.dragging) {
-            var val = this.textDraggerCtrl.getValue();
-            xcomp.setValue(val.x);
-            ycomp.setValue(val.y);
-        }
-        this.modifier.x=xcomp.getValue();
-        this.modifier.y=ycomp.getValue();
+    var fontComp = this.components.find((c) => c.smoName === 'fontFamily');
+    this.modifier.fontInfo.family = fontComp.getValue();
 
-        var fontComp = this.components.find((c) => c.smoName === 'fontFamily');
-        this.modifier.fontInfo.family = fontComp.getValue();
-
-        if (this.paginationsComponent.changeFlag) {
-            this.modifier.pagination = this.paginationsComponent.getValue();
-        }
-
-        var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
-        var dbFontUnit  = this.components.find((c) => c.smoName === 'fontUnit');
-        this.modifier.fontInfo.size=''+dbFontSize.getValue()+dbFontUnit.getValue();
-
-        // Use layout context because render may have reset svg.
-        $(this.layout.context.svg).find('.' + this.modifier.attrs.id).remove();;
-        this.layout.renderScoreText(this.modifier);
+    if (this.paginationsComponent.changeFlag) {
+        this.modifier.pagination = this.paginationsComponent.getValue();
     }
 
+    var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
+    var dbFontUnit  = this.components.find((c) => c.smoName === 'fontUnit');
+    this.modifier.fontInfo.size=''+dbFontSize.getValue()+dbFontUnit.getValue();
+
+    // Use layout context because render may have reset svg.
+    $(this.layout.context.svg).find('.' + this.modifier.attrs.id).remove();;
+    this.layout.renderScoreText(this.modifier);
+  }
 
 	constructor(parameters) {
+    var tracker = parameters.tracker;
+    var layout = tracker.layout.score.layout;
+
+    // If this is a new modifier, create it and add it to the score.  Update the layout`
+    // so the modifier will appear in the DOM and it can be edited.
 		if (!parameters.modifier) {
-			throw new Error('modifier attribute dialog must have modifier');
-		}
+			var newText =  new SmoScoreText({position:SmoScoreText.positions.custom});
+      parameters.modifier = newText;
+      SmoUndoable.scoreOp(parameters.layout.score,'addScoreText',
+         parameters.modifier,  parameters.controller.undoBuffer,'Text Menu Command');
+      parameters.layout.setRefresh();
+    }
+    var scrollPosition = tracker.scroller.absScroll;
+    console.log('text ribbon: scroll y is '+scrollPosition.y);
+
+    scrollPosition.y = scrollPosition.y / (layout.svgScale * layout.zoomScale);
+    scrollPosition.x = scrollPosition.x / (layout.svgScale * layout.zoomScale);
+    console.log('text ribbon: converted scroll y is '+scrollPosition.y);
+    // scrollPosition = svgHelpers.clientToLogical(this.tracker.context.svg,scrollPosition);
+    // console.log('text ribbon: svg scroll y is '+scrollPosition.y);
+
+    parameters.modifier.x = scrollPosition.x + 100;
+    parameters.modifier.y = scrollPosition.y + 100;
+
+    //
 
 		super(SuiTextTransformDialog.dialogElements, {
 			id: 'dialog-' + parameters.modifier.attrs.id,
-			top: parameters.modifier.renderedBox.y,
-			left: parameters.modifier.renderedBox.x,
+			top: parameters.modifier.y,
+			left: parameters.modifier.x,
 			label: 'Text Box Properties',
 			tracker:parameters.tracker
 		});
 
 		Vex.Merge(this, parameters);
 
-        // Do we jump right into editing?
-        this.undo = parameters.controller.undoBuffer;
-        this.textElement=$(this.layout.context.svg).find('.' + parameters.modifier.attrs.id)[0];
-        this.modifier.backupParams();
+    // Do we jump right into editing?
+    this.undo = parameters.controller.undoBuffer;
+    this.modifier.backupParams();
+    this.controller.unbindKeyboardForDialog(this);
 	}
-    _complete() {
-        this.tracker.updateMap(); // update the text map
-        this.layout.setDirty();
-        this.complete();
-    }
-    _bindElements() {
-        var self = this;
-        this.bindKeyboard();
-		var dgDom = this.dgDom;
-        var fontComp = this.components.find((c) => c.smoName === 'fontFamily');
+  _complete() {
+      this.tracker.updateMap(); // update the text map
+      this.layout.setDirty();
+      this.complete();
+  }
+  _bindElements() {
+      var self = this;
+      this.bindKeyboard();
+	var dgDom = this.dgDom;
+  var fontComp = this.components.find((c) => c.smoName === 'fontFamily');
 
-        fontComp.setValue(this.modifier.fontInfo.family);
+  fontComp.setValue(this.modifier.fontInfo.family);
 
+	$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+    self.textEditorCtrl.endSession();
+    self.textDraggerCtrl.endSession();
+		self._complete();
+	});
 
-		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            self.textEditorCtrl.endSession();
-            self.textDraggerCtrl.endSession();
-			self._complete();
-		});
-
-		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-            self.textEditorCtrl.endSession();
-            self.textDraggerCtrl.endSession();
-            self.modifier.restoreParams();
-			self._complete();
-		});
-		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-            self.textEditorCtrl.endSession();
-            self.textDraggerCtrl.endSession();
-            SmoUndoable.scoreOp(self.layout.score,'removeScoreText',self.modifier,self.undo,'remove text from dialog');
-			self._complete();
-		});
-    }
+	$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+    self.textEditorCtrl.endSession();
+    self.textDraggerCtrl.endSession();
+    self.modifier.restoreParams();
+		self._complete();
+	});
+	$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
+    self.textEditorCtrl.endSession();
+    self.textDraggerCtrl.endSession();
+    SmoUndoable.scoreOp(self.layout.score,'removeScoreText',self.modifier,self.undo,'remove text from dialog');
+		self._complete();
+   });
+  }
 }

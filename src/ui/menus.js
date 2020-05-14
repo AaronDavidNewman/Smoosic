@@ -75,14 +75,6 @@ class suiMenuManager {
 			},
 			 {
 				event: "keydown",
-				key: "t",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "SuiTextMenu"
-			},
-			 {
-				event: "keydown",
 				key: "m",
 				ctrlKey: false,
 				altKey: false,
@@ -92,12 +84,12 @@ class suiMenuManager {
 
 		];
 	}
-    _advanceSelection(inc) {
-        var options = $('.menuContainer ul.menuElement li.menuOption');
-        inc = inc < 0 ? options.length - 1: 1;
-        this.menu.focusIndex = (this.menu.focusIndex+inc) % options.length;
-        $(options[this.menu.focusIndex]).find('button').focus();
-    }
+  _advanceSelection(inc) {
+      var options = $('.menuContainer ul.menuElement li.menuOption');
+      inc = inc < 0 ? options.length - 1: 1;
+      this.menu.focusIndex = (this.menu.focusIndex+inc) % options.length;
+      $(options[this.menu.focusIndex]).find('button').focus();
+  }
 
 	get menuBindings() {
 		return this.menuBind;
@@ -125,45 +117,53 @@ class suiMenuManager {
             var vkey = (hotkey < 10) ? String.fromCharCode(48+hotkey) :
                  String.fromCharCode(87 + hotkey) ;
 
-			r.append(
-				b('li').classes('menuOption').append(
-					b('button').attr('data-value',item.value)
-                    .append(b('span').classes('menuText').text(item.text))
+		r.append(
+			b('li').classes('menuOption').append(
+				b('button').attr('data-value',item.value)
+                  .append(b('span').classes('menuText').text(item.text))
 
-					.append(
-						b('span').classes('icon icon-' + item.icon))
-                     .append(b('span').classes('menu-key').text(''+vkey))));
-            item.hotkey=vkey;
-            hotkey += 1;
+				.append(
+					b('span').classes('icon icon-' + item.icon))
+                   .append(b('span').classes('menu-key').text(''+vkey))));
+          item.hotkey=vkey;
+          hotkey += 1;
 		});
 		$(this.menuContainer).append(r.dom());
 		$('body').addClass('modal');
 		this.bindEvents();
 	}
-	slashMenuMode() {
+	slashMenuMode(completeNotifier) {
 		var self = this;
 		this.bindEvents();
+    layoutDebug.addDialogDebug('slash menu creating closeMenuPromise');
 		this.closeMenuPromise = new Promise((resolve, reject) => {
 				$('body').off('menuDismiss').on('menuDismiss', function () {
+          layoutDebug.addDialogDebug('menuDismiss received, resolve closeMenuPromise');
 					self.unattach();
-                    $('body').removeClass('slash-menu');
+          $('body').removeClass('slash-menu');
 					resolve();
 				});
 
 			});
-		return this.closeMenuPromise;
+   // take over the keyboard
+    completeNotifier.unbindKeyboardForMenu(this);
 	}
 
-	createMenu(action) {
+	createMenu(action,completeNotifier) {
 		this.menuPosition = {x:250,y:40,width:1,height:1};
+    // If we were called from the ribbon, we notify the controller that we are
+    // taking over the keyboard.  If this was a key-based command we already did.
+
+    layoutDebug.addDialogDebug('createMenu creating ' + action);
 		var ctor = eval(action);
 		this.menu = new ctor({
 				position: this.menuPosition,
 				tracker: this.tracker,
 				editor: this.editor,
 				score: this.score,
-                controller:this.controller,
-                closePromise:this.closeMenuPromise
+        controller:this.controller,
+        closePromise:this.closeMenuPromise,
+        layout: this.layout
 			});
 		this.attach(this.menuContainer);
         this.menu.menuItems.forEach((item) => {
@@ -239,11 +239,10 @@ class SuiFileMenu extends suiMenuBase {
     constructor(params) {
 		params = (params ? params : {});
 		Vex.Merge(params, SuiFileMenu.defaults);
-        super(params);
-        this.tracker = this.controller.tracker;
-        this.layout = this.controller.layout;
+    super(params);
+    this.tracker = this.controller.tracker;
 	}
-     static get defaults() {
+ static get defaults() {
 		return {
 			menuItems: [{
 					icon: 'folder-new',
@@ -265,303 +264,156 @@ class SuiFileMenu extends suiMenuBase {
 					icon: '',
 					text: 'Print',
 					value: 'printScore'
-                },{
+        },{
 					icon: '',
 					text: 'Bach Invention',
 					value: 'bach'
-                },{
+        },{
 					icon: '',
 					text: 'Jesu Bambino',
 					value: 'bambino'
-                },{
+        },{
 					icon: '',
 					text: 'Microtone Sample',
 					value: 'microtone'
-                },{
+        },{
 					icon: '',
 					text: 'Precious Lord',
 					value: 'preciousLord'
-                },	{
+        },	{
 					icon: '',
 					text: 'Cancel',
 					value: 'cancel'
 				}
-            ]
-        };
-     }
-     printRenderPromise() {
-         $('body').addClass('print-render');
-         $('.printFrame').html('');
-         var layout = this.layout;
-         var tracker = this.tracker;
-         layout.setRefresh();
-         var promise = new Promise((resolve) => {
-             var poll = () => {
+      ]
+    };
+  }
+
+  printRenderPromise() {
+     $('body').addClass('print-render');
+     $('.printFrame').html('');
+     var layout = this.layout;
+     var tracker = this.tracker;
+     layout.setRefresh();
+     var promise = new Promise((resolve) => {
+         var poll = () => {
 
 
-            setTimeout(() => {
-                if (!layout.dirty) {
-                    tracker.highlightSelection();
-                    $('body').removeClass('print-render');
-                    $('body').addClass('printing');
-                    resolve();
-                }else {
-                    poll();
-                }
-            },500);
+        setTimeout(() => {
+            if (!layout.dirty) {
+                tracker.highlightSelection();
+                $('body').removeClass('print-render');
+                $('body').addClass('printing');
+                resolve();
+            }else {
+                poll();
             }
-            poll();
-         });
-         return promise;
+        },500);
+        }
+        poll();
+     });
+     return promise;
+  }
+
+  systemPrint() {
+     var self = this;
+     var svgDoc = $('#boo svg')[0];
+     var s = new XMLSerializer();
+     var svgString = s.serializeToString(svgDoc);
+     var iframe = document.createElement("iframe");
+     var scale = 1.0/this.layout.score.layout.zoomScale;
+     var w=Math.round(scale * $('#boo').width());
+     var h=Math.round(scale * $('#boo').height());
+     $(iframe).attr('width',w);
+     $(iframe).attr('height',h);
+     iframe.srcdoc=svgString;
+     $('.printFrame')[0].appendChild(iframe);
+     $('.printFrame').width(w);
+     $('.printFrame').height(h);
+     function resize() {
+         setTimeout(function() {
+             var svg = $(window.frames[0].document.getElementsByTagName('svg'));
+             if (svg && svg.length) {
+                 $(window.frames[0].document.getElementsByTagName('svg')).height(h);
+                 $(window.frames[0].document.getElementsByTagName('svg')).width(w);
+                 window.print();
+                 SuiPrintFileDialog.createAndDisplay({
+                     layout: self.layout,
+                     controller:self.controller,
+                     closeMenuPromise:self.closePromise,
+                     tracker:self.tracker
+                     });
+             } else {
+                 resize();
+             }
+         },500);
      }
-     systemPrint() {
-         var self = this;
-         var svgDoc = $('#boo svg')[0];
-         var s = new XMLSerializer();
-         var svgString = s.serializeToString(svgDoc);
-         var iframe = document.createElement("iframe");
-         var scale = 1.0/this.layout.score.layout.zoomScale;
-         var w=Math.round(scale * $('#boo').width());
-         var h=Math.round(scale * $('#boo').height());
-         $(iframe).attr('width',w);
-         $(iframe).attr('height',h);
-         iframe.srcdoc=svgString;
-         $('.printFrame')[0].appendChild(iframe);
-         $('.printFrame').width(w);
-         $('.printFrame').height(h);
-         function resize() {
-             setTimeout(function() {
-                 var svg = $(window.frames[0].document.getElementsByTagName('svg'));
-                 if (svg && svg.length) {
-                     $(window.frames[0].document.getElementsByTagName('svg')).height(h);
-                     $(window.frames[0].document.getElementsByTagName('svg')).width(w);
-                     window.print();
-                     SuiPrintFileDialog.createAndDisplay({
-                         layout: self.layout,
-                         controller:self.controller,
-                         closeMenuPromise:self.closePromise,
-                         tracker:self.tracker
-                         });
-                 } else {
-                     resize();
-                 }
-             },500);
-         }
-
-         resize();
-     }
-     selection(ev) {
-		var text = $(ev.currentTarget).attr('data-value');
-        var self=this;
-
-		if (text == 'saveFile') {
-            SuiSaveFileDialog.createAndDisplay({
+    resize();
+  }
+  selection(ev) {
+  var text = $(ev.currentTarget).attr('data-value');
+  var self=this;
+  if (text == 'saveFile') {
+    SuiSaveFileDialog.createAndDisplay({
+		  layout: this.layout,
+      controller:this.controller,
+      closeMenuPromise:this.closePromise
+		});
+    } else if (text == 'openFile') {
+      SuiLoadFileDialog.createAndDisplay({
 			layout: this.layout,
-            controller:this.controller,
-            closeMenuPromise:this.closePromise
-		    });
-        } else if (text == 'openFile') {
-            SuiLoadFileDialog.createAndDisplay({
-			layout: this.layout,
-            controller:this.controller,
-            closeMenuPromise:this.closePromise
-		    });
-        } else if (text == 'newFile') {
-            this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
-            var score = SmoScore.getDefaultScore();
-            this.controller.layout.score = score;
-            setTimeout(function() {
-            $('body').trigger('forceResizeEvent');
-            },1);
-        } else if (text == 'quickSave') {
-            var scoreStr = JSON.stringify(this.controller.layout.score.serialize());
-            localStorage.setItem(smoSerialize.localScore,scoreStr);
-        } else if (text == 'printScore') {
-            var systemPrint = () => {
-                self.systemPrint();
-            }
-            this.printRenderPromise().then(systemPrint);
+      controller:this.controller,
+      closeMenuPromise:this.closePromise
+		   });
+     } else if (text == 'newFile') {
+        this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+        var score = SmoScore.getDefaultScore();
+        this.layout.score = score;
+        setTimeout(function() {
+        $('body').trigger('forceResizeEvent');
+        },1);
 
-        } else if (text == 'bach') {
-			this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
-			var score = SmoScore.deserialize(inventionJson);
-			this.controller.layout.score = score;
-			this.controller.layout.setViewport(true);
-		}
-        else if (text == 'bambino') {
-           this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
-           var score = SmoScore.deserialize(jesuBambino);
-           this.controller.layout.score = score;
-           this.controller.layout.setViewport(true);
-       } else if (text == 'microtone') {
-          this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
-          var score = SmoScore.deserialize(microJson);
-          this.controller.layout.score = score;
-          this.controller.layout.setViewport(true);
+      } else if (text == 'quickSave') {
+        var scoreStr = JSON.stringify(this.layout.score.serialize());
+        localStorage.setItem(smoSerialize.localScore,scoreStr);
+      } else if (text == 'printScore') {
+        var systemPrint = () => {
+        self.systemPrint();
+      }
+        this.printRenderPromise().then(systemPrint);
+      } else if (text == 'bach') {
+  			this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+  			var score = SmoScore.deserialize(inventionJson);
+  			this.layout.score = score;
+  			this.layout.setViewport(true);
+		  }
+      else if (text == 'bambino') {
+        this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+        var score = SmoScore.deserialize(jesuBambino);
+        this.layout.score = score;
+        this.layout.setViewport(true);
+      } else if (text == 'microtone') {
+        this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+        var score = SmoScore.deserialize(microJson);
+        this.layout.score = score;
+        this.layout.setViewport(true);
       }     else if (text == 'preciousLord') {
-         this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
-         var score = SmoScore.deserialize(preciousLord);
-         this.controller.layout.score = score;
-         this.controller.layout.setViewport(true);
-     }
+        this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+        var score = SmoScore.deserialize(preciousLord);
+        this.layout.score = score;
+        this.layout.setViewport(true);
+    }
 		this.complete();
 	}
+
 	keydown(ev) {}
-
 }
-class SuiTextMenu extends suiMenuBase {
-    	constructor(params) {
-		params = (params ? params : {});
-		Vex.Merge(params, SuiTextMenu.defaults);
-		super(params);
-	}
-    static get defaults() {
-		return {
-			menuItems: [{
-					icon: '',
-					text: 'Title',
-					value: 'titleText'
-				}, {
-					icon: '',
-					text: 'Page Header',
-					value: 'headerText'
-				}, {
-					icon: '',
-					text: 'Page Footer',
-					value: 'footerText'
-				}, {
-					icon: '',
-					text: 'Custom Text',
-					value: 'customText'
-				}, {
-					icon: '',
-					text: 'Composer/Copyright',
-					value: 'copyrightText'
-				}, {
-					icon: '',
-					text: 'MeasureText',
-					value: 'measureText'
-				}, {
-					icon: '',
-					text: 'Rehearsal Mark',
-					value: 'rehearsalMark'
-				}, {
-					icon: '',
-					text: 'Tempo',
-					value: 'tempoText'
-				}, {
-					icon: '',
-					text: 'Rehearsal Mark',
-					value: 'rehearsalMark'
-				}, {
-                    icon:'',
-                    text:'Lyrics',
-                    value:'lyrics'
-                },
-				 {
-					icon: '',
-					text: 'Cancel',
-					value: 'cancel'
-				}
-			]
-		};
-	}
 
-    static get menuCommandMap() {
-        return {
-            titleText: {
-                ctor:'SmoScoreText',
-                operation:'addScoreText',
-                params: {
-                    position:'custom',
-                    text:'Score Text',
-                }
-            },
-            headerText: {
-                ctor:'SmoScoreText',
-                operation:'addScoreText',
-                params: {
-                    position:'header',
-                    text:'Header text'
-                }
-            },
-            footerText: {
-                ctor:'SmoScoreText',
-                operation:'addScoreText',
-                params: {
-                    position:'header',
-                    text:'Header text'
-                }
-            },
-            copyrightText: {
-                ctor:'SmoScoreText',
-                operation:'addScoreText',
-                params: {
-                    position:'copyright',
-                    text:'Copyright/Composer'
-                }
-            }
-        };
-    }
-    bind() {
-    }
-    _editNewText(txtObj) {
-        var self = this;
-        var createDialog = () => {
-            var dialog = SuiTextTransformDialog.createAndDisplay({
-                modifier:txtObj,
-                tracker:self.tracker,
-                undo:self.controller.undoBuffer,
-                layout:self.controller.layout
-            });
-            self.controller.unbindKeyboardForDialog(dialog);
-        }
-
-
-
-        // Wait for text to be displayed before bringing up edit dialog
-        var waitForDisplay = () => {
-            return new Promise((resolve) => {
-                var waiter = ()  =>{
-                    setTimeout(() => {
-                        if (txtObj.renderedBox) {
-                            resolve();
-                        } else {
-                            waiter();
-                        }
-                    },50);
-                };
-                waiter();
-            });
-        }
-
-        // Treat a created text score like a selected text score that needs to be edited.
-        this.controller.layout.setRefresh();
-        this.closePromise.then(waitForDisplay).then(createDialog);
-    }
-    selection(ev) {
-        var self = this;
-		var command = $(ev.currentTarget).attr('data-value');
-        var menuObj = SuiTextMenu.menuCommandMap[command];
-        if (menuObj) {
-            var ctor = eval(menuObj.ctor);
-            var txtObj = new ctor(menuObj.params);
-            SmoUndoable.scoreOp(this.editor.score,menuObj.operation,
-               txtObj, this.editor.undoBuffer,'Text Menu Command');
-            setTimeout(function() {
-                self._editNewText(txtObj);
-            },1);
-        }
-
-		this.complete();
-	}
-    keydown(ev) {}
-}
 class SuiDynamicsMenu extends suiMenuBase {
 	constructor(params) {
-		params = (params ? params : {});
-		Vex.Merge(params, SuiDynamicsMenu.defaults);
-		super(params);
+	params = (params ? params : {});
+	Vex.Merge(params, SuiDynamicsMenu.defaults);
+	super(params);
 	}
 	static get defaults() {
 		return {
@@ -617,6 +469,7 @@ class SuiDynamicsMenu extends suiMenuBase {
 				yOffsetLine: 11,
 				fontSize: 38
 			}), this.editor.undoBuffer);
+    this.tracker.replaceSelectedMeasures();
 		this.complete();
 	}
 	keydown(ev) {}
@@ -668,22 +521,22 @@ class SuiTimeSignatureMenu extends suiMenuBase {
     }
 
     selection(ev) {
-        var text = $(ev.currentTarget).attr('data-value');
+      var text = $(ev.currentTarget).attr('data-value');
 
-        if (text == 'Other') {
-                SuiTimeSignatureDialog.createAndDisplay({
-    			layout: this.layout,
-                controller:this.controller,
-                closeMenuPromise:this.closePromise
-    		    });
-                this.complete();
-                return;
-        }
+      if (text == 'Other') {
+              SuiTimeSignatureDialog.createAndDisplay({
+  			layout: this.layout,
+              controller:this.controller,
+              closeMenuPromise:this.closePromise
+  		    });
+      this.complete();
+      return;
+    }
 		var timeSig = $(ev.currentTarget).attr('data-value');
-        this.controller.layout.unrenderAll();
-        SmoUndoable.scoreSelectionOp(this.controller.layout.score,this.tracker.selections,
-            'setTimeSignature',timeSig,this.controller.undoBuffer,'change time signature');
-        this.controller.tracker.layout.setRefresh();
+    this.layout.unrenderAll();
+    SmoUndoable.scoreSelectionOp(this.layout.score,this.tracker.selections,
+      'setTimeSignature',timeSig,this.controller.undoBuffer,'change time signature');
+    this.layout.setRefresh();
 		this.complete();
 	}
 	keydown(ev) {}
@@ -767,12 +620,12 @@ class suiKeySignatureMenu extends suiMenuBase {
 			if (changed.indexOf(sel.selector.measure) === -1) {
 				changed.push(sel.selector.measure);
 				SmoUndoable.addKeySignature(this.score, sel, keySig, this.editor.undoBuffer);
+        this.tracker.replaceSelectedMeasures();
 			}
 		});
 		this.complete();
 	}
 	keydown(ev) {}
-
 }
 
 class suiStaffModifierMenu extends suiMenuBase {
@@ -828,7 +681,7 @@ class suiStaffModifierMenu extends suiMenuBase {
 		}
 
 		SmoUndoable[op](ft, tt, this.editor.undoBuffer);
-        this.tracker.replaceSelectedMeasures();
+    this.tracker.replaceSelectedMeasures();
 		this.complete();
 	}
 	keydown(ev) {}
@@ -928,6 +781,7 @@ class SuiAddStaffMenu extends suiMenuBase {
 			SmoUndoable.addStaff(this.score, instrument, this.editor.undoBuffer);
 			this.tracker.layout.setRefresh();
 		}
+    this.layout.setRefresh();
 		this.complete();
 	}
 	keydown(ev) {}

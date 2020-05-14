@@ -19,6 +19,7 @@ class suiController {
 		window.suiControllerInstance = this;
 		this.undoBuffer = new UndoBuffer();
 		this.pasteBuffer = this.tracker.pasteBuffer;
+    this.tracker.setDialogModifier(this);
 		this.editor.controller = this;
 		this.editor.undoBuffer = this.undoBuffer;
 		this.editor.pasteBuffer = this.pasteBuffer;
@@ -125,16 +126,16 @@ class suiController {
 		}, 500);
 	}
 
-	// No action at present when cursor selection changes
-	trackerChangeEvent() {
-
-	}
+  createModifierDialog(modifier) {
+    this.idleLayoutTimer = Date.now();
+    this.unbindKeyboardForDialog(SuiDialogFactory.createDialog(modifier, this.tracker.context, this.tracker, this.layout,this.undoBuffer,this));
+  }
 
 	// If the user has selected a modifier via the mouse/touch, bring up mod dialog
 	// for that modifier
 	trackerModifierSelect(ev) {
+    this.idleLayoutTimer = Date.now();
 		var modSelection = this.tracker.getSelectedModifier();
-        this.idleLayoutTimer = Date.now();
 		if (modSelection) {
 			var dialog = this.showModifierDialog(modSelection);
             if (dialog) {
@@ -148,7 +149,6 @@ class suiController {
         }
 		return;
 	}
-
 
     // ### bindResize
 	// This handles both resizing of the music area (scrolling) and resizing of the window.
@@ -374,7 +374,7 @@ class suiController {
 			self.bindEvents();
 		}
 		window.removeEventListener("keydown", this.keydownHandler, true);
-        this.keyboardActive = false;
+    this.keyboardActive = false;
 		dialog.closeDialogPromise.then(rebind);
 	}
 
@@ -383,10 +383,11 @@ class suiController {
         window.removeEventListener("keydown", this.keydownHandler, true);
         var self=this;
         var rebind = function () {
-            self.bindEvents();
+          layoutDebug.addDialogDebug('menu close event received');
+          self.bindEvents();
         }
         this.keyboardActive = false;
-        menuMgr.slashMenuMode().then(rebind);
+        menuMgr.closeMenuPromise.then(rebind);
     }
 
 
@@ -403,8 +404,10 @@ class suiController {
 		}
 
 		if (evdata.key == '/') {
+      // set up menu DOM.
 			this.menuHelp();
-            this.unbindKeyboardForMenu(this.menus);
+      this.menus.slashMenuMode(this);
+      this.unbindKeyboardForMenu(this.menus);
 		}
 
 		// TODO:  work dialogs into the scheme of things
@@ -460,14 +463,6 @@ class suiController {
 
 		$(this.renderElement).off('click').on('click', function (ev) {
 			tracker.selectSuggestion(ev);
-		});
-
-		$('body').off('tracker-selection').on('tracker-selection',function(ev) {
-			self.trackerChangeEvent(ev);
-		});
-
-		$('body').off('tracker-select-modifier').on('tracker-select-modifier',function(ev) {
-			self.trackerModifierSelect(ev);
 		});
 
 		this.keydownHandler = this.handleKeydown.bind(this);

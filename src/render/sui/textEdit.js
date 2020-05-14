@@ -138,7 +138,7 @@ class editSvgText {
                       editTimer();
                     } else {
                       self._updateText();
-                      layoutDebug.addTextDebug('editSvgText: resolve session promise '+self.id);
+                      layoutDebug.addTextDebug('editSvgText: resolve endTextEditSessionPromise promise '+self.id);
                       resolve();
                     }
                 },25);
@@ -196,7 +196,7 @@ class editLyricSession {
             setTimeout(() => {
                 if (self.state == editLyricSession.states.stopping ||
                  self.state == editLyricSession.states.stopped) {
-                     layoutDebug.addTextDebug('editLyricSession:resolve detach promise from '+self.selection.note.attrs.id);
+                     layoutDebug.addTextDebug('editLyricSession:resolve detachEditorCompletePromise promise from '+self.selection.note.attrs.id);
                      resolve();
                  } else {
                      waiter();
@@ -242,7 +242,7 @@ class editLyricSession {
         this.state = editLyricSession.states.started;
         var self = this;
         function handleSkip() {
-            layoutDebug.addTextDebug('editLyricSession:startSession promise rcvd, editor is done, handleSkip for  '+self.selection.note.attrs.id);
+            layoutDebug.addTextDebug('editLyricSession:_editCurrentLyric endTextEditSessionPromise rcvd, editor is done, handleSkip for  '+self.selection.note.attrs.id);
             // Only skip to the next lyric if the session is still going on.
             if (self.state != editLyricSession.states.stopped && self.state != editLyricSession.states.stopping) {
                 self._handleSkip();
@@ -261,7 +261,7 @@ class editLyricSession {
 			this.bindEvents();
 		}
         function editCurrent() {
-            layoutDebug.addTextDebug('editLyricSession:_lyricAddedPromise promise rcvd, _editCurrentLyric for  '+self.selection.note.attrs.id);
+            layoutDebug.addTextDebug('editLyricSession:_lyricAddedPromise rcvd, _editCurrentLyric for  '+self.selection.note.attrs.id);
             self._editCurrentLyric();
         }
         this._lyricAddedPromise().then(editCurrent);
@@ -315,7 +315,7 @@ class editLyricSession {
         this.selection.note.addLyric(this.lyric);
         this.selection.measure.changed = true;
         this.tracker.replaceSelectedMeasures();
-		_startEditing();
+		    _startEditing();
         return this.detachEditorCompletePromise();
     }
 

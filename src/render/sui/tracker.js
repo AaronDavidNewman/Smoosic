@@ -15,21 +15,21 @@ class suiTracker extends suiMapper {
         super(layout,scroller)
 	}
 
-    _fullRenderPromise() {
-        var self = this;
-        return new Promise((resolve) => {
-            var f = function() {
-                setTimeout(function() {
-                    if (self.layout.passState === suiLayoutBase.passStates.clean) {
-                        resolve();
-                    } else {
-                        f();
-                    }
-                },50);
-            }
-            f();
-        });
-    }
+  _fullRenderPromise() {
+    var self = this;
+    return new Promise((resolve) => {
+      var f = function() {
+        setTimeout(function() {
+          if (self.layout.passState === suiLayoutBase.passStates.clean) {
+              resolve();
+          } else {
+              f();
+          }
+        },50);
+      }
+      f();
+    });
+  }
 
     // ### _checkBoxOffset
 	// If the mapped note and actual note don't match, re-render the notes so they do.
@@ -57,10 +57,14 @@ class suiTracker extends suiMapper {
         }
 	}
 
-    replaceSelectedMeasures() {
-        var mm = SmoSelection.getMeasureList(this.selections);
-        this.layout.addToReplaceQueue(mm);
-    }
+  replaceSelectedMeasures() {
+      var mm = SmoSelection.getMeasureList(this.selections);
+      this.layout.addToReplaceQueue(mm);
+  }
+
+  setDialogModifier(notifier) {
+    this.modifierDialogFactory = notifier;
+  }
 
 	// ### renderElement
 	// the element the score is rendered on
@@ -552,8 +556,7 @@ class suiTracker extends suiMapper {
 			this.selections = [selObj];
 		}
 		this.highlightSelection();
-        this._createLocalModifiersList();
-		this.triggerSelection();
+    this._createLocalModifiersList();
 	}
 
     setSelection(selection) {
@@ -573,8 +576,7 @@ class suiTracker extends suiMapper {
 		nselector.staff = this.score.incrementActiveStaff(offset);
 		this.selections = [this._getClosestTick(nselector)];
 		this.highlightSelection();
-        this._createLocalModifiersList();
-		this.triggerSelection();
+    this._createLocalModifiersList();
 	}
 
 	// ### _moveSelectionPitch
@@ -651,7 +653,6 @@ class suiTracker extends suiMapper {
 		this.selections = [mapped];
 		this.highlightSelection();
         this._createLocalModifiersList();
-		this.triggerSelection();
 	}
 
 	getFirstMeasureOfSelection() {
@@ -708,12 +709,15 @@ class suiTracker extends suiMapper {
 		if (this.modifierSuggestion >= 0) {
 			if (this['suggestFadeTimer']) {
 			   clearTimeout(this.suggestFadeTimer);
-    		}
+  		}
 			this.modifierIndex = -1;
             this.modifierSelections = [this.modifierTabs[this.modifierSuggestion]];
 			this.modifierSuggestion = -1;
 			this._highlightModifier();
-			$('body').trigger('tracker-select-modifier');
+      var modifier = this.getSelectedModifier();
+      if (modifier) {
+        this.modifierDialogFactory.createModifierDialog(modifier);
+      }
 			return;
 		}
 
@@ -736,25 +740,25 @@ class suiTracker extends suiMapper {
 			return;
 		}
 
-        suiOscillator.playSelectionNow(this.suggestion);
+    suiOscillator.playSelectionNow(this.suggestion);
 
-        var preselected = this.selections[0] ? SmoSelector.sameNote(this.suggestion.selector,this.selections[0].selector) && this.selections.length == 1 : false;
+    var preselected = this.selections[0] ? SmoSelector.sameNote(this.suggestion.selector,this.selections[0].selector) && this.selections.length == 1 : false;
 
-        if (preselected && this.selections[0].note.pitches.length > 1) {
-            this.pitchIndex =  (this.pitchIndex + 1) % this.selections[0].note.pitches.length;
-            this.selections[0].selector.pitches = [this.pitchIndex];
-        } else {
-            this.selections = [this.suggestion];
-        }
-        if (preselected && this.modifierTabs.length) {
-            var mods  = this.modifierTabs.filter((mm) => mm.selection && SmoSelector.sameNote(mm.selection.selector,this.selections[0].selector));
-            if (mods.length) {
-            this.modifierSelections[0] = mods[0];
-            this.modifierIndex = mods[0].index;
-            this._highlightModifier();
-            return;
-            }
-        }
+    if (preselected && this.selections[0].note.pitches.length > 1) {
+        this.pitchIndex =  (this.pitchIndex + 1) % this.selections[0].note.pitches.length;
+        this.selections[0].selector.pitches = [this.pitchIndex];
+    } else {
+        this.selections = [this.suggestion];
+    }
+    if (preselected && this.modifierTabs.length) {
+        var mods  = this.modifierTabs.filter((mm) => mm.selection && SmoSelector.sameNote(mm.selection.selector,this.selections[0].selector));
+      if (mods.length) {
+        this.modifierSelections[0] = mods[0];
+        this.modifierIndex = mods[0].index;
+        this._highlightModifier();
+        return;
+      }
+    }
 		this.score.setActiveStaff(this.selections[0].selector.staff);
 		if (this.selections.length == 0)
 			return;
@@ -763,8 +767,7 @@ class suiTracker extends suiMapper {
 			var selection = this.selections[i];
 			this.highlightSelection();
 		}
-        this._createLocalModifiersList();
-		this.triggerSelection();
+    this._createLocalModifiersList();
 	}
 
 	static get strokes() {
@@ -866,20 +869,16 @@ class suiTracker extends suiMapper {
           this.scroller.invScroll);
 		this._drawRect(box, 'staffModifier');
 	}
-	triggerSelection() {
-		$('body').trigger('tracker-selection');
-	}
 
-    _highlightActiveVoice(selection) {
-        var selector = selection.selector;
-        for (var i =1;i<=4;++i) {
-            var cl = 'v'+i.toString()+'-active';
-            $('body').removeClass(cl);
-        }
-        var cl = 'v'+(selector.voice + 1).toString()+'-active';
-        $('body').addClass(cl);
+  _highlightActiveVoice(selection) {
+    var selector = selection.selector;
+    for (var i =1;i<=4;++i) {
+        var cl = 'v'+i.toString()+'-active';
+        $('body').removeClass(cl);
     }
-
+    var cl = 'v'+(selector.voice + 1).toString()+'-active';
+    $('body').addClass(cl);
+  }
 
 	highlightSelection() {
         var grace = this.getSelectedGraceNotes();

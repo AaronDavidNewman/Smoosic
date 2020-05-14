@@ -228,7 +228,6 @@ class suiMapper {
 		}
 		this.highlightSelection();
         this._createLocalModifiersList();
-		this.triggerSelection();
 		this.pasteBuffer.clearSelections();
 		this.pasteBuffer.setSelections(this.score, this.selections);
         this.mapping = false;

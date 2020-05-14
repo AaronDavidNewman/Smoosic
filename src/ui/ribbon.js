@@ -31,7 +31,7 @@ class RibbonButtons {
 	}
 	_executeButtonMenu(buttonElement, buttonData) {
 		var self = this;
-        this.controller.unbindKeyboardForMenu(this.menus);
+    this.menus.slashMenuMode(this.controller);
 		this.menus.createMenu(buttonData.ctor);
 	}
 	_rebindController() {
@@ -628,87 +628,43 @@ class TextButtons {
 		this.controller = parameters.controller;
         this.menus=parameters.controller.menus;
 	}
-    lyrics() {
-		SuiLyricDialog.createAndDisplay(
-            {buttonElement:this.buttonElement, buttonData:this.buttonData,controller:this.controller});
-		// tracker, selection, controller
-    }
-    rehearsalMark() {
-        var selection = this.tracker.getExtremeSelection(-1);
-        var cmd = selection.measure.getRehearsalMark() ? 'removeRehearsalMark' : 'addRehearsalMark';
-        this.editor.scoreSelectionOperation(selection, cmd, new SmoRehearsalMark());
-    }
-    _invokeMenu(cmd) {
-      this.controller.unbindKeyboardForMenu(this.menus);
-      this.menus.createMenu(cmd);
-    }
+  lyrics() {
+	SuiLyricDialog.createAndDisplay(
+          {buttonElement:this.buttonElement, buttonData:this.buttonData,controller:this.controller});
+	// tracker, selection, controller
+  }
+  rehearsalMark() {
+      var selection = this.tracker.getExtremeSelection(-1);
+      var cmd = selection.measure.getRehearsalMark() ? 'removeRehearsalMark' : 'addRehearsalMark';
+      this.editor.scoreSelectionOperation(selection, cmd, new SmoRehearsalMark());
+  }
+  _invokeMenu(cmd) {
+    this.menus.slashMenuMode(this.controller);
+    this.menus.createMenu(cmd);
+  }
 
-    _addTextPromise(txtObj) {
-        var self = this;
-        var createDialog = () => {
-            var dialog = SuiTextTransformDialog.createAndDisplay(
-                {
-                    modifier:txtObj,
-                    buttonElement:this.buttonElement,
-                    buttonData:this.buttonData,
-                    controller:this.controller,
-                    tracker: this.controller.tracker,
-                    layout:this.controller.layout
-                });
-
-            self.controller.unbindKeyboardForDialog(dialog);
-        }
-
-        // Wait for text to be displayed before bringing up edit dialog
-        var waitForDisplay = () => {
-            return new Promise((resolve) => {
-                var waiter = ()  =>{
-                    setTimeout(() => {
-                        if (txtObj.renderedBox) {
-                            resolve();
-                        } else {
-                            waiter();
-                        }
-                    },50);
-                };
-                waiter();
-            });
-        }
-
-        // Treat a created text score like a selected text score that needs to be edited.
-        this.controller.layout.setRefresh();
-        waitForDisplay().then(createDialog);
-    }
-    addTextMenu() {
-        var self=this;
-        var scrollPosition = this.tracker.scroller.absScroll;
-        console.log('text ribbon: scroll y is '+scrollPosition.y);
-
-        scrollPosition.y = scrollPosition.y / (this.tracker.layout.score.layout.svgScale * this.tracker.layout.score.layout.zoomScale);
-        scrollPosition.x = scrollPosition.x / (this.tracker.layout.score.layout.svgScale * this.tracker.layout.score.layout.zoomScale);
-        console.log('text ribbon: converted scroll y is '+scrollPosition.y);
-        // scrollPosition = svgHelpers.clientToLogical(this.tracker.context.svg,scrollPosition);
-        // console.log('text ribbon: svg scroll y is '+scrollPosition.y);
-        var txtObj = new SmoScoreText({position:SmoScoreText.positions.custom});
-        txtObj.x = scrollPosition.x + 100;
-        txtObj.y = scrollPosition.y + 100;
-        SmoUndoable.scoreOp(this.editor.score,'addScoreText',
-           txtObj, this.editor.undoBuffer,'Text Menu Command');
-        setTimeout(function() {
-            self._addTextPromise(txtObj);
-        },1);
-    }
+  addTextMenu() {
+    var dialog = SuiTextTransformDialog.createAndDisplay(
+      {
+        buttonElement:this.buttonElement,
+        buttonData:this.buttonData,
+        controller:this.controller,
+        tracker: this.controller.tracker,
+        layout:this.controller.layout,
+        editor:this.controller.editor
+    });
+  }
 	addDynamicsMenu() {
         this._invokeMenu('SuiDynamicsMenu');
 	}
-    bind() {
-        var self=this;
-        $(this.buttonElement).off('click').on('click', function () {
-            self[self.buttonData.id]();
-        });
-
+  bind() {
+    var self=this;
+    $(this.buttonElement).off('click').on('click', function () {
+      self[self.buttonData.id]();
+    });
 	}
 }
+
 class NavigationButtons {
 	static get directionsTrackerMap() {
 		return {
