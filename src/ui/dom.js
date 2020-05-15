@@ -3,7 +3,7 @@ class SuiDom {
 	static splash() {
 		var b = htmlHelpers.buildDom;
 		var r = b('div').classes('bug-modal').append(
-				b('img').attr('src', 'styles/images/logo.png').classes('splash-logo'))
+				b('img').attr('src', '../styles/images/logo.png').classes('splash-logo'))
 			.append(b('button').classes('icon icon-cross bug-dismiss-button'))
 			.append(b('span').classes('splash-title').text('Sm'))
 			.append(b('span').classes('splash-shine').text('ooooooooo'))
