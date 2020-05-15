@@ -21,35 +21,35 @@ class SmoScore {
 	static get zoomModes() {
 		return {fitWidth:0,wholePage:1,zoomScale:2}
 	}
-    static get defaults() {
-        return {
-			layout :{
-				leftMargin:30,
-				rightMargin:30,
-				topMargin:40,
-				bottomMargin:40,
-				pageWidth: 8 * 96 + 48,
-				pageHeight: 11 * 96,
-				orientation:SmoScore.orientations.portrait,
-				interGap: 30,
-				intraGap:10,
-				svgScale: 1.0,
-				zoomScale: 2.0,
-				zoomMode:SmoScore.zoomModes.fitWidth,
-                pages:1
-			},
-            engravingFont:SmoScore.engravingFonts.Bravura,
-            staffWidth: 1600,
-            startIndex: 0,
-            renumberingMap: {},
-            keySignatureMap: {},
-            measureTickmap: [],
-            staves: [],
-            activeStaff: 0,
-			scoreText:[],
-            systemGroups:[]
-        };
-    }
+  static get defaults() {
+    return {
+  		layout :{
+  			leftMargin:30,
+  			rightMargin:30,
+  			topMargin:40,
+  			bottomMargin:40,
+  			pageWidth: 8 * 96 + 48,
+  			pageHeight: 11 * 96,
+  			orientation:SmoScore.orientations.portrait,
+  			interGap: 30,
+  			intraGap:10,
+  			svgScale: 1.0,
+  			zoomScale: 2.0,
+  			zoomMode:SmoScore.zoomModes.fitWidth,
+        pages:1
+  		},
+      engravingFont:SmoScore.engravingFonts.Bravura,
+      staffWidth: 1600,
+      startIndex: 0,
+      renumberingMap: {},
+      keySignatureMap: {},
+      measureTickmap: [],
+      staves: [],
+      activeStaff: 0,
+  		scoreText:[],
+      systemGroups:[]
+    };
+  }
 	static get pageSizes() {
 		return ['letter','tabloid','A4','custom'];
 	}

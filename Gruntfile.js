@@ -5,7 +5,8 @@ module.exports = function (grunt) {
         pkg: grunt.file.readJSON('package.json'),
         concat: {
             options: {
-                separator: ';'
+                separator: ';',
+                sourceMap: true
             },
             dist: {
                 src: ['src/common/musicHelpers.js', 'src/common/serializationHelpers.js','src/common/svgHelpers.js', 'src/common/htmlHelpers.js',
@@ -29,7 +30,7 @@ module.exports = function (grunt) {
 					'src/ui/ribbonLayout/default/defaultRibbon.js',
 					'src/render/vex/glyphDimensions.js',
                     'src/music/invention.js','src/music/basic.js','src/music/jesuBambino.js','src/music/microtone.js','src/music/preciousLord.js',
-                    'src/ui/ribbon.js','src/ui/dialog.js', 'src/ui/dialogs/staffDialogs.js', 'src/ui/help.js', 'src/ui/controller.js'],
+                    'src/ui/ribbon.js','src/ui/dialog.js', 'src/ui/dialogs/staffDialogs.js', 'src/ui/help.js', 'src/ui/dom.js','src/ui/controller.js'],
                 dest: 'build/<%= pkg.name %>.js'
             },
             tests: {
@@ -40,10 +41,6 @@ module.exports = function (grunt) {
 					'src/test/textTest.js'],
                 dest: 'build/smoTests.js'
 
-            },
-            editor: {
-                src: ['src/test/editorTest.js'],
-                dest: 'build/editor.js'
             }
         },
         copy: {

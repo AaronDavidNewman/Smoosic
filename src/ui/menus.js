@@ -4,6 +4,9 @@ class suiMenuBase {
 		Vex.Merge(this, params);
         this.focusIndex = -1;
 	}
+  get closeModalPromise() {
+    return this.closePromise();
+  }
 
 	complete() {
 		$('body').trigger('menuDismiss');
@@ -25,9 +28,13 @@ class suiMenuManager {
 		};
 	}
 
-    setController(c) {
-        this.controller=c;
-    }
+  get closeModalPromise() {
+    return this.closeMenuPromise;
+  }
+
+  setController(c) {
+      this.controller=c;
+  }
 
     get score() {
         return this.layout.score;
@@ -143,10 +150,9 @@ class suiMenuManager {
           $('body').removeClass('slash-menu');
 					resolve();
 				});
-
 			});
    // take over the keyboard
-    completeNotifier.unbindKeyboardForMenu(this);
+    completeNotifier.unbindKeyboardForModal(this);
 	}
 
 	createMenu(action,completeNotifier) {
@@ -355,14 +361,25 @@ class SuiFileMenu extends suiMenuBase {
   var self=this;
   if (text == 'saveFile') {
     SuiSaveFileDialog.createAndDisplay({
-		  layout: this.layout,
+      layout: this.layout,
       controller:this.controller,
+      tracker:this.controller.tracker,
       closeMenuPromise:this.closePromise
 		});
     } else if (text == 'openFile') {
+      /*
+      {
+				layout: params.controller.layout,
+				controller: params.controller,
+				tracker:params.controller.tracker,
+                closeMenuPromise:params.closeModalPromise,
+                label:'Open File'
+			}
+      */
       SuiLoadFileDialog.createAndDisplay({
 			layout: this.layout,
       controller:this.controller,
+      tracker:this.controller.tracker,
       closeMenuPromise:this.closePromise
 		   });
      } else if (text == 'newFile') {

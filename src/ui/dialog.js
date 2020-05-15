@@ -47,14 +47,16 @@ class SuiDialogBase {
 
     console.log('creating close dialog promise in SuiDialogBase');
 		this.closeDialogPromise = new Promise((resolve, reject) => {
-				$('body').off('dialogDismiss').on('dialogDismiss', function () {
-          console.log('dialog dismiss DOM event received, resolve closeDialogPromise');
-					resolve();
-				});
-
+			$('body').off('dialogDismiss').on('dialogDismiss', function () {
+        console.log('dialog dismiss DOM event received, resolve closeDialogPromise');
+				resolve();
 			});
-        this.initialLeft = parameters.left
-        this.initialTop = parameters.top;
+
+		});
+    this.initialLeft = parameters.left
+    this.initialTop = parameters.top;
+    this.startPromise = parameters.closeMenuPromise;
+
 		this.dialogElements = dialogElements;
 		this.tracker = parameters.tracker;
 		var top = parameters.top - this.tracker.scroller.netScroll.y;
@@ -67,57 +69,60 @@ class SuiDialogBase {
 				label: parameters.label
 			});
 	}
+  get closeModalPromise() {
+    return this.closeDialogPromise;
+  }
 
-    // ### position
-    // For dialogs based on selections, tries to place the dialog near the selection and also
-    // to scroll so the dialog is in view
-    static position(box,dgDom,scroller) {
-        var y = (box.y + box.height) - scroller.netScroll.y;
+  // ### position
+  // For dialogs based on selections, tries to place the dialog near the selection and also
+  // to scroll so the dialog is in view
+  static position(box,dgDom,scroller) {
+    var y = (box.y + box.height) - scroller.netScroll.y;
 
-		// TODO: adjust if db is clipped by the browser.
-        var dge = $(dgDom.element).find('.attributeModal');
-        var dgeHeight = $(dge).height();
-        var maxY =  $('.musicRelief').height();
-        var maxX = $('.musicRelief').width();
+  	// TODO: adjust if db is clipped by the browser.
+    var dge = $(dgDom.element).find('.attributeModal');
+    var dgeHeight = $(dge).height();
+    var maxY =  $('.musicRelief').height();
+    var maxX = $('.musicRelief').width();
 
-		var offset = dgeHeight + y > window.innerHeight ? (dgeHeight + y) -  window.innerHeight : 0;
-		y = (y < 0) ? -y : y - offset;
+	  var offset = dgeHeight + y > window.innerHeight ? (dgeHeight + y) -  window.innerHeight : 0;
+	  y = (y < 0) ? -y : y - offset;
 
-        y = (y > maxY || y < 0) ? maxY / 2 : y;
+    y = (y > maxY || y < 0) ? maxY / 2 : y;
 
-		$(dge).css('top', '' + y + 'px');
+  	$(dge).css('top', '' + y + 'px');
 
-        var x = box.x - scroller.netScroll.x;
-        var w = $(dge).width();
-        x = (x > window.innerWidth /2)  ? x - (w+25) : x + (w+25);
+    var x = box.x - scroller.netScroll.x;
+    var w = $(dge).width();
+    x = (x > window.innerWidth /2)  ? x - (w+25) : x + (w+25);
 
-        x = (x < 0 || x > maxX) ? maxX/2 : x;
-        $(dge).css('left', '' + x + 'px');
-    }
+    x = (x < 0 || x > maxX) ? maxX/2 : x;
+    $(dge).css('left', '' + x + 'px');
+  }
 
     // ### position
     // Position the dialog near a selection.  If the dialog is not visible due
     // to scrolling, make sure it is visible.
 	position(box) {
-        SuiDialogBase.position(box,this.dgDom,this.tracker.scroller);
+    SuiDialogBase.position(box,this.dgDom,this.tracker.scroller);
 	}
     // ### build the html for the dialog, based on the instance-specific components.
 	_constructDialog(dialogElements, parameters) {
 		var id = parameters.id;
 		var b = htmlHelpers.buildDom;
 		var r = b('div').classes('attributeModal').attr('id','attr-modal-'+id)
-            .css('top', parameters.top + 'px').css('left', parameters.left + 'px')
+      .css('top', parameters.top + 'px').css('left', parameters.left + 'px')
 			.append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move jsDbMove')))
 			.append(b('h2').text(parameters.label));
 
-        var ctrl = b('div').classes('smoControlContainer');
+    var ctrl = b('div').classes('smoControlContainer');
 		dialogElements.forEach((de) => {
 			var ctor = eval(de.control);
 			var control = new ctor(this, de);
 			this.components.push(control);
 			ctrl.append(control.html);
 		});
-        r.append(ctrl);
+    r.append(ctrl);
 		r.append(
 			b('div').classes('buttonContainer').append(
 				b('button').classes('ok-button button-left').text('OK')).append(
@@ -136,8 +141,8 @@ class SuiDialogBase {
 		};
 	}
 
-    // ### _commit
-    // generic logic to commit changes to a momdifier.
+  // ### _commit
+  // generic logic to commit changes to a momdifier.
 	_commit() {
 		this.modifier.restoreOriginal();
 		this.components.forEach((component) => {
@@ -375,7 +380,7 @@ class SuiLayoutDialog extends SuiDialogBase {
 			cb: cb,
 			moveParent: true
 		});
-		this.controller.unbindKeyboardForDialog(this);
+		this.controller.unbindKeyboardForModal(this);
 
         var box = svgHelpers.boxPoints(250,250,1,1);
         SuiDialogBase.position(box,this.dgDom,this.tracker.scroller);

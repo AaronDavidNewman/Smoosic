@@ -8,7 +8,7 @@ class TrackerTest {
 		score.addDefaultMeasureWithNotes(0, {});
 		score.addDefaultMeasureWithNotes(1, {});
 		score.addDefaultMeasureWithNotes(2, {});
-		var keys = suiController.createUi(score,'Tracker Test');
+		var keys = utController.createUi(score,'Tracker Test');
 		var layout = keys.layout;
 		var timeTest = () => {
 			const promise = new Promise((resolve, reject) => {

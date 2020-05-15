@@ -12,17 +12,15 @@
         <script type="text/javascript" src="https://aarondavidnewman.github.io/vexflow_smoosic/releases/vexflow-debug.js"></script>
         <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.slim.js" ></script>
 		<script type="text/javascript" src="https://aarondavidnewman.github.io/Smoosic/build/smoosic.js" ></script>
-		<script type="text/javascript"  src="https://aarondavidnewman.github.io/Smoosic/build/editor.js" ></script>
+    <script type="text/javascript" src="https://aarondavidnewman.github.io/Smoosic/build/smoTests.js" ></script>
 
 </head>
 <body>
 <script type="text/javascript">
   document.addEventListener("DOMContentLoaded", function (event) {
-            console.log("DOM fully loaded and parsed");
-
-            suiController.start(true);
-			});
-		</script>
+  TestAll.Run();
+	});
+	</script>
 <div id="smoo">
 </div>
 </body>

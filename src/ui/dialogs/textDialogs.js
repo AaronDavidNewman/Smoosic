@@ -68,7 +68,7 @@ class SuiLyricDialog extends SuiDialogBase {
 
     // make sure keyboard is unbound or we get dupicate key events.
     var self=this;
-    this.controller.unbindKeyboardForDialog(this);
+    this.controller.unbindKeyboardForModal(this);
 
     $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
         if ($(ctrl).hasClass('cbLyricEdit')) {
@@ -450,7 +450,7 @@ display() {
     // Do we jump right into editing?
     this.undo = parameters.controller.undoBuffer;
     this.modifier.backupParams();
-    this.controller.unbindKeyboardForDialog(this);
+    this.controller.unbindKeyboardForModal(this);
 	}
   _complete() {
       this.tracker.updateMap(); // update the text map

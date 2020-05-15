@@ -1,4 +1,4 @@
-
+//# sourceMappingURL=../src/ui/ribbon.js
 
 // ## RibbonButtons
 // Render the ribbon buttons based on group, function, and underlying UI handler.

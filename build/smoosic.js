@@ -4608,35 +4608,35 @@ class SmoScore {
 	static get zoomModes() {
 		return {fitWidth:0,wholePage:1,zoomScale:2}
 	}
-    static get defaults() {
-        return {
-			layout :{
-				leftMargin:30,
-				rightMargin:30,
-				topMargin:40,
-				bottomMargin:40,
-				pageWidth: 8 * 96 + 48,
-				pageHeight: 11 * 96,
-				orientation:SmoScore.orientations.portrait,
-				interGap: 30,
-				intraGap:10,
-				svgScale: 1.0,
-				zoomScale: 2.0,
-				zoomMode:SmoScore.zoomModes.fitWidth,
-                pages:1
-			},
-            engravingFont:SmoScore.engravingFonts.Bravura,
-            staffWidth: 1600,
-            startIndex: 0,
-            renumberingMap: {},
-            keySignatureMap: {},
-            measureTickmap: [],
-            staves: [],
-            activeStaff: 0,
-			scoreText:[],
-            systemGroups:[]
-        };
-    }
+  static get defaults() {
+    return {
+  		layout :{
+  			leftMargin:30,
+  			rightMargin:30,
+  			topMargin:40,
+  			bottomMargin:40,
+  			pageWidth: 8 * 96 + 48,
+  			pageHeight: 11 * 96,
+  			orientation:SmoScore.orientations.portrait,
+  			interGap: 30,
+  			intraGap:10,
+  			svgScale: 1.0,
+  			zoomScale: 2.0,
+  			zoomMode:SmoScore.zoomModes.fitWidth,
+        pages:1
+  		},
+      engravingFont:SmoScore.engravingFonts.Bravura,
+      staffWidth: 1600,
+      startIndex: 0,
+      renumberingMap: {},
+      keySignatureMap: {},
+      measureTickmap: [],
+      staves: [],
+      activeStaff: 0,
+  		scoreText:[],
+      systemGroups:[]
+    };
+  }
 	static get pageSizes() {
 		return ['letter','tabloid','A4','custom'];
 	}
@@ -10122,7 +10122,6 @@ class suiMapper {
 		}
 		this.highlightSelection();
         this._createLocalModifiersList();
-		this.triggerSelection();
 		this.pasteBuffer.clearSelections();
 		this.pasteBuffer.setSelections(this.score, this.selections);
         this.mapping = false;
@@ -10165,21 +10164,21 @@ class suiTracker extends suiMapper {
         super(layout,scroller)
 	}
 
-    _fullRenderPromise() {
-        var self = this;
-        return new Promise((resolve) => {
-            var f = function() {
-                setTimeout(function() {
-                    if (self.layout.passState === suiLayoutBase.passStates.clean) {
-                        resolve();
-                    } else {
-                        f();
-                    }
-                },50);
-            }
-            f();
-        });
-    }
+  _fullRenderPromise() {
+    var self = this;
+    return new Promise((resolve) => {
+      var f = function() {
+        setTimeout(function() {
+          if (self.layout.passState === suiLayoutBase.passStates.clean) {
+              resolve();
+          } else {
+              f();
+          }
+        },50);
+      }
+      f();
+    });
+  }
 
     // ### _checkBoxOffset
 	// If the mapped note and actual note don't match, re-render the notes so they do.
@@ -10207,10 +10206,14 @@ class suiTracker extends suiMapper {
         }
 	}
 
-    replaceSelectedMeasures() {
-        var mm = SmoSelection.getMeasureList(this.selections);
-        this.layout.addToReplaceQueue(mm);
-    }
+  replaceSelectedMeasures() {
+      var mm = SmoSelection.getMeasureList(this.selections);
+      this.layout.addToReplaceQueue(mm);
+  }
+
+  setDialogModifier(notifier) {
+    this.modifierDialogFactory = notifier;
+  }
 
 	// ### renderElement
 	// the element the score is rendered on
@@ -10702,8 +10705,7 @@ class suiTracker extends suiMapper {
 			this.selections = [selObj];
 		}
 		this.highlightSelection();
-        this._createLocalModifiersList();
-		this.triggerSelection();
+    this._createLocalModifiersList();
 	}
 
     setSelection(selection) {
@@ -10723,8 +10725,7 @@ class suiTracker extends suiMapper {
 		nselector.staff = this.score.incrementActiveStaff(offset);
 		this.selections = [this._getClosestTick(nselector)];
 		this.highlightSelection();
-        this._createLocalModifiersList();
-		this.triggerSelection();
+    this._createLocalModifiersList();
 	}
 
 	// ### _moveSelectionPitch
@@ -10801,7 +10802,6 @@ class suiTracker extends suiMapper {
 		this.selections = [mapped];
 		this.highlightSelection();
         this._createLocalModifiersList();
-		this.triggerSelection();
 	}
 
 	getFirstMeasureOfSelection() {
@@ -10858,12 +10858,15 @@ class suiTracker extends suiMapper {
 		if (this.modifierSuggestion >= 0) {
 			if (this['suggestFadeTimer']) {
 			   clearTimeout(this.suggestFadeTimer);
-    		}
+  		}
 			this.modifierIndex = -1;
             this.modifierSelections = [this.modifierTabs[this.modifierSuggestion]];
 			this.modifierSuggestion = -1;
 			this._highlightModifier();
-			$('body').trigger('tracker-select-modifier');
+      var modifier = this.getSelectedModifier();
+      if (modifier) {
+        this.modifierDialogFactory.createModifierDialog(modifier);
+      }
 			return;
 		}
 
@@ -10886,25 +10889,25 @@ class suiTracker extends suiMapper {
 			return;
 		}
 
-        suiOscillator.playSelectionNow(this.suggestion);
+    suiOscillator.playSelectionNow(this.suggestion);
 
-        var preselected = this.selections[0] ? SmoSelector.sameNote(this.suggestion.selector,this.selections[0].selector) && this.selections.length == 1 : false;
+    var preselected = this.selections[0] ? SmoSelector.sameNote(this.suggestion.selector,this.selections[0].selector) && this.selections.length == 1 : false;
 
-        if (preselected && this.selections[0].note.pitches.length > 1) {
-            this.pitchIndex =  (this.pitchIndex + 1) % this.selections[0].note.pitches.length;
-            this.selections[0].selector.pitches = [this.pitchIndex];
-        } else {
-            this.selections = [this.suggestion];
-        }
-        if (preselected && this.modifierTabs.length) {
-            var mods  = this.modifierTabs.filter((mm) => mm.selection && SmoSelector.sameNote(mm.selection.selector,this.selections[0].selector));
-            if (mods.length) {
-            this.modifierSelections[0] = mods[0];
-            this.modifierIndex = mods[0].index;
-            this._highlightModifier();
-            return;
-            }
-        }
+    if (preselected && this.selections[0].note.pitches.length > 1) {
+        this.pitchIndex =  (this.pitchIndex + 1) % this.selections[0].note.pitches.length;
+        this.selections[0].selector.pitches = [this.pitchIndex];
+    } else {
+        this.selections = [this.suggestion];
+    }
+    if (preselected && this.modifierTabs.length) {
+        var mods  = this.modifierTabs.filter((mm) => mm.selection && SmoSelector.sameNote(mm.selection.selector,this.selections[0].selector));
+      if (mods.length) {
+        this.modifierSelections[0] = mods[0];
+        this.modifierIndex = mods[0].index;
+        this._highlightModifier();
+        return;
+      }
+    }
 		this.score.setActiveStaff(this.selections[0].selector.staff);
 		if (this.selections.length == 0)
 			return;
@@ -10913,8 +10916,7 @@ class suiTracker extends suiMapper {
 			var selection = this.selections[i];
 			this.highlightSelection();
 		}
-        this._createLocalModifiersList();
-		this.triggerSelection();
+    this._createLocalModifiersList();
 	}
 
 	static get strokes() {
@@ -11016,20 +11018,16 @@ class suiTracker extends suiMapper {
           this.scroller.invScroll);
 		this._drawRect(box, 'staffModifier');
 	}
-	triggerSelection() {
-		$('body').trigger('tracker-selection');
-	}
 
-    _highlightActiveVoice(selection) {
-        var selector = selection.selector;
-        for (var i =1;i<=4;++i) {
-            var cl = 'v'+i.toString()+'-active';
-            $('body').removeClass(cl);
-        }
-        var cl = 'v'+(selector.voice + 1).toString()+'-active';
-        $('body').addClass(cl);
+  _highlightActiveVoice(selection) {
+    var selector = selection.selector;
+    for (var i =1;i<=4;++i) {
+        var cl = 'v'+i.toString()+'-active';
+        $('body').removeClass(cl);
     }
-
+    var cl = 'v'+(selector.voice + 1).toString()+'-active';
+    $('body').addClass(cl);
+  }
 
 	highlightSelection() {
         var grace = this.getSelectedGraceNotes();
@@ -11115,7 +11113,8 @@ class layoutDebug {
             note:16,
             adjustHeight:32,
             measureHistory:64,
-            textEditorHistory:128
+            textEditorHistory:128,
+            dialogEvents:256
         }
     }
 
@@ -11128,7 +11127,8 @@ class layoutDebug {
             note:'measure-note-dbg',
             adjustHeight:'measure-adjustHeight-dbg',
             measureHistory:'',
-            textEditorHistory:''
+            textEditorHistory:'',
+            dialogEvents:''
         }
     }
 
@@ -11151,7 +11151,10 @@ class layoutDebug {
         layoutDebug._flags = 0;
     }
     static setAll() {
-        layoutDebug._flags = 1+2+4+8+16+32+64+128;
+        layoutDebug._flags = 1+2+4+8+16+32+64+128+256;
+    }
+    static setRenderFlags() {
+      layoutDebug._flags = 1+2+4+8+16+32;
     }
     static clearDebugBoxes(value) {
         if (layoutDebug.flagSet(value)) {
@@ -11205,6 +11208,17 @@ class layoutDebug {
         }
         layoutDebug['_textDebug'].push(value);
         console.log(value);
+    }
+
+    static addDialogDebug(value) {
+      if (!layoutDebug.mask & layoutDebug.dialogEvents) {
+          return;
+      }
+      if (!layoutDebug['_dialogEvents']) {
+          layoutDebug['_dialogEvents'] = [];
+      }
+      layoutDebug['_dialogEvents'].push(value);
+      console.log(value);
     }
 
     static measureHistory(measure,oldVal,newVal,description) {
@@ -12966,7 +12980,7 @@ class editSvgText {
                       editTimer();
                     } else {
                       self._updateText();
-                      layoutDebug.addTextDebug('editSvgText: resolve session promise '+self.id);
+                      layoutDebug.addTextDebug('editSvgText: resolve endTextEditSessionPromise promise '+self.id);
                       resolve();
                     }
                 },25);
@@ -13024,7 +13038,7 @@ class editLyricSession {
             setTimeout(() => {
                 if (self.state == editLyricSession.states.stopping ||
                  self.state == editLyricSession.states.stopped) {
-                     layoutDebug.addTextDebug('editLyricSession:resolve detach promise from '+self.selection.note.attrs.id);
+                     layoutDebug.addTextDebug('editLyricSession:resolve detachEditorCompletePromise promise from '+self.selection.note.attrs.id);
                      resolve();
                  } else {
                      waiter();
@@ -13070,7 +13084,7 @@ class editLyricSession {
         this.state = editLyricSession.states.started;
         var self = this;
         function handleSkip() {
-            layoutDebug.addTextDebug('editLyricSession:startSession promise rcvd, editor is done, handleSkip for  '+self.selection.note.attrs.id);
+            layoutDebug.addTextDebug('editLyricSession:_editCurrentLyric endTextEditSessionPromise rcvd, editor is done, handleSkip for  '+self.selection.note.attrs.id);
             // Only skip to the next lyric if the session is still going on.
             if (self.state != editLyricSession.states.stopped && self.state != editLyricSession.states.stopping) {
                 self._handleSkip();
@@ -13089,7 +13103,7 @@ class editLyricSession {
 			this.bindEvents();
 		}
         function editCurrent() {
-            layoutDebug.addTextDebug('editLyricSession:_lyricAddedPromise promise rcvd, _editCurrentLyric for  '+self.selection.note.attrs.id);
+            layoutDebug.addTextDebug('editLyricSession:_lyricAddedPromise rcvd, _editCurrentLyric for  '+self.selection.note.attrs.id);
             self._editCurrentLyric();
         }
         this._lyricAddedPromise().then(editCurrent);
@@ -13143,7 +13157,7 @@ class editLyricSession {
         this.selection.note.addLyric(this.lyric);
         this.selection.measure.changed = true;
         this.tracker.replaceSelectedMeasures();
-		_startEditing();
+		    _startEditing();
         return this.detachEditorCompletePromise();
     }
 
@@ -13701,6 +13715,9 @@ class suiMenuBase {
 		Vex.Merge(this, params);
         this.focusIndex = -1;
 	}
+  get closeModalPromise() {
+    return this.closePromise();
+  }
 
 	complete() {
 		$('body').trigger('menuDismiss');
@@ -13722,9 +13739,13 @@ class suiMenuManager {
 		};
 	}
 
-    setController(c) {
-        this.controller=c;
-    }
+  get closeModalPromise() {
+    return this.closeMenuPromise;
+  }
+
+  setController(c) {
+      this.controller=c;
+  }
 
     get score() {
         return this.layout.score;
@@ -13772,14 +13793,6 @@ class suiMenuManager {
 			},
 			 {
 				event: "keydown",
-				key: "t",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "SuiTextMenu"
-			},
-			 {
-				event: "keydown",
 				key: "m",
 				ctrlKey: false,
 				altKey: false,
@@ -13789,12 +13802,12 @@ class suiMenuManager {
 
 		];
 	}
-    _advanceSelection(inc) {
-        var options = $('.menuContainer ul.menuElement li.menuOption');
-        inc = inc < 0 ? options.length - 1: 1;
-        this.menu.focusIndex = (this.menu.focusIndex+inc) % options.length;
-        $(options[this.menu.focusIndex]).find('button').focus();
-    }
+  _advanceSelection(inc) {
+      var options = $('.menuContainer ul.menuElement li.menuOption');
+      inc = inc < 0 ? options.length - 1: 1;
+      this.menu.focusIndex = (this.menu.focusIndex+inc) % options.length;
+      $(options[this.menu.focusIndex]).find('button').focus();
+  }
 
 	get menuBindings() {
 		return this.menuBind;
@@ -13822,45 +13835,52 @@ class suiMenuManager {
             var vkey = (hotkey < 10) ? String.fromCharCode(48+hotkey) :
                  String.fromCharCode(87 + hotkey) ;
 
-			r.append(
-				b('li').classes('menuOption').append(
-					b('button').attr('data-value',item.value)
-                    .append(b('span').classes('menuText').text(item.text))
+		r.append(
+			b('li').classes('menuOption').append(
+				b('button').attr('data-value',item.value)
+                  .append(b('span').classes('menuText').text(item.text))
 
-					.append(
-						b('span').classes('icon icon-' + item.icon))
-                     .append(b('span').classes('menu-key').text(''+vkey))));
-            item.hotkey=vkey;
-            hotkey += 1;
+				.append(
+					b('span').classes('icon icon-' + item.icon))
+                   .append(b('span').classes('menu-key').text(''+vkey))));
+          item.hotkey=vkey;
+          hotkey += 1;
 		});
 		$(this.menuContainer).append(r.dom());
 		$('body').addClass('modal');
 		this.bindEvents();
 	}
-	slashMenuMode() {
+	slashMenuMode(completeNotifier) {
 		var self = this;
 		this.bindEvents();
+    layoutDebug.addDialogDebug('slash menu creating closeMenuPromise');
 		this.closeMenuPromise = new Promise((resolve, reject) => {
 				$('body').off('menuDismiss').on('menuDismiss', function () {
+          layoutDebug.addDialogDebug('menuDismiss received, resolve closeMenuPromise');
 					self.unattach();
-                    $('body').removeClass('slash-menu');
+          $('body').removeClass('slash-menu');
 					resolve();
 				});
-
 			});
-		return this.closeMenuPromise;
+   // take over the keyboard
+    completeNotifier.unbindKeyboardForModal(this);
 	}
 
-	createMenu(action) {
+	createMenu(action,completeNotifier) {
 		this.menuPosition = {x:250,y:40,width:1,height:1};
+    // If we were called from the ribbon, we notify the controller that we are
+    // taking over the keyboard.  If this was a key-based command we already did.
+
+    layoutDebug.addDialogDebug('createMenu creating ' + action);
 		var ctor = eval(action);
 		this.menu = new ctor({
 				position: this.menuPosition,
 				tracker: this.tracker,
 				editor: this.editor,
 				score: this.score,
-                controller:this.controller,
-                closePromise:this.closeMenuPromise
+        controller:this.controller,
+        closePromise:this.closeMenuPromise,
+        layout: this.layout
 			});
 		this.attach(this.menuContainer);
         this.menu.menuItems.forEach((item) => {
@@ -13936,11 +13956,10 @@ class SuiFileMenu extends suiMenuBase {
     constructor(params) {
 		params = (params ? params : {});
 		Vex.Merge(params, SuiFileMenu.defaults);
-        super(params);
-        this.tracker = this.controller.tracker;
-        this.layout = this.controller.layout;
+    super(params);
+    this.tracker = this.controller.tracker;
 	}
-     static get defaults() {
+ static get defaults() {
 		return {
 			menuItems: [{
 					icon: 'folder-new',
@@ -13962,303 +13981,167 @@ class SuiFileMenu extends suiMenuBase {
 					icon: '',
 					text: 'Print',
 					value: 'printScore'
-                },{
+        },{
 					icon: '',
 					text: 'Bach Invention',
 					value: 'bach'
-                },{
+        },{
 					icon: '',
 					text: 'Jesu Bambino',
 					value: 'bambino'
-                },{
+        },{
 					icon: '',
 					text: 'Microtone Sample',
 					value: 'microtone'
-                },{
+        },{
 					icon: '',
 					text: 'Precious Lord',
 					value: 'preciousLord'
-                },	{
+        },	{
 					icon: '',
 					text: 'Cancel',
 					value: 'cancel'
 				}
-            ]
-        };
-     }
-     printRenderPromise() {
-         $('body').addClass('print-render');
-         $('.printFrame').html('');
-         var layout = this.layout;
-         var tracker = this.tracker;
-         layout.setRefresh();
-         var promise = new Promise((resolve) => {
-             var poll = () => {
+      ]
+    };
+  }
+
+  printRenderPromise() {
+     $('body').addClass('print-render');
+     $('.printFrame').html('');
+     var layout = this.layout;
+     var tracker = this.tracker;
+     layout.setRefresh();
+     var promise = new Promise((resolve) => {
+         var poll = () => {
 
 
-            setTimeout(() => {
-                if (!layout.dirty) {
-                    tracker.highlightSelection();
-                    $('body').removeClass('print-render');
-                    $('body').addClass('printing');
-                    resolve();
-                }else {
-                    poll();
-                }
-            },500);
+        setTimeout(() => {
+            if (!layout.dirty) {
+                tracker.highlightSelection();
+                $('body').removeClass('print-render');
+                $('body').addClass('printing');
+                resolve();
+            }else {
+                poll();
             }
-            poll();
-         });
-         return promise;
+        },500);
+        }
+        poll();
+     });
+     return promise;
+  }
+
+  systemPrint() {
+     var self = this;
+     var svgDoc = $('#boo svg')[0];
+     var s = new XMLSerializer();
+     var svgString = s.serializeToString(svgDoc);
+     var iframe = document.createElement("iframe");
+     var scale = 1.0/this.layout.score.layout.zoomScale;
+     var w=Math.round(scale * $('#boo').width());
+     var h=Math.round(scale * $('#boo').height());
+     $(iframe).attr('width',w);
+     $(iframe).attr('height',h);
+     iframe.srcdoc=svgString;
+     $('.printFrame')[0].appendChild(iframe);
+     $('.printFrame').width(w);
+     $('.printFrame').height(h);
+     function resize() {
+         setTimeout(function() {
+             var svg = $(window.frames[0].document.getElementsByTagName('svg'));
+             if (svg && svg.length) {
+                 $(window.frames[0].document.getElementsByTagName('svg')).height(h);
+                 $(window.frames[0].document.getElementsByTagName('svg')).width(w);
+                 window.print();
+                 SuiPrintFileDialog.createAndDisplay({
+                     layout: self.layout,
+                     controller:self.controller,
+                     closeMenuPromise:self.closePromise,
+                     tracker:self.tracker
+                     });
+             } else {
+                 resize();
+             }
+         },500);
      }
-     systemPrint() {
-         var self = this;
-         var svgDoc = $('#boo svg')[0];
-         var s = new XMLSerializer();
-         var svgString = s.serializeToString(svgDoc);
-         var iframe = document.createElement("iframe");
-         var scale = 1.0/this.layout.score.layout.zoomScale;
-         var w=Math.round(scale * $('#boo').width());
-         var h=Math.round(scale * $('#boo').height());
-         $(iframe).attr('width',w);
-         $(iframe).attr('height',h);
-         iframe.srcdoc=svgString;
-         $('.printFrame')[0].appendChild(iframe);
-         $('.printFrame').width(w);
-         $('.printFrame').height(h);
-         function resize() {
-             setTimeout(function() {
-                 var svg = $(window.frames[0].document.getElementsByTagName('svg'));
-                 if (svg && svg.length) {
-                     $(window.frames[0].document.getElementsByTagName('svg')).height(h);
-                     $(window.frames[0].document.getElementsByTagName('svg')).width(w);
-                     window.print();
-                     SuiPrintFileDialog.createAndDisplay({
-                         layout: self.layout,
-                         controller:self.controller,
-                         closeMenuPromise:self.closePromise,
-                         tracker:self.tracker
-                         });
-                 } else {
-                     resize();
-                 }
-             },500);
-         }
-
-         resize();
-     }
-     selection(ev) {
-		var text = $(ev.currentTarget).attr('data-value');
-        var self=this;
-
-		if (text == 'saveFile') {
-            SuiSaveFileDialog.createAndDisplay({
+    resize();
+  }
+  selection(ev) {
+  var text = $(ev.currentTarget).attr('data-value');
+  var self=this;
+  if (text == 'saveFile') {
+    SuiSaveFileDialog.createAndDisplay({
+      layout: this.layout,
+      controller:this.controller,
+      tracker:this.controller.tracker,
+      closeMenuPromise:this.closePromise
+		});
+    } else if (text == 'openFile') {
+      /*
+      {
+				layout: params.controller.layout,
+				controller: params.controller,
+				tracker:params.controller.tracker,
+                closeMenuPromise:params.closeModalPromise,
+                label:'Open File'
+			}
+      */
+      SuiLoadFileDialog.createAndDisplay({
 			layout: this.layout,
-            controller:this.controller,
-            closeMenuPromise:this.closePromise
-		    });
-        } else if (text == 'openFile') {
-            SuiLoadFileDialog.createAndDisplay({
-			layout: this.layout,
-            controller:this.controller,
-            closeMenuPromise:this.closePromise
-		    });
-        } else if (text == 'newFile') {
-            this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
-            var score = SmoScore.getDefaultScore();
-            this.controller.layout.score = score;
-            setTimeout(function() {
-            $('body').trigger('forceResizeEvent');
-            },1);
-        } else if (text == 'quickSave') {
-            var scoreStr = JSON.stringify(this.controller.layout.score.serialize());
-            localStorage.setItem(smoSerialize.localScore,scoreStr);
-        } else if (text == 'printScore') {
-            var systemPrint = () => {
-                self.systemPrint();
-            }
-            this.printRenderPromise().then(systemPrint);
+      controller:this.controller,
+      tracker:this.controller.tracker,
+      closeMenuPromise:this.closePromise
+		   });
+     } else if (text == 'newFile') {
+        this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+        var score = SmoScore.getDefaultScore();
+        this.layout.score = score;
+        setTimeout(function() {
+        $('body').trigger('forceResizeEvent');
+        },1);
 
-        } else if (text == 'bach') {
-			this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
-			var score = SmoScore.deserialize(inventionJson);
-			this.controller.layout.score = score;
-			this.controller.layout.setViewport(true);
-		}
-        else if (text == 'bambino') {
-           this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
-           var score = SmoScore.deserialize(jesuBambino);
-           this.controller.layout.score = score;
-           this.controller.layout.setViewport(true);
-       } else if (text == 'microtone') {
-          this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
-          var score = SmoScore.deserialize(microJson);
-          this.controller.layout.score = score;
-          this.controller.layout.setViewport(true);
+      } else if (text == 'quickSave') {
+        var scoreStr = JSON.stringify(this.layout.score.serialize());
+        localStorage.setItem(smoSerialize.localScore,scoreStr);
+      } else if (text == 'printScore') {
+        var systemPrint = () => {
+        self.systemPrint();
+      }
+        this.printRenderPromise().then(systemPrint);
+      } else if (text == 'bach') {
+  			this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+  			var score = SmoScore.deserialize(inventionJson);
+  			this.layout.score = score;
+  			this.layout.setViewport(true);
+		  }
+      else if (text == 'bambino') {
+        this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+        var score = SmoScore.deserialize(jesuBambino);
+        this.layout.score = score;
+        this.layout.setViewport(true);
+      } else if (text == 'microtone') {
+        this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+        var score = SmoScore.deserialize(microJson);
+        this.layout.score = score;
+        this.layout.setViewport(true);
       }     else if (text == 'preciousLord') {
-         this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.controller.layout.score);
-         var score = SmoScore.deserialize(preciousLord);
-         this.controller.layout.score = score;
-         this.controller.layout.setViewport(true);
-     }
+        this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+        var score = SmoScore.deserialize(preciousLord);
+        this.layout.score = score;
+        this.layout.setViewport(true);
+    }
 		this.complete();
 	}
+
 	keydown(ev) {}
-
 }
-class SuiTextMenu extends suiMenuBase {
-    	constructor(params) {
-		params = (params ? params : {});
-		Vex.Merge(params, SuiTextMenu.defaults);
-		super(params);
-	}
-    static get defaults() {
-		return {
-			menuItems: [{
-					icon: '',
-					text: 'Title',
-					value: 'titleText'
-				}, {
-					icon: '',
-					text: 'Page Header',
-					value: 'headerText'
-				}, {
-					icon: '',
-					text: 'Page Footer',
-					value: 'footerText'
-				}, {
-					icon: '',
-					text: 'Custom Text',
-					value: 'customText'
-				}, {
-					icon: '',
-					text: 'Composer/Copyright',
-					value: 'copyrightText'
-				}, {
-					icon: '',
-					text: 'MeasureText',
-					value: 'measureText'
-				}, {
-					icon: '',
-					text: 'Rehearsal Mark',
-					value: 'rehearsalMark'
-				}, {
-					icon: '',
-					text: 'Tempo',
-					value: 'tempoText'
-				}, {
-					icon: '',
-					text: 'Rehearsal Mark',
-					value: 'rehearsalMark'
-				}, {
-                    icon:'',
-                    text:'Lyrics',
-                    value:'lyrics'
-                },
-				 {
-					icon: '',
-					text: 'Cancel',
-					value: 'cancel'
-				}
-			]
-		};
-	}
 
-    static get menuCommandMap() {
-        return {
-            titleText: {
-                ctor:'SmoScoreText',
-                operation:'addScoreText',
-                params: {
-                    position:'custom',
-                    text:'Score Text',
-                }
-            },
-            headerText: {
-                ctor:'SmoScoreText',
-                operation:'addScoreText',
-                params: {
-                    position:'header',
-                    text:'Header text'
-                }
-            },
-            footerText: {
-                ctor:'SmoScoreText',
-                operation:'addScoreText',
-                params: {
-                    position:'header',
-                    text:'Header text'
-                }
-            },
-            copyrightText: {
-                ctor:'SmoScoreText',
-                operation:'addScoreText',
-                params: {
-                    position:'copyright',
-                    text:'Copyright/Composer'
-                }
-            }
-        };
-    }
-    bind() {
-    }
-    _editNewText(txtObj) {
-        var self = this;
-        var createDialog = () => {
-            var dialog = SuiTextTransformDialog.createAndDisplay({
-                modifier:txtObj,
-                tracker:self.tracker,
-                undo:self.controller.undoBuffer,
-                layout:self.controller.layout
-            });
-            self.controller.unbindKeyboardForDialog(dialog);
-        }
-
-
-
-        // Wait for text to be displayed before bringing up edit dialog
-        var waitForDisplay = () => {
-            return new Promise((resolve) => {
-                var waiter = ()  =>{
-                    setTimeout(() => {
-                        if (txtObj.renderedBox) {
-                            resolve();
-                        } else {
-                            waiter();
-                        }
-                    },50);
-                };
-                waiter();
-            });
-        }
-
-        // Treat a created text score like a selected text score that needs to be edited.
-        this.controller.layout.setRefresh();
-        this.closePromise.then(waitForDisplay).then(createDialog);
-    }
-    selection(ev) {
-        var self = this;
-		var command = $(ev.currentTarget).attr('data-value');
-        var menuObj = SuiTextMenu.menuCommandMap[command];
-        if (menuObj) {
-            var ctor = eval(menuObj.ctor);
-            var txtObj = new ctor(menuObj.params);
-            SmoUndoable.scoreOp(this.editor.score,menuObj.operation,
-               txtObj, this.editor.undoBuffer,'Text Menu Command');
-            setTimeout(function() {
-                self._editNewText(txtObj);
-            },1);
-        }
-
-		this.complete();
-	}
-    keydown(ev) {}
-}
 class SuiDynamicsMenu extends suiMenuBase {
 	constructor(params) {
-		params = (params ? params : {});
-		Vex.Merge(params, SuiDynamicsMenu.defaults);
-		super(params);
+	params = (params ? params : {});
+	Vex.Merge(params, SuiDynamicsMenu.defaults);
+	super(params);
 	}
 	static get defaults() {
 		return {
@@ -14314,6 +14197,7 @@ class SuiDynamicsMenu extends suiMenuBase {
 				yOffsetLine: 11,
 				fontSize: 38
 			}), this.editor.undoBuffer);
+    this.tracker.replaceSelectedMeasures();
 		this.complete();
 	}
 	keydown(ev) {}
@@ -14365,22 +14249,22 @@ class SuiTimeSignatureMenu extends suiMenuBase {
     }
 
     selection(ev) {
-        var text = $(ev.currentTarget).attr('data-value');
+      var text = $(ev.currentTarget).attr('data-value');
 
-        if (text == 'Other') {
-                SuiTimeSignatureDialog.createAndDisplay({
-    			layout: this.layout,
-                controller:this.controller,
-                closeMenuPromise:this.closePromise
-    		    });
-                this.complete();
-                return;
-        }
+      if (text == 'Other') {
+              SuiTimeSignatureDialog.createAndDisplay({
+  			layout: this.layout,
+              controller:this.controller,
+              closeMenuPromise:this.closePromise
+  		    });
+      this.complete();
+      return;
+    }
 		var timeSig = $(ev.currentTarget).attr('data-value');
-        this.controller.layout.unrenderAll();
-        SmoUndoable.scoreSelectionOp(this.controller.layout.score,this.tracker.selections,
-            'setTimeSignature',timeSig,this.controller.undoBuffer,'change time signature');
-        this.controller.tracker.layout.setRefresh();
+    this.layout.unrenderAll();
+    SmoUndoable.scoreSelectionOp(this.layout.score,this.tracker.selections,
+      'setTimeSignature',timeSig,this.controller.undoBuffer,'change time signature');
+    this.layout.setRefresh();
 		this.complete();
 	}
 	keydown(ev) {}
@@ -14464,12 +14348,12 @@ class suiKeySignatureMenu extends suiMenuBase {
 			if (changed.indexOf(sel.selector.measure) === -1) {
 				changed.push(sel.selector.measure);
 				SmoUndoable.addKeySignature(this.score, sel, keySig, this.editor.undoBuffer);
+        this.tracker.replaceSelectedMeasures();
 			}
 		});
 		this.complete();
 	}
 	keydown(ev) {}
-
 }
 
 class suiStaffModifierMenu extends suiMenuBase {
@@ -14525,7 +14409,7 @@ class suiStaffModifierMenu extends suiMenuBase {
 		}
 
 		SmoUndoable[op](ft, tt, this.editor.undoBuffer);
-        this.tracker.replaceSelectedMeasures();
+    this.tracker.replaceSelectedMeasures();
 		this.complete();
 	}
 	keydown(ev) {}
@@ -14625,6 +14509,7 @@ class SuiAddStaffMenu extends suiMenuBase {
 			SmoUndoable.addStaff(this.score, instrument, this.editor.undoBuffer);
 			this.tracker.layout.setRefresh();
 		}
+    this.layout.setRefresh();
 		this.complete();
 	}
 	keydown(ev) {}
@@ -14648,45 +14533,26 @@ class utController {
 	}
 
 	static createUi(score, title) {
-		utController.createDom();
+		UtDom.createDom(title);
 		if (title) {
 			$('h1.testTitle').text(title);
 		}
 		var params = {};
 		params.layout = suiScoreLayout.createScoreLayout($('#boo')[0],null, score);
-        params.scroller = new suiScroller();
+    params.scroller = new suiScroller();
 		params.tracker = new suiTracker(params.layout,params.scroller);
-        params.layoutDemon = new SuiLayoutDemon(params);
-		// params.tracker = new suiTracker(params.layout);
-		params.score = score;
-		// params.editor = new suiEditor(params);
+    params.layoutDemon = new SuiLayoutDemon(params);
+    params.layout.setMeasureMapper(params.tracker);
+
+    // params.tracker = new suiTracker(params.layout);
+    params.score = score;
+
+    // params.editor = new suiEditor(params);
 		// params.menus = new suiMenuManager(params);
 		var keys = new utController(params);
 		var h =  window.innerHeight - $('.musicRelief').offset().top;
 		$('.musicRelief').css('height',''+h+'px');
 		return keys;
-	}
-
-	static createDom() {
-		var b = htmlHelpers.buildDom;
-		$('#smoo').html('');
-		var r = b('div').classes('dom-container')
-			.append(b('div').classes('modes'))
-			.append(b('div').classes('overlay'))
-			.append(b('div').classes('attributeDialog'))
-			.append(b('div').classes('helpDialog'))
-			.append(b('div').classes('menuContainer'))
-			.append(b('h1').classes('testTitle').text('Smoosic'))
-			.append(b('h2').classes('subTitle'))
-			.append(b('div').classes('piano-container')
-				.append(b('div').classes('piano-keys')))
-			.append(b('div').classes('workspace-container')
-				.append(b('div').classes('workspace')
-					.append(b('div').classes('controls-top'))
-					.append(b('div').classes('controls-left'))
-					.append(b('div').classes('musicRelief')
-						.append(b('div').classes('musicContainer').attr('id', 'boo')))));
-		$('#smoo').append(r.dom());
 	}
 
 	get renderElement() {
@@ -14703,7 +14569,7 @@ class utController {
 
 	render() {
         var ix = 0;
-        this.layout.layout();		
+        this.layout.layout();
 	}
 
 	bindEvents() {}
@@ -15392,14 +15258,19 @@ class SuiDialogBase {
 		this.id = parameters.id;
         this.boundKeyboard = false;
 		this.components = [];
-		this.closeDialogPromise = new Promise((resolve, reject) => {
-				$('body').off('dialogDismiss').on('dialogDismiss', function () {
-					resolve();
-				});
 
+    console.log('creating close dialog promise in SuiDialogBase');
+		this.closeDialogPromise = new Promise((resolve, reject) => {
+			$('body').off('dialogDismiss').on('dialogDismiss', function () {
+        console.log('dialog dismiss DOM event received, resolve closeDialogPromise');
+				resolve();
 			});
-        this.initialLeft = parameters.left
-        this.initialTop = parameters.top;
+
+		});
+    this.initialLeft = parameters.left
+    this.initialTop = parameters.top;
+    this.startPromise = parameters.closeMenuPromise;
+
 		this.dialogElements = dialogElements;
 		this.tracker = parameters.tracker;
 		var top = parameters.top - this.tracker.scroller.netScroll.y;
@@ -15412,57 +15283,60 @@ class SuiDialogBase {
 				label: parameters.label
 			});
 	}
+  get closeModalPromise() {
+    return this.closeDialogPromise;
+  }
 
-    // ### position
-    // For dialogs based on selections, tries to place the dialog near the selection and also
-    // to scroll so the dialog is in view
-    static position(box,dgDom,scroller) {
-        var y = (box.y + box.height) - scroller.netScroll.y;
+  // ### position
+  // For dialogs based on selections, tries to place the dialog near the selection and also
+  // to scroll so the dialog is in view
+  static position(box,dgDom,scroller) {
+    var y = (box.y + box.height) - scroller.netScroll.y;
 
-		// TODO: adjust if db is clipped by the browser.
-        var dge = $(dgDom.element).find('.attributeModal');
-        var dgeHeight = $(dge).height();
-        var maxY =  $('.musicRelief').height();
-        var maxX = $('.musicRelief').width();
+  	// TODO: adjust if db is clipped by the browser.
+    var dge = $(dgDom.element).find('.attributeModal');
+    var dgeHeight = $(dge).height();
+    var maxY =  $('.musicRelief').height();
+    var maxX = $('.musicRelief').width();
 
-		var offset = dgeHeight + y > window.innerHeight ? (dgeHeight + y) -  window.innerHeight : 0;
-		y = (y < 0) ? -y : y - offset;
+	  var offset = dgeHeight + y > window.innerHeight ? (dgeHeight + y) -  window.innerHeight : 0;
+	  y = (y < 0) ? -y : y - offset;
 
-        y = (y > maxY || y < 0) ? maxY / 2 : y;
+    y = (y > maxY || y < 0) ? maxY / 2 : y;
 
-		$(dge).css('top', '' + y + 'px');
+  	$(dge).css('top', '' + y + 'px');
 
-        var x = box.x - scroller.netScroll.x;
-        var w = $(dge).width();
-        x = (x > window.innerWidth /2)  ? x - (w+25) : x + (w+25);
+    var x = box.x - scroller.netScroll.x;
+    var w = $(dge).width();
+    x = (x > window.innerWidth /2)  ? x - (w+25) : x + (w+25);
 
-        x = (x < 0 || x > maxX) ? maxX/2 : x;
-        $(dge).css('left', '' + x + 'px');
-    }
+    x = (x < 0 || x > maxX) ? maxX/2 : x;
+    $(dge).css('left', '' + x + 'px');
+  }
 
     // ### position
     // Position the dialog near a selection.  If the dialog is not visible due
     // to scrolling, make sure it is visible.
 	position(box) {
-        SuiDialogBase.position(box,this.dgDom,this.tracker.scroller);
+    SuiDialogBase.position(box,this.dgDom,this.tracker.scroller);
 	}
     // ### build the html for the dialog, based on the instance-specific components.
 	_constructDialog(dialogElements, parameters) {
 		var id = parameters.id;
 		var b = htmlHelpers.buildDom;
 		var r = b('div').classes('attributeModal').attr('id','attr-modal-'+id)
-            .css('top', parameters.top + 'px').css('left', parameters.left + 'px')
+      .css('top', parameters.top + 'px').css('left', parameters.left + 'px')
 			.append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move jsDbMove')))
 			.append(b('h2').text(parameters.label));
 
-        var ctrl = b('div').classes('smoControlContainer');
+    var ctrl = b('div').classes('smoControlContainer');
 		dialogElements.forEach((de) => {
 			var ctor = eval(de.control);
 			var control = new ctor(this, de);
 			this.components.push(control);
 			ctrl.append(control.html);
 		});
-        r.append(ctrl);
+    r.append(ctrl);
 		r.append(
 			b('div').classes('buttonContainer').append(
 				b('button').classes('ok-button button-left').text('OK')).append(
@@ -15481,8 +15355,8 @@ class SuiDialogBase {
 		};
 	}
 
-    // ### _commit
-    // generic logic to commit changes to a momdifier.
+  // ### _commit
+  // generic logic to commit changes to a momdifier.
 	_commit() {
 		this.modifier.restoreOriginal();
 		this.components.forEach((component) => {
@@ -15498,6 +15372,7 @@ class SuiDialogBase {
             window.removeEventListener("keydown", this.keydownHandler, true);
         }
 		$('body').removeClass('showAttributeDialog');
+    console.log('dialog complete method called, triggering dialog close');
 		$('body').trigger('dialogDismiss');
 		this.dgDom.trapper.close();
 	}
@@ -15719,7 +15594,7 @@ class SuiLayoutDialog extends SuiDialogBase {
 			cb: cb,
 			moveParent: true
 		});
-		this.controller.unbindKeyboardForDialog(this);
+		this.controller.unbindKeyboardForModal(this);
 
         var box = svgHelpers.boxPoints(250,250,1,1);
         SuiDialogBase.position(box,this.dgDom,this.tracker.scroller);
@@ -15933,69 +15808,67 @@ class helpModal {
 }
 ;
 class SuiFileDialog extends SuiDialogBase {
-     constructor(parameters) {
+  constructor(parameters) {
 		if (!(parameters.controller)) {
 			throw new Error('file dialog must have score');
 		}
 		var p = parameters;
-        var ctor = eval(parameters.ctor);
-        var label = parameters.label ? parameters.label : 'Dialog Box';
+    var ctor = eval(parameters.ctor);
+    p.label = parameters.label ? parameters.label : 'Dialog Box';
+    p.id = 'dialog-file';
+    p.top = (p.layout.score.layout.pageWidth / 2) - 200;
+    p.left = (p.layout.score.layout.pageHeight / 2) - 200;
 
-		super(ctor.dialogElements, {
-			id: 'dialog-file',
-			top: (p.layout.score.layout.pageWidth / 2) - 200,
-			left: (p.layout.score.layout.pageHeight / 2) - 200,
-			label: label,
-			tracker:parameters.tracker
-		});
-        this.startPromise=p.closeMenuPromise;
+		super(ctor.dialogElements, p);
+
+    // File dialogs can be created from menu, get menu promise
 		this.layout = p.layout;
-        this.value='';
+    this.value='';
 		// this.modifier = this.layout.score.layout;
 		this.controller = p.controller;
 		// this.backupOriginal();
 	}
-    display() {
-        $('body').addClass('showAttributeDialog');
+  display() {
+    $('body').addClass('showAttributeDialog');
 		this.components.forEach((component) => {
 			component.bind();
 		});
 		this._bindElements();
 
-        // make sure keyboard is unbound or we get dupicate key events.
-        var self=this;
-        function getKeys() {
-            self.controller.unbindKeyboardForDialog(self);
-        }
-        this.startPromise.then(getKeys);
-        this.position($(this.dgDom.element)[0].getBoundingClientRect());
+    // make sure keyboard is unbound or we get dupicate key events.
+    var self=this;
+    function getKeys() {
+        self.controller.unbindKeyboardForModal(self);
+    }
+    this.startPromise.then(getKeys);
+    this.position($(this.dgDom.element)[0].getBoundingClientRect());
 	}
-    _bindElements() {
-		var self = this;
-		var dgDom = this.dgDom;
 
-		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+  _bindElements() {
+  	var self = this;
+  	var dgDom = this.dgDom;
+
+  	$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
             self.commit();
-		});
+  	});
 
-		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-			self.complete();
-		});
+  	$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+  		self.complete();
+  	});
 
-		$(dgDom.element).find('.remove-button').remove();
+  	$(dgDom.element).find('.remove-button').remove();
         this.bindKeyboard();
-	}
+  	}
     position(box) {
-		var y = (window.innerHeight/3  + box.height);
+  	var y = (window.innerHeight/3  + box.height);
 
-		// TODO: adjust if db is clipped by the browser.
-        var dge = $(this.dgDom.element).find('.attributeModal');
+  	// TODO: adjust if db is clipped by the browser.
+    var dge = $(this.dgDom.element).find('.attributeModal');
 
-		$(dge).css('top', '' + y + 'px');
-
+  	$(dge).css('top', '' + y + 'px');
         var x = window.innerWidth - box.width/2;
         $(dge).css('left', '' + x + 'px');
-	}
+  }
 }
 class SuiLoadFileDialog extends SuiFileDialog {
     static get dialogElements() {
@@ -16033,16 +15906,11 @@ class SuiLoadFileDialog extends SuiFileDialog {
         }
     }
     static createAndDisplay(params) {
-		var dg = new SuiLoadFileDialog({
-				layout: params.controller.layout,
-				controller: params.controller,
-				tracker:params.controller.tracker,
-                closeMenuPromise:params.closeMenuPromise,
-                label:'Open File'
-			});
+    params.label="Open File";
+		var dg = new SuiLoadFileDialog(params);
 		dg.display();
-         // disable until file is selected
-        $(dg.dgDom.element).find('.ok-button').prop('disabled',true);
+     // disable until file is selected
+    $(dg.dgDom.element).find('.ok-button').prop('disabled',true);
 	}
     constructor(parameters) {
         parameters.ctor='SuiLoadFileDialog';
@@ -16056,30 +15924,23 @@ class SuiPrintFileDialog extends SuiFileDialog {
 		return [];
     }
     static createAndDisplay(params) {
-		var dg = new SuiPrintFileDialog({
-				layout: params.controller.layout,
-				controller: params.controller,
-                closeMenuPromise:params.closeMenuPromise,
-                label: 'Print Complete',
-                tracker:params.tracker
-			});
+    params.label = "Print Complete";
+		var dg = new SuiPrintFileDialog(params);
 		dg.display();
-
 	}
-    constructor(parameters) {
-        parameters.ctor='SuiPrintFileDialog';
-        parameters.label = 'Print Complete';
-        super(parameters);
+  constructor(parameters) {
+    parameters.ctor='SuiPrintFileDialog';
+    parameters.label = 'Print Complete';
+    super(parameters);
 	}
-    changed() {}
-    _bindElements() {
-        var self = this;
-        var dgDom = this.dgDom;
-
+  changed() {}
+  _bindElements() {
+    var self = this;
+    var dgDom = this.dgDom;
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            $('body').removeClass('printing');
-            self.complete();
-		});
+      $('body').removeClass('printing');
+      self.complete();
+	  });
 
 		$(dgDom.element).find('.cancel-button').remove();
 		$(dgDom.element).find('.remove-button').remove();
@@ -16087,46 +15948,41 @@ class SuiPrintFileDialog extends SuiFileDialog {
 }
 class SuiSaveFileDialog extends SuiFileDialog {
 
-    static get dialogElements() {
-		return [{
-				smoName: 'saveFileName',
-				parameterName: 'saveFileName',
-				defaultValue: '',
-				control: 'SuiTextInputComponent',
-				label:'File Name'
-			}];
-    }
+  static get dialogElements() {
+	  return [{
+			smoName: 'saveFileName',
+			parameterName: 'saveFileName',
+			defaultValue: '',
+			control: 'SuiTextInputComponent',
+			label:'File Name'
+		}];
+  }
 
-    changed() {
-        this.value = this.components[0].getValue();
+  changed() {
+    this.value = this.components[0].getValue();
+  }
+  commit() {
+    var filename = this.value;
+    if (!filename) {
+        filename='myScore.json';
     }
-    commit() {
-        var filename = this.value;
-        if (!filename) {
-            filename='myScore.json';
-        }
-        if (filename.indexOf('.json') < 0) {
-            filename = filename + '.json';
-        }
-        var txt = this.layout.score.serialize();
-        txt = JSON.stringify(txt);
-        htmlHelpers.addFileLink(filename,txt,$('.saveLink'));
-        $('.saveLink a')[0].click();
-        this.complete();
+    if (filename.indexOf('.json') < 0) {
+        filename = filename + '.json';
     }
-    static createAndDisplay(params) {
-		var dg = new SuiSaveFileDialog({
-				layout: params.controller.layout,
-				controller: params.controller,
-  				tracker:params.controller.tracker,
-               closeMenuPromise:params.closeMenuPromise,
-                label:'Save File'
-			});
+    var txt = this.layout.score.serialize();
+    txt = JSON.stringify(txt);
+    htmlHelpers.addFileLink(filename,txt,$('.saveLink'));
+    $('.saveLink a')[0].click();
+    this.complete();
+  }
+  static createAndDisplay(params) {
+    params.label="Save File";
+		var dg = new SuiSaveFileDialog(params);
 		dg.display();
 	}
-    constructor(parameters) {
-        parameters.ctor='SuiSaveFileDialog';
-        super(parameters);
+  constructor(parameters) {
+    parameters.ctor='SuiSaveFileDialog';
+    super(parameters);
 	}
 }
 ;class SuiLyricDialog extends SuiDialogBase {
@@ -16199,7 +16055,7 @@ class SuiSaveFileDialog extends SuiFileDialog {
 
     // make sure keyboard is unbound or we get dupicate key events.
     var self=this;
-    this.controller.unbindKeyboardForDialog(this);
+    this.controller.unbindKeyboardForModal(this);
 
     $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
         if ($(ctrl).hasClass('cbLyricEdit')) {
@@ -16227,7 +16083,7 @@ class SuiSaveFileDialog extends SuiFileDialog {
           }
   }
   changed() {
-      this.editor.verse = this.verse.getValue();      
+      this.editor.verse = this.verse.getValue();
       // Note, when selection changes, we need to wait for the text edit session
       // to start on the new selection.  Then this.editor.changeFlag is set and
       // we can focus on the selection if it is not visible.
@@ -16257,10 +16113,10 @@ class SuiSaveFileDialog extends SuiFileDialog {
 }
 
 class SuiTextTransformDialog  extends SuiDialogBase {
-    static createAndDisplay(parameters) {
+  static createAndDisplay(parameters) {
 		var dg = new SuiTextTransformDialog(parameters);
 		dg.display();
-        return dg;
+    return dg;
 	}
 
     static get dialogElements() {
@@ -16394,16 +16250,44 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			}
         ];
     }
+display() {
+  var self=this;
+  // Wait for text to be displayed before bringing up edit dialog
+  var waitForDisplay = () => {
+    return new Promise((resolve) => {
+      var waiter = ()  => {
+        setTimeout(() => {
+          if (self.modifier.renderedBox) {
+            console.log('text box has been created');
+            resolve();
+          } else {
+            waiter();
+          }
+        },50);
+      };
+      waiter();
+    });
+  }
 
-    display() {
-		$('body').addClass('showAttributeDialog');
-		this.components.forEach((component) => {
-			component.bind();
+  function callDisplay() {
+    setTimeout(function() {
+      self._display();
+    },1);
+  }
 
-            if (typeof(component['setValue'])=='function' && this.modifier[component.parameterName]) {
-			  component.setValue(this.modifier[component.parameterName]);
-            }
-		});
+  waitForDisplay().then(callDisplay);
+}
+  _display() {
+    console.log('text box creationg complete')
+    this.textElement=$(this.layout.context.svg).find('.' + this.modifier.attrs.id)[0];
+
+  	$('body').addClass('showAttributeDialog');
+  	this.components.forEach((component) => {
+  		component.bind();
+      if (typeof(component['setValue'])=='function' && this.modifier[component.parameterName]) {
+  		  component.setValue(this.modifier[component.parameterName]);
+      }
+  	});
     this._bindComponentNames();
 
     var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
@@ -16418,158 +16302,175 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     this.paginationsComponent = this.components.find((c) => c.smoName == 'pagination');
     this.paginationsComponent.setValue(this.modifier.pagination);
 
-		this._bindElements();
-		this.position(this.modifier.renderedBox);
+  	this._bindElements();
+  	this.position(this.modifier.renderedBox);
 
-		var cb = function (x, y) {}
-		htmlHelpers.draggable({
-			parent: $(this.dgDom.element).find('.attributeModal'),
-			handle: $(this.dgDom.element).find('span.jsDbMove'),
+  	var cb = function (x, y) {}
+  	htmlHelpers.draggable({
+  		parent: $(this.dgDom.element).find('.attributeModal'),
+  		handle: $(this.dgDom.element).find('span.jsDbMove'),
             animateDiv:'.draganime',
-			cb: cb,
-			moveParent: true
-		});
-        $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
-           if ($(ctrl).hasClass('cbTextInPlace')) {
-               $(ctrl).addClass('fold-textmove');
-               $(ctrl).addClass('fold-textresize');
-           } else if ($(ctrl).hasClass('cbDragTextDialog')) {
-               $(ctrl).addClass('fold-textedit');
-               $(ctrl).addClass('fold-textresize');
-           } else if ($(ctrl).hasClass('cbResizeTextBox')) {
-               $(ctrl).addClass('fold-textedit');
-               $(ctrl).addClass('fold-textmove');
-           } else {
-               $(ctrl).addClass('fold-textedit');
-               $(ctrl).addClass('fold-textmove');
-               $(ctrl).addClass('fold-textresize');
-           }
-       });
+  		cb: cb,
+  		moveParent: true
+  	});
+    $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
+      if ($(ctrl).hasClass('cbTextInPlace')) {
+         $(ctrl).addClass('fold-textmove');
+         $(ctrl).addClass('fold-textresize');
+      } else if ($(ctrl).hasClass('cbDragTextDialog')) {
+      $(ctrl).addClass('fold-textedit');
+      $(ctrl).addClass('fold-textresize');
+      } else if ($(ctrl).hasClass('cbResizeTextBox')) {
+        $(ctrl).addClass('fold-textedit');
+        $(ctrl).addClass('fold-textmove');
+      } else {
+        $(ctrl).addClass('fold-textedit');
+        $(ctrl).addClass('fold-textmove');
+        $(ctrl).addClass('fold-textresize');
+      }
+    });
 
-        // If this control has not been edited this session, assume they want to
-        // edit the text and just right into that.
-        if (!this.modifier.edited) {
-            this.modifier.edited = true;
-            this.textEditorCtrl.startEditSession();
-        }
+    // If this control has not been edited this session, assume they want to
+    // edit the text and just right into that.
+    if (!this.modifier.edited) {
+        this.modifier.edited = true;
+        this.textEditorCtrl.startEditSession();
+    }
 	}
 
-    changed() {
+  changed() {
+    var textEditor = this.components.find((c) => c.smoName === 'textEditor');
+    this.modifier.text = textEditor.getValue();
 
-        var textEditor = this.components.find((c) => c.smoName === 'textEditor');
-        this.modifier.text = textEditor.getValue();
-
-        if (this.wrapCtrl.changeFlag) {
-            var boxModel = this.wrapCtrl.getValue() ? SmoScoreText.boxModels.wrap :
-                SmoScoreText.boxModels.none;
-            this.modifier.boxModel = boxModel;
-            if (boxModel ==  SmoScoreText.boxModels.wrap) {
-                this.modifier.scaleX = this.modifier.scaleY = 1.0;
-                this.modifier.translateX = this.modifier.translateY = 1.0;
-                this.modifier.width = this.modifier.logicalBox.width;
-                this.modifier.height = this.modifier.logicalBox.height;
-            }
-
+    if (this.wrapCtrl.changeFlag) {
+      var boxModel = this.wrapCtrl.getValue() ? SmoScoreText.boxModels.wrap :
+          SmoScoreText.boxModels.none;
+      this.modifier.boxModel = boxModel;
+      if (boxModel ==  SmoScoreText.boxModels.wrap) {
+        this.modifier.scaleX = this.modifier.scaleY = 1.0;
+        this.modifier.translateX = this.modifier.translateY = 1.0;
+        this.modifier.width = this.modifier.logicalBox.width;
+        this.modifier.height = this.modifier.logicalBox.height;
+      }
+    }
+    // If we resized the text, set the size components from the actual text
+    // object that was resized.
+    if (this.textResizerCtrl.changeFlag) {
+    this.xCtrl.setValue(this.modifier.x);
+    this.yCtrl.setValue(this.modifier.y);
+    this.scaleXCtrl.setValue(this.modifier.scaleX);
+    this.scaleYCtrl.setValue(this.modifier.scaleY);
+    }
+    this.components.find((x) => {
+    if (typeof(x['getValue'])=='function') {
+        if (x.parameterName.indexOf('scale') == 0) {
+           var val = x.getValue();
+            var fcn = x.parameterName+'InPlace';
+            this.modifier[fcn](val);
         }
+    }
+  });
 
-        // If we resized the text, set the size components from the actual text
-        // object that was resized.
-        if (this.textResizerCtrl.changeFlag) {
-            this.xCtrl.setValue(this.modifier.x);
-            this.yCtrl.setValue(this.modifier.y);
-            this.scaleXCtrl.setValue(this.modifier.scaleX);
-            this.scaleYCtrl.setValue(this.modifier.scaleY);
-        }
-        this.components.find((x) => {
-            if (typeof(x['getValue'])=='function') {
-                if (x.parameterName.indexOf('scale') == 0) {
-                   var val = x.getValue();
-                    var fcn = x.parameterName+'InPlace';
-                    this.modifier[fcn](val);
-                }
-            }
-		});
+    var xcomp = this.components.find((x) => x.smoName === 'x');
+    var ycomp = this.components.find((x) => x.smoName === 'y');
+    if (this.textDraggerCtrl.dragging) {
+        var val = this.textDraggerCtrl.getValue();
+        xcomp.setValue(val.x);
+        ycomp.setValue(val.y);
+    }
+    this.modifier.x=xcomp.getValue();
+    this.modifier.y=ycomp.getValue();
 
-        var xcomp = this.components.find((x) => x.smoName === 'x');
-        var ycomp = this.components.find((x) => x.smoName === 'y');
-        if (this.textDraggerCtrl.dragging) {
-            var val = this.textDraggerCtrl.getValue();
-            xcomp.setValue(val.x);
-            ycomp.setValue(val.y);
-        }
-        this.modifier.x=xcomp.getValue();
-        this.modifier.y=ycomp.getValue();
+    var fontComp = this.components.find((c) => c.smoName === 'fontFamily');
+    this.modifier.fontInfo.family = fontComp.getValue();
 
-        var fontComp = this.components.find((c) => c.smoName === 'fontFamily');
-        this.modifier.fontInfo.family = fontComp.getValue();
-
-        if (this.paginationsComponent.changeFlag) {
-            this.modifier.pagination = this.paginationsComponent.getValue();
-        }
-
-        var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
-        var dbFontUnit  = this.components.find((c) => c.smoName === 'fontUnit');
-        this.modifier.fontInfo.size=''+dbFontSize.getValue()+dbFontUnit.getValue();
-
-        // Use layout context because render may have reset svg.
-        $(this.layout.context.svg).find('.' + this.modifier.attrs.id).remove();;
-        this.layout.renderScoreText(this.modifier);
+    if (this.paginationsComponent.changeFlag) {
+        this.modifier.pagination = this.paginationsComponent.getValue();
     }
 
+    var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
+    var dbFontUnit  = this.components.find((c) => c.smoName === 'fontUnit');
+    this.modifier.fontInfo.size=''+dbFontSize.getValue()+dbFontUnit.getValue();
+
+    // Use layout context because render may have reset svg.
+    $(this.layout.context.svg).find('.' + this.modifier.attrs.id).remove();;
+    this.layout.renderScoreText(this.modifier);
+  }
 
 	constructor(parameters) {
+    var tracker = parameters.tracker;
+    var layout = tracker.layout.score.layout;
+
+    // If this is a new modifier, create it and add it to the score.  Update the layout`
+    // so the modifier will appear in the DOM and it can be edited.
 		if (!parameters.modifier) {
-			throw new Error('modifier attribute dialog must have modifier');
-		}
+			var newText =  new SmoScoreText({position:SmoScoreText.positions.custom});
+      parameters.modifier = newText;
+      SmoUndoable.scoreOp(parameters.layout.score,'addScoreText',
+         parameters.modifier,  parameters.controller.undoBuffer,'Text Menu Command');
+      parameters.layout.setRefresh();
+    }
+    var scrollPosition = tracker.scroller.absScroll;
+    console.log('text ribbon: scroll y is '+scrollPosition.y);
+
+    scrollPosition.y = scrollPosition.y / (layout.svgScale * layout.zoomScale);
+    scrollPosition.x = scrollPosition.x / (layout.svgScale * layout.zoomScale);
+    console.log('text ribbon: converted scroll y is '+scrollPosition.y);
+    // scrollPosition = svgHelpers.clientToLogical(this.tracker.context.svg,scrollPosition);
+    // console.log('text ribbon: svg scroll y is '+scrollPosition.y);
+
+    parameters.modifier.x = scrollPosition.x + 100;
+    parameters.modifier.y = scrollPosition.y + 100;
+
+    //
 
 		super(SuiTextTransformDialog.dialogElements, {
 			id: 'dialog-' + parameters.modifier.attrs.id,
-			top: parameters.modifier.renderedBox.y,
-			left: parameters.modifier.renderedBox.x,
+			top: parameters.modifier.y,
+			left: parameters.modifier.x,
 			label: 'Text Box Properties',
 			tracker:parameters.tracker
 		});
 
 		Vex.Merge(this, parameters);
 
-        // Do we jump right into editing?
-        this.undo = parameters.controller.undoBuffer;
-        this.textElement=$(this.layout.context.svg).find('.' + parameters.modifier.attrs.id)[0];
-        this.modifier.backupParams();
+    // Do we jump right into editing?
+    this.undo = parameters.controller.undoBuffer;
+    this.modifier.backupParams();
+    this.controller.unbindKeyboardForModal(this);
 	}
-    _complete() {
-        this.tracker.updateMap(); // update the text map
-        this.layout.setDirty();
-        this.complete();
-    }
-    _bindElements() {
-        var self = this;
-        this.bindKeyboard();
-		var dgDom = this.dgDom;
-        var fontComp = this.components.find((c) => c.smoName === 'fontFamily');
+  _complete() {
+      this.tracker.updateMap(); // update the text map
+      this.layout.setDirty();
+      this.complete();
+  }
+  _bindElements() {
+      var self = this;
+      this.bindKeyboard();
+	var dgDom = this.dgDom;
+  var fontComp = this.components.find((c) => c.smoName === 'fontFamily');
 
-        fontComp.setValue(this.modifier.fontInfo.family);
+  fontComp.setValue(this.modifier.fontInfo.family);
 
+	$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+    self.textEditorCtrl.endSession();
+    self.textDraggerCtrl.endSession();
+		self._complete();
+	});
 
-		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            self.textEditorCtrl.endSession();
-            self.textDraggerCtrl.endSession();
-			self._complete();
-		});
-
-		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-            self.textEditorCtrl.endSession();
-            self.textDraggerCtrl.endSession();
-            self.modifier.restoreParams();
-			self._complete();
-		});
-		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-            self.textEditorCtrl.endSession();
-            self.textDraggerCtrl.endSession();
-            SmoUndoable.scoreOp(self.layout.score,'removeScoreText',self.modifier,self.undo,'remove text from dialog');
-			self._complete();
-		});
-    }
+	$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+    self.textEditorCtrl.endSession();
+    self.textDraggerCtrl.endSession();
+    self.modifier.restoreParams();
+		self._complete();
+	});
+	$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
+    self.textEditorCtrl.endSession();
+    self.textDraggerCtrl.endSession();
+    SmoUndoable.scoreOp(self.layout.score,'removeScoreText',self.modifier,self.undo,'remove text from dialog');
+		self._complete();
+   });
+  }
 }
 ;// ## measureDialogs.js
 // This file contains dialogs that affect all measures at a certain position,
@@ -16804,7 +16705,7 @@ class SuiMeasureDialog extends SuiDialogBase {
 		var self = this;
 		var dgDom = this.dgDom;
         this.bindKeyboard();
-        this.controller.unbindKeyboardForDialog(this);
+        this.controller.unbindKeyboardForModal(this);
         this._bindComponentNames();
         this.populateInitial();
 
@@ -16927,7 +16828,7 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
 
          var self=this;
          function getKeys() {
-             self.controller.unbindKeyboardForDialog(self);
+             self.controller.unbindKeyboardForModal(self);
          }
          this.startPromise.then(getKeys);
      }
@@ -17217,7 +17118,7 @@ class SuiTempoDialog extends SuiDialogBase {
                 resolve();
             });
         });
-        this.controller.unbindKeyboardForDialog(this);
+        this.controller.unbindKeyboardForModal(this);
     }
 }
 ;// # dbComponents - components of modal dialogs.
@@ -17644,6 +17545,7 @@ class SuiTextInPlace extends SuiComponentBase {
         var pid = this.parameterId;
         return $(this.dialog.dgDom.element).find('#' + pid).find('button');
     }
+    
     startEditSession() {
         var self=this;
         $(this._getInputElement()).find('label').text('Done Editing Text Block');
@@ -17657,6 +17559,7 @@ class SuiTextInPlace extends SuiComponentBase {
           var button = document.getElementById(this.parameterId);
           $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
           this.editor.endTextEditSessionPromise().then(function() {
+              layoutDebug.addTextDebug('endTextEditSessionPromise recvd by dialog component');
               self.value=self.editor.value;
               self.editor=null;
           });
@@ -19735,7 +19638,7 @@ class vexGlyph {
 ;var jesuBambino = `{"a":{"b":{"c":50,"d":50,"e":72,"f":40,"g":816,"h":1056,"i":0,"j":40,"k":30,"l":0.65,"m":1.5,"n":2,"o":7,"p":"letter"},"q":0,"r":{},"ce":"Bravura"},"s":[{"t":0,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Treble Instrument","ca":"0","da":"treble"},"ea":[{"fa":{"ga":0,"ha":1,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":1,"ia":0,"ja":1,"ka":[]},"ma":0,"na":10,"oa":10,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":1,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":1,"ia":0,"ja":3,"ka":[]},"ma":0,"ta":14,"na":10,"oa":30,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":3,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":3,"ia":0,"ja":1,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":3,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":3,"ia":0,"ja":3,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":3,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":3,"ia":0,"ja":5,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":3,"ia":0,"ja":6,"ka":[]},"la":{"ga":0,"ha":3,"ia":0,"ja":7,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":4,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":4,"ia":0,"ja":1,"ka":[]},"ma":0,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":4,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":4,"ia":0,"ja":3,"ka":[]},"ma":0,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":4,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":4,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":4,"ia":0,"ja":6,"ka":[]},"la":{"ga":0,"ha":4,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":1,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":1,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":1,"ia":0,"ja":6,"ka":[]},"la":{"ga":0,"ha":1,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":16,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":17,"ia":0,"ja":0,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":18,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":18,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":18,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":18,"ia":0,"ja":6,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":20,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":20,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":20,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":20,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":20,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":20,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":20,"ia":0,"ja":6,"ka":[]},"la":{"ga":0,"ha":20,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":21,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":21,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":21,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":21,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":21,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":21,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":21,"ia":0,"ja":6,"ka":[]},"la":{"ga":0,"ha":21,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":22,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":22,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":22,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":22,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":22,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":22,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":22,"ia":0,"ja":6,"ka":[]},"la":{"ga":0,"ha":22,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":27,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":27,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":-1,"za":0,"ab":0,"t":0},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":"2048","hb":1,"ib":0},"ka":[{"jb":"d","kb":5,"lb":"n"}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":0,"za":1,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":6}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":6}],"da":"treble","rb":true,"qb":2048},{"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":6}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":6}],"da":"treble","rb":true,"qb":2048}]}],"ea":[]},{"ya":{"ya":1,"za":2,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":6}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5},{"jb":"a","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":2,"za":3,"ab":3,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048}]}],"ea":[]},{"ya":{"ya":3,"za":4,"ab":0,"t":0},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048}]}],"ea":[]},{"ya":{"ya":4,"za":5,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":" ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":5,"za":6,"ab":0,"t":0},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":6,"za":7,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":7,"za":8,"ab":0,"t":0},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":8,"za":9,"ab":1,"t":0},"bb":6,"de":102,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4},{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"b","kb":4,"pc":false}],"da":"treble","rb":true,"qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4},{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144}]}],"ea":[]},{"ya":{"ya":9,"za":10,"ab":0,"t":0},"bb":99.74000000000001,"de":22,"cb":[],"db":[{"eb":[{"ka":[{"jb":"f","lb":"#","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4},{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"e","lb":"b","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4},{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4},{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":10,"za":11,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"c","lb":"n","kb":5},{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":" ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5},{"jb":"f","lb":"n","kb":5}],"da":"treble","rb":true,"qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5},{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5},{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5},{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5},{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5},{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":11,"za":12,"ab":0,"t":0},"bb":142.3,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":12,"za":13,"ab":1,"t":0},"bb":6,"de":12,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":13,"za":14,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":14,"za":15,"ab":3,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","rb":true,"qb":2048},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":15,"za":16,"ab":0,"t":0},"bb":116.02000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":16,"za":17,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":17,"za":18,"ab":0,"t":0},"bb":142.3,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":18,"za":19,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":19,"za":20,"ab":0,"t":0},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":20,"za":21,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":21,"za":22,"ab":0,"t":0},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":22,"za":23,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"f","sa":"SmoDynamicText"}]}]}],"ea":[]},{"ld":true,"ya":{"ya":23,"za":24,"ab":0,"t":0},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4},{"jb":"a","lb":"b","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"e","lb":"b","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048},{"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"f","lb":"#","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144}]}],"ea":[]},{"ya":{"ya":24,"za":25,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"f","lb":"#","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"f","lb":"#","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":25,"za":26,"ab":0,"t":0},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":26,"za":27,"ab":1,"t":0},"bb":24.48,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":27,"za":28,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"b","kb":3}],"da":"treble","qb":6144,"qc":[{"rc":"fermata","sa":"SmoArticulation"}]},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":28,"za":29,"ab":0,"t":0},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":6}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5},{"jb":"a","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":29,"za":30,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[{"ua":1,"tb":"a tempo","sa":"SmoMeasureText"}]},{"ya":{"ya":30,"za":31,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble","qb":6144,"qc":[{"rc":"fermata","sa":"SmoArticulation"}]}]}],"ea":[]}]},{"t":1,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Bass Clef Staff","ca":0,"da":"bass"},"ea":[{"fa":{"ga":1,"ha":3,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":3,"ia":0,"ja":3,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":4,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":4,"ia":0,"ja":3,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":5,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":5,"ia":0,"ja":3,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":20,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":20,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":21,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":21,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":22,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":22,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":22,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":22,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":22,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":22,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":23,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":23,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":27,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":27,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":30,"ia":0,"ja":2,"ka":[]},"la":{"ga":1,"ha":31,"ia":0,"ja":0,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":-1,"za":0,"ab":0,"t":1},"da":"bass","bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":"2048","hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":0,"za":1,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":1,"za":2,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":2,"za":3,"ab":3,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":3,"za":4,"ab":0,"t":1},"da":"bass","bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":4,"za":5,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":5,"za":6,"ab":0,"t":1},"da":"bass","bb":99.74000000000001,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144},{"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":6,"za":7,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":7,"za":8,"ab":0,"t":1},"da":"bass","bb":99.74000000000001,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":8,"za":9,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":9,"za":10,"ab":0,"t":1},"da":"bass","bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144},{"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144},{"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":10,"za":11,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"oc":"r","da":"bass","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":11,"za":12,"ab":0,"t":1},"da":"bass","bb":142.3,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":12,"za":13,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":13,"za":14,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":14,"za":15,"ab":3,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":15,"za":16,"ab":0,"t":1},"sc":1,"da":"bass","bb":116.02000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":2},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":2},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":2},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":2}]},{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1}]}],"ea":[]},{"ya":{"ya":16,"za":17,"ab":1,"t":1},"sc":1,"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":2},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":2},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":2},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":2}]},{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1}]}],"ea":[]},{"ld":true,"ya":{"ya":17,"za":18,"ab":0,"t":1},"da":"bass","bb":142.3,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":18,"za":19,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":19,"za":20,"ab":0,"t":1},"da":"bass","bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":20,"za":21,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":21,"za":22,"ab":0,"t":1},"da":"bass","bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":22,"za":23,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144,"sb":[{"tb":" ","sa":"SmoLyric"},{"tb":"f","sa":"SmoDynamicText"}]}]}],"ea":[]},{"ld":true,"ya":{"ya":23,"za":24,"ab":0,"t":1},"da":"bass","bb":99.74000000000001,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":2}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","rb":true,"qb":6144},{"ka":[{"jb":"g","lb":"n","kb":2}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2}],"da":"bass","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":2}],"da":"bass","qb":6144},{"ka":[{"jb":"b","lb":"b","kb":2}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":24,"za":25,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"a","lb":"n","kb":2}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","rb":true,"qb":6144},{"ka":[{"jb":"g","lb":"n","kb":2}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2}],"da":"bass","rb":true,"qb":6144},{"ka":[{"jb":"c","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":2}],"da":"bass","qb":6144},{"ka":[{"jb":"b","lb":"b","kb":2}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2}],"da":"bass","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":25,"za":26,"ab":0,"t":1},"da":"bass","bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":26,"za":27,"ab":1,"t":1},"da":"bass","bb":24.48,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":27,"za":28,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":28,"za":29,"ab":0,"t":1},"da":"bass","bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","qb":6144,"qc":[{"rc":"fermata","sa":"SmoArticulation"}]}]}],"ea":[]},{"ya":{"ya":29,"za":30,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":30,"za":31,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]}]},{"t":2,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Treble Clef Staff","ca":0,"da":"treble"},"ea":[{"fa":{"ga":2,"ha":3,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":3,"ia":0,"ja":1,"ka":[]},"ma":-10,"na":10,"oa":10,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":3,"ia":0,"ja":3,"ka":[]},"la":{"ga":2,"ha":3,"ia":0,"ja":4,"ka":[]},"ma":-10,"ua":"2","na":10,"oa":10,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":3,"ia":0,"ja":6,"ka":[]},"la":{"ga":2,"ha":3,"ia":0,"ja":7,"ka":[]},"ma":-10,"na":10,"oa":10,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":4,"ia":0,"ja":5,"ka":[]},"la":{"ga":2,"ha":4,"ia":0,"ja":6,"ka":[]},"sa":"SmoSlur"},{"fa":{"ga":2,"ha":9,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":9,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":8,"ia":0,"ja":6,"ka":[]},"la":{"ga":2,"ha":9,"ia":0,"ja":0,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":11,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":11,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":11,"ia":0,"ja":1,"ka":[]},"la":{"ga":2,"ha":11,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":7,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":7,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":7,"ia":0,"ja":3,"ka":[]},"la":{"ga":2,"ha":7,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":8,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":8,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":8,"ia":0,"ja":3,"ka":[]},"la":{"ga":2,"ha":8,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":19,"ia":0,"ja":5,"ka":[]},"la":{"ga":2,"ha":19,"ia":0,"ja":6,"ka":[]},"ma":-14,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":21,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":21,"ia":0,"ja":1,"ka":[]},"ma":-14,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":20,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":20,"ia":0,"ja":9,"ka":[]},"uc":true,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":21,"ia":0,"ja":3,"ka":[]},"la":{"ga":2,"ha":21,"ia":0,"ja":4,"ka":[]},"ma":-10,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":21,"ia":0,"ja":6,"ka":[]},"la":{"ga":2,"ha":21,"ia":0,"ja":7,"ka":[]},"ma":-12,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":24,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":24,"ia":0,"ja":1,"ka":[]},"ma":-10,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":28,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":28,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":29,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":29,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":-1,"za":0,"ab":0,"t":2},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":"2048","hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":0,"za":1,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":1,"za":2,"ab":2,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"Ne-","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":2,"za":3,"ab":3,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":" ll'u-","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"u   ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"ni   ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"mile-","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"i   ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"cap-","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"a   ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"nna","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"nel ","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":3,"za":4,"ab":0,"t":2},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"fre- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144,"sb":[{"tb":"ddo  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"e  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"po- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true,"qb":6144,"sb":[{"tb":"ver- ","sa":"SmoLyric"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"ta  ","sa":"SmoLyric"}]},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":4,"za":5,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":5,"za":6,"ab":0,"t":2},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"O- ","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":6,"za":7,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"sa- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"nna  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"O  ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"sa- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"nna  ","sa":"SmoLyric"}]},{"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"can  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144,"sb":[{"tb":"ta- ","sa":"SmoLyric"}]},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"no  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"con  ","sa":"SmoLyric"}]}]}],"ea":[]},{"ld":true,"ya":{"ya":7,"za":8,"ab":0,"t":2},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"gui- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","rb":true,"qb":6144,"sb":[{"tb":"bi  ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":" lan-","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","rb":true,"qb":6144,"sb":[{"tb":"te  ","sa":"SmoLyric"}]},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"cor ","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":8,"za":9,"ab":1,"t":2},"bb":6,"de":92,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048,"sb":[{"tb":"I  ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"tuo  ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"i  ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"pa- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"sto- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"ri  ","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":9,"za":10,"ab":0,"t":2},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"an- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"gel- ","sa":"SmoLyric"}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"i  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"o  ","sa":"SmoLyric"}]},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"re- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"di  ","sa":"SmoLyric"}]},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"luce  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"e'a  ","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":10,"za":11,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"more ","sa":"SmoLyric"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144,"qc":[{"ua":"below","rc":"fermata","sa":"SmoArticulation"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":11,"za":12,"ab":0,"t":2},"bb":142.3,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":12,"za":13,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":13,"za":14,"ab":2,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":14,"za":15,"ab":3,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":15,"za":16,"ab":0,"t":2},"bb":116.02000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":16,"za":17,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":2048,"sb":[{"tb":"Ah- ","sa":"SmoLyric"}]}]}],"ea":[]},{"ld":true,"ya":{"ya":17,"za":18,"ab":0,"t":2},"bb":142.3,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":" ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"  ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":" ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"Ve ","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":18,"za":19,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"ni- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144,"sb":[{"tb":"te  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"a- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"do- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"re- ","sa":"SmoLyric"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"mus ","sa":"SmoLyric"}]},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"Ah!  ","sa":"SmoLyric"}]}]}],"ea":[]},{"ld":true,"ya":{"ya":19,"za":20,"ab":0,"t":2},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"  ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"  ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":" ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","qb":2048,"sb":[{"tb":"a- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"tb":"do  ","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":20,"za":21,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"re- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"mus  ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"Do- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"mi- ","sa":"SmoLyric"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"num ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"ve- ","sa":"SmoLyric"}]}]}],"ea":[]},{"ld":true,"ya":{"ya":21,"za":22,"ab":0,"t":2},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"ni- ","sa":"SmoLyric"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"te ","sa":"SmoLyric"}]},{"ka":[{"jb":"d","lb":"n","kb":5}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"ve- ","sa":"SmoLyric"},{"wc":2,"tb":"p","sa":"SmoDynamicText"}]}]}],"ea":[]},{"ya":{"ya":22,"za":23,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"ni- ","sa":"SmoLyric"}]},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"te ","sa":"SmoLyric"}]}]}],"ea":[]},{"ld":true,"ya":{"ya":23,"za":24,"ab":0,"t":2},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048,"sb":[{"tb":"ve- ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"ni- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true,"qb":6144,"sb":[{"tb":"te  ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"a  ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"dor- ","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":24,"za":25,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"re  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"mus ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":25,"za":26,"ab":0,"t":2},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"A- ","sa":"SmoLyric"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"  ","sa":"SmoLyric"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"do- ","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":26,"za":27,"ab":1,"t":2},"bb":24.48,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"re- ","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":27,"za":28,"ab":2,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"mus ","sa":"SmoLyric"}],"qc":[{"rc":"fermata","sa":"SmoArticulation"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":28,"za":29,"ab":0,"t":2},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"Do  ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"  ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"mi  ","sa":"SmoLyric"}]},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"num ","sa":"SmoLyric"}],"qc":[{"rc":"fermata","sa":"SmoArticulation"}]}]}],"ea":[]},{"ya":{"ya":29,"za":30,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":30,"za":31,"ab":2,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]}]},{"t":3,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Treble Clef Staff","ca":0,"da":"treble"},"ea":[{"fa":{"ga":3,"ha":6,"ia":0,"ja":6,"ka":[]},"la":{"ga":3,"ha":6,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":6,"ia":0,"ja":6,"ka":[]},"la":{"ga":3,"ha":6,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":11,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":11,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":11,"ia":0,"ja":1,"ka":[]},"la":{"ga":3,"ha":11,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":7,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":7,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":7,"ia":0,"ja":3,"ka":[]},"la":{"ga":3,"ha":7,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":8,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":8,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":8,"ia":0,"ja":3,"ka":[]},"la":{"ga":3,"ha":8,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":20,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":20,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":22,"ia":0,"ja":6,"ka":[]},"la":{"ga":3,"ha":22,"ia":0,"ja":7,"ka":[]},"ma":-9,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":24,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":24,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":25,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":25,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":18,"ia":0,"ja":4,"ka":[]},"la":{"ga":3,"ha":19,"ia":0,"ja":3,"ka":[]},"uc":true,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":28,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":28,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":20,"ia":0,"ja":3,"ka":[]},"la":{"ga":3,"ha":20,"ia":0,"ja":8,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":29,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":29,"ia":0,"ja":4,"ka":[]},"sa":"SmoSlur"},{"fa":{"ga":3,"ha":22,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":22,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":22,"ia":0,"ja":3,"ka":[]},"la":{"ga":3,"ha":22,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":23,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":23,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":23,"ia":0,"ja":3,"ka":[]},"la":{"ga":3,"ha":23,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":5,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":5,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":5,"ia":0,"ja":3,"ka":[]},"la":{"ga":3,"ha":5,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":5,"ia":0,"ja":6,"ka":[]},"la":{"ga":3,"ha":5,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":-1,"za":0,"ab":0,"t":3},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":"2048","hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":0,"za":1,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":1,"za":2,"ab":2,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":2,"za":3,"ab":3,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":3,"za":4,"ab":0,"t":3},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"e  ","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":4,"za":5,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"na- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"to  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"il  ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"Sa- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"nto  ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"pa- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144,"sb":[{"tb":"rgo- ","sa":"SmoLyric"}]},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"lo  ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","qb":2048,"sb":[{"tb":"che- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"tb":"il ","sa":"SmoLyric"}]}]}],"ea":[]},{"ld":true,"ya":{"ya":5,"za":6,"ab":0,"t":3},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"mo- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"ndo  ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"a- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"do- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"re  ","sa":"SmoLyric"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"ra  ","sa":"SmoLyric"}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":" ","sa":"SmoLyric"},{"tb":"f","sa":"SmoDynamicText"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"O- ","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":6,"za":7,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"sa- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"nna  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"O  ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"sa- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"na  ","sa":"SmoLyric"}]},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"can- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144,"sb":[{"tb":"ta- ","sa":"SmoLyric"}]},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"no  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"con  ","sa":"SmoLyric"}]}]}],"ea":[]},{"ld":true,"ya":{"ya":7,"za":8,"ab":0,"t":3},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"gui- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","rb":true,"qb":6144,"sb":[{"tb":"bi  ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"lan- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true,"qb":6144,"sb":[{"tb":"te  ","sa":"SmoLyric"}]},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":" cor ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"con  ","sa":"SmoLyric"}]},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"bui- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"bi- ","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":8,"za":9,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"la- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"nte  ","sa":"SmoLyric"}]},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"core  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"tb":"I  ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"tuo- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"   ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"i  ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"pa- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"sto-  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"ri  ","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":9,"za":10,"ab":0,"t":3},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"an-  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"gel-  ","sa":"SmoLyric"}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"i   ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"o  ","sa":"SmoLyric"}]},{"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"re-  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"di   ","sa":"SmoLyric"}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"luce  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"e'a  ","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":10,"za":11,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"more ","sa":"SmoLyric"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"qc":[{"rc":"fermata","sa":"SmoArticulation"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":11,"za":12,"ab":0,"t":3},"bb":142.3,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":12,"za":13,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":13,"za":14,"ab":2,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":14,"za":15,"ab":3,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":15,"za":16,"ab":0,"t":3},"bb":116.02000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":16,"za":17,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":17,"za":18,"ab":0,"t":3},"bb":142.3,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","qb":2048,"sb":[{"tb":"Ah- ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":" ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":18,"za":19,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"Ve- ","sa":"SmoLyric"}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"ni- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"tb":"te  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"a- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"do  ","sa":"SmoLyric"}]}]}],"ea":[]},{"ld":true,"ya":{"ya":19,"za":20,"ab":0,"t":3},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"re- ","sa":"SmoLyric"}]},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"mus  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144,"sb":[{"tb":"Ah- ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"  ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":" ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":20,"za":21,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"  ","sa":"SmoLyric"}]},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144,"sb":[{"tb":" ","sa":"SmoLyric"}]},{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"ve- ","sa":"SmoLyric"}]}]}],"ea":[]},{"ld":true,"ya":{"ya":21,"za":22,"ab":0,"t":3},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"ni- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"te  ","sa":"SmoLyric"}]},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"ve- ","sa":"SmoLyric"},{"wc":2,"tb":"p","sa":"SmoDynamicText"}]}]}],"ea":[]},{"ya":{"ya":22,"za":23,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"ni- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"te ","sa":"SmoLyric"}]}]}],"ea":[]},{"ld":true,"ya":{"ya":23,"za":24,"ab":0,"t":3},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"tb":"ve- ","sa":"SmoLyric"}]},{"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"ni- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"tb":"te- ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"a  ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"dor  ","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":24,"za":25,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4,"pc":true}],"da":"treble","qb":6144,"sb":[{"tb":" re-","sa":"SmoLyric"}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"mus ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":2048},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":2048}]}],"ea":[]},{"ld":true,"ya":{"ya":25,"za":26,"ab":0,"t":3},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"A  ","sa":"SmoLyric"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"do- ","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":26,"za":27,"ab":1,"t":3},"bb":24.48,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":" ","sa":"SmoLyric"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144,"sb":[{"tb":"re- ","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":27,"za":28,"ab":2,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"mus  ","sa":"SmoLyric"}],"qc":[{"rc":"fermata","sa":"SmoArticulation"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":" ","sa":"SmoLyric"}]}]}],"ea":[]},{"ld":true,"ya":{"ya":28,"za":29,"ab":0,"t":3},"bb":99.74000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"tc":2,"sb":[{"tb":"Do  ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"tc":2,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"tc":2,"sb":[{"tb":"  ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"tc":2,"sb":[{"tb":"  ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"tc":2,"sb":[{"tb":"- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","qb":6144,"tc":2,"sb":[{"tb":"mi  ","sa":"SmoLyric"}]},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"num ","sa":"SmoLyric"}],"qc":[{"rc":"fermata","sa":"SmoArticulation"}]}]}],"ea":[]},{"ya":{"ya":29,"za":30,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":30,"za":31,"ab":2,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]}]}],"yc":[{"jc":527,"kc":66,"tb":"Gesu Bambino","bd":"every","ua":"title","vb":{"wb":"1.8em","xb":"Times New Roman","yb":"normal","zb":"normal"},"ac":"score-text auto13997","sa":"SmoScoreText"},{"jc":995,"kc":46,"tb":"© Pietro Yon page ### of @@@","bd":"every","ac":"score-text auto13998","sa":"SmoScoreText"}],"yd":[{"zd":0,"fa":{"ga":0,"ha":1},"la":{"ga":1,"ha":1},"sa":"SmoSystemGroup"},{"zd":1,"fa":{"ga":2,"ha":0},"la":{"ga":3,"ha":0},"sa":"SmoSystemGroup"}],"ee":{"wa":{"0":"12/8","27":"9/8","29":"12/8"},"xa":{"0":"G","12":"Bb","18":"G"},"fe":{"0":{"sa":"SmoTempoText","pa":{"qa":"auto11946","ra":"SmoTempoText"},"id":"duration","nb":56,"ob":true,"pb":6144,"jd":"Allegro","ta":0},"9":{"sa":"SmoTempoText","pa":{"qa":"auto12088","ra":"SmoTempoText"},"id":"duration","nb":56,"ob":false,"pb":6144,"jd":"Allegro","ta":0},"30":{"sa":"SmoTempoText","pa":{"qa":"auto12398","ra":"SmoTempoText"},"id":"duration","nb":62,"ob":true,"pb":6144,"jd":"Allegro","ta":0}}},"dictionary":{"a":"score","b":"layout","c":"leftMargin","d":"rightMargin","e":"topMargin","f":"bottomMargin","g":"pageWidth","h":"pageHeight","i":"orientation","j":"interGap","k":"intraGap","l":"svgScale","m":"zoomScale","n":"zoomMode","o":"pages","p":"pageSize","q":"startIndex","r":"renumberingMap","s":"staves","t":"staffId","u":"staffX","v":"staffY","w":"adjY","x":"staffWidth","y":"staffHeight","z":"keySignatureMap","aa":"instrumentInfo","ba":"instrumentName","ca":"keyOffset","da":"clef","ea":"modifiers","fa":"startSelector","ga":"staff","ha":"measure","ia":"voice","ja":"tick","ka":"pitches","la":"endSelector","ma":"xOffset","na":"cp1y","oa":"cp2y","pa":"attrs","qa":"id","ra":"type","sa":"ctor","ta":"yOffset","ua":"position","va":"measures","wa":"timeSignature","xa":"keySignature","ya":"measureNumber","za":"measureIndex","ab":"systemIndex","bb":"adjX","cb":"tuplets","db":"voices","eb":"notes","fb":"ticks","gb":"numerator","hb":"denominator","ib":"remainder","jb":"letter","kb":"octave","lb":"accidental","mb":"symbol","nb":"bpm","ob":"display","pb":"beatDuration","qb":"beamBeats","rb":"endBeam","sb":"textModifiers","tb":"text","ub":"endChar","vb":"fontInfo","wb":"size","xb":"family","yb":"style","zb":"weight","ac":"classes","bc":"verse","cc":"fill","dc":"scaleX","ec":"scaleY","fc":"translateX","gc":"translateY","hc":"selector","ic":"renderedBox","jc":"x","kc":"y","lc":"width","mc":"height","nc":"logicalBox","oc":"noteType","pc":"cautionary","qc":"articulations","rc":"articulation","sc":"activeVoice","tc":"flagState","uc":"invert","vc":"fontSize","wc":"yOffsetLine","xc":"yOffsetPixels","yc":"scoreText","zc":"backup","ad":"edited","bd":"pagination","cd":"boxModel","dd":"justification","ed":"autoLayout","fd":"ornaments","gd":"offset","hd":"ornament","id":"tempoMode","jd":"tempoText","kd":"barline","ld":"systemBreak","md":"graceNotes","nd":"tones","od":"tuplet","pd":"beam_group","qd":"renderId","rd":"numNotes","sd":"totalTicks","td":"stemTicks","ud":"durationMap","vd":"bracketed","wd":"ratioed","xd":"location","yd":"systemGroups","zd":"leftConnector","ae":"padLeft","be":"customStretch","ce":"engravingFont","de":"customProportion","ee":"columnAttributeMap","fe":"tempo"}}`;
 ;var microJson = `{"score":{"layout":{"leftMargin":30,"rightMargin":30,"topMargin":40,"bottomMargin":40,"pageWidth":816,"pageHeight":1056,"orientation":0,"interGap":30,"intraGap":10,"svgScale":1,"zoomScale":2.107843137254902,"zoomMode":0,"pages":1},"startIndex":0,"renumberingMap":{}},"staves":[{"staffId":0,"staffX":10,"staffY":40,"adjY":0,"staffWidth":1600,"staffHeight":90,"startIndex":0,"renumberingMap":{},"keySignatureMap":{},"instrumentInfo":{"instrumentName":"Treble Instrument","keyOffset":"0","clef":"treble"},"modifiers":[],"measures":[{"measureNumber":{"measureNumber":0,"measureIndex":0,"systemIndex":0,"staffId":0},"adjX":64.98,"adjRight":11,"tuplets":[],"voices":[{"notes":[{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto6268","type":"SmoNote"},"clef":"treble"},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto6269","type":"SmoNote"},"clef":"treble","tones":[{"attrs":{"id":"auto6679","type":"SmoMicrotone"},"ctor":"SmoMicrotone","tone":"flat75sz","pitch":0}]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto6273","type":"SmoNote"},"clef":"treble"},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto6274","type":"SmoNote"},"clef":"treble","tones":[{"attrs":{"id":"auto7062","type":"SmoMicrotone"},"ctor":"SmoMicrotone","tone":"flat25sz","pitch":0}]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto6279","type":"SmoNote"},"clef":"treble"},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto6280","type":"SmoNote"},"clef":"treble","tones":[{"attrs":{"id":"auto8606","type":"SmoMicrotone"},"ctor":"SmoMicrotone","tone":"flat25ar","pitch":0}]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto6286","type":"SmoNote"},"clef":"treble"},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto6287","type":"SmoNote"},"clef":"treble","tones":[{"attrs":{"id":"auto9475","type":"SmoMicrotone"},"ctor":"SmoMicrotone","tone":"sharp75","pitch":0}]}]}],"modifiers":[{"position":0,"barline":0,"ctor":"SmoBarline"},{"position":1,"barline":0,"ctor":"SmoBarline"},{"symbol":0,"xOffset":0,"yOffset":30,"position":0,"ctor":"SmoRepeatSymbol"}]},{"measureNumber":{"measureNumber":1,"measureIndex":1,"systemIndex":1,"staffId":0},"adjX":11,"adjRight":11,"tuplets":[],"voices":[{"notes":[{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto9944","type":"SmoNote"},"clef":"treble"},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto9945","type":"SmoNote"},"clef":"treble","tones":[{"attrs":{"id":"auto10352","type":"SmoMicrotone"},"ctor":"SmoMicrotone","tone":"sharp125","pitch":0}]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto9949","type":"SmoNote"},"clef":"treble"},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto9950","type":"SmoNote"},"clef":"treble","tones":[{"attrs":{"id":"auto10728","type":"SmoMicrotone"},"ctor":"SmoMicrotone","tone":"sharp25","pitch":0}]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto9955","type":"SmoNote"},"clef":"treble"},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto9956","type":"SmoNote"},"clef":"treble","tones":[{"attrs":{"id":"auto11106","type":"SmoMicrotone"},"ctor":"SmoMicrotone","tone":"sori","pitch":0}]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto9962","type":"SmoNote"},"clef":"treble"},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto9963","type":"SmoNote"},"clef":"treble","tones":[{"attrs":{"id":"auto11486","type":"SmoMicrotone"},"ctor":"SmoMicrotone","tone":"koron","pitch":0}]}]}],"modifiers":[{"position":0,"barline":0,"ctor":"SmoBarline"},{"position":1,"barline":0,"ctor":"SmoBarline"},{"symbol":0,"xOffset":0,"yOffset":30,"position":0,"ctor":"SmoRepeatSymbol"}]}]}],"scoreText":[]}`;
 ;var preciousLord = `{"a":{"b":{"c":30,"d":30,"e":121,"f":40,"g":816,"h":1056,"i":0,"j":50,"k":40,"l":0.65,"m":2.107843137254902,"n":2,"o":1,"p":"letter"},"q":0,"r":{},"ce":"Bravura"},"s":[{"t":0,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Treble Instrument","ca":"0","da":"treble"},"ea":[{"fa":{"ga":0,"ha":15,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":16,"ia":0,"ja":0,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":-1,"za":0,"ab":0,"t":0},"bb":86.26,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3},{"jb":"a","lb":"n","kb":3}],"da":"treble","sb":[{"tb":"Pre- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"b","kb":3}],"da":"treble","sb":[{"tb":"cious  ","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":0,"za":1,"ab":1,"t":0},"bb":11,"be":19,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"Lord,  ","sa":"SmoLyric"},{"tb":"dark- ","bc":"1","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"take  ","sa":"SmoLyric"},{"tb":"ness ","bc":"1","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"my ","sa":"SmoLyric"},{"tb":"a-  ","bc":"1","sa":"SmoLyric"}]}]}],"ea":[{"ua":0,"kd":3,"sa":"SmoBarline"}]},{"ya":{"ya":1,"za":2,"ab":2,"t":0},"bb":6,"be":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"hand, ","sa":"SmoLyric"},{"tb":"pears  ","bc":"1","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"lead  ","sa":"SmoLyric"},{"tb":"and  ","bc":"1","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"me  ","sa":"SmoLyric"},{"tb":"the  ","bc":"1","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":2,"za":3,"ab":3,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"on,  ","sa":"SmoLyric"},{"tb":"night  ","bc":"1","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"let  ","sa":"SmoLyric"},{"tb":"dra- ","bc":"1","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"me  ","sa":"SmoLyric"},{"tb":"ws  ","bc":"1","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":3,"za":4,"ab":4,"t":0},"bb":6,"be":24,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"sta- ","sa":"SmoLyric"},{"tb":" ne- ","bc":"1","sa":"SmoLyric"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"nd ","sa":"SmoLyric"},{"tb":"ar   ","bc":"1","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"I  ","sa":"SmoLyric"},{"tb":"when   ","bc":"1","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"am  ","sa":"SmoLyric"},{"tb":"my   ","bc":"1","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":4,"za":5,"ab":5,"t":0},"bb":6,"be":15,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"tired ","sa":"SmoLyric"},{"tb":"life   ","bc":"1","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"I  ","sa":"SmoLyric"},{"tb":"  ","bc":"1","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"am  ","sa":"SmoLyric"},{"tb":"is- ","bc":"1","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":5,"za":6,"ab":0,"t":0},"bb":86.26,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"weak ","sa":"SmoLyric"},{"tb":"al-  ","bc":"1","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"I   ","sa":"SmoLyric"},{"tb":"most  ","bc":"1","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"am ","sa":"SmoLyric"},{"tb":"  ","bc":"1","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":6,"za":7,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"worn  ","sa":"SmoLyric"},{"tb":"gone_ ","bc":"1","sa":"SmoLyric"}]},{"ka":[{"jb":"b","lb":"n","kb":3},{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"- ","sa":"SmoLyric"},{"tb":"- ","bc":"1","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":7,"za":8,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"- ","sa":"SmoLyric"},{"tb":"- ","bc":"1","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"Through  ","sa":"SmoLyric"},{"tb":"at  ","bc":"1","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"tb":"the  ","sa":"SmoLyric"},{"tb":"the  ","bc":"1","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":8,"za":9,"ab":3,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4},{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"tb":"storm,  ","sa":"SmoLyric"},{"tb":"riv- ","bc":"1","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4},{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"tb":"through  ","sa":"SmoLyric"},{"tb":"er  ","bc":"1","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4},{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"tb":"the  ","sa":"SmoLyric"},{"tb":"I  ","bc":"1","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":9,"za":10,"ab":4,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"night  ","sa":"SmoLyric"},{"tb":"stand,  ","bc":"1","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"lead  ","sa":"SmoLyric"},{"tb":"guide  ","bc":"1","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"me  ","sa":"SmoLyric"},{"tb":"me  ","bc":"1","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":10,"za":11,"ab":5,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"on  ","sa":"SmoLyric"},{"tb":"feet,  ","bc":"1","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"to  ","sa":"SmoLyric"},{"tb":"hold  ","bc":"1","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"the  ","sa":"SmoLyric"},{"tb":"my  ","bc":"1","sa":"SmoLyric"}]}]}],"ea":[]},{"ld":true,"ya":{"ya":11,"za":12,"ab":0,"t":0},"bb":86.26,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"li- ","sa":"SmoLyric"},{"tb":"ha- ","bc":"1","sa":"SmoLyric"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"ght  ","sa":"SmoLyric"},{"tb":"nd  ","bc":"1","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"Take  ","sa":"SmoLyric"},{"tb":" ","bc":"1","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"my  ","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":12,"za":13,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"ha- ","sa":"SmoLyric"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"nd  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"pre- ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"cious  ","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":13,"za":14,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"Lord,  ","sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"lead  ","sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"me  ","sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":14,"za":15,"ab":3,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"tb":"home- ","sa":"SmoLyric"}]}]}],"ea":[{"kd":1,"sa":"SmoBarline"}]},{"ya":{"ya":15,"za":16,"ab":4,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"tb":" ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"treble","sb":[{"tb":"When  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"treble","sb":[{"tb":"the ","sa":"SmoLyric"}]}]}],"ea":[{"kd":4,"sa":"SmoBarline"},{"mb":9,"ma":-40,"sa":"SmoRepeatSymbol"}]}]},{"t":1,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Bass Clef Staff","ca":0,"da":"bass"},"ea":[{"fa":{"ga":1,"ha":15,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":16,"ia":0,"ja":0,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":-1,"za":0,"ab":0,"t":1},"da":"bass","bb":86.26,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2}]}],"ea":[]},{"ya":{"ya":0,"za":1,"ab":1,"t":1},"da":"bass","bb":11,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2},{"jb":"e","lb":"n","kb":3}],"da":"bass","tc":2,"sb":[{"tb":" ","sa":"SmoLyric"}]}]}],"ea":[{"ua":0,"kd":3,"sa":"SmoBarline"}]},{"ya":{"ya":1,"za":2,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2,"sb":[{"tb":" ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2}]}],"ea":[]},{"ya":{"ya":2,"za":3,"ab":3,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3},{"jb":"f","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3},{"jb":"f","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":3,"za":4,"ab":4,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","sb":[{"tb":"  ","sa":"SmoLyric"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2},{"jb":"d","lb":"n","kb":3}],"da":"bass","sb":[{"tb":" ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":4,"za":5,"ab":5,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"f","lb":"n","kb":3}],"da":"bass","sb":[{"tb":"  ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"e","lb":"n","kb":3}],"da":"bass","sb":[{"tb":" ","sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"e","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":5,"za":6,"ab":0,"t":1},"da":"bass","bb":86.26,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2}]}],"ea":[]},{"ya":{"ya":6,"za":7,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"ka":[{"jb":"d","lb":"n","kb":3},{"jb":"f","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":7,"za":8,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3},{"jb":"g","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":8,"za":9,"ab":3,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3},{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"b","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"b","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":9,"za":10,"ab":4,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":10,"za":11,"ab":5,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2},{"jb":"b","lb":"b","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2},{"jb":"b","lb":"b","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2},{"jb":"b","lb":"b","kb":3}],"da":"bass"}]}],"ea":[]},{"ld":true,"ya":{"ya":11,"za":12,"ab":0,"t":1},"da":"bass","bb":86.26,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2},{"jb":"b","lb":"b","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2},{"jb":"a","lb":"b","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2},{"jb":"g","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":12,"za":13,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3},{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3},{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":3},{"jb":"b","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":13,"za":14,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"b","lb":"b","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"b","lb":"b","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":14,"za":15,"ab":3,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3},{"jb":"a","lb":"n","kb":3}],"da":"bass"}]}],"ea":[{"kd":1,"sa":"SmoBarline"}]},{"ya":{"ya":15,"za":16,"ab":4,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3},{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2}]}],"ea":[{"kd":4,"sa":"SmoBarline"},{"mb":9,"ma":-40,"sa":"SmoRepeatSymbol"}]}]}],"yc":[{"jc":476,"kc":64,"tb":"Precious Lord","ua":"title","vb":{"wb":"1.8em","xb":"Times New Roman","yb":"normal","zb":"normal"},"ac":"score-text auto595274","sa":"SmoScoreText"},{"jc":-52.25,"kc":10,"tb":"Smoosic  c","ua":"copyright","vb":{"wb":".6em","xb":"Times New Roman","yb":"normal","zb":"normal"},"ac":"score-text auto595275","sa":"SmoScoreText"}],"yd":[{"zd":0,"fa":{"ga":0,"ha":2},"la":{"ga":1,"ha":2},"sa":"SmoSystemGroup"}],"ee":{"wa":{"0":"3/4"},"xa":{"0":"F"}},"dictionary":{"a":"score","b":"layout","c":"leftMargin","d":"rightMargin","e":"topMargin","f":"bottomMargin","g":"pageWidth","h":"pageHeight","i":"orientation","j":"interGap","k":"intraGap","l":"svgScale","m":"zoomScale","n":"zoomMode","o":"pages","p":"pageSize","q":"startIndex","r":"renumberingMap","s":"staves","t":"staffId","u":"staffX","v":"staffY","w":"adjY","x":"staffWidth","y":"staffHeight","z":"keySignatureMap","aa":"instrumentInfo","ba":"instrumentName","ca":"keyOffset","da":"clef","ea":"modifiers","fa":"startSelector","ga":"staff","ha":"measure","ia":"voice","ja":"tick","ka":"pitches","la":"endSelector","ma":"xOffset","na":"cp1y","oa":"cp2y","pa":"attrs","qa":"id","ra":"type","sa":"ctor","ta":"yOffset","ua":"position","va":"measures","wa":"timeSignature","xa":"keySignature","ya":"measureNumber","za":"measureIndex","ab":"systemIndex","bb":"adjX","cb":"tuplets","db":"voices","eb":"notes","fb":"ticks","gb":"numerator","hb":"denominator","ib":"remainder","jb":"letter","kb":"octave","lb":"accidental","mb":"symbol","nb":"bpm","ob":"display","pb":"beatDuration","qb":"beamBeats","rb":"endBeam","sb":"textModifiers","tb":"text","ub":"endChar","vb":"fontInfo","wb":"size","xb":"family","yb":"style","zb":"weight","ac":"classes","bc":"verse","cc":"fill","dc":"scaleX","ec":"scaleY","fc":"translateX","gc":"translateY","hc":"selector","ic":"renderedBox","jc":"x","kc":"y","lc":"width","mc":"height","nc":"logicalBox","oc":"noteType","pc":"cautionary","qc":"articulations","rc":"articulation","sc":"activeVoice","tc":"flagState","uc":"invert","vc":"fontSize","wc":"yOffsetLine","xc":"yOffsetPixels","yc":"scoreText","zc":"backup","ad":"edited","bd":"pagination","cd":"boxModel","dd":"justification","ed":"autoLayout","fd":"ornaments","gd":"offset","hd":"ornament","id":"tempoMode","jd":"tempoText","kd":"barline","ld":"systemBreak","md":"graceNotes","nd":"tones","od":"tuplet","pd":"beam_group","qd":"renderId","rd":"numNotes","sd":"totalTicks","td":"stemTicks","ud":"durationMap","vd":"bracketed","wd":"ratioed","xd":"location","yd":"systemGroups","zd":"leftConnector","ae":"padLeft","be":"customStretch","ce":"engravingFont","de":"customProportion","ee":"columnAttributeMap","fe":"tempo"}}`;
-;
+;//# sourceMappingURL=../src/ui/ribbon.js
 
 // ## RibbonButtons
 // Render the ribbon buttons based on group, function, and underlying UI handler.
@@ -19768,7 +19671,7 @@ class RibbonButtons {
 	}
 	_executeButtonMenu(buttonElement, buttonData) {
 		var self = this;
-        this.controller.unbindKeyboardForMenu(this.menus);
+    this.menus.slashMenuMode(this.controller);
 		this.menus.createMenu(buttonData.ctor);
 	}
 	_rebindController() {
@@ -20365,87 +20268,43 @@ class TextButtons {
 		this.controller = parameters.controller;
         this.menus=parameters.controller.menus;
 	}
-    lyrics() {
-		SuiLyricDialog.createAndDisplay(
-            {buttonElement:this.buttonElement, buttonData:this.buttonData,controller:this.controller});
-		// tracker, selection, controller
-    }
-    rehearsalMark() {
-        var selection = this.tracker.getExtremeSelection(-1);
-        var cmd = selection.measure.getRehearsalMark() ? 'removeRehearsalMark' : 'addRehearsalMark';
-        this.editor.scoreSelectionOperation(selection, cmd, new SmoRehearsalMark());
-    }
-    _invokeMenu(cmd) {
-      this.controller.unbindKeyboardForMenu(this.menus);
-      this.menus.createMenu(cmd);
-    }
+  lyrics() {
+	SuiLyricDialog.createAndDisplay(
+          {buttonElement:this.buttonElement, buttonData:this.buttonData,controller:this.controller});
+	// tracker, selection, controller
+  }
+  rehearsalMark() {
+      var selection = this.tracker.getExtremeSelection(-1);
+      var cmd = selection.measure.getRehearsalMark() ? 'removeRehearsalMark' : 'addRehearsalMark';
+      this.editor.scoreSelectionOperation(selection, cmd, new SmoRehearsalMark());
+  }
+  _invokeMenu(cmd) {
+    this.menus.slashMenuMode(this.controller);
+    this.menus.createMenu(cmd);
+  }
 
-    _addTextPromise(txtObj) {
-        var self = this;
-        var createDialog = () => {
-            var dialog = SuiTextTransformDialog.createAndDisplay(
-                {
-                    modifier:txtObj,
-                    buttonElement:this.buttonElement,
-                    buttonData:this.buttonData,
-                    controller:this.controller,
-                    tracker: this.controller.tracker,
-                    layout:this.controller.layout
-                });
-
-            self.controller.unbindKeyboardForDialog(dialog);
-        }
-
-        // Wait for text to be displayed before bringing up edit dialog
-        var waitForDisplay = () => {
-            return new Promise((resolve) => {
-                var waiter = ()  =>{
-                    setTimeout(() => {
-                        if (txtObj.renderedBox) {
-                            resolve();
-                        } else {
-                            waiter();
-                        }
-                    },50);
-                };
-                waiter();
-            });
-        }
-
-        // Treat a created text score like a selected text score that needs to be edited.
-        this.controller.layout.setRefresh();
-        waitForDisplay().then(createDialog);
-    }
-    addTextMenu() {
-        var self=this;
-        var scrollPosition = this.tracker.scroller.absScroll;
-        console.log('text ribbon: scroll y is '+scrollPosition.y);
-
-        scrollPosition.y = scrollPosition.y / (this.tracker.layout.score.layout.svgScale * this.tracker.layout.score.layout.zoomScale);
-        scrollPosition.x = scrollPosition.x / (this.tracker.layout.score.layout.svgScale * this.tracker.layout.score.layout.zoomScale);
-        console.log('text ribbon: converted scroll y is '+scrollPosition.y);
-        // scrollPosition = svgHelpers.clientToLogical(this.tracker.context.svg,scrollPosition);
-        // console.log('text ribbon: svg scroll y is '+scrollPosition.y);
-        var txtObj = new SmoScoreText({position:SmoScoreText.positions.custom});
-        txtObj.x = scrollPosition.x + 100;
-        txtObj.y = scrollPosition.y + 100;
-        SmoUndoable.scoreOp(this.editor.score,'addScoreText',
-           txtObj, this.editor.undoBuffer,'Text Menu Command');
-        setTimeout(function() {
-            self._addTextPromise(txtObj);
-        },1);
-    }
+  addTextMenu() {
+    var dialog = SuiTextTransformDialog.createAndDisplay(
+      {
+        buttonElement:this.buttonElement,
+        buttonData:this.buttonData,
+        controller:this.controller,
+        tracker: this.controller.tracker,
+        layout:this.controller.layout,
+        editor:this.controller.editor
+    });
+  }
 	addDynamicsMenu() {
         this._invokeMenu('SuiDynamicsMenu');
 	}
-    bind() {
-        var self=this;
-        $(this.buttonElement).off('click').on('click', function () {
-            self[self.buttonData.id]();
-        });
-
+  bind() {
+    var self=this;
+    $(this.buttonElement).off('click').on('click', function () {
+      self[self.buttonData.id]();
+    });
 	}
 }
+
 class NavigationButtons {
 	static get directionsTrackerMap() {
 		return {
@@ -21421,6 +21280,136 @@ class SmoHelp {
     }
 }
 ;
+class SuiDom {
+	static splash() {
+		var b = htmlHelpers.buildDom;
+		var r = b('div').classes('bug-modal').append(
+				b('img').attr('src', 'styles/images/logo.png').classes('splash-logo'))
+			.append(b('button').classes('icon icon-cross bug-dismiss-button'))
+			.append(b('span').classes('splash-title').text('Sm'))
+			.append(b('span').classes('splash-shine').text('ooooooooo'))
+			.append(b('span').classes('splash-title').text('sic'));
+		$('.bugDialog').append(r.dom());
+		$('body').addClass('splashScreen modal');
+		setTimeout(function () {
+			$('body').removeClass('splashScreen modal');
+		}, 1000);
+	}
+
+  splash() {
+    var b = htmlHelpers.buildDom;
+    var r = b('div').classes('bug-modal').append(
+        b('img').attr('src', 'styles/images/logo.png').classes('splash-logo'))
+      .append(b('button').classes('icon icon-cross bug-dismiss-button'))
+      .append(b('span').classes('splash-title').text('Sm'))
+      .append(b('span').classes('splash-shine').text('ooooooooo'))
+      .append(b('span').classes('splash-title').text('sic'));
+    $('.bugDialog').append(r.dom());
+    $('body').addClass('splashScreen modal');
+    setTimeout(function () {
+      $('body').removeClass('splashScreen modal');
+    }, 1000);
+  }
+
+	static createDom(title) {
+    if (title) {
+  	  $('h1.testTitle').text(title);
+  	}
+
+    var b = htmlHelpers.buildDom;
+    var r=b('div').classes('dom-container')
+      .append(b('div').classes('modes'))
+      .append(b('div').classes('overlay'))
+      .append(b('div').classes('draganime hide'))
+      .append(b('div').classes('textEdit hide'))
+      .append(b('div').classes('attributeDialog'))
+      .append(b('div').classes('helpDialog'))
+      .append(b('div').classes('saveLink'))
+      .append(b('div').classes('bugDialog'))
+      .append(b('div').classes('printFrame'))
+      .append(b('div').classes('menuContainer'))
+      .append(b('h1').classes('testTitle').text('Smoosic'))
+      .append(b('div').classes('piano-container')
+      .append(b('div').classes('piano-keys')))
+      .append(b('div').classes('workspace-container')
+      .append(b('div').classes('workspace')
+        .append(b('div').classes('controls-top'))
+        .append(b('div').classes('controls-left'))
+        .append(b('div').classes('controls-menu-message'))
+        .append(b('div').classes('musicRelief')
+          .append(b('div').classes('musicContainer').attr('id','boo')))
+          .append(b('div').classes('musicReliefShadow')
+            .append(b('div').classes('musicContainerShadow').attr('id','booShadow')))));
+    $('#smoo').append(r.dom());
+    var pianoDom=$('.piano-keys')[0];
+    var svg=document.createElementNS(svgHelpers.namespace,'svg');
+    svg.id='piano-svg';
+    svg.setAttributeNS('','width',''+suiPiano.owidth*suiPiano.dimensions.octaves);
+    svg.setAttributeNS('','height',''+suiPiano.dimensions.wheight);
+    svg.setAttributeNS('','viewBox','0 0 '+suiPiano.owidth*suiPiano.dimensions.octaves+' '+suiPiano.dimensions.wheight);
+    pianoDom.appendChild(svg);
+	}
+
+  static _nvQueryPair(str) {
+      var ar = str.split('=');
+      var rv = {};
+      for (var i =  0;i < ar.length - 1;i += 2) {
+          var name = decodeURIComponent(ar[i]);
+          rv[name] = decodeURIComponent(ar[i+1]);
+      }
+      return rv;
+  }
+
+  static scoreFromQueryString() {
+    var score = SmoScore.deserialize(basicJson);
+    if (window.location.search) {
+      var cmd = window.location.search.substring(1,window.location.search.length);
+      var pairs = suiController._nvQueryPair(cmd);
+      if (pairs['score']) {
+          try {
+              score = SmoScore.deserialize(eval(pairs['score']));
+          } catch (exp) {
+              console.log('could not parse '+exp);
+          }
+      }
+    } else {
+      var scoreStr = localStorage.getItem(smoSerialize.localScore);
+      if (scoreStr && scoreStr.length) {
+        try {
+          score = SmoScore.deserialize(scoreStr);
+        } catch (exp) {
+          console.log('could not parse '+scoreStr);
+        }
+      }
+    }
+    return score;
+  }
+}
+
+class UtDom {
+  	static createDom() {
+  		var b = htmlHelpers.buildDom;
+  		$('#smoo').html('');
+  		var r = b('div').classes('dom-container')
+  			.append(b('div').classes('modes'))
+  			.append(b('div').classes('overlay'))
+  			.append(b('div').classes('attributeDialog'))
+  			.append(b('div').classes('helpDialog'))
+  			.append(b('div').classes('menuContainer'))
+  			.append(b('h1').classes('testTitle').text('Smoosic'))
+  			.append(b('h2').classes('subTitle'))
+  			.append(b('div').classes('piano-container')
+  				.append(b('div').classes('piano-keys')))
+  			.append(b('div').classes('workspace-container')
+  				.append(b('div').classes('workspace')
+  					.append(b('div').classes('controls-top'))
+  					.append(b('div').classes('controls-left'))
+  					.append(b('div').classes('musicRelief')
+  						.append(b('div').classes('musicContainer').attr('id', 'boo')))));
+  		$('#smoo').append(r.dom());
+  	}
+}
+;
 
 // ## suiController
 // ## Description:
@@ -21441,6 +21430,7 @@ class suiController {
 		window.suiControllerInstance = this;
 		this.undoBuffer = new UndoBuffer();
 		this.pasteBuffer = this.tracker.pasteBuffer;
+    this.tracker.setDialogModifier(this);
 		this.editor.controller = this;
 		this.editor.undoBuffer = this.undoBuffer;
 		this.editor.pasteBuffer = this.pasteBuffer;
@@ -21506,20 +21496,6 @@ class suiController {
 		},500);
 	}
 
-	splash() {
-		var b = htmlHelpers.buildDom;
-		var r = b('div').classes('bug-modal').append(
-				b('img').attr('src', '../styles/images/logo.png').classes('splash-logo'))
-			.append(b('button').classes('icon icon-cross bug-dismiss-button'))
-			.append(b('span').classes('splash-title').text('Sm'))
-			.append(b('span').classes('splash-shine').text('ooooooooo'))
-			.append(b('span').classes('splash-title').text('sic'));
-		$('.bugDialog').append(r.dom());
-		$('body').addClass('splashScreen modal');
-		setTimeout(function () {
-			$('body').removeClass('splashScreen modal');
-		}, 1000);
-	}
 	createPiano() {
 		this.piano = new suiPiano({elementId:'piano-svg',tracker:this.tracker,undo:this.undoBuffer});
         // $('.close-piano').click();
@@ -21547,30 +21523,29 @@ class suiController {
 		}, 500);
 	}
 
-	// No action at present when cursor selection changes
-	trackerChangeEvent() {
-
-	}
+  createModifierDialog(modifier) {
+    this.idleLayoutTimer = Date.now();
+    this.unbindKeyboardForModal(SuiDialogFactory.createDialog(modifier, this.tracker.context, this.tracker, this.layout,this.undoBuffer,this));
+  }
 
 	// If the user has selected a modifier via the mouse/touch, bring up mod dialog
 	// for that modifier
 	trackerModifierSelect(ev) {
+    this.idleLayoutTimer = Date.now();
 		var modSelection = this.tracker.getSelectedModifier();
-        this.idleLayoutTimer = Date.now();
 		if (modSelection) {
 			var dialog = this.showModifierDialog(modSelection);
-            if (dialog) {
-                this.tracker.selectSuggestion(ev);
-			    this.unbindKeyboardForDialog(dialog);
-            } else {
-                this.tracker.advanceModifierSelection(ev);
-            }
-		} else {
-            this.tracker.selectSuggestion(ev);
+        if (dialog) {
+          this.tracker.selectSuggestion(ev);
+    	    this.unbindKeyboardForModal(dialog);
+        } else {
+          this.tracker.advanceModifierSelection(ev);
         }
+		} else {
+      this.tracker.selectSuggestion(ev);
+    }
 		return;
 	}
-
 
     // ### bindResize
 	// This handles both resizing of the music area (scrolling) and resizing of the window.
@@ -21595,110 +21570,39 @@ class suiController {
 		el.onscroll = scrollCallback;
 	}
 
-	static createDom() {
-		 var b = htmlHelpers.buildDom;
-		 var r=b('div').classes('dom-container')
-			 .append(b('div').classes('modes'))
-			 .append(b('div').classes('overlay'))
-			 .append(b('div').classes('draganime hide'))
-			 .append(b('div').classes('textEdit hide'))
-			 .append(b('div').classes('attributeDialog'))
-			 .append(b('div').classes('helpDialog'))
-             .append(b('div').classes('saveLink'))
-			 .append(b('div').classes('bugDialog'))
-			 .append(b('div').classes('printFrame'))
-			 .append(b('div').classes('menuContainer'))
-			 .append(b('h1').classes('testTitle').text('Smoosic'))
-			 .append(b('div').classes('piano-container')
-			     .append(b('div').classes('piano-keys')))
-		     .append(b('div').classes('workspace-container')
-			    .append(b('div').classes('workspace')
-				    .append(b('div').classes('controls-top'))
-					.append(b('div').classes('controls-left'))
-                    .append(b('div').classes('controls-menu-message'))
-					.append(b('div').classes('musicRelief')
-					   .append(b('div').classes('musicContainer').attr('id','boo')))
-                     .append(b('div').classes('musicReliefShadow')
-					   .append(b('div').classes('musicContainerShadow').attr('id','booShadow')))));
-	    $('#smoo').append(r.dom());
-		var pianoDom=$('.piano-keys')[0];
-		var svg=document.createElementNS(svgHelpers.namespace,'svg');
-		svg.id='piano-svg';
-		svg.setAttributeNS('','width',''+suiPiano.owidth*suiPiano.dimensions.octaves);
-		svg.setAttributeNS('','height',''+suiPiano.dimensions.wheight);
-		svg.setAttributeNS('','viewBox','0 0 '+suiPiano.owidth*suiPiano.dimensions.octaves+' '+suiPiano.dimensions.wheight);
-		pianoDom.appendChild(svg);
-	}
-    static _nvQueryPair(str) {
-        var ar = str.split('=');
-        var rv = {};
-        for (var i =  0;i < ar.length - 1;i += 2) {
-            var name = decodeURIComponent(ar[i]);
-            rv[name] = decodeURIComponent(ar[i+1]);
-        }
-        return rv;
-    }
-
-    static scoreFromQueryString() {
-        var score = SmoScore.deserialize(basicJson);
-        if (window.location.search) {
-            var cmd = window.location.search.substring(1,window.location.search.length);
-            var pairs = suiController._nvQueryPair(cmd);
-            if (pairs['score']) {
-                try {
-                    score = SmoScore.deserialize(eval(pairs['score']));
-                } catch (exp) {
-                    console.log('could not parse '+exp);
-                }
-            }
-        } else {
-            var scoreStr = localStorage.getItem(smoSerialize.localScore);
-            if (scoreStr && scoreStr.length) {
-                try {
-                    score = SmoScore.deserialize(scoreStr);
-                } catch (exp) {
-                    console.log('could not parse '+scoreStr);
-                }
-            }
-        }
-        return score;
-    }
-
 	// ## createUi
 	// ### Description:
 	// Convenience constructor, taking a renderElement and a score.
 	static createUi(score,title) {
-		suiController.createDom();
-		if (title) {
-			$('h1.testTitle').text(title);
-		}
+		SuiDom.createDom(title);
 		var params = suiController.keyBindingDefaults;
-        var score = suiController.scoreFromQueryString();
+    var score = SuiDom.scoreFromQueryString();
 		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), document.getElementById("booShadow"),score);
         params.scroller = new suiScroller();
 		params.tracker = new suiTracker(params.layout,params.scroller);
-        params.layout.setMeasureMapper(params.tracker);
+    params.layout.setMeasureMapper(params.tracker);
 		params.editor = new suiEditor(params);
 		params.menus = new suiMenuManager(params);
         params.layoutDemon = new SuiLayoutDemon(params);
 		var controller = new suiController(params);
         params.layout.score = score;
+    SuiDom.splash();
 		return controller;
 	}
 
 	static createDebugUi(score) {
-		suiController.createDom();
+    SuiDom.createDom(title);
 		var params = suiController.keyBindingDefaults;
 		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), document.getElementById("booShadow"), score);
 		layoutDebug.setAll();
-        params.scroller = new suiScroller();
+    params.scroller = new suiScroller();
 		params.tracker = new suiTracker(params.layout,params.scroller);
 		params.editor = new suiEditor(params);
 		params.menus = new suiMenuManager(params);
-        params.layoutDemon = new SuiLayoutDemon(params);
+    params.layoutDemon = new SuiLayoutDemon(params);
 		var controller = new suiController(params);
-        var score = SmoScore.deserialize(basicJson);
-        params.layout.score = score;
+    var score = SmoScore.deserialize(basicJson);
+    params.layout.score = score;
 		return controller;
 	}
 
@@ -21706,11 +21610,11 @@ class suiController {
 		var score = SmoScore.getEmptyScore();
 		score.addDefaultMeasureWithNotes(0, {});
 		if (!debug) {
-			score.addDefaultMeasureWithNotes(1, {});
-			score.addDefaultMeasureWithNotes(2, {});
-			score.addDefaultMeasureWithNotes(3, {});
-			score.addDefaultMeasureWithNotes(4, {});
-			score.addStaff();
+  		score.addDefaultMeasureWithNotes(1, {});
+  		score.addDefaultMeasureWithNotes(2, {});
+  		score.addDefaultMeasureWithNotes(3, {});
+  		score.addDefaultMeasureWithNotes(4, {});
+  		score.addStaff();
 		}
 
 		var controller = debug ? suiController.createDebugUi(score) : suiController.createUi(score);
@@ -21790,27 +21694,15 @@ class suiController {
 		return SuiDialogFactory.createDialog(modSelection, this.tracker.context, this.tracker, this.layout,this.undoBuffer,this)
 	}
 
-	unbindKeyboardForDialog(dialog) {
+	unbindKeyboardForModal(dialog) {
 		var self=this;
 		var rebind = function () {
 			self.bindEvents();
 		}
 		window.removeEventListener("keydown", this.keydownHandler, true);
-        this.keyboardActive = false;
-		dialog.closeDialogPromise.then(rebind);
+    this.keyboardActive = false;
+		dialog.closeModalPromise.then(rebind);
 	}
-
-    unbindKeyboardForMenu(menuMgr) {
-
-        window.removeEventListener("keydown", this.keydownHandler, true);
-        var self=this;
-        var rebind = function () {
-            self.bindEvents();
-        }
-        this.keyboardActive = false;
-        menuMgr.slashMenuMode().then(rebind);
-    }
-
 
 	handleKeydown(evdata) {
 		var self = this;
@@ -21825,8 +21717,10 @@ class suiController {
 		}
 
 		if (evdata.key == '/') {
+      // set up menu DOM.
 			this.menuHelp();
-            this.unbindKeyboardForMenu(this.menus);
+      this.menus.slashMenuMode(this);
+      this.unbindKeyboardForModal(this.menus);
 		}
 
 		// TODO:  work dialogs into the scheme of things
@@ -21884,14 +21778,6 @@ class suiController {
 			tracker.selectSuggestion(ev);
 		});
 
-		$('body').off('tracker-selection').on('tracker-selection',function(ev) {
-			self.trackerChangeEvent(ev);
-		});
-
-		$('body').off('tracker-select-modifier').on('tracker-select-modifier',function(ev) {
-			self.trackerModifierSelect(ev);
-		});
-
 		this.keydownHandler = this.handleKeydown.bind(this);
 
 		this.helpControls();
@@ -21904,3 +21790,5 @@ class suiController {
 	}
 
 }
+
+//# sourceMappingURL=smoosic.js.map

@@ -231,7 +231,7 @@ class SuiMeasureDialog extends SuiDialogBase {
 		var self = this;
 		var dgDom = this.dgDom;
         this.bindKeyboard();
-        this.controller.unbindKeyboardForDialog(this);
+        this.controller.unbindKeyboardForModal(this);
         this._bindComponentNames();
         this.populateInitial();
 
@@ -354,7 +354,7 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
 
          var self=this;
          function getKeys() {
-             self.controller.unbindKeyboardForDialog(self);
+             self.controller.unbindKeyboardForModal(self);
          }
          this.startPromise.then(getKeys);
      }
@@ -644,6 +644,6 @@ class SuiTempoDialog extends SuiDialogBase {
                 resolve();
             });
         });
-        this.controller.unbindKeyboardForDialog(this);
+        this.controller.unbindKeyboardForModal(this);
     }
 }
