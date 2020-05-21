@@ -14301,11 +14301,11 @@ class SuiTimeSignatureMenu extends suiMenuBase {
       if (text == 'Other') {
         SuiTimeSignatureDialog.createAndDisplay({
     			layout: this.layout,
-          tracker: this.controller.tracker,
-          completeNotifier:this.controller,
+          tracker: this.tracker,
+          completeNotifier:this.completeNotifier,
           closeMenuPromise:this.closePromise,
-          undoBuffer:this.controller.undoBuffer,
-          eventSource:this.controller.eventSource
+          undoBuffer:this.undoBuffer,
+          eventSource:this.eventSource
 		    });
       this.complete();
       return;
@@ -20304,7 +20304,18 @@ class TextButtons {
     this.menus = this.controller.menus;
 	}
   lyrics() {
-	SuiLyricDialog.createAndDisplay(parameters);
+	SuiLyricDialog.createAndDisplay(
+    {
+      buttonElement:this.buttonElement,
+      buttonData:this.buttonData,
+      completeNotifier:this.controller,
+      tracker: this.tracker,
+      layout:this.layout,
+      undoBuffer:this.editor.undoBuffer,
+      eventSource:this.eventSource,
+      editor:this.editor
+  }
+  );
 	// tracker, selection, controller
   }
   rehearsalMark() {

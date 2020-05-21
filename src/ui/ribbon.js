@@ -621,7 +621,18 @@ class TextButtons {
     this.menus = this.controller.menus;
 	}
   lyrics() {
-	SuiLyricDialog.createAndDisplay(parameters);
+	SuiLyricDialog.createAndDisplay(
+    {
+      buttonElement:this.buttonElement,
+      buttonData:this.buttonData,
+      completeNotifier:this.controller,
+      tracker: this.tracker,
+      layout:this.layout,
+      undoBuffer:this.editor.undoBuffer,
+      eventSource:this.eventSource,
+      editor:this.editor
+  }
+  );
 	// tracker, selection, controller
   }
   rehearsalMark() {

@@ -542,11 +542,11 @@ class SuiTimeSignatureMenu extends suiMenuBase {
       if (text == 'Other') {
         SuiTimeSignatureDialog.createAndDisplay({
     			layout: this.layout,
-          tracker: this.controller.tracker,
-          completeNotifier:this.controller,
+          tracker: this.tracker,
+          completeNotifier:this.completeNotifier,
           closeMenuPromise:this.closePromise,
-          undoBuffer:this.controller.undoBuffer,
-          eventSource:this.controller.eventSource
+          undoBuffer:this.undoBuffer,
+          eventSource:this.eventSource
 		    });
       this.complete();
       return;
