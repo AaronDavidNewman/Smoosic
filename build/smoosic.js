@@ -3084,7 +3084,7 @@ class SmoMeasure {
 			denominator: 1,
 			remainder: 0
 		};
-        var beamBeats = ticks.numerator;
+    var beamBeats = ticks.numerator;
 		if (meterNumbers[1]  == 8) {
 			ticks = {
 				numerator: 2048,
@@ -3096,8 +3096,14 @@ class SmoMeasure {
 		var pitches =
            JSON.parse(JSON.stringify(SmoMeasure.defaultPitchForClef[params.clef]));
 		var rv = [];
+    var beats = meterNumbers[0];
 
-		for (var i = 0; i < meterNumbers[0]; ++i) {
+    // Treat 2/2 like 4/4 time.
+    if (meterNumbers[1] == 2) {
+       beats = beats * 2;
+    }
+
+		for (var i = 0; i < beats; ++i) {
 			var note = new SmoNote({
 					clef: params.clef,
 					pitches: [pitches],
@@ -9960,39 +9966,40 @@ class suiMapper {
         this.selections = ar;
     }
 
-    deleteMeasure(selection) {
-        var selCopy = this._copySelectionsByMeasure(selection.selector.staff,selection.selector.measure)
-            .selectors;
+  deleteMeasure(selection) {
+    console.log('removing '+selection.selector.staff+'/'+selection.selector.measure);
+    var selCopy = this._copySelectionsByMeasure(selection.selector.staff,selection.selector.measure)
+      .selectors;
 
-        this.clearMeasureMap(selection.staff,selection.measure);
-        if (selCopy.length) {
-            selCopy.forEach((selector) => {
-                var nsel = JSON.parse(JSON.stringify(selector));
-                if (selector.measure == 0) {
-                    nsel.measure += 1;
-                } else {
-                    nsel.measure -= 1;
-                }
-                this.selections.push(this._getClosestTick(nsel));
-            });
-        }
+    this.clearMeasureMap(selection.staff,selection.measure);
+    if (selCopy.length) {
+        selCopy.forEach((selector) => {
+          var nsel = JSON.parse(JSON.stringify(selector));
+          if (selector.measure == 0) {
+              nsel.measure += 1;
+          } else {
+              nsel.measure -= 1;
+          }
+          this.selections.push(this._getClosestTick(nsel));
+      });
     }
+  }
 
-    updateMap() {
-        this._updateMap();
-	}
+  updateMap() {
+    this._updateMap();
+  }
 
     // ### _getClosestTick
     // given a musical selector, find the note artifact that is closest to it,
     // if an exact match is not available
 	_getClosestTick(selector) {
-        var measureKey = Object.keys(this.measureNoteMap).find((k) => {
-            return SmoSelector.sameMeasure(this.measureNoteMap[k].selector, selector)
-    				 && this.measureNoteMap[k].selector.tick === 0;
-        });
-        var tickKey = Object.keys(this.measureNoteMap).find((k) => {
-            return SmoSelector.sameNote(this.measureNoteMap[k].selector,selector);
-        });
+    var measureKey = Object.keys(this.measureNoteMap).find((k) => {
+        return SmoSelector.sameMeasure(this.measureNoteMap[k].selector, selector)
+				 && this.measureNoteMap[k].selector.tick === 0;
+    });
+    var tickKey = Object.keys(this.measureNoteMap).find((k) => {
+        return SmoSelector.sameNote(this.measureNoteMap[k].selector,selector);
+    });
 		var firstObj = this.measureNoteMap[Object.keys(this.measureNoteMap)[0]];
 		return tickKey ? this.measureNoteMap[tickKey]:
 		    (measureKey ? this.measureNoteMap[measureKey] : firstObj);
@@ -10000,84 +10007,85 @@ class suiMapper {
 
     // ### updateMeasure
     // A measure has changed.  Update the music geometry for it
-    mapMeasure(staff,measure) {
-        if (!measure.renderedBox) {
-            return;
-        }
-
-        // Keep track of any current selections in this measure, we will try to restore them.
-        var sels = this._copySelectionsByMeasure(staff.staffId,measure.measureNumber.measureIndex);
-        this.clearMeasureMap(staff,measure);
-        var vix = measure.getActiveVoice();
-        sels.selectors.forEach((sel) => {
-            sel.voice = vix;
-        });
-
-        // keep track of the scroll position when we render the music.
-        this.scroller.setScrollInitial();
-
-        var voiceIx = 0;
-        var selectionChanged = false;
-        var selectedTicks = 0;
-        measure.voices.forEach((voice) => {
-            var tick = 0;
-            voice.notes.forEach((note) => {
-                var selector = {
-                        staff: staff.staffId,
-                        measure: measure.measureNumber.measureIndex,
-                        voice: voiceIx,
-                        tick: tick,
-                        pitches: []
-                    };
-
-                var voice = measure.getActiveVoice();
-
-                // create a selection for the newly rendered note
-                var selection = new SmoSelection({
-                            selector: selector,
-                            _staff: staff,
-                            _measure: measure,
-                            _note: note,
-                            _pitches: [],
-                            box: svgHelpers.adjustScroll(note.renderedBox,this.scroller.netScroll),
-                            type: 'rendered'
-                        });
-                // and add it to the map
-                this._updateMeasureNoteMap(selection);
-
-                // If this note is the same location as something that was selected, reselect it
-                if (sels.selectors.length && selection.selector.tick == sels.selectors[0].tick &&
-                     selection.selector.voice == vix) {
-                    this.selections.push(selection);
-                    // Reselect any pitches.
-                    if (sels.selectors[0].pitches.length > 0) {
-                        sels.selectors[0].pitches.forEach((pitchIx) => {
-                            if (selection.pitches.length > pitchIx) {
-                                selection.selector.pitches.push(pitchIx);
-                            }
-                        });
-                    }
-                    selectedTicks += selection.note.tickCount;
-                    selectionChanged = true;
-                } else if (selectedTicks > 0 && selectedTicks < sels.ticks && selection.selector.voice == vix) {
-                    // try to select the same length of music as was previously selected.  So a 1/4 to 2 1/8, both
-                    // are selected
-                    this.selections.push(selection);
-                    selectedTicks += selection.note.tickCount;
-                } else if (this.selections.length == 0 && (sels.selectors.length == 0)) {
-                    this.selections=[selection];
-                    selectionChanged=true;
-                }
-
-                tick += 1;
-            });
-            voiceIx += 1;
-        });
-        // If there were selections on this measure, highlight them.
-        if (selectionChanged) {
-            this.highlightSelection();
-        }
+  mapMeasure(staff,measure) {
+    if (!measure.renderedBox) {
+        return;
     }
+    console.log('mapping measure '+staff.staffId+'/' + measure.measureNumber.measureIndex);
+
+    // Keep track of any current selections in this measure, we will try to restore them.
+    var sels = this._copySelectionsByMeasure(staff.staffId,measure.measureNumber.measureIndex);
+    this.clearMeasureMap(staff,measure);
+    var vix = measure.getActiveVoice();
+    sels.selectors.forEach((sel) => {
+        sel.voice = vix;
+    });
+
+    // keep track of the scroll position when we render the music.
+    this.scroller.setScrollInitial();
+
+    var voiceIx = 0;
+    var selectionChanged = false;
+    var selectedTicks = 0;
+    measure.voices.forEach((voice) => {
+        var tick = 0;
+        voice.notes.forEach((note) => {
+            var selector = {
+                    staff: staff.staffId,
+                    measure: measure.measureNumber.measureIndex,
+                    voice: voiceIx,
+                    tick: tick,
+                    pitches: []
+                };
+
+            var voice = measure.getActiveVoice();
+
+            // create a selection for the newly rendered note
+            var selection = new SmoSelection({
+                        selector: selector,
+                        _staff: staff,
+                        _measure: measure,
+                        _note: note,
+                        _pitches: [],
+                        box: svgHelpers.adjustScroll(note.renderedBox,this.scroller.netScroll),
+                        type: 'rendered'
+                    });
+            // and add it to the map
+            this._updateMeasureNoteMap(selection);
+
+            // If this note is the same location as something that was selected, reselect it
+            if (sels.selectors.length && selection.selector.tick == sels.selectors[0].tick &&
+                 selection.selector.voice == vix) {
+                this.selections.push(selection);
+                // Reselect any pitches.
+                if (sels.selectors[0].pitches.length > 0) {
+                    sels.selectors[0].pitches.forEach((pitchIx) => {
+                        if (selection.pitches.length > pitchIx) {
+                            selection.selector.pitches.push(pitchIx);
+                        }
+                    });
+                }
+                selectedTicks += selection.note.tickCount;
+                selectionChanged = true;
+            } else if (selectedTicks > 0 && selectedTicks < sels.ticks && selection.selector.voice == vix) {
+                // try to select the same length of music as was previously selected.  So a 1/4 to 2 1/8, both
+                // are selected
+                this.selections.push(selection);
+                selectedTicks += selection.note.tickCount;
+            } else if (this.selections.length == 0 && (sels.selectors.length == 0)) {
+                this.selections=[selection];
+                selectionChanged=true;
+            }
+
+            tick += 1;
+        });
+        voiceIx += 1;
+    });
+    // If there were selections on this measure, highlight them.
+    if (selectionChanged) {
+        this.highlightSelection();
+    }
+  }
 
 	// ### updateMap
 	// This should be called after rendering the score.  It updates the score to
@@ -13337,6 +13345,9 @@ class browserEventSource {
 }
 ;
 
+// ## suiEditor
+// Editor handles key events and converts them into commands, updating the score and
+// display
 class suiEditor {
     constructor(params) {
         Vex.Merge(this, params);
@@ -13362,8 +13373,8 @@ class suiEditor {
     }
 
     _renderAndAdvance() {
-        this.tracker.replaceSelectedMeasures();
-		this.tracker.moveSelectionRight(null,true);
+      this.tracker.replaceSelectedMeasures();
+		  this.tracker.moveSelectionRight(null,true);
     }
     _rebeam() {
         this.tracker.getSelectedMeasures().forEach((measure) => {
@@ -13654,14 +13665,15 @@ class suiEditor {
       // the measure
       staff.modifiers.forEach((modifier) => {
         if (modifier.startSelector.measure == ix || modifier.endSelector.measure == ix) {
-		        $(this.layout.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
+  	        $(this.layout.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
         }
-	    });
+        });
     });
     this.tracker.deleteMeasure(selection);
     // this.layout.unrenderAll();
 
     SmoUndoable.deleteMeasure(this.layout.score, selection, this.undoBuffer);
+    this.tracker.loadScore(); 
     this._refresh();
   }
 

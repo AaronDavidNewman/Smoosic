@@ -1,5 +1,8 @@
 
 
+// ## suiEditor
+// Editor handles key events and converts them into commands, updating the score and
+// display
 class suiEditor {
     constructor(params) {
         Vex.Merge(this, params);
@@ -25,8 +28,8 @@ class suiEditor {
     }
 
     _renderAndAdvance() {
-        this.tracker.replaceSelectedMeasures();
-		this.tracker.moveSelectionRight(null,true);
+      this.tracker.replaceSelectedMeasures();
+		  this.tracker.moveSelectionRight(null,true);
     }
     _rebeam() {
         this.tracker.getSelectedMeasures().forEach((measure) => {
@@ -317,14 +320,15 @@ class suiEditor {
       // the measure
       staff.modifiers.forEach((modifier) => {
         if (modifier.startSelector.measure == ix || modifier.endSelector.measure == ix) {
-		        $(this.layout.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
+  	        $(this.layout.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
         }
-	    });
+        });
     });
     this.tracker.deleteMeasure(selection);
     // this.layout.unrenderAll();
 
     SmoUndoable.deleteMeasure(this.layout.score, selection, this.undoBuffer);
+    this.tracker.loadScore(); 
     this._refresh();
   }
 

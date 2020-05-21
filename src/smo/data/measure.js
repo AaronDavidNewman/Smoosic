@@ -264,7 +264,7 @@ class SmoMeasure {
 			denominator: 1,
 			remainder: 0
 		};
-        var beamBeats = ticks.numerator;
+    var beamBeats = ticks.numerator;
 		if (meterNumbers[1]  == 8) {
 			ticks = {
 				numerator: 2048,
@@ -276,8 +276,14 @@ class SmoMeasure {
 		var pitches =
            JSON.parse(JSON.stringify(SmoMeasure.defaultPitchForClef[params.clef]));
 		var rv = [];
+    var beats = meterNumbers[0];
 
-		for (var i = 0; i < meterNumbers[0]; ++i) {
+    // Treat 2/2 like 4/4 time.
+    if (meterNumbers[1] == 2) {
+       beats = beats * 2;
+    }
+
+		for (var i = 0; i < beats; ++i) {
 			var note = new SmoNote({
 					clef: params.clef,
 					pitches: [pitches],
