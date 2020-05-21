@@ -157,7 +157,7 @@ class suiAudioPlayer {
                                     return (SmoSelector.sameNote(slur.slur.endSelector,selector) && slur.obj.frequency == frequency);
                                 });
                                 if (pitchTie.length) {
-                                    pitchTie[0].duration += obj.duration;
+                                    pitchTie[0].obj.duration += obj.duration;
                                 } else {
                                     if (this.sounds[accumulator]) {
                                         this.sounds[accumulator].push(obj);
