@@ -12,64 +12,64 @@
 // 2. translateX, translateY, scaleX, scaleY for svg text element
 // 3. fontInfo from smoScoreText and other text objects
 class editSvgText {
-    constructor(params) {
-        this.target = params.target;
-        var ns = svgHelpers.namespace;
-        this.layout = params.layout;
-        this.fontInfo = params.textObject.fontInfo;
+  constructor(params) {
+    this.target = params.target;
+    var ns = svgHelpers.namespace;
+    this.layout = params.layout;
+    this.fontInfo = params.textObject.fontInfo;
 		this.svg = document.createElementNS(ns, 'svg');
-        this.editText = document.createElementNS(ns, 'text');
-        this.textObject = params.textObject;
-        this.attrAr = [];
-        this.id = VF.Element.newID();
+    this.editText = document.createElementNS(ns, 'text');
+    this.textObject = params.textObject;
+    this.attrAr = [];
+    this.id = VF.Element.newID();
 
-        // create a mirror of the node under edit by copying attributes
-        // and setting up a similarly-dimensioned viewbox
-        editSvgText.textAttrs.forEach((attr) => {
-			if (this.target.attributes[attr]) {
+    // create a mirror of the node under edit by copying attributes
+    // and setting up a similarly-dimensioned viewbox
+    editSvgText.textAttrs.forEach((attr) => {
+  		if (this.target.attributes[attr]) {
          		var val = this.target.attributes[attr].value;
-				this.editText.setAttributeNS('',attr,val);
-				this.attrAr.push(JSON.parse('{"'+attr+'":"'+val+'"}'));
-			}
-        });
-        this.editing = this.running=false;
+  			this.editText.setAttributeNS('',attr,val);
+  			this.attrAr.push(JSON.parse('{"'+attr+'":"'+val+'"}'));
+  		}
+    });
+    this.editing = this.running=false;
 
-        // Hide the original - TODO, handle non-white background.
-        this.oldFill = this.target.getAttributeNS(null,'fill');
-        this.target.setAttributeNS(null,'fill','#fff');
+    // Hide the original - TODO, handle non-white background.
+    this.oldFill = this.target.getAttributeNS(null,'fill');
+    this.target.setAttributeNS(null,'fill','#fff');
 
-        this.editText.textContent=this.textObject.text;
-        this._value = this.textObject.text;
-        var svgBox = svgHelpers.smoBox(this.target.getBBox());
-        this.clientBox = svgHelpers.smoBox(svgHelpers.smoBox(this.target.getBoundingClientRect()));
-        if (this.textObject.boxModel != 'none') {
-            svgBox = svgHelpers.boxPoints(this.textObject.x,this.textObject.y,this.textObject.width,this.textObject.height);
-            var boxDims = svgHelpers.logicalToClient(this.svg,svgBox);
-            this.clientBox.width = boxDims.width;
-            this.clientBox.height = boxDims.height;
-        }
-        this.editText.setAttributeNS('','y',svgBox.height);
+    this.editText.textContent=this.textObject.text;
+    this._value = this.textObject.text;
+    var svgBox = svgHelpers.smoBox(this.target.getBBox());
+    this.clientBox = svgHelpers.smoBox(svgHelpers.smoBox(this.target.getBoundingClientRect()));
+      if (this.textObject.boxModel != 'none') {
+          svgBox = svgHelpers.boxPoints(this.textObject.x,this.textObject.y,this.textObject.width,this.textObject.height);
+          var boxDims = svgHelpers.logicalToClient(this.svg,svgBox);
+          this.clientBox.width = boxDims.width;
+          this.clientBox.height = boxDims.height;
+      }
+      this.editText.setAttributeNS('','y',svgBox.height);
 
-        $('.textEdit').html('');
-        this.svg.appendChild(this.editText);
-        var b = htmlHelpers.buildDom;
-        var r = b('span').classes('hide icon-move');
-        $('.textEdit').append(r.dom());
-        $('.textEdit').append(this.svg);
-        $('.textEdit').removeClass('hide').attr('contentEditable','true');
-        this.setEditorPosition(this.clientBox,svgBox,params);
-        layoutDebug.addTextDebug('editSvgText: ctor '+this.id);
+      $('.textEdit').html('');
+      this.svg.appendChild(this.editText);
+      var b = htmlHelpers.buildDom;
+      var r = b('span').classes('hide icon-move');
+      $('.textEdit').append(r.dom());
+      $('.textEdit').append(this.svg);
+      $('.textEdit').removeClass('hide').attr('contentEditable','true');
+      this.setEditorPosition(this.clientBox,svgBox,params);
+      layoutDebug.addTextDebug('editSvgText: ctor '+this.id);
     }
 
-    setEditorPosition(clientBox,svgBox) {
-        var box = svgHelpers.pointBox(this.layout.pageWidth, this.layout.pageHeight);
-        svgHelpers.svgViewport(this.svg, this.textObject.translateX,this.textObject.translateY, box.x,box.y,this.layout.svgScale);
+  setEditorPosition(clientBox,svgBox) {
+    var box = svgHelpers.pointBox(this.layout.pageWidth, this.layout.pageHeight);
+    svgHelpers.svgViewport(this.svg, this.textObject.translateX,this.textObject.translateY, box.x,box.y,this.layout.svgScale);
 
-        $('.textEdit').css('top',this.clientBox.y-5)
-          .css('left',this.clientBox.x-5)
-          .width(this.clientBox.width+10)
-          .height(this.clientBox.height+10);
-    }
+    $('.textEdit').css('top',this.clientBox.y-5)
+      .css('left',this.clientBox.x-5)
+      .width(this.clientBox.width+10)
+      .height(this.clientBox.height+10);
+  }
 
     endSession() {
         this.editing = false;
@@ -165,14 +165,15 @@ class editLyricSession {
     }
 	// tracker, selection, controller
     constructor(parameters) {
-        this.tracker = parameters.tracker;
-        this.selection = parameters.selection;
-        this.controller = parameters.controller;
-        this.verse=parameters.verse;
-        this.notifier = parameters.notifier;
-		this.bound = false;
-        this.state=editLyricSession.states.stopped;
-        layoutDebug.addTextDebug('editLyricSession: create note '+this.selection.note.attrs.id);
+      this.tracker = parameters.tracker;
+      this.selection = parameters.selection;
+      this.completeNotifier = parameters.completeNotifier;
+      this.eventSource = parameters.eventSource;
+      this.verse=parameters.verse;
+      this.notifier = parameters.notifier;
+		  this.bound = false;
+      this.state=editLyricSession.states.stopped;
+      layoutDebug.addTextDebug('editLyricSession: create note '+this.selection.note.attrs.id);
     }
 
     detach() {
@@ -180,7 +181,7 @@ class editLyricSession {
         this.state = editLyricSession.states.stopping;
         this.editor.endSession();
         this.lyric.setText(this.editor.value);
-		window.removeEventListener("keydown", this.keydownHandler, true);
+    		this.eventSource.unbindKeydownHandler( this.keydownHandler, true);
         if (this.selection) {
             this.selection.measure.changed=true;
         }
@@ -343,56 +344,52 @@ class editLyricSession {
         this._deferSkip();
     }
 
-	handleKeydown(event) {
+	evKey(event) {
 		console.log("Lyric KeyboardEvent: key='" + event.key + "' | code='" +
 			event.code + "'"
 			 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
 
 		if (['Space', 'Minus'].indexOf(event.code) >= 0) {
-            if (editLyricSession.states.minus && event.shiftKey) {
-                // allow underscore
-            } else {
-                this.state =  (event.code == 'Minus') ? editLyricSession.states.minus :  editLyricSession.states.space;
-    			this.state = (this.state === editLyricSession.states.space && event.shiftKey)
-    			     ? editLyricSession.states.backSpace :  this.state;
-                layoutDebug.addTextDebug('editLyricSession:  handleKeydown skip key for  '+this.selection.note.attrs.id);
-                this.editor.endSession();
-                return;
-            }
+      if (editLyricSession.states.minus && event.shiftKey) {
+          // allow underscore
+      } else {
+        this.state =  (event.code == 'Minus') ? editLyricSession.states.minus :  editLyricSession.states.space;
+        this.state = (this.state === editLyricSession.states.space && event.shiftKey)
+		     ? editLyricSession.states.backSpace :  this.state;
+        layoutDebug.addTextDebug('editLyricSession:  handleKeydown skip key for  '+this.selection.note.attrs.id);
+        this.editor.endSession();
+        return;
+      }
 		}
 
 		if (event.code == 'Escape') {
-            this.state = editLyricSession.states.stopping;
-            this.editor.endSession();
-            return;
+      this.state = editLyricSession.states.stopping;
+      this.editor.endSession();
+      return;
 		}
-        layoutDebug.addTextDebug('editLyricSession:  handleKeydown pass on event for  '+this.selection.note.attrs.id);
-        this.selection.measure.changed=true;
+    layoutDebug.addTextDebug('editLyricSession:  handleKeydown pass on event for  '+this.selection.note.attrs.id);
+    this.selection.measure.changed=true;
 	}
 
-    bindEvents() {
+  bindEvents() {
 		var self = this;
-        this.controller.detach();
 
 		if (!this.bound) {
-			this.keydownHandler = this.handleKeydown.bind(this);
-
-			window.addEventListener("keydown", this.keydownHandler, true);
+      this.keydownHandler = this.eventSource.bindKeydownHandler(this,'evKey');
 			this.bound = true;
 		}
-		this.bound = true;
 	}
 }
 
 // ## editNoteText
 // Manage editing text for a note, and navigating, adding and removing.
 class noteTextEditSession {
-  constructor(changeNotifier,tracker,controller,verse,selection) {
+  constructor(changeNotifier,tracker,verse,selection,eventSource) {
     this.notifier = changeNotifier;
     this.tracker = tracker;
-    this.controller = controller;
     this.verse = verse;
     this.selection = selection;
+    this.eventSource = eventSource;
   }
 
   get isRunning() {
@@ -443,7 +440,16 @@ class noteTextEditSession {
 
   startEditingSession() {
     layoutDebug.addTextDebug('SuiLyricEditComponent: initial create editor request');
-    this.editor = new editLyricSession({tracker:this.tracker,verse:this.verse,selection:this.tracker.selections[0],controller:this.controller,notifier:this});
+    this.editor = new editLyricSession(
+      {
+        tracker:this.tracker,
+        verse:this.verse,
+        selection:this.tracker.selections[0],
+        completeNotifier:this.completeNotifier,
+        notifier:this,
+        eventSource:this.eventSource
+      }
+    );
     this.editor.editNote();
   }
   forceEndSessionEvent() {

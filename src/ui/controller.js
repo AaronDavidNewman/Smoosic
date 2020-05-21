@@ -17,7 +17,10 @@ class suiController {
 		Vex.Merge(this, suiController.defaults);
 		Vex.Merge(this, params);
 		window.suiControllerInstance = this;
+
+
 		this.undoBuffer = new UndoBuffer();
+    this.eventSource = params.eventSource;
 		this.pasteBuffer = this.tracker.pasteBuffer;
     this.tracker.setDialogModifier(this);
 		this.editor.controller = this;
@@ -26,7 +29,8 @@ class suiController {
 		this.resizing = false;
 		this.undoStatus=0;
 		this.trackScrolling = false;
-        this.keyboardActive = false;
+
+    this.keyHandlerObj = null;
 
 		this.ribbon = new RibbonButtons({
 				ribbons: defaultRibbonLayout.ribbons,
@@ -35,10 +39,12 @@ class suiController {
 				editor: this.editor,
 				tracker: this.tracker,
 				score: this.score,
-				controller: this
+				controller: this,
+        layout:this.tracker.layout,
+        eventSource:this.eventSource
 			});
 
-        this.menus.setController(this);
+    this.menus.setController(this);
 
 		// create globbal exception instance
 		this.exhandler = new SuiExceptionHandler(this);
@@ -114,7 +120,20 @@ class suiController {
 
   createModifierDialog(modifier) {
     this.idleLayoutTimer = Date.now();
-    this.unbindKeyboardForModal(SuiDialogFactory.createDialog(modifier, this.tracker.context, this.tracker, this.layout,this.undoBuffer,this));
+    var parameters = {
+      modifier:modifier, context:this.tracker.context, tracker:this.tracker, layout:this.layout, undoBuffer:this.undoBuffer,eventSource:this.eventSource,
+         completeNotifier:this
+    }
+    this.unbindKeyboardForModal(
+      SuiDialogFactory.createDialog(modifier,
+        {
+          tracker:this.tracker,
+          layout:this.layout,
+          undoBuffer:this.undoBuffer,
+          completeNotifier:this,
+          eventSource:this.eventSource
+        })
+    );
   }
 
 	// If the user has selected a modifier via the mouse/touch, bring up mod dialog
@@ -123,13 +142,13 @@ class suiController {
     this.idleLayoutTimer = Date.now();
 		var modSelection = this.tracker.getSelectedModifier();
 		if (modSelection) {
-			var dialog = this.showModifierDialog(modSelection);
-        if (dialog) {
-          this.tracker.selectSuggestion(ev);
-    	    this.unbindKeyboardForModal(dialog);
-        } else {
-          this.tracker.advanceModifierSelection(ev);
-        }
+			var dialog = this.createModifierDialog(modSelection);
+      if (dialog) {
+        this.tracker.selectSuggestion(ev);
+  	    this.unbindKeyboardForModal(dialog);
+      } else {
+        this.tracker.advanceModifierSelection(ev);
+      }
 		} else {
       this.tracker.selectSuggestion(ev);
     }
@@ -166,15 +185,18 @@ class suiController {
 		SuiDom.createDom(title);
 		var params = suiController.keyBindingDefaults;
     var score = SuiDom.scoreFromQueryString();
+    params.eventSource = new browserEventSource(); // events come from the browser UI.
+
 		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), document.getElementById("booShadow"),score);
-        params.scroller = new suiScroller();
+    params.scroller = new suiScroller();
 		params.tracker = new suiTracker(params.layout,params.scroller);
     params.layout.setMeasureMapper(params.tracker);
 		params.editor = new suiEditor(params);
 		params.menus = new suiMenuManager(params);
-        params.layoutDemon = new SuiLayoutDemon(params);
+    params.layoutDemon = new SuiLayoutDemon(params);
 		var controller = new suiController(params);
-        params.layout.score = score;
+    params.menus.undoBuffer = controller.undoBuffer;
+    params.layout.score = score;
     SuiDom.splash();
 		return controller;
 	}
@@ -252,13 +274,7 @@ class suiController {
 		var rebind = function () {
 			self.bindEvents();
 		}
-		/* SmoHelp.helpControls();
-		$('.controls-left button.help-button').off('click').on('click', function () {
-		window.removeEventListener("keydown", self.keydownHandler, true);
-		SmoHelp.displayHelp();
-		htmlHelpers.closeDialogPromise().then(rebind);
-		});   */
-	}
+  }
 	static set reentry(value) {
 		suiController._reentry = value;
 	}
@@ -288,12 +304,11 @@ class suiController {
 		var rebind = function () {
 			self.bindEvents();
 		}
-		window.removeEventListener("keydown", this.keydownHandler, true);
-    this.keyboardActive = false;
+    this.eventSource.unbindKeydownHandler(this.keydownHandler);
 		dialog.closeModalPromise.then(rebind);
 	}
 
-	handleKeydown(evdata) {
+	evKey(evdata) {
 		var self = this;
 
 		console.log("KeyboardEvent: key='" + evdata.key + "' | code='" +
@@ -309,7 +324,6 @@ class suiController {
       // set up menu DOM.
 			this.menuHelp();
       this.menus.slashMenuMode(this);
-      this.unbindKeyboardForModal(this.menus);
 		}
 
 		// TODO:  work dialogs into the scheme of things
@@ -330,21 +344,9 @@ class suiController {
 		}
 	}
 
-	detach() {
-		window.removeEventListener("keydown", this.keydownHandler, true);
-		/* this.layout = null;
-		this.tracker = null;
-		this.editor = null;  */
-	}
-
-
 	bindEvents() {
 		var self = this;
 		var tracker = this.tracker;
-        if (this.keyboardActive) {
-            return; // already bound.
-        }
-        this.keyboardActive = true;
 
 		$('body').off('redrawScore').on('redrawScore',function() {
 			self.handleRedrawTimer();
@@ -367,12 +369,9 @@ class suiController {
 			tracker.selectSuggestion(ev);
 		});
 
-		this.keydownHandler = this.handleKeydown.bind(this);
+    this.keydownHandler = this.eventSource.bindKeydownHandler(this,'evKey');
 
 		this.helpControls();
-
-		window.addEventListener("keydown", this.keydownHandler, true);
-
 		window.addEventListener('error', function (e) {
 			SuiExceptionHandler.instance.exceptionHandler(e);
 		});

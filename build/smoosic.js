@@ -11995,43 +11995,40 @@ class suiPiano {
 }
 ;
 class SuiLayoutDemon {
-    constructor(parameters) {
-        this.pollTime = 100;
+  constructor(parameters) {
+    this.pollTime = 100;
 
-        this.idleRedrawTime = 5000;
-        this.idleLayoutTimer = 0;
-        this.undoStatus=0;
+    this.idleRedrawTime = 5000;
+    this.idleLayoutTimer = 0;
+    this.undoStatus=0;
 
-        Vex.Merge(this, parameters);
-    }
+    Vex.Merge(this, parameters);
+  }
 
-    get isLayoutQuiet() {
+  get isLayoutQuiet() {
 		return ((this.layout.passState == suiLayoutBase.passStates.clean && this.layout.dirty == false)
 		   || this.layout.passState == suiLayoutBase.passStates.replace);
 	}
 
-    handleRedrawTimer() {
-        /* if ($('body').hasClass('printing')) {
-            return;
-        }  */
-	    // If there has been a change, redraw the score
-		if (this.undoStatus != this.undoBuffer.opCount || this.layout.dirty) {
-			this.layout.dirty=true;
-			this.undoStatus = this.undoBuffer.opCount;
-			this.idleLayoutTimer = Date.now();
-            var state = this.layout.passState;
-            try {
-				this.render();
-            } catch (ex) {
-                SuiExceptionHandler.instance.exceptionHandler(ex);
-            }
-		} else if (this.layout.passState === suiLayoutBase.passStates.replace) {
-			// Do we need to refresh the score?
-			if (Date.now() - this.idleLayoutTimer > this.idleRedrawTime) {
-				this.layout.setRefresh();
-			}
-		}
-	}
+  handleRedrawTimer() {
+    // If there has been a change, redraw the score
+  	if (this.undoStatus != this.undoBuffer.opCount || this.layout.dirty) {
+  		this.layout.dirty=true;
+  		this.undoStatus = this.undoBuffer.opCount;
+  		this.idleLayoutTimer = Date.now();
+        var state = this.layout.passState;
+        try {
+  		this.render();
+        } catch (ex) {
+            SuiExceptionHandler.instance.exceptionHandler(ex);
+        }
+  	} else if (this.layout.passState === suiLayoutBase.passStates.replace) {
+  		// Do we need to refresh the score?
+  		if (Date.now() - this.idleLayoutTimer > this.idleRedrawTime) {
+  			this.layout.setRefresh();
+  		}
+  	}
+}
 
     // ### pollRedraw
 	// if anything has changed over some period, prepare to redraw everything.
@@ -12043,17 +12040,16 @@ class SuiLayoutDemon {
 		},self.pollTime);
 	}
 
-    startDemon() {
-        this.pollRedraw();
-    }
+  startDemon() {
+      this.pollRedraw();
+  }
 
-    render() {
+  render() {
 		this.layout.render();
-        if (this.layout.passState == suiLayoutBase.passStates.clean && this.layout.dirty == false) {
-		    this.tracker.updateMap();
-        }
+    if (this.layout.passState == suiLayoutBase.passStates.clean && this.layout.dirty == false) {
+       this.tracker.updateMap();
+    }
 	}
-
 }
 ;
 // ## suiAdjuster
@@ -12854,64 +12850,64 @@ class suiTextLayout {
 // 2. translateX, translateY, scaleX, scaleY for svg text element
 // 3. fontInfo from smoScoreText and other text objects
 class editSvgText {
-    constructor(params) {
-        this.target = params.target;
-        var ns = svgHelpers.namespace;
-        this.layout = params.layout;
-        this.fontInfo = params.textObject.fontInfo;
+  constructor(params) {
+    this.target = params.target;
+    var ns = svgHelpers.namespace;
+    this.layout = params.layout;
+    this.fontInfo = params.textObject.fontInfo;
 		this.svg = document.createElementNS(ns, 'svg');
-        this.editText = document.createElementNS(ns, 'text');
-        this.textObject = params.textObject;
-        this.attrAr = [];
-        this.id = VF.Element.newID();
+    this.editText = document.createElementNS(ns, 'text');
+    this.textObject = params.textObject;
+    this.attrAr = [];
+    this.id = VF.Element.newID();
 
-        // create a mirror of the node under edit by copying attributes
-        // and setting up a similarly-dimensioned viewbox
-        editSvgText.textAttrs.forEach((attr) => {
-			if (this.target.attributes[attr]) {
+    // create a mirror of the node under edit by copying attributes
+    // and setting up a similarly-dimensioned viewbox
+    editSvgText.textAttrs.forEach((attr) => {
+  		if (this.target.attributes[attr]) {
          		var val = this.target.attributes[attr].value;
-				this.editText.setAttributeNS('',attr,val);
-				this.attrAr.push(JSON.parse('{"'+attr+'":"'+val+'"}'));
-			}
-        });
-        this.editing = this.running=false;
+  			this.editText.setAttributeNS('',attr,val);
+  			this.attrAr.push(JSON.parse('{"'+attr+'":"'+val+'"}'));
+  		}
+    });
+    this.editing = this.running=false;
 
-        // Hide the original - TODO, handle non-white background.
-        this.oldFill = this.target.getAttributeNS(null,'fill');
-        this.target.setAttributeNS(null,'fill','#fff');
+    // Hide the original - TODO, handle non-white background.
+    this.oldFill = this.target.getAttributeNS(null,'fill');
+    this.target.setAttributeNS(null,'fill','#fff');
 
-        this.editText.textContent=this.textObject.text;
-        this._value = this.textObject.text;
-        var svgBox = svgHelpers.smoBox(this.target.getBBox());
-        this.clientBox = svgHelpers.smoBox(svgHelpers.smoBox(this.target.getBoundingClientRect()));
-        if (this.textObject.boxModel != 'none') {
-            svgBox = svgHelpers.boxPoints(this.textObject.x,this.textObject.y,this.textObject.width,this.textObject.height);
-            var boxDims = svgHelpers.logicalToClient(this.svg,svgBox);
-            this.clientBox.width = boxDims.width;
-            this.clientBox.height = boxDims.height;
-        }
-        this.editText.setAttributeNS('','y',svgBox.height);
+    this.editText.textContent=this.textObject.text;
+    this._value = this.textObject.text;
+    var svgBox = svgHelpers.smoBox(this.target.getBBox());
+    this.clientBox = svgHelpers.smoBox(svgHelpers.smoBox(this.target.getBoundingClientRect()));
+      if (this.textObject.boxModel != 'none') {
+          svgBox = svgHelpers.boxPoints(this.textObject.x,this.textObject.y,this.textObject.width,this.textObject.height);
+          var boxDims = svgHelpers.logicalToClient(this.svg,svgBox);
+          this.clientBox.width = boxDims.width;
+          this.clientBox.height = boxDims.height;
+      }
+      this.editText.setAttributeNS('','y',svgBox.height);
 
-        $('.textEdit').html('');
-        this.svg.appendChild(this.editText);
-        var b = htmlHelpers.buildDom;
-        var r = b('span').classes('hide icon-move');
-        $('.textEdit').append(r.dom());
-        $('.textEdit').append(this.svg);
-        $('.textEdit').removeClass('hide').attr('contentEditable','true');
-        this.setEditorPosition(this.clientBox,svgBox,params);
-        layoutDebug.addTextDebug('editSvgText: ctor '+this.id);
+      $('.textEdit').html('');
+      this.svg.appendChild(this.editText);
+      var b = htmlHelpers.buildDom;
+      var r = b('span').classes('hide icon-move');
+      $('.textEdit').append(r.dom());
+      $('.textEdit').append(this.svg);
+      $('.textEdit').removeClass('hide').attr('contentEditable','true');
+      this.setEditorPosition(this.clientBox,svgBox,params);
+      layoutDebug.addTextDebug('editSvgText: ctor '+this.id);
     }
 
-    setEditorPosition(clientBox,svgBox) {
-        var box = svgHelpers.pointBox(this.layout.pageWidth, this.layout.pageHeight);
-        svgHelpers.svgViewport(this.svg, this.textObject.translateX,this.textObject.translateY, box.x,box.y,this.layout.svgScale);
+  setEditorPosition(clientBox,svgBox) {
+    var box = svgHelpers.pointBox(this.layout.pageWidth, this.layout.pageHeight);
+    svgHelpers.svgViewport(this.svg, this.textObject.translateX,this.textObject.translateY, box.x,box.y,this.layout.svgScale);
 
-        $('.textEdit').css('top',this.clientBox.y-5)
-          .css('left',this.clientBox.x-5)
-          .width(this.clientBox.width+10)
-          .height(this.clientBox.height+10);
-    }
+    $('.textEdit').css('top',this.clientBox.y-5)
+      .css('left',this.clientBox.x-5)
+      .width(this.clientBox.width+10)
+      .height(this.clientBox.height+10);
+  }
 
     endSession() {
         this.editing = false;
@@ -13007,14 +13003,15 @@ class editLyricSession {
     }
 	// tracker, selection, controller
     constructor(parameters) {
-        this.tracker = parameters.tracker;
-        this.selection = parameters.selection;
-        this.controller = parameters.controller;
-        this.verse=parameters.verse;
-        this.notifier = parameters.notifier;
-		this.bound = false;
-        this.state=editLyricSession.states.stopped;
-        layoutDebug.addTextDebug('editLyricSession: create note '+this.selection.note.attrs.id);
+      this.tracker = parameters.tracker;
+      this.selection = parameters.selection;
+      this.completeNotifier = parameters.completeNotifier;
+      this.eventSource = parameters.eventSource;
+      this.verse=parameters.verse;
+      this.notifier = parameters.notifier;
+		  this.bound = false;
+      this.state=editLyricSession.states.stopped;
+      layoutDebug.addTextDebug('editLyricSession: create note '+this.selection.note.attrs.id);
     }
 
     detach() {
@@ -13022,7 +13019,7 @@ class editLyricSession {
         this.state = editLyricSession.states.stopping;
         this.editor.endSession();
         this.lyric.setText(this.editor.value);
-		window.removeEventListener("keydown", this.keydownHandler, true);
+    		this.eventSource.unbindKeydownHandler( this.keydownHandler, true);
         if (this.selection) {
             this.selection.measure.changed=true;
         }
@@ -13185,56 +13182,52 @@ class editLyricSession {
         this._deferSkip();
     }
 
-	handleKeydown(event) {
+	evKey(event) {
 		console.log("Lyric KeyboardEvent: key='" + event.key + "' | code='" +
 			event.code + "'"
 			 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
 
 		if (['Space', 'Minus'].indexOf(event.code) >= 0) {
-            if (editLyricSession.states.minus && event.shiftKey) {
-                // allow underscore
-            } else {
-                this.state =  (event.code == 'Minus') ? editLyricSession.states.minus :  editLyricSession.states.space;
-    			this.state = (this.state === editLyricSession.states.space && event.shiftKey)
-    			     ? editLyricSession.states.backSpace :  this.state;
-                layoutDebug.addTextDebug('editLyricSession:  handleKeydown skip key for  '+this.selection.note.attrs.id);
-                this.editor.endSession();
-                return;
-            }
+      if (editLyricSession.states.minus && event.shiftKey) {
+          // allow underscore
+      } else {
+        this.state =  (event.code == 'Minus') ? editLyricSession.states.minus :  editLyricSession.states.space;
+        this.state = (this.state === editLyricSession.states.space && event.shiftKey)
+		     ? editLyricSession.states.backSpace :  this.state;
+        layoutDebug.addTextDebug('editLyricSession:  handleKeydown skip key for  '+this.selection.note.attrs.id);
+        this.editor.endSession();
+        return;
+      }
 		}
 
 		if (event.code == 'Escape') {
-            this.state = editLyricSession.states.stopping;
-            this.editor.endSession();
-            return;
+      this.state = editLyricSession.states.stopping;
+      this.editor.endSession();
+      return;
 		}
-        layoutDebug.addTextDebug('editLyricSession:  handleKeydown pass on event for  '+this.selection.note.attrs.id);
-        this.selection.measure.changed=true;
+    layoutDebug.addTextDebug('editLyricSession:  handleKeydown pass on event for  '+this.selection.note.attrs.id);
+    this.selection.measure.changed=true;
 	}
 
-    bindEvents() {
+  bindEvents() {
 		var self = this;
-        this.controller.detach();
 
 		if (!this.bound) {
-			this.keydownHandler = this.handleKeydown.bind(this);
-
-			window.addEventListener("keydown", this.keydownHandler, true);
+      this.keydownHandler = this.eventSource.bindKeydownHandler(this,'evKey');
 			this.bound = true;
 		}
-		this.bound = true;
 	}
 }
 
 // ## editNoteText
 // Manage editing text for a note, and navigating, adding and removing.
 class noteTextEditSession {
-  constructor(changeNotifier,tracker,controller,verse,selection) {
+  constructor(changeNotifier,tracker,verse,selection,eventSource) {
     this.notifier = changeNotifier;
     this.tracker = tracker;
-    this.controller = controller;
     this.verse = verse;
     this.selection = selection;
+    this.eventSource = eventSource;
   }
 
   get isRunning() {
@@ -13285,11 +13278,61 @@ class noteTextEditSession {
 
   startEditingSession() {
     layoutDebug.addTextDebug('SuiLyricEditComponent: initial create editor request');
-    this.editor = new editLyricSession({tracker:this.tracker,verse:this.verse,selection:this.tracker.selections[0],controller:this.controller,notifier:this});
+    this.editor = new editLyricSession(
+      {
+        tracker:this.tracker,
+        verse:this.verse,
+        selection:this.tracker.selections[0],
+        completeNotifier:this.completeNotifier,
+        notifier:this,
+        eventSource:this.eventSource
+      }
+    );
     this.editor.editNote();
   }
   forceEndSessionEvent() {
     this.editor.detach();
+  }
+}
+;
+
+class browserEventSource {
+  constructor(evMask) {
+    this.keydownHandlers = [];
+    this.mouseHandlers = [];
+    this.domTriggers = [];
+    this.handleKeydown = this.evKey.bind(this);
+    window.addEventListener("keydown", this.handleKeydown, true);
+
+  }
+
+  evKey(event) {
+    this.keydownHandlers.forEach((handler) => {
+      handler.sink[handler.method](event);
+    });
+  }
+
+  _unbindHandlerArray(arSrc,arDest,handler) {
+    arSrc.forEach((htest) => {
+      if (handler.symbol !== htest.symbol) {
+        arDest.push(htest);
+      }
+    });
+  }
+
+  unbindKeydownHandler(handler) {
+    var handlers = [];
+    this._unbindHandlerArray(this.keydownHandlers,handlers,handler);
+    this.keydownHandlers = handlers;
+  }
+
+  bindKeydownHandler(sink,method) {
+    var handler = {};
+    handler.symbol = Symbol();
+    handler.sink = sink;
+    handler.method = method;
+    this.keydownHandlers.push(handler);
+    return handler;
   }
 }
 ;
@@ -13337,8 +13380,9 @@ class suiEditor {
 		SmoUndoable.scoreSelectionOp(this.layout.score,selection,name,parameters,
 			    this.undoBuffer,description);
 		this._render();
-
 	}
+
+
 	scoreOperation(name,parameters,description) {
 		SmoUndoable.scoreOp(this.layout.score,name,parameters,this.undoBuffer,description);
 		this._render();
@@ -13593,29 +13637,33 @@ class suiEditor {
         }
     }
 	deleteMeasure() {
-        if (this.tracker.selections.length < 1) {
-            return;
-        }
-        var selection = this.tracker.selections[0];
-        var ix = selection.selector.measure;
-        this.layout.score.staves.forEach((staff) => {
-            this.layout.unrenderMeasure(staff.measures[ix]);
-            this.layout.unrenderMeasure(staff.measures[staff.measures.length-1]);
-
-            // A little hacky - delete the modifiers if they start or end on
-            // the measure
-            staff.modifiers.forEach((modifier) => {
-                if (modifier.startSelector.measure == ix || modifier.endSelector.measure == ix) {
-    			    $(this.layout.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
-                }
-    		});
-        });
-        this.tracker.deleteMeasure(selection);
-        // this.layout.unrenderAll();
-
-        SmoUndoable.deleteMeasure(this.layout.score, selection, this.undoBuffer);
-        this._refresh();
+    if (this.tracker.selections.length < 1) {
+      return;
     }
+    // don't delete the last measure
+    if (this.layout.score.staves[0].measures.length < 2) {
+      return;
+    }
+    var selection = this.tracker.selections[0];
+    var ix = selection.selector.measure;
+    this.layout.score.staves.forEach((staff) => {
+      this.layout.unrenderMeasure(staff.measures[ix]);
+      this.layout.unrenderMeasure(staff.measures[staff.measures.length-1]);
+
+      // A little hacky - delete the modifiers if they start or end on
+      // the measure
+      staff.modifiers.forEach((modifier) => {
+        if (modifier.startSelector.measure == ix || modifier.endSelector.measure == ix) {
+		        $(this.layout.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
+        }
+	    });
+    });
+    this.tracker.deleteMeasure(selection);
+    // this.layout.unrenderAll();
+
+    SmoUndoable.deleteMeasure(this.layout.score, selection, this.undoBuffer);
+    this._refresh();
+  }
 
     toggleCourtesyAccidental() {
         var grace = this.tracker.getSelectedGraceNotes();
@@ -13711,297 +13759,298 @@ class suiEditor {
 }
 ;
 class suiMenuBase {
-	constructor(params) {
-		Vex.Merge(this, params);
-        this.focusIndex = -1;
-	}
+  constructor(params) {
+    Vex.Merge(this, params);
+    this.focusIndex = -1;
+  }
   get closeModalPromise() {
     return this.closePromise();
   }
 
-	complete() {
-		$('body').trigger('menuDismiss');
-	}
+  complete() {
+    $('body').trigger('menuDismiss');
+  }
 }
 
 class suiMenuManager {
-	constructor(params) {
-		Vex.Merge(this, suiMenuManager.defaults);
-		Vex.Merge(this, params);
-		this.bound = false;
-        this.hotkeyBindings={};
-	}
+  constructor(params) {
+    Vex.Merge(this, suiMenuManager.defaults);
+    Vex.Merge(this, params);
+    this.eventSource = params.eventSource;
+    this.bound = false;
+    this.hotkeyBindings={};
+  }
 
-	static get defaults() {
-		return {
-			menuBind: suiMenuManager.menuKeyBindingDefaults,
-			menuContainer: '.menuContainer'
-		};
-	}
+  static get defaults() {
+    return {
+      menuBind: suiMenuManager.menuKeyBindingDefaults,
+      menuContainer: '.menuContainer'
+    };
+  }
 
   get closeModalPromise() {
     return this.closeMenuPromise;
   }
 
   setController(c) {
-      this.controller=c;
+    this.controller=c;
   }
 
-    get score() {
-        return this.layout.score;
-    }
+  get score() {
+    return this.layout.score;
+  }
 
-	// ### Description:
-	// slash ('/') menu key bindings.  The slash key followed by another key brings up
-	// a menu.
-	static get menuKeyBindingDefaults() {
-		return [{
-				event: "keydown",
-				key: "k",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "suiKeySignatureMenu"
-			}, {
-				event: "keydown",
-				key: "l",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "suiStaffModifierMenu"
-			}, {
-				event: "keydown",
-				key: "d",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "SuiDynamicsMenu"
-			}, {
-				event: "keydown",
-				key: "s",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "SuiAddStaffMenu"
-			}, {
-				event: "keydown",
-				key: "f",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "SuiFileMenu"
-			},
-			 {
-				event: "keydown",
-				key: "m",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "SuiTimeSignatureMenu"
-			}
-
-		];
-	}
+  // ### Description:
+  // slash ('/') menu key bindings.  The slash key followed by another key brings up
+  // a menu.
+  static get menuKeyBindingDefaults() {
+    return [
+      {
+        event: "keydown",
+        key: "k",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "suiKeySignatureMenu"
+      }, {
+        event: "keydown",
+        key: "l",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "suiStaffModifierMenu"
+      }, {
+        event: "keydown",
+        key: "d",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "SuiDynamicsMenu"
+      }, {
+        event: "keydown",
+        key: "s",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "SuiAddStaffMenu"
+        }, {
+        event: "keydown",
+        key: "f",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "SuiFileMenu"
+      }, {
+      event: "keydown",
+      key: "m",
+      ctrlKey: false,
+      altKey: false,
+      shiftKey: false,
+      action: "SuiTimeSignatureMenu"
+      }
+    ];
+  }
   _advanceSelection(inc) {
-      var options = $('.menuContainer ul.menuElement li.menuOption');
-      inc = inc < 0 ? options.length - 1: 1;
-      this.menu.focusIndex = (this.menu.focusIndex+inc) % options.length;
-      $(options[this.menu.focusIndex]).find('button').focus();
+    var options = $('.menuContainer ul.menuElement li.menuOption');
+    inc = inc < 0 ? options.length - 1: 1;
+    this.menu.focusIndex = (this.menu.focusIndex+inc) % options.length;
+    $(options[this.menu.focusIndex]).find('button').focus();
   }
 
-	get menuBindings() {
-		return this.menuBind;
-	}
+  get menuBindings() {
+    return this.menuBind;
+  }
 
-	unattach() {
-		window.removeEventListener("keydown", this.keydownHandler, true);
-		$('body').removeClass('modal');
-		$(this.menuContainer).html('');
-		$('body').off('dismissMenu');
-		this.bound = false;
-	}
+  unattach() {
+    this.eventSource.unbindKeydownHandler(this.keydownHandler);
+    $('body').removeClass('modal');
+    $(this.menuContainer).html('');
+    $('body').off('dismissMenu');
+    this.bound = false;
+  }
 
-	attach(el) {
-		var b = htmlHelpers.buildDom();
+  attach(el) {
+    var b = htmlHelpers.buildDom();
 
-		$(this.menuContainer).html('');
-		$(this.menuContainer).attr('z-index', '12');
-		var b = htmlHelpers.buildDom;
-		var r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length)
-			.css('left', '' + this.menuPosition.x + 'px')
-			.css('top', '' + this.menuPosition.y + 'px');
-        var hotkey=0;
-		this.menu.menuItems.forEach((item) => {
-            var vkey = (hotkey < 10) ? String.fromCharCode(48+hotkey) :
-                 String.fromCharCode(87 + hotkey) ;
+    $(this.menuContainer).html('');
+    $(this.menuContainer).attr('z-index', '12');
+    var b = htmlHelpers.buildDom;
+    var r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length)
+    .css('left', '' + this.menuPosition.x + 'px')
+    .css('top', '' + this.menuPosition.y + 'px');
+          var hotkey=0;
+    this.menu.menuItems.forEach((item) => {
+              var vkey = (hotkey < 10) ? String.fromCharCode(48+hotkey) :
+                   String.fromCharCode(87 + hotkey) ;
 
-		r.append(
-			b('li').classes('menuOption').append(
-				b('button').attr('data-value',item.value)
-                  .append(b('span').classes('menuText').text(item.text))
-
-				.append(
-					b('span').classes('icon icon-' + item.icon))
-                   .append(b('span').classes('menu-key').text(''+vkey))));
-          item.hotkey=vkey;
-          hotkey += 1;
-		});
-		$(this.menuContainer).append(r.dom());
-		$('body').addClass('modal');
-		this.bindEvents();
-	}
-	slashMenuMode(completeNotifier) {
-		var self = this;
-		this.bindEvents();
+    r.append(
+      b('li').classes('menuOption').append(
+        b('button').attr('data-value',item.value).append(
+          b('span').classes('menuText').text(item.text))
+        .append(b('span').classes('icon icon-' + item.icon))
+      .append(b('span').classes('menu-key').text(''+vkey))));
+    item.hotkey=vkey;
+    hotkey += 1;
+  });
+  $(this.menuContainer).append(r.dom());
+  $('body').addClass('modal');
+    this.bindEvents();
+  }
+  slashMenuMode(completeNotifier) {
+    var self = this;
+    this.bindEvents();
     layoutDebug.addDialogDebug('slash menu creating closeMenuPromise');
-		this.closeMenuPromise = new Promise((resolve, reject) => {
-				$('body').off('menuDismiss').on('menuDismiss', function () {
-          layoutDebug.addDialogDebug('menuDismiss received, resolve closeMenuPromise');
-					self.unattach();
-          $('body').removeClass('slash-menu');
-					resolve();
-				});
-			});
+    this.closeMenuPromise = new Promise((resolve, reject) => {
+    $('body').off('menuDismiss').on('menuDismiss', function () {
+      layoutDebug.addDialogDebug('menuDismiss received, resolve closeMenuPromise');
+      self.unattach();
+      $('body').removeClass('slash-menu');
+      resolve();
+    });
+  });
    // take over the keyboard
     completeNotifier.unbindKeyboardForModal(this);
-	}
+  }
 
-	createMenu(action,completeNotifier) {
-		this.menuPosition = {x:250,y:40,width:1,height:1};
+  createMenu(action,completeNotifier) {
+  this.menuPosition = {x:250,y:40,width:1,height:1};
     // If we were called from the ribbon, we notify the controller that we are
     // taking over the keyboard.  If this was a key-based command we already did.
 
-    layoutDebug.addDialogDebug('createMenu creating ' + action);
-		var ctor = eval(action);
-		this.menu = new ctor({
-				position: this.menuPosition,
-				tracker: this.tracker,
-				editor: this.editor,
-				score: this.score,
-        controller:this.controller,
-        closePromise:this.closeMenuPromise,
-        layout: this.layout
-			});
-		this.attach(this.menuContainer);
-        this.menu.menuItems.forEach((item) => {
-            if (typeof(item.hotkey) != 'undefined') {
-                this.hotkeyBindings[item.hotkey] = item.value;
-            }
-        });
-	}
+  layoutDebug.addDialogDebug('createMenu creating ' + action);
+  var ctor = eval(action);
+  this.menu = new ctor({
+    position: this.menuPosition,
+    tracker: this.tracker,
+    editor: this.editor,
+    score: this.score,
+    completeNotifier:this.controller,
+    closePromise:this.closeMenuPromise,
+    layout: this.layout,
+    eventSource:this.eventSource,
+    undoBuffer: this.undoBuffer
+  });
+  this.attach(this.menuContainer);
+    this.menu.menuItems.forEach((item) => {
+      if (typeof(item.hotkey) != 'undefined') {
+        this.hotkeyBindings[item.hotkey] = item.value;
+      }
+    });
+  }
 
-	handleKeydown(event) {
-		console.log("KeyboardEvent: key='" + event.key + "' | code='" +
-			event.code + "'"
-			 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
-		if (['Tab', 'Enter'].indexOf(event.code) >= 0) {
-			return;
-		}
+  evKey(event) {
+    console.log("KeyboardEvent: key='" + event.key + "' | code='" +
+    event.code + "'"
+     + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
 
-		event.preventDefault();
+    if (['Tab', 'Enter'].indexOf(event.code) >= 0) {
+      return;
+    }
 
-		if (event.code === 'Escape') {
-			$('body').trigger('menuDismiss');
-		}
-		if (this.menu) {
-            if (event.code == 'ArrowUp') {
-                this._advanceSelection(-1);
-            }
-            else if (event.code == 'ArrowDown') {
-                this._advanceSelection(1);
-            } else  if (this.hotkeyBindings[event.key]) {
-                $('button[data-value="'+this.hotkeyBindings[event.key]+'"]').click();
-            } else {
-			    this.menu.keydown(event);
-            }
-		}
-		if (this.tracker.selections.length == 0) {
-			this.unattach();
-			return;
-		}
+    event.preventDefault();
 
-		var binding = this.menuBind.find((ev) => {
-				return ev.key === event.key
-			});
-		if (!binding) {
-			return;
-		}
-		this.createMenu(binding.action);
-	}
+    if (event.code === 'Escape') {
+    $('body').trigger('menuDismiss');
+    }
+    if (this.menu) {
+      if (event.code == 'ArrowUp') {
+        this._advanceSelection(-1);
+      }
+      else if (event.code == 'ArrowDown') {
+        this._advanceSelection(1);
+      } else  if (this.hotkeyBindings[event.key]) {
+        $('button[data-value="'+this.hotkeyBindings[event.key]+'"]').click();
+      } else {
+        this.menu.keydown(event);
+      }
+    }
+    if (this.tracker.selections.length == 0) {
+    this.unattach();
+    return;
+  }
 
-	bindEvents() {
-		var self = this;
-        this.hotkeyBindings={};
-        $('body').addClass('slash-menu');
+  var binding = this.menuBind.find((ev) => {
+  return ev.key === event.key
+  });
+  if (!binding) {
+  return;
+  }
+  this.createMenu(binding.action);
+  }
 
-		if (!this.bound) {
-			this.keydownHandler = this.handleKeydown.bind(this);
+  bindEvents() {
+  var self = this;
+    this.hotkeyBindings={};
+    $('body').addClass('slash-menu');
 
-			window.addEventListener("keydown", this.keydownHandler, true);
-			this.bound = true;
-		}
-		$(this.menuContainer).find('button').off('click').on('click', function (ev) {
-			if ($(ev.currentTarget).attr('data-value') == 'cancel') {
-				self.menu.complete();
-				return;
-			}
-			self.menu.selection(ev);
-		});
-	}
+    // We need to keep track of is bound, b/c the menu can be created from
+    // different sources.
+    if (!this.bound) {
+      this.keydownHandler = this.eventSource.bindKeydownHandler(this,'evKey');
+      this.bound = true;
+    }
+
+  $(this.menuContainer).find('button').off('click').on('click', function (ev) {
+  if ($(ev.currentTarget).attr('data-value') == 'cancel') {
+  self.menu.complete();
+  return;
+  }
+  self.menu.selection(ev);
+  });
+  }
 }
 
 
 
 class SuiFileMenu extends suiMenuBase {
     constructor(params) {
-		params = (params ? params : {});
-		Vex.Merge(params, SuiFileMenu.defaults);
+  params = (params ? params : {});
+  Vex.Merge(params, SuiFileMenu.defaults);
     super(params);
-    this.tracker = this.controller.tracker;
-	}
+  }
  static get defaults() {
-		return {
-			menuItems: [{
-					icon: 'folder-new',
-					text: 'New Score',
-					value: 'newFile'
-				},{
-					icon: 'folder-open',
-					text: 'Open',
-					value: 'openFile'
-				},{
-					icon: 'folder-save',
-					text: 'Save',
-					value: 'saveFile'
-				},{
-					icon: 'folder-save',
-					text: 'Quick Save',
-					value: 'quickSave'
-				},{
-					icon: '',
-					text: 'Print',
-					value: 'printScore'
+  return {
+  menuItems: [{
+  icon: 'folder-new',
+  text: 'New Score',
+  value: 'newFile'
+  },{
+  icon: 'folder-open',
+  text: 'Open',
+  value: 'openFile'
+  },{
+  icon: 'folder-save',
+  text: 'Save',
+  value: 'saveFile'
+  },{
+  icon: 'folder-save',
+  text: 'Quick Save',
+  value: 'quickSave'
+  },{
+  icon: '',
+  text: 'Print',
+  value: 'printScore'
         },{
-					icon: '',
-					text: 'Bach Invention',
-					value: 'bach'
+  icon: '',
+  text: 'Bach Invention',
+  value: 'bach'
         },{
-					icon: '',
-					text: 'Jesu Bambino',
-					value: 'bambino'
+  icon: '',
+  text: 'Jesu Bambino',
+  value: 'bambino'
         },{
-					icon: '',
-					text: 'Microtone Sample',
-					value: 'microtone'
+  icon: '',
+  text: 'Microtone Sample',
+  value: 'microtone'
         },{
-					icon: '',
-					text: 'Precious Lord',
-					value: 'preciousLord'
+  icon: '',
+  text: 'Precious Lord',
+  value: 'preciousLord'
         },	{
-					icon: '',
-					text: 'Cancel',
-					value: 'cancel'
-				}
+  icon: '',
+  text: 'Cancel',
+  value: 'cancel'
+  }
       ]
     };
   }
@@ -14048,53 +14097,51 @@ class SuiFileMenu extends suiMenuBase {
      $('.printFrame').width(w);
      $('.printFrame').height(h);
      function resize() {
-         setTimeout(function() {
-             var svg = $(window.frames[0].document.getElementsByTagName('svg'));
-             if (svg && svg.length) {
-                 $(window.frames[0].document.getElementsByTagName('svg')).height(h);
-                 $(window.frames[0].document.getElementsByTagName('svg')).width(w);
-                 window.print();
-                 SuiPrintFileDialog.createAndDisplay({
-                     layout: self.layout,
-                     controller:self.controller,
-                     closeMenuPromise:self.closePromise,
-                     tracker:self.tracker
-                     });
-             } else {
-                 resize();
-             }
-         },500);
-     }
+       setTimeout(function() {
+         var svg = $(window.frames[0].document.getElementsByTagName('svg'));
+         if (svg && svg.length) {
+           $(window.frames[0].document.getElementsByTagName('svg')).height(h);
+           $(window.frames[0].document.getElementsByTagName('svg')).width(w);
+           window.print();
+           SuiPrintFileDialog.createAndDisplay({
+               layout: self.layout,
+               completeNotifier:self.completeNotifier,
+               closeMenuPromise:self.closePromise,
+               tracker:self.tracker,
+               undoBuffer:self.undoBuffer,
+               });
+          } else {
+           resize();
+          }
+        },500);
+      }
     resize();
   }
   selection(ev) {
-  var text = $(ev.currentTarget).attr('data-value');
-  var self=this;
-  if (text == 'saveFile') {
-    SuiSaveFileDialog.createAndDisplay({
-      layout: this.layout,
-      controller:this.controller,
-      tracker:this.controller.tracker,
-      closeMenuPromise:this.closePromise
-		});
+    var text = $(ev.currentTarget).attr('data-value');
+    var self=this;
+    if (text == 'saveFile') {
+      SuiSaveFileDialog.createAndDisplay({
+        completeNotifier:this.completeNotifier,
+        tracker:this.tracker,
+        undoBuffer:this.editor.undoBuffer,
+        eventSource:this.eventSource,
+        editor:this.editor,
+        layout:this.layout,
+        closeMenuPromise:this.closePromise
+    });
     } else if (text == 'openFile') {
-      /*
-      {
-				layout: params.controller.layout,
-				controller: params.controller,
-				tracker:params.controller.tracker,
-                closeMenuPromise:params.closeModalPromise,
-                label:'Open File'
-			}
-      */
       SuiLoadFileDialog.createAndDisplay({
-			layout: this.layout,
-      controller:this.controller,
-      tracker:this.controller.tracker,
-      closeMenuPromise:this.closePromise
-		   });
+        completeNotifier:this.completeNotifier,
+        tracker:this.tracker,
+        undoBuffer:this.undoBuffer,
+        eventSource:this.eventSource,
+        editor:this.editor,
+        layout:this.layout,
+        closeMenuPromise:this.closePromise
+     });
      } else if (text == 'newFile') {
-        this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+        this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
         var score = SmoScore.getDefaultScore();
         this.layout.score = score;
         setTimeout(function() {
@@ -14110,140 +14157,140 @@ class SuiFileMenu extends suiMenuBase {
       }
         this.printRenderPromise().then(systemPrint);
       } else if (text == 'bach') {
-  			this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+  			this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
   			var score = SmoScore.deserialize(inventionJson);
   			this.layout.score = score;
   			this.layout.setViewport(true);
-		  }
+    }
       else if (text == 'bambino') {
-        this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+        this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
         var score = SmoScore.deserialize(jesuBambino);
         this.layout.score = score;
         this.layout.setViewport(true);
       } else if (text == 'microtone') {
-        this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+        this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
         var score = SmoScore.deserialize(microJson);
         this.layout.score = score;
         this.layout.setViewport(true);
       }     else if (text == 'preciousLord') {
-        this.controller.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+        this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
         var score = SmoScore.deserialize(preciousLord);
         this.layout.score = score;
         this.layout.setViewport(true);
     }
-		this.complete();
-	}
+  this.complete();
+  }
 
-	keydown(ev) {}
+  keydown(ev) {}
 }
 
 class SuiDynamicsMenu extends suiMenuBase {
-	constructor(params) {
-	params = (params ? params : {});
-	Vex.Merge(params, SuiDynamicsMenu.defaults);
-	super(params);
-	}
-	static get defaults() {
-		return {
-			menuItems: [{
-					icon: 'pianissimo',
-					text: 'Pianissimo',
-					value: 'pp'
-				}, {
-					icon: 'piano',
-					text: 'Piano',
-					value: 'p'
-				}, {
-					icon: 'mezzopiano',
-					text: 'Mezzo-piano',
-					value: 'mp'
-				}, {
-					icon: 'mezzoforte',
-					text: 'Mezzo-forte',
-					value: 'mf'
-				}, {
-					icon: 'forte',
-					text: 'Forte',
-					value: 'f'
-				}, {
-					icon: 'fortissimo',
-					text: 'Fortissimo',
-					value: 'ff'
-				}, {
-					icon: 'sfz',
-					text: 'sfortzando',
-					value: 'sfz'
-				},
-				 {
-					icon: '',
-					text: 'Cancel',
-					value: 'cancel'
-				}
-			]
-		};
-	}
+  constructor(params) {
+  params = (params ? params : {});
+  Vex.Merge(params, SuiDynamicsMenu.defaults);
+  super(params);
+  }
+  static get defaults() {
+  return {
+  menuItems: [{
+  icon: 'pianissimo',
+  text: 'Pianissimo',
+  value: 'pp'
+  }, {
+  icon: 'piano',
+  text: 'Piano',
+  value: 'p'
+  }, {
+  icon: 'mezzopiano',
+  text: 'Mezzo-piano',
+  value: 'mp'
+  }, {
+  icon: 'mezzoforte',
+  text: 'Mezzo-forte',
+  value: 'mf'
+  }, {
+  icon: 'forte',
+  text: 'Forte',
+  value: 'f'
+  }, {
+  icon: 'fortissimo',
+  text: 'Fortissimo',
+  value: 'ff'
+  }, {
+  icon: 'sfz',
+  text: 'sfortzando',
+  value: 'sfz'
+  },
+   {
+  icon: '',
+  text: 'Cancel',
+  value: 'cancel'
+  }
+  ]
+  };
+  }
 
-	selection(ev) {
-		var text = $(ev.currentTarget).attr('data-value');
+  selection(ev) {
+  var text = $(ev.currentTarget).attr('data-value');
 
-		var ft = this.tracker.getExtremeSelection(-1);
-		if (!ft || !ft.note) {
-			return;
-		}
+  var ft = this.tracker.getExtremeSelection(-1);
+  if (!ft || !ft.note) {
+  return;
+  }
 
-		SmoUndoable.addDynamic(ft, new SmoDynamicText({
-				selector: ft.selector,
-				text: text,
-				yOffsetLine: 11,
-				fontSize: 38
-			}), this.editor.undoBuffer);
+  SmoUndoable.addDynamic(ft, new SmoDynamicText({
+  selector: ft.selector,
+  text: text,
+  yOffsetLine: 11,
+  fontSize: 38
+  }), this.editor.undoBuffer);
     this.tracker.replaceSelectedMeasures();
-		this.complete();
-	}
-	keydown(ev) {}
+  this.complete();
+  }
+  keydown(ev) {}
 }
 
 class SuiTimeSignatureMenu extends suiMenuBase {
     constructor(params) {
-		params = (params ? params : {});
-		Vex.Merge(params, SuiTimeSignatureMenu.defaults);
-		super(params);
-	}
+  params = (params ? params : {});
+  Vex.Merge(params, SuiTimeSignatureMenu.defaults);
+  super(params);
+  }
     static get defaults() {
-		return {
-			menuItems: [{
-					icon: 'sixeight',
-					text: '6/8',
-					value: '6/8',
-				},{
-					icon: 'threefour',
-					text: '3/4',
-					value: '3/4',
-				},{
-					icon: 'twofour',
-					text: '2/4',
-					value: '2/4',
-				},{
-					icon: 'twelveeight',
-					text: '12/8',
-					value: '12/8',
-				},{
-					icon: 'seveneight',
-					text: '7/8',
-					value: '7/8',
-				},{
-					icon: 'fiveeight',
-					text: '5/8',
-					value: '5/8',
-				},{
-					icon: '',
-					text: 'Other',
-					value: 'Other',
-				},{
-					icon: '',
-					text: 'Cancel',
-					value: 'cancel'
-				}
+  return {
+  menuItems: [{
+  icon: 'sixeight',
+  text: '6/8',
+  value: '6/8',
+  },{
+  icon: 'threefour',
+  text: '3/4',
+  value: '3/4',
+  },{
+  icon: 'twofour',
+  text: '2/4',
+  value: '2/4',
+  },{
+  icon: 'twelveeight',
+  text: '12/8',
+  value: '12/8',
+  },{
+  icon: 'seveneight',
+  text: '7/8',
+  value: '7/8',
+  },{
+  icon: 'fiveeight',
+  text: '5/8',
+  value: '5/8',
+  },{
+  icon: '',
+  text: 'Other',
+  value: 'Other',
+  },{
+  icon: '',
+  text: 'Cancel',
+  value: 'cancel'
+  }
                 ]
         };
     }
@@ -14252,267 +14299,272 @@ class SuiTimeSignatureMenu extends suiMenuBase {
       var text = $(ev.currentTarget).attr('data-value');
 
       if (text == 'Other') {
-              SuiTimeSignatureDialog.createAndDisplay({
-  			layout: this.layout,
-              controller:this.controller,
-              closeMenuPromise:this.closePromise
-  		    });
+        SuiTimeSignatureDialog.createAndDisplay({
+    			layout: this.layout,
+          tracker: this.controller.tracker,
+          completeNotifier:this.controller,
+          closeMenuPromise:this.closePromise,
+          undoBuffer:this.controller.undoBuffer,
+          eventSource:this.controller.eventSource
+		    });
       this.complete();
       return;
     }
-		var timeSig = $(ev.currentTarget).attr('data-value');
+    var timeSig = $(ev.currentTarget).attr('data-value');
     this.layout.unrenderAll();
     SmoUndoable.scoreSelectionOp(this.layout.score,this.tracker.selections,
-      'setTimeSignature',timeSig,this.controller.undoBuffer,'change time signature');
+      'setTimeSignature',timeSig,this.undoBuffer,'change time signature');
     this.layout.setRefresh();
-		this.complete();
-	}
-	keydown(ev) {}
+    this.complete();
+  }
+
+  keydown(ev) {}
 }
+
 class suiKeySignatureMenu extends suiMenuBase {
 
-	constructor(params) {
-		params = (params ? params : {});
-		Vex.Merge(params, suiKeySignatureMenu.defaults);
-		super(params);
-	}
-	static get defaults() {
-		return {
-			menuItems: [{
-					icon: 'key-sig-c',
-					text: 'C Major',
-					value: 'C',
-				}, {
-					icon: 'key-sig-f',
-					text: 'F Major',
-					value: 'F',
-				}, {
-					icon: 'key-sig-g',
-					text: 'G Major',
-					value: 'G',
-				}, {
-					icon: 'key-sig-bb',
-					text: 'Bb Major',
-					value: 'Bb'
-				}, {
-					icon: 'key-sig-d',
-					text: 'D Major',
-					value: 'D'
-				}, {
-					icon: 'key-sig-eb',
-					text: 'Eb Major',
-					value: 'Eb'
-				}, {
-					icon: 'key-sig-a',
-					text: 'A Major',
-					value: 'A'
-				}, {
-					icon: 'key-sig-ab',
-					text: 'Ab Major',
-					value: 'Ab'
-				}, {
-					icon: 'key-sig-e',
-					text: 'E Major',
-					value: 'E'
-				}, {
-					icon: 'key-sig-bd',
-					text: 'Db Major',
-					value: 'Db'
-				}, {
-					icon: 'key-sig-b',
-					text: 'B Major',
-					value: 'B'
-				}, {
-					icon: 'key-sig-fs',
-					text: 'F# Major',
-					value: 'F#'
-				}, {
-					icon: 'key-sig-cs',
-					text: 'C# Major',
-					value: 'C#'
-				},
-				 {
-					icon: '',
-					text: 'Cancel',
-					value: 'cancel'
-				}
-			],
-			menuContainer: '.menuContainer'
-		};
-	}
+  constructor(params) {
+  params = (params ? params : {});
+  Vex.Merge(params, suiKeySignatureMenu.defaults);
+  super(params);
+  }
+  static get defaults() {
+  return {
+  menuItems: [{
+  icon: 'key-sig-c',
+  text: 'C Major',
+  value: 'C',
+  }, {
+  icon: 'key-sig-f',
+  text: 'F Major',
+  value: 'F',
+  }, {
+  icon: 'key-sig-g',
+  text: 'G Major',
+  value: 'G',
+  }, {
+  icon: 'key-sig-bb',
+  text: 'Bb Major',
+  value: 'Bb'
+  }, {
+  icon: 'key-sig-d',
+  text: 'D Major',
+  value: 'D'
+  }, {
+  icon: 'key-sig-eb',
+  text: 'Eb Major',
+  value: 'Eb'
+  }, {
+  icon: 'key-sig-a',
+  text: 'A Major',
+  value: 'A'
+  }, {
+  icon: 'key-sig-ab',
+  text: 'Ab Major',
+  value: 'Ab'
+  }, {
+  icon: 'key-sig-e',
+  text: 'E Major',
+  value: 'E'
+  }, {
+  icon: 'key-sig-bd',
+  text: 'Db Major',
+  value: 'Db'
+  }, {
+  icon: 'key-sig-b',
+  text: 'B Major',
+  value: 'B'
+  }, {
+  icon: 'key-sig-fs',
+  text: 'F# Major',
+  value: 'F#'
+  }, {
+  icon: 'key-sig-cs',
+  text: 'C# Major',
+  value: 'C#'
+  },
+   {
+  icon: '',
+  text: 'Cancel',
+  value: 'cancel'
+  }
+  ],
+  menuContainer: '.menuContainer'
+  };
+  }
 
-	selection(ev) {
-		var keySig = $(ev.currentTarget).attr('data-value');
-		var changed = [];
-		this.tracker.selections.forEach((sel) => {
-			if (changed.indexOf(sel.selector.measure) === -1) {
-				changed.push(sel.selector.measure);
-				SmoUndoable.addKeySignature(this.score, sel, keySig, this.editor.undoBuffer);
+  selection(ev) {
+  var keySig = $(ev.currentTarget).attr('data-value');
+  var changed = [];
+  this.tracker.selections.forEach((sel) => {
+  if (changed.indexOf(sel.selector.measure) === -1) {
+  changed.push(sel.selector.measure);
+  SmoUndoable.addKeySignature(this.score, sel, keySig, this.editor.undoBuffer);
         this.tracker.replaceSelectedMeasures();
-			}
-		});
-		this.complete();
-	}
-	keydown(ev) {}
+  }
+  });
+  this.complete();
+  }
+  keydown(ev) {}
 }
 
 class suiStaffModifierMenu extends suiMenuBase {
 
-	constructor(params) {
-		params = (params ? params : {});
-		Vex.Merge(params, suiStaffModifierMenu.defaults);
-		super(params);
-	}
-	static get defaults() {
-		return {
-			menuItems: [{
-					icon: 'cresc',
-					text: 'Crescendo',
-					value: 'crescendo'
-				}, {
-					icon: 'decresc',
-					text: 'Decrescendo',
-					value: 'decrescendo'
-				}, {
-					icon: 'slur',
-					text: 'Slur/Tie',
-					value: 'slur'
-				}, {
-					icon: 'ending',
-					text: 'nth ending',
-					value: 'ending'
-				},
-				 {
-					icon: '',
-					text: 'Cancel',
-					value: 'cancel'
-				}
-			],
-			menuContainer: '.menuContainer'
-		};
-	}
-	selection(ev) {
-		var op = $(ev.currentTarget).attr('data-value');
+  constructor(params) {
+  params = (params ? params : {});
+  Vex.Merge(params, suiStaffModifierMenu.defaults);
+  super(params);
+  }
+  static get defaults() {
+  return {
+  menuItems: [{
+  icon: 'cresc',
+  text: 'Crescendo',
+  value: 'crescendo'
+  }, {
+  icon: 'decresc',
+  text: 'Decrescendo',
+  value: 'decrescendo'
+  }, {
+  icon: 'slur',
+  text: 'Slur/Tie',
+  value: 'slur'
+  }, {
+  icon: 'ending',
+  text: 'nth ending',
+  value: 'ending'
+  },
+   {
+  icon: '',
+  text: 'Cancel',
+  value: 'cancel'
+  }
+  ],
+  menuContainer: '.menuContainer'
+  };
+  }
+  selection(ev) {
+  var op = $(ev.currentTarget).attr('data-value');
 
-		var ft = this.tracker.getExtremeSelection(-1);
-		var tt = this.tracker.getExtremeSelection(1);
+  var ft = this.tracker.getExtremeSelection(-1);
+  var tt = this.tracker.getExtremeSelection(1);
 
-		if (op === 'ending') {
-           SmoUndoable.scoreOp(this.score,'addEnding',
-		       new SmoVolta({startBar:ft.selector.measure,endBar:tt.selector.measure,number:1}),this.editor.undoBuffer,'add ending');
-		    this.complete();
-			return;
-		}
-		if (SmoSelector.sameNote(ft.selector, tt.selector)) {
-			this.complete();
-			return;
-		}
+  if (op === 'ending') {
+      SmoUndoable.scoreOp(this.score,'addEnding',
+        new SmoVolta({startBar:ft.selector.measure,endBar:tt.selector.measure,number:1}),this.editor.undoBuffer,'add ending');
+      this.complete();
+  return;
+  }
+  if (SmoSelector.sameNote(ft.selector, tt.selector)) {
+  this.complete();
+  return;
+  }
 
-		SmoUndoable[op](ft, tt, this.editor.undoBuffer);
+  SmoUndoable[op](ft, tt, this.editor.undoBuffer);
     this.tracker.replaceSelectedMeasures();
-		this.complete();
-	}
-	keydown(ev) {}
+  this.complete();
+  }
+  keydown(ev) {}
 }
 
 class SuiAddStaffMenu extends suiMenuBase {
-	constructor(params) {
-		params = (params ? params : {});
-		Vex.Merge(params, SuiAddStaffMenu.defaults);
-		super(params);
-	}
-	static get defaults() {
-		return {
-			menuItems: [{
-					icon: 'treble',
-					text: 'Treble Clef Staff',
-					value: 'trebleInstrument'
-				}, {
-					icon: 'bass',
-					text: 'Bass Clef Staff',
-					value: 'bassInstrument'
-				}, {
-					icon: 'alto',
-					text: 'Alto Clef Staff',
-					value: 'altoInstrument'
-				}, {
-					icon: 'tenor',
-					text: 'Tenor Clef Staff',
-					value: 'tenorInstrument'
-				}, {
-					icon: 'cancel-circle',
-					text: 'Remove Staff',
-					value: 'remove'
-				},
-				 {
-					icon: '',
-					text: 'Cancel',
-					value: 'cancel'
-				}
-			],
-			menuContainer: '.menuContainer'
-		};
-	}
-	static get instrumentMap() {
-		return {
-			'trebleInstrument': {
-				instrumentInfo: {
-					instrumentName: 'Treble Clef Staff',
-					keyOffset: 0,
-					clef: 'treble'
-				}
-			},
-			'bassInstrument': {
-				instrumentInfo: {
-					instrumentName: 'Bass Clef Staff',
-					keyOffset: 0,
-					clef: 'bass'
-				}
-			},
-			'altoInstrument': {
-				instrumentInfo: {
-					instrumentName: 'Alto Clef Staff',
-					keyOffset: 0,
-					clef: 'alto'
-				}
-			},
-			'tenorInstrument': {
-				instrumentInfo: {
-					instrumentName: 'Tenor Clef Staff',
-					keyOffset: 0,
-					clef: 'tenor'
-				}
-			},
-			'remove': {
-				instrumentInfo: {
-					instrumentName: 'Remove clef',
-					keyOffset: 0,
-					clef: 'tenor'
-				}
-			}
-		}
+  constructor(params) {
+  params = (params ? params : {});
+  Vex.Merge(params, SuiAddStaffMenu.defaults);
+  super(params);
+  }
+  static get defaults() {
+  return {
+  menuItems: [{
+  icon: 'treble',
+  text: 'Treble Clef Staff',
+  value: 'trebleInstrument'
+  }, {
+  icon: 'bass',
+  text: 'Bass Clef Staff',
+  value: 'bassInstrument'
+  }, {
+  icon: 'alto',
+  text: 'Alto Clef Staff',
+  value: 'altoInstrument'
+  }, {
+  icon: 'tenor',
+  text: 'Tenor Clef Staff',
+  value: 'tenorInstrument'
+  }, {
+  icon: 'cancel-circle',
+  text: 'Remove Staff',
+  value: 'remove'
+  },
+   {
+  icon: '',
+  text: 'Cancel',
+  value: 'cancel'
+  }
+  ],
+  menuContainer: '.menuContainer'
+  };
+  }
+  static get instrumentMap() {
+  return {
+  'trebleInstrument': {
+  instrumentInfo: {
+  instrumentName: 'Treble Clef Staff',
+  keyOffset: 0,
+  clef: 'treble'
+  }
+  },
+  'bassInstrument': {
+  instrumentInfo: {
+  instrumentName: 'Bass Clef Staff',
+  keyOffset: 0,
+  clef: 'bass'
+  }
+  },
+  'altoInstrument': {
+  instrumentInfo: {
+  instrumentName: 'Alto Clef Staff',
+  keyOffset: 0,
+  clef: 'alto'
+  }
+  },
+  'tenorInstrument': {
+  instrumentInfo: {
+  instrumentName: 'Tenor Clef Staff',
+  keyOffset: 0,
+  clef: 'tenor'
+  }
+  },
+  'remove': {
+  instrumentInfo: {
+  instrumentName: 'Remove clef',
+  keyOffset: 0,
+  clef: 'tenor'
+  }
+  }
+  }
 
-	}
-	selection(ev) {
-		var op = $(ev.currentTarget).attr('data-value');
-		if (op == 'remove') {
-			if (this.score.staves.length > 1 && this.tracker.selections.length > 0) {
-				this.tracker.layout.unrenderAll();
-				SmoUndoable.removeStaff(this.score, this.tracker.selections[0].selector.staff, this.editor.undoBuffer);
-				this.tracker.layout.setRefresh();
-			}
+  }
+  selection(ev) {
+  var op = $(ev.currentTarget).attr('data-value');
+  if (op == 'remove') {
+  if (this.score.staves.length > 1 && this.tracker.selections.length > 0) {
+  this.tracker.layout.unrenderAll();
+  SmoUndoable.removeStaff(this.score, this.tracker.selections[0].selector.staff, this.editor.undoBuffer);
+  this.tracker.layout.setRefresh();
+  }
 
-		} else if (op === 'cancel') {
-			this.complete();
-		}else {
-			var instrument = SuiAddStaffMenu.instrumentMap[op];
-			SmoUndoable.addStaff(this.score, instrument, this.editor.undoBuffer);
-			this.tracker.layout.setRefresh();
-		}
+  } else if (op === 'cancel') {
+  this.complete();
+  }else {
+  var instrument = SuiAddStaffMenu.instrumentMap[op];
+  SmoUndoable.addStaff(this.score, instrument, this.editor.undoBuffer);
+  this.tracker.layout.setRefresh();
+  }
     this.layout.setRefresh();
-		this.complete();
-	}
-	keydown(ev) {}
+  this.complete();
+  }
+  keydown(ev) {}
 
 }
 ;
@@ -15219,7 +15271,7 @@ class defaultTrackerKeys {
 // that operated on a selection.
 class SuiDialogFactory {
 
-	static createDialog(modSelection, context, tracker, layout,undoBuffer,controller) {
+	static createDialog(modSelection, parameters) {
 		var dbType = SuiDialogFactory.modifierDialogMap[modSelection.modifier.attrs.type];
 		var ctor = eval(dbType);
 		if (!ctor) {
@@ -15228,12 +15280,7 @@ class SuiDialogFactory {
 		}
 		return ctor.createAndDisplay({
 			modifier: modSelection.modifier,
-			selection: modSelection.selection,
-			context: context,
-			tracker: tracker,
-			layout: layout,
-            undo:undoBuffer,
-            controller:controller
+      ...parameters
 		});
 	}
 	static get modifierDialogMap() {
@@ -15242,9 +15289,9 @@ class SuiDialogFactory {
 			SmoSlur: 'SuiSlurAttributesDialog',
 			SmoDynamicText: 'SuiTextModifierDialog',
 			SmoVolta: 'SuiVoltaAttributeDialog',
-            SmoScoreText: 'SuiTextTransformDialog',
-            SmoLoadScore:  'SuiLoadFileDialog',
-            SmoLyric:'SuiLyricDialog'
+      SmoScoreText: 'SuiTextTransformDialog',
+      SmoLoadScore:  'SuiLoadFileDialog',
+      SmoLyric:'SuiLyricDialog'
 		};
 	}
 }
@@ -15269,10 +15316,18 @@ class SuiDialogBase {
 		});
     this.initialLeft = parameters.left
     this.initialTop = parameters.top;
-    this.startPromise = parameters.closeMenuPromise;
 
+    // If this dialog was spawned by a menu, wait for the menu to dismiss
+    // before continuing.
+    this.startPromise = parameters.closeMenuPromise;
+    this.eventSource = parameters.eventSource;
+    this.layout = parameters.layout;
+    this.context = this.layout.context;
 		this.dialogElements = dialogElements;
 		this.tracker = parameters.tracker;
+    this.completeNotifier = parameters.completeNotifier;
+    this.undoBuffer = parameters.undoBuffer;
+
 		var top = parameters.top - this.tracker.scroller.netScroll.y;
 		var left = parameters.left - this.tracker.scroller.netScroll.x;
 
@@ -15368,9 +15423,9 @@ class SuiDialogBase {
      // Dialogs take over the keyboard, so release that and trigger an event
      // that the dialog is closing that can resolve any outstanding promises.
 	complete() {
-        if (this.boundKeyboard) {
-            window.removeEventListener("keydown", this.keydownHandler, true);
-        }
+    if (this.boundKeyboard) {
+      this.eventSource.unbindKeydownHandler(this.keydownHandler);
+    }
 		$('body').removeClass('showAttributeDialog');
     console.log('dialog complete method called, triggering dialog close');
 		$('body').trigger('dialogDismiss');
@@ -15379,12 +15434,12 @@ class SuiDialogBase {
 
     // ### _bindComponentNames
     // helper method to give components class names based on their static configuration
-    _bindComponentNames() {
-        this.components.forEach((component) => {
+  _bindComponentNames() {
+    this.components.forEach((component) => {
 			var nm = component.smoName + 'Ctrl';
-            this[nm] = component;
+      this[nm] = component;
 		});
-    }
+  }
 
    // ### display
    // make3 the modal visible.  bind events and elements.
@@ -15394,10 +15449,12 @@ class SuiDialogBase {
 			component.bind();
 		});
 		this._bindElements();
-		this.position(this.modifier.renderedBox);
-        this.tracker.scroller.scrollVisibleBox(
-            svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
-        );
+    if (this.modifier && this.modifier.renderedBox) {
+      this.position(this.modifier.renderedBox);
+    }
+    this.tracker.scroller.scrollVisibleBox(
+        svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
+    );
 
 		var cb = function (x, y) {}
 		htmlHelpers.draggable({
@@ -15409,24 +15466,23 @@ class SuiDialogBase {
 		});
 	}
 
-    // ### handleKeydown
-    // allow a dialog to be dismissed by esc.
-    handleKeydown(evdata) {
-        if (evdata.key == 'Escape') {
-            $(this.dgDom.element).find('.cancel-button').click();
-            evdata.preventDefault();
-            return;
-        }
-        return;
+  // ### handleKeydown
+  // allow a dialog to be dismissed by esc.
+  evKey(evdata) {
+    if (evdata.key == 'Escape') {
+      $(this.dgDom.element).find('.cancel-button').click();
+      evdata.preventDefault();
+      return;
     }
+    return;
+  }
 
-    // ### bindKeyboard
-    // generic logic to grab keyboard elements for modal
-    bindKeyboard() {
-        this.boundKeyboard = true;
-        this.keydownHandler = this.handleKeydown.bind(this);
-        window.addEventListener("keydown", this.keydownHandler, true);
-    }
+  // ### bindKeyboard
+  // generic logic to grab keyboard elements for modal
+  bindKeyboard() {
+      this.boundKeyboard = true;
+      this.keydownHandler = this.eventSource.bindKeydownHandler(this,'evKey');
+  }
 
    // ### _bindElements
    // bing the generic controls in most dialogs.
@@ -15594,18 +15650,18 @@ class SuiLayoutDialog extends SuiDialogBase {
 			cb: cb,
 			moveParent: true
 		});
-		this.controller.unbindKeyboardForModal(this);
+		this.completeNotifier.unbindKeyboardForModal(this);
 
         var box = svgHelpers.boxPoints(250,250,1,1);
         SuiDialogBase.position(box,this.dgDom,this.tracker.scroller);
 
 	}
-    // ### _updateLayout
-    // even if the layout is not changed, we re-render the entire score by resetting
-    // the svg context.
-    _updateLayout() {
-        this.layout.rerenderAll();
-    }
+  // ### _updateLayout
+  // even if the layout is not changed, we re-render the entire score by resetting
+  // the svg context.
+  _updateLayout() {
+    this.layout.rerenderAll();
+  }
 	_handleCancel() {
 		this.layout.score.layout = this.backup;
 		this._updateLayout();
@@ -15666,30 +15722,24 @@ class SuiLayoutDialog extends SuiDialogBase {
 		// this.modifier.backupOriginal();
 		this._handlePageSizeChange();
 		this.components.forEach((component) => {
-            if (typeof(this.layout.score.layout[component.smoName]) != 'undefined') {
-			    this.layout.score.layout[component.smoName] = component.getValue();
-            }
+      if (typeof(this.layout.score.layout[component.smoName]) != 'undefined') {
+		    this.layout.score.layout[component.smoName] = component.getValue();
+      }
 		});
-        if (this.engravingFontCtrl.changeFlag)  {
-            this.layout.score.engravingFont = this.engravingFontCtrl.getValue();
-            suiLayoutBase.setFont(this.layout.score.engravingFont);
-        }
+    if (this.engravingFontCtrl.changeFlag)  {
+      this.layout.score.engravingFont = this.engravingFontCtrl.getValue();
+      suiLayoutBase.setFont(this.layout.score.engravingFont);
+    }
 		this.layout.setViewport();
 	}
 
-    // ### createAndDisplay
-    // static method to create the object and then display it.
-	static createAndDisplay(buttonElement, buttonData, controller) {
-		var dg = new SuiLayoutDialog({
-				layout: controller.layout,
-				controller: controller
-			});
+  // ### createAndDisplay
+  // static method to create the object and then display it.
+	static createAndDisplay(parameters) {
+		var dg = new SuiLayoutDialog(parameters);
 		dg.display();
 	}
 	constructor(parameters) {
-		if (!(parameters.layout && parameters.controller)) {
-			throw new Error('layout  dialog must have score');
-		}
 		var p = parameters;
 
 		super(SuiLayoutDialog.dialogElements, {
@@ -15697,11 +15747,10 @@ class SuiLayoutDialog extends SuiDialogBase {
 			top: (p.layout.score.layout.pageWidth / 2) - 200,
 			left: (p.layout.score.layout.pageHeight / 2) - 200,
 			label: 'Score Layout',
-			tracker:parameters.controller.tracker
+      ...parameters
 		});
 		this.layout = p.layout;
 		this.modifier = this.layout.score.layout;
-		this.controller = p.controller;
 		this.backupOriginal();
 	}
 }
@@ -15768,25 +15817,22 @@ class SuiTextModifierDialog extends SuiDialogBase {
 	}
 
 	constructor(parameters) {
-		if (!parameters.modifier || !parameters.selection) {
-			throw new Error('modifier attribute dialog must have modifier and selection');
-		}
-
 		super(SuiTextModifierDialog.dialogElements, {
 			id: 'dialog-' + parameters.modifier.id,
 			top: parameters.modifier.renderedBox.y,
 			left: parameters.modifier.renderedBox.x,
 			label: 'Dynamics Properties',
-			tracker:parameters.tracker
+      ...parameters
 		});
 		Vex.Merge(this, parameters);
+    this.selection = this.tracker.selections[0];
 		this.components.find((x) => {
 			return x.parameterName == 'text'
 		}).defaultValue = parameters.modifier.text;
 	}
 	handleRemove() {
 		$(this.context.svg).find('g.' + this.modifier.id).remove();
-        this.undo.addBuffer('remove dynamic', 'measure', this.selection.selector, this.selection.measure);
+    this.undoBuffer.addBuffer('remove dynamic', 'measure', this.selection.selector, this.selection.measure);
 		this.selection.note.removeModifier(this.modifier);
 		this.tracker.clearModifierSelections();
 	}
@@ -15809,9 +15855,6 @@ class helpModal {
 ;
 class SuiFileDialog extends SuiDialogBase {
   constructor(parameters) {
-		if (!(parameters.controller)) {
-			throw new Error('file dialog must have score');
-		}
 		var p = parameters;
     var ctor = eval(parameters.ctor);
     p.label = parameters.label ? parameters.label : 'Dialog Box';
@@ -15824,9 +15867,6 @@ class SuiFileDialog extends SuiDialogBase {
     // File dialogs can be created from menu, get menu promise
 		this.layout = p.layout;
     this.value='';
-		// this.modifier = this.layout.score.layout;
-		this.controller = p.controller;
-		// this.backupOriginal();
 	}
   display() {
     $('body').addClass('showAttributeDialog');
@@ -15838,7 +15878,7 @@ class SuiFileDialog extends SuiDialogBase {
     // make sure keyboard is unbound or we get dupicate key events.
     var self=this;
     function getKeys() {
-        self.controller.unbindKeyboardForModal(self);
+        self.completeNotifier.unbindKeyboardForModal(self);
     }
     this.startPromise.then(getKeys);
     this.position($(this.dgDom.element)[0].getBoundingClientRect());
@@ -15988,9 +16028,11 @@ class SuiSaveFileDialog extends SuiFileDialog {
 ;class SuiLyricDialog extends SuiDialogBase {
     static createAndDisplay(parameters) {
 		var dg = new SuiLyricDialog({
-				layout: parameters.controller.layout,
-				tracker:parameters.controller.tracker,
-				controller: parameters.controller
+				layout: parameters.layout,
+				completeNotifier: parameters.completeNotifier,
+        tracker:parameters.tracker,
+        undoBuffer: parameters.undoBuffer,
+        eventSource: parameters.eventSource
 			});
 		dg.display();
         return dg;
@@ -16035,32 +16077,29 @@ class SuiSaveFileDialog extends SuiFileDialog {
   		top: (p.layout.score.layout.pageWidth / 2) - 200,
   		left: (p.layout.score.layout.pageHeight / 2) - 200,
   		label: p.label,
-  		tracker:parameters.tracker
+  		...parameters
   	});
-        this.layout = p.layout;
-  	this.controller = p.controller;
-        this.tracker = this.controller.tracker;
-        this.undo = this.controller.undoBuffer;
-        SmoUndoable.noop(this.layout.score,this.undo,'Undo lyrics');
+    SmoUndoable.noop(this.layout.score,this.undoBuffer,'Undo lyrics');
   }
   display() {
-      $('body').addClass('showAttributeDialog');
+    $('body').addClass('showAttributeDialog');
 		this.components.forEach((component) => {
 			component.bind();
 		});
 
-    this.editor = this.components.find((c) => c.smoName === 'textEditor');
+    this._bindComponentNames();
+
+    // this.editor = this.components.find((c) => c.smoName === 'textEditor');
     this.verse = this.components.find((c) => c.smoName === 'verse');
 		this._bindElements();
 
     // make sure keyboard is unbound or we get dupicate key events.
     var self=this;
-    this.controller.unbindKeyboardForModal(this);
+    this.completeNotifier.unbindKeyboardForModal(this);
 
     $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
-        if ($(ctrl).hasClass('cbLyricEdit')) {
-        } else {
-            $(ctrl).addClass('fold-textedit');
+        if (!$(ctrl).hasClass('cbLyricEdit')) {
+          $(ctrl).addClass('fold-textedit');
         }
     });
 
@@ -16076,19 +16115,19 @@ class SuiSaveFileDialog extends SuiFileDialog {
 		});
 	}
   _focusSelection() {
-      if (this.editor.editor.selection &&
-          this.editor.editor.selection.note &&
-          this.editor.editor.selection.note.renderedBox) {
-              this.tracker.scroller.scrollVisibleBox(this.editor.editor.selection.note.renderedBox);
+      if (this.textEditorCtrl.editor.selection &&
+          this.textEditorCtrl.editor.selection.note &&
+          this.textEditorCtrl.editor.selection.note.renderedBox) {
+              this.tracker.scroller.scrollVisibleBox(this.textEditorCtrl.editor.selection.note.renderedBox);
           }
   }
   changed() {
-      this.editor.verse = this.verse.getValue();
+      this.textEditorCtrl.verse = this.verse.getValue();
       // Note, when selection changes, we need to wait for the text edit session
       // to start on the new selection.  Then this.editor.changeFlag is set and
       // we can focus on the selection if it is not visible.
-      if (this.editor.changeFlag && this.editor.selection) {
-          this.tracker.setSelection(this.editor.selection.selector);
+      if (this.textEditorCtrl.changeFlag && this.textEditorCtrl.selection) {
+          this.textEditorCtrl.setSelection(this.textEditorCtrl.selection.selector);
           this._focusSelection();
       }
   }
@@ -16108,7 +16147,8 @@ class SuiSaveFileDialog extends SuiFileDialog {
             self.complete();
 		});
     $(dgDom.element).find('.remove-button').remove();
-    this.editor.startEditSession();
+    this.textEditorCtrl.eventSource = this.eventSource;
+    this.textEditorCtrl.startEditSession();
 	}
 }
 
@@ -16119,153 +16159,154 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     return dg;
 	}
 
-    static get dialogElements() {
-		return [{
-				smoName: 'textEditor',
-				parameterName: 'text',
-				defaultValue: 0,
-				control: 'SuiTextInPlace',
-				label:'Edit Text',
-				options: []
-			},{
-				smoName: 'textDragger',
-				parameterName: 'textLocation',
-				defaultValue: 0,
-				control: 'SuiDragText',
-				label:'Move Text',
-				options: []
-			},{
-				smoName: 'textResizer',
-				parameterName: 'textBox',
-				defaultValue: 0,
-				control: 'SuiResizeTextBox',
-				label:'Resize Text',
-				options: []
-			},
+  static get dialogElements() {
+    return [
+      {
+  			smoName: 'textEditor',
+  			parameterName: 'text',
+  			defaultValue: 0,
+  			control: 'SuiTextInPlace',
+  			label:'Edit Text',
+  			options: []
+  		},{
+  			smoName: 'textDragger',
+  			parameterName: 'textLocation',
+  			defaultValue: 0,
+  			control: 'SuiDragText',
+  			label:'Move Text',
+  			options: []
+  		},{
+  			smoName: 'textResizer',
+  			parameterName: 'textBox',
+  			defaultValue: 0,
+  			control: 'SuiResizeTextBox',
+  			label:'Resize Text',
+  			options: []
+  		},
             {
-				smoName: 'x',
-				parameterName: 'x',
-				defaultValue: 0,
-				control: 'SuiRockerComponent',
-				label: 'X Position (Px)',
+  			smoName: 'x',
+  			parameterName: 'x',
+  			defaultValue: 0,
+  			control: 'SuiRockerComponent',
+  			label: 'X Position (Px)',
                 startRow:true,
-				type: 'int'
-			},{
-				smoName: 'y',
-				parameterName: 'y',
-				defaultValue: 0,
-				control: 'SuiRockerComponent',
-				label: 'Y Position (Px)',
+  			type: 'int'
+  		},{
+  			smoName: 'y',
+  			parameterName: 'y',
+  			defaultValue: 0,
+  			control: 'SuiRockerComponent',
+  			label: 'Y Position (Px)',
                 startRow:true,
-				type: 'int'
-			}, {
-				smoName: 'scaleX',
-				parameterName: 'scaleX',
-				defaultValue: 100,
-				control: 'SuiRockerComponent',
-				label: 'Horizontal Scale (%)',
+  			type: 'int'
+  		}, {
+  			smoName: 'scaleX',
+  			parameterName: 'scaleX',
+  			defaultValue: 100,
+  			control: 'SuiRockerComponent',
+  			label: 'Horizontal Scale (%)',
                 startRow:true,
-				type: 'percent'
-			}, {
-				smoName: 'scaleY',
-				parameterName: 'scaleY',
-				defaultValue: 100,
-				control: 'SuiRockerComponent',
-				label: 'Vertical Scale (%)',
+  			type: 'percent'
+  		}, {
+  			smoName: 'scaleY',
+  			parameterName: 'scaleY',
+  			defaultValue: 100,
+  			control: 'SuiRockerComponent',
+  			label: 'Vertical Scale (%)',
                 startRow:true,
-				type: 'percent'
-			}, {
-				smoName: 'justification',
-				parameterName: 'justification',
-				defaultValue: SmoScoreText.justifications.left,
-				control: 'SuiDropdownComponent',
-				label:'Justification',
+  			type: 'percent'
+  		}, {
+  			smoName: 'justification',
+  			parameterName: 'justification',
+  			defaultValue: SmoScoreText.justifications.left,
+  			control: 'SuiDropdownComponent',
+  			label:'Justification',
                 startRow:true,
-				options: [{
-						value: 'left',
-						label: 'Left'
-					}, {
-						value: 'right',
-						label: 'Right'
-					}, {
-						value: 'center',
-						label: 'Center'
-					}
-				]
-			} ,
-            {
-				smoName: 'fontFamily',
-				parameterName: 'fontFamily',
-				defaultValue: SmoScoreText.fontFamilies.times,
-				control: 'SuiDropdownComponent',
-				label:'Font Family',
-                startRow:true,
-				options: [{value:'serif',label:'Serif'},
-                  {value:'sans-serif',label:'Sans-Serif'},
-                  {label:'Monospace',value:'monospace'},
-                  {label:'Cursive',value:'cursive'},
-                  {label:'Times',value:'Times New Roman'},
-                  {label:'Arial',value:'Arial'},
-                  {label:'Helvetica',value:'Helvetica'}
-                  ]
+  			options: [{
+  					value: 'left',
+  					label: 'Left'
+  				}, {
+  					value: 'right',
+  					label: 'Right'
+  				}, {
+  					value: 'center',
+  					label: 'Center'
+  				}
+  			]
+  		},
+      {
+  			smoName: 'fontFamily',
+  			parameterName: 'fontFamily',
+  			defaultValue: SmoScoreText.fontFamilies.times,
+  			control: 'SuiDropdownComponent',
+  			label:'Font Family',
+        startRow:true,
+  			options: [{value:'serif',label:'Serif'},
+          {value:'sans-serif',label:'Sans-Serif'},
+          {label:'Monospace',value:'monospace'},
+          {label:'Cursive',value:'cursive'},
+          {label:'Times',value:'Times New Roman'},
+          {label:'Arial',value:'Arial'},
+          {label:'Helvetica',value:'Helvetica'}
+        ]
+  		},
+      {
+  			smoName: 'fontSize',
+  			parameterName: 'fontSize',
+  			defaultValue: 1,
+  			control: 'SuiRockerComponent',
+  			label: 'Font Size',
+  			type: 'float',
+        increment:0.1
+  		},
+      {
+  			smoName: 'fontUnit',
+  			parameterName: 'fontUnit',
+  			defaultValue: 'em',
+  			control: 'SuiDropdownComponent',
+  			label: 'Units',
+        options: [{value:'em',label:'em'},{value:'px',label:'px'},{value:'pt',label:'pt'}]
+  		},
+      {
+  			smoName: 'wrap',
+  			parameterName: 'wrap',
+        defaultValue: false,
+    	  control:'SuiToggleComponent',
+  			label: 'Wrap Text'
+  		},
+      { // {every:'every',even:'even',odd:'odd',once:'once'}
+  			smoName: 'pagination',
+  			parameterName: 'pagination',
+  			defaultValue: SmoScoreText.paginations.every,
+  			control: 'SuiDropdownComponent',
+  			label:'Page Behavior',
+        startRow:true,
+  			options: [{value:'once',label:'Once'},
+          {value:'every',label:'Every'},
+          {label:'Even',value:'even'},
+          {label:'Odd',value:'odd'},
+          {label:'Subsequent',value:'subsequent'}
+        ]
+  		}
+    ];
+  }
 
-			},
-            {
-				smoName: 'fontSize',
-				parameterName: 'fontSize',
-				defaultValue: 1,
-				control: 'SuiRockerComponent',
-				label: 'Font Size',
-				type: 'float',
-                increment:0.1
-			},
-            {
-				smoName: 'fontUnit',
-				parameterName: 'fontUnit',
-				defaultValue: 'em',
-				control: 'SuiDropdownComponent',
-				label: 'Units',
-                options: [{value:'em',label:'em'},{value:'px',label:'px'},{value:'pt',label:'pt'}]
-			},
-            {
-				smoName: 'wrap',
-				parameterName: 'wrap',
-                defaultValue: false,
-    			control:'SuiToggleComponent',
-				label: 'Wrap Text'
-			},
-            { // {every:'every',even:'even',odd:'odd',once:'once'}
-				smoName: 'pagination',
-				parameterName: 'pagination',
-				defaultValue: SmoScoreText.paginations.every,
-				control: 'SuiDropdownComponent',
-				label:'Page Behavior',
-                startRow:true,
-				options: [{value:'once',label:'Once'},
-                  {value:'every',label:'Every'},
-                  {label:'Even',value:'even'},
-                  {label:'Odd',value:'odd'},
-                  {label:'Subsequent',value:'subsequent'}
-                  ]
-			}
-        ];
-    }
-display() {
-  var self=this;
-  // Wait for text to be displayed before bringing up edit dialog
-  var waitForDisplay = () => {
-    return new Promise((resolve) => {
-      var waiter = ()  => {
-        setTimeout(() => {
-          if (self.modifier.renderedBox) {
-            console.log('text box has been created');
-            resolve();
-          } else {
-            waiter();
-          }
-        },50);
-      };
-      waiter();
+  display() {
+    var self=this;
+    // Wait for text to be displayed before bringing up edit dialog
+    var waitForDisplay = () => {
+      return new Promise((resolve) => {
+        var waiter = ()  => {
+          setTimeout(() => {
+            if (self.modifier.renderedBox) {
+              console.log('text box has been created');
+              resolve();
+            } else {
+              waiter();
+            }
+          },50);
+        };
+        waiter();
     });
   }
 
@@ -16274,7 +16315,6 @@ display() {
       self._display();
     },1);
   }
-
   waitForDisplay().then(callDisplay);
 }
   _display() {
@@ -16407,7 +16447,7 @@ display() {
 			var newText =  new SmoScoreText({position:SmoScoreText.positions.custom});
       parameters.modifier = newText;
       SmoUndoable.scoreOp(parameters.layout.score,'addScoreText',
-         parameters.modifier,  parameters.controller.undoBuffer,'Text Menu Command');
+         parameters.modifier,  parameters.undoBuffer,'Text Menu Command');
       parameters.layout.setRefresh();
     }
     var scrollPosition = tracker.scroller.absScroll;
@@ -16429,15 +16469,15 @@ display() {
 			top: parameters.modifier.y,
 			left: parameters.modifier.x,
 			label: 'Text Box Properties',
-			tracker:parameters.tracker
-		});
+      ...parameters
+    });
 
 		Vex.Merge(this, parameters);
 
     // Do we jump right into editing?
-    this.undo = parameters.controller.undoBuffer;
+    this.undo = parameters.undoBuffer;
     this.modifier.backupParams();
-    this.controller.unbindKeyboardForModal(this);
+    this.completeNotifier.unbindKeyboardForModal(this);
 	}
   _complete() {
       this.tracker.updateMap(); // update the text map
@@ -16568,24 +16608,13 @@ class SuiMeasureDialog extends SuiDialogBase {
         		}
         ];
     }
-    static createAndDisplay(ignore1,ignore2,controller) {
-        // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
-        //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
-        var selection = controller.tracker.selections[0];
-        var measure = selection.measure;
-        var measureIndex = measure.measureNumber.measureIndex;
-
-        var dg = new SuiMeasureDialog({
-            measure: measure,
-            measureIndex: measureIndex,
-            undoBuffer:controller.undoBuffer,
-            layout: controller.tracker.layout,
-            tracker:controller.tracker,
-            controller:controller,
-            selection:selection
-          });
-        dg.display();
-        return dg;
+    static createAndDisplay(parameters) {
+      // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
+      //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
+      parameters.selection = parameters.tracker.selections[0];
+      var dg = new SuiMeasureDialog(parameters);
+      dg.display();
+      return dg;
     }
     changed() {
         if (this.pickupMeasureCtrl.changeFlag || this.pickupMeasureCtrl.changeFlag) {
@@ -16638,84 +16667,92 @@ class SuiMeasureDialog extends SuiDialogBase {
         //
         this._updateConditionals();
     }
-    constructor(parameters) {
-        if (!parameters.measure || !parameters.selection) {
-            throw new Error('measure dialogmust have measure and selection');
-        }
-
-        super(SuiMeasureDialog.dialogElements, {
-            id: 'dialog-measure',
-            top: parameters.measure.renderedBox.y,
-            left: parameters.measure.renderedBox.x,
-            label: 'Measure Properties',
-			tracker:parameters.controller.tracker
-        });
-        this.refresh = false;
-        Vex.Merge(this, parameters);
-        this.modifier = this.measure;
+  constructor(parameters) {
+    if (!parameters.selection) {
+        throw new Error('measure dialogmust have measure and selection');
     }
-    _updateConditionals() {
-        if (this.padLeftCtrl.getValue() != 0 || this.padLeftCtrl.changeFlag) {
-            $('.attributeDialog .attributeModal').addClass('pad-left-select');
-        } else {
-            $('.attributeDialog .attributeModal').removeClass('pad-left-select');
-        }
 
-        if (this.pickupMeasureCtrl.getValue()) {
-            $('.attributeDialog .attributeModal').addClass('pickup-select');
-        } else {
-            $('.attributeDialog .attributeModal').removeClass('pickup-select');
-        }
-        var str = this.measureTextCtrl.getValue();
-        if (str && str.length) {
-            $('.attributeDialog .attributeModal').addClass('measure-text-set');
-        } else {
-            $('.attributeDialog .attributeModal').removeClass('measure-text-set');
-        }
-    }
-    populateInitial() {
-        this.padLeftCtrl.setValue(this.measure.padLeft);
-        this.originalStretch = this.measure.customStretch;
-        this.originalProportion = this.measure.customProportion;
-        var isPickup = this.measure.isPickup();
-        this.customStretchCtrl.setValue(this.measure.customStretch);
-        this.customProportionCtrl.setValue(this.measure.customProportion);
-        this.pickupMeasureCtrl.setValue(isPickup);
-        if (isPickup) {
-            this.pickupMeasureCtrl.setValue(this.measure.getTicksFromVoice())
-        }
+    super(SuiMeasureDialog.dialogElements, {
+      id: 'dialog-measure',
+      top: parameters.selection.measure.renderedBox.y,
+      left: parameters.selection.measure.renderedBox.x,
+      label: 'Measure Properties',
+  		tracker:parameters.tracker,
+      undoBuffer: parameters.undoBuffer,
+      eventSource: parameters.eventSource,
+      completeNotifier : parameters.completeNotifier,
+      layout: parameters.layout
+    });
+    this.refresh = false;
+    Vex.Merge(this, parameters);
 
-        var isSystemBreak = this.measure.getForceSystemBreak();
-        this.systemBreakCtrl.setValue(isSystemBreak);
-        this._updateConditionals();
+    // The 'modifier' that this dialog acts on is a measure.
+    this.measure = this.selection.measure;
+    this.modifier = this.measure;
+  }
+  _updateConditionals() {
+    if (this.padLeftCtrl.getValue() != 0 || this.padLeftCtrl.changeFlag) {
+        $('.attributeDialog .attributeModal').addClass('pad-left-select');
+    } else {
+        $('.attributeDialog .attributeModal').removeClass('pad-left-select');
+    }
 
-        // TODO: handle multiples (above/below)
-        var texts = this.measure.getMeasureText();
-        if (texts.length) {
-            this.measureTextCtrl.setValue(texts[0].text);
-            this.measureTextPositionCtrl.setValue(texts[0].position);
-        }
+    if (this.pickupMeasureCtrl.getValue()) {
+        $('.attributeDialog .attributeModal').addClass('pickup-select');
+    } else {
+        $('.attributeDialog .attributeModal').removeClass('pickup-select');
     }
-    _cancelEdits() {
-        this.measure.customStretch = this.originalStretch;
-        this.measure.customProportion = this.originalProportion;
-        this.layout.setRefresh();
+    var str = this.measureTextCtrl.getValue();
+    if (str && str.length) {
+        $('.attributeDialog .attributeModal').addClass('measure-text-set');
+    } else {
+        $('.attributeDialog .attributeModal').removeClass('measure-text-set');
     }
-    _bindElements() {
+  }
+  populateInitial() {
+    this.padLeftCtrl.setValue(this.measure.padLeft);
+    this.originalStretch = this.measure.customStretch;
+    this.originalProportion = this.measure.customProportion;
+    var isPickup = this.measure.isPickup();
+    this.customStretchCtrl.setValue(this.measure.customStretch);
+    this.customProportionCtrl.setValue(this.measure.customProportion);
+    this.pickupMeasureCtrl.setValue(isPickup);
+    if (isPickup) {
+      this.pickupMeasureCtrl.setValue(this.measure.getTicksFromVoice())
+    }
+
+    var isSystemBreak = this.measure.getForceSystemBreak();
+    this.systemBreakCtrl.setValue(isSystemBreak);
+    this._updateConditionals();
+
+    // TODO: handle multiples (above/below)
+    var texts = this.measure.getMeasureText();
+    if (texts.length) {
+      this.measureTextCtrl.setValue(texts[0].text);
+      this.measureTextPositionCtrl.setValue(texts[0].position);
+    }
+  }
+  _cancelEdits() {
+    this.measure.customStretch = this.originalStretch;
+    this.measure.customProportion = this.originalProportion;
+    this.layout.setRefresh();
+  }
+  _bindElements() {
+    this._bindComponentNames();
 		var self = this;
 		var dgDom = this.dgDom;
-        this.bindKeyboard();
-        this.controller.unbindKeyboardForModal(this);
-        this._bindComponentNames();
-        this.populateInitial();
+    this.bindKeyboard();
+    this._bindComponentNames();
+    this.completeNotifier.unbindKeyboardForModal(this);
+    this.populateInitial();
 
-		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            self.controller.tracker.replaceSelectedMeasures();
-			self.complete();
-		});
+  	$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+      self.tracker.replaceSelectedMeasures();
+  		self.complete();
+  	});
 
 		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-            self._cancelEdits();
+      self._cancelEdits();
 			self.complete();
 		});
 		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
@@ -16770,11 +16807,12 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
          //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
 
          var dg = new SuiTimeSignatureDialog({
-             selections: params.controller.tracker.selections,
-             undoBuffer: params.controller.undoBuffer,
-             layout: params.controller.tracker.layout,
-             controller:params.controller,
-             closeMenuPromise:params.closeMenuPromise
+             selections: params.tracker.selections,
+             undoBuffer: params.undoBuffer,
+             layout: params.tracker.layout,
+             completeNotifier :params.completeNotifier,
+             closeMenuPromise:params.closeMenuPromise,
+             tracker: params.tracker
            });
          dg.display();
          return dg;
@@ -16828,7 +16866,7 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
 
          var self=this;
          function getKeys() {
-             self.controller.unbindKeyboardForModal(self);
+             self.completeNotifier.unbindKeyboardForModal(self);
          }
          this.startPromise.then(getKeys);
      }
@@ -16840,7 +16878,12 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
              top: measure.renderedBox.y,
              left: measure.renderedBox.x,
              label: 'Custom Time Signature',
- 			 tracker:parameters.controller.tracker
+ 			 tracker:parameters.tracker,
+       undoBuffer: parameters.undoBuffer,
+       eventSource: parameters.eventSource,
+       completeNotifier : parameters.completeNotifier,
+       layout: parameters.layout
+
          });
          this.measure = measure;
          this.refresh = false;
@@ -16905,100 +16948,96 @@ class SuiTempoDialog extends SuiDialogBase {
 			]
 		},
 
-            {
-            smoName: 'tempoText',
-            parameterName: 'tempoText',
-            defaultValue: SmoTempoText.tempoTexts.allegro,
-            control: 'SuiDropdownComponent',
-            label:'Tempo Text',
-            options: [{
-                value: SmoTempoText.tempoTexts.larghissimo,
-                label: 'Larghissimo'
-              }, {
-                value: SmoTempoText.tempoTexts.grave,
-                label: 'Grave'
-              }, {
-                value: SmoTempoText.tempoTexts.lento,
-                label: 'Lento'
-              }, {
-                value: SmoTempoText.tempoTexts.largo,
-                label: 'Largo'
-              }, {
-                value: SmoTempoText.tempoTexts.larghetto,
-                label: 'Larghetto'
-              }, {
-                value: SmoTempoText.tempoTexts.adagio,
-                label: 'Adagio'
-              }, {
-                value: SmoTempoText.tempoTexts.adagietto,
-                label: 'Adagietto'
-              }, {
-                value: SmoTempoText.tempoTexts.andante_moderato,
-                label: 'Andante moderato'
-              }, {
-                value: SmoTempoText.tempoTexts.andante,
-                label: 'Andante'
-              }, {
-                value: SmoTempoText.tempoTexts.andantino,
-                label: 'Andantino'
-              }, {
-                value: SmoTempoText.tempoTexts.moderator,
-                label: 'Moderato'
-              }, {
-                value: SmoTempoText.tempoTexts.allegretto,
-                label: 'Allegretto',
-              } ,{
-                value: SmoTempoText.tempoTexts.allegro,
-                label: 'Allegro'
-              }, {
-                value: SmoTempoText.tempoTexts.vivace,
-                label: 'Vivace'
-              }, {
-                value: SmoTempoText.tempoTexts.presto,
-                label: 'Presto'
-              }, {
-                value: SmoTempoText.tempoTexts.prestissimo,
-                label: 'Prestissimo'
-              }
-            ]
-        },{
+      {
+      smoName: 'tempoText',
+      parameterName: 'tempoText',
+      defaultValue: SmoTempoText.tempoTexts.allegro,
+      control: 'SuiDropdownComponent',
+      label:'Tempo Text',
+      options: [{
+          value: SmoTempoText.tempoTexts.larghissimo,
+          label: 'Larghissimo'
+        }, {
+          value: SmoTempoText.tempoTexts.grave,
+          label: 'Grave'
+        }, {
+          value: SmoTempoText.tempoTexts.lento,
+          label: 'Lento'
+        }, {
+          value: SmoTempoText.tempoTexts.largo,
+          label: 'Largo'
+        }, {
+          value: SmoTempoText.tempoTexts.larghetto,
+          label: 'Larghetto'
+        }, {
+          value: SmoTempoText.tempoTexts.adagio,
+          label: 'Adagio'
+        }, {
+          value: SmoTempoText.tempoTexts.adagietto,
+          label: 'Adagietto'
+        }, {
+          value: SmoTempoText.tempoTexts.andante_moderato,
+          label: 'Andante moderato'
+        }, {
+          value: SmoTempoText.tempoTexts.andante,
+          label: 'Andante'
+        }, {
+          value: SmoTempoText.tempoTexts.andantino,
+          label: 'Andantino'
+        }, {
+          value: SmoTempoText.tempoTexts.moderator,
+          label: 'Moderato'
+        }, {
+          value: SmoTempoText.tempoTexts.allegretto,
+          label: 'Allegretto',
+        } ,{
+          value: SmoTempoText.tempoTexts.allegro,
+          label: 'Allegro'
+        }, {
+          value: SmoTempoText.tempoTexts.vivace,
+          label: 'Vivace'
+        }, {
+          value: SmoTempoText.tempoTexts.presto,
+          label: 'Presto'
+        }, {
+          value: SmoTempoText.tempoTexts.prestissimo,
+          label: 'Prestissimo'
+        }
+      ]
+  },{
 			smoName:'applyToAll',
 			parameterName:'applyToAll',
 			defaultValue: false,
 			control:'SuiToggleComponent',
 			label:'Apply to all future measures?'
 		},{
-                smoName: 'display',
-                parameterName: 'display',
-                defaultValue: true,
-                control: 'SuiToggleComponent',
-                label: 'Display Tempo'
-            },
-        ]
+          smoName: 'display',
+          parameterName: 'display',
+          defaultValue: true,
+          control: 'SuiToggleComponent',
+          label: 'Display Tempo'
+      },
+    ]
+  }
+  static createAndDisplay(parameters) {
+    parameters.measures = SmoSelection.getMeasureList(parameters.tracker.selections)
+       .map((sel) => sel.measure);
+    var measure = parameters.measures[0];
+
+    // All measures have a default tempo, but it is not explicitly set unless it is
+    // non-default
+    parameters.modifier = measure.getTempo();
+    if (!parameters.modifier) {
+        parameters.modifier = new SmoTempoText();
+        measure.addTempo(parameters.modifier);
     }
-    static createAndDisplay(ignore1,ignore2,controller) {
-        // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
-        //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
-        var measures = SmoSelection.getMeasureList(controller.tracker.selections)
-           .map((sel) => sel.measure);
-        var existing = measures[0].getTempo();
-        if (!existing) {
-            existing = new SmoTempoText();
-            measures[0].addTempo(existing);
-        }
-        if (!existing.renderedBox) {
-            existing.renderedBox = svgHelpers.copyBox(measures[0].renderedBox);
-        }
-        var dg = new SuiTempoDialog({
-            measures: measures,
-            modifier: existing,
-            undoBuffer:controller.undoBuffer,
-            layout: controller.tracker.layout,
-            controller:controller
-          });
-        dg.display();
-        return dg;
+    if (!parameters.modifier.renderedBox) {
+        parameters.modifier.renderedBox = svgHelpers.copyBox(measure.renderedBox);
     }
+    var dg = new SuiTempoDialog(parameters);
+    dg.display();
+    return dg;
+  }
     constructor(parameters) {
         if (!parameters.modifier || !parameters.measures) {
             throw new Error('modifier attribute dialog must have modifier and selection');
@@ -17009,7 +17048,11 @@ class SuiTempoDialog extends SuiDialogBase {
             top: parameters.modifier.renderedBox.y,
             left: parameters.modifier.renderedBox.x,
             label: 'Tempo Properties',
-			tracker:parameters.controller.tracker
+            tracker:parameters.tracker,
+            undoBuffer: parameters.undoBuffer,
+            eventSource: parameters.eventSource,
+            completeNotifier : parameters.completeNotifier,
+            layout: parameters.layout
         });
         this.refresh = false;
         Vex.Merge(this, parameters);
@@ -17074,7 +17117,7 @@ class SuiTempoDialog extends SuiDialogBase {
             tempo.attrs.id = VF.Element.newID();
             measure.addTempo(tempo);
         });
-        this.controller.tracker.replaceSelectedMeasures();
+        this.tracker.replaceSelectedMeasures();
     }
     // ### handleRemove
     // Removing a tempo change is like changing the measure to the previous measure's tempo.
@@ -17118,7 +17161,7 @@ class SuiTempoDialog extends SuiDialogBase {
                 resolve();
             });
         });
-        this.controller.unbindKeyboardForModal(this);
+        this.completeNotifier.unbindKeyboardForModal(this);
     }
 }
 ;// # dbComponents - components of modal dialogs.
@@ -17545,7 +17588,7 @@ class SuiTextInPlace extends SuiComponentBase {
         var pid = this.parameterId;
         return $(this.dialog.dgDom.element).find('#' + pid).find('button');
     }
-    
+
     startEditSession() {
         var self=this;
         $(this._getInputElement()).find('label').text('Done Editing Text Block');
@@ -17705,7 +17748,7 @@ class SuiLyricEditComponent extends SuiComponentBase {
     var self=this;
     layoutDebug.addTextDebug('SuiLyricEditComponent: create editor request');
     this._startEditorDom();
-    this.editor = new noteTextEditSession(this,this.tracker,this.controller,this.verse,this.selection);
+    this.editor = new noteTextEditSession(this,this.tracker,this.verse,this.selection,this.eventSource);
     this.editor.startEditingSession();
     this._bind();
   }
@@ -19647,7 +19690,7 @@ class vexGlyph {
 // ---
 class RibbonButtons {
 	static get paramArray() {
-		return ['ribbonButtons', 'ribbons', 'editor', 'controller', 'tracker', 'menus'];
+		return ['ribbonButtons', 'ribbons', 'editor', 'controller', 'tracker', 'menus','layout','eventSource'];
 	}
 	static _buttonHtml(containerClass,buttonId, buttonClass, buttonText, buttonIcon, buttonKey) {
 		var b = htmlHelpers.buildDom;
@@ -19667,7 +19710,16 @@ class RibbonButtons {
 	}
 	_executeButtonModal(buttonElement, buttonData) {
 		var ctor = eval(buttonData.ctor);
-		ctor.createAndDisplay(buttonElement, buttonData,this.controller);
+		ctor.createAndDisplay(
+      {
+        tracker:this.tracker,
+        undoBuffer:this.editor.undoBuffer,
+        eventSource:this.eventSource,
+        editor:this.editor,
+        completeNotifier: this.controller,
+        layout: this.layout
+      }
+    );
 	}
 	_executeButtonMenu(buttonElement, buttonData) {
 		var self = this;
@@ -19762,7 +19814,10 @@ class RibbonButtons {
                         // collapseParent
                 		this.collapsables.push(new CollapseRibbonControl({
                 				ribbonButtons: this.ribbonButtons,
+                        layout:this.layout,
+                        undoBuffer:this.editor.undoBuffer,
                 				menus: this.menus,
+                        eventSource:this.eventSource,
                 				tracker: this.tracker,
                 				controller: this.controller,
                 				editor: this.editor,
@@ -20023,11 +20078,8 @@ class ChordButtons {
 
 class StaveButtons {
 	constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.tracker = parameters.tracker;
-		this.editor = parameters.editor;
-		this.score = this.editor.score;
+    Vex.Merge(this,parameters);
+    this.score = this.layout.score;
 	}
 	addClef(clef,clefName) {
 		var instrument = {
@@ -20094,11 +20146,7 @@ class StaveButtons {
 }
 class MeasureButtons {
 	constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.tracker = parameters.tracker;
-		this.editor = parameters.editor;
-		this.score = this.editor.score;
+    Vex.Merge(this,parameters);
 	}
 	/*
 	 static get barlines() {
@@ -20200,12 +20248,7 @@ class MeasureButtons {
 
 class PlayerButtons {
     	constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.tracker = parameters.tracker;
-        this.editor = parameters.editor;
-		this.controller = parameters.controller;
-        this.menus=parameters.controller.menus;
+        Vex.Merge(this,parameters);
 	}
 
     playButton() {
@@ -20228,11 +20271,7 @@ class PlayerButtons {
 
 class DisplaySettings {
     constructor(parameters) {
-    this.buttonElement = parameters.buttonElement;
-    this.buttonData = parameters.buttonData;
-    this.tracker = parameters.tracker;
-    this.layout = this.tracker.layout;
-    this.controller = parameters.controller;
+      Vex.Merge(this,parameters);
     }
 
     refresh() {
@@ -20261,16 +20300,11 @@ class DisplaySettings {
 }
 class TextButtons {
 	constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.tracker = parameters.tracker;
-        this.editor = parameters.editor;
-		this.controller = parameters.controller;
-        this.menus=parameters.controller.menus;
+    Vex.Merge(this,parameters);
+    this.menus = this.controller.menus;
 	}
   lyrics() {
-	SuiLyricDialog.createAndDisplay(
-          {buttonElement:this.buttonElement, buttonData:this.buttonData,controller:this.controller});
+	SuiLyricDialog.createAndDisplay(parameters);
 	// tracker, selection, controller
   }
   rehearsalMark() {
@@ -20288,10 +20322,12 @@ class TextButtons {
       {
         buttonElement:this.buttonElement,
         buttonData:this.buttonData,
-        controller:this.controller,
-        tracker: this.controller.tracker,
-        layout:this.controller.layout,
-        editor:this.controller.editor
+        completeNotifier:this.controller,
+        tracker: this.tracker,
+        layout:this.layout,
+        undoBuffer:this.editor.undoBuffer,
+        eventSource:this.eventSource,
+        editor:this.editor
     });
   }
 	addDynamicsMenu() {
@@ -20383,7 +20419,8 @@ class ArticulationButtons {
 
 class CollapseRibbonControl {
 	static get paramArray() {
-		return ['ribbonButtons', 'editor', 'controller', 'tracker', 'menus', 'buttonData', 'buttonElement'];
+		return ['ribbonButtons', 'editor', 'controller', 'tracker', 'menus', 'buttonData', 'buttonElement',
+    'layout','eventSource','undoBuffer'];
 	}
 	constructor(parameters) {
 		smoSerialize.filteredMerge(CollapseRibbonControl.paramArray, parameters, this);
@@ -20413,9 +20450,8 @@ class CollapseRibbonControl {
 			$(leftSpan).addClass(this.buttonData.icon);
 			$(leftSpan).text(this.buttonData.leftText);
 		}
-
-		// Expand may change music dom, redraw
-		$('body').trigger('forceScrollEvent');
+  	// Expand may change music dom, redraw
+  	$('body').trigger('forceScrollEvent');
 	}
 	bind() {
 		var self = this;
@@ -20431,19 +20467,23 @@ class CollapseRibbonControl {
 					buttonElement: el,
 					editor: this.editor,
 					tracker: this.tracker,
-					controller: this.controller
+					controller: this.controller,
+          layout:this.layout,
+          eventSource:this.eventSource,
+          undoBuffer:this.undoBuffer
 				});
-            if (typeof(btn.bind) == 'function') {
-                btn.bind();
-            }
+        if (typeof(btn.bind) == 'function') {
+          btn.bind();
+        }
 		});
 	}
 }
 ;class SuiStaffModifierDialog extends SuiDialogBase {
 	 handleRemove() {
-        $(this.context.svg).find('g.' + this.modifier.attrs.id).remove();
-        SmoUndoable.staffSelectionOp(this.layout.score,this.selection,'removeStaffModifier',this.modifier,this.undo,'remove slur');
-        this.tracker.clearModifierSelections();
+      $(this.context.svg).find('g.' + this.modifier.attrs.id).remove();
+      var selection = SmoSelection.measureSelection(this.layout.score,this.modifier.startSelector.staff,this.modifier.startSelector.measure);
+      SmoUndoable.staffSelectionOp(this.layout.score,selection,'removeStaffModifier',this.modifier,this.undoBuffer,'remove slur');
+      this.tracker.clearModifierSelections();
     }
 
     _preview() {
@@ -20465,269 +20505,274 @@ class CollapseRibbonControl {
 
 
 class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
-    static get dialogElements() {
-        return [{
-                parameterName: 'spacing',
-                smoName: 'spacing',
-                defaultValue: 2,
-                control: 'SuiRockerComponent',
-                label: 'Spacing'
-            }, {
-                smoName: 'thickness',
-                parameterName: 'thickness',
-                defaultValue: 2,
-                control: 'SuiRockerComponent',
-                label: 'Thickness'
-            }, {
-                smoName: 'xOffset',
-                parameterName: 'xOffset',
-                defaultValue: 0,
-                control: 'SuiRockerComponent',
-                label: 'X Offset'
-            }, {
-                smoName: 'yOffset',
-                parameterName: 'yOffset',
-                defaultValue: 10,
-                control: 'SuiRockerComponent',
-                label: 'Y Offset'
-            }, {
-                smoName: 'position',
-                parameterName: 'position',
-                defaultValue: SmoSlur.positions.HEAD,
-                options: [{
-                        value: SmoSlur.positions.HEAD,
-                        label: 'Head'
-                    }, {
-                        value: SmoSlur.positions.TOP,
-                        label: 'Top'
-                    }
-                ],
-                control: 'SuiDropdownComponent',
-                label: 'Start Position'
-            }, {
-                smoName: 'position_end',
-                parameterName: 'position_end',
-                defaultValue: SmoSlur.positions.HEAD,
-                options: [{
-                        value: SmoSlur.positions.HEAD,
-                        label: 'Head'
-                    }, {
-                        value: SmoSlur.positions.TOP,
-                        label: 'Top'
-                    }
-                ],
-                control: 'SuiDropdownComponent',
-                label: 'End Position'
-            }, {
-                smoName: 'invert',
-                parameterName: 'invert',
-                defaultValue: false,
-                control: 'SuiToggleComponent',
-                label: 'Invert'
-            }, {
-                parameterName: 'cp1x',
-                smoName: 'cp1x',
-                defaultValue: 0,
-                control: 'SuiRockerComponent',
-                label: 'Control Point 1 X'
-            }, {
-                parameterName: 'cp1y',
-                smoName: 'cp1y',
-                defaultValue: 40,
-                control: 'SuiRockerComponent',
-                label: 'Control Point 1 Y'
-            }, {
-                parameterName: 'cp2x',
-                smoName: 'cp2x',
-                defaultValue: 0,
-                control: 'SuiRockerComponent',
-                label: 'Control Point 2 X'
-            }, {
-                parameterName: 'cp2y',
-                smoName: 'cp2y',
-                defaultValue: 40,
-                control: 'SuiRockerComponent',
-                label: 'Control Point 2 Y'
-            }
-        ];
+  static get dialogElements() {
+    return [{
+          parameterName: 'spacing',
+          smoName: 'spacing',
+          defaultValue: 2,
+          control: 'SuiRockerComponent',
+          label: 'Spacing'
+      }, {
+          smoName: 'thickness',
+          parameterName: 'thickness',
+          defaultValue: 2,
+          control: 'SuiRockerComponent',
+          label: 'Thickness'
+      }, {
+          smoName: 'xOffset',
+          parameterName: 'xOffset',
+          defaultValue: 0,
+          control: 'SuiRockerComponent',
+          label: 'X Offset'
+      }, {
+          smoName: 'yOffset',
+          parameterName: 'yOffset',
+          defaultValue: 10,
+          control: 'SuiRockerComponent',
+          label: 'Y Offset'
+      }, {
+          smoName: 'position',
+          parameterName: 'position',
+          defaultValue: SmoSlur.positions.HEAD,
+          options: [{
+                  value: SmoSlur.positions.HEAD,
+                  label: 'Head'
+              }, {
+                  value: SmoSlur.positions.TOP,
+                  label: 'Top'
+              }
+          ],
+          control: 'SuiDropdownComponent',
+          label: 'Start Position'
+      }, {
+          smoName: 'position_end',
+          parameterName: 'position_end',
+          defaultValue: SmoSlur.positions.HEAD,
+          options: [{
+                  value: SmoSlur.positions.HEAD,
+                  label: 'Head'
+              }, {
+                  value: SmoSlur.positions.TOP,
+                  label: 'Top'
+              }
+          ],
+          control: 'SuiDropdownComponent',
+          label: 'End Position'
+      }, {
+          smoName: 'invert',
+          parameterName: 'invert',
+          defaultValue: false,
+          control: 'SuiToggleComponent',
+          label: 'Invert'
+      }, {
+          parameterName: 'cp1x',
+          smoName: 'cp1x',
+          defaultValue: 0,
+          control: 'SuiRockerComponent',
+          label: 'Control Point 1 X'
+      }, {
+          parameterName: 'cp1y',
+          smoName: 'cp1y',
+          defaultValue: 40,
+          control: 'SuiRockerComponent',
+          label: 'Control Point 1 Y'
+      }, {
+          parameterName: 'cp2x',
+          smoName: 'cp2x',
+          defaultValue: 0,
+          control: 'SuiRockerComponent',
+          label: 'Control Point 2 X'
+      }, {
+          parameterName: 'cp2y',
+          smoName: 'cp2y',
+          defaultValue: 40,
+          control: 'SuiRockerComponent',
+          label: 'Control Point 2 Y'
+      }
+    ];
+  }
+  static createAndDisplay(parameters) {
+    var dg = new SuiSlurAttributesDialog(parameters);
+    dg.display();
+    return dg;
+  }
+  constructor(parameters) {
+    if (!parameters.modifier) {
+        throw new Error('modifier attribute dialog must have modifier');
     }
-    static createAndDisplay(parameters) {
-        var dg = new SuiSlurAttributesDialog(parameters);
-        dg.display();
-        return dg;
-    }
-    constructor(parameters) {
-        if (!parameters.modifier || !parameters.selection) {
-            throw new Error('modifier attribute dialog must have modifier and selection');
-        }
 
-        super(SuiSlurAttributesDialog.dialogElements, {
-            id: 'dialog-' + parameters.modifier.attrs.id,
-            top: parameters.modifier.renderedBox.y,
-            left: parameters.modifier.renderedBox.x,
-            label: 'Slur Properties',
-			tracker:parameters.tracker
-        });
-        Vex.Merge(this, parameters);
-    }
-    populateInitial() {
-        this.components.forEach((comp) => {
-            if (typeof(this.modifier[comp.smoName]) != 'undefined') {
-                comp.setValue(this.modifier[comp.smoName]);
-            }
-        });
-    }
-    display() {
-        super.display();
-        this.populateInitial();
-    }
+    super(SuiSlurAttributesDialog.dialogElements, {
+        id: 'dialog-' + parameters.modifier.attrs.id,
+        top: parameters.modifier.renderedBox.y,
+        left: parameters.modifier.renderedBox.x,
+        label: 'Slur Properties',
+       ...parameters
+      });
+      Vex.Merge(this, parameters);
+  }
+  populateInitial() {
+    this.components.forEach((comp) => {
+      if (typeof(this.modifier[comp.smoName]) != 'undefined') {
+        comp.setValue(this.modifier[comp.smoName]);
+      }
+    });
+  }
+  display() {
+    super.display();
+    this.populateInitial();
+  }
 }
 
 class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
-	 static get dialogElements() {
-        return [{
-                parameterName: 'number',
-                smoName: 'number',
-                defaultValue: 1,
-                control: 'SuiRockerComponent',
-                label: 'number'
-            }, {
-                smoName: 'xOffsetStart',
-                parameterName: 'xOffsetStart',
-                defaultValue: 0,
-                control: 'SuiRockerComponent',
-                label: 'X1 Offset'
-            }, {
-                smoName: 'xOffsetEnd',
-                parameterName: 'xOffsetEnd',
-                defaultValue: 0,
-                control: 'SuiRockerComponent',
-                label: 'X2 Offset'
-            }, {
-                smoName: 'yOffset',
-                parameterName: 'yOffset',
-                defaultValue: 0,
-                control: 'SuiRockerComponent',
-                label: 'Y Offset'
-            }
-        ];
-	 }
-	 static createAndDisplay(parameters) {
-        var dg = new SuiVoltaAttributeDialog(parameters);
-        dg.display();
-        return dg;
-    }
-	handleRemove() {
-        this.undo.addBuffer('Remove nth ending', 'score', null, this.layout.score);
-		this.layout.score.staves.forEach((staff) => {
-			staff.measures.forEach((measure) => {
-				if (measure.measureNumber.measureNumber === this.modifier.startBar) {
-					measure.removeNthEnding(this.modifier.number);
-				}
-			});
-		});
-        $(this.context.svg).find('g.' + this.modifier.endingId).remove();
-        this.selection.staff.removeStaffModifier(this.modifier);
-   }
-	_commit() {
-        this.modifier.restoreOriginal();
-		this.layout.score.staves.forEach((staff) => {
-			staff.measures.forEach((measure) => {
-				if (measure.measureNumber.measureNumber === this.modifier.startBar) {
-					 var endings = measure.getNthEndings().filter((mm) => {
-						 return mm.endingId === this.modifier.endingId;
-					 });
-					 if (endings.length) {
-						 endings.forEach((ending) => {
-							 this.components.forEach((component) => {
-								ending[component.smoName] = component.getValue();
-							 });
-						 });
-					 }
-				}
-			});
-		});
+ static get dialogElements() {
+    return [{
+          parameterName: 'number',
+          smoName: 'number',
+          defaultValue: 1,
+          control: 'SuiRockerComponent',
+          label: 'number'
+      }, {
+          smoName: 'xOffsetStart',
+          parameterName: 'xOffsetStart',
+          defaultValue: 0,
+          control: 'SuiRockerComponent',
+          label: 'X1 Offset'
+      }, {
+          smoName: 'xOffsetEnd',
+          parameterName: 'xOffsetEnd',
+          defaultValue: 0,
+          control: 'SuiRockerComponent',
+          label: 'X2 Offset'
+      }, {
+          smoName: 'yOffset',
+          parameterName: 'yOffset',
+          defaultValue: 0,
+          control: 'SuiRockerComponent',
+          label: 'Y Offset'
+      }
+    ];
+ }
+ static createAndDisplay(parameters) {
+    var dg = new SuiVoltaAttributeDialog(parameters);
+    dg.display();
+    return dg;
+  }
+handleRemove() {
+  this.undoBuffer.addBuffer('Remove nth ending', 'score', null, this.layout.score);
+	this.layout.score.staves.forEach((staff) => {
+  	staff.measures.forEach((measure) => {
+  		if (measure.measureNumber.measureNumber === this.modifier.startBar) {
+  			measure.removeNthEnding(this.modifier.number);
+  		}
+  	 });
+	});
+  $(this.context.svg).find('g.' + this.modifier.endingId).remove();
+  this.selection.staff.removeStaffModifier(this.modifier);
+ }
+  _commit() {
+    this.modifier.restoreOriginal();
+	  this.layout.score.staves.forEach((staff) => {
+  		staff.measures.forEach((measure) => {
+    		if (measure.measureNumber.measureNumber === this.modifier.startBar) {
+      			 var endings = measure.getNthEndings().filter((mm) => {
+      				 return mm.endingId === this.modifier.endingId;
+      			 });
+      			 if (endings.length) {
+      			 endings.forEach((ending) => {
+        				 this.components.forEach((component) => {
+      					ending[component.smoName] = component.getValue();
+      				 });
+      			 });
+      		 }
+      	}
+       });
+  	});
 
-        this.layout.renderStaffModifierPreview(this.modifier);
+      this.layout.renderStaffModifierPreview(this.modifier);
+  }
+  constructor(parameters) {
+    if (!parameters.modifier) {
+        throw new Error('modifier attribute dialog must have modifier');
     }
-    constructor(parameters) {
-        if (!parameters.modifier || !parameters.selection) {
-            throw new Error('modifier attribute dialog must have modifier and staff');
-        }
 
-        super(SuiVoltaAttributeDialog.dialogElements, {
-            id: 'dialog-' + parameters.modifier.attrs.id,
-            top: parameters.modifier.renderedBox.y,
-            left: parameters.modifier.renderedBox.x,
-            label: 'Hairpin Properties',
-			tracker:parameters.tracker
-        });
-        Vex.Merge(this, parameters);
-		SmoVolta.editableAttributes.forEach((attr) => {
-			var comp = this.components.find((cc)=>{return cc.smoName===attr});
-			if (comp) {
-				comp.defaultValue=this.modifier[attr];
-			}
-		});
-    }
+    super(SuiVoltaAttributeDialog.dialogElements, {
+        id: 'dialog-' + parameters.modifier.attrs.id,
+        top: parameters.modifier.renderedBox.y,
+        left: parameters.modifier.renderedBox.x,
+        label: 'Hairpin Properties',
+        ...parameters
+    });
+    Vex.Merge(this, parameters);
+    this.selection = SmoSelection.measureSelection(this.layout.score,this.modifier.startSelector.staff,this.modifier.startSelector.measure);
+
+  	SmoVolta.editableAttributes.forEach((attr) => {
+  		var comp = this.components.find((cc)=>{return cc.smoName===attr});
+  		if (comp) {
+  			comp.defaultValue=this.modifier[attr];
+  		}
+  	});
+  }
 }
 class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
-    static get label() {
-        return 'Hairpin Properties';
-    }
-    static get dialogElements() {
-        return [{
-                parameterName: 'height',
-                smoName: 'height',
-                defaultValue: 10,
-                control: 'SuiRockerComponent',
-                label: 'Height'
-            }, {
-                smoName: 'yOffset',
-                parameterName: 'y_shift',
-                defaultValue: 0,
-                control: 'SuiRockerComponent',
-                label: 'Y Shift'
-            }, {
-                smoName: 'xOffsetRight',
-                parameterName: 'right_shift_px',
-                defaultValue: 0,
-                control: 'SuiRockerComponent',
-                label: 'Right Shift'
-            }, {
-                smoName: 'xOffsetLeft',
-                parameterName: 'left_shift_px',
-                defaultValue: 0,
-                control: 'SuiRockerComponent',
-                label: 'Left Shift'
-            }
-        ];
-    }
-    static createAndDisplay(parameters) {
-        var dg = new SuiHairpinAttributesDialog(parameters);
-        dg.display();
-        return dg;
-    }
-    constructor(parameters) {
-        if (!parameters.modifier || !parameters.selection) {
-            throw new Error('modifier attribute dialog must have modifier and staff');
+  static get label() {
+    return 'Hairpin Properties';
+  }
+  static get dialogElements() {
+    return [{
+            parameterName: 'height',
+            smoName: 'height',
+            defaultValue: 10,
+            control: 'SuiRockerComponent',
+            label: 'Height'
+        }, {
+            smoName: 'yOffset',
+            parameterName: 'y_shift',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Y Shift'
+        }, {
+            smoName: 'xOffsetRight',
+            parameterName: 'right_shift_px',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Right Shift'
+        }, {
+            smoName: 'xOffsetLeft',
+            parameterName: 'left_shift_px',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Left Shift'
         }
+    ];
+  }
+static createAndDisplay(parameters) {
+      var dg = new SuiHairpinAttributesDialog(parameters);
+      dg.display();
+      return dg;
+  }
+  constructor(parameters) {
+  if (!parameters.modifier || !parameters.selection) {
+      throw new Error('modifier attribute dialog must have modifier and staff');
+  }
 
-        super(SuiHairpinAttributesDialog.dialogElements, {
-            id: 'dialog-' + parameters.modifier.attrs.id,
-            top: parameters.modifier.renderedBox.y,
-            left: parameters.modifier.renderedBox.x,
-            label: 'Hairpin Properties',
-			tracker:parameters.tracker
-        });
-        Vex.Merge(this, parameters);
-		SmoStaffHairpin.editableAttributes.forEach((attr) => {
-			var comp = this.components.find((cc)=>{return cc.smoName===attr});
-			if (comp) {
-				comp.defaultValue=this.modifier[attr];
-			}
-		});
-    }
+    super(SuiHairpinAttributesDialog.dialogElements, {
+        id: 'dialog-' + parameters.modifier.attrs.id,
+        top: parameters.modifier.renderedBox.y,
+        left: parameters.modifier.renderedBox.x,
+        label: 'Hairpin Properties',
+  			tracker:parameters.tracker,
+        completeNotifier:parameters.completeNotifier,
+        undoBuffer: parameters.undoBuffer,
+        eventSource: parameters.eventSource
+      });
+    Vex.Merge(this, parameters);
+  	SmoStaffHairpin.editableAttributes.forEach((attr) => {
+  		var comp = this.components.find((cc)=>{return cc.smoName===attr});
+  		if (comp) {
+  			comp.defaultValue=this.modifier[attr];
+  		}
+  	});
+  }
 }
 ;
 
@@ -21428,7 +21473,10 @@ class suiController {
 		Vex.Merge(this, suiController.defaults);
 		Vex.Merge(this, params);
 		window.suiControllerInstance = this;
+
+
 		this.undoBuffer = new UndoBuffer();
+    this.eventSource = params.eventSource;
 		this.pasteBuffer = this.tracker.pasteBuffer;
     this.tracker.setDialogModifier(this);
 		this.editor.controller = this;
@@ -21437,7 +21485,8 @@ class suiController {
 		this.resizing = false;
 		this.undoStatus=0;
 		this.trackScrolling = false;
-        this.keyboardActive = false;
+
+    this.keyHandlerObj = null;
 
 		this.ribbon = new RibbonButtons({
 				ribbons: defaultRibbonLayout.ribbons,
@@ -21446,10 +21495,12 @@ class suiController {
 				editor: this.editor,
 				tracker: this.tracker,
 				score: this.score,
-				controller: this
+				controller: this,
+        layout:this.tracker.layout,
+        eventSource:this.eventSource
 			});
 
-        this.menus.setController(this);
+    this.menus.setController(this);
 
 		// create globbal exception instance
 		this.exhandler = new SuiExceptionHandler(this);
@@ -21525,7 +21576,20 @@ class suiController {
 
   createModifierDialog(modifier) {
     this.idleLayoutTimer = Date.now();
-    this.unbindKeyboardForModal(SuiDialogFactory.createDialog(modifier, this.tracker.context, this.tracker, this.layout,this.undoBuffer,this));
+    var parameters = {
+      modifier:modifier, context:this.tracker.context, tracker:this.tracker, layout:this.layout, undoBuffer:this.undoBuffer,eventSource:this.eventSource,
+         completeNotifier:this
+    }
+    this.unbindKeyboardForModal(
+      SuiDialogFactory.createDialog(modifier,
+        {
+          tracker:this.tracker,
+          layout:this.layout,
+          undoBuffer:this.undoBuffer,
+          completeNotifier:this,
+          eventSource:this.eventSource
+        })
+    );
   }
 
 	// If the user has selected a modifier via the mouse/touch, bring up mod dialog
@@ -21534,13 +21598,13 @@ class suiController {
     this.idleLayoutTimer = Date.now();
 		var modSelection = this.tracker.getSelectedModifier();
 		if (modSelection) {
-			var dialog = this.showModifierDialog(modSelection);
-        if (dialog) {
-          this.tracker.selectSuggestion(ev);
-    	    this.unbindKeyboardForModal(dialog);
-        } else {
-          this.tracker.advanceModifierSelection(ev);
-        }
+			var dialog = this.createModifierDialog(modSelection);
+      if (dialog) {
+        this.tracker.selectSuggestion(ev);
+  	    this.unbindKeyboardForModal(dialog);
+      } else {
+        this.tracker.advanceModifierSelection(ev);
+      }
 		} else {
       this.tracker.selectSuggestion(ev);
     }
@@ -21577,15 +21641,18 @@ class suiController {
 		SuiDom.createDom(title);
 		var params = suiController.keyBindingDefaults;
     var score = SuiDom.scoreFromQueryString();
+    params.eventSource = new browserEventSource(); // events come from the browser UI.
+
 		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), document.getElementById("booShadow"),score);
-        params.scroller = new suiScroller();
+    params.scroller = new suiScroller();
 		params.tracker = new suiTracker(params.layout,params.scroller);
     params.layout.setMeasureMapper(params.tracker);
 		params.editor = new suiEditor(params);
 		params.menus = new suiMenuManager(params);
-        params.layoutDemon = new SuiLayoutDemon(params);
+    params.layoutDemon = new SuiLayoutDemon(params);
 		var controller = new suiController(params);
-        params.layout.score = score;
+    params.menus.undoBuffer = controller.undoBuffer;
+    params.layout.score = score;
     SuiDom.splash();
 		return controller;
 	}
@@ -21663,13 +21730,7 @@ class suiController {
 		var rebind = function () {
 			self.bindEvents();
 		}
-		/* SmoHelp.helpControls();
-		$('.controls-left button.help-button').off('click').on('click', function () {
-		window.removeEventListener("keydown", self.keydownHandler, true);
-		SmoHelp.displayHelp();
-		htmlHelpers.closeDialogPromise().then(rebind);
-		});   */
-	}
+  }
 	static set reentry(value) {
 		suiController._reentry = value;
 	}
@@ -21699,12 +21760,11 @@ class suiController {
 		var rebind = function () {
 			self.bindEvents();
 		}
-		window.removeEventListener("keydown", this.keydownHandler, true);
-    this.keyboardActive = false;
+    this.eventSource.unbindKeydownHandler(this.keydownHandler);
 		dialog.closeModalPromise.then(rebind);
 	}
 
-	handleKeydown(evdata) {
+	evKey(evdata) {
 		var self = this;
 
 		console.log("KeyboardEvent: key='" + evdata.key + "' | code='" +
@@ -21720,7 +21780,6 @@ class suiController {
       // set up menu DOM.
 			this.menuHelp();
       this.menus.slashMenuMode(this);
-      this.unbindKeyboardForModal(this.menus);
 		}
 
 		// TODO:  work dialogs into the scheme of things
@@ -21741,21 +21800,9 @@ class suiController {
 		}
 	}
 
-	detach() {
-		window.removeEventListener("keydown", this.keydownHandler, true);
-		/* this.layout = null;
-		this.tracker = null;
-		this.editor = null;  */
-	}
-
-
 	bindEvents() {
 		var self = this;
 		var tracker = this.tracker;
-        if (this.keyboardActive) {
-            return; // already bound.
-        }
-        this.keyboardActive = true;
 
 		$('body').off('redrawScore').on('redrawScore',function() {
 			self.handleRedrawTimer();
@@ -21778,12 +21825,9 @@ class suiController {
 			tracker.selectSuggestion(ev);
 		});
 
-		this.keydownHandler = this.handleKeydown.bind(this);
+    this.keydownHandler = this.eventSource.bindKeydownHandler(this,'evKey');
 
 		this.helpControls();
-
-		window.addEventListener("keydown", this.keydownHandler, true);
-
 		window.addEventListener('error', function (e) {
 			SuiExceptionHandler.instance.exceptionHandler(e);
 		});

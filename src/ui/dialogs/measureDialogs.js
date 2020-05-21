@@ -94,24 +94,13 @@ class SuiMeasureDialog extends SuiDialogBase {
         		}
         ];
     }
-    static createAndDisplay(ignore1,ignore2,controller) {
-        // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
-        //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
-        var selection = controller.tracker.selections[0];
-        var measure = selection.measure;
-        var measureIndex = measure.measureNumber.measureIndex;
-
-        var dg = new SuiMeasureDialog({
-            measure: measure,
-            measureIndex: measureIndex,
-            undoBuffer:controller.undoBuffer,
-            layout: controller.tracker.layout,
-            tracker:controller.tracker,
-            controller:controller,
-            selection:selection
-          });
-        dg.display();
-        return dg;
+    static createAndDisplay(parameters) {
+      // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
+      //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
+      parameters.selection = parameters.tracker.selections[0];
+      var dg = new SuiMeasureDialog(parameters);
+      dg.display();
+      return dg;
     }
     changed() {
         if (this.pickupMeasureCtrl.changeFlag || this.pickupMeasureCtrl.changeFlag) {
@@ -164,84 +153,92 @@ class SuiMeasureDialog extends SuiDialogBase {
         //
         this._updateConditionals();
     }
-    constructor(parameters) {
-        if (!parameters.measure || !parameters.selection) {
-            throw new Error('measure dialogmust have measure and selection');
-        }
-
-        super(SuiMeasureDialog.dialogElements, {
-            id: 'dialog-measure',
-            top: parameters.measure.renderedBox.y,
-            left: parameters.measure.renderedBox.x,
-            label: 'Measure Properties',
-			tracker:parameters.controller.tracker
-        });
-        this.refresh = false;
-        Vex.Merge(this, parameters);
-        this.modifier = this.measure;
+  constructor(parameters) {
+    if (!parameters.selection) {
+        throw new Error('measure dialogmust have measure and selection');
     }
-    _updateConditionals() {
-        if (this.padLeftCtrl.getValue() != 0 || this.padLeftCtrl.changeFlag) {
-            $('.attributeDialog .attributeModal').addClass('pad-left-select');
-        } else {
-            $('.attributeDialog .attributeModal').removeClass('pad-left-select');
-        }
 
-        if (this.pickupMeasureCtrl.getValue()) {
-            $('.attributeDialog .attributeModal').addClass('pickup-select');
-        } else {
-            $('.attributeDialog .attributeModal').removeClass('pickup-select');
-        }
-        var str = this.measureTextCtrl.getValue();
-        if (str && str.length) {
-            $('.attributeDialog .attributeModal').addClass('measure-text-set');
-        } else {
-            $('.attributeDialog .attributeModal').removeClass('measure-text-set');
-        }
-    }
-    populateInitial() {
-        this.padLeftCtrl.setValue(this.measure.padLeft);
-        this.originalStretch = this.measure.customStretch;
-        this.originalProportion = this.measure.customProportion;
-        var isPickup = this.measure.isPickup();
-        this.customStretchCtrl.setValue(this.measure.customStretch);
-        this.customProportionCtrl.setValue(this.measure.customProportion);
-        this.pickupMeasureCtrl.setValue(isPickup);
-        if (isPickup) {
-            this.pickupMeasureCtrl.setValue(this.measure.getTicksFromVoice())
-        }
+    super(SuiMeasureDialog.dialogElements, {
+      id: 'dialog-measure',
+      top: parameters.selection.measure.renderedBox.y,
+      left: parameters.selection.measure.renderedBox.x,
+      label: 'Measure Properties',
+  		tracker:parameters.tracker,
+      undoBuffer: parameters.undoBuffer,
+      eventSource: parameters.eventSource,
+      completeNotifier : parameters.completeNotifier,
+      layout: parameters.layout
+    });
+    this.refresh = false;
+    Vex.Merge(this, parameters);
 
-        var isSystemBreak = this.measure.getForceSystemBreak();
-        this.systemBreakCtrl.setValue(isSystemBreak);
-        this._updateConditionals();
+    // The 'modifier' that this dialog acts on is a measure.
+    this.measure = this.selection.measure;
+    this.modifier = this.measure;
+  }
+  _updateConditionals() {
+    if (this.padLeftCtrl.getValue() != 0 || this.padLeftCtrl.changeFlag) {
+        $('.attributeDialog .attributeModal').addClass('pad-left-select');
+    } else {
+        $('.attributeDialog .attributeModal').removeClass('pad-left-select');
+    }
 
-        // TODO: handle multiples (above/below)
-        var texts = this.measure.getMeasureText();
-        if (texts.length) {
-            this.measureTextCtrl.setValue(texts[0].text);
-            this.measureTextPositionCtrl.setValue(texts[0].position);
-        }
+    if (this.pickupMeasureCtrl.getValue()) {
+        $('.attributeDialog .attributeModal').addClass('pickup-select');
+    } else {
+        $('.attributeDialog .attributeModal').removeClass('pickup-select');
     }
-    _cancelEdits() {
-        this.measure.customStretch = this.originalStretch;
-        this.measure.customProportion = this.originalProportion;
-        this.layout.setRefresh();
+    var str = this.measureTextCtrl.getValue();
+    if (str && str.length) {
+        $('.attributeDialog .attributeModal').addClass('measure-text-set');
+    } else {
+        $('.attributeDialog .attributeModal').removeClass('measure-text-set');
     }
-    _bindElements() {
+  }
+  populateInitial() {
+    this.padLeftCtrl.setValue(this.measure.padLeft);
+    this.originalStretch = this.measure.customStretch;
+    this.originalProportion = this.measure.customProportion;
+    var isPickup = this.measure.isPickup();
+    this.customStretchCtrl.setValue(this.measure.customStretch);
+    this.customProportionCtrl.setValue(this.measure.customProportion);
+    this.pickupMeasureCtrl.setValue(isPickup);
+    if (isPickup) {
+      this.pickupMeasureCtrl.setValue(this.measure.getTicksFromVoice())
+    }
+
+    var isSystemBreak = this.measure.getForceSystemBreak();
+    this.systemBreakCtrl.setValue(isSystemBreak);
+    this._updateConditionals();
+
+    // TODO: handle multiples (above/below)
+    var texts = this.measure.getMeasureText();
+    if (texts.length) {
+      this.measureTextCtrl.setValue(texts[0].text);
+      this.measureTextPositionCtrl.setValue(texts[0].position);
+    }
+  }
+  _cancelEdits() {
+    this.measure.customStretch = this.originalStretch;
+    this.measure.customProportion = this.originalProportion;
+    this.layout.setRefresh();
+  }
+  _bindElements() {
+    this._bindComponentNames();
 		var self = this;
 		var dgDom = this.dgDom;
-        this.bindKeyboard();
-        this.controller.unbindKeyboardForModal(this);
-        this._bindComponentNames();
-        this.populateInitial();
+    this.bindKeyboard();
+    this._bindComponentNames();
+    this.completeNotifier.unbindKeyboardForModal(this);
+    this.populateInitial();
 
-		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            self.controller.tracker.replaceSelectedMeasures();
-			self.complete();
-		});
+  	$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+      self.tracker.replaceSelectedMeasures();
+  		self.complete();
+  	});
 
 		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-            self._cancelEdits();
+      self._cancelEdits();
 			self.complete();
 		});
 		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
@@ -296,11 +293,12 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
          //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
 
          var dg = new SuiTimeSignatureDialog({
-             selections: params.controller.tracker.selections,
-             undoBuffer: params.controller.undoBuffer,
-             layout: params.controller.tracker.layout,
-             controller:params.controller,
-             closeMenuPromise:params.closeMenuPromise
+             selections: params.tracker.selections,
+             undoBuffer: params.undoBuffer,
+             layout: params.tracker.layout,
+             completeNotifier :params.completeNotifier,
+             closeMenuPromise:params.closeMenuPromise,
+             tracker: params.tracker
            });
          dg.display();
          return dg;
@@ -354,7 +352,7 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
 
          var self=this;
          function getKeys() {
-             self.controller.unbindKeyboardForModal(self);
+             self.completeNotifier.unbindKeyboardForModal(self);
          }
          this.startPromise.then(getKeys);
      }
@@ -366,7 +364,12 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
              top: measure.renderedBox.y,
              left: measure.renderedBox.x,
              label: 'Custom Time Signature',
- 			 tracker:parameters.controller.tracker
+ 			 tracker:parameters.tracker,
+       undoBuffer: parameters.undoBuffer,
+       eventSource: parameters.eventSource,
+       completeNotifier : parameters.completeNotifier,
+       layout: parameters.layout
+
          });
          this.measure = measure;
          this.refresh = false;
@@ -431,100 +434,96 @@ class SuiTempoDialog extends SuiDialogBase {
 			]
 		},
 
-            {
-            smoName: 'tempoText',
-            parameterName: 'tempoText',
-            defaultValue: SmoTempoText.tempoTexts.allegro,
-            control: 'SuiDropdownComponent',
-            label:'Tempo Text',
-            options: [{
-                value: SmoTempoText.tempoTexts.larghissimo,
-                label: 'Larghissimo'
-              }, {
-                value: SmoTempoText.tempoTexts.grave,
-                label: 'Grave'
-              }, {
-                value: SmoTempoText.tempoTexts.lento,
-                label: 'Lento'
-              }, {
-                value: SmoTempoText.tempoTexts.largo,
-                label: 'Largo'
-              }, {
-                value: SmoTempoText.tempoTexts.larghetto,
-                label: 'Larghetto'
-              }, {
-                value: SmoTempoText.tempoTexts.adagio,
-                label: 'Adagio'
-              }, {
-                value: SmoTempoText.tempoTexts.adagietto,
-                label: 'Adagietto'
-              }, {
-                value: SmoTempoText.tempoTexts.andante_moderato,
-                label: 'Andante moderato'
-              }, {
-                value: SmoTempoText.tempoTexts.andante,
-                label: 'Andante'
-              }, {
-                value: SmoTempoText.tempoTexts.andantino,
-                label: 'Andantino'
-              }, {
-                value: SmoTempoText.tempoTexts.moderator,
-                label: 'Moderato'
-              }, {
-                value: SmoTempoText.tempoTexts.allegretto,
-                label: 'Allegretto',
-              } ,{
-                value: SmoTempoText.tempoTexts.allegro,
-                label: 'Allegro'
-              }, {
-                value: SmoTempoText.tempoTexts.vivace,
-                label: 'Vivace'
-              }, {
-                value: SmoTempoText.tempoTexts.presto,
-                label: 'Presto'
-              }, {
-                value: SmoTempoText.tempoTexts.prestissimo,
-                label: 'Prestissimo'
-              }
-            ]
-        },{
+      {
+      smoName: 'tempoText',
+      parameterName: 'tempoText',
+      defaultValue: SmoTempoText.tempoTexts.allegro,
+      control: 'SuiDropdownComponent',
+      label:'Tempo Text',
+      options: [{
+          value: SmoTempoText.tempoTexts.larghissimo,
+          label: 'Larghissimo'
+        }, {
+          value: SmoTempoText.tempoTexts.grave,
+          label: 'Grave'
+        }, {
+          value: SmoTempoText.tempoTexts.lento,
+          label: 'Lento'
+        }, {
+          value: SmoTempoText.tempoTexts.largo,
+          label: 'Largo'
+        }, {
+          value: SmoTempoText.tempoTexts.larghetto,
+          label: 'Larghetto'
+        }, {
+          value: SmoTempoText.tempoTexts.adagio,
+          label: 'Adagio'
+        }, {
+          value: SmoTempoText.tempoTexts.adagietto,
+          label: 'Adagietto'
+        }, {
+          value: SmoTempoText.tempoTexts.andante_moderato,
+          label: 'Andante moderato'
+        }, {
+          value: SmoTempoText.tempoTexts.andante,
+          label: 'Andante'
+        }, {
+          value: SmoTempoText.tempoTexts.andantino,
+          label: 'Andantino'
+        }, {
+          value: SmoTempoText.tempoTexts.moderator,
+          label: 'Moderato'
+        }, {
+          value: SmoTempoText.tempoTexts.allegretto,
+          label: 'Allegretto',
+        } ,{
+          value: SmoTempoText.tempoTexts.allegro,
+          label: 'Allegro'
+        }, {
+          value: SmoTempoText.tempoTexts.vivace,
+          label: 'Vivace'
+        }, {
+          value: SmoTempoText.tempoTexts.presto,
+          label: 'Presto'
+        }, {
+          value: SmoTempoText.tempoTexts.prestissimo,
+          label: 'Prestissimo'
+        }
+      ]
+  },{
 			smoName:'applyToAll',
 			parameterName:'applyToAll',
 			defaultValue: false,
 			control:'SuiToggleComponent',
 			label:'Apply to all future measures?'
 		},{
-                smoName: 'display',
-                parameterName: 'display',
-                defaultValue: true,
-                control: 'SuiToggleComponent',
-                label: 'Display Tempo'
-            },
-        ]
+          smoName: 'display',
+          parameterName: 'display',
+          defaultValue: true,
+          control: 'SuiToggleComponent',
+          label: 'Display Tempo'
+      },
+    ]
+  }
+  static createAndDisplay(parameters) {
+    parameters.measures = SmoSelection.getMeasureList(parameters.tracker.selections)
+       .map((sel) => sel.measure);
+    var measure = parameters.measures[0];
+
+    // All measures have a default tempo, but it is not explicitly set unless it is
+    // non-default
+    parameters.modifier = measure.getTempo();
+    if (!parameters.modifier) {
+        parameters.modifier = new SmoTempoText();
+        measure.addTempo(parameters.modifier);
     }
-    static createAndDisplay(ignore1,ignore2,controller) {
-        // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
-        //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
-        var measures = SmoSelection.getMeasureList(controller.tracker.selections)
-           .map((sel) => sel.measure);
-        var existing = measures[0].getTempo();
-        if (!existing) {
-            existing = new SmoTempoText();
-            measures[0].addTempo(existing);
-        }
-        if (!existing.renderedBox) {
-            existing.renderedBox = svgHelpers.copyBox(measures[0].renderedBox);
-        }
-        var dg = new SuiTempoDialog({
-            measures: measures,
-            modifier: existing,
-            undoBuffer:controller.undoBuffer,
-            layout: controller.tracker.layout,
-            controller:controller
-          });
-        dg.display();
-        return dg;
+    if (!parameters.modifier.renderedBox) {
+        parameters.modifier.renderedBox = svgHelpers.copyBox(measure.renderedBox);
     }
+    var dg = new SuiTempoDialog(parameters);
+    dg.display();
+    return dg;
+  }
     constructor(parameters) {
         if (!parameters.modifier || !parameters.measures) {
             throw new Error('modifier attribute dialog must have modifier and selection');
@@ -535,7 +534,11 @@ class SuiTempoDialog extends SuiDialogBase {
             top: parameters.modifier.renderedBox.y,
             left: parameters.modifier.renderedBox.x,
             label: 'Tempo Properties',
-			tracker:parameters.controller.tracker
+            tracker:parameters.tracker,
+            undoBuffer: parameters.undoBuffer,
+            eventSource: parameters.eventSource,
+            completeNotifier : parameters.completeNotifier,
+            layout: parameters.layout
         });
         this.refresh = false;
         Vex.Merge(this, parameters);
@@ -600,7 +603,7 @@ class SuiTempoDialog extends SuiDialogBase {
             tempo.attrs.id = VF.Element.newID();
             measure.addTempo(tempo);
         });
-        this.controller.tracker.replaceSelectedMeasures();
+        this.tracker.replaceSelectedMeasures();
     }
     // ### handleRemove
     // Removing a tempo change is like changing the measure to the previous measure's tempo.
@@ -644,6 +647,6 @@ class SuiTempoDialog extends SuiDialogBase {
                 resolve();
             });
         });
-        this.controller.unbindKeyboardForModal(this);
+        this.completeNotifier.unbindKeyboardForModal(this);
     }
 }

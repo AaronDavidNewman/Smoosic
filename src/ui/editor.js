@@ -43,8 +43,9 @@ class suiEditor {
 		SmoUndoable.scoreSelectionOp(this.layout.score,selection,name,parameters,
 			    this.undoBuffer,description);
 		this._render();
-
 	}
+
+
 	scoreOperation(name,parameters,description) {
 		SmoUndoable.scoreOp(this.layout.score,name,parameters,this.undoBuffer,description);
 		this._render();
@@ -299,29 +300,33 @@ class suiEditor {
         }
     }
 	deleteMeasure() {
-        if (this.tracker.selections.length < 1) {
-            return;
-        }
-        var selection = this.tracker.selections[0];
-        var ix = selection.selector.measure;
-        this.layout.score.staves.forEach((staff) => {
-            this.layout.unrenderMeasure(staff.measures[ix]);
-            this.layout.unrenderMeasure(staff.measures[staff.measures.length-1]);
-
-            // A little hacky - delete the modifiers if they start or end on
-            // the measure
-            staff.modifiers.forEach((modifier) => {
-                if (modifier.startSelector.measure == ix || modifier.endSelector.measure == ix) {
-    			    $(this.layout.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
-                }
-    		});
-        });
-        this.tracker.deleteMeasure(selection);
-        // this.layout.unrenderAll();
-
-        SmoUndoable.deleteMeasure(this.layout.score, selection, this.undoBuffer);
-        this._refresh();
+    if (this.tracker.selections.length < 1) {
+      return;
     }
+    // don't delete the last measure
+    if (this.layout.score.staves[0].measures.length < 2) {
+      return;
+    }
+    var selection = this.tracker.selections[0];
+    var ix = selection.selector.measure;
+    this.layout.score.staves.forEach((staff) => {
+      this.layout.unrenderMeasure(staff.measures[ix]);
+      this.layout.unrenderMeasure(staff.measures[staff.measures.length-1]);
+
+      // A little hacky - delete the modifiers if they start or end on
+      // the measure
+      staff.modifiers.forEach((modifier) => {
+        if (modifier.startSelector.measure == ix || modifier.endSelector.measure == ix) {
+		        $(this.layout.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
+        }
+	    });
+    });
+    this.tracker.deleteMeasure(selection);
+    // this.layout.unrenderAll();
+
+    SmoUndoable.deleteMeasure(this.layout.score, selection, this.undoBuffer);
+    this._refresh();
+  }
 
     toggleCourtesyAccidental() {
         var grace = this.tracker.getSelectedGraceNotes();

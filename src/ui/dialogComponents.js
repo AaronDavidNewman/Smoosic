@@ -422,7 +422,7 @@ class SuiTextInPlace extends SuiComponentBase {
         var pid = this.parameterId;
         return $(this.dialog.dgDom.element).find('#' + pid).find('button');
     }
-    
+
     startEditSession() {
         var self=this;
         $(this._getInputElement()).find('label').text('Done Editing Text Block');
@@ -582,7 +582,7 @@ class SuiLyricEditComponent extends SuiComponentBase {
     var self=this;
     layoutDebug.addTextDebug('SuiLyricEditComponent: create editor request');
     this._startEditorDom();
-    this.editor = new noteTextEditSession(this,this.tracker,this.controller,this.verse,this.selection);
+    this.editor = new noteTextEditSession(this,this.tracker,this.verse,this.selection,this.eventSource);
     this.editor.startEditingSession();
     this._bind();
   }

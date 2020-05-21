@@ -1,9 +1,11 @@
 class SuiLyricDialog extends SuiDialogBase {
     static createAndDisplay(parameters) {
 		var dg = new SuiLyricDialog({
-				layout: parameters.controller.layout,
-				tracker:parameters.controller.tracker,
-				controller: parameters.controller
+				layout: parameters.layout,
+				completeNotifier: parameters.completeNotifier,
+        tracker:parameters.tracker,
+        undoBuffer: parameters.undoBuffer,
+        eventSource: parameters.eventSource
 			});
 		dg.display();
         return dg;
@@ -48,32 +50,29 @@ class SuiLyricDialog extends SuiDialogBase {
   		top: (p.layout.score.layout.pageWidth / 2) - 200,
   		left: (p.layout.score.layout.pageHeight / 2) - 200,
   		label: p.label,
-  		tracker:parameters.tracker
+  		...parameters
   	});
-        this.layout = p.layout;
-  	this.controller = p.controller;
-        this.tracker = this.controller.tracker;
-        this.undo = this.controller.undoBuffer;
-        SmoUndoable.noop(this.layout.score,this.undo,'Undo lyrics');
+    SmoUndoable.noop(this.layout.score,this.undoBuffer,'Undo lyrics');
   }
   display() {
-      $('body').addClass('showAttributeDialog');
+    $('body').addClass('showAttributeDialog');
 		this.components.forEach((component) => {
 			component.bind();
 		});
 
-    this.editor = this.components.find((c) => c.smoName === 'textEditor');
+    this._bindComponentNames();
+
+    // this.editor = this.components.find((c) => c.smoName === 'textEditor');
     this.verse = this.components.find((c) => c.smoName === 'verse');
 		this._bindElements();
 
     // make sure keyboard is unbound or we get dupicate key events.
     var self=this;
-    this.controller.unbindKeyboardForModal(this);
+    this.completeNotifier.unbindKeyboardForModal(this);
 
     $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
-        if ($(ctrl).hasClass('cbLyricEdit')) {
-        } else {
-            $(ctrl).addClass('fold-textedit');
+        if (!$(ctrl).hasClass('cbLyricEdit')) {
+          $(ctrl).addClass('fold-textedit');
         }
     });
 
@@ -89,19 +88,19 @@ class SuiLyricDialog extends SuiDialogBase {
 		});
 	}
   _focusSelection() {
-      if (this.editor.editor.selection &&
-          this.editor.editor.selection.note &&
-          this.editor.editor.selection.note.renderedBox) {
-              this.tracker.scroller.scrollVisibleBox(this.editor.editor.selection.note.renderedBox);
+      if (this.textEditorCtrl.editor.selection &&
+          this.textEditorCtrl.editor.selection.note &&
+          this.textEditorCtrl.editor.selection.note.renderedBox) {
+              this.tracker.scroller.scrollVisibleBox(this.textEditorCtrl.editor.selection.note.renderedBox);
           }
   }
   changed() {
-      this.editor.verse = this.verse.getValue();
+      this.textEditorCtrl.verse = this.verse.getValue();
       // Note, when selection changes, we need to wait for the text edit session
       // to start on the new selection.  Then this.editor.changeFlag is set and
       // we can focus on the selection if it is not visible.
-      if (this.editor.changeFlag && this.editor.selection) {
-          this.tracker.setSelection(this.editor.selection.selector);
+      if (this.textEditorCtrl.changeFlag && this.textEditorCtrl.selection) {
+          this.textEditorCtrl.setSelection(this.textEditorCtrl.selection.selector);
           this._focusSelection();
       }
   }
@@ -121,7 +120,8 @@ class SuiLyricDialog extends SuiDialogBase {
             self.complete();
 		});
     $(dgDom.element).find('.remove-button').remove();
-    this.editor.startEditSession();
+    this.textEditorCtrl.eventSource = this.eventSource;
+    this.textEditorCtrl.startEditSession();
 	}
 }
 
@@ -132,153 +132,154 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     return dg;
 	}
 
-    static get dialogElements() {
-		return [{
-				smoName: 'textEditor',
-				parameterName: 'text',
-				defaultValue: 0,
-				control: 'SuiTextInPlace',
-				label:'Edit Text',
-				options: []
-			},{
-				smoName: 'textDragger',
-				parameterName: 'textLocation',
-				defaultValue: 0,
-				control: 'SuiDragText',
-				label:'Move Text',
-				options: []
-			},{
-				smoName: 'textResizer',
-				parameterName: 'textBox',
-				defaultValue: 0,
-				control: 'SuiResizeTextBox',
-				label:'Resize Text',
-				options: []
-			},
+  static get dialogElements() {
+    return [
+      {
+  			smoName: 'textEditor',
+  			parameterName: 'text',
+  			defaultValue: 0,
+  			control: 'SuiTextInPlace',
+  			label:'Edit Text',
+  			options: []
+  		},{
+  			smoName: 'textDragger',
+  			parameterName: 'textLocation',
+  			defaultValue: 0,
+  			control: 'SuiDragText',
+  			label:'Move Text',
+  			options: []
+  		},{
+  			smoName: 'textResizer',
+  			parameterName: 'textBox',
+  			defaultValue: 0,
+  			control: 'SuiResizeTextBox',
+  			label:'Resize Text',
+  			options: []
+  		},
             {
-				smoName: 'x',
-				parameterName: 'x',
-				defaultValue: 0,
-				control: 'SuiRockerComponent',
-				label: 'X Position (Px)',
+  			smoName: 'x',
+  			parameterName: 'x',
+  			defaultValue: 0,
+  			control: 'SuiRockerComponent',
+  			label: 'X Position (Px)',
                 startRow:true,
-				type: 'int'
-			},{
-				smoName: 'y',
-				parameterName: 'y',
-				defaultValue: 0,
-				control: 'SuiRockerComponent',
-				label: 'Y Position (Px)',
+  			type: 'int'
+  		},{
+  			smoName: 'y',
+  			parameterName: 'y',
+  			defaultValue: 0,
+  			control: 'SuiRockerComponent',
+  			label: 'Y Position (Px)',
                 startRow:true,
-				type: 'int'
-			}, {
-				smoName: 'scaleX',
-				parameterName: 'scaleX',
-				defaultValue: 100,
-				control: 'SuiRockerComponent',
-				label: 'Horizontal Scale (%)',
+  			type: 'int'
+  		}, {
+  			smoName: 'scaleX',
+  			parameterName: 'scaleX',
+  			defaultValue: 100,
+  			control: 'SuiRockerComponent',
+  			label: 'Horizontal Scale (%)',
                 startRow:true,
-				type: 'percent'
-			}, {
-				smoName: 'scaleY',
-				parameterName: 'scaleY',
-				defaultValue: 100,
-				control: 'SuiRockerComponent',
-				label: 'Vertical Scale (%)',
+  			type: 'percent'
+  		}, {
+  			smoName: 'scaleY',
+  			parameterName: 'scaleY',
+  			defaultValue: 100,
+  			control: 'SuiRockerComponent',
+  			label: 'Vertical Scale (%)',
                 startRow:true,
-				type: 'percent'
-			}, {
-				smoName: 'justification',
-				parameterName: 'justification',
-				defaultValue: SmoScoreText.justifications.left,
-				control: 'SuiDropdownComponent',
-				label:'Justification',
+  			type: 'percent'
+  		}, {
+  			smoName: 'justification',
+  			parameterName: 'justification',
+  			defaultValue: SmoScoreText.justifications.left,
+  			control: 'SuiDropdownComponent',
+  			label:'Justification',
                 startRow:true,
-				options: [{
-						value: 'left',
-						label: 'Left'
-					}, {
-						value: 'right',
-						label: 'Right'
-					}, {
-						value: 'center',
-						label: 'Center'
-					}
-				]
-			} ,
-            {
-				smoName: 'fontFamily',
-				parameterName: 'fontFamily',
-				defaultValue: SmoScoreText.fontFamilies.times,
-				control: 'SuiDropdownComponent',
-				label:'Font Family',
-                startRow:true,
-				options: [{value:'serif',label:'Serif'},
-                  {value:'sans-serif',label:'Sans-Serif'},
-                  {label:'Monospace',value:'monospace'},
-                  {label:'Cursive',value:'cursive'},
-                  {label:'Times',value:'Times New Roman'},
-                  {label:'Arial',value:'Arial'},
-                  {label:'Helvetica',value:'Helvetica'}
-                  ]
+  			options: [{
+  					value: 'left',
+  					label: 'Left'
+  				}, {
+  					value: 'right',
+  					label: 'Right'
+  				}, {
+  					value: 'center',
+  					label: 'Center'
+  				}
+  			]
+  		},
+      {
+  			smoName: 'fontFamily',
+  			parameterName: 'fontFamily',
+  			defaultValue: SmoScoreText.fontFamilies.times,
+  			control: 'SuiDropdownComponent',
+  			label:'Font Family',
+        startRow:true,
+  			options: [{value:'serif',label:'Serif'},
+          {value:'sans-serif',label:'Sans-Serif'},
+          {label:'Monospace',value:'monospace'},
+          {label:'Cursive',value:'cursive'},
+          {label:'Times',value:'Times New Roman'},
+          {label:'Arial',value:'Arial'},
+          {label:'Helvetica',value:'Helvetica'}
+        ]
+  		},
+      {
+  			smoName: 'fontSize',
+  			parameterName: 'fontSize',
+  			defaultValue: 1,
+  			control: 'SuiRockerComponent',
+  			label: 'Font Size',
+  			type: 'float',
+        increment:0.1
+  		},
+      {
+  			smoName: 'fontUnit',
+  			parameterName: 'fontUnit',
+  			defaultValue: 'em',
+  			control: 'SuiDropdownComponent',
+  			label: 'Units',
+        options: [{value:'em',label:'em'},{value:'px',label:'px'},{value:'pt',label:'pt'}]
+  		},
+      {
+  			smoName: 'wrap',
+  			parameterName: 'wrap',
+        defaultValue: false,
+    	  control:'SuiToggleComponent',
+  			label: 'Wrap Text'
+  		},
+      { // {every:'every',even:'even',odd:'odd',once:'once'}
+  			smoName: 'pagination',
+  			parameterName: 'pagination',
+  			defaultValue: SmoScoreText.paginations.every,
+  			control: 'SuiDropdownComponent',
+  			label:'Page Behavior',
+        startRow:true,
+  			options: [{value:'once',label:'Once'},
+          {value:'every',label:'Every'},
+          {label:'Even',value:'even'},
+          {label:'Odd',value:'odd'},
+          {label:'Subsequent',value:'subsequent'}
+        ]
+  		}
+    ];
+  }
 
-			},
-            {
-				smoName: 'fontSize',
-				parameterName: 'fontSize',
-				defaultValue: 1,
-				control: 'SuiRockerComponent',
-				label: 'Font Size',
-				type: 'float',
-                increment:0.1
-			},
-            {
-				smoName: 'fontUnit',
-				parameterName: 'fontUnit',
-				defaultValue: 'em',
-				control: 'SuiDropdownComponent',
-				label: 'Units',
-                options: [{value:'em',label:'em'},{value:'px',label:'px'},{value:'pt',label:'pt'}]
-			},
-            {
-				smoName: 'wrap',
-				parameterName: 'wrap',
-                defaultValue: false,
-    			control:'SuiToggleComponent',
-				label: 'Wrap Text'
-			},
-            { // {every:'every',even:'even',odd:'odd',once:'once'}
-				smoName: 'pagination',
-				parameterName: 'pagination',
-				defaultValue: SmoScoreText.paginations.every,
-				control: 'SuiDropdownComponent',
-				label:'Page Behavior',
-                startRow:true,
-				options: [{value:'once',label:'Once'},
-                  {value:'every',label:'Every'},
-                  {label:'Even',value:'even'},
-                  {label:'Odd',value:'odd'},
-                  {label:'Subsequent',value:'subsequent'}
-                  ]
-			}
-        ];
-    }
-display() {
-  var self=this;
-  // Wait for text to be displayed before bringing up edit dialog
-  var waitForDisplay = () => {
-    return new Promise((resolve) => {
-      var waiter = ()  => {
-        setTimeout(() => {
-          if (self.modifier.renderedBox) {
-            console.log('text box has been created');
-            resolve();
-          } else {
-            waiter();
-          }
-        },50);
-      };
-      waiter();
+  display() {
+    var self=this;
+    // Wait for text to be displayed before bringing up edit dialog
+    var waitForDisplay = () => {
+      return new Promise((resolve) => {
+        var waiter = ()  => {
+          setTimeout(() => {
+            if (self.modifier.renderedBox) {
+              console.log('text box has been created');
+              resolve();
+            } else {
+              waiter();
+            }
+          },50);
+        };
+        waiter();
     });
   }
 
@@ -287,7 +288,6 @@ display() {
       self._display();
     },1);
   }
-
   waitForDisplay().then(callDisplay);
 }
   _display() {
@@ -420,7 +420,7 @@ display() {
 			var newText =  new SmoScoreText({position:SmoScoreText.positions.custom});
       parameters.modifier = newText;
       SmoUndoable.scoreOp(parameters.layout.score,'addScoreText',
-         parameters.modifier,  parameters.controller.undoBuffer,'Text Menu Command');
+         parameters.modifier,  parameters.undoBuffer,'Text Menu Command');
       parameters.layout.setRefresh();
     }
     var scrollPosition = tracker.scroller.absScroll;
@@ -442,15 +442,15 @@ display() {
 			top: parameters.modifier.y,
 			left: parameters.modifier.x,
 			label: 'Text Box Properties',
-			tracker:parameters.tracker
-		});
+      ...parameters
+    });
 
 		Vex.Merge(this, parameters);
 
     // Do we jump right into editing?
-    this.undo = parameters.controller.undoBuffer;
+    this.undo = parameters.undoBuffer;
     this.modifier.backupParams();
-    this.controller.unbindKeyboardForModal(this);
+    this.completeNotifier.unbindKeyboardForModal(this);
 	}
   _complete() {
       this.tracker.updateMap(); // update the text map

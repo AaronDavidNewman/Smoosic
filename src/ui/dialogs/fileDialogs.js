@@ -1,9 +1,6 @@
 
 class SuiFileDialog extends SuiDialogBase {
   constructor(parameters) {
-		if (!(parameters.controller)) {
-			throw new Error('file dialog must have score');
-		}
 		var p = parameters;
     var ctor = eval(parameters.ctor);
     p.label = parameters.label ? parameters.label : 'Dialog Box';
@@ -16,9 +13,6 @@ class SuiFileDialog extends SuiDialogBase {
     // File dialogs can be created from menu, get menu promise
 		this.layout = p.layout;
     this.value='';
-		// this.modifier = this.layout.score.layout;
-		this.controller = p.controller;
-		// this.backupOriginal();
 	}
   display() {
     $('body').addClass('showAttributeDialog');
@@ -30,7 +24,7 @@ class SuiFileDialog extends SuiDialogBase {
     // make sure keyboard is unbound or we get dupicate key events.
     var self=this;
     function getKeys() {
-        self.controller.unbindKeyboardForModal(self);
+        self.completeNotifier.unbindKeyboardForModal(self);
     }
     this.startPromise.then(getKeys);
     this.position($(this.dgDom.element)[0].getBoundingClientRect());

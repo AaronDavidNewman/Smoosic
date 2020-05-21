@@ -7,7 +7,7 @@
 // ---
 class RibbonButtons {
 	static get paramArray() {
-		return ['ribbonButtons', 'ribbons', 'editor', 'controller', 'tracker', 'menus'];
+		return ['ribbonButtons', 'ribbons', 'editor', 'controller', 'tracker', 'menus','layout','eventSource'];
 	}
 	static _buttonHtml(containerClass,buttonId, buttonClass, buttonText, buttonIcon, buttonKey) {
 		var b = htmlHelpers.buildDom;
@@ -27,7 +27,16 @@ class RibbonButtons {
 	}
 	_executeButtonModal(buttonElement, buttonData) {
 		var ctor = eval(buttonData.ctor);
-		ctor.createAndDisplay(buttonElement, buttonData,this.controller);
+		ctor.createAndDisplay(
+      {
+        tracker:this.tracker,
+        undoBuffer:this.editor.undoBuffer,
+        eventSource:this.eventSource,
+        editor:this.editor,
+        completeNotifier: this.controller,
+        layout: this.layout
+      }
+    );
 	}
 	_executeButtonMenu(buttonElement, buttonData) {
 		var self = this;
@@ -122,7 +131,10 @@ class RibbonButtons {
                         // collapseParent
                 		this.collapsables.push(new CollapseRibbonControl({
                 				ribbonButtons: this.ribbonButtons,
+                        layout:this.layout,
+                        undoBuffer:this.editor.undoBuffer,
                 				menus: this.menus,
+                        eventSource:this.eventSource,
                 				tracker: this.tracker,
                 				controller: this.controller,
                 				editor: this.editor,
@@ -383,11 +395,8 @@ class ChordButtons {
 
 class StaveButtons {
 	constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.tracker = parameters.tracker;
-		this.editor = parameters.editor;
-		this.score = this.editor.score;
+    Vex.Merge(this,parameters);
+    this.score = this.layout.score;
 	}
 	addClef(clef,clefName) {
 		var instrument = {
@@ -454,11 +463,7 @@ class StaveButtons {
 }
 class MeasureButtons {
 	constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.tracker = parameters.tracker;
-		this.editor = parameters.editor;
-		this.score = this.editor.score;
+    Vex.Merge(this,parameters);
 	}
 	/*
 	 static get barlines() {
@@ -560,12 +565,7 @@ class MeasureButtons {
 
 class PlayerButtons {
     	constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.tracker = parameters.tracker;
-        this.editor = parameters.editor;
-		this.controller = parameters.controller;
-        this.menus=parameters.controller.menus;
+        Vex.Merge(this,parameters);
 	}
 
     playButton() {
@@ -588,11 +588,7 @@ class PlayerButtons {
 
 class DisplaySettings {
     constructor(parameters) {
-    this.buttonElement = parameters.buttonElement;
-    this.buttonData = parameters.buttonData;
-    this.tracker = parameters.tracker;
-    this.layout = this.tracker.layout;
-    this.controller = parameters.controller;
+      Vex.Merge(this,parameters);
     }
 
     refresh() {
@@ -621,16 +617,11 @@ class DisplaySettings {
 }
 class TextButtons {
 	constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.tracker = parameters.tracker;
-        this.editor = parameters.editor;
-		this.controller = parameters.controller;
-        this.menus=parameters.controller.menus;
+    Vex.Merge(this,parameters);
+    this.menus = this.controller.menus;
 	}
   lyrics() {
-	SuiLyricDialog.createAndDisplay(
-          {buttonElement:this.buttonElement, buttonData:this.buttonData,controller:this.controller});
+	SuiLyricDialog.createAndDisplay(parameters);
 	// tracker, selection, controller
   }
   rehearsalMark() {
@@ -648,10 +639,12 @@ class TextButtons {
       {
         buttonElement:this.buttonElement,
         buttonData:this.buttonData,
-        controller:this.controller,
-        tracker: this.controller.tracker,
-        layout:this.controller.layout,
-        editor:this.controller.editor
+        completeNotifier:this.controller,
+        tracker: this.tracker,
+        layout:this.layout,
+        undoBuffer:this.editor.undoBuffer,
+        eventSource:this.eventSource,
+        editor:this.editor
     });
   }
 	addDynamicsMenu() {
@@ -743,7 +736,8 @@ class ArticulationButtons {
 
 class CollapseRibbonControl {
 	static get paramArray() {
-		return ['ribbonButtons', 'editor', 'controller', 'tracker', 'menus', 'buttonData', 'buttonElement'];
+		return ['ribbonButtons', 'editor', 'controller', 'tracker', 'menus', 'buttonData', 'buttonElement',
+    'layout','eventSource','undoBuffer'];
 	}
 	constructor(parameters) {
 		smoSerialize.filteredMerge(CollapseRibbonControl.paramArray, parameters, this);
@@ -773,9 +767,8 @@ class CollapseRibbonControl {
 			$(leftSpan).addClass(this.buttonData.icon);
 			$(leftSpan).text(this.buttonData.leftText);
 		}
-
-		// Expand may change music dom, redraw
-		$('body').trigger('forceScrollEvent');
+  	// Expand may change music dom, redraw
+  	$('body').trigger('forceScrollEvent');
 	}
 	bind() {
 		var self = this;
@@ -791,11 +784,14 @@ class CollapseRibbonControl {
 					buttonElement: el,
 					editor: this.editor,
 					tracker: this.tracker,
-					controller: this.controller
+					controller: this.controller,
+          layout:this.layout,
+          eventSource:this.eventSource,
+          undoBuffer:this.undoBuffer
 				});
-            if (typeof(btn.bind) == 'function') {
-                btn.bind();
-            }
+        if (typeof(btn.bind) == 'function') {
+          btn.bind();
+        }
 		});
 	}
 }

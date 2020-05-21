@@ -5,7 +5,7 @@
 // that operated on a selection.
 class SuiDialogFactory {
 
-	static createDialog(modSelection, context, tracker, layout,undoBuffer,controller) {
+	static createDialog(modSelection, parameters) {
 		var dbType = SuiDialogFactory.modifierDialogMap[modSelection.modifier.attrs.type];
 		var ctor = eval(dbType);
 		if (!ctor) {
@@ -14,12 +14,7 @@ class SuiDialogFactory {
 		}
 		return ctor.createAndDisplay({
 			modifier: modSelection.modifier,
-			selection: modSelection.selection,
-			context: context,
-			tracker: tracker,
-			layout: layout,
-            undo:undoBuffer,
-            controller:controller
+      ...parameters
 		});
 	}
 	static get modifierDialogMap() {
@@ -28,9 +23,9 @@ class SuiDialogFactory {
 			SmoSlur: 'SuiSlurAttributesDialog',
 			SmoDynamicText: 'SuiTextModifierDialog',
 			SmoVolta: 'SuiVoltaAttributeDialog',
-            SmoScoreText: 'SuiTextTransformDialog',
-            SmoLoadScore:  'SuiLoadFileDialog',
-            SmoLyric:'SuiLyricDialog'
+      SmoScoreText: 'SuiTextTransformDialog',
+      SmoLoadScore:  'SuiLoadFileDialog',
+      SmoLyric:'SuiLyricDialog'
 		};
 	}
 }
@@ -55,10 +50,18 @@ class SuiDialogBase {
 		});
     this.initialLeft = parameters.left
     this.initialTop = parameters.top;
-    this.startPromise = parameters.closeMenuPromise;
 
+    // If this dialog was spawned by a menu, wait for the menu to dismiss
+    // before continuing.
+    this.startPromise = parameters.closeMenuPromise;
+    this.eventSource = parameters.eventSource;
+    this.layout = parameters.layout;
+    this.context = this.layout.context;
 		this.dialogElements = dialogElements;
 		this.tracker = parameters.tracker;
+    this.completeNotifier = parameters.completeNotifier;
+    this.undoBuffer = parameters.undoBuffer;
+
 		var top = parameters.top - this.tracker.scroller.netScroll.y;
 		var left = parameters.left - this.tracker.scroller.netScroll.x;
 
@@ -154,9 +157,9 @@ class SuiDialogBase {
      // Dialogs take over the keyboard, so release that and trigger an event
      // that the dialog is closing that can resolve any outstanding promises.
 	complete() {
-        if (this.boundKeyboard) {
-            window.removeEventListener("keydown", this.keydownHandler, true);
-        }
+    if (this.boundKeyboard) {
+      this.eventSource.unbindKeydownHandler(this.keydownHandler);
+    }
 		$('body').removeClass('showAttributeDialog');
     console.log('dialog complete method called, triggering dialog close');
 		$('body').trigger('dialogDismiss');
@@ -165,12 +168,12 @@ class SuiDialogBase {
 
     // ### _bindComponentNames
     // helper method to give components class names based on their static configuration
-    _bindComponentNames() {
-        this.components.forEach((component) => {
+  _bindComponentNames() {
+    this.components.forEach((component) => {
 			var nm = component.smoName + 'Ctrl';
-            this[nm] = component;
+      this[nm] = component;
 		});
-    }
+  }
 
    // ### display
    // make3 the modal visible.  bind events and elements.
@@ -180,10 +183,12 @@ class SuiDialogBase {
 			component.bind();
 		});
 		this._bindElements();
-		this.position(this.modifier.renderedBox);
-        this.tracker.scroller.scrollVisibleBox(
-            svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
-        );
+    if (this.modifier && this.modifier.renderedBox) {
+      this.position(this.modifier.renderedBox);
+    }
+    this.tracker.scroller.scrollVisibleBox(
+        svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
+    );
 
 		var cb = function (x, y) {}
 		htmlHelpers.draggable({
@@ -195,24 +200,23 @@ class SuiDialogBase {
 		});
 	}
 
-    // ### handleKeydown
-    // allow a dialog to be dismissed by esc.
-    handleKeydown(evdata) {
-        if (evdata.key == 'Escape') {
-            $(this.dgDom.element).find('.cancel-button').click();
-            evdata.preventDefault();
-            return;
-        }
-        return;
+  // ### handleKeydown
+  // allow a dialog to be dismissed by esc.
+  evKey(evdata) {
+    if (evdata.key == 'Escape') {
+      $(this.dgDom.element).find('.cancel-button').click();
+      evdata.preventDefault();
+      return;
     }
+    return;
+  }
 
-    // ### bindKeyboard
-    // generic logic to grab keyboard elements for modal
-    bindKeyboard() {
-        this.boundKeyboard = true;
-        this.keydownHandler = this.handleKeydown.bind(this);
-        window.addEventListener("keydown", this.keydownHandler, true);
-    }
+  // ### bindKeyboard
+  // generic logic to grab keyboard elements for modal
+  bindKeyboard() {
+      this.boundKeyboard = true;
+      this.keydownHandler = this.eventSource.bindKeydownHandler(this,'evKey');
+  }
 
    // ### _bindElements
    // bing the generic controls in most dialogs.
@@ -380,18 +384,18 @@ class SuiLayoutDialog extends SuiDialogBase {
 			cb: cb,
 			moveParent: true
 		});
-		this.controller.unbindKeyboardForModal(this);
+		this.completeNotifier.unbindKeyboardForModal(this);
 
         var box = svgHelpers.boxPoints(250,250,1,1);
         SuiDialogBase.position(box,this.dgDom,this.tracker.scroller);
 
 	}
-    // ### _updateLayout
-    // even if the layout is not changed, we re-render the entire score by resetting
-    // the svg context.
-    _updateLayout() {
-        this.layout.rerenderAll();
-    }
+  // ### _updateLayout
+  // even if the layout is not changed, we re-render the entire score by resetting
+  // the svg context.
+  _updateLayout() {
+    this.layout.rerenderAll();
+  }
 	_handleCancel() {
 		this.layout.score.layout = this.backup;
 		this._updateLayout();
@@ -452,30 +456,24 @@ class SuiLayoutDialog extends SuiDialogBase {
 		// this.modifier.backupOriginal();
 		this._handlePageSizeChange();
 		this.components.forEach((component) => {
-            if (typeof(this.layout.score.layout[component.smoName]) != 'undefined') {
-			    this.layout.score.layout[component.smoName] = component.getValue();
-            }
+      if (typeof(this.layout.score.layout[component.smoName]) != 'undefined') {
+		    this.layout.score.layout[component.smoName] = component.getValue();
+      }
 		});
-        if (this.engravingFontCtrl.changeFlag)  {
-            this.layout.score.engravingFont = this.engravingFontCtrl.getValue();
-            suiLayoutBase.setFont(this.layout.score.engravingFont);
-        }
+    if (this.engravingFontCtrl.changeFlag)  {
+      this.layout.score.engravingFont = this.engravingFontCtrl.getValue();
+      suiLayoutBase.setFont(this.layout.score.engravingFont);
+    }
 		this.layout.setViewport();
 	}
 
-    // ### createAndDisplay
-    // static method to create the object and then display it.
-	static createAndDisplay(buttonElement, buttonData, controller) {
-		var dg = new SuiLayoutDialog({
-				layout: controller.layout,
-				controller: controller
-			});
+  // ### createAndDisplay
+  // static method to create the object and then display it.
+	static createAndDisplay(parameters) {
+		var dg = new SuiLayoutDialog(parameters);
 		dg.display();
 	}
 	constructor(parameters) {
-		if (!(parameters.layout && parameters.controller)) {
-			throw new Error('layout  dialog must have score');
-		}
 		var p = parameters;
 
 		super(SuiLayoutDialog.dialogElements, {
@@ -483,11 +481,10 @@ class SuiLayoutDialog extends SuiDialogBase {
 			top: (p.layout.score.layout.pageWidth / 2) - 200,
 			left: (p.layout.score.layout.pageHeight / 2) - 200,
 			label: 'Score Layout',
-			tracker:parameters.controller.tracker
+      ...parameters
 		});
 		this.layout = p.layout;
 		this.modifier = this.layout.score.layout;
-		this.controller = p.controller;
 		this.backupOriginal();
 	}
 }
@@ -554,25 +551,22 @@ class SuiTextModifierDialog extends SuiDialogBase {
 	}
 
 	constructor(parameters) {
-		if (!parameters.modifier || !parameters.selection) {
-			throw new Error('modifier attribute dialog must have modifier and selection');
-		}
-
 		super(SuiTextModifierDialog.dialogElements, {
 			id: 'dialog-' + parameters.modifier.id,
 			top: parameters.modifier.renderedBox.y,
 			left: parameters.modifier.renderedBox.x,
 			label: 'Dynamics Properties',
-			tracker:parameters.tracker
+      ...parameters
 		});
 		Vex.Merge(this, parameters);
+    this.selection = this.tracker.selections[0];
 		this.components.find((x) => {
 			return x.parameterName == 'text'
 		}).defaultValue = parameters.modifier.text;
 	}
 	handleRemove() {
 		$(this.context.svg).find('g.' + this.modifier.id).remove();
-        this.undo.addBuffer('remove dynamic', 'measure', this.selection.selector, this.selection.measure);
+    this.undoBuffer.addBuffer('remove dynamic', 'measure', this.selection.selector, this.selection.measure);
 		this.selection.note.removeModifier(this.modifier);
 		this.tracker.clearModifierSelections();
 	}
