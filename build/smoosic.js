@@ -8299,6 +8299,18 @@ class PasteBuffer {
 			var measure = this.measures[i];
 			var nvoice = voices[i];
 			var ser = measure.serialize();
+
+      // deserialize column-mapped attributes, these are not normally serialized
+      // since they are mapped to measures on a delta basis.
+      SmoMeasure.columnMappedAttributes.forEach((attr) => {
+        if (typeof(measure[attr]) === 'string') {
+          ser[attr] = measure[attr];
+        } else if (typeof(measure[attr]) === 'object') {
+          if (measure[attr].ctor) {
+            ser[attr] = measure[attr].serialize();
+          }
+        }
+      });
 			var vobj = {
 				notes: []
 			};
@@ -8307,16 +8319,16 @@ class PasteBuffer {
 			});
 
 			// TODO: figure out how to do this with multiple voices
-            this._pasteVoiceSer(ser,vobj,this.destination.voice);
+      this._pasteVoiceSer(ser,vobj,this.destination.voice);
 			var nmeasure = SmoMeasure.deserialize(ser);
-            nmeasure.renderedBox = svgHelpers.smoBox(measure.renderedBox);
-            nmeasure.setBox(svgHelpers.smoBox(measure.logicalBox),'copypaste');
-            nmeasure.setX(measure.logicalBox.x,'copyPaste');
-            nmeasure.setWidth( measure.logicalBox.width,'copypaste');
-            nmeasure.setY(measure.logicalBox.y,'copypaste');
-            ['forceClef','forceKeySignature','forceTimeSignature','forceTempo'].forEach((flag) => {
-                nmeasure[flag] = measure[flag];
-            });
+      nmeasure.renderedBox = svgHelpers.smoBox(measure.renderedBox);
+      nmeasure.setBox(svgHelpers.smoBox(measure.logicalBox),'copypaste');
+      nmeasure.setX(measure.logicalBox.x,'copyPaste');
+      nmeasure.setWidth( measure.logicalBox.width,'copypaste');
+      nmeasure.setY(measure.logicalBox.y,'copypaste');
+      ['forceClef','forceKeySignature','forceTimeSignature','forceTempo'].forEach((flag) => {
+          nmeasure[flag] = measure[flag];
+      });
 			this.score.replaceMeasure(measureSel, nmeasure);
 			measureSel.measure += 1;
 		}
@@ -10011,8 +10023,6 @@ class suiMapper {
     if (!measure.renderedBox) {
         return;
     }
-    console.log('mapping measure '+staff.staffId+'/' + measure.measureNumber.measureIndex);
-
     // Keep track of any current selections in this measure, we will try to restore them.
     var sels = this._copySelectionsByMeasure(staff.staffId,measure.measureNumber.measureIndex);
     this.clearMeasureMap(staff,measure);
@@ -10868,15 +10878,14 @@ class suiTracker extends suiMapper {
 			   clearTimeout(this.suggestFadeTimer);
   		}
 			this.modifierIndex = -1;
-            this.modifierSelections = [this.modifierTabs[this.modifierSuggestion]];
+      this.modifierSelections = [this.modifierTabs[this.modifierSuggestion]];
 			this.modifierSuggestion = -1;
 			this._highlightModifier();
-      var modifier = this.getSelectedModifier();
-      if (modifier) {
-        this.modifierDialogFactory.createModifierDialog(modifier);
-      }
 			return;
-		}
+		} else if (ev.type === 'click') {
+      this.clearModifierSelections(); // if we click on a non-modifier, clear the
+      // modifier selections
+    }
 
 		if (ev.shiftKey) {
 			var sel1 = this.getExtremeSelection(-1);
@@ -12006,7 +12015,7 @@ class SuiLayoutDemon {
   constructor(parameters) {
     this.pollTime = 100;
 
-    this.idleRedrawTime = 5000;
+    this.idleRedrawTime = 2500;
     this.idleLayoutTimer = 0;
     this.undoStatus=0;
 
@@ -12024,12 +12033,16 @@ class SuiLayoutDemon {
   		this.layout.dirty=true;
   		this.undoStatus = this.undoBuffer.opCount;
   		this.idleLayoutTimer = Date.now();
-        var state = this.layout.passState;
-        try {
-  		this.render();
-        } catch (ex) {
-            SuiExceptionHandler.instance.exceptionHandler(ex);
-        }
+      var state = this.layout.passState;
+      this.tracker.updateMap();
+
+      // indicate the display is 'dirty' and we will be refreshing it.
+      $('body').addClass('refresh-1');
+      try {
+  		  this.render();
+      } catch (ex) {
+        SuiExceptionHandler.instance.exceptionHandler(ex);
+      }
   	} else if (this.layout.passState === suiLayoutBase.passStates.replace) {
   		// Do we need to refresh the score?
   		if (Date.now() - this.idleLayoutTimer > this.idleRedrawTime) {
@@ -12056,6 +12069,9 @@ class SuiLayoutDemon {
 		this.layout.render();
     if (this.layout.passState == suiLayoutBase.passStates.clean && this.layout.dirty == false) {
        this.tracker.updateMap();
+
+       // indicate the display is 'clean' and up-to-date with the score
+       $('body').removeClass('refresh-1');
     }
 	}
 }
@@ -13304,14 +13320,17 @@ class noteTextEditSession {
 }
 ;
 
+// ##browserEventSource
+// Handle registration for events.  Can be used for automated testing, so all
+// the events are consolidated in one place so they can be simulated or recorded
 class browserEventSource {
   constructor(evMask) {
     this.keydownHandlers = [];
     this.mouseHandlers = [];
     this.domTriggers = [];
+    this.scrollers = [];
     this.handleKeydown = this.evKey.bind(this);
     window.addEventListener("keydown", this.handleKeydown, true);
-
   }
 
   evKey(event) {
@@ -13334,6 +13353,10 @@ class browserEventSource {
     this.keydownHandlers = handlers;
   }
 
+  bindScroller(sink,method) {}
+
+  // ### bindKeydownHandler
+  // add a handler for the evKey event, for keyboard data.
   bindKeydownHandler(sink,method) {
     var handler = {};
     handler.symbol = Symbol();
@@ -13341,6 +13364,12 @@ class browserEventSource {
     handler.method = method;
     this.keydownHandlers.push(handler);
     return handler;
+  }
+
+  domClick(selector,sink,method,args) {
+    $(selector).off('click').on('click',function(ev) {
+      sink[method](ev,args);
+    });
   }
 }
 ;
@@ -15278,20 +15307,20 @@ class defaultTrackerKeys {
 	}
 };// # Dialog base classes
 
-// ## SuiDialogFactory
+// ## SuiModifierDialogFactory
 // Automatic dialog constructors for dialogs without too many parameters
 // that operated on a selection.
-class SuiDialogFactory {
+class SuiModifierDialogFactory {
 
-	static createDialog(modSelection, parameters) {
-		var dbType = SuiDialogFactory.modifierDialogMap[modSelection.modifier.attrs.type];
+	static createDialog(modifier, parameters) {
+		var dbType = SuiModifierDialogFactory.modifierDialogMap[modifier.attrs.type];
 		var ctor = eval(dbType);
 		if (!ctor) {
-			console.warn('no dialog for modifier ' + modSelection.modifier.type);
+			console.warn('no dialog for modifier ' + modifier.type);
 			return;
 		}
 		return ctor.createAndDisplay({
-			modifier: modSelection.modifier,
+			modifier: modifier,
       ...parameters
 		});
 	}
@@ -15664,9 +15693,8 @@ class SuiLayoutDialog extends SuiDialogBase {
 		});
 		this.completeNotifier.unbindKeyboardForModal(this);
 
-        var box = svgHelpers.boxPoints(250,250,1,1);
-        SuiDialogBase.position(box,this.dgDom,this.tracker.scroller);
-
+    var box = svgHelpers.boxPoints(250,250,1,1);
+    SuiDialogBase.position(box,this.dgDom,this.tracker.scroller);
 	}
   // ### _updateLayout
   // even if the layout is not changed, we re-render the entire score by resetting
@@ -16386,6 +16414,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     // edit the text and just right into that.
     if (!this.modifier.edited) {
         this.modifier.edited = true;
+        layoutDebug.addDialogDebug('text transform db: startEditSession');
         this.textEditorCtrl.startEditSession();
     }
 	}
@@ -16408,10 +16437,10 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     // If we resized the text, set the size components from the actual text
     // object that was resized.
     if (this.textResizerCtrl.changeFlag) {
-    this.xCtrl.setValue(this.modifier.x);
-    this.yCtrl.setValue(this.modifier.y);
-    this.scaleXCtrl.setValue(this.modifier.scaleX);
-    this.scaleYCtrl.setValue(this.modifier.scaleY);
+      this.xCtrl.setValue(this.modifier.x);
+      this.yCtrl.setValue(this.modifier.y);
+      this.scaleXCtrl.setValue(this.modifier.scaleX);
+      this.scaleYCtrl.setValue(this.modifier.scaleY);
     }
     this.components.find((x) => {
     if (typeof(x['getValue'])=='function') {
@@ -16420,15 +16449,15 @@ class SuiTextTransformDialog  extends SuiDialogBase {
             var fcn = x.parameterName+'InPlace';
             this.modifier[fcn](val);
         }
-    }
-  });
+      }
+    });
 
     var xcomp = this.components.find((x) => x.smoName === 'x');
     var ycomp = this.components.find((x) => x.smoName === 'y');
     if (this.textDraggerCtrl.dragging) {
-        var val = this.textDraggerCtrl.getValue();
-        xcomp.setValue(val.x);
-        ycomp.setValue(val.y);
+      var val = this.textDraggerCtrl.getValue();
+      xcomp.setValue(val.x);
+      ycomp.setValue(val.y);
     }
     this.modifier.x=xcomp.getValue();
     this.modifier.y=ycomp.getValue();
@@ -16437,7 +16466,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     this.modifier.fontInfo.family = fontComp.getValue();
 
     if (this.paginationsComponent.changeFlag) {
-        this.modifier.pagination = this.paginationsComponent.getValue();
+      this.modifier.pagination = this.paginationsComponent.getValue();
     }
 
     var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
@@ -16492,36 +16521,36 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     this.completeNotifier.unbindKeyboardForModal(this);
 	}
   _complete() {
-      this.tracker.updateMap(); // update the text map
-      this.layout.setDirty();
-      this.complete();
+    this.tracker.updateMap(); // update the text map
+    this.layout.setDirty();
+    this.complete();
   }
   _bindElements() {
-      var self = this;
-      this.bindKeyboard();
-	var dgDom = this.dgDom;
-  var fontComp = this.components.find((c) => c.smoName === 'fontFamily');
+    var self = this;
+    this.bindKeyboard();
+  	var dgDom = this.dgDom;
+    var fontComp = this.components.find((c) => c.smoName === 'fontFamily');
 
-  fontComp.setValue(this.modifier.fontInfo.family);
+    fontComp.setValue(this.modifier.fontInfo.family);
 
-	$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-    self.textEditorCtrl.endSession();
-    self.textDraggerCtrl.endSession();
-		self._complete();
-	});
+  	$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+      self.textEditorCtrl.endSession();
+      self.textDraggerCtrl.endSession();
+  		self._complete();
+  	});
 
-	$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-    self.textEditorCtrl.endSession();
-    self.textDraggerCtrl.endSession();
-    self.modifier.restoreParams();
-		self._complete();
-	});
-	$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-    self.textEditorCtrl.endSession();
-    self.textDraggerCtrl.endSession();
-    SmoUndoable.scoreOp(self.layout.score,'removeScoreText',self.modifier,self.undo,'remove text from dialog');
-		self._complete();
-   });
+  	$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+      self.textEditorCtrl.endSession();
+      self.textDraggerCtrl.endSession();
+      self.modifier.restoreParams();
+  		self._complete();
+  	});
+  	$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
+      self.textEditorCtrl.endSession();
+      self.textDraggerCtrl.endSession();
+      SmoUndoable.scoreOp(self.layout.score,'removeScoreText',self.modifier,self.undo,'remove text from dialog');
+  		self._complete();
+     });
   }
 }
 ;// ## measureDialogs.js
@@ -19754,40 +19783,37 @@ class RibbonButtons {
 	}
 
 	_bindButton(buttonElement, buttonData) {
-		var self = this;
-		$(buttonElement).off('click').on('click', function () {
-			self._executeButton(buttonElement, buttonData);
-		});
+    this.eventSource.domClick(buttonElement,this,'_executeButton',buttonData);
 	}
-    _createCollapsibleButtonGroups(selector) {
-        // Now all the button elements have been bound.  Join child and parent buttons
-        // For all the children of a button group, add it to the parent group
-        this.collapseChildren.forEach((b) => {
-            var containerClass = 'ribbonButtonContainer';
-            if (b.action == 'collapseGrandchild') {
-                containerClass = 'ribbonButtonContainerMore'
-            }
-            var buttonHtml = RibbonButtons._buttonHtml(
-                containerClass,b.id, b.classes, b.leftText, b.icon, b.rightText);
-            if (b.dataElements) {
-                var bkeys = Object.keys(b.dataElements);
-                bkeys.forEach((bkey) => {
-                    var de = b.dataElements[bkey];
-                    $(buttonHtml).find('button').attr('data-' + bkey, de);
-                });
-            }
-            // Bind the child button actions
-            var parent = $(selector).find('.collapseContainer[data-group="' + b.group + '"]');
-            $(parent).append(buttonHtml);
-            var el = $(selector).find('#' + b.id);
-            this._bindButton(el, b);
+  _createCollapsibleButtonGroups(selector) {
+    // Now all the button elements have been bound.  Join child and parent buttons
+    // For all the children of a button group, add it to the parent group
+    this.collapseChildren.forEach((b) => {
+      var containerClass = 'ribbonButtonContainer';
+      if (b.action == 'collapseGrandchild') {
+        containerClass = 'ribbonButtonContainerMore'
+      }
+      var buttonHtml = RibbonButtons._buttonHtml(
+        containerClass,b.id, b.classes, b.leftText, b.icon, b.rightText);
+      if (b.dataElements) {
+        var bkeys = Object.keys(b.dataElements);
+        bkeys.forEach((bkey) => {
+          var de = b.dataElements[bkey];
+          $(buttonHtml).find('button').attr('data-' + bkey, de);
         });
+      }
+      // Bind the child button actions
+      var parent = $(selector).find('.collapseContainer[data-group="' + b.group + '"]');
+      $(parent).append(buttonHtml);
+      var el = $(selector).find('#' + b.id);
+      this._bindButton(el, b);
+    });
 
-        this.collapsables.forEach((cb) => {
-            // Bind the events of the parent button
-            cb.bind();
-        });
-    }
+    this.collapsables.forEach((cb) => {
+      // Bind the events of the parent button
+      cb.bind();
+    });
+  }
 
     static isCollapsible(action) {
         return ['collapseChild','collapseChildMenu','collapseGrandchild','collapseMore'].indexOf(action) >= 0;
@@ -19806,45 +19832,48 @@ class RibbonButtons {
 					return e.id === buttonId;
 				});
 			if (buttonData) {
-                // collapse child is hidden until the parent button is selected, exposing the button group
+        // collapse child is hidden until the parent button is selected, exposing the button group
 				if (RibbonButtons.isCollapsible(buttonData.action)) {
 					this.collapseChildren.push(buttonData);
-                }
+        }
 				if (buttonData.action != 'collapseChild') {
 
-                    // else the button has a specific action, such as a menu or dialog, or a parent button
-
+          // else the button has a specific action, such as a menu or dialog, or a parent button
 					var buttonHtml = RibbonButtons._buttonHtml('ribbonButtonContainer',
-                        buttonData.id, buttonData.classes, buttonData.leftText, buttonData.icon, buttonData.rightText);
+              buttonData.id, buttonData.classes, buttonData.leftText, buttonData.icon, buttonData.rightText);
 					$(buttonHtml).attr('data-group', buttonData.group);
 
 					$(selector).append(buttonHtml);
-					var buttonElement = $(selector).find('#' + buttonData.id);
-					this._bindButton(buttonElement, buttonData);
+          var buttonElement = $('#' + buttonData.id);
+
+          // If this is a collabsable button, create it, otherwise bind its execute function.
 					if (buttonData.action == 'collapseParent') {
 						$(buttonHtml).addClass('collapseContainer');
-                        // collapseParent
-                		this.collapsables.push(new CollapseRibbonControl({
-                				ribbonButtons: this.ribbonButtons,
-                        layout:this.layout,
-                        undoBuffer:this.editor.undoBuffer,
-                				menus: this.menus,
-                        eventSource:this.eventSource,
-                				tracker: this.tracker,
-                				controller: this.controller,
-                				editor: this.editor,
-                				buttonElement: buttonElement,
-                				buttonData: buttonData
-                			}));
-					}
+                  // collapseParent
+          		this.collapsables.push(new CollapseRibbonControl({
+          				ribbonButtons: this.ribbonButtons,
+                  layout:this.layout,
+                  undoBuffer:this.editor.undoBuffer,
+          				menus: this.menus,
+                  eventSource:this.eventSource,
+          				tracker: this.tracker,
+          				controller: this.controller,
+          				editor: this.editor,
+          				buttonElement: buttonElement,
+          				buttonData: buttonData
+          			}));
+					} else {
+            this.eventSource.domClick(buttonElement,this,'_executeButton',buttonData);
+          }
 				}
 			}
 		});
 	}
-    createRibbon(buttonDataArray,parentElement) {
-        this._createRibbonHtml(buttonDataArray, parentElement);
-        this._createCollapsibleButtonGroups(parentElement);
-    }
+
+  createRibbon(buttonDataArray,parentElement) {
+    this._createRibbonHtml(buttonDataArray, parentElement);
+    this._createCollapsibleButtonGroups(parentElement);
+  }
 
 	display() {
 		$('body .controls-left').html('');
@@ -20245,70 +20274,60 @@ class MeasureButtons {
 		var endSel = this.tracker.getExtremeSelection(1);
 		this.setEnding(startSel.selector.measure,endSel.selector.measure,1);
 	}
+  handleEvent(event,method) {
+    this[method]();
+    this.tracker.replaceSelectedMeasures();
+  }
 
 	bind() {
 		var self = this;
-		$(this.buttonElement).off('click').on('click', function (ev) {
-			var id = self.buttonData.id;
-			if (typeof(self[id]) === 'function') {
-				self[id]();
-                self.tracker.replaceSelectedMeasures();
-			}
-		});
+    this.eventSource.domClick(this.buttonElement,this,'handleEvent',this.buttonData.id);
 	}
 }
 
 class PlayerButtons {
-    	constructor(parameters) {
-        Vex.Merge(this,parameters);
-	}
-
-    playButton() {
-        this.editor.playScore();
-    }
-    stopButton() {
-        this.editor.stopPlayer();
-    }
-    pauseButton() {
-        this.editor.pausePlayer();
-    }
-
-    bind() {
-		var self = this;
-		$(this.buttonElement).off('click').on('click', function () {
-			self[self.buttonData.id]();
-		});
-    }
+	constructor(parameters) {
+    Vex.Merge(this,parameters);
+  }
+  playButton() {
+    this.editor.playScore();
+  }
+  stopButton() {
+    this.editor.stopPlayer();
+  }
+  pauseButton() {
+    this.editor.pausePlayer();
+  }
+  bind() {
+    this.eventSource.domClick(this.buttonElement,this,this.buttonData.id);
+  }
 }
 
 class DisplaySettings {
-    constructor(parameters) {
-      Vex.Merge(this,parameters);
-    }
+  constructor(parameters) {
+    Vex.Merge(this,parameters);
+  }
 
-    refresh() {
-        this.layout.setViewport(true);
-        this.layout.setRefresh();
-    }
-    zoomout() {
-        this.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
-        this.layout.score.layout.zoomScale = this.layout.score.layout.zoomScale * 1.1;
-        this.layout.setViewport();
-        this.layout.setRefresh();
-    }
-    zoomin() {
-        this.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
-        this.layout.score.layout.zoomScale = this.layout.score.layout.zoomScale / 1.1;
-        this.layout.setViewport();
-        this.layout.setRefresh();
-    }
+  refresh() {
+      this.layout.setViewport(true);
+      this.layout.setRefresh();
+  }
+  zoomout() {
+      this.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
+      this.layout.score.layout.zoomScale = this.layout.score.layout.zoomScale * 1.1;
+      this.layout.setViewport();
+      this.layout.setRefresh();
+  }
+  zoomin() {
+      this.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
+      this.layout.score.layout.zoomScale = this.layout.score.layout.zoomScale / 1.1;
+      this.layout.setViewport();
+      this.layout.setRefresh();
+  }
 
-    bind() {
-        var self = this;
-        $(this.buttonElement).off('click').on('click', function () {
-            self[self.buttonData.id]();
-        });
-    }
+  bind() {
+    this.eventSource.domClick(this.buttonElement,this,this.buttonData.id);
+  }
 }
 class TextButtons {
 	constructor(parameters) {
@@ -20316,24 +20335,24 @@ class TextButtons {
     this.menus = this.controller.menus;
 	}
   lyrics() {
-	SuiLyricDialog.createAndDisplay(
-    {
-      buttonElement:this.buttonElement,
-      buttonData:this.buttonData,
-      completeNotifier:this.controller,
-      tracker: this.tracker,
-      layout:this.layout,
-      undoBuffer:this.editor.undoBuffer,
-      eventSource:this.eventSource,
-      editor:this.editor
-  }
-  );
-	// tracker, selection, controller
+	  SuiLyricDialog.createAndDisplay(
+      {
+        buttonElement:this.buttonElement,
+        buttonData:this.buttonData,
+        completeNotifier:this.controller,
+        tracker: this.tracker,
+        layout:this.layout,
+        undoBuffer:this.editor.undoBuffer,
+        eventSource:this.eventSource,
+        editor:this.editor
+      }
+    );
+  	// tracker, selection, controller
   }
   rehearsalMark() {
-      var selection = this.tracker.getExtremeSelection(-1);
-      var cmd = selection.measure.getRehearsalMark() ? 'removeRehearsalMark' : 'addRehearsalMark';
-      this.editor.scoreSelectionOperation(selection, cmd, new SmoRehearsalMark());
+    var selection = this.tracker.getExtremeSelection(-1);
+    var cmd = selection.measure.getRehearsalMark() ? 'removeRehearsalMark' : 'addRehearsalMark';
+    this.editor.scoreSelectionOperation(selection, cmd, new SmoRehearsalMark());
   }
   _invokeMenu(cmd) {
     this.menus.slashMenuMode(this.controller);
@@ -20358,9 +20377,7 @@ class TextButtons {
 	}
   bind() {
     var self=this;
-    $(this.buttonElement).off('click').on('click', function () {
-      self[self.buttonData.id]();
-    });
+    this.eventSource.domClick(this.buttonElement,this,self.buttonData.id);
 	}
 }
 
@@ -20378,9 +20395,7 @@ class NavigationButtons {
 		};
 	}
 	constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.tracker = parameters.tracker;
+    Vex.Merge(this,parameters);
 	}
 
 	_moveTracker() {
@@ -20388,9 +20403,7 @@ class NavigationButtons {
 	}
 	bind() {
 		var self = this;
-		$(this.buttonElement).off('click').on('click', function () {
-			self._moveTracker();
-		});
+    this.eventSource.domClick(this.buttonElement,this,'_moveTracker');
 	}
 }
 class ArticulationButtons {
@@ -20402,30 +20415,31 @@ class ArticulationButtons {
 			marcatoButton: SmoArticulation.articulations.marcato,
 			pizzicatoButton: SmoArticulation.articulations.pizzicato,
 			fermataButton: SmoArticulation.articulations.fermata,
-            mordentButton: SmoOrnament.ornaments.mordent,
-            mordentInvertedButton:SmoOrnament.ornaments.mordentInverted,
-            trillButton:SmoOrnament.ornaments.trill
+      mordentButton: SmoOrnament.ornaments.mordent,
+      mordentInvertedButton:SmoOrnament.ornaments.mordentInverted,
+      trillButton:SmoOrnament.ornaments.trill
 		};
 	}
-    static get constructors() {
-        return {
-			accentButton: 'SmoArticulation',
-			tenutoButton: 'SmoArticulation',
-			staccatoButton: 'SmoArticulation',
-			marcatoButton: 'SmoArticulation',
-			pizzicatoButton: 'SmoArticulation',
-			fermataButton: 'SmoArticulation',
-            mordentButton: 'SmoOrnament',
-            mordentInvertedButton:'SmoOrnament',
-            trillButton:'SmoOrnament'
-        }
+  static get constructors() {
+    return {
+  		accentButton: 'SmoArticulation',
+  		tenutoButton: 'SmoArticulation',
+  		staccatoButton: 'SmoArticulation',
+  		marcatoButton: 'SmoArticulation',
+  		pizzicatoButton: 'SmoArticulation',
+  		fermataButton: 'SmoArticulation',
+      mordentButton: 'SmoOrnament',
+      mordentInvertedButton:'SmoOrnament',
+      trillButton:'SmoOrnament'
     }
+  }
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
 		this.buttonData = parameters.buttonData;
 		this.editor = parameters.editor;
 		this.articulation = ArticulationButtons.articulationIdMap[this.buttonData.id];
-        this.ctor = ArticulationButtons.constructors[this.buttonData.id];
+    this.eventSource = parameters.eventSource;
+    this.ctor = ArticulationButtons.constructors[this.buttonData.id];
 	}
 	_toggleArticulation() {
 		this.showState = !this.showState;
@@ -20433,9 +20447,7 @@ class ArticulationButtons {
 	}
 	bind() {
 		var self = this;
-		$(this.buttonElement).off('click').on('click', function () {
-			self._toggleArticulation();
-		});
+    this.eventSource.domClick(this.buttonElement,this,'_toggleArticulation');
 	}
 }
 
@@ -20479,9 +20491,7 @@ class CollapseRibbonControl {
 	bind() {
 		var self = this;
 		$(this.buttonElement).closest('div').addClass('collapseContainer');
-		$('#' + this.buttonData.id).off('click').on('click', function () {
-			self._toggleExpand();
-		});
+    this.eventSource.domClick(this.buttonElement,this,'_toggleExpand');
 		this.childButtons.forEach((cb) => {
 			var ctor = eval(cb.ctor);
 			var el = $('#' + cb.id);
@@ -20625,13 +20635,14 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
     }
 
     super(SuiSlurAttributesDialog.dialogElements, {
-        id: 'dialog-' + parameters.modifier.attrs.id,
-        top: parameters.modifier.renderedBox.y,
-        left: parameters.modifier.renderedBox.x,
-        label: 'Slur Properties',
-       ...parameters
-      });
-      Vex.Merge(this, parameters);
+      id: 'dialog-' + parameters.modifier.attrs.id,
+      top: parameters.modifier.renderedBox.y,
+      left: parameters.modifier.renderedBox.x,
+      label: 'Slur Properties',
+     ...parameters
+    });
+    Vex.Merge(this, parameters);
+    this.completeNotifier.unbindKeyboardForModal(this);
   }
   populateInitial() {
     this.components.forEach((comp) => {
@@ -20697,21 +20708,21 @@ handleRemove() {
 	  this.layout.score.staves.forEach((staff) => {
   		staff.measures.forEach((measure) => {
     		if (measure.measureNumber.measureNumber === this.modifier.startBar) {
-      			 var endings = measure.getNthEndings().filter((mm) => {
-      				 return mm.endingId === this.modifier.endingId;
-      			 });
-      			 if (endings.length) {
-      			 endings.forEach((ending) => {
-        				 this.components.forEach((component) => {
-      					ending[component.smoName] = component.getValue();
-      				 });
-      			 });
-      		 }
-      	}
-       });
-  	});
+    			var endings = measure.getNthEndings().filter((mm) => {
+    			  return mm.endingId === this.modifier.endingId;
+    			});
+    			if (endings.length) {
+    			  endings.forEach((ending) => {
+      		    this.components.forEach((component) => {
+    			      ending[component.smoName] = component.getValue();
+    			    });
+    			  });
+    		  }
+    	  }
+      });
+	  });
 
-      this.layout.renderStaffModifierPreview(this.modifier);
+    this.layout.renderStaffModifierPreview(this.modifier);
   }
   constructor(parameters) {
     if (!parameters.modifier) {
@@ -20734,6 +20745,8 @@ handleRemove() {
   			comp.defaultValue=this.modifier[attr];
   		}
   	});
+
+    this.completeNotifier.unbindKeyboardForModal(this);
   }
 }
 class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
@@ -20769,25 +20782,22 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
     ];
   }
 static createAndDisplay(parameters) {
-      var dg = new SuiHairpinAttributesDialog(parameters);
-      dg.display();
-      return dg;
+    var dg = new SuiHairpinAttributesDialog(parameters);
+    dg.display();
+    return dg;
   }
   constructor(parameters) {
-  if (!parameters.modifier || !parameters.selection) {
-      throw new Error('modifier attribute dialog must have modifier and staff');
-  }
+    if (!parameters.modifier) {
+        throw new Error('modifier attribute dialog must have modifier');
+    }
 
     super(SuiHairpinAttributesDialog.dialogElements, {
-        id: 'dialog-' + parameters.modifier.attrs.id,
-        top: parameters.modifier.renderedBox.y,
-        left: parameters.modifier.renderedBox.x,
-        label: 'Hairpin Properties',
-  			tracker:parameters.tracker,
-        completeNotifier:parameters.completeNotifier,
-        undoBuffer: parameters.undoBuffer,
-        eventSource: parameters.eventSource
-      });
+      id: 'dialog-' + parameters.modifier.attrs.id,
+      top: parameters.modifier.renderedBox.y,
+      left: parameters.modifier.renderedBox.x,
+      label: 'Hairpin Properties',
+      ...parameters
+    });
     Vex.Merge(this, parameters);
   	SmoStaffHairpin.editableAttributes.forEach((attr) => {
   		var comp = this.components.find((cc)=>{return cc.smoName===attr});
@@ -20795,6 +20805,8 @@ static createAndDisplay(parameters) {
   			comp.defaultValue=this.modifier[attr];
   		}
   	});
+
+    this.completeNotifier.unbindKeyboardForModal(this);
   }
 }
 ;
@@ -21396,16 +21408,17 @@ class SuiDom {
       .append(b('div').classes('bugDialog'))
       .append(b('div').classes('printFrame'))
       .append(b('div').classes('menuContainer'))
-      .append(b('h1').classes('testTitle').text('Smoosic'))
       .append(b('div').classes('piano-container')
       .append(b('div').classes('piano-keys')))
-      .append(b('div').classes('workspace-container')
       .append(b('div').classes('workspace')
-        .append(b('div').classes('controls-top'))
-        .append(b('div').classes('controls-left'))
-        .append(b('div').classes('controls-menu-message'))
-        .append(b('div').classes('musicRelief')
-          .append(b('div').classes('musicContainer').attr('id','boo')))
+        .append(b('div').classes('control-bar')
+          .append(b('div').classes('titleText').text('Smoosic'))
+          .append(b('div').classes('controls-top')))
+        .append(b('div').classes('media')
+          .append(b('div').classes('controls-left'))
+          .append(b('div').classes('controls-menu-message'))
+          .append(b('div').classes('musicRelief')
+            .append(b('div').classes('musicContainer').attr('id','boo')))
           .append(b('div').classes('musicReliefShadow')
             .append(b('div').classes('musicContainerShadow').attr('id','booShadow')))));
     $('#smoo').append(r.dom());
@@ -21537,7 +21550,6 @@ class suiController {
         this.layoutDemon.startDemon();
 
 		this.createPiano();
-		this.updateOffsets();
 	}
 
 	static get scrollable() {
@@ -21574,63 +21586,50 @@ class suiController {
 		this.piano = new suiPiano({elementId:'piano-svg',tracker:this.tracker,undo:this.undoBuffer});
         // $('.close-piano').click();
 	}
-	updateOffsets() {
-		// the 100 is for the control offsets
-		var padding =  Math.round((this.layout.screenWidth-this.layout.pageWidth)/2)-100;
-		$('.workspace-container').css('padding-left',''+padding+'px');
-
-		// Keep track of the scroll bar so we can adjust the map
-		// this.scrollPosition = $('body')[0].scrollTop;
-	}
 	resizeEvent() {
 		var self = this;
-		if (this.resizing)
+		if (this.resizing) {
 			return;
+    }
+    if ($('body').hasClass('printing')) {
+      return;
+    }
 		this.resizing = true;
 		setTimeout(function () {
 			console.log('resizing');
 			self.resizing = false;
 			$('.musicRelief').height(window.innerHeight - $('.musicRelief').offset().top);
 			self.piano.handleResize();
-			self.updateOffsets();
-
 		}, 500);
 	}
 
-  createModifierDialog(modifier) {
-    this.idleLayoutTimer = Date.now();
+  createModifierDialog(modifierSelection) {
     var parameters = {
-      modifier:modifier, context:this.tracker.context, tracker:this.tracker, layout:this.layout, undoBuffer:this.undoBuffer,eventSource:this.eventSource,
+      modifier:modifierSelection.modifier, context:this.tracker.context, tracker:this.tracker, layout:this.layout, undoBuffer:this.undoBuffer,eventSource:this.eventSource,
          completeNotifier:this
     }
-    this.unbindKeyboardForModal(
-      SuiDialogFactory.createDialog(modifier,
-        {
-          tracker:this.tracker,
-          layout:this.layout,
-          undoBuffer:this.undoBuffer,
-          completeNotifier:this,
-          eventSource:this.eventSource
-        })
-    );
+    SuiModifierDialogFactory.createDialog(modifierSelection.modifier,parameters);
   }
 
 	// If the user has selected a modifier via the mouse/touch, bring up mod dialog
 	// for that modifier
 	trackerModifierSelect(ev) {
-    this.idleLayoutTimer = Date.now();
 		var modSelection = this.tracker.getSelectedModifier();
 		if (modSelection) {
 			var dialog = this.createModifierDialog(modSelection);
       if (dialog) {
         this.tracker.selectSuggestion(ev);
-  	    this.unbindKeyboardForModal(dialog);
+  	    // this.unbindKeyboardForModal(dialog);
       } else {
         this.tracker.advanceModifierSelection(ev);
       }
 		} else {
       this.tracker.selectSuggestion(ev);
     }
+    var modifier = this.tracker.getSelectedModifier();
+    // if (modifier) {
+    //   this.createModifierDialog(modifier);
+    // }
 		return;
 	}
 
@@ -21652,7 +21651,7 @@ class suiController {
 		});
 
 		let scrollCallback = (ev) => {
-            self.handleScrollEvent(ev);
+      self.handleScrollEvent(ev);
 		};
 		el.onscroll = scrollCallback;
 	}
@@ -21680,34 +21679,15 @@ class suiController {
 		return controller;
 	}
 
-	static createDebugUi(score) {
-    SuiDom.createDom(title);
-		var params = suiController.keyBindingDefaults;
-		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), document.getElementById("booShadow"), score);
-		layoutDebug.setAll();
-    params.scroller = new suiScroller();
-		params.tracker = new suiTracker(params.layout,params.scroller);
-		params.editor = new suiEditor(params);
-		params.menus = new suiMenuManager(params);
-    params.layoutDemon = new SuiLayoutDemon(params);
-		var controller = new suiController(params);
-    var score = SmoScore.deserialize(basicJson);
-    params.layout.score = score;
-		return controller;
-	}
-
-	static start(debug) {
+	static start() {
 		var score = SmoScore.getEmptyScore();
 		score.addDefaultMeasureWithNotes(0, {});
-		if (!debug) {
-  		score.addDefaultMeasureWithNotes(1, {});
-  		score.addDefaultMeasureWithNotes(2, {});
-  		score.addDefaultMeasureWithNotes(3, {});
-  		score.addDefaultMeasureWithNotes(4, {});
-  		score.addStaff();
-		}
-
-		var controller = debug ? suiController.createDebugUi(score) : suiController.createUi(score);
+		score.addDefaultMeasureWithNotes(1, {});
+		score.addDefaultMeasureWithNotes(2, {});
+		score.addDefaultMeasureWithNotes(3, {});
+		score.addDefaultMeasureWithNotes(4, {});
+		score.addStaff();
+		var controller =suiController.createUi(score);
 	}
 
 	// ### renderElement
@@ -21780,8 +21760,10 @@ class suiController {
 
 	unbindKeyboardForModal(dialog) {
 		var self=this;
+    layoutDebug.addDialogDebug('controller: unbindKeyboardForModal')
 		var rebind = function () {
 			self.bindEvents();
+      layoutDebug.addDialogDebug('controller: unbindKeyboardForModal resolve')
 		}
     this.eventSource.unbindKeydownHandler(this.keydownHandler);
 		dialog.closeModalPromise.then(rebind);
@@ -21808,6 +21790,11 @@ class suiController {
 		// TODO:  work dialogs into the scheme of things
 		if (evdata.key == 'Enter') {
 			self.trackerModifierSelect(evdata);
+      var modifier = this.tracker.getSelectedModifier();
+      if (modifier) {
+        this.createModifierDialog(modifier);
+      }
+
 		}
 
 		var binding = this.keyBind.find((ev) =>
@@ -21845,7 +21832,11 @@ class suiController {
 		});
 
 		$(this.renderElement).off('click').on('click', function (ev) {
-			tracker.selectSuggestion(ev);
+      tracker.selectSuggestion(ev);
+      var modifier = tracker.getSelectedModifier();
+      if (modifier) {
+        self.createModifierDialog(modifier);
+      }
 		});
 
     this.keydownHandler = this.eventSource.bindKeydownHandler(this,'evKey');

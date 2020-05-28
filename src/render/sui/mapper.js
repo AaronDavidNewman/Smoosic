@@ -111,8 +111,6 @@ class suiMapper {
     if (!measure.renderedBox) {
         return;
     }
-    console.log('mapping measure '+staff.staffId+'/' + measure.measureNumber.measureIndex);
-
     // Keep track of any current selections in this measure, we will try to restore them.
     var sels = this._copySelectionsByMeasure(staff.staffId,measure.measureNumber.measureIndex);
     this.clearMeasureMap(staff,measure);

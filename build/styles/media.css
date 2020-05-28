@@ -147,24 +147,20 @@ body.printing .printFrame {
     .workspace {
         padding-top: 2px;
         position:relative;
-        padding-left: 120px;
         background: #999;
+        display:flex;
+        flex-flow:row wrap;
     }
-}
-
-.controls-left  button:hover,controls-left button:focus,
-.controls-top  button:hover,controls-left button:focus{
-	border:2px blue solid;
-	border-radius:3px;
-	opacity:0.7;
 }
 
 .musicRelief {
 	background:#999;
 
 }
-.workspace-container {
-	background:#999;
+.media {
+	display:flex;
+  flex-flow:row nowrap;
+  flex-basis:100%;
 }
 
 .saveLink {

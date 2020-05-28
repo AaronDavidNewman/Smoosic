@@ -711,15 +711,14 @@ class suiTracker extends suiMapper {
 			   clearTimeout(this.suggestFadeTimer);
   		}
 			this.modifierIndex = -1;
-            this.modifierSelections = [this.modifierTabs[this.modifierSuggestion]];
+      this.modifierSelections = [this.modifierTabs[this.modifierSuggestion]];
 			this.modifierSuggestion = -1;
 			this._highlightModifier();
-      var modifier = this.getSelectedModifier();
-      if (modifier) {
-        this.modifierDialogFactory.createModifierDialog(modifier);
-      }
 			return;
-		}
+		} else if (ev.type === 'click') {
+      this.clearModifierSelections(); // if we click on a non-modifier, clear the
+      // modifier selections
+    }
 
 		if (ev.shiftKey) {
 			var sel1 = this.getExtremeSelection(-1);

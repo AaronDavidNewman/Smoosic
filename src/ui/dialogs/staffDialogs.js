@@ -122,13 +122,14 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
     }
 
     super(SuiSlurAttributesDialog.dialogElements, {
-        id: 'dialog-' + parameters.modifier.attrs.id,
-        top: parameters.modifier.renderedBox.y,
-        left: parameters.modifier.renderedBox.x,
-        label: 'Slur Properties',
-       ...parameters
-      });
-      Vex.Merge(this, parameters);
+      id: 'dialog-' + parameters.modifier.attrs.id,
+      top: parameters.modifier.renderedBox.y,
+      left: parameters.modifier.renderedBox.x,
+      label: 'Slur Properties',
+     ...parameters
+    });
+    Vex.Merge(this, parameters);
+    this.completeNotifier.unbindKeyboardForModal(this);
   }
   populateInitial() {
     this.components.forEach((comp) => {
@@ -194,21 +195,21 @@ handleRemove() {
 	  this.layout.score.staves.forEach((staff) => {
   		staff.measures.forEach((measure) => {
     		if (measure.measureNumber.measureNumber === this.modifier.startBar) {
-      			 var endings = measure.getNthEndings().filter((mm) => {
-      				 return mm.endingId === this.modifier.endingId;
-      			 });
-      			 if (endings.length) {
-      			 endings.forEach((ending) => {
-        				 this.components.forEach((component) => {
-      					ending[component.smoName] = component.getValue();
-      				 });
-      			 });
-      		 }
-      	}
-       });
-  	});
+    			var endings = measure.getNthEndings().filter((mm) => {
+    			  return mm.endingId === this.modifier.endingId;
+    			});
+    			if (endings.length) {
+    			  endings.forEach((ending) => {
+      		    this.components.forEach((component) => {
+    			      ending[component.smoName] = component.getValue();
+    			    });
+    			  });
+    		  }
+    	  }
+      });
+	  });
 
-      this.layout.renderStaffModifierPreview(this.modifier);
+    this.layout.renderStaffModifierPreview(this.modifier);
   }
   constructor(parameters) {
     if (!parameters.modifier) {
@@ -231,6 +232,8 @@ handleRemove() {
   			comp.defaultValue=this.modifier[attr];
   		}
   	});
+
+    this.completeNotifier.unbindKeyboardForModal(this);
   }
 }
 class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
@@ -266,25 +269,22 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
     ];
   }
 static createAndDisplay(parameters) {
-      var dg = new SuiHairpinAttributesDialog(parameters);
-      dg.display();
-      return dg;
+    var dg = new SuiHairpinAttributesDialog(parameters);
+    dg.display();
+    return dg;
   }
   constructor(parameters) {
-  if (!parameters.modifier || !parameters.selection) {
-      throw new Error('modifier attribute dialog must have modifier and staff');
-  }
+    if (!parameters.modifier) {
+        throw new Error('modifier attribute dialog must have modifier');
+    }
 
     super(SuiHairpinAttributesDialog.dialogElements, {
-        id: 'dialog-' + parameters.modifier.attrs.id,
-        top: parameters.modifier.renderedBox.y,
-        left: parameters.modifier.renderedBox.x,
-        label: 'Hairpin Properties',
-  			tracker:parameters.tracker,
-        completeNotifier:parameters.completeNotifier,
-        undoBuffer: parameters.undoBuffer,
-        eventSource: parameters.eventSource
-      });
+      id: 'dialog-' + parameters.modifier.attrs.id,
+      top: parameters.modifier.renderedBox.y,
+      left: parameters.modifier.renderedBox.x,
+      label: 'Hairpin Properties',
+      ...parameters
+    });
     Vex.Merge(this, parameters);
   	SmoStaffHairpin.editableAttributes.forEach((attr) => {
   		var comp = this.components.find((cc)=>{return cc.smoName===attr});
@@ -292,5 +292,7 @@ static createAndDisplay(parameters) {
   			comp.defaultValue=this.modifier[attr];
   		}
   	});
+
+    this.completeNotifier.unbindKeyboardForModal(this);
   }
 }

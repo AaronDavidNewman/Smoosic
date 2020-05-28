@@ -59,40 +59,37 @@ class RibbonButtons {
 	}
 
 	_bindButton(buttonElement, buttonData) {
-		var self = this;
-		$(buttonElement).off('click').on('click', function () {
-			self._executeButton(buttonElement, buttonData);
-		});
+    this.eventSource.domClick(buttonElement,this,'_executeButton',buttonData);
 	}
-    _createCollapsibleButtonGroups(selector) {
-        // Now all the button elements have been bound.  Join child and parent buttons
-        // For all the children of a button group, add it to the parent group
-        this.collapseChildren.forEach((b) => {
-            var containerClass = 'ribbonButtonContainer';
-            if (b.action == 'collapseGrandchild') {
-                containerClass = 'ribbonButtonContainerMore'
-            }
-            var buttonHtml = RibbonButtons._buttonHtml(
-                containerClass,b.id, b.classes, b.leftText, b.icon, b.rightText);
-            if (b.dataElements) {
-                var bkeys = Object.keys(b.dataElements);
-                bkeys.forEach((bkey) => {
-                    var de = b.dataElements[bkey];
-                    $(buttonHtml).find('button').attr('data-' + bkey, de);
-                });
-            }
-            // Bind the child button actions
-            var parent = $(selector).find('.collapseContainer[data-group="' + b.group + '"]');
-            $(parent).append(buttonHtml);
-            var el = $(selector).find('#' + b.id);
-            this._bindButton(el, b);
+  _createCollapsibleButtonGroups(selector) {
+    // Now all the button elements have been bound.  Join child and parent buttons
+    // For all the children of a button group, add it to the parent group
+    this.collapseChildren.forEach((b) => {
+      var containerClass = 'ribbonButtonContainer';
+      if (b.action == 'collapseGrandchild') {
+        containerClass = 'ribbonButtonContainerMore'
+      }
+      var buttonHtml = RibbonButtons._buttonHtml(
+        containerClass,b.id, b.classes, b.leftText, b.icon, b.rightText);
+      if (b.dataElements) {
+        var bkeys = Object.keys(b.dataElements);
+        bkeys.forEach((bkey) => {
+          var de = b.dataElements[bkey];
+          $(buttonHtml).find('button').attr('data-' + bkey, de);
         });
+      }
+      // Bind the child button actions
+      var parent = $(selector).find('.collapseContainer[data-group="' + b.group + '"]');
+      $(parent).append(buttonHtml);
+      var el = $(selector).find('#' + b.id);
+      this._bindButton(el, b);
+    });
 
-        this.collapsables.forEach((cb) => {
-            // Bind the events of the parent button
-            cb.bind();
-        });
-    }
+    this.collapsables.forEach((cb) => {
+      // Bind the events of the parent button
+      cb.bind();
+    });
+  }
 
     static isCollapsible(action) {
         return ['collapseChild','collapseChildMenu','collapseGrandchild','collapseMore'].indexOf(action) >= 0;
@@ -111,45 +108,48 @@ class RibbonButtons {
 					return e.id === buttonId;
 				});
 			if (buttonData) {
-                // collapse child is hidden until the parent button is selected, exposing the button group
+        // collapse child is hidden until the parent button is selected, exposing the button group
 				if (RibbonButtons.isCollapsible(buttonData.action)) {
 					this.collapseChildren.push(buttonData);
-                }
+        }
 				if (buttonData.action != 'collapseChild') {
 
-                    // else the button has a specific action, such as a menu or dialog, or a parent button
-
+          // else the button has a specific action, such as a menu or dialog, or a parent button
 					var buttonHtml = RibbonButtons._buttonHtml('ribbonButtonContainer',
-                        buttonData.id, buttonData.classes, buttonData.leftText, buttonData.icon, buttonData.rightText);
+              buttonData.id, buttonData.classes, buttonData.leftText, buttonData.icon, buttonData.rightText);
 					$(buttonHtml).attr('data-group', buttonData.group);
 
 					$(selector).append(buttonHtml);
-					var buttonElement = $(selector).find('#' + buttonData.id);
-					this._bindButton(buttonElement, buttonData);
+          var buttonElement = $('#' + buttonData.id);
+
+          // If this is a collabsable button, create it, otherwise bind its execute function.
 					if (buttonData.action == 'collapseParent') {
 						$(buttonHtml).addClass('collapseContainer');
-                        // collapseParent
-                		this.collapsables.push(new CollapseRibbonControl({
-                				ribbonButtons: this.ribbonButtons,
-                        layout:this.layout,
-                        undoBuffer:this.editor.undoBuffer,
-                				menus: this.menus,
-                        eventSource:this.eventSource,
-                				tracker: this.tracker,
-                				controller: this.controller,
-                				editor: this.editor,
-                				buttonElement: buttonElement,
-                				buttonData: buttonData
-                			}));
-					}
+                  // collapseParent
+          		this.collapsables.push(new CollapseRibbonControl({
+          				ribbonButtons: this.ribbonButtons,
+                  layout:this.layout,
+                  undoBuffer:this.editor.undoBuffer,
+          				menus: this.menus,
+                  eventSource:this.eventSource,
+          				tracker: this.tracker,
+          				controller: this.controller,
+          				editor: this.editor,
+          				buttonElement: buttonElement,
+          				buttonData: buttonData
+          			}));
+					} else {
+            this.eventSource.domClick(buttonElement,this,'_executeButton',buttonData);
+          }
 				}
 			}
 		});
 	}
-    createRibbon(buttonDataArray,parentElement) {
-        this._createRibbonHtml(buttonDataArray, parentElement);
-        this._createCollapsibleButtonGroups(parentElement);
-    }
+
+  createRibbon(buttonDataArray,parentElement) {
+    this._createRibbonHtml(buttonDataArray, parentElement);
+    this._createCollapsibleButtonGroups(parentElement);
+  }
 
 	display() {
 		$('body .controls-left').html('');
@@ -550,70 +550,60 @@ class MeasureButtons {
 		var endSel = this.tracker.getExtremeSelection(1);
 		this.setEnding(startSel.selector.measure,endSel.selector.measure,1);
 	}
+  handleEvent(event,method) {
+    this[method]();
+    this.tracker.replaceSelectedMeasures();
+  }
 
 	bind() {
 		var self = this;
-		$(this.buttonElement).off('click').on('click', function (ev) {
-			var id = self.buttonData.id;
-			if (typeof(self[id]) === 'function') {
-				self[id]();
-                self.tracker.replaceSelectedMeasures();
-			}
-		});
+    this.eventSource.domClick(this.buttonElement,this,'handleEvent',this.buttonData.id);
 	}
 }
 
 class PlayerButtons {
-    	constructor(parameters) {
-        Vex.Merge(this,parameters);
-	}
-
-    playButton() {
-        this.editor.playScore();
-    }
-    stopButton() {
-        this.editor.stopPlayer();
-    }
-    pauseButton() {
-        this.editor.pausePlayer();
-    }
-
-    bind() {
-		var self = this;
-		$(this.buttonElement).off('click').on('click', function () {
-			self[self.buttonData.id]();
-		});
-    }
+	constructor(parameters) {
+    Vex.Merge(this,parameters);
+  }
+  playButton() {
+    this.editor.playScore();
+  }
+  stopButton() {
+    this.editor.stopPlayer();
+  }
+  pauseButton() {
+    this.editor.pausePlayer();
+  }
+  bind() {
+    this.eventSource.domClick(this.buttonElement,this,this.buttonData.id);
+  }
 }
 
 class DisplaySettings {
-    constructor(parameters) {
-      Vex.Merge(this,parameters);
-    }
+  constructor(parameters) {
+    Vex.Merge(this,parameters);
+  }
 
-    refresh() {
-        this.layout.setViewport(true);
-        this.layout.setRefresh();
-    }
-    zoomout() {
-        this.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
-        this.layout.score.layout.zoomScale = this.layout.score.layout.zoomScale * 1.1;
-        this.layout.setViewport();
-        this.layout.setRefresh();
-    }
-    zoomin() {
-        this.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
-        this.layout.score.layout.zoomScale = this.layout.score.layout.zoomScale / 1.1;
-        this.layout.setViewport();
-        this.layout.setRefresh();
-    }
+  refresh() {
+      this.layout.setViewport(true);
+      this.layout.setRefresh();
+  }
+  zoomout() {
+      this.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
+      this.layout.score.layout.zoomScale = this.layout.score.layout.zoomScale * 1.1;
+      this.layout.setViewport();
+      this.layout.setRefresh();
+  }
+  zoomin() {
+      this.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
+      this.layout.score.layout.zoomScale = this.layout.score.layout.zoomScale / 1.1;
+      this.layout.setViewport();
+      this.layout.setRefresh();
+  }
 
-    bind() {
-        var self = this;
-        $(this.buttonElement).off('click').on('click', function () {
-            self[self.buttonData.id]();
-        });
-    }
+  bind() {
+    this.eventSource.domClick(this.buttonElement,this,this.buttonData.id);
+  }
 }
 class TextButtons {
 	constructor(parameters) {
@@ -621,24 +611,24 @@ class TextButtons {
     this.menus = this.controller.menus;
 	}
   lyrics() {
-	SuiLyricDialog.createAndDisplay(
-    {
-      buttonElement:this.buttonElement,
-      buttonData:this.buttonData,
-      completeNotifier:this.controller,
-      tracker: this.tracker,
-      layout:this.layout,
-      undoBuffer:this.editor.undoBuffer,
-      eventSource:this.eventSource,
-      editor:this.editor
-  }
-  );
-	// tracker, selection, controller
+	  SuiLyricDialog.createAndDisplay(
+      {
+        buttonElement:this.buttonElement,
+        buttonData:this.buttonData,
+        completeNotifier:this.controller,
+        tracker: this.tracker,
+        layout:this.layout,
+        undoBuffer:this.editor.undoBuffer,
+        eventSource:this.eventSource,
+        editor:this.editor
+      }
+    );
+  	// tracker, selection, controller
   }
   rehearsalMark() {
-      var selection = this.tracker.getExtremeSelection(-1);
-      var cmd = selection.measure.getRehearsalMark() ? 'removeRehearsalMark' : 'addRehearsalMark';
-      this.editor.scoreSelectionOperation(selection, cmd, new SmoRehearsalMark());
+    var selection = this.tracker.getExtremeSelection(-1);
+    var cmd = selection.measure.getRehearsalMark() ? 'removeRehearsalMark' : 'addRehearsalMark';
+    this.editor.scoreSelectionOperation(selection, cmd, new SmoRehearsalMark());
   }
   _invokeMenu(cmd) {
     this.menus.slashMenuMode(this.controller);
@@ -663,9 +653,7 @@ class TextButtons {
 	}
   bind() {
     var self=this;
-    $(this.buttonElement).off('click').on('click', function () {
-      self[self.buttonData.id]();
-    });
+    this.eventSource.domClick(this.buttonElement,this,self.buttonData.id);
 	}
 }
 
@@ -683,9 +671,7 @@ class NavigationButtons {
 		};
 	}
 	constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.tracker = parameters.tracker;
+    Vex.Merge(this,parameters);
 	}
 
 	_moveTracker() {
@@ -693,9 +679,7 @@ class NavigationButtons {
 	}
 	bind() {
 		var self = this;
-		$(this.buttonElement).off('click').on('click', function () {
-			self._moveTracker();
-		});
+    this.eventSource.domClick(this.buttonElement,this,'_moveTracker');
 	}
 }
 class ArticulationButtons {
@@ -707,30 +691,31 @@ class ArticulationButtons {
 			marcatoButton: SmoArticulation.articulations.marcato,
 			pizzicatoButton: SmoArticulation.articulations.pizzicato,
 			fermataButton: SmoArticulation.articulations.fermata,
-            mordentButton: SmoOrnament.ornaments.mordent,
-            mordentInvertedButton:SmoOrnament.ornaments.mordentInverted,
-            trillButton:SmoOrnament.ornaments.trill
+      mordentButton: SmoOrnament.ornaments.mordent,
+      mordentInvertedButton:SmoOrnament.ornaments.mordentInverted,
+      trillButton:SmoOrnament.ornaments.trill
 		};
 	}
-    static get constructors() {
-        return {
-			accentButton: 'SmoArticulation',
-			tenutoButton: 'SmoArticulation',
-			staccatoButton: 'SmoArticulation',
-			marcatoButton: 'SmoArticulation',
-			pizzicatoButton: 'SmoArticulation',
-			fermataButton: 'SmoArticulation',
-            mordentButton: 'SmoOrnament',
-            mordentInvertedButton:'SmoOrnament',
-            trillButton:'SmoOrnament'
-        }
+  static get constructors() {
+    return {
+  		accentButton: 'SmoArticulation',
+  		tenutoButton: 'SmoArticulation',
+  		staccatoButton: 'SmoArticulation',
+  		marcatoButton: 'SmoArticulation',
+  		pizzicatoButton: 'SmoArticulation',
+  		fermataButton: 'SmoArticulation',
+      mordentButton: 'SmoOrnament',
+      mordentInvertedButton:'SmoOrnament',
+      trillButton:'SmoOrnament'
     }
+  }
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
 		this.buttonData = parameters.buttonData;
 		this.editor = parameters.editor;
 		this.articulation = ArticulationButtons.articulationIdMap[this.buttonData.id];
-        this.ctor = ArticulationButtons.constructors[this.buttonData.id];
+    this.eventSource = parameters.eventSource;
+    this.ctor = ArticulationButtons.constructors[this.buttonData.id];
 	}
 	_toggleArticulation() {
 		this.showState = !this.showState;
@@ -738,9 +723,7 @@ class ArticulationButtons {
 	}
 	bind() {
 		var self = this;
-		$(this.buttonElement).off('click').on('click', function () {
-			self._toggleArticulation();
-		});
+    this.eventSource.domClick(this.buttonElement,this,'_toggleArticulation');
 	}
 }
 
@@ -784,9 +767,7 @@ class CollapseRibbonControl {
 	bind() {
 		var self = this;
 		$(this.buttonElement).closest('div').addClass('collapseContainer');
-		$('#' + this.buttonData.id).off('click').on('click', function () {
-			self._toggleExpand();
-		});
+    this.eventSource.domClick(this.buttonElement,this,'_toggleExpand');
 		this.childButtons.forEach((cb) => {
 			var ctor = eval(cb.ctor);
 			var el = $('#' + cb.id);

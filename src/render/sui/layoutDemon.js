@@ -3,7 +3,7 @@ class SuiLayoutDemon {
   constructor(parameters) {
     this.pollTime = 100;
 
-    this.idleRedrawTime = 5000;
+    this.idleRedrawTime = 2500;
     this.idleLayoutTimer = 0;
     this.undoStatus=0;
 
@@ -21,12 +21,16 @@ class SuiLayoutDemon {
   		this.layout.dirty=true;
   		this.undoStatus = this.undoBuffer.opCount;
   		this.idleLayoutTimer = Date.now();
-        var state = this.layout.passState;
-        try {
-  		this.render();
-        } catch (ex) {
-            SuiExceptionHandler.instance.exceptionHandler(ex);
-        }
+      var state = this.layout.passState;
+      this.tracker.updateMap();
+
+      // indicate the display is 'dirty' and we will be refreshing it.
+      $('body').addClass('refresh-1');
+      try {
+  		  this.render();
+      } catch (ex) {
+        SuiExceptionHandler.instance.exceptionHandler(ex);
+      }
   	} else if (this.layout.passState === suiLayoutBase.passStates.replace) {
   		// Do we need to refresh the score?
   		if (Date.now() - this.idleLayoutTimer > this.idleRedrawTime) {
@@ -53,6 +57,9 @@ class SuiLayoutDemon {
 		this.layout.render();
     if (this.layout.passState == suiLayoutBase.passStates.clean && this.layout.dirty == false) {
        this.tracker.updateMap();
+
+       // indicate the display is 'clean' and up-to-date with the score
+       $('body').removeClass('refresh-1');
     }
 	}
 }

@@ -374,6 +374,18 @@ class PasteBuffer {
 			var measure = this.measures[i];
 			var nvoice = voices[i];
 			var ser = measure.serialize();
+
+      // deserialize column-mapped attributes, these are not normally serialized
+      // since they are mapped to measures on a delta basis.
+      SmoMeasure.columnMappedAttributes.forEach((attr) => {
+        if (typeof(measure[attr]) === 'string') {
+          ser[attr] = measure[attr];
+        } else if (typeof(measure[attr]) === 'object') {
+          if (measure[attr].ctor) {
+            ser[attr] = measure[attr].serialize();
+          }
+        }
+      });
 			var vobj = {
 				notes: []
 			};
@@ -382,16 +394,16 @@ class PasteBuffer {
 			});
 
 			// TODO: figure out how to do this with multiple voices
-            this._pasteVoiceSer(ser,vobj,this.destination.voice);
+      this._pasteVoiceSer(ser,vobj,this.destination.voice);
 			var nmeasure = SmoMeasure.deserialize(ser);
-            nmeasure.renderedBox = svgHelpers.smoBox(measure.renderedBox);
-            nmeasure.setBox(svgHelpers.smoBox(measure.logicalBox),'copypaste');
-            nmeasure.setX(measure.logicalBox.x,'copyPaste');
-            nmeasure.setWidth( measure.logicalBox.width,'copypaste');
-            nmeasure.setY(measure.logicalBox.y,'copypaste');
-            ['forceClef','forceKeySignature','forceTimeSignature','forceTempo'].forEach((flag) => {
-                nmeasure[flag] = measure[flag];
-            });
+      nmeasure.renderedBox = svgHelpers.smoBox(measure.renderedBox);
+      nmeasure.setBox(svgHelpers.smoBox(measure.logicalBox),'copypaste');
+      nmeasure.setX(measure.logicalBox.x,'copyPaste');
+      nmeasure.setWidth( measure.logicalBox.width,'copypaste');
+      nmeasure.setY(measure.logicalBox.y,'copypaste');
+      ['forceClef','forceKeySignature','forceTimeSignature','forceTempo'].forEach((flag) => {
+          nmeasure[flag] = measure[flag];
+      });
 			this.score.replaceMeasure(measureSel, nmeasure);
 			measureSel.measure += 1;
 		}

@@ -1,13 +1,35 @@
 
 
+.control-bar {
+  display:flex;
+  flex:1 1 auto;
+}
 .controls-top {
-	width:100%;
 	min-height:50px;
 	margin-bottom:3px;
 	background-color: #fff;
 	background:transparent;
 	display:flex;
+  flex: 1 1 auto;
 	flex-flow:row wrap;
+  justify-content:left;
+}
+
+.control-bar .titleText {
+  display:flex;
+  flex:60px;
+  justify-content:center;
+  align-self:center;
+}
+
+@keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
+
+body.refresh-1 #refresh span.icon {
+  animation: spin 4s linear infinite;
+}
+
+body.refresh-1 #refresh  {
+  background: #deeedd;
 }
 
 .controls-left button,.controls-top button {
@@ -41,13 +63,12 @@ div.ribbonButtonContainer.expanded {
 }
 
 .controls-left {
-	position: absolute;
-	left: 10px;
 	margin-top: 33px;
 	background-color: #fff;
 	background:transparent;
 	display:flex;
 	flex-direction:column;
+  padding:10px;
 }
 
 .controls-left button,
@@ -57,6 +78,7 @@ div.ribbonButtonContainer.expanded {
 	font-size: 0.7em;
 	border: 1px #44e solid;
 	position:relative;
+  border-radius:5px;
 }
 
 .controls-left button {
@@ -77,6 +99,14 @@ div.ribbonButtonContainer.expanded {
 .controls-top div {
 	display:inline-block;
 }
+
+.controls-left  button:hover,controls-left button:focus,
+.controls-top  button:hover,controls-left button:focus{
+	border:2px blue solid;
+	border-radius:3px;
+	opacity:0.7;
+}
+
 .controls-left button span.ribbon-button-text,
 .controls-top button span.ribbon-button-text {
 	position:absolute;
@@ -447,8 +477,7 @@ button.addChord .left-text .icon {
 	right: 4px;
 	top: 20%;
 }
-.controls-left .collapseParent ,
-.controls-top .collapseParent {
+.controls-left .collapseParent {
 	border-left:4px inset #44e;
 }
 

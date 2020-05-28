@@ -58,7 +58,6 @@ class suiController {
         this.layoutDemon.startDemon();
 
 		this.createPiano();
-		this.updateOffsets();
 	}
 
 	static get scrollable() {
@@ -95,63 +94,50 @@ class suiController {
 		this.piano = new suiPiano({elementId:'piano-svg',tracker:this.tracker,undo:this.undoBuffer});
         // $('.close-piano').click();
 	}
-	updateOffsets() {
-		// the 100 is for the control offsets
-		var padding =  Math.round((this.layout.screenWidth-this.layout.pageWidth)/2)-100;
-		$('.workspace-container').css('padding-left',''+padding+'px');
-
-		// Keep track of the scroll bar so we can adjust the map
-		// this.scrollPosition = $('body')[0].scrollTop;
-	}
 	resizeEvent() {
 		var self = this;
-		if (this.resizing)
+		if (this.resizing) {
 			return;
+    }
+    if ($('body').hasClass('printing')) {
+      return;
+    }
 		this.resizing = true;
 		setTimeout(function () {
 			console.log('resizing');
 			self.resizing = false;
 			$('.musicRelief').height(window.innerHeight - $('.musicRelief').offset().top);
 			self.piano.handleResize();
-			self.updateOffsets();
-
 		}, 500);
 	}
 
-  createModifierDialog(modifier) {
-    this.idleLayoutTimer = Date.now();
+  createModifierDialog(modifierSelection) {
     var parameters = {
-      modifier:modifier, context:this.tracker.context, tracker:this.tracker, layout:this.layout, undoBuffer:this.undoBuffer,eventSource:this.eventSource,
+      modifier:modifierSelection.modifier, context:this.tracker.context, tracker:this.tracker, layout:this.layout, undoBuffer:this.undoBuffer,eventSource:this.eventSource,
          completeNotifier:this
     }
-    this.unbindKeyboardForModal(
-      SuiDialogFactory.createDialog(modifier,
-        {
-          tracker:this.tracker,
-          layout:this.layout,
-          undoBuffer:this.undoBuffer,
-          completeNotifier:this,
-          eventSource:this.eventSource
-        })
-    );
+    SuiModifierDialogFactory.createDialog(modifierSelection.modifier,parameters);
   }
 
 	// If the user has selected a modifier via the mouse/touch, bring up mod dialog
 	// for that modifier
 	trackerModifierSelect(ev) {
-    this.idleLayoutTimer = Date.now();
 		var modSelection = this.tracker.getSelectedModifier();
 		if (modSelection) {
 			var dialog = this.createModifierDialog(modSelection);
       if (dialog) {
         this.tracker.selectSuggestion(ev);
-  	    this.unbindKeyboardForModal(dialog);
+  	    // this.unbindKeyboardForModal(dialog);
       } else {
         this.tracker.advanceModifierSelection(ev);
       }
 		} else {
       this.tracker.selectSuggestion(ev);
     }
+    var modifier = this.tracker.getSelectedModifier();
+    // if (modifier) {
+    //   this.createModifierDialog(modifier);
+    // }
 		return;
 	}
 
@@ -173,7 +159,7 @@ class suiController {
 		});
 
 		let scrollCallback = (ev) => {
-            self.handleScrollEvent(ev);
+      self.handleScrollEvent(ev);
 		};
 		el.onscroll = scrollCallback;
 	}
@@ -201,34 +187,15 @@ class suiController {
 		return controller;
 	}
 
-	static createDebugUi(score) {
-    SuiDom.createDom(title);
-		var params = suiController.keyBindingDefaults;
-		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), document.getElementById("booShadow"), score);
-		layoutDebug.setAll();
-    params.scroller = new suiScroller();
-		params.tracker = new suiTracker(params.layout,params.scroller);
-		params.editor = new suiEditor(params);
-		params.menus = new suiMenuManager(params);
-    params.layoutDemon = new SuiLayoutDemon(params);
-		var controller = new suiController(params);
-    var score = SmoScore.deserialize(basicJson);
-    params.layout.score = score;
-		return controller;
-	}
-
-	static start(debug) {
+	static start() {
 		var score = SmoScore.getEmptyScore();
 		score.addDefaultMeasureWithNotes(0, {});
-		if (!debug) {
-  		score.addDefaultMeasureWithNotes(1, {});
-  		score.addDefaultMeasureWithNotes(2, {});
-  		score.addDefaultMeasureWithNotes(3, {});
-  		score.addDefaultMeasureWithNotes(4, {});
-  		score.addStaff();
-		}
-
-		var controller = debug ? suiController.createDebugUi(score) : suiController.createUi(score);
+		score.addDefaultMeasureWithNotes(1, {});
+		score.addDefaultMeasureWithNotes(2, {});
+		score.addDefaultMeasureWithNotes(3, {});
+		score.addDefaultMeasureWithNotes(4, {});
+		score.addStaff();
+		var controller =suiController.createUi(score);
 	}
 
 	// ### renderElement
@@ -301,8 +268,10 @@ class suiController {
 
 	unbindKeyboardForModal(dialog) {
 		var self=this;
+    layoutDebug.addDialogDebug('controller: unbindKeyboardForModal')
 		var rebind = function () {
 			self.bindEvents();
+      layoutDebug.addDialogDebug('controller: unbindKeyboardForModal resolve')
 		}
     this.eventSource.unbindKeydownHandler(this.keydownHandler);
 		dialog.closeModalPromise.then(rebind);
@@ -329,6 +298,11 @@ class suiController {
 		// TODO:  work dialogs into the scheme of things
 		if (evdata.key == 'Enter') {
 			self.trackerModifierSelect(evdata);
+      var modifier = this.tracker.getSelectedModifier();
+      if (modifier) {
+        this.createModifierDialog(modifier);
+      }
+
 		}
 
 		var binding = this.keyBind.find((ev) =>
@@ -366,7 +340,11 @@ class suiController {
 		});
 
 		$(this.renderElement).off('click').on('click', function (ev) {
-			tracker.selectSuggestion(ev);
+      tracker.selectSuggestion(ev);
+      var modifier = tracker.getSelectedModifier();
+      if (modifier) {
+        self.createModifierDialog(modifier);
+      }
 		});
 
     this.keydownHandler = this.eventSource.bindKeydownHandler(this,'evKey');

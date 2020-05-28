@@ -1,19 +1,19 @@
 // # Dialog base classes
 
-// ## SuiDialogFactory
+// ## SuiModifierDialogFactory
 // Automatic dialog constructors for dialogs without too many parameters
 // that operated on a selection.
-class SuiDialogFactory {
+class SuiModifierDialogFactory {
 
-	static createDialog(modSelection, parameters) {
-		var dbType = SuiDialogFactory.modifierDialogMap[modSelection.modifier.attrs.type];
+	static createDialog(modifier, parameters) {
+		var dbType = SuiModifierDialogFactory.modifierDialogMap[modifier.attrs.type];
 		var ctor = eval(dbType);
 		if (!ctor) {
-			console.warn('no dialog for modifier ' + modSelection.modifier.type);
+			console.warn('no dialog for modifier ' + modifier.type);
 			return;
 		}
 		return ctor.createAndDisplay({
-			modifier: modSelection.modifier,
+			modifier: modifier,
       ...parameters
 		});
 	}
@@ -386,9 +386,8 @@ class SuiLayoutDialog extends SuiDialogBase {
 		});
 		this.completeNotifier.unbindKeyboardForModal(this);
 
-        var box = svgHelpers.boxPoints(250,250,1,1);
-        SuiDialogBase.position(box,this.dgDom,this.tracker.scroller);
-
+    var box = svgHelpers.boxPoints(250,250,1,1);
+    SuiDialogBase.position(box,this.dgDom,this.tracker.scroller);
 	}
   // ### _updateLayout
   // even if the layout is not changed, we re-render the entire score by resetting
