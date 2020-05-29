@@ -4,95 +4,95 @@
 
 class SuiMeasureDialog extends SuiDialogBase {
     static get attributes() {
-        return ['pickupMeasure', 'makePickup', 'padLeft', 'padAllInSystem',
-            'measureText','measureTextPosition'];
+      return ['pickupMeasure', 'makePickup', 'padLeft', 'padAllInSystem',
+        'measureText','measureTextPosition'];
     }
     static get dialogElements() {
-        return [{
-            smoName: 'pickupMeasure',
-            parameterName: 'pickupMeasure',
-            defaultValue: 2048,
-            control: 'SuiDropdownComponent',
-            label:'Pickup Measure',
-            options: [{
-                    value: 2048,
-                    label: 'Eighth Note'
-                }, {
-                    value: 4096,
-                    label: 'Quarter Note'
-                }, {
-                    value: 6144,
-                    label: 'Dotted Quarter'
-                }, {
-                    value: 8192,
-                    label: 'Half Note'
-                }
-                ]
+      return [
+        {
+          smoName: 'pickupMeasure',
+          parameterName: 'pickupMeasure',
+          defaultValue: 2048,
+          control: 'SuiDropdownComponent',
+          label:'Pickup Measure',
+          options: [{
+            value: 2048,
+            label: 'Eighth Note'
+          }, {
+            value: 4096,
+            label: 'Quarter Note'
+          }, {
+            value: 6144,
+            label: 'Dotted Quarter'
+          }, {
+            value: 8192,
+            label: 'Half Note'
+          }
+        ]
 			}, {
-    			smoName:'makePickup',
-    			parameterName:'makePickup',
-    			defaultValue: false,
-    			control:'SuiToggleComponent',
-    			label:'Convert to Pickup Measure'
-    		},{
-                parameterName: 'padLeft',
-                smoName: 'padLeft',
-                defaultValue: 0,
-                control: 'SuiRockerComponent',
-                label: 'Pad Left (px)'
-            },{
-                parameterName: 'customStretch',
-                smoName: 'customStretch',
-                defaultValue: 0,
-                control: 'SuiRockerComponent',
-                label: 'Stretch Contents'
-            },{
-                parameterName: 'customProportion',
-                smoName: 'customProportion',
-                defaultValue: SmoMeasure.defaults.customProportion,
-                control: 'SuiRockerComponent',
-                increment:10,
-                label: 'Adjust Proportional Spacing'
-            },{
-    			smoName:'padAllInSystem',
-    			parameterName:'padAllInSystem',
-    			defaultValue: false,
-    			control:'SuiToggleComponent',
-    			label:'Pad all measures in system'
-    		},{
-    				smoName: 'measureText',
-    				parameterName: 'measureText',
-    				defaultValue: '',
-    				control: 'SuiTextInputComponent',
-    				label:'Measure Text'
-    		},{
-                smoName: 'measureTextPosition',
-                parameterName: 'measureTextPosition',
-                defaultValue: SmoMeasureText.positions.above,
-                control: 'SuiDropdownComponent',
-                label:'Text Position',
-                options: [{
-                        value: SmoMeasureText.positions.left,
-                        label: 'Left'
-                    }, {
-                        value: SmoMeasureText.positions.right,
-                        label: 'Right'
-                    }, {
-                        value:SmoMeasureText.positions.above,
-                        label: 'Above'
-                    }, {
-                        value: SmoMeasureText.positions.below,
-                        label: 'Below'
-                    }
-                    ]
-    			},{
-        			smoName:'systemBreak',
-        			parameterName:'systemBreak',
-        			defaultValue: false,
-        			control:'SuiToggleComponent',
-        			label: 'System break before this measure'
-        		}
-        ];
+  			smoName:'makePickup',
+  			parameterName:'makePickup',
+  			defaultValue: false,
+  			control:'SuiToggleComponent',
+  			label:'Convert to Pickup Measure'
+  		}, {
+        parameterName: 'padLeft',
+        smoName: 'padLeft',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'Pad Left (px)'
+      }, {
+        parameterName: 'customStretch',
+        smoName: 'customStretch',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'Stretch Contents'
+      },{
+        parameterName: 'customProportion',
+        smoName: 'customProportion',
+        defaultValue: SmoMeasure.defaults.customProportion,
+        control: 'SuiRockerComponent',
+        increment:10,
+        label: 'Adjust Proportional Spacing'
+      },{
+  			smoName:'padAllInSystem',
+  			parameterName:'padAllInSystem',
+  			defaultValue: false,
+  			control:'SuiToggleComponent',
+  			label:'Pad all measures in system'
+  		},{
+				smoName: 'measureText',
+				parameterName: 'measureText',
+				defaultValue: '',
+				control: 'SuiTextInputComponent',
+				label:'Measure Text'
+  		},{
+        smoName: 'measureTextPosition',
+        parameterName: 'measureTextPosition',
+        defaultValue: SmoMeasureText.positions.above,
+        control: 'SuiDropdownComponent',
+        label:'Text Position',
+        options: [{
+                value: SmoMeasureText.positions.left,
+                label: 'Left'
+            }, {
+                value: SmoMeasureText.positions.right,
+                label: 'Right'
+            }, {
+                value:SmoMeasureText.positions.above,
+                label: 'Above'
+            }, {
+                value: SmoMeasureText.positions.below,
+                label: 'Below'
+            }
+            ]
+    			}, {
+  			smoName:'systemBreak',
+  			parameterName:'systemBreak',
+  			defaultValue: false,
+  			control:'SuiToggleComponent',
+  			label: 'System break before this measure'
+  		}];
     }
     static createAndDisplay(parameters) {
       // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',

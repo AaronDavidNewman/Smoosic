@@ -1909,39 +1909,46 @@ class SmoNote {
     }
 
     longestLyric() {
-        var tms = this.textModifiers.filter((mod) => {
-            return mod.attrs.type == 'SmoLyric';
-        });
-        if (!tms.length) {
-            return null;
-        }
-        return tms.reduce((m1,m2) => {
-            return m1.text.length > m2.text.length;
-        });
-
+      var tms = this.textModifiers.filter((mod) => {
+        return mod.attrs.type == 'SmoLyric' && mod.parser === SmoLyric.parsers.lyric;
+      });
+      if (!tms.length) {
+        return null;
+      }
+      return tms.reduce((m1,m2) => {
+        return m1.text.length > m2.text.length;
+      });
     }
 
-    addLyric(lyric) {
-        var tms = this.textModifiers.filter((mod) => {
-            return mod.attrs.type != 'SmoLyric' || mod.verse != lyric.verse;
-        });
-        tms.push(lyric);
-        this.textModifiers = tms;
-    }
+  addLyric(lyric) {
+    var tms = this.textModifiers.filter((mod) => {
+      return mod.attrs.type != 'SmoLyric' || mod.parser !==lyric.parser ||
+        mod.verse != lyric.verse;
+    });
+    tms.push(lyric);
+    this.textModifiers = tms;
+  }
+
+  getTrueLyrics() {
+    var ms = this.textModifiers.filter((mod)=> {
+      return mod.attrs.type === 'SmoLyric' && mod.parser === SmoLyric.parsers.lyric;
+    });
+    return ms;
+  }
 
 
-    removeLyric(lyric) {
-        var tms = this.textModifiers.filter((mod) => {
-            return mod.attrs.type != 'SmoLyric' || mod.verse != lyric.verse;
-        });
-        this.textModifiers = tms;
-    }
+  removeLyric(lyric) {
+    var tms = this.textModifiers.filter((mod) => {
+      return mod.attrs.type != 'SmoLyric' || mod.verse != lyric.verse || mod.parser != lyric.parser;
+    });
+    this.textModifiers = tms;
+  }
 
-    getLyricForVerse(verse) {
-        return this.textModifiers.filter((mod) => {
-            return mod.attrs.type == 'SmoLyric' && mod.verse == verse;
-        });
-    }
+  getLyricForVerse(verse,parser) {
+      return this.textModifiers.filter((mod) => {
+        return mod.attrs.type == 'SmoLyric' && mod.parser === parser && mod.verse === verse;
+      });
+  }
 
     getOrnaments(ornament) {
         return this.ornaments;
@@ -2682,7 +2689,7 @@ class SmoArticulation extends SmoNoteModifierBase {
 class SmoLyric extends SmoNoteModifierBase {
 	static get defaults() {
 		return {
-      text:'\xa0',
+      _text:'\xa0',
       endChar:'',
       verse:0,
 			fontInfo: {
@@ -2698,37 +2705,61 @@ class SmoLyric extends SmoNoteModifierBase {
 			scaleY:1.0,
 			translateX:0,
 			translateY:0,
+      symbolBlocks:[],
+      parser:SmoLyric.parsers.lyric
 		};
 	}
   static get parsers() {
-      return {lyric:0,anaylysis:1,chord:2}
+    return {lyric:0,anaylysis:1,chord:2}
   }
-
+  static get symbolTypes() {
+    return {
+      GLYPH: 1,
+      TEXT: 2,
+      LINE: 3
+    };
+  }
   static get parameterArray() {
-      return ['text','endChar','fontInfo','classes','verse',
-	    'fill','scaleX','scaleY','translateX','translateY','ctor'];
+    return ['endChar','fontInfo','classes','verse','parser','symbolBlocks',
+    'fill','scaleX','scaleY','translateX','translateY','ctor','_text'];
   }
   serialize() {
-      var params = {};
-      smoSerialize.serializedMergeNonDefault(SmoLyric.defaults,
-         SmoLyric.parameterArray,this,params);
-      return params;
+    var params = {};
+    smoSerialize.serializedMergeNonDefault(SmoLyric.defaults,
+       SmoLyric.parameterArray,this,params);
+    return params;
+  }
+
+  // ### getClassSelector
+  // returns a selector used to find this text block within a note.
+  getClassSelector() {
+    var parser = (this.parser === SmoLyric.parsers.lyric ? 'lyric' : 'chord');
+    return 'g.'+parser+'-'+this.verse;
   }
 
   setText(text) {
-    this.text = text;
+    // For chords, trim all whitespace
+    if (this.parser !== SmoLyric.parsers.lyric) {
+      if (text.trim().length) {
+        text.replace(/\s/g,'');
+      }
+    }
+    this._text = text;
   }
 
-  updateText(text) {
-      // TODO: handle different parsers
-      text = text ? text: '';
-      this.text = text.trim();
+  getText() {
+    return this._text;
   }
 
   constructor(parameters) {
   	super('SmoLyric');
   	smoSerialize.serializedMerge(SmoLyric.parameterArray, SmoLyric.defaults,this);
   	smoSerialize.serializedMerge(SmoLyric.parameterArray, parameters, this);
+
+    // backwards-compatibility for lyric text
+    if (parameters.text) {
+      this._text = parameters.text;
+    }
 
     // Return these for the text editor that expects them.
     this.translateX = this.translateY = 0;
@@ -5357,7 +5388,7 @@ class SmoSystemGroup extends SmoScoreModifierBase {
 // decorations, titles etc.
 class SmoScoreText extends SmoScoreModifierBase {
 
-    static get paginations() {
+  static get paginations() {
 		return {every:'every',even:'even',odd:'odd',once:'once',subsequent:'subsequent'}
 	}
 	static get positions() {
@@ -5366,43 +5397,43 @@ class SmoScoreText extends SmoScoreModifierBase {
 	static get justifications() {
 		return {left:'left',right:'right',center:'center'};
 	}
-    static get fontFamilies() {
-        return {serif:'serif',sansSerif:'sans-serif',monospace:'monospace',cursive:'cursive',
-           times:'Times New Roman',arial:'Arial',helvitica:'Helvitica'};
+  static get fontFamilies() {
+    return {serif:'serif',sansSerif:'sans-serif',monospace:'monospace',cursive:'cursive',
+      times:'Times New Roman',arial:'Arial',helvitica:'Helvitica'};
 
-    }
+  }
 	// If box model is 'none', the font and location determine the size.
 	// spacing and spacingGlyph fit the box into a container based on the svg policy
 	static get boxModels() {
 		return {none:'none',spacing:'spacing',spacingAndGlyphs:'spacingAndGlyphs',wrap:'wrap'};
 	}
-    static get defaults() {
-        return {
-            x:15,
-			y:15,
-			width:0,
-			height:0,
-            text: 'Smoosic',
-			fontInfo: {
-				size: '1em',
-				family:SmoScoreText.fontFamilies.times,
-				style:'normal',
-				weight:'normal'
-			},
-			fill:'black',
-			rotate:0,
-			justification:SmoScoreText.justifications.left,
-			classes:'score-text',
-			boxModel:'none',
-			scaleX:1.0,
-			scaleY:1.0,
-			translateX:0,
-			translateY:0,
-			pagination:'once',
-			position:'custom',
-			autoLayout:false // set to true if one of the pre-canned positions are used.
-        };
-    }
+  static get defaults() {
+      return {
+          x:15,
+		y:15,
+		width:0,
+		height:0,
+          text: 'Smoosic',
+		fontInfo: {
+			size: '1em',
+			family:SmoScoreText.fontFamilies.times,
+			style:'normal',
+			weight:'normal'
+		},
+		fill:'black',
+		rotate:0,
+		justification:SmoScoreText.justifications.left,
+		classes:'score-text',
+		boxModel:'none',
+		scaleX:1.0,
+		scaleY:1.0,
+		translateX:0,
+		translateY:0,
+		pagination:'once',
+		position:'custom',
+		autoLayout:false // set to true if one of the pre-canned positions are used.
+    };
+  }
 	static toSvgAttributes(inst) {
 		var rv=[];
 		var fkeys = Object.keys(inst.fontInfo);
@@ -5423,6 +5454,10 @@ class SmoScoreText extends SmoScoreModifierBase {
 		    inst.scaleX+' '+inst.scaleY+')'});
 		return rv;
 	}
+
+  getText() {
+    return this.text;
+  }
 
 	toSvgAttributes() {
 		return SmoScoreText.toSvgAttributes(this);
@@ -8460,58 +8495,74 @@ class VxMeasure {
         });
 
     }
+    _addLyricAnnotationToNote(vexNote,lyric) {
+      var y = lyric.verse*10;
+      var vexL = new VF.Annotation(lyric.getText());
+      vexL.setAttribute(lyric.attrs.id); //
 
-    _createLyric(smoNote,vexNote,x_shift) {
-        var lyrics = smoNote.getModifiers('SmoLyric');
-        var ix = 0;
-        lyrics.forEach((ll) => {
-            var y = ll.verse*10;
-            var vexL = new VF.Annotation(ll.text);
-            vexL.setAttribute(ll.attrs.id); //
-
-            // If we adjusted this note for the lyric, adjust the lyric as well.
-            vexL.setFont(ll.fontInfo.family, ll.fontInfo.size,ll.fontInfo.weight);
-            vexL.setYShift(y); // need this?
-			vexL.setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);
-            vexNote.addAnnotation(0,vexL);
-            const classString = 'lyric lyric-'+ll.verse;
-            vexL.addClass(classString);
-        });
+      // If we adjusted this note for the lyric, adjust the lyric as well.
+      vexL.setFont(lyric.fontInfo.family, lyric.fontInfo.size,lyric.fontInfo.weight);
+      vexL.setYShift(y); // need this?
+      vexL.setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);
+      vexNote.addAnnotation(0,vexL);
+      const classString = 'lyric lyric-'+lyric.verse;
+      vexL.addClass(classString);
     }
 
-    _createGraceNotes(smoNote,vexNote) {
-        var gar = smoNote.getGraceNotes();
-        var toBeam = true;
-        if (gar && gar.length) {
-            var group = [];
-            gar.forEach((g) => {
-                var gr = new VF.GraceNote(g.toVexGraceNote());
-                for (var i=0;i<g.pitches.length;++i) {
-                    var pitch = g.pitches[i];
-                    if (pitch.accidental != 'n' || pitch.cautionary)  {
-                        var accidental = new VF.Accidental(pitch.accidental);
-                        if (pitch.cautionary) {
-                            accidental.setAsCautionary();
-                        }
-                        gr.addAccidental(i,accidental);
-                    }
-                }
-                if (g.tickCount() > 4096) {
-                    toBeam = false;
-                }
-                gr.addClass('grace-note'); // note: this doesn't work :(
+    _addChordChangeToNote(vexNote,lyric) {
+      var y = lyric.verse*10;
+      var cs = new VF.ChordSymbol();
+      cs.addGlyphOrText(lyric.getText()).setFontSize(12);
+      vexNote.addModifier(0,cs);
+      const classString = 'chord chord-'+lyric.verse;
+      cs.addClass(classString);
+    }
 
-                g.renderedId = gr.attrs.id;
-                group.push(gr);
-            });
-            var grace = new VF.GraceNoteGroup(group);
-            if (toBeam) {
-                grace.beamNotes();
+  _createLyric(smoNote,vexNote,x_shift) {
+    var lyrics = smoNote.getModifiers('SmoLyric');
+    var ix = 0;
+    lyrics.forEach((ll) => {
+      if (ll.parser === SmoLyric.parsers.lyric) {
+        this._addLyricAnnotationToNote(vexNote,ll);
+      } else {
+        this._addChordChangeToNote(vexNote,ll);
+      }
+    });
+  }
+
+  _createGraceNotes(smoNote,vexNote) {
+    var gar = smoNote.getGraceNotes();
+    var toBeam = true;
+    if (gar && gar.length) {
+      var group = [];
+      gar.forEach((g) => {
+        var gr = new VF.GraceNote(g.toVexGraceNote());
+        for (var i=0;i<g.pitches.length;++i) {
+            var pitch = g.pitches[i];
+            if (pitch.accidental != 'n' || pitch.cautionary)  {
+                var accidental = new VF.Accidental(pitch.accidental);
+                if (pitch.cautionary) {
+                    accidental.setAsCautionary();
+                }
+                gr.addAccidental(i,accidental);
             }
-
-            vexNote.addModifier(0,grace);
         }
+        if (g.tickCount() > 4096) {
+            toBeam = false;
+        }
+        gr.addClass('grace-note'); // note: this doesn't work :(
+
+        g.renderedId = gr.attrs.id;
+        group.push(gr);
+      });
+      var grace = new VF.GraceNoteGroup(group);
+      if (toBeam) {
+        grace.beamNotes();
+      }
+
+      vexNote.addModifier(0,grace);
     }
+  }
 
     // ## Description:
     // convert a smoNote into a vxNote so it can be rasterized
@@ -8754,7 +8805,8 @@ class VxMeasure {
          this.smoMeasure.voices.forEach((vv) => {
              vv.notes.forEach((nn) => {
                  nn.getModifiers('SmoLyric').forEach((lyric) => {
-                     lyric.selector='#'+nn.renderId+' g.lyric-'+lyric.verse;
+                     var parser = (lyric.parser === SmoLyric.parsers.lyric ? 'lyric' : 'chord');
+                     lyric.selector='#'+nn.renderId+' '+lyric.getClassSelector();
                  });
              });
          });
@@ -8835,7 +8887,7 @@ class VxMeasure {
     format(voices) {
         this.formatter.format(voices,
               this.smoMeasure.staffWidth-
-             (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft)); 
+             (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft));
         // this.formatter.format(voices);
     }
     render() {
@@ -8938,80 +8990,80 @@ class VxSystem {
     // Adjust the y position for all lyrics in the line so they are even.
     // Also replace '-' with a longer dash do indicate 'until the next measure'
 	updateLyricOffsets() {
-        for (var i = 0;i < this.score.staves.length;++i) {
-            // is this necessary? They should all be from the current line
-            var vxMeasures = this.vxMeasures.filter((vx) => {
-                return vx.smoMeasure.measureNumber.staffId == i;
-            });
-            // All the lyrics on this line
-            var lyrics=[];
-            var lyricsDash = [];
+    for (var i = 0;i < this.score.staves.length;++i) {
+      // is this necessary? They should all be from the current line
+      var vxMeasures = this.vxMeasures.filter((vx) => {
+        return vx.smoMeasure.measureNumber.staffId == i;
+      });
+      // All the lyrics on this line
+      var lyrics=[];
+      var lyricsDash = [];
 
-            // The vertical bounds on each line
-            var verseLimits={};
+      // The vertical bounds on each line
+      var verseLimits={};
 
-            // The
-            var lyricVerseMap = {};
-            vxMeasures.forEach((mm) => {
-                var smoMeasure = mm.smoMeasure;
+      // The
+      var lyricVerseMap = {};
+      vxMeasures.forEach((mm) => {
+        var smoMeasure = mm.smoMeasure;
 
-                // Get lyrics from any voice.
-                smoMeasure.voices.forEach((voice) => {
-                    voice.notes.forEach((note) => {
-                        note.getModifiers('SmoLyric').forEach((ll) => {
-                            if (!lyricVerseMap[ll.verse]) {
-                                lyricVerseMap[ll.verse] = [];
-                            }
-                            if (ll.logicalBox) {
-                                lyricVerseMap[ll.verse].push(ll);
-                                lyrics.push(ll);
-                            }
-                        });
-                    });
-                });
+        // Get lyrics from any voice.
+        smoMeasure.voices.forEach((voice) => {
+          voice.notes.forEach((note) => {
+            note.getTrueLyrics().forEach((ll) => {
+              if (!lyricVerseMap[ll.verse]) {
+                lyricVerseMap[ll.verse] = [];
+              }
+              if (ll.logicalBox) {
+                lyricVerseMap[ll.verse].push(ll);
+                lyrics.push(ll);
+              }
             });
-            var vkey = Object.keys(lyricVerseMap).sort((a,b) => a-b);
-            vkey.forEach((verse) => {
-                verseLimits[verse] = {highest:-1,bottom:-1};
-                lyricVerseMap[verse].forEach((ll) => {
-                    verseLimits[verse].highest = Math.round(Math.max(ll.logicalBox.height,verseLimits[verse].highest));
-                    verseLimits[verse].bottom = Math.round(Math.max(ll.logicalBox.y + ll.logicalBox.height,verseLimits[verse].bottom));
-                });
-            });
-            for (var j = 1; j < vkey.length;++j) {
-                verseLimits[j].bottom = verseLimits[j-1].bottom + verseLimits[j-1].highest;
-            }
-            lyrics.forEach((lyric) => {
-    			lyric.adjY = Math.round(verseLimits[lyric.verse].bottom -  lyric.logicalBox.y);
-    			var dom = $(this.context.svg).find(lyric.selector)[0];
-    			dom.setAttributeNS('','transform','translate('+lyric.adjX+' '+lyric.adjY+')');
-                // Keep track of lyrics that are 'dash'
-                if (lyric.text.trim() == '-') {
-                    lyricsDash.push(lyric);
-                }
-    		});
-
-            lyricsDash.forEach((lyric) => {
-                var parent = $(this.context.svg).find(lyric.selector)[0];
-                var line = document.createElementNS(svgHelpers.namespace,'line');
-                var ymax = Math.round(lyric.logicalBox.y + lyric.logicalBox.height/2);
-                var offset = Math.round(lyric.logicalBox.width/2);
-                line.setAttributeNS('', 'x1', lyric.logicalBox.x - offset);
-                line.setAttributeNS('', 'y1', ymax);
-                line.setAttributeNS('', 'x2', lyric.logicalBox.x + lyric.logicalBox.width + offset);
-                line.setAttributeNS('', 'y2', ymax);
-                line.setAttributeNS('','stroke-width',1);
-                line.setAttributeNS('','fill','none');
-                line.setAttributeNS('','stroke','#999999');
-                parent.appendChild(line);
-                var text = $(this.context.svg).find(lyric.selector).find('text')[0];
-                text.setAttributeNS('','fill','#fff');
-            });
+          });
+        });
+      });
+      var vkey = Object.keys(lyricVerseMap).sort((a,b) => a-b);
+      vkey.forEach((verse) => {
+          verseLimits[verse] = {highest:-1,bottom:-1};
+          lyricVerseMap[verse].forEach((ll) => {
+            verseLimits[verse].highest = Math.round(Math.max(ll.logicalBox.height,verseLimits[verse].highest));
+            verseLimits[verse].bottom = Math.round(Math.max(ll.logicalBox.y + ll.logicalBox.height,verseLimits[verse].bottom));
+          });
+      });
+      for (var j = 1; j < vkey.length;++j) {
+        verseLimits[j].bottom = verseLimits[j-1].bottom + verseLimits[j-1].highest;
+      }
+      lyrics.forEach((lyric) => {
+  			lyric.adjY = Math.round(verseLimits[lyric.verse].bottom -  lyric.logicalBox.y);
+  			var dom = $(this.context.svg).find(lyric.selector)[0];
+  			dom.setAttributeNS('','transform','translate('+lyric.adjX+' '+lyric.adjY+')');
+        // Keep track of lyrics that are 'dash'
+        if (lyric.getText().trim() == '-') {
+          lyricsDash.push(lyric);
         }
+		  });
+
+      lyricsDash.forEach((lyric) => {
+        var parent = $(this.context.svg).find(lyric.selector)[0];
+        var line = document.createElementNS(svgHelpers.namespace,'line');
+        var ymax = Math.round(lyric.logicalBox.y + lyric.logicalBox.height/2);
+        var offset = Math.round(lyric.logicalBox.width/2);
+        line.setAttributeNS('', 'x1', lyric.logicalBox.x - offset);
+        line.setAttributeNS('', 'y1', ymax);
+        line.setAttributeNS('', 'x2', lyric.logicalBox.x + lyric.logicalBox.width + offset);
+        line.setAttributeNS('', 'y2', ymax);
+        line.setAttributeNS('','stroke-width',1);
+        line.setAttributeNS('','fill','none');
+        line.setAttributeNS('','stroke','#999999');
+        parent.appendChild(line);
+        var text = $(this.context.svg).find(lyric.selector).find('text')[0];
+        text.setAttributeNS('','fill','#fff');
+      });
+    }
 	}
 
-     // ### renderModifier
-     // render a line-type modifier that is associated with a staff (e.g. slur)
+   // ### renderModifier
+   // render a line-type modifier that is associated with a staff (e.g. slur)
 	renderModifier(modifier, vxStart, vxEnd,smoStart,smoEnd) {
 		// if it is split between lines, render one artifact for each line, with a common class for
 		// both if it is removed.
@@ -9040,10 +9092,10 @@ class VxSystem {
 		} else if (modifier.ctor == 'SmoSlur') {
             var lyric = smoStart.note.longestLyric();
             var xoffset = 0;
-            if (lyric && lyric.text) {
+            if (lyric && lyric.getText()) {
                 // If there is a lyric, the bounding box of the start note is stretched to the right.
                 // slide the slur left, and also make it a bit wider.
-                xtranslate = (-1*lyric.text.length * 6);
+                xtranslate = (-1*lyric.getText().length * 6);
                 xoffset += (xtranslate/2) - SmoSlur.defaults.xOffset;
             }
 			var curve = new VF.Curve(
@@ -11707,26 +11759,26 @@ class suiLayoutBase {
         }
     }
 
-    _replaceMeasures() {
+  _replaceMeasures() {
 
-        var rendered = {};
+    var rendered = {};
 
-        this.replaceQ.forEach((change) => {
-            smoBeamerFactory.applyBeams(change.measure);
-            var system = new VxSystem(this.context, change.measure.staffY, change.measure.lineIndex,this.score);
-            var selections = SmoSelection.measuresInColumn(this.score,change.measure.measureNumber.measureIndex);
-            selections.forEach((selection) => {
-                system.renderMeasure(selection.measure,this.measureMapper);
-            });
-            system.renderEndings();
-            this._renderModifiers(change.staff, system);
-            system.updateLyricOffsets();
+    this.replaceQ.forEach((change) => {
+      smoBeamerFactory.applyBeams(change.measure);
+      var system = new VxSystem(this.context, change.measure.staffY, change.measure.lineIndex,this.score);
+      var selections = SmoSelection.measuresInColumn(this.score,change.measure.measureNumber.measureIndex);
+      selections.forEach((selection) => {
+          system.renderMeasure(selection.measure,this.measureMapper);
+      });
+      system.renderEndings();
+      this._renderModifiers(change.staff, system);
+      system.updateLyricOffsets();
 
-            // Fix a bug: measure change needs to stay true so we recaltulate the width
-            change.measure.changed = true;
-        });
-        this.replaceQ = [];
-    }
+      // Fix a bug: measure change needs to stay true so we recaltulate the width
+      change.measure.changed = true;
+    });
+    this.replaceQ = [];
+  }
 
     _adjustHeight() {
         var curPages = this._score.layout.pages;
@@ -12082,55 +12134,54 @@ class suiLayoutAdjuster {
 
 	static estimateMusicWidth(smoMeasure) {
 		var widths = [];
-        var voiceIx = 0;
-        var tmObj = smoMeasure.createMeasureTickmaps();
+    var voiceIx = 0;
+    var tmObj = smoMeasure.createMeasureTickmaps();
 		smoMeasure.voices.forEach((voice) => {
 			var tickIndex = 0;
-            var width = 0;
-            var duration = 0;
-            var tm = tmObj.tickmaps[voiceIx];
+      var width = 0;
+      var duration = 0;
+      var tm = tmObj.tickmaps[voiceIx];
 			voice.notes.forEach((note) => {
-                var noteWidth = 0;
-                var dots = (note.dots ? note.dots : 0);
+        var noteWidth = 0;
+        var dots = (note.dots ? note.dots : 0);
 				noteWidth += vexGlyph.dimensions.noteHead.width + vexGlyph.dimensions.noteHead.spacingRight;
 				noteWidth += vexGlyph.dimensions.dot.width * dots + vexGlyph.dimensions.dot.spacingRight * dots;
 				note.pitches.forEach((pitch) => {
-                    var keyAccidental = smoMusic.getAccidentalForKeySignature(pitch,smoMeasure.keySignature);
-                    var accidentals = tmObj.accidentalArray.filter((ar) =>
-                        ar.duration < duration && ar.pitches[pitch.letter]);
-                    var acLen = accidentals.length;
-                    var declared = acLen > 0 ?
-                        accidentals[acLen - 1].pitches[pitch.letter].pitch.accidental: keyAccidental;
+          var keyAccidental = smoMusic.getAccidentalForKeySignature(pitch,smoMeasure.keySignature);
+          var accidentals = tmObj.accidentalArray.filter((ar) =>
+              ar.duration < duration && ar.pitches[pitch.letter]);
+          var acLen = accidentals.length;
+          var declared = acLen > 0 ?
+              accidentals[acLen - 1].pitches[pitch.letter].pitch.accidental: keyAccidental;
 
-                    if (declared != pitch.accidental
-                        || pitch.cautionary) {
-						noteWidth += vexGlyph.accidental(pitch.accidental).width;
-					}
-				});
-
-                var verse = 0;
-                var lyric;
-                while (lyric = note.getLyricForVerse(verse)) {
-                    // TODO: kerning and all that...
-                    if (!lyric.length) {
-                        break;
-                    }
-                    // why did I make this return an array?
-                    // oh...because of voices
-                    var lyricWidth = 7*lyric[0].text.length + 10;
-                    noteWidth = Math.max(lyricWidth,noteWidth);
-
-                    verse += 1;
-                }
-
-				tickIndex += 1;
-                duration += note.tickCount;
-                width += noteWidth;
+          if (declared != pitch.accidental
+              || pitch.cautionary) {
+					noteWidth += vexGlyph.accidental(pitch.accidental).width;
+				}
 			});
-            voiceIx += 1;
-            widths.push(width);
+
+      var verse = 0;
+      var lyric;
+      while (lyric = note.getLyricForVerse(verse,SmoLyric.parsers.lyric)) {
+          // TODO: kerning and all that...
+          if (!lyric.length) {
+              break;
+          }
+          // why did I make this return an array?
+          // oh...because of voices
+          var lyricWidth = 7*lyric[0].getText().length + 10;
+          noteWidth = Math.max(lyricWidth,noteWidth);
+          verse += 1;
+        }
+
+  			tickIndex += 1;
+        duration += note.tickCount;
+        width += noteWidth;
+		  });
+      voiceIx += 1;
+      widths.push(width);
 		});
-        widths.sort((a,b) => a > b ? -1 : 1);
+    widths.sort((a,b) => a > b ? -1 : 1);
 		return widths[0];
 	}
 
@@ -12188,40 +12239,39 @@ class suiLayoutAdjuster {
 	static estimateMeasureWidth(measure) {
 
 		// Calculate the existing staff width, based on the notes and what we expect to be rendered.
-        var gravity = false;
-        var prevWidth = measure.staffWidth;
-		var measureWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
-		measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
-		measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
-		measureWidth += measure.adjX + measure.adjRight + measure.customStretch;
-        if (measure.changed == false && measure.logicalBox && measure.staffWidth < prevWidth) {
-            measureWidth = Math.round((measure.staffWidth + prevWidth)/2);
-            gravity = true;
-        }
-        var y = measure.logicalBox ? measure.logicalBox.y : measure.staffY;
-        measure.setWidth(measureWidth,'estimateMeasureWidth adjX adjRight gravity: '+gravity);
+  var gravity = false;
+  var prevWidth = measure.staffWidth;
+	var measureWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
+	measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
+	measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
+	measureWidth += measure.adjX + measure.adjRight + measure.customStretch;
+  if (measure.changed == false && measure.logicalBox && measure.staffWidth < prevWidth) {
+    measureWidth = Math.round((measure.staffWidth + prevWidth)/2);
+    gravity = true;
+  }
+  var y = measure.logicalBox ? measure.logicalBox.y : measure.staffY;
+  measure.setWidth(measureWidth,'estimateMeasureWidth adjX adjRight gravity: '+gravity);
 
 		// Calculate the space for left/right text which displaces the measure.
 		// var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(renderer,measure);
 		// measure.setX(measure.staffX  + textOffsetBox.x,'estimateMeasureWidth');
-        measure.setBox(svgHelpers.boxPoints(measure.staffX,y,measure.staffWidth,measure.logicalBox.height),
-           'estimate measure width');
-
+    measure.setBox(svgHelpers.boxPoints(measure.staffX,y,measure.staffWidth,measure.logicalBox.height),
+       'estimate measure width');
 	}
-    static _beamGroupForNote(measure,note) {
-        var rv = null;
-        if (!note.beam_group) {
-            return null;
-        }
-        measure.beamGroups.forEach((bg) => {
-            if (!rv) {
-                if (bg.notes.findIndex((nn) => note.beam_group && note.beam_group.id == bg.attrs.id) >= 0) {
-                    rv = bg;
-                }
-            }
-        });
-        return rv;
+  static _beamGroupForNote(measure,note) {
+    var rv = null;
+    if (!note.beam_group) {
+      return null;
     }
+    measure.beamGroups.forEach((bg) => {
+      if (!rv) {
+        if (bg.notes.findIndex((nn) => note.beam_group && note.beam_group.id == bg.attrs.id) >= 0) {
+          rv = bg;
+        }
+      }
+    });
+    return rv;
+  }
 
     // ### _highestLowestHead
     // highest value is actually the one lowest on the page
@@ -12870,7 +12920,7 @@ class suiTextLayout {
 // 2. textObject: a text object described below.
 // 3. layout: the page layout information, used to create the shadow editor in the DOM
 // The textObject must have the following attributes:
-// 1. text (the text to render initially)
+// 1. getText returns the text (the text to render initially)
 // 2. translateX, translateY, scaleX, scaleY for svg text element
 // 3. fontInfo from smoScoreText and other text objects
 class editSvgText {
@@ -12900,28 +12950,28 @@ class editSvgText {
     this.oldFill = this.target.getAttributeNS(null,'fill');
     this.target.setAttributeNS(null,'fill','#fff');
 
-    this.editText.textContent=this.textObject.text;
-    this._value = this.textObject.text;
+    this.editText.textContent=this.textObject.getText();
+    this._value = this.textObject.getText();
     var svgBox = svgHelpers.smoBox(this.target.getBBox());
     this.clientBox = svgHelpers.smoBox(svgHelpers.smoBox(this.target.getBoundingClientRect()));
-      if (this.textObject.boxModel != 'none') {
-          svgBox = svgHelpers.boxPoints(this.textObject.x,this.textObject.y,this.textObject.width,this.textObject.height);
-          var boxDims = svgHelpers.logicalToClient(this.svg,svgBox);
-          this.clientBox.width = boxDims.width;
-          this.clientBox.height = boxDims.height;
-      }
-      this.editText.setAttributeNS('','y',svgBox.height);
-
-      $('.textEdit').html('');
-      this.svg.appendChild(this.editText);
-      var b = htmlHelpers.buildDom;
-      var r = b('span').classes('hide icon-move');
-      $('.textEdit').append(r.dom());
-      $('.textEdit').append(this.svg);
-      $('.textEdit').removeClass('hide').attr('contentEditable','true');
-      this.setEditorPosition(this.clientBox,svgBox,params);
-      layoutDebug.addTextDebug('editSvgText: ctor '+this.id);
+    if (this.textObject.boxModel != 'none') {
+      svgBox = svgHelpers.boxPoints(this.textObject.x,this.textObject.y,this.textObject.width,this.textObject.height);
+      var boxDims = svgHelpers.logicalToClient(this.svg,svgBox);
+      this.clientBox.width = boxDims.width;
+      this.clientBox.height = boxDims.height;
     }
+    this.editText.setAttributeNS('','y',svgBox.height);
+
+    $('.textEdit').html('');
+    this.svg.appendChild(this.editText);
+    var b = htmlHelpers.buildDom;
+    var r = b('span').classes('hide icon-move');
+    $('.textEdit').append(r.dom());
+    $('.textEdit').append(this.svg);
+    $('.textEdit').removeClass('hide').attr('contentEditable','true');
+    this.setEditorPosition(this.clientBox,svgBox,params);
+    layoutDebug.addTextDebug('editSvgText: ctor '+this.id);
+  }
 
   setEditorPosition(clientBox,svgBox) {
     var box = svgHelpers.pointBox(this.layout.pageWidth, this.layout.pageHeight);
@@ -12933,87 +12983,70 @@ class editSvgText {
       .height(this.clientBox.height+10);
   }
 
-    endSession() {
-        this.editing = false;
-        layoutDebug.addTextDebug('editSvgText: endSession for '+this.id);
-        this.target.setAttributeNS(null,'fill',this.oldFill);
+  endSession() {
+    this.editing = false;
+    layoutDebug.addTextDebug('editSvgText: endSession for '+this.id);
+    this.target.setAttributeNS(null,'fill',this.oldFill);
+  }
+
+  get value() {
+    return this._value;
+  }
+
+
+
+  _updateText() {
+    $('.textEdit').focus();
+
+    if (this.editText.textContent &&
+      this.editText.textContent.length &&
+      this._value != this.editText.textContent) {
+      this.target.textContent = this._value = this.editText.textContent;
+      this._value = this.target.textContent;
+      var fontAttr = svgHelpers.fontIntoToSvgAttributes(this.fontInfo);
+      var svgBox = svgHelpers.getTextBox(this.svg,this.attrAr,null,this._value);
+      var nbox = svgHelpers.logicalToClient(this.svg,svgBox);
+      if (nbox.width > this.clientBox.width) {
+         this.clientBox.width = nbox.width + nbox.width*.3;
+         this.clientBox.height = nbox.height;
+         this.setEditorPosition(this.clientBox,svgBox,{xOffset:0,yOffset:0});
+       }
     }
-
-    get value() {
-        return this._value;
+    if (!this.editText.textContent) {
+       this.editText.textContent='\xa0';
     }
+  }
 
-    /* moveCursorToEnd() {
-       if (this.editText.getNumberOfChars() < 1)
-           return;
-       var content = this.editText.textContent;
-       this.editText.textContent = content+content.substr(content.length-1,1);
-       this.editText.selectSubString(content.length,1);
-    }  */
+  // ### endTextEditSessionPromise
+  // return a promise that is resolved when the current text edit session ends.
+  endTextEditSessionPromise() {
+      var self=this;
+      $('body').addClass('text-edit');
 
-    _updateText() {
-        $('.textEdit').focus();
-
-        if (this.editText.textContent &&
-         this.editText.textContent.length &&
-           this._value != this.editText.textContent) {
-          // if (this.editText[0]
-          // this.editText.textContent = this.editText.textContent.replace(' ','');
-          /* if (this.editText.textContent.length > 1 &&
-              this.editText.textContent[this.editText.textContent.length - 1] == '_') {
-            this.editText.textContent = this.editText.textContent.substr(0,this.editText.textContent.length - 1);
-            var self = this;
-            setTimeout(function() {
-                self.moveCursorToEnd();
-            },1);
-          }  */
-          this.target.textContent = this._value = this.editText.textContent;
-          this._value = this.target.textContent;
-          var fontAttr = svgHelpers.fontIntoToSvgAttributes(this.fontInfo);
-          var svgBox = svgHelpers.getTextBox(this.svg,this.attrAr,null,this._value);
-          var nbox = svgHelpers.logicalToClient(this.svg,svgBox);
-          if (nbox.width > this.clientBox.width) {
-             this.clientBox.width = nbox.width + nbox.width*.3;
-             this.clientBox.height = nbox.height;
-             this.setEditorPosition(this.clientBox,svgBox,{xOffset:0,yOffset:0});
-           }
-        }
-        if (!this.editText.textContent) {
-           this.editText.textContent='\xa0';
-        }
-    }
-
-    // ### endTextEditSessionPromise
-    // return a promise that is resolved when the current text edit session ends.
-    endTextEditSessionPromise() {
-        var self=this;
-        $('body').addClass('text-edit');
-
-        this.editing=true;
-        this.running = true;
-        layoutDebug.addTextDebug('editSvgText: create endTextEditSessionPromise '+this.id);
-        const promise = new Promise((resolve, reject) => {
-            function editTimer() {
-                setTimeout(function() {
-                    self._updateText();
-                    if (self.editing) {
-                      editTimer();
-                    } else {
-                      self._updateText();
-                      layoutDebug.addTextDebug('editSvgText: resolve endTextEditSessionPromise promise '+self.id);
-                      resolve();
-                    }
-                },25);
-
+      this.editing=true;
+      this.running = true;
+      layoutDebug.addTextDebug('editSvgText: create endTextEditSessionPromise '+this.id);
+      const promise = new Promise((resolve, reject) => {
+        function editTimer() {
+          setTimeout(function() {
+            self._updateText();
+            if (self.editing) {
+              editTimer();
+            } else {
+              self._updateText();
+              layoutDebug.addTextDebug('editSvgText: resolve endTextEditSessionPromise promise '+self.id);
+              resolve();
             }
-            editTimer();
-		});
+          },25);
+        }
+        editTimer();
+	  });
 
-        return promise;
-    }
+    return promise;
+  }
 
     static get textAttrs() {
-        return ['font-size','font-family','font-weight','fill','transform'];
+      return ['font-size','font-family','font-weight','fill','transform'];
     }
 }
 
@@ -13023,195 +13056,198 @@ class editSvgText {
 // a single note, and also the logic of skipping from note to note.
 class editLyricSession {
 	static get states() {
-        return {stopped:0,started:1,minus:2,space:3,backSpace:4,stopping:5};
-    }
+    return {stopped:0,started:1,minus:2,space:3,backSpace:4,stopping:5};
+  }
 	// tracker, selection, controller
-    constructor(parameters) {
-      this.tracker = parameters.tracker;
-      this.selection = parameters.selection;
-      this.completeNotifier = parameters.completeNotifier;
-      this.eventSource = parameters.eventSource;
-      this.verse=parameters.verse;
-      this.notifier = parameters.notifier;
-		  this.bound = false;
-      this.state=editLyricSession.states.stopped;
-      layoutDebug.addTextDebug('editLyricSession: create note '+this.selection.note.attrs.id);
-    }
+  constructor(parameters) {
+    this.tracker = parameters.tracker;
+    this.selection = parameters.selection;
+    this.completeNotifier = parameters.completeNotifier;
+    this.eventSource = parameters.eventSource;
+    this.verse=parameters.verse;
+    this.notifier = parameters.notifier;
+	  this.bound = false;
+    this.state=editLyricSession.states.stopped;
+    this.parser = parameters.parser;
+    layoutDebug.addTextDebug('editLyricSession: create note '+this.selection.note.attrs.id);
+  }
 
-    detach() {
-        layoutDebug.addTextDebug('editLyricSession: detach() from '+this.selection.note.attrs.id);
-        this.state = editLyricSession.states.stopping;
-        this.editor.endSession();
-        this.lyric.setText(this.editor.value);
-    		this.eventSource.unbindKeydownHandler( this.keydownHandler, true);
-        if (this.selection) {
-            this.selection.measure.changed=true;
-        }
+  detach() {
+    layoutDebug.addTextDebug('editLyricSession: detach() from '+this.selection.note.attrs.id);
+    this.state = editLyricSession.states.stopping;
+    this.editor.endSession();
+    this.lyric.setText(this.editor.value);
+		this.eventSource.unbindKeydownHandler( this.keydownHandler, true);
+    if (this.selection) {
+      this.selection.measure.changed=true;
     }
+  }
 
-    // ### detachEditorCompletePromise
-    // A promise that is resolved when SVG editor is fully detached.
-    detachEditorCompletePromise() {
-        var self=this;
-        layoutDebug.addTextDebug('editLyricSession:create detachEditorCompletePromise from '+this.selection.note.attrs.id);
-        return new Promise((resolve) => {
-            var waiter = () => {
-            setTimeout(() => {
-                if (self.state == editLyricSession.states.stopping ||
-                 self.state == editLyricSession.states.stopped) {
-                     layoutDebug.addTextDebug('editLyricSession:resolve detachEditorCompletePromise promise from '+self.selection.note.attrs.id);
-                     resolve();
-                 } else {
-                     waiter();
-                 }
-
-                },50);
-            };
-            waiter();
-        });
-    }
+  // ### detachEditorCompletePromise
+  // A promise that is resolved when SVG editor is fully detached.
+  detachEditorCompletePromise() {
+    var self=this;
+    layoutDebug.addTextDebug('editLyricSession:create detachEditorCompletePromise from '+this.selection.note.attrs.id);
+    return new Promise((resolve) => {
+      var waiter = () => {
+      setTimeout(() => {
+        if (self.state == editLyricSession.states.stopping ||
+          self.state == editLyricSession.states.stopped) {
+          layoutDebug.addTextDebug('editLyricSession:resolve detachEditorCompletePromise promise from '+self.selection.note.attrs.id);
+          resolve();
+         } else {
+           waiter();
+         }
+        },50);
+      };
+      waiter();
+    });
+  }
 
     // ### _lyricAddedPromise
     // Don't edit the lyric until the DOM part has been added by the editor, so pend on a promise that has happened.
-    _lyricAddedPromise() {
-        var self=this;
-        layoutDebug.addTextDebug('editLyricSession:create _lyricAddedPromise promise from '+self.selection.note.attrs.id);
-        return new Promise((resolve) => {
-            var checkAdd = function() {
-                setTimeout(function() {
-                    self.textElement = $(self.tracker.layout.svg).find('#'+self.selection.note.renderId).find('g.lyric-'+self.lyric.verse)[0];
-                    if (self.textElement) {
-                        layoutDebug.addTextDebug('editLyricSession:resolve _lyricAddedPromise promise for  '+self.selection.note.attrs.id);
-                        resolve();
-                    } else {
-                        checkAdd();
-                    }
-                },50);
-            }
-            checkAdd();
-        });
-    }
+  _lyricAddedPromise() {
+    var self=this;
+    layoutDebug.addTextDebug('editLyricSession:create _lyricAddedPromise promise from '+self.selection.note.attrs.id);
+    return new Promise((resolve) => {
+      var checkAdd = function() {
+        setTimeout(function() {
+          self.textElement = $(self.tracker.layout.svg).find('#'+self.selection.note.renderId).find(self.lyric.getClassSelector())[0];
+          if (self.textElement) {
+              layoutDebug.addTextDebug('editLyricSession:resolve _lyricAddedPromise promise for  '+self.selection.note.attrs.id);
+              resolve();
+          } else {
+              checkAdd();
+          }
+        },50);
+      }
+      checkAdd();
+    });
+  }
 
     // ### _editCurrentLyric
     // The DOM is ready.  Create the editor and wait for it to finish.
-    _editCurrentLyric() {
-        this.textElement = $(this.tracker.layout.svg).find('#'+this.selection.note.renderId).find('g.lyric-'+this.lyric.verse)[0];
-        if (this.editor) {
-            layoutDebug.addTextDebug('editLyricSession: _editCurrentLyric dispense with editor ' + this.editor.id);
-        }
-        this.editor = new editSvgText({target:this.textElement,
-            textObject:this.lyric,
-            layout:this.tracker.layout});
-        this.state = editLyricSession.states.started;
-        var self = this;
-        function handleSkip() {
-            layoutDebug.addTextDebug('editLyricSession:_editCurrentLyric endTextEditSessionPromise rcvd, editor is done, handleSkip for  '+self.selection.note.attrs.id);
-            // Only skip to the next lyric if the session is still going on.
-            if (self.state != editLyricSession.states.stopped && self.state != editLyricSession.states.stopping) {
-                self._handleSkip();
-            } else {  // session is stopping due to esc.
-                self.notifier.detachCompleteEvent();
-            }
-        }
-
-        this.editor.endTextEditSessionPromise().then(handleSkip);
+  _editCurrentLyric() {
+    this.textElement = $(this.tracker.layout.svg).find('#'+this.selection.note.renderId).find(this.lyric.getClassSelector())[0];
+    if (this.editor) {
+      layoutDebug.addTextDebug('editLyricSession: _editCurrentLyric dispense with editor ' + this.editor.id);
     }
+    this.editor = new editSvgText({target:this.textElement,
+      textObject:this.lyric,
+      layout:this.tracker.layout});
+    this.state = editLyricSession.states.started;
+    var self = this;
+    function handleSkip() {
+      layoutDebug.addTextDebug('editLyricSession:_editCurrentLyric endTextEditSessionPromise rcvd, editor is done, handleSkip for  '+self.selection.note.attrs.id);
+      // Only skip to the next lyric if the session is still going on.
+      if (self.state != editLyricSession.states.stopped && self.state != editLyricSession.states.stopping) {
+          self._handleSkip();
+      } else {  // session is stopping due to esc.
+          self.notifier.detachCompleteEvent();
+      }
+    }
+
+    this.editor.endTextEditSessionPromise().then(handleSkip);
+  }
 
     // Start the editing session by creating editor, and wait for the editor to create the DOM element.
 	_editingSession() {
-        var self = this;
+    var self = this;
 		if (!this.bound) {
 			this.bindEvents();
 		}
-        function editCurrent() {
-            layoutDebug.addTextDebug('editLyricSession:_lyricAddedPromise rcvd, _editCurrentLyric for  '+self.selection.note.attrs.id);
-            self._editCurrentLyric();
-        }
-        this._lyricAddedPromise().then(editCurrent);
+    function editCurrent() {
+        layoutDebug.addTextDebug('editLyricSession:_lyricAddedPromise rcvd, _editCurrentLyric for  '+self.selection.note.attrs.id);
+        self._editCurrentLyric();
+    }
+    this._lyricAddedPromise().then(editCurrent);
 	}
 
-    _getOrCreateLyric(note) {
-      var lyrics =  note.getLyricForVerse(this.verse);
-      layoutDebug.addTextDebug('editLyricSession:new lyric created  ');
-      if (!lyrics.length) {
-  			this.lyric = new SmoLyric({verse:this.verse});
-      } else {
-		   this.lyric = lyrics[0];
-	    }
+  _getOrCreateLyric(note) {
+    var lyrics =  note.getLyricForVerse(this.verse,this.parser);
+    layoutDebug.addTextDebug('editLyricSession:new lyric created  ');
+    if (!lyrics.length) {
+			this.lyric = new SmoLyric({verse:this.verse,parser:this.parser});
+    } else {
+	   this.lyric = lyrics[0];
     }
-    removeLyric() {
-        if (this.selection && this.lyric) {
-            this.selection.note.removeLyric(this.lyric);
-            this.tracker.replaceSelectedMeasures();
-            this._deferSkip();
-        }
+  }
+  removeLyric() {
+    if (this.selection && this.lyric) {
+      this.selection.note.removeLyric(this.lyric);
+      this.tracker.replaceSelectedMeasures();
+      this._deferSkip();
     }
+  }
 
-    _handleSkip() {
-        // var tag = this.state == editLyricSession.states.minus ? '-' :'';
-        this.lyric.setText(this.editor.value);
-        this.selection.measure.changed = true;
-        if (this.state != editLyricSession.states.stopping) {
-			var func = (this.state == editLyricSession.states.backSpace) ? 'lastNoteSelection' : 'nextNoteSelection';
-            var sel = SmoSelection[func](
-		      this.tracker.layout.score, this.selection.selector.staff,
-              this.selection.selector.measure, this.selection.selector.voice, this.selection.selector.tick);
-            if (sel) {
-                layoutDebug.addTextDebug('editLyricSession:_handleSkip,  moving on to '+sel.note.attrs.id);
-                this.selection=sel;
-                this.notifier.notifySelectionChanged(this.selection);
-                this.editNote();
-            }
-        } else {
-            layoutDebug.addTextDebug('editLyricSession:_handleSkip, no more lyrics');
-            this.detach();
-        }
+  _handleSkip() {
+    // var tag = this.state == editLyricSession.states.minus ? '-' :'';
+    this.lyric.setText(this.editor.value);
+    this.selection.measure.changed = true;
+    if (this.state != editLyricSession.states.stopping) {
+      var func = (this.state == editLyricSession.states.backSpace) ? 'lastNoteSelection' : 'nextNoteSelection';
+      var sel = SmoSelection[func](
+      this.tracker.layout.score, this.selection.selector.staff,
+      this.selection.selector.measure, this.selection.selector.voice, this.selection.selector.tick);
+      if (sel) {
+        layoutDebug.addTextDebug('editLyricSession:_handleSkip,  moving on to '+sel.note.attrs.id);
+        this.selection=sel;
+        this.notifier.notifySelectionChanged(this.selection);
+        this.editNote();
+      }
+    } else {
+      layoutDebug.addTextDebug('editLyricSession:_handleSkip, no more lyrics');
+      this.detach();
     }
+  }
 
-    editNote() {
-		var self=this;
-		function _startEditing() {
-			self._editingSession();
-		}
-        this._getOrCreateLyric(this.selection.note)
-		this.fontInfo = JSON.parse(JSON.stringify(this.lyric.fontInfo));
-        this.selection.note.addLyric(this.lyric);
-        this.selection.measure.changed = true;
-        this.tracker.replaceSelectedMeasures();
-		    _startEditing();
-        return this.detachEditorCompletePromise();
-    }
+  editNote() {
+  	var self=this;
+  	function _startEditing() {
+  		self._editingSession();
+  	}
+    this._getOrCreateLyric(this.selection.note)
+  	this.fontInfo = JSON.parse(JSON.stringify(this.lyric.fontInfo));
+    this.selection.note.addLyric(this.lyric);
+    this.selection.measure.changed = true;
+    this.tracker.replaceSelectedMeasures();
+    _startEditing();
+    return this.detachEditorCompletePromise();
+  }
 
     // ### _deferSkip
     // skip to the next word, but not in the current call stack.  Used to handl
     // interactions with the dialog, where the dialog must reset changed flags
     // before  selection is changed
-    _deferSkip() {
-        var self=this;
-        setTimeout(function() {
-            self._handleSkip();
-        },1);
-    }
+  _deferSkip() {
+    var self=this;
+    setTimeout(function() {
+      self._handleSkip();
+    },1);
+  }
 
     // ### moveSelectionRight
     // Selection can move automatically based on key events, but there are Also
     // UI ways to force it.
-    moveSelectionRight() {
-        this.state = editLyricSession.states.space;
-        this._deferSkip();
-    }
+  moveSelectionRight() {
+    this.state = editLyricSession.states.space;
+    this._deferSkip();
+  }
 
-    moveSelectionLeft() {
-        this.state = editLyricSession.states.backSpace;
-        this._deferSkip();
-    }
+  moveSelectionLeft() {
+    this.state = editLyricSession.states.backSpace;
+    this._deferSkip();
+  }
 
 	evKey(event) {
 		console.log("Lyric KeyboardEvent: key='" + event.key + "' | code='" +
 			event.code + "'"
 			 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
 
-		if (['Space', 'Minus'].indexOf(event.code) >= 0) {
+    var isSkip = this.parser === SmoLyric.parsers.lyric ?
+        ['Space', 'Minus'].indexOf(event.code) >= 0 : ['Space'].indexOf(event.code) >= 0;
+
+		if (isSkip) {
       if (editLyricSession.states.minus && event.shiftKey) {
           // allow underscore
       } else {
@@ -13246,12 +13282,13 @@ class editLyricSession {
 // ## editNoteText
 // Manage editing text for a note, and navigating, adding and removing.
 class noteTextEditSession {
-  constructor(changeNotifier,tracker,verse,selection,eventSource) {
+  constructor(changeNotifier,tracker,verse,selection,eventSource,parser) {
     this.notifier = changeNotifier;
     this.tracker = tracker;
     this.verse = verse;
     this.selection = selection;
     this.eventSource = eventSource;
+    this.parser = parser;
   }
 
   get isRunning() {
@@ -13309,7 +13346,8 @@ class noteTextEditSession {
         selection:this.tracker.selections[0],
         completeNotifier:this.completeNotifier,
         notifier:this,
-        eventSource:this.eventSource
+        eventSource:this.eventSource,
+        parser:this.parser
       }
     );
     this.editor.editNote();
@@ -14049,49 +14087,50 @@ class SuiFileMenu extends suiMenuBase {
   Vex.Merge(params, SuiFileMenu.defaults);
     super(params);
   }
- static get defaults() {
-  return {
-  menuItems: [{
-  icon: 'folder-new',
-  text: 'New Score',
-  value: 'newFile'
-  },{
-  icon: 'folder-open',
-  text: 'Open',
-  value: 'openFile'
-  },{
-  icon: 'folder-save',
-  text: 'Save',
-  value: 'saveFile'
-  },{
-  icon: 'folder-save',
-  text: 'Quick Save',
-  value: 'quickSave'
-  },{
-  icon: '',
-  text: 'Print',
-  value: 'printScore'
+  static get defaults() {
+    return {
+      menuItems: [
+        {
+          icon: 'folder-new',
+          text: 'New Score',
+          value: 'newFile'
         },{
-  icon: '',
-  text: 'Bach Invention',
-  value: 'bach'
+          icon: 'folder-open',
+          text: 'Open',
+          value: 'openFile'
         },{
-  icon: '',
-  text: 'Jesu Bambino',
-  value: 'bambino'
+          icon: 'folder-save',
+          text: 'Save',
+          value: 'saveFile'
         },{
-  icon: '',
-  text: 'Microtone Sample',
-  value: 'microtone'
+          icon: 'folder-save',
+          text: 'Quick Save',
+          value: 'quickSave'
         },{
-  icon: '',
-  text: 'Precious Lord',
-  value: 'preciousLord'
+          icon: '',
+          text: 'Print',
+          value: 'printScore'
+        },{
+          icon: '',
+          text: 'Bach Invention',
+          value: 'bach'
+        },{
+          icon: '',
+          text: 'Jesu Bambino',
+          value: 'bambino'
+        },{
+          icon: '',
+          text: 'Microtone Sample',
+          value: 'microtone'
+        },{
+          icon: '',
+          text: 'Precious Lord',
+          value: 'preciousLord'
         },	{
-  icon: '',
-  text: 'Cancel',
-  value: 'cancel'
-  }
+          icon: '',
+          text: 'Cancel',
+          value: 'cancel'
+        }
       ]
     };
   }
@@ -16067,36 +16106,30 @@ class SuiSaveFileDialog extends SuiFileDialog {
 }
 ;class SuiLyricDialog extends SuiDialogBase {
     static createAndDisplay(parameters) {
-		var dg = new SuiLyricDialog({
-				layout: parameters.layout,
-				completeNotifier: parameters.completeNotifier,
-        tracker:parameters.tracker,
-        undoBuffer: parameters.undoBuffer,
-        eventSource: parameters.eventSource
-			});
+		var dg = new SuiLyricDialog(parameters);
 		dg.display();
         return dg;
 	}
     static get dialogElements() {
 		return [
       {
-          smoName: 'verse',
-          parameterName: 'verse',
-          defaultValue: 0,
-          control: 'SuiDropdownComponent',
-          label:'Verse',
-          startRow:true,
-          options: [{
-                  value: 0,
-                  label: '1'
-              }, {
-                  value: 1,
-                  label: '2'
-              }, {
-                  value: 2,
-                  label: '3'
-              }
-          ]
+        smoName: 'verse',
+        parameterName: 'verse',
+        defaultValue: 0,
+        control: 'SuiDropdownComponent',
+        label:'Verse',
+        startRow:true,
+        options: [{
+            value: 0,
+            label: '1'
+          }, {
+            value: 1,
+            label: '2'
+          }, {
+            value: 2,
+            label: '3'
+          }
+        ]
         }, {
 				smoName: 'textEditor',
 				parameterName: 'text',
@@ -16106,7 +16139,7 @@ class SuiSaveFileDialog extends SuiFileDialog {
 				options: []
 		  }
     ];
-    }
+  }
   constructor(parameters) {
     parameters.ctor='SuiLyricDialog';
     parameters.label = 'Done Editing Lyrics';
@@ -16119,6 +16152,15 @@ class SuiSaveFileDialog extends SuiFileDialog {
   		label: p.label,
   		...parameters
   	});
+
+    // If we are editing existing lyrics, make sure it is the same type of session.
+    // Note: the actual lyric (modifier) is picked later from the selection. We just
+    // need to keep track of which type of thing we are editing.
+    if (parameters.modifier) {
+      this.parser = parameters.modifier.parser;
+    } else {
+      this.parser = parameters.parser; // lyrics or chord changes
+    }
     SmoUndoable.noop(this.layout.score,this.undoBuffer,'Undo lyrics');
   }
   display() {
@@ -16559,95 +16601,95 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 
 class SuiMeasureDialog extends SuiDialogBase {
     static get attributes() {
-        return ['pickupMeasure', 'makePickup', 'padLeft', 'padAllInSystem',
-            'measureText','measureTextPosition'];
+      return ['pickupMeasure', 'makePickup', 'padLeft', 'padAllInSystem',
+        'measureText','measureTextPosition'];
     }
     static get dialogElements() {
-        return [{
-            smoName: 'pickupMeasure',
-            parameterName: 'pickupMeasure',
-            defaultValue: 2048,
-            control: 'SuiDropdownComponent',
-            label:'Pickup Measure',
-            options: [{
-                    value: 2048,
-                    label: 'Eighth Note'
-                }, {
-                    value: 4096,
-                    label: 'Quarter Note'
-                }, {
-                    value: 6144,
-                    label: 'Dotted Quarter'
-                }, {
-                    value: 8192,
-                    label: 'Half Note'
-                }
-                ]
+      return [
+        {
+          smoName: 'pickupMeasure',
+          parameterName: 'pickupMeasure',
+          defaultValue: 2048,
+          control: 'SuiDropdownComponent',
+          label:'Pickup Measure',
+          options: [{
+            value: 2048,
+            label: 'Eighth Note'
+          }, {
+            value: 4096,
+            label: 'Quarter Note'
+          }, {
+            value: 6144,
+            label: 'Dotted Quarter'
+          }, {
+            value: 8192,
+            label: 'Half Note'
+          }
+        ]
 			}, {
-    			smoName:'makePickup',
-    			parameterName:'makePickup',
-    			defaultValue: false,
-    			control:'SuiToggleComponent',
-    			label:'Convert to Pickup Measure'
-    		},{
-                parameterName: 'padLeft',
-                smoName: 'padLeft',
-                defaultValue: 0,
-                control: 'SuiRockerComponent',
-                label: 'Pad Left (px)'
-            },{
-                parameterName: 'customStretch',
-                smoName: 'customStretch',
-                defaultValue: 0,
-                control: 'SuiRockerComponent',
-                label: 'Stretch Contents'
-            },{
-                parameterName: 'customProportion',
-                smoName: 'customProportion',
-                defaultValue: SmoMeasure.defaults.customProportion,
-                control: 'SuiRockerComponent',
-                increment:10,
-                label: 'Adjust Proportional Spacing'
-            },{
-    			smoName:'padAllInSystem',
-    			parameterName:'padAllInSystem',
-    			defaultValue: false,
-    			control:'SuiToggleComponent',
-    			label:'Pad all measures in system'
-    		},{
-    				smoName: 'measureText',
-    				parameterName: 'measureText',
-    				defaultValue: '',
-    				control: 'SuiTextInputComponent',
-    				label:'Measure Text'
-    		},{
-                smoName: 'measureTextPosition',
-                parameterName: 'measureTextPosition',
-                defaultValue: SmoMeasureText.positions.above,
-                control: 'SuiDropdownComponent',
-                label:'Text Position',
-                options: [{
-                        value: SmoMeasureText.positions.left,
-                        label: 'Left'
-                    }, {
-                        value: SmoMeasureText.positions.right,
-                        label: 'Right'
-                    }, {
-                        value:SmoMeasureText.positions.above,
-                        label: 'Above'
-                    }, {
-                        value: SmoMeasureText.positions.below,
-                        label: 'Below'
-                    }
-                    ]
-    			},{
-        			smoName:'systemBreak',
-        			parameterName:'systemBreak',
-        			defaultValue: false,
-        			control:'SuiToggleComponent',
-        			label: 'System break before this measure'
-        		}
-        ];
+  			smoName:'makePickup',
+  			parameterName:'makePickup',
+  			defaultValue: false,
+  			control:'SuiToggleComponent',
+  			label:'Convert to Pickup Measure'
+  		}, {
+        parameterName: 'padLeft',
+        smoName: 'padLeft',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'Pad Left (px)'
+      }, {
+        parameterName: 'customStretch',
+        smoName: 'customStretch',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'Stretch Contents'
+      },{
+        parameterName: 'customProportion',
+        smoName: 'customProportion',
+        defaultValue: SmoMeasure.defaults.customProportion,
+        control: 'SuiRockerComponent',
+        increment:10,
+        label: 'Adjust Proportional Spacing'
+      },{
+  			smoName:'padAllInSystem',
+  			parameterName:'padAllInSystem',
+  			defaultValue: false,
+  			control:'SuiToggleComponent',
+  			label:'Pad all measures in system'
+  		},{
+				smoName: 'measureText',
+				parameterName: 'measureText',
+				defaultValue: '',
+				control: 'SuiTextInputComponent',
+				label:'Measure Text'
+  		},{
+        smoName: 'measureTextPosition',
+        parameterName: 'measureTextPosition',
+        defaultValue: SmoMeasureText.positions.above,
+        control: 'SuiDropdownComponent',
+        label:'Text Position',
+        options: [{
+                value: SmoMeasureText.positions.left,
+                label: 'Left'
+            }, {
+                value: SmoMeasureText.positions.right,
+                label: 'Right'
+            }, {
+                value:SmoMeasureText.positions.above,
+                label: 'Above'
+            }, {
+                value: SmoMeasureText.positions.below,
+                label: 'Below'
+            }
+            ]
+    			}, {
+  			smoName:'systemBreak',
+  			parameterName:'systemBreak',
+  			defaultValue: false,
+  			control:'SuiToggleComponent',
+  			label: 'System break before this measure'
+  		}];
     }
     static createAndDisplay(parameters) {
       // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
@@ -17789,7 +17831,7 @@ class SuiLyricEditComponent extends SuiComponentBase {
     var self=this;
     layoutDebug.addTextDebug('SuiLyricEditComponent: create editor request');
     this._startEditorDom();
-    this.editor = new noteTextEditSession(this,this.tracker,this.verse,this.selection,this.eventSource);
+    this.editor = new noteTextEditSession(this,this.tracker,this.verse,this.selection,this.eventSource,this.dialog.parser);
     this.editor.startEditingSession();
     this._bind();
   }
@@ -18134,7 +18176,7 @@ class defaultRibbonLayout {
 	}
 
     static get textIds() {
-		return ['TextButtons','addTextMenu','rehearsalMark','lyrics','addDynamicsMenu'];
+		return ['TextButtons','addTextMenu','rehearsalMark','lyrics','chordChanges','addDynamicsMenu'];
 	}
 
     static get beamIds() {
@@ -18159,98 +18201,105 @@ class defaultRibbonLayout {
     }
 
 
-    static get textRibbonButtons() {
-        return [
-        {
-			leftText: '',
-				rightText: '',
-				classes: 'icon  collapseParent measure',
-				icon: 'icon-text',
-				action: 'collapseParent',
-				ctor: 'CollapseRibbonControl',
-				group: 'textEdit',
-				id: 'TextButtons'
-		},
-        {
-                leftText: '',
-				rightText: '/t',
-				classes: 'icon collapsed textButton',
-				icon: 'icon-textBasic',
-				action: 'collapseChild',
-				ctor: 'TextButtons',
-				group: 'textEdit',
-				id: 'addTextMenu'
-		},{
-                leftText: '',
-				rightText: '',
-				classes: 'icon collapsed textButton',
-				icon: 'icon-rehearsemark',
-				action: 'collapseChild',
-				ctor: 'TextButtons',
-				group: 'textEdit',
-				id: 'rehearsalMark'
-		},{
-                leftText: '',
-				rightText: '',
-				classes: 'icon collapsed textButton',
-				icon: 'icon-lyric',
-				action: 'collapseChild',
-				ctor: 'TextButtons',
-				group: 'textEdit',
-				id: 'lyrics'
-		} ,{
-                leftText: '',
-				rightText: '/d',
-				classes: 'icon collapsed textButton',
-				icon: 'icon-mezzopiano',
-				action: 'collapseChild',
-				ctor: 'TextButtons',
-				group: 'textEdit',
-				id: 'addDynamicsMenu'
-		}
-        ];
-    }
-    static get displayButtons() {
-        return [{
-			leftText: '',
-				rightText: '',
-				classes: 'icon  hide',
-				icon: 'icon-zoomplus',
-				action: 'collapseParent',
-				ctor: 'CollapseRibbonControl',
-				group: 'displaySettings',
-				id: 'displaySettings'
-		},{
-            leftText: '',
-				rightText: '',
-				classes: 'icon   refresh',
-				icon: 'icon-refresh',
-				action: 'collapseChild',
-				ctor: 'DisplaySettings',
-				group: 'displaySettings',
-				id: 'refresh'
-        },{
-            leftText: '',
-				rightText: '',
-				classes: 'icon   refresh',
-				icon: 'icon-zoomplus',
-				action: 'collapseChild',
-				ctor: 'DisplaySettings',
-				group: 'displaySettings',
-				id: 'zoomout'
-        },{
-            leftText: '',
-				rightText: '',
-				classes: 'icon   refresh',
-				icon: 'icon-zoomminus',
-				action: 'collapseChild',
-				ctor: 'DisplaySettings',
-				group: 'displaySettings',
-				id: 'zoomin'
-        },
-
+  static get textRibbonButtons() {
+    return [
+      {
+        leftText: '',
+        rightText: '',
+        classes: 'icon  collapseParent measure',
+        icon: 'icon-text',
+        action: 'collapseParent',
+        ctor: 'CollapseRibbonControl',
+        group: 'textEdit',
+        id: 'TextButtons'
+      }, {
+        leftText: '',
+        rightText: '/t',
+        classes: 'icon collapsed textButton',
+        icon: 'icon-textBasic',
+        action: 'collapseChild',
+        ctor: 'TextButtons',
+        group: 'textEdit',
+        id: 'addTextMenu'
+      },{
+        leftText: '',
+        rightText: '',
+        classes: 'icon collapsed textButton',
+        icon: 'icon-rehearsemark',
+        action: 'collapseChild',
+        ctor: 'TextButtons',
+        group: 'textEdit',
+        id: 'rehearsalMark'
+      },{
+        leftText: '',
+        rightText: '',
+        classes: 'icon collapsed textButton',
+        icon: 'icon-lyric',
+        action: 'collapseChild',
+        ctor: 'TextButtons',
+        group: 'textEdit',
+        id: 'lyrics'
+      },  {
+        leftText: '',
+        rightText: '',
+        classes: 'icon collapsed textButton',
+        icon: 'icon-chordSymbol',
+        action: 'collapseChild',
+        ctor: 'TextButtons',
+        group: 'textEdit',
+        id: 'chordChanges'
+      }, {
+        leftText: '',
+        rightText: '/d',
+        classes: 'icon collapsed textButton',
+        icon: 'icon-mezzopiano',
+        action: 'collapseChild',
+        ctor: 'TextButtons',
+        group: 'textEdit',
+        id: 'addDynamicsMenu'
+	    }
     ];
-    }
+  }
+  static get displayButtons() {
+    return [{
+    	leftText: '',
+  		rightText: '',
+  		classes: 'icon  hide',
+  		icon: 'icon-zoomplus',
+  		action: 'collapseParent',
+  		ctor: 'CollapseRibbonControl',
+  		group: 'displaySettings',
+  		id: 'displaySettings'
+    },{
+      leftText: '',
+      rightText: '',
+      classes: 'icon   refresh',
+      icon: 'icon-refresh',
+      action: 'collapseChild',
+      ctor: 'DisplaySettings',
+      group: 'displaySettings',
+      id: 'refresh'
+    },{
+      leftText: '',
+      rightText: '',
+      classes: 'icon   refresh',
+      icon: 'icon-zoomplus',
+      action: 'collapseChild',
+      ctor: 'DisplaySettings',
+      group: 'displaySettings',
+      id: 'zoomout'
+    },{
+      leftText: '',
+  		rightText: '',
+  		classes: 'icon   refresh',
+  		icon: 'icon-zoomminus',
+  		action: 'collapseChild',
+  		ctor: 'DisplaySettings',
+  		group: 'displaySettings',
+  		id: 'zoomin'
+    },
+  ];
+  }
 
     static get microtoneButtons() {
         return [{
@@ -20344,10 +20393,26 @@ class TextButtons {
         layout:this.layout,
         undoBuffer:this.editor.undoBuffer,
         eventSource:this.eventSource,
-        editor:this.editor
+        editor:this.editor,
+        parser:SmoLyric.parsers.lyric
       }
     );
   	// tracker, selection, controller
+  }
+  chordChanges() {
+    SuiLyricDialog.createAndDisplay(
+      {
+        buttonElement:this.buttonElement,
+        buttonData:this.buttonData,
+        completeNotifier:this.controller,
+        tracker: this.tracker,
+        layout:this.layout,
+        undoBuffer:this.editor.undoBuffer,
+        eventSource:this.eventSource,
+        editor:this.editor,
+        parser:SmoLyric.parsers.chord
+      }
+    );
   }
   rehearsalMark() {
     var selection = this.tracker.getExtremeSelection(-1);

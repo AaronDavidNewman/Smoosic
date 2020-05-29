@@ -459,26 +459,26 @@ class suiLayoutBase {
         }
     }
 
-    _replaceMeasures() {
+  _replaceMeasures() {
 
-        var rendered = {};
+    var rendered = {};
 
-        this.replaceQ.forEach((change) => {
-            smoBeamerFactory.applyBeams(change.measure);
-            var system = new VxSystem(this.context, change.measure.staffY, change.measure.lineIndex,this.score);
-            var selections = SmoSelection.measuresInColumn(this.score,change.measure.measureNumber.measureIndex);
-            selections.forEach((selection) => {
-                system.renderMeasure(selection.measure,this.measureMapper);
-            });
-            system.renderEndings();
-            this._renderModifiers(change.staff, system);
-            system.updateLyricOffsets();
+    this.replaceQ.forEach((change) => {
+      smoBeamerFactory.applyBeams(change.measure);
+      var system = new VxSystem(this.context, change.measure.staffY, change.measure.lineIndex,this.score);
+      var selections = SmoSelection.measuresInColumn(this.score,change.measure.measureNumber.measureIndex);
+      selections.forEach((selection) => {
+          system.renderMeasure(selection.measure,this.measureMapper);
+      });
+      system.renderEndings();
+      this._renderModifiers(change.staff, system);
+      system.updateLyricOffsets();
 
-            // Fix a bug: measure change needs to stay true so we recaltulate the width
-            change.measure.changed = true;
-        });
-        this.replaceQ = [];
-    }
+      // Fix a bug: measure change needs to stay true so we recaltulate the width
+      change.measure.changed = true;
+    });
+    this.replaceQ = [];
+  }
 
     _adjustHeight() {
         var curPages = this._score.layout.pages;

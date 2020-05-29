@@ -124,58 +124,74 @@ class VxMeasure {
         });
 
     }
+    _addLyricAnnotationToNote(vexNote,lyric) {
+      var y = lyric.verse*10;
+      var vexL = new VF.Annotation(lyric.getText());
+      vexL.setAttribute(lyric.attrs.id); //
 
-    _createLyric(smoNote,vexNote,x_shift) {
-        var lyrics = smoNote.getModifiers('SmoLyric');
-        var ix = 0;
-        lyrics.forEach((ll) => {
-            var y = ll.verse*10;
-            var vexL = new VF.Annotation(ll.text);
-            vexL.setAttribute(ll.attrs.id); //
-
-            // If we adjusted this note for the lyric, adjust the lyric as well.
-            vexL.setFont(ll.fontInfo.family, ll.fontInfo.size,ll.fontInfo.weight);
-            vexL.setYShift(y); // need this?
-			vexL.setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);
-            vexNote.addAnnotation(0,vexL);
-            const classString = 'lyric lyric-'+ll.verse;
-            vexL.addClass(classString);
-        });
+      // If we adjusted this note for the lyric, adjust the lyric as well.
+      vexL.setFont(lyric.fontInfo.family, lyric.fontInfo.size,lyric.fontInfo.weight);
+      vexL.setYShift(y); // need this?
+      vexL.setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);
+      vexNote.addAnnotation(0,vexL);
+      const classString = 'lyric lyric-'+lyric.verse;
+      vexL.addClass(classString);
     }
 
-    _createGraceNotes(smoNote,vexNote) {
-        var gar = smoNote.getGraceNotes();
-        var toBeam = true;
-        if (gar && gar.length) {
-            var group = [];
-            gar.forEach((g) => {
-                var gr = new VF.GraceNote(g.toVexGraceNote());
-                for (var i=0;i<g.pitches.length;++i) {
-                    var pitch = g.pitches[i];
-                    if (pitch.accidental != 'n' || pitch.cautionary)  {
-                        var accidental = new VF.Accidental(pitch.accidental);
-                        if (pitch.cautionary) {
-                            accidental.setAsCautionary();
-                        }
-                        gr.addAccidental(i,accidental);
-                    }
-                }
-                if (g.tickCount() > 4096) {
-                    toBeam = false;
-                }
-                gr.addClass('grace-note'); // note: this doesn't work :(
+    _addChordChangeToNote(vexNote,lyric) {
+      var y = lyric.verse*10;
+      var cs = new VF.ChordSymbol();
+      cs.addGlyphOrText(lyric.getText()).setFontSize(12);
+      vexNote.addModifier(0,cs);
+      const classString = 'chord chord-'+lyric.verse;
+      cs.addClass(classString);
+    }
 
-                g.renderedId = gr.attrs.id;
-                group.push(gr);
-            });
-            var grace = new VF.GraceNoteGroup(group);
-            if (toBeam) {
-                grace.beamNotes();
+  _createLyric(smoNote,vexNote,x_shift) {
+    var lyrics = smoNote.getModifiers('SmoLyric');
+    var ix = 0;
+    lyrics.forEach((ll) => {
+      if (ll.parser === SmoLyric.parsers.lyric) {
+        this._addLyricAnnotationToNote(vexNote,ll);
+      } else {
+        this._addChordChangeToNote(vexNote,ll);
+      }
+    });
+  }
+
+  _createGraceNotes(smoNote,vexNote) {
+    var gar = smoNote.getGraceNotes();
+    var toBeam = true;
+    if (gar && gar.length) {
+      var group = [];
+      gar.forEach((g) => {
+        var gr = new VF.GraceNote(g.toVexGraceNote());
+        for (var i=0;i<g.pitches.length;++i) {
+            var pitch = g.pitches[i];
+            if (pitch.accidental != 'n' || pitch.cautionary)  {
+                var accidental = new VF.Accidental(pitch.accidental);
+                if (pitch.cautionary) {
+                    accidental.setAsCautionary();
+                }
+                gr.addAccidental(i,accidental);
             }
-
-            vexNote.addModifier(0,grace);
         }
+        if (g.tickCount() > 4096) {
+            toBeam = false;
+        }
+        gr.addClass('grace-note'); // note: this doesn't work :(
+
+        g.renderedId = gr.attrs.id;
+        group.push(gr);
+      });
+      var grace = new VF.GraceNoteGroup(group);
+      if (toBeam) {
+        grace.beamNotes();
+      }
+
+      vexNote.addModifier(0,grace);
     }
+  }
 
     // ## Description:
     // convert a smoNote into a vxNote so it can be rasterized
@@ -418,7 +434,8 @@ class VxMeasure {
          this.smoMeasure.voices.forEach((vv) => {
              vv.notes.forEach((nn) => {
                  nn.getModifiers('SmoLyric').forEach((lyric) => {
-                     lyric.selector='#'+nn.renderId+' g.lyric-'+lyric.verse;
+                     var parser = (lyric.parser === SmoLyric.parsers.lyric ? 'lyric' : 'chord');
+                     lyric.selector='#'+nn.renderId+' '+lyric.getClassSelector();
                  });
              });
          });
@@ -499,7 +516,7 @@ class VxMeasure {
     format(voices) {
         this.formatter.format(voices,
               this.smoMeasure.staffWidth-
-             (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft)); 
+             (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft));
         // this.formatter.format(voices);
     }
     render() {

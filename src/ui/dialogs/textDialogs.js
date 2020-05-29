@@ -1,35 +1,29 @@
 class SuiLyricDialog extends SuiDialogBase {
     static createAndDisplay(parameters) {
-		var dg = new SuiLyricDialog({
-				layout: parameters.layout,
-				completeNotifier: parameters.completeNotifier,
-        tracker:parameters.tracker,
-        undoBuffer: parameters.undoBuffer,
-        eventSource: parameters.eventSource
-			});
+		var dg = new SuiLyricDialog(parameters);
 		dg.display();
         return dg;
 	}
     static get dialogElements() {
 		return [
       {
-          smoName: 'verse',
-          parameterName: 'verse',
-          defaultValue: 0,
-          control: 'SuiDropdownComponent',
-          label:'Verse',
-          startRow:true,
-          options: [{
-                  value: 0,
-                  label: '1'
-              }, {
-                  value: 1,
-                  label: '2'
-              }, {
-                  value: 2,
-                  label: '3'
-              }
-          ]
+        smoName: 'verse',
+        parameterName: 'verse',
+        defaultValue: 0,
+        control: 'SuiDropdownComponent',
+        label:'Verse',
+        startRow:true,
+        options: [{
+            value: 0,
+            label: '1'
+          }, {
+            value: 1,
+            label: '2'
+          }, {
+            value: 2,
+            label: '3'
+          }
+        ]
         }, {
 				smoName: 'textEditor',
 				parameterName: 'text',
@@ -39,7 +33,7 @@ class SuiLyricDialog extends SuiDialogBase {
 				options: []
 		  }
     ];
-    }
+  }
   constructor(parameters) {
     parameters.ctor='SuiLyricDialog';
     parameters.label = 'Done Editing Lyrics';
@@ -52,6 +46,15 @@ class SuiLyricDialog extends SuiDialogBase {
   		label: p.label,
   		...parameters
   	});
+
+    // If we are editing existing lyrics, make sure it is the same type of session.
+    // Note: the actual lyric (modifier) is picked later from the selection. We just
+    // need to keep track of which type of thing we are editing.
+    if (parameters.modifier) {
+      this.parser = parameters.modifier.parser;
+    } else {
+      this.parser = parameters.parser; // lyrics or chord changes
+    }
     SmoUndoable.noop(this.layout.score,this.undoBuffer,'Undo lyrics');
   }
   display() {

@@ -67,7 +67,7 @@ class defaultRibbonLayout {
 	}
 
     static get textIds() {
-		return ['TextButtons','addTextMenu','rehearsalMark','lyrics','addDynamicsMenu'];
+		return ['TextButtons','addTextMenu','rehearsalMark','lyrics','chordChanges','addDynamicsMenu'];
 	}
 
     static get beamIds() {
@@ -92,98 +92,105 @@ class defaultRibbonLayout {
     }
 
 
-    static get textRibbonButtons() {
-        return [
-        {
-			leftText: '',
-				rightText: '',
-				classes: 'icon  collapseParent measure',
-				icon: 'icon-text',
-				action: 'collapseParent',
-				ctor: 'CollapseRibbonControl',
-				group: 'textEdit',
-				id: 'TextButtons'
-		},
-        {
-                leftText: '',
-				rightText: '/t',
-				classes: 'icon collapsed textButton',
-				icon: 'icon-textBasic',
-				action: 'collapseChild',
-				ctor: 'TextButtons',
-				group: 'textEdit',
-				id: 'addTextMenu'
-		},{
-                leftText: '',
-				rightText: '',
-				classes: 'icon collapsed textButton',
-				icon: 'icon-rehearsemark',
-				action: 'collapseChild',
-				ctor: 'TextButtons',
-				group: 'textEdit',
-				id: 'rehearsalMark'
-		},{
-                leftText: '',
-				rightText: '',
-				classes: 'icon collapsed textButton',
-				icon: 'icon-lyric',
-				action: 'collapseChild',
-				ctor: 'TextButtons',
-				group: 'textEdit',
-				id: 'lyrics'
-		} ,{
-                leftText: '',
-				rightText: '/d',
-				classes: 'icon collapsed textButton',
-				icon: 'icon-mezzopiano',
-				action: 'collapseChild',
-				ctor: 'TextButtons',
-				group: 'textEdit',
-				id: 'addDynamicsMenu'
-		}
-        ];
-    }
-    static get displayButtons() {
-        return [{
-			leftText: '',
-				rightText: '',
-				classes: 'icon  hide',
-				icon: 'icon-zoomplus',
-				action: 'collapseParent',
-				ctor: 'CollapseRibbonControl',
-				group: 'displaySettings',
-				id: 'displaySettings'
-		},{
-            leftText: '',
-				rightText: '',
-				classes: 'icon   refresh',
-				icon: 'icon-refresh',
-				action: 'collapseChild',
-				ctor: 'DisplaySettings',
-				group: 'displaySettings',
-				id: 'refresh'
-        },{
-            leftText: '',
-				rightText: '',
-				classes: 'icon   refresh',
-				icon: 'icon-zoomplus',
-				action: 'collapseChild',
-				ctor: 'DisplaySettings',
-				group: 'displaySettings',
-				id: 'zoomout'
-        },{
-            leftText: '',
-				rightText: '',
-				classes: 'icon   refresh',
-				icon: 'icon-zoomminus',
-				action: 'collapseChild',
-				ctor: 'DisplaySettings',
-				group: 'displaySettings',
-				id: 'zoomin'
-        },
-
+  static get textRibbonButtons() {
+    return [
+      {
+        leftText: '',
+        rightText: '',
+        classes: 'icon  collapseParent measure',
+        icon: 'icon-text',
+        action: 'collapseParent',
+        ctor: 'CollapseRibbonControl',
+        group: 'textEdit',
+        id: 'TextButtons'
+      }, {
+        leftText: '',
+        rightText: '/t',
+        classes: 'icon collapsed textButton',
+        icon: 'icon-textBasic',
+        action: 'collapseChild',
+        ctor: 'TextButtons',
+        group: 'textEdit',
+        id: 'addTextMenu'
+      },{
+        leftText: '',
+        rightText: '',
+        classes: 'icon collapsed textButton',
+        icon: 'icon-rehearsemark',
+        action: 'collapseChild',
+        ctor: 'TextButtons',
+        group: 'textEdit',
+        id: 'rehearsalMark'
+      },{
+        leftText: '',
+        rightText: '',
+        classes: 'icon collapsed textButton',
+        icon: 'icon-lyric',
+        action: 'collapseChild',
+        ctor: 'TextButtons',
+        group: 'textEdit',
+        id: 'lyrics'
+      },  {
+        leftText: '',
+        rightText: '',
+        classes: 'icon collapsed textButton',
+        icon: 'icon-chordSymbol',
+        action: 'collapseChild',
+        ctor: 'TextButtons',
+        group: 'textEdit',
+        id: 'chordChanges'
+      }, {
+        leftText: '',
+        rightText: '/d',
+        classes: 'icon collapsed textButton',
+        icon: 'icon-mezzopiano',
+        action: 'collapseChild',
+        ctor: 'TextButtons',
+        group: 'textEdit',
+        id: 'addDynamicsMenu'
+	    }
     ];
-    }
+  }
+  static get displayButtons() {
+    return [{
+    	leftText: '',
+  		rightText: '',
+  		classes: 'icon  hide',
+  		icon: 'icon-zoomplus',
+  		action: 'collapseParent',
+  		ctor: 'CollapseRibbonControl',
+  		group: 'displaySettings',
+  		id: 'displaySettings'
+    },{
+      leftText: '',
+      rightText: '',
+      classes: 'icon   refresh',
+      icon: 'icon-refresh',
+      action: 'collapseChild',
+      ctor: 'DisplaySettings',
+      group: 'displaySettings',
+      id: 'refresh'
+    },{
+      leftText: '',
+      rightText: '',
+      classes: 'icon   refresh',
+      icon: 'icon-zoomplus',
+      action: 'collapseChild',
+      ctor: 'DisplaySettings',
+      group: 'displaySettings',
+      id: 'zoomout'
+    },{
+      leftText: '',
+  		rightText: '',
+  		classes: 'icon   refresh',
+  		icon: 'icon-zoomminus',
+  		action: 'collapseChild',
+  		ctor: 'DisplaySettings',
+  		group: 'displaySettings',
+  		id: 'zoomin'
+    },
+  ];
+  }
 
     static get microtoneButtons() {
         return [{

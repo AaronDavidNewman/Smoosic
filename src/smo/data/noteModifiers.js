@@ -259,7 +259,7 @@ class SmoArticulation extends SmoNoteModifierBase {
 class SmoLyric extends SmoNoteModifierBase {
 	static get defaults() {
 		return {
-      text:'\xa0',
+      _text:'\xa0',
       endChar:'',
       verse:0,
 			fontInfo: {
@@ -275,37 +275,61 @@ class SmoLyric extends SmoNoteModifierBase {
 			scaleY:1.0,
 			translateX:0,
 			translateY:0,
+      symbolBlocks:[],
+      parser:SmoLyric.parsers.lyric
 		};
 	}
   static get parsers() {
-      return {lyric:0,anaylysis:1,chord:2}
+    return {lyric:0,anaylysis:1,chord:2}
   }
-
+  static get symbolTypes() {
+    return {
+      GLYPH: 1,
+      TEXT: 2,
+      LINE: 3
+    };
+  }
   static get parameterArray() {
-      return ['text','endChar','fontInfo','classes','verse',
-	    'fill','scaleX','scaleY','translateX','translateY','ctor'];
+    return ['endChar','fontInfo','classes','verse','parser','symbolBlocks',
+    'fill','scaleX','scaleY','translateX','translateY','ctor','_text'];
   }
   serialize() {
-      var params = {};
-      smoSerialize.serializedMergeNonDefault(SmoLyric.defaults,
-         SmoLyric.parameterArray,this,params);
-      return params;
+    var params = {};
+    smoSerialize.serializedMergeNonDefault(SmoLyric.defaults,
+       SmoLyric.parameterArray,this,params);
+    return params;
+  }
+
+  // ### getClassSelector
+  // returns a selector used to find this text block within a note.
+  getClassSelector() {
+    var parser = (this.parser === SmoLyric.parsers.lyric ? 'lyric' : 'chord');
+    return 'g.'+parser+'-'+this.verse;
   }
 
   setText(text) {
-    this.text = text;
+    // For chords, trim all whitespace
+    if (this.parser !== SmoLyric.parsers.lyric) {
+      if (text.trim().length) {
+        text.replace(/\s/g,'');
+      }
+    }
+    this._text = text;
   }
 
-  updateText(text) {
-      // TODO: handle different parsers
-      text = text ? text: '';
-      this.text = text.trim();
+  getText() {
+    return this._text;
   }
 
   constructor(parameters) {
   	super('SmoLyric');
   	smoSerialize.serializedMerge(SmoLyric.parameterArray, SmoLyric.defaults,this);
   	smoSerialize.serializedMerge(SmoLyric.parameterArray, parameters, this);
+
+    // backwards-compatibility for lyric text
+    if (parameters.text) {
+      this._text = parameters.text;
+    }
 
     // Return these for the text editor that expects them.
     this.translateX = this.translateY = 0;

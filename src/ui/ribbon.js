@@ -620,10 +620,26 @@ class TextButtons {
         layout:this.layout,
         undoBuffer:this.editor.undoBuffer,
         eventSource:this.eventSource,
-        editor:this.editor
+        editor:this.editor,
+        parser:SmoLyric.parsers.lyric
       }
     );
   	// tracker, selection, controller
+  }
+  chordChanges() {
+    SuiLyricDialog.createAndDisplay(
+      {
+        buttonElement:this.buttonElement,
+        buttonData:this.buttonData,
+        completeNotifier:this.controller,
+        tracker: this.tracker,
+        layout:this.layout,
+        undoBuffer:this.editor.undoBuffer,
+        eventSource:this.eventSource,
+        editor:this.editor,
+        parser:SmoLyric.parsers.chord
+      }
+    );
   }
   rehearsalMark() {
     var selection = this.tracker.getExtremeSelection(-1);

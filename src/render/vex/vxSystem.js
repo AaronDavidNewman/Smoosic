@@ -63,80 +63,80 @@ class VxSystem {
     // Adjust the y position for all lyrics in the line so they are even.
     // Also replace '-' with a longer dash do indicate 'until the next measure'
 	updateLyricOffsets() {
-        for (var i = 0;i < this.score.staves.length;++i) {
-            // is this necessary? They should all be from the current line
-            var vxMeasures = this.vxMeasures.filter((vx) => {
-                return vx.smoMeasure.measureNumber.staffId == i;
-            });
-            // All the lyrics on this line
-            var lyrics=[];
-            var lyricsDash = [];
+    for (var i = 0;i < this.score.staves.length;++i) {
+      // is this necessary? They should all be from the current line
+      var vxMeasures = this.vxMeasures.filter((vx) => {
+        return vx.smoMeasure.measureNumber.staffId == i;
+      });
+      // All the lyrics on this line
+      var lyrics=[];
+      var lyricsDash = [];
 
-            // The vertical bounds on each line
-            var verseLimits={};
+      // The vertical bounds on each line
+      var verseLimits={};
 
-            // The
-            var lyricVerseMap = {};
-            vxMeasures.forEach((mm) => {
-                var smoMeasure = mm.smoMeasure;
+      // The
+      var lyricVerseMap = {};
+      vxMeasures.forEach((mm) => {
+        var smoMeasure = mm.smoMeasure;
 
-                // Get lyrics from any voice.
-                smoMeasure.voices.forEach((voice) => {
-                    voice.notes.forEach((note) => {
-                        note.getModifiers('SmoLyric').forEach((ll) => {
-                            if (!lyricVerseMap[ll.verse]) {
-                                lyricVerseMap[ll.verse] = [];
-                            }
-                            if (ll.logicalBox) {
-                                lyricVerseMap[ll.verse].push(ll);
-                                lyrics.push(ll);
-                            }
-                        });
-                    });
-                });
+        // Get lyrics from any voice.
+        smoMeasure.voices.forEach((voice) => {
+          voice.notes.forEach((note) => {
+            note.getTrueLyrics().forEach((ll) => {
+              if (!lyricVerseMap[ll.verse]) {
+                lyricVerseMap[ll.verse] = [];
+              }
+              if (ll.logicalBox) {
+                lyricVerseMap[ll.verse].push(ll);
+                lyrics.push(ll);
+              }
             });
-            var vkey = Object.keys(lyricVerseMap).sort((a,b) => a-b);
-            vkey.forEach((verse) => {
-                verseLimits[verse] = {highest:-1,bottom:-1};
-                lyricVerseMap[verse].forEach((ll) => {
-                    verseLimits[verse].highest = Math.round(Math.max(ll.logicalBox.height,verseLimits[verse].highest));
-                    verseLimits[verse].bottom = Math.round(Math.max(ll.logicalBox.y + ll.logicalBox.height,verseLimits[verse].bottom));
-                });
-            });
-            for (var j = 1; j < vkey.length;++j) {
-                verseLimits[j].bottom = verseLimits[j-1].bottom + verseLimits[j-1].highest;
-            }
-            lyrics.forEach((lyric) => {
-    			lyric.adjY = Math.round(verseLimits[lyric.verse].bottom -  lyric.logicalBox.y);
-    			var dom = $(this.context.svg).find(lyric.selector)[0];
-    			dom.setAttributeNS('','transform','translate('+lyric.adjX+' '+lyric.adjY+')');
-                // Keep track of lyrics that are 'dash'
-                if (lyric.text.trim() == '-') {
-                    lyricsDash.push(lyric);
-                }
-    		});
-
-            lyricsDash.forEach((lyric) => {
-                var parent = $(this.context.svg).find(lyric.selector)[0];
-                var line = document.createElementNS(svgHelpers.namespace,'line');
-                var ymax = Math.round(lyric.logicalBox.y + lyric.logicalBox.height/2);
-                var offset = Math.round(lyric.logicalBox.width/2);
-                line.setAttributeNS('', 'x1', lyric.logicalBox.x - offset);
-                line.setAttributeNS('', 'y1', ymax);
-                line.setAttributeNS('', 'x2', lyric.logicalBox.x + lyric.logicalBox.width + offset);
-                line.setAttributeNS('', 'y2', ymax);
-                line.setAttributeNS('','stroke-width',1);
-                line.setAttributeNS('','fill','none');
-                line.setAttributeNS('','stroke','#999999');
-                parent.appendChild(line);
-                var text = $(this.context.svg).find(lyric.selector).find('text')[0];
-                text.setAttributeNS('','fill','#fff');
-            });
+          });
+        });
+      });
+      var vkey = Object.keys(lyricVerseMap).sort((a,b) => a-b);
+      vkey.forEach((verse) => {
+          verseLimits[verse] = {highest:-1,bottom:-1};
+          lyricVerseMap[verse].forEach((ll) => {
+            verseLimits[verse].highest = Math.round(Math.max(ll.logicalBox.height,verseLimits[verse].highest));
+            verseLimits[verse].bottom = Math.round(Math.max(ll.logicalBox.y + ll.logicalBox.height,verseLimits[verse].bottom));
+          });
+      });
+      for (var j = 1; j < vkey.length;++j) {
+        verseLimits[j].bottom = verseLimits[j-1].bottom + verseLimits[j-1].highest;
+      }
+      lyrics.forEach((lyric) => {
+  			lyric.adjY = Math.round(verseLimits[lyric.verse].bottom -  lyric.logicalBox.y);
+  			var dom = $(this.context.svg).find(lyric.selector)[0];
+  			dom.setAttributeNS('','transform','translate('+lyric.adjX+' '+lyric.adjY+')');
+        // Keep track of lyrics that are 'dash'
+        if (lyric.getText().trim() == '-') {
+          lyricsDash.push(lyric);
         }
+		  });
+
+      lyricsDash.forEach((lyric) => {
+        var parent = $(this.context.svg).find(lyric.selector)[0];
+        var line = document.createElementNS(svgHelpers.namespace,'line');
+        var ymax = Math.round(lyric.logicalBox.y + lyric.logicalBox.height/2);
+        var offset = Math.round(lyric.logicalBox.width/2);
+        line.setAttributeNS('', 'x1', lyric.logicalBox.x - offset);
+        line.setAttributeNS('', 'y1', ymax);
+        line.setAttributeNS('', 'x2', lyric.logicalBox.x + lyric.logicalBox.width + offset);
+        line.setAttributeNS('', 'y2', ymax);
+        line.setAttributeNS('','stroke-width',1);
+        line.setAttributeNS('','fill','none');
+        line.setAttributeNS('','stroke','#999999');
+        parent.appendChild(line);
+        var text = $(this.context.svg).find(lyric.selector).find('text')[0];
+        text.setAttributeNS('','fill','#fff');
+      });
+    }
 	}
 
-     // ### renderModifier
-     // render a line-type modifier that is associated with a staff (e.g. slur)
+   // ### renderModifier
+   // render a line-type modifier that is associated with a staff (e.g. slur)
 	renderModifier(modifier, vxStart, vxEnd,smoStart,smoEnd) {
 		// if it is split between lines, render one artifact for each line, with a common class for
 		// both if it is removed.
@@ -165,10 +165,10 @@ class VxSystem {
 		} else if (modifier.ctor == 'SmoSlur') {
             var lyric = smoStart.note.longestLyric();
             var xoffset = 0;
-            if (lyric && lyric.text) {
+            if (lyric && lyric.getText()) {
                 // If there is a lyric, the bounding box of the start note is stretched to the right.
                 // slide the slur left, and also make it a bit wider.
-                xtranslate = (-1*lyric.text.length * 6);
+                xtranslate = (-1*lyric.getText().length * 6);
                 xoffset += (xtranslate/2) - SmoSlur.defaults.xOffset;
             }
 			var curve = new VF.Curve(

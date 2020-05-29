@@ -582,7 +582,7 @@ class SuiLyricEditComponent extends SuiComponentBase {
     var self=this;
     layoutDebug.addTextDebug('SuiLyricEditComponent: create editor request');
     this._startEditorDom();
-    this.editor = new noteTextEditSession(this,this.tracker,this.verse,this.selection,this.eventSource);
+    this.editor = new noteTextEditSession(this,this.tracker,this.verse,this.selection,this.eventSource,this.dialog.parser);
     this.editor.startEditingSession();
     this._bind();
   }

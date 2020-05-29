@@ -90,7 +90,7 @@ class SmoSystemGroup extends SmoScoreModifierBase {
 // decorations, titles etc.
 class SmoScoreText extends SmoScoreModifierBase {
 
-    static get paginations() {
+  static get paginations() {
 		return {every:'every',even:'even',odd:'odd',once:'once',subsequent:'subsequent'}
 	}
 	static get positions() {
@@ -99,43 +99,43 @@ class SmoScoreText extends SmoScoreModifierBase {
 	static get justifications() {
 		return {left:'left',right:'right',center:'center'};
 	}
-    static get fontFamilies() {
-        return {serif:'serif',sansSerif:'sans-serif',monospace:'monospace',cursive:'cursive',
-           times:'Times New Roman',arial:'Arial',helvitica:'Helvitica'};
+  static get fontFamilies() {
+    return {serif:'serif',sansSerif:'sans-serif',monospace:'monospace',cursive:'cursive',
+      times:'Times New Roman',arial:'Arial',helvitica:'Helvitica'};
 
-    }
+  }
 	// If box model is 'none', the font and location determine the size.
 	// spacing and spacingGlyph fit the box into a container based on the svg policy
 	static get boxModels() {
 		return {none:'none',spacing:'spacing',spacingAndGlyphs:'spacingAndGlyphs',wrap:'wrap'};
 	}
-    static get defaults() {
-        return {
-            x:15,
-			y:15,
-			width:0,
-			height:0,
-            text: 'Smoosic',
-			fontInfo: {
-				size: '1em',
-				family:SmoScoreText.fontFamilies.times,
-				style:'normal',
-				weight:'normal'
-			},
-			fill:'black',
-			rotate:0,
-			justification:SmoScoreText.justifications.left,
-			classes:'score-text',
-			boxModel:'none',
-			scaleX:1.0,
-			scaleY:1.0,
-			translateX:0,
-			translateY:0,
-			pagination:'once',
-			position:'custom',
-			autoLayout:false // set to true if one of the pre-canned positions are used.
-        };
-    }
+  static get defaults() {
+      return {
+          x:15,
+		y:15,
+		width:0,
+		height:0,
+          text: 'Smoosic',
+		fontInfo: {
+			size: '1em',
+			family:SmoScoreText.fontFamilies.times,
+			style:'normal',
+			weight:'normal'
+		},
+		fill:'black',
+		rotate:0,
+		justification:SmoScoreText.justifications.left,
+		classes:'score-text',
+		boxModel:'none',
+		scaleX:1.0,
+		scaleY:1.0,
+		translateX:0,
+		translateY:0,
+		pagination:'once',
+		position:'custom',
+		autoLayout:false // set to true if one of the pre-canned positions are used.
+    };
+  }
 	static toSvgAttributes(inst) {
 		var rv=[];
 		var fkeys = Object.keys(inst.fontInfo);
@@ -156,6 +156,10 @@ class SmoScoreText extends SmoScoreModifierBase {
 		    inst.scaleX+' '+inst.scaleY+')'});
 		return rv;
 	}
+
+  getText() {
+    return this.text;
+  }
 
 	toSvgAttributes() {
 		return SmoScoreText.toSvgAttributes(this);

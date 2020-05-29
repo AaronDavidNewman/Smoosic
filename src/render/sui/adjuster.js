@@ -5,55 +5,54 @@ class suiLayoutAdjuster {
 
 	static estimateMusicWidth(smoMeasure) {
 		var widths = [];
-        var voiceIx = 0;
-        var tmObj = smoMeasure.createMeasureTickmaps();
+    var voiceIx = 0;
+    var tmObj = smoMeasure.createMeasureTickmaps();
 		smoMeasure.voices.forEach((voice) => {
 			var tickIndex = 0;
-            var width = 0;
-            var duration = 0;
-            var tm = tmObj.tickmaps[voiceIx];
+      var width = 0;
+      var duration = 0;
+      var tm = tmObj.tickmaps[voiceIx];
 			voice.notes.forEach((note) => {
-                var noteWidth = 0;
-                var dots = (note.dots ? note.dots : 0);
+        var noteWidth = 0;
+        var dots = (note.dots ? note.dots : 0);
 				noteWidth += vexGlyph.dimensions.noteHead.width + vexGlyph.dimensions.noteHead.spacingRight;
 				noteWidth += vexGlyph.dimensions.dot.width * dots + vexGlyph.dimensions.dot.spacingRight * dots;
 				note.pitches.forEach((pitch) => {
-                    var keyAccidental = smoMusic.getAccidentalForKeySignature(pitch,smoMeasure.keySignature);
-                    var accidentals = tmObj.accidentalArray.filter((ar) =>
-                        ar.duration < duration && ar.pitches[pitch.letter]);
-                    var acLen = accidentals.length;
-                    var declared = acLen > 0 ?
-                        accidentals[acLen - 1].pitches[pitch.letter].pitch.accidental: keyAccidental;
+          var keyAccidental = smoMusic.getAccidentalForKeySignature(pitch,smoMeasure.keySignature);
+          var accidentals = tmObj.accidentalArray.filter((ar) =>
+              ar.duration < duration && ar.pitches[pitch.letter]);
+          var acLen = accidentals.length;
+          var declared = acLen > 0 ?
+              accidentals[acLen - 1].pitches[pitch.letter].pitch.accidental: keyAccidental;
 
-                    if (declared != pitch.accidental
-                        || pitch.cautionary) {
-						noteWidth += vexGlyph.accidental(pitch.accidental).width;
-					}
-				});
-
-                var verse = 0;
-                var lyric;
-                while (lyric = note.getLyricForVerse(verse)) {
-                    // TODO: kerning and all that...
-                    if (!lyric.length) {
-                        break;
-                    }
-                    // why did I make this return an array?
-                    // oh...because of voices
-                    var lyricWidth = 7*lyric[0].text.length + 10;
-                    noteWidth = Math.max(lyricWidth,noteWidth);
-
-                    verse += 1;
-                }
-
-				tickIndex += 1;
-                duration += note.tickCount;
-                width += noteWidth;
+          if (declared != pitch.accidental
+              || pitch.cautionary) {
+					noteWidth += vexGlyph.accidental(pitch.accidental).width;
+				}
 			});
-            voiceIx += 1;
-            widths.push(width);
+
+      var verse = 0;
+      var lyric;
+      while (lyric = note.getLyricForVerse(verse,SmoLyric.parsers.lyric)) {
+          // TODO: kerning and all that...
+          if (!lyric.length) {
+              break;
+          }
+          // why did I make this return an array?
+          // oh...because of voices
+          var lyricWidth = 7*lyric[0].getText().length + 10;
+          noteWidth = Math.max(lyricWidth,noteWidth);
+          verse += 1;
+        }
+
+  			tickIndex += 1;
+        duration += note.tickCount;
+        width += noteWidth;
+		  });
+      voiceIx += 1;
+      widths.push(width);
 		});
-        widths.sort((a,b) => a > b ? -1 : 1);
+    widths.sort((a,b) => a > b ? -1 : 1);
 		return widths[0];
 	}
 
@@ -111,40 +110,39 @@ class suiLayoutAdjuster {
 	static estimateMeasureWidth(measure) {
 
 		// Calculate the existing staff width, based on the notes and what we expect to be rendered.
-        var gravity = false;
-        var prevWidth = measure.staffWidth;
-		var measureWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
-		measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
-		measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
-		measureWidth += measure.adjX + measure.adjRight + measure.customStretch;
-        if (measure.changed == false && measure.logicalBox && measure.staffWidth < prevWidth) {
-            measureWidth = Math.round((measure.staffWidth + prevWidth)/2);
-            gravity = true;
-        }
-        var y = measure.logicalBox ? measure.logicalBox.y : measure.staffY;
-        measure.setWidth(measureWidth,'estimateMeasureWidth adjX adjRight gravity: '+gravity);
+  var gravity = false;
+  var prevWidth = measure.staffWidth;
+	var measureWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
+	measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
+	measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
+	measureWidth += measure.adjX + measure.adjRight + measure.customStretch;
+  if (measure.changed == false && measure.logicalBox && measure.staffWidth < prevWidth) {
+    measureWidth = Math.round((measure.staffWidth + prevWidth)/2);
+    gravity = true;
+  }
+  var y = measure.logicalBox ? measure.logicalBox.y : measure.staffY;
+  measure.setWidth(measureWidth,'estimateMeasureWidth adjX adjRight gravity: '+gravity);
 
 		// Calculate the space for left/right text which displaces the measure.
 		// var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(renderer,measure);
 		// measure.setX(measure.staffX  + textOffsetBox.x,'estimateMeasureWidth');
-        measure.setBox(svgHelpers.boxPoints(measure.staffX,y,measure.staffWidth,measure.logicalBox.height),
-           'estimate measure width');
-
+    measure.setBox(svgHelpers.boxPoints(measure.staffX,y,measure.staffWidth,measure.logicalBox.height),
+       'estimate measure width');
 	}
-    static _beamGroupForNote(measure,note) {
-        var rv = null;
-        if (!note.beam_group) {
-            return null;
-        }
-        measure.beamGroups.forEach((bg) => {
-            if (!rv) {
-                if (bg.notes.findIndex((nn) => note.beam_group && note.beam_group.id == bg.attrs.id) >= 0) {
-                    rv = bg;
-                }
-            }
-        });
-        return rv;
+  static _beamGroupForNote(measure,note) {
+    var rv = null;
+    if (!note.beam_group) {
+      return null;
     }
+    measure.beamGroups.forEach((bg) => {
+      if (!rv) {
+        if (bg.notes.findIndex((nn) => note.beam_group && note.beam_group.id == bg.attrs.id) >= 0) {
+          rv = bg;
+        }
+      }
+    });
+    return rv;
+  }
 
     // ### _highestLowestHead
     // highest value is actually the one lowest on the page

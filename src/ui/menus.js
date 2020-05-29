@@ -249,49 +249,50 @@ class SuiFileMenu extends suiMenuBase {
   Vex.Merge(params, SuiFileMenu.defaults);
     super(params);
   }
- static get defaults() {
-  return {
-  menuItems: [{
-  icon: 'folder-new',
-  text: 'New Score',
-  value: 'newFile'
-  },{
-  icon: 'folder-open',
-  text: 'Open',
-  value: 'openFile'
-  },{
-  icon: 'folder-save',
-  text: 'Save',
-  value: 'saveFile'
-  },{
-  icon: 'folder-save',
-  text: 'Quick Save',
-  value: 'quickSave'
-  },{
-  icon: '',
-  text: 'Print',
-  value: 'printScore'
+  static get defaults() {
+    return {
+      menuItems: [
+        {
+          icon: 'folder-new',
+          text: 'New Score',
+          value: 'newFile'
         },{
-  icon: '',
-  text: 'Bach Invention',
-  value: 'bach'
+          icon: 'folder-open',
+          text: 'Open',
+          value: 'openFile'
         },{
-  icon: '',
-  text: 'Jesu Bambino',
-  value: 'bambino'
+          icon: 'folder-save',
+          text: 'Save',
+          value: 'saveFile'
         },{
-  icon: '',
-  text: 'Microtone Sample',
-  value: 'microtone'
+          icon: 'folder-save',
+          text: 'Quick Save',
+          value: 'quickSave'
         },{
-  icon: '',
-  text: 'Precious Lord',
-  value: 'preciousLord'
+          icon: '',
+          text: 'Print',
+          value: 'printScore'
+        },{
+          icon: '',
+          text: 'Bach Invention',
+          value: 'bach'
+        },{
+          icon: '',
+          text: 'Jesu Bambino',
+          value: 'bambino'
+        },{
+          icon: '',
+          text: 'Microtone Sample',
+          value: 'microtone'
+        },{
+          icon: '',
+          text: 'Precious Lord',
+          value: 'preciousLord'
         },	{
-  icon: '',
-  text: 'Cancel',
-  value: 'cancel'
-  }
+          icon: '',
+          text: 'Cancel',
+          value: 'cancel'
+        }
       ]
     };
   }

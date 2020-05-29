@@ -99,39 +99,46 @@ class SmoNote {
     }
 
     longestLyric() {
-        var tms = this.textModifiers.filter((mod) => {
-            return mod.attrs.type == 'SmoLyric';
-        });
-        if (!tms.length) {
-            return null;
-        }
-        return tms.reduce((m1,m2) => {
-            return m1.text.length > m2.text.length;
-        });
-
+      var tms = this.textModifiers.filter((mod) => {
+        return mod.attrs.type == 'SmoLyric' && mod.parser === SmoLyric.parsers.lyric;
+      });
+      if (!tms.length) {
+        return null;
+      }
+      return tms.reduce((m1,m2) => {
+        return m1.text.length > m2.text.length;
+      });
     }
 
-    addLyric(lyric) {
-        var tms = this.textModifiers.filter((mod) => {
-            return mod.attrs.type != 'SmoLyric' || mod.verse != lyric.verse;
-        });
-        tms.push(lyric);
-        this.textModifiers = tms;
-    }
+  addLyric(lyric) {
+    var tms = this.textModifiers.filter((mod) => {
+      return mod.attrs.type != 'SmoLyric' || mod.parser !==lyric.parser ||
+        mod.verse != lyric.verse;
+    });
+    tms.push(lyric);
+    this.textModifiers = tms;
+  }
+
+  getTrueLyrics() {
+    var ms = this.textModifiers.filter((mod)=> {
+      return mod.attrs.type === 'SmoLyric' && mod.parser === SmoLyric.parsers.lyric;
+    });
+    return ms;
+  }
 
 
-    removeLyric(lyric) {
-        var tms = this.textModifiers.filter((mod) => {
-            return mod.attrs.type != 'SmoLyric' || mod.verse != lyric.verse;
-        });
-        this.textModifiers = tms;
-    }
+  removeLyric(lyric) {
+    var tms = this.textModifiers.filter((mod) => {
+      return mod.attrs.type != 'SmoLyric' || mod.verse != lyric.verse || mod.parser != lyric.parser;
+    });
+    this.textModifiers = tms;
+  }
 
-    getLyricForVerse(verse) {
-        return this.textModifiers.filter((mod) => {
-            return mod.attrs.type == 'SmoLyric' && mod.verse == verse;
-        });
-    }
+  getLyricForVerse(verse,parser) {
+      return this.textModifiers.filter((mod) => {
+        return mod.attrs.type == 'SmoLyric' && mod.parser === parser && mod.verse === verse;
+      });
+  }
 
     getOrnaments(ornament) {
         return this.ornaments;
