@@ -61,6 +61,7 @@ class SuiDialogBase {
 		this.tracker = parameters.tracker;
     this.completeNotifier = parameters.completeNotifier;
     this.undoBuffer = parameters.undoBuffer;
+    this.editor = parameters.editor;
 
 		var top = parameters.top - this.tracker.scroller.netScroll.y;
 		var left = parameters.left - this.tracker.scroller.netScroll.x;

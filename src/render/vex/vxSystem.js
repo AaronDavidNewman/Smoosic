@@ -59,6 +59,16 @@ class VxSystem {
 		return null;
 	}
 
+  _updateChordOffsets(note) {
+    for (var i =0;i<3;++i) {
+      var chords = note.getLyricForVerse(i,SmoLyric.parsers.chord);
+      chords.forEach((chord) => {
+        var dom = $(this.context.svg).find(chord.selector)[0];
+        dom.setAttributeNS('','transform','translate('+chord.translateX+' '+chord.translateY+')');
+      });
+    }
+  }
+
     // ### updateLyricOffsets
     // Adjust the y position for all lyrics in the line so they are even.
     // Also replace '-' with a longer dash do indicate 'until the next measure'
@@ -83,6 +93,7 @@ class VxSystem {
         // Get lyrics from any voice.
         smoMeasure.voices.forEach((voice) => {
           voice.notes.forEach((note) => {
+            this._updateChordOffsets(note);
             note.getTrueLyrics().forEach((ll) => {
               if (!lyricVerseMap[ll.verse]) {
                 lyricVerseMap[ll.verse] = [];

@@ -406,113 +406,113 @@ class VxMeasure {
 
 	}
 
-    _setModifierBoxes() {
-        this.smoMeasure.voices.forEach((voice) => {
-			voice.notes.forEach((smoNote) =>  {
-                var el = this.context.svg.getElementById(smoNote.renderId);
-				svgHelpers.updateArtifactBox(this.context.svg,el,smoNote);
+  _setModifierBoxes() {
+    this.smoMeasure.voices.forEach((voice) => {
+  		voice.notes.forEach((smoNote) =>  {
+        var el = this.context.svg.getElementById(smoNote.renderId);
+  			svgHelpers.updateArtifactBox(this.context.svg,el,smoNote);
 
-                // TODO: fix this, only works on the first line.
-                smoNote.getModifiers('SmoLyric').forEach((lyric) => {
-                    if (lyric.selector) {
-                        svgHelpers.updateArtifactBox(this.context.svg,$(lyric.selector)[0],lyric);
-                        // lyric.logicalBox = svgHelpers.smoBox($(lyric.selector)[0].getBBox());
-                    }
-                });
-                smoNote.graceNotes.forEach((g) => {
-                    var gel = this.context.svg.getElementById('vf-'+g.renderedId);
-                    $(gel).addClass('grace-note');
-                    svgHelpers.updateArtifactBox(this.context.svg,gel,g);
-                });
-            });
+        // TODO: fix this, only works on the first line.
+        smoNote.getModifiers('SmoLyric').forEach((lyric) => {
+          if (lyric.selector) {
+            svgHelpers.updateArtifactBox(this.context.svg,$(lyric.selector)[0],lyric);
+            // lyric.logicalBox = svgHelpers.smoBox($(lyric.selector)[0].getBBox());
+          }
         });
-    }
+        smoNote.graceNotes.forEach((g) => {
+          var gel = this.context.svg.getElementById('vf-'+g.renderedId);
+          $(gel).addClass('grace-note');
+          svgHelpers.updateArtifactBox(this.context.svg,gel,g);
+        });
+      });
+    });
+  }
 
-    // ### _updateLyricXOffsets
-    // Create the DOM modifiers for the rendered lyrics.
-     _updateLyricDomSelectors() {
-         this.smoMeasure.voices.forEach((vv) => {
-             vv.notes.forEach((nn) => {
-                 nn.getModifiers('SmoLyric').forEach((lyric) => {
-                     var parser = (lyric.parser === SmoLyric.parsers.lyric ? 'lyric' : 'chord');
-                     lyric.selector='#'+nn.renderId+' '+lyric.getClassSelector();
-                 });
-             });
+  // ### _updateLyricXOffsets
+  // Create the DOM modifiers for the rendered lyrics.
+   _updateLyricDomSelectors() {
+     this.smoMeasure.voices.forEach((vv) => {
+       vv.notes.forEach((nn) => {
+         nn.getModifiers('SmoLyric').forEach((lyric) => {
+           var parser = (lyric.parser === SmoLyric.parsers.lyric ? 'lyric' : 'chord');
+           lyric.selector='#'+nn.renderId+' '+lyric.getClassSelector();
          });
-     }
+       });
+     });
+   }
 
-    // ## Description:
-    // Create all Vex notes and modifiers.  We defer the format and rendering so
-    // we can align across multiple staves
-    preFormat() {
-        $(this.context.svg).find('g.' + this.smoMeasure.getClassId()).remove();
+  // ## Description:
+  // Create all Vex notes and modifiers.  We defer the format and rendering so
+  // we can align across multiple staves
+  preFormat() {
+    $(this.context.svg).find('g.' + this.smoMeasure.getClassId()).remove();
 
 
 		var key = smoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature,this.smoMeasure.transposeIndex);
 		var canceledKey = this.smoMeasure.canceledKeySignature ? smoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature,this.smoMeasure.transposeIndex)
-		   : this.smoMeasure.canceledKeySignature;
+      : this.smoMeasure.canceledKeySignature;
 
-        var staffX = this.smoMeasure.staffX + this.smoMeasure.padLeft;
+    var staffX = this.smoMeasure.staffX + this.smoMeasure.padLeft;
 
-        this.stave = new VF.Stave(staffX, this.smoMeasure.staffY , this.smoMeasure.staffWidth - (1+this.smoMeasure.padLeft));
-        if (this.smoMeasure.prevFrame < VxMeasure.fps) {
-            this.smoMeasure.prevFrame += 1;
-        }
-
-        // If there is padLeft, draw an invisible box so the padding is included in the measure box
-        if (this.smoMeasure.padLeft) {
-            this.context.rect(this.smoMeasure.staffX,this.smoMeasure.staffY,this.smoMeasure.padLeft,50, {
-                fill:'none','stroke-width':1,stroke:'white'
-            });
-        }
-
-		this.stave.options.space_above_staff_ln=0; // don't let vex place the staff, we want to.
-        //console.log('adjX is '+this.smoMeasure.adjX);
-
-        // Add a clef and time signature.
-        if (this.smoMeasure.forceClef) {
-            this.stave.addClef(this.smoMeasure.clef);
-        }
-        if (this.smoMeasure.forceKeySignature) {
-			var sig = new VF.KeySignature(key);
-			if (this.smoMeasure.canceledKeySignature) {
-				sig.cancelKey(canceledKey);
-			}
-            sig.addToStave(this.stave);
-        }
-        if (this.smoMeasure.forceTimeSignature) {
-            this.stave.addTimeSignature(this.smoMeasure.timeSignature);
-        }
-        // Connect it to the rendering context and draw!
-        this.stave.setContext(this.context);
-
-		this.handleMeasureModifiers();
-
-        this.tickmapObject = this.smoMeasure.createMeasureTickmaps();
-
-        this.voiceAr = [];
-
-        // If there are multiple voices, add them all to the formatter at the same time so they don't collide
-        for (var j = 0; j < this.smoMeasure.voices.length; ++j) {
-
-            this.createVexNotes(j,this.smoMeasure.getActiveVoice());
-            this.createVexTuplets(j);
-            this.createVexBeamGroups(j);
-
-            // Create a voice in 4/4 and add above notes
-            var voice = new VF.Voice({
-                    num_beats: this.smoMeasure.numBeats,
-                    beat_value: this.smoMeasure.beatValue
-                }).setMode(Vex.Flow.Voice.Mode.SOFT);
-            voice.addTickables(this.vexNotes);
-            this.voiceAr.push(voice);
-        }
-
-		// Need to format for x position, then set y position before drawing dynamics.
-        this.formatter = new VF.Formatter({softmaxFactor:this.smoMeasure.customProportion}).joinVoices(this.voiceAr);
-        // this.formatter = new VF.Formatter().joinVoices(this.voiceAr);
-
+    this.stave = new VF.Stave(staffX, this.smoMeasure.staffY , this.smoMeasure.staffWidth - (1+this.smoMeasure.padLeft));
+    if (this.smoMeasure.prevFrame < VxMeasure.fps) {
+      this.smoMeasure.prevFrame += 1;
     }
+
+    // If there is padLeft, draw an invisible box so the padding is included in the measure box
+    if (this.smoMeasure.padLeft) {
+      this.context.rect(this.smoMeasure.staffX,this.smoMeasure.staffY,this.smoMeasure.padLeft,50, {
+        fill:'none','stroke-width':1,stroke:'white'
+      });
+    }
+
+  	this.stave.options.space_above_staff_ln=0; // don't let vex place the staff, we want to.
+    //console.log('adjX is '+this.smoMeasure.adjX);
+
+    // Add a clef and time signature.
+    if (this.smoMeasure.forceClef) {
+      this.stave.addClef(this.smoMeasure.clef);
+    }
+    if (this.smoMeasure.forceKeySignature) {
+  	var sig = new VF.KeySignature(key);
+  	if (this.smoMeasure.canceledKeySignature) {
+  		sig.cancelKey(canceledKey);
+  	}
+      sig.addToStave(this.stave);
+    }
+    if (this.smoMeasure.forceTimeSignature) {
+      this.stave.addTimeSignature(this.smoMeasure.timeSignature);
+    }
+    // Connect it to the rendering context and draw!
+    this.stave.setContext(this.context);
+
+  	this.handleMeasureModifiers();
+
+    this.tickmapObject = this.smoMeasure.createMeasureTickmaps();
+
+    this.voiceAr = [];
+
+    // If there are multiple voices, add them all to the formatter at the same time so they don't collide
+    for (var j = 0; j < this.smoMeasure.voices.length; ++j) {
+
+      this.createVexNotes(j,this.smoMeasure.getActiveVoice());
+      this.createVexTuplets(j);
+      this.createVexBeamGroups(j);
+
+        // Create a voice in 4/4 and add above notes
+        var voice = new VF.Voice({
+            num_beats: this.smoMeasure.numBeats,
+            beat_value: this.smoMeasure.beatValue
+        }).setMode(Vex.Flow.Voice.Mode.SOFT);
+        voice.addTickables(this.vexNotes);
+        this.voiceAr.push(voice);
+      }
+
+    	// Need to format for x position, then set y position before drawing dynamics.
+      this.formatter = new VF.Formatter({softmaxFactor:this.smoMeasure.customProportion}).joinVoices(this.voiceAr);
+      // this.formatter = new VF.Formatter().joinVoices(this.voiceAr);
+
+  }
     format(voices) {
         this.formatter.format(voices,
               this.smoMeasure.staffWidth-

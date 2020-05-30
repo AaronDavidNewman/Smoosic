@@ -4,35 +4,40 @@ class SuiLyricDialog extends SuiDialogBase {
 		dg.display();
         return dg;
 	}
-    static get dialogElements() {
-		return [
-      {
-        smoName: 'verse',
-        parameterName: 'verse',
-        defaultValue: 0,
-        control: 'SuiDropdownComponent',
-        label:'Verse',
-        startRow:true,
-        options: [{
-            value: 0,
-            label: '1'
-          }, {
-            value: 1,
-            label: '2'
-          }, {
-            value: 2,
-            label: '3'
-          }
-        ]
+  static get dialogElements() {
+    return [{
+      smoName: 'verse',
+      parameterName: 'verse',
+      defaultValue: 0,
+      control: 'SuiDropdownComponent',
+      label:'Verse',
+      startRow:true,
+      options: [{
+          value: 0,
+          label: '1'
         }, {
-				smoName: 'textEditor',
-				parameterName: 'text',
-				defaultValue: 0,
-				control: 'SuiLyricEditComponent',
-				label:'Edit Text',
-				options: []
-		  }
-    ];
+          value: 1,
+          label: '2'
+        }, {
+          value: 2,
+          label: '3'
+        }
+      ]
+    },{
+      smoName: 'translateY',
+      parameterName: 'translateY',
+      defaultValue: 0,
+      control: 'SuiRockerComponent',
+      label: 'Y Adjustment (Px)',
+      type: 'int'
+    }, {
+      smoName: 'textEditor',
+      parameterName: 'text',
+      defaultValue: 0,
+      control: 'SuiLyricEditComponent',
+      label:'Edit Text',
+      options: []
+	  }];
   }
   constructor(parameters) {
     parameters.ctor='SuiLyricDialog';
@@ -79,48 +84,53 @@ class SuiLyricDialog extends SuiDialogBase {
         }
     });
 
-     this.position(this.tracker.selections[0].note.renderedBox);
+    this.position(this.tracker.selections[0].note.renderedBox);
 
-      var cb = function (x, y) {}
-      htmlHelpers.draggable({
-			parent: $(this.dgDom.element).find('.attributeModal'),
-			handle: $(this.dgDom.element).find('.jsDbMove'),
+    var cb = function (x, y) {}
+    htmlHelpers.draggable({
+      parent: $(this.dgDom.element).find('.attributeModal'),
+      handle: $(this.dgDom.element).find('.jsDbMove'),
             animateDiv:'.draganime',
       			cb: cb,
-			moveParent: true
+      moveParent: true
 		});
 	}
   _focusSelection() {
-      if (this.textEditorCtrl.editor.selection &&
-          this.textEditorCtrl.editor.selection.note &&
-          this.textEditorCtrl.editor.selection.note.renderedBox) {
-              this.tracker.scroller.scrollVisibleBox(this.textEditorCtrl.editor.selection.note.renderedBox);
-          }
+    if (this.textEditorCtrl.editor.selection &&
+      this.textEditorCtrl.editor.selection.note &&
+      this.textEditorCtrl.editor.selection.note.renderedBox) {
+      this.tracker.scroller.scrollVisibleBox(this.textEditorCtrl.editor.selection.note.renderedBox);
+    }
   }
   changed() {
-      this.textEditorCtrl.verse = this.verse.getValue();
-      // Note, when selection changes, we need to wait for the text edit session
-      // to start on the new selection.  Then this.editor.changeFlag is set and
-      // we can focus on the selection if it is not visible.
-      if (this.textEditorCtrl.changeFlag && this.textEditorCtrl.selection) {
-          this.textEditorCtrl.setSelection(this.textEditorCtrl.selection.selector);
-          this._focusSelection();
-      }
+    this.textEditorCtrl.verse = this.verse.getValue();
+    // Note, when selection changes, we need to wait for the text edit session
+    // to start on the new selection.  Then this.editor.changeFlag is set and
+    // we can focus on the selection if it is not visible.
+    if (this.textEditorCtrl.changeFlag && this.textEditorCtrl.selection) {
+      this.textEditorCtrl.setSelection(this.textEditorCtrl.selection.selector);
+      this._focusSelection();
+    }
+
+    if (this.translateYCtrl.changeFlag) {
+      this.textEditorCtrl.setYOffset(this.translateYCtrl.getValue());
+    } else {
+      this.translateYCtrl.setValue(this.textEditorCtrl.getYOffset());
+    }
   }
   _bindElements() {
     var self = this;
     var dgDom = this.dgDom;
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            self.tracker.replaceSelectedMeasures();
-            self.tracker.layout.setDirty();
-            self.complete();
+      self.tracker.replaceSelectedMeasures();
+      self.tracker.layout.setDirty();
+      self.complete();
 		});
     $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-            self.layout.score = self.undo.undo(self.layout.score);
-            self.tracker.replaceSelectedMeasures();
-            self.tracker.layout.setDirty();
-            self.complete();
+      self.editor.undo();
+      self.tracker.layout.setDirty();
+      self.complete();
 		});
     $(dgDom.element).find('.remove-button').remove();
     this.textEditorCtrl.eventSource = this.eventSource;

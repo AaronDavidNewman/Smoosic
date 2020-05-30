@@ -2246,24 +2246,25 @@ class SmoTuplet {
         var i = 0;
         noteAr.forEach((note) => {
             var textModifiers = note.textModifiers;
+            // Note preserver remainder
             note = SmoNote.cloneWithDuration(note, {
                     numerator: stemTicks*tuplet.durationMap[i],
                     denominator: 1,
-                    remainder: 0
+                    remainder: note.ticks.remainder
                 });
 
-            // Don't clone modifiers, except for first one.
-            if (i === 0) {
-                var ntmAr = [];
-                textModifiers.forEach((tm) => {
-                    ntm = SmoNoteModifierBase.deserialize(JSON.stringify(tm));
-                    ntmAr.push(ntm);
-                });
-                note.textModifiers = ntmAr;
-            }
-            i += 1;
+          // Don't clone modifiers, except for first one.
+          if (i === 0) {
+              var ntmAr = [];
+              textModifiers.forEach((tm) => {
+                  var ntm = SmoNoteModifierBase.deserialize(tm);
+                  ntmAr.push(ntm);
+              });
+              note.textModifiers = ntmAr;
+          }
+          i += 1;
 
-            tupletNotes.push(note);
+          tupletNotes.push(note);
         });
         var rv = new SmoTuplet({
                 notes: tupletNotes,
@@ -2277,34 +2278,35 @@ class SmoTuplet {
         return rv;
     }
 
-    _adjustTicks() {
-        var sum = this.durationSum;
-        for (var i = 0; i < this.notes.length; ++i) {
-            var note = this.notes[i];
-            var normTicks = smoMusic.durationToTicks(smoMusic.ticksToDuration[this.stemTicks]);
-            // TODO:  notes_occupied needs to consider vex duration
-            var tupletBase = normTicks * this.note_ticks_occupied;
-            note.ticks.denominator = 1;
-            note.ticks.numerator = Math.floor((this.totalTicks * this.durationMap[i]) / sum);
+  _adjustTicks() {
+    var sum = this.durationSum;
+    for (var i = 0; i < this.notes.length; ++i) {
+      var note = this.notes[i];
+      var normTicks = smoMusic.durationToTicks(smoMusic.ticksToDuration[this.stemTicks]);
+      // TODO:  notes_occupied needs to consider vex duration
+      var tupletBase = normTicks * this.note_ticks_occupied;
+      note.ticks.denominator = 1;
+      note.ticks.numerator = Math.floor((this.totalTicks * this.durationMap[i]) / sum);
 
-            note.tuplet = this.attrs;
-        }
+      note.tuplet = this.attrs;
+    }
 
 		// put all the remainder in the first note of the tuplet
 		var noteTicks = this.notes.map((nn) => {return nn.tickCount;}).reduce((acc,dd) => {return acc+dd;});
-		this.notes[0].ticks.remainder = this.totalTicks-noteTicks;
+    // bug fix:  if this is a clones tuplet, remainder is already set
+		this.notes[0].ticks.remainder = this.notes[0].ticks.remainder + this.totalTicks-noteTicks;
+  }
+  getIndexOfNote(note) {
+    var rv = -1;
+    for (var i = 0; i < this.notes.length; ++i) {
+      var tn = this.notes[i];
+      if (note.attrs.id === tn.attrs.id) {
+          rv = i;
+      }
+    }
+    return rv;
+  }
 
-    }
-    getIndexOfNote(note) {
-        var rv = -1;
-        for (var i = 0; i < this.notes.length; ++i) {
-            var tn = this.notes[i];
-            if (note.attrs.id === tn.attrs.id) {
-                rv = i;
-            }
-        }
-        return rv;
-    }
     split(combineIndex) {
         var multiplier = 0.5;
         var nnotes = [];
@@ -2762,7 +2764,7 @@ class SmoLyric extends SmoNoteModifierBase {
     }
 
     // Return these for the text editor that expects them.
-    this.translateX = this.translateY = 0;
+    // this.translateX = this.translateY = 0;
     this.scaleX = this.scaleY = 1.0;
     this.boxModel = 'none';
 
@@ -2993,13 +2995,18 @@ class SmoMeasure {
 
 		var tuplets = [];
 		for (j = 0; j < jsonObj.tuplets.length; ++j) {
-            var tupJson = jsonObj.tuplets[j];
-            var noteAr = noteSum.filter((nn) => {
-                return nn.isTuplet && nn.tuplet.id === tupJson.attrs.id;
-            });
-            tupJson.notes = noteAr;
-			var tuplet = new SmoTuplet(tupJson);
-			tuplets.push(tuplet);
+      var tupJson = jsonObj.tuplets[j];
+      var noteAr = noteSum.filter((nn) => {
+          return nn.isTuplet && nn.tuplet.id === tupJson.attrs.id;
+      });
+
+      // Bug fix:  A tuplet with no notes may be been overwritten
+      // in a copy/paste operation
+      if (noteAr.length > 0) {
+        tupJson.notes = noteAr;
+  			var tuplet = new SmoTuplet(tupJson);
+  			tuplets.push(tuplet);
+      }
 		}
 
 		/* var beamGroups = [];
@@ -8777,113 +8784,113 @@ class VxMeasure {
 
 	}
 
-    _setModifierBoxes() {
-        this.smoMeasure.voices.forEach((voice) => {
-			voice.notes.forEach((smoNote) =>  {
-                var el = this.context.svg.getElementById(smoNote.renderId);
-				svgHelpers.updateArtifactBox(this.context.svg,el,smoNote);
+  _setModifierBoxes() {
+    this.smoMeasure.voices.forEach((voice) => {
+  		voice.notes.forEach((smoNote) =>  {
+        var el = this.context.svg.getElementById(smoNote.renderId);
+  			svgHelpers.updateArtifactBox(this.context.svg,el,smoNote);
 
-                // TODO: fix this, only works on the first line.
-                smoNote.getModifiers('SmoLyric').forEach((lyric) => {
-                    if (lyric.selector) {
-                        svgHelpers.updateArtifactBox(this.context.svg,$(lyric.selector)[0],lyric);
-                        // lyric.logicalBox = svgHelpers.smoBox($(lyric.selector)[0].getBBox());
-                    }
-                });
-                smoNote.graceNotes.forEach((g) => {
-                    var gel = this.context.svg.getElementById('vf-'+g.renderedId);
-                    $(gel).addClass('grace-note');
-                    svgHelpers.updateArtifactBox(this.context.svg,gel,g);
-                });
-            });
+        // TODO: fix this, only works on the first line.
+        smoNote.getModifiers('SmoLyric').forEach((lyric) => {
+          if (lyric.selector) {
+            svgHelpers.updateArtifactBox(this.context.svg,$(lyric.selector)[0],lyric);
+            // lyric.logicalBox = svgHelpers.smoBox($(lyric.selector)[0].getBBox());
+          }
         });
-    }
+        smoNote.graceNotes.forEach((g) => {
+          var gel = this.context.svg.getElementById('vf-'+g.renderedId);
+          $(gel).addClass('grace-note');
+          svgHelpers.updateArtifactBox(this.context.svg,gel,g);
+        });
+      });
+    });
+  }
 
-    // ### _updateLyricXOffsets
-    // Create the DOM modifiers for the rendered lyrics.
-     _updateLyricDomSelectors() {
-         this.smoMeasure.voices.forEach((vv) => {
-             vv.notes.forEach((nn) => {
-                 nn.getModifiers('SmoLyric').forEach((lyric) => {
-                     var parser = (lyric.parser === SmoLyric.parsers.lyric ? 'lyric' : 'chord');
-                     lyric.selector='#'+nn.renderId+' '+lyric.getClassSelector();
-                 });
-             });
+  // ### _updateLyricXOffsets
+  // Create the DOM modifiers for the rendered lyrics.
+   _updateLyricDomSelectors() {
+     this.smoMeasure.voices.forEach((vv) => {
+       vv.notes.forEach((nn) => {
+         nn.getModifiers('SmoLyric').forEach((lyric) => {
+           var parser = (lyric.parser === SmoLyric.parsers.lyric ? 'lyric' : 'chord');
+           lyric.selector='#'+nn.renderId+' '+lyric.getClassSelector();
          });
-     }
+       });
+     });
+   }
 
-    // ## Description:
-    // Create all Vex notes and modifiers.  We defer the format and rendering so
-    // we can align across multiple staves
-    preFormat() {
-        $(this.context.svg).find('g.' + this.smoMeasure.getClassId()).remove();
+  // ## Description:
+  // Create all Vex notes and modifiers.  We defer the format and rendering so
+  // we can align across multiple staves
+  preFormat() {
+    $(this.context.svg).find('g.' + this.smoMeasure.getClassId()).remove();
 
 
 		var key = smoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature,this.smoMeasure.transposeIndex);
 		var canceledKey = this.smoMeasure.canceledKeySignature ? smoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature,this.smoMeasure.transposeIndex)
-		   : this.smoMeasure.canceledKeySignature;
+      : this.smoMeasure.canceledKeySignature;
 
-        var staffX = this.smoMeasure.staffX + this.smoMeasure.padLeft;
+    var staffX = this.smoMeasure.staffX + this.smoMeasure.padLeft;
 
-        this.stave = new VF.Stave(staffX, this.smoMeasure.staffY , this.smoMeasure.staffWidth - (1+this.smoMeasure.padLeft));
-        if (this.smoMeasure.prevFrame < VxMeasure.fps) {
-            this.smoMeasure.prevFrame += 1;
-        }
-
-        // If there is padLeft, draw an invisible box so the padding is included in the measure box
-        if (this.smoMeasure.padLeft) {
-            this.context.rect(this.smoMeasure.staffX,this.smoMeasure.staffY,this.smoMeasure.padLeft,50, {
-                fill:'none','stroke-width':1,stroke:'white'
-            });
-        }
-
-		this.stave.options.space_above_staff_ln=0; // don't let vex place the staff, we want to.
-        //console.log('adjX is '+this.smoMeasure.adjX);
-
-        // Add a clef and time signature.
-        if (this.smoMeasure.forceClef) {
-            this.stave.addClef(this.smoMeasure.clef);
-        }
-        if (this.smoMeasure.forceKeySignature) {
-			var sig = new VF.KeySignature(key);
-			if (this.smoMeasure.canceledKeySignature) {
-				sig.cancelKey(canceledKey);
-			}
-            sig.addToStave(this.stave);
-        }
-        if (this.smoMeasure.forceTimeSignature) {
-            this.stave.addTimeSignature(this.smoMeasure.timeSignature);
-        }
-        // Connect it to the rendering context and draw!
-        this.stave.setContext(this.context);
-
-		this.handleMeasureModifiers();
-
-        this.tickmapObject = this.smoMeasure.createMeasureTickmaps();
-
-        this.voiceAr = [];
-
-        // If there are multiple voices, add them all to the formatter at the same time so they don't collide
-        for (var j = 0; j < this.smoMeasure.voices.length; ++j) {
-
-            this.createVexNotes(j,this.smoMeasure.getActiveVoice());
-            this.createVexTuplets(j);
-            this.createVexBeamGroups(j);
-
-            // Create a voice in 4/4 and add above notes
-            var voice = new VF.Voice({
-                    num_beats: this.smoMeasure.numBeats,
-                    beat_value: this.smoMeasure.beatValue
-                }).setMode(Vex.Flow.Voice.Mode.SOFT);
-            voice.addTickables(this.vexNotes);
-            this.voiceAr.push(voice);
-        }
-
-		// Need to format for x position, then set y position before drawing dynamics.
-        this.formatter = new VF.Formatter({softmaxFactor:this.smoMeasure.customProportion}).joinVoices(this.voiceAr);
-        // this.formatter = new VF.Formatter().joinVoices(this.voiceAr);
-
+    this.stave = new VF.Stave(staffX, this.smoMeasure.staffY , this.smoMeasure.staffWidth - (1+this.smoMeasure.padLeft));
+    if (this.smoMeasure.prevFrame < VxMeasure.fps) {
+      this.smoMeasure.prevFrame += 1;
     }
+
+    // If there is padLeft, draw an invisible box so the padding is included in the measure box
+    if (this.smoMeasure.padLeft) {
+      this.context.rect(this.smoMeasure.staffX,this.smoMeasure.staffY,this.smoMeasure.padLeft,50, {
+        fill:'none','stroke-width':1,stroke:'white'
+      });
+    }
+
+  	this.stave.options.space_above_staff_ln=0; // don't let vex place the staff, we want to.
+    //console.log('adjX is '+this.smoMeasure.adjX);
+
+    // Add a clef and time signature.
+    if (this.smoMeasure.forceClef) {
+      this.stave.addClef(this.smoMeasure.clef);
+    }
+    if (this.smoMeasure.forceKeySignature) {
+  	var sig = new VF.KeySignature(key);
+  	if (this.smoMeasure.canceledKeySignature) {
+  		sig.cancelKey(canceledKey);
+  	}
+      sig.addToStave(this.stave);
+    }
+    if (this.smoMeasure.forceTimeSignature) {
+      this.stave.addTimeSignature(this.smoMeasure.timeSignature);
+    }
+    // Connect it to the rendering context and draw!
+    this.stave.setContext(this.context);
+
+  	this.handleMeasureModifiers();
+
+    this.tickmapObject = this.smoMeasure.createMeasureTickmaps();
+
+    this.voiceAr = [];
+
+    // If there are multiple voices, add them all to the formatter at the same time so they don't collide
+    for (var j = 0; j < this.smoMeasure.voices.length; ++j) {
+
+      this.createVexNotes(j,this.smoMeasure.getActiveVoice());
+      this.createVexTuplets(j);
+      this.createVexBeamGroups(j);
+
+        // Create a voice in 4/4 and add above notes
+        var voice = new VF.Voice({
+            num_beats: this.smoMeasure.numBeats,
+            beat_value: this.smoMeasure.beatValue
+        }).setMode(Vex.Flow.Voice.Mode.SOFT);
+        voice.addTickables(this.vexNotes);
+        this.voiceAr.push(voice);
+      }
+
+    	// Need to format for x position, then set y position before drawing dynamics.
+      this.formatter = new VF.Formatter({softmaxFactor:this.smoMeasure.customProportion}).joinVoices(this.voiceAr);
+      // this.formatter = new VF.Formatter().joinVoices(this.voiceAr);
+
+  }
     format(voices) {
         this.formatter.format(voices,
               this.smoMeasure.staffWidth-
@@ -8986,6 +8993,16 @@ class VxSystem {
 		return null;
 	}
 
+  _updateChordOffsets(note) {
+    for (var i =0;i<3;++i) {
+      var chords = note.getLyricForVerse(i,SmoLyric.parsers.chord);
+      chords.forEach((chord) => {
+        var dom = $(this.context.svg).find(chord.selector)[0];
+        dom.setAttributeNS('','transform','translate('+chord.translateX+' '+chord.translateY+')');
+      });
+    }
+  }
+
     // ### updateLyricOffsets
     // Adjust the y position for all lyrics in the line so they are even.
     // Also replace '-' with a longer dash do indicate 'until the next measure'
@@ -9010,6 +9027,7 @@ class VxSystem {
         // Get lyrics from any voice.
         smoMeasure.voices.forEach((voice) => {
           voice.notes.forEach((note) => {
+            this._updateChordOffsets(note);
             note.getTrueLyrics().forEach((ll) => {
               if (!lyricVerseMap[ll.verse]) {
                 lyricVerseMap[ll.verse] = [];
@@ -13321,6 +13339,19 @@ class noteTextEditSession {
     this.editor.moveSelectionLeft();
   }
 
+  setYOffset(y) {
+    if (this.editor && this.editor.lyric) {
+      this.editor.lyric.translateY = y;
+    }
+  }
+
+  getYOffset() {
+    if (this.editor && this.editor.lyric) {
+      return this.editor.lyric.translateY;
+    }
+    return 0;   
+  }
+
   toggleSessionStateEvent() {
     if (this.editor.state == editLyricSession.states.stopped ||
         this.editor.state == editLyricSession.states.stopping)  {
@@ -15407,6 +15438,7 @@ class SuiDialogBase {
 		this.tracker = parameters.tracker;
     this.completeNotifier = parameters.completeNotifier;
     this.undoBuffer = parameters.undoBuffer;
+    this.editor = parameters.editor;
 
 		var top = parameters.top - this.tracker.scroller.netScroll.y;
 		var left = parameters.left - this.tracker.scroller.netScroll.x;
@@ -16110,35 +16142,40 @@ class SuiSaveFileDialog extends SuiFileDialog {
 		dg.display();
         return dg;
 	}
-    static get dialogElements() {
-		return [
-      {
-        smoName: 'verse',
-        parameterName: 'verse',
-        defaultValue: 0,
-        control: 'SuiDropdownComponent',
-        label:'Verse',
-        startRow:true,
-        options: [{
-            value: 0,
-            label: '1'
-          }, {
-            value: 1,
-            label: '2'
-          }, {
-            value: 2,
-            label: '3'
-          }
-        ]
+  static get dialogElements() {
+    return [{
+      smoName: 'verse',
+      parameterName: 'verse',
+      defaultValue: 0,
+      control: 'SuiDropdownComponent',
+      label:'Verse',
+      startRow:true,
+      options: [{
+          value: 0,
+          label: '1'
         }, {
-				smoName: 'textEditor',
-				parameterName: 'text',
-				defaultValue: 0,
-				control: 'SuiLyricEditComponent',
-				label:'Edit Text',
-				options: []
-		  }
-    ];
+          value: 1,
+          label: '2'
+        }, {
+          value: 2,
+          label: '3'
+        }
+      ]
+    },{
+      smoName: 'translateY',
+      parameterName: 'translateY',
+      defaultValue: 0,
+      control: 'SuiRockerComponent',
+      label: 'Y Adjustment (Px)',
+      type: 'int'
+    }, {
+      smoName: 'textEditor',
+      parameterName: 'text',
+      defaultValue: 0,
+      control: 'SuiLyricEditComponent',
+      label:'Edit Text',
+      options: []
+	  }];
   }
   constructor(parameters) {
     parameters.ctor='SuiLyricDialog';
@@ -16185,48 +16222,53 @@ class SuiSaveFileDialog extends SuiFileDialog {
         }
     });
 
-     this.position(this.tracker.selections[0].note.renderedBox);
+    this.position(this.tracker.selections[0].note.renderedBox);
 
-      var cb = function (x, y) {}
-      htmlHelpers.draggable({
-			parent: $(this.dgDom.element).find('.attributeModal'),
-			handle: $(this.dgDom.element).find('.jsDbMove'),
+    var cb = function (x, y) {}
+    htmlHelpers.draggable({
+      parent: $(this.dgDom.element).find('.attributeModal'),
+      handle: $(this.dgDom.element).find('.jsDbMove'),
             animateDiv:'.draganime',
       			cb: cb,
-			moveParent: true
+      moveParent: true
 		});
 	}
   _focusSelection() {
-      if (this.textEditorCtrl.editor.selection &&
-          this.textEditorCtrl.editor.selection.note &&
-          this.textEditorCtrl.editor.selection.note.renderedBox) {
-              this.tracker.scroller.scrollVisibleBox(this.textEditorCtrl.editor.selection.note.renderedBox);
-          }
+    if (this.textEditorCtrl.editor.selection &&
+      this.textEditorCtrl.editor.selection.note &&
+      this.textEditorCtrl.editor.selection.note.renderedBox) {
+      this.tracker.scroller.scrollVisibleBox(this.textEditorCtrl.editor.selection.note.renderedBox);
+    }
   }
   changed() {
-      this.textEditorCtrl.verse = this.verse.getValue();
-      // Note, when selection changes, we need to wait for the text edit session
-      // to start on the new selection.  Then this.editor.changeFlag is set and
-      // we can focus on the selection if it is not visible.
-      if (this.textEditorCtrl.changeFlag && this.textEditorCtrl.selection) {
-          this.textEditorCtrl.setSelection(this.textEditorCtrl.selection.selector);
-          this._focusSelection();
-      }
+    this.textEditorCtrl.verse = this.verse.getValue();
+    // Note, when selection changes, we need to wait for the text edit session
+    // to start on the new selection.  Then this.editor.changeFlag is set and
+    // we can focus on the selection if it is not visible.
+    if (this.textEditorCtrl.changeFlag && this.textEditorCtrl.selection) {
+      this.textEditorCtrl.setSelection(this.textEditorCtrl.selection.selector);
+      this._focusSelection();
+    }
+
+    if (this.translateYCtrl.changeFlag) {
+      this.textEditorCtrl.setYOffset(this.translateYCtrl.getValue());
+    } else {
+      this.translateYCtrl.setValue(this.textEditorCtrl.getYOffset());
+    }
   }
   _bindElements() {
     var self = this;
     var dgDom = this.dgDom;
 
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            self.tracker.replaceSelectedMeasures();
-            self.tracker.layout.setDirty();
-            self.complete();
+      self.tracker.replaceSelectedMeasures();
+      self.tracker.layout.setDirty();
+      self.complete();
 		});
     $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-            self.layout.score = self.undo.undo(self.layout.score);
-            self.tracker.replaceSelectedMeasures();
-            self.tracker.layout.setDirty();
-            self.complete();
+      self.editor.undo();
+      self.tracker.layout.setDirty();
+      self.complete();
 		});
     $(dgDom.element).find('.remove-button').remove();
     this.textEditorCtrl.eventSource = this.eventSource;
@@ -17713,120 +17755,132 @@ class SuiTextInPlace extends SuiComponentBase {
 }
 
 class SuiLyricEditComponent extends SuiComponentBase {
-    constructor(dialog,parameter) {
-        super();
-        smoSerialize.filteredMerge(
-            ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
-        if (!this.defaultValue) {
-            this.defaultValue = 0;
-        }
-        this._verse = 0;
+  constructor(dialog,parameter) {
+    super();
+    smoSerialize.filteredMerge(
+        ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
+    if (!this.defaultValue) {
+        this.defaultValue = 0;
+    }
+    this._verse = 0;
 
-        this.dialog = dialog;
-        this.selection = null;
-        this.value='';
-    }
+    this.dialog = dialog;
+    this.selection = null;
+    this.value='';
+  }
 
-    set verse(val) {
-        this._verse = val;
-    }
+  set verse(val) {
+    this._verse = val;
+  }
 
-    get verse() {
-        return this._verse;
-    }
+  get verse() {
+    return this._verse;
+  }
 
-    get html() {
-        var b = htmlHelpers.buildDom;
-        var id = this.parameterId;
-        var r = b('div').classes('cbLyricEdit smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
-          .append(b('div').classes('toggleEdit')
-            .append(b('button').classes('toggleTextEdit')
-              .attr('id', id + '-toggleInput').append(
-              b('span').classes('icon icon-pencil'))).append(
-              b('label').attr('for', id + '-toggleInput').text(this.label)))
+  get html() {
+    var b = htmlHelpers.buildDom;
+    var id = this.parameterId;
+    var r = b('div').classes('cbLyricEdit smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+      .append(b('div').classes('toggleEdit')
+        .append(b('button').classes('toggleTextEdit')
+          .attr('id', id + '-toggleInput').append(
+          b('span').classes('icon icon-pencil'))).append(
+          b('label').attr('for', id + '-toggleInput').text(this.label)))
 
-          .append(b('div').classes('controlDiv')
-            .append(b('span')
-              .append(
-                b('button').attr('id', id + '-left').classes('icon-arrow-left buttonComponent')))
-            .append(b('span')
-              .append(
-                b('button').attr('id', id + '-right').classes('icon-arrow-right buttonComponent')))
-            .append(b('span')
-              .append(
-                b('button').attr('id', id + '-remove').classes('icon-cross buttonComponent')))
-        );
-      return r;
-    }
-    get parameterId() {
-        return this.dialog.id + '-' + this.parameterName;
-    }
+      .append(b('div').classes('controlDiv')
+        .append(b('span')
+          .append(
+            b('button').attr('id', id + '-left').classes('icon-arrow-left buttonComponent')))
+        .append(b('span')
+          .append(
+            b('button').attr('id', id + '-right').classes('icon-arrow-right buttonComponent')))
+        .append(b('span')
+          .append(
+            b('button').attr('id', id + '-remove').classes('icon-cross buttonComponent')))
+      );
+    return r;
+  }
+  get parameterId() {
+      return this.dialog.id + '-' + this.parameterName;
+  }
 
-    // If the user pressed esc., force the end of the session
-    endSessionDom() {
-        var elementDom = $('#'+this.parameterId);
-        $(elementDom).find('label').text('Edit Lyrics');
-        $(this.editorButton).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
-        $('body').removeClass('text-edit');
-        $('div.textEdit').addClass('hide');
-    }
-    getValue() {
-        return this.value;
-    }
-    _getInputElement() {
-        var pid = this.parameterId;
-        return $(this.dialog.dgDom.element).find('#' + pid).find('button.toggleTextEdit');
-    }
+  // If the user pressed esc., force the end of the session
+  endSessionDom() {
+    var elementDom = $('#'+this.parameterId);
+    $(elementDom).find('label').text('Edit Lyrics');
+    $(this.editorButton).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
+    $('body').removeClass('text-edit');
+    $('div.textEdit').addClass('hide');
+  }
+  getValue() {
+    return this.value;
+  }
+  _getInputElement() {
+    var pid = this.parameterId;
+    return $(this.dialog.dgDom.element).find('#' + pid).find('button.toggleTextEdit');
+  }
 
-    notifySelectionChanged(selection) {
-        if (selection) {
-            layoutDebug.addTextDebug('SuiLyricEditComponent: lyric notification for ' + selection.note.attrs.id);
-        } else {
-            layoutDebug.addTextDebug('SuiLyricEditComponent: no selection');
-        }
-        if (this.selection == null || SmoSelector.neq(selection.selector,this.selection.selector)) {
-            this.selection = selection;
-            this.handleChanged();
-        }
-        if (!this.editor.isRunning) {
-          this.endSessionDom();
-        }
-    }
-
-    moveSelectionRight() {
-      this.editor.moveSelectionRight();
-    }
-    moveSelectionLeft() {
-      this.editor.moveSelectionLeft();
-    }
-    removeText() {
-      this.editor.removeText();
-    }
-
-    _startEditorDom() {
-        var elementDom = $('#'+this.parameterId);
-        var button = $(elementDom).find('button.toggleTextEdit');
-        layoutDebug.addTextDebug('SuiLyricEditComponent: create editor for ' + this.tracker.selections[0].note.attrs.id);
-        $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
-        $(elementDom).find('label').text('Done Editing Lyrics');
-    }
-    get editorButton() {
-        var elementDom = $('#'+this.parameterId);
-        var button = $(elementDom).find('button.toggleTextEdit');
-        return button;
-    }
-    toggleSessionButton() {
-      this.handleChanged();
+  notifySelectionChanged(selection) {
+      if (selection) {
+          layoutDebug.addTextDebug('SuiLyricEditComponent: lyric notification for ' + selection.note.attrs.id);
+      } else {
+          layoutDebug.addTextDebug('SuiLyricEditComponent: no selection');
+      }
+      if (this.selection == null || SmoSelector.neq(selection.selector,this.selection.selector)) {
+          this.selection = selection;
+          this.handleChanged();
+      }
       if (!this.editor.isRunning) {
-        this.editor.verse = this.verse;
-        this._startEditorDom();
-        layoutDebug.addTextDebug('SuiLyricEditComponent: restarting button');
-       } else {
-         this.endSessionDom();
-         layoutDebug.addTextDebug('SuiLyricEditComponent: stopping editor button');
-       }
-       this.editor.toggleSessionStateEvent();
+        this.endSessionDom();
+      }
+  }
+
+  moveSelectionRight() {
+    this.editor.moveSelectionRight();
+  }
+  moveSelectionLeft() {
+    this.editor.moveSelectionLeft();
+  }
+  removeText() {
+    this.editor.removeText();
+  }
+
+  _startEditorDom() {
+    var elementDom = $('#'+this.parameterId);
+    var button = $(elementDom).find('button.toggleTextEdit');
+    layoutDebug.addTextDebug('SuiLyricEditComponent: create editor for ' + this.tracker.selections[0].note.attrs.id);
+    $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
+    $(elementDom).find('label').text('Done Editing Lyrics');
+  }
+  get editorButton() {
+    var elementDom = $('#'+this.parameterId);
+    var button = $(elementDom).find('button.toggleTextEdit');
+    return button;
+  }
+  toggleSessionButton() {
+    this.handleChanged();
+    if (!this.editor.isRunning) {
+      this.editor.verse = this.verse;
+      this._startEditorDom();
+      layoutDebug.addTextDebug('SuiLyricEditComponent: restarting button');
+     } else {
+       this.endSessionDom();
+       layoutDebug.addTextDebug('SuiLyricEditComponent: stopping editor button');
+     }
+     this.editor.toggleSessionStateEvent();
+  }
+  getYOffset() {
+    if (this.editor) {
+      return this.editor.getYOffset();
     }
+    return 0;
+  }
+
+  setYOffset(val) {
+    if (this.editor) {
+      this.editor.setYOffset(val);
+    }
+  }
   startEditSession(selection) {
     var self=this;
     layoutDebug.addTextDebug('SuiLyricEditComponent: create editor request');

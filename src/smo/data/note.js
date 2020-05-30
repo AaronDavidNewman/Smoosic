@@ -436,24 +436,25 @@ class SmoTuplet {
         var i = 0;
         noteAr.forEach((note) => {
             var textModifiers = note.textModifiers;
+            // Note preserver remainder
             note = SmoNote.cloneWithDuration(note, {
                     numerator: stemTicks*tuplet.durationMap[i],
                     denominator: 1,
-                    remainder: 0
+                    remainder: note.ticks.remainder
                 });
 
-            // Don't clone modifiers, except for first one.
-            if (i === 0) {
-                var ntmAr = [];
-                textModifiers.forEach((tm) => {
-                    ntm = SmoNoteModifierBase.deserialize(JSON.stringify(tm));
-                    ntmAr.push(ntm);
-                });
-                note.textModifiers = ntmAr;
-            }
-            i += 1;
+          // Don't clone modifiers, except for first one.
+          if (i === 0) {
+              var ntmAr = [];
+              textModifiers.forEach((tm) => {
+                  var ntm = SmoNoteModifierBase.deserialize(tm);
+                  ntmAr.push(ntm);
+              });
+              note.textModifiers = ntmAr;
+          }
+          i += 1;
 
-            tupletNotes.push(note);
+          tupletNotes.push(note);
         });
         var rv = new SmoTuplet({
                 notes: tupletNotes,
@@ -467,34 +468,35 @@ class SmoTuplet {
         return rv;
     }
 
-    _adjustTicks() {
-        var sum = this.durationSum;
-        for (var i = 0; i < this.notes.length; ++i) {
-            var note = this.notes[i];
-            var normTicks = smoMusic.durationToTicks(smoMusic.ticksToDuration[this.stemTicks]);
-            // TODO:  notes_occupied needs to consider vex duration
-            var tupletBase = normTicks * this.note_ticks_occupied;
-            note.ticks.denominator = 1;
-            note.ticks.numerator = Math.floor((this.totalTicks * this.durationMap[i]) / sum);
+  _adjustTicks() {
+    var sum = this.durationSum;
+    for (var i = 0; i < this.notes.length; ++i) {
+      var note = this.notes[i];
+      var normTicks = smoMusic.durationToTicks(smoMusic.ticksToDuration[this.stemTicks]);
+      // TODO:  notes_occupied needs to consider vex duration
+      var tupletBase = normTicks * this.note_ticks_occupied;
+      note.ticks.denominator = 1;
+      note.ticks.numerator = Math.floor((this.totalTicks * this.durationMap[i]) / sum);
 
-            note.tuplet = this.attrs;
-        }
+      note.tuplet = this.attrs;
+    }
 
 		// put all the remainder in the first note of the tuplet
 		var noteTicks = this.notes.map((nn) => {return nn.tickCount;}).reduce((acc,dd) => {return acc+dd;});
-		this.notes[0].ticks.remainder = this.totalTicks-noteTicks;
+    // bug fix:  if this is a clones tuplet, remainder is already set
+		this.notes[0].ticks.remainder = this.notes[0].ticks.remainder + this.totalTicks-noteTicks;
+  }
+  getIndexOfNote(note) {
+    var rv = -1;
+    for (var i = 0; i < this.notes.length; ++i) {
+      var tn = this.notes[i];
+      if (note.attrs.id === tn.attrs.id) {
+          rv = i;
+      }
+    }
+    return rv;
+  }
 
-    }
-    getIndexOfNote(note) {
-        var rv = -1;
-        for (var i = 0; i < this.notes.length; ++i) {
-            var tn = this.notes[i];
-            if (note.attrs.id === tn.attrs.id) {
-                rv = i;
-            }
-        }
-        return rv;
-    }
     split(combineIndex) {
         var multiplier = 0.5;
         var nnotes = [];

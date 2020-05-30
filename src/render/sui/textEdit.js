@@ -409,6 +409,19 @@ class noteTextEditSession {
     this.editor.moveSelectionLeft();
   }
 
+  setYOffset(y) {
+    if (this.editor && this.editor.lyric) {
+      this.editor.lyric.translateY = y;
+    }
+  }
+
+  getYOffset() {
+    if (this.editor && this.editor.lyric) {
+      return this.editor.lyric.translateY;
+    }
+    return 0;   
+  }
+
   toggleSessionStateEvent() {
     if (this.editor.state == editLyricSession.states.stopped ||
         this.editor.state == editLyricSession.states.stopping)  {

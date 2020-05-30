@@ -142,13 +142,18 @@ class SmoMeasure {
 
 		var tuplets = [];
 		for (j = 0; j < jsonObj.tuplets.length; ++j) {
-            var tupJson = jsonObj.tuplets[j];
-            var noteAr = noteSum.filter((nn) => {
-                return nn.isTuplet && nn.tuplet.id === tupJson.attrs.id;
-            });
-            tupJson.notes = noteAr;
-			var tuplet = new SmoTuplet(tupJson);
-			tuplets.push(tuplet);
+      var tupJson = jsonObj.tuplets[j];
+      var noteAr = noteSum.filter((nn) => {
+          return nn.isTuplet && nn.tuplet.id === tupJson.attrs.id;
+      });
+
+      // Bug fix:  A tuplet with no notes may be been overwritten
+      // in a copy/paste operation
+      if (noteAr.length > 0) {
+        tupJson.notes = noteAr;
+  			var tuplet = new SmoTuplet(tupJson);
+  			tuplets.push(tuplet);
+      }
 		}
 
 		/* var beamGroups = [];

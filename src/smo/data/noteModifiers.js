@@ -332,7 +332,7 @@ class SmoLyric extends SmoNoteModifierBase {
     }
 
     // Return these for the text editor that expects them.
-    this.translateX = this.translateY = 0;
+    // this.translateX = this.translateY = 0;
     this.scaleX = this.scaleY = 1.0;
     this.boxModel = 'none';
 
