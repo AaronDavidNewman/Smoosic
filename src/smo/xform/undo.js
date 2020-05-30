@@ -21,28 +21,38 @@ class UndoBuffer {
         return ['measure', 'staff', 'score'];
     }
 
-    // ### addBuffer
-    // ### Description:
-    // Add the current state of the score required to undo the next operation we
-    // are about to perform.  For instance, if we are adding a crescendo, we back up the
-    // staff the crescendo will go on.
-    addBuffer(title, type, selector, obj) {
-        if (UndoBuffer.bufferTypes.indexOf(type) < 0) {
-            throw ('Undo failure: illegal buffer type ' + type);
-        }
-        var json = obj.serialize();
-        var undoObj = {
-            title: title,
-            type: type,
-            selector: selector,
-            json: json
-        };
-        if (this.buffer.length >= UndoBuffer.bufferMax) {
-            this.buffer.splice(0,1);
-        }
-		this.opCount += 1;
-        this.buffer.push(undoObj);
+  // ### addBuffer
+  // Description:
+  // Add the current state of the score required to undo the next operation we
+  // are about to perform.  For instance, if we are adding a crescendo, we back up the
+  // staff the crescendo will go on.
+  addBuffer(title, type, selector, obj) {
+    if (UndoBuffer.bufferTypes.indexOf(type) < 0) {
+      throw ('Undo failure: illegal buffer type ' + type);
     }
+    var json = obj.serialize();
+
+    // If this is a measure, preserve the column-mapped attributes
+    if (obj.attrs && obj.attrs.type === 'SmoMeasure') {
+      var attrColumnHash = {};
+      var attrCurrentValue  = {};
+      obj.serializeColumnMapped(attrColumnHash,attrCurrentValue);
+      Object.keys(attrCurrentValue).forEach((key) => {
+        json[key] = attrCurrentValue[key];
+      });
+    }
+    var undoObj = {
+      title: title,
+      type: type,
+      selector: selector,
+      json: json
+    };
+    if (this.buffer.length >= UndoBuffer.bufferMax) {
+      this.buffer.splice(0,1);
+    }
+		this.opCount += 1;
+    this.buffer.push(undoObj);
+  }
 
     // ### _pop
     // ### Description:

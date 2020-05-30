@@ -9,22 +9,22 @@
 class SmoMeasure {
 	constructor(params) {
 		this.tuplets = [];
-        this.svg = {};
+    this.svg = {};
 		this.beamGroups = [];
 		this.modifiers = [];
-        this.pageGap = 0;
+    this.pageGap = 0;
 		this.changed = true;
-        this.timestamp=0;
-        this.prevY = 0;
-        this.prevX = 0;
-        this.padLeft=0;
-        this.prevFrame=0;
-        this.svg.staffWidth=200;
-        this.svg.staffX = 0;
-        this.svg.staffY = 0;
-        this.svg.history=[];
-        this.svg.logicalBox={};
-        this.svg.yTop = 0;
+    this.timestamp=0;
+    this.prevY = 0;
+    this.prevX = 0;
+    this.padLeft=0;
+    this.prevFrame=0;
+    this.svg.staffWidth=200;
+    this.svg.staffX = 0;
+    this.svg.staffY = 0;
+    this.svg.history=[];
+    this.svg.logicalBox={};
+    this.svg.yTop = 0;
 
 		var defaults = SmoMeasure.defaults;
 
@@ -34,7 +34,7 @@ class SmoMeasure {
 		this.tuplets = params.tuplets ? params.tuplets : [];
 		this.modifiers = params.modifiers ? params.modifiers : defaults.modifiers;
 
-        this.setDefaultBarlines();
+    this.setDefaultBarlines();
 
 		if (!this['attrs']) {
 			this.attrs = {
@@ -53,27 +53,53 @@ class SmoMeasure {
 		return [
 			'timeSignature', 'keySignature','systemBreak','pageBreak',
 			'measureNumber',
-			'activeVoice', 'clef', 'transposeIndex', 'adjX','customStretch','customProportion','padLeft', 'padRight', 'rightMargin'];
+			'activeVoice', 'clef', 'transposeIndex', 'adjX','customStretch','customProportion','padLeft', 'padRight', 'rightMargin'
+    ];
 	}
 
-    static get formattingOptions() {
-        return ['customStretch','customProportion'];
-    }
-    static get systemOptions() {
-        return ['systemBreak','pageBreak'];
-    }
-    static get columnMappedAttributes() {
-        return ['timeSignature','keySignature','tempo'];
-    }
-    static get serializableAttributes() {
-        var rv = [];
-        SmoMeasure.defaultAttributes.forEach((attr) => {
-            if (SmoMeasure.columnMappedAttributes.indexOf(attr) < 0) {
-                rv.push(attr);
-            }
-        });
-        return rv;
-    }
+  static get formattingOptions() {
+    return ['customStretch','customProportion'];
+  }
+  static get systemOptions() {
+    return ['systemBreak','pageBreak'];
+  }
+  static get columnMappedAttributes() {
+    return ['timeSignature','keySignature','tempo'];
+  }
+  static get serializableAttributes() {
+    var rv = [];
+    SmoMeasure.defaultAttributes.forEach((attr) => {
+      if (SmoMeasure.columnMappedAttributes.indexOf(attr) < 0) {
+        rv.push(attr);
+      }
+    });
+      return rv;
+  }
+
+  // ### serializeColumnMapped
+  // Some measure attributes that apply to the entire column are serialized
+  // separately.  Serialize those attributes, but only add them to the
+  // hash if they already exist for an earlier measure
+  serializeColumnMapped(attrColumnHash,attrCurrentValue) {
+    SmoMeasure.columnMappedAttributes.forEach((attr) => {
+      if (this[attr]) {
+        if (!attrColumnHash[attr]) {
+          attrColumnHash[attr] = {};
+          attrCurrentValue[attr] = {};
+        }
+        var curAttrHash  = attrColumnHash[attr];
+        if (this[attr].ctor && this[attr].ctor == 'SmoTempoText') {
+          if (this.attr.compare(attrCurrentValue[attr]) === false) {
+            curAttrHash[measure.measureNumber.measureIndex] = this[attr];
+            attrCurrentValue[attr] = this[attr];
+          }
+        } else if (attrCurrentValue[attr] != this[attr]) {
+          curAttrHash[this.measureNumber.measureIndex] = this[attr];
+          attrCurrentValue[attr] = this[attr];
+        }
+      } // ekse attr doesn't exist in this measure
+    });
+  }
 
 	// ### serialize
 	// Convert this measure object to a JSON object, recursively serializing all the notes,
@@ -100,22 +126,22 @@ class SmoMeasure {
 		});
 
 		this.modifiers.forEach((modifier) => {
-            /* don't serialize default modifiers */
-            if (modifier.ctor == 'SmoBarline' && modifier.position == SmoBarline.positions.start && modifier.barline == SmoBarline.barlines.singleBar) {
-                ;
-            }
-            else if (modifier.ctor == 'SmoBarline' && modifier.position == SmoBarline.positions.end && modifier.barline == SmoBarline.barlines.singleBar) {
-                ;
-            }
-            // we don't save tempo text as a modifier anymore
-            else if (modifier.ctor == 'SmoTempoText') {
-                ;
-            }
-            else if (modifier.ctor == 'SmoRepeatSymbol' && modifier.position == SmoRepeatSymbol.positions.start && modifier.symbol == SmoRepeatSymbol.symbols.None) {
-                ;
-            } else {
-			    params.modifiers.push(modifier.serialize());
-            }
+      /* don't serialize default modifiers */
+      if (modifier.ctor == 'SmoBarline' && modifier.position == SmoBarline.positions.start && modifier.barline == SmoBarline.barlines.singleBar) {
+          ;
+      }
+      else if (modifier.ctor == 'SmoBarline' && modifier.position == SmoBarline.positions.end && modifier.barline == SmoBarline.barlines.singleBar) {
+          ;
+      }
+      // we don't save tempo text as a modifier anymore
+      else if (modifier.ctor == 'SmoTempoText') {
+          ;
+      }
+      else if (modifier.ctor == 'SmoRepeatSymbol' && modifier.position == SmoRepeatSymbol.positions.start && modifier.symbol == SmoRepeatSymbol.symbols.None) {
+          ;
+      } else {
+        params.modifiers.push(modifier.serialize());
+      }
 		});
 		return params;
 	}
@@ -364,17 +390,17 @@ class SmoMeasure {
 			keySignature: "C",
 			canceledKeySignature: null,
 			adjX: 0,
-            pageBreak:false,
-            systemBreak:false,
+      pageBreak:false,
+      systemBreak:false,
 			adjRight:0,
 			padRight: 10,
-            padLeft:0,
-            tuplets:[],
+      padLeft:0,
+      tuplets:[],
 			transposeIndex: 0,
-            customStretch:0,
-            customProportion:2,
+      customStretch:0,
+      customProportion:2,
 			modifiers: modifiers,
-            autoJustify:false,
+      autoJustify:false,
 			rightMargin: 2,
 			staffY: 40,
 			// bars: [1, 1], // follows enumeration in VF.Barline
@@ -391,7 +417,7 @@ class SmoMeasure {
 			forceTimeSignature: false,
 			voices: [],
 			activeVoice: 0,
-            tempo:new SmoTempoText()
+      tempo:new SmoTempoText()
 		};
 	}
 

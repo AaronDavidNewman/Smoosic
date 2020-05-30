@@ -2862,22 +2862,22 @@ class SmoDynamicText extends SmoNoteModifierBase {
 class SmoMeasure {
 	constructor(params) {
 		this.tuplets = [];
-        this.svg = {};
+    this.svg = {};
 		this.beamGroups = [];
 		this.modifiers = [];
-        this.pageGap = 0;
+    this.pageGap = 0;
 		this.changed = true;
-        this.timestamp=0;
-        this.prevY = 0;
-        this.prevX = 0;
-        this.padLeft=0;
-        this.prevFrame=0;
-        this.svg.staffWidth=200;
-        this.svg.staffX = 0;
-        this.svg.staffY = 0;
-        this.svg.history=[];
-        this.svg.logicalBox={};
-        this.svg.yTop = 0;
+    this.timestamp=0;
+    this.prevY = 0;
+    this.prevX = 0;
+    this.padLeft=0;
+    this.prevFrame=0;
+    this.svg.staffWidth=200;
+    this.svg.staffX = 0;
+    this.svg.staffY = 0;
+    this.svg.history=[];
+    this.svg.logicalBox={};
+    this.svg.yTop = 0;
 
 		var defaults = SmoMeasure.defaults;
 
@@ -2887,7 +2887,7 @@ class SmoMeasure {
 		this.tuplets = params.tuplets ? params.tuplets : [];
 		this.modifiers = params.modifiers ? params.modifiers : defaults.modifiers;
 
-        this.setDefaultBarlines();
+    this.setDefaultBarlines();
 
 		if (!this['attrs']) {
 			this.attrs = {
@@ -2906,27 +2906,53 @@ class SmoMeasure {
 		return [
 			'timeSignature', 'keySignature','systemBreak','pageBreak',
 			'measureNumber',
-			'activeVoice', 'clef', 'transposeIndex', 'adjX','customStretch','customProportion','padLeft', 'padRight', 'rightMargin'];
+			'activeVoice', 'clef', 'transposeIndex', 'adjX','customStretch','customProportion','padLeft', 'padRight', 'rightMargin'
+    ];
 	}
 
-    static get formattingOptions() {
-        return ['customStretch','customProportion'];
-    }
-    static get systemOptions() {
-        return ['systemBreak','pageBreak'];
-    }
-    static get columnMappedAttributes() {
-        return ['timeSignature','keySignature','tempo'];
-    }
-    static get serializableAttributes() {
-        var rv = [];
-        SmoMeasure.defaultAttributes.forEach((attr) => {
-            if (SmoMeasure.columnMappedAttributes.indexOf(attr) < 0) {
-                rv.push(attr);
-            }
-        });
-        return rv;
-    }
+  static get formattingOptions() {
+    return ['customStretch','customProportion'];
+  }
+  static get systemOptions() {
+    return ['systemBreak','pageBreak'];
+  }
+  static get columnMappedAttributes() {
+    return ['timeSignature','keySignature','tempo'];
+  }
+  static get serializableAttributes() {
+    var rv = [];
+    SmoMeasure.defaultAttributes.forEach((attr) => {
+      if (SmoMeasure.columnMappedAttributes.indexOf(attr) < 0) {
+        rv.push(attr);
+      }
+    });
+      return rv;
+  }
+
+  // ### serializeColumnMapped
+  // Some measure attributes that apply to the entire column are serialized
+  // separately.  Serialize those attributes, but only add them to the
+  // hash if they already exist for an earlier measure
+  serializeColumnMapped(attrColumnHash,attrCurrentValue) {
+    SmoMeasure.columnMappedAttributes.forEach((attr) => {
+      if (this[attr]) {
+        if (!attrColumnHash[attr]) {
+          attrColumnHash[attr] = {};
+          attrCurrentValue[attr] = {};
+        }
+        var curAttrHash  = attrColumnHash[attr];
+        if (this[attr].ctor && this[attr].ctor == 'SmoTempoText') {
+          if (this.attr.compare(attrCurrentValue[attr]) === false) {
+            curAttrHash[measure.measureNumber.measureIndex] = this[attr];
+            attrCurrentValue[attr] = this[attr];
+          }
+        } else if (attrCurrentValue[attr] != this[attr]) {
+          curAttrHash[this.measureNumber.measureIndex] = this[attr];
+          attrCurrentValue[attr] = this[attr];
+        }
+      } // ekse attr doesn't exist in this measure
+    });
+  }
 
 	// ### serialize
 	// Convert this measure object to a JSON object, recursively serializing all the notes,
@@ -2953,22 +2979,22 @@ class SmoMeasure {
 		});
 
 		this.modifiers.forEach((modifier) => {
-            /* don't serialize default modifiers */
-            if (modifier.ctor == 'SmoBarline' && modifier.position == SmoBarline.positions.start && modifier.barline == SmoBarline.barlines.singleBar) {
-                ;
-            }
-            else if (modifier.ctor == 'SmoBarline' && modifier.position == SmoBarline.positions.end && modifier.barline == SmoBarline.barlines.singleBar) {
-                ;
-            }
-            // we don't save tempo text as a modifier anymore
-            else if (modifier.ctor == 'SmoTempoText') {
-                ;
-            }
-            else if (modifier.ctor == 'SmoRepeatSymbol' && modifier.position == SmoRepeatSymbol.positions.start && modifier.symbol == SmoRepeatSymbol.symbols.None) {
-                ;
-            } else {
-			    params.modifiers.push(modifier.serialize());
-            }
+      /* don't serialize default modifiers */
+      if (modifier.ctor == 'SmoBarline' && modifier.position == SmoBarline.positions.start && modifier.barline == SmoBarline.barlines.singleBar) {
+          ;
+      }
+      else if (modifier.ctor == 'SmoBarline' && modifier.position == SmoBarline.positions.end && modifier.barline == SmoBarline.barlines.singleBar) {
+          ;
+      }
+      // we don't save tempo text as a modifier anymore
+      else if (modifier.ctor == 'SmoTempoText') {
+          ;
+      }
+      else if (modifier.ctor == 'SmoRepeatSymbol' && modifier.position == SmoRepeatSymbol.positions.start && modifier.symbol == SmoRepeatSymbol.symbols.None) {
+          ;
+      } else {
+        params.modifiers.push(modifier.serialize());
+      }
 		});
 		return params;
 	}
@@ -3217,17 +3243,17 @@ class SmoMeasure {
 			keySignature: "C",
 			canceledKeySignature: null,
 			adjX: 0,
-            pageBreak:false,
-            systemBreak:false,
+      pageBreak:false,
+      systemBreak:false,
 			adjRight:0,
 			padRight: 10,
-            padLeft:0,
-            tuplets:[],
+      padLeft:0,
+      tuplets:[],
 			transposeIndex: 0,
-            customStretch:0,
-            customProportion:2,
+      customStretch:0,
+      customProportion:2,
 			modifiers: modifiers,
-            autoJustify:false,
+      autoJustify:false,
 			rightMargin: 2,
 			staffY: 40,
 			// bars: [1, 1], // follows enumeration in VF.Barline
@@ -3244,7 +3270,7 @@ class SmoMeasure {
 			forceTimeSignature: false,
 			voices: [],
 			activeVoice: 0,
-            tempo:new SmoTempoText()
+      tempo:new SmoTempoText()
 		};
 	}
 
@@ -4704,56 +4730,39 @@ class SmoScore {
         return ['layout' ,'startIndex',  'renumberingMap', 'renumberIndex','engravingFont'];
     }
 
-    serializeColumnMapped() {
-        var attrColumnHash = {};
-        var attrCurrentValue  = {};
-        this.staves[0].measures.forEach((measure) => {
-            SmoMeasure.columnMappedAttributes.forEach((attr) => {
-                if (measure[attr]) {
-                    if (!attrColumnHash[attr]) {
-                        attrColumnHash[attr] = {};
-                        attrCurrentValue[attr] = {};
-                    }
-                    var curAttrHash  = attrColumnHash[attr];
-                    if (measure[attr].ctor && measure[attr].ctor == 'SmoTempoText') {
-                        if (measure[attr].compare(attrCurrentValue[attr]) == false) {
-                            curAttrHash[measure.measureNumber.measureIndex] = measure[attr];
-                            attrCurrentValue[attr] = measure[attr];
-                        }
-                    } else if (attrCurrentValue[attr] != measure[attr]) {
-                        curAttrHash[measure.measureNumber.measureIndex] = measure[attr];
-                        attrCurrentValue[attr] = measure[attr];
-                    }
-                }
-            });
-        });
-        return attrColumnHash;
+  serializeColumnMapped() {
+    var attrColumnHash = {};
+    var attrCurrentValue  = {};
+    this.staves[0].measures.forEach((measure) => {
+      measure.serializeColumnMapped(attrColumnHash,attrCurrentValue);
+    });
+    return attrColumnHash;
+  }
+  static deserializeColumnMapped(scoreObj) {
+    // var attrColumnHash = scoreObj
+    if (!scoreObj.columnAttributeMap) {
+        return;
     }
-    static deserializeColumnMapped(scoreObj) {
-        // var attrColumnHash = scoreObj
-        if (!scoreObj.columnAttributeMap) {
-            return;
-        }
-        var attrs = Object.keys(scoreObj.columnAttributeMap);
+    var attrs = Object.keys(scoreObj.columnAttributeMap);
+    scoreObj.staves.forEach((staff) => {
+      var mapIx = 0;
+      staff.measures.forEach((measure) => {
         attrs.forEach((attr) => {
-            var curHash = scoreObj.columnAttributeMap[attr];
-            var attrKeys = Object.keys(curHash);
-            attrKeys.sort((a,b) => parseInt(a) > parseInt(b) ? 1 : -1);
-            scoreObj.staves.forEach((staff) => {
-                var mapIx = 0;
-                var curValue = curHash[attrKeys[mapIx.toString()]];
-                staff.measures.forEach((measure) => {
-                    if (attrKeys.length > mapIx + 1) {
-                        if (measure.measureNumber.measureIndex >= attrKeys[mapIx + 1]) {
-                            mapIx += 1;
-                            curValue = curHash[attrKeys[mapIx.toString()]];
-                        }
-                    }
-                    measure[attr] = curValue;
-                });
-            });
+          var curHash = scoreObj.columnAttributeMap[attr];
+          var attrKeys = Object.keys(curHash);
+          var curValue = curHash[attrKeys[mapIx.toString()]];
+          attrKeys.sort((a,b) => parseInt(a) > parseInt(b) ? 1 : -1);
+          if (attrKeys.length > mapIx + 1) {
+            if (measure.measureNumber.measureIndex >= attrKeys[mapIx + 1]) {
+              mapIx += 1;
+              curValue = curHash[attrKeys[mapIx.toString()]];
+            }
+          }
+          measure[attr] = curValue;
         });
-    }
+      });
+    });
+  }
 
     // ### serialize
     // ### Serialize the score.  The resulting JSON string will contain all the staves, measures, etc.
@@ -4783,47 +4792,47 @@ class SmoScore {
         return obj;
     }
 
-    // ### deserialize
-    // ### Restore an earlier JSON string.  Unlike other deserialize methods, this one expects the string.
-    static deserialize(jsonString) {
-        var jsonObj = JSON.parse(jsonString);
-        if (jsonObj.dictionary) {
-            jsonObj = smoSerialize.detokenize(jsonObj,jsonObj.dictionary);
-        }
-        var params = {};
-        var staves = [];
-        // Explode the sparse arrays of attributes into the measures
-        this.deserializeColumnMapped(jsonObj);
-        smoSerialize.serializedMerge(
-            SmoScore.defaultAttributes,
-            jsonObj.score, params);
-        jsonObj.staves.forEach((staffObj) => {
-            var staff = SmoSystemStaff.deserialize(staffObj);
-            staves.push(staff);
-        });
-		var scoreText=[];
-		jsonObj.scoreText.forEach((tt) => {
-            var st = SmoScoreModifierBase.deserialize(tt);
-            st.autoLayout = false; // since this has been layed out, presumably, before save
-            st.classes = 'score-text '+ st.attrs.id;
-			scoreText.push(st);
-		});
-        var systemGroups = [];
-        if (jsonObj['systemGroups']) {
-
-           jsonObj.systemGroups.forEach((tt) => {
-            var st = SmoScoreModifierBase.deserialize(tt);
-            st.autoLayout = false; // since this has been layed out, presumably, before save
-			systemGroups.push(st);
-		  });
-        }
-        params.staves = staves;
-
-        let score = new SmoScore(params);
-		score.scoreText=scoreText;
-        score.systemGroups = systemGroups;
-		return score;
+  // ### deserialize
+  // ### Restore an earlier JSON string.  Unlike other deserialize methods, this one expects the string.
+  static deserialize(jsonString) {
+    var jsonObj = JSON.parse(jsonString);
+    if (jsonObj.dictionary) {
+        jsonObj = smoSerialize.detokenize(jsonObj,jsonObj.dictionary);
     }
+    var params = {};
+    var staves = [];
+    // Explode the sparse arrays of attributes into the measures
+    SmoScore.deserializeColumnMapped(jsonObj);
+    smoSerialize.serializedMerge(
+        SmoScore.defaultAttributes,
+        jsonObj.score, params);
+    jsonObj.staves.forEach((staffObj) => {
+        var staff = SmoSystemStaff.deserialize(staffObj);
+        staves.push(staff);
+    });
+  	var scoreText=[];
+  	jsonObj.scoreText.forEach((tt) => {
+      var st = SmoScoreModifierBase.deserialize(tt);
+      st.autoLayout = false; // since this has been layed out, presumably, before save
+      st.classes = 'score-text '+ st.attrs.id;
+      scoreText.push(st);
+  	});
+    var systemGroups = [];
+    if (jsonObj['systemGroups']) {
+
+      jsonObj.systemGroups.forEach((tt) => {
+        var st = SmoScoreModifierBase.deserialize(tt);
+        st.autoLayout = false; // since this has been layed out, presumably, before save
+	      systemGroups.push(st);
+      });
+    }
+    params.staves = staves;
+
+    let score = new SmoScore(params);
+	  score.scoreText=scoreText;
+    score.systemGroups = systemGroups;
+	  return score;
+  }
 
     // ### getDefaultScore
     // ### Description:
@@ -7646,28 +7655,38 @@ class UndoBuffer {
         return ['measure', 'staff', 'score'];
     }
 
-    // ### addBuffer
-    // ### Description:
-    // Add the current state of the score required to undo the next operation we
-    // are about to perform.  For instance, if we are adding a crescendo, we back up the
-    // staff the crescendo will go on.
-    addBuffer(title, type, selector, obj) {
-        if (UndoBuffer.bufferTypes.indexOf(type) < 0) {
-            throw ('Undo failure: illegal buffer type ' + type);
-        }
-        var json = obj.serialize();
-        var undoObj = {
-            title: title,
-            type: type,
-            selector: selector,
-            json: json
-        };
-        if (this.buffer.length >= UndoBuffer.bufferMax) {
-            this.buffer.splice(0,1);
-        }
-		this.opCount += 1;
-        this.buffer.push(undoObj);
+  // ### addBuffer
+  // Description:
+  // Add the current state of the score required to undo the next operation we
+  // are about to perform.  For instance, if we are adding a crescendo, we back up the
+  // staff the crescendo will go on.
+  addBuffer(title, type, selector, obj) {
+    if (UndoBuffer.bufferTypes.indexOf(type) < 0) {
+      throw ('Undo failure: illegal buffer type ' + type);
     }
+    var json = obj.serialize();
+
+    // If this is a measure, preserve the column-mapped attributes
+    if (obj.attrs && obj.attrs.type === 'SmoMeasure') {
+      var attrColumnHash = {};
+      var attrCurrentValue  = {};
+      obj.serializeColumnMapped(attrColumnHash,attrCurrentValue);
+      Object.keys(attrCurrentValue).forEach((key) => {
+        json[key] = attrCurrentValue[key];
+      });
+    }
+    var undoObj = {
+      title: title,
+      type: type,
+      selector: selector,
+      json: json
+    };
+    if (this.buffer.length >= UndoBuffer.bufferMax) {
+      this.buffer.splice(0,1);
+    }
+		this.opCount += 1;
+    this.buffer.push(undoObj);
+  }
 
     // ### _pop
     // ### Description:

@@ -73,56 +73,39 @@ class SmoScore {
         return ['layout' ,'startIndex',  'renumberingMap', 'renumberIndex','engravingFont'];
     }
 
-    serializeColumnMapped() {
-        var attrColumnHash = {};
-        var attrCurrentValue  = {};
-        this.staves[0].measures.forEach((measure) => {
-            SmoMeasure.columnMappedAttributes.forEach((attr) => {
-                if (measure[attr]) {
-                    if (!attrColumnHash[attr]) {
-                        attrColumnHash[attr] = {};
-                        attrCurrentValue[attr] = {};
-                    }
-                    var curAttrHash  = attrColumnHash[attr];
-                    if (measure[attr].ctor && measure[attr].ctor == 'SmoTempoText') {
-                        if (measure[attr].compare(attrCurrentValue[attr]) == false) {
-                            curAttrHash[measure.measureNumber.measureIndex] = measure[attr];
-                            attrCurrentValue[attr] = measure[attr];
-                        }
-                    } else if (attrCurrentValue[attr] != measure[attr]) {
-                        curAttrHash[measure.measureNumber.measureIndex] = measure[attr];
-                        attrCurrentValue[attr] = measure[attr];
-                    }
-                }
-            });
-        });
-        return attrColumnHash;
+  serializeColumnMapped() {
+    var attrColumnHash = {};
+    var attrCurrentValue  = {};
+    this.staves[0].measures.forEach((measure) => {
+      measure.serializeColumnMapped(attrColumnHash,attrCurrentValue);
+    });
+    return attrColumnHash;
+  }
+  static deserializeColumnMapped(scoreObj) {
+    // var attrColumnHash = scoreObj
+    if (!scoreObj.columnAttributeMap) {
+        return;
     }
-    static deserializeColumnMapped(scoreObj) {
-        // var attrColumnHash = scoreObj
-        if (!scoreObj.columnAttributeMap) {
-            return;
-        }
-        var attrs = Object.keys(scoreObj.columnAttributeMap);
+    var attrs = Object.keys(scoreObj.columnAttributeMap);
+    scoreObj.staves.forEach((staff) => {
+      var mapIx = 0;
+      staff.measures.forEach((measure) => {
         attrs.forEach((attr) => {
-            var curHash = scoreObj.columnAttributeMap[attr];
-            var attrKeys = Object.keys(curHash);
-            attrKeys.sort((a,b) => parseInt(a) > parseInt(b) ? 1 : -1);
-            scoreObj.staves.forEach((staff) => {
-                var mapIx = 0;
-                var curValue = curHash[attrKeys[mapIx.toString()]];
-                staff.measures.forEach((measure) => {
-                    if (attrKeys.length > mapIx + 1) {
-                        if (measure.measureNumber.measureIndex >= attrKeys[mapIx + 1]) {
-                            mapIx += 1;
-                            curValue = curHash[attrKeys[mapIx.toString()]];
-                        }
-                    }
-                    measure[attr] = curValue;
-                });
-            });
+          var curHash = scoreObj.columnAttributeMap[attr];
+          var attrKeys = Object.keys(curHash);
+          var curValue = curHash[attrKeys[mapIx.toString()]];
+          attrKeys.sort((a,b) => parseInt(a) > parseInt(b) ? 1 : -1);
+          if (attrKeys.length > mapIx + 1) {
+            if (measure.measureNumber.measureIndex >= attrKeys[mapIx + 1]) {
+              mapIx += 1;
+              curValue = curHash[attrKeys[mapIx.toString()]];
+            }
+          }
+          measure[attr] = curValue;
         });
-    }
+      });
+    });
+  }
 
     // ### serialize
     // ### Serialize the score.  The resulting JSON string will contain all the staves, measures, etc.
@@ -152,47 +135,47 @@ class SmoScore {
         return obj;
     }
 
-    // ### deserialize
-    // ### Restore an earlier JSON string.  Unlike other deserialize methods, this one expects the string.
-    static deserialize(jsonString) {
-        var jsonObj = JSON.parse(jsonString);
-        if (jsonObj.dictionary) {
-            jsonObj = smoSerialize.detokenize(jsonObj,jsonObj.dictionary);
-        }
-        var params = {};
-        var staves = [];
-        // Explode the sparse arrays of attributes into the measures
-        this.deserializeColumnMapped(jsonObj);
-        smoSerialize.serializedMerge(
-            SmoScore.defaultAttributes,
-            jsonObj.score, params);
-        jsonObj.staves.forEach((staffObj) => {
-            var staff = SmoSystemStaff.deserialize(staffObj);
-            staves.push(staff);
-        });
-		var scoreText=[];
-		jsonObj.scoreText.forEach((tt) => {
-            var st = SmoScoreModifierBase.deserialize(tt);
-            st.autoLayout = false; // since this has been layed out, presumably, before save
-            st.classes = 'score-text '+ st.attrs.id;
-			scoreText.push(st);
-		});
-        var systemGroups = [];
-        if (jsonObj['systemGroups']) {
-
-           jsonObj.systemGroups.forEach((tt) => {
-            var st = SmoScoreModifierBase.deserialize(tt);
-            st.autoLayout = false; // since this has been layed out, presumably, before save
-			systemGroups.push(st);
-		  });
-        }
-        params.staves = staves;
-
-        let score = new SmoScore(params);
-		score.scoreText=scoreText;
-        score.systemGroups = systemGroups;
-		return score;
+  // ### deserialize
+  // ### Restore an earlier JSON string.  Unlike other deserialize methods, this one expects the string.
+  static deserialize(jsonString) {
+    var jsonObj = JSON.parse(jsonString);
+    if (jsonObj.dictionary) {
+        jsonObj = smoSerialize.detokenize(jsonObj,jsonObj.dictionary);
     }
+    var params = {};
+    var staves = [];
+    // Explode the sparse arrays of attributes into the measures
+    SmoScore.deserializeColumnMapped(jsonObj);
+    smoSerialize.serializedMerge(
+        SmoScore.defaultAttributes,
+        jsonObj.score, params);
+    jsonObj.staves.forEach((staffObj) => {
+        var staff = SmoSystemStaff.deserialize(staffObj);
+        staves.push(staff);
+    });
+  	var scoreText=[];
+  	jsonObj.scoreText.forEach((tt) => {
+      var st = SmoScoreModifierBase.deserialize(tt);
+      st.autoLayout = false; // since this has been layed out, presumably, before save
+      st.classes = 'score-text '+ st.attrs.id;
+      scoreText.push(st);
+  	});
+    var systemGroups = [];
+    if (jsonObj['systemGroups']) {
+
+      jsonObj.systemGroups.forEach((tt) => {
+        var st = SmoScoreModifierBase.deserialize(tt);
+        st.autoLayout = false; // since this has been layed out, presumably, before save
+	      systemGroups.push(st);
+      });
+    }
+    params.staves = staves;
+
+    let score = new SmoScore(params);
+	  score.scoreText=scoreText;
+    score.systemGroups = systemGroups;
+	  return score;
+  }
 
     // ### getDefaultScore
     // ### Description:
