@@ -64,14 +64,16 @@ class VxMeasure {
     // ## TODO:
     // use x position of ticks in other voices, pitch of note, and consider
     // stem direction modifier.
-    applyStemDirection(vxParams,voiceIx) {
-        if (this.smoMeasure.voices.length === 1) {
-            vxParams.auto_stem = true;
-        } else if (voiceIx % 2) {
-            vxParams.stem_direction = -1;
-        } else {
-            vxParams.stem_direction = 1;
-        }
+    applyStemDirection(vxParams,voiceIx,flagState) {
+      if (this.smoMeasure.voices.length === 1 && flagState === SmoNote.flagStates.auto) {
+        vxParams.auto_stem = true;
+      } else if (flagState !== SmoNote.flagStates.auto) {
+        vxParams.stem_direction = SmoNote.flagState ===  SmoNote.flagStates.up ? 1 : -1;
+      } else if (voiceIx % 2) {
+        vxParams.stem_direction = -1;
+      } else {
+        vxParams.stem_direction = 1;
+      }
     }
 
     // We add microtones to the notes, without regard really to how they interact
@@ -193,43 +195,41 @@ class VxMeasure {
     }
   }
 
-    // ## Description:
-    // convert a smoNote into a vxNote so it can be rasterized
-    _createVexNote(smoNote, tickIndex,voiceIx,x_shift) {
-		// If this is a tuplet, we only get the duration so the appropriate stem
-		// can be rendered.  Vex calculates the actual ticks later when the tuplet is made
-		var duration =
-		   smoNote.isTuplet ?
-		     smoMusic.closestVexDuration(smoNote.tickCount) :
-			 smoMusic.ticksToDuration[smoNote.tickCount];
+  // ## Description:
+  // convert a smoNote into a vxNote so it can be rasterized
+  _createVexNote(smoNote, tickIndex,voiceIx,x_shift) {
+  	// If this is a tuplet, we only get the duration so the appropriate stem
+  	// can be rendered.  Vex calculates the actual ticks later when the tuplet is made
+  	var duration =
+  	   smoNote.isTuplet ?
+  	     smoMusic.closestVexDuration(smoNote.tickCount) :
+  		 smoMusic.ticksToDuration[smoNote.tickCount];
 
-		// transpose for instrument-specific keys
-		var keys=smoMusic.smoPitchesToVexKeys(smoNote.pitches,this.smoMeasure.transposeIndex);
-        var noteParams = {
-            clef: smoNote.clef,
-            keys: keys,
-            duration: duration + smoNote.noteType
-        };
+  	// transpose for instrument-specific keys
+  	var keys=smoMusic.smoPitchesToVexKeys(smoNote.pitches,this.smoMeasure.transposeIndex);
+    var noteParams = {
+        clef: smoNote.clef,
+        keys: keys,
+        duration: duration + smoNote.noteType
+    };
 
-        this.applyStemDirection(noteParams,voiceIx);
-        var vexNote = new VF.StaveNote(noteParams);
-        vexNote.attrs.classes = 'voice-'+voiceIx;
-        if (smoNote.tickCount >= 4096) {
-            var stemDirection = smoNote.flagState == SmoNote.flagStates.auto ?
-                vexNote.getStemDirection() : smoNote.toVexStemDirection();
-            vexNote.setStemDirection(stemDirection);
-
-        }
-        smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
-        // vexNote.x_shift=x_shift;
-
-		this._createAccidentals(smoNote,vexNote,tickIndex,voiceIx);
-        this._createLyric(smoNote,vexNote,x_shift);
-        this._createOrnaments(smoNote,vexNote);
-        this._createGraceNotes(smoNote,vexNote);
-
-        return vexNote;
+    this.applyStemDirection(noteParams,voiceIx,smoNote.flagState);
+    var vexNote = new VF.StaveNote(noteParams);
+    vexNote.attrs.classes = 'voice-'+voiceIx;
+    if (smoNote.tickCount >= 4096) {
+      var stemDirection = smoNote.flagState == SmoNote.flagStates.auto ?
+        vexNote.getStemDirection() : smoNote.toVexStemDirection();
+        vexNote.setStemDirection(stemDirection);
     }
+    smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
+
+  	this._createAccidentals(smoNote,vexNote,tickIndex,voiceIx);
+    this._createLyric(smoNote,vexNote,x_shift);
+    this._createOrnaments(smoNote,vexNote);
+    this._createGraceNotes(smoNote,vexNote);
+
+    return vexNote;
+  }
 
 	_renderArticulations(vix) {
 		var i=0;
@@ -297,61 +297,66 @@ class VxMeasure {
 		this._renderArticulations(voiceIx);
     }
 
-    // ### createVexBeamGroups
-    // create the VX beam groups. VexFlow has auto-beaming logic, but we use
-	// our own because the user can specify stem directions, breaks etc.
-    createVexBeamGroups(vix) {
-        for (var i = 0; i < this.smoMeasure.beamGroups.length; ++i) {
-            var bg = this.smoMeasure.beamGroups[i];
-            if (bg.voice != vix) {
-                continue;
-            }
-            var vexNotes = [];
-            var stemDirection = VF.Stem.DOWN;
-            for (var j = 0;j < bg.notes.length; ++j) {
-                var note = bg.notes[j];
-                var vexNote = this.noteToVexMap[note.attrs.id]
-                    if (j === 0) {
-                        stemDirection = note.flagState == SmoNote.flagStates.auto ?
-                            vexNote.getStemDirection() : note.toVexStemDirection();
-                    }
-                    vexNote.setStemDirection(stemDirection);
+  // ### createVexBeamGroups
+  // create the VX beam groups. VexFlow has auto-beaming logic, but we use
+  // our own because the user can specify stem directions, breaks etc.
+  createVexBeamGroups(vix) {
+    for (var i = 0; i < this.smoMeasure.beamGroups.length; ++i) {
+      var bg = this.smoMeasure.beamGroups[i];
+      if (bg.voice != vix) {
+        continue;
+      }
+      var vexNotes = [];
+      var stemDirection = VF.Stem.DOWN;
+      var keyNoteIx = bg.notes.findIndex((nn) => nn.noteType === 'n');
 
-                    vexNotes.push(this.noteToVexMap[note.attrs.id]);
-            }
-            var vexBeam = new VF.Beam(vexNotes);
-            this.beamToVexMap[bg.attrs.id] = vexBeam;
-            this.vexBeamGroups.push(vexBeam);
+      // Fix stem bug: key off first non-rest note.
+      keyNoteIx = (keyNoteIx >= 0) ? keyNoteIx : 0;
+      for (var j = 0;j < bg.notes.length; ++j) {
+        var note = bg.notes[j];
+        var vexNote = this.noteToVexMap[note.attrs.id]
+        if (keyNoteIx === j) {
+          stemDirection = note.flagState == SmoNote.flagStates.auto ?
+            vexNote.getStemDirection() : note.toVexStemDirection();
         }
+        vexNote.setStemDirection(stemDirection);
+        vexNotes.push(this.noteToVexMap[note.attrs.id]);
+      }
+      var vexBeam = new VF.Beam(vexNotes);
+      this.beamToVexMap[bg.attrs.id] = vexBeam;
+      this.vexBeamGroups.push(vexBeam);
     }
+  }
 
-    // ### createVexTuplets
-    // Create the VF tuplet objects based on the smo tuplet objects
-    // that have been defined.
-    createVexTuplets(vix) {
-        this.vexTuplets = [];
-        this.tupletToVexMap = {};
-        for (var i = 0; i < this.smoMeasure.tuplets.length; ++i) {
-            var tp = this.smoMeasure.tuplets[i];
-            if (tp.voice != vix) {
-                continue;
-            }
-            var vexNotes = [];
-            for (var j = 0; j < tp.notes.length; ++j) {
-                var smoNote = tp.notes[j];
-                vexNotes.push(this.noteToVexMap[smoNote.attrs.id]);
-            }
-            var vexTuplet = new VF.Tuplet(vexNotes, {
-                    num_notes: tp.num_notes,
-                    notes_occupied: tp.notes_occupied,
-                    ratioed: false,
-                    bracketed: true,
-                    location: 1
-                });
-            this.tupletToVexMap[tp.attrs.id] = vexTuplet;
-            this.vexTuplets.push(vexTuplet);
-        }
+  // ### createVexTuplets
+  // Create the VF tuplet objects based on the smo tuplet objects
+  // that have been defined.
+  createVexTuplets(vix) {
+    this.vexTuplets = [];
+    this.tupletToVexMap = {};
+    for (var i = 0; i < this.smoMeasure.tuplets.length; ++i) {
+      var tp = this.smoMeasure.tuplets[i];
+      if (tp.voice != vix) {
+        continue;
+      }
+      var vexNotes = [];
+      for (var j = 0; j < tp.notes.length; ++j) {
+        var smoNote = tp.notes[j];
+        vexNotes.push(this.noteToVexMap[smoNote.attrs.id]);
+      }
+      const direction = tp.getStemDirection(this.smoMeasure.clef) === SmoNote.flagStates.up ?
+        VF.Tuplet.LOCATION_TOP : VF.Tuplet.LOCATION_BOTTOM;
+      var vexTuplet = new VF.Tuplet(vexNotes, {
+        num_notes: tp.num_notes,
+        notes_occupied: tp.notes_occupied,
+        ratioed: false,
+        bracketed: true,
+        location: direction
+      });
+      this.tupletToVexMap[tp.attrs.id] = vexTuplet;
+      this.vexTuplets.push(vexTuplet);
     }
+  }
     unrender() {
         $(this.context.svg).find('g.' + this.smoMeasure.attrs.id).remove();
     }

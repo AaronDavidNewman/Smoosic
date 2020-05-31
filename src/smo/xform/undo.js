@@ -54,49 +54,49 @@ class UndoBuffer {
     this.buffer.push(undoObj);
   }
 
-    // ### _pop
-    // ### Description:
-    // Internal method to pop the top buffer off the stack.
-    _pop() {
+  // ### _pop
+  // ### Description:
+  // Internal method to pop the top buffer off the stack.
+  _pop() {
 
-        if (this.buffer.length < 1)
-            return null;
-        var buf = this.buffer.pop();
-        return buf;
+      if (this.buffer.length < 1)
+          return null;
+      var buf = this.buffer.pop();
+      return buf;
+  }
+
+  // ## Before undoing, peek at the top action in the q
+  // so it can be re-rendered
+  peek() {
+    if (this.buffer.length < 1)
+      return null;
+    return this.buffer[this.buffer.length - 1];
+  }
+
+  // ## undo
+  // ## Description:
+  // Undo the operation at the top of the undo stack.  This is done by replacing
+  // the music as it existed before the change was made.
+  undo(score) {
+    var buf = this._pop();
+    if (!buf)
+      return score;
+    if (buf.type === 'measure') {
+      var measure = SmoMeasure.deserialize(buf.json);
+      measure.setChanged();
+      score.replaceMeasure(buf.selector, measure);
+    } else if (buf.type === 'score') {
+      // Score expects string, as deserialized score is how saving is done.
+      score = SmoScore.deserialize(JSON.stringify(buf.json));
+    } else {
+      // TODO: test me
+      var staff = SmoSystemStaff.deserialize(buf.json);
+      score.replaceStaff(buf.selector.staff, staff);
     }
-
-    // ## Before undoing, peek at the top action in the q
-    // so it can be re-rendered
-    peek() {
-        if (this.buffer.length < 1)
-            return null;
-        return this.buffer[this.buffer.length - 1];
-    }
-
-    // ## undo
-    // ## Description:
-    // Undo the operation at the top of the undo stack.  This is done by replacing
-    // the music as it existed before the change was made.
-    undo(score) {
-        var buf = this._pop();
-        if (!buf)
-            return score;
-        if (buf.type === 'measure') {
-            var measure = SmoMeasure.deserialize(buf.json);
-            measure.setChanged();
-            score.replaceMeasure(buf.selector, measure);
-        } else if (buf.type === 'score') {
-            // Score expects string, as deserialized score is how saving is done.
-            score = SmoScore.deserialize(JSON.stringify(buf.json));
-        } else {
-            // TODO: test me
-            var staff = SmoSystemStaff.deserialize(buf.json);
-            score.replaceStaff(buf.selector.staff, staff);
-        }
-        return score;
-    }
-
+    return score;
+  }
 }
+
 
 // ## SmoUndoable
 // ## Description:

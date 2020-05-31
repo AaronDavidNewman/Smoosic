@@ -2011,14 +2011,14 @@ class SmoNote {
         return this.graceNotes;
     }
     addPitchOffset(offset) {
-        if (this.pitches.length == 0) {
-            return this;
-        }
-        this.noteType = 'n';
-        var pitch = this.pitches[0];
-        this.pitches.push(smoMusic.getKeyOffset(pitch, offset));
+      if (this.pitches.length == 0) {
+          return this;
+      }
+      this.noteType = 'n';
+      var pitch = this.pitches[0];
+      this.pitches.push(smoMusic.getKeyOffset(pitch, offset));
 
-        SmoNote._sortPitches(this);
+      SmoNote._sortPitches(this);
     }
 
     makeRest() {
@@ -2180,103 +2180,124 @@ class SmoNote {
         return note;
     }
 }
-class SmoTuplet {
+
+class SmoBeamGroup {
     constructor(params) {
         this.notes = params.notes;
-        Vex.Merge(this, SmoTuplet.defaults);
-        smoSerialize.serializedMerge(SmoTuplet.parameterArray, params, this);
+        Vex.Merge(this, params);
+
         if (!this['attrs']) {
             this.attrs = {
                 id: VF.Element.newID(),
-                type: 'SmoTuplet'
+                type: 'SmoBeamGroup'
             };
         } else {
         }
-        this._adjustTicks();
+        for (var i = 0; i < this.notes.length; ++i) {
+            var note = this.notes[i];
+            if (note.tickCount < 4096)
+                note.beam_group = this.attrs;
+        }
     }
+}
+;
+class SmoTuplet {
+  constructor(params) {
+    this.notes = params.notes;
+    Vex.Merge(this, SmoTuplet.defaults);
+    smoSerialize.serializedMerge(SmoTuplet.parameterArray, params, this);
+    if (!this['attrs']) {
+      this.attrs = {
+        id: VF.Element.newID(),
+        type: 'SmoTuplet'
+      };
+    } else {
+    }
+    this._adjustTicks();
+  }
 
 	static get longestTuplet() {
 		return 8192;
 	}
 
-    get clonedParams() {
-        var paramAr = ['stemTicks', 'ticks', 'totalTicks', 'durationMap'];
-        var rv = {};
-        smoSerialize.serializedMerge(paramAr, this, rv);
-        return rv;
+  get clonedParams() {
+    var paramAr = ['stemTicks', 'ticks', 'totalTicks', 'durationMap'];
+    var rv = {};
+    smoSerialize.serializedMerge(paramAr, this, rv);
+    return rv;
 
-    }
+  }
 
-    static get parameterArray() {
-        return ['stemTicks', 'ticks', 'totalTicks', 'durationMap','attrs','ratioed','bracketed','voice','startIndex'];
-    }
+  static get parameterArray() {
+    return ['stemTicks', 'ticks', 'totalTicks', 'durationMap','attrs','ratioed','bracketed','voice','startIndex'];
+  }
 
-    serialize() {
-        var params = {};
-        smoSerialize.serializedMergeNonDefault(SmoTuplet.defaults,
-           SmoTuplet.parameterArray,this,params);
-        return params;
-    }
+  serialize() {
+    var params = {};
+    smoSerialize.serializedMergeNonDefault(SmoTuplet.defaults,
+     SmoTuplet.parameterArray,this,params);
+    return params;
+  }
 
 	static calculateStemTicks(totalTicks,numNotes) {
-        var stemValue = totalTicks / numNotes;
-        var stemTicks = SmoTuplet.longestTuplet;
+    var stemValue = totalTicks / numNotes;
+    var stemTicks = SmoTuplet.longestTuplet;
 
-        // The stem value is the type on the non-tuplet note, e.g. 1/8 note
-        // for a triplet.
-        while (stemValue < stemTicks) {
-            stemTicks = stemTicks / 2;
-        }
+    // The stem value is the type on the non-tuplet note, e.g. 1/8 note
+    // for a triplet.
+    while (stemValue < stemTicks) {
+      stemTicks = stemTicks / 2;
+    }
 		return stemTicks * 2;
 	}
 
-    static cloneTuplet(tuplet) {
-        var noteAr = tuplet.notes;
-        var durationMap = JSON.parse(JSON.stringify(tuplet.durationMap)); // deep copy array
+  static cloneTuplet(tuplet) {
+    var noteAr = tuplet.notes;
+    var durationMap = JSON.parse(JSON.stringify(tuplet.durationMap)); // deep copy array
 
-		// Add any remainders for oddlets
-		var totalTicks = noteAr.map((nn) => nn.ticks.numerator+nn.ticks.remainder).reduce((acc, nn) => acc+nn);
+    // Add any remainders for oddlets
+    var totalTicks = noteAr.map((nn) => nn.ticks.numerator+nn.ticks.remainder).reduce((acc, nn) => acc+nn);
 
-        var numNotes = tuplet.numNotes;
-        var stemValue = totalTicks / numNotes;
-        var stemTicks = SmoTuplet.calculateStemTicks(totalTicks,numNotes);
+    var numNotes = tuplet.numNotes;
+    var stemValue = totalTicks / numNotes;
+    var stemTicks = SmoTuplet.calculateStemTicks(totalTicks,numNotes);
 
-        var tupletNotes = [];
+    var tupletNotes = [];
 
-        var i = 0;
-        noteAr.forEach((note) => {
-            var textModifiers = note.textModifiers;
-            // Note preserver remainder
-            note = SmoNote.cloneWithDuration(note, {
-                    numerator: stemTicks*tuplet.durationMap[i],
-                    denominator: 1,
-                    remainder: note.ticks.remainder
-                });
+    var i = 0;
+    noteAr.forEach((note) => {
+      var textModifiers = note.textModifiers;
+      // Note preserver remainder
+      note = SmoNote.cloneWithDuration(note, {
+        numerator: stemTicks*tuplet.durationMap[i],
+        denominator: 1,
+        remainder: note.ticks.remainder
+      });
 
-          // Don't clone modifiers, except for first one.
-          if (i === 0) {
-              var ntmAr = [];
-              textModifiers.forEach((tm) => {
-                  var ntm = SmoNoteModifierBase.deserialize(tm);
-                  ntmAr.push(ntm);
-              });
-              note.textModifiers = ntmAr;
-          }
-          i += 1;
-
-          tupletNotes.push(note);
+      // Don't clone modifiers, except for first one.
+      if (i === 0) {
+        var ntmAr = [];
+        textModifiers.forEach((tm) => {
+          var ntm = SmoNoteModifierBase.deserialize(tm);
+          ntmAr.push(ntm);
         });
-        var rv = new SmoTuplet({
-                notes: tupletNotes,
-                stemTicks: stemTicks,
-                totalTicks: totalTicks,
-                ratioed: false,
-                bracketed: true,
-                startIndex: tuplet.startIndex,
-                durationMap: durationMap
-            });
-        return rv;
-    }
+        note.textModifiers = ntmAr;
+      }
+      i += 1;
+
+      tupletNotes.push(note);
+    });
+    var rv = new SmoTuplet({
+      notes: tupletNotes,
+      stemTicks: stemTicks,
+      totalTicks: totalTicks,
+      ratioed: false,
+      bracketed: true,
+      startIndex: tuplet.startIndex,
+      durationMap: durationMap
+    });
+    return rv;
+  }
 
   _adjustTicks() {
     var sum = this.durationSum;
@@ -2307,128 +2328,122 @@ class SmoTuplet {
     return rv;
   }
 
-    split(combineIndex) {
-        var multiplier = 0.5;
-        var nnotes = [];
-        var nmap = [];
+  split(combineIndex) {
+    var multiplier = 0.5;
+    var nnotes = [];
+    var nmap = [];
 
-        for (var i = 0; i < this.notes.length; ++i) {
-            var note = this.notes[i];
-            if (i === combineIndex) {
-                nmap.push(this.durationMap[i] * multiplier);
-                nmap.push(this.durationMap[i] * multiplier);
-                note.ticks.numerator *= multiplier;
+    for (var i = 0; i < this.notes.length; ++i) {
+      var note = this.notes[i];
+      if (i === combineIndex) {
+        nmap.push(this.durationMap[i] * multiplier);
+        nmap.push(this.durationMap[i] * multiplier);
+        note.ticks.numerator *= multiplier;
 
-                var onote = SmoNote.clone(note);
-				// remainder is for the whole tuplet, so don't duplicate that.
-				onote.ticks.remainder=0;
-                nnotes.push(note);
-                nnotes.push(onote);
-            } else {
-                nmap.push(this.durationMap[i]);
-                nnotes.push(note);
-            }
-        }
-        this.notes = nnotes;
-        this.durationMap = nmap;
+        var onote = SmoNote.clone(note);
+        // remainder is for the whole tuplet, so don't duplicate that.
+        onote.ticks.remainder=0;
+        nnotes.push(note);
+        nnotes.push(onote);
+      } else {
+        nmap.push(this.durationMap[i]);
+        nnotes.push(note);
+      }
     }
-    combine(startIndex, endIndex) {
-        // can't combine in this way, too many notes
-        if (this.notes.length <= endIndex || startIndex >= endIndex) {
-            return this;
-        }
-        var acc = 0.0;
-        var i;
-        var base = 0.0;
-        for (i = startIndex; i <= endIndex; ++i) {
-            acc += this.durationMap[i];
-            if (i == startIndex) {
-                base = this.durationMap[i];
-            } else if (this.durationMap[i] != base) {
-                // Can't combine non-equal tuplet notes
-                return this;
-            }
-        }
-        // how much each combined value will be multiplied by
-        var multiplier = acc / base;
+    this.notes = nnotes;
+    this.durationMap = nmap;
+  }
+  combine(startIndex, endIndex) {
+    // can't combine in this way, too many notes
+    if (this.notes.length <= endIndex || startIndex >= endIndex) {
+      return this;
+    }
+    var acc = 0.0;
+    var i;
+    var base = 0.0;
+    for (i = startIndex; i <= endIndex; ++i) {
+      acc += this.durationMap[i];
+      if (i == startIndex) {
+        base = this.durationMap[i];
+      } else if (this.durationMap[i] != base) {
+        // Can't combine non-equal tuplet notes
+        return this;
+      }
+    }
+    // how much each combined value will be multiplied by
+    var multiplier = acc / base;
 
-        var nmap = [];
-        var nnotes = [];
-        // adjust the duration map
-        for (i = 0; i < this.notes.length; ++i) {
-            var note = this.notes[i];
-            // notes that don't change are unchanged
-            if (i < startIndex || i > endIndex) {
-                nmap.push(this.durationMap[i]);
-                nnotes.push(note);
-            }
-            // changed note with combined duration
-            if (i == startIndex) {
-                note.ticks.numerator = note.ticks.numerator * multiplier;
-                nmap.push(acc);
-                nnotes.push(note);
-            }
-            // other notes after startIndex are removed from the map.
-        }
-        this.notes = nnotes;
-        this.durationMap = nmap;
+    var nmap = [];
+    var nnotes = [];
+    // adjust the duration map
+    for (i = 0; i < this.notes.length; ++i) {
+      var note = this.notes[i];
+      // notes that don't change are unchanged
+      if (i < startIndex || i > endIndex) {
+        nmap.push(this.durationMap[i]);
+        nnotes.push(note);
+      }
+      // changed note with combined duration
+      if (i == startIndex) {
+        note.ticks.numerator = note.ticks.numerator * multiplier;
+        nmap.push(acc);
+        nnotes.push(note);
+      }
+      // other notes after startIndex are removed from the map.
     }
-    get durationSum() {
-        var acc = 0;
-        for (var i = 0; i < this.durationMap.length; ++i) {
-            acc += this.durationMap[i];
-        }
-        return Math.round(acc);
-    }
-    get num_notes() {
-        return this.durationSum;
-    }
-    get notes_occupied() {
-        return Math.floor(this.totalTicks / this.stemTicks);
-    }
-    get note_ticks_occupied() {
-        return this.totalTicks / this.stemTicks;
-    }
-    get tickCount() {
-        var rv = 0;
-        for (var i = 0; i < this.notes.length; ++i) {
-            var note = this.notes[i];
-            rv += (note.ticks.numerator / note.ticks.denominator) + note.ticks.remainder;
-        }
-        return rv;
-    }
+    this.notes = nnotes;
+    this.durationMap = nmap;
+  }
 
-    static get defaults() {
-        return {
-            numNotes: 3,
-            totalTicks: 4096, // how many ticks this tuple takes up
-            stemTicks: 2048, // the stem ticks, for drawing purposes.  >16th, draw as 8th etc.
-            durationMap: [1.0, 1.0, 1.0],
-            bracketed: true,
-            voice:0,
-            ratioed: false
-        }
+  // ### getStemDirection
+  // Return the stem direction, so we can bracket the correct place
+  getStemDirection(clef) {
+    const note = this.notes.find((nn) => nn.noteType === 'n');
+    if (!note) {
+      return SmoNote.flagStates.down;;
     }
-}
-
-class SmoBeamGroup {
-    constructor(params) {
-        this.notes = params.notes;
-        Vex.Merge(this, params);
-
-        if (!this['attrs']) {
-            this.attrs = {
-                id: VF.Element.newID(),
-                type: 'SmoBeamGroup'
-            };
-        } else {
-        }
-        for (var i = 0; i < this.notes.length; ++i) {
-            var note = this.notes[i];
-            if (note.tickCount < 4096)
-                note.beam_group = this.attrs;
-        }
+    if (note.flagState != SmoNote.flagStates.auto) {
+      return note.flagState;
     }
+    return smoMusic.pitchToLedgerLine(clef,note.pitches[0])
+       >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
+  }
+  get durationSum() {
+    var acc = 0;
+    for (var i = 0; i < this.durationMap.length; ++i) {
+      acc += this.durationMap[i];
+    }
+    return Math.round(acc);
+  }
+  get num_notes() {
+    return this.durationSum;
+  }
+  get notes_occupied() {
+    return Math.floor(this.totalTicks / this.stemTicks);
+  }
+  get note_ticks_occupied() {
+    return this.totalTicks / this.stemTicks;
+  }
+  get tickCount() {
+    var rv = 0;
+    for (var i = 0; i < this.notes.length; ++i) {
+      var note = this.notes[i];
+      rv += (note.ticks.numerator / note.ticks.denominator) + note.ticks.remainder;
+    }
+    return rv;
+  }
+
+  static get defaults() {
+    return {
+      numNotes: 3,
+      totalTicks: 4096, // how many ticks this tuple takes up
+      stemTicks: 2048, // the stem ticks, for drawing purposes.  >16th, draw as 8th etc.
+      durationMap: [1.0, 1.0, 1.0],
+      bracketed: true,
+      voice:0,
+      ratioed: false
+    }
+  }
 }
 ;
 class SmoNoteModifierBase {
@@ -2942,8 +2957,8 @@ class SmoMeasure {
         }
         var curAttrHash  = attrColumnHash[attr];
         if (this[attr].ctor && this[attr].ctor == 'SmoTempoText') {
-          if (this.attr.compare(attrCurrentValue[attr]) === false) {
-            curAttrHash[measure.measureNumber.measureIndex] = this[attr];
+          if (this[attr].compare(attrCurrentValue[attr]) === false) {
+            curAttrHash[this.measureNumber.measureIndex] = this[attr];
             attrCurrentValue[attr] = this[attr];
           }
         } else if (attrCurrentValue[attr] != this[attr]) {
@@ -7688,49 +7703,49 @@ class UndoBuffer {
     this.buffer.push(undoObj);
   }
 
-    // ### _pop
-    // ### Description:
-    // Internal method to pop the top buffer off the stack.
-    _pop() {
+  // ### _pop
+  // ### Description:
+  // Internal method to pop the top buffer off the stack.
+  _pop() {
 
-        if (this.buffer.length < 1)
-            return null;
-        var buf = this.buffer.pop();
-        return buf;
+      if (this.buffer.length < 1)
+          return null;
+      var buf = this.buffer.pop();
+      return buf;
+  }
+
+  // ## Before undoing, peek at the top action in the q
+  // so it can be re-rendered
+  peek() {
+    if (this.buffer.length < 1)
+      return null;
+    return this.buffer[this.buffer.length - 1];
+  }
+
+  // ## undo
+  // ## Description:
+  // Undo the operation at the top of the undo stack.  This is done by replacing
+  // the music as it existed before the change was made.
+  undo(score) {
+    var buf = this._pop();
+    if (!buf)
+      return score;
+    if (buf.type === 'measure') {
+      var measure = SmoMeasure.deserialize(buf.json);
+      measure.setChanged();
+      score.replaceMeasure(buf.selector, measure);
+    } else if (buf.type === 'score') {
+      // Score expects string, as deserialized score is how saving is done.
+      score = SmoScore.deserialize(JSON.stringify(buf.json));
+    } else {
+      // TODO: test me
+      var staff = SmoSystemStaff.deserialize(buf.json);
+      score.replaceStaff(buf.selector.staff, staff);
     }
-
-    // ## Before undoing, peek at the top action in the q
-    // so it can be re-rendered
-    peek() {
-        if (this.buffer.length < 1)
-            return null;
-        return this.buffer[this.buffer.length - 1];
-    }
-
-    // ## undo
-    // ## Description:
-    // Undo the operation at the top of the undo stack.  This is done by replacing
-    // the music as it existed before the change was made.
-    undo(score) {
-        var buf = this._pop();
-        if (!buf)
-            return score;
-        if (buf.type === 'measure') {
-            var measure = SmoMeasure.deserialize(buf.json);
-            measure.setChanged();
-            score.replaceMeasure(buf.selector, measure);
-        } else if (buf.type === 'score') {
-            // Score expects string, as deserialized score is how saving is done.
-            score = SmoScore.deserialize(JSON.stringify(buf.json));
-        } else {
-            // TODO: test me
-            var staff = SmoSystemStaff.deserialize(buf.json);
-            score.replaceStaff(buf.selector.staff, staff);
-        }
-        return score;
-    }
-
+    return score;
+  }
 }
+
 
 // ## SmoUndoable
 // ## Description:
@@ -8461,14 +8476,16 @@ class VxMeasure {
     // ## TODO:
     // use x position of ticks in other voices, pitch of note, and consider
     // stem direction modifier.
-    applyStemDirection(vxParams,voiceIx) {
-        if (this.smoMeasure.voices.length === 1) {
-            vxParams.auto_stem = true;
-        } else if (voiceIx % 2) {
-            vxParams.stem_direction = -1;
-        } else {
-            vxParams.stem_direction = 1;
-        }
+    applyStemDirection(vxParams,voiceIx,flagState) {
+      if (this.smoMeasure.voices.length === 1 && flagState === SmoNote.flagStates.auto) {
+        vxParams.auto_stem = true;
+      } else if (flagState !== SmoNote.flagStates.auto) {
+        vxParams.stem_direction = SmoNote.flagState ===  SmoNote.flagStates.up ? 1 : -1;
+      } else if (voiceIx % 2) {
+        vxParams.stem_direction = -1;
+      } else {
+        vxParams.stem_direction = 1;
+      }
     }
 
     // We add microtones to the notes, without regard really to how they interact
@@ -8590,43 +8607,41 @@ class VxMeasure {
     }
   }
 
-    // ## Description:
-    // convert a smoNote into a vxNote so it can be rasterized
-    _createVexNote(smoNote, tickIndex,voiceIx,x_shift) {
-		// If this is a tuplet, we only get the duration so the appropriate stem
-		// can be rendered.  Vex calculates the actual ticks later when the tuplet is made
-		var duration =
-		   smoNote.isTuplet ?
-		     smoMusic.closestVexDuration(smoNote.tickCount) :
-			 smoMusic.ticksToDuration[smoNote.tickCount];
+  // ## Description:
+  // convert a smoNote into a vxNote so it can be rasterized
+  _createVexNote(smoNote, tickIndex,voiceIx,x_shift) {
+  	// If this is a tuplet, we only get the duration so the appropriate stem
+  	// can be rendered.  Vex calculates the actual ticks later when the tuplet is made
+  	var duration =
+  	   smoNote.isTuplet ?
+  	     smoMusic.closestVexDuration(smoNote.tickCount) :
+  		 smoMusic.ticksToDuration[smoNote.tickCount];
 
-		// transpose for instrument-specific keys
-		var keys=smoMusic.smoPitchesToVexKeys(smoNote.pitches,this.smoMeasure.transposeIndex);
-        var noteParams = {
-            clef: smoNote.clef,
-            keys: keys,
-            duration: duration + smoNote.noteType
-        };
+  	// transpose for instrument-specific keys
+  	var keys=smoMusic.smoPitchesToVexKeys(smoNote.pitches,this.smoMeasure.transposeIndex);
+    var noteParams = {
+        clef: smoNote.clef,
+        keys: keys,
+        duration: duration + smoNote.noteType
+    };
 
-        this.applyStemDirection(noteParams,voiceIx);
-        var vexNote = new VF.StaveNote(noteParams);
-        vexNote.attrs.classes = 'voice-'+voiceIx;
-        if (smoNote.tickCount >= 4096) {
-            var stemDirection = smoNote.flagState == SmoNote.flagStates.auto ?
-                vexNote.getStemDirection() : smoNote.toVexStemDirection();
-            vexNote.setStemDirection(stemDirection);
-
-        }
-        smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
-        // vexNote.x_shift=x_shift;
-
-		this._createAccidentals(smoNote,vexNote,tickIndex,voiceIx);
-        this._createLyric(smoNote,vexNote,x_shift);
-        this._createOrnaments(smoNote,vexNote);
-        this._createGraceNotes(smoNote,vexNote);
-
-        return vexNote;
+    this.applyStemDirection(noteParams,voiceIx,smoNote.flagState);
+    var vexNote = new VF.StaveNote(noteParams);
+    vexNote.attrs.classes = 'voice-'+voiceIx;
+    if (smoNote.tickCount >= 4096) {
+      var stemDirection = smoNote.flagState == SmoNote.flagStates.auto ?
+        vexNote.getStemDirection() : smoNote.toVexStemDirection();
+        vexNote.setStemDirection(stemDirection);
     }
+    smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
+
+  	this._createAccidentals(smoNote,vexNote,tickIndex,voiceIx);
+    this._createLyric(smoNote,vexNote,x_shift);
+    this._createOrnaments(smoNote,vexNote);
+    this._createGraceNotes(smoNote,vexNote);
+
+    return vexNote;
+  }
 
 	_renderArticulations(vix) {
 		var i=0;
@@ -8694,61 +8709,66 @@ class VxMeasure {
 		this._renderArticulations(voiceIx);
     }
 
-    // ### createVexBeamGroups
-    // create the VX beam groups. VexFlow has auto-beaming logic, but we use
-	// our own because the user can specify stem directions, breaks etc.
-    createVexBeamGroups(vix) {
-        for (var i = 0; i < this.smoMeasure.beamGroups.length; ++i) {
-            var bg = this.smoMeasure.beamGroups[i];
-            if (bg.voice != vix) {
-                continue;
-            }
-            var vexNotes = [];
-            var stemDirection = VF.Stem.DOWN;
-            for (var j = 0;j < bg.notes.length; ++j) {
-                var note = bg.notes[j];
-                var vexNote = this.noteToVexMap[note.attrs.id]
-                    if (j === 0) {
-                        stemDirection = note.flagState == SmoNote.flagStates.auto ?
-                            vexNote.getStemDirection() : note.toVexStemDirection();
-                    }
-                    vexNote.setStemDirection(stemDirection);
+  // ### createVexBeamGroups
+  // create the VX beam groups. VexFlow has auto-beaming logic, but we use
+  // our own because the user can specify stem directions, breaks etc.
+  createVexBeamGroups(vix) {
+    for (var i = 0; i < this.smoMeasure.beamGroups.length; ++i) {
+      var bg = this.smoMeasure.beamGroups[i];
+      if (bg.voice != vix) {
+        continue;
+      }
+      var vexNotes = [];
+      var stemDirection = VF.Stem.DOWN;
+      var keyNoteIx = bg.notes.findIndex((nn) => nn.noteType === 'n');
 
-                    vexNotes.push(this.noteToVexMap[note.attrs.id]);
-            }
-            var vexBeam = new VF.Beam(vexNotes);
-            this.beamToVexMap[bg.attrs.id] = vexBeam;
-            this.vexBeamGroups.push(vexBeam);
+      // Fix stem bug: key off first non-rest note.
+      keyNoteIx = (keyNoteIx >= 0) ? keyNoteIx : 0;
+      for (var j = 0;j < bg.notes.length; ++j) {
+        var note = bg.notes[j];
+        var vexNote = this.noteToVexMap[note.attrs.id]
+        if (keyNoteIx === j) {
+          stemDirection = note.flagState == SmoNote.flagStates.auto ?
+            vexNote.getStemDirection() : note.toVexStemDirection();
         }
+        vexNote.setStemDirection(stemDirection);
+        vexNotes.push(this.noteToVexMap[note.attrs.id]);
+      }
+      var vexBeam = new VF.Beam(vexNotes);
+      this.beamToVexMap[bg.attrs.id] = vexBeam;
+      this.vexBeamGroups.push(vexBeam);
     }
+  }
 
-    // ### createVexTuplets
-    // Create the VF tuplet objects based on the smo tuplet objects
-    // that have been defined.
-    createVexTuplets(vix) {
-        this.vexTuplets = [];
-        this.tupletToVexMap = {};
-        for (var i = 0; i < this.smoMeasure.tuplets.length; ++i) {
-            var tp = this.smoMeasure.tuplets[i];
-            if (tp.voice != vix) {
-                continue;
-            }
-            var vexNotes = [];
-            for (var j = 0; j < tp.notes.length; ++j) {
-                var smoNote = tp.notes[j];
-                vexNotes.push(this.noteToVexMap[smoNote.attrs.id]);
-            }
-            var vexTuplet = new VF.Tuplet(vexNotes, {
-                    num_notes: tp.num_notes,
-                    notes_occupied: tp.notes_occupied,
-                    ratioed: false,
-                    bracketed: true,
-                    location: 1
-                });
-            this.tupletToVexMap[tp.attrs.id] = vexTuplet;
-            this.vexTuplets.push(vexTuplet);
-        }
+  // ### createVexTuplets
+  // Create the VF tuplet objects based on the smo tuplet objects
+  // that have been defined.
+  createVexTuplets(vix) {
+    this.vexTuplets = [];
+    this.tupletToVexMap = {};
+    for (var i = 0; i < this.smoMeasure.tuplets.length; ++i) {
+      var tp = this.smoMeasure.tuplets[i];
+      if (tp.voice != vix) {
+        continue;
+      }
+      var vexNotes = [];
+      for (var j = 0; j < tp.notes.length; ++j) {
+        var smoNote = tp.notes[j];
+        vexNotes.push(this.noteToVexMap[smoNote.attrs.id]);
+      }
+      const direction = tp.getStemDirection(this.smoMeasure.clef) === SmoNote.flagStates.up ?
+        VF.Tuplet.LOCATION_TOP : VF.Tuplet.LOCATION_BOTTOM;
+      var vexTuplet = new VF.Tuplet(vexNotes, {
+        num_notes: tp.num_notes,
+        notes_occupied: tp.notes_occupied,
+        ratioed: false,
+        bracketed: true,
+        location: direction
+      });
+      this.tupletToVexMap[tp.attrs.id] = vexTuplet;
+      this.vexTuplets.push(vexTuplet);
     }
+  }
     unrender() {
         $(this.context.svg).find('g.' + this.smoMeasure.attrs.id).remove();
     }
@@ -9383,7 +9403,10 @@ class suiAudioPitch {
                 var freq = base*Math.pow(just,lix);
                 var enharmonics = smoMusic.getEnharmonics(letter);
                 enharmonics.forEach((en) => {
-                    map[en+octave.toString()] = freq;
+                  // Adjust for B4 higher than C4
+                  const adjOctave = (letter[0] === 'b' && en[0] === 'c') ?
+                     octave + 1: octave;
+                  map[en+adjOctave.toString()] = freq;
                 });
                 lix += 1;
             });
@@ -10229,9 +10252,13 @@ class suiMapper {
 		}
 		this.highlightSelection();
         this._createLocalModifiersList();
-		this.pasteBuffer.clearSelections();
-		this.pasteBuffer.setSelections(this.score, this.selections);
-        this.mapping = false;
+    // Is this right?  Don't update the past buffer with data until the display is redrawn
+    // because some of the selections may not exist in the score.
+    if (this.layout.isDirty === false) {
+      this.pasteBuffer.clearSelections();
+  		this.pasteBuffer.setSelections(this.score, this.selections);      
+    }
+    this.mapping = false;
 	}
 
     // ### intersectingArtifact
@@ -12178,7 +12205,12 @@ class suiLayoutAdjuster {
       var width = 0;
       var duration = 0;
       var tm = tmObj.tickmaps[voiceIx];
+
 			voice.notes.forEach((note) => {
+        var tuplet = smoMeasure.getTupletForNote(note);
+        if (tuplet && tuplet.notes[0].attrs.id === note.attrs.id) {
+          // width += vexGlyph.tupletBeam.width + vexGlyph.tupletBeam.spacingRight;
+        }
         var noteWidth = 0;
         var dots = (note.dots ? note.dots : 0);
 				noteWidth += vexGlyph.dimensions.noteHead.width + vexGlyph.dimensions.noteHead.spacingRight;
@@ -12323,64 +12355,63 @@ class suiLayoutAdjuster {
         return hilo;
     }
 
-    // ### estimateMeasureHeight
-    // The baseline is the top line of the staff.  aboveBaseline is a negative number
-    // that indicates how high above the baseline the measure goes.  belowBaseline
-    // is a positive number that indicates how far below the baseline the measure goes.
-    // the height of the measure is below-above.  Vex always renders a staff such that
-    // the y coordinate passed in for the stave is on the baseline.
-    static estimateMeasureHeight(measure,layout) {
-        var heightOffset = 50;  // assume 5 lines, todo is non-5-line staffs
-        var yOffset = 0;
-        if (measure.forceClef) {
-            heightOffset += vexGlyph.clef(measure.clef).yTop + vexGlyph.clef(measure.clef).yBottom;
-            yOffset = yOffset - vexGlyph.clef(measure.clef).yTop;
-        }
-
-        if (measure.forceTempo) {
-            yOffset = Math.min(-1*vexGlyph.tempo.yTop,yOffset);
-        }
-        var hasDynamic = false;
-
-        measure.voices.forEach((voice) => {
-            voice.notes.forEach((note) => {
-                var bg = suiLayoutAdjuster._beamGroupForNote(measure,note);
-                var flag = SmoNote.flagStates.auto;
-                if (bg && note.noteType == 'n') {
-                    flag = bg.notes[0].flagState;
-                    // an  auto-flag note is up if the 1st note is middle line
-                    if (flag == SmoNote.flagStates.auto) {
-                        var pitch = bg.notes[0].pitches[0];
-                        flag = smoMusic.pitchToLedgerLine(measure.clef,pitch)
-                           >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
-                    }
-                }  else {
-                    var flag = note.flagState;
-                    // an  auto-flag note is up if the 1st note is middle line
-                    if (flag == SmoNote.flagStates.auto) {
-                        var pitch = note.pitches[0];
-                        flag = smoMusic.pitchToLedgerLine(measure.clef,pitch)
-                           >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
-                    }
-                }
-                var hiloHead = suiLayoutAdjuster._highestLowestHead(measure,note);
-                if (flag == SmoNote.flagStates.down) {
-                    yOffset = Math.min(hiloHead.lo,yOffset);
-                    heightOffset = Math.max(hiloHead.hi + vexGlyph.stem.height,heightOffset);
-                } else {
-                    yOffset = Math.min(hiloHead.lo - vexGlyph.stem.height,yOffset);
-                    heightOffset = Math.max(hiloHead.hi,heightOffset);
-                }
-                var dynamics = note.getModifiers('SmoDynamicText');
-                dynamics.forEach((dyn) => {
-                    heightOffset = Math.max((10*dyn.yOffsetLine - 50) + 11,heightOffset);
-                    yOffset = Math.min(10*dyn.yOffsetLine - 50,yOffset)
-                });
-            });
-        });
-        return {belowBaseline:heightOffset,aboveBaseline:yOffset};
+  // ### estimateMeasureHeight
+  // The baseline is the top line of the staff.  aboveBaseline is a negative number
+  // that indicates how high above the baseline the measure goes.  belowBaseline
+  // is a positive number that indicates how far below the baseline the measure goes.
+  // the height of the measure is below-above.  Vex always renders a staff such that
+  // the y coordinate passed in for the stave is on the baseline.
+  static estimateMeasureHeight(measure,layout) {
+    var heightOffset = 50;  // assume 5 lines, todo is non-5-line staffs
+    var yOffset = 0;
+    if (measure.forceClef) {
+      heightOffset += vexGlyph.clef(measure.clef).yTop + vexGlyph.clef(measure.clef).yBottom;
+      yOffset = yOffset - vexGlyph.clef(measure.clef).yTop;
     }
 
+    if (measure.forceTempo) {
+      yOffset = Math.min(-1*vexGlyph.tempo.yTop,yOffset);
+    }
+    var hasDynamic = false;
+
+    measure.voices.forEach((voice) => {
+      voice.notes.forEach((note) => {
+        var bg = suiLayoutAdjuster._beamGroupForNote(measure,note);
+        var flag = SmoNote.flagStates.auto;
+        if (bg && note.noteType == 'n') {
+          flag = bg.notes[0].flagState;
+          // an  auto-flag note is up if the 1st note is middle line
+          if (flag == SmoNote.flagStates.auto) {
+            var pitch = bg.notes[0].pitches[0];
+            flag = smoMusic.pitchToLedgerLine(measure.clef,pitch)
+               >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
+          }
+        }  else {
+          var flag = note.flagState;
+          // an  auto-flag note is up if the 1st note is middle line
+          if (flag == SmoNote.flagStates.auto) {
+            var pitch = note.pitches[0];
+            flag = smoMusic.pitchToLedgerLine(measure.clef,pitch)
+             >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
+          }
+        }
+        var hiloHead = suiLayoutAdjuster._highestLowestHead(measure,note);
+        if (flag == SmoNote.flagStates.down) {
+          yOffset = Math.min(hiloHead.lo,yOffset);
+          heightOffset = Math.max(hiloHead.hi + vexGlyph.stem.height,heightOffset);
+        } else {
+          yOffset = Math.min(hiloHead.lo - vexGlyph.stem.height,yOffset);
+          heightOffset = Math.max(hiloHead.hi,heightOffset);
+        }
+        var dynamics = note.getModifiers('SmoDynamicText');
+        dynamics.forEach((dyn) => {
+          heightOffset = Math.max((10*dyn.yOffsetLine - 50) + 11,heightOffset);
+          yOffset = Math.min(10*dyn.yOffsetLine - 50,yOffset)
+        });
+      });
+    });
+    return {belowBaseline:heightOffset,aboveBaseline:yOffset};
+  }
 }
 ;
 // ## suiLayoutBase
@@ -19676,12 +19707,16 @@ class vexGlyph {
 		return vexGlyph.dimensions['dot'];
 	}
 
-    static get stem() {
-        return vexGlyph.dimensions['stem'];
-    }
-    static get flag() {
-        return vexGlyph.dimensions['flag'];
-    }
+  static get tupletBeam() {
+    return vexGlyph.dimensions['tupletBeam'];
+  }
+
+  static get stem() {
+      return vexGlyph.dimensions['stem'];
+  }
+  static get flag() {
+      return vexGlyph.dimensions['flag'];
+  }
 
 	static clef(c) {
 		var key = c.toLowerCase()+'Clef';
@@ -19692,150 +19727,156 @@ class vexGlyph {
 	}
 	static get dimensions() {
 		return {
-			singleBar: {
-				width:1,
-				height:41,
-                yTop:0,
-                yBottom:0,
-				spacingRight:5
-			},
-			endBar: {
-				width:5.22,
-				height:40.99,
-                yTop:0,
-                yBottom:0,
-				spacingRight:10
-			},
-			doubleBar: {
-				width:3.22,
-				height:40.99,
-                yTop:0,
-                yBottom:0,
-				spacingRight:0
-			},
-			endRepeat: {
-				width:6,
-				height:40.99,
-                yTop:0,
-                yBottom:0,
-				spacingRight:0,
-			},
-			startRepeat: {
-				width:6,
-				height:40.99,
-                yTop:0,
-                yBottom:0,
-				spacingRight:5,
-			},
-			noteHead: {
-				width:12.02,
-				height:10.48,
-                yTop:0,
-                yBottom:0,
-				spacingRight:10,
-			},
-			dot: {
-				width:5,
-				height:5,
-				spacingRight:2
-			},
-			trebleClef: {
-				width: 25.5,
-				height: 68.32,
-                yTop:14,
-                yBottom:14,
-				spacingRight: 10,
-			},
-			bassClef: {
-				width: 25,
-				height: 31.88,
-                yTop:0,
-                yBottom:0,
-				spacingRight: 5,
-			},
-			altoClef: {
-				width: 31.5,
-                yTop:0,
-                yBottom:0,
-				height: 85.5,
-				spacingRight: 10
-			},
-			tenorClef: {
-				width: 31.5,
-                yTop:10,
-                yBottom:0,
-				height: 41,
-				spacingRight: 10
-			},
-			timeSignature: {
-				width: 13.48,
-				height: 85,
-                yTop:0,
-                yBottom:0,
-				spacingRight: 5
-			},
-            tempo : {
-                width:10,
-                height:37,
-                yTop:37,
-                yBottom:0,
-                spacingRight:0
-            },
-			flat: {
-				width: 7.44,
-				height: 23.55,
-                yTop:0,
-                yBottom:0,
-				spacingRight: 2
-			},
-			keySignature: {
-				width: 0,
-				height: 85.5,
-                yTop:0,
-                yBottom:0,
-				spacingRight: 10
-			},
-			sharp: {
-				width: 8.84,
-				height: 62,
-                yTop:0,
-                yBottom:0,
-				spacingRight: 2
-			},
-			natural: {
-				width: 6.54,
-				height: 53.35,
-                yTop:0,
-                yBottom:0,
-				spacingRight: 2
-			},
-			doubleSharp: {
-				height: 10.04,
-				width: 21.63,
-                yTop:0,
-                yBottom:0,
-				spacingRight: 2
-			},
-			doubleFlat: {
-				width: 13.79,
-				height: 49.65,
-                yTop:0,
-                yBottom:0,
-				spacingRight:2
-			},stem: {
-                width:1,
-                height:35,
-                yTop:0,
-                yBottom:0,
-				spacingRight:0
-            },flag: {
-                width:10,
-                height:35,
-                yTop:0,
-                yBottom:0,
-				spacingRight:0
-            }
-
+      tupletBeam: {
+        width:5,
+  			height:6,
+        yTop:0,
+        yBottom:0,
+  			spacingRight:5
+      },
+  		singleBar: {
+  			width:1,
+  			height:41,
+        yTop:0,
+        yBottom:0,
+  			spacingRight:5
+  		},
+  		endBar: {
+  			width:5.22,
+  			height:40.99,
+        yTop:0,
+        yBottom:0,
+  			spacingRight:10
+  		},
+  		doubleBar: {
+  			width:3.22,
+  			height:40.99,
+        yTop:0,
+        yBottom:0,
+  			spacingRight:0
+  		},
+  		endRepeat: {
+  			width:6,
+  			height:40.99,
+        yTop:0,
+        yBottom:0,
+  			spacingRight:0,
+  		},
+  		startRepeat: {
+  			width:6,
+  			height:40.99,
+        yTop:0,
+        yBottom:0,
+  			spacingRight:5,
+  		},
+  		noteHead: {
+  			width:12.02,
+  			height:10.48,
+        yTop:0,
+        yBottom:0,
+  			spacingRight:10,
+  		},
+  		dot: {
+  			width:5,
+  			height:5,
+  			spacingRight:2
+  		},
+  		trebleClef: {
+  			width: 25.5,
+  			height: 68.32,
+        yTop:14,
+        yBottom:14,
+  			spacingRight: 10,
+  		},
+  		bassClef: {
+  			width: 25,
+  			height: 31.88,
+        yTop:0,
+        yBottom:0,
+  			spacingRight: 5,
+  		},
+  		altoClef: {
+  			width: 31.5,
+        yTop:0,
+        yBottom:0,
+  			height: 85.5,
+  			spacingRight: 10
+  		},
+  		tenorClef: {
+  			width: 31.5,
+        yTop:10,
+        yBottom:0,
+  			height: 41,
+  			spacingRight: 10
+  		},
+  		timeSignature: {
+  			width: 13.48,
+  			height: 85,
+        yTop:0,
+        yBottom:0,
+  			spacingRight: 5
+  		},
+      tempo : {
+        width:10,
+        height:37,
+        yTop:37,
+        yBottom:0,
+        spacingRight:0
+      },
+  		flat: {
+  			width: 7.44,
+  			height: 23.55,
+        yTop:0,
+        yBottom:0,
+  			spacingRight: 2
+  		},
+  		keySignature: {
+  			width: 0,
+  			height: 85.5,
+        yTop:0,
+        yBottom:0,
+  			spacingRight: 10
+  		},
+  		sharp: {
+  			width: 8.84,
+  			height: 62,
+        yTop:0,
+        yBottom:0,
+  			spacingRight: 2
+  		},
+  		natural: {
+  			width: 6.54,
+  			height: 53.35,
+        yTop:0,
+        yBottom:0,
+  			spacingRight: 2
+  		},
+  		doubleSharp: {
+  			height: 10.04,
+  			width: 21.63,
+        yTop:0,
+        yBottom:0,
+  			spacingRight: 2
+  		},
+  		doubleFlat: {
+  			width: 13.79,
+  			height: 49.65,
+        yTop:0,
+        yBottom:0,
+  			spacingRight:2
+  		},stem: {
+        width:1,
+        height:35,
+        yTop:0,
+        yBottom:0,
+  			spacingRight:0
+      },flag: {
+        width:10,
+        height:35,
+        yTop:0,
+        yBottom:0,
+  			spacingRight:0
+      }
 		};
 	}
 }

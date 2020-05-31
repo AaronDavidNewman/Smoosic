@@ -228,9 +228,13 @@ class suiMapper {
 		}
 		this.highlightSelection();
         this._createLocalModifiersList();
-		this.pasteBuffer.clearSelections();
-		this.pasteBuffer.setSelections(this.score, this.selections);
-        this.mapping = false;
+    // Is this right?  Don't update the past buffer with data until the display is redrawn
+    // because some of the selections may not exist in the score.
+    if (this.layout.isDirty === false) {
+      this.pasteBuffer.clearSelections();
+  		this.pasteBuffer.setSelections(this.score, this.selections);      
+    }
+    this.mapping = false;
 	}
 
     // ### intersectingArtifact

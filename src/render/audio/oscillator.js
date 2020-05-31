@@ -26,7 +26,10 @@ class suiAudioPitch {
                 var freq = base*Math.pow(just,lix);
                 var enharmonics = smoMusic.getEnharmonics(letter);
                 enharmonics.forEach((en) => {
-                    map[en+octave.toString()] = freq;
+                  // Adjust for B4 higher than C4
+                  const adjOctave = (letter[0] === 'b' && en[0] === 'c') ?
+                     octave + 1: octave;
+                  map[en+adjOctave.toString()] = freq;
                 });
                 lix += 1;
             });

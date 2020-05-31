@@ -89,8 +89,8 @@ class SmoMeasure {
         }
         var curAttrHash  = attrColumnHash[attr];
         if (this[attr].ctor && this[attr].ctor == 'SmoTempoText') {
-          if (this.attr.compare(attrCurrentValue[attr]) === false) {
-            curAttrHash[measure.measureNumber.measureIndex] = this[attr];
+          if (this[attr].compare(attrCurrentValue[attr]) === false) {
+            curAttrHash[this.measureNumber.measureIndex] = this[attr];
             attrCurrentValue[attr] = this[attr];
           }
         } else if (attrCurrentValue[attr] != this[attr]) {
