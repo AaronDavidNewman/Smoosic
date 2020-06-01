@@ -18,7 +18,8 @@
 <body>
 <script type="text/javascript">
   document.addEventListener("DOMContentLoaded", function (event) {
-            suiController.start({smoPath:'../build'});
+    var config = {smoPath:'..'};
+    new SuiApplication(config);
 			});
 		</script>
 <div id="smoo">
