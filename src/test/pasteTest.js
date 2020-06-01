@@ -2,7 +2,9 @@
 class PasteTest {
 
 	static CommonTests() {
-		var score = SmoScore.getEmptyScore();
+    var application = SuiApplication.createUtApplication();
+    var keys = application.controller;
+    var score = keys.layout.score;
 
 		var pasteBuffer = new PasteBuffer();
 
@@ -10,20 +12,9 @@ class PasteTest {
 		score.addDefaultMeasureWithNotes(1, {});
 		score.addDefaultMeasureWithNotes(2, {});
 
-		var serial = JSON.stringify(score.serialize(), null, '');
-		console.log(serial);
-		var keys = utController.createUi(score,'Paste Test');
 		var undo = keys.undoBuffer;
-		var score = keys.score;
 		var layout = keys.layout;
-        
 
-		var detach = () => {
-			keys.detach();
-			keys = null;
-			score = null;
-			layout = null;
-		}
 		var subTitle = (txt) => {
 			$('.subTitle').text(txt);
 		}
@@ -39,7 +30,6 @@ class PasteTest {
 		}
 
 		var signalComplete = () => {
-			detach();
 			subTitle('');
 			return timeTest();
 		}

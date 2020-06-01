@@ -530,18 +530,18 @@ class SuiLyricEditComponent extends SuiComponentBase {
   }
 
   notifySelectionChanged(selection) {
-      if (selection) {
-          layoutDebug.addTextDebug('SuiLyricEditComponent: lyric notification for ' + selection.note.attrs.id);
-      } else {
-          layoutDebug.addTextDebug('SuiLyricEditComponent: no selection');
-      }
-      if (this.selection == null || SmoSelector.neq(selection.selector,this.selection.selector)) {
-          this.selection = selection;
-          this.handleChanged();
-      }
-      if (!this.editor.isRunning) {
-        this.endSessionDom();
-      }
+    if (selection) {
+      layoutDebug.addTextDebug('SuiLyricEditComponent: lyric notification for ' + selection.note.attrs.id);
+    } else {
+      layoutDebug.addTextDebug('SuiLyricEditComponent: no selection');
+    }
+    if (this.selection == null || SmoSelector.neq(selection.selector,this.selection.selector)) {
+      this.selection = selection;
+      this.handleChanged();
+    }
+    if (!this.editor.isRunning) {
+      this.endSessionDom();
+    }
   }
 
   moveSelectionRight() {

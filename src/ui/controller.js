@@ -164,39 +164,6 @@ class suiController {
 		el.onscroll = scrollCallback;
 	}
 
-	// ## createUi
-	// ### Description:
-	// Convenience constructor, taking a renderElement and a score.
-	static createUi(score,title) {
-		SuiDom.createDom(title);
-		var params = suiController.keyBindingDefaults;
-    var score = SuiDom.scoreFromQueryString();
-    params.eventSource = new browserEventSource(); // events come from the browser UI.
-
-		params.layout = suiScoreLayout.createScoreLayout(document.getElementById("boo"), document.getElementById("booShadow"),score);
-    params.scroller = new suiScroller();
-		params.tracker = new suiTracker(params.layout,params.scroller);
-    params.layout.setMeasureMapper(params.tracker);
-		params.editor = new suiEditor(params);
-		params.menus = new suiMenuManager(params);
-    params.layoutDemon = new SuiLayoutDemon(params);
-		var controller = new suiController(params);
-    params.menus.undoBuffer = controller.undoBuffer;
-    params.layout.score = score;
-    SuiDom.splash();
-		return controller;
-	}
-
-	static start() {
-		var score = SmoScore.getEmptyScore();
-		score.addDefaultMeasureWithNotes(0, {});
-		score.addDefaultMeasureWithNotes(1, {});
-		score.addDefaultMeasureWithNotes(2, {});
-		score.addDefaultMeasureWithNotes(3, {});
-		score.addDefaultMeasureWithNotes(4, {});
-		score.addStaff();
-		var controller =suiController.createUi(score);
-	}
 
 	// ### renderElement
 	// return render element that is the DOM parent of the svg
@@ -266,6 +233,10 @@ class suiController {
 		return SuiDialogFactory.createDialog(modSelection, this.tracker.context, this.tracker, this.layout,this.undoBuffer,this)
 	}
 
+  // ### unbindKeyboardForModal
+  // Global events from keyboard and pointer are handled by this object.  Modal
+  // UI elements take over the events, and then let the controller know when
+  // the modals go away.
 	unbindKeyboardForModal(dialog) {
 		var self=this;
     layoutDebug.addDialogDebug('controller: unbindKeyboardForModal')
@@ -295,7 +266,6 @@ class suiController {
       this.menus.slashMenuMode(this);
 		}
 
-		// TODO:  work dialogs into the scheme of things
 		if (evdata.key == 'Enter') {
 			self.trackerModifierSelect(evdata);
       var modifier = this.tracker.getSelectedModifier();

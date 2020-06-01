@@ -3,18 +3,13 @@
 class TupletTest {
 
 	static CommonTests() {
-		$('h1.testTitle').text();
-		var keys = utController.createUi( SmoScore.getDefaultScore(),'Tuplet Test');
-		var score = keys.score;
-		var layout = keys.layout;
-		var measure = SmoSelection.measureSelection(score, 0, 0).measure;
+    var application = SuiApplication.createUtApplication();
+    var keys = application.controller;
+    var score = keys.layout.score;
+    var layout = keys.layout;
+    $('h1.testTitle').text('Tuplet Test');
 
-		var detach = () => {
-			keys.detach();
-			keys = null;
-			score = null;
-			layout = null;
-		}
+		var measure = SmoSelection.measureSelection(score, 0, 0).measure;
 
 		var timeTest = () => {
 			const promise = new Promise((resolve, reject) => {
@@ -29,14 +24,13 @@ class TupletTest {
 			$('.subTitle').text(txt);
 		}
 		var signalComplete = () => {
-			detach();
 			subTitle('');
 			return timeTest();
 		}
 
 		var drawDefaults = () => {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 
@@ -46,7 +40,7 @@ class TupletTest {
 			SmoOperation.makeTuplet(selection, 3);
      		var measureS = SmoSelection.measureSelection(score, 0, 0);
 			console.log(JSON.stringify(score.serialize(), null, ' '));
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 
@@ -54,7 +48,7 @@ class TupletTest {
 			subTitle('make tuplet');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
 			SmoOperation.toggleBeamGroup(selection);
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 
@@ -62,7 +56,7 @@ class TupletTest {
 			subTitle('make tuplet');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
 			SmoOperation.toggleBeamGroup(selection);
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 
@@ -70,7 +64,7 @@ class TupletTest {
 			subTitle('stretch tuplet');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
 			SmoOperation.doubleDuration(selection);
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 
@@ -78,7 +72,7 @@ class TupletTest {
 			subTitle('contract tuplet');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
 			SmoOperation.halveDuration(selection);
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 
@@ -86,7 +80,7 @@ class TupletTest {
 			subTitle('stretch tuplet 2');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 3);
 			SmoOperation.doubleDuration(selection);
-			layout.render();
+			layout.forceRender();
             return timeTest();
 		}
 		var contractTupletTest2 = () => {
@@ -94,11 +88,11 @@ class TupletTest {
 			subTitle('contract tuplet 2');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
 			SmoOperation.halveDuration(selection);
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 		var contractTupletTest3 = () => {
-			layout.render();
+			layout.forceRender();
             return timeTest();
 		}
 
@@ -106,7 +100,7 @@ class TupletTest {
 			subTitle('unmake tuplet');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 1);
 			SmoOperation.unmakeTuplet(selection);
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 
@@ -114,7 +108,7 @@ class TupletTest {
 			subTitle('make tuplet 5-let');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 3);
 			SmoOperation.makeTuplet(selection, 5);
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 

@@ -2,7 +2,9 @@
 class KeySignatureTest {
 
 	static CommonTests() {
-		var score = SmoScore.getEmptyScore();
+    var application = SuiApplication.createUtApplication();
+    var keys = application.controller;
+    var score = keys.layout.score;
 
 		var pasteBuffer = new PasteBuffer();
 
@@ -12,16 +14,10 @@ class KeySignatureTest {
 
 		var serial = JSON.stringify(score.serialize(), null, '');
 		console.log(serial);
-		var keys = utController.createUi(score,'Key Signature Test');
 		var undo = keys.undoBuffer;
-		var score = keys.score;
 		var layout = keys.layout;
 
 		var detach = () => {
-			keys.detach();
-			keys = null;
-			score = null;
-			layout = null;
 		}
 
 		var timeTest = () => {
@@ -37,7 +33,6 @@ class KeySignatureTest {
 			$('.subTitle').text(txt);
 		}
 		var signalComplete = () => {
-			detach();
 			subTitle('');
 			return timeTest();
 		}
@@ -46,7 +41,7 @@ class KeySignatureTest {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
 			// measure.applyModifiers();
 			keys.render();
-            return timeTest();
+      return timeTest();
 		}
 
 		var changePitch = () => {
@@ -89,7 +84,7 @@ class KeySignatureTest {
 			var selection = SmoSelection.noteSelection(score, 0, 1, 0, 2);
 			SmoOperation.makeNote(selection);
 			keys.render()
-            return timeTest();
+      return timeTest();
 		}
 		var keySigTest2 = () => {
 			subTitle('key sig to Bb');
@@ -115,20 +110,8 @@ class KeySignatureTest {
 			keys.render()
             return timeTest();
 		}
-		var serializeTest = () => {
-			subTitle('serialize');
-			var scoreJson = JSON.stringify(score.serialize());
-			// score = SmoScore.deserialize(JSON.stringify(serializeTestJson.systemStaffJson));
-			score = SmoScore.deserialize(scoreJson);
-			layout.unrenderAll();
-			keys.detach();
-			keys = utController.createUi(score,'Key Signature Test');
-			keys.render()
-            return timeTest();
-		}
-
 		return drawDefaults().then(changePitch).then(changePitch2).then(undoTest)
 		.then(undoTest).then(keySigTest).then(undoTest).then(keySigTest2).then(undoTest)
-		.then(keySigTest3).then(serializeTest).then(keySigTest4).then(signalComplete);
+		.then(keySigTest3).then(keySigTest4).then(signalComplete);
 	}
 }

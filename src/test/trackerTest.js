@@ -3,14 +3,18 @@ class TrackerTest {
 
 	static CommonTests() {
 
-		var score = SmoScore.getEmptyScore();
+    var application = SuiApplication.createUtApplication({scoreLoadJson:'emptyScoreJson'});
+
+		var keys = application.controller;
+		var score = keys.layout.score;
+		var layout = keys.layout;
 
 		score.addDefaultMeasureWithNotes(0, {});
 		score.addDefaultMeasureWithNotes(1, {});
 		score.addDefaultMeasureWithNotes(2, {});
-		var keys = utController.createUi(score,'Tracker Test');
-		var layout = keys.layout;
 		var timeTest = () => {
+      layout.forceRender();
+
 			const promise = new Promise((resolve, reject) => {
 					setTimeout(() => {
 						resolve();
@@ -33,8 +37,7 @@ class TrackerTest {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
 			// measure.applyModifiers();
 
-			layout.render();
-            return timeTest();
+      return timeTest();
 		}
 
 		var trackTest = () => {
@@ -45,8 +48,7 @@ class TrackerTest {
 		var addInstrument = () => {
 			subTitle('track multiple staves');
 			score.addStaff();
-			return layout.render();
-            return timeTest();
+      return timeTest();
 		}
 
 		var selectionTest1 = () => {

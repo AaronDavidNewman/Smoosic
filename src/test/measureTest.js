@@ -1,15 +1,17 @@
 
 class MeasureTest {
   static CommonTests() {
-		var keys = utController.createUi(SmoScore.getDefaultScore(),'Measure Test');
-		var score = keys.score;
+    var application = SuiApplication.createUtApplication();
+    var keys = application.controller;
+    var score = keys.layout.score;
+
 		var layout = keys.layout;
 
 		// suiSimpleLayout.debugLayout=true;
 		var undoBuffer = keys.undoBuffer;
-        score.addDefaultMeasureWithNotes(0,{});
-        score.addDefaultMeasureWithNotes(1,{});
-        score.addDefaultMeasureWithNotes(2,{});
+    score.addDefaultMeasureWithNotes(0,{});
+    score.addDefaultMeasureWithNotes(1,{});
+    score.addDefaultMeasureWithNotes(2,{});
 		SmoOperation.addStaff(score,{
 				instrumentInfo: {
                 instrumentName: 'Bass Instrument',
@@ -18,12 +20,6 @@ class MeasureTest {
             }});
 		// var measure = SmoSelection.measureSelection(score, 0, 0).measure;
 
-		var detach = () => {
-			keys.detach();
-			keys = null;
-			score = null;
-			layout = null;
-		}
 		var timeTest = () => {
 			const promise = new Promise((resolve, reject) => {
 					setTimeout(() => {
@@ -37,7 +33,6 @@ class MeasureTest {
 			$('.subTitle').text(txt);
 		}
 		var signalComplete = () => {
-			detach();
 			subTitle('');
 
 			return timeTest();
@@ -47,7 +42,7 @@ class MeasureTest {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
 			// measure.applyModifiers();
 			keys.render()
-            return timeTest();
+      return timeTest();
 		}
 
 		var startRepeatTest = () => {
@@ -55,16 +50,16 @@ class MeasureTest {
 			var selection = SmoSelection.measureSelection(score, 0, 0);
 			SmoOperation.setMeasureBarline(score,selection,new SmoBarline({position:SmoBarline.positions.start,barline:SmoBarline.barlines.startRepeat}));
 			keys.render()
-            return timeTest();
+      return timeTest();
 		}
 
-        var pickupTest = () => {
-            score.addPickupMeasure(0,4096+2048);
-            SmoUndoable.padMeasuresLeft(SmoSelection.measureSelection(score,0,2),8,undoBuffer);
-            score.staves[0].measures[2].setBarline(new SmoBarline({position:SmoBarline.positions.start,barline:SmoBarline.barlines.singleBar}));
-            keys.render();
-            return timeTest();
-        }
+    var pickupTest = () => {
+        score.addPickupMeasure(0,4096+2048);
+        SmoUndoable.padMeasuresLeft(SmoSelection.measureSelection(score,0,2),8,undoBuffer);
+        score.staves[0].measures[2].setBarline(new SmoBarline({position:SmoBarline.positions.start,barline:SmoBarline.barlines.singleBar}));
+        keys.render();
+        return timeTest();
+    }
 
 		var endRepeatTest = () => {
 			subTitle('endRepeatTest');
@@ -75,15 +70,7 @@ class MeasureTest {
 			SmoUndoable.scoreSelectionOp(score,selection,'setMeasureBarline',new SmoBarline({position:SmoBarline.positions.start,barline:SmoBarline.barlines.singleBar}),
 			    undoBuffer,'set barline');
 			keys.render()
-            return timeTest();
-		}
-
-		var serialize1 = () => {
-			score = SmoScore.deserialize(JSON.stringify(score.serialize()));
-			keys = utController.createUi(score,'Measure Test');
-		    layout = keys.layout;
-			keys.render()
-            return timeTest();
+      return timeTest();
 		}
 
 		var doubleEndTest = () => {
@@ -91,21 +78,21 @@ class MeasureTest {
 			var selection = SmoSelection.measureSelection(score, 0, 1);
 			SmoOperation.setMeasureBarline(score,selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.doubleBar}));
 			keys.render()
-            return timeTest();
+      return timeTest();
 		}
 		var endEndTest = () => {
 			subTitle('endRepeatTest');
 			var selection = SmoSelection.measureSelection(score, 0, 1);
 			SmoOperation.setMeasureBarline(score,selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.endBar}));
 			keys.render()
-            return timeTest();
+      return timeTest();
 		}
 		var noneEndTest = () => {
 			subTitle('noneEndTest');
 			var selection = SmoSelection.measureSelection(score, 0,1);
 			SmoOperation.setMeasureBarline(score,selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.none}));
 			keys.render()
-            return timeTest();
+      return timeTest();
 		}
 
 		var symbolTest1 = () => {
@@ -114,7 +101,7 @@ class MeasureTest {
 			SmoOperation.setMeasureBarline(score,selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.endRepeat}));
 			SmoOperation.setRepeatSymbol(score,selection,new SmoRepeatSymbol({position:SmoRepeatSymbol.positions.end,symbol:SmoRepeatSymbol.symbols.DcAlCoda}));
 			keys.render()
-            return timeTest();
+      return timeTest();
 		}
 		var symbolTest2 = () => {
 			subTitle('symbolTest2');
@@ -122,7 +109,7 @@ class MeasureTest {
 			SmoOperation.setMeasureBarline(score,selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.endRepeat}));
 			SmoOperation.setRepeatSymbol(score,selection,new SmoRepeatSymbol({position:SmoRepeatSymbol.positions.end,symbol:SmoRepeatSymbol.symbols.DcAlFine}));
 			keys.render()
-            return timeTest();
+      return timeTest();
 		}
 		var symbolTest3 = () => {
 			subTitle('symbolTest3');
@@ -130,7 +117,7 @@ class MeasureTest {
 			SmoOperation.setMeasureBarline(score,selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.endRepeat}));
 			SmoOperation.setRepeatSymbol(score,selection,new SmoRepeatSymbol({position:SmoRepeatSymbol.positions.end,symbol:SmoRepeatSymbol.symbols.Coda}));
 			keys.render()
-            return timeTest();
+      return timeTest();
 		}
 		var symbolTest4 = () => {
 			subTitle('symbolTest4');
@@ -138,7 +125,7 @@ class MeasureTest {
 			SmoOperation.setMeasureBarline(score,selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.endRepeat}));
 			SmoOperation.setRepeatSymbol(score,selection,new SmoRepeatSymbol({position:SmoRepeatSymbol.positions.end,symbol:SmoRepeatSymbol.symbols.DsAlCoda}));
 			keys.render()
-            return timeTest();
+      return timeTest();
 		}
 		var symbolTest5 = () => {
 			subTitle('symbolTest5');
@@ -146,7 +133,7 @@ class MeasureTest {
 			SmoOperation.setMeasureBarline(score,selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.endRepeat}));
 			SmoOperation.setRepeatSymbol(score,selection,new SmoRepeatSymbol({position:SmoRepeatSymbol.positions.end,symbol:SmoRepeatSymbol.symbols.DsAlFine}));
 			keys.render()
-            return timeTest();
+      return timeTest();
 		}
 		var symbolTest6 = () => {
 			subTitle('symbolTest6');
@@ -154,7 +141,7 @@ class MeasureTest {
 			SmoOperation.setMeasureBarline(score,selection,new SmoBarline({position:SmoBarline.positions.end,barline:SmoBarline.barlines.endBar}));
 			SmoOperation.setRepeatSymbol(score,selection,new SmoRepeatSymbol({position:SmoRepeatSymbol.positions.end,symbol:SmoRepeatSymbol.symbols.Fine}));
 			keys.render()
-            return timeTest();
+      return timeTest();
 		}
 
 		var voltaTest1 = () => {
@@ -163,7 +150,7 @@ class MeasureTest {
 			SmoOperation.addEnding(score,new SmoVolta({startBar:1,endBar:3,number:1}));
 			SmoOperation.setRepeatSymbol(score,selection,new SmoRepeatSymbol({position:SmoRepeatSymbol.positions.end,symbol:SmoRepeatSymbol.symbols.Fine}));
 			keys.render()
-            return timeTest();
+      return timeTest();
 		}
 
 		var voltaTest2 = () => {
@@ -172,10 +159,10 @@ class MeasureTest {
 			SmoOperation.addEnding(score,new SmoVolta({startBar:2,endBar:3,number:2}));
 			SmoOperation.setRepeatSymbol(score,selection,new SmoRepeatSymbol({position:SmoRepeatSymbol.positions.end,symbol:SmoRepeatSymbol.symbols.Fine}));
 			keys.render()
-            return timeTest();
+      return timeTest();
 		}
 
-        return drawDefaults().then(startRepeatTest).then(pickupTest).then(endRepeatTest).then(voltaTest1).then(serialize1).then(voltaTest2)
+        return drawDefaults().then(startRepeatTest).then(pickupTest).then(endRepeatTest).then(voltaTest1).then(voltaTest2)
 		    .then(doubleEndTest).then(endEndTest).then(noneEndTest)
 		    .then(symbolTest1).then(symbolTest2).then(symbolTest3).then(symbolTest4).then(symbolTest5).then(symbolTest6)
 			.then(signalComplete);

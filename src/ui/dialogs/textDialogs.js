@@ -1,8 +1,8 @@
 class SuiLyricDialog extends SuiDialogBase {
-    static createAndDisplay(parameters) {
+  static createAndDisplay(parameters) {
 		var dg = new SuiLyricDialog(parameters);
 		dg.display();
-        return dg;
+      return dg;
 	}
   static get dialogElements() {
     return [{
@@ -38,6 +38,11 @@ class SuiLyricDialog extends SuiDialogBase {
       label:'Edit Text',
       options: []
 	  }];
+  }
+  static get staticText() {
+    return {
+      label:'Done Editing Lyrics'
+    }
   }
   constructor(parameters) {
     parameters.ctor='SuiLyricDialog';
@@ -136,6 +141,49 @@ class SuiLyricDialog extends SuiDialogBase {
     this.textEditorCtrl.eventSource = this.eventSource;
     this.textEditorCtrl.startEditSession();
 	}
+}
+
+class SuiChordChangeDialog extends SuiLyricDialog {
+  static createAndDisplay(parameters) {
+    var dg = new SuiLyricDialog(parameters);
+    dg.display();
+      return dg;
+  }
+  static get dialogElements() {
+    return [{
+      smoName: 'verse',
+      parameterName: 'verse',
+      defaultValue: 0,
+      control: 'SuiDropdownComponent',
+      label:'Ordinality',
+      startRow:true,
+      options: [{
+          value: 0,
+          label: '1'
+        }, {
+          value: 1,
+          label: '2'
+        }, {
+          value: 2,
+          label: '3'
+        }
+      ]
+    },{
+      smoName: 'translateY',
+      parameterName: 'translateY',
+      defaultValue: 0,
+      control: 'SuiRockerComponent',
+      label: 'Y Adjustment (Px)',
+      type: 'int'
+    }, {
+      smoName: 'textEditor',
+      parameterName: 'text',
+      defaultValue: 0,
+      control: 'SuiLyricEditComponent',
+      label:'Edit Text',
+      options: []
+    }];
+  }
 }
 
 class SuiTextTransformDialog  extends SuiDialogBase {

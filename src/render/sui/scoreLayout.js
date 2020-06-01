@@ -24,10 +24,9 @@ class suiScoreLayout extends suiLayoutBase {
 	// ### Description;
 	// to get the score to appear, a div and a score object are required.  The layout takes care of creating the
 	// svg element in the dom and interacting with the vex library.
-	static createScoreLayout(renderElement,shadowElement, score, layoutParams) {
+	static createScoreLayout(renderElement,score, layoutParams) {
 		var ctorObj = {
 			elementId: renderElement,
-            shadowElement:shadowElement,
 			score: score
 		};
 		if (layoutParams) {

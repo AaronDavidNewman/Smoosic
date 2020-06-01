@@ -2,7 +2,9 @@
 class ChordTest {
 
 	static CommonTests() {
-		var keys = utController.createUi(SmoScore.getDefaultScore(),'Chord Test');
+    var application = SuiApplication.createUtApplication({scoreLoadJson:'emptyScoreJson'});
+
+		var keys = application.controller;
 		var score = keys.score;
 		var layout = keys.layout;
 		var measure = SmoSelection.measureSelection(score, 0, 0).measure;
@@ -35,8 +37,8 @@ class ChordTest {
 		var drawDefaults = () => {
 			// music.notes = VX.APPLY_MODIFIERS (music.notes,staffMeasure.keySignature);
 			// measure.applyModifiers();
-			layout.layout();
-            return timeTest();
+			layout.forceRender();
+      return timeTest();
 		}
 
 		var preBeamTest = () => {
@@ -46,15 +48,15 @@ class ChordTest {
 			SmoOperation.halveDuration(selection);
 			selection = SmoSelection.noteSelection(score, 0, 0, 0, 3);
 			SmoOperation.halveDuration(selection);
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 
 		var breakBeamTest = () => {
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
 			SmoOperation.toggleBeamGroup(selection);
-			layout.layout();
-            return timeTest();
+			layout.forceRender();
+      return timeTest();
 		}
 
 		var undoBeamTest = () => {
@@ -62,7 +64,7 @@ class ChordTest {
 			SmoOperation.doubleDuration(selection);
 			selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
 			SmoOperation.doubleDuration(selection);
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 
@@ -76,7 +78,7 @@ class ChordTest {
 					yOffsetLine: 11,
 					fontSize: 38
 				}));
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 
@@ -85,7 +87,7 @@ class ChordTest {
 			var ft = SmoSelection.noteSelection(layout.score, 0, 0, 0, 0);
 			var tt = SmoSelection.noteSelection(layout.score, 0, 0, 0, 3);
 			SmoOperation.crescendo(ft, tt);
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 
@@ -95,7 +97,7 @@ class ChordTest {
 			if (selection) {
 				SmoOperation.interval(selection, 4);
 			}
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 
@@ -103,7 +105,7 @@ class ChordTest {
 			subTitle('duration reduce test');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
 			SmoOperation.halveDuration(selection);
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 
@@ -111,12 +113,12 @@ class ChordTest {
 			subTitle('duration increase test');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
 			SmoOperation.doubleDuration(selection);
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 
 		var rerenderTest = () => {
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 		var setPitchTest = () => {
@@ -141,7 +143,7 @@ class ChordTest {
 			subTitle('make tuplet test');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
 			SmoOperation.makeTuplet(selection, 3);
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 
@@ -149,7 +151,7 @@ class ChordTest {
 			subTitle('unmake tuplet test');
 			var selection = SmoSelection.noteSelection(score, 0, 0, 0, 2);
 			SmoOperation.unmakeTuplet(selection);
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 
@@ -158,7 +160,7 @@ class ChordTest {
 			var target = SmoSelection.pitchSelection(score, 0, 0, 0, 2, [1]);
 			SmoOperation.courtesyAccidental(target, true);
 			// target.note.pitches[1].cautionary = true;
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 
@@ -167,7 +169,7 @@ class ChordTest {
 			var target = SmoSelection.pitchSelection(score, 0, 0, 0, 2, [1]);
 			SmoOperation.toggleEnharmonic(target);
 			// target.note.pitches[1].cautionary = true;
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 		var enharmonicTest2 = () => {
@@ -175,7 +177,7 @@ class ChordTest {
 			var target = SmoSelection.pitchSelection(score, 0, 0, 0, 2, [1]);
 			SmoOperation.toggleEnharmonic(target);
 			// target.note.pitches[1].cautionary = true;
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 
@@ -186,7 +188,7 @@ class ChordTest {
 					articulation: SmoArticulation.articulations.accent,
 					position: SmoArticulation.positions.above
 				}));
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 
@@ -197,7 +199,7 @@ class ChordTest {
 					articulation: SmoArticulation.articulations.tenuto,
 					position: SmoArticulation.positions.above
 				}));
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 		var accentTestBelow = () => {
@@ -215,7 +217,7 @@ class ChordTest {
 					articulation: SmoArticulation.articulations.accent,
 					position: SmoArticulation.positions.below
 				}));
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 
@@ -229,7 +231,7 @@ class ChordTest {
 					articulation: SmoArticulation.articulations.staccato,
 					position: SmoArticulation.positions.above
 				}));
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 
@@ -244,7 +246,7 @@ class ChordTest {
 					articulation: SmoArticulation.articulations.marcato,
 					position: SmoArticulation.positions.above
 				}));
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 
@@ -259,7 +261,7 @@ class ChordTest {
 					articulation: SmoArticulation.articulations.upStroke,
 					position: SmoArticulation.positions.above
 				}));
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 
@@ -274,7 +276,7 @@ class ChordTest {
 					articulation: SmoArticulation.articulations.downStroke,
 					position: SmoArticulation.positions.above
 				}));
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 		var pizzicatoTest = () => {
@@ -288,7 +290,7 @@ class ChordTest {
 					articulation: SmoArticulation.articulations.pizzicato,
 					position: SmoArticulation.positions.above
 				}));
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 		var fermataTest = () => {
@@ -302,7 +304,7 @@ class ChordTest {
 					articulation: SmoArticulation.articulations.fermata,
 					position: SmoArticulation.positions.above
 				}));
-			layout.layout();
+			layout.forceRender();
             return timeTest();
 		}
 

@@ -3,21 +3,17 @@
 class VoiceTest {
 
 	static CommonTests() {
-		var keys = utController.createUi( SmoScore.getDefaultScore());
+    var application = SuiApplication.createUtApplication({scoreLoadJson:'emptyScoreJson'});
+
+    var keys = application.controller;
+    var score = keys.score;
+    var layout = keys.layout;
 		$('h1.testTitle').text('Voice Test');
 
-		var score = keys.score;
-        var undoBuffer = keys.undoBuffer;
-		var layout = keys.layout;
+    var undoBuffer = keys.undoBuffer;
 
 		var measure = SmoSelection.measureSelection(score, 0, 0);
 
-		var detach = () => {
-			keys.detach();
-			keys = null;
-			score = null;
-			layout = null;
-		}
 		var subTitle = (txt) => {
 			$('.subTitle').text(txt);
 		}
@@ -32,7 +28,6 @@ class VoiceTest {
 		}
 
 		var signalComplete = () => {
-			detach();
 			subTitle('');
 			return timeTest();
 		}
@@ -43,20 +38,20 @@ class VoiceTest {
 			subTitle('notes in 2 voices');
 
 			keys.render();
-            return timeTest();
+      return timeTest();
 		}
-        var _transposeVoice = (vix,pitches) => {
-            var org = measure.measure.getActiveVoice();
-            SmoOperation.setActiveVoice(score,vix);
-            var nix = 0;
-            measure.measure.getNotes().forEach((note) => {
-                var sel = SmoSelection.noteSelection(score,0,0,vix,nix);
-                SmoOperation.setPitch(sel,pitches);
-                nix += 1;
-            });
+    var _transposeVoice = (vix,pitches) => {
+        var org = measure.measure.getActiveVoice();
+        SmoOperation.setActiveVoice(score,vix);
+        var nix = 0;
+        measure.measure.getNotes().forEach((note) => {
+            var sel = SmoSelection.noteSelection(score,0,0,vix,nix);
+            SmoOperation.setPitch(sel,pitches);
+            nix += 1;
+        });
 
-            SmoOperation.setActiveVoice(score,org);
-        }
+        SmoOperation.setActiveVoice(score,org);
+    }
 		var populateTest = () => {
 			subTitle('create voice test');
             _transposeVoice(0,[{letter:'a',accidental:'n',octave:4}]);

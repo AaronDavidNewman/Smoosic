@@ -11,49 +11,49 @@ class suiLayoutBase {
 			type: ctor
 		};
 		this.dirty=true;
-        this.replaceQ=[];
-        this.renderTime=250;  // ms to render before time slicing
-        this.partialRender = false;
-        this.stateRepCount=0;
-        this.viewportPages = 1;
+    this.replaceQ=[];
+    this.renderTime=250;  // ms to render before time slicing
+    this.partialRender = false;
+    this.stateRepCount=0;
+    this.viewportPages = 1;
 		this.setPassState(suiLayoutBase.initial,'ctor');
 		console.log('layout ctor: pstate initial');
 		this.viewportChanged = false;
-        this._resetViewport = false;
-        this.measureMapper = null;
+    this._resetViewport = false;
+    this.measureMapper = null;
 	}
 
-    setMeasureMapper(mapper) {
-        this.measureMapper = mapper;
-    }
+  setMeasureMapper(mapper) {
+    this.measureMapper = mapper;
+  }
 
-    static get Fonts() {
-        return {
-            Bravura: [VF.Fonts.Bravura, VF.Fonts.Gonville, VF.Fonts.Custom],
-            Gonville: [VF.Fonts.Gonville, VF.Fonts.Bravura, VF.Fonts.Custom],
-            Petaluma: [VF.Fonts.Petaluma, VF.Fonts.Gonville, VF.Fonts.Custom]
-        };
-    }
+  static get Fonts() {
+    return {
+      Bravura: [VF.Fonts.Bravura, VF.Fonts.Gonville, VF.Fonts.Custom],
+      Gonville: [VF.Fonts.Gonville, VF.Fonts.Bravura, VF.Fonts.Custom],
+      Petaluma: [VF.Fonts.Petaluma, VF.Fonts.Gonville, VF.Fonts.Custom]
+    };
+  }
 
-    static setFont(font) {
-        VF.DEFAULT_FONT_STACK=suiLayoutBase.Fonts[font];
-    }
+  static setFont(font) {
+    VF.DEFAULT_FONT_STACK=suiLayoutBase.Fonts[font];
+  }
 
 	static get passStates() {
 		return {initial:0,clean:2,replace:3};
 	}
 
-    addToReplaceQueue(selection) {
-        if (this.passState == suiLayoutBase.passStates.clean ||
-            this.passState == suiLayoutBase.passStates.replace) {
-          if (Array.isArray(selection)) {
-              this.replaceQ = this.replaceQ.concat(selection);
-          } else {
-              this.replaceQ.push(selection)
-          }
-          this.setDirty();
-       }
-    }
+  addToReplaceQueue(selection) {
+    if (this.passState == suiLayoutBase.passStates.clean ||
+      this.passState == suiLayoutBase.passStates.replace) {
+      if (Array.isArray(selection)) {
+        this.replaceQ = this.replaceQ.concat(selection);
+      } else {
+        this.replaceQ.push(selection)
+      }
+      this.setDirty();
+   }
+  }
 
 
 	setDirty() {
@@ -68,44 +68,44 @@ class suiLayoutBase {
 		this.dirty=true;
 		this.setPassState(suiLayoutBase.passStates.initial,'setRefresh');
 	}
-    rerenderAll() {
-        this.dirty=true;
-		this.setPassState(suiLayoutBase.passStates.initial,'rerenderAll');
-        this._resetViewport = true;
-    }
+  rerenderAll() {
+    this.dirty=true;
+  	this.setPassState(suiLayoutBase.passStates.initial,'rerenderAll');
+    this._resetViewport = true;
+  }
 
-    remapAll() {
-        this.partialRender = false;
-        this.setRefresh();
-    }
+  remapAll() {
+    this.partialRender = false;
+    this.setRefresh();
+  }
 
-    numberMeasures() {
-        var staff = this.score.staves[0];
-        var measures = staff.measures.filter((measure) => measure.measureNumber.systemIndex == 0);
-        $('.measure-number').remove();
-        var printing = $('body').hasClass('print-render');
+  numberMeasures() {
+    var staff = this.score.staves[0];
+    var measures = staff.measures.filter((measure) => measure.measureNumber.systemIndex == 0);
+    $('.measure-number').remove();
+    var printing = $('body').hasClass('print-render');
 
-        measures.forEach((measure) => {
-            var at = [];
-            if (measure.measureNumber.measureNumber > 0 && measure.measureNumber.systemIndex == 0) {
-                at.push({y:measure.logicalBox.y - 10});
-                at.push({x:measure.logicalBox.x});
-                at.push({fontFamily:'Helvitica'});
-                at.push({fontSize:'8pt'});
-                svgHelpers.placeSvgText(this.context.svg,at,'measure-number',(measure.measureNumber.measureNumber + 1).toString());
+    measures.forEach((measure) => {
+      var at = [];
+      if (measure.measureNumber.measureNumber > 0 && measure.measureNumber.systemIndex == 0) {
+        at.push({y:measure.logicalBox.y - 10});
+        at.push({x:measure.logicalBox.x});
+        at.push({fontFamily:'Helvitica'});
+        at.push({fontSize:'8pt'});
+        svgHelpers.placeSvgText(this.context.svg,at,'measure-number',(measure.measureNumber.measureNumber + 1).toString());
 
-                var formatIndex = SmoMeasure.systemOptions.findIndex((option) => measure[option] != SmoMeasure.defaults[option]);
-                if (formatIndex >= 0 && !printing) {
-                    var at=[];
-                    at.push({y:measure.logicalBox.y - 5});
-                    at.push({x:measure.logicalBox.x + 25});
-                    at.push({fontFamily:'Helvitica'});
-                    at.push({fontSize:'8pt'});
-                    svgHelpers.placeSvgText(this.context.svg,at,'measure-format','&#x21b0;');
-                }
-            }
-        });
-    }
+        var formatIndex = SmoMeasure.systemOptions.findIndex((option) => measure[option] != SmoMeasure.defaults[option]);
+        if (formatIndex >= 0 && !printing) {
+          var at=[];
+          at.push({y:measure.logicalBox.y - 5});
+          at.push({x:measure.logicalBox.x + 25});
+          at.push({fontFamily:'Helvitica'});
+          at.push({fontSize:'8pt'});
+          svgHelpers.placeSvgText(this.context.svg,at,'measure-format','&#x21b0;');
+        }
+      }
+    });
+  }
 
 	_setViewport(reset,elementId) {
 		// this.screenWidth = window.innerWidth;
@@ -148,44 +148,44 @@ class suiLayoutBase {
 		this.dirty=true;
 	}
 
-    setViewport(reset) {
-        this._setViewport(reset,this.elementId);
-        this.score.staves.forEach((staff) => {
-            staff.measures.forEach((measure) => {
-                if (measure.logicalBox && reset) {
-                    measure.svg.history=['reset'];
-                    // measure.deleteLogicalBox('reset viewport');
-                }
-            });
-        });
-        this.partialRender = false;
-    }
-
-    clearLine(measure) {
-        var lineIndex = measure.lineIndex;
-        var startIndex = (lineIndex > 1 ? lineIndex - 1: 0);
-        for (var i = startIndex;i<lineIndex+1;++i) {
-            this.score.staves.forEach((staff) => {
-                var mms = staff.measures.filter((mm) => mm.lineIndex === i);
-                mms.forEach((mm) => {
-                    delete mm.logicalBox;
-                });
-            });
+  setViewport(reset) {
+    this._setViewport(reset,this.elementId);
+    this.score.staves.forEach((staff) => {
+      staff.measures.forEach((measure) => {
+        if (measure.logicalBox && reset) {
+          measure.svg.history=['reset'];
+          // measure.deleteLogicalBox('reset viewport');
         }
+      });
+    });
+    this.partialRender = false;
+  }
+
+  clearLine(measure) {
+    var lineIndex = measure.lineIndex;
+    var startIndex = (lineIndex > 1 ? lineIndex - 1: 0);
+    for (var i = startIndex;i<lineIndex+1;++i) {
+      this.score.staves.forEach((staff) => {
+        var mms = staff.measures.filter((mm) => mm.lineIndex === i);
+        mms.forEach((mm) => {
+          delete mm.logicalBox;
+        });
+      });
     }
+  }
 
 	setPassState(st,location) {
-        var oldState = this.passState;
-        if (oldState != st) {
-            this.stateRepCount = 0;
-        } else {
-            this.stateRepCount += 1;
-        }
+    var oldState = this.passState;
+    if (oldState != st) {
+      this.stateRepCount = 0;
+    } else {
+      this.stateRepCount += 1;
+    }
 
-        var msg = location + ': passState '+this.passState+'=>'+st;
-        if (this.stateRepCount > 0) {
-            msg += ' ('+this.stateRepCount+')';
-        }
+    var msg = location + ': passState '+this.passState+'=>'+st;
+    if (this.stateRepCount > 0) {
+      msg += ' ('+this.stateRepCount+')';
+    }
 		console.log(msg);
 		this.passState = st;
 	}
@@ -209,16 +209,16 @@ class suiLayoutBase {
 
 	static get debugLayout() {
 		suiLayoutBase['_debugLayout'] = suiLayoutBase['_debugLayout'] ? suiLayoutBase._debugLayout : false
-			return suiLayoutBase._debugLayout;
+		return suiLayoutBase._debugLayout;
 	}
 
 	static set debugLayout(value) {
 		suiLayoutBase._debugLayout = value;
-        if (value) {
-            $('body').addClass('layout-debug');
-        } else {
-            $('body').removeClass('layout-debug');
-        }
+      if (value) {
+        $('body').addClass('layout-debug');
+      } else {
+        $('body').removeClass('layout-debug');
+      }
 	}
 
 	// ### get context
@@ -235,26 +235,26 @@ class suiLayoutBase {
 		return this.context.svg;
 	}
 
-    get score() {
-        return this._score;
-    }
+  get score() {
+    return this._score;
+  }
 
-    set score(score) {
-        var shouldReset = false;
-        if (this._score) {
-            shouldReset = true;
-        }
-        this.setPassState(suiLayoutBase.passStates.initial,'load score');
-        suiLayoutBase.setFont(score.engravingFont);
-        this.dirty=true;
-        this._score = score;
-        if (shouldReset) {
-            if (this.measureMapper) {
-                this.measureMapper.loadScore();
-            }
-            this.setViewport(true);
-        }
+  set score(score) {
+    var shouldReset = false;
+    if (this._score) {
+      shouldReset = true;
     }
+    this.setPassState(suiLayoutBase.passStates.initial,'load score');
+    suiLayoutBase.setFont(score.engravingFont);
+    this.dirty=true;
+    this._score = score;
+    if (shouldReset) {
+      if (this.measureMapper) {
+        this.measureMapper.loadScore();
+      }
+      this.setViewport(true);
+    }
+  }
 
 
 	// ### render
@@ -443,32 +443,31 @@ class suiLayoutBase {
 		// system.updateLyricOffsets();
 	}
 
-    _drawPageLines() {
-        $(this.context.svg).find('.pageLine').remove();
-        var printing = $('body').hasClass('print-render');
-        if (printing) {
-            return;
-        }
-        for (var i=1;i<this._score.layout.pages;++i) {
-            var y = (this.pageHeight/this.svgScale)*i;
-            svgHelpers.line(this.svg,0,y,this.score.layout.pageWidth/this.score.layout.svgScale,y,
-                [{'stroke': '#321'},
-                    {'stroke-width': '2'},
-                        {'stroke-dasharray': '4,1'},
-                            {'fill': 'none'}],'pageLine');
-        }
+  _drawPageLines() {
+    $(this.context.svg).find('.pageLine').remove();
+    var printing = $('body').hasClass('print-render');
+    if (printing) {
+      return;
     }
+    for (var i=1;i<this._score.layout.pages;++i) {
+      var y = (this.pageHeight/this.svgScale)*i;
+      svgHelpers.line(this.svg,0,y,this.score.layout.pageWidth/this.score.layout.svgScale,y,
+        [
+          {'stroke': '#321'},
+          {'stroke-width': '2'},
+          {'stroke-dasharray': '4,1'},
+          {'fill': 'none'}],'pageLine');
+    }
+  }
 
   _replaceMeasures() {
-
     var rendered = {};
-
     this.replaceQ.forEach((change) => {
       smoBeamerFactory.applyBeams(change.measure);
       var system = new VxSystem(this.context, change.measure.staffY, change.measure.lineIndex,this.score);
       var selections = SmoSelection.measuresInColumn(this.score,change.measure.measureNumber.measureIndex);
       selections.forEach((selection) => {
-          system.renderMeasure(selection.measure,this.measureMapper);
+        system.renderMeasure(selection.measure,this.measureMapper);
       });
       system.renderEndings();
       this._renderModifiers(change.staff, system);
@@ -480,18 +479,12 @@ class suiLayoutBase {
     this.replaceQ = [];
   }
 
-    _adjustHeight() {
-        var curPages = this._score.layout.pages;
-        // suiLayoutAdjuster.adjustHeight(this._score,this.renderer,this.pageHeight/this.svgScale);
-        if (this._score.layout.pages  != curPages) {
-            this.setViewport(false);
-            this.setPassState(suiLayoutBase.passStates.initial,'render 2');
-            // Force the viewport to update the page size
-            // $('body').trigger('forceResizeEvent');
-        } else {
-            this.setPassState(suiLayoutBase.passStates.adjustY,'render 2');
-        }
-    }
+  // ### forceRender
+  // For unit test applictions that want to render right-away
+  forceRender() {
+    this.setRefresh();
+    this.render();
+  }
 
 	render() {
         if (this._resetViewport) {

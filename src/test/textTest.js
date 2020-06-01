@@ -1,24 +1,18 @@
 
 class TextTest {
   static CommonTests() {
-		var keys = utController.createUi(SmoScore.getDefaultScore(),'Text Test');
-		var score = keys.score;
-		var layout = keys.layout;
-        score.addDefaultMeasureWithNotes(0,{});
-        score.addDefaultMeasureWithNotes(1,{});
-        score.addDefaultMeasureWithNotes(2,{});
+    var application = SuiApplication.createUtApplication();
+    var keys = application.controller;
+    var score = keys.layout.score;
+    score.addDefaultMeasureWithNotes(0,{});
+    score.addDefaultMeasureWithNotes(1,{});
+    score.addDefaultMeasureWithNotes(2,{});
 		var undo = keys.undoBuffer;
 		var tt = new SmoScoreText({text:'Hello world',x:240,y:30});
 		var mt=new SmoMeasureText({position:SmoMeasureText.positions.left,text:'Measure Text'});
 		var delay=250;
 		// var measure = SmoSelection.measureSelection(score, 0, 0).measure;
 
-		var detach = () => {
-			keys.detach();
-			keys = null;
-			score = null;
-			layout = null;
-		}
 		var timeTest = () => {
 			const promise = new Promise((resolve, reject) => {
 					setTimeout(() => {
@@ -32,7 +26,6 @@ class TextTest {
 			$('.subTitle').text(txt);
 		}
 		var signalComplete = () => {
-			detach();
 			subTitle('');
 
 			return timeTest();
