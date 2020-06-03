@@ -627,7 +627,7 @@ class TextButtons {
   	// tracker, selection, controller
   }
   chordChanges() {
-    SuiLyricDialog.createAndDisplay(
+    SuiChordChangeDialog.createAndDisplay(
       {
         buttonElement:this.buttonElement,
         buttonData:this.buttonData,

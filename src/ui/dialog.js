@@ -247,6 +247,22 @@ class SuiDialogBase {
 // The layout dialog has page layout and zoom logic.  It is not based on a selection but score-wide
 class SuiLayoutDialog extends SuiDialogBase {
 
+/*
+  static printText() {
+    SuiLayoutDialog.dialogElements.forEach((element) => {
+      if (element.label) {
+        console.log('{label:"'+element.label+'"}');
+        if (element.options) {
+          console.log('[');
+          element.options.forEach((option) => {
+            console.log('{value:"'+option.value+'",label:"'+option.label+'"');
+          });
+          console.log(']');
+        });
+      }
+    });
+  }  */
+
    // ### dialogElements
    // all dialogs have elements define the controls of the dialog.
 	static get dialogElements() {

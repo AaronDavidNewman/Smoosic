@@ -11,7 +11,8 @@ class SuiApplication {
       editor:false,
       menus:false,
       controller:'utController',
-      domSource:'UtDom'
+      domSource:'UtDom',
+      languageDir:'ltr'
     };
     Vex.Merge(_config,config);
     return new SuiApplication(_config);
@@ -30,7 +31,8 @@ class SuiApplication {
       ribbon:true,
       editor:true,
       menus:true,
-      title:'Smoosic'
+      title:'Smoosic',
+      languageDir:'ltr'
     }
   }
 

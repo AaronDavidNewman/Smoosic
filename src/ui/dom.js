@@ -38,7 +38,7 @@ class SuiDom {
       .append(b('div').classes('menuContainer'))
       .append(b('div').classes('piano-container')
       .append(b('div').classes('piano-keys')))
-      .append(b('div').classes('workspace')
+      .append(b('div').classes('workspace').attr('dir',SmoConfig.languageDir)
         .append(b('div').classes('control-bar')
           .append(b('div').classes('titleText').text('Smoosic'))
           .append(b('div').classes('controls-top')))
@@ -46,8 +46,9 @@ class SuiDom {
           .append(b('div').classes('controls-left'))
           .append(b('div').classes('controls-menu-message'))
           .append(b('div').classes('musicRelief')
-            .append(b('div').classes('musicContainer').attr('id',vexId)))
-          .append(b('div').classes('musicReliefShadow'))));
+            .append(b('div').classes('musicContainer').attr('id',vexId)
+            .attr('dir','ltr')
+          ))));
     $('#'+smoId).append(r.dom());
     var pianoDom=$('.piano-keys')[0];
     var svg=document.createElementNS(svgHelpers.namespace,'svg');
@@ -78,11 +79,14 @@ class UtDom {
   			.append(b('div').classes('piano-container')
   				.append(b('div').classes('piano-keys')))
   			.append(b('div').classes('workspace-container')
-  				.append(b('div').classes('workspace')
+  				.append(b('div').classes('workspace').attr('dir',SmoConfig.languageDir)
   					.append(b('div').classes('controls-top'))
   					.append(b('div').classes('controls-left'))
   					.append(b('div').classes('musicRelief')
-  						.append(b('div').classes('musicContainer').attr('id', vexId)))));
+  						.append(b('div')
+              .classes('musicContainer')
+              .attr('id', vexId)
+              .attr('dir','ltr')))));
   		$('#'+smoId).append(r.dom());
   	}
 

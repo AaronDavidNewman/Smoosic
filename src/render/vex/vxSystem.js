@@ -64,7 +64,7 @@ class VxSystem {
       var chords = note.getLyricForVerse(i,SmoLyric.parsers.chord);
       chords.forEach((chord) => {
         var dom = $(this.context.svg).find(chord.selector)[0];
-        dom.setAttributeNS('','transform','translate('+chord.translateX+' '+chord.translateY+')');
+        dom.setAttributeNS('','transform','translate('+chord.translateX+' '+(-1*chord.translateY)+')');
       });
     }
   }

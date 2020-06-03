@@ -8555,7 +8555,7 @@ class VxMeasure {
     _addChordChangeToNote(vexNote,lyric) {
       var y = lyric.verse*10;
       var cs = new VF.ChordSymbol();
-      cs.addGlyphOrText(lyric.getText()).setFontSize(12);
+      cs.addGlyphOrText(lyric.getText()).setFont('Bubblegum Sans',14,'normal');
       vexNote.addModifier(0,cs);
       const classString = 'chord chord-'+lyric.verse;
       cs.addClass(classString);
@@ -9037,7 +9037,7 @@ class VxSystem {
       var chords = note.getLyricForVerse(i,SmoLyric.parsers.chord);
       chords.forEach((chord) => {
         var dom = $(this.context.svg).find(chord.selector)[0];
-        dom.setAttributeNS('','transform','translate('+chord.translateX+' '+chord.translateY+')');
+        dom.setAttributeNS('','transform','translate('+chord.translateX+' '+(-1*chord.translateY)+')');
       });
     }
   }
@@ -14345,40 +14345,40 @@ class SuiDynamicsMenu extends suiMenuBase {
   }
   static get defaults() {
   return {
-  menuItems: [{
-  icon: 'pianissimo',
-  text: 'Pianissimo',
-  value: 'pp'
-  }, {
-  icon: 'piano',
-  text: 'Piano',
-  value: 'p'
-  }, {
-  icon: 'mezzopiano',
-  text: 'Mezzo-piano',
-  value: 'mp'
-  }, {
-  icon: 'mezzoforte',
-  text: 'Mezzo-forte',
-  value: 'mf'
-  }, {
-  icon: 'forte',
-  text: 'Forte',
-  value: 'f'
-  }, {
-  icon: 'fortissimo',
-  text: 'Fortissimo',
-  value: 'ff'
-  }, {
-  icon: 'sfz',
-  text: 'sfortzando',
-  value: 'sfz'
-  },
-   {
-  icon: '',
-  text: 'Cancel',
-  value: 'cancel'
-  }
+    menuItems: [{
+      icon: 'pianissimo',
+      text: 'Pianissimo',
+      value: 'pp'
+    }, {
+      icon: 'piano',
+      text: 'Piano',
+      value: 'p'
+    }, {
+      icon: 'mezzopiano',
+      text: 'Mezzo-piano',
+      value: 'mp'
+    }, {
+      icon: 'mezzoforte',
+      text: 'Mezzo-forte',
+      value: 'mf'
+    }, {
+      icon: 'forte',
+      text: 'Forte',
+      value: 'f'
+    }, {
+      icon: 'fortissimo',
+      text: 'Fortissimo',
+      value: 'ff'
+    }, {
+      icon: 'sfz',
+      text: 'sfortzando',
+      value: 'sfz'
+    },
+     {
+      icon: '',
+      text: 'Cancel',
+      value: 'cancel'
+    }
   ]
   };
   }
@@ -14438,7 +14438,7 @@ class SuiTimeSignatureMenu extends suiMenuBase {
   },{
   icon: '',
   text: 'Other',
-  value: 'Other',
+  value: 'TimeSigOther',
   },{
   icon: '',
   text: 'Cancel',
@@ -14451,7 +14451,7 @@ class SuiTimeSignatureMenu extends suiMenuBase {
     selection(ev) {
       var text = $(ev.currentTarget).attr('data-value');
 
-      if (text == 'Other') {
+      if (text == 'TimeSigOther') {
         SuiTimeSignatureDialog.createAndDisplay({
     			layout: this.layout,
           tracker: this.tracker,
@@ -14481,60 +14481,63 @@ class suiKeySignatureMenu extends suiMenuBase {
   Vex.Merge(params, suiKeySignatureMenu.defaults);
   super(params);
   }
+  static printText() {
+    suiKeySignatureMenu.defaults.menuItems.forEach((item) => {console.log('{id:"'+item.value+'",text:"'+item.text+'"},')});
+  }
   static get defaults() {
   return {
   menuItems: [{
   icon: 'key-sig-c',
   text: 'C Major',
-  value: 'C',
+  value: 'KeyOfC',
   }, {
   icon: 'key-sig-f',
   text: 'F Major',
-  value: 'F',
+  value: 'KeyOfF',
   }, {
   icon: 'key-sig-g',
   text: 'G Major',
-  value: 'G',
+  value: 'KeyOfG',
   }, {
   icon: 'key-sig-bb',
   text: 'Bb Major',
-  value: 'Bb'
+  value: 'KeyOfBb'
   }, {
   icon: 'key-sig-d',
   text: 'D Major',
-  value: 'D'
+  value: 'KeyOfD'
   }, {
   icon: 'key-sig-eb',
   text: 'Eb Major',
-  value: 'Eb'
+  value: 'KeyOfEb'
   }, {
   icon: 'key-sig-a',
   text: 'A Major',
-  value: 'A'
+  value: 'KeyOfA'
   }, {
   icon: 'key-sig-ab',
   text: 'Ab Major',
-  value: 'Ab'
+  value: 'KeyOfAb'
   }, {
   icon: 'key-sig-e',
   text: 'E Major',
-  value: 'E'
+  value: 'KeyOfE'
   }, {
   icon: 'key-sig-bd',
   text: 'Db Major',
-  value: 'Db'
+  value: 'KeyOfDb'
   }, {
   icon: 'key-sig-b',
   text: 'B Major',
-  value: 'B'
+  value: 'KeyOfB'
   }, {
   icon: 'key-sig-fs',
   text: 'F# Major',
-  value: 'F#'
+  value: 'KeyOfF#'
   }, {
   icon: 'key-sig-cs',
   text: 'C# Major',
-  value: 'C#'
+  value: 'KeyOfC#'
   },
    {
   icon: '',
@@ -14547,16 +14550,17 @@ class suiKeySignatureMenu extends suiMenuBase {
   }
 
   selection(ev) {
-  var keySig = $(ev.currentTarget).attr('data-value');
-  var changed = [];
-  this.tracker.selections.forEach((sel) => {
-  if (changed.indexOf(sel.selector.measure) === -1) {
-  changed.push(sel.selector.measure);
-  SmoUndoable.addKeySignature(this.score, sel, keySig, this.editor.undoBuffer);
-        this.tracker.replaceSelectedMeasures();
-  }
-  });
-  this.complete();
+    var keySig = $(ev.currentTarget).attr('data-value');
+    keySig = (keySig === 'cancel' ? keySig : keySig.substring(5,xx.length));
+    var changed = [];
+    this.tracker.selections.forEach((sel) => {
+      if (changed.indexOf(sel.selector.measure) === -1) {
+        changed.push(sel.selector.measure);
+        SmoUndoable.addKeySignature(this.score, sel, keySig, this.editor.undoBuffer);
+          this.tracker.replaceSelectedMeasures();
+        }
+    });
+    this.complete();
   }
   keydown(ev) {}
 }
@@ -14564,10 +14568,14 @@ class suiKeySignatureMenu extends suiMenuBase {
 class suiStaffModifierMenu extends suiMenuBase {
 
   constructor(params) {
-  params = (params ? params : {});
-  Vex.Merge(params, suiStaffModifierMenu.defaults);
-  super(params);
+    params = (params ? params : {});
+    Vex.Merge(params, suiStaffModifierMenu.defaults);
+    super(params);
   }
+  static printText() {
+    suiStaffModifierMenu.defaults.menuItems.forEach((item) => {console.log('{id:"'+item.value+'",text:"'+item.text+'"},')});
+  }
+
   static get defaults() {
   return {
   menuItems: [{
@@ -14626,6 +14634,10 @@ class SuiAddStaffMenu extends suiMenuBase {
   Vex.Merge(params, SuiAddStaffMenu.defaults);
   super(params);
   }
+  static printText() {
+    SuiAddStaffMenu.defaults.menuItems.forEach((item) => {console.log('{id:"'+item.value+'",text:"'+item.text+'"},')});
+  }
+
   static get defaults() {
   return {
   menuItems: [{
@@ -15644,6 +15656,22 @@ class SuiDialogBase {
 // The layout dialog has page layout and zoom logic.  It is not based on a selection but score-wide
 class SuiLayoutDialog extends SuiDialogBase {
 
+/*
+  static printText() {
+    SuiLayoutDialog.dialogElements.forEach((element) => {
+      if (element.label) {
+        console.log('{label:"'+element.label+'"}');
+        if (element.options) {
+          console.log('[');
+          element.options.forEach((option) => {
+            console.log('{value:"'+option.value+'",label:"'+option.label+'"');
+          });
+          console.log(']');
+        });
+      }
+    });
+  }  */
+
    // ### dialogElements
    // all dialogs have elements define the controls of the dialog.
 	static get dialogElements() {
@@ -16303,9 +16331,12 @@ class SuiSaveFileDialog extends SuiFileDialog {
 
 class SuiChordChangeDialog extends SuiLyricDialog {
   static createAndDisplay(parameters) {
-    var dg = new SuiLyricDialog(parameters);
+    var dg = new SuiChordChangeDialog(parameters);
     dg.display();
       return dg;
+  }
+  constructor(parameters) {
+    super(parameters);
   }
   static get dialogElements() {
     return [{
@@ -16341,6 +16372,23 @@ class SuiChordChangeDialog extends SuiLyricDialog {
       label:'Edit Text',
       options: []
     }];
+  }
+  changed() {
+    this.textEditorCtrl.verse = this.verse.getValue();
+    // Note, when selection changes, we need to wait for the text edit session
+    // to start on the new selection.  Then this.editor.changeFlag is set and
+    // we can focus on the selection if it is not visible.
+    if (this.textEditorCtrl.changeFlag && this.textEditorCtrl.selection) {
+      this.textEditorCtrl.setSelection(this.textEditorCtrl.selection.selector);
+      this._focusSelection();
+    }
+
+    if (this.translateYCtrl.changeFlag) {
+      this.textEditorCtrl.setYOffset(this.translateYCtrl.getValue());
+      this.tracker.replaceSelectedMeasures();
+    } else {
+      this.translateYCtrl.setValue(this.textEditorCtrl.getYOffset());
+    }
   }
 }
 
@@ -20536,7 +20584,7 @@ class TextButtons {
   	// tracker, selection, controller
   }
   chordChanges() {
-    SuiLyricDialog.createAndDisplay(
+    SuiChordChangeDialog.createAndDisplay(
       {
         buttonElement:this.buttonElement,
         buttonData:this.buttonData,
@@ -21600,7 +21648,7 @@ class SuiDom {
       .append(b('div').classes('menuContainer'))
       .append(b('div').classes('piano-container')
       .append(b('div').classes('piano-keys')))
-      .append(b('div').classes('workspace')
+      .append(b('div').classes('workspace').attr('dir',SmoConfig.languageDir)
         .append(b('div').classes('control-bar')
           .append(b('div').classes('titleText').text('Smoosic'))
           .append(b('div').classes('controls-top')))
@@ -21608,8 +21656,9 @@ class SuiDom {
           .append(b('div').classes('controls-left'))
           .append(b('div').classes('controls-menu-message'))
           .append(b('div').classes('musicRelief')
-            .append(b('div').classes('musicContainer').attr('id',vexId)))
-          .append(b('div').classes('musicReliefShadow'))));
+            .append(b('div').classes('musicContainer').attr('id',vexId)
+            .attr('dir','ltr')
+          ))));
     $('#'+smoId).append(r.dom());
     var pianoDom=$('.piano-keys')[0];
     var svg=document.createElementNS(svgHelpers.namespace,'svg');
@@ -21640,11 +21689,14 @@ class UtDom {
   			.append(b('div').classes('piano-container')
   				.append(b('div').classes('piano-keys')))
   			.append(b('div').classes('workspace-container')
-  				.append(b('div').classes('workspace')
+  				.append(b('div').classes('workspace').attr('dir',SmoConfig.languageDir)
   					.append(b('div').classes('controls-top'))
   					.append(b('div').classes('controls-left'))
   					.append(b('div').classes('musicRelief')
-  						.append(b('div').classes('musicContainer').attr('id', vexId)))));
+  						.append(b('div')
+              .classes('musicContainer')
+              .attr('id', vexId)
+              .attr('dir','ltr')))));
   		$('#'+smoId).append(r.dom());
   	}
 
@@ -21993,7 +22045,8 @@ class suiController {
       editor:false,
       menus:false,
       controller:'utController',
-      domSource:'UtDom'
+      domSource:'UtDom',
+      languageDir:'ltr'
     };
     Vex.Merge(_config,config);
     return new SuiApplication(_config);
@@ -22012,7 +22065,8 @@ class suiController {
       ribbon:true,
       editor:true,
       menus:true,
-      title:'Smoosic'
+      title:'Smoosic',
+      languageDir:'ltr'
     }
   }
 

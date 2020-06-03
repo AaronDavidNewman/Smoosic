@@ -145,9 +145,12 @@ class SuiLyricDialog extends SuiDialogBase {
 
 class SuiChordChangeDialog extends SuiLyricDialog {
   static createAndDisplay(parameters) {
-    var dg = new SuiLyricDialog(parameters);
+    var dg = new SuiChordChangeDialog(parameters);
     dg.display();
       return dg;
+  }
+  constructor(parameters) {
+    super(parameters);
   }
   static get dialogElements() {
     return [{
@@ -183,6 +186,23 @@ class SuiChordChangeDialog extends SuiLyricDialog {
       label:'Edit Text',
       options: []
     }];
+  }
+  changed() {
+    this.textEditorCtrl.verse = this.verse.getValue();
+    // Note, when selection changes, we need to wait for the text edit session
+    // to start on the new selection.  Then this.editor.changeFlag is set and
+    // we can focus on the selection if it is not visible.
+    if (this.textEditorCtrl.changeFlag && this.textEditorCtrl.selection) {
+      this.textEditorCtrl.setSelection(this.textEditorCtrl.selection.selector);
+      this._focusSelection();
+    }
+
+    if (this.translateYCtrl.changeFlag) {
+      this.textEditorCtrl.setYOffset(this.translateYCtrl.getValue());
+      this.tracker.replaceSelectedMeasures();
+    } else {
+      this.translateYCtrl.setValue(this.textEditorCtrl.getYOffset());
+    }
   }
 }
 
