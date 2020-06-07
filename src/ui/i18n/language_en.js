@@ -12,7 +12,8 @@ var smoLanguageStringEn = `[
   "label": "Save Score",
   "dialogElements": [
    {
-    "label": "File Name"
+    "label": "File Name",
+    "id": "saveFileName"
    }
   ]
  },
@@ -27,6 +28,7 @@ var smoLanguageStringEn = `[
   "dialogElements": [
    {
     "label": "Pickup Measure",
+    "id": "pickupMeasure",
     "options": [
      {
       "value": 2048,
@@ -47,25 +49,32 @@ var smoLanguageStringEn = `[
     ]
    },
    {
-    "label": "Convert to Pickup Measure"
+    "label": "Convert to Pickup Measure",
+    "id": "makePickup"
    },
    {
-    "label": "Pad Left (px)"
+    "label": "Pad Left (px)",
+    "id": "padLeft"
    },
    {
-    "label": "Stretch Contents"
+    "label": "Stretch Contents",
+    "id": "customStretch"
    },
    {
-    "label": "Adjust Proportional Spacing"
+    "label": "Adjust Proportional Spacing",
+    "id": "customProportion"
    },
    {
-    "label": "Pad all measures in system"
+    "label": "Pad all measures in system",
+    "id": "padAllInSystem"
    },
    {
-    "label": "Measure Text"
+    "label": "Measure Text",
+    "id": "measureText"
    },
    {
     "label": "Text Position",
+    "id": "measureTextPosition",
     "options": [
      {
       "value": 2,
@@ -86,7 +95,8 @@ var smoLanguageStringEn = `[
     ]
    },
    {
-    "label": "System break before this measure"
+    "label": "System break before this measure",
+    "id": "systemBreak"
    }
   ]
  },
@@ -96,6 +106,7 @@ var smoLanguageStringEn = `[
   "dialogElements": [
    {
     "label": "Tempo Mode",
+    "id": "tempoMode",
     "options": [
      {
       "value": "duration",
@@ -112,10 +123,12 @@ var smoLanguageStringEn = `[
     ]
    },
    {
-    "label": "Notes/Minute"
+    "label": "Notes/Minute",
+    "id": "bpm"
    },
    {
     "label": "Unit for Beat",
+    "id": "beatDuration",
     "options": [
      {
       "value": 4096,
@@ -137,6 +150,7 @@ var smoLanguageStringEn = `[
    },
    {
     "label": "Tempo Text",
+    "id": "tempoText",
     "options": [
      {
       "value": "Larghissimo",
@@ -205,10 +219,12 @@ var smoLanguageStringEn = `[
     ]
    },
    {
-    "label": "Apply to all future measures?"
+    "label": "Apply to all future measures?",
+    "id": "applyToAll"
    },
    {
-    "label": "Display Tempo"
+    "label": "Display Tempo",
+    "id": "display"
    }
   ]
  },
@@ -217,10 +233,12 @@ var smoLanguageStringEn = `[
   "label": "Custom Time Signature",
   "dialogElements": [
    {
-    "label": "Beats/Measure"
+    "label": "Beats/Measure",
+    "id": "numerator"
    },
    {
     "label": "Beat Value",
+    "id": "denominator",
     "options": [
      {
       "value": 8,
@@ -244,6 +262,7 @@ var smoLanguageStringEn = `[
   "dialogElements": [
    {
     "label": "Page Size",
+    "id": "pageSize",
     "options": [
      {
       "value": "letter",
@@ -264,13 +283,16 @@ var smoLanguageStringEn = `[
     ]
    },
    {
-    "label": "Page Width (px)"
+    "label": "Page Width (px)",
+    "id": "pageWidth"
    },
    {
-    "label": "Page Height (px)"
+    "label": "Page Height (px)",
+    "id": "pageHeight"
    },
    {
     "label": "Orientation",
+    "id": "orientation",
     "options": [
      {
       "value": 0,
@@ -284,6 +306,7 @@ var smoLanguageStringEn = `[
    },
    {
     "label": "Engraving Font",
+    "id": "engravingFont",
     "options": [
      {
       "value": "Bravura",
@@ -300,25 +323,32 @@ var smoLanguageStringEn = `[
     ]
    },
    {
-    "label": "Left Margin (px)"
+    "label": "Left Margin (px)",
+    "id": "leftMargin"
    },
    {
-    "label": "Right Margin (px)"
+    "label": "Right Margin (px)",
+    "id": "rightMargin"
    },
    {
-    "label": "Top Margin (px)"
+    "label": "Top Margin (px)",
+    "id": "topMargin"
    },
    {
-    "label": "Inter-System Margin"
+    "label": "Inter-System Margin",
+    "id": "interGap"
    },
    {
-    "label": "Intra-System Margin"
+    "label": "Intra-System Margin",
+    "id": "intraGap"
    },
    {
-    "label": "% Zoom"
+    "label": "% Zoom",
+    "id": "zoomScale"
    },
    {
-    "label": "% Note size"
+    "label": "% Note size",
+    "id": "svgScale"
    }
   ]
  },
@@ -327,16 +357,20 @@ var smoLanguageStringEn = `[
   "label": "Dynamics Properties",
   "dialogElements": [
    {
-    "label": "Y Line"
+    "label": "Y Line",
+    "id": "yOffsetLine"
    },
    {
-    "label": "Y Offset Px"
+    "label": "Y Offset Px",
+    "id": "yOffsetPixels"
    },
    {
-    "label": "X Offset"
+    "label": "X Offset",
+    "id": "xOffset"
    },
    {
     "label": "Text",
+    "id": "text",
     "options": [
      {
       "value": "p",
@@ -371,8 +405,122 @@ var smoLanguageStringEn = `[
   ]
  },
  {
+  "ctor": "SuiSlurAttributesDialog",
+  "label": "Slur Properties",
+  "dialogElements": [
+   {
+    "label": "Spacing",
+    "id": "spacing"
+   },
+   {
+    "label": "Thickness",
+    "id": "thickness"
+   },
+   {
+    "label": "X Offset",
+    "id": "xOffset"
+   },
+   {
+    "label": "Y Offset",
+    "id": "yOffset"
+   },
+   {
+    "label": "Start Position",
+    "id": "position",
+    "options": [
+     {
+      "value": 1,
+      "label": "Head"
+     },
+     {
+      "value": 2,
+      "label": "Top"
+     }
+    ]
+   },
+   {
+    "label": "End Position",
+    "id": "position_end",
+    "options": [
+     {
+      "value": 1,
+      "label": "Head"
+     },
+     {
+      "value": 2,
+      "label": "Top"
+     }
+    ]
+   },
+   {
+    "label": "Invert",
+    "id": "invert"
+   },
+   {
+    "label": "Control Point 1 X",
+    "id": "cp1x"
+   },
+   {
+    "label": "Control Point 1 Y",
+    "id": "cp1y"
+   },
+   {
+    "label": "Control Point 2 X",
+    "id": "cp2x"
+   },
+   {
+    "label": "Control Point 2 Y",
+    "id": "cp2y"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiVoltaAttributeDialog",
+  "label": "Volta Properties",
+  "dialogElements": [
+   {
+    "label": "number",
+    "id": "number"
+   },
+   {
+    "label": "X1 Offset",
+    "id": "xOffsetStart"
+   },
+   {
+    "label": "X2 Offset",
+    "id": "xOffsetEnd"
+   },
+   {
+    "label": "Y Offset",
+    "id": "yOffset"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiHairpinAttributesDialog",
+  "label": "Hairpin Properties",
+  "dialogElements": [
+   {
+    "label": "Height",
+    "id": "height"
+   },
+   {
+    "label": "Y Shift",
+    "id": "yOffset"
+   },
+   {
+    "label": "Right Shift",
+    "id": "xOffsetRight"
+   },
+   {
+    "label": "Left Shift",
+    "id": "xOffsetLeft"
+   }
+  ]
+ },
+ {
   "ctor": "SuiAddStaffMenu",
-  "label": "Staves",
+  "label":"Staves",
   "menuItems": [
    {
     "value": "trebleInstrument",
@@ -393,6 +541,52 @@ var smoLanguageStringEn = `[
    {
     "value": "remove",
     "text": "Remove Staff"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiFileMenu",
+  "label","File",
+  "menuItems": [
+   {
+    "value": "newFile",
+    "text": "New Score"
+   },
+   {
+    "value": "openFile",
+    "text": "Open"
+   },
+   {
+    "value": "saveFile",
+    "text": "Save"
+   },
+   {
+    "value": "quickSave",
+    "text": "Quick Save"
+   },
+   {
+    "value": "printScore",
+    "text": "Print"
+   },
+   {
+    "value": "bach",
+    "text": "Bach Invention"
+   },
+   {
+    "value": "bambino",
+    "text": "Jesu Bambino"
+   },
+   {
+    "value": "microtone",
+    "text": "Microtone Sample"
+   },
+   {
+    "value": "preciousLord",
+    "text": "Precious Lord"
    },
    {
     "value": "cancel",
@@ -440,7 +634,7 @@ var smoLanguageStringEn = `[
  },
  {
   "ctor": "SuiKeySignatureMenu",
-  "label":"Key",
+  "label": "Key",
   "menuItems": [
    {
     "value": "KeyOfC",
@@ -500,10 +694,106 @@ var smoLanguageStringEn = `[
    }
   ]
  },
-
+ {
+  "ctor": "SuiTimeSignatureMenu",
+  "menuItems": [
+   {
+    "value": "6/8",
+    "text": "6/8"
+   },
+   {
+    "value": "3/4",
+    "text": "3/4"
+   },
+   {
+    "value": "2/4",
+    "text": "2/4"
+   },
+   {
+    "value": "12/8",
+    "text": "12/8"
+   },
+   {
+    "value": "7/8",
+    "text": "7/8"
+   },
+   {
+    "value": "5/8",
+    "text": "5/8"
+   },
+   {
+    "value": "TimeSigOther",
+    "text": "Other"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiKeySignatureMenu",
+  "menuItems": [
+   {
+    "value": "KeyOfC",
+    "text": "C Major"
+   },
+   {
+    "value": "KeyOfF",
+    "text": "F Major"
+   },
+   {
+    "value": "KeyOfG",
+    "text": "G Major"
+   },
+   {
+    "value": "KeyOfBb",
+    "text": "Bb Major"
+   },
+   {
+    "value": "KeyOfD",
+    "text": "D Major"
+   },
+   {
+    "value": "KeyOfEb",
+    "text": "Eb Major"
+   },
+   {
+    "value": "KeyOfA",
+    "text": "A Major"
+   },
+   {
+    "value": "KeyOfAb",
+    "text": "Ab Major"
+   },
+   {
+    "value": "KeyOfE",
+    "text": "E Major"
+   },
+   {
+    "value": "KeyOfDb",
+    "text": "Db Major"
+   },
+   {
+    "value": "KeyOfB",
+    "text": "B Major"
+   },
+   {
+    "value": "KeyOfF#",
+    "text": "F# Major"
+   },
+   {
+    "value": "KeyOfC#",
+    "text": "C# Major"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
  {
   "ctor": "SuiFileMenu",
-  "label": "File",
   "menuItems": [
    {
     "value": "newFile",
@@ -549,7 +839,6 @@ var smoLanguageStringEn = `[
  },
  {
   "ctor": "SuiStaffModifierMenu",
-  "label": "Lines",
   "menuItems": [
    {
     "value": "crescendo",
@@ -566,6 +855,43 @@ var smoLanguageStringEn = `[
    {
     "value": "ending",
     "text": "nth ending"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiDynamicsMenu",
+  "menuItems": [
+   {
+    "value": "pp",
+    "text": "Pianissimo"
+   },
+   {
+    "value": "p",
+    "text": "Piano"
+   },
+   {
+    "value": "mp",
+    "text": "Mezzo-piano"
+   },
+   {
+    "value": "mf",
+    "text": "Mezzo-forte"
+   },
+   {
+    "value": "f",
+    "text": "Forte"
+   },
+   {
+    "value": "ff",
+    "text": "Fortissimo"
+   },
+   {
+    "value": "sfz",
+    "text": "sfortzando"
    },
    {
     "value": "cancel",

@@ -73,13 +73,15 @@ class SuiLoadFileDialog extends SuiFileDialog {
   }
 
     static get dialogElements() {
-		return [{
-				smoName: 'loadFile',
-				parameterName: 'jsonFile',
-				defaultValue: '',
-				control: 'SuiFileDownloadComponent',
-				label:''
-			}];
+      SuiLoadFileDialog._dialogElements = SuiLoadFileDialog._dialogElements ? SuiLoadFileDialog._dialogElements :
+		    [{
+  				smoName: 'loadFile',
+  				parameterName: 'jsonFile',
+  				defaultValue: '',
+  				control: 'SuiFileDownloadComponent',
+  				label:''
+			  }];
+      return SuiLoadFileDialog._dialogElements;
     }
 
     changed() {
@@ -136,11 +138,10 @@ class SuiPrintFileDialog extends SuiFileDialog {
     SuiPrintFileDialog._label = value;
   }
 
-
-    static get dialogElements() {
-		return [];
-    }
-    static createAndDisplay(params) {
+  static get dialogElements() {
+	  return [];
+  }
+  static createAndDisplay(params) {
 		var dg = new SuiPrintFileDialog(params);
 		dg.display();
 	}
@@ -180,13 +181,16 @@ class SuiSaveFileDialog extends SuiFileDialog {
 
 
   static get dialogElements() {
-	  return [{
-			smoName: 'saveFileName',
-			parameterName: 'saveFileName',
-			defaultValue: '',
-			control: 'SuiTextInputComponent',
-			label:'File Name'
+    SuiSaveFileDialog._dialogElements = SuiSaveFileDialog._dialogElements ? SuiSaveFileDialog._dialogElements :
+	  [{
+        smoName: 'saveFileName',
+        parameterName: 'saveFileName',
+        defaultValue: '',
+        control: 'SuiTextInputComponent',
+        label:'File Name'
 		}];
+
+    return SuiSaveFileDialog._dialogElements;
   }
 
   changed() {

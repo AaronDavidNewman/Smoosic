@@ -306,6 +306,10 @@ class SuiFileMenu extends suiMenuBase {
           icon: '',
           text: 'Precious Lord',
           value: 'preciousLord'
+        },{
+          icon: '',
+          text: 'Yama',
+          value: 'yamaJson'
         },	{
           icon: '',
           text: 'Cancel',
@@ -422,6 +426,11 @@ class SuiFileMenu extends suiMenuBase {
   			var score = SmoScore.deserialize(inventionJson);
   			this.layout.score = score;
   			this.layout.setViewport(true);
+    } else if (text == 'yamaJson') {
+      this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+      var score = SmoScore.deserialize(yamaJson);
+      this.layout.score = score;
+      this.layout.setViewport(true);
     }
       else if (text == 'bambino') {
         this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);

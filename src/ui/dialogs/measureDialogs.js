@@ -22,8 +22,8 @@ class SuiMeasureDialog extends SuiDialogBase {
       SuiTimeSignatureDialog._label = value;
     }
     static get dialogElements() {
-      return [
-        {
+      SuiMeasureDialog._dialogElements = SuiMeasureDialog._dialogElements ? SuiMeasureDialog._dialogElements :
+        [{
           smoName: 'pickupMeasure',
           parameterName: 'pickupMeasure',
           defaultValue: 2048,
@@ -107,6 +107,8 @@ class SuiMeasureDialog extends SuiDialogBase {
   			control:'SuiToggleComponent',
   			label: 'System break before this measure'
   		}];
+
+      return SuiMeasureDialog._dialogElements;
     }
     static createAndDisplay(parameters) {
       // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
@@ -277,46 +279,51 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
   }
 
     static get dialogElements() {
-        return [{
+      SuiTimeSignatureDialog._dialogElements = SuiTimeSignatureDialog._dialogElements ? SuiTimeSignatureDialog._dialogElements :
+        [
+          {
             smoName: 'numerator',
             parameterName: 'numerator',
             defaultValue: 3,
             control: 'SuiRockerComponent',
             label:'Beats/Measure',
-            },
-		{
-			parameterName: 'denominator',
-			smoName: 'denominator',
-			defaultValue: 8,
+          },
+  		    {
+            parameterName: 'denominator',
+            smoName: 'denominator',
+            defaultValue: 8,
             dataType:'int',
-			control: 'SuiDropdownComponent',
-			label: 'Beat Value',
-			options: [{
-					value: 8,
-					label: '8',
-				}, {
-					value: 4,
-					label: '4'
-				}, {
-					value: 2,
-					label: '2'
-				}
-			]
-		} ];
-     }
-     populateInitial() {
-         var num,den;
-         var nd = this.measure.timeSignature.split('/');
-         var num = parseInt(nd[0]);
-         var den = parseInt(nd[1]);
+            control: 'SuiDropdownComponent',
+            label: 'Beat Value',
+            options: [{
+              value: 8,
+              label: '8',
+            }, {
+              value: 4,
+              label: '4'
+            }, {
+              value: 2,
+              label: '2'
+            }
+  			 ]
+  		}
+    ];
 
-         this.numeratorCtrl.setValue(num);
-         this.denominatorCtrl.setValue(den);
-     }
+    return SuiTimeSignatureDialog._dialogElements;
+  }
+  populateInitial() {
+     var num,den;
+     var nd = this.measure.timeSignature.split('/');
+     var num = parseInt(nd[0]);
+     var den = parseInt(nd[1]);
 
-    changed() {
-        // no dynamic change for time  signatures
-    }
+     this.numeratorCtrl.setValue(num);
+     this.denominatorCtrl.setValue(den);
+  }
+
+  changed() {
+      // no dynamic change for time  signatures
+  }
      static createAndDisplay(params) {
          // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
          //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
@@ -428,125 +435,127 @@ class SuiTempoDialog extends SuiDialogBase {
     static get attributes() {
         return ['tempoMode', 'bpm', 'beatDuration', 'tempoText','yOffset'];
     }
-    static get dialogElements() {
-        return [{
-            smoName: 'tempoMode',
-            parameterName: 'tempoMode',
-            defaultValue: SmoTempoText.tempoModes.durationMode,
-            control: 'SuiDropdownComponent',
-            label:'Tempo Mode',
-            options: [{
-                    value: 'duration',
-                    label: 'Duration (Beats/Minute)'
-                }, {
-                    value: 'text',
-                    label: 'Tempo Text'
-                }, {
-                    value: 'custom',
-                    label: 'Specify text and duration'
-                }
-                ]
-			},
-			{
-                parameterName: 'bpm',
-                smoName: 'bpm',
-                defaultValue: 120,
-                control: 'SuiRockerComponent',
-                label: 'Notes/Minute'
-            },
-		{
-			parameterName: 'duration',
-			smoName: 'beatDuration',
-			defaultValue: 4096,
-            dataType:'int',
-			control: 'SuiDropdownComponent',
-			label: 'Unit for Beat',
-			options: [{
-					value: 4096,
-					label: 'Quarter Note',
-				}, {
-					value: 2048,
-					label: '1/8 note'
-				}, {
-					value: 6144,
-					label: 'Dotted 1/4 note'
-				}, {
-					value: 8192,
-					label: '1/2 note'
-				}
-			]
-		},
+  static get dialogElements() {
 
-      {
-      smoName: 'tempoText',
-      parameterName: 'tempoText',
-      defaultValue: SmoTempoText.tempoTexts.allegro,
-      control: 'SuiDropdownComponent',
-      label:'Tempo Text',
-      options: [{
-          value: SmoTempoText.tempoTexts.larghissimo,
-          label: 'Larghissimo'
-        }, {
-          value: SmoTempoText.tempoTexts.grave,
-          label: 'Grave'
-        }, {
-          value: SmoTempoText.tempoTexts.lento,
-          label: 'Lento'
-        }, {
-          value: SmoTempoText.tempoTexts.largo,
-          label: 'Largo'
-        }, {
-          value: SmoTempoText.tempoTexts.larghetto,
-          label: 'Larghetto'
-        }, {
-          value: SmoTempoText.tempoTexts.adagio,
-          label: 'Adagio'
-        }, {
-          value: SmoTempoText.tempoTexts.adagietto,
-          label: 'Adagietto'
-        }, {
-          value: SmoTempoText.tempoTexts.andante_moderato,
-          label: 'Andante moderato'
-        }, {
-          value: SmoTempoText.tempoTexts.andante,
-          label: 'Andante'
-        }, {
-          value: SmoTempoText.tempoTexts.andantino,
-          label: 'Andantino'
-        }, {
-          value: SmoTempoText.tempoTexts.moderator,
-          label: 'Moderato'
-        }, {
-          value: SmoTempoText.tempoTexts.allegretto,
-          label: 'Allegretto',
-        } ,{
-          value: SmoTempoText.tempoTexts.allegro,
-          label: 'Allegro'
-        }, {
-          value: SmoTempoText.tempoTexts.vivace,
-          label: 'Vivace'
-        }, {
-          value: SmoTempoText.tempoTexts.presto,
-          label: 'Presto'
-        }, {
-          value: SmoTempoText.tempoTexts.prestissimo,
-          label: 'Prestissimo'
-        }
-      ]
-  },{
-			smoName:'applyToAll',
-			parameterName:'applyToAll',
-			defaultValue: false,
-			control:'SuiToggleComponent',
-			label:'Apply to all future measures?'
-		},{
-          smoName: 'display',
-          parameterName: 'display',
-          defaultValue: true,
-          control: 'SuiToggleComponent',
-          label: 'Display Tempo'
+    SuiTempoDialog._dialogElements = SuiTempoDialog._dialogElements ? SuiTempoDialog._dialogElements :
+     [{
+        smoName: 'tempoMode',
+        parameterName: 'tempoMode',
+        defaultValue: SmoTempoText.tempoModes.durationMode,
+        control: 'SuiDropdownComponent',
+        label:'Tempo Mode',
+        options: [{
+            value: 'duration',
+            label: 'Duration (Beats/Minute)'
+          }, {
+            value: 'text',
+            label: 'Tempo Text'
+          }, {
+            value: 'custom',
+            label: 'Specify text and duration'
+          }
+        ]
       },
-    ]
+      {
+        parameterName: 'bpm',
+        smoName: 'bpm',
+        defaultValue: 120,
+        control: 'SuiRockerComponent',
+        label: 'Notes/Minute'
+      },
+      {
+        parameterName: 'duration',
+        smoName: 'beatDuration',
+        defaultValue: 4096,
+        dataType:'int',
+        control: 'SuiDropdownComponent',
+        label: 'Unit for Beat',
+        options: [{
+        		value: 4096,
+        		label: 'Quarter Note',
+        	}, {
+        		value: 2048,
+        		label: '1/8 note'
+        	}, {
+        		value: 6144,
+        		label: 'Dotted 1/4 note'
+        	}, {
+        		value: 8192,
+        		label: '1/2 note'
+        	}
+        ]
+      },
+      {
+        smoName: 'tempoText',
+        parameterName: 'tempoText',
+        defaultValue: SmoTempoText.tempoTexts.allegro,
+        control: 'SuiDropdownComponent',
+        label:'Tempo Text',
+        options: [{
+            value: SmoTempoText.tempoTexts.larghissimo,
+            label: 'Larghissimo'
+          }, {
+            value: SmoTempoText.tempoTexts.grave,
+            label: 'Grave'
+          }, {
+            value: SmoTempoText.tempoTexts.lento,
+            label: 'Lento'
+          }, {
+            value: SmoTempoText.tempoTexts.largo,
+            label: 'Largo'
+          }, {
+            value: SmoTempoText.tempoTexts.larghetto,
+            label: 'Larghetto'
+          }, {
+            value: SmoTempoText.tempoTexts.adagio,
+            label: 'Adagio'
+          }, {
+            value: SmoTempoText.tempoTexts.adagietto,
+            label: 'Adagietto'
+          }, {
+            value: SmoTempoText.tempoTexts.andante_moderato,
+            label: 'Andante moderato'
+          }, {
+            value: SmoTempoText.tempoTexts.andante,
+            label: 'Andante'
+          }, {
+            value: SmoTempoText.tempoTexts.andantino,
+            label: 'Andantino'
+          }, {
+            value: SmoTempoText.tempoTexts.moderator,
+            label: 'Moderato'
+          }, {
+            value: SmoTempoText.tempoTexts.allegretto,
+            label: 'Allegretto',
+          } ,{
+            value: SmoTempoText.tempoTexts.allegro,
+            label: 'Allegro'
+          }, {
+            value: SmoTempoText.tempoTexts.vivace,
+            label: 'Vivace'
+          }, {
+            value: SmoTempoText.tempoTexts.presto,
+            label: 'Presto'
+          }, {
+            value: SmoTempoText.tempoTexts.prestissimo,
+            label: 'Prestissimo'
+          }
+        ]
+      }, {
+        smoName:'applyToAll',
+        parameterName:'applyToAll',
+        defaultValue: false,
+        control:'SuiToggleComponent',
+        label:'Apply to all future measures?'
+      },{
+        smoName: 'display',
+        parameterName: 'display',
+        defaultValue: true,
+        control: 'SuiToggleComponent',
+        label: 'Display Tempo'
+      },
+    ];
+    return SuiTempoDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
     parameters.measures = SmoSelection.getMeasureList(parameters.tracker.selections)

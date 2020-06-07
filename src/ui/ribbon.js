@@ -117,7 +117,7 @@ class RibbonButtons {
           // else the button has a specific action, such as a menu or dialog, or a parent button
           // for translation, add the menu name to the button class
           var buttonClass = buttonData.classes;
-          if (buttonData.action === 'menu') {
+          if (buttonData.action === 'menu' || buttonData.action === 'modal') {
             buttonClass += ' ' +buttonData.ctor;
           }
 					var buttonHtml = RibbonButtons._buttonHtml('ribbonButtonContainer',

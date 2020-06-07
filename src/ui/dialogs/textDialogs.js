@@ -19,7 +19,8 @@ class SuiLyricDialog extends SuiDialogBase {
       return dg;
 	}
   static get dialogElements() {
-    return [{
+    SuiLyricDialog._dialogElements = SuiLyricDialog._dialogElements ? SuiLyricDialog._dialogElements :
+     [{
       smoName: 'verse',
       parameterName: 'verse',
       defaultValue: 0,
@@ -52,6 +53,8 @@ class SuiLyricDialog extends SuiDialogBase {
       label:'Edit Text',
       options: []
 	  }];
+
+    return SuiLyricDialog._dialogElements;
   }
   static get staticText() {
     return {
@@ -179,7 +182,8 @@ class SuiChordChangeDialog extends SuiLyricDialog {
     super(parameters);
   }
   static get dialogElements() {
-    return [{
+    SuiChordChangeDialog._dialogElements = SuiChordChangeDialog._dialogElements ? SuiChordChangeDialog._dialogElements :
+      [{
       smoName: 'verse',
       parameterName: 'verse',
       defaultValue: 0,
@@ -212,6 +216,8 @@ class SuiChordChangeDialog extends SuiLyricDialog {
       label:'Edit Text',
       options: []
     }];
+
+    return SuiChordChangeDialog._dialogElements;
   }
   changed() {
     this.textEditorCtrl.verse = this.verse.getValue();
@@ -255,7 +261,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   }
 
   static get dialogElements() {
-    return [
+    SuiTextTransformDialog._dialogElements = SuiTextTransformDialog._dialogElements ? SuiTextTransformDialog._dialogElements :
+      [
       {
   			smoName: 'textEditor',
   			parameterName: 'text',
@@ -384,6 +391,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         ]
   		}
     ];
+
+    return SuiTextTransformDialog._dialogElements;
   }
 
   display() {
@@ -624,9 +633,13 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
        'Dynamics Properties';
     return SuiDynamicModifierDialog._label;
   }
+  static set label(value) {
+    SuiDynamicModifierDialog._label = value;
+  }
 
 	static get dialogElements() {
-		return [{
+    SuiDynamicModifierDialog._dialogElements = SuiDynamicModifierDialog._dialogElements ? SuiDynamicModifierDialog._dialogElements :
+		  [{
 				smoName: 'yOffsetLine',
 				parameterName: 'yOffsetLine',
 				defaultValue: 11,
@@ -675,6 +688,7 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
 				label: 'Text'
 			}
 		];
+    return SuiDynamicModifierDialog._dialogElements;
 	}
 	static createAndDisplay(parameters) {
 		var dg = new SuiDynamicModifierDialog(parameters);

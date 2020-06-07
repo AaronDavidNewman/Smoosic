@@ -1,402 +1,550 @@
 
 var smoLanguageStringAr = `[
- {
-  "ctor": "SuiLoadFileDialog",
-  "label": "Load File",
-  "dialogElements": [
-   {}
-  ]
- },
- {
-  "ctor": "SuiSaveFileDialog",
-  "label": "Save Score",
-  "dialogElements": [
-   {
-    "label": "File Name"
-   }
-  ]
- },
- {
-  "ctor": "SuiPrintFileDialog",
-  "label": "Print Complete",
-  "dialogElements": []
- },
- {
-  "ctor": "SuiMeasureDialog",
-  "label": "Measure Properties",
-  "dialogElements": [
-   {
-    "label": "Pickup Measure",
-    "options": [
-     {
-      "value": 2048,
-      "label": "Eighth Note"
-     },
-     {
-      "value": 4096,
-      "label": "Quarter Note"
-     },
-     {
-      "value": 6144,
-      "label": "Dotted Quarter"
-     },
-     {
-      "value": 8192,
-      "label": "Half Note"
-     }
-    ]
-   },
-   {
-    "label": "Convert to Pickup Measure"
-   },
-   {
-    "label": "Pad Left (px)"
-   },
-   {
-    "label": "Stretch Contents"
-   },
-   {
-    "label": "Adjust Proportional Spacing"
-   },
-   {
-    "label": "Pad all measures in system"
-   },
-   {
-    "label": "Measure Text"
-   },
-   {
-    "label": "Text Position",
-    "options": [
-     {
-      "value": 2,
-      "label": "Left"
-     },
-     {
-      "value": 3,
-      "label": "Right"
-     },
-     {
-      "value": 0,
-      "label": "Above"
-     },
-     {
-      "value": 1,
-      "label": "Below"
-     }
-    ]
-   },
-   {
-    "label": "System break before this measure"
-   }
-  ]
- },
- {
-  "ctor": "SuiTempoDialog",
-  "label": "Tempo Properties",
-  "dialogElements": [
-   {
-    "label": "Tempo Mode",
-    "options": [
-     {
-      "value": "duration",
-      "label": "Duration (Beats/Minute)"
-     },
-     {
-      "value": "text",
-      "label": "Tempo Text"
-     },
-     {
-      "value": "custom",
-      "label": "Specify text and duration"
-     }
-    ]
-   },
-   {
-    "label": "Notes/Minute"
-   },
-   {
-    "label": "Unit for Beat",
-    "options": [
-     {
-      "value": 4096,
-      "label": "Quarter Note"
-     },
-     {
-      "value": 2048,
-      "label": "1/8 note"
-     },
-     {
-      "value": 6144,
-      "label": "Dotted 1/4 note"
-     },
-     {
-      "value": 8192,
-      "label": "1/2 note"
-     }
-    ]
-   },
-   {
-    "label": "Tempo Text",
-    "options": [
-     {
-      "value": "Larghissimo",
-      "label": "Larghissimo"
-     },
-     {
-      "value": "Grave",
-      "label": "Grave"
-     },
-     {
-      "value": "Lento",
-      "label": "Lento"
-     },
-     {
-      "value": "Largo",
-      "label": "Largo"
-     },
-     {
-      "value": "Larghetto",
-      "label": "Larghetto"
-     },
-     {
-      "value": "Adagio",
-      "label": "Adagio"
-     },
-     {
-      "value": "Adagietto",
-      "label": "Adagietto"
-     },
-     {
-      "value": "Andante moderato",
-      "label": "Andante moderato"
-     },
-     {
-      "value": "Andante",
-      "label": "Andante"
-     },
-     {
-      "value": "Andantino",
-      "label": "Andantino"
-     },
-     {
-      "value": "Moderato",
-      "label": "Moderato"
-     },
-     {
-      "value": "Allegretto",
-      "label": "Allegretto"
-     },
-     {
-      "value": "Allegro",
-      "label": "Allegro"
-     },
-     {
-      "value": "Vivace",
-      "label": "Vivace"
-     },
-     {
-      "value": "Presto",
-      "label": "Presto"
-     },
-     {
-      "value": "Prestissimo",
-      "label": "Prestissimo"
-     }
-    ]
-   },
-   {
-    "label": "Apply to all future measures?"
-   },
-   {
-    "label": "Display Tempo"
-   }
-  ]
- },
- {
-  "ctor": "SuiTimeSignatureDialog",
-  "label": "Custom Time Signature",
-  "dialogElements": [
-   {
-    "label": "Beats/Measure"
-   },
-   {
-    "label": "Beat Value",
-    "options": [
-     {
-      "value": 8,
-      "label": "8"
-     },
-     {
-      "value": 4,
-      "label": "4"
-     },
-     {
-      "value": 2,
-      "label": "2"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiLayoutDialog",
-  "label": "Score Layout",
-  "dialogElements": [
-   {
-    "label": "Page Size",
-    "options": [
-     {
-      "value": "letter",
-      "label": "Letter"
-     },
-     {
-      "value": "tabloid",
-      "label": "Tabloid (11x17)"
-     },
-     {
-      "value": "A4",
-      "label": "A4"
-     },
-     {
-      "value": "custom",
-      "label": "Custom"
-     }
-    ]
-   },
-   {
-    "label": "Page Width (px)"
-   },
-   {
-    "label": "Page Height (px)"
-   },
-   {
-    "label": "Orientation",
-    "options": [
-     {
-      "value": 0,
-      "label": "Portrait"
-     },
-     {
-      "value": 1,
-      "label": "Landscape"
-     }
-    ]
-   },
-   {
-    "label": "Engraving Font",
-    "options": [
-     {
-      "value": "Bravura",
-      "label": "Bravura"
-     },
-     {
-      "value": "Gonville",
-      "label": "Gonville"
-     },
-     {
-      "value": "Petaluma",
-      "label": "Petaluma"
-     }
-    ]
-   },
-   {
-    "label": "Left Margin (px)"
-   },
-   {
-    "label": "Right Margin (px)"
-   },
-   {
-    "label": "Top Margin (px)"
-   },
-   {
-    "label": "Inter-System Margin"
-   },
-   {
-    "label": "Intra-System Margin"
-   },
-   {
-    "label": "% Zoom"
-   },
-   {
-    "label": "% Note size"
-   }
-  ]
- },
- {
-  "ctor": "SuiDynamicModifierDialog",
-  "label": "Dynamics Properties",
-  "dialogElements": [
-   {
-    "label": "Y Line"
-   },
-   {
-    "label": "Y Offset Px"
-   },
-   {
-    "label": "X Offset"
-   },
-   {
-    "label": "Text",
-    "options": [
-     {
-      "value": "p",
-      "label": "Piano"
-     },
-     {
-      "value": "pp",
-      "label": "Pianissimo"
-     },
-     {
-      "value": "mp",
-      "label": "Mezzo-Piano"
-     },
-     {
-      "value": "mf",
-      "label": "Mezzo-Forte"
-     },
-     {
-      "value": "f",
-      "label": "Forte"
-     },
-     {
-      "value": "ff",
-      "label": "Fortissimo"
-     },
-     {
-      "value": "sfz",
-      "label": "Sforzando"
-     }
-    ]
-   }
-  ]
- },
+  {
+   "ctor": "SuiLoadFileDialog",
+   "label": "Load File",
+   "dialogElements": [
+    {}
+   ]
+  },
+  {
+   "ctor": "SuiSaveFileDialog",
+   "label": "Save Score",
+   "dialogElements": [
+    {
+     "label": "File Name",
+     "id": "saveFileName"
+    }
+   ]
+  },
+  {
+   "ctor": "SuiPrintFileDialog",
+   "label": "Print Complete",
+   "dialogElements": []
+  },
+  {
+   "ctor": "SuiMeasureDialog",
+   "label": "قياس",
+   "dialogElements": [
+    {
+     "label": "Pickup Measure",
+     "id": "pickupMeasure",
+     "options": [
+      {
+       "value": 2048,
+       "label": "Eighth Note"
+      },
+      {
+       "value": 4096,
+       "label": "Quarter Note"
+      },
+      {
+       "value": 6144,
+       "label": "Dotted Quarter"
+      },
+      {
+       "value": 8192,
+       "label": "Half Note"
+      }
+     ]
+    },
+    {
+     "label": "Convert to Pickup Measure",
+     "id": "makePickup"
+    },
+    {
+     "label": "Pad Left (px)",
+     "id": "padLeft"
+    },
+    {
+     "label": "Stretch Contents",
+     "id": "customStretch"
+    },
+    {
+     "label": "Adjust Proportional Spacing",
+     "id": "customProportion"
+    },
+    {
+     "label": "Pad all measures in system",
+     "id": "padAllInSystem"
+    },
+    {
+     "label": "Measure Text",
+     "id": "measureText"
+    },
+    {
+     "label": "Text Position",
+     "id": "measureTextPosition",
+     "options": [
+      {
+       "value": 2,
+       "label": "Left"
+      },
+      {
+       "value": 3,
+       "label": "Right"
+      },
+      {
+       "value": 0,
+       "label": "Above"
+      },
+      {
+       "value": 1,
+       "label": "Below"
+      }
+     ]
+    },
+    {
+     "label": "System break before this measure",
+     "id": "systemBreak"
+    }
+   ]
+  },
+  {
+   "ctor": "SuiTempoDialog",
+   "label": "خصائص السرعة",
+   "dialogElements": [
+    {
+     "label": "وضع الإيقاع",
+     "id": "tempoMode",
+     "options": [
+      {
+       "value": "duration",
+       "label": "Duration (Beats/Minute)"
+      },
+      {
+       "value": "text",
+       "label": "Tempo Text"
+      },
+      {
+       "value": "custom",
+       "label": "Specify text and duration"
+      }
+     ]
+    },
+    {
+     "label": "ملاحظات / دقيقة",
+     "id": "bpm"
+    },
+    {
+     "label": "وحدة لكل ضربه",
+     "id": "beatDuration",
+     "options": [
+      {
+       "value": 4096,
+       "label": "Quarter Note"
+      },
+      {
+       "value": 2048,
+       "label": "1/8 note"
+      },
+      {
+       "value": 6144,
+       "label": "Dotted 1/4 note"
+      },
+      {
+       "value": 8192,
+       "label": "1/2 note"
+      }
+     ]
+    },
+    {
+     "label": "Tempo Text",
+     "id": "tempoText",
+     "options": [
+      {
+       "value": "Larghissimo",
+       "label": "Larghissimo"
+      },
+      {
+       "value": "Grave",
+       "label": "Grave"
+      },
+      {
+       "value": "Lento",
+       "label": "Lento"
+      },
+      {
+       "value": "Largo",
+       "label": "Largo"
+      },
+      {
+       "value": "Larghetto",
+       "label": "Larghetto"
+      },
+      {
+       "value": "Adagio",
+       "label": "Adagio"
+      },
+      {
+       "value": "Adagietto",
+       "label": "Adagietto"
+      },
+      {
+       "value": "Andante moderato",
+       "label": "Andante moderato"
+      },
+      {
+       "value": "Andante",
+       "label": "Andante"
+      },
+      {
+       "value": "Andantino",
+       "label": "Andantino"
+      },
+      {
+       "value": "Moderato",
+       "label": "Moderato"
+      },
+      {
+       "value": "Allegretto",
+       "label": "Allegretto"
+      },
+      {
+       "value": "Allegro",
+       "label": "Allegro"
+      },
+      {
+       "value": "Vivace",
+       "label": "Vivace"
+      },
+      {
+       "value": "Presto",
+       "label": "Presto"
+      },
+      {
+       "value": "Prestissimo",
+       "label": "Prestissimo"
+      }
+     ]
+    },
+    {
+     "label": "تطبيق على جميع المقاييس المستقبلية؟",
+     "id": "applyToAll"
+    },
+    {
+     "label": "إظهار السرعة",
+     "id": "display"
+    }
+   ]
+  },
+  {
+   "ctor": "SuiTimeSignatureDialog",
+   "label": "Custom Time Signature",
+   "dialogElements": [
+    {
+     "label": "Beats/Measure",
+     "id": "numerator"
+    },
+    {
+     "label": "Beat Value",
+     "id": "denominator",
+     "options": [
+      {
+       "value": 8,
+       "label": "8"
+      },
+      {
+       "value": 4,
+       "label": "4"
+      },
+      {
+       "value": 2,
+       "label": "2"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ctor": "SuiLayoutDialog",
+   "label": "تخطيط",
+   "dialogElements": [
+    {
+     "label": "Page Size",
+     "id": "pageSize",
+     "options": [
+      {
+       "value": "letter",
+       "label": "Letter"
+      },
+      {
+       "value": "tabloid",
+       "label": "Tabloid (11x17)"
+      },
+      {
+       "value": "A4",
+       "label": "A4"
+      },
+      {
+       "value": "custom",
+       "label": "Custom"
+      }
+     ]
+    },
+    {
+     "label": "Page Width (px)",
+     "id": "pageWidth"
+    },
+    {
+     "label": "Page Height (px)",
+     "id": "pageHeight"
+    },
+    {
+     "label": "Orientation",
+     "id": "orientation",
+     "options": [
+      {
+       "value": 0,
+       "label": "Portrait"
+      },
+      {
+       "value": 1,
+       "label": "Landscape"
+      }
+     ]
+    },
+    {
+     "label": "Engraving Font",
+     "id": "engravingFont",
+     "options": [
+      {
+       "value": "Bravura",
+       "label": "Bravura"
+      },
+      {
+       "value": "Gonville",
+       "label": "Gonville"
+      },
+      {
+       "value": "Petaluma",
+       "label": "Petaluma"
+      }
+     ]
+    },
+    {
+     "label": "Left Margin (px)",
+     "id": "leftMargin"
+    },
+    {
+     "label": "Right Margin (px)",
+     "id": "rightMargin"
+    },
+    {
+     "label": "Top Margin (px)",
+     "id": "topMargin"
+    },
+    {
+     "label": "Inter-System Margin",
+     "id": "interGap"
+    },
+    {
+     "label": "Intra-System Margin",
+     "id": "intraGap"
+    },
+    {
+     "label": "% Zoom",
+     "id": "zoomScale"
+    },
+    {
+     "label": "% Note size",
+     "id": "svgScale"
+    }
+   ]
+  },
+  {
+   "ctor": "SuiDynamicModifierDialog",
+   "label": "Dynamics Properties",
+   "dialogElements": [
+    {
+     "label": "Y Line",
+     "id": "yOffsetLine"
+    },
+    {
+     "label": "Y Offset Px",
+     "id": "yOffsetPixels"
+    },
+    {
+     "label": "X Offset",
+     "id": "xOffset"
+    },
+    {
+     "label": "Text",
+     "id": "text",
+     "options": [
+      {
+       "value": "p",
+       "label": "Piano"
+      },
+      {
+       "value": "pp",
+       "label": "Pianissimo"
+      },
+      {
+       "value": "mp",
+       "label": "Mezzo-Piano"
+      },
+      {
+       "value": "mf",
+       "label": "Mezzo-Forte"
+      },
+      {
+       "value": "f",
+       "label": "Forte"
+      },
+      {
+       "value": "ff",
+       "label": "Fortissimo"
+      },
+      {
+       "value": "sfz",
+       "label": "Sforzando"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "ctor": "SuiSlurAttributesDialog",
+   "label": "Slur Properties",
+   "dialogElements": [
+    {
+     "label": "Spacing",
+     "id": "spacing"
+    },
+    {
+     "label": "Thickness",
+     "id": "thickness"
+    },
+    {
+     "label": "X Offset",
+     "id": "xOffset"
+    },
+    {
+     "label": "Y Offset",
+     "id": "yOffset"
+    },
+    {
+     "label": "Start Position",
+     "id": "position",
+     "options": [
+      {
+       "value": 1,
+       "label": "Head"
+      },
+      {
+       "value": 2,
+       "label": "Top"
+      }
+     ]
+    },
+    {
+     "label": "End Position",
+     "id": "position_end",
+     "options": [
+      {
+       "value": 1,
+       "label": "Head"
+      },
+      {
+       "value": 2,
+       "label": "Top"
+      }
+     ]
+    },
+    {
+     "label": "Invert",
+     "id": "invert"
+    },
+    {
+     "label": "Control Point 1 X",
+     "id": "cp1x"
+    },
+    {
+     "label": "Control Point 1 Y",
+     "id": "cp1y"
+    },
+    {
+     "label": "Control Point 2 X",
+     "id": "cp2x"
+    },
+    {
+     "label": "Control Point 2 Y",
+     "id": "cp2y"
+    }
+   ]
+  },
+  {
+   "ctor": "SuiVoltaAttributeDialog",
+   "label": "Volta Properties",
+   "dialogElements": [
+    {
+     "label": "number",
+     "id": "number"
+    },
+    {
+     "label": "X1 Offset",
+     "id": "xOffsetStart"
+    },
+    {
+     "label": "X2 Offset",
+     "id": "xOffsetEnd"
+    },
+    {
+     "label": "Y Offset",
+     "id": "yOffset"
+    }
+   ]
+  },
+  {
+   "ctor": "SuiHairpinAttributesDialog",
+   "label": "Hairpin Properties",
+   "dialogElements": [
+    {
+     "label": "Height",
+     "id": "height"
+    },
+    {
+     "label": "Y Shift",
+     "id": "yOffset"
+    },
+    {
+     "label": "Right Shift",
+     "id": "xOffsetRight"
+    },
+    {
+     "label": "Left Shift",
+     "id": "xOffsetLeft"
+    }
+   ]
+  },
  {
   "ctor": "SuiAddStaffMenu",
   "label": "المفاتيح",
   "menuItems": [
    {
     "value": "trebleInstrument",
-    "text": "Treble Clef Staff"
+    "text": "طاقم التريبل مفتاح"
    },
    {
     "value": "bassInstrument",
-    "text": "Bass Clef Staff"
+    "text": "طاقم باس كلف"
    },
    {
     "value": "altoInstrument",
-    "text": "Alto Clef Staff"
+    "text": "طاقم ألتو مفتاح"
    },
    {
     "value": "tenorInstrument",
-    "text": "Tenor Clef Staff"
+    "text": "طاقم تينور مفتاح"
    },
    {
     "value": "remove",
-    "text": "Remove Staff"
+    "text": "حذف الطواقم"
    },
    {
     "value": "cancel",
-    "text": "Cancel"
+    "text": "إلغاء"
    }
   ]
  },
@@ -448,6 +596,7 @@ var smoLanguageStringAr = `[
  },
  {
   "ctor": "SuiTimeSignatureMenu",
+  "label": "وزن الإيقاع",
   "menuItems": [
    {
     "value": "6/8",
@@ -485,6 +634,7 @@ var smoLanguageStringAr = `[
  },
  {
   "ctor": "SuiKeySignatureMenu",
+  "label": "الدليل",
   "menuItems": [
    {
     "value": "KeyOfC",
@@ -728,7 +878,8 @@ var smoLanguageStringEn = `[
   "label": "Save Score",
   "dialogElements": [
    {
-    "label": "File Name"
+    "label": "File Name",
+    "id": "saveFileName"
    }
   ]
  },
@@ -743,6 +894,7 @@ var smoLanguageStringEn = `[
   "dialogElements": [
    {
     "label": "Pickup Measure",
+    "id": "pickupMeasure",
     "options": [
      {
       "value": 2048,
@@ -763,25 +915,32 @@ var smoLanguageStringEn = `[
     ]
    },
    {
-    "label": "Convert to Pickup Measure"
+    "label": "Convert to Pickup Measure",
+    "id": "makePickup"
    },
    {
-    "label": "Pad Left (px)"
+    "label": "Pad Left (px)",
+    "id": "padLeft"
    },
    {
-    "label": "Stretch Contents"
+    "label": "Stretch Contents",
+    "id": "customStretch"
    },
    {
-    "label": "Adjust Proportional Spacing"
+    "label": "Adjust Proportional Spacing",
+    "id": "customProportion"
    },
    {
-    "label": "Pad all measures in system"
+    "label": "Pad all measures in system",
+    "id": "padAllInSystem"
    },
    {
-    "label": "Measure Text"
+    "label": "Measure Text",
+    "id": "measureText"
    },
    {
     "label": "Text Position",
+    "id": "measureTextPosition",
     "options": [
      {
       "value": 2,
@@ -802,7 +961,8 @@ var smoLanguageStringEn = `[
     ]
    },
    {
-    "label": "System break before this measure"
+    "label": "System break before this measure",
+    "id": "systemBreak"
    }
   ]
  },
@@ -812,6 +972,7 @@ var smoLanguageStringEn = `[
   "dialogElements": [
    {
     "label": "Tempo Mode",
+    "id": "tempoMode",
     "options": [
      {
       "value": "duration",
@@ -828,10 +989,12 @@ var smoLanguageStringEn = `[
     ]
    },
    {
-    "label": "Notes/Minute"
+    "label": "Notes/Minute",
+    "id": "bpm"
    },
    {
     "label": "Unit for Beat",
+    "id": "beatDuration",
     "options": [
      {
       "value": 4096,
@@ -853,6 +1016,7 @@ var smoLanguageStringEn = `[
    },
    {
     "label": "Tempo Text",
+    "id": "tempoText",
     "options": [
      {
       "value": "Larghissimo",
@@ -921,10 +1085,12 @@ var smoLanguageStringEn = `[
     ]
    },
    {
-    "label": "Apply to all future measures?"
+    "label": "Apply to all future measures?",
+    "id": "applyToAll"
    },
    {
-    "label": "Display Tempo"
+    "label": "Display Tempo",
+    "id": "display"
    }
   ]
  },
@@ -933,10 +1099,12 @@ var smoLanguageStringEn = `[
   "label": "Custom Time Signature",
   "dialogElements": [
    {
-    "label": "Beats/Measure"
+    "label": "Beats/Measure",
+    "id": "numerator"
    },
    {
     "label": "Beat Value",
+    "id": "denominator",
     "options": [
      {
       "value": 8,
@@ -960,6 +1128,7 @@ var smoLanguageStringEn = `[
   "dialogElements": [
    {
     "label": "Page Size",
+    "id": "pageSize",
     "options": [
      {
       "value": "letter",
@@ -980,13 +1149,16 @@ var smoLanguageStringEn = `[
     ]
    },
    {
-    "label": "Page Width (px)"
+    "label": "Page Width (px)",
+    "id": "pageWidth"
    },
    {
-    "label": "Page Height (px)"
+    "label": "Page Height (px)",
+    "id": "pageHeight"
    },
    {
     "label": "Orientation",
+    "id": "orientation",
     "options": [
      {
       "value": 0,
@@ -1000,6 +1172,7 @@ var smoLanguageStringEn = `[
    },
    {
     "label": "Engraving Font",
+    "id": "engravingFont",
     "options": [
      {
       "value": "Bravura",
@@ -1016,25 +1189,32 @@ var smoLanguageStringEn = `[
     ]
    },
    {
-    "label": "Left Margin (px)"
+    "label": "Left Margin (px)",
+    "id": "leftMargin"
    },
    {
-    "label": "Right Margin (px)"
+    "label": "Right Margin (px)",
+    "id": "rightMargin"
    },
    {
-    "label": "Top Margin (px)"
+    "label": "Top Margin (px)",
+    "id": "topMargin"
    },
    {
-    "label": "Inter-System Margin"
+    "label": "Inter-System Margin",
+    "id": "interGap"
    },
    {
-    "label": "Intra-System Margin"
+    "label": "Intra-System Margin",
+    "id": "intraGap"
    },
    {
-    "label": "% Zoom"
+    "label": "% Zoom",
+    "id": "zoomScale"
    },
    {
-    "label": "% Note size"
+    "label": "% Note size",
+    "id": "svgScale"
    }
   ]
  },
@@ -1043,16 +1223,20 @@ var smoLanguageStringEn = `[
   "label": "Dynamics Properties",
   "dialogElements": [
    {
-    "label": "Y Line"
+    "label": "Y Line",
+    "id": "yOffsetLine"
    },
    {
-    "label": "Y Offset Px"
+    "label": "Y Offset Px",
+    "id": "yOffsetPixels"
    },
    {
-    "label": "X Offset"
+    "label": "X Offset",
+    "id": "xOffset"
    },
    {
     "label": "Text",
+    "id": "text",
     "options": [
      {
       "value": "p",
@@ -1087,8 +1271,122 @@ var smoLanguageStringEn = `[
   ]
  },
  {
+  "ctor": "SuiSlurAttributesDialog",
+  "label": "Slur Properties",
+  "dialogElements": [
+   {
+    "label": "Spacing",
+    "id": "spacing"
+   },
+   {
+    "label": "Thickness",
+    "id": "thickness"
+   },
+   {
+    "label": "X Offset",
+    "id": "xOffset"
+   },
+   {
+    "label": "Y Offset",
+    "id": "yOffset"
+   },
+   {
+    "label": "Start Position",
+    "id": "position",
+    "options": [
+     {
+      "value": 1,
+      "label": "Head"
+     },
+     {
+      "value": 2,
+      "label": "Top"
+     }
+    ]
+   },
+   {
+    "label": "End Position",
+    "id": "position_end",
+    "options": [
+     {
+      "value": 1,
+      "label": "Head"
+     },
+     {
+      "value": 2,
+      "label": "Top"
+     }
+    ]
+   },
+   {
+    "label": "Invert",
+    "id": "invert"
+   },
+   {
+    "label": "Control Point 1 X",
+    "id": "cp1x"
+   },
+   {
+    "label": "Control Point 1 Y",
+    "id": "cp1y"
+   },
+   {
+    "label": "Control Point 2 X",
+    "id": "cp2x"
+   },
+   {
+    "label": "Control Point 2 Y",
+    "id": "cp2y"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiVoltaAttributeDialog",
+  "label": "Volta Properties",
+  "dialogElements": [
+   {
+    "label": "number",
+    "id": "number"
+   },
+   {
+    "label": "X1 Offset",
+    "id": "xOffsetStart"
+   },
+   {
+    "label": "X2 Offset",
+    "id": "xOffsetEnd"
+   },
+   {
+    "label": "Y Offset",
+    "id": "yOffset"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiHairpinAttributesDialog",
+  "label": "Hairpin Properties",
+  "dialogElements": [
+   {
+    "label": "Height",
+    "id": "height"
+   },
+   {
+    "label": "Y Shift",
+    "id": "yOffset"
+   },
+   {
+    "label": "Right Shift",
+    "id": "xOffsetRight"
+   },
+   {
+    "label": "Left Shift",
+    "id": "xOffsetLeft"
+   }
+  ]
+ },
+ {
   "ctor": "SuiAddStaffMenu",
-  "label": "Staves",
+  "label":"Staves",
   "menuItems": [
    {
     "value": "trebleInstrument",
@@ -1109,6 +1407,52 @@ var smoLanguageStringEn = `[
    {
     "value": "remove",
     "text": "Remove Staff"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiFileMenu",
+  "label","File",
+  "menuItems": [
+   {
+    "value": "newFile",
+    "text": "New Score"
+   },
+   {
+    "value": "openFile",
+    "text": "Open"
+   },
+   {
+    "value": "saveFile",
+    "text": "Save"
+   },
+   {
+    "value": "quickSave",
+    "text": "Quick Save"
+   },
+   {
+    "value": "printScore",
+    "text": "Print"
+   },
+   {
+    "value": "bach",
+    "text": "Bach Invention"
+   },
+   {
+    "value": "bambino",
+    "text": "Jesu Bambino"
+   },
+   {
+    "value": "microtone",
+    "text": "Microtone Sample"
+   },
+   {
+    "value": "preciousLord",
+    "text": "Precious Lord"
    },
    {
     "value": "cancel",
@@ -1156,7 +1500,7 @@ var smoLanguageStringEn = `[
  },
  {
   "ctor": "SuiKeySignatureMenu",
-  "label":"Key",
+  "label": "Key",
   "menuItems": [
    {
     "value": "KeyOfC",
@@ -1216,10 +1560,106 @@ var smoLanguageStringEn = `[
    }
   ]
  },
-
+ {
+  "ctor": "SuiTimeSignatureMenu",
+  "menuItems": [
+   {
+    "value": "6/8",
+    "text": "6/8"
+   },
+   {
+    "value": "3/4",
+    "text": "3/4"
+   },
+   {
+    "value": "2/4",
+    "text": "2/4"
+   },
+   {
+    "value": "12/8",
+    "text": "12/8"
+   },
+   {
+    "value": "7/8",
+    "text": "7/8"
+   },
+   {
+    "value": "5/8",
+    "text": "5/8"
+   },
+   {
+    "value": "TimeSigOther",
+    "text": "Other"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiKeySignatureMenu",
+  "menuItems": [
+   {
+    "value": "KeyOfC",
+    "text": "C Major"
+   },
+   {
+    "value": "KeyOfF",
+    "text": "F Major"
+   },
+   {
+    "value": "KeyOfG",
+    "text": "G Major"
+   },
+   {
+    "value": "KeyOfBb",
+    "text": "Bb Major"
+   },
+   {
+    "value": "KeyOfD",
+    "text": "D Major"
+   },
+   {
+    "value": "KeyOfEb",
+    "text": "Eb Major"
+   },
+   {
+    "value": "KeyOfA",
+    "text": "A Major"
+   },
+   {
+    "value": "KeyOfAb",
+    "text": "Ab Major"
+   },
+   {
+    "value": "KeyOfE",
+    "text": "E Major"
+   },
+   {
+    "value": "KeyOfDb",
+    "text": "Db Major"
+   },
+   {
+    "value": "KeyOfB",
+    "text": "B Major"
+   },
+   {
+    "value": "KeyOfF#",
+    "text": "F# Major"
+   },
+   {
+    "value": "KeyOfC#",
+    "text": "C# Major"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
  {
   "ctor": "SuiFileMenu",
-  "label": "File",
   "menuItems": [
    {
     "value": "newFile",
@@ -1265,7 +1705,6 @@ var smoLanguageStringEn = `[
  },
  {
   "ctor": "SuiStaffModifierMenu",
-  "label": "Lines",
   "menuItems": [
    {
     "value": "crescendo",
@@ -1282,6 +1721,43 @@ var smoLanguageStringEn = `[
    {
     "value": "ending",
     "text": "nth ending"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiDynamicsMenu",
+  "menuItems": [
+   {
+    "value": "pp",
+    "text": "Pianissimo"
+   },
+   {
+    "value": "p",
+    "text": "Piano"
+   },
+   {
+    "value": "mp",
+    "text": "Mezzo-piano"
+   },
+   {
+    "value": "mf",
+    "text": "Mezzo-forte"
+   },
+   {
+    "value": "f",
+    "text": "Forte"
+   },
+   {
+    "value": "ff",
+    "text": "Fortissimo"
+   },
+   {
+    "value": "sfz",
+    "text": "sfortzando"
    },
    {
     "value": "cancel",
@@ -1329,9 +1805,37 @@ class SmoTranslator {
     console.log(JSON.stringify(translatables,null,' '));
   }
 
+  static _updateDialog(dialogStrings,_dialogClass,dialogClass) {
+    if (!dialogStrings) {
+      console.log('no strings for Dialog '+dialogClass);
+      return;
+    }
+    _dialogClass['label'] = dialogStrings.label;
+    _dialogClass['dialogElements'].forEach((component) => {
+      var componentStrings = dialogStrings.dialogElements.find((ds) => {
+        return ds.id === component.smoName;
+      });
+      if (!componentStrings) {
+        console.log('no strings for component '+component.smoName+' in dialog '+dialogClass);
+      } else {
+        component.label = componentStrings.label;
+        if (component['options']) {
+          component['options'].forEach((option) => {
+            var optionString = componentStrings.options.find((cs) => cs.value === option.value);
+            if (!optionString) {
+              console.log('no string for option '+ option.value+' in component '+component.smoName+' in dialog ' + dialogClass);
+            } else {
+              option.label = optionString.label;
+            }
+          });
+        }
+      }
+    });
+  }
+
   static _updateMenu(menuStrings,_menuClass,menuClass) {
     if (!menuStrings) {
-      console.log('no strings for '+menuClass);
+      console.log('no strings for Menu '+menuClass);
       return;
     }
 
@@ -1352,6 +1856,7 @@ class SmoTranslator {
       return; // no xlate exists
     }
     var trans = SmoLanguage[language];
+    // Set the text in all the menus
     SmoTranslator.allMenus.forEach((menuClass) => {
       var _class = eval(menuClass);
       var menuStrings = trans.strings.find((mm) => {
@@ -1359,11 +1864,29 @@ class SmoTranslator {
       });
       SmoTranslator._updateMenu(menuStrings,_class,menuClass);
 
+      // Set text in ribbon buttons that invoke menus
       var menuButton = $('.ribbonButtonContainer button.'+menuClass).find('.left-text .text-span');
-      if (menuButton.length) {
+      if (menuButton.length && menuStrings) {
         $(menuButton).text(menuStrings.label);
       }
     });
+
+    SmoTranslator.allDialogs.forEach((dialogClass) => {
+      var _class = eval(dialogClass);
+      var dialogStrings = trans.strings.find((mm) => {
+        return mm.ctor == dialogClass;
+      });
+      // Set text in ribbon buttons that invoke menus
+      var dialogButton = $('.ribbonButtonContainer button.'+dialogClass).find('.left-text .text-span');
+      if (dialogButton.length && dialogStrings) {
+        $(dialogButton).text(dialogStrings.label);
+      }
+
+      SmoTranslator._updateDialog(dialogStrings,_class,dialogClass);
+
+    });
+
+    // Handle rtl languages
     $('body').find('.language-dir').each((ix,dd) => {$(dd).attr('dir',trans.dir)});
   }
 
@@ -1391,6 +1914,9 @@ class SmoTranslator {
       'SuiTimeSignatureDialog',
       'SuiLayoutDialog',
       'SuiDynamicModifierDialog',
+      'SuiSlurAttributesDialog',
+      'SuiVoltaAttributeDialog',
+      'SuiHairpinAttributesDialog'
     ]
   }
 }
@@ -9973,7 +10499,7 @@ class VxMeasure {
     _addChordChangeToNote(vexNote,lyric) {
       var y = lyric.verse*10;
       var cs = new VF.ChordSymbol();
-      cs.addGlyphOrText(lyric.getText()).setFont('petaluma_scriptregular,cursive',14,'normal');
+      cs.addGlyphOrText(lyric.getText()).setFont('petaluma_scriptregular',14,'normal');
       vexNote.addModifier(0,cs);
       const classString = 'chord chord-'+lyric.verse;
       cs.addClass(classString);
@@ -15635,6 +16161,10 @@ class SuiFileMenu extends suiMenuBase {
           icon: '',
           text: 'Precious Lord',
           value: 'preciousLord'
+        },{
+          icon: '',
+          text: 'Yama',
+          value: 'yamaJson'
         },	{
           icon: '',
           text: 'Cancel',
@@ -15751,6 +16281,11 @@ class SuiFileMenu extends suiMenuBase {
   			var score = SmoScore.deserialize(inventionJson);
   			this.layout.score = score;
   			this.layout.setViewport(true);
+    } else if (text == 'yamaJson') {
+      this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+      var score = SmoScore.deserialize(yamaJson);
+      this.layout.score = score;
+      this.layout.setViewport(true);
     }
       else if (text == 'bambino') {
         this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
@@ -16942,32 +17477,32 @@ class defaultTrackerKeys {
 // that operated on a selection.
 class SuiModifierDialogFactory {
 
-	static createDialog(modifier, parameters) {
-		var dbType = SuiModifierDialogFactory.modifierDialogMap[modifier.attrs.type];
+  static createDialog(modifier, parameters) {
+  var dbType = SuiModifierDialogFactory.modifierDialogMap[modifier.attrs.type];
     if (dbType === 'SuiLyricDialog' && modifier.parser === SmoLyric.parsers.chord) {
       dbType = 'SuiChordChangeDialog';
     }
-		var ctor = eval(dbType);
-		if (!ctor) {
-			console.warn('no dialog for modifier ' + modifier.type);
-			return;
-		}
-		return ctor.createAndDisplay({
-			modifier: modifier,
+  var ctor = eval(dbType);
+  if (!ctor) {
+  console.warn('no dialog for modifier ' + modifier.type);
+  return;
+  }
+  return ctor.createAndDisplay({
+  modifier: modifier,
       ...parameters
-		});
-	}
-	static get modifierDialogMap() {
-		return {
-			SmoStaffHairpin: 'SuiHairpinAttributesDialog',
-			SmoSlur: 'SuiSlurAttributesDialog',
-			SmoDynamicText: 'SuiDynamicModifierDialog',
-			SmoVolta: 'SuiVoltaAttributeDialog',
+  });
+  }
+  static get modifierDialogMap() {
+    return {
+      SmoStaffHairpin: 'SuiHairpinAttributesDialog',
+      SmoSlur: 'SuiSlurAttributesDialog',
+      SmoDynamicText: 'SuiDynamicModifierDialog',
+      SmoVolta: 'SuiVoltaAttributeDialog',
       SmoScoreText: 'SuiTextTransformDialog',
       SmoLoadScore:  'SuiLoadFileDialog',
       SmoLyric:'SuiLyricDialog'
-		};
-	}
+  };
+  }
 }
 
 // ## SuiDialogBase
@@ -16975,19 +17510,18 @@ class SuiModifierDialogFactory {
 class SuiDialogBase {
     // ### SuiDialogBase ctor
     // Creates the DOM element for the dialog and gets some initial elements
-	constructor(dialogElements, parameters) {
-		this.id = parameters.id;
-        this.boundKeyboard = false;
-		this.components = [];
+  constructor(dialogElements, parameters) {
+    this.id = parameters.id;
+    this.boundKeyboard = false;
+    this.components = [];
 
     console.log('creating close dialog promise in SuiDialogBase');
-		this.closeDialogPromise = new Promise((resolve, reject) => {
-			$('body').off('dialogDismiss').on('dialogDismiss', function () {
-        console.log('dialog dismiss DOM event received, resolve closeDialogPromise');
-				resolve();
-			});
-
-		});
+    this.closeDialogPromise = new Promise((resolve, reject) => {
+      $('body').off('dialogDismiss').on('dialogDismiss', function () {
+          console.log('dialog dismiss DOM event received, resolve closeDialogPromise');
+          resolve();
+      });
+    });
 
     this.label = eval(this.ctor)['label'];
     if (!this.label) {
@@ -17003,24 +17537,24 @@ class SuiDialogBase {
     this.eventSource = parameters.eventSource;
     this.layout = parameters.layout;
     this.context = this.layout.context;
-		this.dialogElements = dialogElements;
-		this.tracker = parameters.tracker;
+    this.dialogElements = dialogElements;
+    this.tracker = parameters.tracker;
     this.completeNotifier = parameters.completeNotifier;
     this.undoBuffer = parameters.undoBuffer;
     this.editor = parameters.editor;
 
-		var top = parameters.top - this.tracker.scroller.netScroll.y;
-		var left = parameters.left - this.tracker.scroller.netScroll.x;
+    var top = parameters.top - this.tracker.scroller.netScroll.y;
+    var left = parameters.left - this.tracker.scroller.netScroll.x;
 
-		this.dgDom = this._constructDialog(dialogElements, {
-				id: 'dialog-' + this.id,
-				top: top,
-				left: left,
-				label: this.label
-			});
+    this.dgDom = this._constructDialog(dialogElements, {
+      id: 'dialog-' + this.id,
+      top: top,
+      left: left,
+      label: this.label
+    });
 
-      SmoTranslator.registerDialog(this.ctor);
-	}
+    SmoTranslator.registerDialog(this.ctor);
+  }
 
   // ### printXlate
   // print json with string labels to use as a translation file seed.
@@ -17030,7 +17564,8 @@ class SuiDialogBase {
     xx['dialogElements'].forEach((element) => {
       var component = {};
       if (element.label) {
-        component.label = element.label
+        component.label = element.label;
+        component.id = element.smoName;
         if (element.options) {
           component.options = [];
 
@@ -17060,8 +17595,8 @@ class SuiDialogBase {
     var maxY =  $('.musicRelief').height();
     var maxX = $('.musicRelief').width();
 
-	  var offset = dgeHeight + y > window.innerHeight ? (dgeHeight + y) -  window.innerHeight : 0;
-	  y = (y < 0) ? -y : y - offset;
+    var offset = dgeHeight + y > window.innerHeight ? (dgeHeight + y) -  window.innerHeight : 0;
+    y = (y < 0) ? -y : y - offset;
 
     y = (y > maxY || y < 0) ? maxY / 2 : y;
 
@@ -17078,83 +17613,83 @@ class SuiDialogBase {
     // ### position
     // Position the dialog near a selection.  If the dialog is not visible due
     // to scrolling, make sure it is visible.
-	position(box) {
+  position(box) {
     SuiDialogBase.position(box,this.dgDom,this.tracker.scroller);
-	}
+  }
     // ### build the html for the dialog, based on the instance-specific components.
-	_constructDialog(dialogElements, parameters) {
-		var id = parameters.id;
-		var b = htmlHelpers.buildDom;
-		var r = b('div').classes('attributeModal').attr('id','attr-modal-'+id)
+  _constructDialog(dialogElements, parameters) {
+  var id = parameters.id;
+  var b = htmlHelpers.buildDom;
+  var r = b('div').classes('attributeModal').attr('id','attr-modal-'+id)
       .css('top', parameters.top + 'px').css('left', parameters.left + 'px')
-			.append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move jsDbMove')))
-			.append(b('h2').text(parameters.label));
+  .append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move jsDbMove')))
+  .append(b('h2').text(parameters.label));
 
     var ctrl = b('div').classes('smoControlContainer');
-		dialogElements.forEach((de) => {
-			var ctor = eval(de.control);
-			var control = new ctor(this, de);
-			this.components.push(control);
-			ctrl.append(control.html);
-		});
+  dialogElements.forEach((de) => {
+  var ctor = eval(de.control);
+  var control = new ctor(this, de);
+  this.components.push(control);
+  ctrl.append(control.html);
+  });
     r.append(ctrl);
-		r.append(
-			b('div').classes('buttonContainer').append(
-				b('button').classes('ok-button button-left').text('OK')).append(
-				b('button').classes('cancel-button button-center').text('Cancel')).append(
-				b('button').classes('remove-button button-right').text('Remove').append(
-					b('span').classes('icon icon-cancel-circle'))));
-		$('.attributeDialog').html('');
+  r.append(
+  b('div').classes('buttonContainer').append(
+  b('button').classes('ok-button button-left').text('OK')).append(
+  b('button').classes('cancel-button button-center').text('Cancel')).append(
+  b('button').classes('remove-button button-right').text('Remove').append(
+  b('span').classes('icon icon-cancel-circle'))));
+  $('.attributeDialog').html('');
 
-		$('.attributeDialog').append(r.dom());
+  $('.attributeDialog').append(r.dom());
 
-		var trapper = htmlHelpers.inputTrapper('.attributeDialog');
-		$('.attributeDialog').find('.cancel-button').focus();
-		return {
-			element: $('.attributeDialog'),
-			trapper: trapper
-		};
-	}
+  var trapper = htmlHelpers.inputTrapper('.attributeDialog');
+  $('.attributeDialog').find('.cancel-button').focus();
+  return {
+  element: $('.attributeDialog'),
+  trapper: trapper
+  };
+  }
 
   // ### _commit
   // generic logic to commit changes to a momdifier.
-	_commit() {
-		this.modifier.restoreOriginal();
-		this.components.forEach((component) => {
-			this.modifier[component.smoName] = component.getValue();
-		});
-	}
+  _commit() {
+  this.modifier.restoreOriginal();
+  this.components.forEach((component) => {
+  this.modifier[component.smoName] = component.getValue();
+  });
+  }
 
      // ### Complete
      // Dialogs take over the keyboard, so release that and trigger an event
      // that the dialog is closing that can resolve any outstanding promises.
-	complete() {
+  complete() {
     if (this.boundKeyboard) {
       this.eventSource.unbindKeydownHandler(this.keydownHandler);
     }
-		$('body').removeClass('showAttributeDialog');
+  $('body').removeClass('showAttributeDialog');
     console.log('dialog complete method called, triggering dialog close');
-		$('body').trigger('dialogDismiss');
-		this.dgDom.trapper.close();
-	}
+  $('body').trigger('dialogDismiss');
+  this.dgDom.trapper.close();
+  }
 
     // ### _bindComponentNames
     // helper method to give components class names based on their static configuration
   _bindComponentNames() {
     this.components.forEach((component) => {
-			var nm = component.smoName + 'Ctrl';
+  var nm = component.smoName + 'Ctrl';
       this[nm] = component;
-		});
+  });
   }
 
    // ### display
    // make3 the modal visible.  bind events and elements.
-	display() {
-		$('body').addClass('showAttributeDialog');
-		this.components.forEach((component) => {
-			component.bind();
-		});
-		this._bindElements();
+  display() {
+  $('body').addClass('showAttributeDialog');
+  this.components.forEach((component) => {
+  component.bind();
+  });
+  this._bindElements();
     if (this.modifier && this.modifier.renderedBox) {
       this.position(this.modifier.renderedBox);
     }
@@ -17162,15 +17697,15 @@ class SuiDialogBase {
         svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
     );
 
-		var cb = function (x, y) {}
-		htmlHelpers.draggable({
-			parent: $(this.dgDom.element).find('.attributeModal'),
-			handle: $(this.dgDom.element).find('.jsDbMove'),
+  var cb = function (x, y) {}
+  htmlHelpers.draggable({
+  parent: $(this.dgDom.element).find('.attributeModal'),
+  handle: $(this.dgDom.element).find('.jsDbMove'),
             animateDiv:'.draganime',
-			cb: cb,
-			moveParent: true
-		});
-	}
+  cb: cb,
+  moveParent: true
+  });
+  }
 
   // ### handleKeydown
   // allow a dialog to be dismissed by esc.
@@ -17192,25 +17727,25 @@ class SuiDialogBase {
 
    // ### _bindElements
    // bing the generic controls in most dialogs.
-	_bindElements() {
-		var self = this;
-		var dgDom = this.dgDom;
+  _bindElements() {
+  var self = this;
+  var dgDom = this.dgDom;
         this.bindKeyboard();
 
-		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-			self._commit();
-			self.complete();
-		});
+  $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+  self._commit();
+  self.complete();
+  });
 
-		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-			self.modifier.restoreOriginal();
-			self.complete();
-		});
-		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-			self.handleRemove();
-			self.complete();
-		});
-	}
+  $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+  self.modifier.restoreOriginal();
+  self.complete();
+  });
+  $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
+  self.handleRemove();
+  self.complete();
+  });
+  }
 }
 
 
@@ -17235,244 +17770,248 @@ class SuiLayoutDialog extends SuiDialogBase {
 
    // ### dialogElements
    // all dialogs have elements define the controls of the dialog.
-	static get dialogElements() {
-		return [{
-				smoName: 'pageSize',
-				parameterName: 'pageSize',
-				defaultValue: SmoScore.pageSizes.letter,
-				control: 'SuiDropdownComponent',
-				label:'Page Size',
-				options: [{
-						value: 'letter',
-						label: 'Letter'
-					}, {
-						value: 'tabloid',
-						label: 'Tabloid (11x17)'
-					}, {
-						value: 'A4',
-						label: 'A4'
-					}, {
-						value: 'custom',
-						label: 'Custom'
-					}
-				]
-			}, {
-				smoName: 'pageWidth',
-				parameterName: 'pageWidth',
-				defaultValue: SmoScore.defaults.layout.pageWidth,
-				control: 'SuiRockerComponent',
-				label: 'Page Width (px)'
-			}, {
-				smoName: 'pageHeight',
-				parameterName: 'pageHeight',
-				defaultValue: SmoScore.defaults.layout.pageHeight,
-				control: 'SuiRockerComponent',
-				label: 'Page Height (px)'
-			}, {
-				smoName: 'orientation',
-				parameterName: 'orientation',
-				defaultValue: SmoScore.orientations.portrait,
-				control: 'SuiDropdownComponent',
-				label: 'Orientation',
-				dataType:'int',
-				options:[{
-					value:SmoScore.orientations.portrait,
-					label:'Portrait'
-				}, {
-					value:SmoScore.orientations.landscape,
-					label:'Landscape'
-				}]
-			}, {
-				smoName: 'engravingFont',
-				parameterName: 'engravingFont',
-				defaultValue: SmoScore.engravingFonts.Bravura,
-				control: 'SuiDropdownComponent',
-				label:'Engraving Font',
-				options: [{
-						value: 'Bravura',
-						label: 'Bravura'
-					}, {
-						value: 'Gonville',
-						label: 'Gonville'
-					}, {
-						value: 'Petaluma',
-						label: 'Petaluma'
-					}
-				]
-			},{
-				smoName: 'leftMargin',
-				parameterName: 'leftMargin',
-				defaultValue: SmoScore.defaults.layout.leftMargin,
-				control: 'SuiRockerComponent',
-				label: 'Left Margin (px)'
-			}, {
-				smoName: 'rightMargin',
-				parameterName: 'rightMargin',
-				defaultValue: SmoScore.defaults.layout.rightMargin,
-				control: 'SuiRockerComponent',
-				label: 'Right Margin (px)'
-			}, {
-				smoName: 'topMargin',
-				parameterName: 'topMargin',
-				defaultValue: SmoScore.defaults.layout.topMargin,
-				control: 'SuiRockerComponent',
-				label: 'Top Margin (px)'
-			}, {
-				smoName: 'interGap',
-				parameterName: 'interGap',
-				defaultValue: SmoScore.defaults.layout.interGap,
-				control: 'SuiRockerComponent',
-				label: 'Inter-System Margin'
-			}, {
-				smoName: 'intraGap',
-				parameterName: 'intraGap',
-				defaultValue: SmoScore.defaults.layout.intraGap,
-				control: 'SuiRockerComponent',
-				label: 'Intra-System Margin'
-			}, {
-				smoName: 'zoomScale',
-				parameterName: 'zoomScale',
-				defaultValue: SmoScore.defaults.layout.zoomScale,
-				control: 'SuiRockerComponent',
-				label: '% Zoom',
-				type: 'percent'
-			}, {
-				smoName: 'svgScale',
-				parameterName: 'svgScale',
-				defaultValue: SmoScore.defaults.layout.svgScale,
-				control: 'SuiRockerComponent',
-				label: '% Note size',
-				type: 'percent'
-			}
-		];
-	}
+  static get dialogElements() {
+    SuiLayoutDialog._dialogElements = SuiLayoutDialog._dialogElements ? SuiLayoutDialog._dialogElements :
+     [
+       {
+        smoName: 'pageSize',
+        parameterName: 'pageSize',
+        defaultValue: SmoScore.pageSizes.letter,
+        control: 'SuiDropdownComponent',
+        label:'Page Size',
+        options: [{
+            value: 'letter',
+            label: 'Letter'
+            }, {
+            value: 'tabloid',
+            label: 'Tabloid (11x17)'
+            }, {
+            value: 'A4',
+            label: 'A4'
+            }, {
+            value: 'custom',
+            label: 'Custom'
+            }
+          ]
+        }, {
+          smoName: 'pageWidth',
+          parameterName: 'pageWidth',
+          defaultValue: SmoScore.defaults.layout.pageWidth,
+          control: 'SuiRockerComponent',
+          label: 'Page Width (px)'
+        }, {
+          smoName: 'pageHeight',
+          parameterName: 'pageHeight',
+          defaultValue: SmoScore.defaults.layout.pageHeight,
+          control: 'SuiRockerComponent',
+          label: 'Page Height (px)'
+        }, {
+          smoName: 'orientation',
+          parameterName: 'orientation',
+          defaultValue: SmoScore.orientations.portrait,
+          control: 'SuiDropdownComponent',
+          label: 'Orientation',
+          dataType:'int',
+          options:[{
+              value:SmoScore.orientations.portrait,
+              label:'Portrait'
+            }, {
+              value:SmoScore.orientations.landscape,
+              label:'Landscape'
+          }]
+        }, {
+          smoName: 'engravingFont',
+          parameterName: 'engravingFont',
+          defaultValue: SmoScore.engravingFonts.Bravura,
+          control: 'SuiDropdownComponent',
+          label:'Engraving Font',
+          options: [{
+              value: 'Bravura',
+              label: 'Bravura'
+            }, {
+              value: 'Gonville',
+              label: 'Gonville'
+            }, {
+              value: 'Petaluma',
+              label: 'Petaluma'
+            }
+          ]
+        },{
+          smoName: 'leftMargin',
+          parameterName: 'leftMargin',
+          defaultValue: SmoScore.defaults.layout.leftMargin,
+          control: 'SuiRockerComponent',
+          label: 'Left Margin (px)'
+        }, {
+          smoName: 'rightMargin',
+          parameterName: 'rightMargin',
+          defaultValue: SmoScore.defaults.layout.rightMargin,
+          control: 'SuiRockerComponent',
+          label: 'Right Margin (px)'
+        }, {
+          smoName: 'topMargin',
+          parameterName: 'topMargin',
+          defaultValue: SmoScore.defaults.layout.topMargin,
+          control: 'SuiRockerComponent',
+          label: 'Top Margin (px)'
+        }, {
+          smoName: 'interGap',
+          parameterName: 'interGap',
+          defaultValue: SmoScore.defaults.layout.interGap,
+          control: 'SuiRockerComponent',
+          label: 'Inter-System Margin'
+        }, {
+          smoName: 'intraGap',
+          parameterName: 'intraGap',
+          defaultValue: SmoScore.defaults.layout.intraGap,
+          control: 'SuiRockerComponent',
+          label: 'Intra-System Margin'
+        }, {
+          smoName: 'zoomScale',
+          parameterName: 'zoomScale',
+          defaultValue: SmoScore.defaults.layout.zoomScale,
+          control: 'SuiRockerComponent',
+          label: '% Zoom',
+          type: 'percent'
+        }, {
+          smoName: 'svgScale',
+          parameterName: 'svgScale',
+          defaultValue: SmoScore.defaults.layout.svgScale,
+          control: 'SuiRockerComponent',
+          label: '% Note size',
+          type: 'percent'
+        }
+      ];
+
+    return SuiLayoutDialog._dialogElements;
+  }
     // ### backupOriginal
     // backup the original layout parameters for trial period
-	backupOriginal() {
-		this.backup = JSON.parse(JSON.stringify(this.modifier));;
-	}
-	display() {
-		$('body').addClass('showAttributeDialog');
-		this.components.forEach((component) => {
-			component.bind();
-		});
-		this.components.forEach((component) => {
-			var val = this.modifier[component.parameterName];
-			component.setValue(val);
-		});
-		this._setPageSizeDefault();
-		this._bindElements();
+  backupOriginal() {
+  this.backup = JSON.parse(JSON.stringify(this.modifier));;
+  }
+  display() {
+  $('body').addClass('showAttributeDialog');
+  this.components.forEach((component) => {
+  component.bind();
+  });
+  this.components.forEach((component) => {
+  var val = this.modifier[component.parameterName];
+  component.setValue(val);
+  });
+  this._setPageSizeDefault();
+  this._bindElements();
 
-		var cb = function (x, y) {}
-		htmlHelpers.draggable({
-			parent: $(this.dgDom.element).find('.attributeModal'),
-			handle: $(this.dgDom.element).find('.icon-move'),
+  var cb = function (x, y) {}
+  htmlHelpers.draggable({
+  parent: $(this.dgDom.element).find('.attributeModal'),
+  handle: $(this.dgDom.element).find('.icon-move'),
             animateDiv:'.draganime',
-			cb: cb,
-			moveParent: true
-		});
-		this.completeNotifier.unbindKeyboardForModal(this);
+  cb: cb,
+  moveParent: true
+  });
+  this.completeNotifier.unbindKeyboardForModal(this);
 
     var box = svgHelpers.boxPoints(250,250,1,1);
     SuiDialogBase.position(box,this.dgDom,this.tracker.scroller);
-	}
+  }
   // ### _updateLayout
   // even if the layout is not changed, we re-render the entire score by resetting
   // the svg context.
   _updateLayout() {
     this.layout.rerenderAll();
   }
-	_handleCancel() {
-		this.layout.score.layout = this.backup;
-		this._updateLayout();
-		this.complete();
-	}
-	_bindElements() {
-		var self = this;
-		var dgDom = this.dgDom;
+  _handleCancel() {
+  this.layout.score.layout = this.backup;
+  this._updateLayout();
+  this.complete();
+  }
+  _bindElements() {
+  var self = this;
+  var dgDom = this.dgDom;
         this.bindKeyboard();
         this._bindComponentNames();
 
-		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+  $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
 
-			// TODO:  allow user to select a zoom mode.
-			self.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
-			self._updateLayout();
-			self.complete();
-		});
+  // TODO:  allow user to select a zoom mode.
+  self.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
+  self._updateLayout();
+  self.complete();
+  });
 
-		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-			self._handleCancel();
-		});
+  $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+  self._handleCancel();
+  });
 
-		$(dgDom.element).find('.remove-button').remove();
-	}
-	_setPageSizeDefault() {
-		var value = 'custom';
-		var scoreDims = this.layout.score.layout;
-		SmoScore.pageSizes.forEach((sz) => {
-			var dim = SmoScore.pageDimensions[sz];
-			if (scoreDims.pageWidth === dim.width && scoreDims.pageHeight === dim.height) {
-				value = sz;
-			} else if (scoreDims.pageHeight === dim.width && scoreDims.pageWidth === dim.height) {
-				value = sz;
-			}
-		});
-		this.components.find((x)=>{return x.parameterName==='pageSize'}).setValue(value);
-	}
+  $(dgDom.element).find('.remove-button').remove();
+  }
+  _setPageSizeDefault() {
+  var value = 'custom';
+  var scoreDims = this.layout.score.layout;
+  SmoScore.pageSizes.forEach((sz) => {
+  var dim = SmoScore.pageDimensions[sz];
+  if (scoreDims.pageWidth === dim.width && scoreDims.pageHeight === dim.height) {
+  value = sz;
+  } else if (scoreDims.pageHeight === dim.width && scoreDims.pageWidth === dim.height) {
+  value = sz;
+  }
+  });
+  this.components.find((x)=>{return x.parameterName==='pageSize'}).setValue(value);
+  }
     // ### _handlePageSizeChange
     // see if the dimensions have changed.
-	_handlePageSizeChange() {
-		var pageSizeComp = this.components.find((x)=>{return x.parameterName==='pageSize'});
-		var sel = pageSizeComp.getValue();
-		if (sel === 'custom') {
-			$('.attributeModal').addClass('customPage');
-		} else {
-			$('.attributeModal').removeClass('customPage');
-			var dim = SmoScore.pageDimensions[sel];
-			var hComp = this.components.find((x)=>{return x.parameterName==='pageHeight'});
-			var wComp = this.components.find((x)=>{return x.parameterName==='pageWidth'});
-			hComp.setValue(dim.height);
-			wComp.setValue(dim.width);
-		}
-	}
+  _handlePageSizeChange() {
+  var pageSizeComp = this.components.find((x)=>{return x.parameterName==='pageSize'});
+  var sel = pageSizeComp.getValue();
+  if (sel === 'custom') {
+  $('.attributeModal').addClass('customPage');
+  } else {
+  $('.attributeModal').removeClass('customPage');
+  var dim = SmoScore.pageDimensions[sel];
+  var hComp = this.components.find((x)=>{return x.parameterName==='pageHeight'});
+  var wComp = this.components.find((x)=>{return x.parameterName==='pageWidth'});
+  hComp.setValue(dim.height);
+  wComp.setValue(dim.width);
+  }
+  }
     // ### changed
     // One of the components has had a changed value.
-	changed() {
-		// this.modifier.backupOriginal();
-		this._handlePageSizeChange();
-		this.components.forEach((component) => {
+  changed() {
+  // this.modifier.backupOriginal();
+  this._handlePageSizeChange();
+  this.components.forEach((component) => {
       if (typeof(this.layout.score.layout[component.smoName]) != 'undefined') {
-		    this.layout.score.layout[component.smoName] = component.getValue();
+      this.layout.score.layout[component.smoName] = component.getValue();
       }
-		});
+  });
     if (this.engravingFontCtrl.changeFlag)  {
       this.layout.score.engravingFont = this.engravingFontCtrl.getValue();
       suiLayoutBase.setFont(this.layout.score.engravingFont);
     }
-		this.layout.setViewport();
-	}
+  this.layout.setViewport();
+  }
 
   // ### createAndDisplay
   // static method to create the object and then display it.
-	static createAndDisplay(parameters) {
-		var dg = new SuiLayoutDialog(parameters);
-		dg.display();
-	}
-	constructor(parameters) {
-		var p = parameters;
+  static createAndDisplay(parameters) {
+  var dg = new SuiLayoutDialog(parameters);
+  dg.display();
+  }
+  constructor(parameters) {
+  var p = parameters;
 
-		super(SuiLayoutDialog.dialogElements, {
-			id: 'dialog-layout',
-			top: (p.layout.score.layout.pageWidth / 2) - 200,
-			left: (p.layout.score.layout.pageHeight / 2) - 200,
-			label: 'Score Layout',
+  super(SuiLayoutDialog.dialogElements, {
+  id: 'dialog-layout',
+  top: (p.layout.score.layout.pageWidth / 2) - 200,
+  left: (p.layout.score.layout.pageHeight / 2) - 200,
+  label: 'Score Layout',
       ...parameters
-		});
-		this.layout = p.layout;
-		this.modifier = this.layout.score.layout;
-		this.backupOriginal();
-	}
+  });
+  this.layout = p.layout;
+  this.modifier = this.layout.score.layout;
+  this.backupOriginal();
+  }
 }
 ;
 class SuiFileDialog extends SuiDialogBase {
@@ -17549,13 +18088,15 @@ class SuiLoadFileDialog extends SuiFileDialog {
   }
 
     static get dialogElements() {
-		return [{
-				smoName: 'loadFile',
-				parameterName: 'jsonFile',
-				defaultValue: '',
-				control: 'SuiFileDownloadComponent',
-				label:''
-			}];
+      SuiLoadFileDialog._dialogElements = SuiLoadFileDialog._dialogElements ? SuiLoadFileDialog._dialogElements :
+		    [{
+  				smoName: 'loadFile',
+  				parameterName: 'jsonFile',
+  				defaultValue: '',
+  				control: 'SuiFileDownloadComponent',
+  				label:''
+			  }];
+      return SuiLoadFileDialog._dialogElements;
     }
 
     changed() {
@@ -17612,11 +18153,10 @@ class SuiPrintFileDialog extends SuiFileDialog {
     SuiPrintFileDialog._label = value;
   }
 
-
-    static get dialogElements() {
-		return [];
-    }
-    static createAndDisplay(params) {
+  static get dialogElements() {
+	  return [];
+  }
+  static createAndDisplay(params) {
 		var dg = new SuiPrintFileDialog(params);
 		dg.display();
 	}
@@ -17656,13 +18196,16 @@ class SuiSaveFileDialog extends SuiFileDialog {
 
 
   static get dialogElements() {
-	  return [{
-			smoName: 'saveFileName',
-			parameterName: 'saveFileName',
-			defaultValue: '',
-			control: 'SuiTextInputComponent',
-			label:'File Name'
+    SuiSaveFileDialog._dialogElements = SuiSaveFileDialog._dialogElements ? SuiSaveFileDialog._dialogElements :
+	  [{
+        smoName: 'saveFileName',
+        parameterName: 'saveFileName',
+        defaultValue: '',
+        control: 'SuiTextInputComponent',
+        label:'File Name'
 		}];
+
+    return SuiSaveFileDialog._dialogElements;
   }
 
   changed() {
@@ -17713,7 +18256,8 @@ class SuiSaveFileDialog extends SuiFileDialog {
       return dg;
 	}
   static get dialogElements() {
-    return [{
+    SuiLyricDialog._dialogElements = SuiLyricDialog._dialogElements ? SuiLyricDialog._dialogElements :
+     [{
       smoName: 'verse',
       parameterName: 'verse',
       defaultValue: 0,
@@ -17746,6 +18290,8 @@ class SuiSaveFileDialog extends SuiFileDialog {
       label:'Edit Text',
       options: []
 	  }];
+
+    return SuiLyricDialog._dialogElements;
   }
   static get staticText() {
     return {
@@ -17873,7 +18419,8 @@ class SuiChordChangeDialog extends SuiLyricDialog {
     super(parameters);
   }
   static get dialogElements() {
-    return [{
+    SuiChordChangeDialog._dialogElements = SuiChordChangeDialog._dialogElements ? SuiChordChangeDialog._dialogElements :
+      [{
       smoName: 'verse',
       parameterName: 'verse',
       defaultValue: 0,
@@ -17906,6 +18453,8 @@ class SuiChordChangeDialog extends SuiLyricDialog {
       label:'Edit Text',
       options: []
     }];
+
+    return SuiChordChangeDialog._dialogElements;
   }
   changed() {
     this.textEditorCtrl.verse = this.verse.getValue();
@@ -17949,7 +18498,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   }
 
   static get dialogElements() {
-    return [
+    SuiTextTransformDialog._dialogElements = SuiTextTransformDialog._dialogElements ? SuiTextTransformDialog._dialogElements :
+      [
       {
   			smoName: 'textEditor',
   			parameterName: 'text',
@@ -18078,6 +18628,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         ]
   		}
     ];
+
+    return SuiTextTransformDialog._dialogElements;
   }
 
   display() {
@@ -18318,9 +18870,13 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
        'Dynamics Properties';
     return SuiDynamicModifierDialog._label;
   }
+  static set label(value) {
+    SuiDynamicModifierDialog._label = value;
+  }
 
 	static get dialogElements() {
-		return [{
+    SuiDynamicModifierDialog._dialogElements = SuiDynamicModifierDialog._dialogElements ? SuiDynamicModifierDialog._dialogElements :
+		  [{
 				smoName: 'yOffsetLine',
 				parameterName: 'yOffsetLine',
 				defaultValue: 11,
@@ -18369,6 +18925,7 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
 				label: 'Text'
 			}
 		];
+    return SuiDynamicModifierDialog._dialogElements;
 	}
 	static createAndDisplay(parameters) {
 		var dg = new SuiDynamicModifierDialog(parameters);
@@ -18435,8 +18992,8 @@ class SuiMeasureDialog extends SuiDialogBase {
       SuiTimeSignatureDialog._label = value;
     }
     static get dialogElements() {
-      return [
-        {
+      SuiMeasureDialog._dialogElements = SuiMeasureDialog._dialogElements ? SuiMeasureDialog._dialogElements :
+        [{
           smoName: 'pickupMeasure',
           parameterName: 'pickupMeasure',
           defaultValue: 2048,
@@ -18520,6 +19077,8 @@ class SuiMeasureDialog extends SuiDialogBase {
   			control:'SuiToggleComponent',
   			label: 'System break before this measure'
   		}];
+
+      return SuiMeasureDialog._dialogElements;
     }
     static createAndDisplay(parameters) {
       // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
@@ -18690,46 +19249,51 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
   }
 
     static get dialogElements() {
-        return [{
+      SuiTimeSignatureDialog._dialogElements = SuiTimeSignatureDialog._dialogElements ? SuiTimeSignatureDialog._dialogElements :
+        [
+          {
             smoName: 'numerator',
             parameterName: 'numerator',
             defaultValue: 3,
             control: 'SuiRockerComponent',
             label:'Beats/Measure',
-            },
-		{
-			parameterName: 'denominator',
-			smoName: 'denominator',
-			defaultValue: 8,
+          },
+  		    {
+            parameterName: 'denominator',
+            smoName: 'denominator',
+            defaultValue: 8,
             dataType:'int',
-			control: 'SuiDropdownComponent',
-			label: 'Beat Value',
-			options: [{
-					value: 8,
-					label: '8',
-				}, {
-					value: 4,
-					label: '4'
-				}, {
-					value: 2,
-					label: '2'
-				}
-			]
-		} ];
-     }
-     populateInitial() {
-         var num,den;
-         var nd = this.measure.timeSignature.split('/');
-         var num = parseInt(nd[0]);
-         var den = parseInt(nd[1]);
+            control: 'SuiDropdownComponent',
+            label: 'Beat Value',
+            options: [{
+              value: 8,
+              label: '8',
+            }, {
+              value: 4,
+              label: '4'
+            }, {
+              value: 2,
+              label: '2'
+            }
+  			 ]
+  		}
+    ];
 
-         this.numeratorCtrl.setValue(num);
-         this.denominatorCtrl.setValue(den);
-     }
+    return SuiTimeSignatureDialog._dialogElements;
+  }
+  populateInitial() {
+     var num,den;
+     var nd = this.measure.timeSignature.split('/');
+     var num = parseInt(nd[0]);
+     var den = parseInt(nd[1]);
 
-    changed() {
-        // no dynamic change for time  signatures
-    }
+     this.numeratorCtrl.setValue(num);
+     this.denominatorCtrl.setValue(den);
+  }
+
+  changed() {
+      // no dynamic change for time  signatures
+  }
      static createAndDisplay(params) {
          // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
          //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
@@ -18841,125 +19405,127 @@ class SuiTempoDialog extends SuiDialogBase {
     static get attributes() {
         return ['tempoMode', 'bpm', 'beatDuration', 'tempoText','yOffset'];
     }
-    static get dialogElements() {
-        return [{
-            smoName: 'tempoMode',
-            parameterName: 'tempoMode',
-            defaultValue: SmoTempoText.tempoModes.durationMode,
-            control: 'SuiDropdownComponent',
-            label:'Tempo Mode',
-            options: [{
-                    value: 'duration',
-                    label: 'Duration (Beats/Minute)'
-                }, {
-                    value: 'text',
-                    label: 'Tempo Text'
-                }, {
-                    value: 'custom',
-                    label: 'Specify text and duration'
-                }
-                ]
-			},
-			{
-                parameterName: 'bpm',
-                smoName: 'bpm',
-                defaultValue: 120,
-                control: 'SuiRockerComponent',
-                label: 'Notes/Minute'
-            },
-		{
-			parameterName: 'duration',
-			smoName: 'beatDuration',
-			defaultValue: 4096,
-            dataType:'int',
-			control: 'SuiDropdownComponent',
-			label: 'Unit for Beat',
-			options: [{
-					value: 4096,
-					label: 'Quarter Note',
-				}, {
-					value: 2048,
-					label: '1/8 note'
-				}, {
-					value: 6144,
-					label: 'Dotted 1/4 note'
-				}, {
-					value: 8192,
-					label: '1/2 note'
-				}
-			]
-		},
+  static get dialogElements() {
 
-      {
-      smoName: 'tempoText',
-      parameterName: 'tempoText',
-      defaultValue: SmoTempoText.tempoTexts.allegro,
-      control: 'SuiDropdownComponent',
-      label:'Tempo Text',
-      options: [{
-          value: SmoTempoText.tempoTexts.larghissimo,
-          label: 'Larghissimo'
-        }, {
-          value: SmoTempoText.tempoTexts.grave,
-          label: 'Grave'
-        }, {
-          value: SmoTempoText.tempoTexts.lento,
-          label: 'Lento'
-        }, {
-          value: SmoTempoText.tempoTexts.largo,
-          label: 'Largo'
-        }, {
-          value: SmoTempoText.tempoTexts.larghetto,
-          label: 'Larghetto'
-        }, {
-          value: SmoTempoText.tempoTexts.adagio,
-          label: 'Adagio'
-        }, {
-          value: SmoTempoText.tempoTexts.adagietto,
-          label: 'Adagietto'
-        }, {
-          value: SmoTempoText.tempoTexts.andante_moderato,
-          label: 'Andante moderato'
-        }, {
-          value: SmoTempoText.tempoTexts.andante,
-          label: 'Andante'
-        }, {
-          value: SmoTempoText.tempoTexts.andantino,
-          label: 'Andantino'
-        }, {
-          value: SmoTempoText.tempoTexts.moderator,
-          label: 'Moderato'
-        }, {
-          value: SmoTempoText.tempoTexts.allegretto,
-          label: 'Allegretto',
-        } ,{
-          value: SmoTempoText.tempoTexts.allegro,
-          label: 'Allegro'
-        }, {
-          value: SmoTempoText.tempoTexts.vivace,
-          label: 'Vivace'
-        }, {
-          value: SmoTempoText.tempoTexts.presto,
-          label: 'Presto'
-        }, {
-          value: SmoTempoText.tempoTexts.prestissimo,
-          label: 'Prestissimo'
-        }
-      ]
-  },{
-			smoName:'applyToAll',
-			parameterName:'applyToAll',
-			defaultValue: false,
-			control:'SuiToggleComponent',
-			label:'Apply to all future measures?'
-		},{
-          smoName: 'display',
-          parameterName: 'display',
-          defaultValue: true,
-          control: 'SuiToggleComponent',
-          label: 'Display Tempo'
+    SuiTempoDialog._dialogElements = SuiTempoDialog._dialogElements ? SuiTempoDialog._dialogElements :
+     [{
+        smoName: 'tempoMode',
+        parameterName: 'tempoMode',
+        defaultValue: SmoTempoText.tempoModes.durationMode,
+        control: 'SuiDropdownComponent',
+        label:'Tempo Mode',
+        options: [{
+            value: 'duration',
+            label: 'Duration (Beats/Minute)'
+          }, {
+            value: 'text',
+            label: 'Tempo Text'
+          }, {
+            value: 'custom',
+            label: 'Specify text and duration'
+          }
+        ]
       },
-    ]
+      {
+        parameterName: 'bpm',
+        smoName: 'bpm',
+        defaultValue: 120,
+        control: 'SuiRockerComponent',
+        label: 'Notes/Minute'
+      },
+      {
+        parameterName: 'duration',
+        smoName: 'beatDuration',
+        defaultValue: 4096,
+        dataType:'int',
+        control: 'SuiDropdownComponent',
+        label: 'Unit for Beat',
+        options: [{
+        		value: 4096,
+        		label: 'Quarter Note',
+        	}, {
+        		value: 2048,
+        		label: '1/8 note'
+        	}, {
+        		value: 6144,
+        		label: 'Dotted 1/4 note'
+        	}, {
+        		value: 8192,
+        		label: '1/2 note'
+        	}
+        ]
+      },
+      {
+        smoName: 'tempoText',
+        parameterName: 'tempoText',
+        defaultValue: SmoTempoText.tempoTexts.allegro,
+        control: 'SuiDropdownComponent',
+        label:'Tempo Text',
+        options: [{
+            value: SmoTempoText.tempoTexts.larghissimo,
+            label: 'Larghissimo'
+          }, {
+            value: SmoTempoText.tempoTexts.grave,
+            label: 'Grave'
+          }, {
+            value: SmoTempoText.tempoTexts.lento,
+            label: 'Lento'
+          }, {
+            value: SmoTempoText.tempoTexts.largo,
+            label: 'Largo'
+          }, {
+            value: SmoTempoText.tempoTexts.larghetto,
+            label: 'Larghetto'
+          }, {
+            value: SmoTempoText.tempoTexts.adagio,
+            label: 'Adagio'
+          }, {
+            value: SmoTempoText.tempoTexts.adagietto,
+            label: 'Adagietto'
+          }, {
+            value: SmoTempoText.tempoTexts.andante_moderato,
+            label: 'Andante moderato'
+          }, {
+            value: SmoTempoText.tempoTexts.andante,
+            label: 'Andante'
+          }, {
+            value: SmoTempoText.tempoTexts.andantino,
+            label: 'Andantino'
+          }, {
+            value: SmoTempoText.tempoTexts.moderator,
+            label: 'Moderato'
+          }, {
+            value: SmoTempoText.tempoTexts.allegretto,
+            label: 'Allegretto',
+          } ,{
+            value: SmoTempoText.tempoTexts.allegro,
+            label: 'Allegro'
+          }, {
+            value: SmoTempoText.tempoTexts.vivace,
+            label: 'Vivace'
+          }, {
+            value: SmoTempoText.tempoTexts.presto,
+            label: 'Presto'
+          }, {
+            value: SmoTempoText.tempoTexts.prestissimo,
+            label: 'Prestissimo'
+          }
+        ]
+      }, {
+        smoName:'applyToAll',
+        parameterName:'applyToAll',
+        defaultValue: false,
+        control:'SuiToggleComponent',
+        label:'Apply to all future measures?'
+      },{
+        smoName: 'display',
+        parameterName: 'display',
+        defaultValue: true,
+        control: 'SuiToggleComponent',
+        label: 'Display Tempo'
+      },
+    ];
+    return SuiTempoDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
     parameters.measures = SmoSelection.getMeasureList(parameters.tracker.selections)
@@ -21658,6 +22224,7 @@ class vexGlyph {
 		};
 	}
 }
+;var yamaJson = `{"a":{"b":{"c":30,"d":30,"e":40,"f":40,"g":816,"h":1056,"i":0,"j":30,"k":10,"l":0.6,"m":2.107843137254902,"n":2,"o":1},"q":0,"r":{},"ce":"Petaluma"},"s":[{"t":0,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Treble Instrument","ca":"0","da":"treble"},"ea":[{"fa":{"ga":0,"ha":0,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":0,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":2,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":2,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":2,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":2,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":5,"ia":0,"ja":3,"ka":[]},"la":{"ga":0,"ha":5,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":6,"ia":0,"ja":3,"ka":[]},"la":{"ga":0,"ha":6,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":1,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":1,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":3,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":3,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":7,"ia":0,"ja":3,"ka":[]},"la":{"ga":0,"ha":7,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":10,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":10,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":10,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":10,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":11,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":11,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":15,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":15,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":16,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":16,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":17,"ia":0,"ja":12,"ka":[]},"la":{"ga":0,"ha":17,"ia":0,"ja":13,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":17,"ia":0,"ja":14,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":0,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":18,"ia":0,"ja":9,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":10,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":20,"ia":0,"ja":15,"ka":[]},"la":{"ga":0,"ha":20,"ia":0,"ja":16,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":0,"za":0,"ab":0,"t":0},"bb":118.82000000000001,"cb":[{"pa":{"qa":"auto196875","ra":"SmoTuplet"},"q":3},{"pa":{"qa":"auto203439","ra":"SmoTuplet"},"q":6},{"ud":[2,1],"pa":{"qa":"auto210860","ra":"SmoTuplet"},"q":1}],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto210860","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto210860","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto196875","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":12,"sa":"SmoLyric","_text":"Bb-7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto196875","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto196875","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto203439","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto203439","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"od":{"qa":"auto203439","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":1,"za":1,"ab":1,"t":0},"bb":6,"cb":[{"ud":[2,1],"pa":{"qa":"auto11224","ra":"SmoTuplet"},"q":1},{"pa":{"qa":"auto11233","ra":"SmoTuplet"},"q":3},{"pa":{"qa":"auto11240","ra":"SmoTuplet"},"q":6}],"db":[{"eb":[{"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto11224","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto11224","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto11233","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":10,"sa":"SmoLyric","_text":"Bb-7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto11233","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto11233","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto11240","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto11240","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"od":{"qa":"auto11240","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ld":true,"ya":{"ya":2,"za":2,"ab":0,"t":0},"bb":118.82000000000001,"be":83,"cb":[{"ud":[2,1],"pa":{"qa":"auto8246","ra":"SmoTuplet"},"q":1},{"pa":{"qa":"auto8256","ra":"SmoTuplet"},"q":3},{"pa":{"qa":"auto8263","ra":"SmoTuplet"},"q":6}],"db":[{"eb":[{"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto8246","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto8246","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto8256","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":10,"sa":"SmoLyric","_text":"Bb-7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto8256","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto8256","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto8263","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto8263","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"od":{"qa":"auto8263","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":3,"za":3,"ab":1,"t":0},"bb":6,"cb":[{"ud":[2,1],"pa":{"qa":"auto31809","ra":"SmoTuplet"},"q":1},{"pa":{"qa":"auto31819","ra":"SmoTuplet"},"q":3},{"pa":{"qa":"auto31826","ra":"SmoTuplet"},"q":6}],"db":[{"eb":[{"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto31809","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto31809","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto31819","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":10,"sa":"SmoLyric","_text":"Bb-7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto31819","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto31819","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto31826","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"od":{"qa":"auto31826","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto31826","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ld":true,"ya":{"ya":4,"za":4,"ab":0,"t":0},"bb":118.82000000000001,"cb":[],"db":[{"eb":[{"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F-7 "}]},{"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Eb7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[{"sa":"SmoRehearsalMark"}]},{"ya":{"ya":5,"za":5,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Db7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Bb7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":6,"za":6,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"B7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Gb-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":7,"za":7,"ab":3,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Db7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"C7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"}]}],"ea":[]},{"ld":true,"ya":{"ya":8,"za":8,"ab":0,"t":0},"bb":118.82000000000001,"cb":[],"db":[{"eb":[{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"E+5 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":9,"za":9,"ab":1,"t":0},"bb":6,"cb":[{"pa":{"qa":"auto100919","ra":"SmoTuplet"},"q":1}],"db":[{"eb":[{"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Db7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"d","lb":"b","kb":4}],"od":{"qa":"auto100919","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto100919","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto100919","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Gb-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":10,"za":10,"ab":2,"t":0},"bb":6,"be":10,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":3}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"EbMaj7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":11,"za":11,"ab":3,"t":0},"bb":6,"cb":[{"ud":[2,1],"pa":{"qa":"auto303621","ra":"SmoTuplet"},"q":0},{"pa":{"qa":"auto320948","ra":"SmoTuplet"},"q":6},{"pa":{"qa":"auto10785","ra":"SmoTuplet"},"q":2}],"db":[{"eb":[{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto303621","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":16,"sa":"SmoLyric","_text":"Db7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto303621","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto10785","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"od":{"qa":"auto10785","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto10785","ra":"SmoTuplet"},"da":"treble"},{"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"b","kb":4}],"oc":"r","od":{"qa":"auto320948","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":1366,"sb":[{"parser":2,"gc":15,"sa":"SmoLyric","_text":"C7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto320948","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":1365},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto320948","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":1365}]}],"ea":[]},{"ld":true,"ya":{"ya":12,"za":12,"ab":0,"t":0},"bb":118.82000000000001,"cb":[{"ud":[1,2],"pa":{"qa":"auto46986","ra":"SmoTuplet"},"q":3}],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"tc":1,"sb":[{"parser":2,"sa":"SmoLyric","_text":"Bb7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto46986","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2730,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto46986","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":13,"za":13,"ab":1,"t":0},"bb":6,"cb":[{"td":1024,"ud":[1,1,1,1,1],"pa":{"qa":"auto147967","ra":"SmoTuplet"},"q":1}],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Eb7 "}]},{"fb":{"gb":819,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Ab7 "}]},{"fb":{"gb":819,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":819,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":819,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":819,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":14,"za":14,"ab":2,"t":0},"bb":6,"cb":[{"ud":[2,1],"pa":{"qa":"auto127112","ra":"SmoTuplet"},"q":1},{"pa":{"qa":"auto127379","ra":"SmoTuplet"},"q":4}],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Db7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"c","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto127112","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":14,"sa":"SmoLyric","_text":"C7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"od":{"qa":"auto127112","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto127379","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"od":{"qa":"auto127379","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto127379","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":15,"za":15,"ab":3,"t":0},"bb":6,"cb":[{"pa":{"qa":"auto239480","ra":"SmoTuplet"},"q":3}],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048},{"ka":[{"jb":"f","lb":"n","kb":4}],"od":{},"da":"treble","sb":[{"parser":2,"gc":10,"sa":"SmoLyric","_text":"Bb-7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto239480","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"od":{"qa":"auto239480","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto239480","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":16,"za":16,"ab":4,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"gc":1,"sa":"SmoLyric","_text":"F7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"sa":"SmoLyric","_text":"Bb-7 "}]},{"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"}]}],"ea":[{"kd":1,"sa":"SmoBarline"}]},{"ld":true,"ya":{"ya":17,"za":17,"ab":0,"t":0},"bb":118.82000000000001,"be":-25,"cb":[{"ud":[1,1,0.5,0.5],"pa":{"qa":"auto32682","ra":"SmoTuplet"},"q":8}],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"oc":"r","da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"oc":"r","da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":2},"ka":[{"jb":"f","lb":"n","kb":5}],"od":{"qa":"auto32682","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Eb7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto32682","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto32682","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto32682","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":18,"za":18,"ab":1,"t":0},"bb":6,"be":55,"de":12,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto439759","ra":"SmoTuplet"},"q":1},{"ud":[1,2],"pa":{"qa":"auto152250","ra":"SmoTuplet"},"q":6},{"td":1024,"sd":2048,"pa":{"qa":"auto193687","ra":"SmoTuplet"},"q":5}],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"gc":10,"sa":"SmoLyric","_text":"Db7 "}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto439759","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto439759","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto439759","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto193687","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto193687","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto193687","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"d","lb":"n","kb":4}],"od":{"qa":"auto152250","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":16,"sa":"SmoLyric","_text":"Bb7 "}]},{"fb":{"gb":2730,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"od":{"qa":"auto152250","ra":"SmoTuplet"},"da":"treble"},{"ka":[{"jb":"b","lb":"b","kb":3}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":19,"za":19,"ab":2,"t":0},"bb":6,"be":41,"de":12,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"B7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Gb-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"b","kb":4}],"da":"treble"}]}],"ea":[]},{"ld":true,"ya":{"ya":20,"za":20,"ab":0,"t":0},"bb":118.82000000000001,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto52582","ra":"SmoTuplet"},"q":5},{"td":1024,"sd":2048,"pa":{"qa":"auto273903","ra":"SmoTuplet"},"q":10}],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"sa":"SmoLyric","_text":"Db7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","rb":true,"qb":1024,"sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto52582","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto52582","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto52582","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"C7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"#","kb":4}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"e","lb":"n","kb":4}],"od":{"qa":"auto273903","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto273903","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto273903","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":2048},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048}]}],"ea":[]},{"ya":{"ya":21,"za":21,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"E7+5 "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ld":true,"ya":{"ya":22,"za":22,"ab":0,"t":0},"bb":118.82000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"sa":"SmoLyric","_text":"Db7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","kb":4,"lb":"b"}],"da":"treble","qb":2048,"sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","kb":4,"lb":"b"}],"da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","kb":4,"lb":"n"}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","kb":4,"lb":"b"}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Gb-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"b","kb":5,"pc":false}],"da":"treble","rb":true,"qb":1024},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble"}]}],"ea":[]},{"ya":{"ya":23,"za":23,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"EbMaj7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":24,"za":24,"ab":2,"t":0},"bb":6,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto639348","ra":"SmoTuplet"},"q":0},{"td":1024,"sd":2048,"pa":{"qa":"auto678974","ra":"SmoTuplet"},"q":5}],"db":[{"eb":[{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto639348","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":20,"sa":"SmoLyric","_text":"Db7 "}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto639348","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto639348","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto678974","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto678974","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto678974","ra":"SmoTuplet"},"da":"treble"},{"ka":[{"jb":"d","lb":"#","kb":5}],"da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]}]}],"yc":[],"yd":[],"ee":{"wa":{"0":"4/4"},"xa":{"0":"Eb"},"fe":{"0":{"sa":"SmoTempoText","pa":{"qa":"auto1018","ra":"SmoTempoText"},"id":"duration","nb":96,"ob":true,"pb":4096,"jd":"Allegro","ta":0}}},"dictionary":{"a":"score","b":"layout","c":"leftMargin","d":"rightMargin","e":"topMargin","f":"bottomMargin","g":"pageWidth","h":"pageHeight","i":"orientation","j":"interGap","k":"intraGap","l":"svgScale","m":"zoomScale","n":"zoomMode","o":"pages","p":"pageSize","q":"startIndex","r":"renumberingMap","s":"staves","t":"staffId","u":"staffX","v":"staffY","w":"adjY","x":"staffWidth","y":"staffHeight","z":"keySignatureMap","aa":"instrumentInfo","ba":"instrumentName","ca":"keyOffset","da":"clef","ea":"modifiers","fa":"startSelector","ga":"staff","ha":"measure","ia":"voice","ja":"tick","ka":"pitches","la":"endSelector","ma":"xOffset","na":"cp1y","oa":"cp2y","pa":"attrs","qa":"id","ra":"type","sa":"ctor","ta":"yOffset","ua":"position","va":"measures","wa":"timeSignature","xa":"keySignature","ya":"measureNumber","za":"measureIndex","ab":"systemIndex","bb":"adjX","cb":"tuplets","db":"voices","eb":"notes","fb":"ticks","gb":"numerator","hb":"denominator","ib":"remainder","jb":"letter","kb":"octave","lb":"accidental","mb":"symbol","nb":"bpm","ob":"display","pb":"beatDuration","qb":"beamBeats","rb":"endBeam","sb":"textModifiers","tb":"text","ub":"endChar","vb":"fontInfo","wb":"size","xb":"family","yb":"style","zb":"weight","ac":"classes","bc":"verse","cc":"fill","dc":"scaleX","ec":"scaleY","fc":"translateX","gc":"translateY","hc":"selector","ic":"renderedBox","jc":"x","kc":"y","lc":"width","mc":"height","nc":"logicalBox","oc":"noteType","pc":"cautionary","qc":"articulations","rc":"articulation","sc":"activeVoice","tc":"flagState","uc":"invert","vc":"fontSize","wc":"yOffsetLine","xc":"yOffsetPixels","yc":"scoreText","zc":"backup","ad":"edited","bd":"pagination","cd":"boxModel","dd":"justification","ed":"autoLayout","fd":"ornaments","gd":"offset","hd":"ornament","id":"tempoMode","jd":"tempoText","kd":"barline","ld":"systemBreak","md":"graceNotes","nd":"tones","od":"tuplet","pd":"beam_group","qd":"renderId","rd":"numNotes","sd":"totalTicks","td":"stemTicks","ud":"durationMap","vd":"bracketed","wd":"ratioed","xd":"location","yd":"systemGroups","zd":"leftConnector","ae":"padLeft","be":"customStretch","ce":"engravingFont","de":"customProportion","ee":"columnAttributeMap","fe":"tempo"}}`;
 ;var inventionJson = `{"a":{"b":{"c":30,"d":30,"e":150,"f":40,"g":816,"h":1056,"i":0,"j":30,"k":15,"l":0.7,"m":1.4641000000000006,"n":2,"o":2,"p":"letter"},"q":0,"r":{},"ce":"Bravura"},"s":[{"t":0,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Treble Instrument","ca":"0","da":"treble"},"ea":[{"fa":{"ga":0,"ha":4,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":4,"ia":0,"ja":1,"ka":[]},"ma":-3,"na":34,"oa":17,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":5,"ia":0,"ja":9,"ka":[]},"la":{"ga":0,"ha":5,"ia":0,"ja":12,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":10,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":10,"ia":0,"ja":4,"ka":[]},"ma":0,"uc":true,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":10,"ia":0,"ja":5,"ka":[]},"la":{"ga":0,"ha":11,"ia":0,"ja":0,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":11,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":11,"ia":0,"ja":6,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":15,"ia":0,"ja":8,"ka":[]},"la":{"ga":0,"ha":16,"ia":0,"ja":0,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":17,"ia":0,"ja":8,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":0,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":0,"ia":0,"ja":9,"ka":[]},"la":{"ga":0,"ha":0,"ia":0,"ja":11,"ka":[]},"sa":"SmoStaffHairpin"},{"fa":{"ga":0,"ha":1,"ia":0,"ja":9,"ka":[]},"la":{"ga":0,"ha":1,"ia":0,"ja":11,"ka":[]},"sa":"SmoStaffHairpin"},{"fa":{"ga":0,"ha":6,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":6,"ia":0,"ja":10,"ka":[]},"ta":-40,"sa":"SmoStaffHairpin"},{"fa":{"ga":0,"ha":7,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":7,"ia":0,"ja":10,"ka":[]},"sa":"SmoStaffHairpin"},{"fa":{"ga":0,"ha":16,"ia":0,"ja":8,"ka":[]},"la":{"ga":0,"ha":17,"ia":0,"ja":0,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"}],"va":[{"ya":{"ya":0,"za":0,"ab":0,"t":0},"bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","rb":true,"qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":8192,"fd":[{"hd":"mordent_inverted","sa":"SmoOrnament"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true,"qb":8192}]}],"ea":[]},{"ya":{"ya":1,"za":1,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qc":[{"rc":"staccato","sa":"SmoArticulation"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":8192,"fd":[{"hd":"mordent_inverted","sa":"SmoOrnament"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","rb":true,"qb":8192}]}],"ea":[]},{"ya":{"ya":2,"za":2,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qc":[{"rc":"staccato","sa":"SmoArticulation"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":3,"za":3,"ab":0,"t":0},"bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":4,"za":4,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","fd":[{"hd":"mordent_inverted","sa":"SmoOrnament"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":5,"za":5,"ab":0,"t":0},"bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","fd":[{"sa":"SmoOrnament"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":6,"za":6,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"oc":"r","da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":7,"za":7,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","rb":true},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":8,"za":8,"ab":0,"t":0},"bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":9,"za":9,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"oc":"r","da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":10,"za":10,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":5}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","rb":true,"qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":8192,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":8192,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":8192,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":5}],"da":"treble","rb":true,"qb":8192,"tc":1}]}],"ea":[]},{"ya":{"ya":11,"za":11,"ab":0,"t":0},"bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":8192,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","qb":8192,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"#","kb":4}],"da":"treble","qb":8192,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","rb":true,"qb":8192,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","tc":1},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","tc":1}]}],"ea":[]},{"ya":{"ya":12,"za":12,"ab":1,"t":0},"bb":36,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":13,"za":13,"ab":0,"t":0},"bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"#","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","fd":[{"sa":"SmoOrnament"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":14,"za":14,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qc":[{"ua":"below","rc":"staccato","sa":"SmoArticulation"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":15,"za":15,"ab":2,"t":0},"bb":6,"de":12,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","tc":2},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","tc":2},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","tc":2},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","tc":2},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble","tc":2},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","tc":2},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","tc":2},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","tc":2},{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":16,"za":16,"ab":0,"t":0},"bb":59.980000000000004,"de":12,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qc":[{"rc":"staccato","sa":"SmoArticulation"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":17,"za":17,"ab":1,"t":0},"bb":6,"de":62,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":18,"za":18,"ab":2,"t":0},"bb":6,"be":-31,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qc":[{"rc":"staccato","sa":"SmoArticulation"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":19,"za":19,"ab":0,"t":0},"bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":20,"za":20,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":21,"za":21,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":16384,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4},{"jb":"c","lb":"n","kb":5}],"da":"treble"}]}],"ea":[{"kd":2,"sa":"SmoBarline"}]}]},{"t":1,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Bass Clef Staff","ca":0,"da":"bass"},"ea":[{"fa":{"ga":1,"ha":1,"ia":0,"ja":0,"ka":[0]},"la":{"ga":1,"ha":1,"ia":0,"ja":1,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":2,"ia":0,"ja":1,"ka":[]},"la":{"ga":1,"ha":2,"ia":0,"ja":4,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":2,"ia":0,"ja":5,"ka":[]},"la":{"ga":1,"ha":3,"ia":0,"ja":0,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":3,"ia":0,"ja":1,"ka":[]},"la":{"ga":1,"ha":3,"ia":0,"ja":6,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":15,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":15,"ia":0,"ja":1,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":16,"ia":0,"ja":0,"ka":[0]},"la":{"ga":1,"ha":16,"ia":0,"ja":1,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":3,"ia":0,"ja":4,"ka":[]},"la":{"ga":1,"ha":3,"ia":0,"ja":6,"ka":[]},"sa":"SmoStaffHairpin"},{"fa":{"ga":1,"ha":17,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":17,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":0,"za":0,"ab":0,"t":1},"da":"bass","bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"oc":"r","da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3}],"oc":"r","da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3}],"da":"bass","rb":true}]}],"ea":[]},{"ya":{"ya":1,"za":1,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2}],"da":"bass","qc":[{"rc":"staccato","sa":"SmoArticulation"}]},{"ka":[{"jb":"d","lb":"n","kb":3}],"oc":"r","da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"oc":"r","da":"bass","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","rb":true}]}],"ea":[]},{"ya":{"ya":2,"za":2,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","rb":true,"qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass","rb":true,"qb":8192}]}],"ea":[]},{"ya":{"ya":3,"za":3,"ab":0,"t":1},"da":"bass","bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","rb":true,"qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":4,"za":4,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","rb":true,"qb":8192}]}],"ea":[]},{"ya":{"ya":5,"za":5,"ab":0,"t":1},"da":"bass","bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass","rb":true,"qb":8192},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":2}],"da":"bass","tc":1,"qc":[{"ua":"below","rc":"staccato","sa":"SmoArticulation"}]}]}],"ea":[]},{"ya":{"ya":6,"za":6,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2}],"oc":"r","da":"bass","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":2}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2}],"da":"bass","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":2}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","rb":true,"qb":8192}]}],"ea":[]},{"ya":{"ya":7,"za":7,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qc":[{"rc":"staccato","sa":"SmoArticulation"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","rb":true,"qb":8192}]}],"ea":[]},{"ya":{"ya":8,"za":8,"ab":0,"t":1},"bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"treble","qc":[{"ua":"below","rc":"staccato","sa":"SmoArticulation"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4,"pc":true}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","rb":true,"qb":8192}]}],"ea":[]},{"ya":{"ya":9,"za":9,"ab":1,"t":1},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":10,"za":10,"ab":2,"t":1},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":11,"za":11,"ab":0,"t":1},"bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"#","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":12,"za":12,"ab":1,"t":1},"da":"bass","bb":36,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3,"pc":true}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"#","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":13,"za":13,"ab":0,"t":1},"da":"bass","bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":14,"za":14,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"ka":[{"jb":"c","lb":"n","kb":4}],"oc":"r","da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"oc":"r","da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":15,"za":15,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":16,"za":16,"ab":0,"t":1},"da":"bass","bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":17,"za":17,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":18,"za":18,"ab":2,"t":1},"da":"bass","bb":6,"be":-15,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","rb":true,"qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","rb":true,"qb":8192}]}],"ea":[]},{"ya":{"ya":19,"za":19,"ab":0,"t":1},"da":"bass","bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":20,"za":20,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2}],"da":"bass","qc":[{"rc":"staccato","sa":"SmoArticulation"}]}]}],"ea":[]},{"ya":{"ya":21,"za":21,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":16384,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":2},{"jb":"c","lb":"n","kb":3}],"da":"bass"}]}],"ea":[{"kd":2,"sa":"SmoBarline"}]}]}],"yc":[{"jc":450,"kc":142,"tb":"15 Inventions à 2 voix.","vb":{"wb":"1.8em","xb":"Times New Roman","yb":"normal","zb":"normal"},"ac":"score-text auto703894","sa":"SmoScoreText"},{"jc":1010,"kc":45,"tb":"JS Bach","bd":"every","ac":"score-text auto703895","sa":"SmoScoreText"},{"jc":1013,"kc":76,"tb":"Page 1 of 2","bd":"every","ac":"score-text auto703896","sa":"SmoScoreText"},{"jc":441,"kc":1605,"tb":"15 Inventions &#xE0; 2 voix.","bd":"every","ac":"score-text auto703897","sa":"SmoScoreText"}],"yd":[{"zd":0,"la":{"ga":1,"ha":0},"sa":"SmoSystemGroup"}],"ee":{"wa":{"0":"4/4"},"xa":{"0":"C"},"fe":{"0":{"sa":"SmoTempoText","pa":{"qa":"auto703035","ra":"SmoTempoText"},"id":"text","nb":96,"ob":true,"pb":4096,"jd":"Moderato","ta":0}}},"dictionary":{"a":"score","b":"layout","c":"leftMargin","d":"rightMargin","e":"topMargin","f":"bottomMargin","g":"pageWidth","h":"pageHeight","i":"orientation","j":"interGap","k":"intraGap","l":"svgScale","m":"zoomScale","n":"zoomMode","o":"pages","p":"pageSize","q":"startIndex","r":"renumberingMap","s":"staves","t":"staffId","u":"staffX","v":"staffY","w":"adjY","x":"staffWidth","y":"staffHeight","z":"keySignatureMap","aa":"instrumentInfo","ba":"instrumentName","ca":"keyOffset","da":"clef","ea":"modifiers","fa":"startSelector","ga":"staff","ha":"measure","ia":"voice","ja":"tick","ka":"pitches","la":"endSelector","ma":"xOffset","na":"cp1y","oa":"cp2y","pa":"attrs","qa":"id","ra":"type","sa":"ctor","ta":"yOffset","ua":"position","va":"measures","wa":"timeSignature","xa":"keySignature","ya":"measureNumber","za":"measureIndex","ab":"systemIndex","bb":"adjX","cb":"tuplets","db":"voices","eb":"notes","fb":"ticks","gb":"numerator","hb":"denominator","ib":"remainder","jb":"letter","kb":"octave","lb":"accidental","mb":"symbol","nb":"bpm","ob":"display","pb":"beatDuration","qb":"beamBeats","rb":"endBeam","sb":"textModifiers","tb":"text","ub":"endChar","vb":"fontInfo","wb":"size","xb":"family","yb":"style","zb":"weight","ac":"classes","bc":"verse","cc":"fill","dc":"scaleX","ec":"scaleY","fc":"translateX","gc":"translateY","hc":"selector","ic":"renderedBox","jc":"x","kc":"y","lc":"width","mc":"height","nc":"logicalBox","oc":"noteType","pc":"cautionary","qc":"articulations","rc":"articulation","sc":"activeVoice","tc":"flagState","uc":"invert","vc":"fontSize","wc":"yOffsetLine","xc":"yOffsetPixels","yc":"scoreText","zc":"backup","ad":"edited","bd":"pagination","cd":"boxModel","dd":"justification","ed":"autoLayout","fd":"ornaments","gd":"offset","hd":"ornament","id":"tempoMode","jd":"tempoText","kd":"barline","ld":"systemBreak","md":"graceNotes","nd":"tones","od":"tuplet","pd":"beam_group","qd":"renderId","rd":"numNotes","sd":"totalTicks","td":"stemTicks","ud":"durationMap","vd":"bracketed","wd":"ratioed","xd":"location","yd":"systemGroups","zd":"leftConnector","ae":"padLeft","be":"customStretch","ce":"engravingFont","de":"customProportion","ee":"columnAttributeMap","fe":"tempo"}}` ;
 ;var basicJson = `{"score":{"layout":{"leftMargin":30,"rightMargin":30,"topMargin":40,"bottomMargin":40,"pageWidth":816,"pageHeight":1056,"orientation":0,"interGap":30,"intraGap":10,"svgScale":1,"zoomScale":2.107843137254902,"zoomMode":0,"pages":1},"startIndex":0,"renumberingMap":{}},"staves":[{"staffId":0,"staffX":10,"staffY":40,"adjY":0,"staffWidth":1600,"staffHeight":90,"startIndex":0,"renumberingMap":{},"keySignatureMap":{},"instrumentInfo":{"instrumentName":"Treble Instrument","keyOffset":"0","clef":"treble"},"modifiers":[],"measures":[{"timeSignature":"4/4","keySignature":"C","staffY":41,"measureNumber":{"measureNumber":0,"measureIndex":0,"systemIndex":0,"staffId":0},"activeVoice":0,"clef":"treble","transposeIndex":0,"adjX":64.98,"padLeft":0,"adjRight":11,"padRight":10,"rightMargin":2,"tuplets":[],"beamGroups":[],"voices":[{"notes":[{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318077","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"d","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318078","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"e","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318079","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"f","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318080","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"g","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318081","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"a","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318082","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"b","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318083","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"noteType":"n","attrs":{"id":"auto318084","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"b","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318085","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"a","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318086","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"g","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318087","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"f","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318088","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"e","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318089","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"d","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318090","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]}]}],"modifiers":[{"position":0,"barline":0,"ctor":"SmoBarline"},{"position":1,"barline":0,"ctor":"SmoBarline"},{"symbol":0,"xOffset":0,"yOffset":30,"position":0,"ctor":"SmoRepeatSymbol"}]},{"timeSignature":"4/4","keySignature":"C","staffY":41,"measureNumber":{"measureNumber":1,"measureIndex":1,"systemIndex":1,"staffId":0},"activeVoice":0,"clef":"treble","transposeIndex":0,"adjX":11,"padLeft":0,"adjRight":11,"padRight":10,"rightMargin":2,"tuplets":[],"beamGroups":[],"voices":[{"notes":[{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto358929","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"e","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto360328","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"g","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto360329","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"noteType":"n","attrs":{"id":"auto372785","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"g","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto374186","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"e","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto374187","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto381535","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"b","accidental":"n","octave":3}],"noteType":"n","attrs":{"id":"auto354946","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":4096,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto389896","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]}]}],"modifiers":[{"position":0,"barline":0,"ctor":"SmoBarline"},{"position":1,"barline":0,"ctor":"SmoBarline"},{"symbol":0,"xOffset":0,"yOffset":30,"position":0,"ctor":"SmoRepeatSymbol"}]}]}],"scoreText":[]}`;
 
@@ -21786,7 +22353,7 @@ class RibbonButtons {
           // else the button has a specific action, such as a menu or dialog, or a parent button
           // for translation, add the menu name to the button class
           var buttonClass = buttonData.classes;
-          if (buttonData.action === 'menu') {
+          if (buttonData.action === 'menu' || buttonData.action === 'modal') {
             buttonClass += ' ' +buttonData.ctor;
           }
 					var buttonHtml = RibbonButtons._buttonHtml('ribbonButtonContainer',
@@ -22520,90 +23087,93 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
   }
 
   static get dialogElements() {
-    return [{
-          parameterName: 'spacing',
-          smoName: 'spacing',
-          defaultValue: 2,
-          control: 'SuiRockerComponent',
-          label: 'Spacing'
+    SuiSlurAttributesDialog._dialogElements = SuiSlurAttributesDialog._dialogElements ? SuiSlurAttributesDialog._dialogElements :
+    [{
+        parameterName: 'spacing',
+        smoName: 'spacing',
+        defaultValue: 2,
+        control: 'SuiRockerComponent',
+        label: 'Spacing'
       }, {
-          smoName: 'thickness',
-          parameterName: 'thickness',
-          defaultValue: 2,
-          control: 'SuiRockerComponent',
-          label: 'Thickness'
+        smoName: 'thickness',
+        parameterName: 'thickness',
+        defaultValue: 2,
+        control: 'SuiRockerComponent',
+        label: 'Thickness'
       }, {
-          smoName: 'xOffset',
-          parameterName: 'xOffset',
-          defaultValue: 0,
-          control: 'SuiRockerComponent',
-          label: 'X Offset'
+        smoName: 'xOffset',
+        parameterName: 'xOffset',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'X Offset'
       }, {
-          smoName: 'yOffset',
-          parameterName: 'yOffset',
-          defaultValue: 10,
-          control: 'SuiRockerComponent',
-          label: 'Y Offset'
+        smoName: 'yOffset',
+        parameterName: 'yOffset',
+        defaultValue: 10,
+        control: 'SuiRockerComponent',
+        label: 'Y Offset'
       }, {
-          smoName: 'position',
-          parameterName: 'position',
-          defaultValue: SmoSlur.positions.HEAD,
-          options: [{
-                  value: SmoSlur.positions.HEAD,
-                  label: 'Head'
-              }, {
-                  value: SmoSlur.positions.TOP,
-                  label: 'Top'
-              }
-          ],
-          control: 'SuiDropdownComponent',
-          label: 'Start Position'
+        smoName: 'position',
+        parameterName: 'position',
+        defaultValue: SmoSlur.positions.HEAD,
+        options: [{
+            value: SmoSlur.positions.HEAD,
+            label: 'Head'
+          }, {
+            value: SmoSlur.positions.TOP,
+            label: 'Top'
+          }
+        ],
+        control: 'SuiDropdownComponent',
+        label: 'Start Position'
       }, {
-          smoName: 'position_end',
-          parameterName: 'position_end',
-          defaultValue: SmoSlur.positions.HEAD,
-          options: [{
-                  value: SmoSlur.positions.HEAD,
-                  label: 'Head'
-              }, {
-                  value: SmoSlur.positions.TOP,
-                  label: 'Top'
-              }
-          ],
-          control: 'SuiDropdownComponent',
-          label: 'End Position'
+        smoName: 'position_end',
+        parameterName: 'position_end',
+        defaultValue: SmoSlur.positions.HEAD,
+        options: [{
+          value: SmoSlur.positions.HEAD,
+          label: 'Head'
+        }, {
+          value: SmoSlur.positions.TOP,
+          label: 'Top'
+        }
+        ],
+        control: 'SuiDropdownComponent',
+        label: 'End Position'
       }, {
-          smoName: 'invert',
-          parameterName: 'invert',
-          defaultValue: false,
-          control: 'SuiToggleComponent',
-          label: 'Invert'
+        smoName: 'invert',
+        parameterName: 'invert',
+        defaultValue: false,
+        control: 'SuiToggleComponent',
+        label: 'Invert'
       }, {
-          parameterName: 'cp1x',
-          smoName: 'cp1x',
-          defaultValue: 0,
-          control: 'SuiRockerComponent',
-          label: 'Control Point 1 X'
+        parameterName: 'cp1x',
+        smoName: 'cp1x',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'Control Point 1 X'
       }, {
-          parameterName: 'cp1y',
-          smoName: 'cp1y',
-          defaultValue: 40,
-          control: 'SuiRockerComponent',
-          label: 'Control Point 1 Y'
+        parameterName: 'cp1y',
+        smoName: 'cp1y',
+        defaultValue: 40,
+        control: 'SuiRockerComponent',
+        label: 'Control Point 1 Y'
       }, {
-          parameterName: 'cp2x',
-          smoName: 'cp2x',
-          defaultValue: 0,
-          control: 'SuiRockerComponent',
-          label: 'Control Point 2 X'
+        parameterName: 'cp2x',
+        smoName: 'cp2x',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'Control Point 2 X'
       }, {
-          parameterName: 'cp2y',
-          smoName: 'cp2y',
-          defaultValue: 40,
-          control: 'SuiRockerComponent',
-          label: 'Control Point 2 Y'
+        parameterName: 'cp2y',
+        smoName: 'cp2y',
+        defaultValue: 40,
+        control: 'SuiRockerComponent',
+        label: 'Control Point 2 Y'
       }
     ];
+
+    return SuiSlurAttributesDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
     var dg = new SuiSlurAttributesDialog(parameters);
@@ -22655,32 +23225,35 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
   }
 
  static get dialogElements() {
-    return [{
-          parameterName: 'number',
-          smoName: 'number',
-          defaultValue: 1,
-          control: 'SuiRockerComponent',
-          label: 'number'
-      }, {
-          smoName: 'xOffsetStart',
-          parameterName: 'xOffsetStart',
-          defaultValue: 0,
-          control: 'SuiRockerComponent',
-          label: 'X1 Offset'
-      }, {
-          smoName: 'xOffsetEnd',
-          parameterName: 'xOffsetEnd',
-          defaultValue: 0,
-          control: 'SuiRockerComponent',
-          label: 'X2 Offset'
-      }, {
-          smoName: 'yOffset',
-          parameterName: 'yOffset',
-          defaultValue: 0,
-          control: 'SuiRockerComponent',
-          label: 'Y Offset'
-      }
-    ];
+    SuiVoltaAttributeDialog._dialogElements = SuiVoltaAttributeDialog._dialogElements ? SuiVoltaAttributeDialog._dialogElements :
+      [{
+        parameterName: 'number',
+        smoName: 'number',
+        defaultValue: 1,
+        control: 'SuiRockerComponent',
+        label: 'number'
+        }, {
+        smoName: 'xOffsetStart',
+        parameterName: 'xOffsetStart',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'X1 Offset'
+        }, {
+        smoName: 'xOffsetEnd',
+        parameterName: 'xOffsetEnd',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'X2 Offset'
+        }, {
+        smoName: 'yOffset',
+        parameterName: 'yOffset',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'Y Offset'
+        }
+     ];
+
+     return SuiVoltaAttributeDialog._dialogElements;
  }
  static createAndDisplay(parameters) {
     var dg = new SuiVoltaAttributeDialog(parameters);
@@ -22744,6 +23317,7 @@ handleRemove() {
     this.completeNotifier.unbindKeyboardForModal(this);
   }
 }
+
 class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
   get ctor() {
     return SuiHairpinAttributesDialog.ctor;
@@ -22761,34 +23335,37 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
     SuiHairpinAttributesDialog._label = value;
   }
   static get dialogElements() {
-    return [{
-            parameterName: 'height',
-            smoName: 'height',
-            defaultValue: 10,
-            control: 'SuiRockerComponent',
-            label: 'Height'
-        }, {
-            smoName: 'yOffset',
-            parameterName: 'y_shift',
-            defaultValue: 0,
-            control: 'SuiRockerComponent',
-            label: 'Y Shift'
-        }, {
-            smoName: 'xOffsetRight',
-            parameterName: 'right_shift_px',
-            defaultValue: 0,
-            control: 'SuiRockerComponent',
-            label: 'Right Shift'
-        }, {
-            smoName: 'xOffsetLeft',
-            parameterName: 'left_shift_px',
-            defaultValue: 0,
-            control: 'SuiRockerComponent',
-            label: 'Left Shift'
-        }
+    SuiHairpinAttributesDialog._dialogElements = SuiHairpinAttributesDialog._dialogElements ? SuiHairpinAttributesDialog._dialogElements :
+    [{
+        parameterName: 'height',
+        smoName: 'height',
+        defaultValue: 10,
+        control: 'SuiRockerComponent',
+        label: 'Height'
+      }, {
+        smoName: 'yOffset',
+        parameterName: 'y_shift',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'Y Shift'
+      }, {
+        smoName: 'xOffsetRight',
+        parameterName: 'right_shift_px',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'Right Shift'
+      }, {
+        smoName: 'xOffsetLeft',
+        parameterName: 'left_shift_px',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'Left Shift'
+      }
     ];
+
+    return SuiHairpinAttributesDialog._dialogElements;
   }
-static createAndDisplay(parameters) {
+  static createAndDisplay(parameters) {
     var dg = new SuiHairpinAttributesDialog(parameters);
     dg.display();
     return dg;

@@ -37,9 +37,37 @@ class SmoTranslator {
     console.log(JSON.stringify(translatables,null,' '));
   }
 
+  static _updateDialog(dialogStrings,_dialogClass,dialogClass) {
+    if (!dialogStrings) {
+      console.log('no strings for Dialog '+dialogClass);
+      return;
+    }
+    _dialogClass['label'] = dialogStrings.label;
+    _dialogClass['dialogElements'].forEach((component) => {
+      var componentStrings = dialogStrings.dialogElements.find((ds) => {
+        return ds.id === component.smoName;
+      });
+      if (!componentStrings) {
+        console.log('no strings for component '+component.smoName+' in dialog '+dialogClass);
+      } else {
+        component.label = componentStrings.label;
+        if (component['options']) {
+          component['options'].forEach((option) => {
+            var optionString = componentStrings.options.find((cs) => cs.value === option.value);
+            if (!optionString) {
+              console.log('no string for option '+ option.value+' in component '+component.smoName+' in dialog ' + dialogClass);
+            } else {
+              option.label = optionString.label;
+            }
+          });
+        }
+      }
+    });
+  }
+
   static _updateMenu(menuStrings,_menuClass,menuClass) {
     if (!menuStrings) {
-      console.log('no strings for '+menuClass);
+      console.log('no strings for Menu '+menuClass);
       return;
     }
 
@@ -60,6 +88,7 @@ class SmoTranslator {
       return; // no xlate exists
     }
     var trans = SmoLanguage[language];
+    // Set the text in all the menus
     SmoTranslator.allMenus.forEach((menuClass) => {
       var _class = eval(menuClass);
       var menuStrings = trans.strings.find((mm) => {
@@ -67,11 +96,29 @@ class SmoTranslator {
       });
       SmoTranslator._updateMenu(menuStrings,_class,menuClass);
 
+      // Set text in ribbon buttons that invoke menus
       var menuButton = $('.ribbonButtonContainer button.'+menuClass).find('.left-text .text-span');
-      if (menuButton.length) {
+      if (menuButton.length && menuStrings) {
         $(menuButton).text(menuStrings.label);
       }
     });
+
+    SmoTranslator.allDialogs.forEach((dialogClass) => {
+      var _class = eval(dialogClass);
+      var dialogStrings = trans.strings.find((mm) => {
+        return mm.ctor == dialogClass;
+      });
+      // Set text in ribbon buttons that invoke menus
+      var dialogButton = $('.ribbonButtonContainer button.'+dialogClass).find('.left-text .text-span');
+      if (dialogButton.length && dialogStrings) {
+        $(dialogButton).text(dialogStrings.label);
+      }
+
+      SmoTranslator._updateDialog(dialogStrings,_class,dialogClass);
+
+    });
+
+    // Handle rtl languages
     $('body').find('.language-dir').each((ix,dd) => {$(dd).attr('dir',trans.dir)});
   }
 
@@ -99,6 +146,9 @@ class SmoTranslator {
       'SuiTimeSignatureDialog',
       'SuiLayoutDialog',
       'SuiDynamicModifierDialog',
+      'SuiSlurAttributesDialog',
+      'SuiVoltaAttributeDialog',
+      'SuiHairpinAttributesDialog'
     ]
   }
 }
