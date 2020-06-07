@@ -1,10 +1,22 @@
 
 
+@font-face {
+    font-family: 'petaluma_scriptregular';
+    src: url('fonts/petalumascript-webfont.woff2') format('woff2'),
+         url('fonts/petalumascript-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
 body {
 	margin:0;
 	overflow:hidden;
 }
 
+/* @font-face {
+  font-family:'Bubblegum Sans',cursive;
+  font-family:'Yatra One',cursive;
+}   */
 h1 {
 	text-align:center;
 }

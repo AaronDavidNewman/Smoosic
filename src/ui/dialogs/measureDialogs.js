@@ -7,6 +7,20 @@ class SuiMeasureDialog extends SuiDialogBase {
       return ['pickupMeasure', 'makePickup', 'padLeft', 'padAllInSystem',
         'measureText','measureTextPosition'];
     }
+    static get ctor() {
+      return 'SuiMeasureDialog';
+    }
+    get ctor() {
+      return SuiMeasureDialog.ctor;
+    }
+    static get label() {
+      SuiMeasureDialog._label = SuiMeasureDialog._label ? SuiMeasureDialog._label
+       : 'Measure Properties';
+      return SuiMeasureDialog._label;
+    }
+    static set label(value) {
+      SuiTimeSignatureDialog._label = value;
+    }
     static get dialogElements() {
       return [
         {
@@ -247,6 +261,21 @@ class SuiMeasureDialog extends SuiDialogBase {
 	}
 }
 class SuiTimeSignatureDialog extends SuiDialogBase {
+  static get ctor() {
+    return 'SuiTimeSignatureDialog';
+  }
+  get ctor() {
+    return SuiTimeSignatureDialog.ctor;
+  }
+  static get label() {
+    SuiTimeSignatureDialog._label = SuiTimeSignatureDialog._label ? SuiTimeSignatureDialog._label
+     : 'Custom Time Signature';
+    return SuiTimeSignatureDialog._label;
+  }
+  static set label(value) {
+    SuiTimeSignatureDialog._label = value;
+  }
+
     static get dialogElements() {
         return [{
             smoName: 'numerator',
@@ -382,6 +411,20 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
 // ## SuiTempoDialog
 // Allow user to choose a tempo or tempo change.
 class SuiTempoDialog extends SuiDialogBase {
+  static get ctor() {
+    return 'SuiTempoDialog';
+  }
+  get ctor() {
+    return SuiTempoDialog.ctor;
+  }
+  static get label() {
+    SuiTempoDialog._label = SuiTempoDialog._label ? SuiTempoDialog._label
+     : 'Tempo Properties';
+    return SuiTempoDialog._label;
+  }
+  static set label(value) {
+    SuiTempoDialog._label = value;
+  }
     static get attributes() {
         return ['tempoMode', 'bpm', 'beatDuration', 'tempoText','yOffset'];
     }

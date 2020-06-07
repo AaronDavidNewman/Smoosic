@@ -1,4 +1,18 @@
 class SuiLyricDialog extends SuiDialogBase {
+  static get ctor() {
+    return 'SuiLyricDialog';
+  }
+  get ctor() {
+    return SuiLyricDialog.ctor;
+  }
+  static get label() {
+    SuiLyricDialog._label = SuiLyricDialog._label ? SuiLyricDialog._label :
+       'Done Editing Lyrics';
+    return SuiLyricDialog._label;
+  }
+  static set label(value) {
+    SuiLyricDialog._label = value;
+  }
   static createAndDisplay(parameters) {
 		var dg = new SuiLyricDialog(parameters);
 		dg.display();
@@ -46,14 +60,12 @@ class SuiLyricDialog extends SuiDialogBase {
   }
   constructor(parameters) {
     parameters.ctor='SuiLyricDialog';
-    parameters.label = 'Done Editing Lyrics';
     var p = parameters;
 
   	super(SuiLyricDialog.dialogElements, {
   		id: 'dialog-lyrics',
   		top: (p.layout.score.layout.pageWidth / 2) - 200,
   		left: (p.layout.score.layout.pageHeight / 2) - 200,
-  		label: p.label,
   		...parameters
   	});
 
@@ -144,6 +156,20 @@ class SuiLyricDialog extends SuiDialogBase {
 }
 
 class SuiChordChangeDialog extends SuiLyricDialog {
+  static get ctor() {
+    return 'SuiChordChangeDialog';
+  }
+  get ctor() {
+    return SuiChordChangeDialog.ctor;
+  }
+  static get label() {
+    SuiChordChangeDialog._label = SuiChordChangeDialog._label ? SuiChordChangeDialog._label :
+       'Done Editing Chord';
+    return SuiChordChangeDialog._label;
+  }
+  static set label(value) {
+    SuiChordChangeDialog._label = value;
+  }
   static createAndDisplay(parameters) {
     var dg = new SuiChordChangeDialog(parameters);
     dg.display();
@@ -212,6 +238,21 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 		dg.display();
     return dg;
 	}
+
+  static get ctor() {
+    return 'SuiTextTransformDialog';
+  }
+  get ctor() {
+    return SuiTextTransformDialog.ctor;
+  }
+  static get label() {
+    SuiTextTransformDialog._label = SuiTextTransformDialog._label ? SuiTextTransformDialog._label :
+       'Text Box Properties';
+     return SuiTextTransformDialog._label;
+  }
+  static set label(value) {
+    SuiTextTransformDialog._label = value;
+  }
 
   static get dialogElements() {
     return [
@@ -523,7 +564,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			id: 'dialog-' + parameters.modifier.attrs.id,
 			top: parameters.modifier.y,
 			left: parameters.modifier.x,
-			label: 'Text Box Properties',
       ...parameters
     });
 
@@ -566,4 +606,114 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   		self._complete();
      });
   }
+}
+
+
+// ## SuiTextModifierDialog
+// This is a poorly named class, it just allows you to placeText
+// dynamic text so it doesn't collide with something.
+class SuiDynamicModifierDialog extends SuiDialogBase {
+  static get ctor() {
+    return 'SuiDynamicModifierDialog';
+  }
+  get ctor() {
+    return SuiDynamicModifierDialog.ctor;
+  }
+  static get label() {
+    SuiDynamicModifierDialog._label = SuiDynamicModifierDialog._label ? SuiDynamicModifierDialog._label :
+       'Dynamics Properties';
+    return SuiDynamicModifierDialog._label;
+  }
+
+	static get dialogElements() {
+		return [{
+				smoName: 'yOffsetLine',
+				parameterName: 'yOffsetLine',
+				defaultValue: 11,
+				control: 'SuiRockerComponent',
+				label: 'Y Line'
+			}, {
+				smoName: 'yOffsetPixels',
+				parameterName: 'yOffsetPixels',
+				defaultValue: 0,
+				control: 'SuiRockerComponent',
+				label: 'Y Offset Px'
+			}, {
+				smoName: 'xOffset',
+				parameterName: 'yOffset',
+				defaultValue: 0,
+				control: 'SuiRockerComponent',
+				label: 'X Offset'
+			}, {
+				smoName: 'text',
+				parameterName: 'text',
+				defaultValue: SmoDynamicText.dynamics.P,
+				options: [{
+						value: SmoDynamicText.dynamics.P,
+						label: 'Piano'
+					}, {
+						value: SmoDynamicText.dynamics.PP,
+						label: 'Pianissimo'
+					}, {
+						value: SmoDynamicText.dynamics.MP,
+						label: 'Mezzo-Piano'
+					}, {
+						value: SmoDynamicText.dynamics.MF,
+						label: 'Mezzo-Forte'
+					}, {
+						value: SmoDynamicText.dynamics.F,
+						label: 'Forte'
+					}, {
+						value: SmoDynamicText.dynamics.FF,
+						label: 'Fortissimo'
+					}, {
+						value: SmoDynamicText.dynamics.SFZ,
+						label: 'Sforzando'
+					}
+				],
+				control: 'SuiDropdownComponent',
+				label: 'Text'
+			}
+		];
+	}
+	static createAndDisplay(parameters) {
+		var dg = new SuiDynamicModifierDialog(parameters);
+		dg.display();
+		return dg;
+	}
+
+	constructor(parameters) {
+		super(SuiDynamicModifierDialog.dialogElements, {
+			id: 'dialog-' + parameters.modifier.id,
+			top: parameters.modifier.renderedBox.y,
+			left: parameters.modifier.renderedBox.x,
+      ...parameters
+		});
+		Vex.Merge(this, parameters);
+    this.selection = this.tracker.selections[0];
+		this.components.find((x) => {
+			return x.parameterName == 'text'
+		}).defaultValue = parameters.modifier.text;
+	}
+	handleRemove() {
+		$(this.context.svg).find('g.' + this.modifier.id).remove();
+    this.undoBuffer.addBuffer('remove dynamic', 'measure', this.selection.selector, this.selection.measure);
+		this.selection.note.removeModifier(this.modifier);
+		this.tracker.clearModifierSelections();
+	}
+	changed() {
+		this.modifier.backupOriginal();
+		this.components.forEach((component) => {
+			this.modifier[component.smoName] = component.getValue();
+		});
+		this.layout.renderNoteModifierPreview(this.modifier,this.selection);
+	}
+}
+
+class helpModal {
+	constructor() {}
+	static createAndDisplay() {
+		SmoHelp.displayHelp();
+		return htmlHelpers.closeDialogPromise();
+	}
 }

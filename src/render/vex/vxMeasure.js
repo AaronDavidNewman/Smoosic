@@ -143,7 +143,7 @@ class VxMeasure {
     _addChordChangeToNote(vexNote,lyric) {
       var y = lyric.verse*10;
       var cs = new VF.ChordSymbol();
-      cs.addGlyphOrText(lyric.getText()).setFont('Bubblegum Sans',14,'normal');
+      cs.addGlyphOrText(lyric.getText()).setFont('petaluma_scriptregular,cursive',14,'normal');
       vexNote.addModifier(0,cs);
       const classString = 'chord chord-'+lyric.verse;
       cs.addClass(classString);
@@ -357,11 +357,11 @@ class VxMeasure {
       this.vexTuplets.push(vexTuplet);
     }
   }
-    unrender() {
-        $(this.context.svg).find('g.' + this.smoMeasure.attrs.id).remove();
-    }
+  unrender() {
+      $(this.context.svg).find('g.' + this.smoMeasure.attrs.id).remove();
+  }
 
-	handleMeasureModifiers() {
+  handleMeasureModifiers() {
 		var sb = this.smoMeasure.getStartBarline();
 		var eb = this.smoMeasure.getEndBarline();
 		var sym = this.smoMeasure.getRepeatSymbol();

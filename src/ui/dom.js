@@ -38,7 +38,7 @@ class SuiDom {
       .append(b('div').classes('menuContainer'))
       .append(b('div').classes('piano-container')
       .append(b('div').classes('piano-keys')))
-      .append(b('div').classes('workspace').attr('dir',SmoConfig.languageDir)
+      .append(b('div').classes('workspace language-dir').attr('dir',SmoConfig.languageDir)
         .append(b('div').classes('control-bar')
           .append(b('div').classes('titleText').text('Smoosic'))
           .append(b('div').classes('controls-top')))

@@ -1,4 +1,1412 @@
 
+var smoLanguageStringAr = `[
+ {
+  "ctor": "SuiLoadFileDialog",
+  "label": "Load File",
+  "dialogElements": [
+   {}
+  ]
+ },
+ {
+  "ctor": "SuiSaveFileDialog",
+  "label": "Save Score",
+  "dialogElements": [
+   {
+    "label": "File Name"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiPrintFileDialog",
+  "label": "Print Complete",
+  "dialogElements": []
+ },
+ {
+  "ctor": "SuiMeasureDialog",
+  "label": "Measure Properties",
+  "dialogElements": [
+   {
+    "label": "Pickup Measure",
+    "options": [
+     {
+      "value": 2048,
+      "label": "Eighth Note"
+     },
+     {
+      "value": 4096,
+      "label": "Quarter Note"
+     },
+     {
+      "value": 6144,
+      "label": "Dotted Quarter"
+     },
+     {
+      "value": 8192,
+      "label": "Half Note"
+     }
+    ]
+   },
+   {
+    "label": "Convert to Pickup Measure"
+   },
+   {
+    "label": "Pad Left (px)"
+   },
+   {
+    "label": "Stretch Contents"
+   },
+   {
+    "label": "Adjust Proportional Spacing"
+   },
+   {
+    "label": "Pad all measures in system"
+   },
+   {
+    "label": "Measure Text"
+   },
+   {
+    "label": "Text Position",
+    "options": [
+     {
+      "value": 2,
+      "label": "Left"
+     },
+     {
+      "value": 3,
+      "label": "Right"
+     },
+     {
+      "value": 0,
+      "label": "Above"
+     },
+     {
+      "value": 1,
+      "label": "Below"
+     }
+    ]
+   },
+   {
+    "label": "System break before this measure"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiTempoDialog",
+  "label": "Tempo Properties",
+  "dialogElements": [
+   {
+    "label": "Tempo Mode",
+    "options": [
+     {
+      "value": "duration",
+      "label": "Duration (Beats/Minute)"
+     },
+     {
+      "value": "text",
+      "label": "Tempo Text"
+     },
+     {
+      "value": "custom",
+      "label": "Specify text and duration"
+     }
+    ]
+   },
+   {
+    "label": "Notes/Minute"
+   },
+   {
+    "label": "Unit for Beat",
+    "options": [
+     {
+      "value": 4096,
+      "label": "Quarter Note"
+     },
+     {
+      "value": 2048,
+      "label": "1/8 note"
+     },
+     {
+      "value": 6144,
+      "label": "Dotted 1/4 note"
+     },
+     {
+      "value": 8192,
+      "label": "1/2 note"
+     }
+    ]
+   },
+   {
+    "label": "Tempo Text",
+    "options": [
+     {
+      "value": "Larghissimo",
+      "label": "Larghissimo"
+     },
+     {
+      "value": "Grave",
+      "label": "Grave"
+     },
+     {
+      "value": "Lento",
+      "label": "Lento"
+     },
+     {
+      "value": "Largo",
+      "label": "Largo"
+     },
+     {
+      "value": "Larghetto",
+      "label": "Larghetto"
+     },
+     {
+      "value": "Adagio",
+      "label": "Adagio"
+     },
+     {
+      "value": "Adagietto",
+      "label": "Adagietto"
+     },
+     {
+      "value": "Andante moderato",
+      "label": "Andante moderato"
+     },
+     {
+      "value": "Andante",
+      "label": "Andante"
+     },
+     {
+      "value": "Andantino",
+      "label": "Andantino"
+     },
+     {
+      "value": "Moderato",
+      "label": "Moderato"
+     },
+     {
+      "value": "Allegretto",
+      "label": "Allegretto"
+     },
+     {
+      "value": "Allegro",
+      "label": "Allegro"
+     },
+     {
+      "value": "Vivace",
+      "label": "Vivace"
+     },
+     {
+      "value": "Presto",
+      "label": "Presto"
+     },
+     {
+      "value": "Prestissimo",
+      "label": "Prestissimo"
+     }
+    ]
+   },
+   {
+    "label": "Apply to all future measures?"
+   },
+   {
+    "label": "Display Tempo"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiTimeSignatureDialog",
+  "label": "Custom Time Signature",
+  "dialogElements": [
+   {
+    "label": "Beats/Measure"
+   },
+   {
+    "label": "Beat Value",
+    "options": [
+     {
+      "value": 8,
+      "label": "8"
+     },
+     {
+      "value": 4,
+      "label": "4"
+     },
+     {
+      "value": 2,
+      "label": "2"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiLayoutDialog",
+  "label": "Score Layout",
+  "dialogElements": [
+   {
+    "label": "Page Size",
+    "options": [
+     {
+      "value": "letter",
+      "label": "Letter"
+     },
+     {
+      "value": "tabloid",
+      "label": "Tabloid (11x17)"
+     },
+     {
+      "value": "A4",
+      "label": "A4"
+     },
+     {
+      "value": "custom",
+      "label": "Custom"
+     }
+    ]
+   },
+   {
+    "label": "Page Width (px)"
+   },
+   {
+    "label": "Page Height (px)"
+   },
+   {
+    "label": "Orientation",
+    "options": [
+     {
+      "value": 0,
+      "label": "Portrait"
+     },
+     {
+      "value": 1,
+      "label": "Landscape"
+     }
+    ]
+   },
+   {
+    "label": "Engraving Font",
+    "options": [
+     {
+      "value": "Bravura",
+      "label": "Bravura"
+     },
+     {
+      "value": "Gonville",
+      "label": "Gonville"
+     },
+     {
+      "value": "Petaluma",
+      "label": "Petaluma"
+     }
+    ]
+   },
+   {
+    "label": "Left Margin (px)"
+   },
+   {
+    "label": "Right Margin (px)"
+   },
+   {
+    "label": "Top Margin (px)"
+   },
+   {
+    "label": "Inter-System Margin"
+   },
+   {
+    "label": "Intra-System Margin"
+   },
+   {
+    "label": "% Zoom"
+   },
+   {
+    "label": "% Note size"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiDynamicModifierDialog",
+  "label": "Dynamics Properties",
+  "dialogElements": [
+   {
+    "label": "Y Line"
+   },
+   {
+    "label": "Y Offset Px"
+   },
+   {
+    "label": "X Offset"
+   },
+   {
+    "label": "Text",
+    "options": [
+     {
+      "value": "p",
+      "label": "Piano"
+     },
+     {
+      "value": "pp",
+      "label": "Pianissimo"
+     },
+     {
+      "value": "mp",
+      "label": "Mezzo-Piano"
+     },
+     {
+      "value": "mf",
+      "label": "Mezzo-Forte"
+     },
+     {
+      "value": "f",
+      "label": "Forte"
+     },
+     {
+      "value": "ff",
+      "label": "Fortissimo"
+     },
+     {
+      "value": "sfz",
+      "label": "Sforzando"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiAddStaffMenu",
+  "label": "المفاتيح",
+  "menuItems": [
+   {
+    "value": "trebleInstrument",
+    "text": "Treble Clef Staff"
+   },
+   {
+    "value": "bassInstrument",
+    "text": "Bass Clef Staff"
+   },
+   {
+    "value": "altoInstrument",
+    "text": "Alto Clef Staff"
+   },
+   {
+    "value": "tenorInstrument",
+    "text": "Tenor Clef Staff"
+   },
+   {
+    "value": "remove",
+    "text": "Remove Staff"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiFileMenu",
+  "label":"ملف",
+  "menuItems": [
+   {
+    "value": "newFile",
+    "text": "جديدe"
+   },
+   {
+    "value": "openFile",
+    "text": "فتح"
+   },
+   {
+    "value": "saveFile",
+    "text": "Save"
+   },
+   {
+    "value": "quickSave",
+    "text": "Quick Save"
+   },
+   {
+    "value": "printScore",
+    "text": "Print"
+   },
+   {
+    "value": "bach",
+    "text": "Bach Invention"
+   },
+   {
+    "value": "bambino",
+    "text": "Jesu Bambino"
+   },
+   {
+    "value": "microtone",
+    "text": "Microtone Sample"
+   },
+   {
+    "value": "preciousLord",
+    "text": "Precious Lord"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiTimeSignatureMenu",
+  "menuItems": [
+   {
+    "value": "6/8",
+    "text": "6/8"
+   },
+   {
+    "value": "3/4",
+    "text": "3/4"
+   },
+   {
+    "value": "2/4",
+    "text": "2/4"
+   },
+   {
+    "value": "12/8",
+    "text": "12/8"
+   },
+   {
+    "value": "7/8",
+    "text": "7/8"
+   },
+   {
+    "value": "5/8",
+    "text": "5/8"
+   },
+   {
+    "value": "TimeSigOther",
+    "text": "Other"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiKeySignatureMenu",
+  "menuItems": [
+   {
+    "value": "KeyOfC",
+    "text": "C Major"
+   },
+   {
+    "value": "KeyOfF",
+    "text": "F Major"
+   },
+   {
+    "value": "KeyOfG",
+    "text": "G Major"
+   },
+   {
+    "value": "KeyOfBb",
+    "text": "Bb Major"
+   },
+   {
+    "value": "KeyOfD",
+    "text": "D Major"
+   },
+   {
+    "value": "KeyOfEb",
+    "text": "Eb Major"
+   },
+   {
+    "value": "KeyOfA",
+    "text": "A Major"
+   },
+   {
+    "value": "KeyOfAb",
+    "text": "Ab Major"
+   },
+   {
+    "value": "KeyOfE",
+    "text": "E Major"
+   },
+   {
+    "value": "KeyOfDb",
+    "text": "Db Major"
+   },
+   {
+    "value": "KeyOfB",
+    "text": "B Major"
+   },
+   {
+    "value": "KeyOfF#",
+    "text": "F# Major"
+   },
+   {
+    "value": "KeyOfC#",
+    "text": "C# Major"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiTimeSignatureMenu",
+  "menuItems": [
+   {
+    "value": "6/8",
+    "text": "6/8"
+   },
+   {
+    "value": "3/4",
+    "text": "3/4"
+   },
+   {
+    "value": "2/4",
+    "text": "2/4"
+   },
+   {
+    "value": "12/8",
+    "text": "12/8"
+   },
+   {
+    "value": "7/8",
+    "text": "7/8"
+   },
+   {
+    "value": "5/8",
+    "text": "5/8"
+   },
+   {
+    "value": "TimeSigOther",
+    "text": "Other"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiKeySignatureMenu",
+  "menuItems": [
+   {
+    "value": "KeyOfC",
+    "text": "C Major"
+   },
+   {
+    "value": "KeyOfF",
+    "text": "F Major"
+   },
+   {
+    "value": "KeyOfG",
+    "text": "G Major"
+   },
+   {
+    "value": "KeyOfBb",
+    "text": "Bb Major"
+   },
+   {
+    "value": "KeyOfD",
+    "text": "D Major"
+   },
+   {
+    "value": "KeyOfEb",
+    "text": "Eb Major"
+   },
+   {
+    "value": "KeyOfA",
+    "text": "A Major"
+   },
+   {
+    "value": "KeyOfAb",
+    "text": "Ab Major"
+   },
+   {
+    "value": "KeyOfE",
+    "text": "E Major"
+   },
+   {
+    "value": "KeyOfDb",
+    "text": "Db Major"
+   },
+   {
+    "value": "KeyOfB",
+    "text": "B Major"
+   },
+   {
+    "value": "KeyOfF#",
+    "text": "F# Major"
+   },
+   {
+    "value": "KeyOfC#",
+    "text": "C# Major"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiFileMenu",
+  "menuItems": [
+   {
+    "value": "newFile",
+    "text": "New Score"
+   },
+   {
+    "value": "openFile",
+    "text": "Open"
+   },
+   {
+    "value": "saveFile",
+    "text": "Save"
+   },
+   {
+    "value": "quickSave",
+    "text": "Quick Save"
+   },
+   {
+    "value": "printScore",
+    "text": "Print"
+   },
+   {
+    "value": "bach",
+    "text": "Bach Invention"
+   },
+   {
+    "value": "bambino",
+    "text": "Jesu Bambino"
+   },
+   {
+    "value": "microtone",
+    "text": "Microtone Sample"
+   },
+   {
+    "value": "preciousLord",
+    "text": "Precious Lord"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiStaffModifierMenu",
+  "label": "خطوط",
+  "menuItems": [
+   {
+    "value": "crescendo",
+    "text": "Crescendo"
+   },
+   {
+    "value": "decrescendo",
+    "text": "Decrescendo"
+   },
+   {
+    "value": "slur",
+    "text": "Slur/Tie"
+   },
+   {
+    "value": "ending",
+    "text": "nth ending"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ }
+]`;
+;
+var smoLanguageStringEn = `[
+ {
+  "ctor": "SuiLoadFileDialog",
+  "label": "Load File",
+  "dialogElements": [
+   {}
+  ]
+ },
+ {
+  "ctor": "SuiSaveFileDialog",
+  "label": "Save Score",
+  "dialogElements": [
+   {
+    "label": "File Name"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiPrintFileDialog",
+  "label": "Print Complete",
+  "dialogElements": []
+ },
+ {
+  "ctor": "SuiMeasureDialog",
+  "label": "Measure Properties",
+  "dialogElements": [
+   {
+    "label": "Pickup Measure",
+    "options": [
+     {
+      "value": 2048,
+      "label": "Eighth Note"
+     },
+     {
+      "value": 4096,
+      "label": "Quarter Note"
+     },
+     {
+      "value": 6144,
+      "label": "Dotted Quarter"
+     },
+     {
+      "value": 8192,
+      "label": "Half Note"
+     }
+    ]
+   },
+   {
+    "label": "Convert to Pickup Measure"
+   },
+   {
+    "label": "Pad Left (px)"
+   },
+   {
+    "label": "Stretch Contents"
+   },
+   {
+    "label": "Adjust Proportional Spacing"
+   },
+   {
+    "label": "Pad all measures in system"
+   },
+   {
+    "label": "Measure Text"
+   },
+   {
+    "label": "Text Position",
+    "options": [
+     {
+      "value": 2,
+      "label": "Left"
+     },
+     {
+      "value": 3,
+      "label": "Right"
+     },
+     {
+      "value": 0,
+      "label": "Above"
+     },
+     {
+      "value": 1,
+      "label": "Below"
+     }
+    ]
+   },
+   {
+    "label": "System break before this measure"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiTempoDialog",
+  "label": "Tempo Properties",
+  "dialogElements": [
+   {
+    "label": "Tempo Mode",
+    "options": [
+     {
+      "value": "duration",
+      "label": "Duration (Beats/Minute)"
+     },
+     {
+      "value": "text",
+      "label": "Tempo Text"
+     },
+     {
+      "value": "custom",
+      "label": "Specify text and duration"
+     }
+    ]
+   },
+   {
+    "label": "Notes/Minute"
+   },
+   {
+    "label": "Unit for Beat",
+    "options": [
+     {
+      "value": 4096,
+      "label": "Quarter Note"
+     },
+     {
+      "value": 2048,
+      "label": "1/8 note"
+     },
+     {
+      "value": 6144,
+      "label": "Dotted 1/4 note"
+     },
+     {
+      "value": 8192,
+      "label": "1/2 note"
+     }
+    ]
+   },
+   {
+    "label": "Tempo Text",
+    "options": [
+     {
+      "value": "Larghissimo",
+      "label": "Larghissimo"
+     },
+     {
+      "value": "Grave",
+      "label": "Grave"
+     },
+     {
+      "value": "Lento",
+      "label": "Lento"
+     },
+     {
+      "value": "Largo",
+      "label": "Largo"
+     },
+     {
+      "value": "Larghetto",
+      "label": "Larghetto"
+     },
+     {
+      "value": "Adagio",
+      "label": "Adagio"
+     },
+     {
+      "value": "Adagietto",
+      "label": "Adagietto"
+     },
+     {
+      "value": "Andante moderato",
+      "label": "Andante moderato"
+     },
+     {
+      "value": "Andante",
+      "label": "Andante"
+     },
+     {
+      "value": "Andantino",
+      "label": "Andantino"
+     },
+     {
+      "value": "Moderato",
+      "label": "Moderato"
+     },
+     {
+      "value": "Allegretto",
+      "label": "Allegretto"
+     },
+     {
+      "value": "Allegro",
+      "label": "Allegro"
+     },
+     {
+      "value": "Vivace",
+      "label": "Vivace"
+     },
+     {
+      "value": "Presto",
+      "label": "Presto"
+     },
+     {
+      "value": "Prestissimo",
+      "label": "Prestissimo"
+     }
+    ]
+   },
+   {
+    "label": "Apply to all future measures?"
+   },
+   {
+    "label": "Display Tempo"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiTimeSignatureDialog",
+  "label": "Custom Time Signature",
+  "dialogElements": [
+   {
+    "label": "Beats/Measure"
+   },
+   {
+    "label": "Beat Value",
+    "options": [
+     {
+      "value": 8,
+      "label": "8"
+     },
+     {
+      "value": 4,
+      "label": "4"
+     },
+     {
+      "value": 2,
+      "label": "2"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiLayoutDialog",
+  "label": "Score Layout",
+  "dialogElements": [
+   {
+    "label": "Page Size",
+    "options": [
+     {
+      "value": "letter",
+      "label": "Letter"
+     },
+     {
+      "value": "tabloid",
+      "label": "Tabloid (11x17)"
+     },
+     {
+      "value": "A4",
+      "label": "A4"
+     },
+     {
+      "value": "custom",
+      "label": "Custom"
+     }
+    ]
+   },
+   {
+    "label": "Page Width (px)"
+   },
+   {
+    "label": "Page Height (px)"
+   },
+   {
+    "label": "Orientation",
+    "options": [
+     {
+      "value": 0,
+      "label": "Portrait"
+     },
+     {
+      "value": 1,
+      "label": "Landscape"
+     }
+    ]
+   },
+   {
+    "label": "Engraving Font",
+    "options": [
+     {
+      "value": "Bravura",
+      "label": "Bravura"
+     },
+     {
+      "value": "Gonville",
+      "label": "Gonville"
+     },
+     {
+      "value": "Petaluma",
+      "label": "Petaluma"
+     }
+    ]
+   },
+   {
+    "label": "Left Margin (px)"
+   },
+   {
+    "label": "Right Margin (px)"
+   },
+   {
+    "label": "Top Margin (px)"
+   },
+   {
+    "label": "Inter-System Margin"
+   },
+   {
+    "label": "Intra-System Margin"
+   },
+   {
+    "label": "% Zoom"
+   },
+   {
+    "label": "% Note size"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiDynamicModifierDialog",
+  "label": "Dynamics Properties",
+  "dialogElements": [
+   {
+    "label": "Y Line"
+   },
+   {
+    "label": "Y Offset Px"
+   },
+   {
+    "label": "X Offset"
+   },
+   {
+    "label": "Text",
+    "options": [
+     {
+      "value": "p",
+      "label": "Piano"
+     },
+     {
+      "value": "pp",
+      "label": "Pianissimo"
+     },
+     {
+      "value": "mp",
+      "label": "Mezzo-Piano"
+     },
+     {
+      "value": "mf",
+      "label": "Mezzo-Forte"
+     },
+     {
+      "value": "f",
+      "label": "Forte"
+     },
+     {
+      "value": "ff",
+      "label": "Fortissimo"
+     },
+     {
+      "value": "sfz",
+      "label": "Sforzando"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiAddStaffMenu",
+  "label": "Staves",
+  "menuItems": [
+   {
+    "value": "trebleInstrument",
+    "text": "Treble Clef Staff"
+   },
+   {
+    "value": "bassInstrument",
+    "text": "Bass Clef Staff"
+   },
+   {
+    "value": "altoInstrument",
+    "text": "Alto Clef Staff"
+   },
+   {
+    "value": "tenorInstrument",
+    "text": "Tenor Clef Staff"
+   },
+   {
+    "value": "remove",
+    "text": "Remove Staff"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiTimeSignatureMenu",
+  "label": "Time Sig",
+  "menuItems": [
+   {
+    "value": "6/8",
+    "text": "6/8"
+   },
+   {
+    "value": "3/4",
+    "text": "3/4"
+   },
+   {
+    "value": "2/4",
+    "text": "2/4"
+   },
+   {
+    "value": "12/8",
+    "text": "12/8"
+   },
+   {
+    "value": "7/8",
+    "text": "7/8"
+   },
+   {
+    "value": "5/8",
+    "text": "5/8"
+   },
+   {
+    "value": "TimeSigOther",
+    "text": "Other"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiKeySignatureMenu",
+  "label":"Key",
+  "menuItems": [
+   {
+    "value": "KeyOfC",
+    "text": "C Major"
+   },
+   {
+    "value": "KeyOfF",
+    "text": "F Major"
+   },
+   {
+    "value": "KeyOfG",
+    "text": "G Major"
+   },
+   {
+    "value": "KeyOfBb",
+    "text": "Bb Major"
+   },
+   {
+    "value": "KeyOfD",
+    "text": "D Major"
+   },
+   {
+    "value": "KeyOfEb",
+    "text": "Eb Major"
+   },
+   {
+    "value": "KeyOfA",
+    "text": "A Major"
+   },
+   {
+    "value": "KeyOfAb",
+    "text": "Ab Major"
+   },
+   {
+    "value": "KeyOfE",
+    "text": "E Major"
+   },
+   {
+    "value": "KeyOfDb",
+    "text": "Db Major"
+   },
+   {
+    "value": "KeyOfB",
+    "text": "B Major"
+   },
+   {
+    "value": "KeyOfF#",
+    "text": "F# Major"
+   },
+   {
+    "value": "KeyOfC#",
+    "text": "C# Major"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+
+ {
+  "ctor": "SuiFileMenu",
+  "label": "File",
+  "menuItems": [
+   {
+    "value": "newFile",
+    "text": "New Score"
+   },
+   {
+    "value": "openFile",
+    "text": "Open"
+   },
+   {
+    "value": "saveFile",
+    "text": "Save"
+   },
+   {
+    "value": "quickSave",
+    "text": "Quick Save"
+   },
+   {
+    "value": "printScore",
+    "text": "Print"
+   },
+   {
+    "value": "bach",
+    "text": "Bach Invention"
+   },
+   {
+    "value": "bambino",
+    "text": "Jesu Bambino"
+   },
+   {
+    "value": "microtone",
+    "text": "Microtone Sample"
+   },
+   {
+    "value": "preciousLord",
+    "text": "Precious Lord"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiStaffModifierMenu",
+  "label": "Lines",
+  "menuItems": [
+   {
+    "value": "crescendo",
+    "text": "Crescendo"
+   },
+   {
+    "value": "decrescendo",
+    "text": "Decrescendo"
+   },
+   {
+    "value": "slur",
+    "text": "Slur/Tie"
+   },
+   {
+    "value": "ending",
+    "text": "nth ending"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ }
+]`;
+;
+class SmoTranslator {
+  static get dialogs() {
+    SmoTranslator._dialogs =  SmoTranslator._dialogs ? SmoTranslator._dialogs : {};
+    return SmoTranslator._dialogs;
+  }
+
+  static get menus() {
+    SmoTranslator._menus =  SmoTranslator._menus ? SmoTranslator._menus : {};
+    return SmoTranslator._menus;
+  }
+
+  static registerMenu(_class) {
+    if (!SmoTranslator.menus[_class]) {
+      SmoTranslator.menus[_class] = true;
+    }
+  }
+
+
+  static registerDialog(_class) {
+    if (!SmoTranslator.dialogs[_class]) {
+      SmoTranslator.dialogs[_class] = true;
+    }
+  }
+
+  static printLanguages() {
+    var translatables = [];
+    SmoTranslator.allDialogs.forEach((key) => {
+      SmoTranslator.registerDialog(key);
+      translatables.push(SuiDialogBase.printTranslate(key));
+    });
+    SmoTranslator.allMenus.forEach((key) => {
+      SmoTranslator.registerMenu(key);
+      translatables.push(suiMenuBase.printTranslate(key));
+    });
+
+    console.log(JSON.stringify(translatables,null,' '));
+  }
+
+  static _updateMenu(menuStrings,_menuClass,menuClass) {
+    if (!menuStrings) {
+      console.log('no strings for '+menuClass);
+      return;
+    }
+
+    _menuClass['defaults'].menuItems.forEach((menuItem) => {
+      var val = menuItem.value;
+      var nvPair = menuStrings.menuItems.find((ff) => ff.value === val);
+      if (!nvPair) {
+        console.log('no xlate for '+ val+' in menu '+menuClass);
+      } else {
+        menuItem.text = nvPair.text;
+        console.log('setting menu item value '+val+' to '+nvPair.text);
+      }
+    });
+  }
+
+  static setLanguage(language) {
+    if (!SmoLanguage[language]) {
+      return; // no xlate exists
+    }
+    var trans = SmoLanguage[language];
+    SmoTranslator.allMenus.forEach((menuClass) => {
+      var _class = eval(menuClass);
+      var menuStrings = trans.strings.find((mm) => {
+        return mm.ctor == menuClass;
+      });
+      SmoTranslator._updateMenu(menuStrings,_class,menuClass);
+
+      var menuButton = $('.ribbonButtonContainer button.'+menuClass).find('.left-text .text-span');
+      if (menuButton.length) {
+        $(menuButton).text(menuStrings.label);
+      }
+    });
+    $('body').find('.language-dir').each((ix,dd) => {$(dd).attr('dir',trans.dir)});
+  }
+
+  static get allMenus() {
+    return [
+      'SuiAddStaffMenu',
+      'SuiFileMenu',
+      'SuiTimeSignatureMenu',
+      'SuiKeySignatureMenu',
+      'SuiTimeSignatureMenu',
+      'SuiKeySignatureMenu',
+      'SuiFileMenu',
+      'SuiStaffModifierMenu',
+      'SuiDynamicsMenu'
+    ]
+  }
+
+  static get allDialogs() {
+    return [
+      'SuiLoadFileDialog',
+      'SuiSaveFileDialog',
+      'SuiPrintFileDialog',
+      'SuiMeasureDialog',
+      'SuiTempoDialog',
+      'SuiTimeSignatureDialog',
+      'SuiLayoutDialog',
+      'SuiDynamicModifierDialog',
+    ]
+  }
+}
+
+class SmoLanguage {
+  static get en() {
+    var strings = JSON.parse(smoLanguageStringEn);
+    return {dir:'ltr',strings:strings};
+   }
+
+   static get ar() {
+     var strings = JSON.parse(smoLanguageStringAr);
+     return {dir:'rtl',strings:strings};
+   }
+}
+;
 VF = Vex.Flow;
 Vex.Xform = (typeof(Vex.Xform) == 'undefined' ? {}
 	 : Vex.Xform);
@@ -1047,6 +2455,16 @@ class smoSerialize {
 		});
 		return rv;
 	}
+
+  // ### printXlate
+  // print json with string labels to use as a translation file seed.
+  static printTranslate(_class) {
+    var xxx = eval(_class+'.printTranslate');
+    if (typeof(xxx) === 'function') {
+      xxx();
+    }
+
+  }
 }
 ;
 
@@ -8555,7 +9973,7 @@ class VxMeasure {
     _addChordChangeToNote(vexNote,lyric) {
       var y = lyric.verse*10;
       var cs = new VF.ChordSymbol();
-      cs.addGlyphOrText(lyric.getText()).setFont('Bubblegum Sans',14,'normal');
+      cs.addGlyphOrText(lyric.getText()).setFont('petaluma_scriptregular,cursive',14,'normal');
       vexNote.addModifier(0,cs);
       const classString = 'chord chord-'+lyric.verse;
       cs.addClass(classString);
@@ -8769,11 +10187,11 @@ class VxMeasure {
       this.vexTuplets.push(vexTuplet);
     }
   }
-    unrender() {
-        $(this.context.svg).find('g.' + this.smoMeasure.attrs.id).remove();
-    }
+  unrender() {
+      $(this.context.svg).find('g.' + this.smoMeasure.attrs.id).remove();
+  }
 
-	handleMeasureModifiers() {
+  handleMeasureModifiers() {
 		var sb = this.smoMeasure.getStartBarline();
 		var eb = this.smoMeasure.getEndBarline();
 		var sym = this.smoMeasure.getRepeatSymbol();
@@ -13914,9 +15332,19 @@ class suiMenuBase {
   constructor(params) {
     Vex.Merge(this, params);
     this.focusIndex = -1;
+    SmoTranslator.registerMenu(this.ctor);
   }
   get closeModalPromise() {
     return this.closePromise();
+  }
+  static printTranslate(_class) {
+    var xx = eval(_class);
+    var items = [];
+    xx['defaults'].menuItems.forEach((item) => {
+      items.push({value:item.value,text:item.text});
+    });
+
+    return {ctor:xx['ctor'],label:xx['label'],menuItems:items};
   }
 
   complete() {
@@ -13963,14 +15391,14 @@ class suiMenuManager {
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
-        action: "suiKeySignatureMenu"
+        action: "SuiKeySignatureMenu"
       }, {
         event: "keydown",
         key: "l",
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
-        action: "suiStaffModifierMenu"
+        action: "SuiStaffModifierMenu"
       }, {
         event: "keydown",
         key: "d",
@@ -14160,8 +15588,16 @@ class SuiFileMenu extends suiMenuBase {
   Vex.Merge(params, SuiFileMenu.defaults);
     super(params);
   }
+  static get ctor() {
+    return 'SuiFileMenu';
+  }
+  get ctor() {
+    return SuiFileMenu.ctor;
+  }
   static get defaults() {
-    return {
+
+    SuiFileMenu._defaults = SuiFileMenu._defaults ? SuiFileMenu._defaults : {
+      label:'File',
       menuItems: [
         {
           icon: 'folder-new',
@@ -14206,6 +15642,7 @@ class SuiFileMenu extends suiMenuBase {
         }
       ]
     };
+    return SuiFileMenu._defaults;
   }
 
   printRenderPromise() {
@@ -14343,44 +15780,55 @@ class SuiDynamicsMenu extends suiMenuBase {
   Vex.Merge(params, SuiDynamicsMenu.defaults);
   super(params);
   }
+  static get ctor() {
+    return 'SuiDynamicsMenu';
+  }
+  get ctor() {
+    return SuiDynamicsMenu.ctor;
+  }
   static get defaults() {
-  return {
-    menuItems: [{
-      icon: 'pianissimo',
-      text: 'Pianissimo',
-      value: 'pp'
-    }, {
-      icon: 'piano',
-      text: 'Piano',
-      value: 'p'
-    }, {
-      icon: 'mezzopiano',
-      text: 'Mezzo-piano',
-      value: 'mp'
-    }, {
-      icon: 'mezzoforte',
-      text: 'Mezzo-forte',
-      value: 'mf'
-    }, {
-      icon: 'forte',
-      text: 'Forte',
-      value: 'f'
-    }, {
-      icon: 'fortissimo',
-      text: 'Fortissimo',
-      value: 'ff'
-    }, {
-      icon: 'sfz',
-      text: 'sfortzando',
-      value: 'sfz'
-    },
-     {
-      icon: '',
-      text: 'Cancel',
-      value: 'cancel'
-    }
-  ]
-  };
+    SuiDynamicsMenu._defaults = SuiDynamicsMenu._defaults ? SuiDynamicsMenu._defaults :
+    {
+      label:'Dynamics',
+      menuItems: [{
+        icon: 'pianissimo',
+        text: 'Pianissimo',
+        value: 'pp'
+      }, {
+        icon: 'piano',
+        text: 'Piano',
+        value: 'p'
+      }, {
+        icon: 'mezzopiano',
+        text: 'Mezzo-piano',
+        value: 'mp'
+      }, {
+        icon: 'mezzoforte',
+        text: 'Mezzo-forte',
+        value: 'mf'
+      }, {
+        icon: 'forte',
+        text: 'Forte',
+        value: 'f'
+      }, {
+        icon: 'fortissimo',
+        text: 'Fortissimo',
+        value: 'ff'
+      }, {
+        icon: 'sfz',
+        text: 'sfortzando',
+        value: 'sfz'
+      },
+       {
+        icon: '',
+        text: 'Cancel',
+        value: 'cancel'
+      }
+    ]
+    };
+
+    return SuiDynamicsMenu._defaults;
+
   }
 
   selection(ev) {
@@ -14409,57 +15857,68 @@ class SuiTimeSignatureMenu extends suiMenuBase {
   Vex.Merge(params, SuiTimeSignatureMenu.defaults);
   super(params);
   }
-    static get defaults() {
-  return {
-  menuItems: [{
-  icon: 'sixeight',
-  text: '6/8',
-  value: '6/8',
-  },{
-  icon: 'threefour',
-  text: '3/4',
-  value: '3/4',
-  },{
-  icon: 'twofour',
-  text: '2/4',
-  value: '2/4',
-  },{
-  icon: 'twelveeight',
-  text: '12/8',
-  value: '12/8',
-  },{
-  icon: 'seveneight',
-  text: '7/8',
-  value: '7/8',
-  },{
-  icon: 'fiveeight',
-  text: '5/8',
-  value: '5/8',
-  },{
-  icon: '',
-  text: 'Other',
-  value: 'TimeSigOther',
-  },{
-  icon: '',
-  text: 'Cancel',
-  value: 'cancel'
+  static get ctor() {
+    return 'SuiTimeSignatureMenu';
   }
-                ]
-        };
-    }
 
-    selection(ev) {
-      var text = $(ev.currentTarget).attr('data-value');
+  get ctor() {
+    return SuiTimeSignatureMenu.ctor;
+  }
+  static get defaults() {
+    SuiTimeSignatureMenu._defaults = SuiTimeSignatureMenu._defaults ? SuiTimeSignatureMenu._defaults :
+    {
+      label:'Time Sig',
+      menuItems: [
+        {
+          icon: 'sixeight',
+          text: '6/8',
+          value: '6/8',
+        },{
+          icon: 'threefour',
+          text: '3/4',
+          value: '3/4',
+        },{
+          icon: 'twofour',
+          text: '2/4',
+          value: '2/4',
+        },{
+          icon: 'twelveeight',
+          text: '12/8',
+          value: '12/8',
+        },{
+          icon: 'seveneight',
+          text: '7/8',
+          value: '7/8',
+        },{
+          icon: 'fiveeight',
+          text: '5/8',
+          value: '5/8',
+        },{
+          icon: '',
+          text: 'Other',
+          value: 'TimeSigOther',
+        },{
+          icon: '',
+          text: 'Cancel',
+          value: 'cancel'
+        }
+      ]
+    };
+    return SuiTimeSignatureMenu._defaults;
+  }
 
-      if (text == 'TimeSigOther') {
-        SuiTimeSignatureDialog.createAndDisplay({
-    			layout: this.layout,
-          tracker: this.tracker,
-          completeNotifier:this.completeNotifier,
-          closeMenuPromise:this.closePromise,
-          undoBuffer:this.undoBuffer,
-          eventSource:this.eventSource
-		    });
+  selection(ev) {
+    var text = $(ev.currentTarget).attr('data-value');
+
+    if (text == 'TimeSigOther') {
+      SuiTimeSignatureDialog.createAndDisplay({
+  			layout: this.layout,
+        tracker: this.tracker,
+        completeNotifier:this.completeNotifier,
+        closeMenuPromise:this.closePromise,
+        undoBuffer:this.undoBuffer,
+        eventSource:this.eventSource
+	    });
       this.complete();
       return;
     }
@@ -14472,86 +15931,93 @@ class SuiTimeSignatureMenu extends suiMenuBase {
   }
 
   keydown(ev) {}
-}
+  }
 
-class suiKeySignatureMenu extends suiMenuBase {
+class SuiKeySignatureMenu extends suiMenuBase {
 
   constructor(params) {
   params = (params ? params : {});
-  Vex.Merge(params, suiKeySignatureMenu.defaults);
-  super(params);
+  Vex.Merge(params, SuiKeySignatureMenu.defaults);
+    super(params);
   }
-  static printText() {
-    suiKeySignatureMenu.defaults.menuItems.forEach((item) => {console.log('{id:"'+item.value+'",text:"'+item.text+'"},')});
+  static get ctor() {
+    return 'SuiKeySignatureMenu';
+  }
+  get ctor() {
+    return SuiKeySignatureMenu.ctor;
   }
   static get defaults() {
-  return {
-  menuItems: [{
-  icon: 'key-sig-c',
-  text: 'C Major',
-  value: 'KeyOfC',
-  }, {
-  icon: 'key-sig-f',
-  text: 'F Major',
-  value: 'KeyOfF',
-  }, {
-  icon: 'key-sig-g',
-  text: 'G Major',
-  value: 'KeyOfG',
-  }, {
-  icon: 'key-sig-bb',
-  text: 'Bb Major',
-  value: 'KeyOfBb'
-  }, {
-  icon: 'key-sig-d',
-  text: 'D Major',
-  value: 'KeyOfD'
-  }, {
-  icon: 'key-sig-eb',
-  text: 'Eb Major',
-  value: 'KeyOfEb'
-  }, {
-  icon: 'key-sig-a',
-  text: 'A Major',
-  value: 'KeyOfA'
-  }, {
-  icon: 'key-sig-ab',
-  text: 'Ab Major',
-  value: 'KeyOfAb'
-  }, {
-  icon: 'key-sig-e',
-  text: 'E Major',
-  value: 'KeyOfE'
-  }, {
-  icon: 'key-sig-bd',
-  text: 'Db Major',
-  value: 'KeyOfDb'
-  }, {
-  icon: 'key-sig-b',
-  text: 'B Major',
-  value: 'KeyOfB'
-  }, {
-  icon: 'key-sig-fs',
-  text: 'F# Major',
-  value: 'KeyOfF#'
-  }, {
-  icon: 'key-sig-cs',
-  text: 'C# Major',
-  value: 'KeyOfC#'
-  },
+    SuiKeySignatureMenu._defaults = SuiKeySignatureMenu._defaults ? SuiKeySignatureMenu._defaults :
    {
-  icon: '',
-  text: 'Cancel',
-  value: 'cancel'
-  }
-  ],
-  menuContainer: '.menuContainer'
-  };
+     label:'Key',
+
+  menuItems: [{
+    icon: 'key-sig-c',
+    text: 'C Major',
+    value: 'KeyOfC',
+    }, {
+    icon: 'key-sig-f',
+    text: 'F Major',
+    value: 'KeyOfF',
+    }, {
+    icon: 'key-sig-g',
+    text: 'G Major',
+    value: 'KeyOfG',
+    }, {
+    icon: 'key-sig-bb',
+    text: 'Bb Major',
+    value: 'KeyOfBb'
+    }, {
+    icon: 'key-sig-d',
+    text: 'D Major',
+    value: 'KeyOfD'
+    }, {
+    icon: 'key-sig-eb',
+    text: 'Eb Major',
+    value: 'KeyOfEb'
+    }, {
+    icon: 'key-sig-a',
+    text: 'A Major',
+    value: 'KeyOfA'
+    }, {
+    icon: 'key-sig-ab',
+    text: 'Ab Major',
+    value: 'KeyOfAb'
+    }, {
+    icon: 'key-sig-e',
+    text: 'E Major',
+    value: 'KeyOfE'
+    }, {
+    icon: 'key-sig-bd',
+    text: 'Db Major',
+    value: 'KeyOfDb'
+    }, {
+    icon: 'key-sig-b',
+    text: 'B Major',
+    value: 'KeyOfB'
+    }, {
+    icon: 'key-sig-fs',
+    text: 'F# Major',
+    value: 'KeyOfF#'
+    }, {
+    icon: 'key-sig-cs',
+    text: 'C# Major',
+    value: 'KeyOfC#'
+    },
+     {
+    icon: '',
+    text: 'Cancel',
+    value: 'cancel'
+    }
+    ],
+    menuContainer: '.menuContainer'
+    };
+    return SuiKeySignatureMenu._defaults;
   }
 
   selection(ev) {
     var keySig = $(ev.currentTarget).attr('data-value');
-    keySig = (keySig === 'cancel' ? keySig : keySig.substring(5,xx.length));
+    keySig = (keySig === 'cancel' ? keySig : keySig.substring(5,keySig.length));
     var changed = [];
     this.tracker.selections.forEach((sel) => {
       if (changed.indexOf(sel.selector.measure) === -1) {
@@ -14565,67 +16031,125 @@ class suiKeySignatureMenu extends suiMenuBase {
   keydown(ev) {}
 }
 
-class suiStaffModifierMenu extends suiMenuBase {
+class SuiStaffModifierMenu extends suiMenuBase {
 
   constructor(params) {
     params = (params ? params : {});
-    Vex.Merge(params, suiStaffModifierMenu.defaults);
+    Vex.Merge(params, SuiStaffModifierMenu.defaults);
     super(params);
   }
-  static printText() {
-    suiStaffModifierMenu.defaults.menuItems.forEach((item) => {console.log('{id:"'+item.value+'",text:"'+item.text+'"},')});
+  static get ctor() {
+    return 'SuiStaffModifierMenu';
+  }
+  get ctor() {
+    return SuiStaffModifierMenu.ctor;
   }
 
   static get defaults() {
-  return {
-  menuItems: [{
-  icon: 'cresc',
-  text: 'Crescendo',
-  value: 'crescendo'
-  }, {
-  icon: 'decresc',
-  text: 'Decrescendo',
-  value: 'decrescendo'
-  }, {
-  icon: 'slur',
-  text: 'Slur/Tie',
-  value: 'slur'
-  }, {
-  icon: 'ending',
-  text: 'nth ending',
-  value: 'ending'
-  },
-   {
-  icon: '',
-  text: 'Cancel',
-  value: 'cancel'
-  }
-  ],
-  menuContainer: '.menuContainer'
-  };
+    SuiStaffModifierMenu._defaults = SuiStaffModifierMenu._defaults ? SuiStaffModifierMenu._defaults :
+    {
+      label:'Staves',
+      menuItems: [{
+        icon: 'cresc',
+        text: 'Crescendo',
+        value: 'crescendo'
+        }, {
+        icon: 'decresc',
+        text: 'Decrescendo',
+        value: 'decrescendo'
+        }, {
+        icon: 'slur',
+        text: 'Slur/Tie',
+        value: 'slur'
+        }, {
+        icon: 'ending',
+        text: 'nth ending',
+        value: 'ending'
+        },
+         {
+        icon: '',
+        text: 'Cancel',
+        value: 'cancel'
+        }
+      ],
+      menuContainer: '.menuContainer'
+    };
+    return SuiStaffModifierMenu._defaults;
   }
   selection(ev) {
-  var op = $(ev.currentTarget).attr('data-value');
+    var op = $(ev.currentTarget).attr('data-value');
 
-  var ft = this.tracker.getExtremeSelection(-1);
-  var tt = this.tracker.getExtremeSelection(1);
+    var ft = this.tracker.getExtremeSelection(-1);
+    var tt = this.tracker.getExtremeSelection(1);
 
-  if (op === 'ending') {
+    if (op === 'ending') {
       SmoUndoable.scoreOp(this.score,'addEnding',
         new SmoVolta({startBar:ft.selector.measure,endBar:tt.selector.measure,number:1}),this.editor.undoBuffer,'add ending');
       this.complete();
-  return;
-  }
-  if (SmoSelector.sameNote(ft.selector, tt.selector)) {
-  this.complete();
-  return;
+    return;
+    }
+    if (SmoSelector.sameNote(ft.selector, tt.selector)) {
+      this.complete();
+      return;
+    }
+
+    SmoUndoable[op](ft, tt, this.editor.undoBuffer);
+    this.tracker.replaceSelectedMeasures();
+    this.complete();
   }
 
-  SmoUndoable[op](ft, tt, this.editor.undoBuffer);
-    this.tracker.replaceSelectedMeasures();
-  this.complete();
+  keydown(ev) {
+
   }
-  keydown(ev) {}
+}
+
+class SuiLanguageMenu extends suiMenuBase {
+
+  constructor(params) {
+    params = (params ? params : {});
+    Vex.Merge(params, SuiLanguageMenu.defaults);
+    super(params);
+  }
+  static get ctor() {
+    return 'SuiLanguageMenu';
+  }
+  get ctor() {
+    return SuiLanguageMenu.ctor;
+  }
+
+  static get defaults() {
+    SuiLanguageMenu._defaults = SuiLanguageMenu._defaults ? SuiLanguageMenu._defaults :
+    {
+      label:'Language',
+      menuItems: [{
+        icon: '',
+        text: 'English',
+        value: 'en'
+        }, {
+        icon: '',
+        text: 'اَلْعَرَبِيَّةُ',
+        value: 'ar'
+      },
+       {
+        icon: '',
+        text: 'Cancel',
+        value: 'cancel'
+        }
+      ],
+      menuContainer: '.menuContainer'
+    };
+    return SuiLanguageMenu._defaults;
+  }
+  selection(ev) {
+    var op = $(ev.currentTarget).attr('data-value');
+
+    SmoTranslator.setLanguage(op);
+    this.complete();
+  }
+
+  keydown(ev) {
+
+  }
 }
 
 class SuiAddStaffMenu extends suiMenuBase {
@@ -14634,41 +16158,45 @@ class SuiAddStaffMenu extends suiMenuBase {
   Vex.Merge(params, SuiAddStaffMenu.defaults);
   super(params);
   }
-  static printText() {
-    SuiAddStaffMenu.defaults.menuItems.forEach((item) => {console.log('{id:"'+item.value+'",text:"'+item.text+'"},')});
+  static get ctor() {
+    return 'SuiAddStaffMenu';
+  }
+  get ctor() {
+    return SuiAddStaffMenu.ctor;
   }
 
   static get defaults() {
-  return {
-  menuItems: [{
-  icon: 'treble',
-  text: 'Treble Clef Staff',
-  value: 'trebleInstrument'
-  }, {
-  icon: 'bass',
-  text: 'Bass Clef Staff',
-  value: 'bassInstrument'
-  }, {
-  icon: 'alto',
-  text: 'Alto Clef Staff',
-  value: 'altoInstrument'
-  }, {
-  icon: 'tenor',
-  text: 'Tenor Clef Staff',
-  value: 'tenorInstrument'
-  }, {
-  icon: 'cancel-circle',
-  text: 'Remove Staff',
-  value: 'remove'
-  },
-   {
-  icon: '',
-  text: 'Cancel',
-  value: 'cancel'
-  }
-  ],
-  menuContainer: '.menuContainer'
-  };
+    SuiAddStaffMenu._defaults = SuiAddStaffMenu._defaults ? SuiAddStaffMenu._defaults : {
+      menuItems: [
+        {
+          icon: 'treble',
+          text: 'Treble Clef Staff',
+          value: 'trebleInstrument'
+        }, {
+          icon: 'bass',
+          text: 'Bass Clef Staff',
+          value: 'bassInstrument'
+        }, {
+          icon: 'alto',
+          text: 'Alto Clef Staff',
+          value: 'altoInstrument'
+        }, {
+          icon: 'tenor',
+          text: 'Tenor Clef Staff',
+          value: 'tenorInstrument'
+        }, {
+          icon: 'cancel-circle',
+          text: 'Remove Staff',
+          value: 'remove'
+        }, {
+          icon: '',
+          text: 'Cancel',
+          value: 'cancel'
+        }
+      ],
+      menuContainer: '.menuContainer'
+    };
+    return SuiAddStaffMenu._defaults;
   }
   static get instrumentMap() {
   return {
@@ -15416,6 +16944,9 @@ class SuiModifierDialogFactory {
 
 	static createDialog(modifier, parameters) {
 		var dbType = SuiModifierDialogFactory.modifierDialogMap[modifier.attrs.type];
+    if (dbType === 'SuiLyricDialog' && modifier.parser === SmoLyric.parsers.chord) {
+      dbType = 'SuiChordChangeDialog';
+    }
 		var ctor = eval(dbType);
 		if (!ctor) {
 			console.warn('no dialog for modifier ' + modifier.type);
@@ -15430,7 +16961,7 @@ class SuiModifierDialogFactory {
 		return {
 			SmoStaffHairpin: 'SuiHairpinAttributesDialog',
 			SmoSlur: 'SuiSlurAttributesDialog',
-			SmoDynamicText: 'SuiTextModifierDialog',
+			SmoDynamicText: 'SuiDynamicModifierDialog',
 			SmoVolta: 'SuiVoltaAttributeDialog',
       SmoScoreText: 'SuiTextTransformDialog',
       SmoLoadScore:  'SuiLoadFileDialog',
@@ -15457,6 +16988,12 @@ class SuiDialogBase {
 			});
 
 		});
+
+    this.label = eval(this.ctor)['label'];
+    if (!this.label) {
+      throw('dialog ' + this.ctor+ ' needs a label');
+    }
+
     this.initialLeft = parameters.left
     this.initialTop = parameters.top;
 
@@ -15479,9 +17016,34 @@ class SuiDialogBase {
 				id: 'dialog-' + this.id,
 				top: top,
 				left: left,
-				label: parameters.label
+				label: this.label
 			});
+
+      SmoTranslator.registerDialog(this.ctor);
 	}
+
+  // ### printXlate
+  // print json with string labels to use as a translation file seed.
+  static printTranslate(_class) {
+    var output = [];
+    var xx = eval(_class);
+    xx['dialogElements'].forEach((element) => {
+      var component = {};
+      if (element.label) {
+        component.label = element.label
+        if (element.options) {
+          component.options = [];
+
+          element.options.forEach((option) => {
+            component.options.push({value:option.value,label:option.label})
+          });
+        }
+      }
+      output.push(component);
+    });
+    return {ctor:xx['ctor'],label:xx['label'],dialogElements:output};
+  }
+
   get closeModalPromise() {
     return this.closeDialogPromise;
   }
@@ -15656,21 +17218,20 @@ class SuiDialogBase {
 // The layout dialog has page layout and zoom logic.  It is not based on a selection but score-wide
 class SuiLayoutDialog extends SuiDialogBase {
 
-/*
-  static printText() {
-    SuiLayoutDialog.dialogElements.forEach((element) => {
-      if (element.label) {
-        console.log('{label:"'+element.label+'"}');
-        if (element.options) {
-          console.log('[');
-          element.options.forEach((option) => {
-            console.log('{value:"'+option.value+'",label:"'+option.label+'"');
-          });
-          console.log(']');
-        });
-      }
-    });
-  }  */
+  static get ctor() {
+    return 'SuiLayoutDialog';
+  }
+  get ctor() {
+    return SuiLayoutDialog.ctor;
+  }
+  static get label() {
+    SuiLayoutDialog._label = SuiLayoutDialog._label ? SuiLayoutDialog._label :
+       'Score Layout';
+    return SuiLayoutDialog._label;
+  }
+  static set label(value) {
+    SuiLayoutDialog._label = value;
+  }
 
    // ### dialogElements
    // all dialogs have elements define the controls of the dialog.
@@ -15913,104 +17474,6 @@ class SuiLayoutDialog extends SuiDialogBase {
 		this.backupOriginal();
 	}
 }
-
-// ## SuiTextModifierDialog
-// This is a poorly named class, it just allows you to placeText
-// dynamic text so it doesn't collide with something.
-class SuiTextModifierDialog extends SuiDialogBase {
-	static get dialogElements() {
-		return [{
-				smoName: 'yOffsetLine',
-				parameterName: 'yOffsetLine',
-				defaultValue: 11,
-				control: 'SuiRockerComponent',
-				label: 'Y Line'
-			}, {
-				smoName: 'yOffsetPixels',
-				parameterName: 'yOffsetPixels',
-				defaultValue: 0,
-				control: 'SuiRockerComponent',
-				label: 'Y Offset Px'
-			}, {
-				smoName: 'xOffset',
-				parameterName: 'yOffset',
-				defaultValue: 0,
-				control: 'SuiRockerComponent',
-				label: 'X Offset'
-			}, {
-				smoName: 'text',
-				parameterName: 'text',
-				defaultValue: SmoDynamicText.dynamics.P,
-				options: [{
-						value: SmoDynamicText.dynamics.P,
-						label: 'Piano'
-					}, {
-						value: SmoDynamicText.dynamics.PP,
-						label: 'Pianissimo'
-					}, {
-						value: SmoDynamicText.dynamics.MP,
-						label: 'Mezzo-Piano'
-					}, {
-						value: SmoDynamicText.dynamics.MF,
-						label: 'Mezzo-Forte'
-					}, {
-						value: SmoDynamicText.dynamics.F,
-						label: 'Forte'
-					}, {
-						value: SmoDynamicText.dynamics.FF,
-						label: 'Fortissimo'
-					}, {
-						value: SmoDynamicText.dynamics.SFZ,
-						label: 'Sforzando'
-					}
-				],
-				control: 'SuiDropdownComponent',
-				label: 'Text'
-			}
-		];
-	}
-	static createAndDisplay(parameters) {
-		var dg = new SuiTextModifierDialog(parameters);
-		dg.display();
-		return dg;
-	}
-
-	constructor(parameters) {
-		super(SuiTextModifierDialog.dialogElements, {
-			id: 'dialog-' + parameters.modifier.id,
-			top: parameters.modifier.renderedBox.y,
-			left: parameters.modifier.renderedBox.x,
-			label: 'Dynamics Properties',
-      ...parameters
-		});
-		Vex.Merge(this, parameters);
-    this.selection = this.tracker.selections[0];
-		this.components.find((x) => {
-			return x.parameterName == 'text'
-		}).defaultValue = parameters.modifier.text;
-	}
-	handleRemove() {
-		$(this.context.svg).find('g.' + this.modifier.id).remove();
-    this.undoBuffer.addBuffer('remove dynamic', 'measure', this.selection.selector, this.selection.measure);
-		this.selection.note.removeModifier(this.modifier);
-		this.tracker.clearModifierSelections();
-	}
-	changed() {
-		this.modifier.backupOriginal();
-		this.components.forEach((component) => {
-			this.modifier[component.smoName] = component.getValue();
-		});
-		this.layout.renderNoteModifierPreview(this.modifier,this.selection);
-	}
-}
-
-class helpModal {
-	constructor() {}
-	static createAndDisplay() {
-		SmoHelp.displayHelp();
-		return htmlHelpers.closeDialogPromise();
-	}
-}
 ;
 class SuiFileDialog extends SuiDialogBase {
   constructor(parameters) {
@@ -16070,6 +17533,21 @@ class SuiFileDialog extends SuiDialogBase {
   }
 }
 class SuiLoadFileDialog extends SuiFileDialog {
+  static get ctor() {
+    return 'SuiLoadFileDialog';
+  }
+  get ctor() {
+    return SuiLoadFileDialog.ctor;
+  }
+  static get label() {
+    SuiLoadFileDialog._label = SuiLoadFileDialog._label ? SuiLoadFileDialog._label :
+       'Load File';
+    return SuiLoadFileDialog._label;
+  }
+  static set label(value) {
+    SuiLoadFileDialog._label = value;
+  }
+
     static get dialogElements() {
 		return [{
 				smoName: 'loadFile',
@@ -16119,11 +17597,26 @@ class SuiLoadFileDialog extends SuiFileDialog {
 
 
 class SuiPrintFileDialog extends SuiFileDialog {
+  static get ctor() {
+    return 'SuiPrintFileDialog';
+  }
+  get ctor() {
+    return SuiPrintFileDialog.ctor;
+  }
+  static get label() {
+    SuiPrintFileDialog._label = SuiPrintFileDialog._label ? SuiPrintFileDialog._label :
+       'Print Complete';
+    return SuiPrintFileDialog._label;
+  }
+  static set label(value) {
+    SuiPrintFileDialog._label = value;
+  }
+
+
     static get dialogElements() {
 		return [];
     }
     static createAndDisplay(params) {
-    params.label = "Print Complete";
 		var dg = new SuiPrintFileDialog(params);
 		dg.display();
 	}
@@ -16146,6 +17639,21 @@ class SuiPrintFileDialog extends SuiFileDialog {
 	}
 }
 class SuiSaveFileDialog extends SuiFileDialog {
+  static get ctor() {
+    return 'SuiSaveFileDialog';
+  }
+  get ctor() {
+    return SuiSaveFileDialog.ctor;
+  }
+  static get label() {
+    SuiSaveFileDialog._label = SuiSaveFileDialog._label ? SuiSaveFileDialog._label :
+       'Save Score';
+    return SuiSaveFileDialog._label;
+  }
+  static set label(value) {
+    SuiSaveFileDialog._label = value;
+  }
+
 
   static get dialogElements() {
 	  return [{
@@ -16185,6 +17693,20 @@ class SuiSaveFileDialog extends SuiFileDialog {
 	}
 }
 ;class SuiLyricDialog extends SuiDialogBase {
+  static get ctor() {
+    return 'SuiLyricDialog';
+  }
+  get ctor() {
+    return SuiLyricDialog.ctor;
+  }
+  static get label() {
+    SuiLyricDialog._label = SuiLyricDialog._label ? SuiLyricDialog._label :
+       'Done Editing Lyrics';
+    return SuiLyricDialog._label;
+  }
+  static set label(value) {
+    SuiLyricDialog._label = value;
+  }
   static createAndDisplay(parameters) {
 		var dg = new SuiLyricDialog(parameters);
 		dg.display();
@@ -16232,14 +17754,12 @@ class SuiSaveFileDialog extends SuiFileDialog {
   }
   constructor(parameters) {
     parameters.ctor='SuiLyricDialog';
-    parameters.label = 'Done Editing Lyrics';
     var p = parameters;
 
   	super(SuiLyricDialog.dialogElements, {
   		id: 'dialog-lyrics',
   		top: (p.layout.score.layout.pageWidth / 2) - 200,
   		left: (p.layout.score.layout.pageHeight / 2) - 200,
-  		label: p.label,
   		...parameters
   	});
 
@@ -16330,6 +17850,20 @@ class SuiSaveFileDialog extends SuiFileDialog {
 }
 
 class SuiChordChangeDialog extends SuiLyricDialog {
+  static get ctor() {
+    return 'SuiChordChangeDialog';
+  }
+  get ctor() {
+    return SuiChordChangeDialog.ctor;
+  }
+  static get label() {
+    SuiChordChangeDialog._label = SuiChordChangeDialog._label ? SuiChordChangeDialog._label :
+       'Done Editing Chord';
+    return SuiChordChangeDialog._label;
+  }
+  static set label(value) {
+    SuiChordChangeDialog._label = value;
+  }
   static createAndDisplay(parameters) {
     var dg = new SuiChordChangeDialog(parameters);
     dg.display();
@@ -16398,6 +17932,21 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 		dg.display();
     return dg;
 	}
+
+  static get ctor() {
+    return 'SuiTextTransformDialog';
+  }
+  get ctor() {
+    return SuiTextTransformDialog.ctor;
+  }
+  static get label() {
+    SuiTextTransformDialog._label = SuiTextTransformDialog._label ? SuiTextTransformDialog._label :
+       'Text Box Properties';
+     return SuiTextTransformDialog._label;
+  }
+  static set label(value) {
+    SuiTextTransformDialog._label = value;
+  }
 
   static get dialogElements() {
     return [
@@ -16709,7 +18258,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 			id: 'dialog-' + parameters.modifier.attrs.id,
 			top: parameters.modifier.y,
 			left: parameters.modifier.x,
-			label: 'Text Box Properties',
       ...parameters
     });
 
@@ -16753,6 +18301,116 @@ class SuiTextTransformDialog  extends SuiDialogBase {
      });
   }
 }
+
+
+// ## SuiTextModifierDialog
+// This is a poorly named class, it just allows you to placeText
+// dynamic text so it doesn't collide with something.
+class SuiDynamicModifierDialog extends SuiDialogBase {
+  static get ctor() {
+    return 'SuiDynamicModifierDialog';
+  }
+  get ctor() {
+    return SuiDynamicModifierDialog.ctor;
+  }
+  static get label() {
+    SuiDynamicModifierDialog._label = SuiDynamicModifierDialog._label ? SuiDynamicModifierDialog._label :
+       'Dynamics Properties';
+    return SuiDynamicModifierDialog._label;
+  }
+
+	static get dialogElements() {
+		return [{
+				smoName: 'yOffsetLine',
+				parameterName: 'yOffsetLine',
+				defaultValue: 11,
+				control: 'SuiRockerComponent',
+				label: 'Y Line'
+			}, {
+				smoName: 'yOffsetPixels',
+				parameterName: 'yOffsetPixels',
+				defaultValue: 0,
+				control: 'SuiRockerComponent',
+				label: 'Y Offset Px'
+			}, {
+				smoName: 'xOffset',
+				parameterName: 'yOffset',
+				defaultValue: 0,
+				control: 'SuiRockerComponent',
+				label: 'X Offset'
+			}, {
+				smoName: 'text',
+				parameterName: 'text',
+				defaultValue: SmoDynamicText.dynamics.P,
+				options: [{
+						value: SmoDynamicText.dynamics.P,
+						label: 'Piano'
+					}, {
+						value: SmoDynamicText.dynamics.PP,
+						label: 'Pianissimo'
+					}, {
+						value: SmoDynamicText.dynamics.MP,
+						label: 'Mezzo-Piano'
+					}, {
+						value: SmoDynamicText.dynamics.MF,
+						label: 'Mezzo-Forte'
+					}, {
+						value: SmoDynamicText.dynamics.F,
+						label: 'Forte'
+					}, {
+						value: SmoDynamicText.dynamics.FF,
+						label: 'Fortissimo'
+					}, {
+						value: SmoDynamicText.dynamics.SFZ,
+						label: 'Sforzando'
+					}
+				],
+				control: 'SuiDropdownComponent',
+				label: 'Text'
+			}
+		];
+	}
+	static createAndDisplay(parameters) {
+		var dg = new SuiDynamicModifierDialog(parameters);
+		dg.display();
+		return dg;
+	}
+
+	constructor(parameters) {
+		super(SuiDynamicModifierDialog.dialogElements, {
+			id: 'dialog-' + parameters.modifier.id,
+			top: parameters.modifier.renderedBox.y,
+			left: parameters.modifier.renderedBox.x,
+      ...parameters
+		});
+		Vex.Merge(this, parameters);
+    this.selection = this.tracker.selections[0];
+		this.components.find((x) => {
+			return x.parameterName == 'text'
+		}).defaultValue = parameters.modifier.text;
+	}
+	handleRemove() {
+		$(this.context.svg).find('g.' + this.modifier.id).remove();
+    this.undoBuffer.addBuffer('remove dynamic', 'measure', this.selection.selector, this.selection.measure);
+		this.selection.note.removeModifier(this.modifier);
+		this.tracker.clearModifierSelections();
+	}
+	changed() {
+		this.modifier.backupOriginal();
+		this.components.forEach((component) => {
+			this.modifier[component.smoName] = component.getValue();
+		});
+		this.layout.renderNoteModifierPreview(this.modifier,this.selection);
+	}
+}
+
+class helpModal {
+	constructor() {}
+	static createAndDisplay() {
+		SmoHelp.displayHelp();
+		return htmlHelpers.closeDialogPromise();
+	}
+}
 ;// ## measureDialogs.js
 // This file contains dialogs that affect all measures at a certain position,
 // such as tempo or time signature.
@@ -16761,6 +18419,20 @@ class SuiMeasureDialog extends SuiDialogBase {
     static get attributes() {
       return ['pickupMeasure', 'makePickup', 'padLeft', 'padAllInSystem',
         'measureText','measureTextPosition'];
+    }
+    static get ctor() {
+      return 'SuiMeasureDialog';
+    }
+    get ctor() {
+      return SuiMeasureDialog.ctor;
+    }
+    static get label() {
+      SuiMeasureDialog._label = SuiMeasureDialog._label ? SuiMeasureDialog._label
+       : 'Measure Properties';
+      return SuiMeasureDialog._label;
+    }
+    static set label(value) {
+      SuiTimeSignatureDialog._label = value;
     }
     static get dialogElements() {
       return [
@@ -17002,6 +18674,21 @@ class SuiMeasureDialog extends SuiDialogBase {
 	}
 }
 class SuiTimeSignatureDialog extends SuiDialogBase {
+  static get ctor() {
+    return 'SuiTimeSignatureDialog';
+  }
+  get ctor() {
+    return SuiTimeSignatureDialog.ctor;
+  }
+  static get label() {
+    SuiTimeSignatureDialog._label = SuiTimeSignatureDialog._label ? SuiTimeSignatureDialog._label
+     : 'Custom Time Signature';
+    return SuiTimeSignatureDialog._label;
+  }
+  static set label(value) {
+    SuiTimeSignatureDialog._label = value;
+  }
+
     static get dialogElements() {
         return [{
             smoName: 'numerator',
@@ -17137,6 +18824,20 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
 // ## SuiTempoDialog
 // Allow user to choose a tempo or tempo change.
 class SuiTempoDialog extends SuiDialogBase {
+  static get ctor() {
+    return 'SuiTempoDialog';
+  }
+  get ctor() {
+    return SuiTempoDialog.ctor;
+  }
+  static get label() {
+    SuiTempoDialog._label = SuiTempoDialog._label ? SuiTempoDialog._label
+     : 'Tempo Properties';
+    return SuiTempoDialog._label;
+  }
+  static set label(value) {
+    SuiTempoDialog._label = value;
+  }
     static get attributes() {
         return ['tempoMode', 'bpm', 'beatDuration', 'tempoText','yOffset'];
     }
@@ -18310,7 +20011,7 @@ class defaultRibbonLayout {
 	}
 
 	static get leftRibbonIds() {
-		return ['helpDialog', 'fileMenu','addStaffMenu','measureModal','tempoModal','timeSignatureMenu','keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
+		return ['helpDialog','languageMenu', 'fileMenu','addStaffMenu','measureModal','tempoModal','timeSignatureMenu','keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
 	}
 	static get noteButtonIds() {
 		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton',
@@ -19650,6 +21351,15 @@ class defaultRibbonLayout {
 				group: 'scoreEdit',
 				id: 'helpDialog'
 			}, {
+				leftText: 'Language',
+				rightText: '',
+				icon: '',
+				classes: 'language-select',
+				action: 'menu',
+				ctor: 'SuiLanguageMenu',
+				group: 'scoreEdit',
+				id: 'languageMenu'
+			}, {
 				leftText: 'File',
 				rightText: '/f',
 				icon: '',
@@ -19686,22 +21396,24 @@ class defaultRibbonLayout {
 				ctor: 'SuiAddStaffMenu',
 				group: 'scoreEdit',
 				id: 'addStaffMenu'
-			}, {
-               leftText: 'Measure',
-               rightText: '',
-               icon: '',
-               classes: 'icon ',
-               action: 'modal',
-               ctor: 'SuiMeasureDialog',
-               group: 'scoreEdit',
-               id: 'measureModal'
-           },{
+			},
+      {
+         leftText: 'Measure',
+         rightText: '',
+         icon: '',
+         classes: 'icon ',
+         action: 'modal',
+         ctor: 'SuiMeasureDialog',
+         group: 'scoreEdit',
+         id: 'measureModal'
+      },
+      {
 				leftText: 'Key',
 				rightText: '/k',
 				icon: '',
 				classes: 'note-modify',
 				action: 'menu',
-				ctor: 'suiKeySignatureMenu',
+				ctor: 'SuiKeySignatureMenu',
 				group: 'scoreEdit',
 				id: 'keyMenu'
 			}, {
@@ -19710,7 +21422,7 @@ class defaultRibbonLayout {
 				icon: '',
 				classes: 'icon note-modify',
 				action: 'menu',
-				ctor: 'suiStaffModifierMenu',
+				ctor: 'SuiStaffModifierMenu',
 				group: 'scoreEdit',
 				id: 'staffModifierMenu'
 			},
@@ -20072,8 +21784,13 @@ class RibbonButtons {
 				if (buttonData.action != 'collapseChild') {
 
           // else the button has a specific action, such as a menu or dialog, or a parent button
+          // for translation, add the menu name to the button class
+          var buttonClass = buttonData.classes;
+          if (buttonData.action === 'menu') {
+            buttonClass += ' ' +buttonData.ctor;
+          }
 					var buttonHtml = RibbonButtons._buttonHtml('ribbonButtonContainer',
-              buttonData.id, buttonData.classes, buttonData.leftText, buttonData.icon, buttonData.rightText);
+              buttonData.id, buttonClass, buttonData.leftText, buttonData.icon, buttonData.rightText);
 					$(buttonHtml).attr('data-group', buttonData.group);
 
 					$(selector).append(buttonHtml);
@@ -20787,6 +22504,21 @@ class CollapseRibbonControl {
 
 
 class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
+  get ctor() {
+    return SuiSlurAttributesDialog.ctor;
+  }
+  static get ctor() {
+    return 'SuiSlurAttributesDialog';
+  }
+  static get label() {
+    SuiSlurAttributesDialog._label = SuiSlurAttributesDialog._label ? SuiSlurAttributesDialog._label
+      : 'Slur Properties';
+    return SuiSlurAttributesDialog._label;
+  }
+  static set label(value) {
+    SuiSlurAttributesDialog._label = value;
+  }
+
   static get dialogElements() {
     return [{
           parameterName: 'spacing',
@@ -20907,6 +22639,21 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
 }
 
 class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
+  get ctor() {
+    return SuiVoltaAttributeDialog.ctor;
+  }
+  static get ctor() {
+    return 'SuiVoltaAttributeDialog';
+  }
+  static get label() {
+    SuiVoltaAttributeDialog._label = SuiVoltaAttributeDialog._label ?
+        SuiVoltaAttributeDialog._label : 'Volta Properties';
+    return SuiVoltaAttributeDialog._label;
+  }
+  static set label(value) {
+    SuiVoltaAttributeDialog._label = value;
+  }
+
  static get dialogElements() {
     return [{
           parameterName: 'number',
@@ -20982,7 +22729,6 @@ handleRemove() {
         id: 'dialog-' + parameters.modifier.attrs.id,
         top: parameters.modifier.renderedBox.y,
         left: parameters.modifier.renderedBox.x,
-        label: 'Hairpin Properties',
         ...parameters
     });
     Vex.Merge(this, parameters);
@@ -20999,8 +22745,20 @@ handleRemove() {
   }
 }
 class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
+  get ctor() {
+    return SuiHairpinAttributesDialog.ctor;
+  }
+  static get ctor() {
+    return 'SuiHairpinAttributesDialog';
+  }
+
   static get label() {
-    return 'Hairpin Properties';
+    SuiHairpinAttributesDialog._label = SuiHairpinAttributesDialog._label ? SuiHairpinAttributesDialog._label
+      : 'Hairpin Properties';
+    return SuiHairpinAttributesDialog._label;
+  }
+  static set label(value) {
+    SuiHairpinAttributesDialog._label = value;
   }
   static get dialogElements() {
     return [{
@@ -21044,7 +22802,6 @@ static createAndDisplay(parameters) {
       id: 'dialog-' + parameters.modifier.attrs.id,
       top: parameters.modifier.renderedBox.y,
       left: parameters.modifier.renderedBox.x,
-      label: 'Hairpin Properties',
       ...parameters
     });
     Vex.Merge(this, parameters);
@@ -21648,7 +23405,7 @@ class SuiDom {
       .append(b('div').classes('menuContainer'))
       .append(b('div').classes('piano-container')
       .append(b('div').classes('piano-keys')))
-      .append(b('div').classes('workspace').attr('dir',SmoConfig.languageDir)
+      .append(b('div').classes('workspace language-dir').attr('dir',SmoConfig.languageDir)
         .append(b('div').classes('control-bar')
           .append(b('div').classes('titleText').text('Smoosic'))
           .append(b('div').classes('controls-top')))
@@ -21820,7 +23577,7 @@ class suiController {
   createModifierDialog(modifierSelection) {
     var parameters = {
       modifier:modifierSelection.modifier, context:this.tracker.context, tracker:this.tracker, layout:this.layout, undoBuffer:this.undoBuffer,eventSource:this.eventSource,
-         completeNotifier:this
+         completeNotifier:this,editor:this.editor
     }
     SuiModifierDialogFactory.createDialog(modifierSelection.modifier,parameters);
   }

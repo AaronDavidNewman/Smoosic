@@ -25,6 +25,21 @@ class SuiStaffModifierDialog extends SuiDialogBase {
 
 
 class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
+  get ctor() {
+    return SuiSlurAttributesDialog.ctor;
+  }
+  static get ctor() {
+    return 'SuiSlurAttributesDialog';
+  }
+  static get label() {
+    SuiSlurAttributesDialog._label = SuiSlurAttributesDialog._label ? SuiSlurAttributesDialog._label
+      : 'Slur Properties';
+    return SuiSlurAttributesDialog._label;
+  }
+  static set label(value) {
+    SuiSlurAttributesDialog._label = value;
+  }
+
   static get dialogElements() {
     return [{
           parameterName: 'spacing',
@@ -145,6 +160,21 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
 }
 
 class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
+  get ctor() {
+    return SuiVoltaAttributeDialog.ctor;
+  }
+  static get ctor() {
+    return 'SuiVoltaAttributeDialog';
+  }
+  static get label() {
+    SuiVoltaAttributeDialog._label = SuiVoltaAttributeDialog._label ?
+        SuiVoltaAttributeDialog._label : 'Volta Properties';
+    return SuiVoltaAttributeDialog._label;
+  }
+  static set label(value) {
+    SuiVoltaAttributeDialog._label = value;
+  }
+
  static get dialogElements() {
     return [{
           parameterName: 'number',
@@ -220,7 +250,6 @@ handleRemove() {
         id: 'dialog-' + parameters.modifier.attrs.id,
         top: parameters.modifier.renderedBox.y,
         left: parameters.modifier.renderedBox.x,
-        label: 'Hairpin Properties',
         ...parameters
     });
     Vex.Merge(this, parameters);
@@ -237,8 +266,20 @@ handleRemove() {
   }
 }
 class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
+  get ctor() {
+    return SuiHairpinAttributesDialog.ctor;
+  }
+  static get ctor() {
+    return 'SuiHairpinAttributesDialog';
+  }
+
   static get label() {
-    return 'Hairpin Properties';
+    SuiHairpinAttributesDialog._label = SuiHairpinAttributesDialog._label ? SuiHairpinAttributesDialog._label
+      : 'Hairpin Properties';
+    return SuiHairpinAttributesDialog._label;
+  }
+  static set label(value) {
+    SuiHairpinAttributesDialog._label = value;
   }
   static get dialogElements() {
     return [{
@@ -282,7 +323,6 @@ static createAndDisplay(parameters) {
       id: 'dialog-' + parameters.modifier.attrs.id,
       top: parameters.modifier.renderedBox.y,
       left: parameters.modifier.renderedBox.x,
-      label: 'Hairpin Properties',
       ...parameters
     });
     Vex.Merge(this, parameters);

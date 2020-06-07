@@ -390,4 +390,14 @@ class smoSerialize {
 		});
 		return rv;
 	}
+
+  // ### printXlate
+  // print json with string labels to use as a translation file seed.
+  static printTranslate(_class) {
+    var xxx = eval(_class+'.printTranslate');
+    if (typeof(xxx) === 'function') {
+      xxx();
+    }
+
+  }
 }

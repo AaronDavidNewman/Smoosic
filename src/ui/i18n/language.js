@@ -1,51 +1,116 @@
 
-class SmoLanguage {
-  static get en() {
-    return {
-      dir:'ltr',
-      menuStrings:[
-        {id:'newFile',text:'New Score'},
-        {id:'openFile',text:'Open'},
-        {id:'saveFile',text:'Save'},
-        {id:'quickSave',text:'Quick Save'},
-        {id:'printScore',text:'Print'},
-        {id:'bambino',text:'Jesu Bambino'},
-        {id:'microtone',text:'Microtone Sample'},
-        {id:'preciousLord',text:'Precious Lord'},
-        {id:'cancel',text:'Cancel'},
-        {id:'pp',text:'Pianissimo'},
-        {id:'p',text:'Piano'},
-        {id:'mp',text:'Mezzo-piano'},
-        {id:'mf'',text:'Mezzo-forte'},
-        {id:'f',text:'Forte'},
-        {id:'ff',text:'Fortissimo'},
-        {id:'sfz',text:'sfortzando'},
-        {id:"KeyOfC",text:"C Major"},
-        {id:"KeyOfF",text:"F Major"},
-        {id:"KeyOfG",text:"G Major"},
-        {id:"KeyOfBb",text:"Bb Major"},
-        {id:"KeyOfD",text:"D Major"},
-        {id:"KeyOfEb",text:"Eb Major"},
-        {id:"KeyOfA",text:"A Major"},
-        {id:"KeyOfAb",text:"Ab Major"},
-        {id:"KeyOfE",text:"E Major"},
-        {id:"KeyOfDb",text:"Db Major"},
-        {id:"KeyOfB",text:"B Major"},
-        {id:"KeyOfF#",text:"F# Major"},
-        {id:"KeyOfC#",text:"C# Major"},
-        {id:"crescendo",text:"Crescendo"},
-        {id:"decrescendo",text:"Decrescendo"},
-        {id:"slur",text:"Slur/Tie"},
-        {id:"ending",text:"nth ending"},
-        {id:"trebleInstrument",text:"Treble Clef Staff"},
-        {id:"bassInstrument",text:"Bass Clef Staff"},
-        {id:"altoInstrument",text:"Alto Clef Staff"},
-        {id:"tenorInstrument",text:"Tenor Clef Staff"},
-        {id:"remove",text:"Remove Staff"}
-      ],
-      dialogStrings:[
+class SmoTranslator {
+  static get dialogs() {
+    SmoTranslator._dialogs =  SmoTranslator._dialogs ? SmoTranslator._dialogs : {};
+    return SmoTranslator._dialogs;
+  }
 
-      ]
+  static get menus() {
+    SmoTranslator._menus =  SmoTranslator._menus ? SmoTranslator._menus : {};
+    return SmoTranslator._menus;
+  }
+
+  static registerMenu(_class) {
+    if (!SmoTranslator.menus[_class]) {
+      SmoTranslator.menus[_class] = true;
     }
   }
+
+
+  static registerDialog(_class) {
+    if (!SmoTranslator.dialogs[_class]) {
+      SmoTranslator.dialogs[_class] = true;
+    }
+  }
+
+  static printLanguages() {
+    var translatables = [];
+    SmoTranslator.allDialogs.forEach((key) => {
+      SmoTranslator.registerDialog(key);
+      translatables.push(SuiDialogBase.printTranslate(key));
+    });
+    SmoTranslator.allMenus.forEach((key) => {
+      SmoTranslator.registerMenu(key);
+      translatables.push(suiMenuBase.printTranslate(key));
+    });
+
+    console.log(JSON.stringify(translatables,null,' '));
+  }
+
+  static _updateMenu(menuStrings,_menuClass,menuClass) {
+    if (!menuStrings) {
+      console.log('no strings for '+menuClass);
+      return;
+    }
+
+    _menuClass['defaults'].menuItems.forEach((menuItem) => {
+      var val = menuItem.value;
+      var nvPair = menuStrings.menuItems.find((ff) => ff.value === val);
+      if (!nvPair) {
+        console.log('no xlate for '+ val+' in menu '+menuClass);
+      } else {
+        menuItem.text = nvPair.text;
+        console.log('setting menu item value '+val+' to '+nvPair.text);
+      }
+    });
+  }
+
+  static setLanguage(language) {
+    if (!SmoLanguage[language]) {
+      return; // no xlate exists
+    }
+    var trans = SmoLanguage[language];
+    SmoTranslator.allMenus.forEach((menuClass) => {
+      var _class = eval(menuClass);
+      var menuStrings = trans.strings.find((mm) => {
+        return mm.ctor == menuClass;
+      });
+      SmoTranslator._updateMenu(menuStrings,_class,menuClass);
+
+      var menuButton = $('.ribbonButtonContainer button.'+menuClass).find('.left-text .text-span');
+      if (menuButton.length) {
+        $(menuButton).text(menuStrings.label);
+      }
+    });
+    $('body').find('.language-dir').each((ix,dd) => {$(dd).attr('dir',trans.dir)});
+  }
+
+  static get allMenus() {
+    return [
+      'SuiAddStaffMenu',
+      'SuiFileMenu',
+      'SuiTimeSignatureMenu',
+      'SuiKeySignatureMenu',
+      'SuiTimeSignatureMenu',
+      'SuiKeySignatureMenu',
+      'SuiFileMenu',
+      'SuiStaffModifierMenu',
+      'SuiDynamicsMenu'
+    ]
+  }
+
+  static get allDialogs() {
+    return [
+      'SuiLoadFileDialog',
+      'SuiSaveFileDialog',
+      'SuiPrintFileDialog',
+      'SuiMeasureDialog',
+      'SuiTempoDialog',
+      'SuiTimeSignatureDialog',
+      'SuiLayoutDialog',
+      'SuiDynamicModifierDialog',
+    ]
+  }
+}
+
+class SmoLanguage {
+  static get en() {
+    var strings = JSON.parse(smoLanguageStringEn);
+    return {dir:'ltr',strings:strings};
+   }
+
+   static get ar() {
+     var strings = JSON.parse(smoLanguageStringAr);
+     return {dir:'rtl',strings:strings};
+   }
 }

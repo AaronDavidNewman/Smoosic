@@ -9,10 +9,12 @@ module.exports = function (grunt) {
                 sourceMap: true
             },
             dist: {
-                src: ['src/common/musicHelpers.js', 'src/common/serializationHelpers.js','src/common/svgHelpers.js', 'src/common/htmlHelpers.js',
+                src: ['src/ui/i18n/language_ar.js','src/ui/i18n/language_en.js','src/ui/i18n/language.js',
+                       'src/common/musicHelpers.js', 'src/common/serializationHelpers.js','src/common/svgHelpers.js', 'src/common/htmlHelpers.js',
                     'src/smo/data/note.js', 'src/smo/data/tuplet.js', 'src/smo/data/noteModifiers.js',
                     'src/smo/data/measure.js', 'src/smo/data/measureModifiers.js', 'src/smo/data/systemStaff.js',
                     'src/smo/data/score.js', 'src/smo/data/staffModifiers.js','src/smo/data/scoreModifiers.js',
+
                     'src/smo/xform/iterator.js', 'src/smo/xform/beamers.js', 'src/smo/xform/tickDuration.js', 'src/smo/xform/selections.js',
                     'src/smo/xform/operations.js', 'src/smo/xform/undo.js', 'src/smo/xform/copypaste.js',
                     'src/render/vex/vxMeasure.js', 'src/render/vex/vxSystem.js',

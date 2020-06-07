@@ -57,6 +57,21 @@ class SuiFileDialog extends SuiDialogBase {
   }
 }
 class SuiLoadFileDialog extends SuiFileDialog {
+  static get ctor() {
+    return 'SuiLoadFileDialog';
+  }
+  get ctor() {
+    return SuiLoadFileDialog.ctor;
+  }
+  static get label() {
+    SuiLoadFileDialog._label = SuiLoadFileDialog._label ? SuiLoadFileDialog._label :
+       'Load File';
+    return SuiLoadFileDialog._label;
+  }
+  static set label(value) {
+    SuiLoadFileDialog._label = value;
+  }
+
     static get dialogElements() {
 		return [{
 				smoName: 'loadFile',
@@ -106,11 +121,26 @@ class SuiLoadFileDialog extends SuiFileDialog {
 
 
 class SuiPrintFileDialog extends SuiFileDialog {
+  static get ctor() {
+    return 'SuiPrintFileDialog';
+  }
+  get ctor() {
+    return SuiPrintFileDialog.ctor;
+  }
+  static get label() {
+    SuiPrintFileDialog._label = SuiPrintFileDialog._label ? SuiPrintFileDialog._label :
+       'Print Complete';
+    return SuiPrintFileDialog._label;
+  }
+  static set label(value) {
+    SuiPrintFileDialog._label = value;
+  }
+
+
     static get dialogElements() {
 		return [];
     }
     static createAndDisplay(params) {
-    params.label = "Print Complete";
 		var dg = new SuiPrintFileDialog(params);
 		dg.display();
 	}
@@ -133,6 +163,21 @@ class SuiPrintFileDialog extends SuiFileDialog {
 	}
 }
 class SuiSaveFileDialog extends SuiFileDialog {
+  static get ctor() {
+    return 'SuiSaveFileDialog';
+  }
+  get ctor() {
+    return SuiSaveFileDialog.ctor;
+  }
+  static get label() {
+    SuiSaveFileDialog._label = SuiSaveFileDialog._label ? SuiSaveFileDialog._label :
+       'Save Score';
+    return SuiSaveFileDialog._label;
+  }
+  static set label(value) {
+    SuiSaveFileDialog._label = value;
+  }
+
 
   static get dialogElements() {
 	  return [{

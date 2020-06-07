@@ -3,9 +3,19 @@ class suiMenuBase {
   constructor(params) {
     Vex.Merge(this, params);
     this.focusIndex = -1;
+    SmoTranslator.registerMenu(this.ctor);
   }
   get closeModalPromise() {
     return this.closePromise();
+  }
+  static printTranslate(_class) {
+    var xx = eval(_class);
+    var items = [];
+    xx['defaults'].menuItems.forEach((item) => {
+      items.push({value:item.value,text:item.text});
+    });
+
+    return {ctor:xx['ctor'],label:xx['label'],menuItems:items};
   }
 
   complete() {
@@ -52,14 +62,14 @@ class suiMenuManager {
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
-        action: "suiKeySignatureMenu"
+        action: "SuiKeySignatureMenu"
       }, {
         event: "keydown",
         key: "l",
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
-        action: "suiStaffModifierMenu"
+        action: "SuiStaffModifierMenu"
       }, {
         event: "keydown",
         key: "d",
@@ -249,8 +259,16 @@ class SuiFileMenu extends suiMenuBase {
   Vex.Merge(params, SuiFileMenu.defaults);
     super(params);
   }
+  static get ctor() {
+    return 'SuiFileMenu';
+  }
+  get ctor() {
+    return SuiFileMenu.ctor;
+  }
   static get defaults() {
-    return {
+
+    SuiFileMenu._defaults = SuiFileMenu._defaults ? SuiFileMenu._defaults : {
+      label:'File',
       menuItems: [
         {
           icon: 'folder-new',
@@ -295,6 +313,7 @@ class SuiFileMenu extends suiMenuBase {
         }
       ]
     };
+    return SuiFileMenu._defaults;
   }
 
   printRenderPromise() {
@@ -432,44 +451,55 @@ class SuiDynamicsMenu extends suiMenuBase {
   Vex.Merge(params, SuiDynamicsMenu.defaults);
   super(params);
   }
+  static get ctor() {
+    return 'SuiDynamicsMenu';
+  }
+  get ctor() {
+    return SuiDynamicsMenu.ctor;
+  }
   static get defaults() {
-  return {
-    menuItems: [{
-      icon: 'pianissimo',
-      text: 'Pianissimo',
-      value: 'pp'
-    }, {
-      icon: 'piano',
-      text: 'Piano',
-      value: 'p'
-    }, {
-      icon: 'mezzopiano',
-      text: 'Mezzo-piano',
-      value: 'mp'
-    }, {
-      icon: 'mezzoforte',
-      text: 'Mezzo-forte',
-      value: 'mf'
-    }, {
-      icon: 'forte',
-      text: 'Forte',
-      value: 'f'
-    }, {
-      icon: 'fortissimo',
-      text: 'Fortissimo',
-      value: 'ff'
-    }, {
-      icon: 'sfz',
-      text: 'sfortzando',
-      value: 'sfz'
-    },
-     {
-      icon: '',
-      text: 'Cancel',
-      value: 'cancel'
-    }
-  ]
-  };
+    SuiDynamicsMenu._defaults = SuiDynamicsMenu._defaults ? SuiDynamicsMenu._defaults :
+    {
+      label:'Dynamics',
+      menuItems: [{
+        icon: 'pianissimo',
+        text: 'Pianissimo',
+        value: 'pp'
+      }, {
+        icon: 'piano',
+        text: 'Piano',
+        value: 'p'
+      }, {
+        icon: 'mezzopiano',
+        text: 'Mezzo-piano',
+        value: 'mp'
+      }, {
+        icon: 'mezzoforte',
+        text: 'Mezzo-forte',
+        value: 'mf'
+      }, {
+        icon: 'forte',
+        text: 'Forte',
+        value: 'f'
+      }, {
+        icon: 'fortissimo',
+        text: 'Fortissimo',
+        value: 'ff'
+      }, {
+        icon: 'sfz',
+        text: 'sfortzando',
+        value: 'sfz'
+      },
+       {
+        icon: '',
+        text: 'Cancel',
+        value: 'cancel'
+      }
+    ]
+    };
+
+    return SuiDynamicsMenu._defaults;
+
   }
 
   selection(ev) {
@@ -498,57 +528,68 @@ class SuiTimeSignatureMenu extends suiMenuBase {
   Vex.Merge(params, SuiTimeSignatureMenu.defaults);
   super(params);
   }
-    static get defaults() {
-  return {
-  menuItems: [{
-  icon: 'sixeight',
-  text: '6/8',
-  value: '6/8',
-  },{
-  icon: 'threefour',
-  text: '3/4',
-  value: '3/4',
-  },{
-  icon: 'twofour',
-  text: '2/4',
-  value: '2/4',
-  },{
-  icon: 'twelveeight',
-  text: '12/8',
-  value: '12/8',
-  },{
-  icon: 'seveneight',
-  text: '7/8',
-  value: '7/8',
-  },{
-  icon: 'fiveeight',
-  text: '5/8',
-  value: '5/8',
-  },{
-  icon: '',
-  text: 'Other',
-  value: 'TimeSigOther',
-  },{
-  icon: '',
-  text: 'Cancel',
-  value: 'cancel'
+  static get ctor() {
+    return 'SuiTimeSignatureMenu';
   }
-                ]
-        };
-    }
 
-    selection(ev) {
-      var text = $(ev.currentTarget).attr('data-value');
+  get ctor() {
+    return SuiTimeSignatureMenu.ctor;
+  }
+  static get defaults() {
+    SuiTimeSignatureMenu._defaults = SuiTimeSignatureMenu._defaults ? SuiTimeSignatureMenu._defaults :
+    {
+      label:'Time Sig',
+      menuItems: [
+        {
+          icon: 'sixeight',
+          text: '6/8',
+          value: '6/8',
+        },{
+          icon: 'threefour',
+          text: '3/4',
+          value: '3/4',
+        },{
+          icon: 'twofour',
+          text: '2/4',
+          value: '2/4',
+        },{
+          icon: 'twelveeight',
+          text: '12/8',
+          value: '12/8',
+        },{
+          icon: 'seveneight',
+          text: '7/8',
+          value: '7/8',
+        },{
+          icon: 'fiveeight',
+          text: '5/8',
+          value: '5/8',
+        },{
+          icon: '',
+          text: 'Other',
+          value: 'TimeSigOther',
+        },{
+          icon: '',
+          text: 'Cancel',
+          value: 'cancel'
+        }
+      ]
+    };
+    return SuiTimeSignatureMenu._defaults;
+  }
 
-      if (text == 'TimeSigOther') {
-        SuiTimeSignatureDialog.createAndDisplay({
-    			layout: this.layout,
-          tracker: this.tracker,
-          completeNotifier:this.completeNotifier,
-          closeMenuPromise:this.closePromise,
-          undoBuffer:this.undoBuffer,
-          eventSource:this.eventSource
-		    });
+  selection(ev) {
+    var text = $(ev.currentTarget).attr('data-value');
+
+    if (text == 'TimeSigOther') {
+      SuiTimeSignatureDialog.createAndDisplay({
+  			layout: this.layout,
+        tracker: this.tracker,
+        completeNotifier:this.completeNotifier,
+        closeMenuPromise:this.closePromise,
+        undoBuffer:this.undoBuffer,
+        eventSource:this.eventSource
+	    });
       this.complete();
       return;
     }
@@ -561,86 +602,93 @@ class SuiTimeSignatureMenu extends suiMenuBase {
   }
 
   keydown(ev) {}
-}
+  }
 
-class suiKeySignatureMenu extends suiMenuBase {
+class SuiKeySignatureMenu extends suiMenuBase {
 
   constructor(params) {
   params = (params ? params : {});
-  Vex.Merge(params, suiKeySignatureMenu.defaults);
-  super(params);
+  Vex.Merge(params, SuiKeySignatureMenu.defaults);
+    super(params);
   }
-  static printText() {
-    suiKeySignatureMenu.defaults.menuItems.forEach((item) => {console.log('{id:"'+item.value+'",text:"'+item.text+'"},')});
+  static get ctor() {
+    return 'SuiKeySignatureMenu';
+  }
+  get ctor() {
+    return SuiKeySignatureMenu.ctor;
   }
   static get defaults() {
-  return {
-  menuItems: [{
-  icon: 'key-sig-c',
-  text: 'C Major',
-  value: 'KeyOfC',
-  }, {
-  icon: 'key-sig-f',
-  text: 'F Major',
-  value: 'KeyOfF',
-  }, {
-  icon: 'key-sig-g',
-  text: 'G Major',
-  value: 'KeyOfG',
-  }, {
-  icon: 'key-sig-bb',
-  text: 'Bb Major',
-  value: 'KeyOfBb'
-  }, {
-  icon: 'key-sig-d',
-  text: 'D Major',
-  value: 'KeyOfD'
-  }, {
-  icon: 'key-sig-eb',
-  text: 'Eb Major',
-  value: 'KeyOfEb'
-  }, {
-  icon: 'key-sig-a',
-  text: 'A Major',
-  value: 'KeyOfA'
-  }, {
-  icon: 'key-sig-ab',
-  text: 'Ab Major',
-  value: 'KeyOfAb'
-  }, {
-  icon: 'key-sig-e',
-  text: 'E Major',
-  value: 'KeyOfE'
-  }, {
-  icon: 'key-sig-bd',
-  text: 'Db Major',
-  value: 'KeyOfDb'
-  }, {
-  icon: 'key-sig-b',
-  text: 'B Major',
-  value: 'KeyOfB'
-  }, {
-  icon: 'key-sig-fs',
-  text: 'F# Major',
-  value: 'KeyOfF#'
-  }, {
-  icon: 'key-sig-cs',
-  text: 'C# Major',
-  value: 'KeyOfC#'
-  },
+    SuiKeySignatureMenu._defaults = SuiKeySignatureMenu._defaults ? SuiKeySignatureMenu._defaults :
    {
-  icon: '',
-  text: 'Cancel',
-  value: 'cancel'
-  }
-  ],
-  menuContainer: '.menuContainer'
-  };
+     label:'Key',
+
+  menuItems: [{
+    icon: 'key-sig-c',
+    text: 'C Major',
+    value: 'KeyOfC',
+    }, {
+    icon: 'key-sig-f',
+    text: 'F Major',
+    value: 'KeyOfF',
+    }, {
+    icon: 'key-sig-g',
+    text: 'G Major',
+    value: 'KeyOfG',
+    }, {
+    icon: 'key-sig-bb',
+    text: 'Bb Major',
+    value: 'KeyOfBb'
+    }, {
+    icon: 'key-sig-d',
+    text: 'D Major',
+    value: 'KeyOfD'
+    }, {
+    icon: 'key-sig-eb',
+    text: 'Eb Major',
+    value: 'KeyOfEb'
+    }, {
+    icon: 'key-sig-a',
+    text: 'A Major',
+    value: 'KeyOfA'
+    }, {
+    icon: 'key-sig-ab',
+    text: 'Ab Major',
+    value: 'KeyOfAb'
+    }, {
+    icon: 'key-sig-e',
+    text: 'E Major',
+    value: 'KeyOfE'
+    }, {
+    icon: 'key-sig-bd',
+    text: 'Db Major',
+    value: 'KeyOfDb'
+    }, {
+    icon: 'key-sig-b',
+    text: 'B Major',
+    value: 'KeyOfB'
+    }, {
+    icon: 'key-sig-fs',
+    text: 'F# Major',
+    value: 'KeyOfF#'
+    }, {
+    icon: 'key-sig-cs',
+    text: 'C# Major',
+    value: 'KeyOfC#'
+    },
+     {
+    icon: '',
+    text: 'Cancel',
+    value: 'cancel'
+    }
+    ],
+    menuContainer: '.menuContainer'
+    };
+    return SuiKeySignatureMenu._defaults;
   }
 
   selection(ev) {
     var keySig = $(ev.currentTarget).attr('data-value');
-    keySig = (keySig === 'cancel' ? keySig : keySig.substring(5,xx.length));
+    keySig = (keySig === 'cancel' ? keySig : keySig.substring(5,keySig.length));
     var changed = [];
     this.tracker.selections.forEach((sel) => {
       if (changed.indexOf(sel.selector.measure) === -1) {
@@ -654,67 +702,125 @@ class suiKeySignatureMenu extends suiMenuBase {
   keydown(ev) {}
 }
 
-class suiStaffModifierMenu extends suiMenuBase {
+class SuiStaffModifierMenu extends suiMenuBase {
 
   constructor(params) {
     params = (params ? params : {});
-    Vex.Merge(params, suiStaffModifierMenu.defaults);
+    Vex.Merge(params, SuiStaffModifierMenu.defaults);
     super(params);
   }
-  static printText() {
-    suiStaffModifierMenu.defaults.menuItems.forEach((item) => {console.log('{id:"'+item.value+'",text:"'+item.text+'"},')});
+  static get ctor() {
+    return 'SuiStaffModifierMenu';
+  }
+  get ctor() {
+    return SuiStaffModifierMenu.ctor;
   }
 
   static get defaults() {
-  return {
-  menuItems: [{
-  icon: 'cresc',
-  text: 'Crescendo',
-  value: 'crescendo'
-  }, {
-  icon: 'decresc',
-  text: 'Decrescendo',
-  value: 'decrescendo'
-  }, {
-  icon: 'slur',
-  text: 'Slur/Tie',
-  value: 'slur'
-  }, {
-  icon: 'ending',
-  text: 'nth ending',
-  value: 'ending'
-  },
-   {
-  icon: '',
-  text: 'Cancel',
-  value: 'cancel'
-  }
-  ],
-  menuContainer: '.menuContainer'
-  };
+    SuiStaffModifierMenu._defaults = SuiStaffModifierMenu._defaults ? SuiStaffModifierMenu._defaults :
+    {
+      label:'Staves',
+      menuItems: [{
+        icon: 'cresc',
+        text: 'Crescendo',
+        value: 'crescendo'
+        }, {
+        icon: 'decresc',
+        text: 'Decrescendo',
+        value: 'decrescendo'
+        }, {
+        icon: 'slur',
+        text: 'Slur/Tie',
+        value: 'slur'
+        }, {
+        icon: 'ending',
+        text: 'nth ending',
+        value: 'ending'
+        },
+         {
+        icon: '',
+        text: 'Cancel',
+        value: 'cancel'
+        }
+      ],
+      menuContainer: '.menuContainer'
+    };
+    return SuiStaffModifierMenu._defaults;
   }
   selection(ev) {
-  var op = $(ev.currentTarget).attr('data-value');
+    var op = $(ev.currentTarget).attr('data-value');
 
-  var ft = this.tracker.getExtremeSelection(-1);
-  var tt = this.tracker.getExtremeSelection(1);
+    var ft = this.tracker.getExtremeSelection(-1);
+    var tt = this.tracker.getExtremeSelection(1);
 
-  if (op === 'ending') {
+    if (op === 'ending') {
       SmoUndoable.scoreOp(this.score,'addEnding',
         new SmoVolta({startBar:ft.selector.measure,endBar:tt.selector.measure,number:1}),this.editor.undoBuffer,'add ending');
       this.complete();
-  return;
-  }
-  if (SmoSelector.sameNote(ft.selector, tt.selector)) {
-  this.complete();
-  return;
+    return;
+    }
+    if (SmoSelector.sameNote(ft.selector, tt.selector)) {
+      this.complete();
+      return;
+    }
+
+    SmoUndoable[op](ft, tt, this.editor.undoBuffer);
+    this.tracker.replaceSelectedMeasures();
+    this.complete();
   }
 
-  SmoUndoable[op](ft, tt, this.editor.undoBuffer);
-    this.tracker.replaceSelectedMeasures();
-  this.complete();
+  keydown(ev) {
+
   }
-  keydown(ev) {}
+}
+
+class SuiLanguageMenu extends suiMenuBase {
+
+  constructor(params) {
+    params = (params ? params : {});
+    Vex.Merge(params, SuiLanguageMenu.defaults);
+    super(params);
+  }
+  static get ctor() {
+    return 'SuiLanguageMenu';
+  }
+  get ctor() {
+    return SuiLanguageMenu.ctor;
+  }
+
+  static get defaults() {
+    SuiLanguageMenu._defaults = SuiLanguageMenu._defaults ? SuiLanguageMenu._defaults :
+    {
+      label:'Language',
+      menuItems: [{
+        icon: '',
+        text: 'English',
+        value: 'en'
+        }, {
+        icon: '',
+        text: 'اَلْعَرَبِيَّةُ',
+        value: 'ar'
+      },
+       {
+        icon: '',
+        text: 'Cancel',
+        value: 'cancel'
+        }
+      ],
+      menuContainer: '.menuContainer'
+    };
+    return SuiLanguageMenu._defaults;
+  }
+  selection(ev) {
+    var op = $(ev.currentTarget).attr('data-value');
+
+    SmoTranslator.setLanguage(op);
+    this.complete();
+  }
+
+  keydown(ev) {
+
+  }
 }
 
 class SuiAddStaffMenu extends suiMenuBase {
@@ -723,41 +829,45 @@ class SuiAddStaffMenu extends suiMenuBase {
   Vex.Merge(params, SuiAddStaffMenu.defaults);
   super(params);
   }
-  static printText() {
-    SuiAddStaffMenu.defaults.menuItems.forEach((item) => {console.log('{id:"'+item.value+'",text:"'+item.text+'"},')});
+  static get ctor() {
+    return 'SuiAddStaffMenu';
+  }
+  get ctor() {
+    return SuiAddStaffMenu.ctor;
   }
 
   static get defaults() {
-  return {
-  menuItems: [{
-  icon: 'treble',
-  text: 'Treble Clef Staff',
-  value: 'trebleInstrument'
-  }, {
-  icon: 'bass',
-  text: 'Bass Clef Staff',
-  value: 'bassInstrument'
-  }, {
-  icon: 'alto',
-  text: 'Alto Clef Staff',
-  value: 'altoInstrument'
-  }, {
-  icon: 'tenor',
-  text: 'Tenor Clef Staff',
-  value: 'tenorInstrument'
-  }, {
-  icon: 'cancel-circle',
-  text: 'Remove Staff',
-  value: 'remove'
-  },
-   {
-  icon: '',
-  text: 'Cancel',
-  value: 'cancel'
-  }
-  ],
-  menuContainer: '.menuContainer'
-  };
+    SuiAddStaffMenu._defaults = SuiAddStaffMenu._defaults ? SuiAddStaffMenu._defaults : {
+      menuItems: [
+        {
+          icon: 'treble',
+          text: 'Treble Clef Staff',
+          value: 'trebleInstrument'
+        }, {
+          icon: 'bass',
+          text: 'Bass Clef Staff',
+          value: 'bassInstrument'
+        }, {
+          icon: 'alto',
+          text: 'Alto Clef Staff',
+          value: 'altoInstrument'
+        }, {
+          icon: 'tenor',
+          text: 'Tenor Clef Staff',
+          value: 'tenorInstrument'
+        }, {
+          icon: 'cancel-circle',
+          text: 'Remove Staff',
+          value: 'remove'
+        }, {
+          icon: '',
+          text: 'Cancel',
+          value: 'cancel'
+        }
+      ],
+      menuContainer: '.menuContainer'
+    };
+    return SuiAddStaffMenu._defaults;
   }
   static get instrumentMap() {
   return {

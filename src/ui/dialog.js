@@ -7,6 +7,9 @@ class SuiModifierDialogFactory {
 
 	static createDialog(modifier, parameters) {
 		var dbType = SuiModifierDialogFactory.modifierDialogMap[modifier.attrs.type];
+    if (dbType === 'SuiLyricDialog' && modifier.parser === SmoLyric.parsers.chord) {
+      dbType = 'SuiChordChangeDialog';
+    }
 		var ctor = eval(dbType);
 		if (!ctor) {
 			console.warn('no dialog for modifier ' + modifier.type);
@@ -21,7 +24,7 @@ class SuiModifierDialogFactory {
 		return {
 			SmoStaffHairpin: 'SuiHairpinAttributesDialog',
 			SmoSlur: 'SuiSlurAttributesDialog',
-			SmoDynamicText: 'SuiTextModifierDialog',
+			SmoDynamicText: 'SuiDynamicModifierDialog',
 			SmoVolta: 'SuiVoltaAttributeDialog',
       SmoScoreText: 'SuiTextTransformDialog',
       SmoLoadScore:  'SuiLoadFileDialog',
@@ -48,6 +51,12 @@ class SuiDialogBase {
 			});
 
 		});
+
+    this.label = eval(this.ctor)['label'];
+    if (!this.label) {
+      throw('dialog ' + this.ctor+ ' needs a label');
+    }
+
     this.initialLeft = parameters.left
     this.initialTop = parameters.top;
 
@@ -70,9 +79,34 @@ class SuiDialogBase {
 				id: 'dialog-' + this.id,
 				top: top,
 				left: left,
-				label: parameters.label
+				label: this.label
 			});
+
+      SmoTranslator.registerDialog(this.ctor);
 	}
+
+  // ### printXlate
+  // print json with string labels to use as a translation file seed.
+  static printTranslate(_class) {
+    var output = [];
+    var xx = eval(_class);
+    xx['dialogElements'].forEach((element) => {
+      var component = {};
+      if (element.label) {
+        component.label = element.label
+        if (element.options) {
+          component.options = [];
+
+          element.options.forEach((option) => {
+            component.options.push({value:option.value,label:option.label})
+          });
+        }
+      }
+      output.push(component);
+    });
+    return {ctor:xx['ctor'],label:xx['label'],dialogElements:output};
+  }
+
   get closeModalPromise() {
     return this.closeDialogPromise;
   }
@@ -247,21 +281,20 @@ class SuiDialogBase {
 // The layout dialog has page layout and zoom logic.  It is not based on a selection but score-wide
 class SuiLayoutDialog extends SuiDialogBase {
 
-/*
-  static printText() {
-    SuiLayoutDialog.dialogElements.forEach((element) => {
-      if (element.label) {
-        console.log('{label:"'+element.label+'"}');
-        if (element.options) {
-          console.log('[');
-          element.options.forEach((option) => {
-            console.log('{value:"'+option.value+'",label:"'+option.label+'"');
-          });
-          console.log(']');
-        });
-      }
-    });
-  }  */
+  static get ctor() {
+    return 'SuiLayoutDialog';
+  }
+  get ctor() {
+    return SuiLayoutDialog.ctor;
+  }
+  static get label() {
+    SuiLayoutDialog._label = SuiLayoutDialog._label ? SuiLayoutDialog._label :
+       'Score Layout';
+    return SuiLayoutDialog._label;
+  }
+  static set label(value) {
+    SuiLayoutDialog._label = value;
+  }
 
    // ### dialogElements
    // all dialogs have elements define the controls of the dialog.
@@ -502,103 +535,5 @@ class SuiLayoutDialog extends SuiDialogBase {
 		this.layout = p.layout;
 		this.modifier = this.layout.score.layout;
 		this.backupOriginal();
-	}
-}
-
-// ## SuiTextModifierDialog
-// This is a poorly named class, it just allows you to placeText
-// dynamic text so it doesn't collide with something.
-class SuiTextModifierDialog extends SuiDialogBase {
-	static get dialogElements() {
-		return [{
-				smoName: 'yOffsetLine',
-				parameterName: 'yOffsetLine',
-				defaultValue: 11,
-				control: 'SuiRockerComponent',
-				label: 'Y Line'
-			}, {
-				smoName: 'yOffsetPixels',
-				parameterName: 'yOffsetPixels',
-				defaultValue: 0,
-				control: 'SuiRockerComponent',
-				label: 'Y Offset Px'
-			}, {
-				smoName: 'xOffset',
-				parameterName: 'yOffset',
-				defaultValue: 0,
-				control: 'SuiRockerComponent',
-				label: 'X Offset'
-			}, {
-				smoName: 'text',
-				parameterName: 'text',
-				defaultValue: SmoDynamicText.dynamics.P,
-				options: [{
-						value: SmoDynamicText.dynamics.P,
-						label: 'Piano'
-					}, {
-						value: SmoDynamicText.dynamics.PP,
-						label: 'Pianissimo'
-					}, {
-						value: SmoDynamicText.dynamics.MP,
-						label: 'Mezzo-Piano'
-					}, {
-						value: SmoDynamicText.dynamics.MF,
-						label: 'Mezzo-Forte'
-					}, {
-						value: SmoDynamicText.dynamics.F,
-						label: 'Forte'
-					}, {
-						value: SmoDynamicText.dynamics.FF,
-						label: 'Fortissimo'
-					}, {
-						value: SmoDynamicText.dynamics.SFZ,
-						label: 'Sforzando'
-					}
-				],
-				control: 'SuiDropdownComponent',
-				label: 'Text'
-			}
-		];
-	}
-	static createAndDisplay(parameters) {
-		var dg = new SuiTextModifierDialog(parameters);
-		dg.display();
-		return dg;
-	}
-
-	constructor(parameters) {
-		super(SuiTextModifierDialog.dialogElements, {
-			id: 'dialog-' + parameters.modifier.id,
-			top: parameters.modifier.renderedBox.y,
-			left: parameters.modifier.renderedBox.x,
-			label: 'Dynamics Properties',
-      ...parameters
-		});
-		Vex.Merge(this, parameters);
-    this.selection = this.tracker.selections[0];
-		this.components.find((x) => {
-			return x.parameterName == 'text'
-		}).defaultValue = parameters.modifier.text;
-	}
-	handleRemove() {
-		$(this.context.svg).find('g.' + this.modifier.id).remove();
-    this.undoBuffer.addBuffer('remove dynamic', 'measure', this.selection.selector, this.selection.measure);
-		this.selection.note.removeModifier(this.modifier);
-		this.tracker.clearModifierSelections();
-	}
-	changed() {
-		this.modifier.backupOriginal();
-		this.components.forEach((component) => {
-			this.modifier[component.smoName] = component.getValue();
-		});
-		this.layout.renderNoteModifierPreview(this.modifier,this.selection);
-	}
-}
-
-class helpModal {
-	constructor() {}
-	static createAndDisplay() {
-		SmoHelp.displayHelp();
-		return htmlHelpers.closeDialogPromise();
 	}
 }

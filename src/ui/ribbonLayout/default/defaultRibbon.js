@@ -31,7 +31,7 @@ class defaultRibbonLayout {
 	}
 
 	static get leftRibbonIds() {
-		return ['helpDialog', 'fileMenu','addStaffMenu','measureModal','tempoModal','timeSignatureMenu','keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
+		return ['helpDialog','languageMenu', 'fileMenu','addStaffMenu','measureModal','tempoModal','timeSignatureMenu','keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
 	}
 	static get noteButtonIds() {
 		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton',
@@ -1371,6 +1371,15 @@ class defaultRibbonLayout {
 				group: 'scoreEdit',
 				id: 'helpDialog'
 			}, {
+				leftText: 'Language',
+				rightText: '',
+				icon: '',
+				classes: 'language-select',
+				action: 'menu',
+				ctor: 'SuiLanguageMenu',
+				group: 'scoreEdit',
+				id: 'languageMenu'
+			}, {
 				leftText: 'File',
 				rightText: '/f',
 				icon: '',
@@ -1407,22 +1416,24 @@ class defaultRibbonLayout {
 				ctor: 'SuiAddStaffMenu',
 				group: 'scoreEdit',
 				id: 'addStaffMenu'
-			}, {
-               leftText: 'Measure',
-               rightText: '',
-               icon: '',
-               classes: 'icon ',
-               action: 'modal',
-               ctor: 'SuiMeasureDialog',
-               group: 'scoreEdit',
-               id: 'measureModal'
-           },{
+			},
+      {
+         leftText: 'Measure',
+         rightText: '',
+         icon: '',
+         classes: 'icon ',
+         action: 'modal',
+         ctor: 'SuiMeasureDialog',
+         group: 'scoreEdit',
+         id: 'measureModal'
+      },
+      {
 				leftText: 'Key',
 				rightText: '/k',
 				icon: '',
 				classes: 'note-modify',
 				action: 'menu',
-				ctor: 'suiKeySignatureMenu',
+				ctor: 'SuiKeySignatureMenu',
 				group: 'scoreEdit',
 				id: 'keyMenu'
 			}, {
@@ -1431,7 +1442,7 @@ class defaultRibbonLayout {
 				icon: '',
 				classes: 'icon note-modify',
 				action: 'menu',
-				ctor: 'suiStaffModifierMenu',
+				ctor: 'SuiStaffModifierMenu',
 				group: 'scoreEdit',
 				id: 'staffModifierMenu'
 			},

@@ -115,8 +115,13 @@ class RibbonButtons {
 				if (buttonData.action != 'collapseChild') {
 
           // else the button has a specific action, such as a menu or dialog, or a parent button
+          // for translation, add the menu name to the button class
+          var buttonClass = buttonData.classes;
+          if (buttonData.action === 'menu') {
+            buttonClass += ' ' +buttonData.ctor;
+          }
 					var buttonHtml = RibbonButtons._buttonHtml('ribbonButtonContainer',
-              buttonData.id, buttonData.classes, buttonData.leftText, buttonData.icon, buttonData.rightText);
+              buttonData.id, buttonClass, buttonData.leftText, buttonData.icon, buttonData.rightText);
 					$(buttonHtml).attr('data-group', buttonData.group);
 
 					$(selector).append(buttonHtml);

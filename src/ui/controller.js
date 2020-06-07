@@ -114,7 +114,7 @@ class suiController {
   createModifierDialog(modifierSelection) {
     var parameters = {
       modifier:modifierSelection.modifier, context:this.tracker.context, tracker:this.tracker, layout:this.layout, undoBuffer:this.undoBuffer,eventSource:this.eventSource,
-         completeNotifier:this
+         completeNotifier:this,editor:this.editor
     }
     SuiModifierDialogFactory.createDialog(modifierSelection.modifier,parameters);
   }
