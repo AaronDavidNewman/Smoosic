@@ -1416,7 +1416,7 @@ var smoLanguageStringEn = `[
  },
  {
   "ctor": "SuiFileMenu",
-  "label","File",
+  "label":"File",
   "menuItems": [
    {
     "value": "newFile",
@@ -1705,6 +1705,7 @@ var smoLanguageStringEn = `[
  },
  {
   "ctor": "SuiStaffModifierMenu",
+  "label": "Lines",
   "menuItems": [
    {
     "value": "crescendo",
