@@ -88,9 +88,14 @@ class SmoScore {
     }
     var attrs = Object.keys(scoreObj.columnAttributeMap);
     scoreObj.staves.forEach((staff) => {
-      var mapIx = 0;
+      var attrIxMap = {};
+      attrs.forEach((attr) => {
+        attrIxMap[attr] = 0;
+      });
+
       staff.measures.forEach((measure) => {
         attrs.forEach((attr) => {
+          var mapIx = attrIxMap[attr];
           var curHash = scoreObj.columnAttributeMap[attr];
           var attrKeys = Object.keys(curHash);
           var curValue = curHash[attrKeys[mapIx.toString()]];
@@ -102,6 +107,7 @@ class SmoScore {
             }
           }
           measure[attr] = curValue;
+          attrIxMap[attr] = mapIx;
         });
       });
     });

@@ -22,7 +22,7 @@ class SuiLayoutDemon {
   		this.undoStatus = this.undoBuffer.opCount;
   		this.idleLayoutTimer = Date.now();
       var state = this.layout.passState;
-      this.tracker.updateMap();
+      // this.tracker.updateMap(); why do this before rendering?
 
       // indicate the display is 'dirty' and we will be refreshing it.
       $('body').addClass('refresh-1');

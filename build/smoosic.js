@@ -6123,8 +6123,8 @@ class SmoTempoText extends SmoMeasureModifierBase {
 			bpm: 120,
 			beatDuration: 4096,
 			tempoText: SmoTempoText.tempoTexts.allegro,
-            yOffset:0,
-            display:false
+      yOffset:0,
+      display:false
 		};
 	}
 	static get attributes() {
@@ -6705,9 +6705,14 @@ class SmoScore {
     }
     var attrs = Object.keys(scoreObj.columnAttributeMap);
     scoreObj.staves.forEach((staff) => {
-      var mapIx = 0;
+      var attrIxMap = {};
+      attrs.forEach((attr) => {
+        attrIxMap[attr] = 0;
+      });
+
       staff.measures.forEach((measure) => {
         attrs.forEach((attr) => {
+          var mapIx = attrIxMap[attr];
           var curHash = scoreObj.columnAttributeMap[attr];
           var attrKeys = Object.keys(curHash);
           var curValue = curHash[attrKeys[mapIx.toString()]];
@@ -6719,6 +6724,7 @@ class SmoScore {
             }
           }
           measure[attr] = curValue;
+          attrIxMap[attr] = mapIx;
         });
       });
     });
@@ -10763,7 +10769,7 @@ class VxMeasure {
 
         var tempo = this.smoMeasure.getTempo();
         if (tempo && this.smoMeasure.forceTempo) {
-            this.stave.setTempo(tempo.toVexTempo(),tempo.yOffset);
+            this.stave.setTempo(tempo.toVexTempo(),-1*tempo.yOffset);
         }
 
 	}
@@ -14088,7 +14094,7 @@ class SuiLayoutDemon {
   		this.undoStatus = this.undoBuffer.opCount;
   		this.idleLayoutTimer = Date.now();
       var state = this.layout.passState;
-      this.tracker.updateMap();
+      // this.tracker.updateMap(); why do this before rendering?
 
       // indicate the display is 'dirty' and we will be refreshing it.
       $('body').addClass('refresh-1');
@@ -16559,9 +16565,10 @@ class SuiKeySignatureMenu extends suiMenuBase {
       if (changed.indexOf(sel.selector.measure) === -1) {
         changed.push(sel.selector.measure);
         SmoUndoable.addKeySignature(this.score, sel, keySig, this.editor.undoBuffer);
-          this.tracker.replaceSelectedMeasures();
         }
     });
+
+    this.layout.setRefresh();
     this.complete();
   }
   keydown(ev) {}
@@ -19524,7 +19531,13 @@ class SuiTempoDialog extends SuiDialogBase {
         defaultValue: true,
         control: 'SuiToggleComponent',
         label: 'Display Tempo'
-      },
+      }, {
+        smoName: 'yOffset',
+        parameterName: 'yOffset',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'Y Offset'
+      }
     ];
     return SuiTempoDialog._dialogElements;
   }
@@ -19556,7 +19569,6 @@ class SuiTempoDialog extends SuiDialogBase {
             id: 'dialog-tempo',
             top: parameters.modifier.renderedBox.y,
             left: parameters.modifier.renderedBox.x,
-            label: 'Tempo Properties',
             tracker:parameters.tracker,
             undoBuffer: parameters.undoBuffer,
             eventSource: parameters.eventSource,

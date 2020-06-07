@@ -553,7 +553,13 @@ class SuiTempoDialog extends SuiDialogBase {
         defaultValue: true,
         control: 'SuiToggleComponent',
         label: 'Display Tempo'
-      },
+      }, {
+        smoName: 'yOffset',
+        parameterName: 'yOffset',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'Y Offset'
+      }
     ];
     return SuiTempoDialog._dialogElements;
   }
@@ -585,7 +591,6 @@ class SuiTempoDialog extends SuiDialogBase {
             id: 'dialog-tempo',
             top: parameters.modifier.renderedBox.y,
             left: parameters.modifier.renderedBox.x,
-            label: 'Tempo Properties',
             tracker:parameters.tracker,
             undoBuffer: parameters.undoBuffer,
             eventSource: parameters.eventSource,

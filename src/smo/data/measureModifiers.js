@@ -380,8 +380,8 @@ class SmoTempoText extends SmoMeasureModifierBase {
 			bpm: 120,
 			beatDuration: 4096,
 			tempoText: SmoTempoText.tempoTexts.allegro,
-            yOffset:0,
-            display:false
+      yOffset:0,
+      display:false
 		};
 	}
 	static get attributes() {

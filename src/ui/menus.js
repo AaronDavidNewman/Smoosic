@@ -703,9 +703,10 @@ class SuiKeySignatureMenu extends suiMenuBase {
       if (changed.indexOf(sel.selector.measure) === -1) {
         changed.push(sel.selector.measure);
         SmoUndoable.addKeySignature(this.score, sel, keySig, this.editor.undoBuffer);
-          this.tracker.replaceSelectedMeasures();
         }
     });
+
+    this.layout.setRefresh();
     this.complete();
   }
   keydown(ev) {}

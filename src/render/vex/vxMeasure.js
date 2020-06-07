@@ -406,7 +406,7 @@ class VxMeasure {
 
         var tempo = this.smoMeasure.getTempo();
         if (tempo && this.smoMeasure.forceTempo) {
-            this.stave.setTempo(tempo.toVexTempo(),tempo.yOffset);
+            this.stave.setTempo(tempo.toVexTempo(),-1*tempo.yOffset);
         }
 
 	}
