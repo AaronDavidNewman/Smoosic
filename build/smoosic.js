@@ -4442,7 +4442,7 @@ class SmoGraceNote extends SmoNoteModifierBase {
 
     toVexGraceNote() {
         var p = smoMusic.smoPitchesToVex(this.pitches);
-        var rv = {duration:smoMusic.closestVexDuration(this.tickCount()),keys:p};
+        var rv = {duration:smoMusic.closestVexDuration(this.tickCount()),keys:p, slash: this.slash };
         return rv;
     }
 
@@ -9044,34 +9044,38 @@ class SmoOperation {
 		selection.note.makeNote();
 	}
 
-    static addGraceNote(selection,offset,g) {
-        selection.note.addGraceNote(offset,g);
-        selection.measure.changed= true;
-    }
+  static addGraceNote(selection,offset,g) {
+      selection.note.addGraceNote(offset,g);
+      selection.measure.changed= true;
+  }
 
-    static removeGraceNote(selection,offset) {
-        selection.note.removeGraceNote(offset);
-        selection.measure.changed= true;
-    }
+  static slashGraceNote(selection,){
 
-    static doubleGraceNoteDuration(selection,modifiers) {
-        if (!Array.isArray(modifiers)) {
-            modifiers=[modifiers];
-        }
-        modifiers.forEach((mm) => {
-            mm.ticks.numerator = mm.ticks.numerator * 2;
-        });
-        selection.measure.changed = true;
+  }
+
+  static removeGraceNote(selection,offset) {
+    selection.note.removeGraceNote(offset);
+    selection.measure.changed= true;
+  }
+
+  static doubleGraceNoteDuration(selection,modifiers) {
+    if (!Array.isArray(modifiers)) {
+      modifiers=[modifiers];
     }
-    static halveGraceNoteDuration(selection,modifiers) {
-        if (!Array.isArray(modifiers)) {
-            modifiers=[modifiers];
-        }
-        modifiers.forEach((mm) => {
-            mm.ticks.numerator = mm.ticks.numerator / 2;
-        });
-        selection.measure.changed = true;
+    modifiers.forEach((mm) => {
+      mm.ticks.numerator = mm.ticks.numerator * 2;
+    });
+    selection.measure.changed = true;
+  }
+  static halveGraceNoteDuration(selection,modifiers) {
+    if (!Array.isArray(modifiers)) {
+        modifiers=[modifiers];
     }
+    modifiers.forEach((mm) => {
+        mm.ticks.numerator = mm.ticks.numerator / 2;
+    });
+    selection.measure.changed = true;
+  }
 
     static toggleGraceNoteCourtesy(selection,modifiers) {
         if (!Array.isArray(modifiers)) {
@@ -9084,18 +9088,30 @@ class SmoOperation {
         });
     }
 
-    static transposeGraceNotes(selection,modifiers,offset) {
-        if (!Array.isArray(modifiers)) {
-            modifiers=[modifiers];
-        }
-        modifiers.forEach((mm) => {
-            var par = [];
-            mm.pitches.forEach((pitch)=> {
-                par.push(par.length);
-            });
-            SmoNote._transpose(mm,par, offset, selection.measure.keySignature);
-        });
+  static transposeGraceNotes(selection,modifiers,offset) {
+    if (!Array.isArray(modifiers)) {
+      modifiers=[modifiers];
     }
+    modifiers.forEach((mm) => {
+      var par = [];
+      mm.pitches.forEach((pitch)=> {
+          par.push(par.length);
+      });
+      SmoNote._transpose(mm,par, offset, selection.measure.keySignature);
+    });
+  }
+
+  static slashGraceNotes(selections) {
+    if (!Array.isArray(selections)) {
+      selections=[selections];
+    }
+    selections.forEach((mm) => {
+      if (mm.modifier && mm.modifier.ctor === 'SmoGraceNote') {
+        mm.modifier.slash = !mm.modifier.slash;
+      }
+    });
+  }
+
 
 	// ## unmakeTuplet
 	// ## Description
@@ -9752,6 +9768,12 @@ class SmoUndoable {
         SmoOperation.removeGraceNote(selection,params.index);
     }
 
+  static slashGraceNotes(selections,undoBuffer) {
+    undoBuffer.addBuffer('transpose grace note',
+        'measure', selections[0].selection.selector, selections[0].selection.measure);
+    SmoOperation.slashGraceNotes(selections);
+  }
+
     static transposeGraceNotes(selection,params,undoBuffer) {
         undoBuffer.addBuffer('transpose grace note',
             'measure', selection.selector, selection.measure);
@@ -10376,24 +10398,24 @@ VX.groupCounter = 1;
 // ### VxMeasure methods
 // ---
 class VxMeasure {
-    constructor(context, options) {
-        this.context = context;
-        Vex.Merge(this, VxMeasure.defaults);
-        Vex.Merge(this, options);
-        this.rendered = false;
-        this.selection = options.selection;
-        this.smoMeasure = this.selection.measure;
-        this.noteToVexMap = {};
-        this.beamToVexMap = {};
-        this.tupletToVexMap = {};
-        this.modifierOptions = {};
+  constructor(context, options) {
+    this.context = context;
+    Vex.Merge(this, VxMeasure.defaults);
+    Vex.Merge(this, options);
+    this.rendered = false;
+    this.selection = options.selection;
+    this.smoMeasure = this.selection.measure;
+    this.noteToVexMap = {};
+    this.beamToVexMap = {};
+    this.tupletToVexMap = {};
+    this.modifierOptions = {};
 
-        this.vexNotes = [];
-        this.vexBeamGroups = [];
-        this.vexTuplets = [];
-        this.vexBeamGroups = [];
-        this.beamToVexMap = {};
-    }
+    this.vexNotes = [];
+    this.vexBeamGroups = [];
+    this.vexTuplets = [];
+    this.vexBeamGroups = [];
+    this.beamToVexMap = {};
+  }
 
 	static get adjLeftPixels() {
 		return 5;
@@ -10403,24 +10425,24 @@ class VxMeasure {
 		return 5;
 	}
 
-    static get defaults() {
-        // var defaultLayout = new smrfSimpleLayout();
+  static get defaults() {
+      // var defaultLayout = new smrfSimpleLayout();
 
-        return {
-            smoMeasure: null
-        };
-    }
-    addCustomModifier(ctor, parameters) {
-        this.smoMeasure.addCustomModifier(ctor, parameters);
-    }
+      return {
+          smoMeasure: null
+      };
+  }
+  addCustomModifier(ctor, parameters) {
+    this.smoMeasure.addCustomModifier(ctor, parameters);
+  }
 
-    applyTransform(actor) {
-        SmoTickTransformer.applyTransform(this.smoMeasure, [actor]);
-        smoModifierFactory.applyModifiers(this.smoMeasure);
-    }
-    applyModifiers() {
-        smoModifierFactory.applyModifiers(this.smoMeasure);
-    }
+  applyTransform(actor) {
+    SmoTickTransformer.applyTransform(this.smoMeasure, [actor]);
+    smoModifierFactory.applyModifiers(this.smoMeasure);
+  }
+  applyModifiers() {
+    smoModifierFactory.applyModifiers(this.smoMeasure);
+  }
 
     // ## Description:
     // decide whether to force stem direction for multi-voice, or use the default.
@@ -15490,13 +15512,13 @@ class suiEditor {
 		this._render();
 	}
 
-    _selectionOperation(selection, name, parameters) {
-        if (parameters) {
-            SmoUndoable[name](selection, parameters, this.undoBuffer);
-        } else {
-            SmoUndoable[name](selection, this.undoBuffer);
-        }
-		selection.measure.setChanged();
+  _selectionOperation(selection, name, parameters) {
+      if (parameters) {
+        SmoUndoable[name](selection, parameters, this.undoBuffer);
+      } else {
+        SmoUndoable[name](selection, this.undoBuffer);
+      }
+		  this._render();
     }
 
     undo() {
@@ -15613,6 +15635,7 @@ class suiEditor {
             grace.forEach((artifact) => {
                 SmoUndoable.transposeGraceNotes(artifact.selection,{modifiers:artifact.modifier,offset:offset},this.undoBuffer);
             });
+            this._render();
 
             return;
         }
@@ -15702,6 +15725,7 @@ class suiEditor {
             grace.forEach((artifact) => {
                 SmoUndoable.doubleGraceNoteDuration(artifact.selection,artifact.modifier,this.undoBuffer);
             });
+            this._render();
 
             return;
         }
@@ -15714,7 +15738,7 @@ class suiEditor {
             grace.forEach((artifact) => {
                 SmoUndoable.halveGraceNoteDuration(artifact.selection,artifact.modifier,this.undoBuffer);
             });
-
+            this._render();
             return;
         }
         this._batchDurationOperation('halveDuration');
@@ -15764,7 +15788,7 @@ class suiEditor {
     // this.layout.unrenderAll();
 
     SmoUndoable.deleteMeasure(this.layout.score, selection, this.undoBuffer);
-    this.tracker.loadScore(); 
+    this.tracker.loadScore();
     this._refresh();
   }
 
@@ -15774,6 +15798,7 @@ class suiEditor {
             grace.forEach((artifact) => {
                 SmoUndoable.toggleGraceNoteCourtesyAccidental(artifact.selection,{modifiers:artifact.modifier},this.undoBuffer);
             });
+            this._render();
 
             return;
         }
@@ -15790,50 +15815,56 @@ class suiEditor {
         this._render();
     }
 
-    rerender(keyEvent) {
-        this.layout.unrenderAll();
-        SmoUndoable.noop(this.layout.score, this.undoBuffer);
-        this.undo();
-        this._render();
-    }
-    makeTupletCommand(numNotes) {
-        this._singleSelectionOperation('makeTuplet', numNotes);
-    }
-    makeTuplet(keyEvent) {
-        var numNotes = parseInt(keyEvent.key);
-        this.makeTupletCommand(numNotes);
-    }
+  rerender(keyEvent) {
+    this.layout.unrenderAll();
+    SmoUndoable.noop(this.layout.score, this.undoBuffer);
+    this.undo();
+    this._render();
+  }
+  makeTupletCommand(numNotes) {
+    this._singleSelectionOperation('makeTuplet', numNotes);
+  }
+  makeTuplet(keyEvent) {
+    var numNotes = parseInt(keyEvent.key);
+    this.makeTupletCommand(numNotes);
+  }
 
-    unmakeTuplet(keyEvent) {
-        this._singleSelectionOperation('unmakeTuplet');
+  unmakeTuplet(keyEvent) {
+    this._singleSelectionOperation('unmakeTuplet');
+  }
+  removeGraceNote(keyEvent) {
+    this._singleSelectionOperation('removeGraceNote',{index:0});
+  }
+  addGraceNote(keyEvent) {
+    this._singleSelectionOperation('addGraceNote');
+  }
+  slashGraceNotes(keyEvent) {
+    if (!this.tracker.modifierSelections.length) {
+      return;
     }
-    removeGraceNote(keyEvent) {
-        this._singleSelectionOperation('removeGraceNote',{index:0});
-    }
-    addGraceNote(keyEvent) {
-        this._singleSelectionOperation('addGraceNote');
-    }
+    this._selectionOperation(this.tracker.modifierSelections,'slashGraceNotes');
+  }
 
-    toggleArticulationCommand(articulation, ctor) {
-        this.undoBuffer.addBuffer('change articulation ' + articulation,
-            'staff', this.tracker.selections[0].selector, this.tracker.selections[0].staff);
+  toggleArticulationCommand(articulation, ctor) {
+    this.undoBuffer.addBuffer('change articulation ' + articulation,
+      'staff', this.tracker.selections[0].selector, this.tracker.selections[0].staff);
 
-        this.tracker.selections.forEach((sel) => {
+    this.tracker.selections.forEach((sel) => {
 
-            if (ctor === 'SmoArticulation') {
-                var aa = new SmoArticulation({
-                    articulation: articulation
-                });
-               SmoOperation.toggleArticulation(sel, aa);
-            } else {
-                var aa = new SmoOrnament({
-                    ornament: articulation
-                });
-               SmoOperation.toggleOrnament(sel, aa);
-            }
+      if (ctor === 'SmoArticulation') {
+        var aa = new SmoArticulation({
+            articulation: articulation
         });
-        this._render();
-    }
+       SmoOperation.toggleArticulation(sel, aa);
+      } else {
+        var aa = new SmoOrnament({
+            ornament: articulation
+        });
+        SmoOperation.toggleOrnament(sel, aa);
+      }
+    });
+    this._render();
+  }
 
     addRemoveArticulation(keyEvent) {
         if (this.tracker.selections.length < 1)
@@ -17009,6 +17040,13 @@ class SuiExceptionHandler {
 				action: "setPitch"
 			}, {
 				event: "keydown",
+				key: "A",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "slashGraceNotes"
+			}, {
+				event: "keydown",
 				key: "b",
 				ctrlKey: false,
 				altKey: false,
@@ -17106,7 +17144,7 @@ class SuiExceptionHandler {
 				altKey: false,
 				shiftKey: false,
 				action: "tempoDialog"
-			}, 
+			},
 			{
 				event: "keydown",
 				key: "3",
@@ -20594,7 +20632,7 @@ class defaultRibbonLayout {
 	}
 	static get noteButtonIds() {
 		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton',
-            'UpNoteButton', 'DownNoteButton', 'moreNoteButtons','AddGraceNote','RemoveGraceNote',
+            'UpNoteButton', 'DownNoteButton', 'moreNoteButtons','AddGraceNote','RemoveGraceNote','SlashGraceNote',
 				'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
 	}
     static get voiceButtonIds() {
@@ -21435,6 +21473,15 @@ class defaultRibbonLayout {
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'AddGraceNote'
+			}, {
+				leftText: '',
+				rightText: '',
+				icon: 'icon-grace_slash',
+				classes: 'collapsed',
+				action: 'collapseGrandchild',
+				ctor: 'NoteButtons',
+				group: 'notes',
+				id: 'SlashGraceNote'
 			},{
 				leftText: '',
 				rightText: 'alt-g',
@@ -22598,7 +22645,9 @@ class NoteButtons {
 			this.editor.makeRest();
 		} else if (this.buttonData.id === 'AddGraceNote') {
 			this.editor.addGraceNote();
-		} else if (this.buttonData.id === 'RemoveGraceNote') {
+		} else if (this.buttonData.id === 'SlashGraceNote') {
+      this.editor.slashGraceNotes();
+    } else if (this.buttonData.id === 'RemoveGraceNote') {
 			this.editor.removeGraceNote();
 		} else {
 			this.editor.setPitchCommand(this.buttonData.rightText);

@@ -50,7 +50,7 @@ class SmoGraceNote extends SmoNoteModifierBase {
 
     toVexGraceNote() {
         var p = smoMusic.smoPitchesToVex(this.pitches);
-        var rv = {duration:smoMusic.closestVexDuration(this.tickCount()),keys:p};
+        var rv = {duration:smoMusic.closestVexDuration(this.tickCount()),keys:p, slash: this.slash };
         return rv;
     }
 

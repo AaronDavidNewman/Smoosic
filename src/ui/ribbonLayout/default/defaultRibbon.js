@@ -35,7 +35,7 @@ class defaultRibbonLayout {
 	}
 	static get noteButtonIds() {
 		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton',
-            'UpNoteButton', 'DownNoteButton', 'moreNoteButtons','AddGraceNote','RemoveGraceNote',
+            'UpNoteButton', 'DownNoteButton', 'moreNoteButtons','AddGraceNote','RemoveGraceNote','SlashGraceNote',
 				'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
 	}
     static get voiceButtonIds() {
@@ -876,6 +876,15 @@ class defaultRibbonLayout {
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'AddGraceNote'
+			}, {
+				leftText: '',
+				rightText: '',
+				icon: 'icon-grace_slash',
+				classes: 'collapsed',
+				action: 'collapseGrandchild',
+				ctor: 'NoteButtons',
+				group: 'notes',
+				id: 'SlashGraceNote'
 			},{
 				leftText: '',
 				rightText: 'alt-g',

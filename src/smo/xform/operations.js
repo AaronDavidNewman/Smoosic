@@ -292,34 +292,38 @@ class SmoOperation {
 		selection.note.makeNote();
 	}
 
-    static addGraceNote(selection,offset,g) {
-        selection.note.addGraceNote(offset,g);
-        selection.measure.changed= true;
-    }
+  static addGraceNote(selection,offset,g) {
+      selection.note.addGraceNote(offset,g);
+      selection.measure.changed= true;
+  }
 
-    static removeGraceNote(selection,offset) {
-        selection.note.removeGraceNote(offset);
-        selection.measure.changed= true;
-    }
+  static slashGraceNote(selection,){
 
-    static doubleGraceNoteDuration(selection,modifiers) {
-        if (!Array.isArray(modifiers)) {
-            modifiers=[modifiers];
-        }
-        modifiers.forEach((mm) => {
-            mm.ticks.numerator = mm.ticks.numerator * 2;
-        });
-        selection.measure.changed = true;
+  }
+
+  static removeGraceNote(selection,offset) {
+    selection.note.removeGraceNote(offset);
+    selection.measure.changed= true;
+  }
+
+  static doubleGraceNoteDuration(selection,modifiers) {
+    if (!Array.isArray(modifiers)) {
+      modifiers=[modifiers];
     }
-    static halveGraceNoteDuration(selection,modifiers) {
-        if (!Array.isArray(modifiers)) {
-            modifiers=[modifiers];
-        }
-        modifiers.forEach((mm) => {
-            mm.ticks.numerator = mm.ticks.numerator / 2;
-        });
-        selection.measure.changed = true;
+    modifiers.forEach((mm) => {
+      mm.ticks.numerator = mm.ticks.numerator * 2;
+    });
+    selection.measure.changed = true;
+  }
+  static halveGraceNoteDuration(selection,modifiers) {
+    if (!Array.isArray(modifiers)) {
+        modifiers=[modifiers];
     }
+    modifiers.forEach((mm) => {
+        mm.ticks.numerator = mm.ticks.numerator / 2;
+    });
+    selection.measure.changed = true;
+  }
 
     static toggleGraceNoteCourtesy(selection,modifiers) {
         if (!Array.isArray(modifiers)) {
@@ -332,18 +336,30 @@ class SmoOperation {
         });
     }
 
-    static transposeGraceNotes(selection,modifiers,offset) {
-        if (!Array.isArray(modifiers)) {
-            modifiers=[modifiers];
-        }
-        modifiers.forEach((mm) => {
-            var par = [];
-            mm.pitches.forEach((pitch)=> {
-                par.push(par.length);
-            });
-            SmoNote._transpose(mm,par, offset, selection.measure.keySignature);
-        });
+  static transposeGraceNotes(selection,modifiers,offset) {
+    if (!Array.isArray(modifiers)) {
+      modifiers=[modifiers];
     }
+    modifiers.forEach((mm) => {
+      var par = [];
+      mm.pitches.forEach((pitch)=> {
+          par.push(par.length);
+      });
+      SmoNote._transpose(mm,par, offset, selection.measure.keySignature);
+    });
+  }
+
+  static slashGraceNotes(selections) {
+    if (!Array.isArray(selections)) {
+      selections=[selections];
+    }
+    selections.forEach((mm) => {
+      if (mm.modifier && mm.modifier.ctor === 'SmoGraceNote') {
+        mm.modifier.slash = !mm.modifier.slash;
+      }
+    });
+  }
+
 
 	// ## unmakeTuplet
 	// ## Description

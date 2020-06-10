@@ -54,13 +54,13 @@ class suiEditor {
 		this._render();
 	}
 
-    _selectionOperation(selection, name, parameters) {
-        if (parameters) {
-            SmoUndoable[name](selection, parameters, this.undoBuffer);
-        } else {
-            SmoUndoable[name](selection, this.undoBuffer);
-        }
-		selection.measure.setChanged();
+  _selectionOperation(selection, name, parameters) {
+      if (parameters) {
+        SmoUndoable[name](selection, parameters, this.undoBuffer);
+      } else {
+        SmoUndoable[name](selection, this.undoBuffer);
+      }
+		  this._render();
     }
 
     undo() {
@@ -177,6 +177,7 @@ class suiEditor {
             grace.forEach((artifact) => {
                 SmoUndoable.transposeGraceNotes(artifact.selection,{modifiers:artifact.modifier,offset:offset},this.undoBuffer);
             });
+            this._render();
 
             return;
         }
@@ -266,6 +267,7 @@ class suiEditor {
             grace.forEach((artifact) => {
                 SmoUndoable.doubleGraceNoteDuration(artifact.selection,artifact.modifier,this.undoBuffer);
             });
+            this._render();
 
             return;
         }
@@ -278,7 +280,7 @@ class suiEditor {
             grace.forEach((artifact) => {
                 SmoUndoable.halveGraceNoteDuration(artifact.selection,artifact.modifier,this.undoBuffer);
             });
-
+            this._render();
             return;
         }
         this._batchDurationOperation('halveDuration');
@@ -328,7 +330,7 @@ class suiEditor {
     // this.layout.unrenderAll();
 
     SmoUndoable.deleteMeasure(this.layout.score, selection, this.undoBuffer);
-    this.tracker.loadScore(); 
+    this.tracker.loadScore();
     this._refresh();
   }
 
@@ -338,6 +340,7 @@ class suiEditor {
             grace.forEach((artifact) => {
                 SmoUndoable.toggleGraceNoteCourtesyAccidental(artifact.selection,{modifiers:artifact.modifier},this.undoBuffer);
             });
+            this._render();
 
             return;
         }
@@ -354,50 +357,56 @@ class suiEditor {
         this._render();
     }
 
-    rerender(keyEvent) {
-        this.layout.unrenderAll();
-        SmoUndoable.noop(this.layout.score, this.undoBuffer);
-        this.undo();
-        this._render();
-    }
-    makeTupletCommand(numNotes) {
-        this._singleSelectionOperation('makeTuplet', numNotes);
-    }
-    makeTuplet(keyEvent) {
-        var numNotes = parseInt(keyEvent.key);
-        this.makeTupletCommand(numNotes);
-    }
+  rerender(keyEvent) {
+    this.layout.unrenderAll();
+    SmoUndoable.noop(this.layout.score, this.undoBuffer);
+    this.undo();
+    this._render();
+  }
+  makeTupletCommand(numNotes) {
+    this._singleSelectionOperation('makeTuplet', numNotes);
+  }
+  makeTuplet(keyEvent) {
+    var numNotes = parseInt(keyEvent.key);
+    this.makeTupletCommand(numNotes);
+  }
 
-    unmakeTuplet(keyEvent) {
-        this._singleSelectionOperation('unmakeTuplet');
+  unmakeTuplet(keyEvent) {
+    this._singleSelectionOperation('unmakeTuplet');
+  }
+  removeGraceNote(keyEvent) {
+    this._singleSelectionOperation('removeGraceNote',{index:0});
+  }
+  addGraceNote(keyEvent) {
+    this._singleSelectionOperation('addGraceNote');
+  }
+  slashGraceNotes(keyEvent) {
+    if (!this.tracker.modifierSelections.length) {
+      return;
     }
-    removeGraceNote(keyEvent) {
-        this._singleSelectionOperation('removeGraceNote',{index:0});
-    }
-    addGraceNote(keyEvent) {
-        this._singleSelectionOperation('addGraceNote');
-    }
+    this._selectionOperation(this.tracker.modifierSelections,'slashGraceNotes');
+  }
 
-    toggleArticulationCommand(articulation, ctor) {
-        this.undoBuffer.addBuffer('change articulation ' + articulation,
-            'staff', this.tracker.selections[0].selector, this.tracker.selections[0].staff);
+  toggleArticulationCommand(articulation, ctor) {
+    this.undoBuffer.addBuffer('change articulation ' + articulation,
+      'staff', this.tracker.selections[0].selector, this.tracker.selections[0].staff);
 
-        this.tracker.selections.forEach((sel) => {
+    this.tracker.selections.forEach((sel) => {
 
-            if (ctor === 'SmoArticulation') {
-                var aa = new SmoArticulation({
-                    articulation: articulation
-                });
-               SmoOperation.toggleArticulation(sel, aa);
-            } else {
-                var aa = new SmoOrnament({
-                    ornament: articulation
-                });
-               SmoOperation.toggleOrnament(sel, aa);
-            }
+      if (ctor === 'SmoArticulation') {
+        var aa = new SmoArticulation({
+            articulation: articulation
         });
-        this._render();
-    }
+       SmoOperation.toggleArticulation(sel, aa);
+      } else {
+        var aa = new SmoOrnament({
+            ornament: articulation
+        });
+        SmoOperation.toggleOrnament(sel, aa);
+      }
+    });
+    this._render();
+  }
 
     addRemoveArticulation(keyEvent) {
         if (this.tracker.selections.length < 1)

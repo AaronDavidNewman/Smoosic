@@ -1,9 +1,9 @@
 @font-face {
   font-family: 'smoosic';
   src:
-    url('fonts/smoosic.ttf?efcb2i') format('truetype'),
-    url('fonts/smoosic.woff?efcb2i') format('woff'),
-    url('fonts/smoosic.svg?efcb2i#smoosic') format('svg');
+    url('fonts/smoosic.ttf?xibj32') format('truetype'),
+    url('fonts/smoosic.woff?xibj32') format('woff'),
+    url('fonts/smoosic.svg?xibj32#smoosic') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -12,7 +12,7 @@
 [class^="icon-"], [class*=" icon-"] {
   /* use !important to prevent issues with browser extensions that change fonts */
   font-family: 'smoosic' !important;
-  speak: none;
+  speak: never;
   font-style: normal;
   font-weight: normal;
   font-variant: normal;
@@ -24,6 +24,9 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-grace_slash:before {
+  content: "\e984";
+}
 .icon-chordSymbol:before {
   content: "\e983";
 }

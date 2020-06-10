@@ -73,6 +73,13 @@ class defaultEditorKeys {
 				action: "setPitch"
 			}, {
 				event: "keydown",
+				key: "A",
+				ctrlKey: false,
+				altKey: false,
+				shiftKey: true,
+				action: "slashGraceNotes"
+			}, {
+				event: "keydown",
 				key: "b",
 				ctrlKey: false,
 				altKey: false,
@@ -170,7 +177,7 @@ class defaultEditorKeys {
 				altKey: false,
 				shiftKey: false,
 				action: "tempoDialog"
-			}, 
+			},
 			{
 				event: "keydown",
 				key: "3",

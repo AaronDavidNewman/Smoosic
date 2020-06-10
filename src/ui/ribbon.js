@@ -349,7 +349,9 @@ class NoteButtons {
 			this.editor.makeRest();
 		} else if (this.buttonData.id === 'AddGraceNote') {
 			this.editor.addGraceNote();
-		} else if (this.buttonData.id === 'RemoveGraceNote') {
+		} else if (this.buttonData.id === 'SlashGraceNote') {
+      this.editor.slashGraceNotes();
+    } else if (this.buttonData.id === 'RemoveGraceNote') {
 			this.editor.removeGraceNote();
 		} else {
 			this.editor.setPitchCommand(this.buttonData.rightText);

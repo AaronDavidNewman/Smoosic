@@ -152,6 +152,12 @@ class SmoUndoable {
         SmoOperation.removeGraceNote(selection,params.index);
     }
 
+  static slashGraceNotes(selections,undoBuffer) {
+    undoBuffer.addBuffer('transpose grace note',
+        'measure', selections[0].selection.selector, selections[0].selection.measure);
+    SmoOperation.slashGraceNotes(selections);
+  }
+
     static transposeGraceNotes(selection,params,undoBuffer) {
         undoBuffer.addBuffer('transpose grace note',
             'measure', selection.selector, selection.measure);

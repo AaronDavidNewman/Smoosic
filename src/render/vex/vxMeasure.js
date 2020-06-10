@@ -13,24 +13,24 @@ VX.groupCounter = 1;
 // ### VxMeasure methods
 // ---
 class VxMeasure {
-    constructor(context, options) {
-        this.context = context;
-        Vex.Merge(this, VxMeasure.defaults);
-        Vex.Merge(this, options);
-        this.rendered = false;
-        this.selection = options.selection;
-        this.smoMeasure = this.selection.measure;
-        this.noteToVexMap = {};
-        this.beamToVexMap = {};
-        this.tupletToVexMap = {};
-        this.modifierOptions = {};
+  constructor(context, options) {
+    this.context = context;
+    Vex.Merge(this, VxMeasure.defaults);
+    Vex.Merge(this, options);
+    this.rendered = false;
+    this.selection = options.selection;
+    this.smoMeasure = this.selection.measure;
+    this.noteToVexMap = {};
+    this.beamToVexMap = {};
+    this.tupletToVexMap = {};
+    this.modifierOptions = {};
 
-        this.vexNotes = [];
-        this.vexBeamGroups = [];
-        this.vexTuplets = [];
-        this.vexBeamGroups = [];
-        this.beamToVexMap = {};
-    }
+    this.vexNotes = [];
+    this.vexBeamGroups = [];
+    this.vexTuplets = [];
+    this.vexBeamGroups = [];
+    this.beamToVexMap = {};
+  }
 
 	static get adjLeftPixels() {
 		return 5;
@@ -40,24 +40,24 @@ class VxMeasure {
 		return 5;
 	}
 
-    static get defaults() {
-        // var defaultLayout = new smrfSimpleLayout();
+  static get defaults() {
+      // var defaultLayout = new smrfSimpleLayout();
 
-        return {
-            smoMeasure: null
-        };
-    }
-    addCustomModifier(ctor, parameters) {
-        this.smoMeasure.addCustomModifier(ctor, parameters);
-    }
+      return {
+          smoMeasure: null
+      };
+  }
+  addCustomModifier(ctor, parameters) {
+    this.smoMeasure.addCustomModifier(ctor, parameters);
+  }
 
-    applyTransform(actor) {
-        SmoTickTransformer.applyTransform(this.smoMeasure, [actor]);
-        smoModifierFactory.applyModifiers(this.smoMeasure);
-    }
-    applyModifiers() {
-        smoModifierFactory.applyModifiers(this.smoMeasure);
-    }
+  applyTransform(actor) {
+    SmoTickTransformer.applyTransform(this.smoMeasure, [actor]);
+    smoModifierFactory.applyModifiers(this.smoMeasure);
+  }
+  applyModifiers() {
+    smoModifierFactory.applyModifiers(this.smoMeasure);
+  }
 
     // ## Description:
     // decide whether to force stem direction for multi-voice, or use the default.
