@@ -8,6 +8,14 @@
     font-style: normal;
 }
 
+@font-face {
+    font-family: 'robotoslab';
+    src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/robotoslab-webfont.woff2') format('woff2'),
+         url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/robotoslab-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
 body {
 	margin:0;
 	overflow:hidden;
