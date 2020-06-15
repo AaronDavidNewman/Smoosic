@@ -146,6 +146,7 @@ class suiLayoutBase {
 		this.resizing = false;
 		console.log('layout setViewport: pstate initial');
 		this.dirty=true;
+    suiLayoutBase._renderer = this.renderer;
 	}
 
   setViewport(reset) {

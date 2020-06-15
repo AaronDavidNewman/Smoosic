@@ -3196,15 +3196,51 @@ class svgHelpers {
 		svg.appendChild(r.dom());
 	}
 
-    static fontIntoToSvgAttributes(fontInfo) {
-        var rv = [];
-        var fkeys = Object.keys(fontInfo);
-		fkeys.forEach((key) => {
-			var n='{"font-'+key+'":"'+fontInfo[key]+'"}';
-			rv.push(JSON.parse(n));
-		});
-        return rv;
+  static fontIntoToSvgAttributes(fontInfo) {
+    var rv = [];
+    var fkeys = Object.keys(fontInfo);
+  	fkeys.forEach((key) => {
+  		var n='{"font-'+key+'":"'+fontInfo[key]+'"}';
+  		rv.push(JSON.parse(n));
+  	});
+      return rv;
+  }
+
+  static debugSvgGlyph(glyphCode,fontSize) {
+    var rr = new VF.Renderer($('#boo')[0],VF.Renderer.Backends.SVG);
+    const glyph=new Vex.Flow.Glyph(glyphCode, fontSize);
+    var context = suiLayoutBase._renderer.getContext();
+    $('.debugSvgGlyph').remove();
+    var group = context.openGroup();
+    group.classList.add('debugSvgGlyph');
+    glyph.render(context, 150, 50);
+    context.closeGroup();
+    return svgHelpers.copyBox($('.debugSvgGlyph')[0].getBBox());
+  }
+
+  static debugSvgFont(fontFamily,fontSize,str) {
+    const xoff = 20;
+    const yoff = 50;
+    str = str.replace('&','&amp;');
+    str = str.replace('<','&lt;');
+    var svg = $('#boo svg')[0];
+    var attributes = [{x:xoff},{y:yoff},{"font-family":fontFamily},{"font-size":fontSize}];
+    var classes = 'dbg-svg-font';
+    $('.dbg-svg-font').remove();
+    svgHelpers.placeSvgText(svg,attributes,classes,str,'debugSvgFont');
+    var box = svgHelpers.smoBox($('#debugSvgFont')[0].getBBox());
+    return svgHelpers.boxPoints(box.x - xoff,box.y - (yoff - box.height),box.width,box.height);
+  }
+
+  static svgFontInfo(fontFamily,fontSize) {
+    var metrics = [];
+    for (var i = 33;i < 95; ++i) {
+      var st = String.fromCharCode(i);
+      var metric = svgHelpers.debugSvgFont(fontFamily,fontSize,st);
+      metrics.push({charCode:st,...metric});
     }
+    return metrics;
+  }
 
 	static placeSvgText(svg,attributes,classes,text,id) {
 		var ns = svgHelpers.namespace;
@@ -3216,10 +3252,10 @@ class svgHelpers {
 		if (classes) {
 			e.setAttributeNS('', 'class', classes);
 		}
-        var dp = new DOMParser();
-        var id = id ? id : 'smootext';
-        var tn = dp.parseFromString('<tspan xmlns="http://www.w3.org/2000/svg" id="'+id+'">'+text+'</tspan>','application/xml');
-        var st = tn.getElementById(id);
+    var dp = new DOMParser();
+    var id = id ? id : 'smootext';
+    var tn = dp.parseFromString('<tspan xmlns="http://www.w3.org/2000/svg" id="'+id+'">'+text+'</tspan>','application/xml');
+    var st = tn.getElementById(id);
 		e.appendChild(st);
 		svg.appendChild(e);
 		return e;
@@ -3387,17 +3423,21 @@ class svgHelpers {
 		};
 	}
 
+
 	// ### smoBox:
 	// return a simple box object that can be serialized, copied
 	// (from svg DOM box)
 	static smoBox(box) {
-        var x = typeof(box.x) == 'undefined' ? Math.round(box.left) : Math.round(box.x);
-        var y = typeof(box.y) == 'undefined' ? Math.round(box.top) : Math.round(box.y);
+    var hround = (f) => {
+      return Math.round((f + Number.EPSILON) * 100) / 100;
+    }
+        var x = typeof(box.x) == 'undefined' ? hround(box.left) : hround(box.x);
+        var y = typeof(box.y) == 'undefined' ? hround(box.top) : hround(box.y);
 		return ({
-			x: Math.round(x),
-			y: Math.round(y),
-			width: Math.round(box.width),
-			height: Math.round(box.height)
+			x: hround(x),
+			y: hround(y),
+			width: hround(box.width),
+			height: hround(box.height)
 		});
 	}
 
@@ -13483,6 +13523,7 @@ class suiLayoutBase {
 		this.resizing = false;
 		console.log('layout setViewport: pstate initial');
 		this.dirty=true;
+    suiLayoutBase._renderer = this.renderer;
 	}
 
   setViewport(reset) {
