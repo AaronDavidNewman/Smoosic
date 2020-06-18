@@ -143,7 +143,12 @@ class VxMeasure {
     _addChordChangeToNote(vexNote,lyric) {
       var y = lyric.verse*10;
       var cs = new VF.ChordSymbol();
-      cs.addGlyphOrText(lyric.getText()).setFont('petaluma_scriptregular',14,'normal');
+      var blocks = lyric.getVexChordBlocks();
+      blocks.forEach((block) => {
+        var mod = SmoLyric.toVexPosition(block.position);
+        cs.addGlyphOrText(block.text,{symbolModifier:mod});
+      });
+      cs.setFontSize(14);
       vexNote.addModifier(0,cs);
       const classString = 'chord chord-'+lyric.verse;
       cs.addClass(classString);

@@ -4714,13 +4714,23 @@ class SmoLyric extends SmoNoteModifierBase {
   static get parsers() {
     return {lyric:0,anaylysis:1,chord:2}
   }
-  static get symbolTypes() {
+  static get symbolPosition() {
     return {
-      GLYPH: 1,
-      TEXT: 2,
-      LINE: 3
+      SUPERSCRIPT: 1,
+      SUBSCRIPT: 2,
+      NORMAL: 3
     };
   }
+
+  static toVexPosition(chordPos) {
+    if (chordPos === SmoLyric.symbolPosition.NORMAL) {
+      return VF.ChordSymbol.symbolModifiers.NONE;
+    } else if (chordPos === SmoLyric.symbolPosition.SUPERSCRIPT) {
+      return VF.ChordSymbol.symbolModifiers.SUPERSCRIPT;
+    }
+    return VF.ChordSymbol.symbolModifiers.SUBSCRIPT;
+  }
+
   static get parameterArray() {
     return ['endChar','fontInfo','classes','verse','parser','symbolBlocks',
     'fill','scaleX','scaleY','translateX','translateY','ctor','_text'];
@@ -4751,6 +4761,33 @@ class SmoLyric extends SmoNoteModifierBase {
 
   getText() {
     return this._text;
+  }
+
+  getVexChordBlocks() {
+    this.symbolBlocks = [];
+    var pos = SmoLyric.symbolPosition.NORMAL;
+    var block = {text:'',position:SmoLyric.symbolPosition.NORMAL};
+    for (var i = 0;i < this._text.length;++i) {
+      var c = this._text[i];
+      if (c === '^') {
+        if (i < this._text.length - 1 && this._text[i + 1] === '^') {
+          block.text = block.text + '^';
+          i += 1;
+        } else if (block.position === SmoLyric.symbolPosition.NORMAL) {
+          this.symbolBlocks.push(block);
+          block = {text:'',position:SmoLyric.symbolPosition.SUPERSCRIPT};
+        } else if (block.position === SmoLyric.symbolPosition.SUPERSCRIPT) {
+          this.symbolBlocks.push(block);
+          block = {text:'',position:SmoLyric.symbolPosition.NORMAL};
+        }
+      } else {
+        block.text = block.text + c;
+      }
+    }
+    if (block.text.length) {
+      this.symbolBlocks.push(block);
+    }
+    return this.symbolBlocks;
   }
 
   constructor(parameters) {
@@ -10568,7 +10605,12 @@ class VxMeasure {
     _addChordChangeToNote(vexNote,lyric) {
       var y = lyric.verse*10;
       var cs = new VF.ChordSymbol();
-      cs.addGlyphOrText(lyric.getText()).setFont('petaluma_scriptregular',14,'normal');
+      var blocks = lyric.getVexChordBlocks();
+      blocks.forEach((block) => {
+        var mod = SmoLyric.toVexPosition(block.position);
+        cs.addGlyphOrText(block.text,{symbolModifier:mod});
+      });
+      cs.setFontSize(14);
       vexNote.addModifier(0,cs);
       const classString = 'chord chord-'+lyric.verse;
       cs.addClass(classString);
