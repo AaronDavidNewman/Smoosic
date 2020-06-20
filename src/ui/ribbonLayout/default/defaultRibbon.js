@@ -31,16 +31,17 @@ class defaultRibbonLayout {
 	}
 
 	static get leftRibbonIds() {
-		return ['helpDialog','languageMenu', 'fileMenu','addStaffMenu','measureModal','tempoModal','timeSignatureMenu','keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
+		return ['helpDialog','languageMenu', 'fileMenu','addStaffMenu','measureModal','tempoModal','timeSignatureMenu','keyMenu', 'staffModifierMenu', 'staffModifierMenu2',
+    'instrumentModal','pianoModal','layoutModal'];
 	}
 	static get noteButtonIds() {
 		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton',
             'UpNoteButton', 'DownNoteButton', 'moreNoteButtons','AddGraceNote','RemoveGraceNote','SlashGraceNote',
 				'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
 	}
-    static get voiceButtonIds() {
-        return ['VoiceButtons','V1Button','V2Button','V3Button','V4Button','VXButton'];
-    }
+  static get voiceButtonIds() {
+      return ['VoiceButtons','V1Button','V2Button','V3Button','V4Button','VXButton'];
+  }
 	static get navigateButtonIds()  {
 		return ['NavigationButtons', 'navLeftButton', 'navRightButton', 'navUpButton', 'navDownButton', 'moreNavButtons','navFastForward', 'navRewind',
 				'navGrowLeft', 'navGrowRight'];
@@ -79,17 +80,17 @@ class defaultRibbonLayout {
            'staffBracketLower','staffBraceLower','staffDoubleConnectorLower','staffSingleConnectorLower'];
 	}
 
-    static get playerIds() {
-        return ['playerButtons','playButton','pauseButton','stopButton'];
-    }
+  static get playerIds() {
+      return ['playerButtons','playButton','pauseButton','stopButton'];
+  }
 
-    static get microtoneIds() {
-        return ['MicrotoneButtons','flat75sz','flat25sz','flat25ar','flat125ar','sharp75','sharp125','sharp25','sori','koron'];
-    }
+  static get microtoneIds() {
+      return ['MicrotoneButtons','flat75sz','flat25sz','flat25ar','flat125ar','sharp75','sharp125','sharp25','sori','koron'];
+  }
 
-    static get displayIds() {
-        return ['displaySettings','refresh','zoomout','zoomin'];
-    }
+  static get displayIds() {
+      return ['displaySettings','refresh','zoomout','zoomin'];
+  }
 
 
   static get textRibbonButtons() {
@@ -1445,7 +1446,18 @@ class defaultRibbonLayout {
 				ctor: 'SuiKeySignatureMenu',
 				group: 'scoreEdit',
 				id: 'keyMenu'
-			}, {
+			},
+      {
+       leftText: 'Instrument',
+       rightText: '',
+       icon: '',
+       classes: 'icon',
+       action: 'modal',
+       ctor: 'SuiInstrumentDialog',
+       group: 'scoreEdit',
+       id: 'instrumentModal'
+     },
+      {
 				leftText: 'Lines',
 				rightText: '/l',
 				icon: '',

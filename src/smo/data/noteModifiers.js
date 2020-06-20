@@ -300,7 +300,7 @@ class SmoLyric extends SmoNoteModifierBase {
   }
 
   static get parameterArray() {
-    return ['endChar','fontInfo','classes','verse','parser','symbolBlocks',
+    return ['endChar','fontInfo','classes','verse','parser',
     'fill','scaleX','scaleY','translateX','translateY','ctor','_text'];
   }
   serialize() {

@@ -43,26 +43,27 @@ class suiAudioPitch {
         return suiAudioPitch._pmMap;
     }
 
-    static _rawPitchToFrequency(smoPitch) {
-        var vx = smoPitch.letter.toLowerCase() + smoPitch.accidental + smoPitch.octave.toString();
-        return suiAudioPitch.pitchFrequencyMap[vx];
-    }
+  static _rawPitchToFrequency(smoPitch,offset) {
+    var npitch = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(smoPitch) + offset);
+    var vx = npitch.letter.toLowerCase() + npitch.accidental + npitch.octave.toString();
+    return suiAudioPitch.pitchFrequencyMap[vx];
+  }
 
-    static smoPitchToFrequency(smoNote,smoPitch,ix) {
+  static smoPitchToFrequency(smoNote,smoPitch,ix,offset) {
 
-        var rv = suiAudioPitch._rawPitchToFrequency(smoPitch);
-        var mt = smoNote.tones.filter((tt) => tt.pitch == ix);
-        if (mt.length) {
-            var tone = mt[0];
-            var coeff = tone.toPitchCoeff;
-            var pitchInt = smoMusic.smoPitchToInt(smoPitch);
-            pitchInt += (coeff > 0) ? 1 : -1;
-            var otherSmo = smoMusic.smoIntToPitch(pitchInt);
-            var otherPitch = suiAudioPitch._rawPitchToFrequency(otherSmo);
-            rv += Math.abs(rv - otherPitch)*coeff;
-        }
-        return rv;
+    var rv = suiAudioPitch._rawPitchToFrequency(smoPitch,-1 * offset);
+    var mt = smoNote.tones.filter((tt) => tt.pitch == ix);
+    if (mt.length) {
+      var tone = mt[0];
+      var coeff = tone.toPitchCoeff;
+      var pitchInt = smoMusic.smoPitchToInt(smoPitch);
+      pitchInt += (coeff > 0) ? 1 : -1;
+      var otherSmo = smoMusic.smoIntToPitch(pitchInt);
+      var otherPitch = suiAudioPitch._rawPitchToFrequency(otherSmo);
+      rv += Math.abs(rv - otherPitch)*coeff;
     }
+    return rv;
+  }
 }
 
 
@@ -186,6 +187,7 @@ class suiOscillator {
 
     static fromNote(measure,note,isSample,gain) {
         var tempo = measure.getTempo();
+        var offset = -1 * measure.transposeIndex;
         tempo = tempo ? tempo : new SmoTempoText();
         var bpm = tempo.bpm;
         var beats = note.tickCount/4096;
@@ -205,7 +207,7 @@ class suiOscillator {
         }
         var i = 0;
         note.pitches.forEach((pitch) => {
-            var frequency = suiAudioPitch.smoPitchToFrequency(note,pitch,i);
+            var frequency = suiAudioPitch.smoPitchToFrequency(note,pitch,i, measure.transposeIndex);
             var osc = new suiOscillator({frequency:frequency,duration:duration,gain:gain});
             ar.push(osc);
             i += 1;

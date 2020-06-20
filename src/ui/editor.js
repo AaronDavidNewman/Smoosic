@@ -23,28 +23,28 @@ class suiEditor {
 		this.layout.setRefresh();
 	}
 
-    get score() {
-        return this.layout.score;
-    }
+  get score() {
+      return this.layout.score;
+  }
 
-    _renderAndAdvance() {
-      this.tracker.replaceSelectedMeasures();
-		  this.tracker.moveSelectionRight(null,true);
-    }
-    _rebeam() {
-        this.tracker.getSelectedMeasures().forEach((measure) => {
-            smoBeamerFactory.applyBeams(measure);
-        });
-    }
-    _batchDurationOperation(operation) {
-        SmoUndoable.batchDurationOperation(this.layout.score, this.tracker.selections, operation, this.undoBuffer);
-        this._rebeam();
-        this._render();
-    }
+  _renderAndAdvance() {
+    this.tracker.replaceSelectedMeasures();
+	  this.tracker.moveSelectionRight(null,true);
+  }
+  _rebeam() {
+      this.tracker.getSelectedMeasures().forEach((measure) => {
+        smoBeamerFactory.applyBeams(measure);
+      });
+  }
+  _batchDurationOperation(operation) {
+    SmoUndoable.batchDurationOperation(this.layout.score, this.tracker.selections, operation, this.undoBuffer);
+    this._rebeam();
+    this._render();
+  }
 
 	scoreSelectionOperation(selection,name,parameters,description) {
 		SmoUndoable.scoreSelectionOp(this.layout.score,selection,name,parameters,
-			    this.undoBuffer,description);
+	    this.undoBuffer,description);
 		this._render();
 	}
 
@@ -55,32 +55,32 @@ class suiEditor {
 	}
 
   _selectionOperation(selection, name, parameters) {
-      if (parameters) {
-        SmoUndoable[name](selection, parameters, this.undoBuffer);
-      } else {
-        SmoUndoable[name](selection, this.undoBuffer);
-      }
-		  this._render();
+    if (parameters) {
+      SmoUndoable[name](selection, parameters, this.undoBuffer);
+    } else {
+      SmoUndoable[name](selection, this.undoBuffer);
     }
+	  this._render();
+  }
 
-    undo() {
-        this.layout.undo(this.undoBuffer);
-    }
+  undo() {
+    this.layout.undo(this.undoBuffer);
+  }
 
-    _singleSelectionOperation(name, parameters) {
-        if (this.tracker.selections.length != 1) {
-            return;
-        }
-        var selection = this.tracker.selections[0];
-        if (parameters) {
-            SmoUndoable[name](selection, parameters, this.undoBuffer);
-        } else {
-            SmoUndoable[name](selection, this.undoBuffer);
-        }
-        suiOscillator.playSelectionNow(selection);
-        this._rebeam();
-        this._render();
+  _singleSelectionOperation(name, parameters) {
+    if (this.tracker.selections.length != 1) {
+      return;
     }
+    var selection = this.tracker.selections[0];
+    if (parameters) {
+      SmoUndoable[name](selection, parameters, this.undoBuffer);
+    } else {
+      SmoUndoable[name](selection, this.undoBuffer);
+    }
+    suiOscillator.playSelectionNow(selection);
+    this._rebeam();
+    this._render();
+  }
 
     _transpose(selection, offset, playSelection) {
         this._selectionOperation(selection, 'transpose', offset);
@@ -140,35 +140,34 @@ class suiEditor {
     }
 
     playScore() {
-        var mm = this.tracker.getExtremeSelection(-1);
-        if (suiAudioPlayer.playingInstance && suiAudioPlayer.playingInstance.paused) {
-            suiAudioPlayer.playingInstance.play();
-            return;
-        }
-
-        new suiAudioPlayer({score:this.layout.score,startIndex:mm.selector.measure,tracker:this.tracker}).play();
+      var mm = this.tracker.getExtremeSelection(-1);
+      if (suiAudioPlayer.playingInstance && suiAudioPlayer.playingInstance.paused) {
+        suiAudioPlayer.playingInstance.play();
+        return;
+      }
+      new suiAudioPlayer({score:this.layout.score,startIndex:mm.selector.measure,tracker:this.tracker}).play();
     }
 
     stopPlayer() {
-        suiAudioPlayer.stopPlayer();
+      suiAudioPlayer.stopPlayer();
     }
     pausePlayer() {
-        suiAudioPlayer.pausePlayer();
+      suiAudioPlayer.pausePlayer();
     }
 
     intervalAdd(interval, direction) {
-        this._singleSelectionOperation('interval', direction * interval);
+      this._singleSelectionOperation('interval', direction * interval);
     }
 
     interval(keyEvent) {
-        if (this.tracker.selections.length != 1)
-            return;
-        // code='Digit3'
-        var interval = parseInt(keyEvent.keyCode) - 49;  // 48 === '0', 0 indexed
-        if (isNaN(interval) || interval < 1 || interval > 7) {
-            return;
-        }
-        this.intervalAdd(interval, keyEvent.shiftKey ? -1 : 1);
+      if (this.tracker.selections.length != 1)
+        return;
+      // code='Digit3'
+      var interval = parseInt(keyEvent.keyCode) - 49;  // 48 === '0', 0 indexed
+      if (isNaN(interval) || interval < 1 || interval > 7) {
+        return;
+      }
+      this.intervalAdd(interval, keyEvent.shiftKey ? -1 : 1);
     }
 
     transpose(offset) {

@@ -2114,38 +2114,51 @@ class smoMusic {
          - VF.clefProperties.values[clef].line_shift;
     }
 
-    // ### pitchToVexKey
-    // convert from SMO to VEX format so we can use the VexFlow tables and methods
-    // example:
-    // 	`{letter,octave,accidental}` object to vexKey string `'f#'`
-    static pitchToVexKey(smoPitch) {
-        // Convert to vex keys, where f# is a string like 'f#'.
-        var vexKey = smoPitch.letter.toLowerCase();
-        if (smoPitch.accidental.length === 0) {
-            vexKey = vexKey + 'n';
-        } else {
-            vexKey = vexKey + smoPitch.accidental;
-        }
-        if (smoPitch['octave']) {
-            vexKey = vexKey + '/' + smoPitch.octave;
-        }
-        return vexKey;
+  // ### pitchToVexKey
+  // convert from SMO to VEX format so we can use the VexFlow tables and methods
+  // example:
+  // 	`{letter,octave,accidental}` object to vexKey string `'f#'`
+  static pitchToVexKey(smoPitch) {
+    // Convert to vex keys, where f# is a string like 'f#'.
+    var vexKey = smoPitch.letter.toLowerCase();
+    if (smoPitch.accidental.length === 0) {
+      vexKey = vexKey + 'n';
+    } else {
+      vexKey = vexKey + smoPitch.accidental;
     }
+    if (smoPitch['octave']) {
+      vexKey = vexKey + '/' + smoPitch.octave;
+    }
+    return vexKey;
+  }
 
 	static smoPitchToInt(pitch) {
+    if (typeof(pitch.octave) === 'undefined') {
+      pitch.octave = 0;
+    }
 		var intVal = VF.Music.noteValues[
 				smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch))].int_val;
-		return pitch.octave * 12 + intVal;
+    var octave =  (pitch.letter === 'c' && pitch.accidental === 'b' && pitch.octave > 0) ?
+       pitch.octave - 1 : pitch.octave;
+		return octave * 12 + intVal;
 	}
 
 	static smoIntToPitch(intValue) {
-		var letterInt = intValue % 12;
+
+		var letterInt = intValue >= 0 ? intValue % 12 :
+       12 - (Math.abs(intValue) % 12);
 		var noteKey = Object.keys(VF.Music.noteValues).find((key) => {
-				return VF.Music.noteValues[key].int_val === letterInt;
+				return VF.Music.noteValues[key].int_val === letterInt && key.length === 1
 			});
+    if (!noteKey) {
+      noteKey = Object.keys(VF.Music.noteValues).find((key) => {
+  				return VF.Music.noteValues[key].int_val === letterInt && key.length === 2
+  			});
+    }
 		var octave = Math.floor(intValue / 12);
-        var accidental = noteKey.substring(1, noteKey.length);
-        accidental = accidental ? accidental : 'n';
+    octave = octave >= 0 ? octave : 0;
+    var accidental = noteKey.substring(1, noteKey.length);
+    accidental = accidental ? accidental : 'n';
 		return {
 			letter: noteKey[0],
 			accidental: accidental,
@@ -2232,17 +2245,50 @@ class smoMusic {
 		return tonic;
 	}
 
+  // ### toValidKeySignature
+  // When transposing, make sure key signature is valid, e.g. g# should be
+  // Ab
+  static toValidKeySignature(vexKey) {
+    var map = {'a#':'bb','g#':'ab','cb':'b','d#':'eb'}
+    if (map[vexKey.toLowerCase()]) {
+      return map[vexKey.toLowerCase()];
+    }
+    return vexKey;
+  }
+
 	static getEnharmonicInKey(smoPitch, keySignature) {
+    if (typeof(smoPitch.octave) === 'undefined') {
+      smoPitch.octave = 1;
+    }
+    var sharpKey = keySignature.indexOf('#') >= 0 ? true : false;
+    var flatKey = keySignature.indexOf('b') >= 0 ? true : false;
 		var ar = smoMusic.getEnharmonics(smoMusic.pitchToVexKey(smoPitch));
 		var rv = smoMusic.stripVexOctave(smoMusic.pitchToVexKey(smoPitch));
 		var scaleMap = new VF.Music().createScaleMap(keySignature);
+    var match = false;
 		ar.forEach((vexKey) => {
 			if (vexKey.length === 1) {
 				vexKey += 'n';
 			}
 			if (vexKey === scaleMap[vexKey[0]]) {
 				rv = vexKey;
-			}
+        match = true;
+			} else if (!match) {
+        // In the absence of a match of a key tone, we bias towards more
+        // 'common', like Bb is more common than A#, esp. as a chord.  This maybe
+        // just be my horn player bias towards flat keys
+        if (vexKey === 'a#' && !sharpKey) {
+          rv = 'bb';
+        } else if (vexKey === 'g#' && !sharpKey) {
+          rv = 'ab';
+        } else if (vexKey === 'c#' && !sharpKey) {
+          rv = 'db';
+        } else if (vexKey === 'd#' && !sharpKey) {
+          rv = 'eb';
+        } else if (vexKey === 'f#' && flatKey) {
+          rv = 'gb';
+        }
+      }
 		});
 		var smoRv = smoMusic.vexToSmoPitch(rv);
 		smoRv.octave = smoPitch.octave;
@@ -2419,7 +2465,7 @@ class smoMusic {
 
 	static getSharpsInKeySignature(key) {
 		var sharpKeys = ['B','G','D','A','E','B','F#','C#'];
-		if (sharpKeys.indexOf[key] < 0) {
+		if (sharpKeys.indexOf(key) < 0) {
 			return 0;
 		}
 		return smoMusic.keySignatureLength[key];
@@ -2427,7 +2473,7 @@ class smoMusic {
 
 	static getFlatsInKeySignature(key) {
 		var flatKeys = ['F','Bb','Eb','Ab','Db','Gb','Cb'];
-		if (flatKeys.indexOf[key] < 0) {
+		if (flatKeys.indexOf(key) < 0) {
 			return 0;
 		}
 		return smoMusic.keySignatureLength[key];
@@ -4732,7 +4778,7 @@ class SmoLyric extends SmoNoteModifierBase {
   }
 
   static get parameterArray() {
-    return ['endChar','fontInfo','classes','verse','parser','symbolBlocks',
+    return ['endChar','fontInfo','classes','verse','parser',
     'fill','scaleX','scaleY','translateX','translateY','ctor','_text'];
   }
   serialize() {
@@ -5192,26 +5238,27 @@ class SmoMeasure {
 				denominator: 1,
 				remainder: 0
 			};
-            beamBeats = 2048*3;
+      beamBeats = 2048*3;
 		}
 		var pitches =
-           JSON.parse(JSON.stringify(SmoMeasure.defaultPitchForClef[params.clef]));
+     JSON.parse(JSON.stringify(SmoMeasure.defaultPitchForClef[params.clef]));
 		var rv = [];
     var beats = meterNumbers[0];
 
     // Treat 2/2 like 4/4 time.
     if (meterNumbers[1] == 2) {
-       beats = beats * 2;
+      beats = beats * 2;
     }
 
 		for (var i = 0; i < beats; ++i) {
 			var note = new SmoNote({
-					clef: params.clef,
-					pitches: [pitches],
-					ticks: ticks,
-					timeSignature: params.timeSignature,
-                    beamBeats:beamBeats
-				});
+				clef: params.clef,
+				pitches: [pitches],
+				ticks: ticks,
+				timeSignature: params.timeSignature,
+        beamBeats:beamBeats,
+        noteType:'r'
+			});
 			rv.push(note);
 		}
 		return rv;
@@ -6295,29 +6342,26 @@ class SmoTempoText extends SmoMeasureModifierBase {
 ;
 
 // ## SmoSystemStaff
-// ## Description:
 // A staff is a line of music that can span multiple measures.
 // A system is a line of music for each staff in the score.  So a staff
 // spans multiple systems.
 // A staff modifier connects 2 points in the staff.
 class SmoSystemStaff {
-    constructor(params) {
-        this.measures = [];
-        Vex.Merge(this, SmoSystemStaff.defaults);
-        Vex.Merge(this, params);
-        if (this.measures.length) {
-            this.numberMeasures();
-        }
-        if (!this['attrs']) {
-            this.attrs = {
-                id: VF.Element.newID(),
-                type: 'SmoSystemStaff'
-            };
-        } else {
-            // inherit attrs id for deserialized
-
-        }
+  constructor(params) {
+    this.measures = [];
+    Vex.Merge(this, SmoSystemStaff.defaults);
+    Vex.Merge(this, params);
+    if (this.measures.length) {
+      this.numberMeasures();
     }
+    if (!this['attrs']) {
+      this.attrs = {
+        id: VF.Element.newID(),
+        type: 'SmoSystemStaff'
+      };
+    } else {
+    }
+  }
 
     // ### defaultParameters
     // the parameters that get saved with the score.
@@ -7929,6 +7973,26 @@ class smoBeamModifier extends BeamModifierBase {
         this.currentGroup = [];
         this.duration = 0;
     }
+
+    // ### _isRemainingTicksBeamable
+    // look ahead, and see if we need to beam the tuplet now or if we
+    // can combine current beam with future notes.
+    _isRemainingTicksBeamable(tickmap,index) {
+      if (this.duration >= this.beamBeats) {
+        return false;
+      }
+      var acc = this.duration;
+      for (var i = index + 1;i < tickmap.deltaMap.length; ++i) {
+        acc += tickmap.deltaMap[i]
+        if (acc === this.beamBeats) {
+          return true;
+        }
+        if (acc > this.beamBeats) {
+          return false;
+        }
+      }
+      return false;
+    }
     beamNote(tickmap, index, note, accidentalMap) {
         this.beamBeats = note.beamBeats;
 
@@ -7952,7 +8016,7 @@ class smoBeamModifier extends BeamModifierBase {
                 this.currentGroup.push(note);
             }
             // Ultimate note in tuplet
-            if (ult.attrs.id === note.attrs.id) {
+            if (ult.attrs.id === note.attrs.id && !this._isRemainingTicksBeamable(tickmap,index)) {
                 this._completeGroup(tickmap.voice);
                 this._advanceGroup();
             }
@@ -8576,13 +8640,13 @@ class SmoSelection {
 		});
 	}
 
-    static measuresInColumn(score,staffIndex) {
-        var rv = [];
-        for (var i = 0;i<score.staves.length;++i) {
-            rv.push(SmoSelection.measureSelection(score,i,staffIndex));
-        }
-        return rv;
+  static measuresInColumn(score,staffIndex) {
+    var rv = [];
+    for (var i = 0;i<score.staves.length;++i) {
+      rv.push(SmoSelection.measureSelection(score,i,staffIndex));
     }
+    return rv;
+  }
 
 	static noteFromSelection(score, selection) {
 		return SmoSelection(score, selection.staffIndex, selection.measureIndex, selection.voiceIndex, selection.tickIndex);
@@ -8595,19 +8659,19 @@ class SmoSelection {
 		measureIndex = measureIndex ? measureIndex : 0;
 		voiceIndex = voiceIndex ? voiceIndex : 0;
 		var staff = score.staves[staffIndex];
-        if (!staff) {
-            return null;
-        }
+    if (!staff) {
+      return null;
+    }
 		var measure = staff.measures[measureIndex];
-        if (!measure) {
-            return null;
-        }
-        if (measure.voices.length <= voiceIndex) {
-            return null;
-        }
-        if (measure.voices[voiceIndex].notes.length <= tickIndex) {
-            return null;
-        }
+    if (!measure) {
+      return null;
+    }
+    if (measure.voices.length <= voiceIndex) {
+      return null;
+    }
+    if (measure.voices[voiceIndex].notes.length <= tickIndex) {
+      return null;
+    }
 		var note = measure.voices[voiceIndex].notes[tickIndex];
 		var selector = {
 			staff: staffIndex,
@@ -8842,51 +8906,51 @@ class SmoOperation {
        });
    }
 
-	static addKeySignature(score, selection, keySignature) {
-		score.addKeySignature(selection.selector.measure, keySignature);
-	}
+  static addKeySignature(score, selection, keySignature) {
+  score.addKeySignature(selection.selector.measure, keySignature);
+  }
 
-	static deleteMeasure(score, selection) {
-		var measureIndex = selection.selector.measure;
+  static deleteMeasure(score, selection) {
+  var measureIndex = selection.selector.measure;
 
-		score.deleteMeasure(measureIndex);
-	}
+  score.deleteMeasure(measureIndex);
+  }
 
-    static addPickupMeasure(score,duration) {
-        score.addPickupMeasure(0,duration);
+  static addPickupMeasure(score,duration) {
+    score.addPickupMeasure(0,duration);
+  }
+
+  static addConnectorDown(score,selections,parameters) {
+    var msel = SmoSelection.getMeasureList(selections);
+    var len = msel.length - 1;
+    if (score.staves.length <= msel[len].selector.staff) {
+      return;
     }
-
-    static addConnectorDown(score,selections,parameters) {
-        var msel = SmoSelection.getMeasureList(selections);
-        var len = msel.length - 1;
-        if (score.staves.length <= msel[len].selector.staff) {
-            return;
-        }
-        var existing = score.getSystemGroupForStaff(msel[0]);
-        if (existing && existing.endSelector.staff < selections[len].selector.staff) {
-            existing.endSelector.staff = msel[len].selector.staff+1;
-        } else {
-            parameters.startSelector = {staff:msel[0].selector.staff,measure:msel[0].selector.measure};
-            parameters.endSelector = {staff:msel[len].selector.staff + 1,measure:msel[len].selector.measure};
-            score.addOrReplaceSystemGroup(new SmoSystemGroup(parameters));
-        }
-        msel.forEach((mm) => {
-            mm.measure.setChanged();
-        });
+    var existing = score.getSystemGroupForStaff(msel[0]);
+    if (existing && existing.endSelector.staff < selections[len].selector.staff) {
+      existing.endSelector.staff = msel[len].selector.staff+1;
+    } else {
+      parameters.startSelector = {staff:msel[0].selector.staff,measure:msel[0].selector.measure};
+      parameters.endSelector = {staff:msel[len].selector.staff + 1,measure:msel[len].selector.measure};
+      score.addOrReplaceSystemGroup(new SmoSystemGroup(parameters));
     }
+    msel.forEach((mm) => {
+      mm.measure.setChanged();
+    });
+  }
 
-    static convertToPickupMeasure(score,duration) {
-        score.convertToPickupMeasure(0,duration);
-    }
-	static toggleBeamGroup(noteSelection) {
-		noteSelection.measure.setChanged();
-		noteSelection.note.endBeam = !(noteSelection.note.endBeam);
-	}
+  static convertToPickupMeasure(score,duration) {
+      score.convertToPickupMeasure(0,duration);
+  }
+  static toggleBeamGroup(noteSelection) {
+  noteSelection.measure.setChanged();
+  noteSelection.note.endBeam = !(noteSelection.note.endBeam);
+  }
 
-    static padMeasureLeft(selection,padding) {
-        selection.measure.padLeft = padding;
-        selection.measure.setChanged();
-    }
+  static padMeasureLeft(selection,padding) {
+    selection.measure.padLeft = padding;
+    selection.measure.setChanged();
+  }
 
     static setActiveVoice(score,voiceIx) {
         score.staves.forEach((staff) => {
@@ -8997,129 +9061,129 @@ class SmoOperation {
         });
     }
 
-	static batchSelectionOperation(score, selections, operation) {
-		var measureTicks = [];
-		selections.forEach((selection) => {
-			var measureSel = {
-				staff: selection.selector.staff,
-				measure: selection.selector.measure,
-				voice: selection.selector.voice
-			};
-			selection.measure.setChanged();
-			if (!measureTicks[measureSel]) {
-				var tm = selection.measure.tickmapForVoice(selection.selector.voice);
-				var tickOffset = tm.durationMap[selection.selector.tick];
-				var selector = JSON.parse(JSON.stringify(selection.selector));
-				measureTicks.push({
-					selector: selector,
-					tickOffset: tickOffset
-				});
-			}
-		});
-		measureTicks.forEach((measureTick) => {
-			var selection = SmoSelection.measureSelection(score, measureTick.selector.staff, measureTick.selector.measure);
-			var tickmap = selection.measure.tickmapForVoice(measureTick.selector.voice);
-			var ix = tickmap.durationMap.indexOf(measureTick.tickOffset);
-			if (ix >= 0) {
-				var nsel = SmoSelection.noteSelection(score, measureTick.selector.staff, measureTick.selector.measure,
-						measureTick.selector.voice, ix);
-				SmoOperation[operation](nsel);
-			}
-		});
-	}
-	// ## doubleDuration
-	// ## Description
-	// double the duration of a note in a measure, at the expense of the following
-	// note, if possible.  Works on tuplets also.
-	static doubleDuration(selection) {
-		var note = selection.note;
-		var measure = selection.measure;
+  static batchSelectionOperation(score, selections, operation) {
+  var measureTicks = [];
+  selections.forEach((selection) => {
+  var measureSel = {
+  staff: selection.selector.staff,
+  measure: selection.selector.measure,
+  voice: selection.selector.voice
+  };
+  selection.measure.setChanged();
+  if (!measureTicks[measureSel]) {
+  var tm = selection.measure.tickmapForVoice(selection.selector.voice);
+  var tickOffset = tm.durationMap[selection.selector.tick];
+  var selector = JSON.parse(JSON.stringify(selection.selector));
+  measureTicks.push({
+  selector: selector,
+  tickOffset: tickOffset
+  });
+  }
+  });
+  measureTicks.forEach((measureTick) => {
+  var selection = SmoSelection.measureSelection(score, measureTick.selector.staff, measureTick.selector.measure);
+  var tickmap = selection.measure.tickmapForVoice(measureTick.selector.voice);
+  var ix = tickmap.durationMap.indexOf(measureTick.tickOffset);
+  if (ix >= 0) {
+  var nsel = SmoSelection.noteSelection(score, measureTick.selector.staff, measureTick.selector.measure,
+  measureTick.selector.voice, ix);
+  SmoOperation[operation](nsel);
+  }
+  });
+  }
+  // ## doubleDuration
+  // ## Description
+  // double the duration of a note in a measure, at the expense of the following
+  // note, if possible.  Works on tuplets also.
+  static doubleDuration(selection) {
+  var note = selection.note;
+  var measure = selection.measure;
         var selector = selection.selector;
         var notes = measure.voices[selector.voice].notes;
-		var tuplet = measure.getTupletForNote(note);
-		if (!tuplet) {
+  var tuplet = measure.getTupletForNote(note);
+  if (!tuplet) {
             SmoDuration.doubleDurationNonTuplet(selection);
 
-		} else {
+  } else {
             SmoDuration.doubleDurationTuplet(selection);
-		}
-		selection.measure.setChanged();
-		return true;
-	}
+  }
+  selection.measure.setChanged();
+  return true;
+  }
 
-	// ## halveDuration
-	// ## Description
-	// Replace the note with 2 notes of 1/2 duration, if possible
-	// Works on tuplets also.
-	static halveDuration(selection) {
-		var note = selection.note;
-		var measure = selection.measure;
-		var tuplet = measure.getTupletForNote(note);
-		var divisor = 2;
-		if (measure.numBeats % 3 === 0 && selection.note.tickCount === 6144) {
-			// special behavior, if this is dotted 1/4 in 6/8, split to 3
-			divisor = 3;
-		}
-		if (!tuplet) {
-			var nticks = note.tickCount / divisor;
-			if (!smoMusic.ticksToDuration[nticks]) {
-				return;
-			}
-			var actor = new SmoContractNoteActor({
-					startIndex: selection.selector.tick,
-					tickmap: measure.tickmapForVoice(selection.selector.voice),
-					newTicks: nticks
-				});
-			SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
+  // ## halveDuration
+  // ## Description
+  // Replace the note with 2 notes of 1/2 duration, if possible
+  // Works on tuplets also.
+  static halveDuration(selection) {
+  var note = selection.note;
+  var measure = selection.measure;
+  var tuplet = measure.getTupletForNote(note);
+  var divisor = 2;
+  if (measure.numBeats % 3 === 0 && selection.note.tickCount === 6144) {
+  // special behavior, if this is dotted 1/4 in 6/8, split to 3
+  divisor = 3;
+  }
+  if (!tuplet) {
+  var nticks = note.tickCount / divisor;
+  if (!smoMusic.ticksToDuration[nticks]) {
+  return;
+  }
+  var actor = new SmoContractNoteActor({
+  startIndex: selection.selector.tick,
+  tickmap: measure.tickmapForVoice(selection.selector.voice),
+  newTicks: nticks
+  });
+  SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
             smoBeamerFactory.applyBeams(measure);
 
-		} else {
-			var startIndex = measure.tupletIndex(tuplet) + tuplet.getIndexOfNote(note);
-			var actor = new SmoContractTupletActor({
-					changeIndex: startIndex,
-					measure: measure,
+  } else {
+  var startIndex = measure.tupletIndex(tuplet) + tuplet.getIndexOfNote(note);
+  var actor = new SmoContractTupletActor({
+  changeIndex: startIndex,
+  measure: measure,
                     voice:selection.selector.voice
-				});
-			SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
-		}
-		selection.measure.setChanged();
-	}
+  });
+  SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
+  }
+  selection.measure.setChanged();
+  }
 
-	// ## makeTuplet
-	// ## Description
-	// Makes a non-tuplet into a tuplet of equal value.
-	static makeTuplet(selection, numNotes) {
-		var note = selection.note;
-		var measure = selection.measure;
+  // ## makeTuplet
+  // ## Description
+  // Makes a non-tuplet into a tuplet of equal value.
+  static makeTuplet(selection, numNotes) {
+  var note = selection.note;
+  var measure = selection.measure;
 
-		if (measure.getTupletForNote(note))
-			return;
-		var nticks = note.tickCount;
+  if (measure.getTupletForNote(note))
+  return;
+  var nticks = note.tickCount;
 
-		var actor = new SmoMakeTupletActor({
-				index: selection.selector.tick,
-				totalTicks: nticks,
-				numNotes: numNotes,
-				selection: selection
-			});
-		SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
-		selection.measure.setChanged();
+  var actor = new SmoMakeTupletActor({
+  index: selection.selector.tick,
+  totalTicks: nticks,
+  numNotes: numNotes,
+  selection: selection
+  });
+  SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
+  selection.measure.setChanged();
 
-		return true;
-	}
+  return true;
+  }
 
     static removeStaffModifier(selection,modifier) {
         selection.staff.removeStaffModifier(modifier);
     }
 
-	static makeRest(selection) {
-		selection.measure.setChanged();
-		selection.note.makeRest();
-	}
-	static makeNote(selection) {
-		selection.measure.setChanged();
-		selection.note.makeNote();
-	}
+  static makeRest(selection) {
+  selection.measure.setChanged();
+  selection.note.makeRest();
+  }
+  static makeNote(selection) {
+  selection.measure.setChanged();
+  selection.note.makeNote();
+  }
 
   static addGraceNote(selection,offset,g) {
       selection.note.addGraceNote(offset,g);
@@ -9190,42 +9254,42 @@ class SmoOperation {
   }
 
 
-	// ## unmakeTuplet
-	// ## Description
-	// Makes a tuplet into a single with the duration of the whole tuplet
-	static unmakeTuplet(selection) {
-		var note = selection.note;
-		var measure = selection.measure;
-		if (!measure.getTupletForNote(note))
-			return;
-		var tuplet = measure.getTupletForNote(note);
-		if (tuplet === null)
-			return;
-		var startIndex = measure.tupletIndex(tuplet);
-		var endIndex = tuplet.notes.length + startIndex - 1;
+  // ## unmakeTuplet
+  // ## Description
+  // Makes a tuplet into a single with the duration of the whole tuplet
+  static unmakeTuplet(selection) {
+  var note = selection.note;
+  var measure = selection.measure;
+  if (!measure.getTupletForNote(note))
+  return;
+  var tuplet = measure.getTupletForNote(note);
+  if (tuplet === null)
+  return;
+  var startIndex = measure.tupletIndex(tuplet);
+  var endIndex = tuplet.notes.length + startIndex - 1;
 
-		var actor = new SmoUnmakeTupletActor({
-				startIndex: startIndex,
-				endIndex: endIndex,
-				measure: measure
-			});
-		SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
-		measure.setChanged();
-		return true;
-	}
+  var actor = new SmoUnmakeTupletActor({
+  startIndex: startIndex,
+  endIndex: endIndex,
+  measure: measure
+  });
+  SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
+  measure.setChanged();
+  return true;
+  }
 
-	// ## dotDuration
-	// ## Description
-	// Add a dot to a note, if possible, and make the note ahead of it shorter
-	// to compensate.
-	static dotDuration(selection) {
+  // ## dotDuration
+  // ## Description
+  // Add a dot to a note, if possible, and make the note ahead of it shorter
+  // to compensate.
+  static dotDuration(selection) {
 
-		var note = selection.note;
-		var measure = selection.measure;
-		var nticks = smoMusic.getNextDottedLevel(note.tickCount);
-		if (nticks == note.tickCount) {
-			return;
-		}
+  var note = selection.note;
+  var measure = selection.measure;
+  var nticks = smoMusic.getNextDottedLevel(note.tickCount);
+  if (nticks == note.tickCount) {
+  return;
+  }
 
         // Don't dot if the thing on the right of the . is too small
         var dotCount = smoMusic.smoTicksToVexDots(nticks);
@@ -9235,241 +9299,243 @@ class SmoOperation {
             return;
         }
 
-		// If this is the ultimate note in the measure, we can't increase the length
-		if (selection.selector.tick + 1 === selection.measure.voices[selection.selector.voice].notes.length) {
-			return;
-		}
-		if (selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].tickCount > selection.note.tickCount) {
-			console.log('too long');
-			return;
-		}
-		// is dot too short?
-		if (!smoMusic.ticksToDuration[selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].tickCount/2]) {
-			return;
-		}
-		var actor = new SmoStretchNoteActor({
-				startIndex: selection.selector.tick,
-				tickmap: measure.tickmapForVoice(selection.selector.voice),
-				newTicks: nticks
-			});
-		SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
-		measure.setChanged();
-		return true;
-	}
+  // If this is the ultimate note in the measure, we can't increase the length
+  if (selection.selector.tick + 1 === selection.measure.voices[selection.selector.voice].notes.length) {
+  return;
+  }
+  if (selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].tickCount > selection.note.tickCount) {
+  console.log('too long');
+  return;
+  }
+  // is dot too short?
+  if (!smoMusic.ticksToDuration[selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].tickCount/2]) {
+  return;
+  }
+  var actor = new SmoStretchNoteActor({
+  startIndex: selection.selector.tick,
+  tickmap: measure.tickmapForVoice(selection.selector.voice),
+  newTicks: nticks
+  });
+  SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
+  measure.setChanged();
+  return true;
+  }
 
-	// ## undotDuration
-	// ## Description
-	// Add the value of the last dot to the note, increasing length and
-	// reducing the number of dots.
-	static undotDuration(selection) {
-		var note = selection.note;
-		var measure = selection.measure;
-		var nticks = smoMusic.getPreviousDottedLevel(note.tickCount);
-		if (nticks == note.tickCount) {
-			return;
-		}
-		var actor = new SmoContractNoteActor({
-				startIndex: selection.selector.tick,
-				tickmap: measure.tickmapForVoice(selection.selector.voice),
-				newTicks: nticks
-			});
-		SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
-		selection.measure.setChanged();
-		return true;
-	}
+  // ## undotDuration
+  // ## Description
+  // Add the value of the last dot to the note, increasing length and
+  // reducing the number of dots.
+  static undotDuration(selection) {
+  var note = selection.note;
+  var measure = selection.measure;
+  var nticks = smoMusic.getPreviousDottedLevel(note.tickCount);
+  if (nticks == note.tickCount) {
+  return;
+  }
+  var actor = new SmoContractNoteActor({
+  startIndex: selection.selector.tick,
+  tickmap: measure.tickmapForVoice(selection.selector.voice),
+  newTicks: nticks
+  });
+  SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
+  selection.measure.setChanged();
+  return true;
+  }
 
-	// ## transpose
-	// ## Description
-	// Transpose the selected note, trying to find a key-signature friendly value
-	static transpose(selection, offset) {
-		var measure = selection.measure;
-		var note = selection.note;
-		if (measure && note) {
-            var pitchar = [];
-            var pitchIx = 0;
-            var voiceIx = 0;
-            var accidentalMap = {};
-            var activeTm = measure.tickmapForVoice(measure.getActiveVoice());
-            var targetDuration = activeTm.durationMap[selection.selector.tick];
+  // ## transpose
+  // ## Description
+  // Transpose the selected note, trying to find a key-signature friendly value
+  static transpose(selection, offset) {
+  var measure = selection.measure;
+  var note = selection.note;
+  if (measure && note) {
+      var pitchar = [];
+      var pitchIx = 0;
+      var voiceIx = 0;
+      var accidentalMap = {};
+      var activeTm = measure.tickmapForVoice(measure.getActiveVoice());
+      var targetDuration = activeTm.durationMap[selection.selector.tick];
 
-            note.pitches.forEach((opitch) => {
-                // Only translate selected pitches
-                var shouldXpose = selection.selector.pitches.length == 0 ||
-                   selection.selector.pitches.indexOf(pitchIx) >= 0;
+      note.pitches.forEach((opitch) => {
+        // Only translate selected pitches
+        var shouldXpose = selection.selector.pitches.length == 0 ||
+          selection.selector.pitches.indexOf(pitchIx) >= 0;
 
-                // Translate the pitch, ignoring enharmonic
-                var trans =  shouldXpose ? smoMusic.getKeyOffset(opitch,offset)
-                   : JSON.parse(JSON.stringify(opitch));
-                if (!trans.accidental) {
-                    trans.accidental = 'n';
-                }
-                var transInt = smoMusic.smoPitchToInt(trans);
-
-                // Look through the earlier notes in the measure and try
-                // to find an equivalent note, and convert it if it exists.
-                var voiceIx = 0;
-                measure.voices.forEach((voice) => {
-                   for (var i = 0;i<selection.selector.tick
-                         && i < voice.notes.length;++i)  {
-                       var prevNote = voice.notes[i];
-                       prevNote.pitches.forEach((prevPitch) => {
-                           var prevInt = smoMusic.smoPitchToInt(prevPitch);
-                           if (prevInt == transInt) {
-                               trans = JSON.parse(JSON.stringify(prevPitch));
-                           }
-                       });
-                   }
-                });
-                pitchar.push(trans);
-                pitchIx += 1;
-            });
-            note.pitches = pitchar;
-			measure.setChanged();
-			return true;
-		}
-		return false;
-	}
-
-	// ## setPitch
-	// ## Description:
-	// pitches can be either an array, a single pitch, or a letter.  In the latter case,
-	// the letter value appropriate for the key signature is used, e.g. c in A major becomes
-	// c#
-	static setPitch(selection, pitches) {
-		var measure = selection.measure;
-		var note = selection.note;
-		measure.setChanged();
-		// TODO allow hint for octave
-		var octave = note.pitches[0].octave;
-		note.pitches = [];
-		if (!Array.isArray(pitches)) {
-			pitches = [pitches];
-		}
-        var earlierAccidental = (pitch) => {
-            selection.measure.voices.forEach((voice) => {
-                for (var i=0;i<selection.selector.tick
-                       && i < voice.notes.length;++i) {
-                    var prevNote = voice.notes[i];
-                    if (prevNote == null || prevNote.pitches == null) {
-                        console.log('this will die null');
-                    }
-                    prevNote.pitches.forEach((prevPitch) => {
-                        if (prevNote.noteType == 'n' && prevPitch.letter == pitch.letter) {
-                            pitch.accidental = prevPitch.accidental;
-                        }
-                    });
-                }
-            });
+        // Translate the pitch, ignoring enharmonic
+        var trans =  shouldXpose ? smoMusic.getKeyOffset(opitch,offset)
+          : JSON.parse(JSON.stringify(opitch));
+        trans = smoMusic.getEnharmonicInKey(trans,measure.keySignature);
+        if (!trans.accidental) {
+          trans.accidental = 'n';
         }
-		pitches.forEach((pitch) => {
-			var letter = pitch;
-			if (typeof(pitch) === 'string') {
-				var letter = smoMusic.getKeySignatureKey(pitch[0], measure.keySignature);
-				pitch = {
-					letter: letter[0],
-					accidental: letter.length > 1 ? letter.substring(1) : '',
-					octave: octave
-				};
-			}
+        var transInt = smoMusic.smoPitchToInt(trans);
 
-            earlierAccidental(pitch);
-			note.pitches.push(pitch);
-		});
-		return true;
-	}
+        // Look through the earlier notes in the measure and try
+        // to find an equivalent note, and convert it if it exists.
+        var voiceIx = 0;
+        measure.voices.forEach((voice) => {
+          for (var i = 0;i<selection.selector.tick
+            && i < voice.notes.length;++i)  {
+            var prevNote = voice.notes[i];
+            prevNote.pitches.forEach((prevPitch) => {
+                var prevInt = smoMusic.smoPitchToInt(prevPitch);
+                if (prevInt == transInt) {
+                  trans = JSON.parse(JSON.stringify(prevPitch));
+                }
+             });
+           }
+          });
+          pitchar.push(trans);
+          pitchIx += 1;
+      });
+      note.pitches = pitchar;
+  measure.setChanged();
+  return true;
+  }
+  return false;
+  }
 
-	// ## addPitch
-	// add a pitch to a note chord, avoiding duplicates.
-	static addPitch(selection, pitches) {
-		var toAdd = [];
-		pitches.forEach((pitch) => {
-			var found = false;
-			toAdd.forEach((np) => {
-				if (np.accidental === pitch.accidental && np.letter === pitch.letter && np.octave === pitch.octave) {
-					found = true;
-				}
-			});
-			if (!found) {
-				toAdd.push(pitch);
-			}
-		});
-		toAdd.sort(function (a, b) {
-			return smoMusic.smoPitchToInt(a) -
-			smoMusic.smoPitchToInt(b);
-		});
-		selection.note.pitches = JSON.parse(JSON.stringify(toAdd));
-		selection.measure.setChanged();
-	}
-
-	static toggleCourtesyAccidental(selection) {
-		var toBe = false;
-		var i = 0;
-		if (!selection.selector['pitches'] || selection.selector.pitches.length === 0) {
-			var ps = [];
-			selection.note.pitches.forEach((pitch) => {
-				var p = JSON.parse(JSON.stringify(pitch));
-				ps.push(p);
-				p.cautionary = !(pitch.cautionary);
-			});
-			selection.note.pitches = ps;
-		} else {
-			toBe = !(selection.note.pitches[selection.selector.pitches[0]].cautionary);
-		}
-
-		SmoOperation.courtesyAccidental(selection, toBe);
-		selection.measure.setChanged();
-	}
-
-	static courtesyAccidental(pitchSelection, toBe) {
-		pitchSelection.selector.pitches.forEach((pitchIx) => {
-			pitchSelection.note.pitches[pitchIx].cautionary = toBe;
-		});
-		pitchSelection.measure.setChanged();
-	}
-
-	static toggleEnharmonic(pitchSelection) {
-		if (pitchSelection.selector.pitches.length === 0) {
-			pitchSelection.selector.pitches.push(0);
-		}
-		var pitch = pitchSelection.note.pitches[pitchSelection.selector.pitches[0]];
-		var lastLetter = pitch.letter;
-		var vexPitch = smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch));
-		vexPitch = smoMusic.getEnharmonic(vexPitch);
-
-		pitch.letter = vexPitch[0];
-		pitch.accidental = vexPitch.length > 1 ?
-			vexPitch.substring(1, vexPitch.length) : 'n';
-		pitch.octave += smoMusic.letterChangedOctave(lastLetter, pitch.letter);
-		pitchSelection.measure.setChanged();
-	}
-
-	static addDynamic(selection, dynamic) {
-		selection.note.addModifier(dynamic);
-		selection.measure.setChanged();
-	}
-
-    static beamSelections(selections) {
-        var start = selections[0].selector;
-        var cur = selections[0].selector;
-        var beamGroup = [];
-        var ticks = 0;
-        selections.forEach((selection) => {
-            if (SmoSelector.sameNote(start,selection.selector) ||
-                (SmoSelector.sameMeasure(selection.selector,cur) &&
-                 cur.tick == selection.selector.tick-1)) {
-                ticks += selection.note.tickCount;
-                cur = selection.selector;
-                beamGroup.push(selection.note);
+  // ## setPitch
+  // ## Description:
+  // pitches can be either an array, a single pitch, or a letter.  In the latter case,
+  // the letter value appropriate for the key signature is used, e.g. c in A major becomes
+  // c#
+  static setPitch(selection, pitches) {
+  var measure = selection.measure;
+  var note = selection.note;
+    selection.note.makeNote();
+  measure.setChanged();
+  // TODO allow hint for octave
+  var octave = note.pitches[0].octave;
+  note.pitches = [];
+  if (!Array.isArray(pitches)) {
+  pitches = [pitches];
+  }
+    var earlierAccidental = (pitch) => {
+      selection.measure.voices.forEach((voice) => {
+        for (var i=0;i<selection.selector.tick
+           && i < voice.notes.length;++i) {
+          var prevNote = voice.notes[i];
+          if (prevNote == null || prevNote.pitches == null) {
+            console.log('this will die null');
+          }
+          prevNote.pitches.forEach((prevPitch) => {
+            if (prevNote.noteType == 'n' && prevPitch.letter == pitch.letter) {
+              pitch.accidental = prevPitch.accidental;
             }
-        });
-        if (beamGroup.length) {
-            beamGroup.forEach((note) => {
-                note.beamBeats=ticks;
-                note.endBeam=false;
-            });
-            beamGroup[beamGroup.length - 1].endBeam=true;
+          });
         }
+      });
     }
+  pitches.forEach((pitch) => {
+  var letter = pitch;
+  if (typeof(pitch) === 'string') {
+  var letter = smoMusic.getKeySignatureKey(pitch[0], measure.keySignature);
+  pitch = {
+  letter: letter[0],
+  accidental: letter.length > 1 ? letter.substring(1) : '',
+  octave: octave
+  };
+  }
+
+      earlierAccidental(pitch);
+  note.pitches.push(pitch);
+  });
+  return true;
+  }
+
+  // ## addPitch
+  // add a pitch to a note chord, avoiding duplicates.
+  static addPitch(selection, pitches) {
+  var toAdd = [];
+  pitches.forEach((pitch) => {
+  var found = false;
+  toAdd.forEach((np) => {
+  if (np.accidental === pitch.accidental && np.letter === pitch.letter && np.octave === pitch.octave) {
+  found = true;
+  }
+  });
+  if (!found) {
+  toAdd.push(pitch);
+  }
+  });
+  toAdd.sort(function (a, b) {
+  return smoMusic.smoPitchToInt(a) -
+  smoMusic.smoPitchToInt(b);
+  });
+  selection.note.pitches = JSON.parse(JSON.stringify(toAdd));
+  selection.measure.setChanged();
+  }
+
+  static toggleCourtesyAccidental(selection) {
+  var toBe = false;
+  var i = 0;
+  if (!selection.selector['pitches'] || selection.selector.pitches.length === 0) {
+  var ps = [];
+  selection.note.pitches.forEach((pitch) => {
+  var p = JSON.parse(JSON.stringify(pitch));
+  ps.push(p);
+  p.cautionary = !(pitch.cautionary);
+  });
+  selection.note.pitches = ps;
+  } else {
+  toBe = !(selection.note.pitches[selection.selector.pitches[0]].cautionary);
+  }
+
+  SmoOperation.courtesyAccidental(selection, toBe);
+  selection.measure.setChanged();
+  }
+
+  static courtesyAccidental(pitchSelection, toBe) {
+  pitchSelection.selector.pitches.forEach((pitchIx) => {
+  pitchSelection.note.pitches[pitchIx].cautionary = toBe;
+  });
+  pitchSelection.measure.setChanged();
+  }
+
+  static toggleEnharmonic(pitchSelection) {
+    if (pitchSelection.selector.pitches.length === 0) {
+      pitchSelection.selector.pitches.push(0);
+    }
+    var pitch = pitchSelection.note.pitches[pitchSelection.selector.pitches[0]];
+    var lastLetter = pitch.letter;
+    var vexPitch = smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch));
+    vexPitch = smoMusic.getEnharmonic(vexPitch);
+
+    pitch.letter = vexPitch[0];
+    pitch.accidental = vexPitch.length > 1 ?
+    vexPitch.substring(1, vexPitch.length) : 'n';
+    pitch.octave += smoMusic.letterChangedOctave(lastLetter, pitch.letter);
+    pitchSelection.measure.setChanged();
+  }
+
+  static addDynamic(selection, dynamic) {
+    selection.note.addModifier(dynamic);
+    selection.measure.setChanged();
+  }
+
+  static beamSelections(selections) {
+    var start = selections[0].selector;
+    var cur = selections[0].selector;
+    var beamGroup = [];
+    var ticks = 0;
+    selections.forEach((selection) => {
+      if (SmoSelector.sameNote(start,selection.selector) ||
+        (SmoSelector.sameMeasure(selection.selector,cur) &&
+         cur.tick == selection.selector.tick-1)) {
+        ticks += selection.note.tickCount;
+        cur = selection.selector;
+        beamGroup.push(selection.note);
+      }
+    });
+    if (beamGroup.length) {
+      beamGroup.forEach((note) => {
+        note.beamBeats=ticks;
+        note.endBeam=false;
+      });
+      beamGroup[beamGroup.length - 1].endBeam=true;
+    }
+  }
 
     static toggleBeamDirection(selections) {
         selections[0].note.toggleFlagState();
@@ -9480,80 +9546,80 @@ class SmoOperation {
     }
 
     static toggleOrnament(selection,ornament) {
-		selection.note.toggleOrnament(ornament);
-		selection.measure.setChanged();
+  selection.note.toggleOrnament(ornament);
+  selection.measure.setChanged();
     }
 
-	static toggleArticulation(selection, articulation) {
-		selection.note.toggleArticulation(articulation);
-		selection.measure.setChanged();
-	}
+  static toggleArticulation(selection, articulation) {
+  selection.note.toggleArticulation(articulation);
+  selection.measure.setChanged();
+  }
 
-	static addEnding(score, parameters) {
-		var startMeasure = parameters.startBar;
-		var endMeasure = parameters.endBar;
-		var s = 0;
+  static addEnding(score, parameters) {
+    var startMeasure = parameters.startBar;
+    var endMeasure = parameters.endBar;
+    var s = 0;
 
-		// Ending ID ties all the instances of an ending across staves
-		parameters.endingId=VF.Element.newID();
-		score.staves.forEach((staff) => {
-			var m = 0;
-			staff.measures.forEach((measure) => {
-				if (m === startMeasure) {
-					var pp = JSON.parse(JSON.stringify(parameters));
-					pp.startSelector = {
-						staff: s,
-						measure: startMeasure
-					};
-					pp.endSelector = {
-						staff: s,
-						measure: endMeasure
-					};
-					var ending = new SmoVolta(pp);
-					measure.addNthEnding(ending);
-				}
-				measure.setChanged();
-				m += 1;
-			});
-			s += 1;
-		});
-	}
+    // Ending ID ties all the instances of an ending across staves
+    parameters.endingId=VF.Element.newID();
+    score.staves.forEach((staff) => {
+      var m = 0;
+      staff.measures.forEach((measure) => {
+        if (m === startMeasure) {
+          var pp = JSON.parse(JSON.stringify(parameters));
+          pp.startSelector = {
+          staff: s,
+          measure: startMeasure
+          };
+          pp.endSelector = {
+          staff: s,
+          measure: endMeasure
+          };
+          var ending = new SmoVolta(pp);
+          measure.addNthEnding(ending);
+        }
+        measure.setChanged();
+        m += 1;
+      });
+      s += 1;
+    });
+  }
 
-	static addScoreText(score,scoreText) {
-		score.addScoreText(scoreText);
-	}
-	static removeScoreText(score,scoreText) {
-		score.removeScoreText(scoreText);
-	}
+  static addScoreText(score,scoreText) {
+  score.addScoreText(scoreText);
+  }
+  static removeScoreText(score,scoreText) {
+  score.removeScoreText(scoreText);
+  }
 
-	static addMeasureText(score,selection,measureText) {
+  static addMeasureText(score,selection,measureText) {
         var current = selection.measure.getMeasureText();
         // TODO: should we allow multiples per position
         current.forEach((mod) => {
             selection.measure.removeMeasureText(mod.attrs.id);
         });
-		selection.measure.addMeasureText(measureText);
-	}
+  selection.measure.addMeasureText(measureText);
+  }
 
-	static removeMeasureText(score,selection,mt) {
-		selection.measure.removeMeasureText(mt.attrs.id);
-	}
+  static removeMeasureText(score,selection,mt) {
+  selection.measure.removeMeasureText(mt.attrs.id);
+  }
 
-	static addSystemText(score,selection,measureText) {
-		var mm = selection.selector.measure;
-		score.staves.forEach((staff) => {
-			var mt = new SmoMeasureText(measureText.serialize());
-			staff.measures[mm].addMeasureText(mt);
-		});
-	}
+  static addSystemText(score,selection,measureText) {
+  var mm = selection.selector.measure;
+  score.staves.forEach((staff) => {
+  var mt = new SmoMeasureText(measureText.serialize());
+  staff.measures[mm].addMeasureText(mt);
+  });
+  }
 
-	static addRehearsalMark(score,selection,rehearsalMark) {
-		var mm = selection.selector.measure;
-		score.staves.forEach((staff) => {
-			var mt = new SmoRehearsalMark(rehearsalMark.serialize());
+  static addRehearsalMark(score,selection,rehearsalMark) {
+  var mm = selection.selector.measure;
+  score.staves.forEach((staff) => {
+  var mt = new SmoRehearsalMark(rehearsalMark.serialize());
             staff.addRehearsalMark(selection.selector.measure,mt);
-		});
-	}
+  });
+  }
 
     static addLyric(score,selection,lyric) {
         selection.note.addLyric(lyric);
@@ -9564,132 +9630,182 @@ class SmoOperation {
     }
 
     static addTempo(score,selection,tempo) {
-		score.staves.forEach((staff) => {
+  score.staves.forEach((staff) => {
             staff.addTempo(tempo,selection.selector.measure);
-		});
+  });
     }
 
     static removeTempo(score,selection) {
-		score.staves.forEach((staff) => {
+  score.staves.forEach((staff) => {
             staff.removeTempo();
-		});
+  });
     }
 
 
     static removeRehearsalMark(score,selection,rehearsalMark) {
-		score.staves.forEach((staff) => {
+  score.staves.forEach((staff) => {
             staff.removeRehearsalMark(selection.selector.measure);
-		});
-	}
+  });
+  }
 
-	static setMeasureBarline(score, selection, barline) {
-		var mm = selection.selector.measure;
-		var ix = 0;
-		score.staves.forEach((staff) => {
-			var s2 = SmoSelection.measureSelection(score, ix, mm);
-			s2.measure.setBarline(barline);
-			s2.measure.setChanged();
-			ix += 1;
-		});
-	}
+  static setMeasureBarline(score, selection, barline) {
+  var mm = selection.selector.measure;
+  var ix = 0;
+  score.staves.forEach((staff) => {
+  var s2 = SmoSelection.measureSelection(score, ix, mm);
+  s2.measure.setBarline(barline);
+  s2.measure.setChanged();
+  ix += 1;
+  });
+  }
 
-	static setRepeatSymbol(score, selection, sym) {
-		var mm = selection.selector.measure;
-		var ix = 0;
-		score.staves.forEach((staff) => {
-			var s2 = SmoSelection.measureSelection(score, ix, mm);
-			s2.measure.setRepeatSymbol(sym);
-			s2.measure.setChanged();
-			ix += 1;
-		});
-	}
+  static setRepeatSymbol(score, selection, sym) {
+  var mm = selection.selector.measure;
+  var ix = 0;
+  score.staves.forEach((staff) => {
+  var s2 = SmoSelection.measureSelection(score, ix, mm);
+  s2.measure.setRepeatSymbol(sym);
+  s2.measure.setChanged();
+  ix += 1;
+  });
+  }
 
-	// ## interval
-	// Add a pitch at the specified interval to the chord in the selection.
-	static interval(selection, interval) {
-		var measure = selection.measure;
-		var note = selection.note;
-		selection.measure.setChanged();
+  // ## interval
+  // Add a pitch at the specified interval to the chord in the selection.
+  static interval(selection, interval) {
+  var measure = selection.measure;
+  var note = selection.note;
+  selection.measure.setChanged();
 
-		// TODO: figure out which pitch is selected
-		var pitch = note.pitches[0];
-		if (interval > 0) {
-			pitch = note.pitches[note.pitches.length - 1];
-		}
-		var pitch = smoMusic.getIntervalInKey(pitch, measure.keySignature, interval);
-		if (pitch) {
-			note.pitches.push(pitch);
-			note.pitches.sort((x, y) => {
-				return smoMusic.smoPitchToInt(x) - smoMusic.smoPitchToInt(y);
-			});
-			return true;
-		}
-		return false;
-	}
+  // TODO: figure out which pitch is selected
+  var pitch = note.pitches[0];
+  if (interval > 0) {
+  pitch = note.pitches[note.pitches.length - 1];
+  }
+  var pitch = smoMusic.getIntervalInKey(pitch, measure.keySignature, interval);
+  if (pitch) {
+  note.pitches.push(pitch);
+  note.pitches.sort((x, y) => {
+  return smoMusic.smoPitchToInt(x) - smoMusic.smoPitchToInt(y);
+  });
+  return true;
+  }
+  return false;
+  }
 
-	static crescendo(fromSelection, toSelection) {
-		var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
-		var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
-		var modifier = new SmoStaffHairpin({
-				startSelector: fromSelector,
-				endSelector: toSelector,
-				hairpinType: SmoStaffHairpin.types.CRESCENDO,
-				position: SmoStaffHairpin.positions.BELOW
-			});
-		fromSelection.staff.addStaffModifier(modifier);
-	}
+  static crescendo(fromSelection, toSelection) {
+  var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+  var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
+  var modifier = new SmoStaffHairpin({
+  startSelector: fromSelector,
+  endSelector: toSelector,
+  hairpinType: SmoStaffHairpin.types.CRESCENDO,
+  position: SmoStaffHairpin.positions.BELOW
+  });
+  fromSelection.staff.addStaffModifier(modifier);
+  }
 
-	static decrescendo(fromSelection, toSelection) {
-		var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
-		var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
-		var modifier = new SmoStaffHairpin({
-				startSelector: fromSelector,
-				endSelector: toSelector,
-				hairpinType: SmoStaffHairpin.types.DECRESCENDO,
-				position: SmoStaffHairpin.positions.BELOW
-			});
-		fromSelection.staff.addStaffModifier(modifier);
-	}
+  static decrescendo(fromSelection, toSelection) {
+  var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+  var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
+  var modifier = new SmoStaffHairpin({
+  startSelector: fromSelector,
+  endSelector: toSelector,
+  hairpinType: SmoStaffHairpin.types.DECRESCENDO,
+  position: SmoStaffHairpin.positions.BELOW
+  });
+  fromSelection.staff.addStaffModifier(modifier);
+  }
 
-	static slur(fromSelection, toSelection) {
-		var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
-		var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
-		var modifier = new SmoSlur({
-				startSelector: fromSelector,
-				endSelector: toSelector,
-				position: SmoStaffHairpin.positions.BELOW
-			});
-		fromSelection.staff.addStaffModifier(modifier);
-		fromSelection.measure.setChanged();
-		toSelection.measure.setChanged();
-	}
+  static slur(fromSelection, toSelection) {
+  var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+  var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
+  var modifier = new SmoSlur({
+  startSelector: fromSelector,
+  endSelector: toSelector,
+  position: SmoStaffHairpin.positions.BELOW
+  });
+  fromSelection.staff.addStaffModifier(modifier);
+  fromSelection.measure.setChanged();
+  toSelection.measure.setChanged();
+  }
 
-	static addStaff(score, parameters) {
-		score.addStaff(parameters);
-	}
-	static removeStaff(score, index) {
-		score.removeStaff(index);
-	}
-	static changeInstrument(score, instrument, selections) {
-		var measureHash = {};
-		selections.forEach((selection) => {
-			if (!measureHash[selection.selector.measure]) {
-				measureHash[selection.selector.measure] = 1;
-				selection.measure.clef = instrument.clef;
-				selection.measure.setChanged();
-				selection.measure.transposeIndex = instrument.keyOffset;
-				selection.measure.voices.forEach((voice) => {
-					voice.notes.forEach((note) => {
-						note.clef = instrument.clef;
-					});
-				});
-			}
-		});
-	}
+  static addStaff(score, parameters) {
+    score.addStaff(parameters);
+  }
+  static removeStaff(score, index) {
+    score.removeStaff(index);
+  }
 
-	static addMeasure(score, systemIndex, nmeasure) {
-		score.addMeasure(systemIndex, nmeasure);
-	}
+  static transposeChords(smoNote,offset,key) {
+    var chords = smoNote.getModifiers('SmoLyric');
+    chords.forEach((ll) => {
+      if (ll.parser === SmoLyric.parsers.chord) {
+        var tx = ll.getText();
+        // Look for something that looks like a key name
+        if (tx.length >= 1 && (tx[0].toUpperCase() >= 'A'
+          && tx[0].toUpperCase() <= 'G')) {
+          // toffset is 2 if the key has b or # in it
+          var toffset = 1;
+          var newText = tx[0];
+          if (tx.length > 0 && tx[1] === 'b' || tx[1] === '#') {
+            newText += tx[1];
+            toffset = 2;
+          }
+          // Transpose the key, as if it were a key signature (octave has no meaning)
+          var nkey = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(
+            smoMusic.vexToSmoPitch(newText)) + offset);
+          nkey = JSON.parse(JSON.stringify(smoMusic.getEnharmonicInKey(nkey,key)));
+          newText = nkey.letter.toUpperCase();
+
+          // new key may have different length, e.g. Bb to B natural
+          if (nkey.accidental !== 'n') {
+            newText += nkey.accidental;
+          };
+          newText += tx.substr(toffset,tx.length - toffset);
+          ll.setText(newText);
+        }
+      }
+    });
+  }
+  static changeInstrument(score, instrument, selections) {
+    var measureHash = {};
+    selections.forEach((selection) => {
+      if (!measureHash[selection.selector.measure]) {
+        measureHash[selection.selector.measure] = 1;
+        var netOffset = instrument.keyOffset - selection.measure.transposeIndex;
+        var newKey = smoMusic.pitchToVexKey(smoMusic.smoIntToPitch(
+          smoMusic.smoPitchToInt(
+            smoMusic.vexToSmoPitch(selection.measure.keySignature)) + netOffset));
+        newKey = smoMusic.toValidKeySignature(newKey);
+        if (newKey.length > 1 && newKey[1] === 'n') {
+          newKey = newKey[0];
+        }
+        newKey = newKey[0].toUpperCase() + newKey.substr(1,newKey.length)
+        selection.measure.keySignature = newKey;
+        selection.measure.clef = instrument.clef;
+        selection.measure.transposeIndex = instrument.keyOffset;
+        selection.measure.voices.forEach((voice) => {
+          voice.notes.forEach((note) => {
+            if (note.noteType === 'n') {
+              var pitches = [];
+              note.pitches.forEach((pitch) => {
+                var pint = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(pitch) + netOffset);
+                pitches.push(JSON.parse(JSON.stringify(smoMusic.getEnharmonicInKey(pint,newKey))));
+              });
+              note.pitches = pitches;
+              SmoOperation.transposeChords(note,netOffset,newKey);
+            }
+            note.clef = instrument.clef;
+          });
+        });
+      }
+    });
+  }
+
+  static addMeasure(score, systemIndex, nmeasure) {
+  score.addMeasure(systemIndex, nmeasure);
+  }
 }
 ;
 // ## UndoBuffer
@@ -10610,7 +10726,7 @@ class VxMeasure {
         var mod = SmoLyric.toVexPosition(block.position);
         cs.addGlyphOrText(block.text,{symbolModifier:mod});
       });
-      cs.setFontSize(14);
+      cs.setFontSize(14).setReportWidth(false);
       vexNote.addModifier(0,cs);
       const classString = 'chord chord-'+lyric.verse;
       cs.addClass(classString);
@@ -10673,7 +10789,7 @@ class VxMeasure {
   		 smoMusic.ticksToDuration[smoNote.tickCount];
 
   	// transpose for instrument-specific keys
-  	var keys=smoMusic.smoPitchesToVexKeys(smoNote.pitches,this.smoMeasure.transposeIndex);
+  	var keys=smoMusic.smoPitchesToVexKeys(smoNote.pitches,0);
     var noteParams = {
         clef: smoNote.clef,
         keys: keys,
@@ -10920,8 +11036,8 @@ class VxMeasure {
     $(this.context.svg).find('g.' + this.smoMeasure.getClassId()).remove();
 
 
-		var key = smoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature,this.smoMeasure.transposeIndex);
-		var canceledKey = this.smoMeasure.canceledKeySignature ? smoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature,this.smoMeasure.transposeIndex)
+		var key = smoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature,0);
+		var canceledKey = this.smoMeasure.canceledKeySignature ? smoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature,0)
       : this.smoMeasure.canceledKeySignature;
 
     var staffX = this.smoMeasure.staffX + this.smoMeasure.padLeft;
@@ -11475,26 +11591,27 @@ class suiAudioPitch {
         return suiAudioPitch._pmMap;
     }
 
-    static _rawPitchToFrequency(smoPitch) {
-        var vx = smoPitch.letter.toLowerCase() + smoPitch.accidental + smoPitch.octave.toString();
-        return suiAudioPitch.pitchFrequencyMap[vx];
-    }
+  static _rawPitchToFrequency(smoPitch,offset) {
+    var npitch = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(smoPitch) + offset);
+    var vx = npitch.letter.toLowerCase() + npitch.accidental + npitch.octave.toString();
+    return suiAudioPitch.pitchFrequencyMap[vx];
+  }
 
-    static smoPitchToFrequency(smoNote,smoPitch,ix) {
+  static smoPitchToFrequency(smoNote,smoPitch,ix,offset) {
 
-        var rv = suiAudioPitch._rawPitchToFrequency(smoPitch);
-        var mt = smoNote.tones.filter((tt) => tt.pitch == ix);
-        if (mt.length) {
-            var tone = mt[0];
-            var coeff = tone.toPitchCoeff;
-            var pitchInt = smoMusic.smoPitchToInt(smoPitch);
-            pitchInt += (coeff > 0) ? 1 : -1;
-            var otherSmo = smoMusic.smoIntToPitch(pitchInt);
-            var otherPitch = suiAudioPitch._rawPitchToFrequency(otherSmo);
-            rv += Math.abs(rv - otherPitch)*coeff;
-        }
-        return rv;
+    var rv = suiAudioPitch._rawPitchToFrequency(smoPitch,-1 * offset);
+    var mt = smoNote.tones.filter((tt) => tt.pitch == ix);
+    if (mt.length) {
+      var tone = mt[0];
+      var coeff = tone.toPitchCoeff;
+      var pitchInt = smoMusic.smoPitchToInt(smoPitch);
+      pitchInt += (coeff > 0) ? 1 : -1;
+      var otherSmo = smoMusic.smoIntToPitch(pitchInt);
+      var otherPitch = suiAudioPitch._rawPitchToFrequency(otherSmo);
+      rv += Math.abs(rv - otherPitch)*coeff;
     }
+    return rv;
+  }
 }
 
 
@@ -11618,6 +11735,7 @@ class suiOscillator {
 
     static fromNote(measure,note,isSample,gain) {
         var tempo = measure.getTempo();
+        var offset = -1 * measure.transposeIndex;
         tempo = tempo ? tempo : new SmoTempoText();
         var bpm = tempo.bpm;
         var beats = note.tickCount/4096;
@@ -11637,7 +11755,7 @@ class suiOscillator {
         }
         var i = 0;
         note.pitches.forEach((pitch) => {
-            var frequency = suiAudioPitch.smoPitchToFrequency(note,pitch,i);
+            var frequency = suiAudioPitch.smoPitchToFrequency(note,pitch,i, measure.transposeIndex);
             var osc = new suiOscillator({frequency:frequency,duration:duration,gain:gain});
             ar.push(osc);
             i += 1;
@@ -11875,7 +11993,7 @@ class suiAudioPlayer {
                         if (note.noteType == 'n') {
                             var pitchIx = 0;
                             note.pitches.forEach((pitch) => {
-                                var frequency = suiAudioPitch.smoPitchToFrequency(note,pitch,pitchIx);
+                                var frequency = suiAudioPitch.smoPitchToFrequency(note,pitch,pitchIx,-1 * measure.transposeIndex);
                                 var obj = {
                                     duration:duration,
                                     frequency: frequency,
@@ -15564,28 +15682,28 @@ class suiEditor {
 		this.layout.setRefresh();
 	}
 
-    get score() {
-        return this.layout.score;
-    }
+  get score() {
+      return this.layout.score;
+  }
 
-    _renderAndAdvance() {
-      this.tracker.replaceSelectedMeasures();
-		  this.tracker.moveSelectionRight(null,true);
-    }
-    _rebeam() {
-        this.tracker.getSelectedMeasures().forEach((measure) => {
-            smoBeamerFactory.applyBeams(measure);
-        });
-    }
-    _batchDurationOperation(operation) {
-        SmoUndoable.batchDurationOperation(this.layout.score, this.tracker.selections, operation, this.undoBuffer);
-        this._rebeam();
-        this._render();
-    }
+  _renderAndAdvance() {
+    this.tracker.replaceSelectedMeasures();
+	  this.tracker.moveSelectionRight(null,true);
+  }
+  _rebeam() {
+      this.tracker.getSelectedMeasures().forEach((measure) => {
+        smoBeamerFactory.applyBeams(measure);
+      });
+  }
+  _batchDurationOperation(operation) {
+    SmoUndoable.batchDurationOperation(this.layout.score, this.tracker.selections, operation, this.undoBuffer);
+    this._rebeam();
+    this._render();
+  }
 
 	scoreSelectionOperation(selection,name,parameters,description) {
 		SmoUndoable.scoreSelectionOp(this.layout.score,selection,name,parameters,
-			    this.undoBuffer,description);
+	    this.undoBuffer,description);
 		this._render();
 	}
 
@@ -15596,32 +15714,32 @@ class suiEditor {
 	}
 
   _selectionOperation(selection, name, parameters) {
-      if (parameters) {
-        SmoUndoable[name](selection, parameters, this.undoBuffer);
-      } else {
-        SmoUndoable[name](selection, this.undoBuffer);
-      }
-		  this._render();
+    if (parameters) {
+      SmoUndoable[name](selection, parameters, this.undoBuffer);
+    } else {
+      SmoUndoable[name](selection, this.undoBuffer);
     }
+	  this._render();
+  }
 
-    undo() {
-        this.layout.undo(this.undoBuffer);
-    }
+  undo() {
+    this.layout.undo(this.undoBuffer);
+  }
 
-    _singleSelectionOperation(name, parameters) {
-        if (this.tracker.selections.length != 1) {
-            return;
-        }
-        var selection = this.tracker.selections[0];
-        if (parameters) {
-            SmoUndoable[name](selection, parameters, this.undoBuffer);
-        } else {
-            SmoUndoable[name](selection, this.undoBuffer);
-        }
-        suiOscillator.playSelectionNow(selection);
-        this._rebeam();
-        this._render();
+  _singleSelectionOperation(name, parameters) {
+    if (this.tracker.selections.length != 1) {
+      return;
     }
+    var selection = this.tracker.selections[0];
+    if (parameters) {
+      SmoUndoable[name](selection, parameters, this.undoBuffer);
+    } else {
+      SmoUndoable[name](selection, this.undoBuffer);
+    }
+    suiOscillator.playSelectionNow(selection);
+    this._rebeam();
+    this._render();
+  }
 
     _transpose(selection, offset, playSelection) {
         this._selectionOperation(selection, 'transpose', offset);
@@ -15681,35 +15799,34 @@ class suiEditor {
     }
 
     playScore() {
-        var mm = this.tracker.getExtremeSelection(-1);
-        if (suiAudioPlayer.playingInstance && suiAudioPlayer.playingInstance.paused) {
-            suiAudioPlayer.playingInstance.play();
-            return;
-        }
-
-        new suiAudioPlayer({score:this.layout.score,startIndex:mm.selector.measure,tracker:this.tracker}).play();
+      var mm = this.tracker.getExtremeSelection(-1);
+      if (suiAudioPlayer.playingInstance && suiAudioPlayer.playingInstance.paused) {
+        suiAudioPlayer.playingInstance.play();
+        return;
+      }
+      new suiAudioPlayer({score:this.layout.score,startIndex:mm.selector.measure,tracker:this.tracker}).play();
     }
 
     stopPlayer() {
-        suiAudioPlayer.stopPlayer();
+      suiAudioPlayer.stopPlayer();
     }
     pausePlayer() {
-        suiAudioPlayer.pausePlayer();
+      suiAudioPlayer.pausePlayer();
     }
 
     intervalAdd(interval, direction) {
-        this._singleSelectionOperation('interval', direction * interval);
+      this._singleSelectionOperation('interval', direction * interval);
     }
 
     interval(keyEvent) {
-        if (this.tracker.selections.length != 1)
-            return;
-        // code='Digit3'
-        var interval = parseInt(keyEvent.keyCode) - 49;  // 48 === '0', 0 indexed
-        if (isNaN(interval) || interval < 1 || interval > 7) {
-            return;
-        }
-        this.intervalAdd(interval, keyEvent.shiftKey ? -1 : 1);
+      if (this.tracker.selections.length != 1)
+        return;
+      // code='Digit3'
+      var interval = parseInt(keyEvent.keyCode) - 49;  // 48 === '0', 0 indexed
+      if (isNaN(interval) || interval < 1 || interval > 7) {
+        return;
+      }
+      this.intervalAdd(interval, keyEvent.shiftKey ? -1 : 1);
     }
 
     transpose(offset) {
@@ -19361,6 +19478,160 @@ class SuiMeasureDialog extends SuiDialogBase {
 		});
 	}
 }
+
+class SuiInstrumentDialog extends SuiDialogBase {
+  static get ctor() {
+    return 'SuiInstrumentDialog';
+  }
+  get ctor() {
+    return SuiTimeSignatureDialog.ctor;
+  }
+  static get label() {
+    SuiInstrumentDialog._label = SuiInstrumentDialog._label ? SuiInstrumentDialog._label
+     : 'Instrument Properties';
+    return SuiInstrumentDialog._label;
+  }
+  static set label(value) {
+    SuiInstrumentDialog._label = value;
+  }
+  static get applyTo() {
+    return {
+      score: 0,selected:1, remaining: 3
+    };
+  }
+  static get dialogElements() {
+    SuiInstrumentDialog._dialogElements = SuiInstrumentDialog._dialogElements ? SuiInstrumentDialog._dialogElements :
+    [
+      {
+        smoName: 'transposeIndex',
+        parameterName: 'transposeIndex',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label:'Transpose Index (1/2 steps)',
+      },{
+        smoName: 'applyTo',
+        parameterName: 'applyTo',
+        defaultValue: SuiInstrumentDialog.applyTo.score,
+        control: 'SuiDropdownComponent',
+        label:'Apply To',
+        options: [{
+            value: SuiInstrumentDialog.applyTo.score,
+            label: 'Score'
+          }, {
+            value: SuiInstrumentDialog.applyTo.selected,
+            label: 'Selected Measures'
+          }, {
+            value: SuiInstrumentDialog.applyTo.remaining,
+            label: 'Remaining Measures'
+          }
+        ]
+			}
+    ];
+    return SuiInstrumentDialog._dialogElements;
+  }
+  static createAndDisplay(parameters) {
+    /* SuiLyricDialog.createAndDisplay(
+      {
+        buttonElement:this.buttonElement,
+        buttonData:this.buttonData,
+        completeNotifier:this.controller,
+        tracker: this.tracker,
+        layout:this.layout,
+        undoBuffer:this.editor.undoBuffer,
+        eventSource:this.eventSource,
+        editor:this.editor,
+        parser:SmoLyric.parsers.lyric
+      }
+    );  */
+    var db = new SuiInstrumentDialog(parameters);
+    db.display();
+    return db;
+  }
+  display() {
+    $('body').addClass('showAttributeDialog');
+    this.components.forEach((component) => {
+        component.bind();
+    });
+    this._bindComponentNames();
+    this._bindElements();
+    this.position(this.measure.renderedBox);
+    this.tracker.scroller.scrollVisibleBox(
+      svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
+    );
+
+
+    var cb = function (x, y) {}
+    htmlHelpers.draggable({
+      parent: $(this.dgDom.element).find('.attributeModal'),
+      handle: $(this.dgDom.element).find('.jsDbMove'),
+      animateDiv:'.draganime',
+      cb: cb,
+      moveParent: true
+    });
+  }
+  populateInitial() {
+    var ix = this.measure.transposeIndex;
+    this.transposeIndexCtrl.setValue(ix);
+  }
+
+  changed() {
+    var staffIx = this.measure.measureNumber.staffId;
+
+    var xpose = this.transposeIndexCtrl.getValue();
+    var selections = [];
+    for (var i = 0;i < this.score.staves[staffIx].measures.length;++i) {
+      selections.push(SmoSelection.measureSelection(this.score, staffIx, i));
+    }
+    SmoUndoable.changeInstrument(this.score,
+      {
+        instrumentName: 'Treble Instrument',
+        keyOffset: xpose,
+        clef: this.measure.clef
+      },
+      selections,
+      this.undoBuffer);
+
+    this.layout.setRefresh();
+  }
+
+  constructor(parameters) {
+    var selection = parameters.tracker.selections[0];
+    var measure = selection.measure;
+
+    parameters = {selection:selection,measure:measure,...parameters};
+
+    super(SuiInstrumentDialog.dialogElements, {
+      id: 'time-signature-measure',
+      top: measure.renderedBox.y,
+      left: measure.renderedBox.x,
+      ...parameters
+    });
+    this.measure = measure;
+    this.score = this.editor.score;
+    this.refresh = false;
+    this.startPromise=parameters.closeMenuPromise;
+    Vex.Merge(this, parameters);
+  }
+  _bindElements() {
+    var self = this;
+    var dgDom = this.dgDom;
+    this.populateInitial();
+
+   $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+     self.complete();
+   });
+
+   $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+     self.complete();
+   });
+   $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
+     self.complete();
+   });
+  }
+
+}
+
+
 class SuiTimeSignatureDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiTimeSignatureDialog';
@@ -19377,35 +19648,35 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
     SuiTimeSignatureDialog._label = value;
   }
 
-    static get dialogElements() {
-      SuiTimeSignatureDialog._dialogElements = SuiTimeSignatureDialog._dialogElements ? SuiTimeSignatureDialog._dialogElements :
-        [
-          {
-            smoName: 'numerator',
-            parameterName: 'numerator',
-            defaultValue: 3,
-            control: 'SuiRockerComponent',
-            label:'Beats/Measure',
-          },
-  		    {
-            parameterName: 'denominator',
-            smoName: 'denominator',
-            defaultValue: 8,
-            dataType:'int',
-            control: 'SuiDropdownComponent',
-            label: 'Beat Value',
-            options: [{
-              value: 8,
-              label: '8',
-            }, {
-              value: 4,
-              label: '4'
-            }, {
-              value: 2,
-              label: '2'
-            }
-  			 ]
-  		}
+  static get dialogElements() {
+    SuiTimeSignatureDialog._dialogElements = SuiTimeSignatureDialog._dialogElements ? SuiTimeSignatureDialog._dialogElements :
+      [
+        {
+          smoName: 'numerator',
+          parameterName: 'numerator',
+          defaultValue: 3,
+          control: 'SuiRockerComponent',
+          label:'Beats/Measure',
+        },
+		    {
+          parameterName: 'denominator',
+          smoName: 'denominator',
+          defaultValue: 8,
+          dataType:'int',
+          control: 'SuiDropdownComponent',
+          label: 'Beat Value',
+          options: [{
+            value: 8,
+            label: '8',
+          }, {
+            value: 4,
+            label: '4'
+          }, {
+            value: 2,
+            label: '2'
+          }
+        ]
+      }
     ];
 
     return SuiTimeSignatureDialog._dialogElements;
@@ -19421,41 +19692,41 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
   }
 
   changed() {
-      // no dynamic change for time  signatures
+    // no dynamic change for time  signatures
   }
-     static createAndDisplay(params) {
-         // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
-         //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
+ static createAndDisplay(params) {
+     // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
+     //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
 
-         var dg = new SuiTimeSignatureDialog({
-             selections: params.tracker.selections,
-             undoBuffer: params.undoBuffer,
-             layout: params.tracker.layout,
-             completeNotifier :params.completeNotifier,
-             closeMenuPromise:params.closeMenuPromise,
-             tracker: params.tracker
-           });
-         dg.display();
-         return dg;
-     }
-     changeTimeSignature() {
-         var ts = '' + this.numeratorCtrl.getValue() + '/'+this.denominatorCtrl.getValue();
-         SmoUndoable.multiSelectionOperation(this.tracker.layout.score,
-             this.tracker.selections,
-             'setTimeSignature',ts,this.undoBuffer);
-          this.tracker.replaceSelectedMeasures();
-     }
-     _bindElements() {
-         var self = this;
- 		var dgDom = this.dgDom;
-         this.numeratorCtrl = this.components.find((comp) => {return comp.smoName == 'numerator';});
-         this.denominatorCtrl = this.components.find((comp) => {return comp.smoName == 'denominator';});
-         this.populateInitial();
+     var dg = new SuiTimeSignatureDialog({
+        selections: params.tracker.selections,
+        undoBuffer: params.undoBuffer,
+        layout: params.tracker.layout,
+        completeNotifier :params.completeNotifier,
+        closeMenuPromise:params.closeMenuPromise,
+        tracker: params.tracker
+      });
+      dg.display();
+      return dg;
+   }
+   changeTimeSignature() {
+    var ts = '' + this.numeratorCtrl.getValue() + '/'+this.denominatorCtrl.getValue();
+    SmoUndoable.multiSelectionOperation(this.tracker.layout.score,
+      this.tracker.selections,
+      'setTimeSignature',ts,this.undoBuffer);
+      this.tracker.replaceSelectedMeasures();
+   }
+   _bindElements() {
+     var self = this;
+	   var dgDom = this.dgDom;
+     this.numeratorCtrl = this.components.find((comp) => {return comp.smoName == 'numerator';});
+     this.denominatorCtrl = this.components.find((comp) => {return comp.smoName == 'denominator';});
+     this.populateInitial();
 
- 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            self.changeTimeSignature();
- 			self.complete();
- 		});
+		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+          self.changeTimeSignature();
+			self.complete();
+		});
 
  		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
  			self.complete();
@@ -19463,54 +19734,54 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
  		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
  			self.complete();
  		});
+   }
+   display() {
+     $('body').addClass('showAttributeDialog');
+     this.components.forEach((component) => {
+         component.bind();
+     });
+     this._bindElements();
+     this.position(this.measure.renderedBox);
+     this.tracker.scroller.scrollVisibleBox(
+         svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
+     );
+
+
+     var cb = function (x, y) {}
+     htmlHelpers.draggable({
+         parent: $(this.dgDom.element).find('.attributeModal'),
+         handle: $(this.dgDom.element).find('.jsDbMove'),
+          animateDiv:'.draganime',
+         cb: cb,
+         moveParent: true
+     });
+
+     var self=this;
+     function getKeys() {
+         self.completeNotifier.unbindKeyboardForModal(self);
      }
-     display() {
-         $('body').addClass('showAttributeDialog');
-         this.components.forEach((component) => {
-             component.bind();
-         });
-         this._bindElements();
-         this.position(this.measure.renderedBox);
-         this.tracker.scroller.scrollVisibleBox(
-             svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
-         );
+     this.startPromise.then(getKeys);
+   }
+   constructor(parameters) {
+       var measure = parameters.selections[0].measure;
 
+       super(SuiTimeSignatureDialog.dialogElements, {
+           id: 'time-signature-measure',
+           top: measure.renderedBox.y,
+           left: measure.renderedBox.x,
+           label: 'Custom Time Signature',
+			 tracker:parameters.tracker,
+     undoBuffer: parameters.undoBuffer,
+     eventSource: parameters.eventSource,
+     completeNotifier : parameters.completeNotifier,
+     layout: parameters.layout
 
-         var cb = function (x, y) {}
-         htmlHelpers.draggable({
-             parent: $(this.dgDom.element).find('.attributeModal'),
-             handle: $(this.dgDom.element).find('.jsDbMove'),
-              animateDiv:'.draganime',
-             cb: cb,
-             moveParent: true
-         });
-
-         var self=this;
-         function getKeys() {
-             self.completeNotifier.unbindKeyboardForModal(self);
-         }
-         this.startPromise.then(getKeys);
-     }
-     constructor(parameters) {
-         var measure = parameters.selections[0].measure;
-
-         super(SuiTimeSignatureDialog.dialogElements, {
-             id: 'time-signature-measure',
-             top: measure.renderedBox.y,
-             left: measure.renderedBox.x,
-             label: 'Custom Time Signature',
- 			 tracker:parameters.tracker,
-       undoBuffer: parameters.undoBuffer,
-       eventSource: parameters.eventSource,
-       completeNotifier : parameters.completeNotifier,
-       layout: parameters.layout
-
-         });
-         this.measure = measure;
-         this.refresh = false;
-         this.startPromise=parameters.closeMenuPromise;
-         Vex.Merge(this, parameters);
-     }
+       });
+       this.measure = measure;
+       this.refresh = false;
+       this.startPromise=parameters.closeMenuPromise;
+       Vex.Merge(this, parameters);
+   }
  }
 
 
@@ -20711,16 +20982,17 @@ class defaultRibbonLayout {
 	}
 
 	static get leftRibbonIds() {
-		return ['helpDialog','languageMenu', 'fileMenu','addStaffMenu','measureModal','tempoModal','timeSignatureMenu','keyMenu', 'staffModifierMenu', 'staffModifierMenu2','pianoModal','layoutModal'];
+		return ['helpDialog','languageMenu', 'fileMenu','addStaffMenu','measureModal','tempoModal','timeSignatureMenu','keyMenu', 'staffModifierMenu', 'staffModifierMenu2',
+    'instrumentModal','pianoModal','layoutModal'];
 	}
 	static get noteButtonIds() {
 		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton',
             'UpNoteButton', 'DownNoteButton', 'moreNoteButtons','AddGraceNote','RemoveGraceNote','SlashGraceNote',
 				'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
 	}
-    static get voiceButtonIds() {
-        return ['VoiceButtons','V1Button','V2Button','V3Button','V4Button','VXButton'];
-    }
+  static get voiceButtonIds() {
+      return ['VoiceButtons','V1Button','V2Button','V3Button','V4Button','VXButton'];
+  }
 	static get navigateButtonIds()  {
 		return ['NavigationButtons', 'navLeftButton', 'navRightButton', 'navUpButton', 'navDownButton', 'moreNavButtons','navFastForward', 'navRewind',
 				'navGrowLeft', 'navGrowRight'];
@@ -20759,17 +21031,17 @@ class defaultRibbonLayout {
            'staffBracketLower','staffBraceLower','staffDoubleConnectorLower','staffSingleConnectorLower'];
 	}
 
-    static get playerIds() {
-        return ['playerButtons','playButton','pauseButton','stopButton'];
-    }
+  static get playerIds() {
+      return ['playerButtons','playButton','pauseButton','stopButton'];
+  }
 
-    static get microtoneIds() {
-        return ['MicrotoneButtons','flat75sz','flat25sz','flat25ar','flat125ar','sharp75','sharp125','sharp25','sori','koron'];
-    }
+  static get microtoneIds() {
+      return ['MicrotoneButtons','flat75sz','flat25sz','flat25ar','flat125ar','sharp75','sharp125','sharp25','sori','koron'];
+  }
 
-    static get displayIds() {
-        return ['displaySettings','refresh','zoomout','zoomin'];
-    }
+  static get displayIds() {
+      return ['displaySettings','refresh','zoomout','zoomin'];
+  }
 
 
   static get textRibbonButtons() {
@@ -22125,7 +22397,18 @@ class defaultRibbonLayout {
 				ctor: 'SuiKeySignatureMenu',
 				group: 'scoreEdit',
 				id: 'keyMenu'
-			}, {
+			},
+      {
+       leftText: 'Instrument',
+       rightText: '',
+       icon: '',
+       classes: 'icon',
+       action: 'modal',
+       ctor: 'SuiInstrumentDialog',
+       group: 'scoreEdit',
+       id: 'instrumentModal'
+     },
+      {
 				leftText: 'Lines',
 				rightText: '/l',
 				icon: '',
@@ -22367,7 +22650,7 @@ class vexGlyph {
 		};
 	}
 }
-;var yamaJson = `{"a":{"b":{"c":30,"d":30,"e":40,"f":40,"g":816,"h":1056,"i":0,"j":30,"k":10,"l":0.6,"m":2.107843137254902,"n":2,"o":1},"q":0,"r":{},"ce":"Petaluma"},"s":[{"t":0,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Treble Instrument","ca":"0","da":"treble"},"ea":[{"fa":{"ga":0,"ha":0,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":0,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":2,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":2,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":2,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":2,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":5,"ia":0,"ja":3,"ka":[]},"la":{"ga":0,"ha":5,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":6,"ia":0,"ja":3,"ka":[]},"la":{"ga":0,"ha":6,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":1,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":1,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":3,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":3,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":7,"ia":0,"ja":3,"ka":[]},"la":{"ga":0,"ha":7,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":10,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":10,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":10,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":10,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":11,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":11,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":15,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":15,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":16,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":16,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":17,"ia":0,"ja":12,"ka":[]},"la":{"ga":0,"ha":17,"ia":0,"ja":13,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":17,"ia":0,"ja":14,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":0,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":18,"ia":0,"ja":9,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":10,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":20,"ia":0,"ja":15,"ka":[]},"la":{"ga":0,"ha":20,"ia":0,"ja":16,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":0,"za":0,"ab":0,"t":0},"bb":118.82000000000001,"cb":[{"pa":{"qa":"auto196875","ra":"SmoTuplet"},"q":3},{"pa":{"qa":"auto203439","ra":"SmoTuplet"},"q":6},{"ud":[2,1],"pa":{"qa":"auto210860","ra":"SmoTuplet"},"q":1}],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto210860","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto210860","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto196875","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":12,"sa":"SmoLyric","_text":"Bb-7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto196875","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto196875","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto203439","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto203439","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"od":{"qa":"auto203439","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":1,"za":1,"ab":1,"t":0},"bb":6,"cb":[{"ud":[2,1],"pa":{"qa":"auto11224","ra":"SmoTuplet"},"q":1},{"pa":{"qa":"auto11233","ra":"SmoTuplet"},"q":3},{"pa":{"qa":"auto11240","ra":"SmoTuplet"},"q":6}],"db":[{"eb":[{"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto11224","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto11224","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto11233","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":10,"sa":"SmoLyric","_text":"Bb-7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto11233","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto11233","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto11240","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto11240","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"od":{"qa":"auto11240","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ld":true,"ya":{"ya":2,"za":2,"ab":0,"t":0},"bb":118.82000000000001,"be":83,"cb":[{"ud":[2,1],"pa":{"qa":"auto8246","ra":"SmoTuplet"},"q":1},{"pa":{"qa":"auto8256","ra":"SmoTuplet"},"q":3},{"pa":{"qa":"auto8263","ra":"SmoTuplet"},"q":6}],"db":[{"eb":[{"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto8246","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto8246","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto8256","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":10,"sa":"SmoLyric","_text":"Bb-7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto8256","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto8256","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto8263","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto8263","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"od":{"qa":"auto8263","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":3,"za":3,"ab":1,"t":0},"bb":6,"cb":[{"ud":[2,1],"pa":{"qa":"auto31809","ra":"SmoTuplet"},"q":1},{"pa":{"qa":"auto31819","ra":"SmoTuplet"},"q":3},{"pa":{"qa":"auto31826","ra":"SmoTuplet"},"q":6}],"db":[{"eb":[{"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto31809","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto31809","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto31819","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":10,"sa":"SmoLyric","_text":"Bb-7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto31819","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto31819","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto31826","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"od":{"qa":"auto31826","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto31826","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ld":true,"ya":{"ya":4,"za":4,"ab":0,"t":0},"bb":118.82000000000001,"cb":[],"db":[{"eb":[{"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F-7 "}]},{"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Eb7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[{"sa":"SmoRehearsalMark"}]},{"ya":{"ya":5,"za":5,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Db7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Bb7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":6,"za":6,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"B7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Gb-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":7,"za":7,"ab":3,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Db7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"C7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"}]}],"ea":[]},{"ld":true,"ya":{"ya":8,"za":8,"ab":0,"t":0},"bb":118.82000000000001,"cb":[],"db":[{"eb":[{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"E+5 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":9,"za":9,"ab":1,"t":0},"bb":6,"cb":[{"pa":{"qa":"auto100919","ra":"SmoTuplet"},"q":1}],"db":[{"eb":[{"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Db7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"d","lb":"b","kb":4}],"od":{"qa":"auto100919","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto100919","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto100919","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Gb-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":10,"za":10,"ab":2,"t":0},"bb":6,"be":10,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":3}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"EbMaj7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":11,"za":11,"ab":3,"t":0},"bb":6,"cb":[{"ud":[2,1],"pa":{"qa":"auto303621","ra":"SmoTuplet"},"q":0},{"pa":{"qa":"auto320948","ra":"SmoTuplet"},"q":6},{"pa":{"qa":"auto10785","ra":"SmoTuplet"},"q":2}],"db":[{"eb":[{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto303621","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":16,"sa":"SmoLyric","_text":"Db7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto303621","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto10785","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"od":{"qa":"auto10785","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto10785","ra":"SmoTuplet"},"da":"treble"},{"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"b","kb":4}],"oc":"r","od":{"qa":"auto320948","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":1366,"sb":[{"parser":2,"gc":15,"sa":"SmoLyric","_text":"C7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto320948","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":1365},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto320948","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":1365}]}],"ea":[]},{"ld":true,"ya":{"ya":12,"za":12,"ab":0,"t":0},"bb":118.82000000000001,"cb":[{"ud":[1,2],"pa":{"qa":"auto46986","ra":"SmoTuplet"},"q":3}],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"tc":1,"sb":[{"parser":2,"sa":"SmoLyric","_text":"Bb7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto46986","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2730,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto46986","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":13,"za":13,"ab":1,"t":0},"bb":6,"cb":[{"td":1024,"ud":[1,1,1,1,1],"pa":{"qa":"auto147967","ra":"SmoTuplet"},"q":1}],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Eb7 "}]},{"fb":{"gb":819,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Ab7 "}]},{"fb":{"gb":819,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":819,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":819,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":819,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":14,"za":14,"ab":2,"t":0},"bb":6,"cb":[{"ud":[2,1],"pa":{"qa":"auto127112","ra":"SmoTuplet"},"q":1},{"pa":{"qa":"auto127379","ra":"SmoTuplet"},"q":4}],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Db7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"c","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto127112","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":14,"sa":"SmoLyric","_text":"C7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"od":{"qa":"auto127112","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto127379","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"od":{"qa":"auto127379","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto127379","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":15,"za":15,"ab":3,"t":0},"bb":6,"cb":[{"pa":{"qa":"auto239480","ra":"SmoTuplet"},"q":3}],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048},{"ka":[{"jb":"f","lb":"n","kb":4}],"od":{},"da":"treble","sb":[{"parser":2,"gc":10,"sa":"SmoLyric","_text":"Bb-7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto239480","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"od":{"qa":"auto239480","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto239480","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":16,"za":16,"ab":4,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"gc":1,"sa":"SmoLyric","_text":"F7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"sa":"SmoLyric","_text":"Bb-7 "}]},{"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"}]}],"ea":[{"kd":1,"sa":"SmoBarline"}]},{"ld":true,"ya":{"ya":17,"za":17,"ab":0,"t":0},"bb":118.82000000000001,"be":-25,"cb":[{"ud":[1,1,0.5,0.5],"pa":{"qa":"auto32682","ra":"SmoTuplet"},"q":8}],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"oc":"r","da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"oc":"r","da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":2},"ka":[{"jb":"f","lb":"n","kb":5}],"od":{"qa":"auto32682","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Eb7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto32682","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto32682","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto32682","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":18,"za":18,"ab":1,"t":0},"bb":6,"be":55,"de":12,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto439759","ra":"SmoTuplet"},"q":1},{"ud":[1,2],"pa":{"qa":"auto152250","ra":"SmoTuplet"},"q":6},{"td":1024,"sd":2048,"pa":{"qa":"auto193687","ra":"SmoTuplet"},"q":5}],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"gc":10,"sa":"SmoLyric","_text":"Db7 "}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto439759","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto439759","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto439759","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto193687","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto193687","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto193687","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"d","lb":"n","kb":4}],"od":{"qa":"auto152250","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":16,"sa":"SmoLyric","_text":"Bb7 "}]},{"fb":{"gb":2730,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"od":{"qa":"auto152250","ra":"SmoTuplet"},"da":"treble"},{"ka":[{"jb":"b","lb":"b","kb":3}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":19,"za":19,"ab":2,"t":0},"bb":6,"be":41,"de":12,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"B7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Gb-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"b","kb":4}],"da":"treble"}]}],"ea":[]},{"ld":true,"ya":{"ya":20,"za":20,"ab":0,"t":0},"bb":118.82000000000001,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto52582","ra":"SmoTuplet"},"q":5},{"td":1024,"sd":2048,"pa":{"qa":"auto273903","ra":"SmoTuplet"},"q":10}],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"sa":"SmoLyric","_text":"Db7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","rb":true,"qb":1024,"sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto52582","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto52582","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto52582","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"C7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"#","kb":4}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"e","lb":"n","kb":4}],"od":{"qa":"auto273903","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto273903","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto273903","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":2048},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048}]}],"ea":[]},{"ya":{"ya":21,"za":21,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"E7+5 "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ld":true,"ya":{"ya":22,"za":22,"ab":0,"t":0},"bb":118.82000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"sa":"SmoLyric","_text":"Db7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","kb":4,"lb":"b"}],"da":"treble","qb":2048,"sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","kb":4,"lb":"b"}],"da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","kb":4,"lb":"n"}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","kb":4,"lb":"b"}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Gb-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"b","kb":5,"pc":false}],"da":"treble","rb":true,"qb":1024},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble"}]}],"ea":[]},{"ya":{"ya":23,"za":23,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"EbMaj7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":24,"za":24,"ab":2,"t":0},"bb":6,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto639348","ra":"SmoTuplet"},"q":0},{"td":1024,"sd":2048,"pa":{"qa":"auto678974","ra":"SmoTuplet"},"q":5}],"db":[{"eb":[{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto639348","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":20,"sa":"SmoLyric","_text":"Db7 "}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto639348","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto639348","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto678974","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto678974","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto678974","ra":"SmoTuplet"},"da":"treble"},{"ka":[{"jb":"d","lb":"#","kb":5}],"da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]}]}],"yc":[],"yd":[],"ee":{"wa":{"0":"4/4"},"xa":{"0":"Eb"},"fe":{"0":{"sa":"SmoTempoText","pa":{"qa":"auto1018","ra":"SmoTempoText"},"id":"duration","nb":96,"ob":true,"pb":4096,"jd":"Allegro","ta":0}}},"dictionary":{"a":"score","b":"layout","c":"leftMargin","d":"rightMargin","e":"topMargin","f":"bottomMargin","g":"pageWidth","h":"pageHeight","i":"orientation","j":"interGap","k":"intraGap","l":"svgScale","m":"zoomScale","n":"zoomMode","o":"pages","p":"pageSize","q":"startIndex","r":"renumberingMap","s":"staves","t":"staffId","u":"staffX","v":"staffY","w":"adjY","x":"staffWidth","y":"staffHeight","z":"keySignatureMap","aa":"instrumentInfo","ba":"instrumentName","ca":"keyOffset","da":"clef","ea":"modifiers","fa":"startSelector","ga":"staff","ha":"measure","ia":"voice","ja":"tick","ka":"pitches","la":"endSelector","ma":"xOffset","na":"cp1y","oa":"cp2y","pa":"attrs","qa":"id","ra":"type","sa":"ctor","ta":"yOffset","ua":"position","va":"measures","wa":"timeSignature","xa":"keySignature","ya":"measureNumber","za":"measureIndex","ab":"systemIndex","bb":"adjX","cb":"tuplets","db":"voices","eb":"notes","fb":"ticks","gb":"numerator","hb":"denominator","ib":"remainder","jb":"letter","kb":"octave","lb":"accidental","mb":"symbol","nb":"bpm","ob":"display","pb":"beatDuration","qb":"beamBeats","rb":"endBeam","sb":"textModifiers","tb":"text","ub":"endChar","vb":"fontInfo","wb":"size","xb":"family","yb":"style","zb":"weight","ac":"classes","bc":"verse","cc":"fill","dc":"scaleX","ec":"scaleY","fc":"translateX","gc":"translateY","hc":"selector","ic":"renderedBox","jc":"x","kc":"y","lc":"width","mc":"height","nc":"logicalBox","oc":"noteType","pc":"cautionary","qc":"articulations","rc":"articulation","sc":"activeVoice","tc":"flagState","uc":"invert","vc":"fontSize","wc":"yOffsetLine","xc":"yOffsetPixels","yc":"scoreText","zc":"backup","ad":"edited","bd":"pagination","cd":"boxModel","dd":"justification","ed":"autoLayout","fd":"ornaments","gd":"offset","hd":"ornament","id":"tempoMode","jd":"tempoText","kd":"barline","ld":"systemBreak","md":"graceNotes","nd":"tones","od":"tuplet","pd":"beam_group","qd":"renderId","rd":"numNotes","sd":"totalTicks","td":"stemTicks","ud":"durationMap","vd":"bracketed","wd":"ratioed","xd":"location","yd":"systemGroups","zd":"leftConnector","ae":"padLeft","be":"customStretch","ce":"engravingFont","de":"customProportion","ee":"columnAttributeMap","fe":"tempo"}}`;
+;var yamaJson = `{"a":{"b":{"c":30,"d":30,"e":40,"f":40,"g":816,"h":1056,"i":0,"j":30,"k":10,"l":0.6,"m":2.107843137254902,"n":2,"o":1},"q":0,"r":{},"ce":"Petaluma"},"s":[{"t":0,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Treble Instrument","ca":"0","da":"treble"},"ea":[{"fa":{"ga":0,"ha":0,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":0,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":2,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":2,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":2,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":2,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":5,"ia":0,"ja":3,"ka":[]},"la":{"ga":0,"ha":5,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":6,"ia":0,"ja":3,"ka":[]},"la":{"ga":0,"ha":6,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":1,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":1,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":3,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":3,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":7,"ia":0,"ja":3,"ka":[]},"la":{"ga":0,"ha":7,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":10,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":10,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":10,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":10,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":11,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":11,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":15,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":15,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":16,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":16,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":17,"ia":0,"ja":12,"ka":[]},"la":{"ga":0,"ha":17,"ia":0,"ja":13,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":17,"ia":0,"ja":14,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":0,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":18,"ia":0,"ja":9,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":10,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":20,"ia":0,"ja":15,"ka":[]},"la":{"ga":0,"ha":20,"ia":0,"ja":16,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":25,"ia":0,"ja":12,"ka":[]},"la":{"ga":0,"ha":25,"ia":0,"ja":13,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":25,"ia":0,"ja":16,"ka":[]},"la":{"ga":0,"ha":26,"ia":0,"ja":0,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":24,"ia":0,"ja":8,"ka":[]},"la":{"ga":0,"ha":24,"ia":0,"ja":9,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":25,"ia":0,"ja":8,"ka":[]},"la":{"ga":0,"ha":25,"ia":0,"ja":9,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":26,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":26,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":26,"ia":0,"ja":11,"ka":[]},"la":{"ga":0,"ha":26,"ia":0,"ja":12,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":29,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":29,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":0,"za":0,"ab":0,"t":0},"bb":118.82000000000001,"cb":[{"pa":{"qa":"auto196875","ra":"SmoTuplet"},"q":3},{"pa":{"qa":"auto203439","ra":"SmoTuplet"},"q":6},{"ud":[2,1],"pa":{"qa":"auto210860","ra":"SmoTuplet"},"q":1}],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F^-7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto210860","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto210860","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto196875","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":12,"sa":"SmoLyric","_text":"Bb^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto196875","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto196875","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto203439","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto203439","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"od":{"qa":"auto203439","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":1,"za":1,"ab":1,"t":0},"bb":6,"cb":[{"ud":[2,1],"pa":{"qa":"auto11224","ra":"SmoTuplet"},"q":1},{"pa":{"qa":"auto11233","ra":"SmoTuplet"},"q":3},{"pa":{"qa":"auto11240","ra":"SmoTuplet"},"q":6}],"db":[{"eb":[{"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F^-7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto11224","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto11224","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto11233","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":9,"sa":"SmoLyric","_text":"Bb7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto11233","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto11233","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto11240","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto11240","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"od":{"qa":"auto11240","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":2,"za":2,"ab":2,"t":0},"bb":6,"be":83,"cb":[{"ud":[2,1],"pa":{"qa":"auto8246","ra":"SmoTuplet"},"q":1},{"pa":{"qa":"auto8256","ra":"SmoTuplet"},"q":3},{"pa":{"qa":"auto8263","ra":"SmoTuplet"},"q":6}],"db":[{"eb":[{"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F^-7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto8246","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto8246","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto8256","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":9,"sa":"SmoLyric","_text":"Bb^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto8256","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto8256","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto8263","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto8263","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"od":{"qa":"auto8263","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":3,"za":3,"ab":3,"t":0},"bb":6,"cb":[{"ud":[2,1],"pa":{"qa":"auto31809","ra":"SmoTuplet"},"q":1},{"pa":{"qa":"auto31819","ra":"SmoTuplet"},"q":3},{"pa":{"qa":"auto31826","ra":"SmoTuplet"},"q":6}],"db":[{"eb":[{"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F^-7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto31809","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto31809","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto31819","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":10,"sa":"SmoLyric","_text":"Bb^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto31819","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto31819","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto31826","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"od":{"qa":"auto31826","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto31826","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ld":true,"ya":{"ya":4,"za":4,"ab":0,"t":0},"bb":118.82000000000001,"cb":[],"db":[{"eb":[{"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F^-7 "}]},{"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Eb^Maj7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[{"sa":"SmoRehearsalMark"}]},{"ya":{"ya":5,"za":5,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Db^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Bb^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":6,"za":6,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"B^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Gb^-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":7,"za":7,"ab":3,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Db^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"C^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"}]}],"ea":[]},{"ld":true,"ya":{"ya":8,"za":8,"ab":0,"t":0},"bb":118.82000000000001,"cb":[],"db":[{"eb":[{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F^-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"E^+5 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":9,"za":9,"ab":1,"t":0},"bb":6,"cb":[{"pa":{"qa":"auto100919","ra":"SmoTuplet"},"q":1}],"db":[{"eb":[{"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Db^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"d","lb":"b","kb":4}],"od":{"qa":"auto100919","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto100919","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto100919","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Gb^-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":10,"za":10,"ab":2,"t":0},"bb":6,"be":10,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":3}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F^-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Eb^Maj7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":11,"za":11,"ab":3,"t":0},"bb":6,"cb":[{"ud":[2,1],"pa":{"qa":"auto303621","ra":"SmoTuplet"},"q":0},{"pa":{"qa":"auto320948","ra":"SmoTuplet"},"q":6},{"pa":{"qa":"auto10785","ra":"SmoTuplet"},"q":2}],"db":[{"eb":[{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto303621","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":14,"sa":"SmoLyric","_text":"Db^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto303621","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto10785","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"od":{"qa":"auto10785","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto10785","ra":"SmoTuplet"},"da":"treble"},{"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"C^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"b","kb":4}],"oc":"r","od":{"qa":"auto320948","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":1366,"sb":[{"parser":2,"gc":7,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto320948","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":1365,"sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto320948","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":1365}]}],"ea":[]},{"ld":true,"ya":{"ya":12,"za":12,"ab":0,"t":0},"bb":118.82000000000001,"cb":[{"ud":[1,2],"pa":{"qa":"auto46986","ra":"SmoTuplet"},"q":3}],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F^-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"tc":1,"sb":[{"parser":2,"sa":"SmoLyric","_text":"Bb^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto46986","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2730,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto46986","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":13,"za":13,"ab":1,"t":0},"bb":6,"cb":[{"td":1024,"ud":[1,1,1,1,1],"pa":{"qa":"auto147967","ra":"SmoTuplet"},"q":1}],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Eb^7 "}]},{"fb":{"gb":819,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Ab^7 "}]},{"fb":{"gb":819,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":819,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":819,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":819,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":14,"za":14,"ab":2,"t":0},"bb":6,"cb":[{"ud":[2,1],"pa":{"qa":"auto127112","ra":"SmoTuplet"},"q":1},{"pa":{"qa":"auto127379","ra":"SmoTuplet"},"q":4}],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Db^7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"c","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto127112","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":14,"sa":"SmoLyric","_text":"C^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"od":{"qa":"auto127112","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto127379","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"od":{"qa":"auto127379","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto127379","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":15,"za":15,"ab":3,"t":0},"bb":6,"cb":[{"pa":{"qa":"auto239480","ra":"SmoTuplet"},"q":3}],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048},{"ka":[{"jb":"f","lb":"n","kb":4}],"od":{},"da":"treble","sb":[{"parser":2,"gc":10,"sa":"SmoLyric","_text":"Bb^-7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto239480","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"od":{"qa":"auto239480","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto239480","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":16,"za":16,"ab":4,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"gc":1,"sa":"SmoLyric","_text":"F^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"sa":"SmoLyric","_text":"Bb^-7 "}]},{"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"}]}],"ea":[{"kd":1,"sa":"SmoBarline"}]},{"ld":true,"ya":{"ya":17,"za":17,"ab":0,"t":0},"bb":118.82000000000001,"be":-25,"cb":[{"ud":[1,1,0.5,0.5],"pa":{"qa":"auto32682","ra":"SmoTuplet"},"q":8}],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":2},"ka":[{"jb":"f","lb":"n","kb":5}],"od":{"qa":"auto32682","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":9,"sa":"SmoLyric","_text":"Eb^Maj7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto32682","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto32682","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto32682","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":18,"za":18,"ab":1,"t":0},"bb":6,"be":55,"de":12,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto439759","ra":"SmoTuplet"},"q":1},{"ud":[1,2],"pa":{"qa":"auto152250","ra":"SmoTuplet"},"q":6},{"td":1024,"sd":2048,"pa":{"qa":"auto193687","ra":"SmoTuplet"},"q":5}],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"gc":10,"sa":"SmoLyric","_text":"Db^7 "}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto439759","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto439759","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto439759","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto193687","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto193687","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto193687","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"d","lb":"n","kb":4}],"od":{"qa":"auto152250","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":16,"sa":"SmoLyric","_text":"Bb^7 "}]},{"fb":{"gb":2730,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"od":{"qa":"auto152250","ra":"SmoTuplet"},"da":"treble"},{"ka":[{"jb":"b","lb":"b","kb":3}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":19,"za":19,"ab":2,"t":0},"bb":6,"be":41,"de":12,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"B^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F#^b-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"#","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4,"pc":false}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"#","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":20,"za":20,"ab":0,"t":0},"bb":118.82000000000001,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto52582","ra":"SmoTuplet"},"q":5},{"td":1024,"sd":2048,"pa":{"qa":"auto273903","ra":"SmoTuplet"},"q":10}],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"sa":"SmoLyric","_text":"Db^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","rb":true,"qb":1024,"sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto52582","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto52582","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto52582","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"C^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"#","kb":4}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"e","lb":"n","kb":4}],"od":{"qa":"auto273903","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto273903","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto273903","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":2048},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048}]}],"ea":[]},{"ya":{"ya":21,"za":21,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"E7^+5 "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ld":true,"ya":{"ya":22,"za":22,"ab":0,"t":0},"bb":118.82000000000001,"de":-8,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"sa":"SmoLyric","_text":"Db^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","kb":4,"lb":"b"}],"da":"treble","qb":2048,"sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","kb":4,"lb":"b"}],"da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","kb":4,"lb":"n"}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","kb":4,"lb":"b"}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","kb":4,"lb":"b"}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F#-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"#","kb":5,"pc":true}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5,"pc":false}],"da":"treble","rb":true,"qb":1024},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble"}]}],"ea":[]},{"ya":{"ya":23,"za":23,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Eb^Maj7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":24,"za":24,"ab":2,"t":0},"bb":6,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto639348","ra":"SmoTuplet"},"q":0},{"td":1024,"sd":2048,"pa":{"qa":"auto1649531","ra":"SmoTuplet"},"q":4},{"td":1024,"sd":2048,"pa":{"qa":"auto1805448","ra":"SmoTuplet"},"q":10}],"db":[{"eb":[{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto639348","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":17,"sa":"SmoLyric","_text":"Db^7 "}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto639348","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto639348","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","rb":true},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto1649531","ra":"SmoTuplet"},"da":"treble","qb":684},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto1649531","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":682},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto1649531","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":682},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble","rb":true,"qb":2048},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"C^7 "}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto1805448","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto1805448","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto1805448","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":4,"pc":true}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":25,"za":25,"ab":0,"t":0},"bb":118.82000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":3}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F^-7 "}]},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"oc":"r","da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5,"pc":true}],"da":"treble","sb":[{"parser":2,"gc":5,"sa":"SmoLyric","_text":"Bb^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":26,"za":26,"ab":1,"t":0},"bb":6,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto2041825","ra":"SmoTuplet"},"q":11}],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":2048,"sb":[{"parser":2,"sa":"SmoLyric","_text":"Eb^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Ab^7 "}],"md":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"slash":true,"sa":"SmoGraceNote"}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto2041825","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto2041825","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto2041825","ra":"SmoTuplet"},"da":"treble","rb":true},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"oc":"r","od":{},"da":"treble"}]}],"ea":[]},{"ya":{"ya":27,"za":27,"ab":2,"t":0},"bb":6,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto2138794","ra":"SmoTuplet"},"q":7},{"td":1024,"sd":2048,"pa":{"qa":"auto2410639","ra":"SmoTuplet"},"q":10}],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":5}],"oc":"r","da":"treble","rb":true,"qb":1024,"sb":[{"parser":2,"sa":"SmoLyric","_text":"Db^7 "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto2138794","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":20,"sa":"SmoLyric","_text":"C^7 "}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto2138794","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto2138794","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","rb":true},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"e","lb":"n","kb":4}],"od":{"qa":"auto2410639","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto2410639","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto2410639","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","rb":true}]}],"ea":[]},{"ya":{"ya":28,"za":28,"ab":0,"t":0},"bb":118.82000000000001,"cb":[{"pa":{"qa":"auto310764","ra":"SmoTuplet"},"q":1},{"td":1024,"sd":2048,"pa":{"qa":"auto1286701","ra":"SmoTuplet"},"q":8},{"td":1024,"sd":2048,"pa":{"qa":"auto1323888","ra":"SmoTuplet"},"q":11}],"db":[{"eb":[{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F^-7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"d","lb":"n","kb":5}],"oc":"r","od":{"qa":"auto310764","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"od":{"qa":"auto310764","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"od":{"qa":"auto310764","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Bb^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"d","lb":"n","kb":5}],"od":{"qa":"auto1286701","ra":"SmoTuplet"},"da":"treble","md":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":5}],"slash":true,"sa":"SmoGraceNote"}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"oc":"r","od":{"qa":"auto1286701","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto1286701","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto1323888","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto1323888","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto1323888","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":29,"za":29,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F^-7 "}],"md":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"slash":true,"sa":"SmoGraceNote"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Bb^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"}]}],"ea":[{"kd":1,"sa":"SmoBarline"}]},{"ya":{"ya":30,"za":30,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F^-7 "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Eb^Maj "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"treble"}]}],"ea":[]},{"ld":true,"ya":{"ya":31,"za":31,"ab":0,"t":0},"bb":118.82000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Db^7 "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Bb^7 "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":3}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":32,"za":32,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"B^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":1024,"sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"b","kb":4}],"da":"treble","qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","rb":true,"qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"b","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F#^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"b","kb":5}],"da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","rb":true,"qb":1024},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048}]}],"ea":[]},{"ya":{"ya":33,"za":33,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Db^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","rb":true,"qb":1024},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"C^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":34,"za":34,"ab":0,"t":0},"bb":118.82000000000001,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto2828176","ra":"SmoTuplet"},"q":1}],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"d","lb":"n","kb":5}],"od":{"qa":"auto2828176","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto2828176","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"od":{"qa":"auto2828176","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"oc":"r","da":"treble"}]}],"ea":[]}]}],"yc":[],"yd":[],"ee":{"wa":{"0":"4/4"},"xa":{"0":"Eb"},"fe":{"0":{"sa":"SmoTempoText","pa":{"qa":"auto1018","ra":"SmoTempoText"},"id":"duration","nb":96,"ob":true,"pb":4096,"jd":"Allegro","ta":16},"1":{"sa":"SmoTempoText","pa":{"qa":"auto1042","ra":"SmoTempoText"},"id":"duration","nb":96,"ob":true,"pb":4096,"jd":"Allegro","ta":0}}},"dictionary":{"a":"score","b":"layout","c":"leftMargin","d":"rightMargin","e":"topMargin","f":"bottomMargin","g":"pageWidth","h":"pageHeight","i":"orientation","j":"interGap","k":"intraGap","l":"svgScale","m":"zoomScale","n":"zoomMode","o":"pages","p":"pageSize","q":"startIndex","r":"renumberingMap","s":"staves","t":"staffId","u":"staffX","v":"staffY","w":"adjY","x":"staffWidth","y":"staffHeight","z":"keySignatureMap","aa":"instrumentInfo","ba":"instrumentName","ca":"keyOffset","da":"clef","ea":"modifiers","fa":"startSelector","ga":"staff","ha":"measure","ia":"voice","ja":"tick","ka":"pitches","la":"endSelector","ma":"xOffset","na":"cp1y","oa":"cp2y","pa":"attrs","qa":"id","ra":"type","sa":"ctor","ta":"yOffset","ua":"position","va":"measures","wa":"timeSignature","xa":"keySignature","ya":"measureNumber","za":"measureIndex","ab":"systemIndex","bb":"adjX","cb":"tuplets","db":"voices","eb":"notes","fb":"ticks","gb":"numerator","hb":"denominator","ib":"remainder","jb":"letter","kb":"octave","lb":"accidental","mb":"symbol","nb":"bpm","ob":"display","pb":"beatDuration","qb":"beamBeats","rb":"endBeam","sb":"textModifiers","tb":"text","ub":"endChar","vb":"fontInfo","wb":"size","xb":"family","yb":"style","zb":"weight","ac":"classes","bc":"verse","cc":"fill","dc":"scaleX","ec":"scaleY","fc":"translateX","gc":"translateY","hc":"selector","ic":"renderedBox","jc":"x","kc":"y","lc":"width","mc":"height","nc":"logicalBox","oc":"noteType","pc":"cautionary","qc":"articulations","rc":"articulation","sc":"activeVoice","tc":"flagState","uc":"invert","vc":"fontSize","wc":"yOffsetLine","xc":"yOffsetPixels","yc":"scoreText","zc":"backup","ad":"edited","bd":"pagination","cd":"boxModel","dd":"justification","ed":"autoLayout","fd":"ornaments","gd":"offset","hd":"ornament","id":"tempoMode","jd":"tempoText","kd":"barline","ld":"systemBreak","md":"graceNotes","nd":"tones","od":"tuplet","pd":"beam_group","qd":"renderId","rd":"numNotes","sd":"totalTicks","td":"stemTicks","ud":"durationMap","vd":"bracketed","wd":"ratioed","xd":"location","yd":"systemGroups","zd":"leftConnector","ae":"padLeft","be":"customStretch","ce":"engravingFont","de":"customProportion","ee":"columnAttributeMap","fe":"tempo"}}`;
 ;var inventionJson = `{"a":{"b":{"c":30,"d":30,"e":150,"f":40,"g":816,"h":1056,"i":0,"j":30,"k":15,"l":0.7,"m":1.4641000000000006,"n":2,"o":2,"p":"letter"},"q":0,"r":{},"ce":"Bravura"},"s":[{"t":0,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Treble Instrument","ca":"0","da":"treble"},"ea":[{"fa":{"ga":0,"ha":4,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":4,"ia":0,"ja":1,"ka":[]},"ma":-3,"na":34,"oa":17,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":5,"ia":0,"ja":9,"ka":[]},"la":{"ga":0,"ha":5,"ia":0,"ja":12,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":10,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":10,"ia":0,"ja":4,"ka":[]},"ma":0,"uc":true,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":10,"ia":0,"ja":5,"ka":[]},"la":{"ga":0,"ha":11,"ia":0,"ja":0,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":11,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":11,"ia":0,"ja":6,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":15,"ia":0,"ja":8,"ka":[]},"la":{"ga":0,"ha":16,"ia":0,"ja":0,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":17,"ia":0,"ja":8,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":0,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":0,"ia":0,"ja":9,"ka":[]},"la":{"ga":0,"ha":0,"ia":0,"ja":11,"ka":[]},"sa":"SmoStaffHairpin"},{"fa":{"ga":0,"ha":1,"ia":0,"ja":9,"ka":[]},"la":{"ga":0,"ha":1,"ia":0,"ja":11,"ka":[]},"sa":"SmoStaffHairpin"},{"fa":{"ga":0,"ha":6,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":6,"ia":0,"ja":10,"ka":[]},"ta":-40,"sa":"SmoStaffHairpin"},{"fa":{"ga":0,"ha":7,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":7,"ia":0,"ja":10,"ka":[]},"sa":"SmoStaffHairpin"},{"fa":{"ga":0,"ha":16,"ia":0,"ja":8,"ka":[]},"la":{"ga":0,"ha":17,"ia":0,"ja":0,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"}],"va":[{"ya":{"ya":0,"za":0,"ab":0,"t":0},"bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","rb":true,"qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":8192,"fd":[{"hd":"mordent_inverted","sa":"SmoOrnament"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true,"qb":8192}]}],"ea":[]},{"ya":{"ya":1,"za":1,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qc":[{"rc":"staccato","sa":"SmoArticulation"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":8192,"fd":[{"hd":"mordent_inverted","sa":"SmoOrnament"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","rb":true,"qb":8192}]}],"ea":[]},{"ya":{"ya":2,"za":2,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qc":[{"rc":"staccato","sa":"SmoArticulation"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":3,"za":3,"ab":0,"t":0},"bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":4,"za":4,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","fd":[{"hd":"mordent_inverted","sa":"SmoOrnament"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":5,"za":5,"ab":0,"t":0},"bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","fd":[{"sa":"SmoOrnament"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":6,"za":6,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"oc":"r","da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":7,"za":7,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","rb":true},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":8,"za":8,"ab":0,"t":0},"bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":9,"za":9,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"oc":"r","da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":10,"za":10,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":5}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","rb":true,"qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":8192,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":8192,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":8192,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":5}],"da":"treble","rb":true,"qb":8192,"tc":1}]}],"ea":[]},{"ya":{"ya":11,"za":11,"ab":0,"t":0},"bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":8192,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","qb":8192,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"#","kb":4}],"da":"treble","qb":8192,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","rb":true,"qb":8192,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","tc":1},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","tc":1}]}],"ea":[]},{"ya":{"ya":12,"za":12,"ab":1,"t":0},"bb":36,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":13,"za":13,"ab":0,"t":0},"bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"#","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","fd":[{"sa":"SmoOrnament"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":14,"za":14,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qc":[{"ua":"below","rc":"staccato","sa":"SmoArticulation"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":15,"za":15,"ab":2,"t":0},"bb":6,"de":12,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","tc":2},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","tc":2},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","tc":2},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","tc":2},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble","tc":2},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","tc":2},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","tc":2},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","tc":2},{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":16,"za":16,"ab":0,"t":0},"bb":59.980000000000004,"de":12,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qc":[{"rc":"staccato","sa":"SmoArticulation"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":17,"za":17,"ab":1,"t":0},"bb":6,"de":62,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":18,"za":18,"ab":2,"t":0},"bb":6,"be":-31,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qc":[{"rc":"staccato","sa":"SmoArticulation"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":19,"za":19,"ab":0,"t":0},"bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":20,"za":20,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":21,"za":21,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":16384,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4},{"jb":"c","lb":"n","kb":5}],"da":"treble"}]}],"ea":[{"kd":2,"sa":"SmoBarline"}]}]},{"t":1,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Bass Clef Staff","ca":0,"da":"bass"},"ea":[{"fa":{"ga":1,"ha":1,"ia":0,"ja":0,"ka":[0]},"la":{"ga":1,"ha":1,"ia":0,"ja":1,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":2,"ia":0,"ja":1,"ka":[]},"la":{"ga":1,"ha":2,"ia":0,"ja":4,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":2,"ia":0,"ja":5,"ka":[]},"la":{"ga":1,"ha":3,"ia":0,"ja":0,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":3,"ia":0,"ja":1,"ka":[]},"la":{"ga":1,"ha":3,"ia":0,"ja":6,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":15,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":15,"ia":0,"ja":1,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":16,"ia":0,"ja":0,"ka":[0]},"la":{"ga":1,"ha":16,"ia":0,"ja":1,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":3,"ia":0,"ja":4,"ka":[]},"la":{"ga":1,"ha":3,"ia":0,"ja":6,"ka":[]},"sa":"SmoStaffHairpin"},{"fa":{"ga":1,"ha":17,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":17,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":0,"za":0,"ab":0,"t":1},"da":"bass","bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"oc":"r","da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3}],"oc":"r","da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3}],"da":"bass","rb":true}]}],"ea":[]},{"ya":{"ya":1,"za":1,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2}],"da":"bass","qc":[{"rc":"staccato","sa":"SmoArticulation"}]},{"ka":[{"jb":"d","lb":"n","kb":3}],"oc":"r","da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"oc":"r","da":"bass","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","rb":true}]}],"ea":[]},{"ya":{"ya":2,"za":2,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","rb":true,"qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass","rb":true,"qb":8192}]}],"ea":[]},{"ya":{"ya":3,"za":3,"ab":0,"t":1},"da":"bass","bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","rb":true,"qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":4,"za":4,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","rb":true,"qb":8192}]}],"ea":[]},{"ya":{"ya":5,"za":5,"ab":0,"t":1},"da":"bass","bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass","rb":true,"qb":8192},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":2}],"da":"bass","tc":1,"qc":[{"ua":"below","rc":"staccato","sa":"SmoArticulation"}]}]}],"ea":[]},{"ya":{"ya":6,"za":6,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2}],"oc":"r","da":"bass","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":2}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2}],"da":"bass","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":2}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","rb":true,"qb":8192}]}],"ea":[]},{"ya":{"ya":7,"za":7,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qc":[{"rc":"staccato","sa":"SmoArticulation"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","rb":true,"qb":8192}]}],"ea":[]},{"ya":{"ya":8,"za":8,"ab":0,"t":1},"bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"treble","qc":[{"ua":"below","rc":"staccato","sa":"SmoArticulation"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4,"pc":true}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","rb":true,"qb":8192}]}],"ea":[]},{"ya":{"ya":9,"za":9,"ab":1,"t":1},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":10,"za":10,"ab":2,"t":1},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":11,"za":11,"ab":0,"t":1},"bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"#","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":12,"za":12,"ab":1,"t":1},"da":"bass","bb":36,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3,"pc":true}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"#","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":13,"za":13,"ab":0,"t":1},"da":"bass","bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":14,"za":14,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"ka":[{"jb":"c","lb":"n","kb":4}],"oc":"r","da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"oc":"r","da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":15,"za":15,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":16,"za":16,"ab":0,"t":1},"da":"bass","bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":17,"za":17,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":18,"za":18,"ab":2,"t":1},"da":"bass","bb":6,"be":-15,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","rb":true,"qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","rb":true,"qb":8192}]}],"ea":[]},{"ya":{"ya":19,"za":19,"ab":0,"t":1},"da":"bass","bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":20,"za":20,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2}],"da":"bass","qc":[{"rc":"staccato","sa":"SmoArticulation"}]}]}],"ea":[]},{"ya":{"ya":21,"za":21,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":16384,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":2},{"jb":"c","lb":"n","kb":3}],"da":"bass"}]}],"ea":[{"kd":2,"sa":"SmoBarline"}]}]}],"yc":[{"jc":450,"kc":142,"tb":"15 Inventions à 2 voix.","vb":{"wb":"1.8em","xb":"Times New Roman","yb":"normal","zb":"normal"},"ac":"score-text auto703894","sa":"SmoScoreText"},{"jc":1010,"kc":45,"tb":"JS Bach","bd":"every","ac":"score-text auto703895","sa":"SmoScoreText"},{"jc":1013,"kc":76,"tb":"Page 1 of 2","bd":"every","ac":"score-text auto703896","sa":"SmoScoreText"},{"jc":441,"kc":1605,"tb":"15 Inventions &#xE0; 2 voix.","bd":"every","ac":"score-text auto703897","sa":"SmoScoreText"}],"yd":[{"zd":0,"la":{"ga":1,"ha":0},"sa":"SmoSystemGroup"}],"ee":{"wa":{"0":"4/4"},"xa":{"0":"C"},"fe":{"0":{"sa":"SmoTempoText","pa":{"qa":"auto703035","ra":"SmoTempoText"},"id":"text","nb":96,"ob":true,"pb":4096,"jd":"Moderato","ta":0}}},"dictionary":{"a":"score","b":"layout","c":"leftMargin","d":"rightMargin","e":"topMargin","f":"bottomMargin","g":"pageWidth","h":"pageHeight","i":"orientation","j":"interGap","k":"intraGap","l":"svgScale","m":"zoomScale","n":"zoomMode","o":"pages","p":"pageSize","q":"startIndex","r":"renumberingMap","s":"staves","t":"staffId","u":"staffX","v":"staffY","w":"adjY","x":"staffWidth","y":"staffHeight","z":"keySignatureMap","aa":"instrumentInfo","ba":"instrumentName","ca":"keyOffset","da":"clef","ea":"modifiers","fa":"startSelector","ga":"staff","ha":"measure","ia":"voice","ja":"tick","ka":"pitches","la":"endSelector","ma":"xOffset","na":"cp1y","oa":"cp2y","pa":"attrs","qa":"id","ra":"type","sa":"ctor","ta":"yOffset","ua":"position","va":"measures","wa":"timeSignature","xa":"keySignature","ya":"measureNumber","za":"measureIndex","ab":"systemIndex","bb":"adjX","cb":"tuplets","db":"voices","eb":"notes","fb":"ticks","gb":"numerator","hb":"denominator","ib":"remainder","jb":"letter","kb":"octave","lb":"accidental","mb":"symbol","nb":"bpm","ob":"display","pb":"beatDuration","qb":"beamBeats","rb":"endBeam","sb":"textModifiers","tb":"text","ub":"endChar","vb":"fontInfo","wb":"size","xb":"family","yb":"style","zb":"weight","ac":"classes","bc":"verse","cc":"fill","dc":"scaleX","ec":"scaleY","fc":"translateX","gc":"translateY","hc":"selector","ic":"renderedBox","jc":"x","kc":"y","lc":"width","mc":"height","nc":"logicalBox","oc":"noteType","pc":"cautionary","qc":"articulations","rc":"articulation","sc":"activeVoice","tc":"flagState","uc":"invert","vc":"fontSize","wc":"yOffsetLine","xc":"yOffsetPixels","yc":"scoreText","zc":"backup","ad":"edited","bd":"pagination","cd":"boxModel","dd":"justification","ed":"autoLayout","fd":"ornaments","gd":"offset","hd":"ornament","id":"tempoMode","jd":"tempoText","kd":"barline","ld":"systemBreak","md":"graceNotes","nd":"tones","od":"tuplet","pd":"beam_group","qd":"renderId","rd":"numNotes","sd":"totalTicks","td":"stemTicks","ud":"durationMap","vd":"bracketed","wd":"ratioed","xd":"location","yd":"systemGroups","zd":"leftConnector","ae":"padLeft","be":"customStretch","ce":"engravingFont","de":"customProportion","ee":"columnAttributeMap","fe":"tempo"}}` ;
 ;var basicJson = `{"score":{"layout":{"leftMargin":30,"rightMargin":30,"topMargin":40,"bottomMargin":40,"pageWidth":816,"pageHeight":1056,"orientation":0,"interGap":30,"intraGap":10,"svgScale":1,"zoomScale":2.107843137254902,"zoomMode":0,"pages":1},"startIndex":0,"renumberingMap":{}},"staves":[{"staffId":0,"staffX":10,"staffY":40,"adjY":0,"staffWidth":1600,"staffHeight":90,"startIndex":0,"renumberingMap":{},"keySignatureMap":{},"instrumentInfo":{"instrumentName":"Treble Instrument","keyOffset":"0","clef":"treble"},"modifiers":[],"measures":[{"timeSignature":"4/4","keySignature":"C","staffY":41,"measureNumber":{"measureNumber":0,"measureIndex":0,"systemIndex":0,"staffId":0},"activeVoice":0,"clef":"treble","transposeIndex":0,"adjX":64.98,"padLeft":0,"adjRight":11,"padRight":10,"rightMargin":2,"tuplets":[],"beamGroups":[],"voices":[{"notes":[{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318077","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"d","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318078","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"e","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318079","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"f","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318080","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"g","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318081","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"a","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318082","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"b","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318083","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"noteType":"n","attrs":{"id":"auto318084","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"b","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318085","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"a","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318086","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"g","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318087","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"f","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318088","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"e","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318089","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"d","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318090","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]}]}],"modifiers":[{"position":0,"barline":0,"ctor":"SmoBarline"},{"position":1,"barline":0,"ctor":"SmoBarline"},{"symbol":0,"xOffset":0,"yOffset":30,"position":0,"ctor":"SmoRepeatSymbol"}]},{"timeSignature":"4/4","keySignature":"C","staffY":41,"measureNumber":{"measureNumber":1,"measureIndex":1,"systemIndex":1,"staffId":0},"activeVoice":0,"clef":"treble","transposeIndex":0,"adjX":11,"padLeft":0,"adjRight":11,"padRight":10,"rightMargin":2,"tuplets":[],"beamGroups":[],"voices":[{"notes":[{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto358929","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"e","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto360328","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"g","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto360329","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"noteType":"n","attrs":{"id":"auto372785","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"g","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto374186","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"e","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto374187","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto381535","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"b","accidental":"n","octave":3}],"noteType":"n","attrs":{"id":"auto354946","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":4096,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto389896","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]}]}],"modifiers":[{"position":0,"barline":0,"ctor":"SmoBarline"},{"position":1,"barline":0,"ctor":"SmoBarline"},{"symbol":0,"xOffset":0,"yOffset":30,"position":0,"ctor":"SmoRepeatSymbol"}]}]}],"scoreText":[]}`;
 

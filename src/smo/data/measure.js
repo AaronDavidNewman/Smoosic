@@ -302,26 +302,27 @@ class SmoMeasure {
 				denominator: 1,
 				remainder: 0
 			};
-            beamBeats = 2048*3;
+      beamBeats = 2048*3;
 		}
 		var pitches =
-           JSON.parse(JSON.stringify(SmoMeasure.defaultPitchForClef[params.clef]));
+     JSON.parse(JSON.stringify(SmoMeasure.defaultPitchForClef[params.clef]));
 		var rv = [];
     var beats = meterNumbers[0];
 
     // Treat 2/2 like 4/4 time.
     if (meterNumbers[1] == 2) {
-       beats = beats * 2;
+      beats = beats * 2;
     }
 
 		for (var i = 0; i < beats; ++i) {
 			var note = new SmoNote({
-					clef: params.clef,
-					pitches: [pitches],
-					ticks: ticks,
-					timeSignature: params.timeSignature,
-                    beamBeats:beamBeats
-				});
+				clef: params.clef,
+				pitches: [pitches],
+				ticks: ticks,
+				timeSignature: params.timeSignature,
+        beamBeats:beamBeats,
+        noteType:'r'
+			});
 			rv.push(note);
 		}
 		return rv;

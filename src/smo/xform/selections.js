@@ -123,13 +123,13 @@ class SmoSelection {
 		});
 	}
 
-    static measuresInColumn(score,staffIndex) {
-        var rv = [];
-        for (var i = 0;i<score.staves.length;++i) {
-            rv.push(SmoSelection.measureSelection(score,i,staffIndex));
-        }
-        return rv;
+  static measuresInColumn(score,staffIndex) {
+    var rv = [];
+    for (var i = 0;i<score.staves.length;++i) {
+      rv.push(SmoSelection.measureSelection(score,i,staffIndex));
     }
+    return rv;
+  }
 
 	static noteFromSelection(score, selection) {
 		return SmoSelection(score, selection.staffIndex, selection.measureIndex, selection.voiceIndex, selection.tickIndex);
@@ -142,19 +142,19 @@ class SmoSelection {
 		measureIndex = measureIndex ? measureIndex : 0;
 		voiceIndex = voiceIndex ? voiceIndex : 0;
 		var staff = score.staves[staffIndex];
-        if (!staff) {
-            return null;
-        }
+    if (!staff) {
+      return null;
+    }
 		var measure = staff.measures[measureIndex];
-        if (!measure) {
-            return null;
-        }
-        if (measure.voices.length <= voiceIndex) {
-            return null;
-        }
-        if (measure.voices[voiceIndex].notes.length <= tickIndex) {
-            return null;
-        }
+    if (!measure) {
+      return null;
+    }
+    if (measure.voices.length <= voiceIndex) {
+      return null;
+    }
+    if (measure.voices[voiceIndex].notes.length <= tickIndex) {
+      return null;
+    }
 		var note = measure.voices[voiceIndex].notes[tickIndex];
 		var selector = {
 			staff: staffIndex,

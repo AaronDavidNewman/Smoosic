@@ -179,38 +179,51 @@ class smoMusic {
          - VF.clefProperties.values[clef].line_shift;
     }
 
-    // ### pitchToVexKey
-    // convert from SMO to VEX format so we can use the VexFlow tables and methods
-    // example:
-    // 	`{letter,octave,accidental}` object to vexKey string `'f#'`
-    static pitchToVexKey(smoPitch) {
-        // Convert to vex keys, where f# is a string like 'f#'.
-        var vexKey = smoPitch.letter.toLowerCase();
-        if (smoPitch.accidental.length === 0) {
-            vexKey = vexKey + 'n';
-        } else {
-            vexKey = vexKey + smoPitch.accidental;
-        }
-        if (smoPitch['octave']) {
-            vexKey = vexKey + '/' + smoPitch.octave;
-        }
-        return vexKey;
+  // ### pitchToVexKey
+  // convert from SMO to VEX format so we can use the VexFlow tables and methods
+  // example:
+  // 	`{letter,octave,accidental}` object to vexKey string `'f#'`
+  static pitchToVexKey(smoPitch) {
+    // Convert to vex keys, where f# is a string like 'f#'.
+    var vexKey = smoPitch.letter.toLowerCase();
+    if (smoPitch.accidental.length === 0) {
+      vexKey = vexKey + 'n';
+    } else {
+      vexKey = vexKey + smoPitch.accidental;
     }
+    if (smoPitch['octave']) {
+      vexKey = vexKey + '/' + smoPitch.octave;
+    }
+    return vexKey;
+  }
 
 	static smoPitchToInt(pitch) {
+    if (typeof(pitch.octave) === 'undefined') {
+      pitch.octave = 0;
+    }
 		var intVal = VF.Music.noteValues[
 				smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch))].int_val;
-		return pitch.octave * 12 + intVal;
+    var octave =  (pitch.letter === 'c' && pitch.accidental === 'b' && pitch.octave > 0) ?
+       pitch.octave - 1 : pitch.octave;
+		return octave * 12 + intVal;
 	}
 
 	static smoIntToPitch(intValue) {
-		var letterInt = intValue % 12;
+
+		var letterInt = intValue >= 0 ? intValue % 12 :
+       12 - (Math.abs(intValue) % 12);
 		var noteKey = Object.keys(VF.Music.noteValues).find((key) => {
-				return VF.Music.noteValues[key].int_val === letterInt;
+				return VF.Music.noteValues[key].int_val === letterInt && key.length === 1
 			});
+    if (!noteKey) {
+      noteKey = Object.keys(VF.Music.noteValues).find((key) => {
+  				return VF.Music.noteValues[key].int_val === letterInt && key.length === 2
+  			});
+    }
 		var octave = Math.floor(intValue / 12);
-        var accidental = noteKey.substring(1, noteKey.length);
-        accidental = accidental ? accidental : 'n';
+    octave = octave >= 0 ? octave : 0;
+    var accidental = noteKey.substring(1, noteKey.length);
+    accidental = accidental ? accidental : 'n';
 		return {
 			letter: noteKey[0],
 			accidental: accidental,
@@ -297,17 +310,50 @@ class smoMusic {
 		return tonic;
 	}
 
+  // ### toValidKeySignature
+  // When transposing, make sure key signature is valid, e.g. g# should be
+  // Ab
+  static toValidKeySignature(vexKey) {
+    var map = {'a#':'bb','g#':'ab','cb':'b','d#':'eb'}
+    if (map[vexKey.toLowerCase()]) {
+      return map[vexKey.toLowerCase()];
+    }
+    return vexKey;
+  }
+
 	static getEnharmonicInKey(smoPitch, keySignature) {
+    if (typeof(smoPitch.octave) === 'undefined') {
+      smoPitch.octave = 1;
+    }
+    var sharpKey = keySignature.indexOf('#') >= 0 ? true : false;
+    var flatKey = keySignature.indexOf('b') >= 0 ? true : false;
 		var ar = smoMusic.getEnharmonics(smoMusic.pitchToVexKey(smoPitch));
 		var rv = smoMusic.stripVexOctave(smoMusic.pitchToVexKey(smoPitch));
 		var scaleMap = new VF.Music().createScaleMap(keySignature);
+    var match = false;
 		ar.forEach((vexKey) => {
 			if (vexKey.length === 1) {
 				vexKey += 'n';
 			}
 			if (vexKey === scaleMap[vexKey[0]]) {
 				rv = vexKey;
-			}
+        match = true;
+			} else if (!match) {
+        // In the absence of a match of a key tone, we bias towards more
+        // 'common', like Bb is more common than A#, esp. as a chord.  This maybe
+        // just be my horn player bias towards flat keys
+        if (vexKey === 'a#' && !sharpKey) {
+          rv = 'bb';
+        } else if (vexKey === 'g#' && !sharpKey) {
+          rv = 'ab';
+        } else if (vexKey === 'c#' && !sharpKey) {
+          rv = 'db';
+        } else if (vexKey === 'd#' && !sharpKey) {
+          rv = 'eb';
+        } else if (vexKey === 'f#' && flatKey) {
+          rv = 'gb';
+        }
+      }
 		});
 		var smoRv = smoMusic.vexToSmoPitch(rv);
 		smoRv.octave = smoPitch.octave;
@@ -484,7 +530,7 @@ class smoMusic {
 
 	static getSharpsInKeySignature(key) {
 		var sharpKeys = ['B','G','D','A','E','B','F#','C#'];
-		if (sharpKeys.indexOf[key] < 0) {
+		if (sharpKeys.indexOf(key) < 0) {
 			return 0;
 		}
 		return smoMusic.keySignatureLength[key];
@@ -492,7 +538,7 @@ class smoMusic {
 
 	static getFlatsInKeySignature(key) {
 		var flatKeys = ['F','Bb','Eb','Ab','Db','Gb','Cb'];
-		if (flatKeys.indexOf[key] < 0) {
+		if (flatKeys.indexOf(key) < 0) {
 			return 0;
 		}
 		return smoMusic.keySignatureLength[key];

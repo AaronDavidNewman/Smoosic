@@ -1,29 +1,26 @@
 
 
 // ## SmoSystemStaff
-// ## Description:
 // A staff is a line of music that can span multiple measures.
 // A system is a line of music for each staff in the score.  So a staff
 // spans multiple systems.
 // A staff modifier connects 2 points in the staff.
 class SmoSystemStaff {
-    constructor(params) {
-        this.measures = [];
-        Vex.Merge(this, SmoSystemStaff.defaults);
-        Vex.Merge(this, params);
-        if (this.measures.length) {
-            this.numberMeasures();
-        }
-        if (!this['attrs']) {
-            this.attrs = {
-                id: VF.Element.newID(),
-                type: 'SmoSystemStaff'
-            };
-        } else {
-            // inherit attrs id for deserialized
-
-        }
+  constructor(params) {
+    this.measures = [];
+    Vex.Merge(this, SmoSystemStaff.defaults);
+    Vex.Merge(this, params);
+    if (this.measures.length) {
+      this.numberMeasures();
     }
+    if (!this['attrs']) {
+      this.attrs = {
+        id: VF.Element.newID(),
+        type: 'SmoSystemStaff'
+      };
+    } else {
+    }
+  }
 
     // ### defaultParameters
     // the parameters that get saved with the score.

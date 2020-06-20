@@ -78,6 +78,26 @@ class smoBeamModifier extends BeamModifierBase {
         this.currentGroup = [];
         this.duration = 0;
     }
+
+    // ### _isRemainingTicksBeamable
+    // look ahead, and see if we need to beam the tuplet now or if we
+    // can combine current beam with future notes.
+    _isRemainingTicksBeamable(tickmap,index) {
+      if (this.duration >= this.beamBeats) {
+        return false;
+      }
+      var acc = this.duration;
+      for (var i = index + 1;i < tickmap.deltaMap.length; ++i) {
+        acc += tickmap.deltaMap[i]
+        if (acc === this.beamBeats) {
+          return true;
+        }
+        if (acc > this.beamBeats) {
+          return false;
+        }
+      }
+      return false;
+    }
     beamNote(tickmap, index, note, accidentalMap) {
         this.beamBeats = note.beamBeats;
 
@@ -101,7 +121,7 @@ class smoBeamModifier extends BeamModifierBase {
                 this.currentGroup.push(note);
             }
             // Ultimate note in tuplet
-            if (ult.attrs.id === note.attrs.id) {
+            if (ult.attrs.id === note.attrs.id && !this._isRemainingTicksBeamable(tickmap,index)) {
                 this._completeGroup(tickmap.voice);
                 this._advanceGroup();
             }

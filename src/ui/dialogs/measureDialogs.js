@@ -262,6 +262,160 @@ class SuiMeasureDialog extends SuiDialogBase {
 		});
 	}
 }
+
+class SuiInstrumentDialog extends SuiDialogBase {
+  static get ctor() {
+    return 'SuiInstrumentDialog';
+  }
+  get ctor() {
+    return SuiTimeSignatureDialog.ctor;
+  }
+  static get label() {
+    SuiInstrumentDialog._label = SuiInstrumentDialog._label ? SuiInstrumentDialog._label
+     : 'Instrument Properties';
+    return SuiInstrumentDialog._label;
+  }
+  static set label(value) {
+    SuiInstrumentDialog._label = value;
+  }
+  static get applyTo() {
+    return {
+      score: 0,selected:1, remaining: 3
+    };
+  }
+  static get dialogElements() {
+    SuiInstrumentDialog._dialogElements = SuiInstrumentDialog._dialogElements ? SuiInstrumentDialog._dialogElements :
+    [
+      {
+        smoName: 'transposeIndex',
+        parameterName: 'transposeIndex',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label:'Transpose Index (1/2 steps)',
+      },{
+        smoName: 'applyTo',
+        parameterName: 'applyTo',
+        defaultValue: SuiInstrumentDialog.applyTo.score,
+        control: 'SuiDropdownComponent',
+        label:'Apply To',
+        options: [{
+            value: SuiInstrumentDialog.applyTo.score,
+            label: 'Score'
+          }, {
+            value: SuiInstrumentDialog.applyTo.selected,
+            label: 'Selected Measures'
+          }, {
+            value: SuiInstrumentDialog.applyTo.remaining,
+            label: 'Remaining Measures'
+          }
+        ]
+			}
+    ];
+    return SuiInstrumentDialog._dialogElements;
+  }
+  static createAndDisplay(parameters) {
+    /* SuiLyricDialog.createAndDisplay(
+      {
+        buttonElement:this.buttonElement,
+        buttonData:this.buttonData,
+        completeNotifier:this.controller,
+        tracker: this.tracker,
+        layout:this.layout,
+        undoBuffer:this.editor.undoBuffer,
+        eventSource:this.eventSource,
+        editor:this.editor,
+        parser:SmoLyric.parsers.lyric
+      }
+    );  */
+    var db = new SuiInstrumentDialog(parameters);
+    db.display();
+    return db;
+  }
+  display() {
+    $('body').addClass('showAttributeDialog');
+    this.components.forEach((component) => {
+        component.bind();
+    });
+    this._bindComponentNames();
+    this._bindElements();
+    this.position(this.measure.renderedBox);
+    this.tracker.scroller.scrollVisibleBox(
+      svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
+    );
+
+
+    var cb = function (x, y) {}
+    htmlHelpers.draggable({
+      parent: $(this.dgDom.element).find('.attributeModal'),
+      handle: $(this.dgDom.element).find('.jsDbMove'),
+      animateDiv:'.draganime',
+      cb: cb,
+      moveParent: true
+    });
+  }
+  populateInitial() {
+    var ix = this.measure.transposeIndex;
+    this.transposeIndexCtrl.setValue(ix);
+  }
+
+  changed() {
+    var staffIx = this.measure.measureNumber.staffId;
+
+    var xpose = this.transposeIndexCtrl.getValue();
+    var selections = [];
+    for (var i = 0;i < this.score.staves[staffIx].measures.length;++i) {
+      selections.push(SmoSelection.measureSelection(this.score, staffIx, i));
+    }
+    SmoUndoable.changeInstrument(this.score,
+      {
+        instrumentName: 'Treble Instrument',
+        keyOffset: xpose,
+        clef: this.measure.clef
+      },
+      selections,
+      this.undoBuffer);
+
+    this.layout.setRefresh();
+  }
+
+  constructor(parameters) {
+    var selection = parameters.tracker.selections[0];
+    var measure = selection.measure;
+
+    parameters = {selection:selection,measure:measure,...parameters};
+
+    super(SuiInstrumentDialog.dialogElements, {
+      id: 'time-signature-measure',
+      top: measure.renderedBox.y,
+      left: measure.renderedBox.x,
+      ...parameters
+    });
+    this.measure = measure;
+    this.score = this.editor.score;
+    this.refresh = false;
+    this.startPromise=parameters.closeMenuPromise;
+    Vex.Merge(this, parameters);
+  }
+  _bindElements() {
+    var self = this;
+    var dgDom = this.dgDom;
+    this.populateInitial();
+
+   $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+     self.complete();
+   });
+
+   $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+     self.complete();
+   });
+   $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
+     self.complete();
+   });
+  }
+
+}
+
+
 class SuiTimeSignatureDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiTimeSignatureDialog';
@@ -278,35 +432,35 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
     SuiTimeSignatureDialog._label = value;
   }
 
-    static get dialogElements() {
-      SuiTimeSignatureDialog._dialogElements = SuiTimeSignatureDialog._dialogElements ? SuiTimeSignatureDialog._dialogElements :
-        [
-          {
-            smoName: 'numerator',
-            parameterName: 'numerator',
-            defaultValue: 3,
-            control: 'SuiRockerComponent',
-            label:'Beats/Measure',
-          },
-  		    {
-            parameterName: 'denominator',
-            smoName: 'denominator',
-            defaultValue: 8,
-            dataType:'int',
-            control: 'SuiDropdownComponent',
-            label: 'Beat Value',
-            options: [{
-              value: 8,
-              label: '8',
-            }, {
-              value: 4,
-              label: '4'
-            }, {
-              value: 2,
-              label: '2'
-            }
-  			 ]
-  		}
+  static get dialogElements() {
+    SuiTimeSignatureDialog._dialogElements = SuiTimeSignatureDialog._dialogElements ? SuiTimeSignatureDialog._dialogElements :
+      [
+        {
+          smoName: 'numerator',
+          parameterName: 'numerator',
+          defaultValue: 3,
+          control: 'SuiRockerComponent',
+          label:'Beats/Measure',
+        },
+		    {
+          parameterName: 'denominator',
+          smoName: 'denominator',
+          defaultValue: 8,
+          dataType:'int',
+          control: 'SuiDropdownComponent',
+          label: 'Beat Value',
+          options: [{
+            value: 8,
+            label: '8',
+          }, {
+            value: 4,
+            label: '4'
+          }, {
+            value: 2,
+            label: '2'
+          }
+        ]
+      }
     ];
 
     return SuiTimeSignatureDialog._dialogElements;
@@ -322,41 +476,41 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
   }
 
   changed() {
-      // no dynamic change for time  signatures
+    // no dynamic change for time  signatures
   }
-     static createAndDisplay(params) {
-         // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
-         //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
+ static createAndDisplay(params) {
+     // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
+     //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
 
-         var dg = new SuiTimeSignatureDialog({
-             selections: params.tracker.selections,
-             undoBuffer: params.undoBuffer,
-             layout: params.tracker.layout,
-             completeNotifier :params.completeNotifier,
-             closeMenuPromise:params.closeMenuPromise,
-             tracker: params.tracker
-           });
-         dg.display();
-         return dg;
-     }
-     changeTimeSignature() {
-         var ts = '' + this.numeratorCtrl.getValue() + '/'+this.denominatorCtrl.getValue();
-         SmoUndoable.multiSelectionOperation(this.tracker.layout.score,
-             this.tracker.selections,
-             'setTimeSignature',ts,this.undoBuffer);
-          this.tracker.replaceSelectedMeasures();
-     }
-     _bindElements() {
-         var self = this;
- 		var dgDom = this.dgDom;
-         this.numeratorCtrl = this.components.find((comp) => {return comp.smoName == 'numerator';});
-         this.denominatorCtrl = this.components.find((comp) => {return comp.smoName == 'denominator';});
-         this.populateInitial();
+     var dg = new SuiTimeSignatureDialog({
+        selections: params.tracker.selections,
+        undoBuffer: params.undoBuffer,
+        layout: params.tracker.layout,
+        completeNotifier :params.completeNotifier,
+        closeMenuPromise:params.closeMenuPromise,
+        tracker: params.tracker
+      });
+      dg.display();
+      return dg;
+   }
+   changeTimeSignature() {
+    var ts = '' + this.numeratorCtrl.getValue() + '/'+this.denominatorCtrl.getValue();
+    SmoUndoable.multiSelectionOperation(this.tracker.layout.score,
+      this.tracker.selections,
+      'setTimeSignature',ts,this.undoBuffer);
+      this.tracker.replaceSelectedMeasures();
+   }
+   _bindElements() {
+     var self = this;
+	   var dgDom = this.dgDom;
+     this.numeratorCtrl = this.components.find((comp) => {return comp.smoName == 'numerator';});
+     this.denominatorCtrl = this.components.find((comp) => {return comp.smoName == 'denominator';});
+     this.populateInitial();
 
- 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            self.changeTimeSignature();
- 			self.complete();
- 		});
+		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+          self.changeTimeSignature();
+			self.complete();
+		});
 
  		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
  			self.complete();
@@ -364,54 +518,54 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
  		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
  			self.complete();
  		});
+   }
+   display() {
+     $('body').addClass('showAttributeDialog');
+     this.components.forEach((component) => {
+         component.bind();
+     });
+     this._bindElements();
+     this.position(this.measure.renderedBox);
+     this.tracker.scroller.scrollVisibleBox(
+         svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
+     );
+
+
+     var cb = function (x, y) {}
+     htmlHelpers.draggable({
+         parent: $(this.dgDom.element).find('.attributeModal'),
+         handle: $(this.dgDom.element).find('.jsDbMove'),
+          animateDiv:'.draganime',
+         cb: cb,
+         moveParent: true
+     });
+
+     var self=this;
+     function getKeys() {
+         self.completeNotifier.unbindKeyboardForModal(self);
      }
-     display() {
-         $('body').addClass('showAttributeDialog');
-         this.components.forEach((component) => {
-             component.bind();
-         });
-         this._bindElements();
-         this.position(this.measure.renderedBox);
-         this.tracker.scroller.scrollVisibleBox(
-             svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
-         );
+     this.startPromise.then(getKeys);
+   }
+   constructor(parameters) {
+       var measure = parameters.selections[0].measure;
 
+       super(SuiTimeSignatureDialog.dialogElements, {
+           id: 'time-signature-measure',
+           top: measure.renderedBox.y,
+           left: measure.renderedBox.x,
+           label: 'Custom Time Signature',
+			 tracker:parameters.tracker,
+     undoBuffer: parameters.undoBuffer,
+     eventSource: parameters.eventSource,
+     completeNotifier : parameters.completeNotifier,
+     layout: parameters.layout
 
-         var cb = function (x, y) {}
-         htmlHelpers.draggable({
-             parent: $(this.dgDom.element).find('.attributeModal'),
-             handle: $(this.dgDom.element).find('.jsDbMove'),
-              animateDiv:'.draganime',
-             cb: cb,
-             moveParent: true
-         });
-
-         var self=this;
-         function getKeys() {
-             self.completeNotifier.unbindKeyboardForModal(self);
-         }
-         this.startPromise.then(getKeys);
-     }
-     constructor(parameters) {
-         var measure = parameters.selections[0].measure;
-
-         super(SuiTimeSignatureDialog.dialogElements, {
-             id: 'time-signature-measure',
-             top: measure.renderedBox.y,
-             left: measure.renderedBox.x,
-             label: 'Custom Time Signature',
- 			 tracker:parameters.tracker,
-       undoBuffer: parameters.undoBuffer,
-       eventSource: parameters.eventSource,
-       completeNotifier : parameters.completeNotifier,
-       layout: parameters.layout
-
-         });
-         this.measure = measure;
-         this.refresh = false;
-         this.startPromise=parameters.closeMenuPromise;
-         Vex.Merge(this, parameters);
-     }
+       });
+       this.measure = measure;
+       this.refresh = false;
+       this.startPromise=parameters.closeMenuPromise;
+       Vex.Merge(this, parameters);
+   }
  }
 
 

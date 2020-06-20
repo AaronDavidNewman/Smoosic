@@ -148,7 +148,7 @@ class VxMeasure {
         var mod = SmoLyric.toVexPosition(block.position);
         cs.addGlyphOrText(block.text,{symbolModifier:mod});
       });
-      cs.setFontSize(14);
+      cs.setFontSize(14).setReportWidth(false);
       vexNote.addModifier(0,cs);
       const classString = 'chord chord-'+lyric.verse;
       cs.addClass(classString);
@@ -211,7 +211,7 @@ class VxMeasure {
   		 smoMusic.ticksToDuration[smoNote.tickCount];
 
   	// transpose for instrument-specific keys
-  	var keys=smoMusic.smoPitchesToVexKeys(smoNote.pitches,this.smoMeasure.transposeIndex);
+  	var keys=smoMusic.smoPitchesToVexKeys(smoNote.pitches,0);
     var noteParams = {
         clef: smoNote.clef,
         keys: keys,
@@ -458,8 +458,8 @@ class VxMeasure {
     $(this.context.svg).find('g.' + this.smoMeasure.getClassId()).remove();
 
 
-		var key = smoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature,this.smoMeasure.transposeIndex);
-		var canceledKey = this.smoMeasure.canceledKeySignature ? smoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature,this.smoMeasure.transposeIndex)
+		var key = smoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature,0);
+		var canceledKey = this.smoMeasure.canceledKeySignature ? smoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature,0)
       : this.smoMeasure.canceledKeySignature;
 
     var staffX = this.smoMeasure.staffX + this.smoMeasure.padLeft;
