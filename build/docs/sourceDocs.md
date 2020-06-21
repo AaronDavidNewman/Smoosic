@@ -30,6 +30,12 @@ project from [GitHub Vex Flow](https://github.com/0xfe/vexflow) for rendering.
 # Directory: smo/data
 Serializable Music Ontology classes and logical structure
 ---
+## Places to deserialize scores:
+.  controller/scoreFromQueryString
+.  fileDialog.js/SuiLoadFileDialog.commit
+. menus.js/SuiFileMenu.selection
+there is a reference to deserialize in undo.js but that is probably OK to stay.
+
 ## SmoMeasure - data for a measure of music
 Many rules of musical engraving are enforced at a measure level, e.g. the duration of
 notes, accidentals, etc.
@@ -38,16 +44,13 @@ Measures contain *notes*, *tuplets*, and *beam groups*.  So see `SmoNote`, etc.
 Measures are contained in staves, see also `SystemStaff.js`
 ## SmoMeasure Methods:
 
-### getClassId
-create a identifier unique to this measure index so it can be easily removed.
-
-### getRenderedNote
-The renderer puts a mapping between rendered svg groups and
-the logical notes in SMO.  The UI needs this mapping to be interactive,
-figure out where a note is rendered, what its bounding box is, etc.
-
 ### defaultAttributes
 attributes that are to be serialized for a measure.
+
+### serializeColumnMapped
+Some measure attributes that apply to the entire column are serialized
+separately.  Serialize those attributes, but only add them to the
+hash if they already exist for an earlier measure
 
 ### serialize
 Convert this measure object to a JSON object, recursively serializing all the notes,
@@ -71,6 +74,17 @@ For create the initial or new measure, get a measure with notes.
 ### SmoMeasure.getDefaultMeasureWithNotes
 Get a new measure with the appropriate notes for the supplied clef, instrument
 
+###   SVG mixins
+We store some rendering data in the instance for UI mapping.
+
+### getClassId
+create a identifier unique to this measure index so it can be easily removed.
+
+### getRenderedNote
+The renderer puts a mapping between rendered svg groups and
+the logical notes in SMO.  The UI needs this mapping to be interactive,
+figure out where a note is rendered, what its bounding box is, etc.
+
 ### createMeasureTickmaps
 A tickmap is a map of notes to ticks for the measure.  It is speciifc per-voice
 since each voice may have different numbers of ticks.  The accidental map is
@@ -80,6 +94,22 @@ voices.  So we return the tickmaps and the overall accidental map.
 ### getDynamicMap
 returns the dynamic text for each tick index.  If
 there are no dynamics, the empty array is returned.
+
+### tuplet methods.
+
+#### tupletNotes
+
+#### tupletIndex
+return the index of the given tuplet
+
+#### getTupletForNote
+Finds the tuplet for a given note, or null if there isn't one.
+
+### populateVoice
+Create a new voice in this measure, and populate it with the default note
+for this measure/key/clef
+
+### measure modifier mixins
 
 ## Measure modifiers are elements that are attached to the bar itself, like barlines or measure-specific text,
 repeats - lots of stuff
@@ -106,6 +136,9 @@ add or remove sFz, mp, etc.
 ## Description:
 Clone the note, but use the different duration.  Changes the length
 of the note but nothing else.
+
+### getClassSelector
+returns a selector used to find this text block within a note.
 
 ## SmoDynamicText
 standard dynamics text
@@ -249,10 +282,17 @@ After anything that might change the measure numbers, update them iteratively
 ## addMeasure
 Add the measure at the specified index, splicing the array as required.
 
+### getStemDirection
+Return the stem direction, so we can bracket the correct place
+
 # Directory: smo/xform
 Logic that transforms music according to common theory rules (e.g. accidentals, time signatures
 ---
 ### run
+
+### _isRemainingTicksBeamable
+look ahead, and see if we need to beam the tuplet now or if we
+can combine current beam with future notes.
 
 ## PasteBuffer
 Hold some music that can be pasted back to the score
@@ -549,6 +589,10 @@ cycle through the enharmonics for a note.
 fix the enharmonic to match the key, if possible
 `getKeyFriendlyEnharmonic('b','eb');  => returns 'bb'
 
+### toValidKeySignature
+When transposing, make sure key signature is valid, e.g. g# should be
+Ab
+
 ### getIntervalInKey
 give a pitch and a key signature, return another pitch at the given
 diatonic interval.  Similar to getKeyOffset but diatonic.
@@ -606,11 +650,34 @@ Frequently we double/halve a note duration, and we want to find the vex tick dur
 ### durationToTicks
 Uses VF.durationToTicks, but handles dots.
 
+## smoSerialize
+Helper functions that perform serialized merges, general JSON
+types of routines.
+---
+
 ### filteredMerge
 Like vexMerge, but only for specific attributes.
 
+## detokenize
+If we are saving, replace token values with keys, since the keys are smaller.
+if we are loading, replace the token keys with values so the score can
+deserialize it
+
 ### serializedMerge
 serialization-friendly, so merged, copied objects are deep-copied
+
+### serializedMergeNonDefault
+Used to reduce size of serializations.  Create a serialzation of
+the object, but don't serialize attributes that are already the default
+since the default will be set when the object is deserialized
+#### parameters:
+defaults - default Array
+attrs - array of attributes to save
+src - the object to serialize
+dest - the json object that is the target.
+
+### printXlate
+print json with string labels to use as a translation file seed.
 
 ## svgHelpers
 Mostly utilities for converting coordinate spaces based on transforms, etc.
@@ -669,6 +736,9 @@ return a box or point in screen coordinates from svg coordinates
 # Directory: ui
 Menus, dialogs and all that
 ---
+## createUi
+Convenience constructor, taking a renderElement and a score.
+
 ## suiController
 Manages DOM events and binds keyboard and mouse events
 to editor and menu commands, tracker and layout manager.
@@ -685,9 +755,6 @@ This handles both resizing of the music area (scrolling) and resizing of the win
 The latter results in a redraw, the former just resets the client/logical map of elements
 in the tracker.
 
-## createUi
-Convenience constructor, taking a renderElement and a score.
-
 ### renderElement
 return render element that is the DOM parent of the svg
 
@@ -703,9 +770,14 @@ execute a simple command on the editor, based on a keystroke.
 Key bindings for the tracker.  The tracker is the 'cursor' in the music
 that lets you select and edit notes.
 
+### unbindKeyboardForModal
+Global events from keyboard and pointer are handled by this object.  Modal
+UI elements take over the events, and then let the controller know when
+the modals go away.
+
 # Dialog base classes
 
-## SuiDialogFactory
+## SuiModifierDialogFactory
 Automatic dialog constructors for dialogs without too many parameters
 that operated on a selection.
 
@@ -714,6 +786,9 @@ Base class for dialogs.
 
 ### SuiDialogBase ctor
 Creates the DOM element for the dialog and gets some initial elements
+
+### printXlate
+print json with string labels to use as a translation file seed.
 
 ### position
 For dialogs based on selections, tries to place the dialog near the selection and also
@@ -769,10 +844,6 @@ One of the components has had a changed value.
 ### createAndDisplay
 static method to create the object and then display it.
 
-## SuiTextModifierDialog
-This is a poorly named class, it just allows you to placeText
-dynamic text so it doesn't collide with something.
-
 # dbComponents - components of modal dialogs.
 
 ## SuiRockerComponent
@@ -798,8 +869,22 @@ Download a test file using the file input.
 ## SuiToggleComponent
 Simple on/off behavior
 
+## SuiToggleComponent
+Simple on/off behavior
+
+## suiEditor
+Editor handles key events and converts them into commands, updating the score and
+display
+
 ## _render
 utility function to render the music and update the tracker map.
+
+##browserEventSource
+Handle registration for events.  Can be used for automated testing, so all
+the events are consolidated in one place so they can be simulated or recorded
+
+### bindKeydownHandler
+add a handler for the evKey event, for keyboard data.
 
 ### Description:
 slash ('/') menu key bindings.  The slash key followed by another key brings up
@@ -827,18 +912,12 @@ Perform adjustments on the score based on the rendered components so we can re-r
 ### _highestLowestHead
 highest value is actually the one lowest on the page
 
-### _adjustTopYLeft
-Adjust the start y for all the measures to the left of this systems
-once we know that it will not wrap.
-
-### justifyWidths
-After we adjust widths so each staff has enough room, evenly distribute the remainder widths to the measures.
-
-### adjustWidths
-Set the width of each measure in a system to the max width for that column so the measures are aligned.
-
-### _minMaxYModifier
-Helper function to calculate or update the min, max y of a staff
+### estimateMeasureHeight
+The baseline is the top line of the staff.  aboveBaseline is a negative number
+that indicates how high above the baseline the measure goes.  belowBaseline
+is a positive number that indicates how far below the baseline the measure goes.
+the height of the measure is below-above.  Vex always renders a staff such that
+the y coordinate passed in for the stave is on the baseline.
 
 ## suiLayoutBase
 A layout maps the measures and notes to a spot on the page.  It
@@ -881,8 +960,36 @@ See unrenderMeasure.  Like that, but with a staff.
 Render staff modifiers (modifiers straddle more than one measure, like a slur).  Handle cases where the destination
 is on a different system due to wrapping.
 
+### forceRender
+For unit test applictions that want to render right-away
+
 ### pollRedraw
 if anything has changed over some period, prepare to redraw everything.
+
+## suiMapper
+Map the notes in the svg so the can respond to events and interact
+with the mouse/keyboard
+
+### loadScore
+We are loading a new score.  clear the maps so we can rebuild them after
+rendering
+
+### _clearMeasureArtifacts
+clear the measure from the measure and note maps so we can rebuild it.
+
+### _getClosestTick
+given a musical selector, find the note artifact that is closest to it,
+if an exact match is not available
+
+### updateMeasure
+A measure has changed.  Update the music geometry for it
+
+### updateMap
+This should be called after rendering the score.  It updates the score to
+graphics map and selects the first object.
+
+### intersectingArtifact
+given a bounding box, find any rendered elements that intersect with it
 
 ## suiLayoutBase
 A layout maps the measures and notes to a spot on the page.  It
@@ -896,12 +1003,25 @@ svg element in the dom and interacting with the vex library.
 ### unrenderAll
 Delete all the svg elements associated with the score.
 
-### layout
-Render the music, keeping track of the bounding boxes of all the
-elements.  Re-render a second time to adjust measure widths to prevent notes
-from overlapping.  Then render all the modifiers.
-* useAdjustedY is false if we are dynamically rendering the score, and we use other
-measures to find our sweet spot.  If true, we assume the coordinates are correct and we use those.
+### _measureToLeft
+measure to 'left' is on previous row if this is the first column in a system
+but we still use it to compute beginning symbols (key sig etc.)
+
+### calculateBeginningSymbols
+calculate which symbols like clef, key signature that we have to render in this measure.
+
+### _justifyY
+when we have finished a line of music, adjust the measures in the system so the
+top of the staff lines up.
+
+### _checkPageBreak
+See if this line breaks the page boundary
+
+### _estimateColumns
+the new logic to estimate the dimensions of a column of music, corresponding to
+a certain measure index.
+returns:
+{measures,y,x}  the x and y at the left/bottom of the render
 
 ## suiScroller
 Respond to scroll events, and handle the scroll of the viewport
@@ -916,7 +1036,13 @@ tracker is going to remap the music, make sure we take the current scroll into a
 handle scroll events.
 
 ### scrollVisible
-Scroll such that the area x,y is visible.
+Scroll such that the box is fully visible, if possible (if it is
+not larger than the screen)
+
+### scrollBox
+get the current viewport, in scrolled coordinates.  When tracker maps the
+music element to client coordinates, these are the coordinates used in the
+map
 
 ### scrollOffset
 scroll the offset from the starting scroll point
@@ -930,20 +1056,50 @@ invert the scroll parameters.
 
 ## editSvgText
 A class that implements very basic text editing behavior in an svg text node
+params must supply the following:
+1. target: an svg text element
+2. textObject: a text object described below.
+3. layout: the page layout information, used to create the shadow editor in the DOM
+The textObject must have the following attributes:
+1. getText returns the text (the text to render initially)
+2. translateX, translateY, scaleX, scaleY for svg text element
+3. fontInfo from smoScoreText and other text objects
+
+### endTextEditSessionPromise
+return a promise that is resolved when the current text edit session ends.
+
+## editLyricSession
+Another interface between UI and renderer, let the user enter lyrics while
+navigating through the notes.  This class handles the session of editing
+a single note, and also the logic of skipping from note to note.
+
+### detachEditorCompletePromise
+A promise that is resolved when SVG editor is fully detached.
+
+### _lyricAddedPromise
+Don't edit the lyric until the DOM part has been added by the editor, so pend on a promise that has happened.
 
 ### _editCurrentLyric
-If this is a new lyric, we need to maybe wait for it to be rendered.
+The DOM is ready.  Create the editor and wait for it to finish.
+
+### _deferSkip
+skip to the next word, but not in the current call stack.  Used to handl
+interactions with the dialog, where the dialog must reset changed flags
+before  selection is changed
+
+### moveSelectionRight
+Selection can move automatically based on key events, but there are Also
+UI ways to force it.
+
+## editNoteText
+Manage editing text for a note, and navigating, adding and removing.
 
 ## suiTracker
 A tracker maps the UI elements to the logical elements ,and allows the user to
 move through the score and make selections, for navigation and editing.
 
-### Usage:
-`` javascript ``
-`new suiTracker(layout)`
-
 ### See also:
-`SuiSimpleLayout`, `controller`, `menu`
+`suiBaseLayout`, `controller`, `menu`
 ### class methods:
 ---
 
@@ -959,16 +1115,6 @@ programatically select a modifier by ID.  Used by text editor.
 
 ### _updateNoteBox
 Update the svg to screen coordinates based on a change in viewport.
-
-### _clearMeasureArtifacts
-clear the measure from the measure and note maps so we can rebuild it.
-
-### updateMeasure
-A measure has changed.  Update the music geometry for it
-
-### updateMap
-This should be called after rendering the score.  It updates the score to
-graphics map and selects the first object.
 
 ### getExtremeSelection
 Get the rightmost (1) or leftmost (-1) selection
@@ -1013,12 +1159,11 @@ Create the VF tuplet objects based on the smo tuplet objects
 that have been defined.
 
 ### _updateLyricXOffsets
-We update lyric positions twice.  Update the x position when the measure is rendered
-so the selectable bounding box has the correct width, then the y when the whole line has been
-rendered and we can align the lyrics.
+Create the DOM modifiers for the rendered lyrics.
 
 ## Description:
-Render all the notes in my smoMeasure.  All rendering logic is called from here.
+Create all Vex notes and modifiers.  We defer the format and rendering so
+we can align across multiple staves
 
 ## Description:
 Create a system of staves and draw music on it.
@@ -1028,6 +1173,13 @@ clef:'treble',
 num_beats:num_beats,
 timeSignature: '4/4',
 smoMeasures: []
+
+### updateLyricOffsets
+Adjust the y position for all lyrics in the line so they are even.
+Also replace '-' with a longer dash do indicate 'until the next measure'
+
+### renderModifier
+render a line-type modifier that is associated with a staff (e.g. slur)
 
 ## renderMeasure
 Create the graphical (VX) notes and render them on svg.  Also render the tuplets and beam
