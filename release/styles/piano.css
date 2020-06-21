@@ -1,0 +1,68 @@
+
+
+.piano-container {
+	position:relative;
+}
+#keyId-C4 {
+	fill:#ddffee;
+}
+#keyId-C4.glow-key {
+	fill:#33ccaa;
+}
+.piano-keys {
+	height:141px;
+	width: 805px;
+	overflow-x:auto;
+	overflow-y:hidden;
+	padding-top: 35px;
+	padding-left:15px;
+	padding-right:15px;
+	padding-bottom:3px;
+	border: #336 3px solid;
+	border-radius:5px;
+	position:relative;
+	display:none;
+}
+
+body.show-piano #pianoModal {
+	display:none;
+}
+
+body.show-piano .piano-keys {
+	display:block;
+}
+
+body.show-piano .close-container {
+    position:absolute;
+    top:10px;
+    right:10px;
+}
+
+body.show-piano .close-container button {
+    color:red;
+}
+
+.black-key {
+	fill:#000;
+	stroke:#000;
+}
+
+.white-key {
+	fill:#fff;
+	stroke:#000;
+}
+.white-key.glow-key {
+	fill:#aad;
+}
+.white-key.pressed-key {
+	fill:#33d;
+}
+.black-key.pressed-key {
+	fill:#bbd;
+}
+.black-key.glow-key {
+	fill:#aad;
+}
+.note-text {
+	font-size:.7em;
+}
