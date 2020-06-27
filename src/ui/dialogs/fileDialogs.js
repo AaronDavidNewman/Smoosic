@@ -156,6 +156,8 @@ class SuiPrintFileDialog extends SuiFileDialog {
     var dgDom = this.dgDom;
 		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
       $('body').removeClass('printing');
+      self.layout.restoreLayoutAfterPrint();
+      window.dispatchEvent(new Event('resize'));
       self.complete();
 	  });
 

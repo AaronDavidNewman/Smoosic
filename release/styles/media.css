@@ -116,6 +116,10 @@ body.print-render .measure-format {
     dislay:none;
 }
 
+body.printing .piano-container {
+  display:none;
+}
+
 @media print {
     .controls-left,.controls-top,.testTitle {
        display:none;
@@ -128,6 +132,10 @@ body.print-render .measure-format {
     .musicRelief {
         overflow:hidden;
     }
+    .measure-format {
+        dislay:none;
+    }
+
     .workspace {
         padding-top: 0;
         position:relative;
@@ -146,6 +154,12 @@ body.print-render .measure-format {
 body.printing .workspace-container {
     display:none;
 }
+body.printing .controls-left,
+body.printing .control-bar
+ {
+  display:none;
+}
+
 body.printing iframe {
     border:none;
 }

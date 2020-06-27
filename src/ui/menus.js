@@ -320,67 +320,16 @@ class SuiFileMenu extends suiMenuBase {
     return SuiFileMenu._defaults;
   }
 
-  printRenderPromise() {
-     $('body').addClass('print-render');
-     $('.printFrame').html('');
-     var layout = this.layout;
-     var tracker = this.tracker;
-     layout.setRefresh();
-     var promise = new Promise((resolve) => {
-         var poll = () => {
-
-
-        setTimeout(() => {
-            if (!layout.dirty) {
-                tracker.highlightSelection();
-                $('body').removeClass('print-render');
-                $('body').addClass('printing');
-                resolve();
-            }else {
-                poll();
-            }
-        },500);
-        }
-        poll();
-     });
-     return promise;
-  }
-
   systemPrint() {
-     var self = this;
-     var svgDoc = $('#boo svg')[0];
-     var s = new XMLSerializer();
-     var svgString = s.serializeToString(svgDoc);
-     var iframe = document.createElement("iframe");
-     var scale = 1.0/this.layout.score.layout.zoomScale;
-     var w=Math.round(scale * $('#boo').width());
-     var h=Math.round(scale * $('#boo').height());
-     $(iframe).attr('width',w);
-     $(iframe).attr('height',h);
-     iframe.srcdoc=svgString;
-     $('.printFrame')[0].appendChild(iframe);
-     $('.printFrame').width(w);
-     $('.printFrame').height(h);
-     function resize() {
-       setTimeout(function() {
-         var svg = $(window.frames[0].document.getElementsByTagName('svg'));
-         if (svg && svg.length) {
-           $(window.frames[0].document.getElementsByTagName('svg')).height(h);
-           $(window.frames[0].document.getElementsByTagName('svg')).width(w);
-           window.print();
-           SuiPrintFileDialog.createAndDisplay({
-               layout: self.layout,
-               completeNotifier:self.completeNotifier,
-               closeMenuPromise:self.closePromise,
-               tracker:self.tracker,
-               undoBuffer:self.undoBuffer,
-               });
-          } else {
-           resize();
-          }
-        },500);
-      }
-    resize();
+   var self = this;
+   window.print();
+   SuiPrintFileDialog.createAndDisplay({
+       layout: self.layout,
+       completeNotifier:self.completeNotifier,
+       closeMenuPromise:self.closePromise,
+       tracker:self.tracker,
+       undoBuffer:self.undoBuffer,
+       });
   }
   selection(ev) {
     var text = $(ev.currentTarget).attr('data-value');
@@ -420,7 +369,7 @@ class SuiFileMenu extends suiMenuBase {
         var systemPrint = () => {
         self.systemPrint();
       }
-        this.printRenderPromise().then(systemPrint);
+        this.layout.renderForPrintPromise().then(systemPrint);
       } else if (text == 'bach') {
   			this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
   			var score = SmoScore.deserialize(inventionJson);

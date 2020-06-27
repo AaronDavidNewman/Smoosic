@@ -161,6 +161,45 @@ class suiLayoutBase {
     });
     this.partialRender = false;
   }
+  renderForPrintPromise() {
+    $('body').addClass('print-render');
+    var self = this;
+    // layout.setViewport(true);
+    this._backupLayout = JSON.parse(JSON.stringify(this.score.layout));
+    this.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
+    this.score.layout.zoomScale = 1.0;
+    this.setViewport(true);
+    this.setRefresh();
+    var self = this;
+
+    var promise = new Promise((resolve) => {
+      var poll = () => {
+        setTimeout(() => {
+          if (!self.dirty) {
+             // tracker.highlightSelection();
+             $('body').removeClass('print-render');
+             $('.vf-selection').remove();
+             $('body').addClass('printing');
+             $('.musicRelief').css('height','');
+             resolve();
+          } else {
+            poll();
+          }
+        },500);
+      }
+      poll();
+    });
+    return promise;
+  }
+
+  restoreLayoutAfterPrint() {
+    if (this._backupLayout) {
+      this.score.layout  = this._backupLayout;
+      this.setViewport(true);
+      this.setRefresh();
+      this._backupLayout = null;
+    }
+  }
 
   clearLine(measure) {
     var lineIndex = measure.lineIndex;
