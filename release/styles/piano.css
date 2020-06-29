@@ -1,7 +1,8 @@
 
 
 .piano-container {
-	position:relative;
+	display:flex;
+  justify-content:center;
 }
 #keyId-C4 {
 	fill:#ddffee;
@@ -9,41 +10,61 @@
 #keyId-C4.glow-key {
 	fill:#33ccaa;
 }
+
+.piano-container {
+	display:none;
+}
+
+.key-left-ctrl,.key-right-ctrl {
+  display:flex;
+}
+
+.key-left-ctrl button,.key-right-ctrl button {
+  display:flex;
+  flex: auto;
+  justify-content:center;
+}
+
+.key-right-ctrl button.close {
+  color:red;
+  width:25px;
+  height:25px;
+  flex: 0 1 auto;
+}
+
+.key-right-ctrl .icon-duration_grow,
+.key-right-ctrl .icon-duration_less,
+.key-left-ctrl button span,
+.piano-keys button.key-ctrl span
+  {
+  font-size:1.5em;
+}
+
+.piano-container button {
+  background: #fff;
+  border-radius:5px;
+}
+
+.piano-container button.activated {
+  background: #cad;
+}
+
+.piano-container button.piano-ctrl {
+  width:50px;
+}
+
+body.show-piano .piano-container {
+  display:flex;
+  flex-direction:column;
+}
+
 .piano-keys {
-	height:141px;
-	width: 805px;
-	overflow-x:auto;
-	overflow-y:hidden;
-	padding-top: 35px;
-	padding-left:15px;
-	padding-right:15px;
-	padding-bottom:3px;
-	border: #336 3px solid;
-	border-radius:5px;
-	position:relative;
-	display:none;
+	display:flex;
+  justify-content:center;
 }
 
-body.show-piano #pianoModal {
-	display:none;
-}
-
-body.show-piano .piano-keys {
-	display:block;
-}
-
-body.show-piano .close-container {
-    position:absolute;
-    top:10px;
-    right:10px;
-}
-
-body.show-piano .close-container button {
-    color:red;
-}
 
 .black-key {
-	fill:#000;
 	stroke:#000;
 }
 

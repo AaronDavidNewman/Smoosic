@@ -607,6 +607,13 @@ class DisplaySettings {
       this.layout.setViewport();
       this.layout.setRefresh();
   }
+  playButton2() {
+    this.editor.playScore();
+  }
+  stopButton2() {
+    this.editor.stopPlayer();
+  }
+
 
   bind() {
     this.eventSource.domClick(this.buttonElement,this,this.buttonData.id);

@@ -92,12 +92,12 @@ class suiMenuManager {
         shiftKey: false,
         action: "SuiFileMenu"
       }, {
-      event: "keydown",
-      key: "m",
-      ctrlKey: false,
-      altKey: false,
-      shiftKey: false,
-      action: "SuiTimeSignatureMenu"
+        event: "keydown",
+        key: "m",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "SuiTimeSignatureMenu"
       }
     ];
   }

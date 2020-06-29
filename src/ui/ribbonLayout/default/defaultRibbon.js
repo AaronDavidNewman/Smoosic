@@ -4,12 +4,12 @@ class defaultRibbonLayout {
 
 	static get ribbons() {
 		var left = defaultRibbonLayout.leftRibbonIds;
-		var top = defaultRibbonLayout.noteButtonIds.concat(defaultRibbonLayout.navigateButtonIds)
+		var top = defaultRibbonLayout.displayIds.concat(defaultRibbonLayout.noteButtonIds).concat(defaultRibbonLayout.navigateButtonIds)
         .concat(defaultRibbonLayout.articulateButtonIds).concat(defaultRibbonLayout.microtoneIds)
 		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds)
             .concat(defaultRibbonLayout.beamIds).concat(defaultRibbonLayout.measureIds).concat(defaultRibbonLayout.staveIds)
               .concat(defaultRibbonLayout.textIds).concat(defaultRibbonLayout.playerIds)
-              .concat(defaultRibbonLayout.voiceButtonIds).concat(defaultRibbonLayout.displayIds).concat(defaultRibbonLayout.debugIds);
+              .concat(defaultRibbonLayout.voiceButtonIds).concat(defaultRibbonLayout.debugIds);
 
 		return {
 			left: left,
@@ -89,7 +89,7 @@ class defaultRibbonLayout {
   }
 
   static get displayIds() {
-      return ['displaySettings','refresh','zoomout','zoomin'];
+      return ['displaySettings','refresh','zoomout','zoomin','playButton2','stopButton2'];
   }
 
 
@@ -189,7 +189,25 @@ class defaultRibbonLayout {
   		ctor: 'DisplaySettings',
   		group: 'displaySettings',
   		id: 'zoomin'
-    },
+    },{
+      leftText: '',
+  		rightText: '',
+  		classes: 'icon   play',
+  		icon: 'icon-play3',
+  		action: 'collapseChild',
+  		ctor: 'DisplaySettings',
+  		group: 'displaySettings',
+  		id: 'playButton2'
+    },{
+      leftText: '',
+  		rightText: '',
+  		classes: 'icon   stop2',
+  		icon: 'icon-stop2',
+  		action: 'collapseChild',
+  		ctor: 'DisplaySettings',
+  		group: 'displaySettings',
+  		id: 'stopButton2'
+    }
   ];
   }
 

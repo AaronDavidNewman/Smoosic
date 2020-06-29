@@ -13,6 +13,7 @@
   flex: 1 1 auto;
 	flex-flow:row wrap;
   justify-content:left;
+  align-content:center;
 }
 
 .control-bar .titleText {

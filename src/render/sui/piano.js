@@ -1,12 +1,12 @@
 
 class suiPiano {
 	constructor(parameters) {
-		this.elementId = parameters.elementId;
-        this.tracker = parameters.tracker;
-        this.undoBuffer = parameters.undo;
-		this.renderElement = document.getElementById('piano-svg')
-			this.selections = [];
+    Vex.Merge(this, parameters);
+		this.renderElement = document.getElementById('piano-svg');
+		this.selections = [];
 		this.render();
+    this.octaveOffset = 0;
+    this.chordPedal = false;
 	}
 
 	static get dimensions() {
@@ -15,7 +15,7 @@ class suiPiano {
 			bwidth: 13,
 			wheight: 120,
 			bheight: 80,
-			octaves:5
+			octaves:1
 		};
 	}
 		// 7 white keys per octave
@@ -66,10 +66,57 @@ class suiPiano {
 	}
 	bind() {
 		var self = this;
-        $('body').off('show-piano-event').on('show-piano-event',function() {
-            $('body').toggleClass('show-piano');
-            self._mapKeys();
-        });
+    $('body').off('show-piano-event').on('show-piano-event',function() {
+        $('body').toggleClass('show-piano');
+        self._mapKeys();
+    });
+    $('#piano-8va-button').off('click').on('click',function() {
+      $('#piano-8vb-button').removeClass('activated');
+      if (self.octaveOffset === 0) {
+        $(this).addClass('activated');
+        self.octaveOffset = 1;
+      } else {
+        $(this).removeClass('activated');
+        self.octaveOffset = 0;
+      }
+    });
+    $('#piano-8vb-button').off('click').on('click',function() {
+      self.editor.downOctave();
+      $('#piano-8va-button').removeClass('activated');
+      if (self.octaveOffset === 0) {
+        $(this).addClass('activated');
+        self.octaveOffset = -1;
+      } else {
+        $(this).removeClass('activated');
+        self.octaveOffset = 0;
+      }
+    });
+    $('#piano-xpose-up').off('click').on('click',function() {
+      self.editor.transposeUp();
+    });
+    $('#piano-xpose-down').off('click').on('click',function() {
+      self.editor.transposeDown();
+    });
+    $('#piano-enharmonic').off('click').on('click',function() {
+      self.editor.toggleEnharmonic();
+    });
+    $('button.jsLeft').off('click').on('click',function() {
+      self.tracker.moveSelectionLeft();
+    });
+    $('button.jsRight').off('click').on('click',function() {
+      self.tracker.moveSelectionRight();
+    });
+    $('button.jsGrowDuration').off('click').on('click',function() {
+      self.editor.doubleDuration();
+    });
+    $('button.jsShrinkDuration').off('click').on('click',function() {
+      self.editor.halveDuration();
+    });
+    $('button.jsChord').off('click').on('click',function() {
+      $(this).toggleClass('activated');
+      self.chordPedal = !self.chordPedal;
+    });
+
 
 		$(this.renderElement).off('mousemove').on('mousemove', function (ev) {
 			var keyPressed = svgHelpers.findSmallestIntersection({
@@ -100,7 +147,6 @@ class suiPiano {
 			// resize the work area.
 			$('body').trigger('forceScrollEvent');
 		});
-        this.bindKeys();
 	}
 	_updateSelections(ev) {
 		var keyPressed = svgHelpers.findSmallestIntersection({
@@ -110,7 +156,7 @@ class suiPiano {
 		if (!keyPressed) {
 			return;
 		}
-		if (!ev.shiftKey) {
+		if (!ev.shiftKey && !this.chordPedal) {
 			this.selections = [];
 			this._removeClass('glow-key pressed-key');
 		} else {
@@ -124,37 +170,57 @@ class suiPiano {
 			accidental: key.length == 3 ? key[1] : 'n'
 		};
 		this.selections.push(pitch);
-		$('body').trigger('smo-piano-key', {
-			selections: JSON.parse(JSON.stringify(this.selections))
-		});
+    this.playNote();
 	}
-	_renderclose() {
+	_renderControls() {
 		var b = htmlHelpers.buildDom;
-		var r = b('div').classes('close-container').append(
-            b('button').classes('icon icon-cross close close-piano'));
-		$(this.renderElement).closest('div').append(r.dom());
+		var r =b('button').classes('icon icon-cross close close-piano');
+		$('.piano-container .key-right-ctrl').append(r.dom());
+    r = b('button').classes('piano-ctrl jsLeft').append(b('span').classes('icon icon-arrow-left'));
+    $('.piano-container .key-right-ctrl').append(r.dom());
+    r = b('button').classes('piano-ctrl  jsRight').append(b('span').classes('icon icon-arrow-right'));
+    $('.piano-container .key-right-ctrl').append(r.dom());
+    r = b('button').classes('piano-ctrl jsGrowDuration').append(b('span').classes('icon icon-duration_grow'));
+    $('.piano-container .key-right-ctrl').append(r.dom());
+    r = b('button').classes('piano-ctrl jsShrinkDuration').append(b('span').classes('icon icon-duration_less'));
+    $('.piano-container .key-right-ctrl').append(r.dom());
+
+    r = b('button').classes('key-ctrl jsChord').append(b('span').classes('icon icon-chords'));
+    $('.piano-container .piano-keys').prepend(r.dom());
+
+    r = b('button').classes('piano-ctrl').attr('id','piano-8va-button').append(
+      b('span').classes('bold-italic').text('8')).append(
+        b('sup').classes('italic').text('va'));
+    $('.piano-container .key-left-ctrl').append(r.dom());
+    r = b('button').classes('piano-ctrl ').attr('id','piano-8vb-button').append(
+      b('span').classes('bold-italic').text('8')).append(
+        b('sup').classes('italic').text('vb'));
+    $('.piano-container .key-left-ctrl').append(r.dom());
+    r = b('button').classes('piano-ctrl jsXposeUp').attr('id','piano-xpose-up').append(
+      b('span').classes('bold').text('+'));
+    $('.piano-container .key-left-ctrl').append(r.dom());
+    r = b('button').classes('piano-ctrl jsXposeDown').attr('id','piano-xpose-down').append(
+      b('span').classes('bold').text('-'));
+    $('.piano-container .key-left-ctrl').append(r.dom());
+    r = b('button').classes('piano-ctrl jsEnharmonic').attr('id','piano-enharmonic').append(
+      b('span').classes('bold icon icon-accident'));
+    $('.piano-container .key-left-ctrl').append(r.dom());
 	}
 	handleResize() {
-		this._updateOffsets();
 		this._mapKeys();
 	}
-	_updateOffsets() {
-		var padding = Math.round(window.innerWidth - suiPiano.owidth*suiPiano.dimensions.octaves)/2;
-		$(this.renderElement).closest('div').css('margin-left',''+padding+'px');
-	}
-    playNote(selections) {
-        this.tracker.selections.forEach((sel) => {
-            SmoUndoable.addPitch(sel, selections, this.undoBuffer);
-            suiOscillator.playSelectionNow(sel);
-        });
-        this.tracker.replaceSelectedMeasures();
-    }
-    bindKeys() {
-        var self = this;
-        $('body').off('smo-piano-key').on('smo-piano-key',function(ev,obj) {
-			self.playNote(obj.selections);
-		});
-    }
+  playNote() {
+    var pitchSel = JSON.parse(JSON.stringify(this.selections));
+    this.tracker.selections.forEach((sel) => {
+      var ova = SmoMeasure.defaultPitchForClef[sel.measure.clef];
+      pitchSel.forEach((pitch) => {
+        pitch.octave = ova.octave + this.octaveOffset;
+      });
+      SmoUndoable.addPitch(sel, pitchSel, this.undoBuffer);
+      suiOscillator.playSelectionNow(sel);
+    });
+    this.tracker.replaceSelectedMeasures();
+  }
 	render() {
 		$('body').addClass('show-piano');
 		var b = svgHelpers.buildSvg;
@@ -223,7 +289,7 @@ class suiPiano {
 		for (var i = 0; i < d.octaves; ++i) {
 			x = i * owidth;
 			xwhite.forEach((key) => {
-				var nt = key.note + (octaveOff + i + 1).toString();
+				var nt = key.note; // + (octaveOff + i + 1).toString();
 				var classes = 'piano-key white-key';
 				if (nt == 'C4') {
 					classes += ' middle-c';
@@ -237,14 +303,14 @@ class suiPiano {
 			xblack.forEach((key) => {
 				var nt = key.note + (octaveOff + i + 1).toString();
 				var classes = 'piano-key black-key';
-				var rect = b('rect').attr('id', 'keyId-' + nt).rect(x + key.x, 0, bwidth, bheight, classes);
+				var rect = b('rect').attr('id', 'keyId-' + nt).attr('fill','url(#piano-grad)').rect(x + key.x, 0, bwidth, bheight, classes);
 				r.append(rect);
 			});
 		}
 		var el = document.getElementById(this.elementId);
+    svgHelpers.gradient(el,'piano-grad','vertical',[{color:'#000',offset:'0%'},{color:'#777',offset:'50%'},{color:'#ddd',offset:'100%'}]);
 		el.appendChild(r.dom());
-		this._renderclose();
-		this._updateOffsets();
+		this._renderControls();
 		this._mapKeys();
 		this.bind();
 	}

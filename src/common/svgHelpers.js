@@ -24,6 +24,34 @@ class svgHelpers {
 		return "http://www.w3.org/2000/svg";
 	}
 
+  // ### gradient
+  // Create an svg linear gradient.
+  // Stops look like this:
+  // `[{color:"#eee", offset:"0%",opacity:0.5}]`
+  // orientation is horizontal or vertical
+  static gradient(svg,id,orientation,stops) {
+    var ns = svgHelpers.namespace;
+    var x2 = orientation === 'vertical' ? 0 : 1;
+    var y2 = orientation === 'vertical' ? 1 : 0;
+
+    var e = document.createElementNS(ns, 'linearGradient');
+    e.setAttributeNS('','id',id);
+    e.setAttributeNS('','x1',0);
+    e.setAttributeNS('','x2',x2);
+    e.setAttributeNS('','y1',0);
+    e.setAttributeNS('','y2',y2);
+    stops.forEach((stop) => {
+      var s = document.createElementNS(ns, 'stop');
+      var opacity = stop.opacity ? 1 : stop.opacity;
+      s.setAttributeNS('','stop-opacity',opacity);
+      s.setAttributeNS('','stop-color',stop.color);
+      s.setAttributeNS('','offset',stop.offset);
+      e.appendChild(s);
+
+    });
+    svg.appendChild(e);
+  }
+
 	static buildSvg(el) {
 
 		var smoSvgBuilder = function (el) {

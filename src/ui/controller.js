@@ -91,7 +91,20 @@ class suiController {
 	}
 
 	createPiano() {
-		this.piano = new suiPiano({elementId:'piano-svg',tracker:this.tracker,undo:this.undoBuffer});
+		this.piano = new suiPiano(
+    {
+      elementId:'piano-svg',
+			ribbons: defaultRibbonLayout.ribbons,
+			ribbonButtons: defaultRibbonLayout.ribbonButtons,
+			menus: this.menus,
+			editor: this.editor,
+			tracker: this.tracker,
+			score: this.score,
+			controller: this,
+      layout:this.tracker.layout,
+      eventSource:this.eventSource,
+      undoBuffer:this.undoBuffer
+		});
         // $('.close-piano').click();
 	}
 	resizeEvent() {

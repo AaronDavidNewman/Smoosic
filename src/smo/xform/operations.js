@@ -555,6 +555,7 @@ class SmoOperation {
   // add a pitch to a note chord, avoiding duplicates.
   static addPitch(selection, pitches) {
   var toAdd = [];
+  selection.note.makeNote();
   pitches.forEach((pitch) => {
   var found = false;
   toAdd.forEach((np) => {

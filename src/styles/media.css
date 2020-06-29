@@ -16,6 +16,9 @@
     font-style: normal;
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Merriweather');
+
+
 body {
 	margin:0;
 	overflow:hidden;
@@ -38,6 +41,15 @@ h1 {
 .dom-container {
 	background-color:#999;
 }
+.bold-italic {
+  font-weight: bold;
+  font-style: italic;
+}
+
+.italic {
+  font-style: italic;
+}
+
 .testTitle {
 	height: 20px;
 	font-size:1.2em;

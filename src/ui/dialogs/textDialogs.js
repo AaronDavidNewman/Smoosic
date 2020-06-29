@@ -343,12 +343,12 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   			control: 'SuiDropdownComponent',
   			label:'Font Family',
         startRow:true,
-  			options: [{value:'serif',label:'Serif'},
-          {value:'sans-serif',label:'Sans-Serif'},
-          {label:'Monospace',value:'monospace'},
-          {label:'Cursive',value:'cursive'},
-          {label:'Times',value:'Times New Roman'},
-          {label:'Arial',value:'Arial'},
+  			options: [{value:SmoScoreText.fontFamilies.serif,label:'Serif'},
+          {value:SmoScoreText.fontFamilies.sansSerif,label:'Sans-Serif'},
+          {label:'Monospace',value:SmoScoreText.fontFamilies.monospace},
+          {label:'Cursive',value:SmoScoreText.fontFamilies.cursive},
+          {label:'times',value:SmoScoreText.fontFamilies.times},
+          {label:'arial',value:SmoScoreText.fontFamilies.arial},
           {label:'Helvetica',value:'Helvetica'}
         ]
   		},

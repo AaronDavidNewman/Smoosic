@@ -1,0 +1,5 @@
+<svg width="500px" height="500px" id="arrow">
+  <g>
+  <path stroke-width="0.3" fill="black" stroke="none" stroke-dasharray="none" d="M992 448l-480 480v-288h-512v-384h512v-288z" />
+</g>
+</svg>

@@ -100,8 +100,8 @@ class SmoScoreText extends SmoScoreModifierBase {
 		return {left:'left',right:'right',center:'center'};
 	}
   static get fontFamilies() {
-    return {serif:'serif',sansSerif:'sans-serif',monospace:'monospace',cursive:'cursive',
-      times:'Times New Roman',arial:'Arial',helvitica:'Helvitica'};
+    return {serif:'Merriweather,serif',sansSerif:'Roboto,sans-serif',monospace:'monospace',cursive:'cursive',
+      times:'Merriweather',arial:'Arial',helvitica:'Helvitica'};
 
   }
 	// If box model is 'none', the font and location determine the size.
@@ -139,10 +139,15 @@ class SmoScoreText extends SmoScoreModifierBase {
 	static toSvgAttributes(inst) {
 		var rv=[];
 		var fkeys = Object.keys(inst.fontInfo);
-		fkeys.forEach((key) => {
-			var n='{"font-'+key+'":"'+inst.fontInfo[key]+'"}';
-			rv.push(JSON.parse(n));
+    var fontFamily = SmoScoreText[inst.fontInfo.family] ? SmoScoreText[inst.fontInfo.family] : inst.fontInfo.family;
+    fkeys.forEach((key) => {
+			var n=JSON.parse('{"font-'+key+'":"'+inst.fontInfo[key]+'"}');
+      if (n['font-family']) {
+        n['font-family'] = fontFamily;
+      }
+			rv.push(n);
 		});
+
 		var attrs = SmoScoreText.attributes.filter((x) => {return x != 'fontInfo' && x != 'boxModel'});
 		rv.push({fill:inst.fill});
 		rv.push({x:inst.x});

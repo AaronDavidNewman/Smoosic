@@ -5,12 +5,23 @@
 // display
 class suiEditor {
     constructor(params) {
-        Vex.Merge(this, params);
-        this.slashMode = false;
+      Vex.Merge(this, params);
+      this.slashMode = false;
     }
 
 	tempoDialog() {
-		SuiTempoDialog.createAndDisplay(null,null,this.controller);
+		SuiTempoDialog.createAndDisplay(
+      {
+        buttonElement:this.buttonElement,
+        buttonData:this.buttonData,
+        completeNotifier:this.controller,
+        tracker: this.tracker,
+        layout:this.layout,
+        undoBuffer:this.undoBuffer,
+        eventSource:this.eventSource,
+        editor:this
+      }
+    );
 	}
 
     // ## _render
@@ -82,166 +93,166 @@ class suiEditor {
     this._render();
   }
 
-    _transpose(selection, offset, playSelection) {
-        this._selectionOperation(selection, 'transpose', offset);
-        if (playSelection) {
-            suiOscillator.playSelectionNow(selection);
-        }
-    }
-
-    copy() {
-        if (this.tracker.selections.length < 1) {
-            return;
-        }
-        this.pasteBuffer.setSelections(this.layout.score, this.tracker.selections);
-    }
-    paste() {
-        if (this.tracker.selections.length < 1) {
-            return;
-        }
-
-        SmoUndoable.pasteBuffer(this.layout.score, this.pasteBuffer, this.tracker.selections, this.undoBuffer, 'paste')
-        this._rebeam();
-        this._refresh();
-    }
-    toggleBeamGroup() {
-        if (this.tracker.selections.length < 1) {
-            return;
-        }
-        SmoUndoable.toggleBeamGroups(this.tracker.selections, this.undoBuffer);
-        this._rebeam();
-        this._render();
-    }
-
-    beamSelections() {
-        if (this.tracker.selections.length < 1) {
-            return;
-        }
-        SmoUndoable.beamSelections(this.tracker.selections, this.undoBuffer);
-        this._rebeam();
-        this._render();
-    }
-    toggleBeamDirection() {
-        if (this.tracker.selections.length < 1) {
-            return;
-        }
-        SmoUndoable.toggleBeamDirection(this.tracker.selections, this.undoBuffer);
-        this._render();
-    }
-
-    collapseChord() {
-        SmoUndoable.noop(this.layout.score, this.undoBuffer);
-        this.tracker.selections.forEach((selection) => {
-            var p = selection.note.pitches[0];
-            p = JSON.parse(JSON.stringify(p));
-            selection.note.pitches = [p];
-        });
-        this._render();
-    }
-
-    playScore() {
-      var mm = this.tracker.getExtremeSelection(-1);
-      if (suiAudioPlayer.playingInstance && suiAudioPlayer.playingInstance.paused) {
-        suiAudioPlayer.playingInstance.play();
-        return;
+  _transpose(selection, offset, playSelection) {
+      this._selectionOperation(selection, 'transpose', offset);
+      if (playSelection) {
+          suiOscillator.playSelectionNow(selection);
       }
-      new suiAudioPlayer({score:this.layout.score,startIndex:mm.selector.measure,tracker:this.tracker}).play();
-    }
+  }
 
-    stopPlayer() {
-      suiAudioPlayer.stopPlayer();
-    }
-    pausePlayer() {
-      suiAudioPlayer.pausePlayer();
-    }
-
-    intervalAdd(interval, direction) {
-      this._singleSelectionOperation('interval', direction * interval);
-    }
-
-    interval(keyEvent) {
-      if (this.tracker.selections.length != 1)
-        return;
-      // code='Digit3'
-      var interval = parseInt(keyEvent.keyCode) - 49;  // 48 === '0', 0 indexed
-      if (isNaN(interval) || interval < 1 || interval > 7) {
-        return;
+  copy() {
+      if (this.tracker.selections.length < 1) {
+          return;
       }
-      this.intervalAdd(interval, keyEvent.shiftKey ? -1 : 1);
+      this.pasteBuffer.setSelections(this.layout.score, this.tracker.selections);
+  }
+  paste() {
+      if (this.tracker.selections.length < 1) {
+          return;
+      }
+
+      SmoUndoable.pasteBuffer(this.layout.score, this.pasteBuffer, this.tracker.selections, this.undoBuffer, 'paste')
+      this._rebeam();
+      this._refresh();
+  }
+  toggleBeamGroup() {
+      if (this.tracker.selections.length < 1) {
+          return;
+      }
+      SmoUndoable.toggleBeamGroups(this.tracker.selections, this.undoBuffer);
+      this._rebeam();
+      this._render();
+  }
+
+  beamSelections() {
+      if (this.tracker.selections.length < 1) {
+          return;
+      }
+      SmoUndoable.beamSelections(this.tracker.selections, this.undoBuffer);
+      this._rebeam();
+      this._render();
+  }
+  toggleBeamDirection() {
+      if (this.tracker.selections.length < 1) {
+          return;
+      }
+      SmoUndoable.toggleBeamDirection(this.tracker.selections, this.undoBuffer);
+      this._render();
+  }
+
+  collapseChord() {
+      SmoUndoable.noop(this.layout.score, this.undoBuffer);
+      this.tracker.selections.forEach((selection) => {
+          var p = selection.note.pitches[0];
+          p = JSON.parse(JSON.stringify(p));
+          selection.note.pitches = [p];
+      });
+      this._render();
+  }
+
+  playScore() {
+    var mm = this.tracker.getExtremeSelection(-1);
+    if (suiAudioPlayer.playingInstance && suiAudioPlayer.playingInstance.paused) {
+      suiAudioPlayer.playingInstance.play();
+      return;
+    }
+    new suiAudioPlayer({score:this.layout.score,startIndex:mm.selector.measure,tracker:this.tracker}).play();
+  }
+
+  stopPlayer() {
+    suiAudioPlayer.stopPlayer();
+  }
+  pausePlayer() {
+    suiAudioPlayer.pausePlayer();
+  }
+
+  intervalAdd(interval, direction) {
+    this._singleSelectionOperation('interval', direction * interval);
+  }
+
+  interval(keyEvent) {
+    if (this.tracker.selections.length != 1)
+      return;
+    // code='Digit3'
+    var interval = parseInt(keyEvent.keyCode) - 49;  // 48 === '0', 0 indexed
+    if (isNaN(interval) || interval < 1 || interval > 7) {
+      return;
+    }
+    this.intervalAdd(interval, keyEvent.shiftKey ? -1 : 1);
+  }
+
+  transpose(offset) {
+      var grace = this.tracker.getSelectedGraceNotes();
+      if (grace.length) {
+          grace.forEach((artifact) => {
+              SmoUndoable.transposeGraceNotes(artifact.selection,{modifiers:artifact.modifier,offset:offset},this.undoBuffer);
+          });
+          this._render();
+
+          return;
+      }
+      // If there are lots of selections, just play the first note
+      var playSelection = true;
+      this.tracker.selections.forEach((selected) => {
+          this._transpose(selected, offset, playSelection);
+          playSelection = false;
+      });
+      this._render();
+  }
+  transposeDown() {
+    this.transpose(-1);
+  }
+  transposeUp() {
+    this.transpose(1);
+  }
+  upOctave() {
+    this.transpose(12);
+  }
+  downOctave() {
+    this.transpose(-12);
+  }
+  makeRest() {
+      this.tracker.selections.forEach((selection) => {
+          this._selectionOperation(selection,'makeRest');
+      });
+      this.tracker.replaceSelectedMeasures();
+  }
+
+  _setPitch(selected, letter) {
+    var selector = selected.selector;
+    var hintSel = SmoSelection.lastNoteSelection(this.layout.score,
+      selector.staff, selector.measure, selector.voice, selector.tick);
+    if (!hintSel) {
+      hintSel = SmoSelection.nextNoteSelection(this.layout.score,
+        selector.staff, selector.measure, selector.voice, selector.tick);
     }
 
-    transpose(offset) {
-        var grace = this.tracker.getSelectedGraceNotes();
-        if (grace.length) {
-            grace.forEach((artifact) => {
-                SmoUndoable.transposeGraceNotes(artifact.selection,{modifiers:artifact.modifier,offset:offset},this.undoBuffer);
-            });
-            this._render();
+    var hintNote = hintSel.note;
+    var hpitch = hintNote.pitches[0];
+    var pitch = JSON.parse(JSON.stringify(hpitch));
+    pitch.letter = letter;
 
-            return;
-        }
-        // If there are lots of selections, just play the first note
-        var playSelection = true;
-        this.tracker.selections.forEach((selected) => {
-            this._transpose(selected, offset, playSelection);
-            playSelection = false;
-        });
-        this._render();
-    }
-    transposeDown() {
-        this.transpose(-1);
-    }
-    transposeUp() {
-        this.transpose(1);
-    }
-    upOctave() {
-        this.transpose(12);
-    }
-    downOctave() {
-        this.transpose(-12);
-    }
-    makeRest() {
-        this.tracker.selections.forEach((selection) => {
-            this._selectionOperation(selection,'makeRest');
-        });
-        this.tracker.replaceSelectedMeasures();
+    // Make the key 'a' make 'Ab' in the key of Eb, for instance
+    var vexKsKey = smoMusic.getKeySignatureKey(letter, selected.measure.keySignature);
+    if (vexKsKey.length > 1) {
+        pitch.accidental = vexKsKey[1];
+    } else {
+        pitch.accidental = 'n';
     }
 
-    _setPitch(selected, letter) {
-        var selector = selected.selector;
-        var hintSel = SmoSelection.lastNoteSelection(this.layout.score,
-                selector.staff, selector.measure, selector.voice, selector.tick);
-        if (!hintSel) {
-            hintSel = SmoSelection.nextNoteSelection(this.layout.score,
-                    selector.staff, selector.measure, selector.voice, selector.tick);
-        }
-
-        var hintNote = hintSel.note;
-        var hpitch = hintNote.pitches[0];
-        var pitch = JSON.parse(JSON.stringify(hpitch));
-        pitch.letter = letter;
-
-        // Make the key 'a' make 'Ab' in the key of Eb, for instance
-        var vexKsKey = smoMusic.getKeySignatureKey(letter, selected.measure.keySignature);
-        if (vexKsKey.length > 1) {
-            pitch.accidental = vexKsKey[1];
-        } else {
-            pitch.accidental = 'n';
-        }
-
-        // make the octave of the new note as close to previous (or next) note as possible.
-        var upv = ['bc', 'ac', 'bd', 'da', 'be', 'gc'];
-        var downv = ['cb', 'ca', 'db', 'da', 'eb', 'cg'];
-        var delta = hpitch.letter + pitch.letter;
-        if (upv.indexOf(delta) >= 0) {
-            pitch.octave += 1;
-        }
-        if (downv.indexOf(delta) >= 0) {
-            pitch.octave -= 1;
-        }
-        SmoUndoable['setPitch'](selected, pitch, this.undoBuffer);
-        suiOscillator.playSelectionNow(selected);
+    // make the octave of the new note as close to previous (or next) note as possible.
+    var upv = ['bc', 'ac', 'bd', 'da', 'be', 'gc'];
+    var downv = ['cb', 'ca', 'db', 'da', 'eb', 'cg'];
+    var delta = hpitch.letter + pitch.letter;
+    if (upv.indexOf(delta) >= 0) {
+        pitch.octave += 1;
     }
+    if (downv.indexOf(delta) >= 0) {
+      pitch.octave -= 1;
+    }
+    SmoUndoable['setPitch'](selected, pitch, this.undoBuffer);
+    suiOscillator.playSelectionNow(selected);
+  }
 
     setPitchCommand(letter) {
         this.tracker.selections.forEach((selected) => this._setPitch(selected, letter));
@@ -333,28 +344,28 @@ class suiEditor {
     this._refresh();
   }
 
-    toggleCourtesyAccidental() {
-        var grace = this.tracker.getSelectedGraceNotes();
-        if (grace.length) {
-            grace.forEach((artifact) => {
-                SmoUndoable.toggleGraceNoteCourtesyAccidental(artifact.selection,{modifiers:artifact.modifier},this.undoBuffer);
-            });
-            this._render();
+  toggleCourtesyAccidental() {
+    var grace = this.tracker.getSelectedGraceNotes();
+    if (grace.length) {
+      grace.forEach((artifact) => {
+        SmoUndoable.toggleGraceNoteCourtesyAccidental(artifact.selection,{modifiers:artifact.modifier},this.undoBuffer);
+      });
+      this._render();
 
-            return;
-        }
-        if (this.tracker.selections.length < 1) {
-            return;
-        }
-        this.tracker.selections.forEach((selection) => {
-            SmoUndoable.toggleCourtesyAccidental(selection, this.undoBuffer);
-        });
-        this._render();
+      return;
     }
-    toggleEnharmonic() {
-        this.tracker.selections.forEach((selected) => this._selectionOperation(selected, 'toggleEnharmonic'));
-        this._render();
+    if (this.tracker.selections.length < 1) {
+      return;
     }
+    this.tracker.selections.forEach((selection) => {
+      SmoUndoable.toggleCourtesyAccidental(selection, this.undoBuffer);
+    });
+    this._render();
+  }
+  toggleEnharmonic() {
+    this.tracker.selections.forEach((selected) => this._selectionOperation(selected, 'toggleEnharmonic'));
+    this._render();
+  }
 
   rerender(keyEvent) {
     this.layout.unrenderAll();

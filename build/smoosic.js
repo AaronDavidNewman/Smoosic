@@ -3065,6 +3065,34 @@ class svgHelpers {
 		return "http://www.w3.org/2000/svg";
 	}
 
+  // ### gradient
+  // Create an svg linear gradient.
+  // Stops look like this:
+  // `[{color:"#eee", offset:"0%",opacity:0.5}]`
+  // orientation is horizontal or vertical
+  static gradient(svg,id,orientation,stops) {
+    var ns = svgHelpers.namespace;
+    var x2 = orientation === 'vertical' ? 0 : 1;
+    var y2 = orientation === 'vertical' ? 1 : 0;
+
+    var e = document.createElementNS(ns, 'linearGradient');
+    e.setAttributeNS('','id',id);
+    e.setAttributeNS('','x1',0);
+    e.setAttributeNS('','x2',x2);
+    e.setAttributeNS('','y1',0);
+    e.setAttributeNS('','y2',y2);
+    stops.forEach((stop) => {
+      var s = document.createElementNS(ns, 'stop');
+      var opacity = stop.opacity ? 1 : stop.opacity;
+      s.setAttributeNS('','stop-opacity',opacity);
+      s.setAttributeNS('','stop-color',stop.color);
+      s.setAttributeNS('','offset',stop.offset);
+      e.appendChild(s);
+
+    });
+    svg.appendChild(e);
+  }
+
 	static buildSvg(el) {
 
 		var smoSvgBuilder = function (el) {
@@ -7501,8 +7529,8 @@ class SmoScoreText extends SmoScoreModifierBase {
 		return {left:'left',right:'right',center:'center'};
 	}
   static get fontFamilies() {
-    return {serif:'serif',sansSerif:'sans-serif',monospace:'monospace',cursive:'cursive',
-      times:'Times New Roman',arial:'Arial',helvitica:'Helvitica'};
+    return {serif:'Merriweather,serif',sansSerif:'Roboto,sans-serif',monospace:'monospace',cursive:'cursive',
+      times:'Merriweather',arial:'Arial',helvitica:'Helvitica'};
 
   }
 	// If box model is 'none', the font and location determine the size.
@@ -7540,10 +7568,15 @@ class SmoScoreText extends SmoScoreModifierBase {
 	static toSvgAttributes(inst) {
 		var rv=[];
 		var fkeys = Object.keys(inst.fontInfo);
-		fkeys.forEach((key) => {
-			var n='{"font-'+key+'":"'+inst.fontInfo[key]+'"}';
-			rv.push(JSON.parse(n));
+    var fontFamily = SmoScoreText[inst.fontInfo.family] ? SmoScoreText[inst.fontInfo.family] : inst.fontInfo.family;
+    fkeys.forEach((key) => {
+			var n=JSON.parse('{"font-'+key+'":"'+inst.fontInfo[key]+'"}');
+      if (n['font-family']) {
+        n['font-family'] = fontFamily;
+      }
+			rv.push(n);
 		});
+
 		var attrs = SmoScoreText.attributes.filter((x) => {return x != 'fontInfo' && x != 'boxModel'});
 		rv.push({fill:inst.fill});
 		rv.push({x:inst.x});
@@ -9448,6 +9481,7 @@ class SmoOperation {
   // add a pitch to a note chord, avoiding duplicates.
   static addPitch(selection, pitches) {
   var toAdd = [];
+  selection.note.makeNote();
   pitches.forEach((pitch) => {
   var found = false;
   toAdd.forEach((np) => {
@@ -14084,12 +14118,12 @@ class suiLayoutBase {
 ;
 class suiPiano {
 	constructor(parameters) {
-		this.elementId = parameters.elementId;
-        this.tracker = parameters.tracker;
-        this.undoBuffer = parameters.undo;
-		this.renderElement = document.getElementById('piano-svg')
-			this.selections = [];
+    Vex.Merge(this, parameters);
+		this.renderElement = document.getElementById('piano-svg');
+		this.selections = [];
 		this.render();
+    this.octaveOffset = 0;
+    this.chordPedal = false;
 	}
 
 	static get dimensions() {
@@ -14098,7 +14132,7 @@ class suiPiano {
 			bwidth: 13,
 			wheight: 120,
 			bheight: 80,
-			octaves:5
+			octaves:1
 		};
 	}
 		// 7 white keys per octave
@@ -14149,10 +14183,57 @@ class suiPiano {
 	}
 	bind() {
 		var self = this;
-        $('body').off('show-piano-event').on('show-piano-event',function() {
-            $('body').toggleClass('show-piano');
-            self._mapKeys();
-        });
+    $('body').off('show-piano-event').on('show-piano-event',function() {
+        $('body').toggleClass('show-piano');
+        self._mapKeys();
+    });
+    $('#piano-8va-button').off('click').on('click',function() {
+      $('#piano-8vb-button').removeClass('activated');
+      if (self.octaveOffset === 0) {
+        $(this).addClass('activated');
+        self.octaveOffset = 1;
+      } else {
+        $(this).removeClass('activated');
+        self.octaveOffset = 0;
+      }
+    });
+    $('#piano-8vb-button').off('click').on('click',function() {
+      self.editor.downOctave();
+      $('#piano-8va-button').removeClass('activated');
+      if (self.octaveOffset === 0) {
+        $(this).addClass('activated');
+        self.octaveOffset = -1;
+      } else {
+        $(this).removeClass('activated');
+        self.octaveOffset = 0;
+      }
+    });
+    $('#piano-xpose-up').off('click').on('click',function() {
+      self.editor.transposeUp();
+    });
+    $('#piano-xpose-down').off('click').on('click',function() {
+      self.editor.transposeDown();
+    });
+    $('#piano-enharmonic').off('click').on('click',function() {
+      self.editor.toggleEnharmonic();
+    });
+    $('button.jsLeft').off('click').on('click',function() {
+      self.tracker.moveSelectionLeft();
+    });
+    $('button.jsRight').off('click').on('click',function() {
+      self.tracker.moveSelectionRight();
+    });
+    $('button.jsGrowDuration').off('click').on('click',function() {
+      self.editor.doubleDuration();
+    });
+    $('button.jsShrinkDuration').off('click').on('click',function() {
+      self.editor.halveDuration();
+    });
+    $('button.jsChord').off('click').on('click',function() {
+      $(this).toggleClass('activated');
+      self.chordPedal = !self.chordPedal;
+    });
+
 
 		$(this.renderElement).off('mousemove').on('mousemove', function (ev) {
 			var keyPressed = svgHelpers.findSmallestIntersection({
@@ -14183,7 +14264,6 @@ class suiPiano {
 			// resize the work area.
 			$('body').trigger('forceScrollEvent');
 		});
-        this.bindKeys();
 	}
 	_updateSelections(ev) {
 		var keyPressed = svgHelpers.findSmallestIntersection({
@@ -14193,7 +14273,7 @@ class suiPiano {
 		if (!keyPressed) {
 			return;
 		}
-		if (!ev.shiftKey) {
+		if (!ev.shiftKey && !this.chordPedal) {
 			this.selections = [];
 			this._removeClass('glow-key pressed-key');
 		} else {
@@ -14207,37 +14287,57 @@ class suiPiano {
 			accidental: key.length == 3 ? key[1] : 'n'
 		};
 		this.selections.push(pitch);
-		$('body').trigger('smo-piano-key', {
-			selections: JSON.parse(JSON.stringify(this.selections))
-		});
+    this.playNote();
 	}
-	_renderclose() {
+	_renderControls() {
 		var b = htmlHelpers.buildDom;
-		var r = b('div').classes('close-container').append(
-            b('button').classes('icon icon-cross close close-piano'));
-		$(this.renderElement).closest('div').append(r.dom());
+		var r =b('button').classes('icon icon-cross close close-piano');
+		$('.piano-container .key-right-ctrl').append(r.dom());
+    r = b('button').classes('piano-ctrl jsLeft').append(b('span').classes('icon icon-arrow-left'));
+    $('.piano-container .key-right-ctrl').append(r.dom());
+    r = b('button').classes('piano-ctrl  jsRight').append(b('span').classes('icon icon-arrow-right'));
+    $('.piano-container .key-right-ctrl').append(r.dom());
+    r = b('button').classes('piano-ctrl jsGrowDuration').append(b('span').classes('icon icon-duration_grow'));
+    $('.piano-container .key-right-ctrl').append(r.dom());
+    r = b('button').classes('piano-ctrl jsShrinkDuration').append(b('span').classes('icon icon-duration_less'));
+    $('.piano-container .key-right-ctrl').append(r.dom());
+
+    r = b('button').classes('key-ctrl jsChord').append(b('span').classes('icon icon-chords'));
+    $('.piano-container .piano-keys').prepend(r.dom());
+
+    r = b('button').classes('piano-ctrl').attr('id','piano-8va-button').append(
+      b('span').classes('bold-italic').text('8')).append(
+        b('sup').classes('italic').text('va'));
+    $('.piano-container .key-left-ctrl').append(r.dom());
+    r = b('button').classes('piano-ctrl ').attr('id','piano-8vb-button').append(
+      b('span').classes('bold-italic').text('8')).append(
+        b('sup').classes('italic').text('vb'));
+    $('.piano-container .key-left-ctrl').append(r.dom());
+    r = b('button').classes('piano-ctrl jsXposeUp').attr('id','piano-xpose-up').append(
+      b('span').classes('bold').text('+'));
+    $('.piano-container .key-left-ctrl').append(r.dom());
+    r = b('button').classes('piano-ctrl jsXposeDown').attr('id','piano-xpose-down').append(
+      b('span').classes('bold').text('-'));
+    $('.piano-container .key-left-ctrl').append(r.dom());
+    r = b('button').classes('piano-ctrl jsEnharmonic').attr('id','piano-enharmonic').append(
+      b('span').classes('bold icon icon-accident'));
+    $('.piano-container .key-left-ctrl').append(r.dom());
 	}
 	handleResize() {
-		this._updateOffsets();
 		this._mapKeys();
 	}
-	_updateOffsets() {
-		var padding = Math.round(window.innerWidth - suiPiano.owidth*suiPiano.dimensions.octaves)/2;
-		$(this.renderElement).closest('div').css('margin-left',''+padding+'px');
-	}
-    playNote(selections) {
-        this.tracker.selections.forEach((sel) => {
-            SmoUndoable.addPitch(sel, selections, this.undoBuffer);
-            suiOscillator.playSelectionNow(sel);
-        });
-        this.tracker.replaceSelectedMeasures();
-    }
-    bindKeys() {
-        var self = this;
-        $('body').off('smo-piano-key').on('smo-piano-key',function(ev,obj) {
-			self.playNote(obj.selections);
-		});
-    }
+  playNote() {
+    var pitchSel = JSON.parse(JSON.stringify(this.selections));
+    this.tracker.selections.forEach((sel) => {
+      var ova = SmoMeasure.defaultPitchForClef[sel.measure.clef];
+      pitchSel.forEach((pitch) => {
+        pitch.octave = ova.octave + this.octaveOffset;
+      });
+      SmoUndoable.addPitch(sel, pitchSel, this.undoBuffer);
+      suiOscillator.playSelectionNow(sel);
+    });
+    this.tracker.replaceSelectedMeasures();
+  }
 	render() {
 		$('body').addClass('show-piano');
 		var b = svgHelpers.buildSvg;
@@ -14306,7 +14406,7 @@ class suiPiano {
 		for (var i = 0; i < d.octaves; ++i) {
 			x = i * owidth;
 			xwhite.forEach((key) => {
-				var nt = key.note + (octaveOff + i + 1).toString();
+				var nt = key.note; // + (octaveOff + i + 1).toString();
 				var classes = 'piano-key white-key';
 				if (nt == 'C4') {
 					classes += ' middle-c';
@@ -14320,14 +14420,14 @@ class suiPiano {
 			xblack.forEach((key) => {
 				var nt = key.note + (octaveOff + i + 1).toString();
 				var classes = 'piano-key black-key';
-				var rect = b('rect').attr('id', 'keyId-' + nt).rect(x + key.x, 0, bwidth, bheight, classes);
+				var rect = b('rect').attr('id', 'keyId-' + nt).attr('fill','url(#piano-grad)').rect(x + key.x, 0, bwidth, bheight, classes);
 				r.append(rect);
 			});
 		}
 		var el = document.getElementById(this.elementId);
+    svgHelpers.gradient(el,'piano-grad','vertical',[{color:'#000',offset:'0%'},{color:'#777',offset:'50%'},{color:'#ddd',offset:'100%'}]);
 		el.appendChild(r.dom());
-		this._renderclose();
-		this._updateOffsets();
+		this._renderControls();
 		this._mapKeys();
 		this.bind();
 	}
@@ -15703,12 +15803,23 @@ class browserEventSource {
 // display
 class suiEditor {
     constructor(params) {
-        Vex.Merge(this, params);
-        this.slashMode = false;
+      Vex.Merge(this, params);
+      this.slashMode = false;
     }
 
 	tempoDialog() {
-		SuiTempoDialog.createAndDisplay(null,null,this.controller);
+		SuiTempoDialog.createAndDisplay(
+      {
+        buttonElement:this.buttonElement,
+        buttonData:this.buttonData,
+        completeNotifier:this.controller,
+        tracker: this.tracker,
+        layout:this.layout,
+        undoBuffer:this.undoBuffer,
+        eventSource:this.eventSource,
+        editor:this
+      }
+    );
 	}
 
     // ## _render
@@ -15780,166 +15891,166 @@ class suiEditor {
     this._render();
   }
 
-    _transpose(selection, offset, playSelection) {
-        this._selectionOperation(selection, 'transpose', offset);
-        if (playSelection) {
-            suiOscillator.playSelectionNow(selection);
-        }
-    }
-
-    copy() {
-        if (this.tracker.selections.length < 1) {
-            return;
-        }
-        this.pasteBuffer.setSelections(this.layout.score, this.tracker.selections);
-    }
-    paste() {
-        if (this.tracker.selections.length < 1) {
-            return;
-        }
-
-        SmoUndoable.pasteBuffer(this.layout.score, this.pasteBuffer, this.tracker.selections, this.undoBuffer, 'paste')
-        this._rebeam();
-        this._refresh();
-    }
-    toggleBeamGroup() {
-        if (this.tracker.selections.length < 1) {
-            return;
-        }
-        SmoUndoable.toggleBeamGroups(this.tracker.selections, this.undoBuffer);
-        this._rebeam();
-        this._render();
-    }
-
-    beamSelections() {
-        if (this.tracker.selections.length < 1) {
-            return;
-        }
-        SmoUndoable.beamSelections(this.tracker.selections, this.undoBuffer);
-        this._rebeam();
-        this._render();
-    }
-    toggleBeamDirection() {
-        if (this.tracker.selections.length < 1) {
-            return;
-        }
-        SmoUndoable.toggleBeamDirection(this.tracker.selections, this.undoBuffer);
-        this._render();
-    }
-
-    collapseChord() {
-        SmoUndoable.noop(this.layout.score, this.undoBuffer);
-        this.tracker.selections.forEach((selection) => {
-            var p = selection.note.pitches[0];
-            p = JSON.parse(JSON.stringify(p));
-            selection.note.pitches = [p];
-        });
-        this._render();
-    }
-
-    playScore() {
-      var mm = this.tracker.getExtremeSelection(-1);
-      if (suiAudioPlayer.playingInstance && suiAudioPlayer.playingInstance.paused) {
-        suiAudioPlayer.playingInstance.play();
-        return;
+  _transpose(selection, offset, playSelection) {
+      this._selectionOperation(selection, 'transpose', offset);
+      if (playSelection) {
+          suiOscillator.playSelectionNow(selection);
       }
-      new suiAudioPlayer({score:this.layout.score,startIndex:mm.selector.measure,tracker:this.tracker}).play();
-    }
+  }
 
-    stopPlayer() {
-      suiAudioPlayer.stopPlayer();
-    }
-    pausePlayer() {
-      suiAudioPlayer.pausePlayer();
-    }
-
-    intervalAdd(interval, direction) {
-      this._singleSelectionOperation('interval', direction * interval);
-    }
-
-    interval(keyEvent) {
-      if (this.tracker.selections.length != 1)
-        return;
-      // code='Digit3'
-      var interval = parseInt(keyEvent.keyCode) - 49;  // 48 === '0', 0 indexed
-      if (isNaN(interval) || interval < 1 || interval > 7) {
-        return;
+  copy() {
+      if (this.tracker.selections.length < 1) {
+          return;
       }
-      this.intervalAdd(interval, keyEvent.shiftKey ? -1 : 1);
+      this.pasteBuffer.setSelections(this.layout.score, this.tracker.selections);
+  }
+  paste() {
+      if (this.tracker.selections.length < 1) {
+          return;
+      }
+
+      SmoUndoable.pasteBuffer(this.layout.score, this.pasteBuffer, this.tracker.selections, this.undoBuffer, 'paste')
+      this._rebeam();
+      this._refresh();
+  }
+  toggleBeamGroup() {
+      if (this.tracker.selections.length < 1) {
+          return;
+      }
+      SmoUndoable.toggleBeamGroups(this.tracker.selections, this.undoBuffer);
+      this._rebeam();
+      this._render();
+  }
+
+  beamSelections() {
+      if (this.tracker.selections.length < 1) {
+          return;
+      }
+      SmoUndoable.beamSelections(this.tracker.selections, this.undoBuffer);
+      this._rebeam();
+      this._render();
+  }
+  toggleBeamDirection() {
+      if (this.tracker.selections.length < 1) {
+          return;
+      }
+      SmoUndoable.toggleBeamDirection(this.tracker.selections, this.undoBuffer);
+      this._render();
+  }
+
+  collapseChord() {
+      SmoUndoable.noop(this.layout.score, this.undoBuffer);
+      this.tracker.selections.forEach((selection) => {
+          var p = selection.note.pitches[0];
+          p = JSON.parse(JSON.stringify(p));
+          selection.note.pitches = [p];
+      });
+      this._render();
+  }
+
+  playScore() {
+    var mm = this.tracker.getExtremeSelection(-1);
+    if (suiAudioPlayer.playingInstance && suiAudioPlayer.playingInstance.paused) {
+      suiAudioPlayer.playingInstance.play();
+      return;
+    }
+    new suiAudioPlayer({score:this.layout.score,startIndex:mm.selector.measure,tracker:this.tracker}).play();
+  }
+
+  stopPlayer() {
+    suiAudioPlayer.stopPlayer();
+  }
+  pausePlayer() {
+    suiAudioPlayer.pausePlayer();
+  }
+
+  intervalAdd(interval, direction) {
+    this._singleSelectionOperation('interval', direction * interval);
+  }
+
+  interval(keyEvent) {
+    if (this.tracker.selections.length != 1)
+      return;
+    // code='Digit3'
+    var interval = parseInt(keyEvent.keyCode) - 49;  // 48 === '0', 0 indexed
+    if (isNaN(interval) || interval < 1 || interval > 7) {
+      return;
+    }
+    this.intervalAdd(interval, keyEvent.shiftKey ? -1 : 1);
+  }
+
+  transpose(offset) {
+      var grace = this.tracker.getSelectedGraceNotes();
+      if (grace.length) {
+          grace.forEach((artifact) => {
+              SmoUndoable.transposeGraceNotes(artifact.selection,{modifiers:artifact.modifier,offset:offset},this.undoBuffer);
+          });
+          this._render();
+
+          return;
+      }
+      // If there are lots of selections, just play the first note
+      var playSelection = true;
+      this.tracker.selections.forEach((selected) => {
+          this._transpose(selected, offset, playSelection);
+          playSelection = false;
+      });
+      this._render();
+  }
+  transposeDown() {
+    this.transpose(-1);
+  }
+  transposeUp() {
+    this.transpose(1);
+  }
+  upOctave() {
+    this.transpose(12);
+  }
+  downOctave() {
+    this.transpose(-12);
+  }
+  makeRest() {
+      this.tracker.selections.forEach((selection) => {
+          this._selectionOperation(selection,'makeRest');
+      });
+      this.tracker.replaceSelectedMeasures();
+  }
+
+  _setPitch(selected, letter) {
+    var selector = selected.selector;
+    var hintSel = SmoSelection.lastNoteSelection(this.layout.score,
+      selector.staff, selector.measure, selector.voice, selector.tick);
+    if (!hintSel) {
+      hintSel = SmoSelection.nextNoteSelection(this.layout.score,
+        selector.staff, selector.measure, selector.voice, selector.tick);
     }
 
-    transpose(offset) {
-        var grace = this.tracker.getSelectedGraceNotes();
-        if (grace.length) {
-            grace.forEach((artifact) => {
-                SmoUndoable.transposeGraceNotes(artifact.selection,{modifiers:artifact.modifier,offset:offset},this.undoBuffer);
-            });
-            this._render();
+    var hintNote = hintSel.note;
+    var hpitch = hintNote.pitches[0];
+    var pitch = JSON.parse(JSON.stringify(hpitch));
+    pitch.letter = letter;
 
-            return;
-        }
-        // If there are lots of selections, just play the first note
-        var playSelection = true;
-        this.tracker.selections.forEach((selected) => {
-            this._transpose(selected, offset, playSelection);
-            playSelection = false;
-        });
-        this._render();
-    }
-    transposeDown() {
-        this.transpose(-1);
-    }
-    transposeUp() {
-        this.transpose(1);
-    }
-    upOctave() {
-        this.transpose(12);
-    }
-    downOctave() {
-        this.transpose(-12);
-    }
-    makeRest() {
-        this.tracker.selections.forEach((selection) => {
-            this._selectionOperation(selection,'makeRest');
-        });
-        this.tracker.replaceSelectedMeasures();
+    // Make the key 'a' make 'Ab' in the key of Eb, for instance
+    var vexKsKey = smoMusic.getKeySignatureKey(letter, selected.measure.keySignature);
+    if (vexKsKey.length > 1) {
+        pitch.accidental = vexKsKey[1];
+    } else {
+        pitch.accidental = 'n';
     }
 
-    _setPitch(selected, letter) {
-        var selector = selected.selector;
-        var hintSel = SmoSelection.lastNoteSelection(this.layout.score,
-                selector.staff, selector.measure, selector.voice, selector.tick);
-        if (!hintSel) {
-            hintSel = SmoSelection.nextNoteSelection(this.layout.score,
-                    selector.staff, selector.measure, selector.voice, selector.tick);
-        }
-
-        var hintNote = hintSel.note;
-        var hpitch = hintNote.pitches[0];
-        var pitch = JSON.parse(JSON.stringify(hpitch));
-        pitch.letter = letter;
-
-        // Make the key 'a' make 'Ab' in the key of Eb, for instance
-        var vexKsKey = smoMusic.getKeySignatureKey(letter, selected.measure.keySignature);
-        if (vexKsKey.length > 1) {
-            pitch.accidental = vexKsKey[1];
-        } else {
-            pitch.accidental = 'n';
-        }
-
-        // make the octave of the new note as close to previous (or next) note as possible.
-        var upv = ['bc', 'ac', 'bd', 'da', 'be', 'gc'];
-        var downv = ['cb', 'ca', 'db', 'da', 'eb', 'cg'];
-        var delta = hpitch.letter + pitch.letter;
-        if (upv.indexOf(delta) >= 0) {
-            pitch.octave += 1;
-        }
-        if (downv.indexOf(delta) >= 0) {
-            pitch.octave -= 1;
-        }
-        SmoUndoable['setPitch'](selected, pitch, this.undoBuffer);
-        suiOscillator.playSelectionNow(selected);
+    // make the octave of the new note as close to previous (or next) note as possible.
+    var upv = ['bc', 'ac', 'bd', 'da', 'be', 'gc'];
+    var downv = ['cb', 'ca', 'db', 'da', 'eb', 'cg'];
+    var delta = hpitch.letter + pitch.letter;
+    if (upv.indexOf(delta) >= 0) {
+        pitch.octave += 1;
     }
+    if (downv.indexOf(delta) >= 0) {
+      pitch.octave -= 1;
+    }
+    SmoUndoable['setPitch'](selected, pitch, this.undoBuffer);
+    suiOscillator.playSelectionNow(selected);
+  }
 
     setPitchCommand(letter) {
         this.tracker.selections.forEach((selected) => this._setPitch(selected, letter));
@@ -16031,28 +16142,28 @@ class suiEditor {
     this._refresh();
   }
 
-    toggleCourtesyAccidental() {
-        var grace = this.tracker.getSelectedGraceNotes();
-        if (grace.length) {
-            grace.forEach((artifact) => {
-                SmoUndoable.toggleGraceNoteCourtesyAccidental(artifact.selection,{modifiers:artifact.modifier},this.undoBuffer);
-            });
-            this._render();
+  toggleCourtesyAccidental() {
+    var grace = this.tracker.getSelectedGraceNotes();
+    if (grace.length) {
+      grace.forEach((artifact) => {
+        SmoUndoable.toggleGraceNoteCourtesyAccidental(artifact.selection,{modifiers:artifact.modifier},this.undoBuffer);
+      });
+      this._render();
 
-            return;
-        }
-        if (this.tracker.selections.length < 1) {
-            return;
-        }
-        this.tracker.selections.forEach((selection) => {
-            SmoUndoable.toggleCourtesyAccidental(selection, this.undoBuffer);
-        });
-        this._render();
+      return;
     }
-    toggleEnharmonic() {
-        this.tracker.selections.forEach((selected) => this._selectionOperation(selected, 'toggleEnharmonic'));
-        this._render();
+    if (this.tracker.selections.length < 1) {
+      return;
     }
+    this.tracker.selections.forEach((selection) => {
+      SmoUndoable.toggleCourtesyAccidental(selection, this.undoBuffer);
+    });
+    this._render();
+  }
+  toggleEnharmonic() {
+    this.tracker.selections.forEach((selected) => this._selectionOperation(selected, 'toggleEnharmonic'));
+    this._render();
+  }
 
   rerender(keyEvent) {
     this.layout.unrenderAll();
@@ -16224,12 +16335,12 @@ class suiMenuManager {
         shiftKey: false,
         action: "SuiFileMenu"
       }, {
-      event: "keydown",
-      key: "m",
-      ctrlKey: false,
-      altKey: false,
-      shiftKey: false,
-      action: "SuiTimeSignatureMenu"
+        event: "keydown",
+        key: "m",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "SuiTimeSignatureMenu"
       }
     ];
   }
@@ -18816,12 +18927,12 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   			control: 'SuiDropdownComponent',
   			label:'Font Family',
         startRow:true,
-  			options: [{value:'serif',label:'Serif'},
-          {value:'sans-serif',label:'Sans-Serif'},
-          {label:'Monospace',value:'monospace'},
-          {label:'Cursive',value:'cursive'},
-          {label:'Times',value:'Times New Roman'},
-          {label:'Arial',value:'Arial'},
+  			options: [{value:SmoScoreText.fontFamilies.serif,label:'Serif'},
+          {value:SmoScoreText.fontFamilies.sansSerif,label:'Sans-Serif'},
+          {label:'Monospace',value:SmoScoreText.fontFamilies.monospace},
+          {label:'Cursive',value:SmoScoreText.fontFamilies.cursive},
+          {label:'times',value:SmoScoreText.fontFamilies.times},
+          {label:'arial',value:SmoScoreText.fontFamilies.arial},
           {label:'Helvetica',value:'Helvetica'}
         ]
   		},
@@ -20945,12 +21056,12 @@ class defaultRibbonLayout {
 
 	static get ribbons() {
 		var left = defaultRibbonLayout.leftRibbonIds;
-		var top = defaultRibbonLayout.noteButtonIds.concat(defaultRibbonLayout.navigateButtonIds)
+		var top = defaultRibbonLayout.displayIds.concat(defaultRibbonLayout.noteButtonIds).concat(defaultRibbonLayout.navigateButtonIds)
         .concat(defaultRibbonLayout.articulateButtonIds).concat(defaultRibbonLayout.microtoneIds)
 		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds)
             .concat(defaultRibbonLayout.beamIds).concat(defaultRibbonLayout.measureIds).concat(defaultRibbonLayout.staveIds)
               .concat(defaultRibbonLayout.textIds).concat(defaultRibbonLayout.playerIds)
-              .concat(defaultRibbonLayout.voiceButtonIds).concat(defaultRibbonLayout.displayIds).concat(defaultRibbonLayout.debugIds);
+              .concat(defaultRibbonLayout.voiceButtonIds).concat(defaultRibbonLayout.debugIds);
 
 		return {
 			left: left,
@@ -21030,7 +21141,7 @@ class defaultRibbonLayout {
   }
 
   static get displayIds() {
-      return ['displaySettings','refresh','zoomout','zoomin'];
+      return ['displaySettings','refresh','zoomout','zoomin','playButton2','stopButton2'];
   }
 
 
@@ -21130,7 +21241,25 @@ class defaultRibbonLayout {
   		ctor: 'DisplaySettings',
   		group: 'displaySettings',
   		id: 'zoomin'
-    },
+    },{
+      leftText: '',
+  		rightText: '',
+  		classes: 'icon   play',
+  		icon: 'icon-play3',
+  		action: 'collapseChild',
+  		ctor: 'DisplaySettings',
+  		group: 'displaySettings',
+  		id: 'playButton2'
+    },{
+      leftText: '',
+  		rightText: '',
+  		classes: 'icon   stop2',
+  		icon: 'icon-stop2',
+  		action: 'collapseChild',
+  		ctor: 'DisplaySettings',
+  		group: 'displaySettings',
+  		id: 'stopButton2'
+    }
   ];
   }
 
@@ -23259,6 +23388,13 @@ class DisplaySettings {
       this.layout.setViewport();
       this.layout.setRefresh();
   }
+  playButton2() {
+    this.editor.playScore();
+  }
+  stopButton2() {
+    this.editor.stopPlayer();
+  }
+
 
   bind() {
     this.eventSource.domClick(this.buttonElement,this,this.buttonData.id);
@@ -24398,11 +24534,13 @@ class SuiDom {
       .append(b('div').classes('bugDialog'))
       .append(b('div').classes('printFrame'))
       .append(b('div').classes('menuContainer'))
-      .append(b('div').classes('piano-container')
-      .append(b('div').classes('piano-keys')))
       .append(b('div').classes('workspace language-dir').attr('dir',SmoConfig.languageDir)
         .append(b('div').classes('control-bar')
           .append(b('div').classes('titleText').text('Smoosic'))
+          .append(b('div').classes('piano-container')
+            .append(b('div').classes('key-left-ctrl'))
+            .append(b('div').classes('piano-keys'))
+            .append(b('div').classes('key-right-ctrl')))
           .append(b('div').classes('controls-top')))
         .append(b('div').classes('media')
           .append(b('div').classes('controls-left'))
@@ -24439,7 +24577,9 @@ class UtDom {
   			.append(b('h1').classes('testTitle').text('Smoosic'))
   			.append(b('h2').classes('subTitle'))
   			.append(b('div').classes('piano-container')
-  				.append(b('div').classes('piano-keys')))
+          .append(b('div').classes('key-left-ctrl'))
+  				.append(b('div').classes('piano-keys'))
+          .append(b('div').classes('key-right-ctrl')))
   			.append(b('div').classes('workspace-container')
   				.append(b('div').classes('workspace').attr('dir',SmoConfig.languageDir)
   					.append(b('div').classes('controls-top'))
@@ -24549,7 +24689,20 @@ class suiController {
 	}
 
 	createPiano() {
-		this.piano = new suiPiano({elementId:'piano-svg',tracker:this.tracker,undo:this.undoBuffer});
+		this.piano = new suiPiano(
+    {
+      elementId:'piano-svg',
+			ribbons: defaultRibbonLayout.ribbons,
+			ribbonButtons: defaultRibbonLayout.ribbonButtons,
+			menus: this.menus,
+			editor: this.editor,
+			tracker: this.tracker,
+			score: this.score,
+			controller: this,
+      layout:this.tracker.layout,
+      eventSource:this.eventSource,
+      undoBuffer:this.undoBuffer
+		});
         // $('.close-piano').click();
 	}
 	resizeEvent() {

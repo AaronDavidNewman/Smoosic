@@ -1,0 +1,7 @@
+<svg width="48" height="24" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+
+<g id="decrescendo" transform="scale(-1,1) translate(-40,0)">
+<path stroke-width="2" fill="black" stroke-dasharray="none" d="M0 10 L0 11 L40 1 L40 0 L0 10"></path>
+<path stroke-width="2" fill="black" stroke-dasharray="none" d="M0 10 L0 11 L40 21 L40 20 L0 10"></path>
+</g>
+</svg>
