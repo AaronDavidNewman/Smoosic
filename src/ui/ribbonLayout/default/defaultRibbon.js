@@ -35,8 +35,8 @@ class defaultRibbonLayout {
     'instrumentModal','pianoModal','layoutModal'];
 	}
 	static get noteButtonIds() {
-		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton',
-            'UpNoteButton', 'DownNoteButton', 'moreNoteButtons','AddGraceNote','RemoveGraceNote','SlashGraceNote',
+		return ['NoteButtons',
+            'UpNoteButton', 'DownNoteButton','AddGraceNote','RemoveGraceNote','SlashGraceNote',
 				'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
 	}
   static get voiceButtonIds() {
@@ -891,7 +891,7 @@ class defaultRibbonLayout {
 				rightText: 'G',
 				icon: 'icon-grace_note',
 				classes: 'collapsed',
-				action: 'collapseGrandchild',
+				action: 'collapseChild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'AddGraceNote'
@@ -900,7 +900,7 @@ class defaultRibbonLayout {
 				rightText: '',
 				icon: 'icon-grace_slash',
 				classes: 'collapsed',
-				action: 'collapseGrandchild',
+				action: 'collapseChild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'SlashGraceNote'
@@ -909,7 +909,7 @@ class defaultRibbonLayout {
 				rightText: 'alt-g',
 				icon: 'icon-grace_remove',
 				classes: 'collapsed',
-				action: 'collapseGrandchild',
+				action: 'collapseChild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'RemoveGraceNote'
@@ -918,7 +918,7 @@ class defaultRibbonLayout {
 				rightText: 'Shift=',
 				icon: '',
 				classes: 'collapsed',
-				action: 'collapseGrandchild',
+				action: 'collapseChild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'UpOctaveButton'
@@ -927,7 +927,7 @@ class defaultRibbonLayout {
 				rightText: 'Shift-',
 				icon: '',
 				classes: 'collapsed',
-				action: 'collapseGrandchild',
+				action: 'collapseChild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'DownOctaveButton'
@@ -936,7 +936,7 @@ class defaultRibbonLayout {
 				rightText: 'ShiftE',
 				icon: 'icon-accident',
 				classes: 'collapsed',
-				action: 'collapseGrandchild',
+				action: 'collapseChild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'ToggleAccidental'
@@ -945,7 +945,7 @@ class defaultRibbonLayout {
 				rightText: 'ShiftF',
 				icon: 'icon-courtesy',
 				classes: 'collapsed',
-				action: 'collapseGrandchild',
+				action: 'collapseChild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'ToggleCourtesy'

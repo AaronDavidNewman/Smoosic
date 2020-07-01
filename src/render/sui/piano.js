@@ -118,29 +118,33 @@ class suiPiano {
     });
 
 
-		$(this.renderElement).off('mousemove').on('mousemove', function (ev) {
-			var keyPressed = svgHelpers.findSmallestIntersection({
-					x: ev.clientX,
-					y: ev.clientY
-				}, self.objects,{x:0,y:0});
-			if (!keyPressed) {
-				return;
-			}
-			var el = self.renderElement.getElementById(keyPressed.id);
-			if ($(el).hasClass('glow-key')) {
-				return;
-			}
-			self._removeGlow();
-			$(el).addClass('glow-key');
-			self._fadeGlow(el);
-
-		});
-		$(this.renderElement).off('blur').on('blur',function(ev) {
-			self._removeGlow();
-		});
-		$(this.renderElement).off('click').on('click', function (ev) {
-			self._updateSelections(ev);
-		});
+  	$(this.renderElement).off('mousemove').on('mousemove', function (ev) {
+      if (Math.abs(self.objects[0].box.x - self.objects[0].keyElement.getBoundingClientRect().x)
+        > self.objects[0].box.width/2) {
+          console.log('remap piano');
+          self._mapKeys();
+        }
+  		var keyPressed = svgHelpers.findSmallestIntersection({
+				x: ev.clientX,
+				y: ev.clientY
+			}, self.objects,{x:0,y:0});
+  		if (!keyPressed) {
+  			return;
+  		}
+  		var el = self.renderElement.getElementById(keyPressed.id);
+  		if ($(el).hasClass('glow-key')) {
+  			return;
+  		}
+  		self._removeGlow();
+  		$(el).addClass('glow-key');
+  		self._fadeGlow(el);
+  	});
+  	$(this.renderElement).off('blur').on('blur',function(ev) {
+  		self._removeGlow();
+  	});
+  	$(this.renderElement).off('click').on('click', function (ev) {
+  		self._updateSelections(ev);
+  	});
 
 		$('.close-piano').off('click').on('click', function () {
 			$('body').removeClass('show-piano');

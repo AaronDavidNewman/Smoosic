@@ -10740,7 +10740,7 @@ class VxMeasure {
     }
     _addLyricAnnotationToNote(vexNote,lyric) {
       var y = lyric.verse*10;
-      var vexL = new VF.Annotation(lyric.getText());
+      var vexL = new VF.Annotation(lyric.getText()).setReportWidth(false);
       vexL.setAttribute(lyric.attrs.id); //
 
       // If we adjusted this note for the lyric, adjust the lyric as well.
@@ -12528,23 +12528,22 @@ class suiTracker extends suiMapper {
 		var note = this.selections[0].note;
 		var r = note.renderedBox;
 		var b = this.selections[0].box;
-        var preventScroll = $('body').hasClass('modal');
+    var preventScroll = $('body').hasClass('modal');
 
 		if (r.y != b.y || r.x != b.x) {
-
-            if (this.layout.passState == suiLayoutBase.passStates.replace ||
-                this.layout.passState == suiLayoutBase.passStates.clean) {
-                console.log('tracker: rerender conflicting map');
-    			this.layout.remapAll();
-            }
-            if (!preventScroll) {
-                console.log('prevent scroll conflicting map');
-                $('body').addClass('modal');
-                this._fullRenderPromise().then(() => {
-                    $('body').removeClass('modal');
-                });
-            }
-        }
+      if (this.layout.passState == suiLayoutBase.passStates.replace ||
+        this.layout.passState == suiLayoutBase.passStates.clean) {
+        console.log('tracker: rerender conflicting map');
+  			this.layout.remapAll();
+      }
+      if (!preventScroll) {
+        console.log('prevent scroll conflicting map');
+        $('body').addClass('modal');
+        this._fullRenderPromise().then(() => {
+          $('body').removeClass('modal');
+        });
+      }
+    }
 	}
 
   replaceSelectedMeasures() {
@@ -12597,37 +12596,37 @@ class suiTracker extends suiMapper {
 		});
 		return rv;
 	}
-    // Hack - lyric should be handled consistently
-    _reboxTextModifier(modifier) {
-        var el;
-        if (modifier.attrs.type === 'SmoLyric') {
-            // el = $(modifier.selector)[0];
-        } else if (modifier.attrs.type === 'SmoGraceNote') {
-            el = this.context.svg.getElementById('vf-'+modifier.renderedId);
-        } else {
-            el = this.context.svg.getElementsByClassName(modifier.attrs.id)[0];
-        }
-        if (!el) {
-            console.warn('cannot rebox element '+modifier.attrs.id);
-            return;
-        }
-        svgHelpers.updateArtifactBox(this.context.svg,el,modifier);
+  // Hack - lyric should be handled consistently
+  _reboxTextModifier(modifier) {
+    var el;
+    if (modifier.attrs.type === 'SmoLyric') {
+        // el = $(modifier.selector)[0];
+    } else if (modifier.attrs.type === 'SmoGraceNote') {
+      el = this.context.svg.getElementById('vf-'+modifier.renderedId);
+    } else {
+      el = this.context.svg.getElementsByClassName(modifier.attrs.id)[0];
     }
+    if (!el) {
+      console.warn('cannot rebox element '+modifier.attrs.id);
+      return;
+    }
+    svgHelpers.updateArtifactBox(this.context.svg,el,modifier);
+  }
 
-    _updateNoteModifier(selection,modMap,modifier,ix) {
-        if (!modMap[modifier.attrs.id]) {
-            this.modifierTabs.push({
-                modifier: modifier,
-                selection: selection,
-                box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
-                index:ix
-            });
-            ix += 1;
-            modMap[modifier.attrs.id] = {
-                exists: true
-            };
-        }
-        return ix;
+  _updateNoteModifier(selection,modMap,modifier,ix) {
+      if (!modMap[modifier.attrs.id]) {
+        this.modifierTabs.push({
+          modifier: modifier,
+          selection: selection,
+          box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
+          index:ix
+        });
+        ix += 1;
+        modMap[modifier.attrs.id] = {
+          exists: true
+        };
+      }
+      return ix;
     }
 
 	_updateModifiers() {
@@ -12635,18 +12634,18 @@ class suiTracker extends suiMapper {
 		this.modifierBoxes = [];
 		var modMap = {};
 		var ix=0;
-        this.layout.score.scoreText.forEach((modifier) => {
-            if (!modMap[modifier.attrs.id]) {
-                this.modifierTabs.push({
-                    modifier: modifier,
-							selection: null,
-							box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
-							index:ix
-                });
-                ix += 1;
-            }
+      this.layout.score.scoreText.forEach((modifier) => {
+        if (!modMap[modifier.attrs.id]) {
+          this.modifierTabs.push({
+            modifier: modifier,
+  					selection: null,
+  					box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
+  					index:ix
+            });
+            ix += 1;
+          }
         });
-        var keys = Object.keys(this.measureNoteMap);
+      var keys = Object.keys(this.measureNoteMap);
 		keys.forEach((selKey) => {
             var selection = this.measureNoteMap[selKey];
 			selection.staff.modifiers.forEach((modifier) => {
@@ -14235,29 +14234,33 @@ class suiPiano {
     });
 
 
-		$(this.renderElement).off('mousemove').on('mousemove', function (ev) {
-			var keyPressed = svgHelpers.findSmallestIntersection({
-					x: ev.clientX,
-					y: ev.clientY
-				}, self.objects,{x:0,y:0});
-			if (!keyPressed) {
-				return;
-			}
-			var el = self.renderElement.getElementById(keyPressed.id);
-			if ($(el).hasClass('glow-key')) {
-				return;
-			}
-			self._removeGlow();
-			$(el).addClass('glow-key');
-			self._fadeGlow(el);
-
-		});
-		$(this.renderElement).off('blur').on('blur',function(ev) {
-			self._removeGlow();
-		});
-		$(this.renderElement).off('click').on('click', function (ev) {
-			self._updateSelections(ev);
-		});
+  	$(this.renderElement).off('mousemove').on('mousemove', function (ev) {
+      if (Math.abs(self.objects[0].box.x - self.objects[0].keyElement.getBoundingClientRect().x)
+        > self.objects[0].box.width/2) {
+          console.log('remap piano');
+          self._mapKeys();
+        }
+  		var keyPressed = svgHelpers.findSmallestIntersection({
+				x: ev.clientX,
+				y: ev.clientY
+			}, self.objects,{x:0,y:0});
+  		if (!keyPressed) {
+  			return;
+  		}
+  		var el = self.renderElement.getElementById(keyPressed.id);
+  		if ($(el).hasClass('glow-key')) {
+  			return;
+  		}
+  		self._removeGlow();
+  		$(el).addClass('glow-key');
+  		self._fadeGlow(el);
+  	});
+  	$(this.renderElement).off('blur').on('blur',function(ev) {
+  		self._removeGlow();
+  	});
+  	$(this.renderElement).off('click').on('click', function (ev) {
+  		self._updateSelections(ev);
+  	});
 
 		$('.close-piano').off('click').on('click', function () {
 			$('body').removeClass('show-piano');
@@ -21087,8 +21090,8 @@ class defaultRibbonLayout {
     'instrumentModal','pianoModal','layoutModal'];
 	}
 	static get noteButtonIds() {
-		return ['NoteButtons', 'ANoteButton', 'BNoteButton', 'CNoteButton', 'DNoteButton', 'ENoteButton', 'FNoteButton', 'GNoteButton','ToggleRestButton',
-            'UpNoteButton', 'DownNoteButton', 'moreNoteButtons','AddGraceNote','RemoveGraceNote','SlashGraceNote',
+		return ['NoteButtons',
+            'UpNoteButton', 'DownNoteButton','AddGraceNote','RemoveGraceNote','SlashGraceNote',
 				'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
 	}
   static get voiceButtonIds() {
@@ -21943,7 +21946,7 @@ class defaultRibbonLayout {
 				rightText: 'G',
 				icon: 'icon-grace_note',
 				classes: 'collapsed',
-				action: 'collapseGrandchild',
+				action: 'collapseChild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'AddGraceNote'
@@ -21952,7 +21955,7 @@ class defaultRibbonLayout {
 				rightText: '',
 				icon: 'icon-grace_slash',
 				classes: 'collapsed',
-				action: 'collapseGrandchild',
+				action: 'collapseChild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'SlashGraceNote'
@@ -21961,7 +21964,7 @@ class defaultRibbonLayout {
 				rightText: 'alt-g',
 				icon: 'icon-grace_remove',
 				classes: 'collapsed',
-				action: 'collapseGrandchild',
+				action: 'collapseChild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'RemoveGraceNote'
@@ -21970,7 +21973,7 @@ class defaultRibbonLayout {
 				rightText: 'Shift=',
 				icon: '',
 				classes: 'collapsed',
-				action: 'collapseGrandchild',
+				action: 'collapseChild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'UpOctaveButton'
@@ -21979,7 +21982,7 @@ class defaultRibbonLayout {
 				rightText: 'Shift-',
 				icon: '',
 				classes: 'collapsed',
-				action: 'collapseGrandchild',
+				action: 'collapseChild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'DownOctaveButton'
@@ -21988,7 +21991,7 @@ class defaultRibbonLayout {
 				rightText: 'ShiftE',
 				icon: 'icon-accident',
 				classes: 'collapsed',
-				action: 'collapseGrandchild',
+				action: 'collapseChild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'ToggleAccidental'
@@ -21997,7 +22000,7 @@ class defaultRibbonLayout {
 				rightText: 'ShiftF',
 				icon: 'icon-courtesy',
 				classes: 'collapsed',
-				action: 'collapseGrandchild',
+				action: 'collapseChild',
 				ctor: 'NoteButtons',
 				group: 'notes',
 				id: 'ToggleCourtesy'

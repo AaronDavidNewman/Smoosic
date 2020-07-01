@@ -38,23 +38,22 @@ class suiTracker extends suiMapper {
 		var note = this.selections[0].note;
 		var r = note.renderedBox;
 		var b = this.selections[0].box;
-        var preventScroll = $('body').hasClass('modal');
+    var preventScroll = $('body').hasClass('modal');
 
 		if (r.y != b.y || r.x != b.x) {
-
-            if (this.layout.passState == suiLayoutBase.passStates.replace ||
-                this.layout.passState == suiLayoutBase.passStates.clean) {
-                console.log('tracker: rerender conflicting map');
-    			this.layout.remapAll();
-            }
-            if (!preventScroll) {
-                console.log('prevent scroll conflicting map');
-                $('body').addClass('modal');
-                this._fullRenderPromise().then(() => {
-                    $('body').removeClass('modal');
-                });
-            }
-        }
+      if (this.layout.passState == suiLayoutBase.passStates.replace ||
+        this.layout.passState == suiLayoutBase.passStates.clean) {
+        console.log('tracker: rerender conflicting map');
+  			this.layout.remapAll();
+      }
+      if (!preventScroll) {
+        console.log('prevent scroll conflicting map');
+        $('body').addClass('modal');
+        this._fullRenderPromise().then(() => {
+          $('body').removeClass('modal');
+        });
+      }
+    }
 	}
 
   replaceSelectedMeasures() {
@@ -107,37 +106,37 @@ class suiTracker extends suiMapper {
 		});
 		return rv;
 	}
-    // Hack - lyric should be handled consistently
-    _reboxTextModifier(modifier) {
-        var el;
-        if (modifier.attrs.type === 'SmoLyric') {
-            // el = $(modifier.selector)[0];
-        } else if (modifier.attrs.type === 'SmoGraceNote') {
-            el = this.context.svg.getElementById('vf-'+modifier.renderedId);
-        } else {
-            el = this.context.svg.getElementsByClassName(modifier.attrs.id)[0];
-        }
-        if (!el) {
-            console.warn('cannot rebox element '+modifier.attrs.id);
-            return;
-        }
-        svgHelpers.updateArtifactBox(this.context.svg,el,modifier);
+  // Hack - lyric should be handled consistently
+  _reboxTextModifier(modifier) {
+    var el;
+    if (modifier.attrs.type === 'SmoLyric') {
+        // el = $(modifier.selector)[0];
+    } else if (modifier.attrs.type === 'SmoGraceNote') {
+      el = this.context.svg.getElementById('vf-'+modifier.renderedId);
+    } else {
+      el = this.context.svg.getElementsByClassName(modifier.attrs.id)[0];
     }
+    if (!el) {
+      console.warn('cannot rebox element '+modifier.attrs.id);
+      return;
+    }
+    svgHelpers.updateArtifactBox(this.context.svg,el,modifier);
+  }
 
-    _updateNoteModifier(selection,modMap,modifier,ix) {
-        if (!modMap[modifier.attrs.id]) {
-            this.modifierTabs.push({
-                modifier: modifier,
-                selection: selection,
-                box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
-                index:ix
-            });
-            ix += 1;
-            modMap[modifier.attrs.id] = {
-                exists: true
-            };
-        }
-        return ix;
+  _updateNoteModifier(selection,modMap,modifier,ix) {
+      if (!modMap[modifier.attrs.id]) {
+        this.modifierTabs.push({
+          modifier: modifier,
+          selection: selection,
+          box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
+          index:ix
+        });
+        ix += 1;
+        modMap[modifier.attrs.id] = {
+          exists: true
+        };
+      }
+      return ix;
     }
 
 	_updateModifiers() {
@@ -145,18 +144,18 @@ class suiTracker extends suiMapper {
 		this.modifierBoxes = [];
 		var modMap = {};
 		var ix=0;
-        this.layout.score.scoreText.forEach((modifier) => {
-            if (!modMap[modifier.attrs.id]) {
-                this.modifierTabs.push({
-                    modifier: modifier,
-							selection: null,
-							box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
-							index:ix
-                });
-                ix += 1;
-            }
+      this.layout.score.scoreText.forEach((modifier) => {
+        if (!modMap[modifier.attrs.id]) {
+          this.modifierTabs.push({
+            modifier: modifier,
+  					selection: null,
+  					box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
+  					index:ix
+            });
+            ix += 1;
+          }
         });
-        var keys = Object.keys(this.measureNoteMap);
+      var keys = Object.keys(this.measureNoteMap);
 		keys.forEach((selKey) => {
             var selection = this.measureNoteMap[selKey];
 			selection.staff.modifiers.forEach((modifier) => {

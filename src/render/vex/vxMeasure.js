@@ -128,7 +128,7 @@ class VxMeasure {
     }
     _addLyricAnnotationToNote(vexNote,lyric) {
       var y = lyric.verse*10;
-      var vexL = new VF.Annotation(lyric.getText());
+      var vexL = new VF.Annotation(lyric.getText()).setReportWidth(false);
       vexL.setAttribute(lyric.attrs.id); //
 
       // If we adjusted this note for the lyric, adjust the lyric as well.
