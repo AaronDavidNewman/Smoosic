@@ -64,6 +64,17 @@ class suiController {
 		return '.musicRelief';
 	}
 
+  static get keyboardWidget() {
+    return suiController._kbWidget;
+  }
+
+  static set keyboardWidget(value) {
+    suiController._kbWidget = value;
+    if (suiController._kbWidget) {
+      Qwerty.displayKb();
+    }
+  }
+
 	get isLayoutQuiet() {
 		return ((this.layout.passState == suiLayoutBase.passStates.clean && this.layout.dirty == false)
 		   || this.layout.passState == suiLayoutBase.passStates.replace);
@@ -269,6 +280,9 @@ class suiController {
 			 + " shift='" + evdata.shiftKey + "' control='" + evdata.ctrlKey + "'" + " alt='" + evdata.altKey + "'");
 		evdata.preventDefault();
 
+    if (suiController.keyboardWidget) {
+      Qwerty.handleKeyEvent(evdata);
+    }
 		if (evdata.key == '?') {
 			SmoHelp.displayHelp();
 		}

@@ -4,10 +4,10 @@
 // Editor handles key events and converts them into commands, updating the score and
 // display
 class suiEditor {
-    constructor(params) {
-      Vex.Merge(this, params);
-      this.slashMode = false;
-    }
+  constructor(params) {
+    Vex.Merge(this, params);
+    this.slashMode = false;
+  }
 
 	tempoDialog() {
 		SuiTempoDialog.createAndDisplay(

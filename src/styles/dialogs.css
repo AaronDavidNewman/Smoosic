@@ -109,6 +109,50 @@ body.text-edit .buttonContainer.show-text-edit {
 	display:inline-block;
 }
 
+body.showQwerty .qwertyKb {
+  position: absolute;
+  z-index: 10;
+  background : #eee;
+}
+
+body.showQwerty .qwertyKb .kb-float {
+  display:flex;
+  border: 2px solid #323;
+  border-radius: 8px;
+  padding:4px;
+  font-family: robotoSlab;
+  font-weight:bold;
+  font-size:1.2em;
+}
+
+.reverse-button {
+  background:#88e;
+}
+
+.transition-button {
+  background:#eee;
+  -webkit-transition:background 1s ease-in;
+  -moz-transition:background 1s ease-in;
+  -o-transition:background 1s ease-in;
+  transition:background 1s ease-in;
+}
+
+body.showQwerty .qwertyKb .kb-float .keyBlock {
+  display:flex;
+  flex-flow: row wrap;
+  justify-content: center;
+}
+
+body.showQwerty .keyContainer {
+  width: auto;
+  display:flex;
+}
+
+.kb-float .buttonLine {
+  display:flex;
+  flex-flow: column nowrap;
+}
+
 .keyBlock label {
 	margin-left:7px;
 	margin-right:7px;
@@ -498,13 +542,28 @@ button.help-title:focus {
 	width: 80%;
 	border-bottom: 1px black dotted;
 }
-.helpKey {
+
+.helpKey, .wideKey {
     border: 1px solid #222;
     border-radius: 4px;
-    width: 30px;
     height: 20px;
     display: inline-block;
     text-align: center;
     padding-top: 6px;
     margin-right: 5px;
+    margin-top:5px;
+}
+
+.kb-float .helpKey {
+  width:40px;
+  height: 30px;
+  border: 2px solid #222;
+}
+.helpKey {
+  width: 30px;
+}
+.kb-float  .wideKey {
+  width: 60px;
+  border: 2px solid #222;
+  height: 30px;
 }

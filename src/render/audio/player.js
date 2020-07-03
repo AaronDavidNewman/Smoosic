@@ -101,6 +101,9 @@ class suiAudioPlayer {
     }
     _playPlayArray() {
         var startTimes = Object.keys(this.sounds).sort((a,b) => {return parseInt(a) > parseInt(b);});
+        if (startTimes.length < 1) {
+          return;
+        }
         this._playArrayRecurse(0,startTimes,this.sounds);
     }
     _populatePlayArray() {

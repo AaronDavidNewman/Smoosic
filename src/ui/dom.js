@@ -32,6 +32,7 @@ class SuiDom {
       .append(b('div').classes('textEdit hide'))
       .append(b('div').classes('attributeDialog'))
       .append(b('div').classes('helpDialog'))
+      .append(b('div').classes('qwertyKb'))
       .append(b('div').classes('saveLink'))
       .append(b('div').classes('bugDialog'))
       .append(b('div').classes('printFrame'))
