@@ -7204,15 +7204,16 @@ class SmoScore {
             return [];
         return this.staves[this.activeStaff].measures;
     }
-    incrementActiveStaff(offset) {
-        if (offset < 0)
-            offset = (-1 * offset) + this.staves.length;
-        var nextStaff = (this.activeStaff + offset) % this.staves.length;
-        if (nextStaff >= 0 && nextStaff < this.staves.length) {
-            this.activeStaff = nextStaff;
-        }
-        return this.activeStaff;
+  incrementActiveStaff(offset) {
+    if (offset < 0) {
+      offset = offset + this.staves.length;
     }
+    var nextStaff = (this.activeStaff + offset) % this.staves.length;
+    if (nextStaff >= 0 && nextStaff < this.staves.length) {
+      this.activeStaff = nextStaff;
+    }
+    return this.activeStaff;
+  }
 
     setActiveStaff(index) {
         this.activeStaff = index <= this.staves.length ? index : this.activeStaff;
@@ -16038,6 +16039,10 @@ class suiEditor {
       hintSel = SmoSelection.nextNoteSelection(this.layout.score,
         selector.staff, selector.measure, selector.voice, selector.tick);
     }
+    // The selection no longer exists, possibly deleted
+    if (!hintSel) {
+      return;
+    }
 
     var hintNote = hintSel.note;
     var hpitch = hintNote.pitches[0];
@@ -24137,6 +24142,7 @@ class SmoHelp {
         $('.helpDialog').html('');
         var b = htmlHelpers.buildDom;
         var r = b('div').classes('help-left');
+        r.append(SmoHelp.gitHelp);
         r.append(SmoHelp.navigationHtml);
         r.append(SmoHelp.noteHelpHtml);
         r.append(SmoHelp.durationHelpHtml);
@@ -24157,6 +24163,12 @@ class SmoHelp {
         $('.helpDialog button.icon-cross').off('click').on('click', function () {
             $('body').removeClass('showHelpDialog');
         });
+    }
+
+    static get gitHelp() {
+      var b = htmlHelpers.buildDom;
+      var r = b('iframe').attr('src','https://github.com/AaronDavidNewman/Smoosic/wiki/Quick-Start');
+      return r;
     }
 
     static helpControls() {

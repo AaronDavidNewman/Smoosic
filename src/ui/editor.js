@@ -223,6 +223,10 @@ class suiEditor {
       hintSel = SmoSelection.nextNoteSelection(this.layout.score,
         selector.staff, selector.measure, selector.voice, selector.tick);
     }
+    // The selection no longer exists, possibly deleted
+    if (!hintSel) {
+      return;
+    }
 
     var hintNote = hintSel.note;
     var hpitch = hintNote.pitches[0];

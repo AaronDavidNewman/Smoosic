@@ -438,15 +438,16 @@ class SmoScore {
             return [];
         return this.staves[this.activeStaff].measures;
     }
-    incrementActiveStaff(offset) {
-        if (offset < 0)
-            offset = (-1 * offset) + this.staves.length;
-        var nextStaff = (this.activeStaff + offset) % this.staves.length;
-        if (nextStaff >= 0 && nextStaff < this.staves.length) {
-            this.activeStaff = nextStaff;
-        }
-        return this.activeStaff;
+  incrementActiveStaff(offset) {
+    if (offset < 0) {
+      offset = offset + this.staves.length;
     }
+    var nextStaff = (this.activeStaff + offset) % this.staves.length;
+    if (nextStaff >= 0 && nextStaff < this.staves.length) {
+      this.activeStaff = nextStaff;
+    }
+    return this.activeStaff;
+  }
 
     setActiveStaff(index) {
         this.activeStaff = index <= this.staves.length ? index : this.activeStaff;

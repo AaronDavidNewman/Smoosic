@@ -7,6 +7,7 @@ class SmoHelp {
         $('.helpDialog').html('');
         var b = htmlHelpers.buildDom;
         var r = b('div').classes('help-left');
+        r.append(SmoHelp.gitHelp);
         r.append(SmoHelp.navigationHtml);
         r.append(SmoHelp.noteHelpHtml);
         r.append(SmoHelp.durationHelpHtml);
@@ -27,6 +28,12 @@ class SmoHelp {
         $('.helpDialog button.icon-cross').off('click').on('click', function () {
             $('body').removeClass('showHelpDialog');
         });
+    }
+
+    static get gitHelp() {
+      var b = htmlHelpers.buildDom;
+      var r = b('iframe').attr('src','https://github.com/AaronDavidNewman/Smoosic/wiki/Quick-Start');
+      return r;
     }
 
     static helpControls() {

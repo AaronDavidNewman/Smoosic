@@ -55,6 +55,9 @@ body.refresh-1 #refresh  {
     display:block;
 }
 
+.collapseContainer button.collapseParent {
+  border: 3px inset blue;
+}
 body.layout-debug .ribbonButtonContainer[data-group="debug"] {
     display:block;
 }
