@@ -687,6 +687,12 @@ Mostly utilities for converting coordinate spaces based on transforms, etc.
 ### unionRect
 grow the bounding box two objects to include both.
 
+### gradient
+Create an svg linear gradient.
+Stops look like this:
+`[{color:"#eee", offset:"0%",opacity:0.5}]`
+orientation is horizontal or vertical
+
 ### boxNote
 update the note geometry based on current viewbox conditions.
 This may not be the appropriate place for this...maybe in layout
