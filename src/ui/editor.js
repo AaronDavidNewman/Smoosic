@@ -79,9 +79,6 @@ class suiEditor {
   }
 
   _singleSelectionOperation(name, parameters) {
-    if (this.tracker.selections.length != 1) {
-      return;
-    }
     var selection = this.tracker.selections[0];
     if (parameters) {
       SmoUndoable[name](selection, parameters, this.undoBuffer);

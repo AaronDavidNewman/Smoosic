@@ -6,7 +6,7 @@ class defaultRibbonLayout {
 		var left = defaultRibbonLayout.leftRibbonIds;
 		var top = defaultRibbonLayout.displayIds.concat(defaultRibbonLayout.noteButtonIds).concat(defaultRibbonLayout.navigateButtonIds)
         .concat(defaultRibbonLayout.articulateButtonIds).concat(defaultRibbonLayout.microtoneIds)
-		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds)
+		    .concat(defaultRibbonLayout.durationIds)
             .concat(defaultRibbonLayout.beamIds).concat(defaultRibbonLayout.measureIds).concat(defaultRibbonLayout.staveIds)
               .concat(defaultRibbonLayout.textIds).concat(defaultRibbonLayout.playerIds)
               .concat(defaultRibbonLayout.voiceButtonIds).concat(defaultRibbonLayout.debugIds);

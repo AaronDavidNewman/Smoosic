@@ -124,6 +124,15 @@ body.showQwerty .qwertyKb .kb-float {
   font-weight:bold;
   font-size:1.2em;
 }
+ .kb-float.shifted .button-text {
+   display:none;
+ }
+ .kb-float.shifted .button-shifted {
+   display:inline-block;
+ }
+ .kb-float  .button-shifted {
+   display:none;
+ }
 
 .reverse-button {
   background:#88e;
@@ -131,10 +140,10 @@ body.showQwerty .qwertyKb .kb-float {
 
 .transition-button {
   background:#eee;
-  -webkit-transition:background 1s ease-in;
-  -moz-transition:background 1s ease-in;
-  -o-transition:background 1s ease-in;
-  transition:background 1s ease-in;
+  -webkit-transition:background .5s ease-in;
+  -moz-transition:background .5s ease-in;
+  -o-transition:background .5s ease-in;
+  transition:background .5s ease-in;
 }
 
 body.showQwerty .qwertyKb .kb-float .keyBlock {
@@ -565,4 +574,5 @@ button.help-title:focus {
 .kb-float  .wideKey {
   width: 60px;
   border: 2px solid #222;
+  height: 30px;
 }

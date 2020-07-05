@@ -395,57 +395,57 @@ class SmoMakeTupletActor extends TickTransformBase {
 }
 
 class SmoStretchNoteActor extends TickTransformBase {
-    constructor(parameters) {
-        super();
-        Vex.Merge(this, parameters);
-        this.startTick = this.tickmap.durationMap[this.startIndex];
+  constructor(parameters) {
+    super();
+    Vex.Merge(this, parameters);
+    this.startTick = this.tickmap.durationMap[this.startIndex];
 		var currentTicks = this.tickmap.deltaMap[this.startIndex];
 
-        var endTick = this.tickmap.durationMap[this.startIndex] + this.newTicks;
-        this.divisor = -1;
-        this.durationMap = [];
-        this.skipFromStart = this.startIndex + 1;
-        this.skipFromEnd = this.startIndex + 1;
-        this.durationMap.push(this.newTicks);
+    var endTick = this.tickmap.durationMap[this.startIndex] + this.newTicks;
+    this.divisor = -1;
+    this.durationMap = [];
+    this.skipFromStart = this.startIndex + 1;
+    this.skipFromEnd = this.startIndex + 1;
+    this.durationMap.push(this.newTicks);
 
-        var mapIx = this.tickmap.durationMap.indexOf(endTick);
+    var mapIx = this.tickmap.durationMap.indexOf(endTick);
 
-        var remaining = this.tickmap.deltaMap.slice(this.startIndex, this.tickmap.durationMap.length).reduce((accum, x) => x + accum);
-        if (remaining === this.newTicks) {
-            mapIx = this.tickmap.deltaMap.length;
-        }
+    var remaining = this.tickmap.deltaMap.slice(this.startIndex, this.tickmap.durationMap.length).reduce((accum, x) => x + accum);
+    if (remaining === this.newTicks) {
+      mapIx = this.tickmap.deltaMap.length;
+    }
 
-        // If there is no tickable at the end point, try to split the next note
-        /**
-         *      old map:
-         *     d  . d  .
-         *     split map:
-         *     d  .  d  d
-         *     new map:
-         *     d .   .  d
-         */
-        if (mapIx < 0) {
-            var npos = this.tickmap.durationMap[this.startIndex + 1];
-            var ndelta = this.tickmap.deltaMap[this.startIndex + 1];
+    // If there is no tickable at the end point, try to split the next note
+    /**
+     *      old map:
+     *     d  . d  .
+     *     split map:
+     *     d  .  d  d
+     *     new map:
+     *     d .   .  d
+     */
+    if (mapIx < 0) {
+      var npos = this.tickmap.durationMap[this.startIndex + 1];
+      var ndelta = this.tickmap.deltaMap[this.startIndex + 1];
 			var needed = this.newTicks - currentTicks;
 			var exp = ndelta/needed;
 
 			// Next tick does not divide evenly into this, or next tick is shorter than this
-			if (Math.round(ndelta/exp)-ndelta/exp != 0 || currentTicks>ndelta) {
+			if (Math.round(ndelta/exp)-ndelta/exp != 0 || ndelta < 256) {
 				this.durationMap = [];
 			}
-            else if (ndelta / exp + this.startTick + this.newTicks <= this.tickmap.totalDuration) {
-                this.durationMap.push(ndelta - (ndelta / exp));
-            } else {
-                // there is no way to do this...
-				this.durationMap = [];
-            }
-        } else {
-            // If this note now takes up the space of other notes, remove those notes
-            for (var i = this.startIndex + 1; i < mapIx; ++i) {
-                this.durationMap.push(0);
-            }
-        }
+      else if (ndelta / exp + this.startTick + this.newTicks <= this.tickmap.totalDuration) {
+        this.durationMap.push(ndelta - (ndelta / exp));
+      } else {
+        // there is no way to do this...
+  			this.durationMap = [];
+      }
+    } else {
+      // If this note now takes up the space of other notes, remove those notes
+      for (var i = this.startIndex + 1; i < mapIx; ++i) {
+          this.durationMap.push(0);
+      }
+  }
     }
     transformTick(note, tickmap, index) {
         if (this.durationMap.length == 0) {

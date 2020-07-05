@@ -81,7 +81,6 @@ class suiPiano {
       }
     });
     $('#piano-8vb-button').off('click').on('click',function() {
-      self.editor.downOctave();
       $('#piano-8va-button').removeClass('activated');
       if (self.octaveOffset === 0) {
         $(this).addClass('activated');
@@ -109,8 +108,14 @@ class suiPiano {
     $('button.jsGrowDuration').off('click').on('click',function() {
       self.editor.doubleDuration();
     });
+    $('button.jsGrowDot').off('click').on('click',function() {
+      self.editor.dotDuration();
+    });
     $('button.jsShrinkDuration').off('click').on('click',function() {
       self.editor.halveDuration();
+    });
+    $('button.jsShrinkDot').off('click').on('click',function() {
+      self.editor.undotDuration();
     });
     $('button.jsChord').off('click').on('click',function() {
       $(this).toggleClass('activated');
@@ -180,17 +185,19 @@ class suiPiano {
 		var b = htmlHelpers.buildDom;
 		var r =b('button').classes('icon icon-cross close close-piano');
 		$('.piano-container .key-right-ctrl').append(r.dom());
-    r = b('button').classes('piano-ctrl jsLeft').append(b('span').classes('icon icon-arrow-left'));
-    $('.piano-container .key-right-ctrl').append(r.dom());
-    r = b('button').classes('piano-ctrl  jsRight').append(b('span').classes('icon icon-arrow-right'));
-    $('.piano-container .key-right-ctrl').append(r.dom());
     r = b('button').classes('piano-ctrl jsGrowDuration').append(b('span').classes('icon icon-duration_grow'));
     $('.piano-container .key-right-ctrl').append(r.dom());
     r = b('button').classes('piano-ctrl jsShrinkDuration').append(b('span').classes('icon icon-duration_less'));
     $('.piano-container .key-right-ctrl').append(r.dom());
+    r = b('button').classes('piano-ctrl jsGrowDot').append(b('span').classes('icon icon-duration_grow_dot'));
+    $('.piano-container .key-right-ctrl').append(r.dom());
+    r = b('button').classes('piano-ctrl jsShrinkDot').append(b('span').classes('icon icon-duration_less_dot'));
+    $('.piano-container .key-right-ctrl').append(r.dom());
 
-    r = b('button').classes('key-ctrl jsChord').append(b('span').classes('icon icon-chords'));
+    r = b('button').classes('key-ctrl jsLeft').append(b('span').classes('icon icon-arrow-left'));
     $('.piano-container .piano-keys').prepend(r.dom());
+    r = b('button').classes('key-ctrl jsRight').append(b('span').classes('icon icon-arrow-right'));
+    $('.piano-container .piano-keys').append(r.dom());
 
     r = b('button').classes('piano-ctrl').attr('id','piano-8va-button').append(
       b('span').classes('bold-italic').text('8')).append(
@@ -208,6 +215,10 @@ class suiPiano {
     $('.piano-container .key-left-ctrl').append(r.dom());
     r = b('button').classes('piano-ctrl jsEnharmonic').attr('id','piano-enharmonic').append(
       b('span').classes('bold icon icon-accident'));
+
+    $('.piano-container .key-left-ctrl').append(r.dom());
+    r = b('button').classes('piano-ctrl jsChord')
+      .append(b('span').classes('icon icon-chords'));
     $('.piano-container .key-left-ctrl').append(r.dom());
 	}
 	handleResize() {

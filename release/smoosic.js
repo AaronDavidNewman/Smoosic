@@ -8479,57 +8479,57 @@ class SmoMakeTupletActor extends TickTransformBase {
 }
 
 class SmoStretchNoteActor extends TickTransformBase {
-    constructor(parameters) {
-        super();
-        Vex.Merge(this, parameters);
-        this.startTick = this.tickmap.durationMap[this.startIndex];
+  constructor(parameters) {
+    super();
+    Vex.Merge(this, parameters);
+    this.startTick = this.tickmap.durationMap[this.startIndex];
 		var currentTicks = this.tickmap.deltaMap[this.startIndex];
 
-        var endTick = this.tickmap.durationMap[this.startIndex] + this.newTicks;
-        this.divisor = -1;
-        this.durationMap = [];
-        this.skipFromStart = this.startIndex + 1;
-        this.skipFromEnd = this.startIndex + 1;
-        this.durationMap.push(this.newTicks);
+    var endTick = this.tickmap.durationMap[this.startIndex] + this.newTicks;
+    this.divisor = -1;
+    this.durationMap = [];
+    this.skipFromStart = this.startIndex + 1;
+    this.skipFromEnd = this.startIndex + 1;
+    this.durationMap.push(this.newTicks);
 
-        var mapIx = this.tickmap.durationMap.indexOf(endTick);
+    var mapIx = this.tickmap.durationMap.indexOf(endTick);
 
-        var remaining = this.tickmap.deltaMap.slice(this.startIndex, this.tickmap.durationMap.length).reduce((accum, x) => x + accum);
-        if (remaining === this.newTicks) {
-            mapIx = this.tickmap.deltaMap.length;
-        }
+    var remaining = this.tickmap.deltaMap.slice(this.startIndex, this.tickmap.durationMap.length).reduce((accum, x) => x + accum);
+    if (remaining === this.newTicks) {
+      mapIx = this.tickmap.deltaMap.length;
+    }
 
-        // If there is no tickable at the end point, try to split the next note
-        /**
-         *      old map:
-         *     d  . d  .
-         *     split map:
-         *     d  .  d  d
-         *     new map:
-         *     d .   .  d
-         */
-        if (mapIx < 0) {
-            var npos = this.tickmap.durationMap[this.startIndex + 1];
-            var ndelta = this.tickmap.deltaMap[this.startIndex + 1];
+    // If there is no tickable at the end point, try to split the next note
+    /**
+     *      old map:
+     *     d  . d  .
+     *     split map:
+     *     d  .  d  d
+     *     new map:
+     *     d .   .  d
+     */
+    if (mapIx < 0) {
+      var npos = this.tickmap.durationMap[this.startIndex + 1];
+      var ndelta = this.tickmap.deltaMap[this.startIndex + 1];
 			var needed = this.newTicks - currentTicks;
 			var exp = ndelta/needed;
 
 			// Next tick does not divide evenly into this, or next tick is shorter than this
-			if (Math.round(ndelta/exp)-ndelta/exp != 0 || currentTicks>ndelta) {
+			if (Math.round(ndelta/exp)-ndelta/exp != 0 || ndelta < 256) {
 				this.durationMap = [];
 			}
-            else if (ndelta / exp + this.startTick + this.newTicks <= this.tickmap.totalDuration) {
-                this.durationMap.push(ndelta - (ndelta / exp));
-            } else {
-                // there is no way to do this...
-				this.durationMap = [];
-            }
-        } else {
-            // If this note now takes up the space of other notes, remove those notes
-            for (var i = this.startIndex + 1; i < mapIx; ++i) {
-                this.durationMap.push(0);
-            }
-        }
+      else if (ndelta / exp + this.startTick + this.newTicks <= this.tickmap.totalDuration) {
+        this.durationMap.push(ndelta - (ndelta / exp));
+      } else {
+        // there is no way to do this...
+  			this.durationMap = [];
+      }
+    } else {
+      // If this note now takes up the space of other notes, remove those notes
+      for (var i = this.startIndex + 1; i < mapIx; ++i) {
+          this.durationMap.push(0);
+      }
+  }
     }
     transformTick(note, tickmap, index) {
         if (this.durationMap.length == 0) {
@@ -11994,6 +11994,9 @@ class suiAudioPlayer {
     }
     _playPlayArray() {
         var startTimes = Object.keys(this.sounds).sort((a,b) => {return parseInt(a) > parseInt(b);});
+        if (startTimes.length < 1) {
+          return;
+        }
         this._playArrayRecurse(0,startTimes,this.sounds);
     }
     _populatePlayArray() {
@@ -14197,7 +14200,6 @@ class suiPiano {
       }
     });
     $('#piano-8vb-button').off('click').on('click',function() {
-      self.editor.downOctave();
       $('#piano-8va-button').removeClass('activated');
       if (self.octaveOffset === 0) {
         $(this).addClass('activated');
@@ -14225,8 +14227,14 @@ class suiPiano {
     $('button.jsGrowDuration').off('click').on('click',function() {
       self.editor.doubleDuration();
     });
+    $('button.jsGrowDot').off('click').on('click',function() {
+      self.editor.dotDuration();
+    });
     $('button.jsShrinkDuration').off('click').on('click',function() {
       self.editor.halveDuration();
+    });
+    $('button.jsShrinkDot').off('click').on('click',function() {
+      self.editor.undotDuration();
     });
     $('button.jsChord').off('click').on('click',function() {
       $(this).toggleClass('activated');
@@ -14296,17 +14304,19 @@ class suiPiano {
 		var b = htmlHelpers.buildDom;
 		var r =b('button').classes('icon icon-cross close close-piano');
 		$('.piano-container .key-right-ctrl').append(r.dom());
-    r = b('button').classes('piano-ctrl jsLeft').append(b('span').classes('icon icon-arrow-left'));
-    $('.piano-container .key-right-ctrl').append(r.dom());
-    r = b('button').classes('piano-ctrl  jsRight').append(b('span').classes('icon icon-arrow-right'));
-    $('.piano-container .key-right-ctrl').append(r.dom());
     r = b('button').classes('piano-ctrl jsGrowDuration').append(b('span').classes('icon icon-duration_grow'));
     $('.piano-container .key-right-ctrl').append(r.dom());
     r = b('button').classes('piano-ctrl jsShrinkDuration').append(b('span').classes('icon icon-duration_less'));
     $('.piano-container .key-right-ctrl').append(r.dom());
+    r = b('button').classes('piano-ctrl jsGrowDot').append(b('span').classes('icon icon-duration_grow_dot'));
+    $('.piano-container .key-right-ctrl').append(r.dom());
+    r = b('button').classes('piano-ctrl jsShrinkDot').append(b('span').classes('icon icon-duration_less_dot'));
+    $('.piano-container .key-right-ctrl').append(r.dom());
 
-    r = b('button').classes('key-ctrl jsChord').append(b('span').classes('icon icon-chords'));
+    r = b('button').classes('key-ctrl jsLeft').append(b('span').classes('icon icon-arrow-left'));
     $('.piano-container .piano-keys').prepend(r.dom());
+    r = b('button').classes('key-ctrl jsRight').append(b('span').classes('icon icon-arrow-right'));
+    $('.piano-container .piano-keys').append(r.dom());
 
     r = b('button').classes('piano-ctrl').attr('id','piano-8va-button').append(
       b('span').classes('bold-italic').text('8')).append(
@@ -14324,6 +14334,10 @@ class suiPiano {
     $('.piano-container .key-left-ctrl').append(r.dom());
     r = b('button').classes('piano-ctrl jsEnharmonic').attr('id','piano-enharmonic').append(
       b('span').classes('bold icon icon-accident'));
+
+    $('.piano-container .key-left-ctrl').append(r.dom());
+    r = b('button').classes('piano-ctrl jsChord')
+      .append(b('span').classes('icon icon-chords'));
     $('.piano-container .key-left-ctrl').append(r.dom());
 	}
 	handleResize() {
@@ -15805,10 +15819,10 @@ class browserEventSource {
 // Editor handles key events and converts them into commands, updating the score and
 // display
 class suiEditor {
-    constructor(params) {
-      Vex.Merge(this, params);
-      this.slashMode = false;
-    }
+  constructor(params) {
+    Vex.Merge(this, params);
+    this.slashMode = false;
+  }
 
 	tempoDialog() {
 		SuiTempoDialog.createAndDisplay(
@@ -15880,9 +15894,6 @@ class suiEditor {
   }
 
   _singleSelectionOperation(name, parameters) {
-    if (this.tracker.selections.length != 1) {
-      return;
-    }
     var selection = this.tracker.selections[0];
     if (parameters) {
       SmoUndoable[name](selection, parameters, this.undoBuffer);
@@ -21061,7 +21072,7 @@ class defaultRibbonLayout {
 		var left = defaultRibbonLayout.leftRibbonIds;
 		var top = defaultRibbonLayout.displayIds.concat(defaultRibbonLayout.noteButtonIds).concat(defaultRibbonLayout.navigateButtonIds)
         .concat(defaultRibbonLayout.articulateButtonIds).concat(defaultRibbonLayout.microtoneIds)
-		    .concat(defaultRibbonLayout.intervalIds).concat(defaultRibbonLayout.durationIds)
+		    .concat(defaultRibbonLayout.durationIds)
             .concat(defaultRibbonLayout.beamIds).concat(defaultRibbonLayout.measureIds).concat(defaultRibbonLayout.staveIds)
               .concat(defaultRibbonLayout.textIds).concat(defaultRibbonLayout.playerIds)
               .concat(defaultRibbonLayout.voiceButtonIds).concat(defaultRibbonLayout.debugIds);
@@ -23950,6 +23961,174 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
   }
 }
 ;
+class Qwerty {
+  static get navigationElements() {
+
+    var kbRows =
+    [
+      { row: '1234567890-=',shifted:'!@#$%^&*()_+'},
+      { row: 'QWERTYUIOP[]',shifted:'QWERTYIOP{}'},
+      { row:"ASDFGHJKL;'", shifted:'ASDFGHJKL:"'},
+      { row:'ZXCVBNM,./',shifted:'ZXCVBNM<>?'}
+    ];
+    var arrows = [
+      {icon: 'icon-arrow-left',text:'', shifted:'',classes:'helpKey',dataKey:'ArrowLeft'},
+      {icon: 'icon-arrow-right',text:'', shifted:'',classes:'helpKey',dataKey:'ArrowRight'},
+      {icon: 'icon-arrow-up',text:'', shifted:'',classes:'helpKey',dataKey:'ArrowUp'},
+      {icon: 'icon-arrow-down' ,text:'', shifted:'',classes:'helpKey',dataKey:'ArrowDown'},
+      {icon: '' ,text:'Ins', shifted:'',classes:'helpKey',dataKey:'Insert'},
+      {icon: '' ,text:'Del', shifted:'',classes:'helpKey',dataKey:'Delete'}
+    ];
+    var keyRows = {};
+    var labels = ['topNumbers','keys1','keys2','keys3','arrows'];
+    var j = 0;
+
+    kbRows.forEach((kbRow) => {
+      var str = kbRow.row;
+      var shifted = kbRow.shifted;
+      var keys = [];
+      for (var i = 0;i < str.length;++i) {
+        if (j === 2 && i === 0) {
+          keys.push({icon:'',text:'Shift',classes:'wideKey',dataKey:'shift'});
+        }
+        if (j === 3 && i === 0) {
+          keys.push({icon:'',text:'Ctrl',classes:'wideKey',dataKey:'ctrl'});
+          keys.push({icon:'',text:'Alt',classes:'helpKey',dataKey:'alt'});
+        }
+        keys.push({icon:'', text:str[i],shifted:shifted[i],classes:'helpKey',dataKey:str[i]});
+      }
+      keyRows[labels[j]] = {id:labels[j],rows:keys};
+      j += 1;
+    });
+    keyRows[labels[j]] = {id:labels[j],rows:arrows};
+    return keyRows;
+  }
+  static flashShift() {
+    if (Qwerty._shiftTime) {
+      Qwerty._shiftTime = 0;
+      setTimeout(function() {
+        Qwerty.flashShift();
+      },1000);
+    } else {
+      $('.kb-float').removeClass('shifted');
+    }
+  }
+
+  static displayForDuration() {
+    Qwerty.displayAll();
+    $('#row-0').hide();
+    $('#row-1').hide();
+    $('#row-4').hide();
+  }
+
+  static displayForTuplet() {
+    Qwerty.displayAll();
+    $('#row-1').hide();
+    $('#row-2').hide();
+  }
+
+  static displayAll() {
+    $('#row-0').show();
+    $('#row-1').show();
+    $('#row-2').show();
+    $('#row-3').show();
+    $('#row-4').show();
+  }
+
+  static _flashButton(key) {
+    var e = $('[data-key="'+key+'"]');
+    if (!e.length) {
+       e = $('[data-shift="'+key+'"]');
+    }
+    if (e.length) {
+      $(e).removeClass('transition-button');
+      $(e).addClass('reverse-button');
+      setTimeout(function() {
+        $(e).removeClass('reverse-button');
+        $(e).addClass('transition-button');
+      },750);
+    }
+  }
+  static get editingKeys()  {
+    return ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Insert','Delete'];
+  }
+  static handleKeyEvent(evdata) {
+    if (Qwerty.editingKeys.indexOf(evdata.code) >= 0) {
+      Qwerty._flashButton(evdata.code);
+    } else if (evdata.key.length === 1
+      && evdata.key.charCodeAt(0) > 32
+      && evdata.key.charCodeAt(0) < 127) {
+      Qwerty._flashButton(evdata.key.toUpperCase());
+    }
+    if (evdata.ctrlKey) {
+      Qwerty._flashButton('ctrl');
+    }
+    if (evdata.shiftKey) {
+      Qwerty._flashButton('shift');
+      $('.kb-float').addClass('shifted');
+      Qwerty._shiftTime = 1;
+      Qwerty.flashShift();
+    }
+    if (evdata.altKey) {
+      Qwerty._flashButton('alt');
+    }
+  }
+
+  static _kbButton(buttons) {
+    var b = htmlHelpers.buildDom;
+    var r = b('span').classes('keyContainer');
+    buttons.rows.forEach((button) => {
+      var text = button.text;
+      var shiftedText = button.shifted ? button.shifted : text;
+      r.append(b('span').classes(button.icon + ' ' + button.classes)
+        .attr('data-key',button.dataKey).attr('data-shift',shiftedText)
+          .append(b('span').classes('button-text').text(text))
+          .append(b('span').classes('button-shifted').text(shiftedText))
+      );
+    });
+    return r;
+  }
+  static _buttonBlock(buttons,id) {
+    var b = htmlHelpers.buildDom;
+    var r = b('div').classes('keyBlock').attr('id', id);
+    r.append(Qwerty._kbButton(buttons));
+    return r;
+  }
+
+  static _buildElements(rows) {
+    var b = htmlHelpers.buildDom;
+    var r = b('div').classes('buttonLine')
+      .append(b('span').classes('icon icon-move'));
+    var keys = Object.keys(rows);
+    var rowIx = 0;
+    keys.forEach((key) => {
+      var row = rows[key];
+      r.append(Qwerty._buttonBlock(row,'row-'+rowIx));
+      rowIx += 1;
+    });
+    return r;
+  }
+  static displayKb() {
+    $('body').addClass('showQwerty');
+    $('.qwertyKb').html('');
+    var b = htmlHelpers.buildDom;
+    var r = b('div').classes('kb-float');
+    r.append(Qwerty._buildElements(Qwerty.navigationElements));
+    $('.qwertyKb').append(r.dom());
+
+    var cb = function (x, y) {}
+    htmlHelpers.draggable({
+      parent: $('.qwertyKb'),
+      handle: $('.qwertyKb').find('.icon-move'),
+      animateDiv:'.draganime',
+      cb: cb,
+      moveParent: true
+    });
+  }
+
+
+}
+;
 
 class SmoHelp {
 
@@ -24533,6 +24712,7 @@ class SuiDom {
       .append(b('div').classes('textEdit hide'))
       .append(b('div').classes('attributeDialog'))
       .append(b('div').classes('helpDialog'))
+      .append(b('div').classes('qwertyKb'))
       .append(b('div').classes('saveLink'))
       .append(b('div').classes('bugDialog'))
       .append(b('div').classes('printFrame'))
@@ -24664,6 +24844,17 @@ class suiController {
 	static get scrollable() {
 		return '.musicRelief';
 	}
+
+  static get keyboardWidget() {
+    return suiController._kbWidget;
+  }
+
+  static set keyboardWidget(value) {
+    suiController._kbWidget = value;
+    if (suiController._kbWidget) {
+      Qwerty.displayKb();
+    }
+  }
 
 	get isLayoutQuiet() {
 		return ((this.layout.passState == suiLayoutBase.passStates.clean && this.layout.dirty == false)
@@ -24870,6 +25061,9 @@ class suiController {
 			 + " shift='" + evdata.shiftKey + "' control='" + evdata.ctrlKey + "'" + " alt='" + evdata.altKey + "'");
 		evdata.preventDefault();
 
+    if (suiController.keyboardWidget) {
+      Qwerty.handleKeyEvent(evdata);
+    }
 		if (evdata.key == '?') {
 			SmoHelp.displayHelp();
 		}
