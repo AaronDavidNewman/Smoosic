@@ -118,6 +118,10 @@ class suiController {
 		});
         // $('.close-piano').click();
 	}
+  _setMusicDimensions() {
+    $('.musicRelief').height(window.innerHeight - $('.musicRelief').offset().top);
+
+  }
 	resizeEvent() {
 		var self = this;
 		if (this.resizing) {
@@ -130,7 +134,7 @@ class suiController {
 		setTimeout(function () {
 			console.log('resizing');
 			self.resizing = false;
-			$('.musicRelief').height(window.innerHeight - $('.musicRelief').offset().top);
+      self._setMusicDimensions();
 			self.piano.handleResize();
 		}, 500);
 	}
@@ -176,7 +180,8 @@ class suiController {
 		if (!el) {
 			return;
 		}
-		$(suiController.scrollable).height(window.innerHeight - $('.musicRelief').offset().top);
+    this._setMusicDimensions();
+		// $(suiController.scrollable).height(window.innerHeight - $('.musicRelief').offset().top);
 
 		window.addEventListener('resize', function () {
 			self.resizeEvent();

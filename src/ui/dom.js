@@ -31,13 +31,13 @@ class SuiDom {
       .append(b('div').classes('draganime hide'))
       .append(b('div').classes('textEdit hide'))
       .append(b('div').classes('attributeDialog'))
-      .append(b('div').classes('helpDialog'))
       .append(b('div').classes('qwertyKb'))
       .append(b('div').classes('saveLink'))
       .append(b('div').classes('bugDialog'))
       .append(b('div').classes('printFrame'))
       .append(b('div').classes('menuContainer'))
       .append(b('div').classes('workspace language-dir').attr('dir',SmoConfig.languageDir)
+        .append(b('div').classes('helpDialog'))
         .append(b('div').classes('control-bar')
           .append(b('div').classes('titleText').text('Smoosic'))
           .append(b('div').classes('piano-container')
@@ -50,8 +50,7 @@ class SuiDom {
           .append(b('div').classes('controls-menu-message'))
           .append(b('div').classes('musicRelief')
             .append(b('div').classes('musicContainer').attr('id',vexId)
-            .attr('dir','ltr')
-          ))));
+            .attr('dir','ltr')))));
     $('#'+smoId).append(r.dom());
     var pianoDom=$('.piano-keys')[0];
     var svg=document.createElementNS(svgHelpers.namespace,'svg');

@@ -18,8 +18,6 @@ class suiScoreLayout extends suiLayoutBase {
 		};
 	}
 
-
-
 	// ### createScoreLayout
 	// ### Description;
 	// to get the score to appear, a div and a score object are required.  The layout takes care of creating the
@@ -91,31 +89,31 @@ class suiScoreLayout extends suiLayoutBase {
 		    suiTextLayout.placeText(tt,args);
 		}
 
-        // Update paginated score text
-        if (tt.pagination != SmoScoreText.paginations.once) {
-            for (var i = 1;i<scoreLayout.pages;++i) {
-                if (tt.pagination == SmoScoreText.paginations.even &&
-                    i % 2 > 0)  {
-                        continue;
-                    }
-                else if (tt.pagination == SmoScoreText.paginations.odd &&
-                   i % 2 == 0) {
-                    continue;
-                }
-                else if (tt.pagination == SmoScoreText.paginations.subsequent
-                   && i == 1) {
-                       continue;
-                   }
-
-                var xx = new SmoScoreText(tt);
-                xx.classes = 'score-text '+xx.attrs.id;
-                xx.text = xx.text.replace('###',i + 1); /// page number
-                xx.text = xx.text.replace('@@@',scoreLayout.pages); /// page number
-                xx.y += scoreLayout.pageHeight*i;
-                args.text = xx.text;
-                suiTextLayout.placeText(xx,args);
-            }
+    // Update paginated score text
+    if (tt.pagination != SmoScoreText.paginations.once) {
+      for (var i = 1;i<scoreLayout.pages;++i) {
+        if (tt.pagination == SmoScoreText.paginations.even &&
+          i % 2 > 0)  {
+            continue;
         }
+        else if (tt.pagination == SmoScoreText.paginations.odd &&
+           i % 2 == 0) {
+          continue;
+        }
+        else if (tt.pagination == SmoScoreText.paginations.subsequent
+           && i == 1) {
+            continue;
+         }
+
+        var xx = new SmoScoreText(tt);
+        xx.classes = 'score-text '+xx.attrs.id;
+        xx.text = xx.text.replace('###',i + 1); /// page number
+        xx.text = xx.text.replace('@@@',scoreLayout.pages); /// page number
+        xx.y += scoreLayout.pageHeight*i;
+        args.text = xx.text;
+        suiTextLayout.placeText(xx,args);
+      }
+    }
 	}
 	_renderScoreModifiers() {
 		var svg = this.context.svg;
@@ -131,7 +129,7 @@ class suiScoreLayout extends suiLayoutBase {
 	calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast,tempoLast) {
 		var measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
 		measure.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
-		measure.forceTimeSignature = (systemIndex === 0 || measure.timeSignature !== timeSigLast);
+		measure.forceTimeSignature = (measure.measureNumber.measureIndex == 0 || measure.timeSignature !== timeSigLast);
         measure.forceTempo = false;
 		var tempo = measure.getTempo();
         if (tempo && measure.measureNumber.measureIndex == 0) {

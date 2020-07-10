@@ -508,47 +508,73 @@ body.splashScreen .bugDialog {
     display:none;
 }
 body.showHelpDialog .helpDialog {
-	display:block;
-	position:absolute;
-	z-index: 5;
+	display:flex;
 	background: #eef;
-	right:0;
+  flex: 1 0 100%;
+  flex-flow:column wrap;
+  overflow:auto;
 	margin: 8px;
-	min-width:350px;
-	top: 35px;
 	padding: 10px;
 	border: 1px dashed #334;
 	/* border-radius: 5px; */
 }
 
+.workspace {
+  overflow:none;
+}
+body.showHelpDialog .workspace {
+  overflow:auto;
+}
+
 .helpLine {
 	margin-bottom:15px;
+  display:flex;
 }
 
 .help-title span.icon {
 	font-size:.6em;
 	position:absolute;
 	left: 3px;
+  top:5px;
 	border: 1px black solid;
+}
+
+.help-category-button {
+  height: 20px;
+}
+.help-category-text {
+  font-size:1.2em;
+  position:absolute;
+  left:15px;
+  top:10px;
 }
 
 button.help-title:focus {
 	outline:none;
 }
 
-.helpLine .keyBlock {
-	display:none;
+.helpLine {
+	display:block;
+  position:relative;
 }
 
-.helpLine.showSection .keyBlock {
+.helpLine.showSection .help-content {
 	display:block;
+}
+
+.helpLine.showSection .help-title {
+
+}
+
+.helpLine .help-content {
+  display:none;
 }
 
 .helpLine .help-title {
 	background: #eef;
 	text-align: left;
 	border: none;
-	width: 80%;
+	width: 100%;
 	border-bottom: 1px black dotted;
 }
 

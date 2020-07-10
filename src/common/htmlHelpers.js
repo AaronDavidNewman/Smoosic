@@ -25,6 +25,10 @@ class htmlHelpers {
 				$(self.e).addClass(cl);
 				return self;
 			}
+      this.html = function(value) {
+        $(self.e).html(value);
+        return self;
+      }
 			this.data = function (name, value) {
 				$(self.e).attr('data-' + name, value);
 				return self;
@@ -59,16 +63,16 @@ class htmlHelpers {
 	static get focusableElements() {
 		return ['a', 'input', 'select', 'textarea', 'button', 'li[tabindex]', 'div[tabindex]'];
 	}
-    static addFileLink(filename,txt,parent) {        
+    static addFileLink(filename,txt,parent) {
         var anchor = $('<a></a>');
         var url = URL.createObjectURL(new Blob([txt],{type:'application/octet-stream'}));
         $(anchor).attr('href',url);
         $(anchor).attr('download',filename);
         $(anchor).text('save');
         $(parent).html('');
-        $(parent).append(anchor);    
+        $(parent).append(anchor);
     }
-    
+
 	static inputTrapper(selector) {
 		var trapper = function () {
 			this.parent = $(selector);
@@ -161,7 +165,7 @@ class draggable {
 		this.handle = parameters.handle;
         this.animeClass = parameters.animateDiv;
         this.dragParent = parameters.dragParent;
-        
+
 		this.svg=parameters['svg'];
 		this.width = $(this.parent).outerWidth();
 		this.height = $(this.parent).outerHeight();
@@ -199,7 +203,7 @@ class draggable {
 		this.lastY = e.clientY;
 		$(this.animeClass).css('left', this.lastX);
 		$(this.animeClass).css('top', this.lastY);
-        
+
         if (this.dragParent) {
             $(this.parent).css('left', this.lastX + 'px');
 			$(this.parent).css('top', this.lastY + 'px');

@@ -33,6 +33,10 @@ body.refresh-1 #refresh  {
   background: #deeedd;
 }
 
+.controls-left div.ribbonButtonContainer {
+  width: 150px;
+}
+
 .controls-left button,.controls-top button {
 	background-color:#fff;
 }
@@ -71,6 +75,7 @@ div.ribbonButtonContainer.expanded {
 	background-color: #fff;
 	background:transparent;
 	display:flex;
+  flex: 1 1 auto;
 	flex-direction:column;
   padding:10px;
 }
