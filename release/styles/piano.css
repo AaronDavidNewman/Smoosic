@@ -34,6 +34,8 @@
 
 .key-right-ctrl .icon-duration_grow,
 .key-right-ctrl .icon-duration_less,
+.key-right-ctrl .icon-duration_grow_dot,
+.key-right-ctrl .icon-duration_less_dot,
 .key-left-ctrl button span,
 .piano-keys button.key-ctrl span
   {
@@ -45,12 +47,21 @@
   border-radius:5px;
 }
 
+.piano-container button:hover {
+  background: #33ccaa;
+  color: #eee;
+}
+
 .piano-container button.activated {
   background: #cad;
 }
 
 .piano-container button.piano-ctrl {
   width:50px;
+  height:30px;
+}
+.piano-container .piano-keys button {
+  width:30px;
 }
 
 body.show-piano .piano-container {
@@ -78,6 +89,10 @@ body.show-piano .piano-container {
 .white-key.pressed-key {
 	fill:#33d;
 }
+.white-key.pressed-key + text {
+  stroke: #fff;
+}
+
 .black-key.pressed-key {
 	fill:#bbd;
 }
