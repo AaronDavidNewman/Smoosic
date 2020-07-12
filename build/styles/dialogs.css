@@ -507,6 +507,7 @@ body.splashScreen .bugDialog {
 .helpDialog  {
     display:none;
 }
+/* change did not get propogated */
 body.showHelpDialog .helpDialog {
 	display:flex;
 	background: #eef;

@@ -112,16 +112,27 @@ class SuiApplication {
     var score = null;
     if (window.location.search) {
       var cmd = window.location.search.substring(1,window.location.search.length);
-      var pairs = SuiApplication._nvQueryPair(cmd);
-      if (pairs['score']) {
-        try {
-          score = SmoScore.deserialize(eval(pairs['score']));
-        } catch (exp) {
-          console.log('could not parse '+exp);
+      var cmds = cmd.split('&');
+      cmds.forEach((cmd) => {
+        var pairs = SuiApplication._nvQueryPair(cmd);
+        if (pairs['score']) {
+          try {
+            score = SmoScore.deserialize(eval(pairs['score']));
+          } catch (exp) {
+            console.log('could not parse '+exp);
+          }
+        } else if (pairs['lang']) {
+          SuiApplication._deferLanguageSelection(pairs['lang']);
         }
-      }
+      });
     }
     return score;
+  }
+
+  static _deferLanguageSelection(lang) {
+    setTimeout(function() {
+      SmoTranslator.setLanguage(lang);
+    },1);
   }
 
   libraryScoreLoad() {

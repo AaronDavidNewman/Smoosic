@@ -59,7 +59,7 @@ class suiAudioPitch {
       var pitchInt = smoMusic.smoPitchToInt(smoPitch);
       pitchInt += (coeff > 0) ? 1 : -1;
       var otherSmo = smoMusic.smoIntToPitch(pitchInt);
-      var otherPitch = suiAudioPitch._rawPitchToFrequency(otherSmo);
+      var otherPitch = suiAudioPitch._rawPitchToFrequency(otherSmo,-1 * offset);
       rv += Math.abs(rv - otherPitch)*coeff;
     }
     return rv;

@@ -442,12 +442,13 @@ button.addChord .left-text .icon {
 	width: 50px;
 	left: 0;
 }
-#AddGraceNote,#RemoveGraceNote {
+
+.expanded .ribbonButtonContainer button.graceIcon   {
     width:60px;
-	font-size:1.4em;
+	font-size:1.6em;
 }
 #AddGraceNote .ribbon-button-hotkey,#RemoveGraceNote .ribbon-button-hotkey {
-    font-size:0.6em;
+    font-size:0.5em;
 }
 
 #UpOctaveButton,#DownOctaveButton {
