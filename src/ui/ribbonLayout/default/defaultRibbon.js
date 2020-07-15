@@ -36,7 +36,7 @@ class defaultRibbonLayout {
 	}
 	static get noteButtonIds() {
 		return ['NoteButtons',
-            'UpNoteButton', 'DownNoteButton','AddGraceNote','RemoveGraceNote','SlashGraceNote',
+            'UpNoteButton', 'DownNoteButton','AddGraceNote','RemoveGraceNote','SlashGraceNote','XNoteHead',
 				'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
 	}
   static get voiceButtonIds() {
@@ -46,9 +46,9 @@ class defaultRibbonLayout {
 		return ['NavigationButtons', 'navLeftButton', 'navRightButton', 'navUpButton', 'navDownButton', 'moreNavButtons','navFastForward', 'navRewind',
 				'navGrowLeft', 'navGrowRight'];
 	}
-
 	static get articulateButtonIds()  {
-		return ['articulationButtons', 'accentButton', 'tenutoButton', 'staccatoButton', 'marcatoButton', 'fermataButton', 'pizzicatoButton','mordentButton','mordentInvertedButton','trillButton'];
+		return ['articulationButtons', 'accentButton', 'tenutoButton', 'staccatoButton', 'marcatoButton', 'fermataButton', 'pizzicatoButton','mordentButton','mordentInvertedButton','trillButton'
+      ,'scoopButton','dropButton','dropLongButton','doitButton','doitLongButton','flipButton','smearButton'];
 	}
 
 	static get intervalIds()  {
@@ -914,6 +914,15 @@ class defaultRibbonLayout {
 				group: 'notes',
 				id: 'RemoveGraceNote'
 			},{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-notex',
+				classes: 'collapsed graceIcon',
+				action: 'collapseChild',
+				ctor: 'NoteButtons',
+				group: 'notes',
+				id: 'XNoteHead'
+			},{
 				leftText: '8va',
 				rightText: 'Shift=',
 				icon: '',
@@ -1068,7 +1077,7 @@ class defaultRibbonLayout {
 				ctor: 'ArticulationButtons',
 				group: 'articulations',
 				id: 'mordentInvertedButton'
-            }, {
+      }, {
 				leftText: '',
 				rightText: '',
 				icon: 'icon-mordent',
@@ -1077,7 +1086,7 @@ class defaultRibbonLayout {
 				ctor: 'ArticulationButtons',
 				group: 'articulations',
 				id: 'mordentButton'
-            }, {
+      }, {
 				leftText: '',
 				rightText: '',
 				icon: 'icon-trill',
@@ -1086,7 +1095,76 @@ class defaultRibbonLayout {
 				ctor: 'ArticulationButtons',
 				group: 'articulations',
 				id: 'trillButton'
-            }
+      }, {
+				leftText: '',
+				rightText: '',
+				icon: 'icon-scoop',
+				classes: 'icon collapsed articulation',
+				action: 'collapseChild',
+				ctor: 'ArticulationButtons',
+				group: 'articulations',
+				id: 'scoopButton'
+      },
+      {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-drop',
+        classes: 'icon collapsed articulation',
+        action: 'collapseChild',
+        ctor: 'ArticulationButtons',
+        group: 'articulations',
+        id: 'dropButton'
+      },
+      {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-drop-long',
+        classes: 'icon collapsed articulation',
+        action: 'collapseChild',
+        ctor: 'ArticulationButtons',
+        group: 'articulations',
+        id: 'dropLongButton'
+      },
+      {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-doit',
+        classes: 'icon collapsed articulation',
+        action: 'collapseChild',
+        ctor: 'ArticulationButtons',
+        group: 'articulations',
+        id: 'doitButton'
+      },
+      {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-doit-long',
+        classes: 'icon collapsed articulation',
+        action: 'collapseChild',
+        ctor: 'ArticulationButtons',
+        group: 'articulations',
+        id: 'doitLongButton'
+      },
+      {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-flip',
+        classes: 'icon collapsed articulation',
+        action: 'collapseChild',
+        ctor: 'ArticulationButtons',
+        group: 'articulations',
+        id: 'flipButton'
+      },
+      {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-smear',
+        classes: 'icon collapsed articulation',
+        action: 'collapseChild',
+        ctor: 'ArticulationButtons',
+        group: 'articulations',
+        id: 'smearButton'
+      }
 		];
 	}
 	static get navigationButtons() {

@@ -137,13 +137,42 @@ class SmoOrnament extends SmoNoteModifierBase {
 			upprail: 'upprail',
 			prailup: 'prailup',
 			praildown: 'praildown',
-            upmordent:'upmordent',
-            downmordent:'downmordent',
-            lineprail:'linepraile',
-            prailprail:'prailprail'
+      upmordent:'upmordent',
+      downmordent:'downmordent',
+      lineprail:'linepraile',
+      prailprail:'prailprail',
+      scoop:'SCOOP',
+      drop:'FALL_SHORT',
+      dropLong:'FALL_LONG',
+      doit:'DOIT',
+      doitLong:'LIFT',
+      flip:'FLIP',
+      smear:'SMEAR'
 		};
 	}
-    static get parameterArray() {
+  static get jazzOrnaments() {
+    return ['SCOOP','FALL_SHORT','FALL_LONG','DOIT','LIFT','FLIP','SMEAR'];
+  }
+  static get toVexJazz() {
+    var rv = {};
+    rv[SmoOrnament.ornaments.scoop] = VF.JazzTechnique.Type.SCOOP;
+    rv[SmoOrnament.ornaments.drop] = VF.JazzTechnique.Type.FALL_SHORT;
+    rv[SmoOrnament.ornaments.dropLong] = VF.JazzTechnique.Type.FALL_LONG;
+    rv[SmoOrnament.ornaments.doit] = VF.JazzTechnique.Type.DOIT;
+    rv[SmoOrnament.ornaments.doitLong] = VF.JazzTechnique.Type.LIFT;
+    rv[SmoOrnament.ornaments.flip] = VF.JazzTechnique.Type.FLIP;
+    rv[SmoOrnament.ornaments.smear] = VF.JazzTechnique.Type.SMEAR;
+    return rv;
+  }
+  toVex() {
+    return SmoOrnament.toVexJazz[this.ornament];
+  }
+
+  isJazz() {
+    return SmoOrnament.jazzOrnaments.indexOf(this.ornament) >= 0;
+  }
+
+  static get parameterArray() {
 		return ['position', 'offset','ornament','ctor'];
 	}
 

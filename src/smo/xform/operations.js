@@ -291,15 +291,17 @@ class SmoOperation {
   selection.measure.setChanged();
   selection.note.makeNote();
   }
+  static setNoteHead(selections,noteHead) {
+    selections.forEach((selection) => {
+      selection.note.setNoteHead(noteHead);
+    });
+  }
 
   static addGraceNote(selection,offset,g) {
       selection.note.addGraceNote(offset,g);
       selection.measure.changed= true;
   }
 
-  static slashGraceNote(selection,){
-
-  }
 
   static removeGraceNote(selection,offset) {
     selection.note.removeGraceNote(offset);

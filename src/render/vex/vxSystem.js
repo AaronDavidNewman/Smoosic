@@ -11,13 +11,13 @@ class VxSystem {
 		this.context = context;
 		this.leftConnector = [null, null];
 		this.lineIndex = lineIndex;
-        this.score = score;
+    this.score = score;
 		this.maxStaffIndex = -1;
 		this.maxSystemIndex = -1;
 		this.width = -1;
 		this.smoMeasures = [];
 		this.vxMeasures = [];
-        this.staves = [];
+    this.staves = [];
 		this.endcaps = [];
 		this.endings = [];
 		this.box = {

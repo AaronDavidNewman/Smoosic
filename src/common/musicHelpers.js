@@ -144,12 +144,12 @@ class smoMusic {
 
 	// ### smoPitchesToVexKeys
 	// Transpose and convert from SMO to VEX format so we can use the VexFlow tables and methods
-	static smoPitchesToVexKeys(pitchAr, keyOffset) {
+	static smoPitchesToVexKeys(pitchAr, keyOffset,noteHead) {
 		var noopFunc = keyOffset > 0 ? 'addSharps' : 'addFlats';
 
 		var rv = [];
 		pitchAr.forEach((pitch) => {
-			rv.push(smoMusic.pitchToVexKey(smoMusic[noopFunc](pitch, keyOffset)));
+			rv.push(smoMusic.pitchToVexKey(smoMusic[noopFunc](pitch, keyOffset),noteHead));
 		});
 		return rv;
 	}
@@ -172,18 +172,18 @@ class smoMusic {
 		return smoMusic.smoPitchToInt(pp1) == smoMusic.smoPitchToInt(pp2);
 	}
 
-    // ### pitchToLedgerLineInt
-    static pitchToLedgerLine(clef,pitch) {
-        // return the distance from the top ledger line, as 0.5 per line/space
-        return -1.0*(VF.keyProperties(smoMusic.pitchToVexKey(pitch,clef)).line-4.5)
-         - VF.clefProperties.values[clef].line_shift;
-    }
+  // ### pitchToLedgerLineInt
+  static pitchToLedgerLine(clef,pitch) {
+    // return the distance from the top ledger line, as 0.5 per line/space
+    return -1.0*(VF.keyProperties(smoMusic.pitchToVexKey(pitch,clef)).line-4.5)
+     - VF.clefProperties.values[clef].line_shift;
+  }
 
   // ### pitchToVexKey
   // convert from SMO to VEX format so we can use the VexFlow tables and methods
   // example:
   // 	`{letter,octave,accidental}` object to vexKey string `'f#'`
-  static pitchToVexKey(smoPitch) {
+  static _pitchToVexKey(smoPitch) {
     // Convert to vex keys, where f# is a string like 'f#'.
     var vexKey = smoPitch.letter.toLowerCase();
     if (smoPitch.accidental.length === 0) {
@@ -195,6 +195,13 @@ class smoMusic {
       vexKey = vexKey + '/' + smoPitch.octave;
     }
     return vexKey;
+  }
+
+  static pitchToVexKey(smoPitch,head) {
+    if (!head) {
+      return smoMusic._pitchToVexKey(smoPitch);
+    }
+    return smoMusic._pitchToVexKey(smoPitch)+'/'+head;
   }
 
 	static smoPitchToInt(pitch) {

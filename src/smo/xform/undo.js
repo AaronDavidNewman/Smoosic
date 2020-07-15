@@ -132,91 +132,96 @@ class SmoUndoable {
 	    SmoUndoable.undoForSelections(score,selections,undoBuffer,operation);
 		SmoOperation.batchSelectionOperation(score,selections,operation);
 	}
-    static multiSelectionOperation(score,selections,operation,parameter,undoBuffer) {
-        SmoUndoable.undoForSelections(score,selections,undoBuffer,operation);
-        SmoOperation[operation](score,selections,parameter);
-    }
-    static addConnectorDown(score,selections,parameters,undoBuffer) {
-        SmoUndoable.undoForSelections(score,selections,undoBuffer,'Add Connector Below');
-        SmoOperation.addConnectorDown(score,selections,parameters);
-    }
-    static addGraceNote(selection,undoBuffer) {
-        undoBuffer.addBuffer('grace note ' + JSON.stringify(selection.note.pitches, null, ' '),
-            'measure', selection.selector, selection.measure);
-        var pitches = JSON.parse(JSON.stringify(selection.note.pitches));
-        SmoOperation.addGraceNote(selection,new SmoGraceNote({pitches:pitches,ticks:{numerator:2048,denominator:1,remainder:0}}))
-    }
-    static removeGraceNote(selection,params,undoBuffer) {
-        undoBuffer.addBuffer('remove grace note',
-            'measure', selection.selector, selection.measure);
-        SmoOperation.removeGraceNote(selection,params.index);
-    }
+  static multiSelectionOperation(score,selections,operation,parameter,undoBuffer) {
+    SmoUndoable.undoForSelections(score,selections,undoBuffer,operation);
+    SmoOperation[operation](score,selections,parameter);
+  }
+  static addConnectorDown(score,selections,parameters,undoBuffer) {
+    SmoUndoable.undoForSelections(score,selections,undoBuffer,'Add Connector Below');
+    SmoOperation.addConnectorDown(score,selections,parameters);
+  }
+  static addGraceNote(selection,undoBuffer) {
+    undoBuffer.addBuffer('grace note ' + JSON.stringify(selection.note.pitches, null, ' '),
+      'measure', selection.selector, selection.measure);
+    var pitches = JSON.parse(JSON.stringify(selection.note.pitches));
+    SmoOperation.addGraceNote(selection,new SmoGraceNote({pitches:pitches,ticks:{numerator:2048,denominator:1,remainder:0}}))
+  }
+  static removeGraceNote(selection,params,undoBuffer) {
+      undoBuffer.addBuffer('remove grace note',
+        'measure', selection.selector, selection.measure);
+      SmoOperation.removeGraceNote(selection,params.index);
+  }
 
   static slashGraceNotes(selections,undoBuffer) {
     undoBuffer.addBuffer('transpose grace note',
-        'measure', selections[0].selection.selector, selections[0].selection.measure);
+      'measure', selections[0].selection.selector, selections[0].selection.measure);
     SmoOperation.slashGraceNotes(selections);
   }
 
-    static transposeGraceNotes(selection,params,undoBuffer) {
-        undoBuffer.addBuffer('transpose grace note',
-            'measure', selection.selector, selection.measure);
-        SmoOperation.transposeGraceNotes(selection,params.modifiers,params.offset);
-    }
-    static padMeasuresLeft(selections,padding,undoBuffer) {
-        if (!Array.isArray(selections)) {
-            selections=[selections];
-        }
-        selections.forEach((selection) => {
-            undoBuffer.addBuffer('pad measure','measure',selection.selector,selection.measure);
-            SmoOperation.padMeasureLeft(selection,padding);
-        });
-    }
-    static doubleGraceNoteDuration(selection,modifier,undoBuffer) {
-        undoBuffer.addBuffer('double grace note duration',
-            'measure', selection.selector, selection.measure);
-        SmoOperation.doubleGraceNoteDuration(selection,modifier);
-    }
+  static transposeGraceNotes(selection,params,undoBuffer) {
+    undoBuffer.addBuffer('transpose grace note',
+      'measure', selection.selector, selection.measure);
+    SmoOperation.transposeGraceNotes(selection,params.modifiers,params.offset);
+  }
+  static setNoteHead(score,selections,noteHead,undoBuffer) {
+    SmoUndoable.undoForSelections(score,selections,undoBuffer,'note head');
+    SmoOperation.setNoteHead(selections,noteHead);
+  }
 
-    static halveGraceNoteDuration(selection,modifier,undoBuffer) {
-        undoBuffer.addBuffer('halve grace note duration',
-            'measure', selection.selector, selection.measure);
-        SmoOperation.halveGraceNoteDuration(selection,modifier);
+  static padMeasuresLeft(selections,padding,undoBuffer) {
+    if (!Array.isArray(selections)) {
+      selections=[selections];
     }
-    static setPitch(selection, pitches, undoBuffer)  {
-        undoBuffer.addBuffer('pitch change ' + JSON.stringify(pitches, null, ' '),
-            'measure', selection.selector, selection.measure);
-        SmoOperation.setPitch(selection, pitches);
-    }
-    static addPitch(selection, pitches, undoBuffer)  {
-        undoBuffer.addBuffer('pitch change ' + JSON.stringify(pitches, null, ' '),
-            'measure', selection.selector, selection.measure);
-        SmoOperation.addPitch(selection, pitches);
-    }
-    static doubleDuration(selection, undoBuffer) {
-        undoBuffer.addBuffer('double duration', 'measure', selection.selector, selection.measure);
-        SmoOperation.doubleDuration(selection);
-    }
-    static halveDuration(selection, undoBuffer) {
-        undoBuffer.addBuffer('halve note duration', 'measure', selection.selector, selection.measure);
-        SmoOperation.halveDuration(selection);
-    }
-    static makeTuplet(selection, numNotes, undoBuffer) {
-        undoBuffer.addBuffer(numNotes + '-let', 'measure', selection.selector, selection.measure);
-        SmoOperation.makeTuplet(selection, numNotes);
-    }
-    static makeRest(selection, undoBuffer) {
-        undoBuffer.addBuffer('make rest', 'measure', selection.selector, selection.measure);
-        SmoOperation.makeRest(selection);
-    }
-    static makeNote(selection, undoBuffer) {
-        undoBuffer.addBuffer('make note', 'measure', selection.selector, selection.measure);
-        SmoOperation.makeNote(selection);
-    }
-    static unmakeTuplet(selection, undoBuffer) {
-        undoBuffer.addBuffer('unmake tuplet', 'measure', selection.selector, selection.measure);
-        SmoOperation.unmakeTuplet(selection);
-    }
+    selections.forEach((selection) => {
+      undoBuffer.addBuffer('pad measure','measure',selection.selector,selection.measure);
+      SmoOperation.padMeasureLeft(selection,padding);
+    });
+  }
+  static doubleGraceNoteDuration(selection,modifier,undoBuffer) {
+    undoBuffer.addBuffer('double grace note duration',
+      'measure', selection.selector, selection.measure);
+    SmoOperation.doubleGraceNoteDuration(selection,modifier);
+  }
+
+  static halveGraceNoteDuration(selection,modifier,undoBuffer) {
+    undoBuffer.addBuffer('halve grace note duration',
+      'measure', selection.selector, selection.measure);
+    SmoOperation.halveGraceNoteDuration(selection,modifier);
+  }
+  static setPitch(selection, pitches, undoBuffer)  {
+    undoBuffer.addBuffer('pitch change ' + JSON.stringify(pitches, null, ' '),
+      'measure', selection.selector, selection.measure);
+    SmoOperation.setPitch(selection, pitches);
+  }
+  static addPitch(selection, pitches, undoBuffer)  {
+    undoBuffer.addBuffer('pitch change ' + JSON.stringify(pitches, null, ' '),
+        'measure', selection.selector, selection.measure);
+    SmoOperation.addPitch(selection, pitches);
+  }
+  static doubleDuration(selection, undoBuffer) {
+    undoBuffer.addBuffer('double duration', 'measure', selection.selector, selection.measure);
+    SmoOperation.doubleDuration(selection);
+  }
+  static halveDuration(selection, undoBuffer) {
+    undoBuffer.addBuffer('halve note duration', 'measure', selection.selector, selection.measure);
+    SmoOperation.halveDuration(selection);
+  }
+  static makeTuplet(selection, numNotes, undoBuffer) {
+    undoBuffer.addBuffer(numNotes + '-let', 'measure', selection.selector, selection.measure);
+    SmoOperation.makeTuplet(selection, numNotes);
+  }
+  static makeRest(selection, undoBuffer) {
+    undoBuffer.addBuffer('make rest', 'measure', selection.selector, selection.measure);
+    SmoOperation.makeRest(selection);
+  }
+  static makeNote(selection, undoBuffer) {
+    undoBuffer.addBuffer('make note', 'measure', selection.selector, selection.measure);
+    SmoOperation.makeNote(selection);
+  }
+  static unmakeTuplet(selection, undoBuffer) {
+    undoBuffer.addBuffer('unmake tuplet', 'measure', selection.selector, selection.measure);
+    SmoOperation.unmakeTuplet(selection);
+  }
     static dotDuration(selection, undoBuffer) {
         undoBuffer.addBuffer('dot duration', 'measure', selection.selector, selection.measure);
         SmoOperation.dotDuration(selection);

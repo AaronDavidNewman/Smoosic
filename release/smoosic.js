@@ -4013,20 +4013,24 @@ class SmoNote {
       });
   }
 
-    getOrnaments(ornament) {
-        return this.ornaments;
-    }
+  getOrnaments() {
+    return this.ornaments.filter((oo) => oo.isJazz() === false);
+  }
 
-    toggleOrnament(ornament) {
-            var aix = this.ornaments.filter((a) => {
-                return a.attrs.type === 'SmoOrnament' && a.ornament === ornament.ornament;
-            });
-        if (!aix.length) {
-            this.ornaments.push(ornament);
-        } else {
-            this.ornaments=[];
-        }
+  getJazzOrnaments() {
+    return this.ornaments.filter((oo) => oo.isJazz());
+  }
+
+  toggleOrnament(ornament) {
+    var aix = this.ornaments.filter((a) => {
+      return a.attrs.type === 'SmoOrnament' && a.ornament === ornament.ornament;
+    });
+    if (!aix.length) {
+      this.ornaments.push(ornament);
+    } else {
+      this.ornaments=[];
     }
+  }
 
     // Toggle between articulation above, below, or remove
     toggleArticulation(articulation) {
@@ -4647,12 +4651,27 @@ class SmoOrnament extends SmoNoteModifierBase {
 			upprail: 'upprail',
 			prailup: 'prailup',
 			praildown: 'praildown',
-            upmordent:'upmordent',
-            downmordent:'downmordent',
-            lineprail:'linepraile',
-            prailprail:'prailprail'
+      upmordent:'upmordent',
+      downmordent:'downmordent',
+      lineprail:'linepraile',
+      prailprail:'prailprail',
+      scoop:'SCOOP'
 		};
 	}
+  static get jazzOrnaments() {
+    return ['SCOOP'];
+  }
+  toVex() {
+    if (this.ornament === SmoOrnament.ornaments.scoop) {
+      return VF.JazzTechnique.Type.SCOOP;
+    }
+    return VF.JazzTechnique.Type.SCOOP;
+  }
+
+  isJazz() {
+    return SmoOrnament.jazzOrnaments.indexOf(this.ornament) >= 0;
+  }
+
     static get parameterArray() {
 		return ['position', 'offset','ornament','ctor'];
 	}
@@ -10730,17 +10749,25 @@ class VxMeasure {
         this._createMicrotones(smoNote,vexNote);
 	}
 
-    _createOrnaments(smoNote,vexNote) {
-        var o  = smoNote.getOrnaments();
-        var ix=0;
-        o.forEach((ll) => {
-            var mod = new VF.Ornament(ll.ornament);
-            if (ll.offset === SmoOrnament.offsets.after) {
-                mod.setDelayed(true);
-            }
-            vexNote.addModifier(ix, mod);
-            ix += 1;
-        });
+  _createJazzOrnaments(smoNote,vexNote) {
+    var o = smoNote.getJazzOrnaments();
+    var ix = 0;
+    o.forEach((ll) => {
+      var mod = new VF.JazzTechnique(ll.toVex());
+      vexNote.addModifier(0,mod);
+    });
+  }
+
+  _createOrnaments(smoNote,vexNote) {
+    var o  = smoNote.getOrnaments();
+    var ix=0;
+    o.forEach((ll) => {
+      var mod = new VF.Ornament(ll.ornament);
+      if (ll.offset === SmoOrnament.offsets.after) {
+        mod.setDelayed(true);
+      }
+      vexNote.addModifier(0, mod);
+    });
 
     }
     _addLyricAnnotationToNote(vexNote,lyric) {
@@ -10848,6 +10875,7 @@ class VxMeasure {
   	this._createAccidentals(smoNote,vexNote,tickIndex,voiceIx);
     this._createLyric(smoNote,vexNote,x_shift);
     this._createOrnaments(smoNote,vexNote);
+    this._createJazzOrnaments(smoNote,vexNote);
     this._createGraceNotes(smoNote,vexNote);
 
     return vexNote;
@@ -11194,13 +11222,13 @@ class VxSystem {
 		this.context = context;
 		this.leftConnector = [null, null];
 		this.lineIndex = lineIndex;
-        this.score = score;
+    this.score = score;
 		this.maxStaffIndex = -1;
 		this.maxSystemIndex = -1;
 		this.width = -1;
 		this.smoMeasures = [];
 		this.vxMeasures = [];
-        this.staves = [];
+    this.staves = [];
 		this.endcaps = [];
 		this.endings = [];
 		this.box = {
@@ -21121,7 +21149,7 @@ class defaultRibbonLayout {
 	}
 
 	static get articulateButtonIds()  {
-		return ['articulationButtons', 'accentButton', 'tenutoButton', 'staccatoButton', 'marcatoButton', 'fermataButton', 'pizzicatoButton','mordentButton','mordentInvertedButton','trillButton'];
+		return ['articulationButtons', 'accentButton', 'tenutoButton', 'staccatoButton', 'marcatoButton', 'fermataButton', 'pizzicatoButton','mordentButton','mordentInvertedButton','trillButton','scoopButton'];
 	}
 
 	static get intervalIds()  {
@@ -22141,7 +22169,7 @@ class defaultRibbonLayout {
 				ctor: 'ArticulationButtons',
 				group: 'articulations',
 				id: 'mordentInvertedButton'
-            }, {
+      }, {
 				leftText: '',
 				rightText: '',
 				icon: 'icon-mordent',
@@ -22150,7 +22178,7 @@ class defaultRibbonLayout {
 				ctor: 'ArticulationButtons',
 				group: 'articulations',
 				id: 'mordentButton'
-            }, {
+      }, {
 				leftText: '',
 				rightText: '',
 				icon: 'icon-trill',
@@ -22159,7 +22187,16 @@ class defaultRibbonLayout {
 				ctor: 'ArticulationButtons',
 				group: 'articulations',
 				id: 'trillButton'
-            }
+      }, {
+				leftText: '',
+				rightText: '',
+				icon: 'icon-trill',
+				classes: 'icon collapsed articulation',
+				action: 'collapseChild',
+				ctor: 'ArticulationButtons',
+				group: 'articulations',
+				id: 'scoopButton'
+      }
 		];
 	}
 	static get navigationButtons() {
@@ -23525,7 +23562,8 @@ class ArticulationButtons {
 			fermataButton: SmoArticulation.articulations.fermata,
       mordentButton: SmoOrnament.ornaments.mordent,
       mordentInvertedButton:SmoOrnament.ornaments.mordentInverted,
-      trillButton:SmoOrnament.ornaments.trill
+      trillButton: SmoOrnament.ornaments.trill,
+      scoopButton: SmoOrnament.ornaments.scoop
 		};
 	}
   static get constructors() {
@@ -23538,7 +23576,8 @@ class ArticulationButtons {
   		fermataButton: 'SmoArticulation',
       mordentButton: 'SmoOrnament',
       mordentInvertedButton:'SmoOrnament',
-      trillButton:'SmoOrnament'
+      trillButton:'SmoOrnament',
+      scoopButton: 'SmoOrnament'
     }
   }
 	constructor(parameters) {

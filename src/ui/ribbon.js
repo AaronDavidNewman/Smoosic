@@ -353,7 +353,9 @@ class NoteButtons {
       this.editor.slashGraceNotes();
     } else if (this.buttonData.id === 'RemoveGraceNote') {
 			this.editor.removeGraceNote();
-		} else {
+		} else if (this.buttonData.id === 'XNoteHead') {
+      this.editor.setNoteHead();
+    } else {
 			this.editor.setPitchCommand(this.buttonData.rightText);
 		}
 	}
@@ -723,7 +725,14 @@ class ArticulationButtons {
 			fermataButton: SmoArticulation.articulations.fermata,
       mordentButton: SmoOrnament.ornaments.mordent,
       mordentInvertedButton:SmoOrnament.ornaments.mordentInverted,
-      trillButton:SmoOrnament.ornaments.trill
+      trillButton: SmoOrnament.ornaments.trill,
+      scoopButton: SmoOrnament.ornaments.scoop,
+      dropButton: SmoOrnament.ornaments.drop,
+      dropLongButton: SmoOrnament.ornaments.dropLong,
+      doitButton: SmoOrnament.ornaments.doit,
+      doitLongButton: SmoOrnament.ornaments.doitLong,
+      flipButton: SmoOrnament.ornaments.flip,
+      smearButton: SmoOrnament.ornaments.smear
 		};
 	}
   static get constructors() {
@@ -736,7 +745,14 @@ class ArticulationButtons {
   		fermataButton: 'SmoArticulation',
       mordentButton: 'SmoOrnament',
       mordentInvertedButton:'SmoOrnament',
-      trillButton:'SmoOrnament'
+      trillButton:'SmoOrnament',
+      scoopButton: 'SmoOrnament',
+      dropButton: 'SmoOrnament',
+      dropLongButton: 'SmoOrnament',
+      doitButton: 'SmoOrnament',
+      doitLongButton: 'SmoOrnament',
+      flipButton: 'SmoOrnament',
+      smearButton:'SmoOrnament'
     }
   }
 	constructor(parameters) {

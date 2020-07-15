@@ -385,6 +385,10 @@ class suiEditor {
   unmakeTuplet(keyEvent) {
     this._singleSelectionOperation('unmakeTuplet');
   }
+  setNoteHead(keyEvent) {
+     SmoUndoable.setNoteHead(this.layout.score, this.tracker.selections, 'x2', this.undoBuffer);
+     this._render();
+  }
   removeGraceNote(keyEvent) {
     this._singleSelectionOperation('removeGraceNote',{index:0});
   }

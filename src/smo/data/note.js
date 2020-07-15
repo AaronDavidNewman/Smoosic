@@ -26,7 +26,7 @@ class SmoNote {
         return {auto:0,up:1,down:2};
     }
     static get parameterArray() {
-        return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef', 'endBeam','beamBeats','flagState'];
+        return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef', 'endBeam','beamBeats','flagState','noteHead'];
     }
 
     toggleFlagState() {
@@ -140,20 +140,24 @@ class SmoNote {
       });
   }
 
-    getOrnaments(ornament) {
-        return this.ornaments;
-    }
+  getOrnaments() {
+    return this.ornaments.filter((oo) => oo.isJazz() === false);
+  }
 
-    toggleOrnament(ornament) {
-            var aix = this.ornaments.filter((a) => {
-                return a.attrs.type === 'SmoOrnament' && a.ornament === ornament.ornament;
-            });
-        if (!aix.length) {
-            this.ornaments.push(ornament);
-        } else {
-            this.ornaments=[];
-        }
+  getJazzOrnaments() {
+    return this.ornaments.filter((oo) => oo.isJazz());
+  }
+
+  toggleOrnament(ornament) {
+    var aix = this.ornaments.filter((a) => {
+      return a.attrs.type === 'SmoOrnament' && a.ornament === ornament.ornament;
+    });
+    if (!aix.length) {
+      this.ornaments.push(ornament);
+    } else {
+      this.ornaments=[];
     }
+  }
 
     // Toggle between articulation above, below, or remove
     toggleArticulation(articulation) {
@@ -182,6 +186,13 @@ class SmoNote {
         note.pitches.sort((a, b) => {
             return keyIndex(a) - keyIndex(b);
         });
+    }
+    setNoteHead(noteHead) {
+      if (this.noteHead === noteHead) {
+        this.noteHead = '';
+      } else {
+        this.noteHead = noteHead;
+      }
     }
     addGraceNote(params,offset) {
         params.clef = this.clef;
@@ -327,6 +338,7 @@ class SmoNote {
     static get defaults() {
         return {
             noteType: 'n',
+            noteHead: 'n',
             textModifiers: [],
             articulations: [],
             graceNotes:[],

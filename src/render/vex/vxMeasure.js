@@ -113,17 +113,25 @@ class VxMeasure {
         this._createMicrotones(smoNote,vexNote);
 	}
 
-    _createOrnaments(smoNote,vexNote) {
-        var o  = smoNote.getOrnaments();
-        var ix=0;
-        o.forEach((ll) => {
-            var mod = new VF.Ornament(ll.ornament);
-            if (ll.offset === SmoOrnament.offsets.after) {
-                mod.setDelayed(true);
-            }
-            vexNote.addModifier(ix, mod);
-            ix += 1;
-        });
+  _createJazzOrnaments(smoNote,vexNote) {
+    var o = smoNote.getJazzOrnaments();
+    var ix = 0;
+    o.forEach((ll) => {
+      var mod = new VF.JazzTechnique(ll.toVex());
+      vexNote.addModifier(0,mod);
+    });
+  }
+
+  _createOrnaments(smoNote,vexNote) {
+    var o  = smoNote.getOrnaments();
+    var ix=0;
+    o.forEach((ll) => {
+      var mod = new VF.Ornament(ll.ornament);
+      if (ll.offset === SmoOrnament.offsets.after) {
+        mod.setDelayed(true);
+      }
+      vexNote.addModifier(0, mod);
+    });
 
     }
     _addLyricAnnotationToNote(vexNote,lyric) {
@@ -211,7 +219,7 @@ class VxMeasure {
   		 smoMusic.ticksToDuration[smoNote.tickCount];
 
   	// transpose for instrument-specific keys
-  	var keys=smoMusic.smoPitchesToVexKeys(smoNote.pitches,0);
+  	var keys=smoMusic.smoPitchesToVexKeys(smoNote.pitches,0,smoNote.noteHead);
     var noteParams = {
         clef: smoNote.clef,
         keys: keys,
@@ -231,6 +239,7 @@ class VxMeasure {
   	this._createAccidentals(smoNote,vexNote,tickIndex,voiceIx);
     this._createLyric(smoNote,vexNote,x_shift);
     this._createOrnaments(smoNote,vexNote);
+    this._createJazzOrnaments(smoNote,vexNote);
     this._createGraceNotes(smoNote,vexNote);
 
     return vexNote;

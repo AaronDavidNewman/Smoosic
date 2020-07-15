@@ -2079,12 +2079,12 @@ class smoMusic {
 
 	// ### smoPitchesToVexKeys
 	// Transpose and convert from SMO to VEX format so we can use the VexFlow tables and methods
-	static smoPitchesToVexKeys(pitchAr, keyOffset) {
+	static smoPitchesToVexKeys(pitchAr, keyOffset,noteHead) {
 		var noopFunc = keyOffset > 0 ? 'addSharps' : 'addFlats';
 
 		var rv = [];
 		pitchAr.forEach((pitch) => {
-			rv.push(smoMusic.pitchToVexKey(smoMusic[noopFunc](pitch, keyOffset)));
+			rv.push(smoMusic.pitchToVexKey(smoMusic[noopFunc](pitch, keyOffset),noteHead));
 		});
 		return rv;
 	}
@@ -2107,18 +2107,18 @@ class smoMusic {
 		return smoMusic.smoPitchToInt(pp1) == smoMusic.smoPitchToInt(pp2);
 	}
 
-    // ### pitchToLedgerLineInt
-    static pitchToLedgerLine(clef,pitch) {
-        // return the distance from the top ledger line, as 0.5 per line/space
-        return -1.0*(VF.keyProperties(smoMusic.pitchToVexKey(pitch,clef)).line-4.5)
-         - VF.clefProperties.values[clef].line_shift;
-    }
+  // ### pitchToLedgerLineInt
+  static pitchToLedgerLine(clef,pitch) {
+    // return the distance from the top ledger line, as 0.5 per line/space
+    return -1.0*(VF.keyProperties(smoMusic.pitchToVexKey(pitch,clef)).line-4.5)
+     - VF.clefProperties.values[clef].line_shift;
+  }
 
   // ### pitchToVexKey
   // convert from SMO to VEX format so we can use the VexFlow tables and methods
   // example:
   // 	`{letter,octave,accidental}` object to vexKey string `'f#'`
-  static pitchToVexKey(smoPitch) {
+  static _pitchToVexKey(smoPitch) {
     // Convert to vex keys, where f# is a string like 'f#'.
     var vexKey = smoPitch.letter.toLowerCase();
     if (smoPitch.accidental.length === 0) {
@@ -2130,6 +2130,13 @@ class smoMusic {
       vexKey = vexKey + '/' + smoPitch.octave;
     }
     return vexKey;
+  }
+
+  static pitchToVexKey(smoPitch,head) {
+    if (!head) {
+      return smoMusic._pitchToVexKey(smoPitch);
+    }
+    return smoMusic._pitchToVexKey(smoPitch)+'/'+head;
   }
 
 	static smoPitchToInt(pitch) {
@@ -3899,7 +3906,7 @@ class SmoNote {
         return {auto:0,up:1,down:2};
     }
     static get parameterArray() {
-        return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef', 'endBeam','beamBeats','flagState'];
+        return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef', 'endBeam','beamBeats','flagState','noteHead'];
     }
 
     toggleFlagState() {
@@ -4013,20 +4020,24 @@ class SmoNote {
       });
   }
 
-    getOrnaments(ornament) {
-        return this.ornaments;
-    }
+  getOrnaments() {
+    return this.ornaments.filter((oo) => oo.isJazz() === false);
+  }
 
-    toggleOrnament(ornament) {
-            var aix = this.ornaments.filter((a) => {
-                return a.attrs.type === 'SmoOrnament' && a.ornament === ornament.ornament;
-            });
-        if (!aix.length) {
-            this.ornaments.push(ornament);
-        } else {
-            this.ornaments=[];
-        }
+  getJazzOrnaments() {
+    return this.ornaments.filter((oo) => oo.isJazz());
+  }
+
+  toggleOrnament(ornament) {
+    var aix = this.ornaments.filter((a) => {
+      return a.attrs.type === 'SmoOrnament' && a.ornament === ornament.ornament;
+    });
+    if (!aix.length) {
+      this.ornaments.push(ornament);
+    } else {
+      this.ornaments=[];
     }
+  }
 
     // Toggle between articulation above, below, or remove
     toggleArticulation(articulation) {
@@ -4055,6 +4066,13 @@ class SmoNote {
         note.pitches.sort((a, b) => {
             return keyIndex(a) - keyIndex(b);
         });
+    }
+    setNoteHead(noteHead) {
+      if (this.noteHead === noteHead) {
+        this.noteHead = '';
+      } else {
+        this.noteHead = noteHead;
+      }
     }
     addGraceNote(params,offset) {
         params.clef = this.clef;
@@ -4200,6 +4218,7 @@ class SmoNote {
     static get defaults() {
         return {
             noteType: 'n',
+            noteHead: 'n',
             textModifiers: [],
             articulations: [],
             graceNotes:[],
@@ -4647,13 +4666,42 @@ class SmoOrnament extends SmoNoteModifierBase {
 			upprail: 'upprail',
 			prailup: 'prailup',
 			praildown: 'praildown',
-            upmordent:'upmordent',
-            downmordent:'downmordent',
-            lineprail:'linepraile',
-            prailprail:'prailprail'
+      upmordent:'upmordent',
+      downmordent:'downmordent',
+      lineprail:'linepraile',
+      prailprail:'prailprail',
+      scoop:'SCOOP',
+      drop:'FALL_SHORT',
+      dropLong:'FALL_LONG',
+      doit:'DOIT',
+      doitLong:'LIFT',
+      flip:'FLIP',
+      smear:'SMEAR'
 		};
 	}
-    static get parameterArray() {
+  static get jazzOrnaments() {
+    return ['SCOOP','FALL_SHORT','FALL_LONG','DOIT','LIFT','FLIP','SMEAR'];
+  }
+  static get toVexJazz() {
+    var rv = {};
+    rv[SmoOrnament.ornaments.scoop] = VF.JazzTechnique.Type.SCOOP;
+    rv[SmoOrnament.ornaments.drop] = VF.JazzTechnique.Type.FALL_SHORT;
+    rv[SmoOrnament.ornaments.dropLong] = VF.JazzTechnique.Type.FALL_LONG;
+    rv[SmoOrnament.ornaments.doit] = VF.JazzTechnique.Type.DOIT;
+    rv[SmoOrnament.ornaments.doitLong] = VF.JazzTechnique.Type.LIFT;
+    rv[SmoOrnament.ornaments.flip] = VF.JazzTechnique.Type.FLIP;
+    rv[SmoOrnament.ornaments.smear] = VF.JazzTechnique.Type.SMEAR;
+    return rv;
+  }
+  toVex() {
+    return SmoOrnament.toVexJazz[this.ornament];
+  }
+
+  isJazz() {
+    return SmoOrnament.jazzOrnaments.indexOf(this.ornament) >= 0;
+  }
+
+  static get parameterArray() {
 		return ['position', 'offset','ornament','ctor'];
 	}
 
@@ -9222,15 +9270,17 @@ class SmoOperation {
   selection.measure.setChanged();
   selection.note.makeNote();
   }
+  static setNoteHead(selections,noteHead) {
+    selections.forEach((selection) => {
+      selection.note.setNoteHead(noteHead);
+    });
+  }
 
   static addGraceNote(selection,offset,g) {
       selection.note.addGraceNote(offset,g);
       selection.measure.changed= true;
   }
 
-  static slashGraceNote(selection,){
-
-  }
 
   static removeGraceNote(selection,offset) {
     selection.note.removeGraceNote(offset);
@@ -9980,91 +10030,96 @@ class SmoUndoable {
 	    SmoUndoable.undoForSelections(score,selections,undoBuffer,operation);
 		SmoOperation.batchSelectionOperation(score,selections,operation);
 	}
-    static multiSelectionOperation(score,selections,operation,parameter,undoBuffer) {
-        SmoUndoable.undoForSelections(score,selections,undoBuffer,operation);
-        SmoOperation[operation](score,selections,parameter);
-    }
-    static addConnectorDown(score,selections,parameters,undoBuffer) {
-        SmoUndoable.undoForSelections(score,selections,undoBuffer,'Add Connector Below');
-        SmoOperation.addConnectorDown(score,selections,parameters);
-    }
-    static addGraceNote(selection,undoBuffer) {
-        undoBuffer.addBuffer('grace note ' + JSON.stringify(selection.note.pitches, null, ' '),
-            'measure', selection.selector, selection.measure);
-        var pitches = JSON.parse(JSON.stringify(selection.note.pitches));
-        SmoOperation.addGraceNote(selection,new SmoGraceNote({pitches:pitches,ticks:{numerator:2048,denominator:1,remainder:0}}))
-    }
-    static removeGraceNote(selection,params,undoBuffer) {
-        undoBuffer.addBuffer('remove grace note',
-            'measure', selection.selector, selection.measure);
-        SmoOperation.removeGraceNote(selection,params.index);
-    }
+  static multiSelectionOperation(score,selections,operation,parameter,undoBuffer) {
+    SmoUndoable.undoForSelections(score,selections,undoBuffer,operation);
+    SmoOperation[operation](score,selections,parameter);
+  }
+  static addConnectorDown(score,selections,parameters,undoBuffer) {
+    SmoUndoable.undoForSelections(score,selections,undoBuffer,'Add Connector Below');
+    SmoOperation.addConnectorDown(score,selections,parameters);
+  }
+  static addGraceNote(selection,undoBuffer) {
+    undoBuffer.addBuffer('grace note ' + JSON.stringify(selection.note.pitches, null, ' '),
+      'measure', selection.selector, selection.measure);
+    var pitches = JSON.parse(JSON.stringify(selection.note.pitches));
+    SmoOperation.addGraceNote(selection,new SmoGraceNote({pitches:pitches,ticks:{numerator:2048,denominator:1,remainder:0}}))
+  }
+  static removeGraceNote(selection,params,undoBuffer) {
+      undoBuffer.addBuffer('remove grace note',
+        'measure', selection.selector, selection.measure);
+      SmoOperation.removeGraceNote(selection,params.index);
+  }
 
   static slashGraceNotes(selections,undoBuffer) {
     undoBuffer.addBuffer('transpose grace note',
-        'measure', selections[0].selection.selector, selections[0].selection.measure);
+      'measure', selections[0].selection.selector, selections[0].selection.measure);
     SmoOperation.slashGraceNotes(selections);
   }
 
-    static transposeGraceNotes(selection,params,undoBuffer) {
-        undoBuffer.addBuffer('transpose grace note',
-            'measure', selection.selector, selection.measure);
-        SmoOperation.transposeGraceNotes(selection,params.modifiers,params.offset);
-    }
-    static padMeasuresLeft(selections,padding,undoBuffer) {
-        if (!Array.isArray(selections)) {
-            selections=[selections];
-        }
-        selections.forEach((selection) => {
-            undoBuffer.addBuffer('pad measure','measure',selection.selector,selection.measure);
-            SmoOperation.padMeasureLeft(selection,padding);
-        });
-    }
-    static doubleGraceNoteDuration(selection,modifier,undoBuffer) {
-        undoBuffer.addBuffer('double grace note duration',
-            'measure', selection.selector, selection.measure);
-        SmoOperation.doubleGraceNoteDuration(selection,modifier);
-    }
+  static transposeGraceNotes(selection,params,undoBuffer) {
+    undoBuffer.addBuffer('transpose grace note',
+      'measure', selection.selector, selection.measure);
+    SmoOperation.transposeGraceNotes(selection,params.modifiers,params.offset);
+  }
+  static setNoteHead(score,selections,noteHead,undoBuffer) {
+    SmoUndoable.undoForSelections(score,selections,undoBuffer,'note head');
+    SmoOperation.setNoteHead(selections,noteHead);
+  }
 
-    static halveGraceNoteDuration(selection,modifier,undoBuffer) {
-        undoBuffer.addBuffer('halve grace note duration',
-            'measure', selection.selector, selection.measure);
-        SmoOperation.halveGraceNoteDuration(selection,modifier);
+  static padMeasuresLeft(selections,padding,undoBuffer) {
+    if (!Array.isArray(selections)) {
+      selections=[selections];
     }
-    static setPitch(selection, pitches, undoBuffer)  {
-        undoBuffer.addBuffer('pitch change ' + JSON.stringify(pitches, null, ' '),
-            'measure', selection.selector, selection.measure);
-        SmoOperation.setPitch(selection, pitches);
-    }
-    static addPitch(selection, pitches, undoBuffer)  {
-        undoBuffer.addBuffer('pitch change ' + JSON.stringify(pitches, null, ' '),
-            'measure', selection.selector, selection.measure);
-        SmoOperation.addPitch(selection, pitches);
-    }
-    static doubleDuration(selection, undoBuffer) {
-        undoBuffer.addBuffer('double duration', 'measure', selection.selector, selection.measure);
-        SmoOperation.doubleDuration(selection);
-    }
-    static halveDuration(selection, undoBuffer) {
-        undoBuffer.addBuffer('halve note duration', 'measure', selection.selector, selection.measure);
-        SmoOperation.halveDuration(selection);
-    }
-    static makeTuplet(selection, numNotes, undoBuffer) {
-        undoBuffer.addBuffer(numNotes + '-let', 'measure', selection.selector, selection.measure);
-        SmoOperation.makeTuplet(selection, numNotes);
-    }
-    static makeRest(selection, undoBuffer) {
-        undoBuffer.addBuffer('make rest', 'measure', selection.selector, selection.measure);
-        SmoOperation.makeRest(selection);
-    }
-    static makeNote(selection, undoBuffer) {
-        undoBuffer.addBuffer('make note', 'measure', selection.selector, selection.measure);
-        SmoOperation.makeNote(selection);
-    }
-    static unmakeTuplet(selection, undoBuffer) {
-        undoBuffer.addBuffer('unmake tuplet', 'measure', selection.selector, selection.measure);
-        SmoOperation.unmakeTuplet(selection);
-    }
+    selections.forEach((selection) => {
+      undoBuffer.addBuffer('pad measure','measure',selection.selector,selection.measure);
+      SmoOperation.padMeasureLeft(selection,padding);
+    });
+  }
+  static doubleGraceNoteDuration(selection,modifier,undoBuffer) {
+    undoBuffer.addBuffer('double grace note duration',
+      'measure', selection.selector, selection.measure);
+    SmoOperation.doubleGraceNoteDuration(selection,modifier);
+  }
+
+  static halveGraceNoteDuration(selection,modifier,undoBuffer) {
+    undoBuffer.addBuffer('halve grace note duration',
+      'measure', selection.selector, selection.measure);
+    SmoOperation.halveGraceNoteDuration(selection,modifier);
+  }
+  static setPitch(selection, pitches, undoBuffer)  {
+    undoBuffer.addBuffer('pitch change ' + JSON.stringify(pitches, null, ' '),
+      'measure', selection.selector, selection.measure);
+    SmoOperation.setPitch(selection, pitches);
+  }
+  static addPitch(selection, pitches, undoBuffer)  {
+    undoBuffer.addBuffer('pitch change ' + JSON.stringify(pitches, null, ' '),
+        'measure', selection.selector, selection.measure);
+    SmoOperation.addPitch(selection, pitches);
+  }
+  static doubleDuration(selection, undoBuffer) {
+    undoBuffer.addBuffer('double duration', 'measure', selection.selector, selection.measure);
+    SmoOperation.doubleDuration(selection);
+  }
+  static halveDuration(selection, undoBuffer) {
+    undoBuffer.addBuffer('halve note duration', 'measure', selection.selector, selection.measure);
+    SmoOperation.halveDuration(selection);
+  }
+  static makeTuplet(selection, numNotes, undoBuffer) {
+    undoBuffer.addBuffer(numNotes + '-let', 'measure', selection.selector, selection.measure);
+    SmoOperation.makeTuplet(selection, numNotes);
+  }
+  static makeRest(selection, undoBuffer) {
+    undoBuffer.addBuffer('make rest', 'measure', selection.selector, selection.measure);
+    SmoOperation.makeRest(selection);
+  }
+  static makeNote(selection, undoBuffer) {
+    undoBuffer.addBuffer('make note', 'measure', selection.selector, selection.measure);
+    SmoOperation.makeNote(selection);
+  }
+  static unmakeTuplet(selection, undoBuffer) {
+    undoBuffer.addBuffer('unmake tuplet', 'measure', selection.selector, selection.measure);
+    SmoOperation.unmakeTuplet(selection);
+  }
     static dotDuration(selection, undoBuffer) {
         undoBuffer.addBuffer('dot duration', 'measure', selection.selector, selection.measure);
         SmoOperation.dotDuration(selection);
@@ -10730,17 +10785,25 @@ class VxMeasure {
         this._createMicrotones(smoNote,vexNote);
 	}
 
-    _createOrnaments(smoNote,vexNote) {
-        var o  = smoNote.getOrnaments();
-        var ix=0;
-        o.forEach((ll) => {
-            var mod = new VF.Ornament(ll.ornament);
-            if (ll.offset === SmoOrnament.offsets.after) {
-                mod.setDelayed(true);
-            }
-            vexNote.addModifier(ix, mod);
-            ix += 1;
-        });
+  _createJazzOrnaments(smoNote,vexNote) {
+    var o = smoNote.getJazzOrnaments();
+    var ix = 0;
+    o.forEach((ll) => {
+      var mod = new VF.JazzTechnique(ll.toVex());
+      vexNote.addModifier(0,mod);
+    });
+  }
+
+  _createOrnaments(smoNote,vexNote) {
+    var o  = smoNote.getOrnaments();
+    var ix=0;
+    o.forEach((ll) => {
+      var mod = new VF.Ornament(ll.ornament);
+      if (ll.offset === SmoOrnament.offsets.after) {
+        mod.setDelayed(true);
+      }
+      vexNote.addModifier(0, mod);
+    });
 
     }
     _addLyricAnnotationToNote(vexNote,lyric) {
@@ -10828,7 +10891,7 @@ class VxMeasure {
   		 smoMusic.ticksToDuration[smoNote.tickCount];
 
   	// transpose for instrument-specific keys
-  	var keys=smoMusic.smoPitchesToVexKeys(smoNote.pitches,0);
+  	var keys=smoMusic.smoPitchesToVexKeys(smoNote.pitches,0,smoNote.noteHead);
     var noteParams = {
         clef: smoNote.clef,
         keys: keys,
@@ -10848,6 +10911,7 @@ class VxMeasure {
   	this._createAccidentals(smoNote,vexNote,tickIndex,voiceIx);
     this._createLyric(smoNote,vexNote,x_shift);
     this._createOrnaments(smoNote,vexNote);
+    this._createJazzOrnaments(smoNote,vexNote);
     this._createGraceNotes(smoNote,vexNote);
 
     return vexNote;
@@ -11194,13 +11258,13 @@ class VxSystem {
 		this.context = context;
 		this.leftConnector = [null, null];
 		this.lineIndex = lineIndex;
-        this.score = score;
+    this.score = score;
 		this.maxStaffIndex = -1;
 		this.maxSystemIndex = -1;
 		this.width = -1;
 		this.smoMeasures = [];
 		this.vxMeasures = [];
-        this.staves = [];
+    this.staves = [];
 		this.endcaps = [];
 		this.endings = [];
 		this.box = {
@@ -16203,6 +16267,10 @@ class suiEditor {
   unmakeTuplet(keyEvent) {
     this._singleSelectionOperation('unmakeTuplet');
   }
+  setNoteHead(keyEvent) {
+     SmoUndoable.setNoteHead(this.layout.score, this.tracker.selections, 'x2', this.undoBuffer);
+     this._render();
+  }
   removeGraceNote(keyEvent) {
     this._singleSelectionOperation('removeGraceNote',{index:0});
   }
@@ -21109,7 +21177,7 @@ class defaultRibbonLayout {
 	}
 	static get noteButtonIds() {
 		return ['NoteButtons',
-            'UpNoteButton', 'DownNoteButton','AddGraceNote','RemoveGraceNote','SlashGraceNote',
+            'UpNoteButton', 'DownNoteButton','AddGraceNote','RemoveGraceNote','SlashGraceNote','XNoteHead',
 				'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
 	}
   static get voiceButtonIds() {
@@ -21119,9 +21187,9 @@ class defaultRibbonLayout {
 		return ['NavigationButtons', 'navLeftButton', 'navRightButton', 'navUpButton', 'navDownButton', 'moreNavButtons','navFastForward', 'navRewind',
 				'navGrowLeft', 'navGrowRight'];
 	}
-
 	static get articulateButtonIds()  {
-		return ['articulationButtons', 'accentButton', 'tenutoButton', 'staccatoButton', 'marcatoButton', 'fermataButton', 'pizzicatoButton','mordentButton','mordentInvertedButton','trillButton'];
+		return ['articulationButtons', 'accentButton', 'tenutoButton', 'staccatoButton', 'marcatoButton', 'fermataButton', 'pizzicatoButton','mordentButton','mordentInvertedButton','trillButton'
+      ,'scoopButton','dropButton','dropLongButton','doitButton','doitLongButton','flipButton','smearButton'];
 	}
 
 	static get intervalIds()  {
@@ -21987,6 +22055,15 @@ class defaultRibbonLayout {
 				group: 'notes',
 				id: 'RemoveGraceNote'
 			},{
+				leftText: '',
+				rightText: '',
+				icon: 'icon-notex',
+				classes: 'collapsed graceIcon',
+				action: 'collapseChild',
+				ctor: 'NoteButtons',
+				group: 'notes',
+				id: 'XNoteHead'
+			},{
 				leftText: '8va',
 				rightText: 'Shift=',
 				icon: '',
@@ -22141,7 +22218,7 @@ class defaultRibbonLayout {
 				ctor: 'ArticulationButtons',
 				group: 'articulations',
 				id: 'mordentInvertedButton'
-            }, {
+      }, {
 				leftText: '',
 				rightText: '',
 				icon: 'icon-mordent',
@@ -22150,7 +22227,7 @@ class defaultRibbonLayout {
 				ctor: 'ArticulationButtons',
 				group: 'articulations',
 				id: 'mordentButton'
-            }, {
+      }, {
 				leftText: '',
 				rightText: '',
 				icon: 'icon-trill',
@@ -22159,7 +22236,76 @@ class defaultRibbonLayout {
 				ctor: 'ArticulationButtons',
 				group: 'articulations',
 				id: 'trillButton'
-            }
+      }, {
+				leftText: '',
+				rightText: '',
+				icon: 'icon-scoop',
+				classes: 'icon collapsed articulation',
+				action: 'collapseChild',
+				ctor: 'ArticulationButtons',
+				group: 'articulations',
+				id: 'scoopButton'
+      },
+      {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-drop',
+        classes: 'icon collapsed articulation',
+        action: 'collapseChild',
+        ctor: 'ArticulationButtons',
+        group: 'articulations',
+        id: 'dropButton'
+      },
+      {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-drop-long',
+        classes: 'icon collapsed articulation',
+        action: 'collapseChild',
+        ctor: 'ArticulationButtons',
+        group: 'articulations',
+        id: 'dropLongButton'
+      },
+      {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-doit',
+        classes: 'icon collapsed articulation',
+        action: 'collapseChild',
+        ctor: 'ArticulationButtons',
+        group: 'articulations',
+        id: 'doitButton'
+      },
+      {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-doit-long',
+        classes: 'icon collapsed articulation',
+        action: 'collapseChild',
+        ctor: 'ArticulationButtons',
+        group: 'articulations',
+        id: 'doitLongButton'
+      },
+      {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-flip',
+        classes: 'icon collapsed articulation',
+        action: 'collapseChild',
+        ctor: 'ArticulationButtons',
+        group: 'articulations',
+        id: 'flipButton'
+      },
+      {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-smear',
+        classes: 'icon collapsed articulation',
+        action: 'collapseChild',
+        ctor: 'ArticulationButtons',
+        group: 'articulations',
+        id: 'smearButton'
+      }
 		];
 	}
 	static get navigationButtons() {
@@ -23155,7 +23301,9 @@ class NoteButtons {
       this.editor.slashGraceNotes();
     } else if (this.buttonData.id === 'RemoveGraceNote') {
 			this.editor.removeGraceNote();
-		} else {
+		} else if (this.buttonData.id === 'XNoteHead') {
+      this.editor.setNoteHead();
+    } else {
 			this.editor.setPitchCommand(this.buttonData.rightText);
 		}
 	}
@@ -23525,7 +23673,14 @@ class ArticulationButtons {
 			fermataButton: SmoArticulation.articulations.fermata,
       mordentButton: SmoOrnament.ornaments.mordent,
       mordentInvertedButton:SmoOrnament.ornaments.mordentInverted,
-      trillButton:SmoOrnament.ornaments.trill
+      trillButton: SmoOrnament.ornaments.trill,
+      scoopButton: SmoOrnament.ornaments.scoop,
+      dropButton: SmoOrnament.ornaments.drop,
+      dropLongButton: SmoOrnament.ornaments.dropLong,
+      doitButton: SmoOrnament.ornaments.doit,
+      doitLongButton: SmoOrnament.ornaments.doitLong,
+      flipButton: SmoOrnament.ornaments.flip,
+      smearButton: SmoOrnament.ornaments.smear
 		};
 	}
   static get constructors() {
@@ -23538,7 +23693,14 @@ class ArticulationButtons {
   		fermataButton: 'SmoArticulation',
       mordentButton: 'SmoOrnament',
       mordentInvertedButton:'SmoOrnament',
-      trillButton:'SmoOrnament'
+      trillButton:'SmoOrnament',
+      scoopButton: 'SmoOrnament',
+      dropButton: 'SmoOrnament',
+      dropLongButton: 'SmoOrnament',
+      doitButton: 'SmoOrnament',
+      doitLongButton: 'SmoOrnament',
+      flipButton: 'SmoOrnament',
+      smearButton:'SmoOrnament'
     }
   }
 	constructor(parameters) {
