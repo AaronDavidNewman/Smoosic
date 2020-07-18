@@ -528,44 +528,34 @@ body.showHelpDialog .workspace {
 }
 
 .helpLine {
-	margin-bottom:15px;
+	margin-top:4px;
+  margin-bottom:4px;
   display:flex;
+  flex-flow:row wrap;
 }
 
 .help-title span.icon {
 	font-size:.6em;
-	position:absolute;
-	left: 3px;
-  top:5px;
 	border: 1px black solid;
 }
 
 .help-category-button {
-  height: 20px;
+  display:flex;
+  flex: 1 1 100%;
 }
+
 .help-category-text {
   font-size:1.2em;
-  position:absolute;
-  left:15px;
-  top:10px;
-}
-
-button.help-title:focus {
-	outline:none;
-}
-
-.helpLine {
-	display:block;
-  position:relative;
 }
 
 .helpLine.showSection .help-content {
 	display:block;
 }
 
-.helpLine.showSection .help-title {
-
+.helpLine.showSection .help-category-text {
+  display:none;
 }
+
 
 .helpLine .help-content {
   display:none;
@@ -575,7 +565,8 @@ button.help-title:focus {
 	background: #eef;
 	text-align: left;
 	border: none;
-	width: 100%;
+  display:flex;
+  flex: 1 1 100%;
 	border-bottom: 1px black dotted;
 }
 

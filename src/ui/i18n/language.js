@@ -151,16 +151,29 @@ class SmoTranslator {
       'SuiHairpinAttributesDialog'
     ]
   }
+  static get allHelpFiles() {
+    return [
+      'quickStartHtml',
+      'selectionHtml',
+      'enterPitchesHtml',
+      'enterDurationsHtml'
+    ];
+  }
 }
 
 class SmoLanguage {
+  static getHelpFile(category) {
+    return eval(category + SmoConfig.language);
+  }
   static get en() {
     var strings = JSON.parse(smoLanguageStringEn);
-    return {dir:'ltr',strings:strings};
+    var rv = {dir:'ltr',strings:strings,helpHtml:{}};
+    return rv;
    }
 
    static get ar() {
      var strings = JSON.parse(smoLanguageStringAr);
-     return {dir:'rtl',strings:strings};
+     var rv = {dir:'rtl',strings:strings,helpHtml:{}};
+     return rv;
    }
 }

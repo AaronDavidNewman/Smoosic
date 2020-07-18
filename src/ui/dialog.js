@@ -6,19 +6,19 @@
 class SuiModifierDialogFactory {
 
   static createDialog(modifier, parameters) {
-  var dbType = SuiModifierDialogFactory.modifierDialogMap[modifier.attrs.type];
-    if (dbType === 'SuiLyricDialog' && modifier.parser === SmoLyric.parsers.chord) {
-      dbType = 'SuiChordChangeDialog';
+    var dbType = SuiModifierDialogFactory.modifierDialogMap[modifier.attrs.type];
+      if (dbType === 'SuiLyricDialog' && modifier.parser === SmoLyric.parsers.chord) {
+        dbType = 'SuiChordChangeDialog';
+      }
+      var ctor = eval(dbType);
+      if (!ctor) {
+      console.warn('no dialog for modifier ' + modifier.type);
+      return;
     }
-  var ctor = eval(dbType);
-  if (!ctor) {
-  console.warn('no dialog for modifier ' + modifier.type);
-  return;
-  }
-  return ctor.createAndDisplay({
-  modifier: modifier,
-      ...parameters
-  });
+    return ctor.createAndDisplay({
+    modifier: modifier,
+        ...parameters
+    });
   }
   static get modifierDialogMap() {
     return {
@@ -29,7 +29,7 @@ class SuiModifierDialogFactory {
       SmoScoreText: 'SuiTextTransformDialog',
       SmoLoadScore:  'SuiLoadFileDialog',
       SmoLyric:'SuiLyricDialog'
-  };
+    };
   }
 }
 
@@ -182,10 +182,10 @@ class SuiDialogBase {
   // ### _commit
   // generic logic to commit changes to a momdifier.
   _commit() {
-  this.modifier.restoreOriginal();
-  this.components.forEach((component) => {
-  this.modifier[component.smoName] = component.getValue();
-  });
+    this.modifier.restoreOriginal();
+    this.components.forEach((component) => {
+      this.modifier[component.smoName] = component.getValue();
+    });
   }
 
      // ### Complete
