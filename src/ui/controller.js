@@ -249,7 +249,7 @@ class suiController {
 	}
 
 	menuHelp() {
-		SmoHelp.modeControls();
+		SmoHelp.displayHelp();
 	}
 
 	static get defaults() {
@@ -294,7 +294,6 @@ class suiController {
 
 		if (evdata.key == '/') {
       // set up menu DOM.
-			this.menuHelp();
       this.menus.slashMenuMode(this);
 		}
 

@@ -21,6 +21,8 @@ class suiMenuBase {
   complete() {
     $('body').trigger('menuDismiss');
   }
+  // Most menus don't process their own events
+  keydown(ev) {}
 }
 
 class suiMenuManager {
@@ -57,6 +59,13 @@ class suiMenuManager {
   static get menuKeyBindingDefaults() {
     return [
       {
+        event: "keydown",
+        key: "n",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "SuiLanguageMenu"
+      }, {
         event: "keydown",
         key: "k",
         ctrlKey: false,
@@ -98,6 +107,13 @@ class suiMenuManager {
         altKey: false,
         shiftKey: false,
         action: "SuiTimeSignatureMenu"
+      }, {
+        event: "keydown",
+        key: "a",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "SuiMeasureMenu"
       }
     ];
   }
@@ -118,6 +134,7 @@ class suiMenuManager {
     $(this.menuContainer).html('');
     $('body').off('dismissMenu');
     this.bound = false;
+    this.menu = null;
   }
 
   attach(el) {
@@ -129,59 +146,65 @@ class suiMenuManager {
     var r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length)
     .css('left', '' + this.menuPosition.x + 'px')
     .css('top', '' + this.menuPosition.y + 'px');
-          var hotkey=0;
+      var hotkey=0;
     this.menu.menuItems.forEach((item) => {
-              var vkey = (hotkey < 10) ? String.fromCharCode(48+hotkey) :
-                   String.fromCharCode(87 + hotkey) ;
+      var vkey = (hotkey < 10) ? String.fromCharCode(48+hotkey) :
+        String.fromCharCode(87 + hotkey);
 
-    r.append(
-      b('li').classes('menuOption').append(
-        b('button').attr('data-value',item.value).append(
-          b('span').classes('menuText').text(item.text))
-        .append(b('span').classes('icon icon-' + item.icon))
-      .append(b('span').classes('menu-key').text(''+vkey))));
-    item.hotkey=vkey;
-    hotkey += 1;
-  });
-  $(this.menuContainer).append(r.dom());
-  $('body').addClass('modal');
+      r.append(
+        b('li').classes('menuOption').append(
+          b('button').attr('data-value',item.value).append(
+            b('span').classes('menuText').text(item.text))
+          .append(b('span').classes('icon icon-' + item.icon))
+        .append(b('span').classes('menu-key').text(''+vkey))));
+      item.hotkey=vkey;
+      hotkey += 1;
+    });
+    $(this.menuContainer).append(r.dom());
+    $('body').addClass('modal');
     this.bindEvents();
   }
+
   slashMenuMode(completeNotifier) {
     var self = this;
     this.bindEvents();
     layoutDebug.addDialogDebug('slash menu creating closeMenuPromise');
+    // A menu asserts this event when it is done.
     this.closeMenuPromise = new Promise((resolve, reject) => {
-    $('body').off('menuDismiss').on('menuDismiss', function () {
-      layoutDebug.addDialogDebug('menuDismiss received, resolve closeMenuPromise');
-      self.unattach();
-      $('body').removeClass('slash-menu');
-      resolve();
+      $('body').off('menuDismiss').on('menuDismiss', function () {
+        layoutDebug.addDialogDebug('menuDismiss received, resolve closeMenuPromise');
+        self.unattach();
+        $('body').removeClass('slash-menu');
+        resolve();
+      });
     });
-  });
-   // take over the keyboard
+    // take over the keyboard
     completeNotifier.unbindKeyboardForModal(this);
   }
 
-  createMenu(action,completeNotifier) {
-  this.menuPosition = {x:250,y:40,width:1,height:1};
-    // If we were called from the ribbon, we notify the controller that we are
-    // taking over the keyboard.  If this was a key-based command we already did.
+  dismiss() {
+    $('body').trigger('menuDismiss');
+  }
 
-  layoutDebug.addDialogDebug('createMenu creating ' + action);
-  var ctor = eval(action);
-  this.menu = new ctor({
-    position: this.menuPosition,
-    tracker: this.tracker,
-    editor: this.editor,
-    score: this.score,
-    completeNotifier:this.controller,
-    closePromise:this.closeMenuPromise,
-    layout: this.layout,
-    eventSource:this.eventSource,
-    undoBuffer: this.undoBuffer
-  });
-  this.attach(this.menuContainer);
+  createMenu(action,completeNotifier) {
+    this.menuPosition = {x:250,y:40,width:1,height:1};
+      // If we were called from the ribbon, we notify the controller that we are
+      // taking over the keyboard.  If this was a key-based command we already did.
+
+    layoutDebug.addDialogDebug('createMenu creating ' + action);
+    var ctor = eval(action);
+    this.menu = new ctor({
+      position: this.menuPosition,
+      tracker: this.tracker,
+      editor: this.editor,
+      score: this.score,
+      completeNotifier:this.controller,
+      closePromise:this.closeMenuPromise,
+      layout: this.layout,
+      eventSource:this.eventSource,
+      undoBuffer: this.undoBuffer
+    });
+    this.attach(this.menuContainer);
     this.menu.menuItems.forEach((item) => {
       if (typeof(item.hotkey) != 'undefined') {
         this.hotkeyBindings[item.hotkey] = item.value;
@@ -189,6 +212,9 @@ class suiMenuManager {
     });
   }
 
+  // ### evKey
+  // We have taken over menu commands from controller.  If there is a menu active, send the key
+  // to it.  If there is not, see if the keystroke creates one.  If neither, dismissi the menu.
   evKey(event) {
     console.log("KeyboardEvent: key='" + event.key + "' | code='" +
     event.code + "'"
@@ -201,7 +227,7 @@ class suiMenuManager {
     event.preventDefault();
 
     if (event.code === 'Escape') {
-    $('body').trigger('menuDismiss');
+      this.dismiss();
     }
     if (this.menu) {
       if (event.code == 'ArrowUp') {
@@ -214,19 +240,16 @@ class suiMenuManager {
       } else {
         this.menu.keydown(event);
       }
+      return;
     }
-    if (this.tracker.selections.length == 0) {
-    this.unattach();
-    return;
-  }
-
-  var binding = this.menuBind.find((ev) => {
-  return ev.key === event.key
-  });
-  if (!binding) {
-  return;
-  }
-  this.createMenu(binding.action);
+    var binding = this.menuBind.find((ev) => {
+      return ev.key === event.key
+    });
+    if (!binding) {
+      this.dismiss();
+      return;
+    }
+    this.createMenu(binding.action);
   }
 
   bindEvents() {
@@ -781,12 +804,81 @@ class SuiLanguageMenu extends suiMenuBase {
 
   }
 }
+class SuiMeasureMenu extends suiMenuBase {
+  static get defaults() {
+    SuiMeasureMenu._defaults = SuiMeasureMenu._defaults ? SuiMeasureMenu._defaults : {
+      menuItems: [
+        {
+          icon: '',
+          text: 'Add Measure Before',
+          value: 'addMenuBeforeCmd'
+        },
+        {
+          icon: '',
+          text: 'Add Measure After',
+          value: 'addMenuAfterCmd'
+        }, {
+          icon: 'icon-cross',
+          text: 'Delete Selected Measures',
+          value: 'deleteSelected'
+        }, {
+          icon: '',
+          text: 'Format Measure',
+          value: 'formatMeasureDialog'
+        }
+      ]
+    }
+    return SuiMeasureMenu._defaults;
+  }
+  static get ctor() {
+    return 'SuiMeasureMenu';
+  }
+  get ctor() {
+    return SuiMeasureMenu.ctor;
+  }
+
+  constructor(params) {
+    params = (params ? params : {});
+    Vex.Merge(params, SuiMeasureMenu.defaults);
+    super(params);
+  }
+  selection(ev) {
+    var text = $(ev.currentTarget).attr('data-value');
+
+    if (text == 'formatMeasureDialog') {
+      SuiMeasureDialog.createAndDisplay({
+        layout: this.layout,
+        tracker: this.tracker,
+        completeNotifier:this.completeNotifier,
+        closeMenuPromise:this.closePromise,
+        undoBuffer:this.undoBuffer,
+        eventSource:this.eventSource
+      });
+      this.complete();
+      return;
+    }
+    if (text === 'addMenuBeforeCmd') {
+      this.editor.addMeasure({shiftKey:false});
+      this.complete();
+    }
+    if (text === 'addMenuAfterCmd') {
+      this.editor.addMeasure({shiftKey:true});
+      this.complete();
+    }
+    if (text === 'deleteSelected') {
+      this.editor.deleteMeasure();
+    }
+    this.complete();
+  }
+
+
+}
 
 class SuiAddStaffMenu extends suiMenuBase {
   constructor(params) {
-  params = (params ? params : {});
-  Vex.Merge(params, SuiAddStaffMenu.defaults);
-  super(params);
+    params = (params ? params : {});
+    Vex.Merge(params, SuiAddStaffMenu.defaults);
+    super(params);
   }
   static get ctor() {
     return 'SuiAddStaffMenu';
@@ -829,63 +921,62 @@ class SuiAddStaffMenu extends suiMenuBase {
     return SuiAddStaffMenu._defaults;
   }
   static get instrumentMap() {
-  return {
-  'trebleInstrument': {
-  instrumentInfo: {
-  instrumentName: 'Treble Clef Staff',
-  keyOffset: 0,
-  clef: 'treble'
-  }
-  },
-  'bassInstrument': {
-  instrumentInfo: {
-  instrumentName: 'Bass Clef Staff',
-  keyOffset: 0,
-  clef: 'bass'
-  }
-  },
-  'altoInstrument': {
-  instrumentInfo: {
-  instrumentName: 'Alto Clef Staff',
-  keyOffset: 0,
-  clef: 'alto'
-  }
-  },
-  'tenorInstrument': {
-  instrumentInfo: {
-  instrumentName: 'Tenor Clef Staff',
-  keyOffset: 0,
-  clef: 'tenor'
-  }
-  },
-  'remove': {
-  instrumentInfo: {
-  instrumentName: 'Remove clef',
-  keyOffset: 0,
-  clef: 'tenor'
-  }
-  }
+    return {
+      'trebleInstrument': {
+        instrumentInfo: {
+        instrumentName: 'Treble Clef Staff',
+        keyOffset: 0,
+        clef: 'treble'
+      }
+      },
+      'bassInstrument': {
+        instrumentInfo: {
+        instrumentName: 'Bass Clef Staff',
+        keyOffset: 0,
+        clef: 'bass'
+      }
+      },
+      'altoInstrument': {
+        instrumentInfo: {
+        instrumentName: 'Alto Clef Staff',
+        keyOffset: 0,
+        clef: 'alto'
+      }
+      },
+      'tenorInstrument': {
+        instrumentInfo: {
+        instrumentName: 'Tenor Clef Staff',
+        keyOffset: 0,
+        clef: 'tenor'
+      }
+      },
+      'remove': {
+        instrumentInfo: {
+        instrumentName: 'Remove clef',
+        keyOffset: 0,
+        clef: 'tenor'
+      }
+    }
   }
 
   }
   selection(ev) {
-  var op = $(ev.currentTarget).attr('data-value');
-  if (op == 'remove') {
-  if (this.score.staves.length > 1 && this.tracker.selections.length > 0) {
-  this.tracker.layout.unrenderAll();
-  SmoUndoable.removeStaff(this.score, this.tracker.selections[0].selector.staff, this.editor.undoBuffer);
-  this.tracker.layout.setRefresh();
-  }
-
-  } else if (op === 'cancel') {
-  this.complete();
-  }else {
-  var instrument = SuiAddStaffMenu.instrumentMap[op];
-  SmoUndoable.addStaff(this.score, instrument, this.editor.undoBuffer);
-  this.tracker.layout.setRefresh();
-  }
+    var op = $(ev.currentTarget).attr('data-value');
+    if (op == 'remove') {
+      if (this.score.staves.length > 1 && this.tracker.selections.length > 0) {
+        this.tracker.layout.unrenderAll();
+        SmoUndoable.removeStaff(this.score, this.tracker.selections[0].selector.staff, this.editor.undoBuffer);
+        this.tracker.layout.setRefresh();
+      }
+    } else if (op === 'cancel') {
+      this.complete();
+    } else {
+      var instrument = SuiAddStaffMenu.instrumentMap[op];
+      SmoUndoable.addStaff(this.score, instrument, this.editor.undoBuffer);
+      this.tracker.layout.setRefresh();
+    }
     this.layout.setRefresh();
-  this.complete();
+    this.complete();
   }
   keydown(ev) {}
 

@@ -19,7 +19,7 @@ class SuiMeasureDialog extends SuiDialogBase {
       return SuiMeasureDialog._label;
     }
     static set label(value) {
-      SuiTimeSignatureDialog._label = value;
+      SuiMeasureDialog._label = value;
     }
     static get dialogElements() {
       SuiMeasureDialog._dialogElements = SuiMeasureDialog._dialogElements ? SuiMeasureDialog._dialogElements :
@@ -118,57 +118,56 @@ class SuiMeasureDialog extends SuiDialogBase {
       dg.display();
       return dg;
     }
-    changed() {
-        if (this.pickupMeasureCtrl.changeFlag || this.pickupMeasureCtrl.changeFlag) {
-            this.layout.unrenderColumn(this.measure);
-            SmoUndoable.scoreOp(this.layout.score,'convertToPickupMeasure',this.pickupMeasureCtrl.getValue(),this.undoBuffer,'Create pickup measure');
-            this.selection = SmoSelection.measureSelection(this.layout.score,this.selection.selector.staff,this.selection.selector.measure);
-            this.tracker.replaceSelectedMeasures();
-            this.measure = this.selection.measure;
-        }
-        if (this.customStretchCtrl.changeFlag) {
-            var delta = this.measure.customStretch;
-            this.measure.customStretch = this.customStretchCtrl.getValue();
-            this.measure.setWidth(this.measure.staffWidth - (delta - this.measure.customStretch));
-            this.tracker.replaceSelectedMeasures();
-        }
-        if (this.customProportionCtrl.changeFlag) {
-            this.measure.customProportion = this.customProportionCtrl.getValue();
-            this.tracker.replaceSelectedMeasures();
-        }
-        if (this.systemBreakCtrl.changeFlag) {
-            SmoUndoable.scoreSelectionOp(this.layout.score,
-                this.tracker.selections[0],'setForceSystemBreak',this.systemBreakCtrl.getValue(),
-                  this.undoBuffer,'change system break flag');
-            this.layout.setRefresh();
-        }
-        if (this.padLeftCtrl.changeFlag || this.padAllInSystemCtrl.changeFlag) {
-            this.layout.unrenderColumn(this.measure);
-            var selections = this.padAllInSystemCtrl.getValue() ?
-               SmoSelection.measuresInColumn(this.layout.score,this.selection.measure.measureNumber.measureIndex) :
-               SmoSelection.measureSelection(this.layout.score,this.selection.selector.staff,this.selection.selector.measure);
-            SmoUndoable.padMeasuresLeft(selections,this.padLeftCtrl.getValue(),this.undoBuffer);
-            this.tracker.replaceSelectedMeasures();
-        }
-        if (this.measureTextCtrl.changeFlag || this.measureTextPositionCtrl.changeFlag) {
-            var position = this.measureTextPositionCtrl.getValue();
-            var text = this.measureTextCtrl.getValue();
-            if (text.length == 0) {
-                var tms = this.selection.measure.getMeasureText();
-                tms.forEach((tm) => {
-                    SmoUndoable.measureSelectionOp(this.layout.score,
-                        this.selection,'removeMeasureText',tm,this.undoBuffer,'Remove measure text');
-                });
-
-            } else {
-                var mt = new SmoMeasureText({position:parseInt(position),text:this.measureTextCtrl.getValue()});
-                SmoUndoable.measureSelectionOp(this.layout.score,this.selection,'addMeasureText',mt,this.undoBuffer,'Add measure text');
-            }
-            this.tracker.replaceSelectedMeasures();
-        }
-        //
-        this._updateConditionals();
+  changed() {
+    if (this.pickupMeasureCtrl.changeFlag || this.pickupMeasureCtrl.changeFlag) {
+      this.layout.unrenderColumn(this.measure);
+      SmoUndoable.scoreOp(this.layout.score,'convertToPickupMeasure',this.pickupMeasureCtrl.getValue(),this.undoBuffer,'Create pickup measure');
+      this.selection = SmoSelection.measureSelection(this.layout.score,this.selection.selector.staff,this.selection.selector.measure);
+      this.tracker.replaceSelectedMeasures();
+      this.measure = this.selection.measure;
     }
+    if (this.customStretchCtrl.changeFlag) {
+      var delta = this.measure.customStretch;
+      this.measure.customStretch = this.customStretchCtrl.getValue();
+      this.measure.setWidth(this.measure.staffWidth - (delta - this.measure.customStretch));
+      this.tracker.replaceSelectedMeasures();
+    }
+    if (this.customProportionCtrl.changeFlag) {
+      this.measure.customProportion = this.customProportionCtrl.getValue();
+      this.tracker.replaceSelectedMeasures();
+    }
+    if (this.systemBreakCtrl.changeFlag) {
+      SmoUndoable.scoreSelectionOp(this.layout.score,
+          this.tracker.selections[0],'setForceSystemBreak',this.systemBreakCtrl.getValue(),
+            this.undoBuffer,'change system break flag');
+      this.layout.setRefresh();
+    }
+    if (this.padLeftCtrl.changeFlag || this.padAllInSystemCtrl.changeFlag) {
+      this.layout.unrenderColumn(this.measure);
+      var selections = this.padAllInSystemCtrl.getValue() ?
+         SmoSelection.measuresInColumn(this.layout.score,this.selection.measure.measureNumber.measureIndex) :
+         SmoSelection.measureSelection(this.layout.score,this.selection.selector.staff,this.selection.selector.measure);
+      SmoUndoable.padMeasuresLeft(selections,this.padLeftCtrl.getValue(),this.undoBuffer);
+      this.tracker.replaceSelectedMeasures();
+    }
+    if (this.measureTextCtrl.changeFlag || this.measureTextPositionCtrl.changeFlag) {
+      var position = this.measureTextPositionCtrl.getValue();
+      var text = this.measureTextCtrl.getValue();
+      if (text.length == 0) {
+        var tms = this.selection.measure.getMeasureText();
+        tms.forEach((tm) => {
+          SmoUndoable.measureSelectionOp(this.layout.score,
+            this.selection,'removeMeasureText',tm,this.undoBuffer,'Remove measure text');
+        });
+      } else {
+        var mt = new SmoMeasureText({position:parseInt(position),text:this.measureTextCtrl.getValue()});
+        SmoUndoable.measureSelectionOp(this.layout.score,this.selection,'addMeasureText',mt,this.undoBuffer,'Add measure text');
+      }
+      this.tracker.replaceSelectedMeasures();
+    }
+    //
+    this._updateConditionals();
+  }
   constructor(parameters) {
     if (!parameters.selection) {
         throw new Error('measure dialogmust have measure and selection');
@@ -185,6 +184,13 @@ class SuiMeasureDialog extends SuiDialogBase {
       completeNotifier : parameters.completeNotifier,
       layout: parameters.layout
     });
+    this.startPromise=parameters.closeMenuPromise;
+    if (!this.startPromise) {
+      this.startPromise = new Promise((resolve,reject) => {
+        resolve();
+      });
+    }
+
     this.refresh = false;
     Vex.Merge(this, parameters);
 
@@ -192,23 +198,31 @@ class SuiMeasureDialog extends SuiDialogBase {
     this.measure = this.selection.measure;
     this.modifier = this.measure;
   }
+  display() {
+    super.display();
+    var self=this;
+    function getKeys() {
+        self.completeNotifier.unbindKeyboardForModal(self);
+    }
+    this.startPromise.then(getKeys);
+  }
   _updateConditionals() {
     if (this.padLeftCtrl.getValue() != 0 || this.padLeftCtrl.changeFlag) {
-        $('.attributeDialog .attributeModal').addClass('pad-left-select');
+      $('.attributeDialog .attributeModal').addClass('pad-left-select');
     } else {
-        $('.attributeDialog .attributeModal').removeClass('pad-left-select');
+      $('.attributeDialog .attributeModal').removeClass('pad-left-select');
     }
 
     if (this.pickupMeasureCtrl.getValue()) {
-        $('.attributeDialog .attributeModal').addClass('pickup-select');
+      $('.attributeDialog .attributeModal').addClass('pickup-select');
     } else {
-        $('.attributeDialog .attributeModal').removeClass('pickup-select');
+      $('.attributeDialog .attributeModal').removeClass('pickup-select');
     }
     var str = this.measureTextCtrl.getValue();
     if (str && str.length) {
-        $('.attributeDialog .attributeModal').addClass('measure-text-set');
+      $('.attributeDialog .attributeModal').addClass('measure-text-set');
     } else {
-        $('.attributeDialog .attributeModal').removeClass('measure-text-set');
+      $('.attributeDialog .attributeModal').removeClass('measure-text-set');
     }
   }
   populateInitial() {
@@ -245,7 +259,6 @@ class SuiMeasureDialog extends SuiDialogBase {
 		var dgDom = this.dgDom;
     this.bindKeyboard();
     this._bindComponentNames();
-    this.completeNotifier.unbindKeyboardForModal(this);
     this.populateInitial();
 
   	$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {

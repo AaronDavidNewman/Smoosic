@@ -15,6 +15,10 @@ body.slash-menu .control-menu-message {
 	border-radius:3px;
 }
 
+body.slash-menu button.menu-select {
+  background: #33ee66;
+}
+
 .menuElement {
 	position:absolute;
 	list-style:none;

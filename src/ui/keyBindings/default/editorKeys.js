@@ -327,7 +327,21 @@ class defaultEditorKeys {
 				altKey: false,
 				shiftKey: true,
 				action: "addMeasure"
-			} , {
+			}, {
+				event: "keydown",
+				key: "i",
+				ctrlKey: true,
+				altKey: false,
+				shiftKey: false,
+				action: "addMeasure"
+			}, {
+				event: "keydown",
+				key: "I",
+				ctrlKey: true,
+				altKey: false,
+				shiftKey: true,
+				action: "addMeasure"
+			}, {
 				event: "keydown",
 				key: "B",
 				ctrlKey: false,
@@ -338,6 +352,13 @@ class defaultEditorKeys {
 				event: "keydown",
 				key: "Delete",
 				ctrlKey: false,
+				altKey: false,
+				shiftKey: false,
+				action: "deleteMeasure"
+			}, {
+				event: "keydown",
+				key: "d",
+				ctrlKey: true,
 				altKey: false,
 				shiftKey: false,
 				action: "deleteMeasure"
