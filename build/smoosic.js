@@ -18197,7 +18197,7 @@ class SuiLanguageMenu extends suiMenuBase {
         value: 'en'
         }, {
           icon: '',
-          text: 'Deutsche',
+          text: 'Deutsch',
           value: 'de'
         }, {
         icon: '',
