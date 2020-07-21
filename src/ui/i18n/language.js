@@ -176,4 +176,10 @@ class SmoLanguage {
      var rv = {dir:'rtl',strings:strings,helpHtml:{}};
      return rv;
    }
+
+   static get de() {
+     var strings = JSON.parse(smoLanguageStringDe);
+     var rv = {dir:'ltr',strings:strings,helpHtml:{}};
+     return rv;
+   }
 }

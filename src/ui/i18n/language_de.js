@@ -1,5 +1,5 @@
 
-var smoLanguageStringEn = `[
+var smoLanguageStringDe = `[
  {
   "ctor": "SuiLoadFileDialog",
   "label": "Datei laden",

@@ -779,11 +779,14 @@ class SuiLanguageMenu extends suiMenuBase {
         text: 'English',
         value: 'en'
         }, {
+          icon: '',
+          text: 'Deutsche',
+          value: 'de'
+        }, {
         icon: '',
         text: 'اَلْعَرَبِيَّةُ',
         value: 'ar'
-      },
-       {
+      }, {
         icon: '',
         text: 'Cancel',
         value: 'cancel'
