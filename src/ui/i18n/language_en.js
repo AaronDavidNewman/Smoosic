@@ -596,7 +596,7 @@ var smoLanguageStringEn = `[
  },
  {
   "ctor": "SuiTimeSignatureMenu",
-  "label": "Time Sig",
+  "label": "Time Signature",
   "menuItems": [
    {
     "value": "6/8",

@@ -33,14 +33,6 @@ body.refresh-1 #refresh  {
   background: #deeedd;
 }
 
-.controls-left div.ribbonButtonContainer {
-  width: 150px;
-}
-
-.controls-left button,.controls-top button {
-	background-color:#fff;
-}
-
 .ribbonButtonContainer[data-group="debug"] {
     display:none;
 }
@@ -49,6 +41,9 @@ body.refresh-1 #refresh  {
     font-size:1.6em;
     left:18%;
 }
+
+
+
 .ribbonButtonContainer.expanded-more button.expander span.left-text .text-span {
     display:none;
 }
@@ -80,7 +75,42 @@ div.ribbonButtonContainer.expanded {
   padding:10px;
 }
 
-.controls-left button,
+
+.controls-left .ribbonButtonContainer {
+  display:flex;
+}
+
+.controls-left div.ribbonButtonContainer button {
+  display:flex;
+  flex: 1 1 0;
+  max-width:200px;
+  height: 25px;
+	padding-left: 3px;
+	font-family:serif;
+	font-size:1em;
+  border-radius: 5px;
+  border:1px solid #33f;
+  padding-top:2px;
+}
+
+
+.controls-left button span.left-text {
+  flex:1 1 auto;
+}
+
+.controls-left button span.left-text span.text-span {
+  display:flex;
+}
+
+.controls-left .ribbonButtonContainer button span.ribbon-button-hotkey {
+  flex: 0 1 auto;
+  padding: 0 10px;
+}
+
+.controls-left button,.controls-top button {
+	background-color:#fff;
+}
+
 .controls-top button
  {
 	padding: 5px 0;
@@ -90,14 +120,6 @@ div.ribbonButtonContainer.expanded {
   border-radius:5px;
 }
 
-.controls-left button {
-	height: 25px;
-	width: 100px;
-	padding-left: 3px;
-	text-align:left;
-	font-family:serif;
-	font-size:1em;
-}
 
 .controls-top button {
 	width:30px;
@@ -116,11 +138,9 @@ div.ribbonButtonContainer.expanded {
 	opacity:0.7;
 }
 
-.controls-left button span.ribbon-button-text,
 .controls-top button span.ribbon-button-text {
 	position:absolute;
-	left:2px;
-	top:33%;
+  left:2px;
 }
 
 button#MicrotoneButtons  {
@@ -277,12 +297,10 @@ button#MicrotoneButtons  {
 }
 
 .controls-top button.textButton span.left-text {
-    left:18%;
-    top:12%;
-    position:absolute;
 }
 .controls-top button.duration.expanded.tuplet span.ribbon-button-hotkey  {
 	font-size:1em;
+  padding-left: 7px;
 }
 .controls-top button.duration.expanded span.ribbon-button-text.icon {
 	font-size:2.2em;
@@ -482,15 +500,6 @@ button.addChord .left-text .icon {
 .controls-left .articulations button span.ribbon-button-text {
 	font-size:2em;
 }
-.controls-left button span.ribbon-button-hotkey {
-	position:absolute;
-	right: 4px;
-	top: 20%;
-}
-.controls-left .collapseParent {
-	border-left:4px inset #44e;
-}
-
 .controls-top .collapseContainer .expandedChildren {
 	font-size: 1.2em;
 	height: 55px;

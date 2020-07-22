@@ -1505,7 +1505,7 @@ class defaultRibbonLayout {
 				group: 'scoreEdit',
 				id: 'tempoModal'
 			},{
-				leftText: 'Time Sig',
+				leftText: 'Time Signature',
 				rightText: '/m',
 				icon: '',
 				classes: 'staff-modify menu-select',
