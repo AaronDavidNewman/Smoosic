@@ -982,3 +982,25 @@ var enterPitchesHtmlen = `
 <p>Clicking on the piano gives the selected note the piano pitch.  The octave of the note is based on the clef, so for treble clef, the &#39;C&#39; is middle &#39;C&#39;.  You can change the octave of the note, and move the pitch up and down.  The top buttons affect the pitch, and the bottom buttons navigate or change the length of the note.  Clicking on the chord button acts like a &#39;sustain&#39; that puts additional notes in chords.</p>
 <p>Everything that can be done from the piano widget, and most things in Smoosic generally, can be done more efficiently with keyboard commands. Once you are comfortable with the computer keyboard, you can free up some screen real-estate by closing the piano widget (cross control in lower left).  You can bring it up again with the piano menu button on the left.</p>
 `;
+
+var workingWithTexten = `
+<h2 id="text-modes-in-smoosic">Text Modes in Smoosic</h2>
+<p>Working with text in Smoosic is slightly different experience than editing music notation.  While you are entering, moving. or resizing the text, normal navigation with the cursor keys and music entry is suspended, and only the text you are working with is fully visible.  There is a dialog box with a few limited options, such as exiting text-entry mode.  This is true of text block, lyrics, and chords.  Once you finish entering the text, you get a different dialog box similar to the one you can use to edit modifiers such as slurs, crescendos, etc.</p>
+<p><img src="https://imgur.com/EKDIUi5.png" alt=""></p>
+<h2 id="text-blocks">Text Blocks</h2>
+<p>Text blocks, also called &#39;Score text&#39; because it is not tied to a musical element, is free-form text that can be placed anywhere.  It can be used for titles, credits, etc.  It can also be set up for pagination using escape sequences. <strong>**</strong>  Unicode characters are also allowed.</p>
+<p>You create a text block by selecting the big &#39;T&#39; on the text ribbon, with the cursor symbol (diagram).  You enter the text as you like it (only a single line is supported right now, if you want multiple lines you have to stack them).  </p>
+<p><img src="https://imgur.com/kSMHoDl.png" alt=""></p>
+<h2 id="lyrics">Lyrics</h2>
+<p>Lyrics are entered by clicking on the lyrics button (do-re-mi).  Lyrics are entered per note.  When you hit space bar or - sign, the focus is advanced to the next note/lyric.  A &#39;-&#39; sign by itself in a lyric gives you a horizontal line.  When you want to leave lyric editing mode, just like other text entry modes, click on the &#39;Done editing&#39; button on the dialog. Note that the dialog can be moved around if it interferes with the music you are trying to edit.  (This is true of all dialog boxes in Smoosic.)  The final dialog box allows you to switch to a different verse.</p>
+<p><img src="https://imgur.com/FfKOUUQ.png" alt=""></p>
+<h2 id="chord-changes">Chord changes</h2>
+<p>Chord changes button is in the same ribbon group as lyrics, and the editing experience is pretty similar.  There are some magic key strokes:</p>
+<ul>
+<li>^ (shift-6) starts or ends superscript mode</li>
+<li>%  (shift-5) starts or ends subscript mode</li>
+<li>If you immediately follow subscript mode by superscript mode, the scripts are &#39;stacked&#39;.</li>
+<li>b, #, + , (, ) , &#39;/&#39; result in their respective symbols.</li>
+</ul>
+<p>Right now chord symbol entry is not too WYSIWYG - the actual chord rendering is done when the editing mode is done, which is a bit annoying.  I will be improving this as time goes on.</p>
+<p><img src="https://imgur.com/a2ldLDX" alt=""></p>`;

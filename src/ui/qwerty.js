@@ -12,6 +12,7 @@ class Qwerty {
     var arrows = [
       {icon: 'icon-arrow-left',text:'', shifted:'',classes:'helpKey',dataKey:'ArrowLeft'},
       {icon: 'icon-arrow-right',text:'', shifted:'',classes:'helpKey',dataKey:'ArrowRight'},
+      {icon:'',text:'Space',classes:'wideKey',shifted:'',dataKey:'Space'},
       {icon: 'icon-arrow-up',text:'', shifted:'',classes:'helpKey',dataKey:'ArrowUp'},
       {icon: 'icon-arrow-down' ,text:'', shifted:'',classes:'helpKey',dataKey:'ArrowDown'},
       {icon: '' ,text:'Ins', shifted:'',classes:'helpKey',dataKey:'Insert'},
@@ -97,6 +98,9 @@ class Qwerty {
       && evdata.key.charCodeAt(0) > 32
       && evdata.key.charCodeAt(0) < 127) {
       Qwerty._flashButton(evdata.key.toUpperCase());
+    }
+    if (evdata.code === 'Space') {
+      Qwerty._flashButton('Space');
     }
     if (evdata.ctrlKey) {
       Qwerty._flashButton('ctrl');

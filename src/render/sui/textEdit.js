@@ -332,6 +332,10 @@ class editLyricSession {
 			event.code + "'"
 			 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
 
+    if (suiController.keyboardWidget) {
+     Qwerty.handleKeyEvent(event);
+    }
+
     var isSkip = this.parser === SmoLyric.parsers.lyric ?
         ['Space', 'Minus'].indexOf(event.code) >= 0 : ['Space'].indexOf(event.code) >= 0;
 
@@ -419,7 +423,7 @@ class noteTextEditSession {
     if (this.editor && this.editor.lyric) {
       return this.editor.lyric.translateY;
     }
-    return 0;   
+    return 0;
   }
 
   toggleSessionStateEvent() {

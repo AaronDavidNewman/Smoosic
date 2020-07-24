@@ -193,10 +193,6 @@ button#MicrotoneButtons  {
     width:65px;
 }
 
-#lyrics .ribbon-button-text {
-	left:-5px;
-}
-
 #fermataButton .icon {
     left:20%;
     font-size:1.4em;

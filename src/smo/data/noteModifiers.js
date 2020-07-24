@@ -377,6 +377,18 @@ class SmoLyric extends SmoNoteModifierBase {
           this.symbolBlocks.push(block);
           block = {text:'',position:SmoLyric.symbolPosition.NORMAL};
         }
+      }else if (c === '%') {
+        if (i < this._text.length - 1 && this._text[i + 1] === '%') {
+          block.text = block.text + '%';
+          i += 1;
+        } else if (block.position === SmoLyric.symbolPosition.NORMAL) {
+          this.symbolBlocks.push(block);
+          block = {text:'',position:SmoLyric.symbolPosition.SUBSCRIPT};
+        } else if (block.position === SmoLyric.symbolPosition.SUBSCRIPT) {
+          this.symbolBlocks.push(block);
+          block = {text:'',position:SmoLyric.symbolPosition.NORMAL};
+        }
+
       } else {
         block.text = block.text + c;
       }

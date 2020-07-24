@@ -48,7 +48,8 @@ class SmoHelp {
       {title:'Quick Start',html:SmoLanguage.getHelpFile('quickStartHtml')},
       {title:'Selections and Selecting Things',html:SmoLanguage.getHelpFile('selectionHtml')},
       {title:'Entering Music (Pitches)',html:SmoLanguage.getHelpFile('enterPitchesHtml')},
-      {title:'Entering Music (Durations)',html:SmoLanguage.getHelpFile('enterDurationsHtml')}
+      {title:'Entering Music (Durations)',html:SmoLanguage.getHelpFile('enterDurationsHtml')},
+      {title:'Working with Text, Lyrics, Chords',html:SmoLanguage.getHelpFile('workingWithText')}
     ];
   }
 }

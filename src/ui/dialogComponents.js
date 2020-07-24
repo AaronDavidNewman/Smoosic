@@ -516,7 +516,7 @@ class SuiLyricEditComponent extends SuiComponentBase {
   // If the user pressed esc., force the end of the session
   endSessionDom() {
     var elementDom = $('#'+this.parameterId);
-    $(elementDom).find('label').text('Edit Lyrics');
+    $(elementDom).find('label').text('Edit'); // TODO: i18n this and also specific text
     $(this.editorButton).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
     $('body').removeClass('text-edit');
     $('div.textEdit').addClass('hide');

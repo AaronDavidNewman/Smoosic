@@ -165,6 +165,12 @@ class SuiChordChangeDialog extends SuiLyricDialog {
   get ctor() {
     return SuiChordChangeDialog.ctor;
   }
+  static get staticText() {
+    return {
+      label:'Done Editing Chord'
+    }
+  }
+
   static get label() {
     SuiChordChangeDialog._label = SuiChordChangeDialog._label ? SuiChordChangeDialog._label :
        'Done Editing Chord';
