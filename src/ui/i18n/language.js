@@ -43,13 +43,19 @@ class SmoTranslator {
       return;
     }
     _dialogClass['label'] = dialogStrings.label;
+    var staticText = dialogStrings.dialogElements.find((ds) => ds.staticText);
     _dialogClass['dialogElements'].forEach((component) => {
       var componentStrings = dialogStrings.dialogElements.find((ds) => {
         return ds.id === component.smoName;
       });
-      if (!componentStrings) {
-        console.log('no strings for component '+component.smoName+' in dialog '+dialogClass);
-      } else {
+      if (component.staticText && staticText) {
+        component.staticText.forEach((st) => {
+          const trans = staticText.find((dst) => dst.key = st.key);
+          if (trans) {
+            st.value = trans.value;
+          }
+        });
+      }  else if (componentStrings) {
         component.label = componentStrings.label;
         if (component['options']) {
           component['options'].forEach((option) => {
@@ -61,6 +67,8 @@ class SmoTranslator {
             }
           });
         }
+      } else {
+        console.log('Untranslated component in  ' + dialogClass);
       }
     });
   }
@@ -143,6 +151,7 @@ class SmoTranslator {
       'SuiPrintFileDialog',
       'SuiMeasureDialog',
       'SuiTempoDialog',
+      'SuiInstrumentDialog',
       'SuiTimeSignatureDialog',
       'SuiLayoutDialog',
       'SuiDynamicModifierDialog',

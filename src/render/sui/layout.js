@@ -370,8 +370,8 @@ class suiLayoutBase {
 		var system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex,this.score);
 		while (startSelection && startSelection.selector.measure <= modifier.endSelector.measure) {
 			smoBeamerFactory.applyBeams(startSelection.measure);
-            system.renderMeasure(startSelection.measure);
-            this._renderModifiers(startSelection.staff, system);
+      system.renderMeasure(startSelection.measure,null,true);
+      this._renderModifiers(startSelection.staff, system);
 
 			var nextSelection = SmoSelection.measureSelection(this._score, startSelection.selector.staff, startSelection.selector.measure + 1);
 

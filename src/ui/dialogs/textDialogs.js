@@ -5,14 +5,6 @@ class SuiLyricDialog extends SuiDialogBase {
   get ctor() {
     return SuiLyricDialog.ctor;
   }
-  static get label() {
-    SuiLyricDialog._label = SuiLyricDialog._label ? SuiLyricDialog._label :
-       'Done Editing Lyrics';
-    return SuiLyricDialog._label;
-  }
-  static set label(value) {
-    SuiLyricDialog._label = value;
-  }
   static createAndDisplay(parameters) {
 		var dg = new SuiLyricDialog(parameters);
 		dg.display();
@@ -52,24 +44,28 @@ class SuiLyricDialog extends SuiDialogBase {
       control: 'SuiLyricEditComponent',
       label:'Edit Text',
       options: []
-	  }];
+	  }, {
+    staticText: [
+      {doneEditing: 'Done Editing Lyrics'},
+      {undo: 'Undo Lyrics'},
+      {label: 'Lyric Editor'}
+    ]}
+  ];
 
     return SuiLyricDialog._dialogElements;
   }
-  static get staticText() {
-    return {
-      label:'Done Editing Lyrics'
-    }
-  }
-  constructor(parameters) {
-    parameters.ctor='SuiLyricDialog';
-    var p = parameters;
 
-  	super(SuiLyricDialog.dialogElements, {
+  constructor(parameters) {
+    parameters.ctor= parameters.ctor ? parameters.ctor : 'SuiLyricDialog';
+    var p = parameters;
+    const _class = eval(p.ctor);
+    const dialogElements = _class['dialogElements'];
+
+  	super(dialogElements, {
   		id: 'dialog-lyrics',
   		top: (p.layout.score.layout.pageWidth / 2) - 200,
   		left: (p.layout.score.layout.pageHeight / 2) - 200,
-  		...parameters
+  		...p
   	});
 
     // If we are editing existing lyrics, make sure it is the same type of session.
@@ -165,26 +161,14 @@ class SuiChordChangeDialog extends SuiLyricDialog {
   get ctor() {
     return SuiChordChangeDialog.ctor;
   }
-  static get staticText() {
-    return {
-      label:'Done Editing Chord'
-    }
-  }
 
-  static get label() {
-    SuiChordChangeDialog._label = SuiChordChangeDialog._label ? SuiChordChangeDialog._label :
-       'Done Editing Chord';
-    return SuiChordChangeDialog._label;
-  }
-  static set label(value) {
-    SuiChordChangeDialog._label = value;
-  }
   static createAndDisplay(parameters) {
     var dg = new SuiChordChangeDialog(parameters);
     dg.display();
       return dg;
   }
   constructor(parameters) {
+    parameters.ctor = 'SuiChordChangeDialog';
     super(parameters);
   }
   static get dialogElements() {
@@ -221,7 +205,14 @@ class SuiChordChangeDialog extends SuiLyricDialog {
       control: 'SuiLyricEditComponent',
       label:'Edit Text',
       options: []
-    }];
+    }, {
+      staticText: [
+        {label : 'Edit Chord Symbol'},
+        {undo: 'Undo Chord Symbols'},
+        {doneEditing : 'Done Editing Chord Symbols' }
+      ]
+    }
+  ];
 
     return SuiChordChangeDialog._dialogElements;
   }
@@ -257,15 +248,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   get ctor() {
     return SuiTextTransformDialog.ctor;
   }
-  static get label() {
-    SuiTextTransformDialog._label = SuiTextTransformDialog._label ? SuiTextTransformDialog._label :
-       'Text Box Properties';
-     return SuiTextTransformDialog._label;
-  }
-  static set label(value) {
-    SuiTextTransformDialog._label = value;
-  }
-
   static get dialogElements() {
     SuiTextTransformDialog._dialogElements = SuiTextTransformDialog._dialogElements ? SuiTextTransformDialog._dialogElements :
       [
@@ -395,7 +377,11 @@ class SuiTextTransformDialog  extends SuiDialogBase {
           {label:'Odd',value:'odd'},
           {label:'Subsequent',value:'subsequent'}
         ]
-  		}
+  		}, {
+        staticText: [
+          {label : 'Text Properties' }
+        ]
+      }
     ];
 
     return SuiTextTransformDialog._dialogElements;
@@ -692,7 +678,10 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
 				],
 				control: 'SuiDropdownComponent',
 				label: 'Text'
-			}
+			},
+      {staticText: [
+        {label: 'Dynamics Properties'}
+      ]}
 		];
     return SuiDynamicModifierDialog._dialogElements;
 	}

@@ -27,7 +27,7 @@ module.exports = function (grunt) {
 					'src/ui/editor.js', 'src/ui/menus.js', 'src/ui/utController.js',
 					'src/ui/exceptions.js',
 					'src/ui/keyBindings/default/editorKeys.js','src/ui/keyBindings/default/trackerKeys.js',
-					'src/ui/dialog.js',
+					'src/ui/dialog.js','src/ui/dialogs/scoreDialogs.js',
                     'src/ui/dialogs/fileDialogs.js','src/ui/dialogs/textDialogs.js','src/ui/dialogs/measureDialogs.js',
                     'src/ui/dialogComponents.js',
 					'src/ui/ribbonLayout/default/defaultRibbon.js',

@@ -31,18 +31,15 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
   static get ctor() {
     return 'SuiSlurAttributesDialog';
   }
-  static get label() {
-    SuiSlurAttributesDialog._label = SuiSlurAttributesDialog._label ? SuiSlurAttributesDialog._label
-      : 'Slur Properties';
-    return SuiSlurAttributesDialog._label;
-  }
-  static set label(value) {
-    SuiSlurAttributesDialog._label = value;
-  }
 
   static get dialogElements() {
     SuiSlurAttributesDialog._dialogElements = SuiSlurAttributesDialog._dialogElements ? SuiSlurAttributesDialog._dialogElements :
-    [{
+    [
+      {
+        staticText: [
+          { label: 'Slur Properties' }
+        ]
+      }, {
         parameterName: 'spacing',
         smoName: 'spacing',
         defaultValue: 2,
@@ -180,7 +177,13 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
 
  static get dialogElements() {
     SuiVoltaAttributeDialog._dialogElements = SuiVoltaAttributeDialog._dialogElements ? SuiVoltaAttributeDialog._dialogElements :
-      [{
+      [
+        {
+          staticText: [
+            {label: 'Volta Properties'}
+          ]
+        },
+        {
         parameterName: 'number',
         smoName: 'number',
         defaultValue: 1,
@@ -290,7 +293,13 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
   }
   static get dialogElements() {
     SuiHairpinAttributesDialog._dialogElements = SuiHairpinAttributesDialog._dialogElements ? SuiHairpinAttributesDialog._dialogElements :
-    [{
+    [
+      {
+        staticText: [
+          { label: 'Hairpin Properties' }
+        ]
+      },
+      {
         parameterName: 'height',
         smoName: 'height',
         defaultValue: 10,

@@ -63,14 +63,6 @@ class SuiLoadFileDialog extends SuiFileDialog {
   get ctor() {
     return SuiLoadFileDialog.ctor;
   }
-  static get label() {
-    SuiLoadFileDialog._label = SuiLoadFileDialog._label ? SuiLoadFileDialog._label :
-       'Load File';
-    return SuiLoadFileDialog._label;
-  }
-  static set label(value) {
-    SuiLoadFileDialog._label = value;
-  }
 
     static get dialogElements() {
       SuiLoadFileDialog._dialogElements = SuiLoadFileDialog._dialogElements ? SuiLoadFileDialog._dialogElements :
@@ -80,7 +72,10 @@ class SuiLoadFileDialog extends SuiFileDialog {
   				defaultValue: '',
   				control: 'SuiFileDownloadComponent',
   				label:''
-			  }];
+			  },{staticText: [
+          {label: 'Load File'}
+        ]}
+      ];
       return SuiLoadFileDialog._dialogElements;
     }
 
@@ -109,7 +104,6 @@ class SuiLoadFileDialog extends SuiFileDialog {
         }
     }
     static createAndDisplay(params) {
-    params.label="Open File";
 		var dg = new SuiLoadFileDialog(params);
 		dg.display();
      // disable until file is selected
@@ -139,7 +133,10 @@ class SuiPrintFileDialog extends SuiFileDialog {
   }
 
   static get dialogElements() {
-	  return [];
+	  return [
+      {staticText: [
+      {label: 'Print Complete'}
+    ]}];
   }
   static createAndDisplay(params) {
 		var dg = new SuiPrintFileDialog(params);
@@ -147,7 +144,6 @@ class SuiPrintFileDialog extends SuiFileDialog {
 	}
   constructor(parameters) {
     parameters.ctor='SuiPrintFileDialog';
-    parameters.label = 'Print Complete';
     super(parameters);
 	}
   changed() {}
@@ -172,15 +168,6 @@ class SuiSaveFileDialog extends SuiFileDialog {
   get ctor() {
     return SuiSaveFileDialog.ctor;
   }
-  static get label() {
-    SuiSaveFileDialog._label = SuiSaveFileDialog._label ? SuiSaveFileDialog._label :
-       'Save Score';
-    return SuiSaveFileDialog._label;
-  }
-  static set label(value) {
-    SuiSaveFileDialog._label = value;
-  }
-
 
   static get dialogElements() {
     SuiSaveFileDialog._dialogElements = SuiSaveFileDialog._dialogElements ? SuiSaveFileDialog._dialogElements :
@@ -190,7 +177,12 @@ class SuiSaveFileDialog extends SuiFileDialog {
         defaultValue: '',
         control: 'SuiTextInputComponent',
         label:'File Name'
-		}];
+		},
+    {
+      staticText: [
+        {label : 'Save Score'}
+      ]
+    }];
 
     return SuiSaveFileDialog._dialogElements;
   }
@@ -213,7 +205,6 @@ class SuiSaveFileDialog extends SuiFileDialog {
     this.complete();
   }
   static createAndDisplay(params) {
-    params.label="Save File";
 		var dg = new SuiSaveFileDialog(params);
 		dg.display();
 	}

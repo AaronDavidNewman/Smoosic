@@ -2900,13 +2900,19 @@ class SmoTranslator {
       return;
     }
     _dialogClass['label'] = dialogStrings.label;
+    var staticText = dialogStrings.dialogElements.find((ds) => ds.staticText);
     _dialogClass['dialogElements'].forEach((component) => {
       var componentStrings = dialogStrings.dialogElements.find((ds) => {
         return ds.id === component.smoName;
       });
-      if (!componentStrings) {
-        console.log('no strings for component '+component.smoName+' in dialog '+dialogClass);
-      } else {
+      if (component.staticText && staticText) {
+        component.staticText.forEach((st) => {
+          const trans = staticText.find((dst) => dst.key = st.key);
+          if (trans) {
+            st.value = trans.value;
+          }
+        });
+      }  else if (componentStrings) {
         component.label = componentStrings.label;
         if (component['options']) {
           component['options'].forEach((option) => {
@@ -2918,6 +2924,8 @@ class SmoTranslator {
             }
           });
         }
+      } else {
+        console.log('Untranslated component in  ' + dialogClass);
       }
     });
   }
@@ -3000,6 +3008,7 @@ class SmoTranslator {
       'SuiPrintFileDialog',
       'SuiMeasureDialog',
       'SuiTempoDialog',
+      'SuiInstrumentDialog',
       'SuiTimeSignatureDialog',
       'SuiLayoutDialog',
       'SuiDynamicModifierDialog',
@@ -12636,111 +12645,106 @@ curve.setContext(this.context).draw();
 	// ## Description:
 	// Create the graphical (VX) notes and render them on svg.  Also render the tuplets and beam
 	// groups
-	renderMeasure(smoMeasure,measureMapper) {
-        var staff = this.score.staves[smoMeasure.measureNumber.staffId];
-        var staffId = staff.staffId;
+	renderMeasure(smoMeasure,measureMapper,noJustify) {
+    var staff = this.score.staves[smoMeasure.measureNumber.staffId];
+    var staffId = staff.staffId;
 		var systemIndex = smoMeasure.measureNumber.systemIndex;
-        var selection = SmoSelection.measureSelection(this.score,staff.staffId,smoMeasure.measureNumber.measureIndex);
+    var selection = SmoSelection.measureSelection(this.score,staff.staffId,smoMeasure.measureNumber.measureIndex);
 		this.smoMeasures.push(smoMeasure);
-        if (this.staves.length <= staffId) {
-            this.staves.push(staff);
-        }
+    if (this.staves.length <= staffId) {
+      this.staves.push(staff);
+    }
 
 		var vxMeasure = new VxMeasure(this.context, {
 				selection: selection
 			});
 
-        // create the vex notes, beam groups etc. for the measure
+    // create the vex notes, beam groups etc. for the measure
 		vxMeasure.preFormat();
-        this.vxMeasures.push(vxMeasure);
+    this.vxMeasures.push(vxMeasure);
 
-        var lastStaff = (staffId == this.score.staves.length-1);
-        var smoGroupMap = {};
+    var lastStaff = (staffId == this.score.staves.length-1) || noJustify;
+    var smoGroupMap = {};
 
-        // If this is the last staff in the column, render the column with justification
-        if (lastStaff) {
-            var ar = vxMeasure.voiceAr;
-            this.vxMeasures.forEach((vv) => {
-                if (!vv.rendered) {
-                    var systemGroup = this.score.getSystemGroupForStaff(vv.selection);
-                    var justifyGroup = systemGroup ? systemGroup.attrs.id : vv.selection.staff.attrs.id;
-                    if (!smoGroupMap[justifyGroup]) {
-                        smoGroupMap[justifyGroup] = {firstMeasure:vv,voices:[]};
-                    }
-                    smoGroupMap[justifyGroup].voices =
-                        smoGroupMap[justifyGroup].voices.concat(vv.voiceAr);
-                }
-            });
+    // If this is the last staff in the column, render the column with justification
+    if (lastStaff) {
+    var ar = vxMeasure.voiceAr;
+    this.vxMeasures.forEach((vv) => {
+      if (!vv.rendered) {
+        var systemGroup = this.score.getSystemGroupForStaff(vv.selection);
+        var justifyGroup = systemGroup ? systemGroup.attrs.id : vv.selection.staff.attrs.id;
+        if (!smoGroupMap[justifyGroup]) {
+          smoGroupMap[justifyGroup] = {firstMeasure:vv,voices:[]};
         }
-        var keys = Object.keys(smoGroupMap);
-        keys.forEach((key) => {
-            smoGroupMap[key].firstMeasure.format(smoGroupMap[key].voices);
-        });
-        if (lastStaff) {
-            this.vxMeasures.forEach((vv) => {
-                if (!vv.rendered) {
-                  vv.render();
-                  // unit test codes don't have tracker.
-                  if (measureMapper) {
-                      var tmpStaff = this.staves.find((ss) => ss.staffId == vv.smoMeasure.measureNumber.staffId);
-                      measureMapper.mapMeasure(tmpStaff,vv.smoMeasure);
-                  }
-                }
-            });
+        smoGroupMap[justifyGroup].voices =
+          smoGroupMap[justifyGroup].voices.concat(vv.voiceAr);
         }
+      });
+    }
+    var keys = Object.keys(smoGroupMap);
+    keys.forEach((key) => {
+        smoGroupMap[key].firstMeasure.format(smoGroupMap[key].voices);
+    });
+    if (lastStaff) {
+      this.vxMeasures.forEach((vv) => {
+        if (!vv.rendered) {
+          vv.render();
+          // unit test codes don't have tracker.
+          if (measureMapper) {
+              var tmpStaff = this.staves.find((ss) => ss.staffId == vv.smoMeasure.measureNumber.staffId);
+              measureMapper.mapMeasure(tmpStaff,vv.smoMeasure);
+          }
+        }
+      });
+    }
 
 		// Keep track of the y coordinate for the nth staff
-        var renderedConnection = {};
-        var brackets = false;
+    var renderedConnection = {};
+    var brackets = false;
 
-        if (systemIndex == 0 && lastStaff) {
-            $(this.context.svg).find('g.lineBracket-' + this.lineIndex).remove();
+    if (systemIndex == 0 && lastStaff) {
+      $(this.context.svg).find('g.lineBracket-' + this.lineIndex).remove();
+      var group = this.context.openGroup();
+      group.classList.add('lineBracket-' + this.lineIndex);
+      group.classList.add('lineBracket');
+      this.vxMeasures.forEach((vv) => {
+        var systemGroup = this.score.getSystemGroupForStaff(vv.selection);
+        if (systemGroup && !renderedConnection[systemGroup.attrs.id]) {
+          renderedConnection[systemGroup.attrs.id] = 1;
+          var startSel = this.vxMeasures[systemGroup.startSelector.staff];
+          var endSel = this.vxMeasures[systemGroup.endSelector.staff];
+          if (startSel && endSel) {
+            var c1 = new VF.StaveConnector(startSel.stave, endSel.stave)
+  				    .setType(systemGroup.leftConnectorVx());
+              c1.setContext(this.context).draw();
+              brackets = true;
+          }
+        }
+      });
+
+      if (!brackets && this.vxMeasures.length > 1)  {
+        var c2 = new VF.StaveConnector(this.vxMeasures[0].stave,this.vxMeasures[this.vxMeasures.length - 1].stave,
+          VF.StaveConnector.type.SINGLE_LEFT);
+        c2.setContext(this.context).draw();
+      }
+      this.context.closeGroup();
+      } else if (lastStaff && smoMeasure.measureNumber.measureIndex + 1 < staff.measures.length) {
+        if (staff.measures[smoMeasure.measureNumber.measureIndex + 1].measureNumber.systemIndex == 0) {
+          var endMeasure = vxMeasure;
+          var startMeasure = this.vxMeasures.find((vv) => vv.selection.selector.staff == 0 &&
+            vv.selection.selector.measure == vxMeasure.selection.selector.measure);
+          if (endMeasure && startMeasure) {
+            $(this.context.svg).find('g.endBracket-' + this.lineIndex).remove();
             var group = this.context.openGroup();
-            group.classList.add('lineBracket-' + this.lineIndex);
-            group.classList.add('lineBracket');
-            this.vxMeasures.forEach((vv) => {
-                var systemGroup = this.score.getSystemGroupForStaff(vv.selection);
-                if (systemGroup && !renderedConnection[systemGroup.attrs.id]) {
-                    renderedConnection[systemGroup.attrs.id] = 1;
-                    var startSel = this.vxMeasures[systemGroup.startSelector.staff];
-                    var endSel = this.vxMeasures[systemGroup.endSelector.staff];
-                    if (startSel && endSel) {
-                        var c1 = new VF.StaveConnector(startSel.stave, endSel.stave)
-            				.setType(systemGroup.leftConnectorVx());
-                        c1.setContext(this.context).draw();
-                        brackets = true;
-
-                    }
-                }
-            });
-
-            if (!brackets && this.vxMeasures.length > 1)  {
-               var c2 = new VF.StaveConnector(this.vxMeasures[0].stave,this.vxMeasures[this.vxMeasures.length - 1].stave,
-                  VF.StaveConnector.type.SINGLE_LEFT);
-                  c2.setContext(this.context).draw();
-           }
-           this.context.closeGroup();
-       }  else if (lastStaff && smoMeasure.measureNumber.measureIndex + 1 < staff.measures.length) {
-           if (staff.measures[smoMeasure.measureNumber.measureIndex + 1].measureNumber.systemIndex == 0) {
-               var endMeasure = vxMeasure;
-               var startMeasure = this.vxMeasures.find((vv) => vv.selection.selector.staff == 0 &&
-                   vv.selection.selector.measure == vxMeasure.selection.selector.measure);
-              if (endMeasure && startMeasure) {
-                  $(this.context.svg).find('g.endBracket-' + this.lineIndex).remove();
-                  var group = this.context.openGroup();
-                  group.classList.add('endBracket-' + this.lineIndex);
-                  group.classList.add('endBracket');
-               var c2 = new VF.StaveConnector(startMeasure.stave,endMeasure.stave)
-                  .setType(VF.StaveConnector.type.SINGLE_RIGHT);
-                  c2.setContext(this.context).draw();
-                  this.context.closeGroup();
-              }
-           }
-
+            group.classList.add('endBracket-' + this.lineIndex);
+            group.classList.add('endBracket');
+            var c2 = new VF.StaveConnector(startMeasure.stave,endMeasure.stave)
+               .setType(VF.StaveConnector.type.SINGLE_RIGHT);
+            c2.setContext(this.context).draw();
+            this.context.closeGroup();
+          }
        }
-
-
-
+     }
 
 		// keep track of left-hand side for system connectors
 		if (systemIndex === 0) {
@@ -15131,8 +15135,8 @@ class suiLayoutBase {
 		var system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex,this.score);
 		while (startSelection && startSelection.selector.measure <= modifier.endSelector.measure) {
 			smoBeamerFactory.applyBeams(startSelection.measure);
-            system.renderMeasure(startSelection.measure);
-            this._renderModifiers(startSelection.staff, system);
+      system.renderMeasure(startSelection.measure,null,true);
+      this._renderModifiers(startSelection.staff, system);
 
 			var nextSelection = SmoSelection.measureSelection(this._score, startSelection.selector.staff, startSelection.selector.measure + 1);
 
@@ -19195,10 +19199,16 @@ class SuiDialogBase {
       });
     });
 
-    this.label = eval(this.ctor)['label'];
-    if (!this.label) {
-      throw('dialog ' + this.ctor+ ' needs a label');
+    const staticText = dialogElements.find((xx) => xx.staticText);
+    if (!staticText) {
+      throw('dialog ' + this.ctor+ ' needs a static text section');
     }
+    this.staticText = {};
+    staticText.staticText.forEach((st) => {
+      const key = Object.keys(st)[0];
+      this.staticText[key] = st[key];
+
+    });
 
     this.initialLeft = parameters.left
     this.initialTop = parameters.top;
@@ -19214,6 +19224,7 @@ class SuiDialogBase {
     this.completeNotifier = parameters.completeNotifier;
     this.undoBuffer = parameters.undoBuffer;
     this.editor = parameters.editor;
+    this.label = this.staticText.label;
 
     var top = parameters.top - this.tracker.scroller.netScroll.y;
     var left = parameters.left - this.tracker.scroller.netScroll.x;
@@ -19246,9 +19257,15 @@ class SuiDialogBase {
           });
         }
       }
+      if (element.staticText) {
+        component.staticText = {};
+        Object.keys(element.staticText).forEach((st) => {
+          component.staticText[st] = element.staticText[st];
+        });
+      }
       output.push(component);
     });
-    return {ctor:xx['ctor'],label:xx['label'],dialogElements:output};
+    return {ctor:xx['ctor'],dialogElements:output};
   }
 
   get closeModalPromise() {
@@ -19290,37 +19307,37 @@ class SuiDialogBase {
   }
     // ### build the html for the dialog, based on the instance-specific components.
   _constructDialog(dialogElements, parameters) {
-  var id = parameters.id;
-  var b = htmlHelpers.buildDom;
-  var r = b('div').classes('attributeModal').attr('id','attr-modal-'+id)
+    var id = parameters.id;
+    var b = htmlHelpers.buildDom;
+    var r = b('div').classes('attributeModal').attr('id','attr-modal-'+id)
       .css('top', parameters.top + 'px').css('left', parameters.left + 'px')
-  .append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move jsDbMove')))
-  .append(b('h2').text(parameters.label));
+    .append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move jsDbMove')))
+    .append(b('h2').classes('dialog-label').text(this.staticText.label));
 
     var ctrl = b('div').classes('smoControlContainer');
-  dialogElements.forEach((de) => {
-  var ctor = eval(de.control);
-  var control = new ctor(this, de);
-  this.components.push(control);
-  ctrl.append(control.html);
-  });
+    dialogElements.filter((de) => de.control).forEach((de) => {
+      var ctor = eval(de.control);
+      var control = new ctor(this, de);
+      this.components.push(control);
+      ctrl.append(control.html);
+    });
     r.append(ctrl);
-  r.append(
-  b('div').classes('buttonContainer').append(
-  b('button').classes('ok-button button-left').text('OK')).append(
-  b('button').classes('cancel-button button-center').text('Cancel')).append(
-  b('button').classes('remove-button button-right').text('Remove').append(
-  b('span').classes('icon icon-cancel-circle'))));
-  $('.attributeDialog').html('');
+    r.append(
+    b('div').classes('buttonContainer').append(
+    b('button').classes('ok-button button-left').text('OK')).append(
+    b('button').classes('cancel-button button-center').text('Cancel')).append(
+    b('button').classes('remove-button button-right').text('Remove').append(
+    b('span').classes('icon icon-cancel-circle'))));
+    $('.attributeDialog').html('');
 
-  $('.attributeDialog').append(r.dom());
+    $('.attributeDialog').append(r.dom());
 
-  var trapper = htmlHelpers.inputTrapper('.attributeDialog');
-  $('.attributeDialog').find('.cancel-button').focus();
-  return {
-  element: $('.attributeDialog'),
-  trapper: trapper
-  };
+    var trapper = htmlHelpers.inputTrapper('.attributeDialog');
+    $('.attributeDialog').find('.cancel-button').focus();
+    return {
+      element: $('.attributeDialog'),
+      trapper: trapper
+    };
   }
 
   // ### _commit
@@ -19419,8 +19436,7 @@ class SuiDialogBase {
   });
   }
 }
-
-
+;
 // ## SuiLayoutDialog
 // The layout dialog has page layout and zoom logic.  It is not based on a selection but score-wide
 class SuiLayoutDialog extends SuiDialogBase {
@@ -19430,14 +19446,6 @@ class SuiLayoutDialog extends SuiDialogBase {
   }
   get ctor() {
     return SuiLayoutDialog.ctor;
-  }
-  static get label() {
-    SuiLayoutDialog._label = SuiLayoutDialog._label ? SuiLayoutDialog._label :
-       'Score Layout';
-    return SuiLayoutDialog._label;
-  }
-  static set label(value) {
-    SuiLayoutDialog._label = value;
   }
 
    // ### dialogElements
@@ -19552,7 +19560,10 @@ class SuiLayoutDialog extends SuiDialogBase {
           control: 'SuiRockerComponent',
           label: '% Note size',
           type: 'percent'
-        }
+        },
+        {staticText:[
+          {label : 'Score Layout'}
+        ]}
       ];
 
     return SuiLayoutDialog._dialogElements;
@@ -19560,16 +19571,16 @@ class SuiLayoutDialog extends SuiDialogBase {
     // ### backupOriginal
     // backup the original layout parameters for trial period
   backupOriginal() {
-  this.backup = JSON.parse(JSON.stringify(this.modifier));;
+    this.backup = JSON.parse(JSON.stringify(this.modifier));
   }
   display() {
-  $('body').addClass('showAttributeDialog');
-  this.components.forEach((component) => {
-  component.bind();
+    $('body').addClass('showAttributeDialog');
+    this.components.forEach((component) => {
+    component.bind();
   });
   this.components.forEach((component) => {
-  var val = this.modifier[component.parameterName];
-  component.setValue(val);
+    var val = this.modifier[component.parameterName];
+    component.setValue(val);
   });
   this._setPageSizeDefault();
   this._bindElements();
@@ -19677,7 +19688,6 @@ class SuiLayoutDialog extends SuiDialogBase {
   id: 'dialog-layout',
   top: (p.layout.score.layout.pageWidth / 2) - 200,
   left: (p.layout.score.layout.pageHeight / 2) - 200,
-  label: 'Score Layout',
       ...parameters
   });
   this.layout = p.layout;
@@ -19750,14 +19760,6 @@ class SuiLoadFileDialog extends SuiFileDialog {
   get ctor() {
     return SuiLoadFileDialog.ctor;
   }
-  static get label() {
-    SuiLoadFileDialog._label = SuiLoadFileDialog._label ? SuiLoadFileDialog._label :
-       'Load File';
-    return SuiLoadFileDialog._label;
-  }
-  static set label(value) {
-    SuiLoadFileDialog._label = value;
-  }
 
     static get dialogElements() {
       SuiLoadFileDialog._dialogElements = SuiLoadFileDialog._dialogElements ? SuiLoadFileDialog._dialogElements :
@@ -19767,7 +19769,10 @@ class SuiLoadFileDialog extends SuiFileDialog {
   				defaultValue: '',
   				control: 'SuiFileDownloadComponent',
   				label:''
-			  }];
+			  },{staticText: [
+          {label: 'Load File'}
+        ]}
+      ];
       return SuiLoadFileDialog._dialogElements;
     }
 
@@ -19796,7 +19801,6 @@ class SuiLoadFileDialog extends SuiFileDialog {
         }
     }
     static createAndDisplay(params) {
-    params.label="Open File";
 		var dg = new SuiLoadFileDialog(params);
 		dg.display();
      // disable until file is selected
@@ -19826,7 +19830,10 @@ class SuiPrintFileDialog extends SuiFileDialog {
   }
 
   static get dialogElements() {
-	  return [];
+	  return [
+      {staticText: [
+      {label: 'Print Complete'}
+    ]}];
   }
   static createAndDisplay(params) {
 		var dg = new SuiPrintFileDialog(params);
@@ -19834,7 +19841,6 @@ class SuiPrintFileDialog extends SuiFileDialog {
 	}
   constructor(parameters) {
     parameters.ctor='SuiPrintFileDialog';
-    parameters.label = 'Print Complete';
     super(parameters);
 	}
   changed() {}
@@ -19859,15 +19865,6 @@ class SuiSaveFileDialog extends SuiFileDialog {
   get ctor() {
     return SuiSaveFileDialog.ctor;
   }
-  static get label() {
-    SuiSaveFileDialog._label = SuiSaveFileDialog._label ? SuiSaveFileDialog._label :
-       'Save Score';
-    return SuiSaveFileDialog._label;
-  }
-  static set label(value) {
-    SuiSaveFileDialog._label = value;
-  }
-
 
   static get dialogElements() {
     SuiSaveFileDialog._dialogElements = SuiSaveFileDialog._dialogElements ? SuiSaveFileDialog._dialogElements :
@@ -19877,7 +19874,12 @@ class SuiSaveFileDialog extends SuiFileDialog {
         defaultValue: '',
         control: 'SuiTextInputComponent',
         label:'File Name'
-		}];
+		},
+    {
+      staticText: [
+        {label : 'Save Score'}
+      ]
+    }];
 
     return SuiSaveFileDialog._dialogElements;
   }
@@ -19900,7 +19902,6 @@ class SuiSaveFileDialog extends SuiFileDialog {
     this.complete();
   }
   static createAndDisplay(params) {
-    params.label="Save File";
 		var dg = new SuiSaveFileDialog(params);
 		dg.display();
 	}
@@ -19915,14 +19916,6 @@ class SuiSaveFileDialog extends SuiFileDialog {
   }
   get ctor() {
     return SuiLyricDialog.ctor;
-  }
-  static get label() {
-    SuiLyricDialog._label = SuiLyricDialog._label ? SuiLyricDialog._label :
-       'Done Editing Lyrics';
-    return SuiLyricDialog._label;
-  }
-  static set label(value) {
-    SuiLyricDialog._label = value;
   }
   static createAndDisplay(parameters) {
 		var dg = new SuiLyricDialog(parameters);
@@ -19963,24 +19956,28 @@ class SuiSaveFileDialog extends SuiFileDialog {
       control: 'SuiLyricEditComponent',
       label:'Edit Text',
       options: []
-	  }];
+	  }, {
+    staticText: [
+      {doneEditing: 'Done Editing Lyrics'},
+      {undo: 'Undo Lyrics'},
+      {label: 'Lyric Editor'}
+    ]}
+  ];
 
     return SuiLyricDialog._dialogElements;
   }
-  static get staticText() {
-    return {
-      label:'Done Editing Lyrics'
-    }
-  }
-  constructor(parameters) {
-    parameters.ctor='SuiLyricDialog';
-    var p = parameters;
 
-  	super(SuiLyricDialog.dialogElements, {
+  constructor(parameters) {
+    parameters.ctor= parameters.ctor ? parameters.ctor : 'SuiLyricDialog';
+    var p = parameters;
+    const _class = eval(p.ctor);
+    const dialogElements = _class['dialogElements'];
+
+  	super(dialogElements, {
   		id: 'dialog-lyrics',
   		top: (p.layout.score.layout.pageWidth / 2) - 200,
   		left: (p.layout.score.layout.pageHeight / 2) - 200,
-  		...parameters
+  		...p
   	});
 
     // If we are editing existing lyrics, make sure it is the same type of session.
@@ -20076,26 +20073,14 @@ class SuiChordChangeDialog extends SuiLyricDialog {
   get ctor() {
     return SuiChordChangeDialog.ctor;
   }
-  static get staticText() {
-    return {
-      label:'Done Editing Chord'
-    }
-  }
 
-  static get label() {
-    SuiChordChangeDialog._label = SuiChordChangeDialog._label ? SuiChordChangeDialog._label :
-       'Done Editing Chord';
-    return SuiChordChangeDialog._label;
-  }
-  static set label(value) {
-    SuiChordChangeDialog._label = value;
-  }
   static createAndDisplay(parameters) {
     var dg = new SuiChordChangeDialog(parameters);
     dg.display();
       return dg;
   }
   constructor(parameters) {
+    parameters.ctor = 'SuiChordChangeDialog';
     super(parameters);
   }
   static get dialogElements() {
@@ -20132,7 +20117,14 @@ class SuiChordChangeDialog extends SuiLyricDialog {
       control: 'SuiLyricEditComponent',
       label:'Edit Text',
       options: []
-    }];
+    }, {
+      staticText: [
+        {label : 'Edit Chord Symbol'},
+        {undo: 'Undo Chord Symbols'},
+        {doneEditing : 'Done Editing Chord Symbols' }
+      ]
+    }
+  ];
 
     return SuiChordChangeDialog._dialogElements;
   }
@@ -20168,15 +20160,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   get ctor() {
     return SuiTextTransformDialog.ctor;
   }
-  static get label() {
-    SuiTextTransformDialog._label = SuiTextTransformDialog._label ? SuiTextTransformDialog._label :
-       'Text Box Properties';
-     return SuiTextTransformDialog._label;
-  }
-  static set label(value) {
-    SuiTextTransformDialog._label = value;
-  }
-
   static get dialogElements() {
     SuiTextTransformDialog._dialogElements = SuiTextTransformDialog._dialogElements ? SuiTextTransformDialog._dialogElements :
       [
@@ -20306,7 +20289,11 @@ class SuiTextTransformDialog  extends SuiDialogBase {
           {label:'Odd',value:'odd'},
           {label:'Subsequent',value:'subsequent'}
         ]
-  		}
+  		}, {
+        staticText: [
+          {label : 'Text Properties' }
+        ]
+      }
     ];
 
     return SuiTextTransformDialog._dialogElements;
@@ -20603,7 +20590,10 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
 				],
 				control: 'SuiDropdownComponent',
 				label: 'Text'
-			}
+			},
+      {staticText: [
+        {label: 'Dynamics Properties'}
+      ]}
 		];
     return SuiDynamicModifierDialog._dialogElements;
 	}
@@ -20663,17 +20653,14 @@ class SuiMeasureDialog extends SuiDialogBase {
     get ctor() {
       return SuiMeasureDialog.ctor;
     }
-    static get label() {
-      SuiMeasureDialog._label = SuiMeasureDialog._label ? SuiMeasureDialog._label
-       : 'Measure Properties';
-      return SuiMeasureDialog._label;
-    }
-    static set label(value) {
-      SuiMeasureDialog._label = value;
-    }
     static get dialogElements() {
       SuiMeasureDialog._dialogElements = SuiMeasureDialog._dialogElements ? SuiMeasureDialog._dialogElements :
-        [{
+        [
+          {
+            staticText: [
+              { label: 'Measure Properties' }]
+          },
+          {
           smoName: 'pickupMeasure',
           parameterName: 'pickupMeasure',
           defaultValue: 2048,
@@ -20933,14 +20920,6 @@ class SuiInstrumentDialog extends SuiDialogBase {
   get ctor() {
     return SuiTimeSignatureDialog.ctor;
   }
-  static get label() {
-    SuiInstrumentDialog._label = SuiInstrumentDialog._label ? SuiInstrumentDialog._label
-     : 'Instrument Properties';
-    return SuiInstrumentDialog._label;
-  }
-  static set label(value) {
-    SuiInstrumentDialog._label = value;
-  }
   static get applyTo() {
     return {
       score: 0,selected:1, remaining: 3
@@ -20949,6 +20928,11 @@ class SuiInstrumentDialog extends SuiDialogBase {
   static get dialogElements() {
     SuiInstrumentDialog._dialogElements = SuiInstrumentDialog._dialogElements ? SuiInstrumentDialog._dialogElements :
     [
+      {
+        staticText: [
+          {label: 'Instrument Properties'}
+        ]
+      },
       {
         smoName: 'transposeIndex',
         parameterName: 'transposeIndex',
@@ -21086,18 +21070,14 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
   get ctor() {
     return SuiTimeSignatureDialog.ctor;
   }
-  static get label() {
-    SuiTimeSignatureDialog._label = SuiTimeSignatureDialog._label ? SuiTimeSignatureDialog._label
-     : 'Custom Time Signature';
-    return SuiTimeSignatureDialog._label;
-  }
-  static set label(value) {
-    SuiTimeSignatureDialog._label = value;
-  }
 
   static get dialogElements() {
     SuiTimeSignatureDialog._dialogElements = SuiTimeSignatureDialog._dialogElements ? SuiTimeSignatureDialog._dialogElements :
       [
+        { staticText: [
+            { label: 'Custom Time Signature' }
+          ]
+        },
         {
           smoName: 'numerator',
           parameterName: 'numerator',
@@ -21241,21 +21221,17 @@ class SuiTempoDialog extends SuiDialogBase {
   get ctor() {
     return SuiTempoDialog.ctor;
   }
-  static get label() {
-    SuiTempoDialog._label = SuiTempoDialog._label ? SuiTempoDialog._label
-     : 'Tempo Properties';
-    return SuiTempoDialog._label;
+  static get attributes() {
+    return ['tempoMode', 'bpm', 'beatDuration', 'tempoText','yOffset'];
   }
-  static set label(value) {
-    SuiTempoDialog._label = value;
-  }
-    static get attributes() {
-        return ['tempoMode', 'bpm', 'beatDuration', 'tempoText','yOffset'];
-    }
   static get dialogElements() {
-
     SuiTempoDialog._dialogElements = SuiTempoDialog._dialogElements ? SuiTempoDialog._dialogElements :
-     [{
+     [
+       { staticText: [
+         { label: 'Tempo Properties'}
+       ]
+       },
+       {
         smoName: 'tempoMode',
         parameterName: 'tempoMode',
         defaultValue: SmoTempoText.tempoModes.durationMode,
@@ -25071,18 +25047,15 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
   static get ctor() {
     return 'SuiSlurAttributesDialog';
   }
-  static get label() {
-    SuiSlurAttributesDialog._label = SuiSlurAttributesDialog._label ? SuiSlurAttributesDialog._label
-      : 'Slur Properties';
-    return SuiSlurAttributesDialog._label;
-  }
-  static set label(value) {
-    SuiSlurAttributesDialog._label = value;
-  }
 
   static get dialogElements() {
     SuiSlurAttributesDialog._dialogElements = SuiSlurAttributesDialog._dialogElements ? SuiSlurAttributesDialog._dialogElements :
-    [{
+    [
+      {
+        staticText: [
+          { label: 'Slur Properties' }
+        ]
+      }, {
         parameterName: 'spacing',
         smoName: 'spacing',
         defaultValue: 2,
@@ -25220,7 +25193,13 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
 
  static get dialogElements() {
     SuiVoltaAttributeDialog._dialogElements = SuiVoltaAttributeDialog._dialogElements ? SuiVoltaAttributeDialog._dialogElements :
-      [{
+      [
+        {
+          staticText: [
+            {label: 'Volta Properties'}
+          ]
+        },
+        {
         parameterName: 'number',
         smoName: 'number',
         defaultValue: 1,
@@ -25330,7 +25309,13 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
   }
   static get dialogElements() {
     SuiHairpinAttributesDialog._dialogElements = SuiHairpinAttributesDialog._dialogElements ? SuiHairpinAttributesDialog._dialogElements :
-    [{
+    [
+      {
+        staticText: [
+          { label: 'Hairpin Properties' }
+        ]
+      },
+      {
         parameterName: 'height',
         smoName: 'height',
         defaultValue: 10,

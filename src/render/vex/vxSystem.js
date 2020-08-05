@@ -270,111 +270,106 @@ curve.setContext(this.context).draw();
 	// ## Description:
 	// Create the graphical (VX) notes and render them on svg.  Also render the tuplets and beam
 	// groups
-	renderMeasure(smoMeasure,measureMapper) {
-        var staff = this.score.staves[smoMeasure.measureNumber.staffId];
-        var staffId = staff.staffId;
+	renderMeasure(smoMeasure,measureMapper,noJustify) {
+    var staff = this.score.staves[smoMeasure.measureNumber.staffId];
+    var staffId = staff.staffId;
 		var systemIndex = smoMeasure.measureNumber.systemIndex;
-        var selection = SmoSelection.measureSelection(this.score,staff.staffId,smoMeasure.measureNumber.measureIndex);
+    var selection = SmoSelection.measureSelection(this.score,staff.staffId,smoMeasure.measureNumber.measureIndex);
 		this.smoMeasures.push(smoMeasure);
-        if (this.staves.length <= staffId) {
-            this.staves.push(staff);
-        }
+    if (this.staves.length <= staffId) {
+      this.staves.push(staff);
+    }
 
 		var vxMeasure = new VxMeasure(this.context, {
 				selection: selection
 			});
 
-        // create the vex notes, beam groups etc. for the measure
+    // create the vex notes, beam groups etc. for the measure
 		vxMeasure.preFormat();
-        this.vxMeasures.push(vxMeasure);
+    this.vxMeasures.push(vxMeasure);
 
-        var lastStaff = (staffId == this.score.staves.length-1);
-        var smoGroupMap = {};
+    var lastStaff = (staffId == this.score.staves.length-1) || noJustify;
+    var smoGroupMap = {};
 
-        // If this is the last staff in the column, render the column with justification
-        if (lastStaff) {
-            var ar = vxMeasure.voiceAr;
-            this.vxMeasures.forEach((vv) => {
-                if (!vv.rendered) {
-                    var systemGroup = this.score.getSystemGroupForStaff(vv.selection);
-                    var justifyGroup = systemGroup ? systemGroup.attrs.id : vv.selection.staff.attrs.id;
-                    if (!smoGroupMap[justifyGroup]) {
-                        smoGroupMap[justifyGroup] = {firstMeasure:vv,voices:[]};
-                    }
-                    smoGroupMap[justifyGroup].voices =
-                        smoGroupMap[justifyGroup].voices.concat(vv.voiceAr);
-                }
-            });
+    // If this is the last staff in the column, render the column with justification
+    if (lastStaff) {
+    var ar = vxMeasure.voiceAr;
+    this.vxMeasures.forEach((vv) => {
+      if (!vv.rendered) {
+        var systemGroup = this.score.getSystemGroupForStaff(vv.selection);
+        var justifyGroup = systemGroup ? systemGroup.attrs.id : vv.selection.staff.attrs.id;
+        if (!smoGroupMap[justifyGroup]) {
+          smoGroupMap[justifyGroup] = {firstMeasure:vv,voices:[]};
         }
-        var keys = Object.keys(smoGroupMap);
-        keys.forEach((key) => {
-            smoGroupMap[key].firstMeasure.format(smoGroupMap[key].voices);
-        });
-        if (lastStaff) {
-            this.vxMeasures.forEach((vv) => {
-                if (!vv.rendered) {
-                  vv.render();
-                  // unit test codes don't have tracker.
-                  if (measureMapper) {
-                      var tmpStaff = this.staves.find((ss) => ss.staffId == vv.smoMeasure.measureNumber.staffId);
-                      measureMapper.mapMeasure(tmpStaff,vv.smoMeasure);
-                  }
-                }
-            });
+        smoGroupMap[justifyGroup].voices =
+          smoGroupMap[justifyGroup].voices.concat(vv.voiceAr);
         }
+      });
+    }
+    var keys = Object.keys(smoGroupMap);
+    keys.forEach((key) => {
+        smoGroupMap[key].firstMeasure.format(smoGroupMap[key].voices);
+    });
+    if (lastStaff) {
+      this.vxMeasures.forEach((vv) => {
+        if (!vv.rendered) {
+          vv.render();
+          // unit test codes don't have tracker.
+          if (measureMapper) {
+              var tmpStaff = this.staves.find((ss) => ss.staffId == vv.smoMeasure.measureNumber.staffId);
+              measureMapper.mapMeasure(tmpStaff,vv.smoMeasure);
+          }
+        }
+      });
+    }
 
 		// Keep track of the y coordinate for the nth staff
-        var renderedConnection = {};
-        var brackets = false;
+    var renderedConnection = {};
+    var brackets = false;
 
-        if (systemIndex == 0 && lastStaff) {
-            $(this.context.svg).find('g.lineBracket-' + this.lineIndex).remove();
+    if (systemIndex == 0 && lastStaff) {
+      $(this.context.svg).find('g.lineBracket-' + this.lineIndex).remove();
+      var group = this.context.openGroup();
+      group.classList.add('lineBracket-' + this.lineIndex);
+      group.classList.add('lineBracket');
+      this.vxMeasures.forEach((vv) => {
+        var systemGroup = this.score.getSystemGroupForStaff(vv.selection);
+        if (systemGroup && !renderedConnection[systemGroup.attrs.id]) {
+          renderedConnection[systemGroup.attrs.id] = 1;
+          var startSel = this.vxMeasures[systemGroup.startSelector.staff];
+          var endSel = this.vxMeasures[systemGroup.endSelector.staff];
+          if (startSel && endSel) {
+            var c1 = new VF.StaveConnector(startSel.stave, endSel.stave)
+  				    .setType(systemGroup.leftConnectorVx());
+              c1.setContext(this.context).draw();
+              brackets = true;
+          }
+        }
+      });
+
+      if (!brackets && this.vxMeasures.length > 1)  {
+        var c2 = new VF.StaveConnector(this.vxMeasures[0].stave,this.vxMeasures[this.vxMeasures.length - 1].stave,
+          VF.StaveConnector.type.SINGLE_LEFT);
+        c2.setContext(this.context).draw();
+      }
+      this.context.closeGroup();
+      } else if (lastStaff && smoMeasure.measureNumber.measureIndex + 1 < staff.measures.length) {
+        if (staff.measures[smoMeasure.measureNumber.measureIndex + 1].measureNumber.systemIndex == 0) {
+          var endMeasure = vxMeasure;
+          var startMeasure = this.vxMeasures.find((vv) => vv.selection.selector.staff == 0 &&
+            vv.selection.selector.measure == vxMeasure.selection.selector.measure);
+          if (endMeasure && startMeasure) {
+            $(this.context.svg).find('g.endBracket-' + this.lineIndex).remove();
             var group = this.context.openGroup();
-            group.classList.add('lineBracket-' + this.lineIndex);
-            group.classList.add('lineBracket');
-            this.vxMeasures.forEach((vv) => {
-                var systemGroup = this.score.getSystemGroupForStaff(vv.selection);
-                if (systemGroup && !renderedConnection[systemGroup.attrs.id]) {
-                    renderedConnection[systemGroup.attrs.id] = 1;
-                    var startSel = this.vxMeasures[systemGroup.startSelector.staff];
-                    var endSel = this.vxMeasures[systemGroup.endSelector.staff];
-                    if (startSel && endSel) {
-                        var c1 = new VF.StaveConnector(startSel.stave, endSel.stave)
-            				.setType(systemGroup.leftConnectorVx());
-                        c1.setContext(this.context).draw();
-                        brackets = true;
-
-                    }
-                }
-            });
-
-            if (!brackets && this.vxMeasures.length > 1)  {
-               var c2 = new VF.StaveConnector(this.vxMeasures[0].stave,this.vxMeasures[this.vxMeasures.length - 1].stave,
-                  VF.StaveConnector.type.SINGLE_LEFT);
-                  c2.setContext(this.context).draw();
-           }
-           this.context.closeGroup();
-       }  else if (lastStaff && smoMeasure.measureNumber.measureIndex + 1 < staff.measures.length) {
-           if (staff.measures[smoMeasure.measureNumber.measureIndex + 1].measureNumber.systemIndex == 0) {
-               var endMeasure = vxMeasure;
-               var startMeasure = this.vxMeasures.find((vv) => vv.selection.selector.staff == 0 &&
-                   vv.selection.selector.measure == vxMeasure.selection.selector.measure);
-              if (endMeasure && startMeasure) {
-                  $(this.context.svg).find('g.endBracket-' + this.lineIndex).remove();
-                  var group = this.context.openGroup();
-                  group.classList.add('endBracket-' + this.lineIndex);
-                  group.classList.add('endBracket');
-               var c2 = new VF.StaveConnector(startMeasure.stave,endMeasure.stave)
-                  .setType(VF.StaveConnector.type.SINGLE_RIGHT);
-                  c2.setContext(this.context).draw();
-                  this.context.closeGroup();
-              }
-           }
-
+            group.classList.add('endBracket-' + this.lineIndex);
+            group.classList.add('endBracket');
+            var c2 = new VF.StaveConnector(startMeasure.stave,endMeasure.stave)
+               .setType(VF.StaveConnector.type.SINGLE_RIGHT);
+            c2.setContext(this.context).draw();
+            this.context.closeGroup();
+          }
        }
-
-
-
+     }
 
 		// keep track of left-hand side for system connectors
 		if (systemIndex === 0) {

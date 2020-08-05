@@ -13,17 +13,14 @@ class SuiMeasureDialog extends SuiDialogBase {
     get ctor() {
       return SuiMeasureDialog.ctor;
     }
-    static get label() {
-      SuiMeasureDialog._label = SuiMeasureDialog._label ? SuiMeasureDialog._label
-       : 'Measure Properties';
-      return SuiMeasureDialog._label;
-    }
-    static set label(value) {
-      SuiMeasureDialog._label = value;
-    }
     static get dialogElements() {
       SuiMeasureDialog._dialogElements = SuiMeasureDialog._dialogElements ? SuiMeasureDialog._dialogElements :
-        [{
+        [
+          {
+            staticText: [
+              { label: 'Measure Properties' }]
+          },
+          {
           smoName: 'pickupMeasure',
           parameterName: 'pickupMeasure',
           defaultValue: 2048,
@@ -283,14 +280,6 @@ class SuiInstrumentDialog extends SuiDialogBase {
   get ctor() {
     return SuiTimeSignatureDialog.ctor;
   }
-  static get label() {
-    SuiInstrumentDialog._label = SuiInstrumentDialog._label ? SuiInstrumentDialog._label
-     : 'Instrument Properties';
-    return SuiInstrumentDialog._label;
-  }
-  static set label(value) {
-    SuiInstrumentDialog._label = value;
-  }
   static get applyTo() {
     return {
       score: 0,selected:1, remaining: 3
@@ -299,6 +288,11 @@ class SuiInstrumentDialog extends SuiDialogBase {
   static get dialogElements() {
     SuiInstrumentDialog._dialogElements = SuiInstrumentDialog._dialogElements ? SuiInstrumentDialog._dialogElements :
     [
+      {
+        staticText: [
+          {label: 'Instrument Properties'}
+        ]
+      },
       {
         smoName: 'transposeIndex',
         parameterName: 'transposeIndex',
@@ -436,18 +430,14 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
   get ctor() {
     return SuiTimeSignatureDialog.ctor;
   }
-  static get label() {
-    SuiTimeSignatureDialog._label = SuiTimeSignatureDialog._label ? SuiTimeSignatureDialog._label
-     : 'Custom Time Signature';
-    return SuiTimeSignatureDialog._label;
-  }
-  static set label(value) {
-    SuiTimeSignatureDialog._label = value;
-  }
 
   static get dialogElements() {
     SuiTimeSignatureDialog._dialogElements = SuiTimeSignatureDialog._dialogElements ? SuiTimeSignatureDialog._dialogElements :
       [
+        { staticText: [
+            { label: 'Custom Time Signature' }
+          ]
+        },
         {
           smoName: 'numerator',
           parameterName: 'numerator',
@@ -591,21 +581,17 @@ class SuiTempoDialog extends SuiDialogBase {
   get ctor() {
     return SuiTempoDialog.ctor;
   }
-  static get label() {
-    SuiTempoDialog._label = SuiTempoDialog._label ? SuiTempoDialog._label
-     : 'Tempo Properties';
-    return SuiTempoDialog._label;
+  static get attributes() {
+    return ['tempoMode', 'bpm', 'beatDuration', 'tempoText','yOffset'];
   }
-  static set label(value) {
-    SuiTempoDialog._label = value;
-  }
-    static get attributes() {
-        return ['tempoMode', 'bpm', 'beatDuration', 'tempoText','yOffset'];
-    }
   static get dialogElements() {
-
     SuiTempoDialog._dialogElements = SuiTempoDialog._dialogElements ? SuiTempoDialog._dialogElements :
-     [{
+     [
+       { staticText: [
+         { label: 'Tempo Properties'}
+       ]
+       },
+       {
         smoName: 'tempoMode',
         parameterName: 'tempoMode',
         defaultValue: SmoTempoText.tempoModes.durationMode,
