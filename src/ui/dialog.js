@@ -111,8 +111,9 @@ class SuiDialogBase {
       }
       if (element.staticText) {
         component.staticText = {};
-        Object.keys(element.staticText).forEach((st) => {
-          component.staticText[st] = element.staticText[st];
+        element.staticText.forEach((st) => {
+          var key = Object.keys(st)[0];
+          component.staticText[key] = st[key];
         });
       }
       output.push(component);
