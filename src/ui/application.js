@@ -123,10 +123,20 @@ class SuiApplication {
           }
         } else if (pairs['lang']) {
           SuiApplication._deferLanguageSelection(pairs['lang']);
+        } else if (pairs['translate']) {
+          SuiApplication._deferCreateTranslator(pairs['translate']);
         }
       });
     }
     return score;
+  }
+
+  static _deferCreateTranslator(lang) {
+    setTimeout(() => {
+      var transDom =  SmoTranslator.getAllTranslationHtml(lang);
+      $('.translation-editor').append(transDom);
+      $('body').addClass('translation-mode');
+    },1);
   }
 
   static _deferLanguageSelection(lang) {

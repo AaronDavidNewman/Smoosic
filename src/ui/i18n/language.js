@@ -92,6 +92,26 @@ class SmoTranslator {
     });
   }
 
+  static _getHtmlTextInput(dbLabel,enLabel,langLabel,labelType,labelId) {
+    var b = htmlHelpers.buildDom;
+
+    const compHtml = b('div').classes('dialog-element-container')
+      .attr('data-'+labelType,labelId).append(
+        b('div').classes('dialog-component-label').append(
+          b('span').classes('trans-label').append(
+            b('span').text(dbLabel)
+          ).append(
+            b('span').text(enLabel)
+          ).append(
+            b('input').classes('trans-label-input')
+          ).append(
+            b('span').classes('plaintext-translate hide').text(langLabel)
+          )
+        )
+      ).dom();
+    return compHtml;
+  }
+
   static _getStaticTextDialogHtml(dialogCtor,element,enDb,langDb,htmlContainer) {
     var b = htmlHelpers.buildDom;
 
@@ -103,17 +123,16 @@ class SmoTranslator {
       enDb.push({ staticText:enStString });
     }
     var langStNode = langDb.find((st) => st.staticText);
-    if (!langStNode.staticText) {
+    if (!langStNode|| !langStNode.staticText) {
       const langStString = JSON.parse(JSON.stringify(element.staticText));
       langStNode = { staticText: langStString};
       langDb.push(langStNode);
     }
     const enObj = enStNode.staticText;
     const langObj = langStNode.staticText;
-    const nodeContainer = htmlHelpers.buildDom('div')
+    const nodeContainer = b('div')
       .classes('dialog-element-container')
-      .attr('data-dialog',dialogCtor)
-      .attr('data-element','staticText')
+      .attr('data-component','staticText')
       .dom();
     $(htmlContainer).append(nodeContainer);
     const elKeys = dbObj.map((st) => Object.keys(st)[0]);
@@ -127,16 +146,9 @@ class SmoTranslator {
       if (!langVal) {
         langVal = dbVal;
       }
-      const translateElement = b('div').append(
-        b('span').classes('trans-label').append(
-          b('span').text(elKey)
-        ).append(
-          b('span').text(enVal[elKey])
-        ).append(
-          b('input').text(langVal[elKey])
-        )
-      );
-      $(nodeContainer).append(translateElement.dom());
+      const translateElement = SmoTranslator._getHtmlTextInput(
+        elKey,enVal[elKey],langVal[elKey],'statictext',elKey);
+      $(nodeContainer).append(translateElement);
     });
   }
 
@@ -153,9 +165,14 @@ class SmoTranslator {
     if (!langComponent) {
       langComponent = JSON.parse(JSON.stringify(element));
     }
+    const enLabel = enComponent.label ? enComponent.label : label;
+    const langLabel = langComponent.label ? langComponent.label : label;
+    const compHtml = SmoTranslator._getHtmlTextInput(
+      label,enLabel,langLabel,'component',smoName);
 
     if (element.options) {
-      options = [];
+      const optionsHtml = b('div').classes('dialog-component-options').dom();
+      $(compHtml).append(optionsHtml);
       if (!enComponent.options) {
         enComponent.options = JSON.parse(JSON.stringify(element.options));
       }
@@ -164,19 +181,31 @@ class SmoTranslator {
       }
 
       element.options.forEach((option) => {
-
+        var enOption = enComponent.options.find((op) => op.value === option.value);
+        var langOption = langComponent.options.find((op) => op.value === option.value);
+        if (!enOption || !enOption.label) {
+          enOption = JSON.parse(JSON.stringify(option));
+        }
+        if (!langOption || !langOption.label) {
+          langOption = JSON.parse(JSON.stringify(option));
+        }
+        const optionHtml =  SmoTranslator._getHtmlTextInput(
+          option.value,enOption.label,langOption.label,'component-option',option.value);
+          $(optionsHtml).append(optionHtml)
       });
+      $(container).append(compHtml);
     }
   }
 
   static getDialogTranslationHtml(dialogCtor,enStrings,langStrings) {
     var b = htmlHelpers.buildDom;
-    var container = b('div').classes('translate-container').attr('data-db-container',dialogCtor).dom();
+    var container = b('div').classes('db-translate-container').attr('data-dbcontainer',dialogCtor)
+      .append(b('button').classes('icon-plus trans-expander')).dom();
     var ctor = eval(dialogCtor);
     var elements = ctor.dialogElements;
     var enDb = enStrings.find((dbStr) => dbStr.ctor === dialogCtor);
     if (!enDb) {
-      const stNode = JSON.parse(JSON.stringify(elements));
+      enDb = JSON.parse(JSON.stringify(elements));
     } else {
       enDb = enDb.dialogElements;
     }
@@ -192,6 +221,16 @@ class SmoTranslator {
       } else if (element.smoName) {
         SmoTranslator._getDialogComponentHtml(dialogCtor,element,enDb,langDb,container);
       }
+    });
+    return container;
+  }
+  static getAllTranslationHtml(lang) {
+    var enStr = SmoLanguage.en.strings
+    var langStr = SmoLanguage[lang].strings;
+    var b = htmlHelpers.buildDom;
+    var container = b('div').classes('top-translate-container').dom();
+    SmoTranslator.allDialogs.forEach((dialog) => {
+      $(container).append(SmoTranslator.getDialogTranslationHtml(dialog,enStr,langStr))
     });
     return container;
   }

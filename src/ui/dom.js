@@ -30,6 +30,7 @@ class SuiDom {
       .append(b('div').classes('overlay'))
       .append(b('div').classes('draganime hide'))
       .append(b('div').classes('textEdit hide'))
+      .append(b('div').classes('translation-editor'))
       .append(b('div').classes('attributeDialog'))
       .append(b('div').classes('qwertyKb'))
       .append(b('div').classes('saveLink'))
