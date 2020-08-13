@@ -892,6 +892,7 @@ class SuiAddStaffMenu extends suiMenuBase {
 
   static get defaults() {
     SuiAddStaffMenu._defaults = SuiAddStaffMenu._defaults ? SuiAddStaffMenu._defaults : {
+      label: "Add Staff",
       menuItems: [
         {
           icon: 'treble',

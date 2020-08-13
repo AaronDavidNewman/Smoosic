@@ -594,3 +594,74 @@ body.showHelpDialog .workspace {
   border: 2px solid #222;
   height: 30px;
 }
+
+.translation-editor {
+  display:none;
+}
+
+body.translation-mode .translation-editor {
+  display: block;
+  overflow: auto;
+  background: #eed;
+}
+
+body.translation-mode .workspace {
+  display:none;
+}
+
+.top-translate-container {
+  height:100%;
+}
+
+.db-translate-container,.menu-translate-container {
+  position: relative;
+}
+.db-translate-title, .menu-translate-title {
+  display:inline-block;
+  margin-left:35px;
+}
+.db-translate-container .dialog-element-container,
+.menu-translate-container .menu-element-container{
+  display:none;
+}
+
+.db-translate-container.expanded .dialog-element-container,
+.menu-translate-container.expanded .menu-element-container,
+.dialog-component-label {
+  display:block;
+}
+
+.db-translate-container.expanded .dialog-element-container[data-component] {
+  display:block;
+  margin-left:25px;
+}
+
+.db-translate-container.expanded .dialog-element-container[data-component]  .dialog-element-container,
+.db-translate-container.expanded .dialog-element-container[data-component]  .dialog-element-container {
+  display: flex;
+  flex-flow: column nowrap;
+}
+
+.db-translate-container.expanded .dialog-element-container[data-component-option] {
+  display:inline-block;
+  margin-left:50px;
+}
+.dialog-component-label,.dialog-component-options {
+  display:flex;
+  flex-flow:column;
+}
+
+.trans-label {
+  display:flex;
+}
+
+.trans-db-text,.trans-en-text {
+  display:flex;
+  flex: 0 1 250px;
+  border: 1px #999 solid;
+  border-radius: 4px;
+}
+.trans-label-input  {
+  border: 2px #9d9 solid;
+  border-radius: 4px;
+}

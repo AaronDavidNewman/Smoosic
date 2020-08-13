@@ -133,9 +133,7 @@ class SuiApplication {
 
   static _deferCreateTranslator(lang) {
     setTimeout(() => {
-      var transDom =  SmoTranslator.getAllTranslationHtml(lang);
-      $('.translation-editor').append(transDom);
-      $('body').addClass('translation-mode');
+      var transDom =  SmoTranslationEditor.startEditor(lang);
     },1);
   }
 

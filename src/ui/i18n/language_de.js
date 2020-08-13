@@ -2,30 +2,40 @@
 var smoLanguageStringDe = `[
  {
   "ctor": "SuiLoadFileDialog",
-  "label": "Datei laden",
   "dialogElements": [
-   {}
-  ]
+   { "staticText": [
+     { "label": "Datei laden" }
+     ]
+   }
+ ]
  },
  {
   "ctor": "SuiSaveFileDialog",
-  "label": "Score speichern",
   "dialogElements": [
    {
     "label": "File Name",
     "id": "saveFileName"
-   }
+  }, {
+    "staticText" : [
+      { "label":"Score speichern" }
+    ]
+    }
+
   ]
  },
  {
   "ctor": "SuiPrintFileDialog",
-  "label": "Druck abgeschlossen",
-  "dialogElements": []
+  "dialogElements": [{
+    "staticText": [{ "label" : "Druck abgeschlossen" }]
+  }]
  },
  {
   "ctor": "SuiMeasureDialog",
-  "label": "Takt Voreinstellungen",
   "dialogElements": [
+    { "staticText" : [
+      { "label": "Takt Voreinstellungen" }
+    ]
+  },
    {
     "label": "Takt Pickup",
     "id": "pickupMeasure",
@@ -104,6 +114,11 @@ var smoLanguageStringDe = `[
   "ctor": "SuiTempoDialog",
   "label": "Tempo Voreinstellungen",
   "dialogElements": [
+    {"staticText" : [
+      {"label" : "Tempo Voreinstellungen"}
+    ]
+
+  },
    {
     "label": "Tempo Modus",
     "id": "tempoMode",
