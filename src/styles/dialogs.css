@@ -631,9 +631,14 @@ body.translation-mode .workspace {
   display:block;
 }
 
-.db-translate-container.expanded .dialog-element-container[data-component] {
+.db-translate-container.expanded .dialog-element-container[data-component],
+.menu-translate-container.expanded .dialog-element-container[data-menulabel] {
   display:block;
   margin-left:25px;
+}
+
+.dialog-element-container[data-itemtext] {
+  margin-left:50px;
 }
 
 .db-translate-container.expanded .dialog-element-container[data-component]  .dialog-element-container,

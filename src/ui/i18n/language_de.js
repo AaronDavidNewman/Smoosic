@@ -880,6 +880,7 @@ var smoLanguageStringDe = `[
  },
  {
   "ctor": "SuiDynamicsMenu",
+  "label" : "Dynamics",
   "menuItems": [
    {
     "value": "pp",

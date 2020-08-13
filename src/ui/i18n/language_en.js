@@ -865,6 +865,7 @@ var smoLanguageStringEn = `[
  },
  {
   "ctor": "SuiDynamicsMenu",
+  "label": "Dynamics",
   "menuItems": [
    {
     "value": "pp",
