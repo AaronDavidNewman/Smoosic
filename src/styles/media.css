@@ -125,7 +125,7 @@ h1 {
 }
 
 body.print-render .measure-format {
-    dislay:none;
+    display:none;
 }
 
 body.printing .piano-container {
