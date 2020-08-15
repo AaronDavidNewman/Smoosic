@@ -26166,6 +26166,8 @@ class SmoTranslationEditor {
       return container;
     }
 
+    // ### _getStaticTextDialogHtml
+    // create DOM for the static text section of the dialogs.
     static _getStaticTextDialogHtml(dialogCtor,element,enDb,langDb,htmlContainer) {
       var b = htmlHelpers.buildDom;
 
@@ -26289,8 +26291,73 @@ class SmoTranslationEditor {
       });
       SmoTranslator.allMenus.forEach((menu) => {
         $(container).append(SmoTranslationEditor._getMenuTextDialogHtml(menu,enStr,langStr));
-      })
+      });
+      var resultDom = b('div').classes('translation-json-container').append(
+        b('textarea').classes('translation-json-text')).append(
+        b('div').append(
+          b('button').classes('translate-submit-button').text('Submit')
+        )
+      ).dom();
+
+      $(container).append(resultDom);
+
       return container;
+    }
+    static parseDom() {
+      var json = [];
+      // $('.top-translate-container .db-translate-container[data-dbcontainer] [data-component="staticText"]')
+       $('.top-translate-container .db-translate-container[data-dbcontainer]').each((ix,dbEl) => {
+         var db = $(dbEl).attr('data-dbcontainer');
+         var obj = {ctor: db};
+         var elements = [];
+         var domComponents = $(dbEl).find('[data-component]');
+         $(domComponents).each(function(ix,domComponent) {
+           const compType = $(domComponent).attr('data-component');
+
+           if (compType === 'staticText') {
+             var stElements=[];
+             $(domComponent).find('[data-statictext]').each((ix,stDom) => {
+               const key=$(stDom).attr('data-statictext');
+               const value = $(stDom).find('input.trans-label-input').val();
+               const stNode = JSON.parse('{"'+key+'":"'+value+'"}');
+               stElements.push(stNode);
+             });
+             elements.push({staticText:stElements});
+           } else {
+             var dbComponent = {id:compType};
+             dbComponent.label = $(domComponent).find('input.trans-label-input').val();
+             var compOptions = [];
+             $(domComponent).find('[data-component-option]').each(function(ix,optionDom) {
+               const value = $(optionDom).find('.trans-db-text').text();
+               const label = $(optionDom).find('input.trans-label-input').val();
+               compOptions.push({value:value,label:label});
+             });
+             dbComponent.options = compOptions;
+             elements.push(dbComponent);
+           }
+         });
+         obj.dialogElements = elements;
+         json.push(obj);
+
+       });
+       $('.menu-translate-container[data-menucontainer]').each((ix,menuEl) => {
+         var menuId = $(menuEl).attr('data-menucontainer');
+         var obj = {ctor:menuId};
+         const menuLabel = $(menuEl)
+           .find('.dialog-element-container[data-menulabel] .trans-label-input')
+           .val();
+         obj.label = menuLabel;
+         var menuItems = [];
+         var itemsDom = $(menuEl).find('.menu-item-container .dialog-element-container');
+         $(itemsDom).each((ix,itemDom) => {
+           const value = $(itemDom).find('.trans-db-text').text();
+           const text = $(itemDom).find('input.trans-label-input').val();
+           menuItems.push({value:value,text:text});
+         });
+         obj.menuItems = menuItems;
+         json.push(obj);
+       });
+       return json;
     }
     static startEditor(lang) {
       var transDom =  SmoTranslationEditor.getAllTranslationHtml(lang);
@@ -26324,6 +26391,10 @@ class SmoTranslationEditor {
           $(this).addClass('icon-minus');
           $(this).removeClass('icon-plus');
         }
+      });
+      $('.translate-submit-button').off('click').on('click',(ev) => {
+        var json = SmoTranslationEditor.parseDom();
+        $('.translation-json-text').append(JSON.stringify(json,null,' '));
       });
 
 
