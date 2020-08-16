@@ -7,7 +7,7 @@ class SuiApplication {
     var _config = {
       scoreLoadOrder:['library'],
       scoreLoadJson:'emptyScoreJson',
-      ribon:false,
+      ribbon:false,
       editor:false,
       menus:false,
       controller:'utController',

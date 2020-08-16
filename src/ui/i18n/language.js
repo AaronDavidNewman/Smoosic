@@ -124,9 +124,22 @@ class SmoTranslator {
       }
 
       SmoTranslator._updateDialog(dialogStrings,_class,dialogClass);
+    });
 
-    })
-
+    // Translate the buttons on the ribbon
+    const langButtons = trans.strings.find((buttonObj) => buttonObj.ribbonText);
+    if (langButtons) {
+      RibbonButtons.translateButtons.forEach((button) => {
+        var domButton = $(button);
+        var langButton = langButtons.ribbonText.find((lb) => lb.buttonId === button.buttonId);
+        if (langButton) {
+          var buttonDom = $('.ribbonButtonContainer #'+button.buttonId);
+          if (buttonDom.length) {
+            $(buttonDom).find('.left-text').text(langButton.buttonText);
+          }
+        }
+      });
+    }
     // Handle rtl languages
     $('body').find('.language-dir').each((ix,dd) => {$(dd).attr('dir',trans.dir)});
   }
@@ -134,14 +147,15 @@ class SmoTranslator {
   static get allMenus() {
     return [
       'SuiAddStaffMenu',
+      'SuiMeasureMenu',
       'SuiFileMenu',
       'SuiTimeSignatureMenu',
       'SuiKeySignatureMenu',
       'SuiTimeSignatureMenu',
       'SuiKeySignatureMenu',
-      'SuiFileMenu',
       'SuiStaffModifierMenu',
-      'SuiDynamicsMenu'
+      'SuiDynamicsMenu',
+      'SuiLanguageMenu'
     ]
   }
 

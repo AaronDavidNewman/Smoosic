@@ -82,6 +82,38 @@ class SmoTranslationEditor {
       });
       return container;
     }
+    static getButtonTranslateHtml(enStrings,langStrings,transContainer) {
+      var b = htmlHelpers.buildDom;
+      var buttonDom = b('div').classes('ribbon-translate-container')
+        .attr('data-ribbon-translate','buttons').append(
+          b('button').classes('icon-plus trans-expander')).append(
+          b('span').classes('ribbon-translate-title').text('Button Text')
+      ).dom();
+
+      var enKeys = enStrings.find((enString) => enString.ribbonButtonText);
+      if (!enKeys) {
+        enKeys = JSON.parse(JSON.stringify(RibbonButtons.translateButtons));
+      }
+      var langKeys = langStrings.find((langString) => langString.ribbonText);
+      if (!langKeys) {
+        langKeys = JSON.parse(JSON.stringify(RibbonButtons.translateButtons));
+      } else {
+        langKeys = langKeys.ribbonText;
+      }
+      RibbonButtons.translateButtons.forEach((button) => {
+        const langObj  = langKeys.find((langText) => langText.buttonId === button.buttonId);
+        const enObj = enKeys.find((enText) => enText.buttonId === button.buttonId);
+        const enString  = enObj ? enObj .buttonText: button.buttonText;
+        const langString = langObj ? langObj.buttonText : button.buttonText;
+        var buttonContainer = b('div').classes('ribbon-button-container')
+          .attr('data-buttoncontainer',button.id).dom();
+        $(buttonContainer).append(
+           SmoTranslationEditor._getHtmlTextInput(button.buttonId,enString,langString,'ribbon-button',button.buttonId)
+        );
+        $(buttonDom).append(buttonContainer);
+      });
+      $(transContainer).append(buttonDom);
+    }
 
     // ### _getStaticTextDialogHtml
     // create DOM for the static text section of the dialogs.
@@ -202,13 +234,15 @@ class SmoTranslationEditor {
       var enStr = SmoLanguage.en.strings
       var langStr = SmoLanguage[lang].strings;
       var b = htmlHelpers.buildDom;
-      var container = b('div').classes('top-translate-container').dom();
+      var container = b('div').classes('top-translate-container')
+        .attr('dir',SmoLanguage[lang].dir).dom();
       SmoTranslator.allDialogs.forEach((dialog) => {
         $(container).append(SmoTranslationEditor.getDialogTranslationHtml(dialog,enStr,langStr))
       });
       SmoTranslator.allMenus.forEach((menu) => {
         $(container).append(SmoTranslationEditor._getMenuTextDialogHtml(menu,enStr,langStr));
       });
+      SmoTranslationEditor.getButtonTranslateHtml(enStr,langStr,container);
       var resultDom = b('div').classes('translation-json-container').append(
         b('textarea').classes('translation-json-text')).append(
         b('div').append(
@@ -274,7 +308,14 @@ class SmoTranslationEditor {
          obj.menuItems = menuItems;
          json.push(obj);
        });
-       return json;
+       var ribbonText = [];
+       $('.ribbon-translate-container .ribbon-button-container').each((ix,buttonEl) => {
+         const buttonId = $(buttonEl).find('.trans-db-text').text();
+         const buttonText = $(buttonEl).find('input.trans-label-input').val();
+         ribbonText.push({buttonId: buttonId,buttonText:buttonText});
+       });
+       json.push({ribbonText:ribbonText});
+      return json;
     }
     static startEditor(lang) {
       var transDom =  SmoTranslationEditor.getAllTranslationHtml(lang);
@@ -309,9 +350,21 @@ class SmoTranslationEditor {
           $(this).removeClass('icon-plus');
         }
       });
+      $('.ribbon-translate-container button.trans-expander').off('click').on('click', function() {
+        var exp = $(this).closest('.ribbon-translate-container');
+        if ($(exp).hasClass('expanded')) {
+          $(exp).removeClass('expanded');
+          $(this).removeClass('icon-minus');
+          $(this).addClass('icon-plus');
+        } else {
+          $(exp).addClass('expanded');
+          $(this).addClass('icon-minus');
+          $(this).removeClass('icon-plus');
+        }
+      });
       $('.translate-submit-button').off('click').on('click',(ev) => {
         var json = SmoTranslationEditor.parseDom();
-        $('.translation-json-text').append(JSON.stringify(json,null,' '));
+        $('.translation-json-text').val(JSON.stringify(json,null,' '));
       });
 
 

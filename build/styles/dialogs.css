@@ -613,31 +613,40 @@ body.translation-mode .workspace {
   height:100%;
 }
 
-.db-translate-container,.menu-translate-container {
+.ribbon-translate-container,
+.db-translate-container,
+.menu-translate-container {
   position: relative;
+  margin: 10px 3px;
 }
-.db-translate-title, .menu-translate-title {
+.db-translate-title, .menu-translate-title, .ribbon-translate-title {
   display:inline-block;
   margin-left:35px;
 }
 .db-translate-container .dialog-element-container,
-.menu-translate-container .menu-element-container{
+.menu-translate-container .menu-element-container,
+.ribbon-translate-container .ribbon-button-container {
   display:none;
 }
 
 .db-translate-container.expanded .dialog-element-container,
 .menu-translate-container.expanded .menu-element-container,
+.ribbon-translate-container.expanded .dialog-element-container
 .dialog-component-label {
   display:block;
 }
 
 .db-translate-container.expanded .dialog-element-container[data-component],
-.menu-translate-container.expanded .dialog-element-container[data-menulabel] {
+.menu-translate-container.expanded .dialog-element-container[data-menulabel],
+.ribbon-translate-container.expanded .ribbon-button-container {
   display:block;
   margin-left:25px;
+  margin-top:5px;
 }
 
-.dialog-element-container[data-itemtext] {
+.dialog-element-container[data-itemtext],
+.dialog-element-container[data-ribbon-button]
+ {
   margin-left:50px;
 }
 
@@ -658,6 +667,14 @@ body.translation-mode .workspace {
 
 .trans-label {
   display:flex;
+}
+
+.translation-json-text {
+  margin:25px;
+  margin:10px;
+}
+button.translate-submit-button {
+  margin: 20px 25px;
 }
 
 .trans-db-text,.trans-en-text {

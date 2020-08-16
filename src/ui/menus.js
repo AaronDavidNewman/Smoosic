@@ -701,7 +701,7 @@ class SuiStaffModifierMenu extends suiMenuBase {
   static get defaults() {
     SuiStaffModifierMenu._defaults = SuiStaffModifierMenu._defaults ? SuiStaffModifierMenu._defaults :
     {
-      label:'Staves',
+      label:'Lines',
       menuItems: [{
         icon: 'cresc',
         text: 'Crescendo',
@@ -810,7 +810,9 @@ class SuiLanguageMenu extends suiMenuBase {
 class SuiMeasureMenu extends suiMenuBase {
   static get defaults() {
     SuiMeasureMenu._defaults = SuiMeasureMenu._defaults ? SuiMeasureMenu._defaults : {
+      label:'Measure',
       menuItems: [
+
         {
           icon: '',
           text: 'Add Measure Before',
@@ -828,6 +830,10 @@ class SuiMeasureMenu extends suiMenuBase {
           icon: '',
           text: 'Format Measure',
           value: 'formatMeasureDialog'
+        }, {
+          icon: '',
+          text: 'Cancel',
+          value: 'cancel'
         }
       ]
     }

@@ -279,6 +279,9 @@ class suiController {
 
 	evKey(evdata) {
 		var self = this;
+    if ($('body').hasClass('translation-mode')) {
+      return;
+    }
 
 		console.log("KeyboardEvent: key='" + evdata.key + "' | code='" +
 			evdata.code + "'"

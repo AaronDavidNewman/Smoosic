@@ -2,111 +2,109 @@
 var smoLanguageStringEn = `[
  {
   "ctor": "SuiLoadFileDialog",
-  "label": "Load File",
   "dialogElements": [
-   {}
+   {
+    "staticText": [
+     {
+      "label": "Load File"
+     }
+    ]
+   }
   ]
  },
  {
   "ctor": "SuiSaveFileDialog",
-  "label": "Save Score",
   "dialogElements": [
    {
-    "label": "File Name",
-    "id": "saveFileName"
+    "staticText": [
+     {
+      "label": "Save Score"
+     }
+    ]
    }
   ]
  },
  {
   "ctor": "SuiPrintFileDialog",
-  "label": "Print Complete",
-  "dialogElements": []
+  "dialogElements": [
+   {
+    "staticText": [
+     {
+      "label": "Print Complete"
+     }
+    ]
+   }
+  ]
  },
  {
   "ctor": "SuiMeasureDialog",
-  "label": "Measure Properties",
   "dialogElements": [
    {
-    "label": "Pickup Measure",
+    "staticText": [
+     {
+      "label": "Measure Properties"
+     }
+    ]
+   },
+   {
     "id": "pickupMeasure",
+    "label": "Pickup Measure",
     "options": [
      {
-      "value": 2048,
+      "value": "2048",
       "label": "Eighth Note"
      },
      {
-      "value": 4096,
+      "value": "4096",
       "label": "Quarter Note"
      },
      {
-      "value": 6144,
+      "value": "6144",
       "label": "Dotted Quarter"
      },
      {
-      "value": 8192,
+      "value": "8192",
       "label": "Half Note"
      }
     ]
    },
    {
-    "label": "Convert to Pickup Measure",
-    "id": "makePickup"
-   },
-   {
-    "label": "Pad Left (px)",
-    "id": "padLeft"
-   },
-   {
-    "label": "Stretch Contents",
-    "id": "customStretch"
-   },
-   {
-    "label": "Adjust Proportional Spacing",
-    "id": "customProportion"
-   },
-   {
-    "label": "Pad all measures in system",
-    "id": "padAllInSystem"
-   },
-   {
-    "label": "Measure Text",
-    "id": "measureText"
-   },
-   {
-    "label": "Text Position",
     "id": "measureTextPosition",
+    "label": "Text Position",
     "options": [
      {
-      "value": 2,
+      "value": "2",
       "label": "Left"
      },
      {
-      "value": 3,
+      "value": "3",
       "label": "Right"
      },
      {
-      "value": 0,
+      "value": "0",
       "label": "Above"
      },
      {
-      "value": 1,
+      "value": "1",
       "label": "Below"
      }
     ]
-   },
-   {
-    "label": "System break before this measure",
-    "id": "systemBreak"
    }
   ]
  },
  {
   "ctor": "SuiTempoDialog",
-  "label": "Tempo Properties",
   "dialogElements": [
    {
-    "label": "Tempo Mode",
+    "staticText": [
+     {
+      "label": "Tempo Properties"
+     }
+    ]
+   },
+   {
     "id": "tempoMode",
+    "label": "Tempo Mode",
     "options": [
      {
       "value": "duration",
@@ -123,34 +121,30 @@ var smoLanguageStringEn = `[
     ]
    },
    {
-    "label": "Notes/Minute",
-    "id": "bpm"
-   },
-   {
-    "label": "Unit for Beat",
     "id": "beatDuration",
+    "label": "Unit for Beat",
     "options": [
      {
-      "value": 4096,
+      "value": "4096",
       "label": "Quarter Note"
      },
      {
-      "value": 2048,
+      "value": "2048",
       "label": "1/8 note"
      },
      {
-      "value": 6144,
+      "value": "6144",
       "label": "Dotted 1/4 note"
      },
      {
-      "value": 8192,
+      "value": "8192",
       "label": "1/2 note"
      }
     ]
    },
    {
-    "label": "Tempo Text",
     "id": "tempoText",
+    "label": "Tempo Text",
     "options": [
      {
       "value": "Larghissimo",
@@ -217,39 +211,63 @@ var smoLanguageStringEn = `[
       "label": "Prestissimo"
      }
     ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiInstrumentDialog",
+  "dialogElements": [
+   {
+    "staticText": [
+     {
+      "label": "Instrument Properties"
+     }
+    ]
    },
    {
-    "label": "Apply to all future measures?",
-    "id": "applyToAll"
-   },
-   {
-    "label": "Display Tempo",
-    "id": "display"
+    "id": "applyTo",
+    "label": "Apply To",
+    "options": [
+     {
+      "value": "0",
+      "label": "Score"
+     },
+     {
+      "value": "1",
+      "label": "Selected Measures"
+     },
+     {
+      "value": "3",
+      "label": "Remaining Measures"
+     }
+    ]
    }
   ]
  },
  {
   "ctor": "SuiTimeSignatureDialog",
-  "label": "Custom Time Signature",
   "dialogElements": [
    {
-    "label": "Beats/Measure",
-    "id": "numerator"
+    "staticText": [
+     {
+      "label": "Custom Time Signature"
+     }
+    ]
    },
    {
-    "label": "Beat Value",
     "id": "denominator",
+    "label": "Beat Value",
     "options": [
      {
-      "value": 8,
+      "value": "8",
       "label": "8"
      },
      {
-      "value": 4,
+      "value": "4",
       "label": "4"
      },
      {
-      "value": 2,
+      "value": "2",
       "label": "2"
      }
     ]
@@ -258,11 +276,10 @@ var smoLanguageStringEn = `[
  },
  {
   "ctor": "SuiLayoutDialog",
-  "label": "Score Layout",
   "dialogElements": [
    {
-    "label": "Page Size",
     "id": "pageSize",
+    "label": "Page Size",
     "options": [
      {
       "value": "letter",
@@ -283,30 +300,22 @@ var smoLanguageStringEn = `[
     ]
    },
    {
-    "label": "Page Width (px)",
-    "id": "pageWidth"
-   },
-   {
-    "label": "Page Height (px)",
-    "id": "pageHeight"
-   },
-   {
-    "label": "Orientation",
     "id": "orientation",
+    "label": "Orientation",
     "options": [
      {
-      "value": 0,
+      "value": "0",
       "label": "Portrait"
      },
      {
-      "value": 1,
+      "value": "1",
       "label": "Landscape"
      }
     ]
    },
    {
-    "label": "Engraving Font",
     "id": "engravingFont",
+    "label": "Engraving Font",
     "options": [
      {
       "value": "Bravura",
@@ -323,54 +332,20 @@ var smoLanguageStringEn = `[
     ]
    },
    {
-    "label": "Left Margin (px)",
-    "id": "leftMargin"
-   },
-   {
-    "label": "Right Margin (px)",
-    "id": "rightMargin"
-   },
-   {
-    "label": "Top Margin (px)",
-    "id": "topMargin"
-   },
-   {
-    "label": "Inter-System Margin",
-    "id": "interGap"
-   },
-   {
-    "label": "Intra-System Margin",
-    "id": "intraGap"
-   },
-   {
-    "label": "% Zoom",
-    "id": "zoomScale"
-   },
-   {
-    "label": "% Note size",
-    "id": "svgScale"
+    "staticText": [
+     {
+      "label": "Score Layout"
+     }
+    ]
    }
   ]
  },
  {
   "ctor": "SuiDynamicModifierDialog",
-  "label": "Dynamics Properties",
   "dialogElements": [
    {
-    "label": "Y Line",
-    "id": "yOffsetLine"
-   },
-   {
-    "label": "Y Offset Px",
-    "id": "yOffsetPixels"
-   },
-   {
-    "label": "X Offset",
-    "id": "xOffset"
-   },
-   {
-    "label": "Text",
     "id": "text",
+    "label": "Text",
     "options": [
      {
       "value": "p",
@@ -401,126 +376,288 @@ var smoLanguageStringEn = `[
       "label": "Sforzando"
      }
     ]
+   },
+   {
+    "staticText": [
+     {
+      "label": "Dynamics Properties"
+     }
+    ]
    }
   ]
  },
  {
   "ctor": "SuiSlurAttributesDialog",
-  "label": "Slur Properties",
   "dialogElements": [
    {
-    "label": "Spacing",
-    "id": "spacing"
+    "staticText": [
+     {
+      "label": "Slur Properties"
+     }
+    ]
    },
    {
-    "label": "Thickness",
-    "id": "thickness"
-   },
-   {
-    "label": "X Offset",
-    "id": "xOffset"
-   },
-   {
-    "label": "Y Offset",
-    "id": "yOffset"
-   },
-   {
-    "label": "Start Position",
     "id": "position",
+    "label": "Start Position",
     "options": [
      {
-      "value": 1,
+      "value": "1",
       "label": "Head"
      },
      {
-      "value": 2,
+      "value": "2",
       "label": "Top"
      }
     ]
    },
    {
-    "label": "End Position",
     "id": "position_end",
+    "label": "End Position",
     "options": [
      {
-      "value": 1,
+      "value": "1",
       "label": "Head"
      },
      {
-      "value": 2,
+      "value": "2",
       "label": "Top"
      }
     ]
-   },
-   {
-    "label": "Invert",
-    "id": "invert"
-   },
-   {
-    "label": "Control Point 1 X",
-    "id": "cp1x"
-   },
-   {
-    "label": "Control Point 1 Y",
-    "id": "cp1y"
-   },
-   {
-    "label": "Control Point 2 X",
-    "id": "cp2x"
-   },
-   {
-    "label": "Control Point 2 Y",
-    "id": "cp2y"
    }
   ]
  },
  {
   "ctor": "SuiVoltaAttributeDialog",
-  "label": "Volta Properties",
   "dialogElements": [
    {
-    "label": "number",
-    "id": "number"
-   },
-   {
-    "label": "X1 Offset",
-    "id": "xOffsetStart"
-   },
-   {
-    "label": "X2 Offset",
-    "id": "xOffsetEnd"
-   },
-   {
-    "label": "Y Offset",
-    "id": "yOffset"
+    "staticText": [
+     {
+      "label": "Volta Properties"
+     }
+    ]
    }
   ]
  },
  {
   "ctor": "SuiHairpinAttributesDialog",
-  "label": "Hairpin Properties",
   "dialogElements": [
    {
-    "label": "Height",
-    "id": "height"
+    "staticText": [
+     {
+      "label": "Hairpin Properties"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiLyricDialog",
+  "dialogElements": [
+   {
+    "id": "verse",
+    "label": "Verse",
+    "options": [
+     {
+      "value": "0",
+      "label": "1"
+     },
+     {
+      "value": "1",
+      "label": "2"
+     },
+     {
+      "value": "2",
+      "label": "3"
+     }
+    ]
    },
    {
-    "label": "Y Shift",
-    "id": "yOffset"
+    "id": "textEditor",
+    "label": "Edit Text",
+    "options": []
    },
    {
-    "label": "Right Shift",
-    "id": "xOffsetRight"
+    "staticText": [
+     {
+      "doneEditing": "Done Editing Lyrics"
+     },
+     {
+      "undo": "Undo Lyrics"
+     },
+     {
+      "label": "Lyric Editor"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiChordChangeDialog",
+  "dialogElements": [
+   {
+    "id": "verse",
+    "label": "Verse",
+    "options": [
+     {
+      "value": "0",
+      "label": "1"
+     },
+     {
+      "value": "1",
+      "label": "2"
+     },
+     {
+      "value": "2",
+      "label": "3"
+     }
+    ]
    },
    {
-    "label": "Left Shift",
-    "id": "xOffsetLeft"
+    "id": "textEditor",
+    "label": "Edit Text",
+    "options": []
+   },
+   {
+    "staticText": [
+     {
+      "doneEditing": "Done Editing Lyrics"
+     },
+     {
+      "undo": "Undo Lyrics"
+     },
+     {
+      "label": "Lyric Editor"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiTextTransformDialog",
+  "dialogElements": [
+   {
+    "id": "textEditor",
+    "label": "Edit Text",
+    "options": []
+   },
+   {
+    "id": "textDragger",
+    "label": "Move Text",
+    "options": []
+   },
+   {
+    "id": "textResizer",
+    "label": "Resize Text",
+    "options": []
+   },
+   {
+    "id": "justification",
+    "label": "Justification",
+    "options": [
+     {
+      "value": "left",
+      "label": "Left"
+     },
+     {
+      "value": "right",
+      "label": "Right"
+     },
+     {
+      "value": "center",
+      "label": "Center"
+     }
+    ]
+   },
+   {
+    "id": "fontFamily",
+    "label": "Font Family",
+    "options": [
+     {
+      "value": "Merriweather,serif",
+      "label": "Serif"
+     },
+     {
+      "value": "Roboto,sans-serif",
+      "label": "Sans-Serif"
+     },
+     {
+      "value": "monospace",
+      "label": "Monospace"
+     },
+     {
+      "value": "cursive",
+      "label": "Cursive"
+     },
+     {
+      "value": "Merriweather",
+      "label": "times"
+     },
+     {
+      "value": "Arial",
+      "label": "arial"
+     },
+     {
+      "value": "Helvetica",
+      "label": "Helvetica"
+     }
+    ]
+   },
+   {
+    "id": "fontUnit",
+    "label": "Units",
+    "options": [
+     {
+      "value": "em",
+      "label": "em"
+     },
+     {
+      "value": "px",
+      "label": "px"
+     },
+     {
+      "value": "pt",
+      "label": "pt"
+     }
+    ]
+   },
+   {
+    "id": "pagination",
+    "label": "Page Behavior",
+    "options": [
+     {
+      "value": "once",
+      "label": "Once"
+     },
+     {
+      "value": "every",
+      "label": "Every"
+     },
+     {
+      "value": "even",
+      "label": "Even"
+     },
+     {
+      "value": "odd",
+      "label": "Odd"
+     },
+     {
+      "value": "subsequent",
+      "label": "Subsequent"
+     }
+    ]
+   },
+   {
+    "staticText": [
+     {
+      "label": "Text Properties"
+     }
+    ]
    }
   ]
  },
  {
   "ctor": "SuiAddStaffMenu",
-  "label":"Staves",
+  "label": "Staves",
   "menuItems": [
    {
     "value": "trebleInstrument",
@@ -549,8 +686,34 @@ var smoLanguageStringEn = `[
   ]
  },
  {
+  "ctor": "SuiMeasureMenu",
+  "label": "Measure",
+  "menuItems": [
+   {
+    "value": "addMenuBeforeCmd",
+    "text": "Add Measure Before"
+   },
+   {
+    "value": "addMenuAfterCmd",
+    "text": "Add Measure After"
+   },
+   {
+    "value": "deleteSelected",
+    "text": "Delete Selected Measures"
+   },
+   {
+    "value": "formatMeasureDialog",
+    "text": "Format Measure"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+ {
   "ctor": "SuiFileMenu",
-  "label":"File",
+  "label": "File",
   "menuItems": [
    {
     "value": "newFile",
@@ -587,6 +750,10 @@ var smoLanguageStringEn = `[
    {
     "value": "preciousLord",
     "text": "Precious Lord"
+   },
+   {
+    "value": "yamaJson",
+    "text": "Yama"
    },
    {
     "value": "cancel",
@@ -696,6 +863,7 @@ var smoLanguageStringEn = `[
  },
  {
   "ctor": "SuiTimeSignatureMenu",
+  "label": "Time Signature",
   "menuItems": [
    {
     "value": "6/8",
@@ -733,6 +901,7 @@ var smoLanguageStringEn = `[
  },
  {
   "ctor": "SuiKeySignatureMenu",
+  "label": "Key",
   "menuItems": [
    {
     "value": "KeyOfC",
@@ -785,51 +954,6 @@ var smoLanguageStringEn = `[
    {
     "value": "KeyOfC#",
     "text": "C# Major"
-   },
-   {
-    "value": "cancel",
-    "text": "Cancel"
-   }
-  ]
- },
- {
-  "ctor": "SuiFileMenu",
-  "menuItems": [
-   {
-    "value": "newFile",
-    "text": "New Score"
-   },
-   {
-    "value": "openFile",
-    "text": "Open"
-   },
-   {
-    "value": "saveFile",
-    "text": "Save"
-   },
-   {
-    "value": "quickSave",
-    "text": "Quick Save"
-   },
-   {
-    "value": "printScore",
-    "text": "Print"
-   },
-   {
-    "value": "bach",
-    "text": "Bach Invention"
-   },
-   {
-    "value": "bambino",
-    "text": "Jesu Bambino"
-   },
-   {
-    "value": "microtone",
-    "text": "Microtone Sample"
-   },
-   {
-    "value": "preciousLord",
-    "text": "Precious Lord"
    },
    {
     "value": "cancel",
@@ -898,6 +1022,120 @@ var smoLanguageStringEn = `[
    {
     "value": "cancel",
     "text": "Cancel"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiLanguageMenu",
+  "label": "Language",
+  "menuItems": [
+   {
+    "value": "en",
+    "text": "English"
+   },
+   {
+    "value": "de",
+    "text": "Deutsch"
+   },
+   {
+    "value": "ar",
+    "text": "اَلْعَرَبِيَّةُ"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+ {
+  "ribbonText": [
+   {
+    "buttonId": "helpDialog",
+    "buttonText": "Help"
+   },
+   {
+    "buttonId": "languageMenu",
+    "buttonText": "Language"
+   },
+   {
+    "buttonId": "fileMenu",
+    "buttonText": "File"
+   },
+   {
+    "buttonId": "addStaffMenu",
+    "buttonText": "Staves"
+   },
+   {
+    "buttonId": "measureModal",
+    "buttonText": "Measure"
+   },
+   {
+    "buttonId": "tempoModal",
+    "buttonText": "Tempo"
+   },
+   {
+    "buttonId": "timeSignatureMenu",
+    "buttonText": "Time Signature"
+   },
+   {
+    "buttonId": "keyMenu",
+    "buttonText": "Key"
+   },
+   {
+    "buttonId": "staffModifierMenu",
+    "buttonText": "Lines"
+   },
+   {
+    "buttonId": "instrumentModal",
+    "buttonText": "Instrument"
+   },
+   {
+    "buttonId": "pianoModal",
+    "buttonText": "Piano"
+   },
+   {
+    "buttonId": "layoutModal",
+    "buttonText": "Layout"
+   },
+   {
+    "buttonId": "UpOctaveButton",
+    "buttonText": "8va"
+   },
+   {
+    "buttonId": "DownOctaveButton",
+    "buttonText": "8vb"
+   },
+   {
+    "buttonId": "moreNavButtons",
+    "buttonText": "..."
+   },
+   {
+    "buttonId": "dcAlCoda",
+    "buttonText": "DC Al Coda"
+   },
+   {
+    "buttonId": "dsAlCoda",
+    "buttonText": "DS Al Coda"
+   },
+   {
+    "buttonId": "dcAlFine",
+    "buttonText": "DC Al Fine"
+   },
+   {
+    "buttonId": "dsAlFine",
+    "buttonText": "DS Al Fine"
+   },
+   {
+    "buttonId": "toCoda",
+    "buttonText": "to "
+   },
+   {
+    "buttonId": "fine",
+    "buttonText": "Fine"
+   },
+   {
+    "buttonId": "moreStaffButtons",
+    "buttonText": "..."
    }
   ]
  }

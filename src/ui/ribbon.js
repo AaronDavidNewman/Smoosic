@@ -18,6 +18,12 @@ class RibbonButtons {
 					b('span').classes('ribbon-button-hotkey').text(buttonKey)));
 		return r.dom();
 	}
+  static get translateButtons() {
+    if (!RibbonButtons._translateButtons) {
+      RibbonButtons._translateButtons = [];
+    }
+    return RibbonButtons._translateButtons;
+  }
 	constructor(parameters) {
 		smoSerialize.filteredMerge(RibbonButtons.paramArray, parameters, this);
 		this.ribbonButtons = parameters.ribbonButtons;
@@ -108,6 +114,11 @@ class RibbonButtons {
 					return e.id === buttonId;
 				});
 			if (buttonData) {
+        if (buttonData.leftText) {
+          RibbonButtons.translateButtons.push({buttonId:buttonData.id,
+            buttonText:buttonData.leftText});
+        }
+
         // collapse child is hidden until the parent button is selected, exposing the button group
 				if (RibbonButtons.isCollapsible(buttonData.action)) {
 					this.collapseChildren.push(buttonData);

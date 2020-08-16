@@ -3,125 +3,108 @@ var smoLanguageStringDe = `[
  {
   "ctor": "SuiLoadFileDialog",
   "dialogElements": [
-   { "staticText": [
-     { "label": "Datei laden" }
-     ]
+   {
+    "staticText": [
+     {
+      "label": "Datei laden"
+     }
+    ]
    }
- ]
+  ]
  },
  {
   "ctor": "SuiSaveFileDialog",
   "dialogElements": [
    {
-    "label": "File Name",
-    "id": "saveFileName"
-  }, {
-    "staticText" : [
-      { "label":"Score speichern" }
+    "staticText": [
+     {
+      "label": "Score speichern"
+     }
     ]
-    }
-
+   }
   ]
  },
  {
   "ctor": "SuiPrintFileDialog",
-  "dialogElements": [{
-    "staticText": [{ "label" : "Druck abgeschlossen" }]
-  }]
+  "dialogElements": [
+   {
+    "staticText": [
+     {
+      "label": "Druck abgeschlossen"
+     }
+    ]
+   }
+  ]
  },
  {
   "ctor": "SuiMeasureDialog",
   "dialogElements": [
-    { "staticText" : [
-      { "label": "Takt Voreinstellungen" }
-    ]
-  },
    {
-    "label": "Takt Pickup",
+    "staticText": [
+     {
+      "label": "Takt Voreinstellungen"
+     }
+    ]
+   },
+   {
     "id": "pickupMeasure",
+    "label": "Takt Pickup",
     "options": [
      {
-      "value": 2048,
-      "label": "1/8 Note"
+      "value": "2048",
+      "label": "Eighth Note"
      },
      {
-      "value": 4096,
-      "label": "1/4 Note"
+      "value": "4096",
+      "label": "Quarter Note"
      },
      {
-      "value": 6144,
-      "label": "punktierte 1/4 Note"
+      "value": "6144",
+      "label": "Dotted Quarter"
      },
      {
-      "value": 8192,
-      "label": "1/2 Note"
+      "value": "8192",
+      "label": "Half Note"
      }
     ]
    },
    {
-    "label": "Konvertiere zu Takt Pickup",
-    "id": "makePickup"
-   },
-   {
-    "label": "Pad Left (px)",
-    "id": "padLeft"
-   },
-   {
-    "label": "Inhalte strecken",
-    "id": "customStretch"
-   },
-   {
-    "label": "Zwischenräume proportional anpassen",
-    "id": "customProportion"
-   },
-   {
-    "label": "Alle Takte auffüllen",
-    "id": "padAllInSystem"
-   },
-   {
-    "label": "Takt Text",
-    "id": "measureText"
-   },
-   {
-    "label": "Text Position",
     "id": "measureTextPosition",
+    "label": "Text Position",
     "options": [
      {
-      "value": 2,
-      "label": "Links"
+      "value": "2",
+      "label": "Left"
      },
      {
-      "value": 3,
-      "label": "Rechts"
+      "value": "3",
+      "label": "Right"
      },
      {
-      "value": 0,
-      "label": "Oben"
+      "value": "0",
+      "label": "Above"
      },
      {
-      "value": 1,
-      "label": "Unten"
+      "value": "1",
+      "label": "Below"
      }
     ]
-   },
-   {
-    "label": "Seitenumbruch vor diesem Takt",
-    "id": "systemBreak"
    }
   ]
  },
  {
   "ctor": "SuiTempoDialog",
-  "label": "Tempo Voreinstellungen",
   "dialogElements": [
-    {"staticText" : [
-      {"label" : "Tempo Voreinstellungen"}
-    ]
-
-  },
    {
-    "label": "Tempo Modus",
+    "staticText": [
+     {
+      "label": "Tempo Voreinstellungen"
+     }
+    ]
+   },
+   {
     "id": "tempoMode",
+    "label": "Tempo Modus",
     "options": [
      {
       "value": "duration",
@@ -138,34 +121,30 @@ var smoLanguageStringDe = `[
     ]
    },
    {
-    "label": "Beats/Minute",
-    "id": "bpm"
-   },
-   {
-    "label": "Einheit für Beat",
     "id": "beatDuration",
+    "label": "Einheit für Beat",
     "options": [
      {
-      "value": 4096,
-      "label": "1/4 Note"
+      "value": "4096",
+      "label": "Quarter Note"
      },
      {
-      "value": 2048,
-      "label": "1/8 Note"
+      "value": "2048",
+      "label": "1/8 note"
      },
      {
-      "value": 6144,
-      "label": "punktierte 1/4 Note"
+      "value": "6144",
+      "label": "Dotted 1/4 note"
      },
      {
-      "value": 8192,
-      "label": "1/2 Note"
+      "value": "8192",
+      "label": "1/2 note"
      }
     ]
    },
    {
-    "label": "Tempo Text",
     "id": "tempoText",
+    "label": "Tempo Text",
     "options": [
      {
       "value": "Larghissimo",
@@ -232,39 +211,63 @@ var smoLanguageStringDe = `[
       "label": "Prestissimo"
      }
     ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiInstrumentDialog",
+  "dialogElements": [
+   {
+    "staticText": [
+     {
+      "label": "Instrument Properties"
+     }
+    ]
    },
    {
-    "label": "Apply to all future measures?",
-    "id": "applyToAll"
-   },
-   {
-    "label": "Display Tempo",
-    "id": "display"
+    "id": "applyTo",
+    "label": "Apply To",
+    "options": [
+     {
+      "value": "0",
+      "label": "Score"
+     },
+     {
+      "value": "1",
+      "label": "Selected Measures"
+     },
+     {
+      "value": "3",
+      "label": "Remaining Measures"
+     }
+    ]
    }
   ]
  },
  {
   "ctor": "SuiTimeSignatureDialog",
-  "label": "benutzerdefinierte Taktmessung",
   "dialogElements": [
    {
-    "label": "Beats/Measure",
-    "id": "numerator"
+    "staticText": [
+     {
+      "label": "Custom Time Signature"
+     }
+    ]
    },
    {
-    "label": "Beat Value",
     "id": "denominator",
+    "label": "Beat Value",
     "options": [
      {
-      "value": 8,
+      "value": "8",
       "label": "8"
      },
      {
-      "value": 4,
+      "value": "4",
       "label": "4"
      },
      {
-      "value": 2,
+      "value": "2",
       "label": "2"
      }
     ]
@@ -273,11 +276,10 @@ var smoLanguageStringDe = `[
  },
  {
   "ctor": "SuiLayoutDialog",
-  "label": "Score Layout",
   "dialogElements": [
    {
-    "label": "Seitengröße",
     "id": "pageSize",
+    "label": "Seitengröße",
     "options": [
      {
       "value": "letter",
@@ -298,30 +300,22 @@ var smoLanguageStringDe = `[
     ]
    },
    {
-    "label": "Seitenbreite (px)",
-    "id": "pageWidth"
-   },
-   {
-    "label": "Seitenhöhe (px)",
-    "id": "pageHeight"
-   },
-   {
-    "label": "Ausrichtung",
     "id": "orientation",
+    "label": "Ausrichtung",
     "options": [
      {
-      "value": 0,
-      "label": "Hochformat"
+      "value": "0",
+      "label": "Portrait"
      },
      {
-      "value": 1,
-      "label": "Querformat"
+      "value": "1",
+      "label": "Landscape"
      }
     ]
    },
    {
-    "label": "Schriftart",
     "id": "engravingFont",
+    "label": "Schriftart",
     "options": [
      {
       "value": "Bravura",
@@ -338,54 +332,20 @@ var smoLanguageStringDe = `[
     ]
    },
    {
-    "label": "Einzug links (px)",
-    "id": "leftMargin"
-   },
-   {
-    "label": "Einzug rechts (px)",
-    "id": "rightMargin"
-   },
-   {
-    "label": "Einzug oben (px)",
-    "id": "topMargin"
-   },
-   {
-    "label": "Inter-System Margin",
-    "id": "interGap"
-   },
-   {
-    "label": "Intra-System Margin",
-    "id": "intraGap"
-   },
-   {
-    "label": "% Zoom",
-    "id": "zoomScale"
-   },
-   {
-    "label": "% Notengröße",
-    "id": "svgScale"
+    "staticText": [
+     {
+      "label": "Score Layout"
+     }
+    ]
    }
   ]
  },
  {
   "ctor": "SuiDynamicModifierDialog",
-  "label": "Dynamics Voreinstellungen",
   "dialogElements": [
    {
-    "label": "Y Linie",
-    "id": "yOffsetLine"
-   },
-   {
-    "label": "Y Offset Px",
-    "id": "yOffsetPixels"
-   },
-   {
-    "label": "X Offset",
-    "id": "xOffset"
-   },
-   {
-    "label": "Text",
     "id": "text",
+    "label": "Text",
     "options": [
      {
       "value": "p",
@@ -416,126 +376,288 @@ var smoLanguageStringDe = `[
       "label": "Sforzando"
      }
     ]
+   },
+   {
+    "staticText": [
+     {
+      "label": "Dynamics Properties"
+     }
+    ]
    }
   ]
  },
  {
   "ctor": "SuiSlurAttributesDialog",
-  "label": "Bogen Properties",
   "dialogElements": [
    {
-    "label": "Abstand",
-    "id": "spacing"
+    "staticText": [
+     {
+      "label": "Slur Properties"
+     }
+    ]
    },
    {
-    "label": "Stärke",
-    "id": "thickness"
-   },
-   {
-    "label": "X Offset",
-    "id": "xOffset"
-   },
-   {
-    "label": "Y Offset",
-    "id": "yOffset"
-   },
-   {
-    "label": "Startposition",
     "id": "position",
+    "label": "Startposition",
     "options": [
      {
-      "value": 1,
+      "value": "1",
       "label": "Head"
      },
      {
-      "value": 2,
+      "value": "2",
       "label": "Top"
      }
     ]
    },
    {
-    "label": "Endposition",
     "id": "position_end",
+    "label": "Endposition",
     "options": [
      {
-      "value": 1,
+      "value": "1",
       "label": "Head"
      },
      {
-      "value": 2,
+      "value": "2",
       "label": "Top"
      }
     ]
-   },
-   {
-    "label": "Umkehren",
-    "id": "invert"
-   },
-   {
-    "label": "Kontrollpunkt 1 X",
-    "id": "cp1x"
-   },
-   {
-    "label": "Kontrollpunkt 1 Y",
-    "id": "cp1y"
-   },
-   {
-    "label": "Kontrollpunkt 2 X",
-    "id": "cp2x"
-   },
-   {
-    "label": "Kontrollpunkt 2 Y",
-    "id": "cp2y"
    }
   ]
  },
  {
   "ctor": "SuiVoltaAttributeDialog",
-  "label": "Wiederholungsklammern Einstellungen",
   "dialogElements": [
    {
-    "label": "number",
-    "id": "Nummer"
-   },
-   {
-    "label": "X1 Offset",
-    "id": "xOffsetStart"
-   },
-   {
-    "label": "X2 Offset",
-    "id": "xOffsetEnd"
-   },
-   {
-    "label": "Y Offset",
-    "id": "yOffset"
+    "staticText": [
+     {
+      "label": "Volta Properties"
+     }
+    ]
    }
   ]
  },
  {
   "ctor": "SuiHairpinAttributesDialog",
-  "label": "Haarnadel Einstellungen",
   "dialogElements": [
    {
-    "label": "Höhe",
-    "id": "height"
+    "staticText": [
+     {
+      "label": "Hairpin Properties"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiLyricDialog",
+  "dialogElements": [
+   {
+    "id": "verse",
+    "label": "Verse",
+    "options": [
+     {
+      "value": "0",
+      "label": "1"
+     },
+     {
+      "value": "1",
+      "label": "2"
+     },
+     {
+      "value": "2",
+      "label": "3"
+     }
+    ]
    },
    {
-    "label": "Y Shift",
-    "id": "yOffset"
+    "id": "textEditor",
+    "label": "Edit Text",
+    "options": []
    },
    {
-    "label": "Right Shift",
-    "id": "xOffsetRight"
+    "staticText": [
+     {
+      "doneEditing": "Done Editing Lyrics"
+     },
+     {
+      "undo": "Undo Lyrics"
+     },
+     {
+      "label": "Lyric Editor"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiChordChangeDialog",
+  "dialogElements": [
+   {
+    "id": "verse",
+    "label": "Verse",
+    "options": [
+     {
+      "value": "0",
+      "label": "1"
+     },
+     {
+      "value": "1",
+      "label": "2"
+     },
+     {
+      "value": "2",
+      "label": "3"
+     }
+    ]
    },
    {
-    "label": "Left Shift",
-    "id": "xOffsetLeft"
+    "id": "textEditor",
+    "label": "Edit Text",
+    "options": []
+   },
+   {
+    "staticText": [
+     {
+      "doneEditing": "Done Editing Lyrics"
+     },
+     {
+      "undo": "Undo Lyrics"
+     },
+     {
+      "label": "Lyric Editor"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiTextTransformDialog",
+  "dialogElements": [
+   {
+    "id": "textEditor",
+    "label": "Edit Text",
+    "options": []
+   },
+   {
+    "id": "textDragger",
+    "label": "Move Text",
+    "options": []
+   },
+   {
+    "id": "textResizer",
+    "label": "Resize Text",
+    "options": []
+   },
+   {
+    "id": "justification",
+    "label": "Justification",
+    "options": [
+     {
+      "value": "left",
+      "label": "Left"
+     },
+     {
+      "value": "right",
+      "label": "Right"
+     },
+     {
+      "value": "center",
+      "label": "Center"
+     }
+    ]
+   },
+   {
+    "id": "fontFamily",
+    "label": "Font Family",
+    "options": [
+     {
+      "value": "Merriweather,serif",
+      "label": "Serif"
+     },
+     {
+      "value": "Roboto,sans-serif",
+      "label": "Sans-Serif"
+     },
+     {
+      "value": "monospace",
+      "label": "Monospace"
+     },
+     {
+      "value": "cursive",
+      "label": "Cursive"
+     },
+     {
+      "value": "Merriweather",
+      "label": "times"
+     },
+     {
+      "value": "Arial",
+      "label": "arial"
+     },
+     {
+      "value": "Helvetica",
+      "label": "Helvetica"
+     }
+    ]
+   },
+   {
+    "id": "fontUnit",
+    "label": "Units",
+    "options": [
+     {
+      "value": "em",
+      "label": "em"
+     },
+     {
+      "value": "px",
+      "label": "px"
+     },
+     {
+      "value": "pt",
+      "label": "pt"
+     }
+    ]
+   },
+   {
+    "id": "pagination",
+    "label": "Page Behavior",
+    "options": [
+     {
+      "value": "once",
+      "label": "Once"
+     },
+     {
+      "value": "every",
+      "label": "Every"
+     },
+     {
+      "value": "even",
+      "label": "Even"
+     },
+     {
+      "value": "odd",
+      "label": "Odd"
+     },
+     {
+      "value": "subsequent",
+      "label": "Subsequent"
+     }
+    ]
+   },
+   {
+    "staticText": [
+     {
+      "label": "Text Properties"
+     }
+    ]
    }
   ]
  },
  {
   "ctor": "SuiAddStaffMenu",
-  "label":"Notenschlüssel",
+  "label": "Notenschlüssel",
   "menuItems": [
    {
     "value": "trebleInstrument",
@@ -564,8 +686,34 @@ var smoLanguageStringDe = `[
   ]
  },
  {
+  "ctor": "SuiMeasureMenu",
+  "label": "Measure",
+  "menuItems": [
+   {
+    "value": "addMenuBeforeCmd",
+    "text": "Add Measure Before"
+   },
+   {
+    "value": "addMenuAfterCmd",
+    "text": "Add Measure After"
+   },
+   {
+    "value": "deleteSelected",
+    "text": "Delete Selected Measures"
+   },
+   {
+    "value": "formatMeasureDialog",
+    "text": "Format Measure"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+ {
   "ctor": "SuiFileMenu",
-  "label":"Datei",
+  "label": "Datei",
   "menuItems": [
    {
     "value": "newFile",
@@ -602,6 +750,10 @@ var smoLanguageStringDe = `[
    {
     "value": "preciousLord",
     "text": "Precious Lord"
+   },
+   {
+    "value": "yamaJson",
+    "text": "Yama"
    },
    {
     "value": "cancel",
@@ -711,6 +863,7 @@ var smoLanguageStringDe = `[
  },
  {
   "ctor": "SuiTimeSignatureMenu",
+  "label": "Taktzeit",
   "menuItems": [
    {
     "value": "6/8",
@@ -748,6 +901,7 @@ var smoLanguageStringDe = `[
  },
  {
   "ctor": "SuiKeySignatureMenu",
+  "label": "Tonlage",
   "menuItems": [
    {
     "value": "KeyOfC",
@@ -808,51 +962,6 @@ var smoLanguageStringDe = `[
   ]
  },
  {
-  "ctor": "SuiFileMenu",
-  "menuItems": [
-   {
-    "value": "newFile",
-    "text": "Neu"
-   },
-   {
-    "value": "openFile",
-    "text": "Öffnen"
-   },
-   {
-    "value": "saveFile",
-    "text": "Speichern"
-   },
-   {
-    "value": "quickSave",
-    "text": "Schnellspeichern"
-   },
-   {
-    "value": "printScore",
-    "text": "Drucken"
-   },
-   {
-    "value": "bach",
-    "text": "Bach Invention"
-   },
-   {
-    "value": "bambino",
-    "text": "Jesu Bambino"
-   },
-   {
-    "value": "microtone",
-    "text": "Microtone Sample"
-   },
-   {
-    "value": "preciousLord",
-    "text": "Precious Lord"
-   },
-   {
-    "value": "cancel",
-    "text": "Abbrechen"
-   }
-  ]
- },
- {
   "ctor": "SuiStaffModifierMenu",
   "label": "Lines",
   "menuItems": [
@@ -880,7 +989,7 @@ var smoLanguageStringDe = `[
  },
  {
   "ctor": "SuiDynamicsMenu",
-  "label" : "Dynamics",
+  "label": "Dynamics",
   "menuItems": [
    {
     "value": "pp",
@@ -913,6 +1022,120 @@ var smoLanguageStringDe = `[
    {
     "value": "cancel",
     "text": "Abbrechen"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiLanguageMenu",
+  "label": "Language",
+  "menuItems": [
+   {
+    "value": "en",
+    "text": "English"
+   },
+   {
+    "value": "de",
+    "text": "Deutsch"
+   },
+   {
+    "value": "ar",
+    "text": "اَلْعَرَبِيَّةُ"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+ {
+  "ribbonText": [
+   {
+    "buttonId": "helpDialog",
+    "buttonText": "(de)Help"
+   },
+   {
+    "buttonId": "languageMenu",
+    "buttonText": "Language"
+   },
+   {
+    "buttonId": "fileMenu",
+    "buttonText": "File"
+   },
+   {
+    "buttonId": "addStaffMenu",
+    "buttonText": "Staves"
+   },
+   {
+    "buttonId": "measureModal",
+    "buttonText": "Measure"
+   },
+   {
+    "buttonId": "tempoModal",
+    "buttonText": "Tempo"
+   },
+   {
+    "buttonId": "timeSignatureMenu",
+    "buttonText": "Time Signature"
+   },
+   {
+    "buttonId": "keyMenu",
+    "buttonText": "Key"
+   },
+   {
+    "buttonId": "staffModifierMenu",
+    "buttonText": "Lines"
+   },
+   {
+    "buttonId": "instrumentModal",
+    "buttonText": "Instrument"
+   },
+   {
+    "buttonId": "pianoModal",
+    "buttonText": "Piano"
+   },
+   {
+    "buttonId": "layoutModal",
+    "buttonText": "Layout"
+   },
+   {
+    "buttonId": "UpOctaveButton",
+    "buttonText": "8va"
+   },
+   {
+    "buttonId": "DownOctaveButton",
+    "buttonText": "8vb"
+   },
+   {
+    "buttonId": "moreNavButtons",
+    "buttonText": "..."
+   },
+   {
+    "buttonId": "dcAlCoda",
+    "buttonText": "DC Al Coda"
+   },
+   {
+    "buttonId": "dsAlCoda",
+    "buttonText": "DS Al Coda"
+   },
+   {
+    "buttonId": "dcAlFine",
+    "buttonText": "DC Al Fine"
+   },
+   {
+    "buttonId": "dsAlFine",
+    "buttonText": "DS Al Fine"
+   },
+   {
+    "buttonId": "toCoda",
+    "buttonText": "to "
+   },
+   {
+    "buttonId": "fine",
+    "buttonText": "Fine"
+   },
+   {
+    "buttonId": "moreStaffButtons",
+    "buttonText": "..."
    }
   ]
  }
