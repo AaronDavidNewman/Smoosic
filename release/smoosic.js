@@ -2,111 +2,109 @@
 var smoLanguageStringDe = `[
  {
   "ctor": "SuiLoadFileDialog",
-  "label": "Datei laden",
   "dialogElements": [
-   {}
+   {
+    "staticText": [
+     {
+      "label": "Datei laden"
+     }
+    ]
+   }
   ]
  },
  {
   "ctor": "SuiSaveFileDialog",
-  "label": "Score speichern",
   "dialogElements": [
    {
-    "label": "File Name",
-    "id": "saveFileName"
+    "staticText": [
+     {
+      "label": "Score speichern"
+     }
+    ]
    }
   ]
  },
  {
   "ctor": "SuiPrintFileDialog",
-  "label": "Druck abgeschlossen",
-  "dialogElements": []
+  "dialogElements": [
+   {
+    "staticText": [
+     {
+      "label": "Druck abgeschlossen"
+     }
+    ]
+   }
+  ]
  },
  {
   "ctor": "SuiMeasureDialog",
-  "label": "Takt Voreinstellungen",
   "dialogElements": [
    {
-    "label": "Takt Pickup",
+    "staticText": [
+     {
+      "label": "Takt Voreinstellungen"
+     }
+    ]
+   },
+   {
     "id": "pickupMeasure",
+    "label": "Takt Pickup",
     "options": [
      {
-      "value": 2048,
-      "label": "1/8 Note"
+      "value": "2048",
+      "label": "Eighth Note"
      },
      {
-      "value": 4096,
-      "label": "1/4 Note"
+      "value": "4096",
+      "label": "Quarter Note"
      },
      {
-      "value": 6144,
-      "label": "punktierte 1/4 Note"
+      "value": "6144",
+      "label": "Dotted Quarter"
      },
      {
-      "value": 8192,
-      "label": "1/2 Note"
+      "value": "8192",
+      "label": "Half Note"
      }
     ]
    },
    {
-    "label": "Konvertiere zu Takt Pickup",
-    "id": "makePickup"
-   },
-   {
-    "label": "Pad Left (px)",
-    "id": "padLeft"
-   },
-   {
-    "label": "Inhalte strecken",
-    "id": "customStretch"
-   },
-   {
-    "label": "Zwischenräume proportional anpassen",
-    "id": "customProportion"
-   },
-   {
-    "label": "Alle Takte auffüllen",
-    "id": "padAllInSystem"
-   },
-   {
-    "label": "Takt Text",
-    "id": "measureText"
-   },
-   {
-    "label": "Text Position",
     "id": "measureTextPosition",
+    "label": "Text Position",
     "options": [
      {
-      "value": 2,
-      "label": "Links"
+      "value": "2",
+      "label": "Left"
      },
      {
-      "value": 3,
-      "label": "Rechts"
+      "value": "3",
+      "label": "Right"
      },
      {
-      "value": 0,
-      "label": "Oben"
+      "value": "0",
+      "label": "Above"
      },
      {
-      "value": 1,
-      "label": "Unten"
+      "value": "1",
+      "label": "Below"
      }
     ]
-   },
-   {
-    "label": "Seitenumbruch vor diesem Takt",
-    "id": "systemBreak"
    }
   ]
  },
  {
   "ctor": "SuiTempoDialog",
-  "label": "Tempo Voreinstellungen",
   "dialogElements": [
    {
-    "label": "Tempo Modus",
+    "staticText": [
+     {
+      "label": "Tempo Voreinstellungen"
+     }
+    ]
+   },
+   {
     "id": "tempoMode",
+    "label": "Tempo Modus",
     "options": [
      {
       "value": "duration",
@@ -123,34 +121,30 @@ var smoLanguageStringDe = `[
     ]
    },
    {
-    "label": "Beats/Minute",
-    "id": "bpm"
-   },
-   {
-    "label": "Einheit für Beat",
     "id": "beatDuration",
+    "label": "Einheit für Beat",
     "options": [
      {
-      "value": 4096,
-      "label": "1/4 Note"
+      "value": "4096",
+      "label": "Quarter Note"
      },
      {
-      "value": 2048,
-      "label": "1/8 Note"
+      "value": "2048",
+      "label": "1/8 note"
      },
      {
-      "value": 6144,
-      "label": "punktierte 1/4 Note"
+      "value": "6144",
+      "label": "Dotted 1/4 note"
      },
      {
-      "value": 8192,
-      "label": "1/2 Note"
+      "value": "8192",
+      "label": "1/2 note"
      }
     ]
    },
    {
-    "label": "Tempo Text",
     "id": "tempoText",
+    "label": "Tempo Text",
     "options": [
      {
       "value": "Larghissimo",
@@ -217,39 +211,63 @@ var smoLanguageStringDe = `[
       "label": "Prestissimo"
      }
     ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiInstrumentDialog",
+  "dialogElements": [
+   {
+    "staticText": [
+     {
+      "label": "Instrument Properties"
+     }
+    ]
    },
    {
-    "label": "Apply to all future measures?",
-    "id": "applyToAll"
-   },
-   {
-    "label": "Display Tempo",
-    "id": "display"
+    "id": "applyTo",
+    "label": "Apply To",
+    "options": [
+     {
+      "value": "0",
+      "label": "Score"
+     },
+     {
+      "value": "1",
+      "label": "Selected Measures"
+     },
+     {
+      "value": "3",
+      "label": "Remaining Measures"
+     }
+    ]
    }
   ]
  },
  {
   "ctor": "SuiTimeSignatureDialog",
-  "label": "benutzerdefinierte Taktmessung",
   "dialogElements": [
    {
-    "label": "Beats/Measure",
-    "id": "numerator"
+    "staticText": [
+     {
+      "label": "Custom Time Signature"
+     }
+    ]
    },
    {
-    "label": "Beat Value",
     "id": "denominator",
+    "label": "Beat Value",
     "options": [
      {
-      "value": 8,
+      "value": "8",
       "label": "8"
      },
      {
-      "value": 4,
+      "value": "4",
       "label": "4"
      },
      {
-      "value": 2,
+      "value": "2",
       "label": "2"
      }
     ]
@@ -258,11 +276,10 @@ var smoLanguageStringDe = `[
  },
  {
   "ctor": "SuiLayoutDialog",
-  "label": "Score Layout",
   "dialogElements": [
    {
-    "label": "Seitengröße",
     "id": "pageSize",
+    "label": "Seitengröße",
     "options": [
      {
       "value": "letter",
@@ -283,30 +300,22 @@ var smoLanguageStringDe = `[
     ]
    },
    {
-    "label": "Seitenbreite (px)",
-    "id": "pageWidth"
-   },
-   {
-    "label": "Seitenhöhe (px)",
-    "id": "pageHeight"
-   },
-   {
-    "label": "Ausrichtung",
     "id": "orientation",
+    "label": "Ausrichtung",
     "options": [
      {
-      "value": 0,
-      "label": "Hochformat"
+      "value": "0",
+      "label": "Portrait"
      },
      {
-      "value": 1,
-      "label": "Querformat"
+      "value": "1",
+      "label": "Landscape"
      }
     ]
    },
    {
-    "label": "Schriftart",
     "id": "engravingFont",
+    "label": "Schriftart",
     "options": [
      {
       "value": "Bravura",
@@ -323,54 +332,20 @@ var smoLanguageStringDe = `[
     ]
    },
    {
-    "label": "Einzug links (px)",
-    "id": "leftMargin"
-   },
-   {
-    "label": "Einzug rechts (px)",
-    "id": "rightMargin"
-   },
-   {
-    "label": "Einzug oben (px)",
-    "id": "topMargin"
-   },
-   {
-    "label": "Inter-System Margin",
-    "id": "interGap"
-   },
-   {
-    "label": "Intra-System Margin",
-    "id": "intraGap"
-   },
-   {
-    "label": "% Zoom",
-    "id": "zoomScale"
-   },
-   {
-    "label": "% Notengröße",
-    "id": "svgScale"
+    "staticText": [
+     {
+      "label": "Score Layout"
+     }
+    ]
    }
   ]
  },
  {
   "ctor": "SuiDynamicModifierDialog",
-  "label": "Dynamics Voreinstellungen",
   "dialogElements": [
    {
-    "label": "Y Linie",
-    "id": "yOffsetLine"
-   },
-   {
-    "label": "Y Offset Px",
-    "id": "yOffsetPixels"
-   },
-   {
-    "label": "X Offset",
-    "id": "xOffset"
-   },
-   {
-    "label": "Text",
     "id": "text",
+    "label": "Text",
     "options": [
      {
       "value": "p",
@@ -401,126 +376,288 @@ var smoLanguageStringDe = `[
       "label": "Sforzando"
      }
     ]
+   },
+   {
+    "staticText": [
+     {
+      "label": "Dynamics Properties"
+     }
+    ]
    }
   ]
  },
  {
   "ctor": "SuiSlurAttributesDialog",
-  "label": "Bogen Properties",
   "dialogElements": [
    {
-    "label": "Abstand",
-    "id": "spacing"
+    "staticText": [
+     {
+      "label": "Slur Properties"
+     }
+    ]
    },
    {
-    "label": "Stärke",
-    "id": "thickness"
-   },
-   {
-    "label": "X Offset",
-    "id": "xOffset"
-   },
-   {
-    "label": "Y Offset",
-    "id": "yOffset"
-   },
-   {
-    "label": "Startposition",
     "id": "position",
+    "label": "Startposition",
     "options": [
      {
-      "value": 1,
+      "value": "1",
       "label": "Head"
      },
      {
-      "value": 2,
+      "value": "2",
       "label": "Top"
      }
     ]
    },
    {
-    "label": "Endposition",
     "id": "position_end",
+    "label": "Endposition",
     "options": [
      {
-      "value": 1,
+      "value": "1",
       "label": "Head"
      },
      {
-      "value": 2,
+      "value": "2",
       "label": "Top"
      }
     ]
-   },
-   {
-    "label": "Umkehren",
-    "id": "invert"
-   },
-   {
-    "label": "Kontrollpunkt 1 X",
-    "id": "cp1x"
-   },
-   {
-    "label": "Kontrollpunkt 1 Y",
-    "id": "cp1y"
-   },
-   {
-    "label": "Kontrollpunkt 2 X",
-    "id": "cp2x"
-   },
-   {
-    "label": "Kontrollpunkt 2 Y",
-    "id": "cp2y"
    }
   ]
  },
  {
   "ctor": "SuiVoltaAttributeDialog",
-  "label": "Wiederholungsklammern Einstellungen",
   "dialogElements": [
    {
-    "label": "number",
-    "id": "Nummer"
-   },
-   {
-    "label": "X1 Offset",
-    "id": "xOffsetStart"
-   },
-   {
-    "label": "X2 Offset",
-    "id": "xOffsetEnd"
-   },
-   {
-    "label": "Y Offset",
-    "id": "yOffset"
+    "staticText": [
+     {
+      "label": "Volta Properties"
+     }
+    ]
    }
   ]
  },
  {
   "ctor": "SuiHairpinAttributesDialog",
-  "label": "Haarnadel Einstellungen",
   "dialogElements": [
    {
-    "label": "Höhe",
-    "id": "height"
+    "staticText": [
+     {
+      "label": "Hairpin Properties"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiLyricDialog",
+  "dialogElements": [
+   {
+    "id": "verse",
+    "label": "Verse",
+    "options": [
+     {
+      "value": "0",
+      "label": "1"
+     },
+     {
+      "value": "1",
+      "label": "2"
+     },
+     {
+      "value": "2",
+      "label": "3"
+     }
+    ]
    },
    {
-    "label": "Y Shift",
-    "id": "yOffset"
+    "id": "textEditor",
+    "label": "Edit Text",
+    "options": []
    },
    {
-    "label": "Right Shift",
-    "id": "xOffsetRight"
+    "staticText": [
+     {
+      "doneEditing": "Done Editing Lyrics"
+     },
+     {
+      "undo": "Undo Lyrics"
+     },
+     {
+      "label": "Lyric Editor"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiChordChangeDialog",
+  "dialogElements": [
+   {
+    "id": "verse",
+    "label": "Verse",
+    "options": [
+     {
+      "value": "0",
+      "label": "1"
+     },
+     {
+      "value": "1",
+      "label": "2"
+     },
+     {
+      "value": "2",
+      "label": "3"
+     }
+    ]
    },
    {
-    "label": "Left Shift",
-    "id": "xOffsetLeft"
+    "id": "textEditor",
+    "label": "Edit Text",
+    "options": []
+   },
+   {
+    "staticText": [
+     {
+      "doneEditing": "Done Editing Lyrics"
+     },
+     {
+      "undo": "Undo Lyrics"
+     },
+     {
+      "label": "Lyric Editor"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiTextTransformDialog",
+  "dialogElements": [
+   {
+    "id": "textEditor",
+    "label": "Edit Text",
+    "options": []
+   },
+   {
+    "id": "textDragger",
+    "label": "Move Text",
+    "options": []
+   },
+   {
+    "id": "textResizer",
+    "label": "Resize Text",
+    "options": []
+   },
+   {
+    "id": "justification",
+    "label": "Justification",
+    "options": [
+     {
+      "value": "left",
+      "label": "Left"
+     },
+     {
+      "value": "right",
+      "label": "Right"
+     },
+     {
+      "value": "center",
+      "label": "Center"
+     }
+    ]
+   },
+   {
+    "id": "fontFamily",
+    "label": "Font Family",
+    "options": [
+     {
+      "value": "Merriweather,serif",
+      "label": "Serif"
+     },
+     {
+      "value": "Roboto,sans-serif",
+      "label": "Sans-Serif"
+     },
+     {
+      "value": "monospace",
+      "label": "Monospace"
+     },
+     {
+      "value": "cursive",
+      "label": "Cursive"
+     },
+     {
+      "value": "Merriweather",
+      "label": "times"
+     },
+     {
+      "value": "Arial",
+      "label": "arial"
+     },
+     {
+      "value": "Helvetica",
+      "label": "Helvetica"
+     }
+    ]
+   },
+   {
+    "id": "fontUnit",
+    "label": "Units",
+    "options": [
+     {
+      "value": "em",
+      "label": "em"
+     },
+     {
+      "value": "px",
+      "label": "px"
+     },
+     {
+      "value": "pt",
+      "label": "pt"
+     }
+    ]
+   },
+   {
+    "id": "pagination",
+    "label": "Page Behavior",
+    "options": [
+     {
+      "value": "once",
+      "label": "Once"
+     },
+     {
+      "value": "every",
+      "label": "Every"
+     },
+     {
+      "value": "even",
+      "label": "Even"
+     },
+     {
+      "value": "odd",
+      "label": "Odd"
+     },
+     {
+      "value": "subsequent",
+      "label": "Subsequent"
+     }
+    ]
+   },
+   {
+    "staticText": [
+     {
+      "label": "Text Properties"
+     }
+    ]
    }
   ]
  },
  {
   "ctor": "SuiAddStaffMenu",
-  "label":"Notenschlüssel",
+  "label": "Notenschlüssel",
   "menuItems": [
    {
     "value": "trebleInstrument",
@@ -549,8 +686,34 @@ var smoLanguageStringDe = `[
   ]
  },
  {
+  "ctor": "SuiMeasureMenu",
+  "label": "Measure",
+  "menuItems": [
+   {
+    "value": "addMenuBeforeCmd",
+    "text": "Add Measure Before"
+   },
+   {
+    "value": "addMenuAfterCmd",
+    "text": "Add Measure After"
+   },
+   {
+    "value": "deleteSelected",
+    "text": "Delete Selected Measures"
+   },
+   {
+    "value": "formatMeasureDialog",
+    "text": "Format Measure"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+ {
   "ctor": "SuiFileMenu",
-  "label":"Datei",
+  "label": "Datei",
   "menuItems": [
    {
     "value": "newFile",
@@ -587,6 +750,10 @@ var smoLanguageStringDe = `[
    {
     "value": "preciousLord",
     "text": "Precious Lord"
+   },
+   {
+    "value": "yamaJson",
+    "text": "Yama"
    },
    {
     "value": "cancel",
@@ -696,6 +863,7 @@ var smoLanguageStringDe = `[
  },
  {
   "ctor": "SuiTimeSignatureMenu",
+  "label": "Taktzeit",
   "menuItems": [
    {
     "value": "6/8",
@@ -733,6 +901,7 @@ var smoLanguageStringDe = `[
  },
  {
   "ctor": "SuiKeySignatureMenu",
+  "label": "Tonlage",
   "menuItems": [
    {
     "value": "KeyOfC",
@@ -793,51 +962,6 @@ var smoLanguageStringDe = `[
   ]
  },
  {
-  "ctor": "SuiFileMenu",
-  "menuItems": [
-   {
-    "value": "newFile",
-    "text": "Neu"
-   },
-   {
-    "value": "openFile",
-    "text": "Öffnen"
-   },
-   {
-    "value": "saveFile",
-    "text": "Speichern"
-   },
-   {
-    "value": "quickSave",
-    "text": "Schnellspeichern"
-   },
-   {
-    "value": "printScore",
-    "text": "Drucken"
-   },
-   {
-    "value": "bach",
-    "text": "Bach Invention"
-   },
-   {
-    "value": "bambino",
-    "text": "Jesu Bambino"
-   },
-   {
-    "value": "microtone",
-    "text": "Microtone Sample"
-   },
-   {
-    "value": "preciousLord",
-    "text": "Precious Lord"
-   },
-   {
-    "value": "cancel",
-    "text": "Abbrechen"
-   }
-  ]
- },
- {
   "ctor": "SuiStaffModifierMenu",
   "label": "Lines",
   "menuItems": [
@@ -865,6 +989,7 @@ var smoLanguageStringDe = `[
  },
  {
   "ctor": "SuiDynamicsMenu",
+  "label": "Dynamics",
   "menuItems": [
    {
     "value": "pp",
@@ -899,528 +1024,779 @@ var smoLanguageStringDe = `[
     "text": "Abbrechen"
    }
   ]
+ },
+ {
+  "ctor": "SuiLanguageMenu",
+  "label": "Language",
+  "menuItems": [
+   {
+    "value": "en",
+    "text": "English"
+   },
+   {
+    "value": "de",
+    "text": "Deutsch"
+   },
+   {
+    "value": "ar",
+    "text": "اَلْعَرَبِيَّةُ"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+ {
+  "ribbonText": [
+   {
+    "buttonId": "helpDialog",
+    "buttonText": "(de)Help"
+   },
+   {
+    "buttonId": "languageMenu",
+    "buttonText": "Language"
+   },
+   {
+    "buttonId": "fileMenu",
+    "buttonText": "File"
+   },
+   {
+    "buttonId": "addStaffMenu",
+    "buttonText": "Staves"
+   },
+   {
+    "buttonId": "measureModal",
+    "buttonText": "Measure"
+   },
+   {
+    "buttonId": "tempoModal",
+    "buttonText": "Tempo"
+   },
+   {
+    "buttonId": "timeSignatureMenu",
+    "buttonText": "Time Signature"
+   },
+   {
+    "buttonId": "keyMenu",
+    "buttonText": "Key"
+   },
+   {
+    "buttonId": "staffModifierMenu",
+    "buttonText": "Lines"
+   },
+   {
+    "buttonId": "instrumentModal",
+    "buttonText": "Instrument"
+   },
+   {
+    "buttonId": "pianoModal",
+    "buttonText": "Piano"
+   },
+   {
+    "buttonId": "layoutModal",
+    "buttonText": "Layout"
+   },
+   {
+    "buttonId": "UpOctaveButton",
+    "buttonText": "8va"
+   },
+   {
+    "buttonId": "DownOctaveButton",
+    "buttonText": "8vb"
+   },
+   {
+    "buttonId": "moreNavButtons",
+    "buttonText": "..."
+   },
+   {
+    "buttonId": "dcAlCoda",
+    "buttonText": "DC Al Coda"
+   },
+   {
+    "buttonId": "dsAlCoda",
+    "buttonText": "DS Al Coda"
+   },
+   {
+    "buttonId": "dcAlFine",
+    "buttonText": "DC Al Fine"
+   },
+   {
+    "buttonId": "dsAlFine",
+    "buttonText": "DS Al Fine"
+   },
+   {
+    "buttonId": "toCoda",
+    "buttonText": "to "
+   },
+   {
+    "buttonId": "fine",
+    "buttonText": "Fine"
+   },
+   {
+    "buttonId": "moreStaffButtons",
+    "buttonText": "..."
+   }
+  ]
  }
 ]`;
 ;
 var smoLanguageStringAr = `[
-  {
-   "ctor": "SuiLoadFileDialog",
-   "label": "Load File",
-   "dialogElements": [
-    {}
-   ]
-  },
-  {
-   "ctor": "SuiSaveFileDialog",
-   "label": "Save Score",
-   "dialogElements": [
-    {
-     "label": "File Name",
-     "id": "saveFileName"
-    }
-   ]
-  },
-  {
-   "ctor": "SuiPrintFileDialog",
-   "label": "Print Complete",
-   "dialogElements": []
-  },
-  {
-   "ctor": "SuiMeasureDialog",
-   "label": "قياس",
-   "dialogElements": [
-    {
-     "label": "Pickup Measure",
-     "id": "pickupMeasure",
-     "options": [
-      {
-       "value": 2048,
-       "label": "Eighth Note"
-      },
-      {
-       "value": 4096,
-       "label": "Quarter Note"
-      },
-      {
-       "value": 6144,
-       "label": "Dotted Quarter"
-      },
-      {
-       "value": 8192,
-       "label": "Half Note"
-      }
-     ]
-    },
-    {
-     "label": "Convert to Pickup Measure",
-     "id": "makePickup"
-    },
-    {
-     "label": "Pad Left (px)",
-     "id": "padLeft"
-    },
-    {
-     "label": "Stretch Contents",
-     "id": "customStretch"
-    },
-    {
-     "label": "Adjust Proportional Spacing",
-     "id": "customProportion"
-    },
-    {
-     "label": "Pad all measures in system",
-     "id": "padAllInSystem"
-    },
-    {
-     "label": "Measure Text",
-     "id": "measureText"
-    },
-    {
-     "label": "Text Position",
-     "id": "measureTextPosition",
-     "options": [
-      {
-       "value": 2,
-       "label": "Left"
-      },
-      {
-       "value": 3,
-       "label": "Right"
-      },
-      {
-       "value": 0,
-       "label": "Above"
-      },
-      {
-       "value": 1,
-       "label": "Below"
-      }
-     ]
-    },
-    {
-     "label": "System break before this measure",
-     "id": "systemBreak"
-    }
-   ]
-  },
-  {
-   "ctor": "SuiTempoDialog",
-   "label": "خصائص السرعة",
-   "dialogElements": [
-    {
-     "label": "وضع الإيقاع",
-     "id": "tempoMode",
-     "options": [
-      {
-       "value": "duration",
-       "label": "Duration (Beats/Minute)"
-      },
-      {
-       "value": "text",
-       "label": "Tempo Text"
-      },
-      {
-       "value": "custom",
-       "label": "Specify text and duration"
-      }
-     ]
-    },
-    {
-     "label": "ملاحظات / دقيقة",
-     "id": "bpm"
-    },
-    {
-     "label": "وحدة لكل ضربه",
-     "id": "beatDuration",
-     "options": [
-      {
-       "value": 4096,
-       "label": "Quarter Note"
-      },
-      {
-       "value": 2048,
-       "label": "1/8 note"
-      },
-      {
-       "value": 6144,
-       "label": "Dotted 1/4 note"
-      },
-      {
-       "value": 8192,
-       "label": "1/2 note"
-      }
-     ]
-    },
-    {
-     "label": "Tempo Text",
-     "id": "tempoText",
-     "options": [
-      {
-       "value": "Larghissimo",
-       "label": "Larghissimo"
-      },
-      {
-       "value": "Grave",
-       "label": "Grave"
-      },
-      {
-       "value": "Lento",
-       "label": "Lento"
-      },
-      {
-       "value": "Largo",
-       "label": "Largo"
-      },
-      {
-       "value": "Larghetto",
-       "label": "Larghetto"
-      },
-      {
-       "value": "Adagio",
-       "label": "Adagio"
-      },
-      {
-       "value": "Adagietto",
-       "label": "Adagietto"
-      },
-      {
-       "value": "Andante moderato",
-       "label": "Andante moderato"
-      },
-      {
-       "value": "Andante",
-       "label": "Andante"
-      },
-      {
-       "value": "Andantino",
-       "label": "Andantino"
-      },
-      {
-       "value": "Moderato",
-       "label": "Moderato"
-      },
-      {
-       "value": "Allegretto",
-       "label": "Allegretto"
-      },
-      {
-       "value": "Allegro",
-       "label": "Allegro"
-      },
-      {
-       "value": "Vivace",
-       "label": "Vivace"
-      },
-      {
-       "value": "Presto",
-       "label": "Presto"
-      },
-      {
-       "value": "Prestissimo",
-       "label": "Prestissimo"
-      }
-     ]
-    },
-    {
-     "label": "تطبيق على جميع المقاييس المستقبلية؟",
-     "id": "applyToAll"
-    },
-    {
-     "label": "إظهار السرعة",
-     "id": "display"
-    }
-   ]
-  },
-  {
-   "ctor": "SuiTimeSignatureDialog",
-   "label": "Custom Time Signature",
-   "dialogElements": [
-    {
-     "label": "Beats/Measure",
-     "id": "numerator"
-    },
-    {
-     "label": "Beat Value",
-     "id": "denominator",
-     "options": [
-      {
-       "value": 8,
-       "label": "8"
-      },
-      {
-       "value": 4,
-       "label": "4"
-      },
-      {
-       "value": 2,
-       "label": "2"
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "ctor": "SuiLayoutDialog",
-   "label": "تخطيط",
-   "dialogElements": [
-    {
-     "label": "Page Size",
-     "id": "pageSize",
-     "options": [
-      {
-       "value": "letter",
-       "label": "Letter"
-      },
-      {
-       "value": "tabloid",
-       "label": "Tabloid (11x17)"
-      },
-      {
-       "value": "A4",
-       "label": "A4"
-      },
-      {
-       "value": "custom",
-       "label": "Custom"
-      }
-     ]
-    },
-    {
-     "label": "Page Width (px)",
-     "id": "pageWidth"
-    },
-    {
-     "label": "Page Height (px)",
-     "id": "pageHeight"
-    },
-    {
-     "label": "Orientation",
-     "id": "orientation",
-     "options": [
-      {
-       "value": 0,
-       "label": "Portrait"
-      },
-      {
-       "value": 1,
-       "label": "Landscape"
-      }
-     ]
-    },
-    {
-     "label": "Engraving Font",
-     "id": "engravingFont",
-     "options": [
-      {
-       "value": "Bravura",
-       "label": "Bravura"
-      },
-      {
-       "value": "Gonville",
-       "label": "Gonville"
-      },
-      {
-       "value": "Petaluma",
-       "label": "Petaluma"
-      }
-     ]
-    },
-    {
-     "label": "Left Margin (px)",
-     "id": "leftMargin"
-    },
-    {
-     "label": "Right Margin (px)",
-     "id": "rightMargin"
-    },
-    {
-     "label": "Top Margin (px)",
-     "id": "topMargin"
-    },
-    {
-     "label": "Inter-System Margin",
-     "id": "interGap"
-    },
-    {
-     "label": "Intra-System Margin",
-     "id": "intraGap"
-    },
-    {
-     "label": "% Zoom",
-     "id": "zoomScale"
-    },
-    {
-     "label": "% Note size",
-     "id": "svgScale"
-    }
-   ]
-  },
-  {
-   "ctor": "SuiDynamicModifierDialog",
-   "label": "Dynamics Properties",
-   "dialogElements": [
-    {
-     "label": "Y Line",
-     "id": "yOffsetLine"
-    },
-    {
-     "label": "Y Offset Px",
-     "id": "yOffsetPixels"
-    },
-    {
-     "label": "X Offset",
-     "id": "xOffset"
-    },
-    {
-     "label": "Text",
-     "id": "text",
-     "options": [
-      {
-       "value": "p",
-       "label": "Piano"
-      },
-      {
-       "value": "pp",
-       "label": "Pianissimo"
-      },
-      {
-       "value": "mp",
-       "label": "Mezzo-Piano"
-      },
-      {
-       "value": "mf",
-       "label": "Mezzo-Forte"
-      },
-      {
-       "value": "f",
-       "label": "Forte"
-      },
-      {
-       "value": "ff",
-       "label": "Fortissimo"
-      },
-      {
-       "value": "sfz",
-       "label": "Sforzando"
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "ctor": "SuiSlurAttributesDialog",
-   "label": "Slur Properties",
-   "dialogElements": [
-    {
-     "label": "Spacing",
-     "id": "spacing"
-    },
-    {
-     "label": "Thickness",
-     "id": "thickness"
-    },
-    {
-     "label": "X Offset",
-     "id": "xOffset"
-    },
-    {
-     "label": "Y Offset",
-     "id": "yOffset"
-    },
-    {
-     "label": "Start Position",
-     "id": "position",
-     "options": [
-      {
-       "value": 1,
-       "label": "Head"
-      },
-      {
-       "value": 2,
-       "label": "Top"
-      }
-     ]
-    },
-    {
-     "label": "End Position",
-     "id": "position_end",
-     "options": [
-      {
-       "value": 1,
-       "label": "Head"
-      },
-      {
-       "value": 2,
-       "label": "Top"
-      }
-     ]
-    },
-    {
-     "label": "Invert",
-     "id": "invert"
-    },
-    {
-     "label": "Control Point 1 X",
-     "id": "cp1x"
-    },
-    {
-     "label": "Control Point 1 Y",
-     "id": "cp1y"
-    },
-    {
-     "label": "Control Point 2 X",
-     "id": "cp2x"
-    },
-    {
-     "label": "Control Point 2 Y",
-     "id": "cp2y"
-    }
-   ]
-  },
-  {
-   "ctor": "SuiVoltaAttributeDialog",
-   "label": "Volta Properties",
-   "dialogElements": [
-    {
-     "label": "number",
-     "id": "number"
-    },
-    {
-     "label": "X1 Offset",
-     "id": "xOffsetStart"
-    },
-    {
-     "label": "X2 Offset",
-     "id": "xOffsetEnd"
-    },
-    {
-     "label": "Y Offset",
-     "id": "yOffset"
-    }
-   ]
-  },
-  {
-   "ctor": "SuiHairpinAttributesDialog",
-   "label": "Hairpin Properties",
-   "dialogElements": [
-    {
-     "label": "Height",
-     "id": "height"
-    },
-    {
-     "label": "Y Shift",
-     "id": "yOffset"
-    },
-    {
-     "label": "Right Shift",
-     "id": "xOffsetRight"
-    },
-    {
-     "label": "Left Shift",
-     "id": "xOffsetLeft"
-    }
-   ]
-  },
+ {
+  "ctor": "SuiLoadFileDialog",
+  "dialogElements": [
+   {
+    "staticText": [
+     {
+      "label": "Load File"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiSaveFileDialog",
+  "dialogElements": [
+   {
+    "staticText": [
+     {
+      "label": "Save Score"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiPrintFileDialog",
+  "dialogElements": [
+   {
+    "staticText": [
+     {
+      "label": "Print Complete"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiMeasureDialog",
+  "dialogElements": [
+   {
+    "staticText": [
+     {
+      "label": "Measure Properties"
+     }
+    ]
+   },
+   {
+    "id": "pickupMeasure",
+    "label": "Pickup Measure",
+    "options": [
+     {
+      "value": "2048",
+      "label": "Eighth Note"
+     },
+     {
+      "value": "4096",
+      "label": "Quarter Note"
+     },
+     {
+      "value": "6144",
+      "label": "Dotted Quarter"
+     },
+     {
+      "value": "8192",
+      "label": "Half Note"
+     }
+    ]
+   },
+   {
+    "id": "measureTextPosition",
+    "label": "Text Position",
+    "options": [
+     {
+      "value": "2",
+      "label": "Left"
+     },
+     {
+      "value": "3",
+      "label": "Right"
+     },
+     {
+      "value": "0",
+      "label": "Above"
+     },
+     {
+      "value": "1",
+      "label": "Below"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiTempoDialog",
+  "dialogElements": [
+   {
+    "staticText": [
+     {
+      "label": "Tempo Properties"
+     }
+    ]
+   },
+   {
+    "id": "tempoMode",
+    "label": "وضع الإيقاع",
+    "options": [
+     {
+      "value": "duration",
+      "label": "Duration (Beats/Minute)"
+     },
+     {
+      "value": "text",
+      "label": "Tempo Text"
+     },
+     {
+      "value": "custom",
+      "label": "Specify text and duration"
+     }
+    ]
+   },
+   {
+    "id": "beatDuration",
+    "label": "وحدة لكل ضربه",
+    "options": [
+     {
+      "value": "4096",
+      "label": "Quarter Note"
+     },
+     {
+      "value": "2048",
+      "label": "1/8 note"
+     },
+     {
+      "value": "6144",
+      "label": "Dotted 1/4 note"
+     },
+     {
+      "value": "8192",
+      "label": "1/2 note"
+     }
+    ]
+   },
+   {
+    "id": "tempoText",
+    "label": "Tempo Text",
+    "options": [
+     {
+      "value": "Larghissimo",
+      "label": "Larghissimo"
+     },
+     {
+      "value": "Grave",
+      "label": "Grave"
+     },
+     {
+      "value": "Lento",
+      "label": "Lento"
+     },
+     {
+      "value": "Largo",
+      "label": "Largo"
+     },
+     {
+      "value": "Larghetto",
+      "label": "Larghetto"
+     },
+     {
+      "value": "Adagio",
+      "label": "Adagio"
+     },
+     {
+      "value": "Adagietto",
+      "label": "Adagietto"
+     },
+     {
+      "value": "Andante moderato",
+      "label": "Andante moderato"
+     },
+     {
+      "value": "Andante",
+      "label": "Andante"
+     },
+     {
+      "value": "Andantino",
+      "label": "Andantino"
+     },
+     {
+      "value": "Moderato",
+      "label": "Moderato"
+     },
+     {
+      "value": "Allegretto",
+      "label": "Allegretto"
+     },
+     {
+      "value": "Allegro",
+      "label": "Allegro"
+     },
+     {
+      "value": "Vivace",
+      "label": "Vivace"
+     },
+     {
+      "value": "Presto",
+      "label": "Presto"
+     },
+     {
+      "value": "Prestissimo",
+      "label": "Prestissimo"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiInstrumentDialog",
+  "dialogElements": [
+   {
+    "staticText": [
+     {
+      "label": "Instrument Properties"
+     }
+    ]
+   },
+   {
+    "id": "applyTo",
+    "label": "Apply To",
+    "options": [
+     {
+      "value": "0",
+      "label": "Score"
+     },
+     {
+      "value": "1",
+      "label": "Selected Measures"
+     },
+     {
+      "value": "3",
+      "label": "Remaining Measures"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiTimeSignatureDialog",
+  "dialogElements": [
+   {
+    "staticText": [
+     {
+      "label": "Custom Time Signature"
+     }
+    ]
+   },
+   {
+    "id": "denominator",
+    "label": "Beat Value",
+    "options": [
+     {
+      "value": "8",
+      "label": "8"
+     },
+     {
+      "value": "4",
+      "label": "4"
+     },
+     {
+      "value": "2",
+      "label": "2"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiLayoutDialog",
+  "dialogElements": [
+   {
+    "id": "pageSize",
+    "label": "Page Size",
+    "options": [
+     {
+      "value": "letter",
+      "label": "Letter"
+     },
+     {
+      "value": "tabloid",
+      "label": "Tabloid (11x17)"
+     },
+     {
+      "value": "A4",
+      "label": "A4"
+     },
+     {
+      "value": "custom",
+      "label": "Custom"
+     }
+    ]
+   },
+   {
+    "id": "orientation",
+    "label": "Orientation",
+    "options": [
+     {
+      "value": "0",
+      "label": "Portrait"
+     },
+     {
+      "value": "1",
+      "label": "Landscape"
+     }
+    ]
+   },
+   {
+    "id": "engravingFont",
+    "label": "Engraving Font",
+    "options": [
+     {
+      "value": "Bravura",
+      "label": "Bravura"
+     },
+     {
+      "value": "Gonville",
+      "label": "Gonville"
+     },
+     {
+      "value": "Petaluma",
+      "label": "Petaluma"
+     }
+    ]
+   },
+   {
+    "staticText": [
+     {
+      "label": "Score Layout"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiDynamicModifierDialog",
+  "dialogElements": [
+   {
+    "id": "text",
+    "label": "Text",
+    "options": [
+     {
+      "value": "p",
+      "label": "Piano"
+     },
+     {
+      "value": "pp",
+      "label": "Pianissimo"
+     },
+     {
+      "value": "mp",
+      "label": "Mezzo-Piano"
+     },
+     {
+      "value": "mf",
+      "label": "Mezzo-Forte"
+     },
+     {
+      "value": "f",
+      "label": "Forte"
+     },
+     {
+      "value": "ff",
+      "label": "Fortissimo"
+     },
+     {
+      "value": "sfz",
+      "label": "Sforzando"
+     }
+    ]
+   },
+   {
+    "staticText": [
+     {
+      "label": "Dynamics Properties"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiSlurAttributesDialog",
+  "dialogElements": [
+   {
+    "staticText": [
+     {
+      "label": "Slur Properties"
+     }
+    ]
+   },
+   {
+    "id": "position",
+    "label": "Start Position",
+    "options": [
+     {
+      "value": "1",
+      "label": "Head"
+     },
+     {
+      "value": "2",
+      "label": "Top"
+     }
+    ]
+   },
+   {
+    "id": "position_end",
+    "label": "End Position",
+    "options": [
+     {
+      "value": "1",
+      "label": "Head"
+     },
+     {
+      "value": "2",
+      "label": "Top"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiVoltaAttributeDialog",
+  "dialogElements": [
+   {
+    "staticText": [
+     {
+      "label": "Volta Properties"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiHairpinAttributesDialog",
+  "dialogElements": [
+   {
+    "staticText": [
+     {
+      "label": "Hairpin Properties"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiLyricDialog",
+  "dialogElements": [
+   {
+    "id": "verse",
+    "label": "Verse",
+    "options": [
+     {
+      "value": "0",
+      "label": "1"
+     },
+     {
+      "value": "1",
+      "label": "2"
+     },
+     {
+      "value": "2",
+      "label": "3"
+     }
+    ]
+   },
+   {
+    "id": "textEditor",
+    "label": "Edit Text",
+    "options": []
+   },
+   {
+    "staticText": [
+     {
+      "doneEditing": "Done Editing Lyrics"
+     },
+     {
+      "undo": "Undo Lyrics"
+     },
+     {
+      "label": "Lyric Editor"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiChordChangeDialog",
+  "dialogElements": [
+   {
+    "id": "verse",
+    "label": "Verse",
+    "options": [
+     {
+      "value": "0",
+      "label": "1"
+     },
+     {
+      "value": "1",
+      "label": "2"
+     },
+     {
+      "value": "2",
+      "label": "3"
+     }
+    ]
+   },
+   {
+    "id": "textEditor",
+    "label": "Edit Text",
+    "options": []
+   },
+   {
+    "staticText": [
+     {
+      "doneEditing": "Done Editing Lyrics"
+     },
+     {
+      "undo": "Undo Lyrics"
+     },
+     {
+      "label": "Lyric Editor"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiTextTransformDialog",
+  "dialogElements": [
+   {
+    "id": "textEditor",
+    "label": "Edit Text",
+    "options": []
+   },
+   {
+    "id": "textDragger",
+    "label": "Move Text",
+    "options": []
+   },
+   {
+    "id": "textResizer",
+    "label": "Resize Text",
+    "options": []
+   },
+   {
+    "id": "justification",
+    "label": "Justification",
+    "options": [
+     {
+      "value": "left",
+      "label": "Left"
+     },
+     {
+      "value": "right",
+      "label": "Right"
+     },
+     {
+      "value": "center",
+      "label": "Center"
+     }
+    ]
+   },
+   {
+    "id": "fontFamily",
+    "label": "Font Family",
+    "options": [
+     {
+      "value": "Merriweather,serif",
+      "label": "Serif"
+     },
+     {
+      "value": "Roboto,sans-serif",
+      "label": "Sans-Serif"
+     },
+     {
+      "value": "monospace",
+      "label": "Monospace"
+     },
+     {
+      "value": "cursive",
+      "label": "Cursive"
+     },
+     {
+      "value": "Merriweather",
+      "label": "times"
+     },
+     {
+      "value": "Arial",
+      "label": "arial"
+     },
+     {
+      "value": "Helvetica",
+      "label": "Helvetica"
+     }
+    ]
+   },
+   {
+    "id": "fontUnit",
+    "label": "Units",
+    "options": [
+     {
+      "value": "em",
+      "label": "em"
+     },
+     {
+      "value": "px",
+      "label": "px"
+     },
+     {
+      "value": "pt",
+      "label": "pt"
+     }
+    ]
+   },
+   {
+    "id": "pagination",
+    "label": "Page Behavior",
+    "options": [
+     {
+      "value": "once",
+      "label": "Once"
+     },
+     {
+      "value": "every",
+      "label": "Every"
+     },
+     {
+      "value": "even",
+      "label": "Even"
+     },
+     {
+      "value": "odd",
+      "label": "Odd"
+     },
+     {
+      "value": "subsequent",
+      "label": "Subsequent"
+     }
+    ]
+   },
+   {
+    "staticText": [
+     {
+      "label": "Text Properties"
+     }
+    ]
+   }
+  ]
+ },
  {
   "ctor": "SuiAddStaffMenu",
   "label": "المفاتيح",
@@ -1452,8 +1828,34 @@ var smoLanguageStringAr = `[
   ]
  },
  {
+  "ctor": "SuiMeasureMenu",
+  "label": "Measure",
+  "menuItems": [
+   {
+    "value": "addMenuBeforeCmd",
+    "text": "Add Measure Before"
+   },
+   {
+    "value": "addMenuAfterCmd",
+    "text": "Add Measure After"
+   },
+   {
+    "value": "deleteSelected",
+    "text": "Delete Selected Measures"
+   },
+   {
+    "value": "formatMeasureDialog",
+    "text": "Format Measure"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+ {
   "ctor": "SuiFileMenu",
-  "label":"ملف",
+  "label": "ملف",
   "menuItems": [
    {
     "value": "newFile",
@@ -1465,7 +1867,7 @@ var smoLanguageStringAr = `[
    },
    {
     "value": "saveFile",
-    "text": "Save"
+    "text": "حفظ"
    },
    {
     "value": "quickSave",
@@ -1473,7 +1875,7 @@ var smoLanguageStringAr = `[
    },
    {
     "value": "printScore",
-    "text": "Print"
+    "text": "طباعه"
    },
    {
     "value": "bach",
@@ -1492,8 +1894,12 @@ var smoLanguageStringAr = `[
     "text": "Precious Lord"
    },
    {
+    "value": "yamaJson",
+    "text": "Yama"
+   },
+   {
     "value": "cancel",
-    "text": "Cancel"
+    "text": "إلغاء"
    }
   ]
  },
@@ -1599,6 +2005,7 @@ var smoLanguageStringAr = `[
  },
  {
   "ctor": "SuiTimeSignatureMenu",
+  "label": "وزن الإيقاع",
   "menuItems": [
    {
     "value": "6/8",
@@ -1630,12 +2037,13 @@ var smoLanguageStringAr = `[
    },
    {
     "value": "cancel",
-    "text": "Cancel"
+    "text": "إلغاء"
    }
   ]
  },
  {
   "ctor": "SuiKeySignatureMenu",
+  "label": "الدليل",
   "menuItems": [
    {
     "value": "KeyOfC",
@@ -1696,69 +2104,62 @@ var smoLanguageStringAr = `[
   ]
  },
  {
-  "ctor": "SuiFileMenu",
-  "menuItems": [
-   {
-    "value": "newFile",
-    "text": "New Score"
-   },
-   {
-    "value": "openFile",
-    "text": "Open"
-   },
-   {
-    "value": "saveFile",
-    "text": "Save"
-   },
-   {
-    "value": "quickSave",
-    "text": "Quick Save"
-   },
-   {
-    "value": "printScore",
-    "text": "Print"
-   },
-   {
-    "value": "bach",
-    "text": "Bach Invention"
-   },
-   {
-    "value": "bambino",
-    "text": "Jesu Bambino"
-   },
-   {
-    "value": "microtone",
-    "text": "Microtone Sample"
-   },
-   {
-    "value": "preciousLord",
-    "text": "Precious Lord"
-   },
-   {
-    "value": "cancel",
-    "text": "Cancel"
-   }
-  ]
- },
- {
   "ctor": "SuiStaffModifierMenu",
   "label": "خطوط",
   "menuItems": [
    {
     "value": "crescendo",
-    "text": "Crescendo"
+    "text": "تصاعد"
    },
    {
     "value": "decrescendo",
-    "text": "Decrescendo"
+    "text": "تهابط"
    },
    {
     "value": "slur",
-    "text": "Slur/Tie"
+    "text": "طمس / تعادل"
    },
    {
     "value": "ending",
-    "text": "nth ending"
+    "text": "النهاية التاسعة"
+   },
+   {
+    "value": "cancel",
+    "text": "إلغاء"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiDynamicsMenu",
+  "label": "Dynamics",
+  "menuItems": [
+   {
+    "value": "pp",
+    "text": "Pianissimo"
+   },
+   {
+    "value": "p",
+    "text": "Piano"
+   },
+   {
+    "value": "mp",
+    "text": "Mezzo-piano"
+   },
+   {
+    "value": "mf",
+    "text": "Mezzo-forte"
+   },
+   {
+    "value": "f",
+    "text": "Forte"
+   },
+   {
+    "value": "ff",
+    "text": "Fortissimo"
+   },
+   {
+    "value": "sfz",
+    "text": "sfortzando"
    },
    {
     "value": "cancel",
@@ -1853,111 +2254,109 @@ var enterPitchesHtmlar = `(Arabic)
 var smoLanguageStringEn = `[
  {
   "ctor": "SuiLoadFileDialog",
-  "label": "Load File",
   "dialogElements": [
-   {}
+   {
+    "staticText": [
+     {
+      "label": "Load File"
+     }
+    ]
+   }
   ]
  },
  {
   "ctor": "SuiSaveFileDialog",
-  "label": "Save Score",
   "dialogElements": [
    {
-    "label": "File Name",
-    "id": "saveFileName"
+    "staticText": [
+     {
+      "label": "Save Score"
+     }
+    ]
    }
   ]
  },
  {
   "ctor": "SuiPrintFileDialog",
-  "label": "Print Complete",
-  "dialogElements": []
+  "dialogElements": [
+   {
+    "staticText": [
+     {
+      "label": "Print Complete"
+     }
+    ]
+   }
+  ]
  },
  {
   "ctor": "SuiMeasureDialog",
-  "label": "Measure Properties",
   "dialogElements": [
    {
-    "label": "Pickup Measure",
+    "staticText": [
+     {
+      "label": "Measure Properties"
+     }
+    ]
+   },
+   {
     "id": "pickupMeasure",
+    "label": "Pickup Measure",
     "options": [
      {
-      "value": 2048,
+      "value": "2048",
       "label": "Eighth Note"
      },
      {
-      "value": 4096,
+      "value": "4096",
       "label": "Quarter Note"
      },
      {
-      "value": 6144,
+      "value": "6144",
       "label": "Dotted Quarter"
      },
      {
-      "value": 8192,
+      "value": "8192",
       "label": "Half Note"
      }
     ]
    },
    {
-    "label": "Convert to Pickup Measure",
-    "id": "makePickup"
-   },
-   {
-    "label": "Pad Left (px)",
-    "id": "padLeft"
-   },
-   {
-    "label": "Stretch Contents",
-    "id": "customStretch"
-   },
-   {
-    "label": "Adjust Proportional Spacing",
-    "id": "customProportion"
-   },
-   {
-    "label": "Pad all measures in system",
-    "id": "padAllInSystem"
-   },
-   {
-    "label": "Measure Text",
-    "id": "measureText"
-   },
-   {
-    "label": "Text Position",
     "id": "measureTextPosition",
+    "label": "Text Position",
     "options": [
      {
-      "value": 2,
+      "value": "2",
       "label": "Left"
      },
      {
-      "value": 3,
+      "value": "3",
       "label": "Right"
      },
      {
-      "value": 0,
+      "value": "0",
       "label": "Above"
      },
      {
-      "value": 1,
+      "value": "1",
       "label": "Below"
      }
     ]
-   },
-   {
-    "label": "System break before this measure",
-    "id": "systemBreak"
    }
   ]
  },
  {
   "ctor": "SuiTempoDialog",
-  "label": "Tempo Properties",
   "dialogElements": [
    {
-    "label": "Tempo Mode",
+    "staticText": [
+     {
+      "label": "Tempo Properties"
+     }
+    ]
+   },
+   {
     "id": "tempoMode",
+    "label": "Tempo Mode",
     "options": [
      {
       "value": "duration",
@@ -1974,34 +2373,30 @@ var smoLanguageStringEn = `[
     ]
    },
    {
-    "label": "Notes/Minute",
-    "id": "bpm"
-   },
-   {
-    "label": "Unit for Beat",
     "id": "beatDuration",
+    "label": "Unit for Beat",
     "options": [
      {
-      "value": 4096,
+      "value": "4096",
       "label": "Quarter Note"
      },
      {
-      "value": 2048,
+      "value": "2048",
       "label": "1/8 note"
      },
      {
-      "value": 6144,
+      "value": "6144",
       "label": "Dotted 1/4 note"
      },
      {
-      "value": 8192,
+      "value": "8192",
       "label": "1/2 note"
      }
     ]
    },
    {
-    "label": "Tempo Text",
     "id": "tempoText",
+    "label": "Tempo Text",
     "options": [
      {
       "value": "Larghissimo",
@@ -2068,39 +2463,63 @@ var smoLanguageStringEn = `[
       "label": "Prestissimo"
      }
     ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiInstrumentDialog",
+  "dialogElements": [
+   {
+    "staticText": [
+     {
+      "label": "Instrument Properties"
+     }
+    ]
    },
    {
-    "label": "Apply to all future measures?",
-    "id": "applyToAll"
-   },
-   {
-    "label": "Display Tempo",
-    "id": "display"
+    "id": "applyTo",
+    "label": "Apply To",
+    "options": [
+     {
+      "value": "0",
+      "label": "Score"
+     },
+     {
+      "value": "1",
+      "label": "Selected Measures"
+     },
+     {
+      "value": "3",
+      "label": "Remaining Measures"
+     }
+    ]
    }
   ]
  },
  {
   "ctor": "SuiTimeSignatureDialog",
-  "label": "Custom Time Signature",
   "dialogElements": [
    {
-    "label": "Beats/Measure",
-    "id": "numerator"
+    "staticText": [
+     {
+      "label": "Custom Time Signature"
+     }
+    ]
    },
    {
-    "label": "Beat Value",
     "id": "denominator",
+    "label": "Beat Value",
     "options": [
      {
-      "value": 8,
+      "value": "8",
       "label": "8"
      },
      {
-      "value": 4,
+      "value": "4",
       "label": "4"
      },
      {
-      "value": 2,
+      "value": "2",
       "label": "2"
      }
     ]
@@ -2109,11 +2528,10 @@ var smoLanguageStringEn = `[
  },
  {
   "ctor": "SuiLayoutDialog",
-  "label": "Score Layout",
   "dialogElements": [
    {
-    "label": "Page Size",
     "id": "pageSize",
+    "label": "Page Size",
     "options": [
      {
       "value": "letter",
@@ -2134,30 +2552,22 @@ var smoLanguageStringEn = `[
     ]
    },
    {
-    "label": "Page Width (px)",
-    "id": "pageWidth"
-   },
-   {
-    "label": "Page Height (px)",
-    "id": "pageHeight"
-   },
-   {
-    "label": "Orientation",
     "id": "orientation",
+    "label": "Orientation",
     "options": [
      {
-      "value": 0,
+      "value": "0",
       "label": "Portrait"
      },
      {
-      "value": 1,
+      "value": "1",
       "label": "Landscape"
      }
     ]
    },
    {
-    "label": "Engraving Font",
     "id": "engravingFont",
+    "label": "Engraving Font",
     "options": [
      {
       "value": "Bravura",
@@ -2174,54 +2584,20 @@ var smoLanguageStringEn = `[
     ]
    },
    {
-    "label": "Left Margin (px)",
-    "id": "leftMargin"
-   },
-   {
-    "label": "Right Margin (px)",
-    "id": "rightMargin"
-   },
-   {
-    "label": "Top Margin (px)",
-    "id": "topMargin"
-   },
-   {
-    "label": "Inter-System Margin",
-    "id": "interGap"
-   },
-   {
-    "label": "Intra-System Margin",
-    "id": "intraGap"
-   },
-   {
-    "label": "% Zoom",
-    "id": "zoomScale"
-   },
-   {
-    "label": "% Note size",
-    "id": "svgScale"
+    "staticText": [
+     {
+      "label": "Score Layout"
+     }
+    ]
    }
   ]
  },
  {
   "ctor": "SuiDynamicModifierDialog",
-  "label": "Dynamics Properties",
   "dialogElements": [
    {
-    "label": "Y Line",
-    "id": "yOffsetLine"
-   },
-   {
-    "label": "Y Offset Px",
-    "id": "yOffsetPixels"
-   },
-   {
-    "label": "X Offset",
-    "id": "xOffset"
-   },
-   {
-    "label": "Text",
     "id": "text",
+    "label": "Text",
     "options": [
      {
       "value": "p",
@@ -2252,126 +2628,288 @@ var smoLanguageStringEn = `[
       "label": "Sforzando"
      }
     ]
+   },
+   {
+    "staticText": [
+     {
+      "label": "Dynamics Properties"
+     }
+    ]
    }
   ]
  },
  {
   "ctor": "SuiSlurAttributesDialog",
-  "label": "Slur Properties",
   "dialogElements": [
    {
-    "label": "Spacing",
-    "id": "spacing"
+    "staticText": [
+     {
+      "label": "Slur Properties"
+     }
+    ]
    },
    {
-    "label": "Thickness",
-    "id": "thickness"
-   },
-   {
-    "label": "X Offset",
-    "id": "xOffset"
-   },
-   {
-    "label": "Y Offset",
-    "id": "yOffset"
-   },
-   {
-    "label": "Start Position",
     "id": "position",
+    "label": "Start Position",
     "options": [
      {
-      "value": 1,
+      "value": "1",
       "label": "Head"
      },
      {
-      "value": 2,
+      "value": "2",
       "label": "Top"
      }
     ]
    },
    {
-    "label": "End Position",
     "id": "position_end",
+    "label": "End Position",
     "options": [
      {
-      "value": 1,
+      "value": "1",
       "label": "Head"
      },
      {
-      "value": 2,
+      "value": "2",
       "label": "Top"
      }
     ]
-   },
-   {
-    "label": "Invert",
-    "id": "invert"
-   },
-   {
-    "label": "Control Point 1 X",
-    "id": "cp1x"
-   },
-   {
-    "label": "Control Point 1 Y",
-    "id": "cp1y"
-   },
-   {
-    "label": "Control Point 2 X",
-    "id": "cp2x"
-   },
-   {
-    "label": "Control Point 2 Y",
-    "id": "cp2y"
    }
   ]
  },
  {
   "ctor": "SuiVoltaAttributeDialog",
-  "label": "Volta Properties",
   "dialogElements": [
    {
-    "label": "number",
-    "id": "number"
-   },
-   {
-    "label": "X1 Offset",
-    "id": "xOffsetStart"
-   },
-   {
-    "label": "X2 Offset",
-    "id": "xOffsetEnd"
-   },
-   {
-    "label": "Y Offset",
-    "id": "yOffset"
+    "staticText": [
+     {
+      "label": "Volta Properties"
+     }
+    ]
    }
   ]
  },
  {
   "ctor": "SuiHairpinAttributesDialog",
-  "label": "Hairpin Properties",
   "dialogElements": [
    {
-    "label": "Height",
-    "id": "height"
+    "staticText": [
+     {
+      "label": "Hairpin Properties"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiLyricDialog",
+  "dialogElements": [
+   {
+    "id": "verse",
+    "label": "Verse",
+    "options": [
+     {
+      "value": "0",
+      "label": "1"
+     },
+     {
+      "value": "1",
+      "label": "2"
+     },
+     {
+      "value": "2",
+      "label": "3"
+     }
+    ]
    },
    {
-    "label": "Y Shift",
-    "id": "yOffset"
+    "id": "textEditor",
+    "label": "Edit Text",
+    "options": []
    },
    {
-    "label": "Right Shift",
-    "id": "xOffsetRight"
+    "staticText": [
+     {
+      "doneEditing": "Done Editing Lyrics"
+     },
+     {
+      "undo": "Undo Lyrics"
+     },
+     {
+      "label": "Lyric Editor"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiChordChangeDialog",
+  "dialogElements": [
+   {
+    "id": "verse",
+    "label": "Verse",
+    "options": [
+     {
+      "value": "0",
+      "label": "1"
+     },
+     {
+      "value": "1",
+      "label": "2"
+     },
+     {
+      "value": "2",
+      "label": "3"
+     }
+    ]
    },
    {
-    "label": "Left Shift",
-    "id": "xOffsetLeft"
+    "id": "textEditor",
+    "label": "Edit Text",
+    "options": []
+   },
+   {
+    "staticText": [
+     {
+      "doneEditing": "Done Editing Lyrics"
+     },
+     {
+      "undo": "Undo Lyrics"
+     },
+     {
+      "label": "Lyric Editor"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "ctor": "SuiTextTransformDialog",
+  "dialogElements": [
+   {
+    "id": "textEditor",
+    "label": "Edit Text",
+    "options": []
+   },
+   {
+    "id": "textDragger",
+    "label": "Move Text",
+    "options": []
+   },
+   {
+    "id": "textResizer",
+    "label": "Resize Text",
+    "options": []
+   },
+   {
+    "id": "justification",
+    "label": "Justification",
+    "options": [
+     {
+      "value": "left",
+      "label": "Left"
+     },
+     {
+      "value": "right",
+      "label": "Right"
+     },
+     {
+      "value": "center",
+      "label": "Center"
+     }
+    ]
+   },
+   {
+    "id": "fontFamily",
+    "label": "Font Family",
+    "options": [
+     {
+      "value": "Merriweather,serif",
+      "label": "Serif"
+     },
+     {
+      "value": "Roboto,sans-serif",
+      "label": "Sans-Serif"
+     },
+     {
+      "value": "monospace",
+      "label": "Monospace"
+     },
+     {
+      "value": "cursive",
+      "label": "Cursive"
+     },
+     {
+      "value": "Merriweather",
+      "label": "times"
+     },
+     {
+      "value": "Arial",
+      "label": "arial"
+     },
+     {
+      "value": "Helvetica",
+      "label": "Helvetica"
+     }
+    ]
+   },
+   {
+    "id": "fontUnit",
+    "label": "Units",
+    "options": [
+     {
+      "value": "em",
+      "label": "em"
+     },
+     {
+      "value": "px",
+      "label": "px"
+     },
+     {
+      "value": "pt",
+      "label": "pt"
+     }
+    ]
+   },
+   {
+    "id": "pagination",
+    "label": "Page Behavior",
+    "options": [
+     {
+      "value": "once",
+      "label": "Once"
+     },
+     {
+      "value": "every",
+      "label": "Every"
+     },
+     {
+      "value": "even",
+      "label": "Even"
+     },
+     {
+      "value": "odd",
+      "label": "Odd"
+     },
+     {
+      "value": "subsequent",
+      "label": "Subsequent"
+     }
+    ]
+   },
+   {
+    "staticText": [
+     {
+      "label": "Text Properties"
+     }
+    ]
    }
   ]
  },
  {
   "ctor": "SuiAddStaffMenu",
-  "label":"Staves",
+  "label": "Staves",
   "menuItems": [
    {
     "value": "trebleInstrument",
@@ -2400,8 +2938,34 @@ var smoLanguageStringEn = `[
   ]
  },
  {
+  "ctor": "SuiMeasureMenu",
+  "label": "Measure",
+  "menuItems": [
+   {
+    "value": "addMenuBeforeCmd",
+    "text": "Add Measure Before"
+   },
+   {
+    "value": "addMenuAfterCmd",
+    "text": "Add Measure After"
+   },
+   {
+    "value": "deleteSelected",
+    "text": "Delete Selected Measures"
+   },
+   {
+    "value": "formatMeasureDialog",
+    "text": "Format Measure"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+ {
   "ctor": "SuiFileMenu",
-  "label":"File",
+  "label": "File",
   "menuItems": [
    {
     "value": "newFile",
@@ -2438,6 +3002,10 @@ var smoLanguageStringEn = `[
    {
     "value": "preciousLord",
     "text": "Precious Lord"
+   },
+   {
+    "value": "yamaJson",
+    "text": "Yama"
    },
    {
     "value": "cancel",
@@ -2547,6 +3115,7 @@ var smoLanguageStringEn = `[
  },
  {
   "ctor": "SuiTimeSignatureMenu",
+  "label": "Time Signature",
   "menuItems": [
    {
     "value": "6/8",
@@ -2584,6 +3153,7 @@ var smoLanguageStringEn = `[
  },
  {
   "ctor": "SuiKeySignatureMenu",
+  "label": "Key",
   "menuItems": [
    {
     "value": "KeyOfC",
@@ -2644,51 +3214,6 @@ var smoLanguageStringEn = `[
   ]
  },
  {
-  "ctor": "SuiFileMenu",
-  "menuItems": [
-   {
-    "value": "newFile",
-    "text": "New Score"
-   },
-   {
-    "value": "openFile",
-    "text": "Open"
-   },
-   {
-    "value": "saveFile",
-    "text": "Save"
-   },
-   {
-    "value": "quickSave",
-    "text": "Quick Save"
-   },
-   {
-    "value": "printScore",
-    "text": "Print"
-   },
-   {
-    "value": "bach",
-    "text": "Bach Invention"
-   },
-   {
-    "value": "bambino",
-    "text": "Jesu Bambino"
-   },
-   {
-    "value": "microtone",
-    "text": "Microtone Sample"
-   },
-   {
-    "value": "preciousLord",
-    "text": "Precious Lord"
-   },
-   {
-    "value": "cancel",
-    "text": "Cancel"
-   }
-  ]
- },
- {
   "ctor": "SuiStaffModifierMenu",
   "label": "Lines",
   "menuItems": [
@@ -2716,6 +3241,7 @@ var smoLanguageStringEn = `[
  },
  {
   "ctor": "SuiDynamicsMenu",
+  "label": "Dynamics",
   "menuItems": [
    {
     "value": "pp",
@@ -2748,6 +3274,120 @@ var smoLanguageStringEn = `[
    {
     "value": "cancel",
     "text": "Cancel"
+   }
+  ]
+ },
+ {
+  "ctor": "SuiLanguageMenu",
+  "label": "Language",
+  "menuItems": [
+   {
+    "value": "en",
+    "text": "English"
+   },
+   {
+    "value": "de",
+    "text": "Deutsch"
+   },
+   {
+    "value": "ar",
+    "text": "اَلْعَرَبِيَّةُ"
+   },
+   {
+    "value": "cancel",
+    "text": "Cancel"
+   }
+  ]
+ },
+ {
+  "ribbonText": [
+   {
+    "buttonId": "helpDialog",
+    "buttonText": "Help"
+   },
+   {
+    "buttonId": "languageMenu",
+    "buttonText": "Language"
+   },
+   {
+    "buttonId": "fileMenu",
+    "buttonText": "File"
+   },
+   {
+    "buttonId": "addStaffMenu",
+    "buttonText": "Staves"
+   },
+   {
+    "buttonId": "measureModal",
+    "buttonText": "Measure"
+   },
+   {
+    "buttonId": "tempoModal",
+    "buttonText": "Tempo"
+   },
+   {
+    "buttonId": "timeSignatureMenu",
+    "buttonText": "Time Signature"
+   },
+   {
+    "buttonId": "keyMenu",
+    "buttonText": "Key"
+   },
+   {
+    "buttonId": "staffModifierMenu",
+    "buttonText": "Lines"
+   },
+   {
+    "buttonId": "instrumentModal",
+    "buttonText": "Instrument"
+   },
+   {
+    "buttonId": "pianoModal",
+    "buttonText": "Piano"
+   },
+   {
+    "buttonId": "layoutModal",
+    "buttonText": "Layout"
+   },
+   {
+    "buttonId": "UpOctaveButton",
+    "buttonText": "8va"
+   },
+   {
+    "buttonId": "DownOctaveButton",
+    "buttonText": "8vb"
+   },
+   {
+    "buttonId": "moreNavButtons",
+    "buttonText": "..."
+   },
+   {
+    "buttonId": "dcAlCoda",
+    "buttonText": "DC Al Coda"
+   },
+   {
+    "buttonId": "dsAlCoda",
+    "buttonText": "DS Al Coda"
+   },
+   {
+    "buttonId": "dcAlFine",
+    "buttonText": "DC Al Fine"
+   },
+   {
+    "buttonId": "dsAlFine",
+    "buttonText": "DS Al Fine"
+   },
+   {
+    "buttonId": "toCoda",
+    "buttonText": "to "
+   },
+   {
+    "buttonId": "fine",
+    "buttonText": "Fine"
+   },
+   {
+    "buttonId": "moreStaffButtons",
+    "buttonText": "..."
    }
   ]
  }
@@ -2900,13 +3540,20 @@ class SmoTranslator {
       return;
     }
     _dialogClass['label'] = dialogStrings.label;
+    var staticText = dialogStrings.dialogElements.find((ds) => ds.staticText);
     _dialogClass['dialogElements'].forEach((component) => {
       var componentStrings = dialogStrings.dialogElements.find((ds) => {
         return ds.id === component.smoName;
       });
-      if (!componentStrings) {
-        console.log('no strings for component '+component.smoName+' in dialog '+dialogClass);
-      } else {
+      if (component.staticText && staticText) {
+        component.staticText.forEach((st) => {
+          const trans = staticText.staticText.find((dst) => Object.keys(dst)[0] == Object.keys(st)[0]);
+          if (trans) {
+            const key = Object.keys(st)[0];
+            st[key] = trans[key];
+          }
+        });
+      }  else if (componentStrings) {
         component.label = componentStrings.label;
         if (component['options']) {
           component['options'].forEach((option) => {
@@ -2918,6 +3565,8 @@ class SmoTranslator {
             }
           });
         }
+      } else {
+        console.log('Untranslated component in  ' + dialogClass);
       }
     });
   }
@@ -2972,9 +3621,22 @@ class SmoTranslator {
       }
 
       SmoTranslator._updateDialog(dialogStrings,_class,dialogClass);
-
     });
 
+    // Translate the buttons on the ribbon
+    const langButtons = trans.strings.find((buttonObj) => buttonObj.ribbonText);
+    if (langButtons) {
+      RibbonButtons.translateButtons.forEach((button) => {
+        var domButton = $(button);
+        var langButton = langButtons.ribbonText.find((lb) => lb.buttonId === button.buttonId);
+        if (langButton) {
+          var buttonDom = $('.ribbonButtonContainer #'+button.buttonId);
+          if (buttonDom.length) {
+            $(buttonDom).find('.left-text').text(langButton.buttonText);
+          }
+        }
+      });
+    }
     // Handle rtl languages
     $('body').find('.language-dir').each((ix,dd) => {$(dd).attr('dir',trans.dir)});
   }
@@ -2982,14 +3644,15 @@ class SmoTranslator {
   static get allMenus() {
     return [
       'SuiAddStaffMenu',
+      'SuiMeasureMenu',
       'SuiFileMenu',
       'SuiTimeSignatureMenu',
       'SuiKeySignatureMenu',
       'SuiTimeSignatureMenu',
       'SuiKeySignatureMenu',
-      'SuiFileMenu',
       'SuiStaffModifierMenu',
-      'SuiDynamicsMenu'
+      'SuiDynamicsMenu',
+      'SuiLanguageMenu'
     ]
   }
 
@@ -3000,12 +3663,16 @@ class SmoTranslator {
       'SuiPrintFileDialog',
       'SuiMeasureDialog',
       'SuiTempoDialog',
+      'SuiInstrumentDialog',
       'SuiTimeSignatureDialog',
       'SuiLayoutDialog',
       'SuiDynamicModifierDialog',
       'SuiSlurAttributesDialog',
       'SuiVoltaAttributeDialog',
-      'SuiHairpinAttributesDialog'
+      'SuiHairpinAttributesDialog',
+      'SuiLyricDialog',
+      'SuiChordChangeDialog',
+      'SuiTextTransformDialog'
     ]
   }
   static get allHelpFiles() {
@@ -12636,111 +13303,106 @@ curve.setContext(this.context).draw();
 	// ## Description:
 	// Create the graphical (VX) notes and render them on svg.  Also render the tuplets and beam
 	// groups
-	renderMeasure(smoMeasure,measureMapper) {
-        var staff = this.score.staves[smoMeasure.measureNumber.staffId];
-        var staffId = staff.staffId;
+	renderMeasure(smoMeasure,measureMapper,noJustify) {
+    var staff = this.score.staves[smoMeasure.measureNumber.staffId];
+    var staffId = staff.staffId;
 		var systemIndex = smoMeasure.measureNumber.systemIndex;
-        var selection = SmoSelection.measureSelection(this.score,staff.staffId,smoMeasure.measureNumber.measureIndex);
+    var selection = SmoSelection.measureSelection(this.score,staff.staffId,smoMeasure.measureNumber.measureIndex);
 		this.smoMeasures.push(smoMeasure);
-        if (this.staves.length <= staffId) {
-            this.staves.push(staff);
-        }
+    if (this.staves.length <= staffId) {
+      this.staves.push(staff);
+    }
 
 		var vxMeasure = new VxMeasure(this.context, {
 				selection: selection
 			});
 
-        // create the vex notes, beam groups etc. for the measure
+    // create the vex notes, beam groups etc. for the measure
 		vxMeasure.preFormat();
-        this.vxMeasures.push(vxMeasure);
+    this.vxMeasures.push(vxMeasure);
 
-        var lastStaff = (staffId == this.score.staves.length-1);
-        var smoGroupMap = {};
+    var lastStaff = (staffId == this.score.staves.length-1) || noJustify;
+    var smoGroupMap = {};
 
-        // If this is the last staff in the column, render the column with justification
-        if (lastStaff) {
-            var ar = vxMeasure.voiceAr;
-            this.vxMeasures.forEach((vv) => {
-                if (!vv.rendered) {
-                    var systemGroup = this.score.getSystemGroupForStaff(vv.selection);
-                    var justifyGroup = systemGroup ? systemGroup.attrs.id : vv.selection.staff.attrs.id;
-                    if (!smoGroupMap[justifyGroup]) {
-                        smoGroupMap[justifyGroup] = {firstMeasure:vv,voices:[]};
-                    }
-                    smoGroupMap[justifyGroup].voices =
-                        smoGroupMap[justifyGroup].voices.concat(vv.voiceAr);
-                }
-            });
+    // If this is the last staff in the column, render the column with justification
+    if (lastStaff) {
+    var ar = vxMeasure.voiceAr;
+    this.vxMeasures.forEach((vv) => {
+      if (!vv.rendered) {
+        var systemGroup = this.score.getSystemGroupForStaff(vv.selection);
+        var justifyGroup = systemGroup ? systemGroup.attrs.id : vv.selection.staff.attrs.id;
+        if (!smoGroupMap[justifyGroup]) {
+          smoGroupMap[justifyGroup] = {firstMeasure:vv,voices:[]};
         }
-        var keys = Object.keys(smoGroupMap);
-        keys.forEach((key) => {
-            smoGroupMap[key].firstMeasure.format(smoGroupMap[key].voices);
-        });
-        if (lastStaff) {
-            this.vxMeasures.forEach((vv) => {
-                if (!vv.rendered) {
-                  vv.render();
-                  // unit test codes don't have tracker.
-                  if (measureMapper) {
-                      var tmpStaff = this.staves.find((ss) => ss.staffId == vv.smoMeasure.measureNumber.staffId);
-                      measureMapper.mapMeasure(tmpStaff,vv.smoMeasure);
-                  }
-                }
-            });
+        smoGroupMap[justifyGroup].voices =
+          smoGroupMap[justifyGroup].voices.concat(vv.voiceAr);
         }
+      });
+    }
+    var keys = Object.keys(smoGroupMap);
+    keys.forEach((key) => {
+        smoGroupMap[key].firstMeasure.format(smoGroupMap[key].voices);
+    });
+    if (lastStaff) {
+      this.vxMeasures.forEach((vv) => {
+        if (!vv.rendered) {
+          vv.render();
+          // unit test codes don't have tracker.
+          if (measureMapper) {
+              var tmpStaff = this.staves.find((ss) => ss.staffId == vv.smoMeasure.measureNumber.staffId);
+              measureMapper.mapMeasure(tmpStaff,vv.smoMeasure);
+          }
+        }
+      });
+    }
 
 		// Keep track of the y coordinate for the nth staff
-        var renderedConnection = {};
-        var brackets = false;
+    var renderedConnection = {};
+    var brackets = false;
 
-        if (systemIndex == 0 && lastStaff) {
-            $(this.context.svg).find('g.lineBracket-' + this.lineIndex).remove();
+    if (systemIndex == 0 && lastStaff) {
+      $(this.context.svg).find('g.lineBracket-' + this.lineIndex).remove();
+      var group = this.context.openGroup();
+      group.classList.add('lineBracket-' + this.lineIndex);
+      group.classList.add('lineBracket');
+      this.vxMeasures.forEach((vv) => {
+        var systemGroup = this.score.getSystemGroupForStaff(vv.selection);
+        if (systemGroup && !renderedConnection[systemGroup.attrs.id]) {
+          renderedConnection[systemGroup.attrs.id] = 1;
+          var startSel = this.vxMeasures[systemGroup.startSelector.staff];
+          var endSel = this.vxMeasures[systemGroup.endSelector.staff];
+          if (startSel && endSel) {
+            var c1 = new VF.StaveConnector(startSel.stave, endSel.stave)
+  				    .setType(systemGroup.leftConnectorVx());
+              c1.setContext(this.context).draw();
+              brackets = true;
+          }
+        }
+      });
+
+      if (!brackets && this.vxMeasures.length > 1)  {
+        var c2 = new VF.StaveConnector(this.vxMeasures[0].stave,this.vxMeasures[this.vxMeasures.length - 1].stave,
+          VF.StaveConnector.type.SINGLE_LEFT);
+        c2.setContext(this.context).draw();
+      }
+      this.context.closeGroup();
+      } else if (lastStaff && smoMeasure.measureNumber.measureIndex + 1 < staff.measures.length) {
+        if (staff.measures[smoMeasure.measureNumber.measureIndex + 1].measureNumber.systemIndex == 0) {
+          var endMeasure = vxMeasure;
+          var startMeasure = this.vxMeasures.find((vv) => vv.selection.selector.staff == 0 &&
+            vv.selection.selector.measure == vxMeasure.selection.selector.measure);
+          if (endMeasure && startMeasure) {
+            $(this.context.svg).find('g.endBracket-' + this.lineIndex).remove();
             var group = this.context.openGroup();
-            group.classList.add('lineBracket-' + this.lineIndex);
-            group.classList.add('lineBracket');
-            this.vxMeasures.forEach((vv) => {
-                var systemGroup = this.score.getSystemGroupForStaff(vv.selection);
-                if (systemGroup && !renderedConnection[systemGroup.attrs.id]) {
-                    renderedConnection[systemGroup.attrs.id] = 1;
-                    var startSel = this.vxMeasures[systemGroup.startSelector.staff];
-                    var endSel = this.vxMeasures[systemGroup.endSelector.staff];
-                    if (startSel && endSel) {
-                        var c1 = new VF.StaveConnector(startSel.stave, endSel.stave)
-            				.setType(systemGroup.leftConnectorVx());
-                        c1.setContext(this.context).draw();
-                        brackets = true;
-
-                    }
-                }
-            });
-
-            if (!brackets && this.vxMeasures.length > 1)  {
-               var c2 = new VF.StaveConnector(this.vxMeasures[0].stave,this.vxMeasures[this.vxMeasures.length - 1].stave,
-                  VF.StaveConnector.type.SINGLE_LEFT);
-                  c2.setContext(this.context).draw();
-           }
-           this.context.closeGroup();
-       }  else if (lastStaff && smoMeasure.measureNumber.measureIndex + 1 < staff.measures.length) {
-           if (staff.measures[smoMeasure.measureNumber.measureIndex + 1].measureNumber.systemIndex == 0) {
-               var endMeasure = vxMeasure;
-               var startMeasure = this.vxMeasures.find((vv) => vv.selection.selector.staff == 0 &&
-                   vv.selection.selector.measure == vxMeasure.selection.selector.measure);
-              if (endMeasure && startMeasure) {
-                  $(this.context.svg).find('g.endBracket-' + this.lineIndex).remove();
-                  var group = this.context.openGroup();
-                  group.classList.add('endBracket-' + this.lineIndex);
-                  group.classList.add('endBracket');
-               var c2 = new VF.StaveConnector(startMeasure.stave,endMeasure.stave)
-                  .setType(VF.StaveConnector.type.SINGLE_RIGHT);
-                  c2.setContext(this.context).draw();
-                  this.context.closeGroup();
-              }
-           }
-
+            group.classList.add('endBracket-' + this.lineIndex);
+            group.classList.add('endBracket');
+            var c2 = new VF.StaveConnector(startMeasure.stave,endMeasure.stave)
+               .setType(VF.StaveConnector.type.SINGLE_RIGHT);
+            c2.setContext(this.context).draw();
+            this.context.closeGroup();
+          }
        }
-
-
-
+     }
 
 		// keep track of left-hand side for system connectors
 		if (systemIndex === 0) {
@@ -15131,8 +15793,8 @@ class suiLayoutBase {
 		var system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex,this.score);
 		while (startSelection && startSelection.selector.measure <= modifier.endSelector.measure) {
 			smoBeamerFactory.applyBeams(startSelection.measure);
-            system.renderMeasure(startSelection.measure);
-            this._renderModifiers(startSelection.staff, system);
+      system.renderMeasure(startSelection.measure,null,true);
+      this._renderModifiers(startSelection.staff, system);
 
 			var nextSelection = SmoSelection.measureSelection(this._score, startSelection.selector.staff, startSelection.selector.measure + 1);
 
@@ -18156,7 +18818,7 @@ class SuiStaffModifierMenu extends suiMenuBase {
   static get defaults() {
     SuiStaffModifierMenu._defaults = SuiStaffModifierMenu._defaults ? SuiStaffModifierMenu._defaults :
     {
-      label:'Staves',
+      label:'Lines',
       menuItems: [{
         icon: 'cresc',
         text: 'Crescendo',
@@ -18265,7 +18927,9 @@ class SuiLanguageMenu extends suiMenuBase {
 class SuiMeasureMenu extends suiMenuBase {
   static get defaults() {
     SuiMeasureMenu._defaults = SuiMeasureMenu._defaults ? SuiMeasureMenu._defaults : {
+      label:'Measure',
       menuItems: [
+
         {
           icon: '',
           text: 'Add Measure Before',
@@ -18283,6 +18947,10 @@ class SuiMeasureMenu extends suiMenuBase {
           icon: '',
           text: 'Format Measure',
           value: 'formatMeasureDialog'
+        }, {
+          icon: '',
+          text: 'Cancel',
+          value: 'cancel'
         }
       ]
     }
@@ -18347,6 +19015,7 @@ class SuiAddStaffMenu extends suiMenuBase {
 
   static get defaults() {
     SuiAddStaffMenu._defaults = SuiAddStaffMenu._defaults ? SuiAddStaffMenu._defaults : {
+      label: "Add Staff",
       menuItems: [
         {
           icon: 'treble',
@@ -19195,10 +19864,16 @@ class SuiDialogBase {
       });
     });
 
-    this.label = eval(this.ctor)['label'];
-    if (!this.label) {
-      throw('dialog ' + this.ctor+ ' needs a label');
+    const staticText = dialogElements.find((xx) => xx.staticText);
+    if (!staticText) {
+      throw('dialog ' + this.ctor+ ' needs a static text section');
     }
+    this.staticText = {};
+    staticText.staticText.forEach((st) => {
+      const key = Object.keys(st)[0];
+      this.staticText[key] = st[key];
+
+    });
 
     this.initialLeft = parameters.left
     this.initialTop = parameters.top;
@@ -19214,6 +19889,7 @@ class SuiDialogBase {
     this.completeNotifier = parameters.completeNotifier;
     this.undoBuffer = parameters.undoBuffer;
     this.editor = parameters.editor;
+    this.label = this.staticText.label;
 
     var top = parameters.top - this.tracker.scroller.netScroll.y;
     var left = parameters.left - this.tracker.scroller.netScroll.x;
@@ -19246,9 +19922,16 @@ class SuiDialogBase {
           });
         }
       }
+      if (element.staticText) {
+        component.staticText = {};
+        element.staticText.forEach((st) => {
+          var key = Object.keys(st)[0];
+          component.staticText[key] = st[key];
+        });
+      }
       output.push(component);
     });
-    return {ctor:xx['ctor'],label:xx['label'],dialogElements:output};
+    return {ctor:xx['ctor'],dialogElements:output};
   }
 
   get closeModalPromise() {
@@ -19290,37 +19973,37 @@ class SuiDialogBase {
   }
     // ### build the html for the dialog, based on the instance-specific components.
   _constructDialog(dialogElements, parameters) {
-  var id = parameters.id;
-  var b = htmlHelpers.buildDom;
-  var r = b('div').classes('attributeModal').attr('id','attr-modal-'+id)
+    var id = parameters.id;
+    var b = htmlHelpers.buildDom;
+    var r = b('div').classes('attributeModal').attr('id','attr-modal-'+id)
       .css('top', parameters.top + 'px').css('left', parameters.left + 'px')
-  .append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move jsDbMove')))
-  .append(b('h2').text(parameters.label));
+    .append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move jsDbMove')))
+    .append(b('h2').classes('dialog-label').text(this.staticText.label));
 
     var ctrl = b('div').classes('smoControlContainer');
-  dialogElements.forEach((de) => {
-  var ctor = eval(de.control);
-  var control = new ctor(this, de);
-  this.components.push(control);
-  ctrl.append(control.html);
-  });
+    dialogElements.filter((de) => de.control).forEach((de) => {
+      var ctor = eval(de.control);
+      var control = new ctor(this, de);
+      this.components.push(control);
+      ctrl.append(control.html);
+    });
     r.append(ctrl);
-  r.append(
-  b('div').classes('buttonContainer').append(
-  b('button').classes('ok-button button-left').text('OK')).append(
-  b('button').classes('cancel-button button-center').text('Cancel')).append(
-  b('button').classes('remove-button button-right').text('Remove').append(
-  b('span').classes('icon icon-cancel-circle'))));
-  $('.attributeDialog').html('');
+    r.append(
+    b('div').classes('buttonContainer').append(
+    b('button').classes('ok-button button-left').text('OK')).append(
+    b('button').classes('cancel-button button-center').text('Cancel')).append(
+    b('button').classes('remove-button button-right').text('Remove').append(
+    b('span').classes('icon icon-cancel-circle'))));
+    $('.attributeDialog').html('');
 
-  $('.attributeDialog').append(r.dom());
+    $('.attributeDialog').append(r.dom());
 
-  var trapper = htmlHelpers.inputTrapper('.attributeDialog');
-  $('.attributeDialog').find('.cancel-button').focus();
-  return {
-  element: $('.attributeDialog'),
-  trapper: trapper
-  };
+    var trapper = htmlHelpers.inputTrapper('.attributeDialog');
+    $('.attributeDialog').find('.cancel-button').focus();
+    return {
+      element: $('.attributeDialog'),
+      trapper: trapper
+    };
   }
 
   // ### _commit
@@ -19419,8 +20102,7 @@ class SuiDialogBase {
   });
   }
 }
-
-
+;
 // ## SuiLayoutDialog
 // The layout dialog has page layout and zoom logic.  It is not based on a selection but score-wide
 class SuiLayoutDialog extends SuiDialogBase {
@@ -19430,14 +20112,6 @@ class SuiLayoutDialog extends SuiDialogBase {
   }
   get ctor() {
     return SuiLayoutDialog.ctor;
-  }
-  static get label() {
-    SuiLayoutDialog._label = SuiLayoutDialog._label ? SuiLayoutDialog._label :
-       'Score Layout';
-    return SuiLayoutDialog._label;
-  }
-  static set label(value) {
-    SuiLayoutDialog._label = value;
   }
 
    // ### dialogElements
@@ -19552,7 +20226,10 @@ class SuiLayoutDialog extends SuiDialogBase {
           control: 'SuiRockerComponent',
           label: '% Note size',
           type: 'percent'
-        }
+        },
+        {staticText:[
+          {label : 'Score Layout'}
+        ]}
       ];
 
     return SuiLayoutDialog._dialogElements;
@@ -19560,16 +20237,16 @@ class SuiLayoutDialog extends SuiDialogBase {
     // ### backupOriginal
     // backup the original layout parameters for trial period
   backupOriginal() {
-  this.backup = JSON.parse(JSON.stringify(this.modifier));;
+    this.backup = JSON.parse(JSON.stringify(this.modifier));
   }
   display() {
-  $('body').addClass('showAttributeDialog');
-  this.components.forEach((component) => {
-  component.bind();
+    $('body').addClass('showAttributeDialog');
+    this.components.forEach((component) => {
+    component.bind();
   });
   this.components.forEach((component) => {
-  var val = this.modifier[component.parameterName];
-  component.setValue(val);
+    var val = this.modifier[component.parameterName];
+    component.setValue(val);
   });
   this._setPageSizeDefault();
   this._bindElements();
@@ -19677,7 +20354,6 @@ class SuiLayoutDialog extends SuiDialogBase {
   id: 'dialog-layout',
   top: (p.layout.score.layout.pageWidth / 2) - 200,
   left: (p.layout.score.layout.pageHeight / 2) - 200,
-  label: 'Score Layout',
       ...parameters
   });
   this.layout = p.layout;
@@ -19750,14 +20426,6 @@ class SuiLoadFileDialog extends SuiFileDialog {
   get ctor() {
     return SuiLoadFileDialog.ctor;
   }
-  static get label() {
-    SuiLoadFileDialog._label = SuiLoadFileDialog._label ? SuiLoadFileDialog._label :
-       'Load File';
-    return SuiLoadFileDialog._label;
-  }
-  static set label(value) {
-    SuiLoadFileDialog._label = value;
-  }
 
     static get dialogElements() {
       SuiLoadFileDialog._dialogElements = SuiLoadFileDialog._dialogElements ? SuiLoadFileDialog._dialogElements :
@@ -19767,7 +20435,10 @@ class SuiLoadFileDialog extends SuiFileDialog {
   				defaultValue: '',
   				control: 'SuiFileDownloadComponent',
   				label:''
-			  }];
+			  },{staticText: [
+          {label: 'Load File'}
+        ]}
+      ];
       return SuiLoadFileDialog._dialogElements;
     }
 
@@ -19796,7 +20467,6 @@ class SuiLoadFileDialog extends SuiFileDialog {
         }
     }
     static createAndDisplay(params) {
-    params.label="Open File";
 		var dg = new SuiLoadFileDialog(params);
 		dg.display();
      // disable until file is selected
@@ -19826,7 +20496,10 @@ class SuiPrintFileDialog extends SuiFileDialog {
   }
 
   static get dialogElements() {
-	  return [];
+	  return [
+      {staticText: [
+      {label: 'Print Complete'}
+    ]}];
   }
   static createAndDisplay(params) {
 		var dg = new SuiPrintFileDialog(params);
@@ -19834,7 +20507,6 @@ class SuiPrintFileDialog extends SuiFileDialog {
 	}
   constructor(parameters) {
     parameters.ctor='SuiPrintFileDialog';
-    parameters.label = 'Print Complete';
     super(parameters);
 	}
   changed() {}
@@ -19859,15 +20531,6 @@ class SuiSaveFileDialog extends SuiFileDialog {
   get ctor() {
     return SuiSaveFileDialog.ctor;
   }
-  static get label() {
-    SuiSaveFileDialog._label = SuiSaveFileDialog._label ? SuiSaveFileDialog._label :
-       'Save Score';
-    return SuiSaveFileDialog._label;
-  }
-  static set label(value) {
-    SuiSaveFileDialog._label = value;
-  }
-
 
   static get dialogElements() {
     SuiSaveFileDialog._dialogElements = SuiSaveFileDialog._dialogElements ? SuiSaveFileDialog._dialogElements :
@@ -19877,7 +20540,12 @@ class SuiSaveFileDialog extends SuiFileDialog {
         defaultValue: '',
         control: 'SuiTextInputComponent',
         label:'File Name'
-		}];
+		},
+    {
+      staticText: [
+        {label : 'Save Score'}
+      ]
+    }];
 
     return SuiSaveFileDialog._dialogElements;
   }
@@ -19900,7 +20568,6 @@ class SuiSaveFileDialog extends SuiFileDialog {
     this.complete();
   }
   static createAndDisplay(params) {
-    params.label="Save File";
 		var dg = new SuiSaveFileDialog(params);
 		dg.display();
 	}
@@ -19915,14 +20582,6 @@ class SuiSaveFileDialog extends SuiFileDialog {
   }
   get ctor() {
     return SuiLyricDialog.ctor;
-  }
-  static get label() {
-    SuiLyricDialog._label = SuiLyricDialog._label ? SuiLyricDialog._label :
-       'Done Editing Lyrics';
-    return SuiLyricDialog._label;
-  }
-  static set label(value) {
-    SuiLyricDialog._label = value;
   }
   static createAndDisplay(parameters) {
 		var dg = new SuiLyricDialog(parameters);
@@ -19963,24 +20622,28 @@ class SuiSaveFileDialog extends SuiFileDialog {
       control: 'SuiLyricEditComponent',
       label:'Edit Text',
       options: []
-	  }];
+	  }, {
+    staticText: [
+      {doneEditing: 'Done Editing Lyrics'},
+      {undo: 'Undo Lyrics'},
+      {label: 'Lyric Editor'}
+    ]}
+  ];
 
     return SuiLyricDialog._dialogElements;
   }
-  static get staticText() {
-    return {
-      label:'Done Editing Lyrics'
-    }
-  }
-  constructor(parameters) {
-    parameters.ctor='SuiLyricDialog';
-    var p = parameters;
 
-  	super(SuiLyricDialog.dialogElements, {
+  constructor(parameters) {
+    parameters.ctor= parameters.ctor ? parameters.ctor : 'SuiLyricDialog';
+    var p = parameters;
+    const _class = eval(p.ctor);
+    const dialogElements = _class['dialogElements'];
+
+  	super(dialogElements, {
   		id: 'dialog-lyrics',
   		top: (p.layout.score.layout.pageWidth / 2) - 200,
   		left: (p.layout.score.layout.pageHeight / 2) - 200,
-  		...parameters
+  		...p
   	});
 
     // If we are editing existing lyrics, make sure it is the same type of session.
@@ -20076,26 +20739,14 @@ class SuiChordChangeDialog extends SuiLyricDialog {
   get ctor() {
     return SuiChordChangeDialog.ctor;
   }
-  static get staticText() {
-    return {
-      label:'Done Editing Chord'
-    }
-  }
 
-  static get label() {
-    SuiChordChangeDialog._label = SuiChordChangeDialog._label ? SuiChordChangeDialog._label :
-       'Done Editing Chord';
-    return SuiChordChangeDialog._label;
-  }
-  static set label(value) {
-    SuiChordChangeDialog._label = value;
-  }
   static createAndDisplay(parameters) {
     var dg = new SuiChordChangeDialog(parameters);
     dg.display();
       return dg;
   }
   constructor(parameters) {
+    parameters.ctor = 'SuiChordChangeDialog';
     super(parameters);
   }
   static get dialogElements() {
@@ -20132,7 +20783,14 @@ class SuiChordChangeDialog extends SuiLyricDialog {
       control: 'SuiLyricEditComponent',
       label:'Edit Text',
       options: []
-    }];
+    }, {
+      staticText: [
+        {label : 'Edit Chord Symbol'},
+        {undo: 'Undo Chord Symbols'},
+        {doneEditing : 'Done Editing Chord Symbols' }
+      ]
+    }
+  ];
 
     return SuiChordChangeDialog._dialogElements;
   }
@@ -20168,15 +20826,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   get ctor() {
     return SuiTextTransformDialog.ctor;
   }
-  static get label() {
-    SuiTextTransformDialog._label = SuiTextTransformDialog._label ? SuiTextTransformDialog._label :
-       'Text Box Properties';
-     return SuiTextTransformDialog._label;
-  }
-  static set label(value) {
-    SuiTextTransformDialog._label = value;
-  }
-
   static get dialogElements() {
     SuiTextTransformDialog._dialogElements = SuiTextTransformDialog._dialogElements ? SuiTextTransformDialog._dialogElements :
       [
@@ -20306,7 +20955,11 @@ class SuiTextTransformDialog  extends SuiDialogBase {
           {label:'Odd',value:'odd'},
           {label:'Subsequent',value:'subsequent'}
         ]
-  		}
+  		}, {
+        staticText: [
+          {label : 'Text Properties' }
+        ]
+      }
     ];
 
     return SuiTextTransformDialog._dialogElements;
@@ -20603,7 +21256,10 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
 				],
 				control: 'SuiDropdownComponent',
 				label: 'Text'
-			}
+			},
+      {staticText: [
+        {label: 'Dynamics Properties'}
+      ]}
 		];
     return SuiDynamicModifierDialog._dialogElements;
 	}
@@ -20663,17 +21319,14 @@ class SuiMeasureDialog extends SuiDialogBase {
     get ctor() {
       return SuiMeasureDialog.ctor;
     }
-    static get label() {
-      SuiMeasureDialog._label = SuiMeasureDialog._label ? SuiMeasureDialog._label
-       : 'Measure Properties';
-      return SuiMeasureDialog._label;
-    }
-    static set label(value) {
-      SuiMeasureDialog._label = value;
-    }
     static get dialogElements() {
       SuiMeasureDialog._dialogElements = SuiMeasureDialog._dialogElements ? SuiMeasureDialog._dialogElements :
-        [{
+        [
+          {
+            staticText: [
+              { label: 'Measure Properties' }]
+          },
+          {
           smoName: 'pickupMeasure',
           parameterName: 'pickupMeasure',
           defaultValue: 2048,
@@ -20933,14 +21586,6 @@ class SuiInstrumentDialog extends SuiDialogBase {
   get ctor() {
     return SuiTimeSignatureDialog.ctor;
   }
-  static get label() {
-    SuiInstrumentDialog._label = SuiInstrumentDialog._label ? SuiInstrumentDialog._label
-     : 'Instrument Properties';
-    return SuiInstrumentDialog._label;
-  }
-  static set label(value) {
-    SuiInstrumentDialog._label = value;
-  }
   static get applyTo() {
     return {
       score: 0,selected:1, remaining: 3
@@ -20949,6 +21594,11 @@ class SuiInstrumentDialog extends SuiDialogBase {
   static get dialogElements() {
     SuiInstrumentDialog._dialogElements = SuiInstrumentDialog._dialogElements ? SuiInstrumentDialog._dialogElements :
     [
+      {
+        staticText: [
+          {label: 'Instrument Properties'}
+        ]
+      },
       {
         smoName: 'transposeIndex',
         parameterName: 'transposeIndex',
@@ -21086,18 +21736,14 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
   get ctor() {
     return SuiTimeSignatureDialog.ctor;
   }
-  static get label() {
-    SuiTimeSignatureDialog._label = SuiTimeSignatureDialog._label ? SuiTimeSignatureDialog._label
-     : 'Custom Time Signature';
-    return SuiTimeSignatureDialog._label;
-  }
-  static set label(value) {
-    SuiTimeSignatureDialog._label = value;
-  }
 
   static get dialogElements() {
     SuiTimeSignatureDialog._dialogElements = SuiTimeSignatureDialog._dialogElements ? SuiTimeSignatureDialog._dialogElements :
       [
+        { staticText: [
+            { label: 'Custom Time Signature' }
+          ]
+        },
         {
           smoName: 'numerator',
           parameterName: 'numerator',
@@ -21241,21 +21887,17 @@ class SuiTempoDialog extends SuiDialogBase {
   get ctor() {
     return SuiTempoDialog.ctor;
   }
-  static get label() {
-    SuiTempoDialog._label = SuiTempoDialog._label ? SuiTempoDialog._label
-     : 'Tempo Properties';
-    return SuiTempoDialog._label;
+  static get attributes() {
+    return ['tempoMode', 'bpm', 'beatDuration', 'tempoText','yOffset'];
   }
-  static set label(value) {
-    SuiTempoDialog._label = value;
-  }
-    static get attributes() {
-        return ['tempoMode', 'bpm', 'beatDuration', 'tempoText','yOffset'];
-    }
   static get dialogElements() {
-
     SuiTempoDialog._dialogElements = SuiTempoDialog._dialogElements ? SuiTempoDialog._dialogElements :
-     [{
+     [
+       { staticText: [
+         { label: 'Tempo Properties'}
+       ]
+       },
+       {
         smoName: 'tempoMode',
         parameterName: 'tempoMode',
         defaultValue: SmoTempoText.tempoModes.durationMode,
@@ -24223,6 +24865,12 @@ class RibbonButtons {
 					b('span').classes('ribbon-button-hotkey').text(buttonKey)));
 		return r.dom();
 	}
+  static get translateButtons() {
+    if (!RibbonButtons._translateButtons) {
+      RibbonButtons._translateButtons = [];
+    }
+    return RibbonButtons._translateButtons;
+  }
 	constructor(parameters) {
 		smoSerialize.filteredMerge(RibbonButtons.paramArray, parameters, this);
 		this.ribbonButtons = parameters.ribbonButtons;
@@ -24313,6 +24961,11 @@ class RibbonButtons {
 					return e.id === buttonId;
 				});
 			if (buttonData) {
+        if (buttonData.leftText) {
+          RibbonButtons.translateButtons.push({buttonId:buttonData.id,
+            buttonText:buttonData.leftText});
+        }
+
         // collapse child is hidden until the parent button is selected, exposing the button group
 				if (RibbonButtons.isCollapsible(buttonData.action)) {
 					this.collapseChildren.push(buttonData);
@@ -25071,18 +25724,15 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
   static get ctor() {
     return 'SuiSlurAttributesDialog';
   }
-  static get label() {
-    SuiSlurAttributesDialog._label = SuiSlurAttributesDialog._label ? SuiSlurAttributesDialog._label
-      : 'Slur Properties';
-    return SuiSlurAttributesDialog._label;
-  }
-  static set label(value) {
-    SuiSlurAttributesDialog._label = value;
-  }
 
   static get dialogElements() {
     SuiSlurAttributesDialog._dialogElements = SuiSlurAttributesDialog._dialogElements ? SuiSlurAttributesDialog._dialogElements :
-    [{
+    [
+      {
+        staticText: [
+          { label: 'Slur Properties' }
+        ]
+      }, {
         parameterName: 'spacing',
         smoName: 'spacing',
         defaultValue: 2,
@@ -25220,7 +25870,13 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
 
  static get dialogElements() {
     SuiVoltaAttributeDialog._dialogElements = SuiVoltaAttributeDialog._dialogElements ? SuiVoltaAttributeDialog._dialogElements :
-      [{
+      [
+        {
+          staticText: [
+            {label: 'Volta Properties'}
+          ]
+        },
+        {
         parameterName: 'number',
         smoName: 'number',
         defaultValue: 1,
@@ -25330,7 +25986,13 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
   }
   static get dialogElements() {
     SuiHairpinAttributesDialog._dialogElements = SuiHairpinAttributesDialog._dialogElements ? SuiHairpinAttributesDialog._dialogElements :
-    [{
+    [
+      {
+        staticText: [
+          { label: 'Hairpin Properties' }
+        ]
+      },
+      {
         parameterName: 'height',
         smoName: 'height',
         defaultValue: 10,
@@ -25645,6 +26307,7 @@ class SuiDom {
       .append(b('div').classes('overlay'))
       .append(b('div').classes('draganime hide'))
       .append(b('div').classes('textEdit hide'))
+      .append(b('div').classes('translation-editor'))
       .append(b('div').classes('attributeDialog'))
       .append(b('div').classes('qwertyKb'))
       .append(b('div').classes('saveLink'))
@@ -25994,6 +26657,9 @@ class suiController {
 
 	evKey(evdata) {
 		var self = this;
+    if ($('body').hasClass('translation-mode')) {
+      return;
+    }
 
 		console.log("KeyboardEvent: key='" + evdata.key + "' | code='" +
 			evdata.code + "'"
@@ -26072,6 +26738,379 @@ class suiController {
 	}
 
 }
+;//
+
+// ## SmoTranslationEditor
+// Create a somewhat user-friendly editor DOM to translate SMO
+// dialogs and menus, and any subset, into other languages.
+class SmoTranslationEditor {
+
+   // ### _getHtmlTextInput
+   // All the editable text elements contain: the code label or value from the
+   // UI element, the En string, and  the translated string, or a copy of the
+   // EN string if the string has not been translated.
+    static _getHtmlTextInput(dbLabel,enLabel,langLabel,labelType,labelId) {
+      var b = htmlHelpers.buildDom;
+
+      const compHtml = b('div').classes('dialog-element-container')
+        .attr('data-'+labelType,labelId).append(
+          b('div').classes('dialog-component-label').append(
+            b('span').classes('trans-label').append(
+              b('span').classes('trans-db-text').text(dbLabel)
+            ).append(
+              b('span').classes('trans-en-text').text(enLabel)
+            ).append(
+              b('input').classes('trans-label-input')
+            ).append(
+              b('span').classes('plaintext-translate hide').text(langLabel)
+            )
+          )
+        ).dom();
+      return compHtml;
+    }
+
+    // ### _getMenuTextDialogHtml
+    // Get all the menu item labels for translation
+    static _getMenuTextDialogHtml(menuCtor,enStrings,langStrings) {
+      const menuClass = eval(menuCtor);
+      const menuItems = menuClass['defaults'].menuItems;
+      var enMenu = enStrings.find((mn) => mn.ctor === menuCtor);
+
+      // Get the JSON EN menu, or copy the DB strings if it doesn't exist
+      if (!enMenu) {
+        enMenu = JSON.parse(JSON.stringify(menuClass['defaults']));
+        enMenu.ctor = menuCtor;
+      }
+      // Get the JSON language menu strings, or copy the EN strings if it doesn't exist
+      var langMenu = langStrings.find((mn) => mn.ctor === menuCtor);
+      if (!langMenu) {
+        langMenu = JSON.parse(JSON.stringify(menuClass['defaults']));
+        langMenu.ctor = menuCtor;
+      }
+
+      // create the DOM menu container
+      var b = htmlHelpers.buildDom;
+      const container = b('div').classes('menu-translate-container')
+        .attr('data-menucontainer',menuCtor).append(
+          b('button').classes('icon-plus trans-expander')).append(
+            b('span').classes('menu-translate-title').text(menuCtor)
+        ).dom();
+      const menuItemsDom = b('div').classes('menu-element-container').dom();
+
+      // create the label editor
+      const menuLabel = SmoTranslationEditor._getHtmlTextInput(menuClass['defaults'].label,enMenu.label,langMenu.label,
+        'menulabel',menuCtor);
+      $(menuItemsDom).append(menuLabel);
+      $(container).append(menuItemsDom);
+
+      // create the editor for each item
+      menuItems.forEach((item) => {
+        var enItem  = enMenu.menuItems.find((mi) => mi.value === item.value);
+        if (!enItem) {
+          enItem = JSON.parse(JSON.stringify(item));
+        }
+        var langItem = langMenu.menuItems.find((mi) => mi.value === item.value);
+        if (!langItem) {
+          langItem = JSON.parse(JSON.stringify(item));
+        }
+        const menuItemDom = b('div').classes('menu-item-container').dom();
+        const itemEditDom = SmoTranslationEditor._getHtmlTextInput(
+          item.value,enItem.text,langItem.text,
+          'itemtext',item.value);
+        $(menuItemDom).append(itemEditDom);
+        $(menuItemsDom).append(menuItemDom);
+      });
+      return container;
+    }
+    static getButtonTranslateHtml(enStrings,langStrings,transContainer) {
+      var b = htmlHelpers.buildDom;
+      var buttonDom = b('div').classes('ribbon-translate-container')
+        .attr('data-ribbon-translate','buttons').append(
+          b('button').classes('icon-plus trans-expander')).append(
+          b('span').classes('ribbon-translate-title').text('Button Text')
+      ).dom();
+
+      var enKeys = enStrings.find((enString) => enString.ribbonButtonText);
+      if (!enKeys) {
+        enKeys = JSON.parse(JSON.stringify(RibbonButtons.translateButtons));
+      }
+      var langKeys = langStrings.find((langString) => langString.ribbonText);
+      if (!langKeys) {
+        langKeys = JSON.parse(JSON.stringify(RibbonButtons.translateButtons));
+      } else {
+        langKeys = langKeys.ribbonText;
+      }
+      RibbonButtons.translateButtons.forEach((button) => {
+        const langObj  = langKeys.find((langText) => langText.buttonId === button.buttonId);
+        const enObj = enKeys.find((enText) => enText.buttonId === button.buttonId);
+        const enString  = enObj ? enObj .buttonText: button.buttonText;
+        const langString = langObj ? langObj.buttonText : button.buttonText;
+        var buttonContainer = b('div').classes('ribbon-button-container')
+          .attr('data-buttoncontainer',button.id).dom();
+        $(buttonContainer).append(
+           SmoTranslationEditor._getHtmlTextInput(button.buttonId,enString,langString,'ribbon-button',button.buttonId)
+        );
+        $(buttonDom).append(buttonContainer);
+      });
+      $(transContainer).append(buttonDom);
+    }
+
+    // ### _getStaticTextDialogHtml
+    // create DOM for the static text section of the dialogs.
+    static _getStaticTextDialogHtml(dialogCtor,element,enDb,langDb,htmlContainer) {
+      var b = htmlHelpers.buildDom;
+
+      const dbObj = element.staticText;
+      var enStNode = enDb.find((st) => st.staticText);
+      if (!enStNode) {
+        const enStString = JSON.parse(JSON.stringify(element.staticText));
+        enStNode = { staticText:enStString };
+        enDb.push({ staticText:enStString });
+      }
+      var langStNode = langDb.find((st) => st.staticText);
+      if (!langStNode|| !langStNode.staticText) {
+        const langStString = JSON.parse(JSON.stringify(element.staticText));
+        langStNode = { staticText: langStString};
+        langDb.push(langStNode);
+      }
+      const enObj = enStNode.staticText;
+      const langObj = langStNode.staticText;
+      const nodeContainer = b('div')
+        .classes('dialog-element-container')
+        .attr('data-component','staticText')
+        .dom();
+      $(htmlContainer).append(nodeContainer);
+      const elKeys = dbObj.map((st) => Object.keys(st)[0]);
+      elKeys.forEach((elKey) => {
+        var dbVal = dbObj.find((st) => st[elKey]);
+        var enVal = enObj.find((st) => st[elKey]);
+        var langVal = langObj.find((st) => st[elKey]);
+        if (!enVal) {
+          enVal = dbVal;
+        }
+        if (!langVal) {
+          langVal = dbVal;
+        }
+        const translateElement = SmoTranslationEditor._getHtmlTextInput(
+          elKey,enVal[elKey],langVal[elKey],'statictext',elKey);
+        $(nodeContainer).append(translateElement);
+      });
+    }
+
+    static _getDialogComponentHtml(dialogCtor,element,enDb,langDb,container) {
+      var b = htmlHelpers.buildDom;
+
+      var label = element.label;
+      var smoName = element.smoName;
+      var enComponent = enDb.find((st) => st.id === smoName);
+      if (!enComponent) {
+        enComponent = JSON.parse(JSON.stringify(element))
+      }
+      var langComponent = langDb.find((st) => st.id === smoName);
+      if (!langComponent) {
+        langComponent = JSON.parse(JSON.stringify(element));
+      }
+      const enLabel = enComponent.label ? enComponent.label : label;
+      const langLabel = langComponent.label ? langComponent.label : label;
+      const compHtml = SmoTranslationEditor._getHtmlTextInput(
+        label,enLabel,langLabel,'component',smoName);
+
+      if (element.options) {
+        const optionsHtml = b('div').classes('dialog-component-options').dom();
+        $(compHtml).append(optionsHtml);
+        if (!enComponent.options) {
+          enComponent.options = JSON.parse(JSON.stringify(element.options));
+        }
+        if (!langComponent.options) {
+          langComponent.options = JSON.parse(JSON.stringify(element.options));
+        }
+
+        element.options.forEach((option) => {
+          var enOption = enComponent.options.find((op) => op.value === option.value);
+          var langOption = langComponent.options.find((op) => op.value === option.value);
+          if (!enOption || !enOption.label) {
+            enOption = JSON.parse(JSON.stringify(option));
+          }
+          if (!langOption || !langOption.label) {
+            langOption = JSON.parse(JSON.stringify(option));
+          }
+          const optionHtml =  SmoTranslationEditor._getHtmlTextInput(
+            option.value,enOption.label,langOption.label,'component-option',option.value);
+            $(optionsHtml).append(optionHtml)
+        });
+        $(container).append(compHtml);
+      }
+    }
+
+    static getDialogTranslationHtml(dialogCtor,enStrings,langStrings) {
+      var b = htmlHelpers.buildDom;
+      var container = b('div').classes('db-translate-container').attr('data-dbcontainer',dialogCtor)
+        .append(b('button').classes('icon-plus trans-expander'))
+        .append(b('span').classes('db-translate-title').text(dialogCtor)).dom();
+      var ctor = eval(dialogCtor);
+      var elements = ctor.dialogElements;
+      var enDb = enStrings.find((dbStr) => dbStr.ctor === dialogCtor);
+      if (!enDb) {
+        enDb = JSON.parse(JSON.stringify(elements));
+      } else {
+        enDb = enDb.dialogElements;
+      }
+      var langDb = langStrings.find((dbStr) => dbStr.ctor === dialogCtor);
+      if (!langDb) {
+        langDb = JSON.parse(JSON.stringify(elements));
+      } else {
+        langDb = langDb.dialogElements;
+      }
+      elements.forEach((element) => {
+        if (element.staticText) {
+          SmoTranslationEditor._getStaticTextDialogHtml(dialogCtor,element,enDb,langDb,container);
+        } else if (element.smoName) {
+          SmoTranslationEditor._getDialogComponentHtml(dialogCtor,element,enDb,langDb,container);
+        }
+      });
+      return container;
+    }
+    static getAllTranslationHtml(lang) {
+      var enStr = SmoLanguage.en.strings
+      var langStr = SmoLanguage[lang].strings;
+      var b = htmlHelpers.buildDom;
+      var container = b('div').classes('top-translate-container')
+        .attr('dir',SmoLanguage[lang].dir).dom();
+      SmoTranslator.allDialogs.forEach((dialog) => {
+        $(container).append(SmoTranslationEditor.getDialogTranslationHtml(dialog,enStr,langStr))
+      });
+      SmoTranslator.allMenus.forEach((menu) => {
+        $(container).append(SmoTranslationEditor._getMenuTextDialogHtml(menu,enStr,langStr));
+      });
+      SmoTranslationEditor.getButtonTranslateHtml(enStr,langStr,container);
+      var resultDom = b('div').classes('translation-json-container').append(
+        b('textarea').classes('translation-json-text')).append(
+        b('div').append(
+          b('button').classes('translate-submit-button').text('Submit')
+        )
+      ).dom();
+
+      $(container).append(resultDom);
+
+      return container;
+    }
+    static parseDom() {
+      var json = [];
+      // $('.top-translate-container .db-translate-container[data-dbcontainer] [data-component="staticText"]')
+       $('.top-translate-container .db-translate-container[data-dbcontainer]').each((ix,dbEl) => {
+         var db = $(dbEl).attr('data-dbcontainer');
+         var obj = {ctor: db};
+         var elements = [];
+         var domComponents = $(dbEl).find('[data-component]');
+         $(domComponents).each(function(ix,domComponent) {
+           const compType = $(domComponent).attr('data-component');
+
+           if (compType === 'staticText') {
+             var stElements=[];
+             $(domComponent).find('[data-statictext]').each((ix,stDom) => {
+               const key=$(stDom).attr('data-statictext');
+               const value = $(stDom).find('input.trans-label-input').val();
+               const stNode = JSON.parse('{"'+key+'":"'+value+'"}');
+               stElements.push(stNode);
+             });
+             elements.push({staticText:stElements});
+           } else {
+             var dbComponent = {id:compType};
+             dbComponent.label = $(domComponent).find('input.trans-label-input').val();
+             var compOptions = [];
+             $(domComponent).find('[data-component-option]').each(function(ix,optionDom) {
+               const value = $(optionDom).find('.trans-db-text').text();
+               const label = $(optionDom).find('input.trans-label-input').val();
+               compOptions.push({value:value,label:label});
+             });
+             dbComponent.options = compOptions;
+             elements.push(dbComponent);
+           }
+         });
+         obj.dialogElements = elements;
+         json.push(obj);
+
+       });
+       $('.menu-translate-container[data-menucontainer]').each((ix,menuEl) => {
+         var menuId = $(menuEl).attr('data-menucontainer');
+         var obj = {ctor:menuId};
+         const menuLabel = $(menuEl)
+           .find('.dialog-element-container[data-menulabel] .trans-label-input')
+           .val();
+         obj.label = menuLabel;
+         var menuItems = [];
+         var itemsDom = $(menuEl).find('.menu-item-container .dialog-element-container');
+         $(itemsDom).each((ix,itemDom) => {
+           const value = $(itemDom).find('.trans-db-text').text();
+           const text = $(itemDom).find('input.trans-label-input').val();
+           menuItems.push({value:value,text:text});
+         });
+         obj.menuItems = menuItems;
+         json.push(obj);
+       });
+       var ribbonText = [];
+       $('.ribbon-translate-container .ribbon-button-container').each((ix,buttonEl) => {
+         const buttonId = $(buttonEl).find('.trans-db-text').text();
+         const buttonText = $(buttonEl).find('input.trans-label-input').val();
+         ribbonText.push({buttonId: buttonId,buttonText:buttonText});
+       });
+       json.push({ribbonText:ribbonText});
+      return json;
+    }
+    static startEditor(lang) {
+      var transDom =  SmoTranslationEditor.getAllTranslationHtml(lang);
+      $('.translation-editor').append(transDom);
+      $('body').addClass('translation-mode');
+      $('.plaintext-translate').each(function(ix,el) {
+        var txt = $(this).text();
+        var input = $(this).closest('.trans-label').find('input.trans-label-input').val(txt);
+      });
+
+      $('.db-translate-container button.trans-expander').off('click').on('click', function() {
+        var exp = $(this).closest('.db-translate-container');
+        if ($(exp).hasClass('expanded')) {
+          $(exp).removeClass('expanded');
+          $(this).removeClass('icon-minus');
+          $(this).addClass('icon-plus');
+        } else {
+          $(exp).addClass('expanded');
+          $(this).addClass('icon-minus');
+          $(this).removeClass('icon-plus');
+        }
+      });
+      $('.menu-translate-container button.trans-expander').off('click').on('click', function() {
+        var exp = $(this).closest('.menu-translate-container');
+        if ($(exp).hasClass('expanded')) {
+          $(exp).removeClass('expanded');
+          $(this).removeClass('icon-minus');
+          $(this).addClass('icon-plus');
+        } else {
+          $(exp).addClass('expanded');
+          $(this).addClass('icon-minus');
+          $(this).removeClass('icon-plus');
+        }
+      });
+      $('.ribbon-translate-container button.trans-expander').off('click').on('click', function() {
+        var exp = $(this).closest('.ribbon-translate-container');
+        if ($(exp).hasClass('expanded')) {
+          $(exp).removeClass('expanded');
+          $(this).removeClass('icon-minus');
+          $(this).addClass('icon-plus');
+        } else {
+          $(exp).addClass('expanded');
+          $(this).addClass('icon-minus');
+          $(this).removeClass('icon-plus');
+        }
+      });
+      $('.translate-submit-button').off('click').on('click',(ev) => {
+        var json = SmoTranslationEditor.parseDom();
+        $('.translation-json-text').val(JSON.stringify(json,null,' '));
+      });
+
+
+    }
+
+}
 ;class SuiApplication {
 
   static createUtApplication(config) {
@@ -26081,7 +27120,7 @@ class suiController {
     var _config = {
       scoreLoadOrder:['library'],
       scoreLoadJson:'emptyScoreJson',
-      ribon:false,
+      ribbon:false,
       editor:false,
       menus:false,
       controller:'utController',
@@ -26197,10 +27236,18 @@ class suiController {
           }
         } else if (pairs['lang']) {
           SuiApplication._deferLanguageSelection(pairs['lang']);
+        } else if (pairs['translate']) {
+          SuiApplication._deferCreateTranslator(pairs['translate']);
         }
       });
     }
     return score;
+  }
+
+  static _deferCreateTranslator(lang) {
+    setTimeout(() => {
+      var transDom =  SmoTranslationEditor.startEditor(lang);
+    },1);
   }
 
   static _deferLanguageSelection(lang) {
