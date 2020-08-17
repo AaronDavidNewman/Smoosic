@@ -9,18 +9,18 @@ project from [GitHub Vex Flow](https://github.com/0xfe/vexflow) for rendering
 
 You can see smoosic in action here:
 
-[Editor Demo](https://aarondavidnewman.github.io/Smoosic/release/html/smoosic.html)
+[Smoosic](https://aarondavidnewman.github.io/Smoosic/release/html/smoosic.html)
 
 ---
 
 If you want to use it in your own projects, a good place to start are the unit tests.  They are here:
 
-[Editor Tests](https://jsfiddle.net/AaronDavidNewman/17tpnwqz/)
+[Editor Tests](https://aarondavidnewman.github.io/Smoosic/release/html/tests.html)
 
 ---
 
 Instructions on how to use smoosic:
-[Editor Commands and Key Mappings](https://aarondavidnewman.github.io/Smoosic/release/docs/helpfile.html)
+[Smoosic Wiki](https://github.com/AaronDavidNewman/Smoosic/wiki)
 
 ---
 If you want to contribute or hack, there is source-code [auto-generated documentation](https://github.com/AaronDavidNewman/Smoosic/wiki/Source-Documentation)
