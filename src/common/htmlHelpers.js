@@ -160,17 +160,19 @@ class htmlHelpers {
 class draggable {
 
 	constructor(parameters) {
-
 		this.parent = parameters.parent;
 		this.handle = parameters.handle;
-        this.animeClass = parameters.animateDiv;
-        this.dragParent = parameters.dragParent;
+    this.animeClass = parameters.animateDiv;
+    this.dragParent = parameters.dragParent;
+
+    // TODO: make '.dom-container' a part of the configuration
+    this.domOffset =  $('.dom-container').offset();
 
 		this.svg=parameters['svg'];
 		this.width = $(this.parent).outerWidth();
 		this.height = $(this.parent).outerHeight();
-		this.lastX = $(this.handle).offset().left;
-		this.lastY = $(this.handle).offset().top;
+		this.lastX = $(this.handle).offset().left - this.domOffset.left;
+		this.lastY = $(this.handle).offset().top - this.domOffset.top;
 		this.cb = parameters.cb;
 		this.moveParent = parameters.moveParent;
 
@@ -193,21 +195,21 @@ class draggable {
 			self.mouseup(e);
 		});
 	}
-    disconnect() {
-        $(this.handle).off('mousedown');
-        $(this.document).off('mousemove');
-        $(this.handle).off('mouseup');
-    }
+  disconnect() {
+    $(this.handle).off('mousedown');
+    $(this.document).off('mousemove');
+    $(this.handle).off('mouseup');
+  }
 	_animate(e) {
 		this.lastX = e.clientX;
 		this.lastY = e.clientY;
-		$(this.animeClass).css('left', this.lastX);
-		$(this.animeClass).css('top', this.lastY);
+		$(this.animeClass).css('left', this.lastX - this.domOffset.left);
+		$(this.animeClass).css('top', this.lastY - this.domOffset.top);
 
-        if (this.dragParent) {
-            $(this.parent).css('left', this.lastX + 'px');
-			$(this.parent).css('top', this.lastY + 'px');
-        }
+    if (this.dragParent) {
+      $(this.parent).css('left', this.lastX + 'px');
+		  $(this.parent).css('top', this.lastY + 'px');
+    }
 	}
 	mousedown(e) {
 		if (!this.dragging) {
@@ -221,7 +223,8 @@ class draggable {
 		this._animate(e);
 	}
 	enddrag(e) {
-
+    this.lastX = this.lastX - this.domOffset.left;
+    this.lastY = this.lastY - this.domOffset.top;
 		if (this.moveParent) {
 			$(this.parent).css('left', this.lastX + 'px');
 			$(this.parent).css('top', this.lastY + 'px');

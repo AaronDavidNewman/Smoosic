@@ -136,15 +136,18 @@ class SuiDialogBase {
     var dgeHeight = $(dge).height();
     var maxY =  $('.musicRelief').height();
     var maxX = $('.musicRelief').width();
+    var offset = $('.dom-container').offset();
+    y = y - offset.top;
 
-    var offset = dgeHeight + y > window.innerHeight ? (dgeHeight + y) -  window.innerHeight : 0;
-    y = (y < 0) ? -y : y - offset;
+    var offsetY = dgeHeight + y > window.innerHeight ? (dgeHeight + y) -  window.innerHeight : 0;
+    y = (y < 0) ? -y : y - offsetY;
 
     y = (y > maxY || y < 0) ? maxY / 2 : y;
 
   	$(dge).css('top', '' + y + 'px');
 
     var x = box.x - scroller.netScroll.x;
+    x = x - offset.left;
     var w = $(dge).width();
     x = (x > window.innerWidth /2)  ? x - (w+25) : x + (w+25);
 
