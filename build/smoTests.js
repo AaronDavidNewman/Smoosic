@@ -2430,15 +2430,27 @@ class TextTest {
 			SmoUndoable.scoreOp(score,'addScoreText',tt,undo,'Score Text Test 1');
 			score.addScoreText(tt);
 			keys.render();
-            return timeTest();
+      return timeTest();
 		}
+
+    var inlineText = () => {
+      var context = keys.layout.context;
+      var editText = new SuiInlineText({context:context});
+      editText.addTextBlockAt(0,{text:'A'});
+      editText.addTextBlockAt(1,{text:'l'});
+      editText.addTextBlockAt(1,{text:'l'});
+      editText.addTextBlockAt(3,{text:'O',textType:SuiInlineText.textTypes.superScript});
+      editText.addGlyphBlockAt(4,{glyphCode: 'csymMajorSeventh',textType:SuiInlineText.textTypes.superScript});
+      editText.render();
+      return timeTest();
+    }
 
 		var scoreText2 = () => {
 			tt = score.getScoreText(tt.attrs.id);
 			tt.boxModel=SmoScoreText.boxModels.spacing;
 			tt.width=100;
 			keys.render();
-            return timeTest();
+      return timeTest();
 		}
 
 		var scoreText3 = () => {
@@ -2447,7 +2459,7 @@ class TextTest {
 			tt.fontInfo.size=20;
 			tt.width=100;
 			keys.render();
-            return timeTest();
+      return timeTest();
 		}
 
 		var scoreText4 = () => {
@@ -2592,7 +2604,7 @@ class TextTest {
 			SmoUndoable.scoreSelectionOp(score,selection,'addMeasureText',mt,undo,'test measureText2');
 
 			keys.render();
-            return timeTest();
+      return timeTest();
 		}
 
 
@@ -2662,7 +2674,7 @@ class TextTest {
             return timeTest();
 		}
 
-        return drawDefaults().then(scoreText1).then(scoreText2).then(scoreText3).then(scoreText3).then(scoreText4).
+        return drawDefaults().then(scoreText1).then(inlineText).then(scoreText2).then(scoreText3).then(scoreText3).then(scoreText4).
 		   then(scaleUp).then(scaleDown).then(moveText).then(lyricTest).then(rehearsalMarkTest).then(rehearsalMarkTest2)
            .then(rehearsalMarkTest3).then(tempoTest).then(measureText1).
 		   then(measureText2).then(measureText3).then(measureText4)

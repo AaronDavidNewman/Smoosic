@@ -7085,6 +7085,13 @@ class SmoMeasure {
 			} // no idea
 		}
 	}
+  static set emptyMeasureNoteType(tt) {
+    SmoMeasure._emptyMeasureNoteType = tt;
+  }
+  static get emptyMeasureNoteType() {
+    SmoMeasure._emptyMeasureNoteType = SmoMeasure._emptyMeasureNoteType ? SmoMeasure._emptyMeasureNoteType : 'r';
+    return SmoMeasure._emptyMeasureNoteType;
+  }
 	// ### getDefaultNotes
 	// Get a measure full of default notes for a given timeSignature/clef.
 	// returns 8th notes for triple-time meters, etc.
@@ -7120,15 +7127,15 @@ class SmoMeasure {
     }
 
 		for (var i = 0; i < beats; ++i) {
-			var note = new SmoNote({
+      var note = new SmoNote({
 				clef: params.clef,
 				pitches: [pitches],
 				ticks: ticks,
 				timeSignature: params.timeSignature,
         beamBeats:beamBeats,
-        noteType:'r'
+        noteType:SmoMeasure.emptyMeasureNoteType
 			});
-			rv.push(note);
+      rv.push(note);
 		}
 		return rv;
 	}
@@ -17152,6 +17159,177 @@ class suiTextLayout {
 
 }
 ;
+class SuiInlineText {
+  static get textTypes() {
+    return {normal:0,superScript:1,subScript:2};
+  }
+  static get symbolTypes() {
+    return {
+      GLYPH: 1,
+      TEXT: 2,
+      LINE: 3
+    };
+  }
+  static get superscriptOffset() {
+    return VF.ChordSymbol.chordSymbolMetrics.global.superscriptOffset / VF.ChordSymbol.engravingFontResolution;
+  }
+
+  static get subscriptOffset() {
+    return VF.ChordSymbol.chordSymbolMetrics.global.subscriptOffset / VF.ChordSymbol.engravingFontResolution;
+  }
+
+
+  static get defaults() {
+    return {
+      blocks: [],
+      fontFamily: 'robotoSlab',
+      fontSize: 14,
+      startX: 100,
+      startY: 100,
+      fontWeight:500,
+      activeBlock:-1
+    };
+  }
+  constructor(params) {
+    Vex.Merge(params, SuiInlineText.defaults);
+    Vex.Merge(this, params);
+    this.attrs = {
+      id: VF.Element.newID(),
+      type: 'SuiInlineText'
+    };
+
+    if (!this.context) {
+      throw('context for SVG must be set');
+    }
+  }
+  get fontMetrics() {
+    return VF.DEFAULT_FONT_STACK[0].name === 'Petaluma' ?
+      VF.PetalumaScriptMetrics : VF.RobotoSlabMetrics;
+  }
+
+  static get blockDefaults() {
+    return {
+      symbolType: SuiInlineText.symbolTypes.TEXT,
+      textType: SuiInlineText.textTypes.normal
+    };
+  }
+
+  // ### pointsToPixels
+  // The font size is specified in points, convert to 'pixels' in the svg space
+  get pointsToPixels() {
+    return (this.fontSize / 72) / (1 / 96);
+  }
+
+  _calculateBlockIndex() {
+    var curX = this.startX;
+    var maxH = 0;
+    this.blocks.forEach((block) => {
+      block.width = 0;
+
+      block.scale = block.textType === SuiInlineText.textTypes.normal ? 1.0 : VF.ChordSymbol.superSubRatio;
+      block.x = curX;
+      if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
+        for (var i = 0;i < block.text.length;++i) {
+            var metrics = this.fontMetrics;
+            var ch = block.text[i];
+            var glyph = metrics.glyphs[ch] ? metrics.glyphs[ch] : metrics.glyphs['H'];
+            block.width = ((glyph.advanceWidth) / metrics.resolution) * this.pointsToPixels * block.scale;
+            block.height = (glyph.ha / metrics.resolution) *  this.pointsToPixels * block.scale;
+        }
+      } else if (block.symbolType === SuiInlineText.symbolTypes.GLYPH) {
+        block.width = (block.metrics.advanceWidth / VF.ChordSymbol.engravingFontResolution) * this.pointsToPixels * block.scale;
+        block.height = (block.glyph.metrics.ha / VF.ChordSymbol.engravingFontResolution) * this.pointsToPixels * block.scale;
+      }
+      curX += block.width;
+      block.y = this.startY;  // TODO: multi-line
+      maxH = block.height > maxH ? maxH : block.height;
+    });
+    this.width = curX - this.startX;
+    this.height = maxH;
+  }
+
+  _getTextBlock(params) {
+    const block = JSON.parse(JSON.stringify(SuiInlineText.blockDefaults));
+    Vex.Merge(block, params);
+    block.text = params.text;
+    return block;
+  }
+  render() {
+    $('svg #'+this.attrs.id).remove();
+    this.context.setFont(this.fontFamily, this.fontSize, this.fontWeight);
+    var group = this.context.openGroup();
+    var mmClass = "suiInlineText";
+    group.classList.add(this.attrs.id);
+    group.classList.add(mmClass);
+    group.id=this.attrs.id;
+
+    this.blocks.forEach((block) => {
+      this._drawBlock(block);
+    });
+    this.context.closeGroup();
+  }
+  _addBlockAt(position,block) {
+    if (position >= this.blocks.length) {
+      this.blocks.push(block);
+    } else {
+      this.blocks.splice(position,0,block);
+    }
+  }
+  // ### addTextBlockAt
+  // Add a text block to the line of text.
+  // params must contain at least:
+  // {text:'xxx'}
+  addTextBlockAt(position,params) {
+    const block = this._getTextBlock(params);
+    this._addBlockAt(position,block);
+    this._calculateBlockIndex();
+  }
+  _getGlyphBlock(params) {
+    const block = JSON.parse(JSON.stringify(SuiInlineText.blockDefaults));
+    block.symbolType = SuiInlineText.symbolTypes.GLYPH;
+    block.glyphCode = params.glyphCode;
+    block.glyph = new VF.Glyph(block.glyphCode, this.fontSize);
+    block.metrics = VF.ChordSymbol.getMetricForGlyph(block.glyphCode);
+    return block;
+  }
+  // ### addGlyphBlockAt
+  // Add a glyph block to the line of text.  Params must include:
+  // {glyphCode:'csymDiminished'}
+  addGlyphBlockAt(position,params) {
+    const block = this._getGlyphBlock(params);
+    this._addBlockAt(position,block);
+    this._calculateBlockIndex();
+  }
+  isSuperscript(block) {
+    return block.textType === SuiInlineText.textTypes.superScript;
+  }
+  isSubcript(block) {
+    return block.textType === SuiInlineText.textTypes.subScript;
+  }
+
+  _drawBlock(block) {
+    const sp = this.isSuperscript(block);
+    const sub = this.isSubcript(block);
+    let y = block.y;
+    if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
+      if (sp || sub) {
+        this.context.save();
+        this.context.setFont(this.fontFamily, this.fontSize * VF.ChordSymbol.superSubRatio, this.fontWeight);
+        y = y + (sp ? SuiInlineText.superscriptOffset : SuiInlineText.subscriptOffset) * this.pointsToPixels * block.scale;
+      }
+      this.context.fillText(block.text,block.x,y);
+      if (sp || sub) {
+        this.context.restore();
+        y = y + (sp ? SuiInlineText.superscriptOffset : SuiInlineText.subscriptOffset) * this.pointsToPixels * block.scale;
+      }
+    } else if (block.symbolType === SuiInlineText.symbolTypes.GLYPH) {
+      if (sp || sub) {
+        y = y + (sp ? SuiInlineText.superscriptOffset : SuiInlineText.subscriptOffset) * this.pointsToPixels * block.scale;
+      }
+      block.glyph.render(this.context, block.x, y);
+    }
+  }
+}
 
 
 // ## editSvgText
@@ -19125,6 +19303,7 @@ class utController {
 		this.undoBuffer = new UndoBuffer();
     this.layoutDemon.undoBuffer = this.undoBuffer;
     this.exhandler = new SuiExceptionHandler(this);
+    SmoMeasure.emptyMeasureNoteType='n';
 
     this.layoutDemon.startDemon();
 	}

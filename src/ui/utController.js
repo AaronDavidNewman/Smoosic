@@ -12,6 +12,7 @@ class utController {
 		this.undoBuffer = new UndoBuffer();
     this.layoutDemon.undoBuffer = this.undoBuffer;
     this.exhandler = new SuiExceptionHandler(this);
+    SmoMeasure.emptyMeasureNoteType='n';
 
     this.layoutDemon.startDemon();
 	}

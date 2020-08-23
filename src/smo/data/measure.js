@@ -280,6 +280,13 @@ class SmoMeasure {
 			} // no idea
 		}
 	}
+  static set emptyMeasureNoteType(tt) {
+    SmoMeasure._emptyMeasureNoteType = tt;
+  }
+  static get emptyMeasureNoteType() {
+    SmoMeasure._emptyMeasureNoteType = SmoMeasure._emptyMeasureNoteType ? SmoMeasure._emptyMeasureNoteType : 'r';
+    return SmoMeasure._emptyMeasureNoteType;
+  }
 	// ### getDefaultNotes
 	// Get a measure full of default notes for a given timeSignature/clef.
 	// returns 8th notes for triple-time meters, etc.
@@ -315,15 +322,15 @@ class SmoMeasure {
     }
 
 		for (var i = 0; i < beats; ++i) {
-			var note = new SmoNote({
+      var note = new SmoNote({
 				clef: params.clef,
 				pitches: [pitches],
 				ticks: ticks,
 				timeSignature: params.timeSignature,
         beamBeats:beamBeats,
-        noteType:'r'
+        noteType:SmoMeasure.emptyMeasureNoteType
 			});
-			rv.push(note);
+      rv.push(note);
 		}
 		return rv;
 	}
