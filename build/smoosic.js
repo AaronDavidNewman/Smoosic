@@ -4874,6 +4874,41 @@ class svgHelpers {
     svg.appendChild(e);
   }
 
+  static renderCursor(svg,x,y,height) {
+    var ns = svgHelpers.namespace;
+    const width = height * 0.4;
+    var mcmd = (d,x,y) => {
+      return d + 'M '+x+' '+y+' ';
+    };
+    var qcmd = (d,x1,y1,x2,y2) => {
+      return d + 'q ' + x1 + ' ' + y1 + ' ' + x2 + ' ' + y2 + ' ';
+    };
+    var lcmd = (d,x,y) => {
+      return d + 'L ' + x + ' ' + y + ' ';
+    };
+    var x1 = (width / 2) * .333;
+    var y1 = -1*(x1 / 4);
+    var x2 = (width / 2);
+    var y2 = x2 / 4;
+    var ns = svgHelpers.namespace;
+    var e = document.createElementNS(ns, 'path');
+    var d = '';
+    d = mcmd(d,x,y);
+    d = qcmd(d,x1,y1,x2,y2);
+    d = lcmd(d,x + (width / 2),y + height - (width / 8));
+    d = mcmd(d,x+width,y);
+    d = qcmd(d,-1*x1,y1,-1*x2,y2);
+    d = mcmd(d,x,y + height);
+    d = qcmd(d,x1,-1*y1,x2,-1*y2);
+    d = mcmd(d,x+width,y + height);
+    d = qcmd(d,-1*x1, -1 * y1, -1 * x2, -1 * y2);
+    e.setAttributeNS('','d',d);
+    e.setAttributeNS('','stroke-width','1');
+    e.setAttributeNS('','stroke','#555');
+    e.setAttributeNS('','fill','none');
+    svg.appendChild(e);
+  }
+
 	static buildSvg(el) {
 
 		var smoSvgBuilder = function (el) {
@@ -17187,6 +17222,7 @@ class SuiInlineText {
       startX: 100,
       startY: 100,
       fontWeight:500,
+      scale: 1,
       activeBlock:-1
     };
   }
@@ -17253,6 +17289,22 @@ class SuiInlineText {
     Vex.Merge(block, params);
     block.text = params.text;
     return block;
+  }
+  renderCursorAt(position) {
+    var group = this.context.openGroup();
+    group.id = 'inlineCursor';
+    if (this.blocks.length <= position || position < 0) {
+      const h = this.fontSize;
+      svgHelpers.renderCursor(group, this.startX,this.startY - h,h);
+      this.context.closeGroup();
+      return;
+    }
+    var block = this.blocks[position];
+    svgHelpers.renderCursor(group, block.x + block.width,block.y - block.height,block.height);
+    this.context.closeGroup();
+  }
+  removeCursor() {
+    $('svg #inlineCursor').remove();
   }
   render() {
     $('svg #'+this.attrs.id).remove();
@@ -17328,6 +17380,22 @@ class SuiInlineText {
       }
       block.glyph.render(this.context, block.x, y);
     }
+  }
+}
+
+class SuiTextBlock {
+  constructor(params) {
+    this.inlineBlocks = [];
+    this.context = params.context;
+    const startBlock = new SuiInlineText(params);
+    this.currentBlock = startBlock;
+    this.currentBlock.position = 0;
+  }
+  addTextAt(position,params) {
+    this.currentBlock.addTextBlockAt(position,params);
+  }
+  addGlyphAt(position,params) {
+    this.currentBlock.addGlyphBlockAt(position,params);
   }
 }
 

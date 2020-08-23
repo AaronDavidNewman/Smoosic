@@ -27,6 +27,7 @@ class SuiInlineText {
       startX: 100,
       startY: 100,
       fontWeight:500,
+      scale: 1,
       activeBlock:-1
     };
   }
@@ -93,6 +94,22 @@ class SuiInlineText {
     Vex.Merge(block, params);
     block.text = params.text;
     return block;
+  }
+  renderCursorAt(position) {
+    var group = this.context.openGroup();
+    group.id = 'inlineCursor';
+    if (this.blocks.length <= position || position < 0) {
+      const h = this.fontSize;
+      svgHelpers.renderCursor(group, this.startX,this.startY - h,h);
+      this.context.closeGroup();
+      return;
+    }
+    var block = this.blocks[position];
+    svgHelpers.renderCursor(group, block.x + block.width,block.y - block.height,block.height);
+    this.context.closeGroup();
+  }
+  removeCursor() {
+    $('svg #inlineCursor').remove();
   }
   render() {
     $('svg #'+this.attrs.id).remove();
@@ -168,6 +185,22 @@ class SuiInlineText {
       }
       block.glyph.render(this.context, block.x, y);
     }
+  }
+}
+
+class SuiTextBlock {
+  constructor(params) {
+    this.inlineBlocks = [];
+    this.context = params.context;
+    const startBlock = new SuiInlineText(params);
+    this.currentBlock = startBlock;
+    this.currentBlock.position = 0;
+  }
+  addTextAt(position,params) {
+    this.currentBlock.addTextBlockAt(position,params);
+  }
+  addGlyphAt(position,params) {
+    this.currentBlock.addGlyphBlockAt(position,params);
   }
 }
 

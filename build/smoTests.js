@@ -2392,6 +2392,9 @@ class TextTest {
     var application = SuiApplication.createUtApplication();
     var keys = application.controller;
     var score = keys.layout.score;
+    var context = keys.layout.context;
+    var editText = new SuiInlineText({context:context});
+
     score.addDefaultMeasureWithNotes(0,{});
     score.addDefaultMeasureWithNotes(1,{});
     score.addDefaultMeasureWithNotes(2,{});
@@ -2434,14 +2437,31 @@ class TextTest {
 		}
 
     var inlineText = () => {
-      var context = keys.layout.context;
-      var editText = new SuiInlineText({context:context});
       editText.addTextBlockAt(0,{text:'A'});
       editText.addTextBlockAt(1,{text:'l'});
       editText.addTextBlockAt(1,{text:'l'});
       editText.addTextBlockAt(3,{text:'O',textType:SuiInlineText.textTypes.superScript});
       editText.addGlyphBlockAt(4,{glyphCode: 'csymMajorSeventh',textType:SuiInlineText.textTypes.superScript});
       editText.render();
+      editText.renderCursorAt(2);
+      editText.renderCursorAt(-1);
+      return timeTest();
+    }
+
+    var cursor2 = () => {
+      editText.renderCursorAt(2);
+      return timeTest();
+    }
+
+    var removeCursor = () => {
+      editText.removeCursor();
+      return timeTest();
+    }
+
+    var inlineText2 = () => {
+      var textBlock =  new SuiInlineText({context:context,startX:400,startY: 50});
+      textBlock.addTextBlockAt(0,{text:'Hello Inline World'} );
+      textBlock.render();
       return timeTest();
     }
 
@@ -2674,11 +2694,13 @@ class TextTest {
             return timeTest();
 		}
 
-        return drawDefaults().then(scoreText1).then(inlineText).then(scoreText2).then(scoreText3).then(scoreText3).then(scoreText4).
+        return drawDefaults().then(scoreText1).then(inlineText).then(removeCursor).then(cursor2).then(removeCursor)
+        .then(inlineText2).then(signalComplete);
+        /* then(scoreText2).then(scoreText3).then(scoreText3).then(scoreText4).
 		   then(scaleUp).then(scaleDown).then(moveText).then(lyricTest).then(rehearsalMarkTest).then(rehearsalMarkTest2)
            .then(rehearsalMarkTest3).then(tempoTest).then(measureText1).
 		   then(measureText2).then(measureText3).then(measureText4)
-		   .then(titleText1).then(titleText2).then(titleText3).then(copyText1).then(copyText2).then(signalComplete);
+		   .then(titleText1).then(titleText2).then(titleText3).then(copyText1).then(copyText2).then(signalComplete);  */
     }
 }
 

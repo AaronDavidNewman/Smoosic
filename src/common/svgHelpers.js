@@ -52,6 +52,41 @@ class svgHelpers {
     svg.appendChild(e);
   }
 
+  static renderCursor(svg,x,y,height) {
+    var ns = svgHelpers.namespace;
+    const width = height * 0.4;
+    var mcmd = (d,x,y) => {
+      return d + 'M '+x+' '+y+' ';
+    };
+    var qcmd = (d,x1,y1,x2,y2) => {
+      return d + 'q ' + x1 + ' ' + y1 + ' ' + x2 + ' ' + y2 + ' ';
+    };
+    var lcmd = (d,x,y) => {
+      return d + 'L ' + x + ' ' + y + ' ';
+    };
+    var x1 = (width / 2) * .333;
+    var y1 = -1*(x1 / 4);
+    var x2 = (width / 2);
+    var y2 = x2 / 4;
+    var ns = svgHelpers.namespace;
+    var e = document.createElementNS(ns, 'path');
+    var d = '';
+    d = mcmd(d,x,y);
+    d = qcmd(d,x1,y1,x2,y2);
+    d = lcmd(d,x + (width / 2),y + height - (width / 8));
+    d = mcmd(d,x+width,y);
+    d = qcmd(d,-1*x1,y1,-1*x2,y2);
+    d = mcmd(d,x,y + height);
+    d = qcmd(d,x1,-1*y1,x2,-1*y2);
+    d = mcmd(d,x+width,y + height);
+    d = qcmd(d,-1*x1, -1 * y1, -1 * x2, -1 * y2);
+    e.setAttributeNS('','d',d);
+    e.setAttributeNS('','stroke-width','1');
+    e.setAttributeNS('','stroke','#555');
+    e.setAttributeNS('','fill','none');
+    svg.appendChild(e);
+  }
+
 	static buildSvg(el) {
 
 		var smoSvgBuilder = function (el) {
