@@ -86,7 +86,9 @@ class suiScoreLayout extends suiLayoutBase {
 			var fcn = tt.position+'TextPlacement';
 			suiTextLayout[fcn](tt,args);
 		} else {
-		    suiTextLayout.placeText(tt,args);
+      const svgText = SuiTextBlock.fromScoreText(tt,this.context);
+      svgText.render();
+		  // suiTextLayout.placeText(tt,args);
 		}
 
     // Update paginated score text

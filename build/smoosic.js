@@ -16719,7 +16719,9 @@ class suiScoreLayout extends suiLayoutBase {
 			var fcn = tt.position+'TextPlacement';
 			suiTextLayout[fcn](tt,args);
 		} else {
-		    suiTextLayout.placeText(tt,args);
+      const svgText = SuiTextBlock.fromScoreText(tt,this.context);
+      svgText.render();
+		  // suiTextLayout.placeText(tt,args);
 		}
 
     // Update paginated score text
@@ -17194,6 +17196,10 @@ class suiTextLayout {
 
 }
 ;
+// ## SuiInlineText
+// Inline text is a block of SVG text with the same font.  Each block can
+// contain eithr text or an svg glyph.  Each block in the text has its own
+// metrics so we can support inline svg text editors (cursor)
 class SuiInlineText {
   static get textTypes() {
     return {normal:0,superScript:1,subScript:2};
@@ -17226,8 +17232,9 @@ class SuiInlineText {
       activeBlock:-1
     };
   }
+  // ### constructor just creates an empty svg
   constructor(params) {
-    Vex.Merge(params, SuiInlineText.defaults);
+    Vex.Merge(this, SuiInlineText.defaults);
     Vex.Merge(this, params);
     this.attrs = {
       id: VF.Element.newID(),
@@ -17389,6 +17396,7 @@ class SuiTextBlock {
     this.context = params.context;
     const startBlock = new SuiInlineText(params);
     this.currentBlock = startBlock;
+    this.inlineBlocks.push(this.currentBlock);
     this.currentBlock.position = 0;
   }
   addTextAt(position,params) {
@@ -17396,6 +17404,25 @@ class SuiTextBlock {
   }
   addGlyphAt(position,params) {
     this.currentBlock.addGlyphBlockAt(position,params);
+  }
+  render() {
+    this.inlineBlocks.forEach((block) => {
+      block.render();
+    });
+  }
+  static _pointFromEm(scoreText) {
+    var ptString = scoreText.fontInfo.size.substring(0,scoreText.fontInfo.size.length - 2);
+    return parseFloat(ptString);
+  }
+  static fromScoreText(scoreText,context) {
+    var pointSize = scoreText.fontInfo.pointSize ? scoreText.fontInfo.pointSize
+      : SuiTextBlock._pointFromEm(scoreText) * 14;
+    const rv = new SuiTextBlock( { fontFamily:scoreText.fontInfo.family,
+      startX: scoreText.x, startY: scoreText.y,
+      fontSize: pointSize, context: context } );
+    rv.currentBlock.attrs.id = scoreText.attrs.id;  // set id so svg id matches
+    rv.currentBlock.addTextBlockAt(0,{text: scoreText.text});
+    return rv;
   }
 }
 
