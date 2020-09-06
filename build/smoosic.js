@@ -4827,20 +4827,7 @@ class smoSerialize {
 // ### static class methods:
 // ---
 class svgHelpers {
-	// ### unionRect
-	// grow the bounding box two objects to include both.
-	static unionRect(b1, b2) {
-		var x = Math.min(b1.x, b2.x);
-		var y = Math.min(b1.y, b2.y);
-		var width = Math.max(b1.x + b1.width, b2.x + b2.width) - x;
-		var height = Math.max(b1.y + b1.height, b2.y + b2.height) - y;
-		return {
-			x: x,
-			y: y,
-			width: width,
-			height: height
-		};
-	}
+
 
 	static get namespace() {
 		return "http://www.w3.org/2000/svg";
@@ -5330,6 +5317,20 @@ class svgHelpers {
 			height: hround(box.height)
 		});
 	}
+  // ### unionRect
+  // grow the bounding box two objects to include both.
+  static unionRect(b1, b2) {
+    var x = Math.min(b1.x, b2.x);
+    var y = Math.min(b1.y, b2.y);
+    var width = Math.max(b1.x + b1.width, b2.x + b2.width) - x;
+    var height = Math.max(b1.y + b1.height, b2.y + b2.height) - y;
+    return {
+      x: x,
+      y: y,
+      width: width,
+      height: height
+    };
+  }
 
     // ### adjustScroll
     // Add the scroll to the screen coordinates so we can find the mapped
@@ -6893,7 +6894,8 @@ class SmoMeasure {
 		return [
 			'timeSignature', 'keySignature','systemBreak','pageBreak',
 			'measureNumber',
-			'activeVoice', 'clef', 'transposeIndex', 'adjX','customStretch','customProportion','padLeft', 'padRight', 'rightMargin'
+			'activeVoice', 'clef', 'transposeIndex',
+      'adjX','customStretch','customProportion','padLeft', 'padRight', 'rightMargin'
     ];
 	}
 
@@ -8696,6 +8698,7 @@ class SmoScore {
       staves: [],
       activeStaff: 0,
   		scoreText:[],
+      textGroups:[],
       systemGroups:[]
     };
   }
@@ -8733,7 +8736,7 @@ class SmoScore {
   static deserializeColumnMapped(scoreObj) {
     // var attrColumnHash = scoreObj
     if (!scoreObj.columnAttributeMap) {
-        return;
+      return;
     }
     var attrs = Object.keys(scoreObj.columnAttributeMap);
     scoreObj.staves.forEach((staff) => {
@@ -8764,31 +8767,35 @@ class SmoScore {
 
     // ### serialize
     // ### Serialize the score.  The resulting JSON string will contain all the staves, measures, etc.
-    serialize() {
-        var params = {};
-        smoSerialize.serializedMerge(SmoScore.defaultAttributes, this, params);
-        var obj = {
-            score: params,
-            staves: [],
-			scoreText:[],
-            systemGroups:[]
-        };
-        this.staves.forEach((staff) => {
-            obj.staves.push(staff.serialize());
-        });
+  serialize() {
+    var params = {};
+    smoSerialize.serializedMerge(SmoScore.defaultAttributes, this, params);
+    var obj = {
+      score: params,
+      staves: [],
+			scoreText: [],
+      textGroups: [],
+      systemGroups: []
+    };
+    this.staves.forEach((staff) => {
+      obj.staves.push(staff.serialize());
+    });
 
 		this.scoreText.forEach((tt) => {
 			obj.scoreText.push(tt.serialize());
 		});
-        this.systemGroups.forEach((gg) => {
-            obj.systemGroups.push(gg.serialize());
-        });
-        obj.columnAttributeMap = this.serializeColumnMapped();
-        smoSerialize.jsonTokens(obj);
-        obj = smoSerialize.detokenize(obj,smoSerialize.tokenValues);
-        obj.dictionary = smoSerialize.tokenMap;
-        return obj;
-    }
+    this.textGroups.forEach((tg) => {
+      obj.textGroups.push(tg);
+    });
+    this.systemGroups.forEach((gg) => {
+      obj.systemGroups.push(gg.serialize());
+    });
+    obj.columnAttributeMap = this.serializeColumnMapped();
+    smoSerialize.jsonTokens(obj);
+    obj = smoSerialize.detokenize(obj,smoSerialize.tokenValues);
+    obj.dictionary = smoSerialize.tokenMap;
+    return obj;
+  }
 
   // ### deserialize
   // ### Restore an earlier JSON string.  Unlike other deserialize methods, this one expects the string.
@@ -8799,6 +8806,8 @@ class SmoScore {
     }
     var params = {};
     var staves = [];
+    jsonObj.textGroups = jsonObj.textGroups ? jsonObj.textGroups : [];
+
     // Explode the sparse arrays of attributes into the measures
     SmoScore.deserializeColumnMapped(jsonObj);
     smoSerialize.serializedMerge(
@@ -8815,9 +8824,14 @@ class SmoScore {
       st.classes = 'score-text '+ st.attrs.id;
       scoreText.push(st);
   	});
+
+    var textGroups = [];
+    jsonObj.textGroups.forEach((tg) => {
+      textGroups.push(SmoTextGroup.deserialize(tg));
+    });
+
     var systemGroups = [];
     if (jsonObj['systemGroups']) {
-
       jsonObj.systemGroups.forEach((tt) => {
         var st = SmoScoreModifierBase.deserialize(tt);
         st.autoLayout = false; // since this has been layed out, presumably, before save
@@ -8828,44 +8842,45 @@ class SmoScore {
 
     let score = new SmoScore(params);
 	  score.scoreText=scoreText;
+    score.textGroups = textGroups;
     score.systemGroups = systemGroups;
 	  return score;
   }
 
-    // ### getDefaultScore
-    // ### Description:
-    // Gets a score consisting of a single measure with all the defaults.
-    static getDefaultScore(scoreDefaults, measureDefaults) {
-        scoreDefaults = (scoreDefaults != null ? scoreDefaults : SmoScore.defaults);
-        measureDefaults = (measureDefaults != null ? measureDefaults : SmoMeasure.defaults);
-        var score = new SmoScore(scoreDefaults);
-        score.addStaff({measureDefaults:measureDefaults});
-        var measure = SmoMeasure.getDefaultMeasure(measureDefaults);
-        score.addMeasure(0, measure);
-        measure.voices.push({
-            notes: SmoMeasure.getDefaultNotes(measureDefaults)
-        });
-        return score;
-    }
+  // ### getDefaultScore
+  // ### Description:
+  // Gets a score consisting of a single measure with all the defaults.
+  static getDefaultScore(scoreDefaults, measureDefaults) {
+    scoreDefaults = (scoreDefaults != null ? scoreDefaults : SmoScore.defaults);
+    measureDefaults = (measureDefaults != null ? measureDefaults : SmoMeasure.defaults);
+    var score = new SmoScore(scoreDefaults);
+    score.addStaff({measureDefaults:measureDefaults});
+    var measure = SmoMeasure.getDefaultMeasure(measureDefaults);
+    score.addMeasure(0, measure);
+    measure.voices.push({
+      notes: SmoMeasure.getDefaultNotes(measureDefaults)
+    });
+    return score;
+  }
 
-    // ### getEmptyScore
-    // ### Description:
-    // Create a score object, but don't populate it with anything.
-    static getEmptyScore(scoreDefaults) {
-        var score = new SmoScore(scoreDefaults);
-        score.addStaff();
-        return score;
-    }
+  // ### getEmptyScore
+  // ### Description:
+  // Create a score object, but don't populate it with anything.
+  static getEmptyScore(scoreDefaults) {
+    var score = new SmoScore(scoreDefaults);
+    score.addStaff();
+    return score;
+  }
 
     // ### _numberStaves
     // recursively renumber staffs and measures.
-    _numberStaves() {
-        for (var i = 0; i < this.staves.length; ++i) {
-            var stave = this.staves[i];
-			stave.staffId=i;
-            stave.numberMeasures();
-        }
+  _numberStaves() {
+    for (var i = 0; i < this.staves.length; ++i) {
+      var stave = this.staves[i];
+      stave.staffId=i;
+      stave.numberMeasures();
     }
+  }
 
     // ### addDefaultMeasureWithNotes
     // ### Description:
@@ -8963,8 +8978,6 @@ class SmoScore {
         this.systemGroups.push(newGroup);
     }
 
-    // ### addScoreText
-    //
 
     // ### replace staff
 	// Probably due to an undo operation, replace the staff at the given index.
@@ -9060,6 +9073,29 @@ class SmoScore {
 		}
 		this.scoreText = texts;
 	}
+  _updateTextGroup(textGroup,toAdd) {
+    var tgid = typeof(textGroup) === 'string' ? textGroup :
+      textGroup.attrs.id;
+    var ar = this.textGroups.filter((tg) => tg.attrs.id !== tgid);
+    this.textGroups = ar;
+    if (toAdd) {
+      this.textGroups.push(textGroup);
+    }
+  }
+
+  addTextGroup(textGroup) {
+    this._updateTextGroup(textGroup,true);
+  }
+  getTextGroup(textGroup) {
+    var tgid = typeof(textGroup) === 'string' ? textGroup :
+      textGroup.attrs.id;
+    return this.textGroups.find((tg) => tg.tgid === tg.attrs.id);
+  }
+  removeTextGroup(textGroup) {
+    var tgid = typeof(textGroup) === 'string' ? textGroup :
+      textGroup.attrs.id;
+      _updateTextGroup(textGroup,false);
+  }
 
 	addScoreText(textObject) {
 		this._updateScoreText(textObject,true);
@@ -9313,22 +9349,23 @@ class SmoSlur extends StaffModifierBase {
 }
 ;
 class SmoScoreModifierBase {
-    constructor(ctor) {
-        this.ctor = ctor;
-		 if (!this['attrs']) {
-            this.attrs = {
-                id: VF.Element.newID(),
-                type: ctor
-            };
-        } else {
+  constructor(ctor) {
+    this.ctor = ctor;
+    if (!this['attrs']) {
+      this.attrs = {
+        id: VF.Element.newID(),
+        type: ctor
+      };
+    } else {
             console.log('inherit attrs');
-        }
     }
-    static deserialize(jsonObj) {
-        var ctor = eval(jsonObj.ctor);
-        var rv = new ctor(jsonObj);
-        return rv;
-    }
+  }
+
+  static deserialize(jsonObj) {
+    var ctor = eval(jsonObj.ctor);
+    var rv = new ctor(jsonObj);
+    return rv;
+  }
 }
 
 class SmoSystemGroup extends SmoScoreModifierBase {
@@ -9391,17 +9428,91 @@ class SmoSystemGroup extends SmoScoreModifierBase {
         return ['leftConnector', 'rightConnector','text','shortText','justify',
        'startSelector','endSelector','mapType'];
     }
-    serialize() {
+  serialize() {
 		var params = {};
-        smoSerialize.serializedMergeNonDefault(SmoSystemGroup.defaults,SmoSystemGroup.attributes,this,params);
-        params.ctor = 'SmoSystemGroup';
-        return params;
+    smoSerialize.serializedMergeNonDefault(SmoSystemGroup.defaults,SmoSystemGroup.attributes,this,params);
+    params.ctor = 'SmoSystemGroup';
+    return params;
 	}
+}
+
+// ## SmoTextGroup
+// A grouping of text that can be used as a block for
+// justification, alignment etc.
+class SmoTextGroup extends SmoScoreModifierBase {
+  static get justifications() {
+    return {
+      LEFT: 1,
+      RIGHT: 2,
+      CENTER: 3
+    };
+  }
+  // The position of block n relative to block n-1
+  static get relativePosition() {
+    return { ABOVE: 1, BELOW: 2, LEFT: 3, RIGHT: 4 };
+  }
+  static get defaults() {
+    return { textBlocks:[], justification: SmoTextGroup.justifications.LEFT };
+  }
+  static get attributes() {
+    return ['textBlocks','justification'];
+  }
+  static deserialize(jObj) {
+    var blocks = [];
+    jObj.forEach((st) => {
+      var tx = new SmoScoreText(st.text);
+      blocks.push({text:tx, position: st.position});
+    });
+    return new SmoTextGroup(blocks);
+  }
+  serialize() {
+    smoSerialize.serializedMergeNonDefault(SmoTextGroup.defaults,SmoTextGroup.attributes,this,params);
+    params.ctor = 'SmoTextGroup';
+    return params;
+
+  }
+  constructor(params) {
+    super('SmoTextGroup');
+    this.textBlocks = [];
+    this.blockData = [];
+    Vex.Merge(this,SmoTextGroup.defaults);
+    Vex.Merge(this,params);
+    if (params.blocks) {
+      this.textBlocks = params.blocks;
+    }
+  }
+  addScoreText(scoreText,prevBlock,position) {
+    if (!prevBlock) {
+      this.textBlocks.push({text:scoreText,position: position});
+    } else {
+      var bbid =  (typeof(prevBlock) === 'string') ? prevBlock : prevBlock.attrs.id;
+      var ix = this.textBlocks.findIndex((bb) => bb.attrs.id === bbid);
+      this.textBlocks.splice(ix,0,nextBlock);
+    }
+  }
+  removeBlock(scoreText) {
+    var bbid =  (typeof(scoreText) === 'string') ? scoreText : scoreText.attrs.id;
+    var ix = this.textBlocks.findIndex((bb) => bb.attrs.id === bbid);
+    this.textBlocks.splice(ix,1);
+  }
 }
 // ## SmoScoreText
 // Identify some text in the score, not associated with any musical element, like page
 // decorations, titles etc.
 class SmoScoreText extends SmoScoreModifierBase {
+
+  static _pointFromEm(size) {
+    var ptString = size.substring(0,scoreText.fontInfo.size.length - 2);
+    return parseFloat(ptString) * 14;
+  }
+  // convert EM to a number, or leave as a number etc.
+  static fontPointSize(size) {
+    if (typeof(size) === 'number') {
+      return size;
+    }
+    var ptString = size.substring(0,size.length - 2); // TODO: work with px, pt
+    return parseFloat(ptString) * 14;
+  }
 
   static get paginations() {
 		return {every:'every',even:'even',odd:'odd',once:'once',subsequent:'subsequent'}
@@ -9415,7 +9526,6 @@ class SmoScoreText extends SmoScoreModifierBase {
   static get fontFamilies() {
     return {serif:'Merriweather,serif',sansSerif:'Roboto,sans-serif',monospace:'monospace',cursive:'cursive',
       times:'Merriweather',arial:'Arial',helvitica:'Helvitica'};
-
   }
 	// If box model is 'none', the font and location determine the size.
 	// spacing and spacingGlyph fit the box into a container based on the svg policy
@@ -9496,48 +9606,44 @@ class SmoScoreText extends SmoScoreModifierBase {
     }//
 
 	serialize() {
-		var params = {};
-        smoSerialize.serializedMergeNonDefault(SmoScoreText.defaults,SmoScoreText.attributes,this,params);
-        params.ctor = 'SmoScoreText';
-        return params;
+	var params = {};
+    smoSerialize.serializedMergeNonDefault(SmoScoreText.defaults,SmoScoreText.attributes,this,params);
+    params.ctor = 'SmoScoreText';
+    return params;
 	}
-    static get attributes() {
-        return ['x','y','text','pagination','position','fontInfo','classes',
-		    'boxModel','justification','fill','width','height','scaleX','scaleY','translateX','translateY','autoLayout'];
-    }
+  static get attributes() {
+    return ['x','y','text','pagination','position','fontInfo','classes',
+    'boxModel','justification','fill','width','height','scaleX','scaleY','translateX','translateY','autoLayout'];
+  }
+
 	// scale the text without moving it.
 	scaleInPlace(factor) {
-		this.scaleX = this.scaleX*factor;
-		this.scaleY = this.scaleY*factor;
-		var deltax = this.x - this.x*this.scaleX;
-		var deltay = this.y - this.y*this.scaleY;
-		this.translateX = deltax;
-		this.translateY = deltay;
+    this.fontInfo.size = SmoScoreText.fontPointSize(this.fontInfo.size) * factor;
 	}
-    scaleXInPlace(factor) {
+  scaleXInPlace(factor) {
 		this.scaleX = factor;
 		var deltax = this.x - this.x*this.scaleX;
 		this.translateX = deltax;
-    }
-    scaleYInPlace(factor) {
+  }
+  scaleYInPlace(factor) {
 		this.scaleY = factor;
 		var deltay = this.y - this.y*this.scaleY;
 		this.translateY = deltay;
-    }
-    constructor(parameters) {
-        super('SmoScoreText');
-        parameters = parameters ? parameters : {};
-        this.backup={};
-        this.edited = false; // indicate to UI that the actual text has not been edited.
+  }
+  constructor(parameters) {
+    super('SmoScoreText');
+    parameters = parameters ? parameters : {};
+    this.backup={};
+    this.edited = false; // indicate to UI that the actual text has not been edited.
 
 		smoSerialize.serializedMerge(SmoScoreText.attributes, SmoScoreText.defaults, this);
-        smoSerialize.serializedMerge(SmoScoreText.attributes, parameters, this);
+    smoSerialize.serializedMerge(SmoScoreText.attributes, parameters, this);
 		if (!this.classes) {
 			this.classes='';
 		}
-        if (this.classes.indexOf(this.attrs.id) < 0) {
-            this.classes += ' '+this.attrs.id;
-        }
+    if (this.classes.indexOf(this.attrs.id) < 0) {
+      this.classes += ' '+this.attrs.id;
+    }
 		if (this.boxModel === SmoScoreText.boxModels.wrap) {
 			this.width = parameters.width ? this.width : 200;
 			this.height = parameters.height ? this.height : 150;
@@ -9555,7 +9661,7 @@ class SmoScoreText extends SmoScoreModifierBase {
 				this.fontInfo.size='.6em';
 			}
 		}
-    }
+  }
 }
 ;
 VF = Vex.Flow;
@@ -11506,10 +11612,18 @@ class SmoOperation {
   }
 
   static addScoreText(score,scoreText) {
-  score.addScoreText(scoreText);
+    score.addScoreText(scoreText);
   }
   static removeScoreText(score,scoreText) {
-  score.removeScoreText(scoreText);
+    score.removeScoreText(scoreText);
+  }
+
+  static addTextGroup(score,textGroup) {
+    score.addTextGroup(textGroup);
+  }
+
+  static removeTextGroup(score,textGroup) {
+    score.removeTextGroup(textGroup);
   }
 
   static addMeasureText(score,selection,measureText) {
@@ -16699,30 +16813,35 @@ class suiScoreLayout extends suiLayoutBase {
 		return this.pageMarginHeigh;
 	}
 
-    // ### _measureToLeft
-    // measure to 'left' is on previous row if this is the first column in a system
-    // but we still use it to compute beginning symbols (key sig etc.)
-    _measureToLeft(measure) {
-        var j = measure.measureNumber.staffId;
-        var i = measure.measureNumber.measureIndex;
-		return (i > 0 ? this._score.staves[j].measures[i - 1] :null);
-    }
+  // ### _measureToLeft
+  // measure to 'left' is on previous row if this is the first column in a system
+  // but we still use it to compute beginning symbols (key sig etc.)
+  _measureToLeft(measure) {
+    var j = measure.measureNumber.staffId;
+    var i = measure.measureNumber.measureIndex;
+	 return (i > 0 ? this._score.staves[j].measures[i - 1] :null);
+  }
+
+  renderTextGroup(gg) {
+    this._score.textGroups.forEach((tg) => {
+      SuiTextBlock.fromTextGroup(tg,this.context).render();
+    });
+  }
 
 	renderScoreText(tt) {
 		var svg = this.context.svg;
-        var scoreLayout = this.scaledScoreLayout;
+    var scoreLayout = this.scaledScoreLayout;
 		var classes = tt.attrs.id+' '+'score-text'+' '+tt.classes;
-        var text = tt.text.replace('###',1); /// page number
+    var text = tt.text.replace('###',1); /// page number
         text = text.replace('@@@',scoreLayout.pages); /// page number
 		var args = {svg:this.svg,width:tt.width,height:tt.height,layout:this._score.layout,text:text};
-		if (tt.autoLayout === true) {
+		/* if (tt.autoLayout === true) {
 			var fcn = tt.position+'TextPlacement';
 			suiTextLayout[fcn](tt,args);
-		} else {
-      const svgText = SuiTextBlock.fromScoreText(tt,this.context);
-      svgText.render();
-		  // suiTextLayout.placeText(tt,args);
-		}
+		} else {  */
+    const svgText = SuiTextBlock.fromScoreText(tt,this.context);
+    svgText.render();
+    tt.renderedBox = svgText.getBoundingBox();
 
     // Update paginated score text
     if (tt.pagination != SmoScoreText.paginations.once) {
@@ -16738,7 +16857,7 @@ class suiScoreLayout extends suiLayoutBase {
         else if (tt.pagination == SmoScoreText.paginations.subsequent
            && i == 1) {
             continue;
-         }
+        }
 
         var xx = new SmoScoreText(tt);
         xx.classes = 'score-text '+xx.attrs.id;
@@ -16756,6 +16875,9 @@ class suiScoreLayout extends suiLayoutBase {
 		this._score.scoreText.forEach((tt) => {
 			this.renderScoreText(tt);
 		});
+    this._score.textGroups.forEach((tg) => {
+      this.renderTextGroup(tg);
+    });
 	}
 
 
@@ -17052,7 +17174,386 @@ class suiScoreLayout extends suiLayoutBase {
     }
 
 }
-;
+;// ## SuiInlineText
+// Inline text is a block of SVG text with the same font.  Each block can
+// contain eithr text or an svg glyph.  Each block in the text has its own
+// metrics so we can support inline svg text editors (cursor)
+class SuiInlineText {
+  static get textTypes() {
+    return {normal:0,superScript:1,subScript:2};
+  }
+  static get symbolTypes() {
+    return {
+      GLYPH: 1,
+      TEXT: 2,
+      LINE: 3
+    };
+  }
+  static get superscriptOffset() {
+    return VF.ChordSymbol.chordSymbolMetrics.global.superscriptOffset / VF.ChordSymbol.engravingFontResolution;
+  }
+
+  static get subscriptOffset() {
+    return VF.ChordSymbol.chordSymbolMetrics.global.subscriptOffset / VF.ChordSymbol.engravingFontResolution;
+  }
+
+  get spacing() {
+    return this.fontMetrics.spacing / this.fontMetrics.resolution;
+  }
+
+
+  static get defaults() {
+    return {
+      blocks: [],
+      fontFamily: 'robotoSlab',
+      fontSize: 14,
+      startX: 100,
+      startY: 100,
+      fontWeight:500,
+      scale: 1,
+      activeBlock:-1
+    };
+  }
+  // ### constructor just creates an empty svg
+  constructor(params) {
+    Vex.Merge(this, SuiInlineText.defaults);
+    Vex.Merge(this, params);
+    this.attrs = {
+      id: VF.Element.newID(),
+      type: 'SuiInlineText'
+    };
+
+    if (!this.context) {
+      throw('context for SVG must be set');
+    }
+  }
+  get fontMetrics() {
+    return VF.DEFAULT_FONT_STACK[0].name === 'Petaluma' ?
+      VF.PetalumaScriptMetrics : VF.RobotoSlabMetrics;
+  }
+
+  static get blockDefaults() {
+    return {
+      symbolType: SuiInlineText.symbolTypes.TEXT,
+      textType: SuiInlineText.textTypes.normal
+    };
+  }
+
+  // ### pointsToPixels
+  // The font size is specified in points, convert to 'pixels' in the svg space
+  get pointsToPixels() {
+    return (this.fontSize / 72) / (1 / 96);
+  }
+
+  offsetStartX(offset) {
+    this.startX += offset;
+    this.blocks.forEach((block) => {
+      block.x += offset;
+    });
+  }
+
+  offsetStartY(offset) {
+    this.startY += offset;
+    this.blocks.forEach((block) => {
+      block.y += offset;
+    });
+  }
+
+  // ### _calculateBlockIndex
+  // Based on the font metrics, compute the width of the strings and glyph that make up
+  // this block.
+  _calculateBlockIndex() {
+    var curX = this.startX;
+    var maxH = 0;
+    this.blocks.forEach((block) => {
+      block.width = 0;
+      block.height = 0;
+
+      block.scale = block.textType === SuiInlineText.textTypes.normal ? 1.0 : VF.ChordSymbol.superSubRatio;
+      block.x = curX;
+      if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
+        for (var i = 0;i < block.text.length;++i) {
+          var metrics = this.fontMetrics;
+          var ch = block.text[i];
+          var glyph = metrics.glyphs[ch] ? metrics.glyphs[ch] : metrics.glyphs['H'];
+          block.width += ((glyph.advanceWidth) / metrics.resolution) * this.pointsToPixels * block.scale;
+          const blockHeight = (glyph.ha / metrics.resolution) *  this.pointsToPixels * block.scale;
+          block.height = block.height < blockHeight ? blockHeight : block.height;
+        }
+      } else if (block.symbolType === SuiInlineText.symbolTypes.GLYPH) {
+        block.width = (block.metrics.advanceWidth / VF.ChordSymbol.engravingFontResolution) * this.pointsToPixels * block.scale;
+        block.height = (block.glyph.metrics.ha / VF.ChordSymbol.engravingFontResolution) * this.pointsToPixels * block.scale;
+      }
+      curX += block.width;
+      block.y = this.startY;  // TODO: multi-line
+      maxH = block.height > maxH ? maxH : block.height;
+    });
+    this.width = curX - this.startX;
+    this.height = maxH;
+  }
+
+  getBoundingBox() {
+    var rv = {};
+    this.blocks.forEach((block) => {
+      if (!rv.x) {
+        rv = svgHelpers.smoBox(block);
+      } else {
+        rv = svgHelpers.unionRect(rv,block);
+      }
+
+    });
+    return rv;
+  }
+
+  _getTextBlock(params) {
+    const block = JSON.parse(JSON.stringify(SuiInlineText.blockDefaults));
+    Vex.Merge(block, params);
+    block.text = params.text;
+    return block;
+  }
+  setStart
+  renderCursorAt(position) {
+    var group = this.context.openGroup();
+    group.id = 'inlineCursor';
+    if (this.blocks.length <= position || position < 0) {
+      const h = this.fontSize;
+      svgHelpers.renderCursor(group, this.startX,this.startY - h,h);
+      this.context.closeGroup();
+      return;
+    }
+    var block = this.blocks[position];
+    svgHelpers.renderCursor(group, block.x + block.width,block.y - block.height,block.height);
+    this.context.closeGroup();
+  }
+  removeCursor() {
+    $('svg #inlineCursor').remove();
+  }
+  render() {
+    $('svg #'+this.attrs.id).remove();
+    this.context.setFont(this.fontFamily, this.fontSize, this.fontWeight);
+    var group = this.context.openGroup();
+    var mmClass = "suiInlineText";
+    group.classList.add(this.attrs.id);
+    group.classList.add(mmClass);
+    group.id=this.attrs.id;
+
+    this.blocks.forEach((block) => {
+      this._drawBlock(block);
+    });
+    this.context.closeGroup();
+  }
+  _addBlockAt(position,block) {
+    if (position >= this.blocks.length) {
+      this.blocks.push(block);
+    } else {
+      this.blocks.splice(position,0,block);
+    }
+  }
+  // ### addTextBlockAt
+  // Add a text block to the line of text.
+  // params must contain at least:
+  // {text:'xxx'}
+  addTextBlockAt(position,params) {
+    const block = this._getTextBlock(params);
+    this._addBlockAt(position,block);
+    this._calculateBlockIndex();
+  }
+  _getGlyphBlock(params) {
+    const block = JSON.parse(JSON.stringify(SuiInlineText.blockDefaults));
+    block.symbolType = SuiInlineText.symbolTypes.GLYPH;
+    block.glyphCode = params.glyphCode;
+    block.glyph = new VF.Glyph(block.glyphCode, this.fontSize);
+    block.metrics = VF.ChordSymbol.getMetricForGlyph(block.glyphCode);
+    return block;
+  }
+  // ### addGlyphBlockAt
+  // Add a glyph block to the line of text.  Params must include:
+  // {glyphCode:'csymDiminished'}
+  addGlyphBlockAt(position,params) {
+    const block = this._getGlyphBlock(params);
+    this._addBlockAt(position,block);
+    this._calculateBlockIndex();
+  }
+  isSuperscript(block) {
+    return block.textType === SuiInlineText.textTypes.superScript;
+  }
+  isSubcript(block) {
+    return block.textType === SuiInlineText.textTypes.subScript;
+  }
+
+  _drawBlock(block) {
+    const sp = this.isSuperscript(block);
+    const sub = this.isSubcript(block);
+    let y = block.y;
+    if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
+      if (sp || sub) {
+        this.context.save();
+        this.context.setFont(this.fontFamily, this.fontSize * VF.ChordSymbol.superSubRatio, this.fontWeight);
+        y = y + (sp ? SuiInlineText.superscriptOffset : SuiInlineText.subscriptOffset) * this.pointsToPixels * block.scale;
+      }
+      this.context.fillText(block.text,block.x,y);
+      if (sp || sub) {
+        this.context.restore();
+        y = y + (sp ? SuiInlineText.superscriptOffset : SuiInlineText.subscriptOffset) * this.pointsToPixels * block.scale;
+      }
+    } else if (block.symbolType === SuiInlineText.symbolTypes.GLYPH) {
+      if (sp || sub) {
+        y = y + (sp ? SuiInlineText.superscriptOffset : SuiInlineText.subscriptOffset) * this.pointsToPixels * block.scale;
+      }
+      block.glyph.render(this.context, block.x, y);
+    }
+  }
+}
+
+// ## SuiTextBlock
+// A text block is a set of inline blocks that can be aligned/arranged in different ways.
+class SuiTextBlock {
+  static get relativePosition() {
+    return { ABOVE:SmoTextGroup.relativePosition.ABOVE,
+      BELOW: SmoTextGroup.relativePosition.BELOW,
+      LEFT: SmoTextGroup.relativePosition.LEFT,
+      RIGHT: SmoTextGroup.relativePosition.RIGHT
+    };
+  }
+  constructor(params) {
+    this.inlineBlocks = [];
+    this.context = params.context;
+    const startBlock = new SuiInlineText(params);
+    this.currentBlock = {text: startBlock,position: SmoTextGroup.relativePosition.LEFT};
+    this.currentBlockIndex = 0;
+    this.inlineBlocks.push(this.currentBlock);
+    this.justification = params.justification ? params.justification :
+      SmoTextGroup.justifications.LEFT;
+  }
+  addTextAt(position,params) {
+    this.currentBlock.text.addTextBlockAt(position,params);
+  }
+  addGlyphAt(position,params) {
+    this.currentBlock.text.addGlyphBlockAt(position,params);
+  }
+  render() {
+    this.unrender();
+    this.inlineBlocks.forEach((block) => {
+      block.text.render();
+    });
+  }
+  static inlineParamsFromScoreText(scoreText,context) {
+    var pointSize = scoreText.fontInfo.pointSize ? scoreText.fontInfo.pointSize
+      : SmoScoreText.fontPointSize(scoreText.fontInfo.size);
+    const rv = { fontFamily:scoreText.fontInfo.family,
+      startX: scoreText.x, startY: scoreText.y,
+      fontSize: pointSize, context: context };
+    return rv;
+  }
+  static fromScoreText(scoreText,context) {
+    var params = SuiTextBlock.inlineParamsFromScoreText(scoreText,context);
+    const rv = new SuiTextBlock( params );
+    rv.currentBlock.text.attrs.id = scoreText.attrs.id;  // set id so svg id matches
+    rv.currentBlock.text.addTextBlockAt(0,{text: scoreText.text});
+    return rv;
+  }
+  getBoundingBox() {
+    var rv = {};
+    this.inlineBlocks.forEach((block) => {
+      if (!rv.x) {
+        rv = block.text.getBoundingBox();
+      } else {
+        rv = svgHelpers.unionRect(rv,block.text.getBoundingBox());
+      }
+    });
+    rv.y = rv.y - rv.height;
+    return svgHelpers.logicalToClient(this.context.svg,rv);
+  }
+  static fromTextGroup(tg,context) {
+    var rv = null;
+    var params = {context:context};
+    tg.textBlocks.forEach((st) => {
+      if (!rv) {
+        rv = SuiTextBlock.fromScoreText(st.text,context);
+        rv.justification = tg.justification;
+      } else {
+        rv.addBlockPosition(st.text,st.position);
+      }
+    });
+    return rv;
+  }
+  unrender() {
+    this.inlineBlocks.forEach((block) => {
+      var selector = '#'+block.text.attrs.id;
+      $(selector).remove();
+    });
+  }
+  _justify() {
+    if (!this.inlineBlocks.length) {
+      return;
+    }
+    var minx = this.inlineBlocks[0].text.startX;
+    var maxx = 0;
+    var maxwidth = 0;
+    var vert = {};
+    var lvl = 0;
+    this.inlineBlocks.forEach((inlineBlock) => {
+      const block = inlineBlock.text;
+      minx = block.startX < minx ? block.startX : minx;
+      maxx = (block.startX + block.width) > maxx ? block.startX + block.width : maxx;
+      lvl = inlineBlock.position === SmoTextGroup.relativePosition.ABOVE ? lvl + 1 : lvl;
+      lvl = inlineBlock.position === SmoTextGroup.relativePosition.BELOW ? lvl - 1 : lvl;
+      if (!vert[lvl] ) {
+        vert[lvl] = {};
+        vert[lvl].blocks = [ block ];
+        vert[lvl].minx = block.startX;
+        vert[lvl].maxx = block.startX + block.width;
+        maxwidth = vert[lvl].width = block.width;
+      }  else {
+        vert[lvl].blocks.push(block);
+        vert[lvl].minx = vert[lvl].minx < block.startX ? vert[lvl].minx : block.startX;
+        vert[lvl].maxx = vert[lvl].maxx > (block.startX + block.width) ?
+          vert[lvl].maxx : (block.startX + block.width);
+        vert[lvl].width += block.width;
+        maxwidth = maxwidth > vert[lvl].width ? maxwidth : vert[lvl].width;
+      }
+    });
+    var levels = Object.keys(vert);
+    levels.forEach((level) => {
+      var vobj = vert[level];
+      var left = 0;
+      if (this.justification === SmoTextGroup.justifications.LEFT) {
+        left = minx - vobj.minx;
+      } else if (this.justification === SmoTextGroup.justifications.RIGHT) {
+        left = maxx - vobj.maxx;
+      } else {
+        left = ( maxwidth / 2 ) - (vobj.width / 2);
+        left +=  minx - vobj.minx;
+      }
+      vobj.blocks.forEach((block) => {
+        block.offsetStartX(left);
+      });
+    });
+  }
+  addBlockPosition(scoreText,position) {
+    var blockBox = this.currentBlock.text.getBoundingBox();
+    position = position ? position : SuiTextBlock.relativePosition.BELOW;
+    var ycoff = position === SuiTextBlock.relativePosition.ABOVE ? -1 : 1;
+    var xcoff = position === SuiTextBlock.relativePosition.LEFT ? -1 : 1;
+    var yoffset = position === SuiTextBlock.relativePosition.ABOVE
+      || position === SuiTextBlock.relativePosition.BELOW ?
+       blockBox.height + this.currentBlock.text.spacing : 0;
+    var xoffset = position === SuiTextBlock.relativePosition.LEFT
+     || position === SuiTextBlock.relativePosition.RIGHT ?
+      blockBox.width + this.currentBlock.text.spacing : 0;
+    const params = SuiTextBlock.inlineParamsFromScoreText(scoreText,this.context);
+    params.startX = this.currentBlock.text.startX + (xoffset * xcoff);
+    params.startY = this.currentBlock.text.startY + (yoffset * ycoff);
+    const textBlock = new SuiInlineText(params);
+    textBlock.attrs.id = scoreText.attrs.id;
+    this.currentBlock = { text: textBlock,position: position };
+    this.currentBlock.text.addTextBlockAt(0,{text: scoreText.text});
+    this.inlineBlocks.push(this.currentBlock);
+    this.currentBlockIndex += 1;
+    this._justify();
+  }
+}
+
 class suiTextLayout {
 
 	static _getTextBox(scoreText,parameters) {
@@ -17196,235 +17697,6 @@ class suiTextLayout {
 
 }
 ;
-// ## SuiInlineText
-// Inline text is a block of SVG text with the same font.  Each block can
-// contain eithr text or an svg glyph.  Each block in the text has its own
-// metrics so we can support inline svg text editors (cursor)
-class SuiInlineText {
-  static get textTypes() {
-    return {normal:0,superScript:1,subScript:2};
-  }
-  static get symbolTypes() {
-    return {
-      GLYPH: 1,
-      TEXT: 2,
-      LINE: 3
-    };
-  }
-  static get superscriptOffset() {
-    return VF.ChordSymbol.chordSymbolMetrics.global.superscriptOffset / VF.ChordSymbol.engravingFontResolution;
-  }
-
-  static get subscriptOffset() {
-    return VF.ChordSymbol.chordSymbolMetrics.global.subscriptOffset / VF.ChordSymbol.engravingFontResolution;
-  }
-
-
-  static get defaults() {
-    return {
-      blocks: [],
-      fontFamily: 'robotoSlab',
-      fontSize: 14,
-      startX: 100,
-      startY: 100,
-      fontWeight:500,
-      scale: 1,
-      activeBlock:-1
-    };
-  }
-  // ### constructor just creates an empty svg
-  constructor(params) {
-    Vex.Merge(this, SuiInlineText.defaults);
-    Vex.Merge(this, params);
-    this.attrs = {
-      id: VF.Element.newID(),
-      type: 'SuiInlineText'
-    };
-
-    if (!this.context) {
-      throw('context for SVG must be set');
-    }
-  }
-  get fontMetrics() {
-    return VF.DEFAULT_FONT_STACK[0].name === 'Petaluma' ?
-      VF.PetalumaScriptMetrics : VF.RobotoSlabMetrics;
-  }
-
-  static get blockDefaults() {
-    return {
-      symbolType: SuiInlineText.symbolTypes.TEXT,
-      textType: SuiInlineText.textTypes.normal
-    };
-  }
-
-  // ### pointsToPixels
-  // The font size is specified in points, convert to 'pixels' in the svg space
-  get pointsToPixels() {
-    return (this.fontSize / 72) / (1 / 96);
-  }
-
-  _calculateBlockIndex() {
-    var curX = this.startX;
-    var maxH = 0;
-    this.blocks.forEach((block) => {
-      block.width = 0;
-
-      block.scale = block.textType === SuiInlineText.textTypes.normal ? 1.0 : VF.ChordSymbol.superSubRatio;
-      block.x = curX;
-      if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
-        for (var i = 0;i < block.text.length;++i) {
-            var metrics = this.fontMetrics;
-            var ch = block.text[i];
-            var glyph = metrics.glyphs[ch] ? metrics.glyphs[ch] : metrics.glyphs['H'];
-            block.width = ((glyph.advanceWidth) / metrics.resolution) * this.pointsToPixels * block.scale;
-            block.height = (glyph.ha / metrics.resolution) *  this.pointsToPixels * block.scale;
-        }
-      } else if (block.symbolType === SuiInlineText.symbolTypes.GLYPH) {
-        block.width = (block.metrics.advanceWidth / VF.ChordSymbol.engravingFontResolution) * this.pointsToPixels * block.scale;
-        block.height = (block.glyph.metrics.ha / VF.ChordSymbol.engravingFontResolution) * this.pointsToPixels * block.scale;
-      }
-      curX += block.width;
-      block.y = this.startY;  // TODO: multi-line
-      maxH = block.height > maxH ? maxH : block.height;
-    });
-    this.width = curX - this.startX;
-    this.height = maxH;
-  }
-
-  _getTextBlock(params) {
-    const block = JSON.parse(JSON.stringify(SuiInlineText.blockDefaults));
-    Vex.Merge(block, params);
-    block.text = params.text;
-    return block;
-  }
-  renderCursorAt(position) {
-    var group = this.context.openGroup();
-    group.id = 'inlineCursor';
-    if (this.blocks.length <= position || position < 0) {
-      const h = this.fontSize;
-      svgHelpers.renderCursor(group, this.startX,this.startY - h,h);
-      this.context.closeGroup();
-      return;
-    }
-    var block = this.blocks[position];
-    svgHelpers.renderCursor(group, block.x + block.width,block.y - block.height,block.height);
-    this.context.closeGroup();
-  }
-  removeCursor() {
-    $('svg #inlineCursor').remove();
-  }
-  render() {
-    $('svg #'+this.attrs.id).remove();
-    this.context.setFont(this.fontFamily, this.fontSize, this.fontWeight);
-    var group = this.context.openGroup();
-    var mmClass = "suiInlineText";
-    group.classList.add(this.attrs.id);
-    group.classList.add(mmClass);
-    group.id=this.attrs.id;
-
-    this.blocks.forEach((block) => {
-      this._drawBlock(block);
-    });
-    this.context.closeGroup();
-  }
-  _addBlockAt(position,block) {
-    if (position >= this.blocks.length) {
-      this.blocks.push(block);
-    } else {
-      this.blocks.splice(position,0,block);
-    }
-  }
-  // ### addTextBlockAt
-  // Add a text block to the line of text.
-  // params must contain at least:
-  // {text:'xxx'}
-  addTextBlockAt(position,params) {
-    const block = this._getTextBlock(params);
-    this._addBlockAt(position,block);
-    this._calculateBlockIndex();
-  }
-  _getGlyphBlock(params) {
-    const block = JSON.parse(JSON.stringify(SuiInlineText.blockDefaults));
-    block.symbolType = SuiInlineText.symbolTypes.GLYPH;
-    block.glyphCode = params.glyphCode;
-    block.glyph = new VF.Glyph(block.glyphCode, this.fontSize);
-    block.metrics = VF.ChordSymbol.getMetricForGlyph(block.glyphCode);
-    return block;
-  }
-  // ### addGlyphBlockAt
-  // Add a glyph block to the line of text.  Params must include:
-  // {glyphCode:'csymDiminished'}
-  addGlyphBlockAt(position,params) {
-    const block = this._getGlyphBlock(params);
-    this._addBlockAt(position,block);
-    this._calculateBlockIndex();
-  }
-  isSuperscript(block) {
-    return block.textType === SuiInlineText.textTypes.superScript;
-  }
-  isSubcript(block) {
-    return block.textType === SuiInlineText.textTypes.subScript;
-  }
-
-  _drawBlock(block) {
-    const sp = this.isSuperscript(block);
-    const sub = this.isSubcript(block);
-    let y = block.y;
-    if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
-      if (sp || sub) {
-        this.context.save();
-        this.context.setFont(this.fontFamily, this.fontSize * VF.ChordSymbol.superSubRatio, this.fontWeight);
-        y = y + (sp ? SuiInlineText.superscriptOffset : SuiInlineText.subscriptOffset) * this.pointsToPixels * block.scale;
-      }
-      this.context.fillText(block.text,block.x,y);
-      if (sp || sub) {
-        this.context.restore();
-        y = y + (sp ? SuiInlineText.superscriptOffset : SuiInlineText.subscriptOffset) * this.pointsToPixels * block.scale;
-      }
-    } else if (block.symbolType === SuiInlineText.symbolTypes.GLYPH) {
-      if (sp || sub) {
-        y = y + (sp ? SuiInlineText.superscriptOffset : SuiInlineText.subscriptOffset) * this.pointsToPixels * block.scale;
-      }
-      block.glyph.render(this.context, block.x, y);
-    }
-  }
-}
-
-class SuiTextBlock {
-  constructor(params) {
-    this.inlineBlocks = [];
-    this.context = params.context;
-    const startBlock = new SuiInlineText(params);
-    this.currentBlock = startBlock;
-    this.inlineBlocks.push(this.currentBlock);
-    this.currentBlock.position = 0;
-  }
-  addTextAt(position,params) {
-    this.currentBlock.addTextBlockAt(position,params);
-  }
-  addGlyphAt(position,params) {
-    this.currentBlock.addGlyphBlockAt(position,params);
-  }
-  render() {
-    this.inlineBlocks.forEach((block) => {
-      block.render();
-    });
-  }
-  static _pointFromEm(scoreText) {
-    var ptString = scoreText.fontInfo.size.substring(0,scoreText.fontInfo.size.length - 2);
-    return parseFloat(ptString);
-  }
-  static fromScoreText(scoreText,context) {
-    var pointSize = scoreText.fontInfo.pointSize ? scoreText.fontInfo.pointSize
-      : SuiTextBlock._pointFromEm(scoreText) * 14;
-    const rv = new SuiTextBlock( { fontFamily:scoreText.fontInfo.family,
-      startX: scoreText.x, startY: scoreText.y,
-      fontSize: pointSize, context: context } );
-    rv.currentBlock.attrs.id = scoreText.attrs.id;  // set id so svg id matches
-    rv.currentBlock.addTextBlockAt(0,{text: scoreText.text});
-    return rv;
-  }
-}
 
 
 // ## editSvgText

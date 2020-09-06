@@ -1,21 +1,22 @@
 
 class SmoScoreModifierBase {
-    constructor(ctor) {
-        this.ctor = ctor;
-		 if (!this['attrs']) {
-            this.attrs = {
-                id: VF.Element.newID(),
-                type: ctor
-            };
-        } else {
+  constructor(ctor) {
+    this.ctor = ctor;
+    if (!this['attrs']) {
+      this.attrs = {
+        id: VF.Element.newID(),
+        type: ctor
+      };
+    } else {
             console.log('inherit attrs');
-        }
     }
-    static deserialize(jsonObj) {
-        var ctor = eval(jsonObj.ctor);
-        var rv = new ctor(jsonObj);
-        return rv;
-    }
+  }
+
+  static deserialize(jsonObj) {
+    var ctor = eval(jsonObj.ctor);
+    var rv = new ctor(jsonObj);
+    return rv;
+  }
 }
 
 class SmoSystemGroup extends SmoScoreModifierBase {
@@ -78,17 +79,91 @@ class SmoSystemGroup extends SmoScoreModifierBase {
         return ['leftConnector', 'rightConnector','text','shortText','justify',
        'startSelector','endSelector','mapType'];
     }
-    serialize() {
+  serialize() {
 		var params = {};
-        smoSerialize.serializedMergeNonDefault(SmoSystemGroup.defaults,SmoSystemGroup.attributes,this,params);
-        params.ctor = 'SmoSystemGroup';
-        return params;
+    smoSerialize.serializedMergeNonDefault(SmoSystemGroup.defaults,SmoSystemGroup.attributes,this,params);
+    params.ctor = 'SmoSystemGroup';
+    return params;
 	}
+}
+
+// ## SmoTextGroup
+// A grouping of text that can be used as a block for
+// justification, alignment etc.
+class SmoTextGroup extends SmoScoreModifierBase {
+  static get justifications() {
+    return {
+      LEFT: 1,
+      RIGHT: 2,
+      CENTER: 3
+    };
+  }
+  // The position of block n relative to block n-1
+  static get relativePosition() {
+    return { ABOVE: 1, BELOW: 2, LEFT: 3, RIGHT: 4 };
+  }
+  static get defaults() {
+    return { textBlocks:[], justification: SmoTextGroup.justifications.LEFT };
+  }
+  static get attributes() {
+    return ['textBlocks','justification'];
+  }
+  static deserialize(jObj) {
+    var blocks = [];
+    jObj.forEach((st) => {
+      var tx = new SmoScoreText(st.text);
+      blocks.push({text:tx, position: st.position});
+    });
+    return new SmoTextGroup(blocks);
+  }
+  serialize() {
+    smoSerialize.serializedMergeNonDefault(SmoTextGroup.defaults,SmoTextGroup.attributes,this,params);
+    params.ctor = 'SmoTextGroup';
+    return params;
+
+  }
+  constructor(params) {
+    super('SmoTextGroup');
+    this.textBlocks = [];
+    this.blockData = [];
+    Vex.Merge(this,SmoTextGroup.defaults);
+    Vex.Merge(this,params);
+    if (params.blocks) {
+      this.textBlocks = params.blocks;
+    }
+  }
+  addScoreText(scoreText,prevBlock,position) {
+    if (!prevBlock) {
+      this.textBlocks.push({text:scoreText,position: position});
+    } else {
+      var bbid =  (typeof(prevBlock) === 'string') ? prevBlock : prevBlock.attrs.id;
+      var ix = this.textBlocks.findIndex((bb) => bb.attrs.id === bbid);
+      this.textBlocks.splice(ix,0,nextBlock);
+    }
+  }
+  removeBlock(scoreText) {
+    var bbid =  (typeof(scoreText) === 'string') ? scoreText : scoreText.attrs.id;
+    var ix = this.textBlocks.findIndex((bb) => bb.attrs.id === bbid);
+    this.textBlocks.splice(ix,1);
+  }
 }
 // ## SmoScoreText
 // Identify some text in the score, not associated with any musical element, like page
 // decorations, titles etc.
 class SmoScoreText extends SmoScoreModifierBase {
+
+  static _pointFromEm(size) {
+    var ptString = size.substring(0,scoreText.fontInfo.size.length - 2);
+    return parseFloat(ptString) * 14;
+  }
+  // convert EM to a number, or leave as a number etc.
+  static fontPointSize(size) {
+    if (typeof(size) === 'number') {
+      return size;
+    }
+    var ptString = size.substring(0,size.length - 2); // TODO: work with px, pt
+    return parseFloat(ptString) * 14;
+  }
 
   static get paginations() {
 		return {every:'every',even:'even',odd:'odd',once:'once',subsequent:'subsequent'}
@@ -102,7 +177,6 @@ class SmoScoreText extends SmoScoreModifierBase {
   static get fontFamilies() {
     return {serif:'Merriweather,serif',sansSerif:'Roboto,sans-serif',monospace:'monospace',cursive:'cursive',
       times:'Merriweather',arial:'Arial',helvitica:'Helvitica'};
-
   }
 	// If box model is 'none', the font and location determine the size.
 	// spacing and spacingGlyph fit the box into a container based on the svg policy
@@ -183,48 +257,44 @@ class SmoScoreText extends SmoScoreModifierBase {
     }//
 
 	serialize() {
-		var params = {};
-        smoSerialize.serializedMergeNonDefault(SmoScoreText.defaults,SmoScoreText.attributes,this,params);
-        params.ctor = 'SmoScoreText';
-        return params;
+	var params = {};
+    smoSerialize.serializedMergeNonDefault(SmoScoreText.defaults,SmoScoreText.attributes,this,params);
+    params.ctor = 'SmoScoreText';
+    return params;
 	}
-    static get attributes() {
-        return ['x','y','text','pagination','position','fontInfo','classes',
-		    'boxModel','justification','fill','width','height','scaleX','scaleY','translateX','translateY','autoLayout'];
-    }
+  static get attributes() {
+    return ['x','y','text','pagination','position','fontInfo','classes',
+    'boxModel','justification','fill','width','height','scaleX','scaleY','translateX','translateY','autoLayout'];
+  }
+
 	// scale the text without moving it.
 	scaleInPlace(factor) {
-		this.scaleX = this.scaleX*factor;
-		this.scaleY = this.scaleY*factor;
-		var deltax = this.x - this.x*this.scaleX;
-		var deltay = this.y - this.y*this.scaleY;
-		this.translateX = deltax;
-		this.translateY = deltay;
+    this.fontInfo.size = SmoScoreText.fontPointSize(this.fontInfo.size) * factor;
 	}
-    scaleXInPlace(factor) {
+  scaleXInPlace(factor) {
 		this.scaleX = factor;
 		var deltax = this.x - this.x*this.scaleX;
 		this.translateX = deltax;
-    }
-    scaleYInPlace(factor) {
+  }
+  scaleYInPlace(factor) {
 		this.scaleY = factor;
 		var deltay = this.y - this.y*this.scaleY;
 		this.translateY = deltay;
-    }
-    constructor(parameters) {
-        super('SmoScoreText');
-        parameters = parameters ? parameters : {};
-        this.backup={};
-        this.edited = false; // indicate to UI that the actual text has not been edited.
+  }
+  constructor(parameters) {
+    super('SmoScoreText');
+    parameters = parameters ? parameters : {};
+    this.backup={};
+    this.edited = false; // indicate to UI that the actual text has not been edited.
 
 		smoSerialize.serializedMerge(SmoScoreText.attributes, SmoScoreText.defaults, this);
-        smoSerialize.serializedMerge(SmoScoreText.attributes, parameters, this);
+    smoSerialize.serializedMerge(SmoScoreText.attributes, parameters, this);
 		if (!this.classes) {
 			this.classes='';
 		}
-        if (this.classes.indexOf(this.attrs.id) < 0) {
-            this.classes += ' '+this.attrs.id;
-        }
+    if (this.classes.indexOf(this.attrs.id) < 0) {
+      this.classes += ' '+this.attrs.id;
+    }
 		if (this.boxModel === SmoScoreText.boxModels.wrap) {
 			this.width = parameters.width ? this.width : 200;
 			this.height = parameters.height ? this.height : 150;
@@ -242,5 +312,5 @@ class SmoScoreText extends SmoScoreModifierBase {
 				this.fontInfo.size='.6em';
 			}
 		}
-    }
+  }
 }

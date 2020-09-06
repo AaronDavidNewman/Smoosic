@@ -66,30 +66,35 @@ class suiScoreLayout extends suiLayoutBase {
 		return this.pageMarginHeigh;
 	}
 
-    // ### _measureToLeft
-    // measure to 'left' is on previous row if this is the first column in a system
-    // but we still use it to compute beginning symbols (key sig etc.)
-    _measureToLeft(measure) {
-        var j = measure.measureNumber.staffId;
-        var i = measure.measureNumber.measureIndex;
-		return (i > 0 ? this._score.staves[j].measures[i - 1] :null);
-    }
+  // ### _measureToLeft
+  // measure to 'left' is on previous row if this is the first column in a system
+  // but we still use it to compute beginning symbols (key sig etc.)
+  _measureToLeft(measure) {
+    var j = measure.measureNumber.staffId;
+    var i = measure.measureNumber.measureIndex;
+	 return (i > 0 ? this._score.staves[j].measures[i - 1] :null);
+  }
+
+  renderTextGroup(gg) {
+    this._score.textGroups.forEach((tg) => {
+      SuiTextBlock.fromTextGroup(tg,this.context).render();
+    });
+  }
 
 	renderScoreText(tt) {
 		var svg = this.context.svg;
-        var scoreLayout = this.scaledScoreLayout;
+    var scoreLayout = this.scaledScoreLayout;
 		var classes = tt.attrs.id+' '+'score-text'+' '+tt.classes;
-        var text = tt.text.replace('###',1); /// page number
+    var text = tt.text.replace('###',1); /// page number
         text = text.replace('@@@',scoreLayout.pages); /// page number
 		var args = {svg:this.svg,width:tt.width,height:tt.height,layout:this._score.layout,text:text};
-		if (tt.autoLayout === true) {
+		/* if (tt.autoLayout === true) {
 			var fcn = tt.position+'TextPlacement';
 			suiTextLayout[fcn](tt,args);
-		} else {
-      const svgText = SuiTextBlock.fromScoreText(tt,this.context);
-      svgText.render();
-		  // suiTextLayout.placeText(tt,args);
-		}
+		} else {  */
+    const svgText = SuiTextBlock.fromScoreText(tt,this.context);
+    svgText.render();
+    tt.renderedBox = svgText.getBoundingBox();
 
     // Update paginated score text
     if (tt.pagination != SmoScoreText.paginations.once) {
@@ -105,7 +110,7 @@ class suiScoreLayout extends suiLayoutBase {
         else if (tt.pagination == SmoScoreText.paginations.subsequent
            && i == 1) {
             continue;
-         }
+        }
 
         var xx = new SmoScoreText(tt);
         xx.classes = 'score-text '+xx.attrs.id;
@@ -123,6 +128,9 @@ class suiScoreLayout extends suiLayoutBase {
 		this._score.scoreText.forEach((tt) => {
 			this.renderScoreText(tt);
 		});
+    this._score.textGroups.forEach((tg) => {
+      this.renderTextGroup(tg);
+    });
 	}
 
 

@@ -53,7 +53,8 @@ class SmoMeasure {
 		return [
 			'timeSignature', 'keySignature','systemBreak','pageBreak',
 			'measureNumber',
-			'activeVoice', 'clef', 'transposeIndex', 'adjX','customStretch','customProportion','padLeft', 'padRight', 'rightMargin'
+			'activeVoice', 'clef', 'transposeIndex',
+      'adjX','customStretch','customProportion','padLeft', 'padRight', 'rightMargin'
     ];
 	}
 

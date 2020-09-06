@@ -47,6 +47,7 @@ class SmoScore {
       staves: [],
       activeStaff: 0,
   		scoreText:[],
+      textGroups:[],
       systemGroups:[]
     };
   }
@@ -84,7 +85,7 @@ class SmoScore {
   static deserializeColumnMapped(scoreObj) {
     // var attrColumnHash = scoreObj
     if (!scoreObj.columnAttributeMap) {
-        return;
+      return;
     }
     var attrs = Object.keys(scoreObj.columnAttributeMap);
     scoreObj.staves.forEach((staff) => {
@@ -115,31 +116,35 @@ class SmoScore {
 
     // ### serialize
     // ### Serialize the score.  The resulting JSON string will contain all the staves, measures, etc.
-    serialize() {
-        var params = {};
-        smoSerialize.serializedMerge(SmoScore.defaultAttributes, this, params);
-        var obj = {
-            score: params,
-            staves: [],
-			scoreText:[],
-            systemGroups:[]
-        };
-        this.staves.forEach((staff) => {
-            obj.staves.push(staff.serialize());
-        });
+  serialize() {
+    var params = {};
+    smoSerialize.serializedMerge(SmoScore.defaultAttributes, this, params);
+    var obj = {
+      score: params,
+      staves: [],
+			scoreText: [],
+      textGroups: [],
+      systemGroups: []
+    };
+    this.staves.forEach((staff) => {
+      obj.staves.push(staff.serialize());
+    });
 
 		this.scoreText.forEach((tt) => {
 			obj.scoreText.push(tt.serialize());
 		});
-        this.systemGroups.forEach((gg) => {
-            obj.systemGroups.push(gg.serialize());
-        });
-        obj.columnAttributeMap = this.serializeColumnMapped();
-        smoSerialize.jsonTokens(obj);
-        obj = smoSerialize.detokenize(obj,smoSerialize.tokenValues);
-        obj.dictionary = smoSerialize.tokenMap;
-        return obj;
-    }
+    this.textGroups.forEach((tg) => {
+      obj.textGroups.push(tg);
+    });
+    this.systemGroups.forEach((gg) => {
+      obj.systemGroups.push(gg.serialize());
+    });
+    obj.columnAttributeMap = this.serializeColumnMapped();
+    smoSerialize.jsonTokens(obj);
+    obj = smoSerialize.detokenize(obj,smoSerialize.tokenValues);
+    obj.dictionary = smoSerialize.tokenMap;
+    return obj;
+  }
 
   // ### deserialize
   // ### Restore an earlier JSON string.  Unlike other deserialize methods, this one expects the string.
@@ -150,6 +155,8 @@ class SmoScore {
     }
     var params = {};
     var staves = [];
+    jsonObj.textGroups = jsonObj.textGroups ? jsonObj.textGroups : [];
+
     // Explode the sparse arrays of attributes into the measures
     SmoScore.deserializeColumnMapped(jsonObj);
     smoSerialize.serializedMerge(
@@ -166,9 +173,14 @@ class SmoScore {
       st.classes = 'score-text '+ st.attrs.id;
       scoreText.push(st);
   	});
+
+    var textGroups = [];
+    jsonObj.textGroups.forEach((tg) => {
+      textGroups.push(SmoTextGroup.deserialize(tg));
+    });
+
     var systemGroups = [];
     if (jsonObj['systemGroups']) {
-
       jsonObj.systemGroups.forEach((tt) => {
         var st = SmoScoreModifierBase.deserialize(tt);
         st.autoLayout = false; // since this has been layed out, presumably, before save
@@ -179,44 +191,45 @@ class SmoScore {
 
     let score = new SmoScore(params);
 	  score.scoreText=scoreText;
+    score.textGroups = textGroups;
     score.systemGroups = systemGroups;
 	  return score;
   }
 
-    // ### getDefaultScore
-    // ### Description:
-    // Gets a score consisting of a single measure with all the defaults.
-    static getDefaultScore(scoreDefaults, measureDefaults) {
-        scoreDefaults = (scoreDefaults != null ? scoreDefaults : SmoScore.defaults);
-        measureDefaults = (measureDefaults != null ? measureDefaults : SmoMeasure.defaults);
-        var score = new SmoScore(scoreDefaults);
-        score.addStaff({measureDefaults:measureDefaults});
-        var measure = SmoMeasure.getDefaultMeasure(measureDefaults);
-        score.addMeasure(0, measure);
-        measure.voices.push({
-            notes: SmoMeasure.getDefaultNotes(measureDefaults)
-        });
-        return score;
-    }
+  // ### getDefaultScore
+  // ### Description:
+  // Gets a score consisting of a single measure with all the defaults.
+  static getDefaultScore(scoreDefaults, measureDefaults) {
+    scoreDefaults = (scoreDefaults != null ? scoreDefaults : SmoScore.defaults);
+    measureDefaults = (measureDefaults != null ? measureDefaults : SmoMeasure.defaults);
+    var score = new SmoScore(scoreDefaults);
+    score.addStaff({measureDefaults:measureDefaults});
+    var measure = SmoMeasure.getDefaultMeasure(measureDefaults);
+    score.addMeasure(0, measure);
+    measure.voices.push({
+      notes: SmoMeasure.getDefaultNotes(measureDefaults)
+    });
+    return score;
+  }
 
-    // ### getEmptyScore
-    // ### Description:
-    // Create a score object, but don't populate it with anything.
-    static getEmptyScore(scoreDefaults) {
-        var score = new SmoScore(scoreDefaults);
-        score.addStaff();
-        return score;
-    }
+  // ### getEmptyScore
+  // ### Description:
+  // Create a score object, but don't populate it with anything.
+  static getEmptyScore(scoreDefaults) {
+    var score = new SmoScore(scoreDefaults);
+    score.addStaff();
+    return score;
+  }
 
     // ### _numberStaves
     // recursively renumber staffs and measures.
-    _numberStaves() {
-        for (var i = 0; i < this.staves.length; ++i) {
-            var stave = this.staves[i];
-			stave.staffId=i;
-            stave.numberMeasures();
-        }
+  _numberStaves() {
+    for (var i = 0; i < this.staves.length; ++i) {
+      var stave = this.staves[i];
+      stave.staffId=i;
+      stave.numberMeasures();
     }
+  }
 
     // ### addDefaultMeasureWithNotes
     // ### Description:
@@ -314,8 +327,6 @@ class SmoScore {
         this.systemGroups.push(newGroup);
     }
 
-    // ### addScoreText
-    //
 
     // ### replace staff
 	// Probably due to an undo operation, replace the staff at the given index.
@@ -411,6 +422,29 @@ class SmoScore {
 		}
 		this.scoreText = texts;
 	}
+  _updateTextGroup(textGroup,toAdd) {
+    var tgid = typeof(textGroup) === 'string' ? textGroup :
+      textGroup.attrs.id;
+    var ar = this.textGroups.filter((tg) => tg.attrs.id !== tgid);
+    this.textGroups = ar;
+    if (toAdd) {
+      this.textGroups.push(textGroup);
+    }
+  }
+
+  addTextGroup(textGroup) {
+    this._updateTextGroup(textGroup,true);
+  }
+  getTextGroup(textGroup) {
+    var tgid = typeof(textGroup) === 'string' ? textGroup :
+      textGroup.attrs.id;
+    return this.textGroups.find((tg) => tg.tgid === tg.attrs.id);
+  }
+  removeTextGroup(textGroup) {
+    var tgid = typeof(textGroup) === 'string' ? textGroup :
+      textGroup.attrs.id;
+      _updateTextGroup(textGroup,false);
+  }
 
 	addScoreText(textObject) {
 		this._updateScoreText(textObject,true);

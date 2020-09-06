@@ -5,20 +5,7 @@
 // ### static class methods:
 // ---
 class svgHelpers {
-	// ### unionRect
-	// grow the bounding box two objects to include both.
-	static unionRect(b1, b2) {
-		var x = Math.min(b1.x, b2.x);
-		var y = Math.min(b1.y, b2.y);
-		var width = Math.max(b1.x + b1.width, b2.x + b2.width) - x;
-		var height = Math.max(b1.y + b1.height, b2.y + b2.height) - y;
-		return {
-			x: x,
-			y: y,
-			width: width,
-			height: height
-		};
-	}
+
 
 	static get namespace() {
 		return "http://www.w3.org/2000/svg";
@@ -508,6 +495,20 @@ class svgHelpers {
 			height: hround(box.height)
 		});
 	}
+  // ### unionRect
+  // grow the bounding box two objects to include both.
+  static unionRect(b1, b2) {
+    var x = Math.min(b1.x, b2.x);
+    var y = Math.min(b1.y, b2.y);
+    var width = Math.max(b1.x + b1.width, b2.x + b2.width) - x;
+    var height = Math.max(b1.y + b1.height, b2.y + b2.height) - y;
+    return {
+      x: x,
+      y: y,
+      width: width,
+      height: height
+    };
+  }
 
     // ### adjustScroll
     // Add the scroll to the screen coordinates so we can find the mapped

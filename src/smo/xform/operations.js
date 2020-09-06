@@ -696,10 +696,18 @@ class SmoOperation {
   }
 
   static addScoreText(score,scoreText) {
-  score.addScoreText(scoreText);
+    score.addScoreText(scoreText);
   }
   static removeScoreText(score,scoreText) {
-  score.removeScoreText(scoreText);
+    score.removeScoreText(scoreText);
+  }
+
+  static addTextGroup(score,textGroup) {
+    score.addTextGroup(textGroup);
+  }
+
+  static removeTextGroup(score,textGroup) {
+    score.removeTextGroup(textGroup);
   }
 
   static addMeasureText(score,selection,measureText) {
