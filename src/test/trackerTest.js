@@ -13,16 +13,15 @@ class TrackerTest {
 		score.addDefaultMeasureWithNotes(1, {});
 		score.addDefaultMeasureWithNotes(2, {});
 		var timeTest = () => {
-      layout.forceRender();
+    layout.forceRender();
 
-			const promise = new Promise((resolve, reject) => {
-					setTimeout(() => {
-						resolve();
-					},
-						200);
-				});
-			return promise;
-		}
+		const promise = new Promise((resolve, reject) => {
+ 			setTimeout(() => {
+ 				resolve();
+  			},200);
+  		});
+  		return promise;
+	  }
 
 		var subTitle = (txt) => {
 			$('.subTitle').text(txt);

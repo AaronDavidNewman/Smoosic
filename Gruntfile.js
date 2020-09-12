@@ -43,7 +43,7 @@ module.exports = function (grunt) {
                     'src/test/keySignatureTest.js',
                     'src/test/tupletTest.js', 'src/test/serializeTestJson.js', 'src/test/pasteTest.js',
                     'src/test/voiceTest.js', 'src/test/trackerTest.js', 'src/test/clefTest.js','src/test/measureTest.js','src/test/testAll.js',
-					'src/test/textTest.js'],
+					'src/test/textEditTest.js','src/test/textTest.js'],
                 dest: 'build/smoTests.js'
 
             }

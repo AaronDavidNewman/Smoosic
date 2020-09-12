@@ -206,32 +206,34 @@ class suiTracker extends suiMapper {
     }
 
 
-    musicCursor(selector) {
-        var key = SmoSelector.getNoteKey(selector);
-        if (this.measureNoteMap[key]) {
-            var measureSel = SmoSelection.measureSelection(this.layout.score,
-                this.layout.score.staves.length-1,selector.measure);
-            var measure = measureSel.measure;
-            var mbox = measure.renderedBox;
+  // ### musicCursor
+  // the little birdie that follows the music as it plays
+  musicCursor(selector) {
+    var key = SmoSelector.getNoteKey(selector);
+    if (this.measureNoteMap[key]) {
+      var measureSel = SmoSelection.measureSelection(this.layout.score,
+        this.layout.score.staves.length-1,selector.measure);
+      var measure = measureSel.measure;
+      var mbox = measure.renderedBox;
 
-            var pos = this.measureNoteMap[key].scrollBox;
-            // pos.y = measureSel.measure.renderedBox.y;
-            var b = htmlHelpers.buildDom;
-	        var r = b('span').classes('birdy icon icon-arrow-down').attr('id','birdy');
-            $('.workspace #birdy').remove();
-            var rd = r.dom();
-            var y = pos.y - this.scroller.netScroll.y;
-            var x = pos.x - this.scroller.netScroll.x;
-            $(rd).css('top',y).css('left',x);
-            $('.workspace').append(rd);
-            // todo, need lower right for x
-            var measureRight = mbox.x + mbox.width;
-            var measureBottom = mbox.y +
-                  mbox.height;
-            this.scroller.scrollVisibleBox(svgHelpers.boxPoints(
-                mbox.x,mbox.y,mbox.width,mbox.height));
-        }
+      var pos = this.measureNoteMap[key].scrollBox;
+      // pos.y = measureSel.measure.renderedBox.y;
+      var b = htmlHelpers.buildDom;
+      var r = b('span').classes('birdy icon icon-arrow-down').attr('id','birdy');
+      $('.workspace #birdy').remove();
+      var rd = r.dom();
+      var y = pos.y - this.scroller.netScroll.y;
+      var x = pos.x - this.scroller.netScroll.x;
+      $(rd).css('top',y).css('left',x);
+      $('.workspace').append(rd);
+      // todo, need lower right for x
+      var measureRight = mbox.x + mbox.width;
+      var measureBottom = mbox.y +
+        mbox.height;
+      this.scroller.scrollVisibleBox(svgHelpers.boxPoints(
+        mbox.x,mbox.y,mbox.width,mbox.height));
     }
+  }
 
     // ### selectModifierById
     // programatically select a modifier by ID.  Used by text editor.

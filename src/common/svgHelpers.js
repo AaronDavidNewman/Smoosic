@@ -42,6 +42,7 @@ class svgHelpers {
   static renderCursor(svg,x,y,height) {
     var ns = svgHelpers.namespace;
     const width = height * 0.4;
+    x = x - (width / 2);
     var mcmd = (d,x,y) => {
       return d + 'M '+x+' '+y+' ';
     };

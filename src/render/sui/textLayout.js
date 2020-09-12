@@ -59,7 +59,8 @@ class SuiInlineText {
   static get blockDefaults() {
     return {
       symbolType: SuiInlineText.symbolTypes.TEXT,
-      textType: SuiInlineText.textTypes.normal
+      textType: SuiInlineText.textTypes.normal,
+      highlighted: false
     };
   }
 
@@ -135,7 +136,6 @@ class SuiInlineText {
     block.text = params.text;
     return block;
   }
-  setStart
   renderCursorAt(position) {
     var group = this.context.openGroup();
     group.id = 'inlineCursor';
@@ -173,6 +173,10 @@ class SuiInlineText {
       this.blocks.splice(position,0,block);
     }
   }
+  removeBlockAt(position) {
+    this.blocks.splice(position,1);
+  }
+  
   // ### addTextBlockAt
   // Add a text block to the line of text.
   // params must contain at least:
@@ -204,16 +208,28 @@ class SuiInlineText {
   isSubcript(block) {
     return block.textType === SuiInlineText.textTypes.subScript;
   }
+  getHighlight(block) {
+    return block.highlighted;
+  }
+  setHighlight(block,value) {
+    block.highlighted = value;
+  }
 
   _drawBlock(block) {
     const sp = this.isSuperscript(block);
     const sub = this.isSubcript(block);
+    const highlight = this.getHighlight(block);
     let y = block.y;
+    if (highlight) {
+      this.context.save();
+      this.context.setFillStyle('#999');
+    }
+
     if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
       if (sp || sub) {
         this.context.save();
-        this.context.setFont(this.fontFamily, this.fontSize * VF.ChordSymbol.superSubRatio, this.fontWeight);
-        y = y + (sp ? SuiInlineText.superscriptOffset : SuiInlineText.subscriptOffset) * this.pointsToPixels * block.scale;
+          this.context.setFont(this.fontFamily, this.fontSize * VF.ChordSymbol.superSubRatio, this.fontWeight);
+          y = y + (sp ? SuiInlineText.superscriptOffset : SuiInlineText.subscriptOffset) * this.pointsToPixels * block.scale;
       }
       this.context.fillText(block.text,block.x,y);
       if (sp || sub) {
@@ -225,6 +241,9 @@ class SuiInlineText {
         y = y + (sp ? SuiInlineText.superscriptOffset : SuiInlineText.subscriptOffset) * this.pointsToPixels * block.scale;
       }
       block.glyph.render(this.context, block.x, y);
+    }
+    if (highlight) {
+      this.context.restore();
     }
   }
 }

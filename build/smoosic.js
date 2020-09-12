@@ -4864,6 +4864,7 @@ class svgHelpers {
   static renderCursor(svg,x,y,height) {
     var ns = svgHelpers.namespace;
     const width = height * 0.4;
+    x = x - (width / 2);
     var mcmd = (d,x,y) => {
       return d + 'M '+x+' '+y+' ';
     };
@@ -14708,32 +14709,34 @@ class suiTracker extends suiMapper {
     }
 
 
-    musicCursor(selector) {
-        var key = SmoSelector.getNoteKey(selector);
-        if (this.measureNoteMap[key]) {
-            var measureSel = SmoSelection.measureSelection(this.layout.score,
-                this.layout.score.staves.length-1,selector.measure);
-            var measure = measureSel.measure;
-            var mbox = measure.renderedBox;
+  // ### musicCursor
+  // the little birdie that follows the music as it plays
+  musicCursor(selector) {
+    var key = SmoSelector.getNoteKey(selector);
+    if (this.measureNoteMap[key]) {
+      var measureSel = SmoSelection.measureSelection(this.layout.score,
+        this.layout.score.staves.length-1,selector.measure);
+      var measure = measureSel.measure;
+      var mbox = measure.renderedBox;
 
-            var pos = this.measureNoteMap[key].scrollBox;
-            // pos.y = measureSel.measure.renderedBox.y;
-            var b = htmlHelpers.buildDom;
-	        var r = b('span').classes('birdy icon icon-arrow-down').attr('id','birdy');
-            $('.workspace #birdy').remove();
-            var rd = r.dom();
-            var y = pos.y - this.scroller.netScroll.y;
-            var x = pos.x - this.scroller.netScroll.x;
-            $(rd).css('top',y).css('left',x);
-            $('.workspace').append(rd);
-            // todo, need lower right for x
-            var measureRight = mbox.x + mbox.width;
-            var measureBottom = mbox.y +
-                  mbox.height;
-            this.scroller.scrollVisibleBox(svgHelpers.boxPoints(
-                mbox.x,mbox.y,mbox.width,mbox.height));
-        }
+      var pos = this.measureNoteMap[key].scrollBox;
+      // pos.y = measureSel.measure.renderedBox.y;
+      var b = htmlHelpers.buildDom;
+      var r = b('span').classes('birdy icon icon-arrow-down').attr('id','birdy');
+      $('.workspace #birdy').remove();
+      var rd = r.dom();
+      var y = pos.y - this.scroller.netScroll.y;
+      var x = pos.x - this.scroller.netScroll.x;
+      $(rd).css('top',y).css('left',x);
+      $('.workspace').append(rd);
+      // todo, need lower right for x
+      var measureRight = mbox.x + mbox.width;
+      var measureBottom = mbox.y +
+        mbox.height;
+      this.scroller.scrollVisibleBox(svgHelpers.boxPoints(
+        mbox.x,mbox.y,mbox.width,mbox.height));
     }
+  }
 
     // ### selectModifierById
     // programatically select a modifier by ID.  Used by text editor.
@@ -17235,7 +17238,8 @@ class SuiInlineText {
   static get blockDefaults() {
     return {
       symbolType: SuiInlineText.symbolTypes.TEXT,
-      textType: SuiInlineText.textTypes.normal
+      textType: SuiInlineText.textTypes.normal,
+      highlighted: false
     };
   }
 
@@ -17311,7 +17315,6 @@ class SuiInlineText {
     block.text = params.text;
     return block;
   }
-  setStart
   renderCursorAt(position) {
     var group = this.context.openGroup();
     group.id = 'inlineCursor';
@@ -17349,6 +17352,10 @@ class SuiInlineText {
       this.blocks.splice(position,0,block);
     }
   }
+  removeBlockAt(position) {
+    this.blocks.splice(position,1);
+  }
+  
   // ### addTextBlockAt
   // Add a text block to the line of text.
   // params must contain at least:
@@ -17380,16 +17387,28 @@ class SuiInlineText {
   isSubcript(block) {
     return block.textType === SuiInlineText.textTypes.subScript;
   }
+  getHighlight(block) {
+    return block.highlighted;
+  }
+  setHighlight(block,value) {
+    block.highlighted = value;
+  }
 
   _drawBlock(block) {
     const sp = this.isSuperscript(block);
     const sub = this.isSubcript(block);
+    const highlight = this.getHighlight(block);
     let y = block.y;
+    if (highlight) {
+      this.context.save();
+      this.context.setFillStyle('#999');
+    }
+
     if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
       if (sp || sub) {
         this.context.save();
-        this.context.setFont(this.fontFamily, this.fontSize * VF.ChordSymbol.superSubRatio, this.fontWeight);
-        y = y + (sp ? SuiInlineText.superscriptOffset : SuiInlineText.subscriptOffset) * this.pointsToPixels * block.scale;
+          this.context.setFont(this.fontFamily, this.fontSize * VF.ChordSymbol.superSubRatio, this.fontWeight);
+          y = y + (sp ? SuiInlineText.superscriptOffset : SuiInlineText.subscriptOffset) * this.pointsToPixels * block.scale;
       }
       this.context.fillText(block.text,block.x,y);
       if (sp || sub) {
@@ -17401,6 +17420,9 @@ class SuiInlineText {
         y = y + (sp ? SuiInlineText.superscriptOffset : SuiInlineText.subscriptOffset) * this.pointsToPixels * block.scale;
       }
       block.glyph.render(this.context, block.x, y);
+    }
+    if (highlight) {
+      this.context.restore();
     }
   }
 }
@@ -26963,16 +26985,16 @@ class suiController {
     this.keyHandlerObj = null;
 
 		this.ribbon = new RibbonButtons({
-				ribbons: defaultRibbonLayout.ribbons,
-				ribbonButtons: defaultRibbonLayout.ribbonButtons,
-				menus: this.menus,
-				editor: this.editor,
-				tracker: this.tracker,
-				score: this.score,
-				controller: this,
-        layout:this.tracker.layout,
-        eventSource:this.eventSource
-			});
+			ribbons: defaultRibbonLayout.ribbons,
+			ribbonButtons: defaultRibbonLayout.ribbonButtons,
+			menus: this.menus,
+			editor: this.editor,
+			tracker: this.tracker,
+			score: this.score,
+			controller: this,
+      layout:this.tracker.layout,
+      eventSource:this.eventSource
+		});
 
     this.menus.setController(this);
 
@@ -26981,11 +27003,11 @@ class suiController {
 
 		this.bindEvents();
 
-        // Only display the ribbon one time b/c it's expensive operation
-        this.ribbon.display();
+    // Only display the ribbon one time b/c it's expensive operation
+    this.ribbon.display();
 		this.bindResize();
-        this.layoutDemon.undoBuffer = this.undoBuffer;
-        this.layoutDemon.startDemon();
+    this.layoutDemon.undoBuffer = this.undoBuffer;
+    this.layoutDemon.startDemon();
 
 		this.createPiano();
 	}

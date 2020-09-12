@@ -33,16 +33,16 @@ class suiController {
     this.keyHandlerObj = null;
 
 		this.ribbon = new RibbonButtons({
-				ribbons: defaultRibbonLayout.ribbons,
-				ribbonButtons: defaultRibbonLayout.ribbonButtons,
-				menus: this.menus,
-				editor: this.editor,
-				tracker: this.tracker,
-				score: this.score,
-				controller: this,
-        layout:this.tracker.layout,
-        eventSource:this.eventSource
-			});
+			ribbons: defaultRibbonLayout.ribbons,
+			ribbonButtons: defaultRibbonLayout.ribbonButtons,
+			menus: this.menus,
+			editor: this.editor,
+			tracker: this.tracker,
+			score: this.score,
+			controller: this,
+      layout:this.tracker.layout,
+      eventSource:this.eventSource
+		});
 
     this.menus.setController(this);
 
@@ -51,11 +51,11 @@ class suiController {
 
 		this.bindEvents();
 
-        // Only display the ribbon one time b/c it's expensive operation
-        this.ribbon.display();
+    // Only display the ribbon one time b/c it's expensive operation
+    this.ribbon.display();
 		this.bindResize();
-        this.layoutDemon.undoBuffer = this.undoBuffer;
-        this.layoutDemon.startDemon();
+    this.layoutDemon.undoBuffer = this.undoBuffer;
+    this.layoutDemon.startDemon();
 
 		this.createPiano();
 	}
