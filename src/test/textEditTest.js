@@ -65,64 +65,64 @@ class SuiTextEditor {
   }
   _updateSelections() {
     let i = 0;
+    const end = this.selectionStart + this.selectionLength;
+    const start =  this.selectionStart;
     this.svgText.blocks.forEach((block) => {
-      const end = this.selectionStart + this.selectionLength;
-      const start =  this.selectionStart;
       const val = start >= 0 && i >= start && i < end;
       this.svgText.setHighlight(block,val);
       ++i;
     });
   }
-  growSelectionRight() {
-    if (this.selectionStart === -1 && this.textPos > 0) {
-      this.selectionStart = this.textPos;
-      this.textPos -= 1;
-      this.selectionLength = 1;
-    } else if (this.selectionStart > this.textPos) {
-      this.selectionLength -= 1;
-      if (this.selectionLength < 1) {
-        this.selectionStart = -1;
-      } else {
-        this.textPos = this.selectionStart;
-      }
-    } else {
-      if (this.selectionStart + this.selectionLength < this.svgText.blocks.length) {
-        this.selectionLength += 1;
-        this.textPos = this.selectionStart;
-      }
+  _checkGrowSelectionLeft() {
+    if (this.selectionStart > 0) {
+      this.selectionStart -= 1;
+      this.selectionLength += 1;
     }
-    this._updateSelections();
   }
+  _checkGrowSelectionRight() {
+    const end = this.selectionStart + this.selectionLength;
+    if (end < this.svgText.blocks.length) {
+      this.selectionLength += 1;
+    }
 
+  }
   growSelectionLeft() {
-    if (this.selectionStart === -1 && this.textPos > 0) {
-      this.selectionStart = this.textPos - 1;
+    if (this.selectionStart === -1) {
+      this.selectionStart = this.textPos;
       this.selectionLength = 1;
-    } else if (this.selectionStart + this.selectionLength < this.textPos) {
-      this.selectionLength -= 1;
-      if (this.selectionLength < 1) {
-        this.selectionStart = -1;
-      }
-    } else {
-      if (this.selectionStart > 0) {
-        this.selectionLength += 1;
-        this.selectionStart -= 1;
-      }
+      this.moveCursorLeft();
+    } else if (this.textPos === this.selectionStart - 1 ) {
+      this.moveCursorLeft();
+      this._checkGrowSelectionLeft();
     }
     this._updateSelections();
   }
 
-  clearSelections() {
+  growSelectionRight() {
+    if (this.selectionStart === -1) {
+      this.selectionStart = this.textPos;
+      this.selectionLength = 1;
+      this.moveCursorRight();
+    } else if (this.selectionStart + this.selectionLength === this.textPos) {
+      this._checkGrowSelectionRight();
+      this.moveCursorRight();
+    }
+    this._updateSelections();
+  }
+
+  _clearSelections() {
     this.selectionStart = -1;
     this.selectionLength = 0;
   }
 
   deleteSelections() {
     const blockPos = this.selectionStart;
-    for (var i = 0;blockPos >= 0 && i < this.selectionStart; ++i) {
+    for (var i = 0;i < this.selectionLength; ++i) {
       this.svgText.removeBlockAt(blockPos); // delete shifts blocks so keep index the same.
     }
     this.textPos = blockPos;
+    this.selectionStart = -1;
+    this.selectionLength = 0;
   }
 
   parseBlocks() {
@@ -185,7 +185,7 @@ class SuiLyricEditor extends SuiTextEditor {
         this.textPos = 0;
       } else {
         if (this.selectionStart >= 0) {
-          this.deleteSelected();
+          this.deleteSelections();
         }
         this.textPos += 1;
         this.svgText.addTextBlockAt(this.textPos,{ text: evdata.key});
@@ -249,33 +249,45 @@ class TextEditTest {
     var tests = [];
 
     tests.push( async () => {
-      subTitle('lyricEditTest1');
+      subTitle('lyricEditTests');
       editor.evKey(makekey({'key':'a'}));
       return timeTest();
     });
 
     tests.push( async () => {
-      subTitle('lyricEditTest1');
+      subTitle('lyricEditTest2');
       editor.evKey(makekey({'key':'c'}));
       return timeTest();
     });
 
     tests.push( async () => {
-      subTitle('lyricEditTest1');
+      subTitle('lyricCursorTest1');
       editor.evKey(makekey({'code':'ArrowLeft'}));
       return timeTest();
     });
 
     tests.push( async () => {
-      subTitle('lyricEditTest1');
+      subTitle('lyricEditTest4');
       editor.evKey(makekey({'key':'b'}));
       editor.evKey(makekey({'key':'b'}));
       return timeTest();
     });
 
     tests.push( async () => {
-      subTitle('lyricEditTest1');
-      editor.evKey(makekey({'code':'ArrowRight',shiftKey: true}));
+      subTitle('lyricSelectTest1');
+      editor.evKey(makekey({'code':'ArrowLeft',shiftKey: true}));
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      editor.evKey(makekey({'code':'ArrowLeft',shiftKey: true}));
+      subTitle('lyricSelectTest2');
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      editor.evKey(makekey({'key':'X',shiftKey: true}));
+      subTitle('lyricInsert');
       return timeTest();
     });
 
