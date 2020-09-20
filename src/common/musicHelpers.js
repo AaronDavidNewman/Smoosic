@@ -28,6 +28,7 @@ VX = Vex.Xform;
 // ---
 class smoMusic {
 
+
 	// ### vexToCannonical
 	// return Vex canonical note enharmonic - e.g. Bb to A#
 	// Get the canonical form

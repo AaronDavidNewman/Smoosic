@@ -35,7 +35,8 @@ class SuiInlineText {
       startY: 100,
       fontWeight:500,
       scale: 1,
-      activeBlock:-1
+      activeBlock:-1,
+      artifacts: []
     };
   }
   // ### constructor just creates an empty svg
@@ -160,11 +161,28 @@ class SuiInlineText {
     group.classList.add(this.attrs.id);
     group.classList.add(mmClass);
     group.id=this.attrs.id;
+    this.artifacts = [];
+    var ix = 0;
 
     this.blocks.forEach((block) => {
+      var bg = this.context.openGroup();
+      bg.classList.add('textblock-'+this.attrs.id+ix);
       this._drawBlock(block);
+      this.context.closeGroup();
+      var artifact = {block: block};
+      artifact.box = svgHelpers.smoBox(bg.getBoundingClientRect());
+      artifact.index = ix;
+      this.artifacts.push(artifact);
+      ix += 1;
     });
     this.context.closeGroup();
+  }
+  getIntersectingBlocks(box, scroller) {
+    if (!this.artifacts) {
+      return [];
+    }
+    return svgHelpers.findIntersectingArtifact(box,this.artifacts,scroller);
+
   }
   _addBlockAt(position,block) {
     if (position >= this.blocks.length) {
@@ -176,7 +194,7 @@ class SuiInlineText {
   removeBlockAt(position) {
     this.blocks.splice(position,1);
   }
-  
+
   // ### addTextBlockAt
   // Add a text block to the line of text.
   // params must contain at least:
@@ -220,6 +238,7 @@ class SuiInlineText {
     const sub = this.isSubcript(block);
     const highlight = this.getHighlight(block);
     let y = block.y;
+
     if (highlight) {
       this.context.save();
       this.context.setFillStyle('#999');
@@ -245,6 +264,14 @@ class SuiInlineText {
     if (highlight) {
       this.context.restore();
     }
+  }
+
+  getText() {
+    var rv ='';
+    this.blocks.forEach((block) => {
+      rv += block.text;
+    });
+    return rv;
   }
 }
 

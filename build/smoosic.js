@@ -3708,6 +3708,26 @@ class SmoLanguage {
    }
 }
 ;
+class PromiseHelpers {
+  static makePromise(obj,endCondition,preResolveFunc,pollFunc,pollTime) {
+    return new Promise((resolve) => {
+      var checkit = () => {
+        setTimeout(() => {
+          if (obj[endCondition]) {
+            obj[preResolveFunc]();
+            resolve();
+          }
+          else {
+            obj[pollFunc]();
+            checkit();
+          }
+        },pollTime);
+      }
+      checkit();
+    });
+  }
+}
+;
 VF = Vex.Flow;
 Vex.Xform = (typeof(Vex.Xform) == 'undefined' ? {}
 	 : Vex.Xform);
@@ -3736,6 +3756,7 @@ VX = Vex.Xform;
 // ## smoMusic static methods:
 // ---
 class smoMusic {
+
 
 	// ### vexToCannonical
 	// return Vex canonical note enharmonic - e.g. Bb to A#
@@ -4971,20 +4992,55 @@ class svgHelpers {
 		artifact.logicalBox = svgHelpers.smoBox(element.getBBox());
 	}
 
-    static rect(svg,box,attrs,classes) {
-        var rect = document.createElementNS(svgHelpers.namespace,'rect');
-        var attrKeys = Object.keys(attrs);
-        attrKeys.forEach((key) => {
-            var val = attrs[key];
-            key = (key == 'strokewidth') ? 'stroke-width' : key;
-            rect.setAttributeNS('', key, val);
-        });
-        if (classes) {
-            rect.setAttributeNS('','class',classes);
-        }
-        svg.appendChild(rect);
-        return rect;
+  // ### eraseOutline
+  // Erases old outlineRects.
+  static eraseOutline(context,style) {
+  		$(context.svg).find('g.vf-' + style).remove();
+  }
+
+  // ### outlineRect
+  // Usage:
+  //  outlineRect(params)
+  // params ({context,box,outlineStroke,classes,scroller})
+  // outlineStroke: {stroke, strokeWidth, strokeDashArray, fill}
+  static outlineRect(params) {
+    const stroke = params.outlineStroke;
+    const scroller = params.scroller;
+    const context = params.context;
+    svgHelpers.eraseOutline(context,params.classes);
+    // Don't highlight in print mode.
+    if ($('body').hasClass('printing')) {
+      return;
     }
+    var grp = context.openGroup(params.classes, params.classes + '-outline');
+    const boxes = Array.isArray(params.box) ? params.box : [params.box];
+
+    boxes.forEach((box) => {
+      if (box) {
+        var strokeObj = params.outlineStroke;
+        var margin = 5;
+        box = svgHelpers.clientToLogical(context.svg, svgHelpers.adjustScroll(box,scroller.netScroll));
+        context.rect(box.x - margin, box.y - margin, box.width + margin * 2, box.height + margin * 2, strokeObj);
+      }
+    });
+    context.closeGroup(grp);
+  }
+
+
+  static rect(svg,box,attrs,classes) {
+    var rect = document.createElementNS(svgHelpers.namespace,'rect');
+    var attrKeys = Object.keys(attrs);
+    attrKeys.forEach((key) => {
+      var val = attrs[key];
+      key = (key == 'strokewidth') ? 'stroke-width' : key;
+      rect.setAttributeNS('', key, val);
+    });
+    if (classes) {
+      rect.setAttributeNS('','class',classes);
+    }
+    svg.appendChild(rect);
+    return rect;
+  }
 
     static line(svg,x1,y1,x2,y2,attrs,classes) {
         var line = document.createElementNS(svgHelpers.namespace,'line');
@@ -5017,11 +5073,7 @@ class svgHelpers {
         svgHelpers.line(svg,box.x+box.width,arrowY,box.x+box.width/2,box.y+box.height);
     }
 
-    static textOutlineRect(svg,textElement, color, classes) {
-        var box = textElement.getBBox();
-        var attrs = [{width:box.width+5,height:box.height+5,stroke:color,strokewidth:'2',fill:'none',x:box.x-5,y:box.y-5}];
-        svgHelpers.rect(svg,box,attrs,classes);
-    }
+
 	// ### getTextBox
 	// Get the logical bounding box of the text for placement.
 	static getTextBox(svg,attributes,classes,text) {
@@ -12881,7 +12933,7 @@ class VxMeasure {
 		// the -3 is copied from vexflow textDynamics
 		var y=this.stave.getYForLine(textObj.yOffsetLine-3) + textObj.yOffsetPixels;
 		var group = this.context.openGroup();
-        group.classList.add(textObj.attrs.id+'-'+smoNote.attrs.id);
+    group.classList.add(textObj.attrs.id+'-'+smoNote.attrs.id);
 		group.classList.add(textObj.attrs.id);
 		textObj.text.split('').forEach((ch)=> {
 			const glyphCode = VF.TextDynamics.GLYPHS[ch];
@@ -15344,20 +15396,20 @@ class suiTracker extends suiMapper {
 		$(this.renderElement).find('g.vf-' + stroke).remove();
 	}
 
-    _highlightModifier() {
-        if (!this.modifierSelections.length) {
-            return;
-        }
-        var box=null;
-        this.modifierSelections.forEach((artifact) => {
-            if (!box) {
-                box = artifact.modifier.renderedBox;
-            }
-            else {
-                box = svgHelpers.unionRect(box,artifact.modifier.renderedBox);
-            }
-        });
-        this._drawRect(box, 'staffModifier');
+  _highlightModifier() {
+    if (!this.modifierSelections.length) {
+      return;
+    }
+    var box=null;
+    this.modifierSelections.forEach((artifact) => {
+      if (!box) {
+        box = artifact.modifier.renderedBox;
+      }
+      else {
+        box = svgHelpers.unionRect(box,artifact.modifier.renderedBox);
+      }
+    });
+    this._drawRect(box, 'staffModifier');
 	}
 
 	_highlightPitchSelection(note, index) {
@@ -15430,30 +15482,16 @@ class suiTracker extends suiMapper {
 		boxes.push(curBox);
 		this._drawRect(boxes, 'selection');
 	}
+  _suggestionParameters(box,strokeName) {
+    const outlineStroke = suiTracker.strokes[strokeName];
+    return {
+      context: this.context, box: box,classes: strokeName,
+         outlineStroke, scroller: this.scroller
+    }
+  }
 
 	_drawRect(bb, stroke) {
-		this.eraseRect(stroke);
-        // Don't highlight in print mode.
-        if ($('body').hasClass('printing')) {
-            return;
-        }
-		var grp = this.context.openGroup(stroke, stroke + '-');
-		if (!Array.isArray(bb)) {
-			bb = [bb];
-		}
-		bb.forEach((box) => {
-            if (box) {
-    			var strokes = suiTracker.strokes[stroke];
-    			var strokeObj = {};
-    			var margin = 5;
-    			$(Object.keys(strokes)).each(function (ix, key) {
-    				strokeObj[key] = strokes[key];
-    			});
-                box = svgHelpers.clientToLogical(this.context.svg, svgHelpers.adjustScroll(box,this.scroller.netScroll));
-    			this.context.rect(box.x - margin, box.y - margin, box.width + margin * 2, box.height + margin * 2, strokeObj);
-            }
-		});
-		this.context.closeGroup(grp);
+    svgHelpers.outlineRect(this._suggestionParameters(bb,stroke));
 	}
 }
 ;
@@ -17214,7 +17252,8 @@ class SuiInlineText {
       startY: 100,
       fontWeight:500,
       scale: 1,
-      activeBlock:-1
+      activeBlock:-1,
+      artifacts: []
     };
   }
   // ### constructor just creates an empty svg
@@ -17339,11 +17378,28 @@ class SuiInlineText {
     group.classList.add(this.attrs.id);
     group.classList.add(mmClass);
     group.id=this.attrs.id;
+    this.artifacts = [];
+    var ix = 0;
 
     this.blocks.forEach((block) => {
+      var bg = this.context.openGroup();
+      bg.classList.add('textblock-'+this.attrs.id+ix);
       this._drawBlock(block);
+      this.context.closeGroup();
+      var artifact = {block: block};
+      artifact.box = svgHelpers.smoBox(bg.getBoundingClientRect());
+      artifact.index = ix;
+      this.artifacts.push(artifact);
+      ix += 1;
     });
     this.context.closeGroup();
+  }
+  getIntersectingBlocks(box, scroller) {
+    if (!this.artifacts) {
+      return [];
+    }
+    return svgHelpers.findIntersectingArtifact(box,this.artifacts,scroller);
+
   }
   _addBlockAt(position,block) {
     if (position >= this.blocks.length) {
@@ -17355,7 +17411,7 @@ class SuiInlineText {
   removeBlockAt(position) {
     this.blocks.splice(position,1);
   }
-  
+
   // ### addTextBlockAt
   // Add a text block to the line of text.
   // params must contain at least:
@@ -17399,6 +17455,7 @@ class SuiInlineText {
     const sub = this.isSubcript(block);
     const highlight = this.getHighlight(block);
     let y = block.y;
+
     if (highlight) {
       this.context.save();
       this.context.setFillStyle('#999');
@@ -17424,6 +17481,14 @@ class SuiInlineText {
     if (highlight) {
       this.context.restore();
     }
+  }
+
+  getText() {
+    var rv ='';
+    this.blocks.forEach((block) => {
+      rv += block.text;
+    });
+    return rv;
   }
 }
 
@@ -17720,6 +17785,360 @@ class suiTextLayout {
 }
 ;
 
+// ## SuiTextEditor
+// Next-gen text editor.  The base text editor handles the positioning and inserting
+// of text blocks into the text area.  The derived class shoud interpret key events.
+class SuiTextEditor {
+  static get attributes() {
+    return ['svgText','context','x','y','text','textPos','selectionStart','selectionLength','empty'];
+  }
+  static get defaults() {
+    return {
+      svgText: null,
+      context: null,
+      x: 0,
+      y: 0,
+      text: '',
+      textPos: 0,
+      selectionStart: -1,
+      selectionLength: 0,
+      empty: true,
+      suggestFadeTimer:null,
+      suggestionIndex:-1
+    }
+  }
+  constructor(params) {
+    Vex.Merge(this,SuiTextEditor.defaults);
+    Vex.Merge(this,params);
+    this.context = params.context;
+  }
+
+  static get strokes() {
+    return {
+      'text-suggestion': {
+        'stroke': '#cce',
+        'stroke-width': 1,
+        'stroke-dasharray': '4,1',
+        'fill': 'none'
+      },
+      'text-selection': {
+        'stroke': '#99d',
+        'stroke-width': 1,
+        'fill': 'none'
+      }
+    }
+  }
+
+  _suggestionParameters(box,strokeName) {
+    const outlineStroke = SuiTextEditor.strokes[strokeName];
+    return {
+      context: this.context, box: box,classes: strokeName,
+         outlineStroke, scroller: this.scroller
+    }
+  }
+  _expandSelectionToSuggestion() {
+    if (this.suggestionIndex < 0) {
+      return;
+    }
+    if (this.selectionStart < 0) {
+      this._setSelectionToSugggestion();
+      return;
+    }  else if (this.selectionStart > this.suggestionIndex) {
+      const oldStart = this.selectionStart;
+      this.selectionStart = this.suggestionIndex;
+      this.selectionLength = (oldStart - this.selectionStart) + this.selectionLength;
+    }  else if (this.selectionStart < this.suggestionIndex
+        && this.selectionStart > this.selectionStart + this.selectionLength) {
+      const oldStart = this.selectionStart;
+      this.selectionLength = (this.suggestionIndex - this.selectionStart) + 1;
+    }
+    this._updateSelections();
+  }
+  _setSelectionToSugggestion() {
+    this.selectionStart = this.suggestionIndex;
+    this.selectionLength = 1;
+    this.suggestionIndex = -1;
+    this._updateSelections();
+  }
+
+  // ### handleMouseEvent
+  // Handle hover/click behavior for the text under edit.
+  handleMouseEvent(ev) {
+    var blocks = this.svgText.getIntersectingBlocks({
+      x: ev.clientX,
+      y: ev.clientY
+    }, this.scroller.netScroll );
+
+    // The mouse is not over the text
+    if (!blocks.length) {
+      svgHelpers.eraseOutline(this.context,'text-suggestion');
+
+      // If the user clicks and there was a previous selection, treat it as selected
+      if (ev.type === 'click' && this.suggestionIndex >= 0) {
+        if (ev.shiftKey) {
+          this._expandSelectionToSuggestion();
+        } else {
+          this._setSelectionToSugggestion();
+        }
+      }
+      this.svgText.render();
+      return;
+    }
+    // outline the text that is hovered.  Since mouse is a point
+    // there should only be 1
+    blocks.forEach((block) => {
+      svgHelpers.outlineRect(this._suggestionParameters(block.box,'text-suggestion'));
+      this.suggestionIndex = block.index;
+    });
+    // if the user clicked on it, add it to the selection.
+    if (ev.type === 'click') {
+      svgHelpers.eraseOutline(this.context,'text-suggestion');
+      if (ev.shiftKey) {
+        this._expandSelectionToSuggestion();
+      } else {
+        this._setSelectionToSugggestion();
+      }
+      this.svgText.render();
+    }
+  }
+
+  // ### _serviceCursor
+  // Flash the cursor as a background task
+  _serviceCursor() {
+    if (this.cursorState) {
+      this.svgText.renderCursorAt(this.textPos - 1);
+    } else {
+      this.svgText.removeCursor();
+    }
+    this.cursorState = !this.cursorState;
+  }
+  // ### _refreshCursor
+  // If the text position changes, update the cursor position right away
+  // don't wait for blink.
+  _refreshCursor() {
+    this.svgText.removeCursor();
+    this.cursorState = true;
+    this._serviceCursor();
+  }
+
+  get _endCursorCondition() {
+    return this.cursorRunning === false;
+  }
+
+  _cursorPreResolve() {
+    this.svgText.removeCursor();
+  }
+
+  _cursorPoll() {
+    this._serviceCursor();
+  }
+
+
+
+  // ### startCursorPromise
+  // Used by the calling logic to start the cursor.
+  // returns a promise that can be pended when the editing ends.
+  startCursorPromise() {
+    var self = this;
+    this.cursorRunning = true;
+    this.cursorState = true;
+    self.svgText.renderCursorAt(this.textPos);
+    return PromiseHelpers.makePromise(this,'_endCursorCondition','_cursorPreResolve','_cursorPoll',333);
+  }
+  stopCursor() {
+    this.cursorRunning = false;
+  }
+
+  // ### setTextPos
+  // Set the text position within the editor space and update the cursor
+  setTextPos(val) {
+    this.textPos = val;
+    this._refreshCursor();
+  }
+  // ### moveCursorRight
+  // move cursor right within the block of text.
+  moveCursorRight() {
+    if (this.textPos <= this.svgText.blocks.length) {
+      this.setTextPos(this.textPos + 1);
+    }
+  }
+  // ### moveCursorRight
+  // move cursor left within the block of text.
+  moveCursorLeft() {
+    if (this.textPos > 0) {
+      this.setTextPos(this.textPos - 1);
+    }
+  }
+
+  // ### moveCursorRight
+  // highlight the text selections
+  _updateSelections() {
+    let i = 0;
+    const end = this.selectionStart + this.selectionLength;
+    const start =  this.selectionStart;
+    this.svgText.blocks.forEach((block) => {
+      const val = start >= 0 && i >= start && i < end;
+      this.svgText.setHighlight(block,val);
+      ++i;
+    });
+  }
+
+  // ### _checkGrowSelectionLeft
+  // grow selection within the bounds
+  _checkGrowSelectionLeft() {
+    if (this.selectionStart > 0) {
+      this.selectionStart -= 1;
+      this.selectionLength += 1;
+    }
+  }
+  // ### _checkGrowSelectionRight
+  // grow selection within the bounds
+  _checkGrowSelectionRight() {
+    const end = this.selectionStart + this.selectionLength;
+    if (end < this.svgText.blocks.length) {
+      this.selectionLength += 1;
+    }
+  }
+
+  // ### growSelectionLeft
+  // handle the selection keys
+  growSelectionLeft() {
+    if (this.selectionStart === -1) {
+      this.moveCursorLeft();
+      this.selectionStart = this.textPos;
+      this.selectionLength = 1;
+    } else if (this.textPos === this.selectionStart) {
+      this.moveCursorLeft();
+      this._checkGrowSelectionLeft();
+    }
+    this._updateSelections();
+  }
+
+  // ### growSelectionRight
+  // handle the selection keys
+  growSelectionRight() {
+    if (this.selectionStart === -1) {
+      this.selectionStart = this.textPos;
+      this.selectionLength = 1;
+      this.moveCursorRight();
+    } else if (this.selectionStart + this.selectionLength === this.textPos) {
+      this._checkGrowSelectionRight();
+      this.moveCursorRight();
+    }
+    this._updateSelections();
+  }
+
+  // ### _clearSelections
+  // Clear selected text
+  _clearSelections() {
+    this.selectionStart = -1;
+    this.selectionLength = 0;
+  }
+
+  // ### deleteSelections
+  // delete the selected blocks of text/glyphs
+  deleteSelections() {
+    const blockPos = this.selectionStart;
+    for (var i = 0;i < this.selectionLength; ++i) {
+      this.svgText.removeBlockAt(blockPos); // delete shifts blocks so keep index the same.
+    }
+    this.setTextPos(blockPos);
+    this.selectionStart = -1;
+    this.selectionLength = 0;
+  }
+
+  // ### parseBlocks
+  // THis can be overridden by the base class to create the correct combination
+  // of text and glyph blocks based on the underlying text
+  parseBlocks() {
+    this.svgText = new SuiInlineText({ context: this.context });
+    for (var i =0;i < this.text.length; ++i) {
+      this.svgText.addTextBlockAt(i,this.text[i]);
+    }
+    this.setTextPos(this.text.length - 1);
+  }
+}
+
+class SuiLyricEditor extends SuiTextEditor {
+  static get States() {
+    return { RUNNING: 1, STOPPING: 2, STOPPED: 4 };
+  }
+  parseBlocks() {
+    this.svgText = new SuiInlineText({ context: this.context,startX: this.x, startY: this.y });
+    for (var i =0;i < this.text.length; ++i) {
+      this.svgText.addTextBlockAt(i,{text:this.text[i]});
+      this.empty = false;
+    }
+    this.textPos = this.text.length;
+    this.state = SuiLyricEditor.States.RUNNING;
+  }
+
+  // ### ctor
+  // ### args
+  // params: {lyric: SmoLyric,...}
+  constructor(params) {
+    super(params);
+    this.text = params.lyric._text;
+    this.lyric = params.lyric;
+    this.sessionNotifier = params.sessionNotifier;
+    this.parseBlocks();
+  }
+  get  _endLyricCondition() {
+    return this.state !== SuiLyricEditor.States.RUNNING;
+  }
+  _preEndCondition() {
+    this.sessionNotifier.lyricEnds();
+  }
+  _pollCondition() {
+    // nothing to do
+  }
+
+  editorStartPromise() {
+    return PromiseHelpers.makePromise(this,'_endLyricCondition','_preEndCondition','_pollCondition',100);
+  }
+
+  evKey(evdata) {
+    if (evdata.code === 'ArrowRight') {
+      if (evdata.shiftKey) {
+        this.growSelectionRight();
+      } else {
+        this.moveCursorRight();
+      }
+      this.svgText.render();
+      return;
+    }
+    if (evdata.code === 'ArrowLeft') {
+      if (evdata.shiftKey) {
+        this.growSelectionLeft();
+      } else {
+        this.moveCursorLeft();
+      }
+      this.svgText.render();
+      return;
+    }
+    var str = evdata.key;
+    if (evdata.key === '-' || evdata.key === ' ') {
+      // skip
+      this.lyric.setText(this.svgText.value);
+      this.state = SuiLyricEditor.States.STOPPING;
+    }
+    else if (evdata.key.charCodeAt(0) >= 33 && evdata.key.charCodeAt(0) <= 126 ) {
+      if (this.empty) {
+        this.svgText.removeBlockAt(0);
+        this.empty = false;
+        this.svgText.addTextBlockAt(0,{text: evdata.key});
+        this.setTextPos(1);
+      } else {
+        if (this.selectionStart >= 0) {
+          this.deleteSelections();
+        }
+        this.svgText.addTextBlockAt(this.textPos,{ text: evdata.key});
+        this.setTextPos(this.textPos + 1);
+      }
+      this.svgText.render();
+    }
+  }
+}
 
 // ## editSvgText
 // A class that implements very basic text editing behavior in an svg text node
@@ -17800,8 +18219,6 @@ class editSvgText {
   get value() {
     return this._value;
   }
-
-
 
   _updateText() {
     $('.textEdit').focus();
@@ -17965,8 +18382,8 @@ class editLyricSession {
 			this.bindEvents();
 		}
     function editCurrent() {
-        layoutDebug.addTextDebug('editLyricSession:_lyricAddedPromise rcvd, _editCurrentLyric for  '+self.selection.note.attrs.id);
-        self._editCurrentLyric();
+      layoutDebug.addTextDebug('editLyricSession:_lyricAddedPromise rcvd, _editCurrentLyric for  '+self.selection.note.attrs.id);
+      self._editCurrentLyric();
     }
     this._lyricAddedPromise().then(editCurrent);
 	}

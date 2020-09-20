@@ -149,20 +149,55 @@ class svgHelpers {
 		artifact.logicalBox = svgHelpers.smoBox(element.getBBox());
 	}
 
-    static rect(svg,box,attrs,classes) {
-        var rect = document.createElementNS(svgHelpers.namespace,'rect');
-        var attrKeys = Object.keys(attrs);
-        attrKeys.forEach((key) => {
-            var val = attrs[key];
-            key = (key == 'strokewidth') ? 'stroke-width' : key;
-            rect.setAttributeNS('', key, val);
-        });
-        if (classes) {
-            rect.setAttributeNS('','class',classes);
-        }
-        svg.appendChild(rect);
-        return rect;
+  // ### eraseOutline
+  // Erases old outlineRects.
+  static eraseOutline(context,style) {
+  		$(context.svg).find('g.vf-' + style).remove();
+  }
+
+  // ### outlineRect
+  // Usage:
+  //  outlineRect(params)
+  // params ({context,box,outlineStroke,classes,scroller})
+  // outlineStroke: {stroke, strokeWidth, strokeDashArray, fill}
+  static outlineRect(params) {
+    const stroke = params.outlineStroke;
+    const scroller = params.scroller;
+    const context = params.context;
+    svgHelpers.eraseOutline(context,params.classes);
+    // Don't highlight in print mode.
+    if ($('body').hasClass('printing')) {
+      return;
     }
+    var grp = context.openGroup(params.classes, params.classes + '-outline');
+    const boxes = Array.isArray(params.box) ? params.box : [params.box];
+
+    boxes.forEach((box) => {
+      if (box) {
+        var strokeObj = params.outlineStroke;
+        var margin = 5;
+        box = svgHelpers.clientToLogical(context.svg, svgHelpers.adjustScroll(box,scroller.netScroll));
+        context.rect(box.x - margin, box.y - margin, box.width + margin * 2, box.height + margin * 2, strokeObj);
+      }
+    });
+    context.closeGroup(grp);
+  }
+
+
+  static rect(svg,box,attrs,classes) {
+    var rect = document.createElementNS(svgHelpers.namespace,'rect');
+    var attrKeys = Object.keys(attrs);
+    attrKeys.forEach((key) => {
+      var val = attrs[key];
+      key = (key == 'strokewidth') ? 'stroke-width' : key;
+      rect.setAttributeNS('', key, val);
+    });
+    if (classes) {
+      rect.setAttributeNS('','class',classes);
+    }
+    svg.appendChild(rect);
+    return rect;
+  }
 
     static line(svg,x1,y1,x2,y2,attrs,classes) {
         var line = document.createElementNS(svgHelpers.namespace,'line');
@@ -195,11 +230,7 @@ class svgHelpers {
         svgHelpers.line(svg,box.x+box.width,arrowY,box.x+box.width/2,box.y+box.height);
     }
 
-    static textOutlineRect(svg,textElement, color, classes) {
-        var box = textElement.getBBox();
-        var attrs = [{width:box.width+5,height:box.height+5,stroke:color,strokewidth:'2',fill:'none',x:box.x-5,y:box.y-5}];
-        svgHelpers.rect(svg,box,attrs,classes);
-    }
+
 	// ### getTextBox
 	// Get the logical bounding box of the text for placement.
 	static getTextBox(svg,attributes,classes,text) {

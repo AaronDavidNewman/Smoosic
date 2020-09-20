@@ -10,6 +10,7 @@ module.exports = function (grunt) {
             },
             dist: {
                 src: ['src/ui/i18n/language_de.js','src/ui/i18n/language_ar.js','src/ui/i18n/language_en.js','src/ui/i18n/language.js',
+                    'src/common/promiseHelpers.js',
                        'src/common/musicHelpers.js', 'src/common/serializationHelpers.js','src/common/svgHelpers.js', 'src/common/htmlHelpers.js',
                     'src/smo/data/note.js', 'src/smo/data/tuplet.js', 'src/smo/data/noteModifiers.js',
                     'src/smo/data/measure.js', 'src/smo/data/measureModifiers.js', 'src/smo/data/systemStaff.js',

@@ -1,5 +1,366 @@
 
 
+// ## SuiTextEditor
+// Next-gen text editor.  The base text editor handles the positioning and inserting
+// of text blocks into the text area.  The derived class shoud interpret key events.
+class SuiTextEditor {
+  static get attributes() {
+    return ['svgText','context','x','y','text','textPos','selectionStart','selectionLength','empty'];
+  }
+  static get defaults() {
+    return {
+      svgText: null,
+      context: null,
+      x: 0,
+      y: 0,
+      text: '',
+      textPos: 0,
+      selectionStart: -1,
+      selectionLength: 0,
+      empty: true,
+      suggestFadeTimer:null,
+      suggestionIndex:-1
+    }
+  }
+  constructor(params) {
+    Vex.Merge(this,SuiTextEditor.defaults);
+    Vex.Merge(this,params);
+    this.context = params.context;
+  }
+
+  static get strokes() {
+    return {
+      'text-suggestion': {
+        'stroke': '#cce',
+        'stroke-width': 1,
+        'stroke-dasharray': '4,1',
+        'fill': 'none'
+      },
+      'text-selection': {
+        'stroke': '#99d',
+        'stroke-width': 1,
+        'fill': 'none'
+      }
+    }
+  }
+
+  _suggestionParameters(box,strokeName) {
+    const outlineStroke = SuiTextEditor.strokes[strokeName];
+    return {
+      context: this.context, box: box,classes: strokeName,
+         outlineStroke, scroller: this.scroller
+    }
+  }
+  _expandSelectionToSuggestion() {
+    if (this.suggestionIndex < 0) {
+      return;
+    }
+    if (this.selectionStart < 0) {
+      this._setSelectionToSugggestion();
+      return;
+    }  else if (this.selectionStart > this.suggestionIndex) {
+      const oldStart = this.selectionStart;
+      this.selectionStart = this.suggestionIndex;
+      this.selectionLength = (oldStart - this.selectionStart) + this.selectionLength;
+    }  else if (this.selectionStart < this.suggestionIndex
+        && this.selectionStart > this.selectionStart + this.selectionLength) {
+      const oldStart = this.selectionStart;
+      this.selectionLength = (this.suggestionIndex - this.selectionStart) + 1;
+    }
+    this._updateSelections();
+  }
+  _setSelectionToSugggestion() {
+    this.selectionStart = this.suggestionIndex;
+    this.selectionLength = 1;
+    this.suggestionIndex = -1;
+    this._updateSelections();
+  }
+
+  // ### handleMouseEvent
+  // Handle hover/click behavior for the text under edit.
+  handleMouseEvent(ev) {
+    var blocks = this.svgText.getIntersectingBlocks({
+      x: ev.clientX,
+      y: ev.clientY
+    }, this.scroller.netScroll );
+
+    // The mouse is not over the text
+    if (!blocks.length) {
+      svgHelpers.eraseOutline(this.context,'text-suggestion');
+
+      // If the user clicks and there was a previous selection, treat it as selected
+      if (ev.type === 'click' && this.suggestionIndex >= 0) {
+        if (ev.shiftKey) {
+          this._expandSelectionToSuggestion();
+        } else {
+          this._setSelectionToSugggestion();
+        }
+      }
+      this.svgText.render();
+      return;
+    }
+    // outline the text that is hovered.  Since mouse is a point
+    // there should only be 1
+    blocks.forEach((block) => {
+      svgHelpers.outlineRect(this._suggestionParameters(block.box,'text-suggestion'));
+      this.suggestionIndex = block.index;
+    });
+    // if the user clicked on it, add it to the selection.
+    if (ev.type === 'click') {
+      svgHelpers.eraseOutline(this.context,'text-suggestion');
+      if (ev.shiftKey) {
+        this._expandSelectionToSuggestion();
+      } else {
+        this._setSelectionToSugggestion();
+      }
+      this.svgText.render();
+    }
+  }
+
+  // ### _serviceCursor
+  // Flash the cursor as a background task
+  _serviceCursor() {
+    if (this.cursorState) {
+      this.svgText.renderCursorAt(this.textPos - 1);
+    } else {
+      this.svgText.removeCursor();
+    }
+    this.cursorState = !this.cursorState;
+  }
+  // ### _refreshCursor
+  // If the text position changes, update the cursor position right away
+  // don't wait for blink.
+  _refreshCursor() {
+    this.svgText.removeCursor();
+    this.cursorState = true;
+    this._serviceCursor();
+  }
+
+  get _endCursorCondition() {
+    return this.cursorRunning === false;
+  }
+
+  _cursorPreResolve() {
+    this.svgText.removeCursor();
+  }
+
+  _cursorPoll() {
+    this._serviceCursor();
+  }
+
+
+
+  // ### startCursorPromise
+  // Used by the calling logic to start the cursor.
+  // returns a promise that can be pended when the editing ends.
+  startCursorPromise() {
+    var self = this;
+    this.cursorRunning = true;
+    this.cursorState = true;
+    self.svgText.renderCursorAt(this.textPos);
+    return PromiseHelpers.makePromise(this,'_endCursorCondition','_cursorPreResolve','_cursorPoll',333);
+  }
+  stopCursor() {
+    this.cursorRunning = false;
+  }
+
+  // ### setTextPos
+  // Set the text position within the editor space and update the cursor
+  setTextPos(val) {
+    this.textPos = val;
+    this._refreshCursor();
+  }
+  // ### moveCursorRight
+  // move cursor right within the block of text.
+  moveCursorRight() {
+    if (this.textPos <= this.svgText.blocks.length) {
+      this.setTextPos(this.textPos + 1);
+    }
+  }
+  // ### moveCursorRight
+  // move cursor left within the block of text.
+  moveCursorLeft() {
+    if (this.textPos > 0) {
+      this.setTextPos(this.textPos - 1);
+    }
+  }
+
+  // ### moveCursorRight
+  // highlight the text selections
+  _updateSelections() {
+    let i = 0;
+    const end = this.selectionStart + this.selectionLength;
+    const start =  this.selectionStart;
+    this.svgText.blocks.forEach((block) => {
+      const val = start >= 0 && i >= start && i < end;
+      this.svgText.setHighlight(block,val);
+      ++i;
+    });
+  }
+
+  // ### _checkGrowSelectionLeft
+  // grow selection within the bounds
+  _checkGrowSelectionLeft() {
+    if (this.selectionStart > 0) {
+      this.selectionStart -= 1;
+      this.selectionLength += 1;
+    }
+  }
+  // ### _checkGrowSelectionRight
+  // grow selection within the bounds
+  _checkGrowSelectionRight() {
+    const end = this.selectionStart + this.selectionLength;
+    if (end < this.svgText.blocks.length) {
+      this.selectionLength += 1;
+    }
+  }
+
+  // ### growSelectionLeft
+  // handle the selection keys
+  growSelectionLeft() {
+    if (this.selectionStart === -1) {
+      this.moveCursorLeft();
+      this.selectionStart = this.textPos;
+      this.selectionLength = 1;
+    } else if (this.textPos === this.selectionStart) {
+      this.moveCursorLeft();
+      this._checkGrowSelectionLeft();
+    }
+    this._updateSelections();
+  }
+
+  // ### growSelectionRight
+  // handle the selection keys
+  growSelectionRight() {
+    if (this.selectionStart === -1) {
+      this.selectionStart = this.textPos;
+      this.selectionLength = 1;
+      this.moveCursorRight();
+    } else if (this.selectionStart + this.selectionLength === this.textPos) {
+      this._checkGrowSelectionRight();
+      this.moveCursorRight();
+    }
+    this._updateSelections();
+  }
+
+  // ### _clearSelections
+  // Clear selected text
+  _clearSelections() {
+    this.selectionStart = -1;
+    this.selectionLength = 0;
+  }
+
+  // ### deleteSelections
+  // delete the selected blocks of text/glyphs
+  deleteSelections() {
+    const blockPos = this.selectionStart;
+    for (var i = 0;i < this.selectionLength; ++i) {
+      this.svgText.removeBlockAt(blockPos); // delete shifts blocks so keep index the same.
+    }
+    this.setTextPos(blockPos);
+    this.selectionStart = -1;
+    this.selectionLength = 0;
+  }
+
+  // ### parseBlocks
+  // THis can be overridden by the base class to create the correct combination
+  // of text and glyph blocks based on the underlying text
+  parseBlocks() {
+    this.svgText = new SuiInlineText({ context: this.context });
+    for (var i =0;i < this.text.length; ++i) {
+      this.svgText.addTextBlockAt(i,this.text[i]);
+    }
+    this.setTextPos(this.text.length - 1);
+  }
+}
+
+class SuiLyricEditor extends SuiTextEditor {
+  static get States() {
+    return { RUNNING: 1, STOPPING: 2, STOPPED: 4 };
+  }
+  parseBlocks() {
+    this.svgText = new SuiInlineText({ context: this.context,startX: this.x, startY: this.y });
+    for (var i =0;i < this.text.length; ++i) {
+      this.svgText.addTextBlockAt(i,{text:this.text[i]});
+      this.empty = false;
+    }
+    this.textPos = this.text.length;
+    this.state = SuiLyricEditor.States.RUNNING;
+  }
+
+  // ### ctor
+  // ### args
+  // params: {lyric: SmoLyric,...}
+  constructor(params) {
+    super(params);
+    this.text = params.lyric._text;
+    this.lyric = params.lyric;
+    this.sessionNotifier = params.sessionNotifier;
+    this.parseBlocks();
+  }
+  get  _endLyricCondition() {
+    return this.state !== SuiLyricEditor.States.RUNNING;
+  }
+  _preEndCondition() {
+    this.sessionNotifier.lyricEnds();
+  }
+  _pollCondition() {
+    // nothing to do
+  }
+
+  editorStartPromise() {
+    return PromiseHelpers.makePromise(this,'_endLyricCondition','_preEndCondition','_pollCondition',100);
+  }
+
+  evKey(evdata) {
+    if (evdata.code === 'ArrowRight') {
+      if (evdata.shiftKey) {
+        this.growSelectionRight();
+      } else {
+        this.moveCursorRight();
+      }
+      this.svgText.render();
+      return;
+    }
+    if (evdata.code === 'ArrowLeft') {
+      if (evdata.shiftKey) {
+        this.growSelectionLeft();
+      } else {
+        this.moveCursorLeft();
+      }
+      this.svgText.render();
+      return;
+    }
+    var str = evdata.key;
+    if (evdata.key === '-' || evdata.key === ' ') {
+      // skip
+      this.lyric.setText(this.svgText.value);
+      this.state = SuiLyricEditor.States.STOPPING;
+    }
+    else if (evdata.key.charCodeAt(0) >= 33 && evdata.key.charCodeAt(0) <= 126 ) {
+      if (this.empty) {
+        this.svgText.removeBlockAt(0);
+        this.empty = false;
+        this.svgText.addTextBlockAt(0,{text: evdata.key});
+        this.setTextPos(1);
+      } else {
+        if (this.selectionStart >= 0) {
+          this.deleteSelections();
+        }
+        this.svgText.addTextBlockAt(this.textPos,{ text: evdata.key});
+        this.setTextPos(this.textPos + 1);
+      }
+      this.svgText.render();
+    }
+  }
+}
+
+class SuiLyricSession() {
+  constructor(params) {
+    
+
+  }
+}
 
 // ## editSvgText
 // A class that implements very basic text editing behavior in an svg text node
@@ -80,8 +441,6 @@ class editSvgText {
   get value() {
     return this._value;
   }
-
-
 
   _updateText() {
     $('.textEdit').focus();
@@ -245,8 +604,8 @@ class editLyricSession {
 			this.bindEvents();
 		}
     function editCurrent() {
-        layoutDebug.addTextDebug('editLyricSession:_lyricAddedPromise rcvd, _editCurrentLyric for  '+self.selection.note.attrs.id);
-        self._editCurrentLyric();
+      layoutDebug.addTextDebug('editLyricSession:_lyricAddedPromise rcvd, _editCurrentLyric for  '+self.selection.note.attrs.id);
+      self._editCurrentLyric();
     }
     this._lyricAddedPromise().then(editCurrent);
 	}

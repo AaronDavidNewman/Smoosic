@@ -841,20 +841,20 @@ class suiTracker extends suiMapper {
 		$(this.renderElement).find('g.vf-' + stroke).remove();
 	}
 
-    _highlightModifier() {
-        if (!this.modifierSelections.length) {
-            return;
-        }
-        var box=null;
-        this.modifierSelections.forEach((artifact) => {
-            if (!box) {
-                box = artifact.modifier.renderedBox;
-            }
-            else {
-                box = svgHelpers.unionRect(box,artifact.modifier.renderedBox);
-            }
-        });
-        this._drawRect(box, 'staffModifier');
+  _highlightModifier() {
+    if (!this.modifierSelections.length) {
+      return;
+    }
+    var box=null;
+    this.modifierSelections.forEach((artifact) => {
+      if (!box) {
+        box = artifact.modifier.renderedBox;
+      }
+      else {
+        box = svgHelpers.unionRect(box,artifact.modifier.renderedBox);
+      }
+    });
+    this._drawRect(box, 'staffModifier');
 	}
 
 	_highlightPitchSelection(note, index) {
@@ -927,29 +927,15 @@ class suiTracker extends suiMapper {
 		boxes.push(curBox);
 		this._drawRect(boxes, 'selection');
 	}
+  _suggestionParameters(box,strokeName) {
+    const outlineStroke = suiTracker.strokes[strokeName];
+    return {
+      context: this.context, box: box,classes: strokeName,
+         outlineStroke, scroller: this.scroller
+    }
+  }
 
 	_drawRect(bb, stroke) {
-		this.eraseRect(stroke);
-        // Don't highlight in print mode.
-        if ($('body').hasClass('printing')) {
-            return;
-        }
-		var grp = this.context.openGroup(stroke, stroke + '-');
-		if (!Array.isArray(bb)) {
-			bb = [bb];
-		}
-		bb.forEach((box) => {
-            if (box) {
-    			var strokes = suiTracker.strokes[stroke];
-    			var strokeObj = {};
-    			var margin = 5;
-    			$(Object.keys(strokes)).each(function (ix, key) {
-    				strokeObj[key] = strokes[key];
-    			});
-                box = svgHelpers.clientToLogical(this.context.svg, svgHelpers.adjustScroll(box,this.scroller.netScroll));
-    			this.context.rect(box.x - margin, box.y - margin, box.width + margin * 2, box.height + margin * 2, strokeObj);
-            }
-		});
-		this.context.closeGroup(grp);
+    svgHelpers.outlineRect(this._suggestionParameters(bb,stroke));
 	}
 }

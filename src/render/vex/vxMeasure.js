@@ -263,7 +263,7 @@ class VxMeasure {
 		// the -3 is copied from vexflow textDynamics
 		var y=this.stave.getYForLine(textObj.yOffsetLine-3) + textObj.yOffsetPixels;
 		var group = this.context.openGroup();
-        group.classList.add(textObj.attrs.id+'-'+smoNote.attrs.id);
+    group.classList.add(textObj.attrs.id+'-'+smoNote.attrs.id);
 		group.classList.add(textObj.attrs.id);
 		textObj.text.split('').forEach((ch)=> {
 			const glyphCode = VF.TextDynamics.GLYPHS[ch];
