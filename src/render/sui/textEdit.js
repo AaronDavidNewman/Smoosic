@@ -433,6 +433,7 @@ class SuiLyricSession {
     this.editor = new SuiLyricEditor({context : this.layout.context,
       lyric: this.lyric, x: startX, y: startY, scroller: this.scroller});
     this.cursorPromise = this.editor.startCursorPromise();
+    this._hideLyric();
     PromiseHelpers.makePromise(this,'_isRendered','_hideLyric',null,300);
   }
   startSession() {
@@ -463,14 +464,15 @@ class SuiLyricSession {
     var str = evdata.key;
     if (evdata.key === '-' || evdata.key === ' ') {
       // skip
-      this.lyric.setText(this.editor.svgText.getText());
+      var txt = this.editor.svgText.getText();
+      const back = evdata.shiftKey && evdata.key === ' ';
+      if (evdata.key === '-') {
+        txt += '-';
+      }
+      this.lyric.setText(txt);
       this.editor.stopEditor();
       this._showLyric();
-
-      const lyricDom = '#vf-'+this.lyric.attrs.id;
-      $(lyricDom).removeClass('under-edit');
-
-      this._advanceSelection(evdata.shiftKey);
+      this._advanceSelection(back);
     } else {
       this.editor.evKey(evdata);
     }

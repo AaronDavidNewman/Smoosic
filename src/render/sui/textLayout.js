@@ -84,6 +84,10 @@ class SuiInlineText {
       block.y += offset;
     });
   }
+  _maxFontHeight(scale) {
+    const glyph = metrics.glyphs['H'];
+    const blockHeight = (glyph.ha / this.fontMetrics.resolution) *  this.pointsToPixels * scale;
+  }
 
   // ### _calculateBlockIndex
   // Based on the font metrics, compute the width of the strings and glyph that make up
@@ -101,7 +105,7 @@ class SuiInlineText {
         for (var i = 0;i < block.text.length;++i) {
           var metrics = this.fontMetrics;
           var ch = block.text[i];
-          var glyph = metrics.glyphs[ch] ? metrics.glyphs[ch] : metrics.glyphs['H'];
+          const glyph = metrics.glyphs[ch] ? metrics.glyphs[ch] : metrics.glyphs['H'];
           block.width += ((glyph.advanceWidth) / metrics.resolution) * this.pointsToPixels * block.scale;
           const blockHeight = (glyph.ha / metrics.resolution) *  this.pointsToPixels * block.scale;
           block.height = block.height < blockHeight ? blockHeight : block.height;
@@ -140,21 +144,21 @@ class SuiInlineText {
   renderCursorAt(position) {
     var group = this.context.openGroup();
     group.id = 'inlineCursor';
+    const h = this.fontSize;
     if (this.blocks.length <= position || position < 0) {
-      const h = this.fontSize;
-      svgHelpers.renderCursor(group, this.startX,this.startY - h,h);
-      this.context.closeGroup();
-      return;
+          svgHelpers.renderCursor(group, this.startX,this.startY - h,h);
+          this.context.closeGroup();
+          return;
     }
     var block = this.blocks[position];
-    svgHelpers.renderCursor(group, block.x + block.width,block.y - block.height,block.height);
+    svgHelpers.renderCursor(group, block.x + block.width,block.y - (h * block.scale), h * block.scale);
     this.context.closeGroup();
   }
   removeCursor() {
     $('svg #inlineCursor').remove();
   }
   unrender() {
-    $('svg #'+this.attrs.id).remove();    
+    $('svg #'+this.attrs.id).remove();
   }
   render() {
     $('svg #'+this.attrs.id).remove();
