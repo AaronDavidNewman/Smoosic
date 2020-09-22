@@ -2400,11 +2400,16 @@ class TextEditTest {
 
 		// score.addDefaultMeasureWithNotes(0, {});
 
-    var keydownHandler = application.controller.eventSource.bindKeydownHandler(this,'evKey');
     var lyric =  new SmoLyric({_text:'' });
-    var editor = new SuiLyricEditor({context : keys.layout.context,
-      lyric:lyric,x: 100,y:40, scroller: keys.scroller});
+    var editor = new SuiLyricEditor(
+      {context : keys.layout.context,
+      lyric:lyric,
+      x: 100,
+      y:40,
+      scroller:
+      keys.scroller});
     var cursorPromise = editor.startCursorPromise();
+    var lyricSession = null;
 
 		var timeTest = () => {
       // layout.forceRender();
@@ -2505,7 +2510,6 @@ class TextEditTest {
 
     tests.push( async () => {
       subTitle('simulate mouse hover');
-      testTime = 1500;
       var pt = {
         clientX: editor.svgText.artifacts[1].box.x + 5,
         clientY: editor.svgText.artifacts[1].box.y + 5,
@@ -2531,6 +2535,23 @@ class TextEditTest {
     tests.push( async () =>  {
       editor.stopCursor();
       return cursorPromise;
+    });
+
+    tests.push( async () =>  {
+      testTime = 1500;
+      var selector = {staff: 0, measure: 0, voice: 0, tick: 1};
+      lyricSession = new SuiLyricSession({
+        context : keys.layout.context,
+        selector: selector,
+        scroller: keys.scroller,
+        layout: keys.layout,
+        verse: 0,
+        score: score
+        }
+      );
+      lyricSession.startSession();
+      var keydownHandler = application.controller.eventSource.bindKeydownHandler(lyricSession,'evKey');
+      return timeTest();
     });
 
     let result;

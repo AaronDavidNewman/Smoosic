@@ -55,12 +55,16 @@ class suiLayoutBase {
    }
   }
 
+  _partialRenderCondition() {
+
+  }
+
 
 	setDirty() {
 		if (!this.dirty) {
 			this.dirty = true;
 			if (this.passState == suiLayoutBase.passStates.clean) {
-                this.setPassState(suiLayoutBase.passStates.replace);
+        this.setPassState(suiLayoutBase.passStates.replace);
 			}
 		}
 	}

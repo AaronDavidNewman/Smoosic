@@ -153,6 +153,9 @@ class SuiInlineText {
   removeCursor() {
     $('svg #inlineCursor').remove();
   }
+  unrender() {
+    $('svg #'+this.attrs.id).remove();    
+  }
   render() {
     $('svg #'+this.attrs.id).remove();
     this.context.setFont(this.fontFamily, this.fontSize, this.fontWeight);

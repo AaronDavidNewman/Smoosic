@@ -172,6 +172,11 @@ class SmoSelection {
 		});
 	}
 
+  static noteFromSelector(score,selector) {
+    return SmoSelection.noteSelection(score,
+      selector.staff,selector.measure,selector.voice,selector.tick);
+  }
+
 	// ### renderedNoteSelection
 	// this is a special selection that we associated with all he rendered notes, so that we
 	// can map from a place in the display to a place in the score.
@@ -258,6 +263,13 @@ class SmoSelection {
 		}
 		return null;
 	}
+
+  static nextNoteSelectionFromSelector(score, selector) {
+    return SmoSelection.nextNoteSelection(score, selector.staff, selector.measure, selector.voice, selector.tick);
+  }
+  static lastNoteSelectionFromSelector(score, selector) {
+    return SmoSelection.lastNoteSelection(score, selector.staff, selector.measure, selector.voice, selector.tick);
+  }
 
 	// ### getMeasureList
 	// Gets the list of measures in an array from the selections

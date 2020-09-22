@@ -232,6 +232,11 @@ body.printing .printFrame {
 	display:none;
 }
 
+.vf-lyric.under-edit {
+  fill: none;
+  stroke: #fff;
+}
+
 .separator {
 	width:15px;
 	/* text-align: center; */

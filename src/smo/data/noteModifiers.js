@@ -456,12 +456,12 @@ class SmoDynamicText extends SmoNoteModifierBase {
 		};
 	}
 
-    serialize() {
-        var params = {};
-        smoSerialize.serializedMergeNonDefault(SmoDynamicText.defaults,
-           SmoDynamicText.parameterArray,this,params);
-        return params;
-    }
+  serialize() {
+    var params = {};
+    smoSerialize.serializedMergeNonDefault(SmoDynamicText.defaults,
+      SmoDynamicText.parameterArray,this,params);
+    return params;
+  }
 	constructor(parameters) {
 		super('SmoDynamicText');
 		Vex.Merge(this, SmoDynamicText.defaults);

@@ -78,7 +78,9 @@ class SuiTextEditor {
 
   // ### handleMouseEvent
   // Handle hover/click behavior for the text under edit.
+  // Returns: true if the event was handled here
   handleMouseEvent(ev) {
+    let handled = false;
     var blocks = this.svgText.getIntersectingBlocks({
       x: ev.clientX,
       y: ev.clientY
@@ -95,10 +97,12 @@ class SuiTextEditor {
         } else {
           this._setSelectionToSugggestion();
         }
+        handled = true;
       }
       this.svgText.render();
-      return;
+      return handled;
     }
+    handled = true;
     // outline the text that is hovered.  Since mouse is a point
     // there should only be 1
     blocks.forEach((block) => {
@@ -115,6 +119,7 @@ class SuiTextEditor {
       }
       this.svgText.render();
     }
+    return handled;
   }
 
   // ### _serviceCursor
@@ -147,8 +152,6 @@ class SuiTextEditor {
   _cursorPoll() {
     this._serviceCursor();
   }
-
-
 
   // ### startCursorPromise
   // Used by the calling logic to start the cursor.
@@ -286,6 +289,7 @@ class SuiLyricEditor extends SuiTextEditor {
     }
     this.textPos = this.text.length;
     this.state = SuiLyricEditor.States.RUNNING;
+    this.svgText.render();
   }
 
   // ### ctor
@@ -298,18 +302,11 @@ class SuiLyricEditor extends SuiTextEditor {
     this.sessionNotifier = params.sessionNotifier;
     this.parseBlocks();
   }
-  get  _endLyricCondition() {
-    return this.state !== SuiLyricEditor.States.RUNNING;
-  }
-  _preEndCondition() {
-    this.sessionNotifier.lyricEnds();
-  }
-  _pollCondition() {
-    // nothing to do
-  }
 
-  editorStartPromise() {
-    return PromiseHelpers.makePromise(this,'_endLyricCondition','_preEndCondition','_pollCondition',100);
+  stopEditor() {
+    this.state = SuiLyricEditor.States.STOPPING;
+    this.stopCursor();
+    this.svgText.unrender();
   }
 
   evKey(evdata) {
@@ -320,7 +317,7 @@ class SuiLyricEditor extends SuiTextEditor {
         this.moveCursorRight();
       }
       this.svgText.render();
-      return;
+      return true;
     }
     if (evdata.code === 'ArrowLeft') {
       if (evdata.shiftKey) {
@@ -329,15 +326,36 @@ class SuiLyricEditor extends SuiTextEditor {
         this.moveCursorLeft();
       }
       this.svgText.render();
-      return;
+      return true;
+    }
+    if (evdata.code === 'Backspace') {
+      if (this.selectionStart >= 0) {
+        this.deleteSelections();
+      } else {
+        if (this.textPos > 0) {
+          this.selectionStart = this.textPos - 1;
+          this.selectionLength = 1;
+          this.deleteSelections();
+        }
+      }
+      this.svgText.render();
+      return true;
+    }
+    if (evdata.code === 'Delete') {
+      if (this.selectionStart >= 0) {
+        this.deleteSelections();
+      } else {
+        if (this.textPos > 0 && this.textPos < this.svgText.blocks.length) {
+          this.selectionStart = this.textPos;
+          this.selectionLength = 1;
+          this.deleteSelections();
+        }
+      }
+      this.svgText.render();
+      return true;
     }
     var str = evdata.key;
-    if (evdata.key === '-' || evdata.key === ' ') {
-      // skip
-      this.lyric.setText(this.svgText.value);
-      this.state = SuiLyricEditor.States.STOPPING;
-    }
-    else if (evdata.key.charCodeAt(0) >= 33 && evdata.key.charCodeAt(0) <= 126 ) {
+    if (evdata.key.charCodeAt(0) >= 33 && evdata.key.charCodeAt(0) <= 126  && evdata.key.length === 1) {
       if (this.empty) {
         this.svgText.removeBlockAt(0);
         this.empty = false;
@@ -351,14 +369,117 @@ class SuiLyricEditor extends SuiTextEditor {
         this.setTextPos(this.textPos + 1);
       }
       this.svgText.render();
+      return true;
     }
+    return false;
   }
 }
 
-class SuiLyricSession() {
-  constructor(params) {
-    
+class SuiLyricSession {
 
+  static get States() {
+    return { RUNNING: 1, STOPPING: 2, STOPPED: 4 };
+  }
+  constructor(params) {
+    this.score = params.score;
+    this.layout = params.layout;
+    this.scroller = params.scroller;
+    this.verse = params.verse;
+    this.selector = params.selector;
+    this.selection = SmoSelection.noteFromSelector(this.score, this.selector);
+    this.note = this.selection.note;
+  }
+
+  _setLyricForNote() {
+    this.lyric = null;
+    const lar = this.note.getLyricForVerse(this.verse,SmoLyric.parsers.lyric);
+    if (lar.length) {
+      this.lyric = lar[0];
+    }
+    if (!this.lyric) {
+      this.lyric =  new SmoLyric({_text:'',verse: this.verse });
+      this.note.addLyric(this.lyric);
+    }
+    this.text = this.lyric._text;
+  }
+  get _endLyricCondition()  {
+    return this.editor.state !== SuiLyricEditor.States.RUNNING;
+  }
+
+  get _refreshedCondition() {
+    return this.layout.dirty === false;
+  }
+
+  get _isRendered() {
+    return this.layout.passState ===  suiLayoutBase.passStates.clean;
+  }
+
+  _hideLyric() {
+    if (this.lyric.selector) {
+      $(this.lyric.selector).remove();
+    }
+  }
+  _showLyric() {
+    if (this.lyric.selector) {
+      $(this.lyric.selector).removeClass('under-edit');
+    }
+  }
+
+  _startSessionForNote() {
+    const lyricRendered = this.lyric._text.length && this.lyric.logicalBox;
+    const startX = lyricRendered ? this.lyric.logicalBox.x : this.note.logicalBox.x;
+    const startY = lyricRendered ? this.lyric.logicalBox.y + this.lyric.adjY + this.lyric.logicalBox.height :
+      this.note.logicalBox.y + this.note.logicalBox.height + (10*this.verse);
+    this.editor = new SuiLyricEditor({context : this.layout.context,
+      lyric: this.lyric, x: startX, y: startY, scroller: this.scroller});
+    this.cursorPromise = this.editor.startCursorPromise();
+    PromiseHelpers.makePromise(this,'_isRendered','_hideLyric',null,300);
+  }
+  startSession() {
+    this._setLyricForNote();
+    this._startSessionForNote();
+    this.state = SuiLyricSession.States.RUNNING;
+  }
+
+  _advanceSelection(isShift) {
+    const nextSelection = isShift ? SmoSelection.lastNoteSelectionFromSelector(this.score,this.selector)
+     : SmoSelection.nextNoteSelectionFromSelector(this.score,this.selector);
+    if (nextSelection) {
+      this.selector = nextSelection.selector;
+      this.layout.addToReplaceQueue(this.selection);
+      this.selection = nextSelection;
+      this.note = nextSelection.note;
+      this._setLyricForNote();
+      const conditionArray = [];
+      conditionArray.push(PromiseHelpers.makePromiseObj(this,'_endLyricCondition',null,null,100));
+      conditionArray.push(PromiseHelpers.makePromiseObj(this,'_refreshedCondition','_startSessionForNote',null,100));
+      PromiseHelpers.promiseChainThen(conditionArray);
+    }
+  }
+  evKey(evdata) {
+    if (this.state !== SuiLyricSession.States.RUNNING) {
+      return;
+    }
+    var str = evdata.key;
+    if (evdata.key === '-' || evdata.key === ' ') {
+      // skip
+      this.lyric.setText(this.editor.svgText.getText());
+      this.editor.stopEditor();
+      this._showLyric();
+
+      const lyricDom = '#vf-'+this.lyric.attrs.id;
+      $(lyricDom).removeClass('under-edit');
+
+      this._advanceSelection(evdata.shiftKey);
+    } else {
+      this.editor.evKey(evdata);
+    }
+  }
+  handleMouseEvent(ev) {
+    if (this.state !== SuiLyricSession.States.RUNNING) {
+      return;
+    }
+    return this.editor.handleMouseEvent(ev);
   }
 }
 
