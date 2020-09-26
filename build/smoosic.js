@@ -17371,9 +17371,13 @@ class SuiInlineText {
       block.y += offset;
     });
   }
-  _maxFontHeight(scale) {
-    const glyph = metrics.glyphs['H'];
-    const blockHeight = (glyph.ha / this.fontMetrics.resolution) *  this.pointsToPixels * scale;
+  maxFontHeight(scale) {
+    const glyph = this.fontMetrics.glyphs['H'];
+    return  (glyph.ha / this.fontMetrics.resolution) *  this.pointsToPixels * scale;
+  }
+
+  _glyphOffset(block) {
+    return block.metrics.yOffset / VF.ChordSymbol.engravingFontResolution * this.pointsToPixels * block.scale;
   }
 
   // ### _calculateBlockIndex
@@ -17383,26 +17387,34 @@ class SuiInlineText {
     var curX = this.startX;
     var maxH = 0;
     this.blocks.forEach((block) => {
+      const sp = this.isSuperscript(block);
+      const sub = this.isSubcript(block);
+
       block.width = 0;
       block.height = 0;
-
-      block.scale = block.textType === SuiInlineText.textTypes.normal ? 1.0 : VF.ChordSymbol.superSubRatio;
+      const subAdj = (sp || sub) ? VF.ChordSymbol.superSubRatio : 1.0;
+      const glyphAdj = block.symbolType === SuiInlineText.symbolTypes.GLYPH ? 2.0 : 1.0;
+      block.scale = subAdj * glyphAdj;
       block.x = curX;
       if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
         for (var i = 0;i < block.text.length;++i) {
-          var metrics = this.fontMetrics;
-          var ch = block.text[i];
+          const metrics = this.fontMetrics;
+          const ch = block.text[i];
+
           const glyph = metrics.glyphs[ch] ? metrics.glyphs[ch] : metrics.glyphs['H'];
           block.width += ((glyph.advanceWidth) / metrics.resolution) * this.pointsToPixels * block.scale;
           const blockHeight = (glyph.ha / metrics.resolution) *  this.pointsToPixels * block.scale;
           block.height = block.height < blockHeight ? blockHeight : block.height;
+          const offset =  sp ? SuiInlineText.superscriptOffset : (sub ? SuiInlineText.subscriptOffset : 0);
+          block.y = this.startY +  (offset * this.pointsToPixels * block.scale);
         }
       } else if (block.symbolType === SuiInlineText.symbolTypes.GLYPH) {
         block.width = (block.metrics.advanceWidth / VF.ChordSymbol.engravingFontResolution) * this.pointsToPixels * block.scale;
         block.height = (block.glyph.metrics.ha / VF.ChordSymbol.engravingFontResolution) * this.pointsToPixels * block.scale;
+        block.x += block.metrics.leftSideBearing / VF.ChordSymbol.engravingFontResolution * this.pointsToPixels * block.scale;
+        block.y = this.startY + this._glyphOffset(block);
       }
       curX += block.width;
-      block.y = this.startY;  // TODO: multi-line
       maxH = block.height > maxH ? maxH : block.height;
     });
     this.width = curX - this.startX;
@@ -17417,7 +17429,6 @@ class SuiInlineText {
       } else {
         rv = svgHelpers.unionRect(rv,block);
       }
-
     });
     return rv;
   }
@@ -17428,17 +17439,23 @@ class SuiInlineText {
     block.text = params.text;
     return block;
   }
+  // ### renderCursorAt
+  // When we are using textLayout to render editor, create a cursor that adjusts it's size
   renderCursorAt(position) {
     var group = this.context.openGroup();
     group.id = 'inlineCursor';
-    const h = this.fontSize;
+    let h = this.fontSize;
     if (this.blocks.length <= position || position < 0) {
           svgHelpers.renderCursor(group, this.startX,this.startY - h,h);
           this.context.closeGroup();
           return;
     }
     var block = this.blocks[position];
-    svgHelpers.renderCursor(group, block.x + block.width,block.y - (h * block.scale), h * block.scale);
+    const adjH = block.symbolType === SuiInlineText.symbolTypes.GLYPH ? h/2 : h;
+    // For glyph, add y adj back to the cursor since it's not a glyph
+    const adjY = block.symbolType === SuiInlineText.symbolTypes.GLYPH ? block.y - this._glyphOffset(block) :
+      block.y;
+    svgHelpers.renderCursor(group, block.x + block.width,adjY - (adjH * block.scale), adjH * block.scale);
     this.context.closeGroup();
   }
   removeCursor() {
@@ -17504,6 +17521,12 @@ class SuiInlineText {
     block.glyphCode = params.glyphCode;
     block.glyph = new VF.Glyph(block.glyphCode, this.fontSize);
     block.metrics = VF.ChordSymbol.getMetricForGlyph(block.glyphCode);
+    block.scale  = (params.textType && params.textType !== SuiInlineText.textTypes.normal) ?
+       2 * VF.ChordSymbol.superSubRatio * block.metrics.scale : 2 * block.metrics.scale;
+
+    block.textType = params.textType ? params.textType : SuiInlineText.textTypes.normal;
+
+    block.glyph.scale = block.glyph.scale * block.scale;
     return block;
   }
   // ### addGlyphBlockAt
@@ -17538,22 +17561,18 @@ class SuiInlineText {
       this.context.setFillStyle('#999');
     }
 
+    if (sp || sub) {
+      // y = y + (sp ? SuiInlineText.superscriptOffset : SuiInlineText.subscriptOffset) * this.pointsToPixels * block.scale;
+      this.context.save();
+      this.context.setFont(this.fontFamily, this.fontSize * VF.ChordSymbol.superSubRatio, this.fontWeight);
+    }
     if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
-      if (sp || sub) {
-        this.context.save();
-          this.context.setFont(this.fontFamily, this.fontSize * VF.ChordSymbol.superSubRatio, this.fontWeight);
-          y = y + (sp ? SuiInlineText.superscriptOffset : SuiInlineText.subscriptOffset) * this.pointsToPixels * block.scale;
-      }
       this.context.fillText(block.text,block.x,y);
-      if (sp || sub) {
-        this.context.restore();
-        y = y + (sp ? SuiInlineText.superscriptOffset : SuiInlineText.subscriptOffset) * this.pointsToPixels * block.scale;
-      }
     } else if (block.symbolType === SuiInlineText.symbolTypes.GLYPH) {
-      if (sp || sub) {
-        y = y + (sp ? SuiInlineText.superscriptOffset : SuiInlineText.subscriptOffset) * this.pointsToPixels * block.scale;
-      }
       block.glyph.render(this.context, block.x, y);
+    }
+    if (sp || sub) {
+      this.context.restore();
     }
     if (highlight) {
       this.context.restore();
@@ -17867,7 +17886,7 @@ class suiTextLayout {
 // of text blocks into the text area.  The derived class shoud interpret key events.
 class SuiTextEditor {
   static get attributes() {
-    return ['svgText','context','x','y','text','textPos','selectionStart','selectionLength','empty'];
+    return ['svgText','context','x','y','text','textPos','selectionStart','selectionLength','empty','suggestionIndex'];
   }
   static get defaults() {
     return {
@@ -17880,8 +17899,8 @@ class SuiTextEditor {
       selectionStart: -1,
       selectionLength: 0,
       empty: true,
-      suggestFadeTimer:null,
-      suggestionIndex:-1
+      suggestionIndex:-1,
+      textType: SuiInlineText.textTypes.normal
     }
   }
   constructor(params) {
@@ -17906,6 +17925,8 @@ class SuiTextEditor {
     }
   }
 
+  // ### _suggestionParameters
+  // Create the svg text outline parameters
   _suggestionParameters(box,strokeName) {
     const outlineStroke = SuiTextEditor.strokes[strokeName];
     return {
@@ -17913,6 +17934,9 @@ class SuiTextEditor {
          outlineStroke, scroller: this.scroller
     }
   }
+
+  // ### _expandSelectionToSuggestion
+  // Expand the selection to include the character the user clicked on.
   _expandSelectionToSuggestion() {
     if (this.suggestionIndex < 0) {
       return;
@@ -17931,6 +17955,9 @@ class SuiTextEditor {
     }
     this._updateSelections();
   }
+
+  // ### _setSelectionToSugggestion
+  // Set the selection to the character the user clicked on.
   _setSelectionToSugggestion() {
     this.selectionStart = this.suggestionIndex;
     this.selectionLength = 1;
@@ -18131,46 +18158,11 @@ class SuiTextEditor {
   // THis can be overridden by the base class to create the correct combination
   // of text and glyph blocks based on the underlying text
   parseBlocks() {
-    this.svgText = new SuiInlineText({ context: this.context });
-    for (var i =0;i < this.text.length; ++i) {
-      this.svgText.addTextBlockAt(i,this.text[i]);
-    }
-    this.setTextPos(this.text.length - 1);
-  }
-}
 
-class SuiLyricEditor extends SuiTextEditor {
-  static get States() {
-    return { RUNNING: 1, STOPPING: 2, STOPPED: 4 };
-  }
-  parseBlocks() {
-    this.svgText = new SuiInlineText({ context: this.context,startX: this.x, startY: this.y });
-    for (var i =0;i < this.text.length; ++i) {
-      this.svgText.addTextBlockAt(i,{text:this.text[i]});
-      this.empty = false;
-    }
-    this.textPos = this.text.length;
-    this.state = SuiLyricEditor.States.RUNNING;
-    this.svgText.render();
   }
 
-  // ### ctor
-  // ### args
-  // params: {lyric: SmoLyric,...}
-  constructor(params) {
-    super(params);
-    this.text = params.lyric._text;
-    this.lyric = params.lyric;
-    this.sessionNotifier = params.sessionNotifier;
-    this.parseBlocks();
-  }
-
-  stopEditor() {
-    this.state = SuiLyricEditor.States.STOPPING;
-    this.stopCursor();
-    this.svgText.unrender();
-  }
-
+  // ### evKey
+  // Handle key events that filter down to the editor
   evKey(evdata) {
     if (evdata.code === 'ArrowRight') {
       if (evdata.shiftKey) {
@@ -18227,7 +18219,7 @@ class SuiLyricEditor extends SuiTextEditor {
         if (this.selectionStart >= 0) {
           this.deleteSelections();
         }
-        this.svgText.addTextBlockAt(this.textPos,{ text: evdata.key});
+        this.svgText.addTextBlockAt(this.textPos,{ text: evdata.key, textType:this.textType});
         this.setTextPos(this.textPos + 1);
       }
       this.svgText.render();
@@ -18237,6 +18229,186 @@ class SuiLyricEditor extends SuiTextEditor {
   }
 }
 
+class SuiLyricEditor extends SuiTextEditor {
+  static get States() {
+    return { RUNNING: 1, STOPPING: 2, STOPPED: 4 };
+  }
+  parseBlocks() {
+    this.svgText = new SuiInlineText({ context: this.context,startX: this.x, startY: this.y });
+    for (var i =0;i < this.text.length; ++i) {
+      this.svgText.addTextBlockAt(i,{text:this.text[i]});
+      this.empty = false;
+    }
+    this.textPos = this.text.length;
+    this.state = SuiLyricEditor.States.RUNNING;
+    this.svgText.render();
+  }
+
+  getText() {
+    return this.svgText.getText();
+  }
+
+  // ### ctor
+  // ### args
+  // params: {lyric: SmoLyric,...}
+  constructor(params) {
+    super(params);
+    this.text = params.lyric._text;
+    this.lyric = params.lyric;
+    this.sessionNotifier = params.sessionNotifier;
+    this.parseBlocks();
+  }
+
+  stopEditor() {
+    this.state = SuiLyricEditor.States.STOPPING;
+    this.stopCursor();
+    this.svgText.unrender();
+  }
+}
+
+class SuiChordEditor extends SuiTextEditor {
+  static get States() {
+    return { RUNNING: 1, STOPPING: 2, STOPPED: 4 };
+  }
+  static get SymbolModifiers() {
+    return {
+      NONE: 1,
+      SUBSCRIPT: 2,
+      SUPERSCRIPT: 3
+    };
+  }
+
+  _toTextTypeChar(oldTextType, newTextType) {
+    if (oldTextType === SuiInlineText.textTypes.normal) {
+      return newTextType = SuiInlineText.textTypes.subScript ?
+        '%' : '^';
+    }
+    if (oldTextType === SuiInlineText.textTypes.subScript) {
+      return '%';
+    }
+    return '^';
+  }
+
+  _setSymbolModifier(char) {
+    if (char === '^') {
+      this.textType =
+        this.textType ===  SuiInlineText.textTypes.superScript
+          ? SuiInlineText.textTypes.none
+          : SuiInlineText.textTypes.superScript;
+      return true;
+    } else if (char === '%') {
+      this.textType =
+        this.textType ===  SuiInlineText.textTypes.subScript
+          ? SuiInlineText.textTypes.none
+          : SuiInlineText.textTypes.subScript;
+      return true;
+    }
+    return false;
+  }
+
+  parseBlocks() {
+    let readGlyph = false;
+    let curGlyph = '';
+    let blockIx = 0;
+    this.svgText = new SuiInlineText({ context: this.context,startX: this.x, startY: this.y });
+
+    for (var i =0;i < this.text.length; ++i) {
+      let char = this.text[i];
+      if (!this._setSymbolModifier(char)) {
+      } else if (char === '@') {
+        if (!readGlyph) {
+          readGlyph = true;
+          curGlyph = '';
+        } else {
+          this._addGlyphAt(blockIx,curGlyph);
+          blockIx += 1;
+        }
+    } else {
+      if (readGlyph) {
+        curGlyph = curGlyph + char;
+      } else {
+        this.svgText.addTextBlockAt(i,{text:char, textType: this.textType});
+      }
+    }
+      this.empty = false;
+    }
+    this.textPos = this.text.length;
+    this.state = SuiLyricEditor.States.RUNNING;
+    this.svgText.render();
+  }
+
+  // ### getText
+  // Get the text value that we persist
+  getText() {
+    if (this.svgText.blocks < 1) {
+      return '';
+    }
+    let text = '';
+    let textType = this.svgText.blocks[0].textType;
+    this.svgText.blocks.forEach((block) => {
+      if (block.textType != textType) {
+        text += this._toTextTypeChar(textType,block.textType);
+        textType = block.textType;
+      }
+      if (block.symbolType === SuiInlineText.symbolTypes.GLYPH) {
+        text += '@' + block.glyphCode + '@';
+      } else {
+        text += block.text;
+      }
+    });
+    return this.svgText.getText();
+  }
+
+  _addGlyphAt(ix,code) {
+    if (this.selectionStart >= 0) {
+      this.deleteSelections();
+    }
+    this.svgText.addGlyphBlockAt(ix,{glyphCode:code,textType:this.textType});
+    this.textPos += 1;
+  }
+
+  evKey(evdata) {
+    if (this._setSymbolModifier(evdata.key)) {
+      return true;
+    }
+    // Dialog gives us a specific glyph code
+    if (evdata.key[0] === '@' && evdata.key.length > 2) {
+      const glyph = evdata.key.substr(1,evdata.key.length - 2);
+      this._addGlyphAt(this.textPos,glyph);
+      this.svgText.render();
+    } else if (VF.ChordSymbol.glyphs[evdata.key[0]]) { // glyph shortcut like 'b'
+      this._addGlyphAt(this.textPos,VF.ChordSymbol.glyphs[evdata.key[0]].code);
+      this.svgText.render();
+    } else {
+      // some ordinary key
+      super.evKey(evdata);
+    }
+    // if (evdata.substr)
+
+  }
+
+  // ### ctor
+  // ### args
+  // params: {lyric: SmoLyric,...}
+  constructor(params) {
+    super(params);
+    this.text = params.lyric._text;
+    this.lyric = params.lyric;
+    this.sessionNotifier = params.sessionNotifier;
+    this.textTypes = SuiInlineText.textTypes.none;
+    this.glyphCur = '';
+    this.parseBlocks();
+  }
+
+  stopEditor() {
+    this.state = SuiLyricEditor.States.STOPPING;
+    this.stopCursor();
+    this.svgText.unrender();
+  }
+}
+
+// ## SuiLyricSession
+// Manage editor for lyrics, jupmping from note to note if asked
 class SuiLyricSession {
 
   static get States() {
@@ -18246,12 +18418,15 @@ class SuiLyricSession {
     this.score = params.score;
     this.layout = params.layout;
     this.scroller = params.scroller;
+    this.parser = params.parser ? params.parser : SmoLyric.parsers.lyric;
     this.verse = params.verse;
     this.selector = params.selector;
     this.selection = SmoSelection.noteFromSelector(this.score, this.selector);
     this.note = this.selection.note;
   }
 
+  // ### _setLyricForNote
+  // Get the text from the editor and update the lyric with it.
   _setLyricForNote() {
     this.lyric = null;
     const lar = this.note.getLyricForVerse(this.verse,SmoLyric.parsers.lyric);
@@ -18264,52 +18439,80 @@ class SuiLyricSession {
     }
     this.text = this.lyric._text;
   }
+
+  // ### _endLyricCondition
+  // Lyric editor has stopped running (promise condition)
   get _endLyricCondition()  {
     return this.editor.state !== SuiLyricEditor.States.RUNNING;
   }
 
+  // ### _endLyricCondition
+  // renderer has partially rendered text(promise condition)
   get _refreshedCondition() {
     return this.layout.dirty === false;
   }
 
+  // ### _isRendered
+  // renderer has rendered text(promise condition)
   get _isRendered() {
     return this.layout.passState ===  suiLayoutBase.passStates.clean;
   }
 
+  // ### _hideLyric
+  // Hide the lyric so you only see the editor.
   _hideLyric() {
     if (this.lyric.selector) {
       $(this.lyric.selector).remove();
     }
   }
-  _showLyric() {
-    if (this.lyric.selector) {
-      $(this.lyric.selector).removeClass('under-edit');
-    }
+
+  // ### _markStopped
+  // Indicate this editor session is done running
+  _markStopped() {
+    this.state = SuiLyricSession.States.STOPPED;
   }
 
+  // ### _startSessionForNote
+  // Start the lyric editor for a note (current selected note)
   _startSessionForNote() {
     const lyricRendered = this.lyric._text.length && this.lyric.logicalBox;
     const startX = lyricRendered ? this.lyric.logicalBox.x : this.note.logicalBox.x;
     const startY = lyricRendered ? this.lyric.logicalBox.y + this.lyric.adjY + this.lyric.logicalBox.height :
-      this.note.logicalBox.y + this.note.logicalBox.height + (10*this.verse);
+          this.note.logicalBox.y + this.note.logicalBox.height;
     this.editor = new SuiLyricEditor({context : this.layout.context,
       lyric: this.lyric, x: startX, y: startY, scroller: this.scroller});
+    if (!lyricRendered) {
+      const delta = 2 * this.editor.svgText.maxFontHeight(1.0) * (this.lyric.verse + 1)
+      this.editor.svgText.offsetStartY(delta);
+    }
     this.cursorPromise = this.editor.startCursorPromise();
     this._hideLyric();
-    PromiseHelpers.makePromise(this,'_isRendered','_hideLyric',null,300);
   }
+
+  // ### _startSessionForNote
+  // Start the lyric session
   startSession() {
     this._setLyricForNote();
     this._startSessionForNote();
     this.state = SuiLyricSession.States.RUNNING;
   }
 
+  // ### _startSessionForNote
+  // Stop the lyric session, return promise for done
+  stopSession() {
+    if (this.editor && !this._endLyricCondition) {
+      this._updateLyricFromEditor();
+    }
+    return PromiseHelpers.makePromise(this,'_isRendered','_markStopped',null,100);
+  }
+
+  // ### _startSessionForNote
+  // Based on a skip character, move the editor forward/back one note.
   _advanceSelection(isShift) {
     const nextSelection = isShift ? SmoSelection.lastNoteSelectionFromSelector(this.score,this.selector)
      : SmoSelection.nextNoteSelectionFromSelector(this.score,this.selector);
     if (nextSelection) {
       this.selector = nextSelection.selector;
-      this.layout.addToReplaceQueue(this.selection);
       this.selection = nextSelection;
       this.note = nextSelection.note;
       this._setLyricForNote();
@@ -18319,6 +18522,17 @@ class SuiLyricSession {
       PromiseHelpers.promiseChainThen(conditionArray);
     }
   }
+
+  // ### _updateLyricFromEditor
+  // The editor is done running, so update the lyric now.
+  _updateLyricFromEditor() {
+    const txt = this.editor.getText();
+    this.lyric.setText(txt);
+    this.editor.stopEditor();
+    this.layout.addToReplaceQueue(this.selection);
+  }
+  // ### evKey
+  // Key handler (pass to editor)
   evKey(evdata) {
     if (this.state !== SuiLyricSession.States.RUNNING) {
       return;
@@ -18326,25 +18540,75 @@ class SuiLyricSession {
     var str = evdata.key;
     if (evdata.key === '-' || evdata.key === ' ') {
       // skip
-      var txt = this.editor.svgText.getText();
       const back = evdata.shiftKey && evdata.key === ' ';
       if (evdata.key === '-') {
-        txt += '-';
+        this.editor.evKey(evdata);
       }
-      this.lyric.setText(txt);
-      this.editor.stopEditor();
-      this._showLyric();
+      this._updateLyricFromEditor();
       this._advanceSelection(back);
     } else {
       this.editor.evKey(evdata);
+      this._hideLyric();
     }
   }
+
+  // ### handleMouseEvent
+  // Mouse event (send to editor)
   handleMouseEvent(ev) {
     if (this.state !== SuiLyricSession.States.RUNNING) {
       return;
     }
     return this.editor.handleMouseEvent(ev);
   }
+}
+
+class SuiChordSession extends SuiLyricSession {
+  constructor(params) {
+    super(params);
+    this.parser = SmoLyric.parsers.chord;
+  }
+  // ### evKey
+  // Key handler (pass to editor)
+  evKey(evdata) {
+    if (this.state !== SuiLyricSession.States.RUNNING) {
+      return;
+    }
+    this.editor.evKey(evdata);
+    this._hideLyric();
+  }
+
+  // ### _setLyricForNote
+  // Get the text from the editor and update the lyric with it.
+  _setLyricForNote() {
+    this.lyric = null;
+    const lar = this.note.getLyricForVerse(this.verse, this.parser);
+    if (lar.length) {
+      this.lyric = lar[0];
+    }
+    if (!this.lyric) {
+      this.lyric =  new SmoLyric({_text:'',verse: this.verse, parser: this.parser});
+      this.note.addLyric(this.lyric);
+    }
+    this.text = this.lyric._text;
+  }
+  // ### _startSessionForNote
+  // Start the lyric editor for a note (current selected note)
+  _startSessionForNote() {
+    const lyricRendered = this.lyric._text.length && this.lyric.logicalBox;
+    const startX = lyricRendered ? this.lyric.logicalBox.x : this.note.logicalBox.x;
+    const startY = lyricRendered ? this.lyric.logicalBox.y + this.lyric.adjY + this.lyric.logicalBox.height :
+          this.note.logicalBox.y + this.note.logicalBox.height;
+    this.editor = new SuiChordEditor({context : this.layout.context,
+      lyric: this.lyric, x: startX, y: startY, scroller: this.scroller});
+    if (!lyricRendered) {
+      const delta = (-2) * this.editor.svgText.maxFontHeight(1.0) * (this.lyric.verse + 1)
+      this.editor.svgText.offsetStartY(delta);
+    }
+    this.cursorPromise = this.editor.startCursorPromise();
+    this._hideLyric();
+  }
+
+
 }
 
 // ## editSvgText

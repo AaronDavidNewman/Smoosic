@@ -10,6 +10,7 @@ class TextEditTest {
 		var score = keys.layout.score;
 		var layout = keys.layout;
     var testTime = 200;
+    var eventSource = new browserEventSource();
 
 		// score.addDefaultMeasureWithNotes(0, {});
 
@@ -151,7 +152,7 @@ class TextEditTest {
     });
 
     tests.push( async () =>  {
-      testTime = 1500;
+      subTitle('create lyric session');
       var selector = {staff: 0, measure: 0, voice: 0, tick: 1};
       lyricSession = new SuiLyricSession({
         context : keys.layout.context,
@@ -163,7 +164,49 @@ class TextEditTest {
         }
       );
       lyricSession.startSession();
-      var keydownHandler = application.controller.eventSource.bindKeydownHandler(lyricSession,'evKey');
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      subTitle('add lyric');
+      testTime = 1;
+      lyricSession.evKey(makekey({'key':'d'}));
+      lyricSession.evKey(makekey({'key':'o'}));
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      subTitle('advance lyric');
+      lyricSession.evKey(makekey({'key':'-'}));
+      return PromiseHelpers.makePromise(lyricSession,'_isRendered',null,null,100);
+    });
+
+    tests.push( async () => {
+      subTitle('advance lyric');
+      lyricSession.evKey(makekey({'key':'i'}));
+      lyricSession.evKey(makekey({'key':'t'}));
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      subTitle('add lyric and stop session');
+      return lyricSession.stopSession();
+    });
+
+    tests.push( async () => {
+      subTitle('start chord session');
+      var selector = {staff: 0, measure: 0, voice: 0, tick: 1};
+      lyricSession = new SuiChordSession({
+        context : keys.layout.context,
+        selector: selector,
+        scroller: keys.scroller,
+        layout: keys.layout,
+        verse: 0,
+        score: score
+        }
+      );
+      lyricSession.startSession();
+      eventSource.bindKeydownHandler(lyricSession,'evKey');
       return timeTest();
     });
 
