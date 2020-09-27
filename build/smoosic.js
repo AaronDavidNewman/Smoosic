@@ -17386,15 +17386,22 @@ class SuiInlineText {
   _calculateBlockIndex() {
     var curX = this.startX;
     var maxH = 0;
+    let superXAlign = 0;
+    let superXWidth = 0;
+    let prevBlock = null;
     this.blocks.forEach((block) => {
+      // super/subscript
       const sp = this.isSuperscript(block);
       const sub = this.isSubcript(block);
 
       block.width = 0;
       block.height = 0;
+
+      // coeff for sub/super script
       const subAdj = (sp || sub) ? VF.ChordSymbol.superSubRatio : 1.0;
+      // offset for super/sub
+      const subOffset =  sp ? SuiInlineText.superscriptOffset * this.pointsToPixels : (sub ? SuiInlineText.subscriptOffset * this.pointsToPixels : 0);
       const glyphAdj = block.symbolType === SuiInlineText.symbolTypes.GLYPH ? 2.0 : 1.0;
-      block.scale = subAdj * glyphAdj;
       block.x = curX;
       if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
         for (var i = 0;i < block.text.length;++i) {
@@ -17402,20 +17409,42 @@ class SuiInlineText {
           const ch = block.text[i];
 
           const glyph = metrics.glyphs[ch] ? metrics.glyphs[ch] : metrics.glyphs['H'];
-          block.width += ((glyph.advanceWidth) / metrics.resolution) * this.pointsToPixels * block.scale;
+          block.width += ((glyph.advanceWidth) / metrics.resolution) * this.pointsToPixels * block.scale * subAdj;
           const blockHeight = (glyph.ha / metrics.resolution) *  this.pointsToPixels * block.scale;
           block.height = block.height < blockHeight ? blockHeight : block.height;
-          const offset =  sp ? SuiInlineText.superscriptOffset : (sub ? SuiInlineText.subscriptOffset : 0);
-          block.y = this.startY +  (offset * this.pointsToPixels * block.scale);
+          block.y = this.startY +  (subOffset * block.scale);
         }
       } else if (block.symbolType === SuiInlineText.symbolTypes.GLYPH) {
         block.width = (block.metrics.advanceWidth / VF.ChordSymbol.engravingFontResolution) * this.pointsToPixels * block.scale;
         block.height = (block.glyph.metrics.ha / VF.ChordSymbol.engravingFontResolution) * this.pointsToPixels * block.scale;
         block.x += block.metrics.leftSideBearing / VF.ChordSymbol.engravingFontResolution * this.pointsToPixels * block.scale;
-        block.y = this.startY + this._glyphOffset(block);
+        block.y = this.startY + this._glyphOffset(block) + subOffset;
+      }
+      // Line subscript up with super if the follow each other
+      if (sp) {
+        if (superXAlign === 0) {
+          superXAlign = block.x;
+        }
+      } else if (sub) {
+        if (superXAlign > 0) {
+          block.x = superXAlign;
+          superXWidth = prevBlock.x + prevBlock.width;
+          curX = superXAlign;
+          superXAlign = 0;
+        } else {
+          if (superXWidth > 0 && superXWidth < block.width + block.x) {
+            superXWidth = block.width + block.x;
+          }
+        }
+      } else if (superXWidth > 0) {
+        block.x = superXWidth + VF.ChordSymbol.spacingBetweenBlocks;
+        superXWidth = 0;
+      }  else {
+        superXAlign = 0;
       }
       curX += block.width;
       maxH = block.height > maxH ? maxH : block.height;
+      prevBlock = block;
     });
     this.width = curX - this.startX;
     this.height = maxH;
@@ -17437,6 +17466,7 @@ class SuiInlineText {
     const block = JSON.parse(JSON.stringify(SuiInlineText.blockDefaults));
     Vex.Merge(block, params);
     block.text = params.text;
+    block.scale = params.scale ? params.scale : 1;
     return block;
   }
   // ### renderCursorAt
@@ -18382,6 +18412,9 @@ class SuiChordEditor extends SuiTextEditor {
     } else {
       // some ordinary key
       super.evKey(evdata);
+    }
+    if (this.svgText.blocks.length > this.textPos && this.textPos >= 0) {
+      this.textType = this.svgText.blocks[this.textPos].textType;
     }
     // if (evdata.substr)
 

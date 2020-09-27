@@ -502,6 +502,9 @@ class SuiChordEditor extends SuiTextEditor {
       // some ordinary key
       super.evKey(evdata);
     }
+    if (this.svgText.blocks.length > this.textPos && this.textPos >= 0) {
+      this.textType = this.svgText.blocks[this.textPos].textType;
+    }
     // if (evdata.substr)
 
   }
