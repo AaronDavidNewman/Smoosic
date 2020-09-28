@@ -6809,43 +6809,62 @@ class SmoLyric extends SmoNoteModifierBase {
     return this._text;
   }
 
-  getVexChordBlocks() {
-    this.symbolBlocks = [];
-    var pos = SmoLyric.symbolPosition.NORMAL;
-    var block = {text:'',position:SmoLyric.symbolPosition.NORMAL};
-    for (var i = 0;i < this._text.length;++i) {
-      var c = this._text[i];
-      if (c === '^') {
-        if (i < this._text.length - 1 && this._text[i + 1] === '^') {
-          block.text = block.text + '^';
-          i += 1;
-        } else if (block.position === SmoLyric.symbolPosition.NORMAL) {
-          this.symbolBlocks.push(block);
-          block = {text:'',position:SmoLyric.symbolPosition.SUPERSCRIPT};
-        } else if (block.position === SmoLyric.symbolPosition.SUPERSCRIPT) {
-          this.symbolBlocks.push(block);
-          block = {text:'',position:SmoLyric.symbolPosition.NORMAL};
-        }
-      }else if (c === '%') {
-        if (i < this._text.length - 1 && this._text[i + 1] === '%') {
-          block.text = block.text + '%';
-          i += 1;
-        } else if (block.position === SmoLyric.symbolPosition.NORMAL) {
-          this.symbolBlocks.push(block);
-          block = {text:'',position:SmoLyric.symbolPosition.SUBSCRIPT};
-        } else if (block.position === SmoLyric.symbolPosition.SUBSCRIPT) {
-          this.symbolBlocks.push(block);
-          block = {text:'',position:SmoLyric.symbolPosition.NORMAL};
-        }
-
+  static _chordGlyphFromCode(code) {
+    const obj = Object.keys(VF.ChordSymbol.glyphs).find((glyph)=> VF.ChordSymbol.glyphs[glyph].code === code)
+    return obj;
+  }
+  static _tokenizeChordString(str) {
+    // var str = this._text;
+    let reg = /^([A-Z|a-z|0-9|]+)/g;
+    let mmm = str.match(reg);
+    let tokeType = '';
+    let toke = '';
+    const tokens = [];
+    while (str.length) {
+      if (!mmm) {
+        tokeType = str[0];
+        tokens.push(tokeType);
+        str = str.slice(1,str.length);
       } else {
-        block.text = block.text + c;
+        toke = mmm[0].substr(0,mmm[0].length);
+        str = str.slice(toke.length,str.length);
+        tokens.push(toke);
+        tokeType = '';
+        toke = '';
       }
+      mmm = str.match(reg);
     }
-    if (block.text.length) {
-      this.symbolBlocks.push(block);
-    }
-    return this.symbolBlocks;
+    return tokens;
+  }
+
+  getVexChordBlocks() {
+    let mod = VF.ChordSymbol.symbolModifiers.NONE;
+    let isGlyph = false;
+    const tokens = SmoLyric._tokenizeChordString(this._text);
+    let blocks = [];
+    tokens.forEach((token) => {
+      if (token === '^') {
+        mod = (mod === VF.ChordSymbol.symbolModifiers.SUPERSCRIPT) ?
+          VF.ChordSymbol.symbolModifiers.NONE : VF.ChordSymbol.symbolModifiers.SUPERSCRIPT;
+      }
+      else if (token === '%') {
+        mod = (mod === VF.ChordSymbol.symbolModifiers.SUBSCRIPT) ?
+          VF.ChordSymbol.symbolModifiers.NONE : VF.ChordSymbol.symbolModifiers.SUBSCRIPT;
+       }
+      else if (token === '@') {
+         isGlyph = !isGlyph;
+       } else if (token.length) {
+         if (isGlyph) {
+           const glyph = SmoLyric._chordGlyphFromCode(token);
+           blocks.push({glyph: glyph, symbolModifier: mod,
+            symbolType: VF.ChordSymbol.symbolTypes.GLYPH});
+         } else {
+           blocks.push({text: token, symbolModifier: mod,
+            symbolType: VF.ChordSymbol.symbolTypes.TEXT});
+         }
+       }
+    });
+    return blocks;
   }
 
   constructor(parameters) {
@@ -12889,8 +12908,11 @@ class VxMeasure {
       var cs = new VF.ChordSymbol();
       var blocks = lyric.getVexChordBlocks();
       blocks.forEach((block) => {
-        var mod = SmoLyric.toVexPosition(block.position);
-        cs.addGlyphOrText(block.text,{symbolModifier:mod});
+        if (block.glyph) {
+          cs.addGlyph(block.glyph,block);
+        } else {
+          cs.addGlyphOrText(block.text,block);
+        }
       });
       cs.setFontSize(14).setReportWidth(false);
       vexNote.addModifier(0,cs);
@@ -18308,16 +18330,6 @@ class SuiChordEditor extends SuiTextEditor {
     };
   }
 
-  _toTextTypeChar(oldTextType, newTextType) {
-    if (oldTextType === SuiInlineText.textTypes.normal) {
-      return newTextType = SuiInlineText.textTypes.subScript ?
-        '%' : '^';
-    }
-    if (oldTextType === SuiInlineText.textTypes.subScript) {
-      return '%';
-    }
-    return '^';
-  }
 
   _setSymbolModifier(char) {
     if (char === '^') {
@@ -18367,6 +18379,26 @@ class SuiChordEditor extends SuiTextEditor {
     this.svgText.render();
   }
 
+  _toTextTypeChar(oldTextType, newTextType) {
+    if (newTextType === SuiInlineText.textTypes.subScript) {
+      return '%';
+    }
+
+    if (newTextType === SuiInlineText.textTypes.superScript) {
+      return '^';
+    }
+
+    if (oldTextType === SuiInlineText.textTypes.superScript &&
+         newTextType === SuiInlineText.textTypes.normal)  {
+      return '^';
+    }
+    if (oldTextType === SuiInlineText.textTypes.subScript &&
+         newTextType === SuiInlineText.textTypes.normal)  {
+      return '%';
+    }
+    return '';
+  }
+
   // ### getText
   // Get the text value that we persist
   getText() {
@@ -18386,7 +18418,7 @@ class SuiChordEditor extends SuiTextEditor {
         text += block.text;
       }
     });
-    return this.svgText.getText();
+    return text;
   }
 
   _addGlyphAt(ix,code) {
@@ -18445,7 +18477,7 @@ class SuiChordEditor extends SuiTextEditor {
 class SuiLyricSession {
 
   static get States() {
-    return { RUNNING: 1, STOPPING: 2, STOPPED: 4 };
+    return { RUNNING: 1, STOPPING: 2, STOPPED: 4, PENDING_EDITOR: 8 };
   }
   constructor(params) {
     this.score = params.score;
@@ -18462,6 +18494,7 @@ class SuiLyricSession {
   // Get the text from the editor and update the lyric with it.
   _setLyricForNote() {
     this.lyric = null;
+    console.log('_setLyricForNote');
     const lar = this.note.getLyricForVerse(this.verse,SmoLyric.parsers.lyric);
     if (lar.length) {
       this.lyric = lar[0];
@@ -18481,7 +18514,7 @@ class SuiLyricSession {
 
   // ### _endLyricCondition
   // renderer has partially rendered text(promise condition)
-  get _refreshedCondition() {
+  get _isRefreshed() {
     return this.layout.dirty === false;
   }
 
@@ -18491,12 +18524,20 @@ class SuiLyricSession {
     return this.layout.passState ===  suiLayoutBase.passStates.clean;
   }
 
+  get _pendingEditor() {
+    return this.state !== SuiLyricSession.States.PENDING_EDITOR;
+  }
+
   // ### _hideLyric
   // Hide the lyric so you only see the editor.
   _hideLyric() {
     if (this.lyric.selector) {
       $(this.lyric.selector).remove();
     }
+  }
+
+  get isStopped() {
+    return this.state === SuiLyricSession.States.STOPPED;
   }
 
   // ### _markStopped
@@ -18508,12 +18549,14 @@ class SuiLyricSession {
   // ### _startSessionForNote
   // Start the lyric editor for a note (current selected note)
   _startSessionForNote() {
+    console.log('_startSessionForNote');
     const lyricRendered = this.lyric._text.length && this.lyric.logicalBox;
     const startX = lyricRendered ? this.lyric.logicalBox.x : this.note.logicalBox.x;
     const startY = lyricRendered ? this.lyric.logicalBox.y + this.lyric.adjY + this.lyric.logicalBox.height :
           this.note.logicalBox.y + this.note.logicalBox.height;
     this.editor = new SuiLyricEditor({context : this.layout.context,
       lyric: this.lyric, x: startX, y: startY, scroller: this.scroller});
+    this.state = SuiLyricSession.States.RUNNING;
     if (!lyricRendered) {
       const delta = 2 * this.editor.svgText.maxFontHeight(1.0) * (this.lyric.verse + 1)
       this.editor.svgText.offsetStartY(delta);
@@ -18527,12 +18570,15 @@ class SuiLyricSession {
   startSession() {
     this._setLyricForNote();
     this._startSessionForNote();
+    console.log('startSession');
+
     this.state = SuiLyricSession.States.RUNNING;
   }
 
   // ### _startSessionForNote
   // Stop the lyric session, return promise for done
   stopSession() {
+    console.log('stopSession');
     if (this.editor && !this._endLyricCondition) {
       this._updateLyricFromEditor();
     }
@@ -18545,13 +18591,15 @@ class SuiLyricSession {
     const nextSelection = isShift ? SmoSelection.lastNoteSelectionFromSelector(this.score,this.selector)
      : SmoSelection.nextNoteSelectionFromSelector(this.score,this.selector);
     if (nextSelection) {
+      console.log('_advanceSelection');
       this.selector = nextSelection.selector;
       this.selection = nextSelection;
       this.note = nextSelection.note;
       this._setLyricForNote();
       const conditionArray = [];
+      this.state = SuiLyricSession.States.PENDING_EDITOR;
       conditionArray.push(PromiseHelpers.makePromiseObj(this,'_endLyricCondition',null,null,100));
-      conditionArray.push(PromiseHelpers.makePromiseObj(this,'_refreshedCondition','_startSessionForNote',null,100));
+      conditionArray.push(PromiseHelpers.makePromiseObj(this,'_isRefreshed','_startSessionForNote',null,100));
       PromiseHelpers.promiseChainThen(conditionArray);
     }
   }
@@ -18606,6 +18654,10 @@ class SuiChordSession extends SuiLyricSession {
     if (this.state !== SuiLyricSession.States.RUNNING) {
       return;
     }
+    if (evdata.code === 'Enter') {
+      this._updateLyricFromEditor();
+      this._advanceSelection(evdata.shiftKey);
+    }
     this.editor.evKey(evdata);
     this._hideLyric();
   }
@@ -18630,11 +18682,12 @@ class SuiChordSession extends SuiLyricSession {
     const lyricRendered = this.lyric._text.length && this.lyric.logicalBox;
     const startX = lyricRendered ? this.lyric.logicalBox.x : this.note.logicalBox.x;
     const startY = lyricRendered ? this.lyric.logicalBox.y + this.lyric.adjY + this.lyric.logicalBox.height :
-          this.note.logicalBox.y + this.note.logicalBox.height;
+          this.selection.measure.logicalBox.y + this.selection.measure.logicalBox.height - 70;
     this.editor = new SuiChordEditor({context : this.layout.context,
       lyric: this.lyric, x: startX, y: startY, scroller: this.scroller});
+    this.state = SuiLyricSession.States.RUNNING;
     if (!lyricRendered) {
-      const delta = (-2) * this.editor.svgText.maxFontHeight(1.0) * (this.lyric.verse + 1)
+      const delta = (-1) * this.editor.svgText.maxFontHeight(1.0) * (this.lyric.verse + 1)
       this.editor.svgText.offsetStartY(delta);
     }
     this.cursorPromise = this.editor.startCursorPromise();

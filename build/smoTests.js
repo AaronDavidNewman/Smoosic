@@ -2556,32 +2556,37 @@ class TextEditTest {
 
     tests.push( async () => {
       subTitle('add lyric');
+      console.log('add lyric test');
       testTime = 1;
       lyricSession.evKey(makekey({'key':'d'}));
       lyricSession.evKey(makekey({'key':'o'}));
-      return timeTest();
+      return PromiseHelpers.makePromise(lyricSession,'_pendingEditor',null,null,100);
     });
 
     tests.push( async () => {
       subTitle('advance lyric');
+      console.log('advance lyric test');
       lyricSession.evKey(makekey({'key':'-'}));
-      return PromiseHelpers.makePromise(lyricSession,'_isRendered',null,null,100);
+      return PromiseHelpers.makePromise(lyricSession,'_pendingEditor',null,null,100);
     });
 
     tests.push( async () => {
       subTitle('advance lyric');
+      console.log('advance lyric test 2');
       lyricSession.evKey(makekey({'key':'i'}));
       lyricSession.evKey(makekey({'key':'t'}));
-      return timeTest();
+      return PromiseHelpers.makePromise(lyricSession,'_pendingEditor',null,null,100);
     });
 
     tests.push( async () => {
       subTitle('add lyric and stop session');
-      return lyricSession.stopSession();
+      lyricSession.stopSession();
+      return PromiseHelpers.makePromise(lyricSession,'isStopped',null,null,100);
     });
 
     tests.push( async () => {
       subTitle('start chord session');
+      console.log('start chord session');
       var selector = {staff: 0, measure: 0, voice: 0, tick: 1};
       lyricSession = new SuiChordSession({
         context : keys.layout.context,

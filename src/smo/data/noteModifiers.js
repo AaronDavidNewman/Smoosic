@@ -360,43 +360,62 @@ class SmoLyric extends SmoNoteModifierBase {
     return this._text;
   }
 
-  getVexChordBlocks() {
-    this.symbolBlocks = [];
-    var pos = SmoLyric.symbolPosition.NORMAL;
-    var block = {text:'',position:SmoLyric.symbolPosition.NORMAL};
-    for (var i = 0;i < this._text.length;++i) {
-      var c = this._text[i];
-      if (c === '^') {
-        if (i < this._text.length - 1 && this._text[i + 1] === '^') {
-          block.text = block.text + '^';
-          i += 1;
-        } else if (block.position === SmoLyric.symbolPosition.NORMAL) {
-          this.symbolBlocks.push(block);
-          block = {text:'',position:SmoLyric.symbolPosition.SUPERSCRIPT};
-        } else if (block.position === SmoLyric.symbolPosition.SUPERSCRIPT) {
-          this.symbolBlocks.push(block);
-          block = {text:'',position:SmoLyric.symbolPosition.NORMAL};
-        }
-      }else if (c === '%') {
-        if (i < this._text.length - 1 && this._text[i + 1] === '%') {
-          block.text = block.text + '%';
-          i += 1;
-        } else if (block.position === SmoLyric.symbolPosition.NORMAL) {
-          this.symbolBlocks.push(block);
-          block = {text:'',position:SmoLyric.symbolPosition.SUBSCRIPT};
-        } else if (block.position === SmoLyric.symbolPosition.SUBSCRIPT) {
-          this.symbolBlocks.push(block);
-          block = {text:'',position:SmoLyric.symbolPosition.NORMAL};
-        }
-
+  static _chordGlyphFromCode(code) {
+    const obj = Object.keys(VF.ChordSymbol.glyphs).find((glyph)=> VF.ChordSymbol.glyphs[glyph].code === code)
+    return obj;
+  }
+  static _tokenizeChordString(str) {
+    // var str = this._text;
+    let reg = /^([A-Z|a-z|0-9|]+)/g;
+    let mmm = str.match(reg);
+    let tokeType = '';
+    let toke = '';
+    const tokens = [];
+    while (str.length) {
+      if (!mmm) {
+        tokeType = str[0];
+        tokens.push(tokeType);
+        str = str.slice(1,str.length);
       } else {
-        block.text = block.text + c;
+        toke = mmm[0].substr(0,mmm[0].length);
+        str = str.slice(toke.length,str.length);
+        tokens.push(toke);
+        tokeType = '';
+        toke = '';
       }
+      mmm = str.match(reg);
     }
-    if (block.text.length) {
-      this.symbolBlocks.push(block);
-    }
-    return this.symbolBlocks;
+    return tokens;
+  }
+
+  getVexChordBlocks() {
+    let mod = VF.ChordSymbol.symbolModifiers.NONE;
+    let isGlyph = false;
+    const tokens = SmoLyric._tokenizeChordString(this._text);
+    let blocks = [];
+    tokens.forEach((token) => {
+      if (token === '^') {
+        mod = (mod === VF.ChordSymbol.symbolModifiers.SUPERSCRIPT) ?
+          VF.ChordSymbol.symbolModifiers.NONE : VF.ChordSymbol.symbolModifiers.SUPERSCRIPT;
+      }
+      else if (token === '%') {
+        mod = (mod === VF.ChordSymbol.symbolModifiers.SUBSCRIPT) ?
+          VF.ChordSymbol.symbolModifiers.NONE : VF.ChordSymbol.symbolModifiers.SUBSCRIPT;
+       }
+      else if (token === '@') {
+         isGlyph = !isGlyph;
+       } else if (token.length) {
+         if (isGlyph) {
+           const glyph = SmoLyric._chordGlyphFromCode(token);
+           blocks.push({glyph: glyph, symbolModifier: mod,
+            symbolType: VF.ChordSymbol.symbolTypes.GLYPH});
+         } else {
+           blocks.push({text: token, symbolModifier: mod,
+            symbolType: VF.ChordSymbol.symbolTypes.TEXT});
+         }
+       }
+    });
+    return blocks;
   }
 
   constructor(parameters) {

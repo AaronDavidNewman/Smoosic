@@ -153,8 +153,11 @@ class VxMeasure {
       var cs = new VF.ChordSymbol();
       var blocks = lyric.getVexChordBlocks();
       blocks.forEach((block) => {
-        var mod = SmoLyric.toVexPosition(block.position);
-        cs.addGlyphOrText(block.text,{symbolModifier:mod});
+        if (block.glyph) {
+          cs.addGlyph(block.glyph,block);
+        } else {
+          cs.addGlyphOrText(block.text,block);
+        }
       });
       cs.setFontSize(14).setReportWidth(false);
       vexNote.addModifier(0,cs);

@@ -397,16 +397,6 @@ class SuiChordEditor extends SuiTextEditor {
     };
   }
 
-  _toTextTypeChar(oldTextType, newTextType) {
-    if (oldTextType === SuiInlineText.textTypes.normal) {
-      return newTextType = SuiInlineText.textTypes.subScript ?
-        '%' : '^';
-    }
-    if (oldTextType === SuiInlineText.textTypes.subScript) {
-      return '%';
-    }
-    return '^';
-  }
 
   _setSymbolModifier(char) {
     if (char === '^') {
@@ -456,6 +446,26 @@ class SuiChordEditor extends SuiTextEditor {
     this.svgText.render();
   }
 
+  _toTextTypeChar(oldTextType, newTextType) {
+    if (newTextType === SuiInlineText.textTypes.subScript) {
+      return '%';
+    }
+
+    if (newTextType === SuiInlineText.textTypes.superScript) {
+      return '^';
+    }
+
+    if (oldTextType === SuiInlineText.textTypes.superScript &&
+         newTextType === SuiInlineText.textTypes.normal)  {
+      return '^';
+    }
+    if (oldTextType === SuiInlineText.textTypes.subScript &&
+         newTextType === SuiInlineText.textTypes.normal)  {
+      return '%';
+    }
+    return '';
+  }
+
   // ### getText
   // Get the text value that we persist
   getText() {
@@ -475,7 +485,7 @@ class SuiChordEditor extends SuiTextEditor {
         text += block.text;
       }
     });
-    return this.svgText.getText();
+    return text;
   }
 
   _addGlyphAt(ix,code) {
@@ -534,7 +544,7 @@ class SuiChordEditor extends SuiTextEditor {
 class SuiLyricSession {
 
   static get States() {
-    return { RUNNING: 1, STOPPING: 2, STOPPED: 4 };
+    return { RUNNING: 1, STOPPING: 2, STOPPED: 4, PENDING_EDITOR: 8 };
   }
   constructor(params) {
     this.score = params.score;
@@ -551,6 +561,7 @@ class SuiLyricSession {
   // Get the text from the editor and update the lyric with it.
   _setLyricForNote() {
     this.lyric = null;
+    console.log('_setLyricForNote');
     const lar = this.note.getLyricForVerse(this.verse,SmoLyric.parsers.lyric);
     if (lar.length) {
       this.lyric = lar[0];
@@ -570,7 +581,7 @@ class SuiLyricSession {
 
   // ### _endLyricCondition
   // renderer has partially rendered text(promise condition)
-  get _refreshedCondition() {
+  get _isRefreshed() {
     return this.layout.dirty === false;
   }
 
@@ -580,12 +591,20 @@ class SuiLyricSession {
     return this.layout.passState ===  suiLayoutBase.passStates.clean;
   }
 
+  get _pendingEditor() {
+    return this.state !== SuiLyricSession.States.PENDING_EDITOR;
+  }
+
   // ### _hideLyric
   // Hide the lyric so you only see the editor.
   _hideLyric() {
     if (this.lyric.selector) {
       $(this.lyric.selector).remove();
     }
+  }
+
+  get isStopped() {
+    return this.state === SuiLyricSession.States.STOPPED;
   }
 
   // ### _markStopped
@@ -597,12 +616,14 @@ class SuiLyricSession {
   // ### _startSessionForNote
   // Start the lyric editor for a note (current selected note)
   _startSessionForNote() {
+    console.log('_startSessionForNote');
     const lyricRendered = this.lyric._text.length && this.lyric.logicalBox;
     const startX = lyricRendered ? this.lyric.logicalBox.x : this.note.logicalBox.x;
     const startY = lyricRendered ? this.lyric.logicalBox.y + this.lyric.adjY + this.lyric.logicalBox.height :
           this.note.logicalBox.y + this.note.logicalBox.height;
     this.editor = new SuiLyricEditor({context : this.layout.context,
       lyric: this.lyric, x: startX, y: startY, scroller: this.scroller});
+    this.state = SuiLyricSession.States.RUNNING;
     if (!lyricRendered) {
       const delta = 2 * this.editor.svgText.maxFontHeight(1.0) * (this.lyric.verse + 1)
       this.editor.svgText.offsetStartY(delta);
@@ -616,12 +637,15 @@ class SuiLyricSession {
   startSession() {
     this._setLyricForNote();
     this._startSessionForNote();
+    console.log('startSession');
+
     this.state = SuiLyricSession.States.RUNNING;
   }
 
   // ### _startSessionForNote
   // Stop the lyric session, return promise for done
   stopSession() {
+    console.log('stopSession');
     if (this.editor && !this._endLyricCondition) {
       this._updateLyricFromEditor();
     }
@@ -634,13 +658,15 @@ class SuiLyricSession {
     const nextSelection = isShift ? SmoSelection.lastNoteSelectionFromSelector(this.score,this.selector)
      : SmoSelection.nextNoteSelectionFromSelector(this.score,this.selector);
     if (nextSelection) {
+      console.log('_advanceSelection');
       this.selector = nextSelection.selector;
       this.selection = nextSelection;
       this.note = nextSelection.note;
       this._setLyricForNote();
       const conditionArray = [];
+      this.state = SuiLyricSession.States.PENDING_EDITOR;
       conditionArray.push(PromiseHelpers.makePromiseObj(this,'_endLyricCondition',null,null,100));
-      conditionArray.push(PromiseHelpers.makePromiseObj(this,'_refreshedCondition','_startSessionForNote',null,100));
+      conditionArray.push(PromiseHelpers.makePromiseObj(this,'_isRefreshed','_startSessionForNote',null,100));
       PromiseHelpers.promiseChainThen(conditionArray);
     }
   }
@@ -695,6 +721,10 @@ class SuiChordSession extends SuiLyricSession {
     if (this.state !== SuiLyricSession.States.RUNNING) {
       return;
     }
+    if (evdata.code === 'Enter') {
+      this._updateLyricFromEditor();
+      this._advanceSelection(evdata.shiftKey);
+    }
     this.editor.evKey(evdata);
     this._hideLyric();
   }
@@ -719,11 +749,12 @@ class SuiChordSession extends SuiLyricSession {
     const lyricRendered = this.lyric._text.length && this.lyric.logicalBox;
     const startX = lyricRendered ? this.lyric.logicalBox.x : this.note.logicalBox.x;
     const startY = lyricRendered ? this.lyric.logicalBox.y + this.lyric.adjY + this.lyric.logicalBox.height :
-          this.note.logicalBox.y + this.note.logicalBox.height;
+          this.selection.measure.logicalBox.y + this.selection.measure.logicalBox.height - 70;
     this.editor = new SuiChordEditor({context : this.layout.context,
       lyric: this.lyric, x: startX, y: startY, scroller: this.scroller});
+    this.state = SuiLyricSession.States.RUNNING;
     if (!lyricRendered) {
-      const delta = (-2) * this.editor.svgText.maxFontHeight(1.0) * (this.lyric.verse + 1)
+      const delta = (-1) * this.editor.svgText.maxFontHeight(1.0) * (this.lyric.verse + 1)
       this.editor.svgText.offsetStartY(delta);
     }
     this.cursorPromise = this.editor.startCursorPromise();
