@@ -2598,8 +2598,39 @@ class TextEditTest {
         }
       );
       lyricSession.startSession();
-      eventSource.bindKeydownHandler(lyricSession,'evKey');
+      // eventSource.bindKeydownHandler(lyricSession,'evKey');
       return timeTest();
+    });
+
+    tests.push( async () => {
+      subTitle('chord change keys');
+      testTime=700;
+      lyricSession.evKey(makekey({'key':'A'}));
+      lyricSession.evKey(makekey({'key':'b'}));
+      lyricSession.evKey(makekey({'key':'7'}));
+      lyricSession.evKey(makekey({'key':'('}));
+      lyricSession.evKey(makekey({'key':'^'}));
+      lyricSession.evKey(makekey({'key':'#'}));
+      lyricSession.evKey(makekey({'key':'1'}));
+      lyricSession.evKey(makekey({'key':'1'}));
+      lyricSession.evKey(makekey({'key':'%'}));
+      lyricSession.evKey(makekey({'key':'b'}));
+      lyricSession.evKey(makekey({'key':'9'}));
+      lyricSession.evKey(makekey({'key':'%'}));
+      lyricSession.evKey(makekey({'key':')'}));
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      subTitle('chord change submit');
+      lyricSession.evKey(makekey({'key':'Enter', 'code': 'Enter'}));
+      return PromiseHelpers.makePromise(lyricSession,'_pendingEditor',null,null,100);
+    });
+
+    tests.push( async () => {
+      subTitle('stop session');
+      lyricSession.stopSession();
+      return PromiseHelpers.makePromise(lyricSession,'isStopped',null,null,100);
     });
 
     let result;
