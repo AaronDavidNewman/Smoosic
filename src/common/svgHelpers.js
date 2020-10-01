@@ -155,12 +155,7 @@ class svgHelpers {
   		$(context.svg).find('g.vf-' + style).remove();
   }
 
-  // ### outlineRect
-  // Usage:
-  //  outlineRect(params)
-  // params ({context,box,outlineStroke,classes,scroller})
-  // outlineStroke: {stroke, strokeWidth, strokeDashArray, fill}
-  static outlineRect(params) {
+  static _outlineRect(params) {
     const stroke = params.outlineStroke;
     const scroller = params.scroller;
     const context = params.context;
@@ -176,11 +171,28 @@ class svgHelpers {
       if (box) {
         var strokeObj = params.outlineStroke;
         var margin = 5;
-        box = svgHelpers.clientToLogical(context.svg, svgHelpers.adjustScroll(box,scroller.netScroll));
+        if (params.clientToLogical === true) {
+          box = svgHelpers.clientToLogical(context.svg, svgHelpers.adjustScroll(box,scroller.netScroll));
+        }
         context.rect(box.x - margin, box.y - margin, box.width + margin * 2, box.height + margin * 2, strokeObj);
       }
     });
     context.closeGroup(grp);
+  }
+
+
+  // ### outlineRect
+  // Usage:
+  //  outlineRect(params)
+  // params ({context,box,outlineStroke,classes,scroller})
+  // outlineStroke: {stroke, strokeWidth, strokeDashArray, fill}
+  static outlineRect(params) {
+    params.clientToLogical = true;
+    svgHelpers._outlineRect(params);
+  }
+
+  static outlineLogicalRect(params) {
+    svgHelpers._outlineRect(params);
   }
 
 
@@ -199,36 +211,36 @@ class svgHelpers {
     return rect;
   }
 
-    static line(svg,x1,y1,x2,y2,attrs,classes) {
-        var line = document.createElementNS(svgHelpers.namespace,'line');
-        x1 = typeof(x1) == 'string' ? x1 : x1.toString();
-        y1 = typeof(y1) == 'string' ? y1 : y1.toString();
-        x2 = typeof(x2) == 'string' ? x2 : x2.toString();
-        y2 = typeof(y2) == 'string' ? y2 : y2.toString();
+  static line(svg,x1,y1,x2,y2,attrs,classes) {
+    var line = document.createElementNS(svgHelpers.namespace,'line');
+    x1 = typeof(x1) == 'string' ? x1 : x1.toString();
+    y1 = typeof(y1) == 'string' ? y1 : y1.toString();
+    x2 = typeof(x2) == 'string' ? x2 : x2.toString();
+    y2 = typeof(y2) == 'string' ? y2 : y2.toString();
 
-        line.setAttributeNS('', 'x1', x1);
-        line.setAttributeNS('', 'y1', y1);
-        line.setAttributeNS('', 'x2', x2);
-        line.setAttributeNS('', 'y2', y2);
-        attrs = (attrs) ? attrs : [];
-        attrs.forEach((attr) => {
-            var key = Object.keys(attr)[0];
-            var val = attr[key];
-            key = (key == 'strokewidth') ? 'stroke-width' : key;
-            line.setAttributeNS('', key, val);
-        });
-        if (classes) {
-            line.setAttributeNS('', 'class', classes);
-        }
-        svg.appendChild(line);
+    line.setAttributeNS('', 'x1', x1);
+    line.setAttributeNS('', 'y1', y1);
+    line.setAttributeNS('', 'x2', x2);
+    line.setAttributeNS('', 'y2', y2);
+    attrs = (attrs) ? attrs : [];
+    attrs.forEach((attr) => {
+      var key = Object.keys(attr)[0];
+      var val = attr[key];
+      key = (key == 'strokewidth') ? 'stroke-width' : key;
+      line.setAttributeNS('', key, val);
+    });
+    if (classes) {
+      line.setAttributeNS('', 'class', classes);
     }
+    svg.appendChild(line);
+  }
 
-    static arrowDown(svg,box,attrs,classes) {
-        svgHelpers.line(svg,box.x+box.width/2,box.y,box.x+box.width/2,box.y+box.height);
-        var arrowY=box.y + box.height/4;
-        svgHelpers.line(svg,box.x,arrowY,box.x+box.width/2,box.y+box.height);
-        svgHelpers.line(svg,box.x+box.width,arrowY,box.x+box.width/2,box.y+box.height);
-    }
+  static arrowDown(svg,box,attrs,classes) {
+    svgHelpers.line(svg,box.x+box.width/2,box.y,box.x+box.width/2,box.y+box.height);
+    var arrowY=box.y + box.height/4;
+    svgHelpers.line(svg,box.x,arrowY,box.x+box.width/2,box.y+box.height);
+    svgHelpers.line(svg,box.x+box.width,arrowY,box.x+box.width/2,box.y+box.height);
+  }
 
 
 	// ### getTextBox

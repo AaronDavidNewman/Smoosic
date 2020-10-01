@@ -123,6 +123,7 @@ class SmoTextGroup extends SmoScoreModifierBase {
 
   }
   constructor(params) {
+    params = params ? params : {};
     super('SmoTextGroup');
     this.textBlocks = [];
     this.blockData = [];

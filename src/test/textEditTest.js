@@ -215,24 +215,19 @@ class TextEditTest {
       return timeTest();
     });
 
-    tests.push( async () => {
-      subTitle('chord change keys');
-      testTime=700;
-      lyricSession.evKey(makekey({'key':'A'}));
-      lyricSession.evKey(makekey({'key':'b'}));
-      lyricSession.evKey(makekey({'key':'7'}));
-      lyricSession.evKey(makekey({'key':'('}));
-      lyricSession.evKey(makekey({'key':'^'}));
-      lyricSession.evKey(makekey({'key':'#'}));
-      lyricSession.evKey(makekey({'key':'1'}));
-      lyricSession.evKey(makekey({'key':'1'}));
-      lyricSession.evKey(makekey({'key':'%'}));
-      lyricSession.evKey(makekey({'key':'b'}));
-      lyricSession.evKey(makekey({'key':'9'}));
-      lyricSession.evKey(makekey({'key':'%'}));
-      lyricSession.evKey(makekey({'key':')'}));
-      return timeTest();
-    });
+    var makeKeyTest = (key,i) => {
+      tests.push( async () => {
+        subTitle("edit key "+i);
+        lyricSession.evKey(makekey({'key':key}));
+        return timeTest();
+      });
+    }
+    const chordStr = 'Ab7(^#11%b9%)';
+
+    testTime = 200;
+    for (var i =0;i < chordStr.length; ++i) {
+      makeKeyTest(chordStr[i],i);
+    }
 
     tests.push( async () => {
       subTitle('chord change submit');
@@ -243,6 +238,42 @@ class TextEditTest {
     tests.push( async () => {
       subTitle('stop session');
       lyricSession.stopSession();
+      return PromiseHelpers.makePromise(lyricSession,'isStopped',null,null,100);
+    });
+
+    tests.push( async () => {
+      subTitle('start text session');
+      lyricSession = new SuiTextSession({
+        context : keys.layout.context,
+        scroller: keys.scroller,
+        layout: keys.layout,
+        score: score,
+        x: 50,
+        y: 120
+        }
+      );
+      lyricSession.startSession();
+      // eventSource.bindKeydownHandler(lyricSession,'evKey');
+
+      return timeTest();
+    });
+
+    const testStr = 'Score Text Editor';
+
+    for (var i = 0;i < testStr.length; ++i) {
+      makeKeyTest(testStr[i],i);
+    }
+
+    tests.push( async () => {
+      subTitle('stop text edit session');
+      lyricSession.stopSession();
+      return PromiseHelpers.makePromise(lyricSession,'isStopped',null,null,100);
+    });
+
+    tests.push( async () => {
+      subTitle('update score from text session');
+      score.addTextGroup(lyricSession.textGroup);
+      keys.layout.setDirty();
       return PromiseHelpers.makePromise(lyricSession,'isStopped',null,null,100);
     });
 

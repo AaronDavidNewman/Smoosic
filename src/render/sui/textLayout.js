@@ -165,11 +165,16 @@ class SuiInlineText {
 
   getBoundingBox() {
     var rv = {};
+    var adjBox = (box) => {
+      const nbox = svgHelpers.smoBox(box);
+      nbox.y = nbox.y - nbox.height;
+      return nbox;
+    }
     this.blocks.forEach((block) => {
       if (!rv.x) {
-        rv = svgHelpers.smoBox(block);
+        rv = svgHelpers.smoBox(adjBox(block));
       } else {
-        rv = svgHelpers.unionRect(rv,block);
+        rv = svgHelpers.unionRect(rv,adjBox(block));
       }
     });
     return rv;
@@ -189,9 +194,9 @@ class SuiInlineText {
     group.id = 'inlineCursor';
     let h = this.fontSize;
     if (this.blocks.length <= position || position < 0) {
-          svgHelpers.renderCursor(group, this.startX,this.startY - h,h);
-          this.context.closeGroup();
-          return;
+      svgHelpers.renderCursor(group, this.startX,this.startY - h,h);
+      this.context.closeGroup();
+      return;
     }
     var block = this.blocks[position];
     const adjH = block.symbolType === SuiInlineText.symbolTypes.GLYPH ? h/2 : h;
@@ -212,6 +217,7 @@ class SuiInlineText {
     this.context.setFont(this.fontFamily, this.fontSize, this.fontWeight);
     var group = this.context.openGroup();
     var mmClass = "suiInlineText";
+    group.classList.add('vf-'+this.attrs.id);
     group.classList.add(this.attrs.id);
     group.classList.add(mmClass);
     group.id=this.attrs.id;
@@ -236,7 +242,6 @@ class SuiInlineText {
       return [];
     }
     return svgHelpers.findIntersectingArtifact(box,this.artifacts,scroller);
-
   }
   _addBlockAt(position,block) {
     if (position >= this.blocks.length) {

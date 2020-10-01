@@ -40,7 +40,13 @@ class SuiTextEditor {
         'stroke': '#99d',
         'stroke-width': 1,
         'fill': 'none'
-      }
+      },'text-highlight': {
+        'stroke': '#dd9',
+        'stroke-width': 1,
+        'stroke-dasharray': '4,1',
+        'fill': 'none'
+      },
+
     }
   }
 
@@ -277,9 +283,15 @@ class SuiTextEditor {
   // THis can be overridden by the base class to create the correct combination
   // of text and glyph blocks based on the underlying text
   parseBlocks() {
-
+    this.svgText = new SuiInlineText({ context: this.context,startX: this.x, startY: this.y });
+    for (var i =0;i < this.text.length; ++i) {
+      this.svgText.addTextBlockAt(i,{text:this.text[i]});
+      this.empty = false;
+    }
+    this.textPos = this.text.length;
+    this.state = SuiLyricEditor.States.RUNNING;
+    this.svgText.render();
   }
-
   // ### evKey
   // Handle key events that filter down to the editor
   evKey(evdata) {
@@ -327,7 +339,6 @@ class SuiTextEditor {
       this.svgText.render();
       return true;
     }
-    var str = evdata.key;
     if (evdata.key.charCodeAt(0) >= 33 && evdata.key.charCodeAt(0) <= 126  && evdata.key.length === 1) {
       if (this.empty) {
         this.svgText.removeBlockAt(0);
@@ -347,7 +358,61 @@ class SuiTextEditor {
     return false;
   }
 }
+class SuiTextBlockEditor extends SuiTextEditor {
+  // ### ctor
+  // ### args
+  // params: {lyric: SmoLyric,...}
+  constructor(params) {
+    super(params);
+    this.parseBlocks();
+  }
 
+  _highlightEditor() {
+    if (this.svgText.blocks.length === 0) {
+      return;
+    }
+    var bbox = this.svgText.getBoundingBox();
+    const outlineStroke = SuiTextEditor.strokes['text-highlight'];
+    const obj = {
+      context: this.context, box: bbox,classes: 'text-highlight',
+         outlineStroke, scroller: this.scroller
+    };
+    svgHelpers.outlineLogicalRect(obj);
+  }
+
+  getText() {
+    return this.svgText.getText();
+  }
+
+  evKey(evdata) {
+    if (evdata.key.charCodeAt(0) == 32) {
+      if (this.empty) {
+        this.svgText.removeBlockAt(0);
+        this.empty = false;
+        this.svgText.addTextBlockAt(0,{text: ' '});
+        this.setTextPos(1);
+      } else {
+        if (this.selectionStart >= 0) {
+          this.deleteSelections();
+        }
+        this.svgText.addTextBlockAt(this.textPos,{ text: ' ', textType:this.textType});
+        this.setTextPos(this.textPos + 1);
+      }
+      this.svgText.render();
+      return true;
+    }
+    const rv = super.evKey(evdata);
+    this._highlightEditor();
+    return rv;
+  }
+
+  stopEditor() {
+    this.state = SuiLyricEditor.States.STOPPING;
+    $(this.context.svg).find('g.vf-' + 'text-highlight').remove();
+    this.stopCursor();
+    this.svgText.unrender();
+  }
+}
 class SuiLyricEditor extends SuiTextEditor {
   static get States() {
     return { RUNNING: 1, STOPPING: 2, STOPPED: 4 };
@@ -537,8 +602,107 @@ class SuiChordEditor extends SuiTextEditor {
     this.stopCursor();
     this.svgText.unrender();
   }
+
+  // ### _markStopped
+  // Indicate this editor session is done running
+  _markStopped() {
+    this.state = SuiLyricSession.States.STOPPED;
+  }
 }
 
+// ## SuiTextSession
+// session for editing plain text
+class SuiTextSession {
+  static get States() {
+    return { RUNNING: 1, STOPPING: 2, STOPPED: 4, PENDING_EDITOR: 8 };
+  }
+  constructor(params) {
+    this.score = params.score;
+    this.layout = params.layout;
+    this.scroller = params.scroller;
+    this.scoreText = params.scoreText;
+    this.text = params.text ? params.text : '';
+    this.x = params.x;
+    this.y = params.y;
+    this.textGroup = params.textGroup;
+    this.scoreText = params.scoreText;
+    this.fontFamily = params.fontFamily ? params.fontFamily :
+      SuiInlineText.defaults.fontFamily;
+    this.fontSize = params.fontSize ? params.fontSize :
+      SuiInlineText.defaults.fontSize;
+    this.fontWeight = params.fontSize ? params.fontSize :
+        SuiInlineText.defaults.fontSize;
+
+    // Create a text group if one was not a startup parameter
+    if (!this.textGroup) {
+      this.textGroup = new SmoTextGroup();
+    }
+    // Create a scoreText if one was not a startup parameter, or
+    // get it from the text group
+    if (!this.scoreText) {
+      if (this.textGroup && this.textGroup.textBlocks.length) {
+        this.scoreText = this.textGroup.textBlocks[0];
+      } else {
+        this.scoreText = new SmoScoreText({x: this.x,y: this.y});
+      }
+    }
+    this.textGroup.addScoreText(this.scoreText,null,SmoTextGroup.relativePosition.RIGHT);
+    this.text = this.scoreText.text;
+  }
+
+  // ### _isRefreshed
+  // renderer has partially rendered text(promise condition)
+  get _isRefreshed() {
+    return this.layout.dirty === false;
+  }
+
+  get isStopped() {
+    return this.state === SuiTextSession.States.STOPPED;
+  }
+
+  _markStopped() {
+    this.state = SuiTextSession.States.STOPPED;
+  }
+
+  // ### _isRendered
+  // renderer has rendered text(promise condition)
+  get _isRendered() {
+    return this.layout.passState ===  suiLayoutBase.passStates.clean;
+  }
+
+
+  // ### _startSessionForNote
+  // Start the lyric session
+  startSession() {
+    console.log('startSession');
+    this.editor = new SuiTextBlockEditor({context : this.layout.context,
+       x: this.x, y: this.y, scroller: this.scroller,
+     fontFamily: this.fontFamily, fontSize: this.fontSize, fontWeight: this.fontWeight});
+     this.editor.parseBlocks();
+    this.cursorPromise = this.editor.startCursorPromise();
+    this.state = SuiTextSession.States.RUNNING;
+  }
+
+  // ### _startSessionForNote
+  // Stop the lyric session, return promise for done
+  stopSession() {
+    console.log('stopSession');
+    if (this.editor && !this._endLyricCondition) {
+      this.scoreText.text = this.editor.getText();
+      this.editor.stopEditor();
+    }
+    return PromiseHelpers.makePromise(this,'_isRendered','_markStopped',null,100);
+  }
+
+  // ### evKey
+  // Key handler (pass to editor)
+  evKey(evdata) {
+    if (this.state !== SuiTextSession.States.RUNNING) {
+      return;
+    }
+    this.editor.evKey(evdata);
+  }
+}
 // ## SuiLyricSession
 // Manage editor for lyrics, jupmping from note to note if asked
 class SuiLyricSession {
