@@ -158,6 +158,37 @@ class TextEditTest {
     tests.push( async () => {
       testTime = 500;
       subTitle('drag start test');
+      lyricSession = new SuiResizeTextSession({
+        textGroup: startGroup,
+        context: keys.layout.context,
+        scroller: keys.scroller
+        }
+      );
+      lyricSession.startDrag({clientX: lyricSession.currentClientBox.x + 5, clientY: lyricSession.currentClientBox.y + 5});
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      subTitle('drag text');
+      lyricSession.mouseMove({clientX: lyricSession.currentClientBox.x + 10, clientY: lyricSession.currentClientBox.y + 10});
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      subTitle('drag text');
+      lyricSession.mouseMove({clientX: lyricSession.currentClientBox.x + 15, clientY: lyricSession.currentClientBox.y + 15});
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      subTitle('drag text');
+      lyricSession.endDrag({clientX: lyricSession.currentClientBox.x + 15, clientY: lyricSession.currentClientBox.y + 15});
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      testTime = 500;
+      subTitle('drag start test');
       lyricSession = new SuiDragSession({
         textGroup: startGroup,
         context: keys.layout.context,

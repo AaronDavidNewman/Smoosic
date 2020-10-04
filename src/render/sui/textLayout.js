@@ -298,6 +298,12 @@ class SuiInlineText {
     block.highlighted = value;
   }
 
+  rescale(scale) {
+    this.blocks.forEach((block) => {
+      block.scale = scale;
+    });
+  }
+
   render() {
     $('svg #'+this.attrs.id).remove();
 
@@ -420,6 +426,12 @@ class SuiTextBlock {
   offsetStartY(offset) {
     this.inlineBlocks.forEach((block) => {
       block.text.offsetStartY(offset);
+    });
+  }
+
+  rescale(scale) {
+    this.blocks.forEach((block) => {
+      block.text.rescale(scale);
     });
   }
 

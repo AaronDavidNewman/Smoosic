@@ -617,6 +617,77 @@ class SuiChordEditor extends SuiTextEditor {
   }
 }
 
+class SuiResizeTextSession {
+
+  static get defaultSpring() {
+    return 0.1;
+  }
+  static get resizeModes() {
+    return {BOX: 1, FONT: 2}
+  }
+  static get defaults () {
+    return {
+      spring : 0.1,
+      resizeMode : SuiResizeTextSession.resizeModes.FONT,
+      dragging: false,
+      startDragPoint: { x: -1, y: -1}
+    }
+  }
+  constructor(params) {
+    Vex.Merge(this,SuiResizeTextSession.defaults);
+    Vex.Merge(this,params);
+    this.textObject = SuiTextBlock.fromTextGroup(this.textGroup,this.context); // SuiTextBlock
+    this.startBox = this.textObject.getLogicalBox();
+    this.startBox.y += this.textObject.maxFontHeight(1);
+    this.currentBox = svgHelpers.smoBox(this.startBox);
+
+    this.currentClientBox = svgHelpers.adjustScroll(svgHelpers.logicalToClient(this.context.svg, this.currentBox),this.scroller.netScroll);
+  }
+  _outlineBox() {
+    const outlineStroke = SuiTextEditor.strokes['text-drag'];
+    const obj = {
+      context: this.context, box: this.currentBox,classes: 'text-drag',
+         outlineStroke, scroller: this.scroller
+    };
+    svgHelpers.outlineLogicalRect(obj);
+  }
+
+  startDrag(e) {
+    this.dragging = true;
+    this.startDragPoint = {x: e.clientX, y: e.clientY };
+    this.deltaDrag = null;
+    // calculate offset of mouse start vs. box UL
+    this._outlineBox();
+  }
+
+  mouseMove(e) {
+    if (!this.dragging) {
+      return;
+    }
+    const clientX = this.startDragPoint.x;
+    const clientY = this.startDragPoint.y;
+    const xdelta = e.clientX - clientX;
+    const ydelta = e.clientY - clientY;
+    if (!this.deltaDrag) {
+      this.deltaDrag = {x: xdelta, y: ydelta};
+      return;
+    }
+    const dragDiff = Math.abs(xdelta) - Math.abs(this.deltaDrag.x);
+    const coeff = dragDiff > 0 ? 2 : 0.5;
+    const  absRate = 1 + (this.spring * coeff);
+    const rate = xdelta > 0 ? absRate : 1/absRate;
+    this.textGroup.scaleInPlace(rate);
+    this.textObject.rescale(rate);
+    this.textObject.render();
+    this._outlineBox();
+    this.deltaDrag = {x: xdelta, y: ydelta};
+  }
+  endDrag(e) {
+    this.dragging = false;
+    svgHelpers.eraseOutline(this.context,'text-drag');
+    this.textObject.render();
+  }
+}
 class SuiDragSession {
   constructor(params) {
     this.textGroup = params.textGroup;
