@@ -1,7 +1,7 @@
 // ## SuiInlineText
 // Inline text is a block of SVG text with the same font.  Each block can
-// contain eithr text or an svg glyph.  Each block in the text has its own
-// metrics so we can support inline svg text editors (cursor)
+// contain eithr text or an svg (vex) glyph.  Each block in the text has its own
+// metrics so we can support inline svg text editors (cursor).
 class SuiInlineText {
   static get textTypes() {
     return {normal:0,superScript:1,subScript:2};
@@ -36,7 +36,8 @@ class SuiInlineText {
       fontWeight:500,
       scale: 1,
       activeBlock:-1,
-      artifacts: []
+      artifacts: [],
+      updatedMetrics: false
     };
   }
   // ### constructor just creates an empty svg
@@ -52,6 +53,19 @@ class SuiInlineText {
       throw('context for SVG must be set');
     }
   }
+
+  static fromScoreText(scoreText,context) {
+    var pointSize = scoreText.fontInfo.pointSize ? scoreText.fontInfo.pointSize
+      : SmoScoreText.fontPointSize(scoreText.fontInfo.size);
+    const params = { fontFamily:scoreText.fontInfo.family,
+      startX: scoreText.x, startY: scoreText.y,
+      fontSize: pointSize, context: context};
+    let rv = new SuiInlineText(params);
+    rv.attrs.id = scoreText.attrs.id;
+    rv.addTextBlockAt(0, { text: scoreText.text});
+    return rv;
+  }
+
   get fontMetrics() {
     return VF.DEFAULT_FONT_STACK[0].name === 'Petaluma' ?
       VF.PetalumaScriptMetrics : VF.RobotoSlabMetrics;
@@ -161,10 +175,17 @@ class SuiInlineText {
     });
     this.width = curX - this.startX;
     this.height = maxH;
+    this.updatedMetrics = true;
   }
 
-  getBoundingBox() {
+  // ### getLogicalBox
+  // return the calculated svg metrics.  In SMO parlance the
+  // logical box is in SVG space, 'renderedBox' is in client space.
+  getLogicalBox() {
     var rv = {};
+    if (!this.updatedMetrics) {
+      this._calculateBlockIndex();
+    }
     var adjBox = (box) => {
       const nbox = svgHelpers.smoBox(box);
       nbox.y = nbox.y - nbox.height;
@@ -190,6 +211,9 @@ class SuiInlineText {
   // ### renderCursorAt
   // When we are using textLayout to render editor, create a cursor that adjusts it's size
   renderCursorAt(position) {
+    if (!this.updatedMetrics) {
+      this._calculateBlockIndex();
+    }
     var group = this.context.openGroup();
     group.id = 'inlineCursor';
     let h = this.fontSize;
@@ -212,8 +236,75 @@ class SuiInlineText {
   unrender() {
     $('svg #'+this.attrs.id).remove();
   }
+  getIntersectingBlocks(box, scroller) {
+    if (!this.artifacts) {
+      return [];
+    }
+    return svgHelpers.findIntersectingArtifact(box,this.artifacts,scroller);
+  }
+  _addBlockAt(position,block) {
+    if (position >= this.blocks.length) {
+      this.blocks.push(block);
+    } else {
+      this.blocks.splice(position,0,block);
+    }
+  }
+  removeBlockAt(position) {
+    this.blocks.splice(position,1);
+    this.updatedMetrics = false;
+  }
+
+  // ### addTextBlockAt
+  // Add a text block to the line of text.
+  // params must contain at least:
+  // {text:'xxx'}
+  addTextBlockAt(position,params) {
+    const block = this._getTextBlock(params);
+    this._addBlockAt(position,block);
+    this.updatedMetrics = false;
+  }
+  _getGlyphBlock(params) {
+    const block = JSON.parse(JSON.stringify(SuiInlineText.blockDefaults));
+    block.symbolType = SuiInlineText.symbolTypes.GLYPH;
+    block.glyphCode = params.glyphCode;
+    block.glyph = new VF.Glyph(block.glyphCode, this.fontSize);
+    block.metrics = VF.ChordSymbol.getMetricForGlyph(block.glyphCode);
+    block.scale  = (params.textType && params.textType !== SuiInlineText.textTypes.normal) ?
+       2 * VF.ChordSymbol.superSubRatio * block.metrics.scale : 2 * block.metrics.scale;
+
+    block.textType = params.textType ? params.textType : SuiInlineText.textTypes.normal;
+
+    block.glyph.scale = block.glyph.scale * block.scale;
+    return block;
+  }
+  // ### addGlyphBlockAt
+  // Add a glyph block to the line of text.  Params must include:
+  // {glyphCode:'csymDiminished'}
+  addGlyphBlockAt(position,params) {
+    const block = this._getGlyphBlock(params);
+    this._addBlockAt(position,block);
+    this.updatedMetrics = false;
+  }
+  isSuperscript(block) {
+    return block.textType === SuiInlineText.textTypes.superScript;
+  }
+  isSubcript(block) {
+    return block.textType === SuiInlineText.textTypes.subScript;
+  }
+  getHighlight(block) {
+    return block.highlighted;
+  }
+  setHighlight(block,value) {
+    block.highlighted = value;
+  }
+
   render() {
     $('svg #'+this.attrs.id).remove();
+
+    if (!this.updatedMetrics) {
+      this._calculateBlockIndex();
+    }
+
     this.context.setFont(this.fontFamily, this.fontSize, this.fontWeight);
     var group = this.context.openGroup();
     var mmClass = "suiInlineText";
@@ -236,66 +327,8 @@ class SuiInlineText {
       ix += 1;
     });
     this.context.closeGroup();
-  }
-  getIntersectingBlocks(box, scroller) {
-    if (!this.artifacts) {
-      return [];
-    }
-    return svgHelpers.findIntersectingArtifact(box,this.artifacts,scroller);
-  }
-  _addBlockAt(position,block) {
-    if (position >= this.blocks.length) {
-      this.blocks.push(block);
-    } else {
-      this.blocks.splice(position,0,block);
-    }
-  }
-  removeBlockAt(position) {
-    this.blocks.splice(position,1);
-  }
-
-  // ### addTextBlockAt
-  // Add a text block to the line of text.
-  // params must contain at least:
-  // {text:'xxx'}
-  addTextBlockAt(position,params) {
-    const block = this._getTextBlock(params);
-    this._addBlockAt(position,block);
-    this._calculateBlockIndex();
-  }
-  _getGlyphBlock(params) {
-    const block = JSON.parse(JSON.stringify(SuiInlineText.blockDefaults));
-    block.symbolType = SuiInlineText.symbolTypes.GLYPH;
-    block.glyphCode = params.glyphCode;
-    block.glyph = new VF.Glyph(block.glyphCode, this.fontSize);
-    block.metrics = VF.ChordSymbol.getMetricForGlyph(block.glyphCode);
-    block.scale  = (params.textType && params.textType !== SuiInlineText.textTypes.normal) ?
-       2 * VF.ChordSymbol.superSubRatio * block.metrics.scale : 2 * block.metrics.scale;
-
-    block.textType = params.textType ? params.textType : SuiInlineText.textTypes.normal;
-
-    block.glyph.scale = block.glyph.scale * block.scale;
-    return block;
-  }
-  // ### addGlyphBlockAt
-  // Add a glyph block to the line of text.  Params must include:
-  // {glyphCode:'csymDiminished'}
-  addGlyphBlockAt(position,params) {
-    const block = this._getGlyphBlock(params);
-    this._addBlockAt(position,block);
-    this._calculateBlockIndex();
-  }
-  isSuperscript(block) {
-    return block.textType === SuiInlineText.textTypes.superScript;
-  }
-  isSubcript(block) {
-    return block.textType === SuiInlineText.textTypes.subScript;
-  }
-  getHighlight(block) {
-    return block.highlighted;
-  }
-  setHighlight(block,value) {
-    block.highlighted = value;
+    this.renderedBox = svgHelpers.smoBox(group.getBoundingClientRect());
+    this.logicalBox = svgHelpers.smoBox(group.getBBox());
   }
 
   _drawBlock(block) {
@@ -349,10 +382,19 @@ class SuiTextBlock {
   constructor(params) {
     this.inlineBlocks = [];
     this.context = params.context;
-    const startBlock = new SuiInlineText(params);
-    this.currentBlock = {text: startBlock,position: SmoTextGroup.relativePosition.LEFT};
-    this.currentBlockIndex = 0;
-    this.inlineBlocks.push(this.currentBlock);
+    if (!params.blocks) {
+      const inst = new SuiInlineText(params);
+      params.blocks = [{ text: inst, position: SmoTextGroup.relativePosition.RIGHT }];
+    }
+    params.blocks.forEach((block) => {
+      // const position = block.position ? block.position : SmoTextGroup.relativePosition.RIGHT;
+      // const ib = {text:block, position: position};
+      if (!this.currentBlock) {
+        this.currentBlock = block;
+        this.currentBlockIndex = 0;
+      }
+      this.inlineBlocks.push(block);
+    });
     this.justification = params.justification ? params.justification :
       SmoTextGroup.justifications.LEFT;
   }
@@ -368,6 +410,28 @@ class SuiTextBlock {
       block.text.render();
     });
   }
+
+  offsetStartX(offset) {
+    this.inlineBlocks.forEach((block) => {
+      block.text.offsetStartX(offset);
+    });
+  }
+
+  offsetStartY(offset) {
+    this.inlineBlocks.forEach((block) => {
+      block.text.offsetStartY(offset);
+    });
+  }
+
+  maxFontHeight(scale) {
+    var rv = 0;
+    this.inlineBlocks.forEach((block) => {
+      const blockHeight = block.text.maxFontHeight(scale);
+      rv = blockHeight > rv ? blockHeight : rv;
+    });
+    return rv;
+  }
+
   static inlineParamsFromScoreText(scoreText,context) {
     var pointSize = scoreText.fontInfo.pointSize ? scoreText.fontInfo.pointSize
       : SmoScoreText.fontPointSize(scoreText.fontInfo.size);
@@ -376,37 +440,40 @@ class SuiTextBlock {
       fontSize: pointSize, context: context };
     return rv;
   }
-  static fromScoreText(scoreText,context) {
-    var params = SuiTextBlock.inlineParamsFromScoreText(scoreText,context);
-    const rv = new SuiTextBlock( params );
-    rv.currentBlock.text.attrs.id = scoreText.attrs.id;  // set id so svg id matches
-    rv.currentBlock.text.addTextBlockAt(0,{text: scoreText.text});
-    return rv;
+  static blockFromScoreText(scoreText,context, position) {
+    var inlineText = SuiInlineText.fromScoreText(scoreText, context);
+    return  {text: inlineText, position: position};
   }
-  getBoundingBox() {
+
+  getLogicalBox() {
+    return this._calculateBoundingClientRect();
+  }
+  getRenderedBox() {
+    return svgHelpers.logicalToClient(this.context.svg,this._calculateBoundingClientRect());
+  }
+  _calculateBoundingClientRect() {
     var rv = {};
     this.inlineBlocks.forEach((block) => {
       if (!rv.x) {
-        rv = block.text.getBoundingBox();
+        rv = block.text.getLogicalBox();
       } else {
-        rv = svgHelpers.unionRect(rv,block.text.getBoundingBox());
+        rv = svgHelpers.unionRect(rv,block.text.getLogicalBox());
       }
     });
     rv.y = rv.y - rv.height;
-    return svgHelpers.logicalToClient(this.context.svg,rv);
+    return rv;
   }
   static fromTextGroup(tg,context) {
     var rv = null;
     var params = {context:context};
-    tg.textBlocks.forEach((st) => {
-      if (!rv) {
-        rv = SuiTextBlock.fromScoreText(st.text,context);
-        rv.justification = tg.justification;
-      } else {
-        rv.addBlockPosition(st.text,st.position);
-      }
+    let blocks = [];
+
+    // Create an inline block for each ScoreText
+    tg.textBlocks.forEach((stBlock) => {
+      const st = stBlock.text;
+      blocks.push(SuiTextBlock.blockFromScoreText(st,context, stBlock.position));
     });
-    return rv;
+    return new SuiTextBlock({blocks: blocks, justification: tg.justification});
   }
   unrender() {
     this.inlineBlocks.forEach((block) => {
@@ -462,7 +529,7 @@ class SuiTextBlock {
     });
   }
   addBlockPosition(scoreText,position) {
-    var blockBox = this.currentBlock.text.getBoundingBox();
+    var blockBox = this.currentBlock.text.getRenderedBox();
     position = position ? position : SuiTextBlock.relativePosition.BELOW;
     var ycoff = position === SuiTextBlock.relativePosition.ABOVE ? -1 : 1;
     var xcoff = position === SuiTextBlock.relativePosition.LEFT ? -1 : 1;

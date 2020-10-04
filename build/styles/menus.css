@@ -57,10 +57,10 @@ body.slash-menu button.menu-select {
 
 .menuElement .menuOption button {
 	width: 100%;
-    height: 100%;
+  height: 100%;
 	font-size: 1em;
-    display:flex;
-    flex-flow:row;
+  display:flex;
+  flex-flow:row;
 }
 .separator {
 	width:15px;
@@ -78,4 +78,8 @@ body.modal .overlay,body.showAttributeDialog .overlay {
 	z-index:2;
     opacity: 0.2;
 	background: #333;
+}
+
+body.modal .overlay,body.showAttributeDialog.textEditor .overlay {
+	display:none;
 }

@@ -3,6 +3,8 @@
 // ## SuiTextEditor
 // Next-gen text editor.  The base text editor handles the positioning and inserting
 // of text blocks into the text area.  The derived class shoud interpret key events.
+// A container class will manage the session for starting/stopping the editor
+// and retrieving the results into the target object.
 class SuiTextEditor {
   static get attributes() {
     return ['svgText','context','x','y','text','textPos','selectionStart','selectionLength','empty','suggestionIndex'];
@@ -45,8 +47,13 @@ class SuiTextEditor {
         'stroke-width': 1,
         'stroke-dasharray': '4,1',
         'fill': 'none'
-      },
-
+      },'text-drag' : {
+        'stroke': '#d99',
+        'stroke-width': 1,
+        'stroke-dasharray': '2,1',
+        'fill': '#eee',
+        'opacity' : '0.3'
+      }
     }
   }
 
@@ -371,7 +378,7 @@ class SuiTextBlockEditor extends SuiTextEditor {
     if (this.svgText.blocks.length === 0) {
       return;
     }
-    var bbox = this.svgText.getBoundingBox();
+    var bbox = this.svgText.getLogicalBox();
     const outlineStroke = SuiTextEditor.strokes['text-highlight'];
     const obj = {
       context: this.context, box: bbox,classes: 'text-highlight',
@@ -610,6 +617,63 @@ class SuiChordEditor extends SuiTextEditor {
   }
 }
 
+class SuiDragSession {
+  constructor(params) {
+    this.textGroup = params.textGroup;
+    this.context = params.context;
+    this.scroller = params.scroller;
+    this.xOffset = 0;
+    this.yOffset = 0;
+    this.textObject = SuiTextBlock.fromTextGroup(this.textGroup,this.context); // SuiTextBlock
+    this.dragging = false;
+    this.startBox = this.textObject.getLogicalBox();
+    this.startBox.y += this.textObject.maxFontHeight(1);
+    this.currentBox = svgHelpers.smoBox(this.startBox);
+    this.currentClientBox = svgHelpers.adjustScroll(svgHelpers.logicalToClient(this.context.svg, this.currentBox),this.scroller.netScroll);
+  }
+
+  _outlineBox() {
+    const outlineStroke = SuiTextEditor.strokes['text-drag'];
+    const obj = {
+      context: this.context, box: this.currentBox,classes: 'text-drag',
+         outlineStroke, scroller: this.scroller
+    };
+    svgHelpers.outlineLogicalRect(obj);
+  }
+
+  startDrag(e) {
+    this.dragging = true;
+    // calculate offset of mouse start vs. box UL
+    this.yOffset = this.currentClientBox.y - e.clientY;
+    this.xOffset = this.currentClientBox.x - e.clientX;
+    this._outlineBox();
+  }
+
+  mouseMove(e) {
+    if (!this.dragging) {
+      return;
+    }
+    this.currentClientBox.x = e.clientX - this.xOffset;
+    this.currentClientBox.y = e.clientY - this.xOffset;
+    const coor = svgHelpers.clientToLogical(this.context.svg, {x: this.currentClientBox.x, y: this.currentClientBox.y });
+    this.currentBox.x = coor.x;
+    this.currentBox.y = coor.y;
+    this.textObject.offsetStartX(this.currentBox.x - this.startBox.x);
+    this.textObject.offsetStartY(this.currentBox.y - this.startBox.y);
+    this.textObject.render();
+    this._outlineBox();
+  }
+
+  endDrag(ev) {
+    svgHelpers.eraseOutline(this.context,'text-drag');
+    this.textObject.offsetStartX(this.currentBox.x - this.startBox.x);
+    this.textObject.offsetStartY(this.currentBox.y - this.startBox.y);
+    this.textObject.render();
+    this.dragging = false;
+    this.text
+  }
+}
+
 // ## SuiTextSession
 // session for editing plain text
 class SuiTextSession {
@@ -641,12 +705,12 @@ class SuiTextSession {
     // get it from the text group
     if (!this.scoreText) {
       if (this.textGroup && this.textGroup.textBlocks.length) {
-        this.scoreText = this.textGroup.textBlocks[0];
+        this.scoreText = this.textGroup.textBlocks[0].text;
       } else {
         this.scoreText = new SmoScoreText({x: this.x,y: this.y});
+        this.textGroup.addScoreText(this.scoreText,null,SmoTextGroup.relativePosition.RIGHT);
       }
     }
-    this.textGroup.addScoreText(this.scoreText,null,SmoTextGroup.relativePosition.RIGHT);
     this.text = this.scoreText.text;
   }
 
@@ -670,6 +734,10 @@ class SuiTextSession {
     return this.layout.passState ===  suiLayoutBase.passStates.clean;
   }
 
+  _removeScoreText() {
+    const selector = '#' + this.scoreText.attrs.id;
+    $(selector).remove();
+  }
 
   // ### _startSessionForNote
   // Start the lyric session
@@ -677,17 +745,18 @@ class SuiTextSession {
     console.log('startSession');
     this.editor = new SuiTextBlockEditor({context : this.layout.context,
        x: this.x, y: this.y, scroller: this.scroller,
-     fontFamily: this.fontFamily, fontSize: this.fontSize, fontWeight: this.fontWeight});
-     this.editor.parseBlocks();
+     fontFamily: this.fontFamily, fontSize: this.fontSize, fontWeight: this.fontWeight
+     ,text: this.scoreText.text});
     this.cursorPromise = this.editor.startCursorPromise();
     this.state = SuiTextSession.States.RUNNING;
+    this._removeScoreText();
   }
 
   // ### _startSessionForNote
   // Stop the lyric session, return promise for done
   stopSession() {
     console.log('stopSession');
-    if (this.editor && !this._endLyricCondition) {
+    if (this.editor) {
       this.scoreText.text = this.editor.getText();
       this.editor.stopEditor();
     }
@@ -698,9 +767,12 @@ class SuiTextSession {
   // Key handler (pass to editor)
   evKey(evdata) {
     if (this.state !== SuiTextSession.States.RUNNING) {
-      return;
+      return false;
     }
-    this.editor.evKey(evdata);
+    const rv = this.editor.evKey(evdata);
+    if (rv) {
+      this._removeScoreText();
+    }
   }
 }
 // ## SuiLyricSession

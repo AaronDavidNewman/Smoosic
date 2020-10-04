@@ -5,66 +5,66 @@
 // manages the flow of music as an ordinary score.  We call it simple layout, because
 // there may be other layouts for parts view, or output to other media.
 class suiScoreLayout extends suiLayoutBase {
-	constructor(params) {
-		super('suiScoreLayout');
-		Vex.Merge(this, suiLayoutBase.defaults);
-		Vex.Merge(this, params);
+  constructor(params) {
+  super('suiScoreLayout');
+  Vex.Merge(this, suiLayoutBase.defaults);
+  Vex.Merge(this, params);
 
-		this.setViewport(true);
+  this.setViewport(true);
 
-		this.attrs = {
-			id: VF.Element.newID(),
-			type: 'testLayout'
-		};
-	}
+  this.attrs = {
+  id: VF.Element.newID(),
+  type: 'testLayout'
+  };
+  }
 
-	// ### createScoreLayout
-	// ### Description;
-	// to get the score to appear, a div and a score object are required.  The layout takes care of creating the
-	// svg element in the dom and interacting with the vex library.
-	static createScoreLayout(renderElement,score, layoutParams) {
-		var ctorObj = {
-			elementId: renderElement,
-			score: score
-		};
-		if (layoutParams) {
-			Vex.Merge(ctorObj, layoutParams);
-		}
-		var layout = new suiScoreLayout(ctorObj);
-		return layout;
-	}
-	static get defaults() {
-		return {
-			clefWidth: 70,
-			staffWidth: 250,
-			totalWidth: 250,
-			pageWidth: 8 * 96 + 48,
-			pageHeight: 11 * 96,
-			svgScale: 0.7,
-			font: {
-				typeface: "Arial",
-				pointSize: 10,
-				fillStyle: '#eed'
-			}
-		};
-	}
+  // ### createScoreLayout
+  // ### Description;
+  // to get the score to appear, a div and a score object are required.  The layout takes care of creating the
+  // svg element in the dom and interacting with the vex library.
+  static createScoreLayout(renderElement,score, layoutParams) {
+  var ctorObj = {
+  elementId: renderElement,
+  score: score
+  };
+  if (layoutParams) {
+  Vex.Merge(ctorObj, layoutParams);
+  }
+  var layout = new suiScoreLayout(ctorObj);
+  return layout;
+  }
+  static get defaults() {
+  return {
+  clefWidth: 70,
+  staffWidth: 250,
+  totalWidth: 250,
+  pageWidth: 8 * 96 + 48,
+  pageHeight: 11 * 96,
+  svgScale: 0.7,
+  font: {
+  typeface: "Arial",
+  pointSize: 10,
+  fillStyle: '#eed'
+  }
+  };
+  }
 
-	// ### unrenderAll
-	// ### Description:
-	// Delete all the svg elements associated with the score.
-	unrenderAll() {
-		this._score.staves.forEach((staff) => {
-			this.unrenderStaff(staff);
-		});
-		$(this.renderer.getContext().svg).find('g.lineBracket').remove();
-	}
+  // ### unrenderAll
+  // ### Description:
+  // Delete all the svg elements associated with the score.
+  unrenderAll() {
+  this._score.staves.forEach((staff) => {
+  this.unrenderStaff(staff);
+  });
+  $(this.renderer.getContext().svg).find('g.lineBracket').remove();
+  }
 
-	get logicalPageWidth() {
-		return this.pageMarginWidth;
-	}
-	get logicalPageHeight() {
-		return this.pageMarginHeigh;
-	}
+  get logicalPageWidth() {
+  return this.pageMarginWidth;
+  }
+  get logicalPageHeight() {
+  return this.pageMarginHeigh;
+  }
 
   // ### _measureToLeft
   // measure to 'left' is on previous row if this is the first column in a system
@@ -72,7 +72,7 @@ class suiScoreLayout extends suiLayoutBase {
   _measureToLeft(measure) {
     var j = measure.measureNumber.staffId;
     var i = measure.measureNumber.measureIndex;
-	 return (i > 0 ? this._score.staves[j].measures[i - 1] :null);
+   return (i > 0 ? this._score.staves[j].measures[i - 1] :null);
   }
 
   renderTextGroup(gg) {
@@ -81,20 +81,19 @@ class suiScoreLayout extends suiLayoutBase {
     });
   }
 
-	renderScoreText(tt) {
-		var svg = this.context.svg;
+  renderScoreText(tt) {
+    var svg = this.context.svg;
     var scoreLayout = this.scaledScoreLayout;
-		var classes = tt.attrs.id+' '+'score-text'+' '+tt.classes;
+    var classes = tt.attrs.id+' '+'score-text'+' '+tt.classes;
     var text = tt.text.replace('###',1); /// page number
-        text = text.replace('@@@',scoreLayout.pages); /// page number
-		var args = {svg:this.svg,width:tt.width,height:tt.height,layout:this._score.layout,text:text};
-		/* if (tt.autoLayout === true) {
-			var fcn = tt.position+'TextPlacement';
-			suiTextLayout[fcn](tt,args);
-		} else {  */
-    const svgText = SuiTextBlock.fromScoreText(tt,this.context);
+    text = text.replace('@@@',scoreLayout.pages); /// page number
+    var args = {svg:this.svg,width:tt.width,height:tt.height,layout:this._score.layout,text:text};
+    const block = SuiInlineText.fromScoreText(tt,this.context);
+    const blocks = [{ text: block, position: SmoTextGroup.relativePosition.RIGHT }];
+
+    const svgText = new SuiTextBlock({blocks: blocks, context: this.context} );
     svgText.render();
-    tt.renderedBox = svgText.getBoundingBox();
+    tt.renderedBox = svgText.getRenderedBox();
 
     // Update paginated score text
     if (tt.pagination != SmoScoreText.paginations.once) {
@@ -121,69 +120,68 @@ class suiScoreLayout extends suiLayoutBase {
         suiTextLayout.placeText(xx,args);
       }
     }
-	}
-	_renderScoreModifiers() {
-		var svg = this.context.svg;
-		$(this.renderer.getContext().svg).find('text.score-text').remove();
-		this._score.scoreText.forEach((tt) => {
-			this.renderScoreText(tt);
-		});
+  }
+  _renderScoreModifiers() {
+    var svg = this.context.svg;
+    $(this.renderer.getContext().svg).find('text.score-text').remove();
+    this._score.scoreText.forEach((tt) => {
+      this.renderScoreText(tt);
+    });
     this._score.textGroups.forEach((tg) => {
       this.renderTextGroup(tg);
     });
-	}
+  }
 
 
     // ### calculateBeginningSymbols
     // calculate which symbols like clef, key signature that we have to render in this measure.
-	calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast,tempoLast) {
-		var measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
-		measure.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
-		measure.forceTimeSignature = (measure.measureNumber.measureIndex == 0 || measure.timeSignature !== timeSigLast);
-        measure.forceTempo = false;
-		var tempo = measure.getTempo();
-        if (tempo && measure.measureNumber.measureIndex == 0) {
-            measure.forceTempo = tempo.display;
-        }
-		else if (tempo && tempoLast) {
-		    if (!SmoTempoText.eq(tempo,tempoLast)) {
-		    	measure.forceTempo = tempo.display;
-		    }
-		} else if (tempo) {
-			measure.forceTempo = tempo.display;
-		}
-		if (measureKeySig !== keySigLast) {
-			measure.canceledKeySignature = keySigLast;
-			measure.setChanged();
-			measure.forceKeySignature = true;
-		} else if (systemIndex == 0 && measureKeySig != 'C') {
-			measure.forceKeySignature = true;
-		} else {
-			measure.forceKeySignature = false;
-		}
-	}
-
-    _getMeasuresInColumn(ix) {
-        var rv = [];
-        this.score.staves.forEach((staff) => {
-            var inst = staff.measures.find((ss) => ss.measureNumber.measureIndex == ix);
-            if (inst) {
-                rv.push(inst);
-            }
-        });
-
-        return rv;
+  calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast,tempoLast) {
+    var measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
+    measure.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
+    measure.forceTimeSignature = (measure.measureNumber.measureIndex == 0 || measure.timeSignature !== timeSigLast);
+      measure.forceTempo = false;
+    var tempo = measure.getTempo();
+    if (tempo && measure.measureNumber.measureIndex == 0) {
+        measure.forceTempo = tempo.display;
     }
-    get scaledScoreLayout() {
-        var svgScale = this.score.layout.svgScale;
-        var rv = JSON.parse(JSON.stringify(this.score.layout));
-        var attrs = ['topMargin','bottomMargin','interGap','intraGap','pageHeight','pageWidth','leftMargin','rightMargin'];
-        attrs.forEach((attr) => {
-            rv[attr] = rv[attr] / svgScale;
-        });
-
-        return rv;
+    else if (tempo && tempoLast) {
+      if (!SmoTempoText.eq(tempo,tempoLast)) {
+      	measure.forceTempo = tempo.display;
+      }
+    } else if (tempo) {
+      measure.forceTempo = tempo.display;
     }
+    if (measureKeySig !== keySigLast) {
+      measure.canceledKeySignature = keySigLast;
+      measure.setChanged();
+      measure.forceKeySignature = true;
+    } else if (systemIndex == 0 && measureKeySig != 'C') {
+      measure.forceKeySignature = true;
+    } else {
+      measure.forceKeySignature = false;
+    }
+  }
+
+  _getMeasuresInColumn(ix) {
+    var rv = [];
+    this.score.staves.forEach((staff) => {
+      var inst = staff.measures.find((ss) => ss.measureNumber.measureIndex == ix);
+      if (inst) {
+        rv.push(inst);
+      }
+    });
+    return rv;
+  }
+  get scaledScoreLayout() {
+    var svgScale = this.score.layout.svgScale;
+    var rv = JSON.parse(JSON.stringify(this.score.layout));
+    var attrs = ['topMargin','bottomMargin','interGap','intraGap','pageHeight','pageWidth','leftMargin','rightMargin'];
+    attrs.forEach((attr) => {
+      rv[attr] = rv[attr] / svgScale;
+    });
+
+    return rv;
+  }
 
     renderAllMeasures() {
         var mscore = {};

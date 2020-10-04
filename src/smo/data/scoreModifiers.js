@@ -20,46 +20,45 @@ class SmoScoreModifierBase {
 }
 
 class SmoSystemGroup extends SmoScoreModifierBase {
-    constructor(params) {
-        super('SmoSystemGroup');
-        smoSerialize.serializedMerge(SmoSystemGroup.attributes,SmoSystemGroup.defaults,this);
-        smoSerialize.serializedMerge(SmoSystemGroup.attributes, params, this);
+  constructor(params) {
+    super('SmoSystemGroup');
+    smoSerialize.serializedMerge(SmoSystemGroup.attributes,SmoSystemGroup.defaults,this);
+    smoSerialize.serializedMerge(SmoSystemGroup.attributes, params, this);
 
-        if (!this['attrs']) {
-            this.attrs = {
-                id: VF.Element.newID(),
-                type: 'SmoStaffHairpin'
-            };
-        } else {
-            console.log('inherit attrs');
-        }
+    if (!this['attrs']) {
+      this.attrs = {
+        id: VF.Element.newID(),
+        type: 'SmoStaffHairpin'
+      };
+    } else {
+      console.log('inherit attrs');
     }
-    static get defaults() {
-        return {
-            leftConnector:SmoSystemGroup.connectorTypes.single,
-            rightConnector:SmoSystemGroup.connectorTypes.single,
-            mapType:SmoSystemGroup.mapTypes.allMeasures,
-            text:'',
-            shortText:'',
-            justify:true,
-            startSelector:{staff:0,measure:0},
-            endSelector:{staff:0,measure:0}
-        }
+  }
+  static get defaults() {
+    return {
+      leftConnector:SmoSystemGroup.connectorTypes.single,
+      rightConnector:SmoSystemGroup.connectorTypes.single,
+      mapType:SmoSystemGroup.mapTypes.allMeasures,
+      text:'',
+      shortText:'',
+      justify:true,
+      startSelector:{staff:0,measure:0},
+      endSelector:{staff:0,measure:0}
     }
-    leftConnectorVx() {
-        switch (this.leftConnector) {
-            case SmoSystemGroup.connectorTypes.single:
-               return VF.StaveConnector.type.SINGLE_LEFT;
-            case SmoSystemGroup.connectorTypes.double:
-               return VF.StaveConnector.type.DOUBLE_LEFT;
-            case SmoSystemGroup.connectorTypes.brace:
-               return VF.StaveConnector.type.BRACE;
-           case SmoSystemGroup.connectorTypes.bracket:
-           default:
-             return VF.StaveConnector.type.BRACKET;
-
-        };
-    }
+  }
+  leftConnectorVx() {
+    switch (this.leftConnector) {
+      case SmoSystemGroup.connectorTypes.single:
+        return VF.StaveConnector.type.SINGLE_LEFT;
+      case SmoSystemGroup.connectorTypes.double:
+        return VF.StaveConnector.type.DOUBLE_LEFT;
+      case SmoSystemGroup.connectorTypes.brace:
+        return VF.StaveConnector.type.BRACE;
+     case SmoSystemGroup.connectorTypes.bracket:
+     default:
+      return VF.StaveConnector.type.BRACKET;
+    };
+  }
     rightConnectorVx() {
         switch (this.rightConnector) {
             case SmoSystemGroup.connectorTypes.single:
@@ -98,12 +97,15 @@ class SmoTextGroup extends SmoScoreModifierBase {
       CENTER: 3
     };
   }
-  // The position of block n relative to block n-1
+  // The position of block n relative to block n-1.  Each block
+  // has it's own position.  Justification is inter-block.
   static get relativePosition() {
     return { ABOVE: 1, BELOW: 2, LEFT: 3, RIGHT: 4 };
   }
   static get defaults() {
-    return { textBlocks:[], justification: SmoTextGroup.justifications.LEFT };
+    return { textBlocks:[],
+      justification: SmoTextGroup.justifications.LEFT
+    };
   }
   static get attributes() {
     return ['textBlocks','justification'];
@@ -112,7 +114,7 @@ class SmoTextGroup extends SmoScoreModifierBase {
     var blocks = [];
     jObj.forEach((st) => {
       var tx = new SmoScoreText(st.text);
-      blocks.push({text:tx, position: st.position});
+      blocks.push({scoreText:tx, position: st.position});
     });
     return new SmoTextGroup(blocks);
   }
@@ -120,20 +122,33 @@ class SmoTextGroup extends SmoScoreModifierBase {
     smoSerialize.serializedMergeNonDefault(SmoTextGroup.defaults,SmoTextGroup.attributes,this,params);
     params.ctor = 'SmoTextGroup';
     return params;
-
+  }
+  _isScoreText(st) {
+    return st.ctor && st.ctor === 'SmoScoreText';
   }
   constructor(params) {
     params = params ? params : {};
     super('SmoTextGroup');
     this.textBlocks = [];
-    this.blockData = [];
+    this.backupBlocks = [];
     Vex.Merge(this,SmoTextGroup.defaults);
     Vex.Merge(this,params);
     if (params.blocks) {
-      this.textBlocks = params.blocks;
+      params.blocks.forEach((block) => {
+        if (this._isScoreText(block)) {
+          this.textBlocks.push({text: block, position: SmoTextGroup.relativePosition.RIGHT});
+        } else if (this._isScoreText(block.text)) {
+          this.textBlocks.push(block);
+        } else {
+          throw("Invalid object in SmoTextGroup");
+        }
+      });
     }
   }
   addScoreText(scoreText,prevBlock,position) {
+    if (!this._isScoreText(scoreText)) {
+      throw('Need SmoScoreText to add to TextGroup');
+    }
     if (!prevBlock) {
       this.textBlocks.push({text:scoreText,position: position});
     } else {
@@ -143,9 +158,40 @@ class SmoTextGroup extends SmoScoreModifierBase {
     }
   }
   removeBlock(scoreText) {
+    if (!this._isScoreText(scoreText)) {
+      throw('Need SmoScoreText to add to TextGroup');
+    }
     var bbid =  (typeof(scoreText) === 'string') ? scoreText : scoreText.attrs.id;
     var ix = this.textBlocks.findIndex((bb) => bb.attrs.id === bbid);
     this.textBlocks.splice(ix,1);
+  }
+
+  scaleInPlace(factor) {
+    this.textBlocks.forEach((block) => {
+      block.text.scaleInPlace();
+    });
+  }
+  scaleXInPlace(factor) {
+    this.textBlocks.forEach((block) => {
+      block.text.scaleXInPlace();
+    });
+  }
+  scaleYInPlace(factor) {
+    this.textBlocks.forEach((block) => {
+      block.text.scaleYInPlace();
+    });
+  }
+
+  backupParams() {
+    this.textBlocks.forEach((block) => {
+      block.text.backupParams();
+    });
+  }
+
+  restoreParams() {
+    this.textBlocks.forEach((block) => {
+      block.text.restoreParams();
+    });
   }
 }
 // ## SmoScoreText
@@ -253,9 +299,9 @@ class SmoScoreText extends SmoScoreModifierBase {
 		return this.backup;
 	}
 
-    restoreParams() {
-        smoSerialize.serializedMerge(SmoScoreText.attributes, this.backup, this);
-    }//
+  restoreParams() {
+    smoSerialize.serializedMerge(SmoScoreText.attributes, this.backup, this);
+  }//
 
 	serialize() {
 	var params = {};

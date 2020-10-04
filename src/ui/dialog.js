@@ -27,7 +27,8 @@ class SuiModifierDialogFactory {
       SmoDynamicText: 'SuiDynamicModifierDialog',
       SmoVolta: 'SuiVoltaAttributeDialog',
       SmoScoreText: 'SuiTextTransformDialog',
-      SmoLoadScore:  'SuiLoadFileDialog',
+      SmoTextGroup: 'SuiTextTransformDialog',
+      SmoLoadScore: 'SuiLoadFileDialog',
       SmoLyric:'SuiLyricDialog'
     };
   }
@@ -77,6 +78,8 @@ class SuiDialogBase {
     this.undoBuffer = parameters.undoBuffer;
     this.editor = parameters.editor;
     this.label = this.staticText.label;
+    this.modifier = parameters.modifier;
+    this.activeScoreText = parameters.activeScoreText;
 
     var top = parameters.top - this.tracker.scroller.netScroll.y;
     var left = parameters.left - this.tracker.scroller.netScroll.x;

@@ -52,6 +52,7 @@ class SuiApplication {
     params.eventSource = new browserEventSource(); // events come from the browser UI.
 
     params.layout = suiScoreLayout.createScoreLayout(document.getElementById(SmoConfig.vexDomContainer),score);
+    params.eventSource.setRenderElement(params.layout.renderElement);
     params.scroller = new suiScroller();
     params.tracker = new suiTracker(params.layout,params.scroller);
     params.layout.setMeasureMapper(params.tracker);

@@ -322,6 +322,20 @@ class suiController {
 		}
 	}
 
+  mouseMove(ev) {
+    this.tracker.intersectingArtifact({
+      x: ev.clientX,
+      y: ev.clientY
+    });
+  }
+
+  mouseClick(ev) {
+    this.tracker.selectSuggestion(ev);
+    var modifier = this.tracker.getSelectedModifier();
+    if (modifier) {
+      this.createModifierDialog(modifier);
+    }
+  }
 	bindEvents() {
 		var self = this;
 		var tracker = this.tracker;
@@ -335,8 +349,10 @@ class suiController {
 		$('body').off('forceResizeEvent').on('forceResizeEvent',function() {
 			self.resizeEvent();
 		});
+    this.eventSource.bindMouseMoveHandler(this,'mouseMove');
+    this.eventSource.bindMouseClickHandler(this,'mouseClick');
 
-		$(this.renderElement).off('mousemove').on('mousemove', function (ev) {
+		/* $(this.renderElement).off('mousemove').on('mousemove', function (ev) {
 			tracker.intersectingArtifact({
 				x: ev.clientX,
 				y: ev.clientY
@@ -349,7 +365,7 @@ class suiController {
       if (modifier) {
         self.createModifierDialog(modifier);
       }
-		});
+		});   */
 
     this.keydownHandler = this.eventSource.bindKeydownHandler(this,'evKey');
 

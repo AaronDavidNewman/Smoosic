@@ -2538,8 +2538,34 @@ class TextEditTest {
       return cursorPromise;
     });
 
+    tests.push( async () => {
+      testTime = 500;
+      subTitle('drag start test');
+      lyricSession = new SuiDragSession({
+        textGroup: startGroup,
+        context: keys.layout.context,
+        scroller: keys.scroller
+        }
+      );
+      lyricSession.startDrag({clientX: lyricSession.currentClientBox.x + 5, clientY: lyricSession.currentClientBox.y + 5});
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      subTitle('drag text');
+      lyricSession.mouseMove({clientX: lyricSession.currentClientBox.x + 20, clientY: lyricSession.currentClientBox.y + 10});
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      subTitle('drag text 2');
+      lyricSession.mouseMove({clientX: lyricSession.currentClientBox.x + 20, clientY: lyricSession.currentClientBox.y + 10});
+      return timeTest();
+    });
+
     tests.push( async () =>  {
       subTitle('create lyric session');
+      testTime = 100;
       var selector = {staff: 0, measure: 0, voice: 0, tick: 1};
       lyricSession = new SuiLyricSession({
         context : keys.layout.context,
@@ -2557,7 +2583,7 @@ class TextEditTest {
     tests.push( async () => {
       subTitle('add lyric');
       console.log('add lyric test');
-      testTime = 1;
+      testTime = 100;
       lyricSession.evKey(makekey({'key':'d'}));
       lyricSession.evKey(makekey({'key':'o'}));
       return PromiseHelpers.makePromise(lyricSession,'_pendingEditor',null,null,100);
@@ -2584,48 +2610,25 @@ class TextEditTest {
       return PromiseHelpers.makePromise(lyricSession,'isStopped',null,null,100);
     });
 
-    tests.push( async () => {
-      subTitle('start chord session');
-      console.log('start chord session');
-      var selector = {staff: 0, measure: 0, voice: 0, tick: 1};
-      lyricSession = new SuiChordSession({
-        context : keys.layout.context,
-        selector: selector,
-        scroller: keys.scroller,
-        layout: keys.layout,
-        verse: 0,
-        score: score
-        }
-      );
-      lyricSession.startSession();
-      // eventSource.bindKeydownHandler(lyricSession,'evKey');
-      return timeTest();
-    });
-
     var makeKeyTest = (key,i) => {
       tests.push( async () => {
         subTitle("edit key "+i);
+        testTime = 100;
         lyricSession.evKey(makekey({'key':key}));
         return timeTest();
       });
     }
-    const chordStr = 'Ab7(^#11%b9%)';
 
-    testTime = 200;
-    for (var i =0;i < chordStr.length; ++i) {
-      makeKeyTest(chordStr[i],i);
-    }
-
-    tests.push( async () => {
-      subTitle('chord change submit');
-      lyricSession.evKey(makekey({'key':'Enter', 'code': 'Enter'}));
-      return PromiseHelpers.makePromise(lyricSession,'_pendingEditor',null,null,100);
+    var startString = new SmoScoreText({text : "ab",        x: 50,
+            y: 120,
     });
+    var startGroup = new SmoTextGroup({blocks:[startString]});
+    score.addTextGroup(startGroup);
 
     tests.push( async () => {
-      subTitle('stop session');
-      lyricSession.stopSession();
-      return PromiseHelpers.makePromise(lyricSession,'isStopped',null,null,100);
+      subTitle('render initial text');
+      keys.layout.setRefresh();
+      return timeTest();
     });
 
     tests.push( async () => {
@@ -2635,8 +2638,8 @@ class TextEditTest {
         scroller: keys.scroller,
         layout: keys.layout,
         score: score,
-        x: 50,
-        y: 120
+        x:50, y:120,
+        textGroup:startGroup
         }
       );
       lyricSession.startSession();
@@ -2660,9 +2663,46 @@ class TextEditTest {
     tests.push( async () => {
       subTitle('update score from text session');
       score.addTextGroup(lyricSession.textGroup);
-      keys.layout.setDirty();
+      keys.layout.setRefresh();
+      return PromiseHelpers.makePromise(lyricSession,'_isRendered',null,null,100);
+    });
+
+    tests.push( async () => {
+      subTitle('start chord session');
+      console.log('start chord session');
+      var selector = {staff: 0, measure: 0, voice: 0, tick: 1};
+      lyricSession = new SuiChordSession({
+        context : keys.layout.context,
+        selector: selector,
+        scroller: keys.scroller,
+        layout: keys.layout,
+        verse: 0,
+        score: score
+        }
+      );
+      lyricSession.startSession();
+      // eventSource.bindKeydownHandler(lyricSession,'evKey');
+      return timeTest();
+    });
+
+    const chordStr = 'Ab7(^#11%b9%)';
+
+    for (var i =0;i < chordStr.length; ++i) {
+      makeKeyTest(chordStr[i],i);
+    }
+
+    tests.push( async () => {
+      subTitle('chord change submit');
+      lyricSession.evKey(makekey({'key':'Enter', 'code': 'Enter'}));
+      return PromiseHelpers.makePromise(lyricSession,'_pendingEditor',null,null,100);
+    });
+
+    tests.push( async () => {
+      subTitle('stop session');
+      lyricSession.stopSession();
       return PromiseHelpers.makePromise(lyricSession,'isStopped',null,null,100);
     });
+
 
     let result;
     for (const f of tests) {
