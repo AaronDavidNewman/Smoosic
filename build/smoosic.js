@@ -9643,6 +9643,14 @@ class SmoTextGroup extends SmoScoreModifierBase {
       this.textBlocks.splice(ix,0,nextBlock);
     }
   }
+  ul() {
+    var rv = {x:0,y:0};
+    this.textBlocks.forEach((block) => {
+      rv.x = block.text.x > rv.x ? block.text.x : rv.x;
+      rv.y = block.text.y > rv.y ? block.text.y : rv.y;
+    });
+    return rv;
+  }
   removeBlock(scoreText) {
     if (!this._isScoreText(scoreText)) {
       throw('Need SmoScoreText to add to TextGroup');
@@ -9651,20 +9659,30 @@ class SmoTextGroup extends SmoScoreModifierBase {
     var ix = this.textBlocks.findIndex((bb) => bb.attrs.id === bbid);
     this.textBlocks.splice(ix,1);
   }
+  offsetX(offset) {
+    this.textBlocks.forEach((block) => {
+      block.text.offsetX(offset);
+    });
+  }
+  offsetY(offset) {
+    this.textBlocks.forEach((block) => {
+      block.text.offsetY(offset);
+    });
+  }
 
   scaleInPlace(factor) {
     this.textBlocks.forEach((block) => {
-      block.text.scaleInPlace();
+      block.text.scaleInPlace(factor);
     });
   }
   scaleXInPlace(factor) {
     this.textBlocks.forEach((block) => {
-      block.text.scaleXInPlace();
+      block.text.scaleXInPlace(factor);
     });
   }
   scaleYInPlace(factor) {
     this.textBlocks.forEach((block) => {
-      block.text.scaleYInPlace();
+      block.text.scaleYInPlace(factor);
     });
   }
 
@@ -9788,6 +9806,13 @@ class SmoScoreText extends SmoScoreModifierBase {
   restoreParams() {
     smoSerialize.serializedMerge(SmoScoreText.attributes, this.backup, this);
   }//
+
+  offsetX(offset) {
+    this.x += offset;
+  }
+  offsetY(offset) {
+    this.y += offset;
+  }
 
 	serialize() {
 	var params = {};
@@ -17800,6 +17825,13 @@ class SuiTextBlock {
     });
   }
 
+  get x() {
+    return this.getLogicalBox().x;
+  }
+  get y() {
+    return this.getLogicalBox().y;
+  }
+
   maxFontHeight(scale) {
     var rv = 0;
     this.inlineBlocks.forEach((block) => {
@@ -18726,24 +18758,34 @@ class SuiDragSession {
     if (!this.dragging) {
       return;
     }
+    const svgX = this.currentBox.x;
+    const svgY = this.currentBox.y;
+    const clientX = this.currentClientBox.x;
+    const clientY = this.currentClientBox.y;
+
     this.currentClientBox.x = e.clientX - this.xOffset;
-    this.currentClientBox.y = e.clientY - this.xOffset;
+    this.currentClientBox.y = e.clientY - this.yOffset;
     const coor = svgHelpers.clientToLogical(this.context.svg, {x: this.currentClientBox.x, y: this.currentClientBox.y });
     this.currentBox.x = coor.x;
     this.currentBox.y = coor.y;
-    this.textObject.offsetStartX(this.currentBox.x - this.startBox.x);
-    this.textObject.offsetStartY(this.currentBox.y - this.startBox.y);
+    this.textObject.offsetStartX(this.currentBox.x - svgX);
+    this.textObject.offsetStartY(this.currentBox.y - svgY);
     this.textObject.render();
     this._outlineBox();
+  }
+  get deltaX() {
+    return this.currentBox.x - this.startBox.x;
+  }
+  get deltaY() {
+    return this.currentBox.y - this.startBox.y;
   }
 
   endDrag(ev) {
     svgHelpers.eraseOutline(this.context,'text-drag');
-    this.textObject.offsetStartX(this.currentBox.x - this.startBox.x);
-    this.textObject.offsetStartY(this.currentBox.y - this.startBox.y);
     this.textObject.render();
+    this.textGroup.offsetX(this.deltaX);
+    this.textGroup.offsetY(this.deltaY);
     this.dragging = false;
-    this.text
   }
 }
 

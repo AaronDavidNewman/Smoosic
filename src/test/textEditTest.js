@@ -24,6 +24,10 @@ class TextEditTest {
       keys.scroller});
     var cursorPromise = editor.startCursorPromise();
     var lyricSession = null;
+    var startString = new SmoScoreText({text : "ab", x: 50, y: 120,
+    });
+    var startGroup = new SmoTextGroup({blocks:[startString]});
+    score.addTextGroup(startGroup);
 
 		var timeTest = () => {
       // layout.forceRender();
@@ -238,12 +242,6 @@ class TextEditTest {
       });
     }
 
-    var startString = new SmoScoreText({text : "ab",        x: 50,
-            y: 120,
-    });
-    var startGroup = new SmoTextGroup({blocks:[startString]});
-    score.addTextGroup(startGroup);
-
     tests.push( async () => {
       subTitle('render initial text');
       keys.layout.setRefresh();
@@ -252,12 +250,13 @@ class TextEditTest {
 
     tests.push( async () => {
       subTitle('start text session');
+      const ul = startGroup.ul();
       lyricSession = new SuiTextSession({
         context : keys.layout.context,
         scroller: keys.scroller,
         layout: keys.layout,
         score: score,
-        x:50, y:120,
+        x:ul.x, y:ul.y,
         textGroup:startGroup
         }
       );

@@ -157,6 +157,14 @@ class SmoTextGroup extends SmoScoreModifierBase {
       this.textBlocks.splice(ix,0,nextBlock);
     }
   }
+  ul() {
+    var rv = {x:0,y:0};
+    this.textBlocks.forEach((block) => {
+      rv.x = block.text.x > rv.x ? block.text.x : rv.x;
+      rv.y = block.text.y > rv.y ? block.text.y : rv.y;
+    });
+    return rv;
+  }
   removeBlock(scoreText) {
     if (!this._isScoreText(scoreText)) {
       throw('Need SmoScoreText to add to TextGroup');
@@ -165,20 +173,30 @@ class SmoTextGroup extends SmoScoreModifierBase {
     var ix = this.textBlocks.findIndex((bb) => bb.attrs.id === bbid);
     this.textBlocks.splice(ix,1);
   }
+  offsetX(offset) {
+    this.textBlocks.forEach((block) => {
+      block.text.offsetX(offset);
+    });
+  }
+  offsetY(offset) {
+    this.textBlocks.forEach((block) => {
+      block.text.offsetY(offset);
+    });
+  }
 
   scaleInPlace(factor) {
     this.textBlocks.forEach((block) => {
-      block.text.scaleInPlace();
+      block.text.scaleInPlace(factor);
     });
   }
   scaleXInPlace(factor) {
     this.textBlocks.forEach((block) => {
-      block.text.scaleXInPlace();
+      block.text.scaleXInPlace(factor);
     });
   }
   scaleYInPlace(factor) {
     this.textBlocks.forEach((block) => {
-      block.text.scaleYInPlace();
+      block.text.scaleYInPlace(factor);
     });
   }
 
@@ -302,6 +320,13 @@ class SmoScoreText extends SmoScoreModifierBase {
   restoreParams() {
     smoSerialize.serializedMerge(SmoScoreText.attributes, this.backup, this);
   }//
+
+  offsetX(offset) {
+    this.x += offset;
+  }
+  offsetY(offset) {
+    this.y += offset;
+  }
 
 	serialize() {
 	var params = {};

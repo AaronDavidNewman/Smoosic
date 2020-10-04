@@ -423,6 +423,13 @@ class SuiTextBlock {
     });
   }
 
+  get x() {
+    return this.getLogicalBox().x;
+  }
+  get y() {
+    return this.getLogicalBox().y;
+  }
+
   maxFontHeight(scale) {
     var rv = 0;
     this.inlineBlocks.forEach((block) => {

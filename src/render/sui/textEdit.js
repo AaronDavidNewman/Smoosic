@@ -653,24 +653,34 @@ class SuiDragSession {
     if (!this.dragging) {
       return;
     }
+    const svgX = this.currentBox.x;
+    const svgY = this.currentBox.y;
+    const clientX = this.currentClientBox.x;
+    const clientY = this.currentClientBox.y;
+
     this.currentClientBox.x = e.clientX - this.xOffset;
-    this.currentClientBox.y = e.clientY - this.xOffset;
+    this.currentClientBox.y = e.clientY - this.yOffset;
     const coor = svgHelpers.clientToLogical(this.context.svg, {x: this.currentClientBox.x, y: this.currentClientBox.y });
     this.currentBox.x = coor.x;
     this.currentBox.y = coor.y;
-    this.textObject.offsetStartX(this.currentBox.x - this.startBox.x);
-    this.textObject.offsetStartY(this.currentBox.y - this.startBox.y);
+    this.textObject.offsetStartX(this.currentBox.x - svgX);
+    this.textObject.offsetStartY(this.currentBox.y - svgY);
     this.textObject.render();
     this._outlineBox();
+  }
+  get deltaX() {
+    return this.currentBox.x - this.startBox.x;
+  }
+  get deltaY() {
+    return this.currentBox.y - this.startBox.y;
   }
 
   endDrag(ev) {
     svgHelpers.eraseOutline(this.context,'text-drag');
-    this.textObject.offsetStartX(this.currentBox.x - this.startBox.x);
-    this.textObject.offsetStartY(this.currentBox.y - this.startBox.y);
     this.textObject.render();
+    this.textGroup.offsetX(this.deltaX);
+    this.textGroup.offsetY(this.deltaY);
     this.dragging = false;
-    this.text
   }
 }
 
