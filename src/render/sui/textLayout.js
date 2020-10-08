@@ -299,9 +299,12 @@ class SuiInlineText {
   }
 
   rescale(scale) {
+    scale = (scale * this.fontSize < 6) ? 6 / this.fontSize : scale;
+    scale = (scale * this.fontSize > 72) ? 72/this.fontSize : scale;
     this.blocks.forEach((block) => {
       block.scale = scale;
     });
+    this.updatedMetrics = false;
   }
 
   render() {
@@ -351,7 +354,9 @@ class SuiInlineText {
     if (sp || sub) {
       // y = y + (sp ? SuiInlineText.superscriptOffset : SuiInlineText.subscriptOffset) * this.pointsToPixels * block.scale;
       this.context.save();
-      this.context.setFont(this.fontFamily, this.fontSize * VF.ChordSymbol.superSubRatio, this.fontWeight);
+      this.context.setFont(this.fontFamily, this.fontSize * VF.ChordSymbol.superSubRatio * block.scale, this.fontWeight);
+    } else {
+      this.context.setFont(this.fontFamily, this.fontSize * block.scale, this.fontWeight);
     }
     if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
       this.context.fillText(block.text,block.x,y);
@@ -412,8 +417,17 @@ class SuiTextBlock {
   }
   render() {
     this.unrender();
+    this.renderedBox = null;
+    this.logicalBox = null;
     this.inlineBlocks.forEach((block) => {
       block.text.render();
+      if (!this.renderedBox) {
+        this.renderedBox = svgHelpers.smoBox(block.text.renderedBox);
+        this.logicalBox = svgHelpers.smoBox(block.text.logicalBox);
+      } else {
+        this.renderedBox = svgHelpers.unionRect(this.renderedBox,block.text.renderedBox);
+        this.logicalBox = svgHelpers.unionRect(this.logicalBox,block.text.logicalBox);
+      }
     });
   }
 
@@ -430,7 +444,7 @@ class SuiTextBlock {
   }
 
   rescale(scale) {
-    this.blocks.forEach((block) => {
+    this.inlineBlocks.forEach((block) => {
       block.text.rescale(scale);
     });
   }
@@ -484,7 +498,6 @@ class SuiTextBlock {
   }
   static fromTextGroup(tg,context) {
     var rv = null;
-    var params = {context:context};
     let blocks = [];
 
     // Create an inline block for each ScoreText
@@ -492,7 +505,7 @@ class SuiTextBlock {
       const st = stBlock.text;
       blocks.push(SuiTextBlock.blockFromScoreText(st,context, stBlock.position));
     });
-    return new SuiTextBlock({blocks: blocks, justification: tg.justification});
+    return new SuiTextBlock({blocks: blocks, justification: tg.justification, context: context});
   }
   unrender() {
     this.inlineBlocks.forEach((block) => {

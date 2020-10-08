@@ -274,6 +274,9 @@ class suiController {
       layoutDebug.addDialogDebug('controller: unbindKeyboardForModal resolve')
 		}
     this.eventSource.unbindKeydownHandler(this.keydownHandler);
+    this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
+    this.eventSource.unbindClickHandler(this.mouseClickHandler);
+
 		dialog.closeModalPromise.then(rebind);
 	}
 
@@ -349,8 +352,8 @@ class suiController {
 		$('body').off('forceResizeEvent').on('forceResizeEvent',function() {
 			self.resizeEvent();
 		});
-    this.eventSource.bindMouseMoveHandler(this,'mouseMove');
-    this.eventSource.bindMouseClickHandler(this,'mouseClick');
+    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this,'mouseMove');
+    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this,'mouseClick');
 
 		/* $(this.renderElement).off('mousemove').on('mousemove', function (ev) {
 			tracker.intersectingArtifact({

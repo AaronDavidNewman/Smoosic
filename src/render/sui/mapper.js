@@ -6,7 +6,7 @@
 class suiMapper {
     constructor(layout,scroller) {
         // layout renders the music when it changes
-		this.layout = layout;
+  this.layout = layout;
 
         // measure to selector map
         this.measureMap = {};
@@ -14,23 +14,23 @@ class suiMapper {
         this.scroller = scroller;
 
         // notes currently selected.  Something is always selected
-		this.selections = [];
+  this.selections = [];
         // modifiers (text etc.) that have been selected
         this.modifierSelections = [];
         // all the modifiers
-		this.modifierTabs = [];
+  this.modifierTabs = [];
         // the index of the currently selected modifier
-		this.modifierIndex = -1;
+  this.modifierIndex = -1;
         // The list of modifiers near the current selection
         this.localModifiers = [];
         // mouse-over that might be selected soon
-		this.modifierSuggestion=-1;
-		this.suggestion = {};
+  this.modifierSuggestion=-1;
+  this.suggestion = {};
         // index if a single pitch of a chord is selected
-		this.pitchIndex = -1;
+  this.pitchIndex = -1;
         // the current selection, which is also the copy/paste destination
-		this.pasteBuffer = new PasteBuffer();
-	}
+  this.pasteBuffer = new PasteBuffer();
+  }
 
     // ### loadScore
     // We are loading a new score.  clear the maps so we can rebuild them after
@@ -43,28 +43,28 @@ class suiMapper {
     }
 
 
-    // ### _clearMeasureArtifacts
-    // clear the measure from the measure and note maps so we can rebuild it.
-    clearMeasureMap(staff,measure) {
-        var selector = {staff:measure.measureNumber.staffId,measure:measure.measureNumber.measureIndex};
-        var measureKey = SmoSelector.getMeasureKey(selector);
-        if (this.measureMap[measureKey]) {
-            var nkeys = Object.keys(this.measureMap[measureKey].keys);
-            nkeys.forEach((key) => {
-                delete this.measureNoteMap[key];
-            });
+  // ### _clearMeasureArtifacts
+  // clear the measure from the measure and note maps so we can rebuild it.
+  clearMeasureMap(staff,measure) {
+    var selector = {staff:measure.measureNumber.staffId,measure:measure.measureNumber.measureIndex};
+    var measureKey = SmoSelector.getMeasureKey(selector);
+    if (this.measureMap[measureKey]) {
+      var nkeys = Object.keys(this.measureMap[measureKey].keys);
+      nkeys.forEach((key) => {
+        delete this.measureNoteMap[key];
+      });
 
-            delete this.measureMap[measureKey];
-        }
-        // Unselect selections in this measure so we can reselect them when re-tracked
-        var ar = [];
-        this.selections.forEach((selection) => {
-            if (selection.selector.staff != selector.staff || selection.selector.measure != selector.measure) {
-                ar.push(selection);
-            }
-        });
-        this.selections = ar;
+      delete this.measureMap[measureKey];
     }
+    // Unselect selections in this measure so we can reselect them when re-tracked
+    var ar = [];
+    this.selections.forEach((selection) => {
+      if (selection.selector.staff != selector.staff || selection.selector.measure != selector.measure) {
+        ar.push(selection);
+      }
+    });
+    this.selections = ar;
+  }
 
   deleteMeasure(selection) {
     console.log('removing '+selection.selector.staff+'/'+selection.selector.measure);
@@ -92,18 +92,18 @@ class suiMapper {
     // ### _getClosestTick
     // given a musical selector, find the note artifact that is closest to it,
     // if an exact match is not available
-	_getClosestTick(selector) {
+  _getClosestTick(selector) {
     var measureKey = Object.keys(this.measureNoteMap).find((k) => {
-        return SmoSelector.sameMeasure(this.measureNoteMap[k].selector, selector)
-				 && this.measureNoteMap[k].selector.tick === 0;
+      return SmoSelector.sameMeasure(this.measureNoteMap[k].selector, selector)
+   && this.measureNoteMap[k].selector.tick === 0;
     });
     var tickKey = Object.keys(this.measureNoteMap).find((k) => {
         return SmoSelector.sameNote(this.measureNoteMap[k].selector,selector);
     });
-		var firstObj = this.measureNoteMap[Object.keys(this.measureNoteMap)[0]];
-		return tickKey ? this.measureNoteMap[tickKey]:
-		    (measureKey ? this.measureNoteMap[measureKey] : firstObj);
-	}
+  var firstObj = this.measureNoteMap[Object.keys(this.measureNoteMap)[0]];
+  return tickKey ? this.measureNoteMap[tickKey]:
+      (measureKey ? this.measureNoteMap[measureKey] : firstObj);
+  }
 
     // ### updateMeasure
     // A measure has changed.  Update the music geometry for it
@@ -126,58 +126,57 @@ class suiMapper {
     var selectionChanged = false;
     var selectedTicks = 0;
     measure.voices.forEach((voice) => {
-        var tick = 0;
-        voice.notes.forEach((note) => {
-            var selector = {
-                    staff: staff.staffId,
-                    measure: measure.measureNumber.measureIndex,
-                    voice: voiceIx,
-                    tick: tick,
-                    pitches: []
-                };
+      var tick = 0;
+      voice.notes.forEach((note) => {
+        var selector = {
+          staff: staff.staffId,
+          measure: measure.measureNumber.measureIndex,
+          voice: voiceIx,
+          tick: tick,
+          pitches: []
+          };
 
-            var voice = measure.getActiveVoice();
+        var voice = measure.getActiveVoice();
 
-            // create a selection for the newly rendered note
-            var selection = new SmoSelection({
-                        selector: selector,
-                        _staff: staff,
-                        _measure: measure,
-                        _note: note,
-                        _pitches: [],
-                        box: svgHelpers.adjustScroll(note.renderedBox,this.scroller.netScroll),
-                        type: 'rendered'
-                    });
-            // and add it to the map
-            this._updateMeasureNoteMap(selection);
-
-            // If this note is the same location as something that was selected, reselect it
-            if (sels.selectors.length && selection.selector.tick == sels.selectors[0].tick &&
-                 selection.selector.voice == vix) {
-                this.selections.push(selection);
-                // Reselect any pitches.
-                if (sels.selectors[0].pitches.length > 0) {
-                    sels.selectors[0].pitches.forEach((pitchIx) => {
-                        if (selection.pitches.length > pitchIx) {
-                            selection.selector.pitches.push(pitchIx);
-                        }
-                    });
-                }
-                selectedTicks += selection.note.tickCount;
-                selectionChanged = true;
-            } else if (selectedTicks > 0 && selectedTicks < sels.ticks && selection.selector.voice == vix) {
-                // try to select the same length of music as was previously selected.  So a 1/4 to 2 1/8, both
-                // are selected
-                this.selections.push(selection);
-                selectedTicks += selection.note.tickCount;
-            } else if (this.selections.length == 0 && (sels.selectors.length == 0)) {
-                this.selections=[selection];
-                selectionChanged=true;
-            }
-
-            tick += 1;
+        // create a selection for the newly rendered note
+        var selection = new SmoSelection({
+          selector: selector,
+          _staff: staff,
+          _measure: measure,
+          _note: note,
+          _pitches: [],
+          box: svgHelpers.adjustScroll(note.renderedBox,this.scroller.netScroll),
+          type: 'rendered'
         });
-        voiceIx += 1;
+        // and add it to the map
+        this._updateMeasureNoteMap(selection);
+
+        // If this note is the same location as something that was selected, reselect it
+        if (sels.selectors.length && selection.selector.tick == sels.selectors[0].tick &&
+          selection.selector.voice == vix) {
+          this.selections.push(selection);
+          // Reselect any pitches.
+          if (sels.selectors[0].pitches.length > 0) {
+            sels.selectors[0].pitches.forEach((pitchIx) => {
+              if (selection.pitches.length > pitchIx) {
+                selection.selector.pitches.push(pitchIx);
+              }
+            });
+          }
+          selectedTicks += selection.note.tickCount;
+          selectionChanged = true;
+        } else if (selectedTicks > 0 && selectedTicks < sels.ticks && selection.selector.voice == vix) {
+          // try to select the same length of music as was previously selected.  So a 1/4 to 2 1/8, both
+          // are selected
+          this.selections.push(selection);
+          selectedTicks += selection.note.tickCount;
+        } else if (this.selections.length == 0 && (sels.selectors.length == 0)) {
+          this.selections=[selection];
+          selectionChanged=true;
+        }
+        tick += 1;
+      });
+      voiceIx += 1;
     });
     // If there were selections on this measure, highlight them.
     if (selectionChanged) {
@@ -185,57 +184,52 @@ class suiMapper {
     }
   }
 
-	// ### updateMap
-	// This should be called after rendering the score.  It updates the score to
-	// graphics map and selects the first object.
-	_updateMap() {
-		console.log('update map');
-        this.mapping = true;
-		var notes = [].slice.call(this.renderElement.getElementsByClassName('vf-stavenote'));
+  // ### updateMap
+  // This should be called after rendering the score.  It updates the score to
+  // graphics map and selects the first object.
+  _updateMap() {
+    console.log('update map');
+    this.mapping = true;
+    var notes = [].slice.call(this.renderElement.getElementsByClassName('vf-stavenote'));
 
-		var selCopy = this._copySelections();
-		var ticksSelectedCopy = this._getTicksFromSelections();
-		var firstSelection = this.getExtremeSelection(-1);
+    var selCopy = this._copySelections();
+    var ticksSelectedCopy = this._getTicksFromSelections();
+    var firstSelection = this.getExtremeSelection(-1);
+    this._updateModifiers();
+    this.selections = [];
 
-        //if (!firstSelection) {
-        //    return;
-        //}
-
-		this._updateModifiers();
-		this.selections = [];
-
-        // Try to restore selection.  If there were none, just select the fist
-        // thing in the score
-        var keys = Object.keys(this.measureNoteMap);
-		if (keys.length && !selCopy.length) {
-            // If there is nothing rendered, don't update tracker
-			this.selections = [this.measureNoteMap[keys[0]]];
-		}  else {
-            if (!firstSelection) {
-                return;
-            }
-			this._findClosestSelection(firstSelection.selector);
-            var first = this.selections[0];
-			var tickSelected = first.note.tickCount;
-			while (tickSelected < ticksSelectedCopy && first) {
-				var delta = this.growSelectionRight();
-				if (!delta)  {
-					break;
-				}
-				tickSelected += delta;
-			}
-			// selCopy.forEach((sel) => this._findClosestSelection(sel));
-		}
-		this.highlightSelection();
-        this._createLocalModifiersList();
+    // Try to restore selection.  If there were none, just select the fist
+    // thing in the score
+    var keys = Object.keys(this.measureNoteMap);
+    if (keys.length && !selCopy.length) {
+    // If there is nothing rendered, don't update tracker
+      this.selections = [this.measureNoteMap[keys[0]]];
+    }  else {
+      if (!firstSelection) {
+        return;
+      }
+      this._findClosestSelection(firstSelection.selector);
+      var first = this.selections[0];
+      var tickSelected = first.note.tickCount;
+      while (tickSelected < ticksSelectedCopy && first) {
+        var delta = this.growSelectionRight();
+        if (!delta)  {
+          break;
+        }
+        tickSelected += delta;
+      }
+      // selCopy.forEach((sel) => this._findClosestSelection(sel));
+    }
+    this.highlightSelection();
+    this._createLocalModifiersList();
     // Is this right?  Don't update the past buffer with data until the display is redrawn
     // because some of the selections may not exist in the score.
     if (this.layout.isDirty === false) {
       this.pasteBuffer.clearSelections();
-  		this.pasteBuffer.setSelections(this.score, this.selections);      
+  		this.pasteBuffer.setSelections(this.score, this.selections);
     }
     this.mapping = false;
-	}
+  }
 
     // ### intersectingArtifact
     // given a bounding box, find any rendered elements that intersect with it

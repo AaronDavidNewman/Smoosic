@@ -30,7 +30,7 @@ module.exports = function (grunt) {
 					'src/ui/keyBindings/default/editorKeys.js','src/ui/keyBindings/default/trackerKeys.js',
 					'src/ui/dialog.js','src/ui/dialogs/scoreDialogs.js',
                     'src/ui/dialogs/fileDialogs.js','src/ui/dialogs/textDialogs.js','src/ui/dialogs/measureDialogs.js',
-                    'src/ui/dialogComponents.js',
+                    'src/ui/dialogComponents.js','src/ui/dialogs/textComponents.js',
 					'src/ui/ribbonLayout/default/defaultRibbon.js',
 					'src/render/vex/glyphDimensions.js',
                     'src/music/yama.js','src/music/invention.js','src/music/basic.js','src/music/jesuBambino.js','src/music/microtone.js','src/music/preciousLord.js',

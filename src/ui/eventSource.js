@@ -8,6 +8,8 @@ class browserEventSource {
     this.keydownHandlers = [];
     this.mouseMoveHandlers = [];
     this.clickHandlers = [];
+    this.mouseUpHandlers = [];
+    this.mouseDownHandlers = [];
     this.domTriggers = [];
     this.scrollers = [];
     this.handleKeydown = this.evKey.bind(this);
@@ -33,13 +35,29 @@ class browserEventSource {
     });
   }
 
+  mouseDown(event) {
+    this.mouseDownHandlers.forEach((handler) => {
+      handler.sink[handler.method](event);
+    });
+  }
+
+  mouseUp(event) {
+    this.mouseUpHandlers.forEach((handler) => {
+      handler.sink[handler.method](event);
+    });
+  }
+
   setRenderElement(renderElement) {
     this.renderElement = renderElement;
     var self = this;
     this.handleMouseMove = this.mouseMove.bind(this);
     this.handleMouseClick = this.mouseClick.bind(this);
-    $(this.renderElement)[0].addEventListener("mousemove",this.handleMouseMove);
+    this.handleMouseUp = this.mouseUp.bind(this);
+    this.handleMouseDown = this.mouseDown.bind(this);
+    $(document)[0].addEventListener("mousemove",this.handleMouseMove);
     $(this.renderElement)[0].addEventListener("click",this.handleMouseClick);
+    $(document)[0].addEventListener("mouseup",this.handleMouseUp);
+    $(document)[0].addEventListener("mousedown",this.handleMouseDown);
   }
 
   _unbindHandlerArray(arSrc,arDest,handler) {
@@ -54,6 +72,16 @@ class browserEventSource {
     var handlers = [];
     this._unbindHandlerArray(this.mouseMoveHandlers,handlers,handler);
     this.mouseMoveHandlers = handlers;
+  }
+  unbindMouseDownHandler(handler) {
+    var handlers = [];
+    this._unbindHandlerArray(this.mouseDownHandlers,handlers,handler);
+    this.mouseDownHandlers = handlers;
+  }
+  unbindMouseUpHandler(handler) {
+    var handlers = [];
+    this._unbindHandlerArray(this.mouseUpHandlers,handlers,handler);
+    this.mouseUpHandlers = handlers;
   }
   unbindClickHandler(handler) {
     var handlers = [];
@@ -83,11 +111,25 @@ class browserEventSource {
   bindMouseMoveHandler(sink, method) {
     var handler = {symbol: Symbol(), sink, method};
     this.mouseMoveHandlers.push(handler);
+    return handler;
+  }
+
+  bindMouseUpHandler(sink, method) {
+    var handler = {symbol: Symbol(), sink, method};
+    this.mouseUpHandlers.push(handler);
+    return handler;
+  }
+
+  bindMouseDownHandler(sink, method) {
+    var handler = {symbol: Symbol(), sink, method};
+    this.mouseDownHandlers.push(handler);
+    return handler;
   }
 
   bindMouseClickHandler(sink, method) {
     var handler = {symbol: Symbol(), sink, method};
     this.clickHandlers.push(handler);
+    return handler;
   }
 
   domClick(selector,sink,method,args) {

@@ -388,6 +388,16 @@ class svgHelpers {
 
     }
 
+  static containsPoint(box,point, netScroll) {
+    var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(box),netScroll);
+    const i1 = point.x - box.x; // handle edge not believe in x and y
+    const i2 = point.y - box.y;
+    if (i1 > 0 && i1 < obox.width && i2 > 0 && i2 < obox.height) {
+      return true;
+    }
+    return false;
+  }
+
 	// ### findIntersectionArtifact
 	// find all object that intersect with the rectangle
 	static findIntersectingArtifact(clientBox, objects,netScroll) {

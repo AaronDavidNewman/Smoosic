@@ -5285,6 +5285,16 @@ class svgHelpers {
 
     }
 
+  static containsPoint(box,point, netScroll) {
+    var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(box),netScroll);
+    const i1 = point.x - box.x; // handle edge not believe in x and y
+    const i2 = point.y - box.y;
+    if (i1 > 0 && i1 < obox.width && i2 > 0 && i2 < obox.height) {
+      return true;
+    }
+    return false;
+  }
+
 	// ### findIntersectionArtifact
 	// find all object that intersect with the rectangle
 	static findIntersectingArtifact(clientBox, objects,netScroll) {
@@ -14473,7 +14483,7 @@ class suiScroller  {
 class suiMapper {
     constructor(layout,scroller) {
         // layout renders the music when it changes
-		this.layout = layout;
+  this.layout = layout;
 
         // measure to selector map
         this.measureMap = {};
@@ -14481,23 +14491,23 @@ class suiMapper {
         this.scroller = scroller;
 
         // notes currently selected.  Something is always selected
-		this.selections = [];
+  this.selections = [];
         // modifiers (text etc.) that have been selected
         this.modifierSelections = [];
         // all the modifiers
-		this.modifierTabs = [];
+  this.modifierTabs = [];
         // the index of the currently selected modifier
-		this.modifierIndex = -1;
+  this.modifierIndex = -1;
         // The list of modifiers near the current selection
         this.localModifiers = [];
         // mouse-over that might be selected soon
-		this.modifierSuggestion=-1;
-		this.suggestion = {};
+  this.modifierSuggestion=-1;
+  this.suggestion = {};
         // index if a single pitch of a chord is selected
-		this.pitchIndex = -1;
+  this.pitchIndex = -1;
         // the current selection, which is also the copy/paste destination
-		this.pasteBuffer = new PasteBuffer();
-	}
+  this.pasteBuffer = new PasteBuffer();
+  }
 
     // ### loadScore
     // We are loading a new score.  clear the maps so we can rebuild them after
@@ -14510,28 +14520,28 @@ class suiMapper {
     }
 
 
-    // ### _clearMeasureArtifacts
-    // clear the measure from the measure and note maps so we can rebuild it.
-    clearMeasureMap(staff,measure) {
-        var selector = {staff:measure.measureNumber.staffId,measure:measure.measureNumber.measureIndex};
-        var measureKey = SmoSelector.getMeasureKey(selector);
-        if (this.measureMap[measureKey]) {
-            var nkeys = Object.keys(this.measureMap[measureKey].keys);
-            nkeys.forEach((key) => {
-                delete this.measureNoteMap[key];
-            });
+  // ### _clearMeasureArtifacts
+  // clear the measure from the measure and note maps so we can rebuild it.
+  clearMeasureMap(staff,measure) {
+    var selector = {staff:measure.measureNumber.staffId,measure:measure.measureNumber.measureIndex};
+    var measureKey = SmoSelector.getMeasureKey(selector);
+    if (this.measureMap[measureKey]) {
+      var nkeys = Object.keys(this.measureMap[measureKey].keys);
+      nkeys.forEach((key) => {
+        delete this.measureNoteMap[key];
+      });
 
-            delete this.measureMap[measureKey];
-        }
-        // Unselect selections in this measure so we can reselect them when re-tracked
-        var ar = [];
-        this.selections.forEach((selection) => {
-            if (selection.selector.staff != selector.staff || selection.selector.measure != selector.measure) {
-                ar.push(selection);
-            }
-        });
-        this.selections = ar;
+      delete this.measureMap[measureKey];
     }
+    // Unselect selections in this measure so we can reselect them when re-tracked
+    var ar = [];
+    this.selections.forEach((selection) => {
+      if (selection.selector.staff != selector.staff || selection.selector.measure != selector.measure) {
+        ar.push(selection);
+      }
+    });
+    this.selections = ar;
+  }
 
   deleteMeasure(selection) {
     console.log('removing '+selection.selector.staff+'/'+selection.selector.measure);
@@ -14559,18 +14569,18 @@ class suiMapper {
     // ### _getClosestTick
     // given a musical selector, find the note artifact that is closest to it,
     // if an exact match is not available
-	_getClosestTick(selector) {
+  _getClosestTick(selector) {
     var measureKey = Object.keys(this.measureNoteMap).find((k) => {
-        return SmoSelector.sameMeasure(this.measureNoteMap[k].selector, selector)
-				 && this.measureNoteMap[k].selector.tick === 0;
+      return SmoSelector.sameMeasure(this.measureNoteMap[k].selector, selector)
+   && this.measureNoteMap[k].selector.tick === 0;
     });
     var tickKey = Object.keys(this.measureNoteMap).find((k) => {
         return SmoSelector.sameNote(this.measureNoteMap[k].selector,selector);
     });
-		var firstObj = this.measureNoteMap[Object.keys(this.measureNoteMap)[0]];
-		return tickKey ? this.measureNoteMap[tickKey]:
-		    (measureKey ? this.measureNoteMap[measureKey] : firstObj);
-	}
+  var firstObj = this.measureNoteMap[Object.keys(this.measureNoteMap)[0]];
+  return tickKey ? this.measureNoteMap[tickKey]:
+      (measureKey ? this.measureNoteMap[measureKey] : firstObj);
+  }
 
     // ### updateMeasure
     // A measure has changed.  Update the music geometry for it
@@ -14593,58 +14603,57 @@ class suiMapper {
     var selectionChanged = false;
     var selectedTicks = 0;
     measure.voices.forEach((voice) => {
-        var tick = 0;
-        voice.notes.forEach((note) => {
-            var selector = {
-                    staff: staff.staffId,
-                    measure: measure.measureNumber.measureIndex,
-                    voice: voiceIx,
-                    tick: tick,
-                    pitches: []
-                };
+      var tick = 0;
+      voice.notes.forEach((note) => {
+        var selector = {
+          staff: staff.staffId,
+          measure: measure.measureNumber.measureIndex,
+          voice: voiceIx,
+          tick: tick,
+          pitches: []
+          };
 
-            var voice = measure.getActiveVoice();
+        var voice = measure.getActiveVoice();
 
-            // create a selection for the newly rendered note
-            var selection = new SmoSelection({
-                        selector: selector,
-                        _staff: staff,
-                        _measure: measure,
-                        _note: note,
-                        _pitches: [],
-                        box: svgHelpers.adjustScroll(note.renderedBox,this.scroller.netScroll),
-                        type: 'rendered'
-                    });
-            // and add it to the map
-            this._updateMeasureNoteMap(selection);
-
-            // If this note is the same location as something that was selected, reselect it
-            if (sels.selectors.length && selection.selector.tick == sels.selectors[0].tick &&
-                 selection.selector.voice == vix) {
-                this.selections.push(selection);
-                // Reselect any pitches.
-                if (sels.selectors[0].pitches.length > 0) {
-                    sels.selectors[0].pitches.forEach((pitchIx) => {
-                        if (selection.pitches.length > pitchIx) {
-                            selection.selector.pitches.push(pitchIx);
-                        }
-                    });
-                }
-                selectedTicks += selection.note.tickCount;
-                selectionChanged = true;
-            } else if (selectedTicks > 0 && selectedTicks < sels.ticks && selection.selector.voice == vix) {
-                // try to select the same length of music as was previously selected.  So a 1/4 to 2 1/8, both
-                // are selected
-                this.selections.push(selection);
-                selectedTicks += selection.note.tickCount;
-            } else if (this.selections.length == 0 && (sels.selectors.length == 0)) {
-                this.selections=[selection];
-                selectionChanged=true;
-            }
-
-            tick += 1;
+        // create a selection for the newly rendered note
+        var selection = new SmoSelection({
+          selector: selector,
+          _staff: staff,
+          _measure: measure,
+          _note: note,
+          _pitches: [],
+          box: svgHelpers.adjustScroll(note.renderedBox,this.scroller.netScroll),
+          type: 'rendered'
         });
-        voiceIx += 1;
+        // and add it to the map
+        this._updateMeasureNoteMap(selection);
+
+        // If this note is the same location as something that was selected, reselect it
+        if (sels.selectors.length && selection.selector.tick == sels.selectors[0].tick &&
+          selection.selector.voice == vix) {
+          this.selections.push(selection);
+          // Reselect any pitches.
+          if (sels.selectors[0].pitches.length > 0) {
+            sels.selectors[0].pitches.forEach((pitchIx) => {
+              if (selection.pitches.length > pitchIx) {
+                selection.selector.pitches.push(pitchIx);
+              }
+            });
+          }
+          selectedTicks += selection.note.tickCount;
+          selectionChanged = true;
+        } else if (selectedTicks > 0 && selectedTicks < sels.ticks && selection.selector.voice == vix) {
+          // try to select the same length of music as was previously selected.  So a 1/4 to 2 1/8, both
+          // are selected
+          this.selections.push(selection);
+          selectedTicks += selection.note.tickCount;
+        } else if (this.selections.length == 0 && (sels.selectors.length == 0)) {
+          this.selections=[selection];
+          selectionChanged=true;
+        }
+        tick += 1;
+      });
+      voiceIx += 1;
     });
     // If there were selections on this measure, highlight them.
     if (selectionChanged) {
@@ -14652,57 +14661,52 @@ class suiMapper {
     }
   }
 
-	// ### updateMap
-	// This should be called after rendering the score.  It updates the score to
-	// graphics map and selects the first object.
-	_updateMap() {
-		console.log('update map');
-        this.mapping = true;
-		var notes = [].slice.call(this.renderElement.getElementsByClassName('vf-stavenote'));
+  // ### updateMap
+  // This should be called after rendering the score.  It updates the score to
+  // graphics map and selects the first object.
+  _updateMap() {
+    console.log('update map');
+    this.mapping = true;
+    var notes = [].slice.call(this.renderElement.getElementsByClassName('vf-stavenote'));
 
-		var selCopy = this._copySelections();
-		var ticksSelectedCopy = this._getTicksFromSelections();
-		var firstSelection = this.getExtremeSelection(-1);
+    var selCopy = this._copySelections();
+    var ticksSelectedCopy = this._getTicksFromSelections();
+    var firstSelection = this.getExtremeSelection(-1);
+    this._updateModifiers();
+    this.selections = [];
 
-        //if (!firstSelection) {
-        //    return;
-        //}
-
-		this._updateModifiers();
-		this.selections = [];
-
-        // Try to restore selection.  If there were none, just select the fist
-        // thing in the score
-        var keys = Object.keys(this.measureNoteMap);
-		if (keys.length && !selCopy.length) {
-            // If there is nothing rendered, don't update tracker
-			this.selections = [this.measureNoteMap[keys[0]]];
-		}  else {
-            if (!firstSelection) {
-                return;
-            }
-			this._findClosestSelection(firstSelection.selector);
-            var first = this.selections[0];
-			var tickSelected = first.note.tickCount;
-			while (tickSelected < ticksSelectedCopy && first) {
-				var delta = this.growSelectionRight();
-				if (!delta)  {
-					break;
-				}
-				tickSelected += delta;
-			}
-			// selCopy.forEach((sel) => this._findClosestSelection(sel));
-		}
-		this.highlightSelection();
-        this._createLocalModifiersList();
+    // Try to restore selection.  If there were none, just select the fist
+    // thing in the score
+    var keys = Object.keys(this.measureNoteMap);
+    if (keys.length && !selCopy.length) {
+    // If there is nothing rendered, don't update tracker
+      this.selections = [this.measureNoteMap[keys[0]]];
+    }  else {
+      if (!firstSelection) {
+        return;
+      }
+      this._findClosestSelection(firstSelection.selector);
+      var first = this.selections[0];
+      var tickSelected = first.note.tickCount;
+      while (tickSelected < ticksSelectedCopy && first) {
+        var delta = this.growSelectionRight();
+        if (!delta)  {
+          break;
+        }
+        tickSelected += delta;
+      }
+      // selCopy.forEach((sel) => this._findClosestSelection(sel));
+    }
+    this.highlightSelection();
+    this._createLocalModifiersList();
     // Is this right?  Don't update the past buffer with data until the display is redrawn
     // because some of the selections may not exist in the score.
     if (this.layout.isDirty === false) {
       this.pasteBuffer.clearSelections();
-  		this.pasteBuffer.setSelections(this.score, this.selections);      
+  		this.pasteBuffer.setSelections(this.score, this.selections);
     }
     this.mapping = false;
-	}
+  }
 
     // ### intersectingArtifact
     // given a bounding box, find any rendered elements that intersect with it
@@ -14770,7 +14774,7 @@ class suiTracker extends suiMapper {
       if (this.layout.passState == suiLayoutBase.passStates.replace ||
         this.layout.passState == suiLayoutBase.passStates.clean) {
         console.log('tracker: rerender conflicting map');
-  			this.layout.remapAll();
+        this.layout.remapAll();
       }
       if (!preventScroll) {
         console.log('prevent scroll conflicting map');
@@ -14866,71 +14870,70 @@ class suiTracker extends suiMapper {
     }
 
   _updateModifiers() {
-  this.modifierTabs = [];
-  this.modifierBoxes = [];
-  var modMap = {};
-  var ix=0;
+    this.modifierTabs = [];
+    this.modifierBoxes = [];
+    var modMap = {};
+    var ix=0;
     this.layout.score.scoreText.forEach((modifier) => {
       if (!modMap[modifier.attrs.id]) {
         this.modifierTabs.push({
           modifier: modifier,
-  selection: null,
-  box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
-  index:ix
-          });
-          ix += 1;
+          selection: null,
+          box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
+          index:ix
+        });
+        ix += 1;
       }
     });
     this.layout.score.textGroups.forEach((modifier) => {
       if (!modMap[modifier.attrs.id]) {
         this.modifierTabs.push({
           modifier: modifier,
-  selection: null,
-  box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
-  index:ix
-          });
-          ix += 1;
-        }
-      });
+          selection: null,
+          box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
+          index:ix
+        });
+        ix += 1;
+      }
+    });
     var keys = Object.keys(this.measureNoteMap);
     keys.forEach((selKey) => {
       var selection = this.measureNoteMap[selKey];
       selection.staff.modifiers.forEach((modifier) => {
-  if (SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
-  if (!modMap[modifier.attrs.id]) {
+        if (SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
+          if (!modMap[modifier.attrs.id]) {
             if (modifier.renderedBox) {
-  						this.modifierTabs.push({
-  							modifier: modifier,
-  							selection: selection,
-  							box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
-  							index:ix
-  						});
-  						ix += 1;
-  						modMap[modifier.attrs.id] = {
-    exists: true
-    };
+              this.modifierTabs.push({
+                modifier: modifier,
+                selection: selection,
+                box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
+                index:ix
+              });
+              ix += 1;
+              modMap[modifier.attrs.id] = {exists: true };
+              }
             }
-    }
-    }
-    });
-    selection.measure.modifiers.forEach((modifier) => {
-  if (modifier.attrs.id && !modMap[modifier.attrs.id]
-                   && modifier.renderedBox) {
-  this.modifierTabs.push({
-  modifier: modifier,
-  selection: selection,
-  box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
-  index:ix
-  });
-  ix += 1;
-  modMap[modifier.attrs.id] = {
-  exists: true
-  };
-    }
-    });
-    selection.note.textModifiers.forEach((modifier) => {
+          }
+        });
+        selection.measure.modifiers.forEach((modifier) => {
+        if (modifier.attrs.id
+          && !modMap[modifier.attrs.id]
+          && modifier.renderedBox) {
+          this.modifierTabs.push({
+            modifier: modifier,
+            selection: selection,
+            box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
+            index:ix
+          });
+          ix += 1;
+          modMap[modifier.attrs.id] = {
+            exists: true
+          };
+        }
+      });
+      selection.note.textModifiers.forEach((modifier) => {
         ix = this._updateNoteModifier(selection,modMap,modifier,ix);
-  });
+      });
 
       selection.note.graceNotes.forEach((modifier) => {
         ix = this._updateNoteModifier(selection,modMap,modifier,ix);
@@ -15448,7 +15451,7 @@ class suiTracker extends suiMapper {
   if (this.modifierSuggestion >= 0) {
   if (this['suggestFadeTimer']) {
      clearTimeout(this.suggestFadeTimer);
-  		}
+      }
   this.modifierIndex = -1;
       this.modifierSelections = [this.modifierTabs[this.modifierSuggestion]];
   this.modifierSuggestion = -1;
@@ -16998,47 +17001,47 @@ class suiScoreLayout extends suiLayoutBase {
   // to get the score to appear, a div and a score object are required.  The layout takes care of creating the
   // svg element in the dom and interacting with the vex library.
   static createScoreLayout(renderElement,score, layoutParams) {
-  var ctorObj = {
-  elementId: renderElement,
-  score: score
-  };
-  if (layoutParams) {
-  Vex.Merge(ctorObj, layoutParams);
-  }
-  var layout = new suiScoreLayout(ctorObj);
-  return layout;
+    var ctorObj = {
+      elementId: renderElement,
+      score: score
+    };
+    if (layoutParams) {
+      Vex.Merge(ctorObj, layoutParams);
+    }
+    var layout = new suiScoreLayout(ctorObj);
+      return layout;
   }
   static get defaults() {
-  return {
-  clefWidth: 70,
-  staffWidth: 250,
-  totalWidth: 250,
-  pageWidth: 8 * 96 + 48,
-  pageHeight: 11 * 96,
-  svgScale: 0.7,
-  font: {
-  typeface: "Arial",
-  pointSize: 10,
-  fillStyle: '#eed'
-  }
-  };
+    return {
+      clefWidth: 70,
+      staffWidth: 250,
+      totalWidth: 250,
+      pageWidth: 8 * 96 + 48,
+      pageHeight: 11 * 96,
+      svgScale: 0.7,
+      font: {
+        typeface: "Arial",
+        pointSize: 10,
+        fillStyle: '#eed'
+      }
+    };
   }
 
   // ### unrenderAll
   // ### Description:
   // Delete all the svg elements associated with the score.
   unrenderAll() {
-  this._score.staves.forEach((staff) => {
-  this.unrenderStaff(staff);
-  });
-  $(this.renderer.getContext().svg).find('g.lineBracket').remove();
+    this._score.staves.forEach((staff) => {
+      this.unrenderStaff(staff);
+    });
+    $(this.renderer.getContext().svg).find('g.lineBracket').remove();
   }
 
   get logicalPageWidth() {
-  return this.pageMarginWidth;
+    return this.pageMarginWidth;
   }
   get logicalPageHeight() {
-  return this.pageMarginHeigh;
+    return this.pageMarginHeigh;
   }
 
   // ### _measureToLeft
@@ -17047,12 +17050,15 @@ class suiScoreLayout extends suiLayoutBase {
   _measureToLeft(measure) {
     var j = measure.measureNumber.staffId;
     var i = measure.measureNumber.measureIndex;
-   return (i > 0 ? this._score.staves[j].measures[i - 1] :null);
+    return (i > 0 ? this._score.staves[j].measures[i - 1] :null);
   }
 
   renderTextGroup(gg) {
     this._score.textGroups.forEach((tg) => {
-      SuiTextBlock.fromTextGroup(tg,this.context).render();
+      const textBlock = SuiTextBlock.fromTextGroup(tg,this.context);
+      textBlock.render();
+      tg.renderedBox = textBlock.renderedBox;
+      tg.logicalBox = textBlock.logicalBox;
     });
   }
 
@@ -17700,6 +17706,15 @@ class SuiInlineText {
     block.highlighted = value;
   }
 
+  rescale(scale) {
+    scale = (scale * this.fontSize < 6) ? 6 / this.fontSize : scale;
+    scale = (scale * this.fontSize > 72) ? 72/this.fontSize : scale;
+    this.blocks.forEach((block) => {
+      block.scale = scale;
+    });
+    this.updatedMetrics = false;
+  }
+
   render() {
     $('svg #'+this.attrs.id).remove();
 
@@ -17747,7 +17762,9 @@ class SuiInlineText {
     if (sp || sub) {
       // y = y + (sp ? SuiInlineText.superscriptOffset : SuiInlineText.subscriptOffset) * this.pointsToPixels * block.scale;
       this.context.save();
-      this.context.setFont(this.fontFamily, this.fontSize * VF.ChordSymbol.superSubRatio, this.fontWeight);
+      this.context.setFont(this.fontFamily, this.fontSize * VF.ChordSymbol.superSubRatio * block.scale, this.fontWeight);
+    } else {
+      this.context.setFont(this.fontFamily, this.fontSize * block.scale, this.fontWeight);
     }
     if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
       this.context.fillText(block.text,block.x,y);
@@ -17808,8 +17825,17 @@ class SuiTextBlock {
   }
   render() {
     this.unrender();
+    this.renderedBox = null;
+    this.logicalBox = null;
     this.inlineBlocks.forEach((block) => {
       block.text.render();
+      if (!this.renderedBox) {
+        this.renderedBox = svgHelpers.smoBox(block.text.renderedBox);
+        this.logicalBox = svgHelpers.smoBox(block.text.logicalBox);
+      } else {
+        this.renderedBox = svgHelpers.unionRect(this.renderedBox,block.text.renderedBox);
+        this.logicalBox = svgHelpers.unionRect(this.logicalBox,block.text.logicalBox);
+      }
     });
   }
 
@@ -17822,6 +17848,12 @@ class SuiTextBlock {
   offsetStartY(offset) {
     this.inlineBlocks.forEach((block) => {
       block.text.offsetStartY(offset);
+    });
+  }
+
+  rescale(scale) {
+    this.inlineBlocks.forEach((block) => {
+      block.text.rescale(scale);
     });
   }
 
@@ -17874,7 +17906,6 @@ class SuiTextBlock {
   }
   static fromTextGroup(tg,context) {
     var rv = null;
-    var params = {context:context};
     let blocks = [];
 
     // Create an inline block for each ScoreText
@@ -17882,7 +17913,7 @@ class SuiTextBlock {
       const st = stBlock.text;
       blocks.push(SuiTextBlock.blockFromScoreText(st,context, stBlock.position));
     });
-    return new SuiTextBlock({blocks: blocks, justification: tg.justification});
+    return new SuiTextBlock({blocks: blocks, justification: tg.justification, context: context});
   }
   unrender() {
     this.inlineBlocks.forEach((block) => {
@@ -18743,6 +18774,7 @@ class SuiResizeTextSession {
     Vex.Merge(this,params);
     this.textObject = SuiTextBlock.fromTextGroup(this.textGroup,this.context); // SuiTextBlock
     this.startBox = this.textObject.getLogicalBox();
+    this.clientBox = this.textObject.getRenderedBox();
     this.startBox.y += this.textObject.maxFontHeight(1);
     this.currentBox = svgHelpers.smoBox(this.startBox);
 
@@ -18758,6 +18790,10 @@ class SuiResizeTextSession {
   }
 
   startDrag(e) {
+    if (!svgHelpers.containsPoint(this.clientBox,{x: e.clientX,y: e.clientY}, this.scroller.netScroll)) {
+      return;
+    }
+
     this.dragging = true;
     this.startDragPoint = {x: e.clientX, y: e.clientY };
     this.deltaDrag = null;
@@ -18782,6 +18818,7 @@ class SuiResizeTextSession {
     const  absRate = 1 + (this.spring * coeff);
     const rate = xdelta > 0 ? absRate : 1/absRate;
     this.textGroup.scaleInPlace(rate);
+    this.textObject.rescale(rate);
     this.textObject.render();
     this._outlineBox();
     this.deltaDrag = {x: xdelta, y: ydelta};
@@ -18817,6 +18854,9 @@ class SuiDragSession {
   }
 
   startDrag(e) {
+    if (!svgHelpers.containsPoint(this.currentClientBox,{x: e.clientX,y: e.clientY}, this.scroller.netScroll)) {
+      return;
+    }
     this.dragging = true;
     // calculate offset of mouse start vs. box UL
     this.yOffset = this.currentClientBox.y - e.clientY;
@@ -19653,6 +19693,8 @@ class browserEventSource {
     this.keydownHandlers = [];
     this.mouseMoveHandlers = [];
     this.clickHandlers = [];
+    this.mouseUpHandlers = [];
+    this.mouseDownHandlers = [];
     this.domTriggers = [];
     this.scrollers = [];
     this.handleKeydown = this.evKey.bind(this);
@@ -19678,13 +19720,29 @@ class browserEventSource {
     });
   }
 
+  mouseDown(event) {
+    this.mouseDownHandlers.forEach((handler) => {
+      handler.sink[handler.method](event);
+    });
+  }
+
+  mouseUp(event) {
+    this.mouseUpHandlers.forEach((handler) => {
+      handler.sink[handler.method](event);
+    });
+  }
+
   setRenderElement(renderElement) {
     this.renderElement = renderElement;
     var self = this;
     this.handleMouseMove = this.mouseMove.bind(this);
     this.handleMouseClick = this.mouseClick.bind(this);
-    $(this.renderElement)[0].addEventListener("mousemove",this.handleMouseMove);
+    this.handleMouseUp = this.mouseUp.bind(this);
+    this.handleMouseDown = this.mouseDown.bind(this);
+    $(document)[0].addEventListener("mousemove",this.handleMouseMove);
     $(this.renderElement)[0].addEventListener("click",this.handleMouseClick);
+    $(document)[0].addEventListener("mouseup",this.handleMouseUp);
+    $(document)[0].addEventListener("mousedown",this.handleMouseDown);
   }
 
   _unbindHandlerArray(arSrc,arDest,handler) {
@@ -19699,6 +19757,16 @@ class browserEventSource {
     var handlers = [];
     this._unbindHandlerArray(this.mouseMoveHandlers,handlers,handler);
     this.mouseMoveHandlers = handlers;
+  }
+  unbindMouseDownHandler(handler) {
+    var handlers = [];
+    this._unbindHandlerArray(this.mouseDownHandlers,handlers,handler);
+    this.mouseDownHandlers = handlers;
+  }
+  unbindMouseUpHandler(handler) {
+    var handlers = [];
+    this._unbindHandlerArray(this.mouseUpHandlers,handlers,handler);
+    this.mouseUpHandlers = handlers;
   }
   unbindClickHandler(handler) {
     var handlers = [];
@@ -19728,11 +19796,25 @@ class browserEventSource {
   bindMouseMoveHandler(sink, method) {
     var handler = {symbol: Symbol(), sink, method};
     this.mouseMoveHandlers.push(handler);
+    return handler;
+  }
+
+  bindMouseUpHandler(sink, method) {
+    var handler = {symbol: Symbol(), sink, method};
+    this.mouseUpHandlers.push(handler);
+    return handler;
+  }
+
+  bindMouseDownHandler(sink, method) {
+    var handler = {symbol: Symbol(), sink, method};
+    this.mouseDownHandlers.push(handler);
+    return handler;
   }
 
   bindMouseClickHandler(sink, method) {
     var handler = {symbol: Symbol(), sink, method};
     this.clickHandlers.push(handler);
+    return handler;
   }
 
   domClick(selector,sink,method,args) {
@@ -22105,44 +22187,44 @@ class SuiDialogBase {
     if (this.boundKeyboard) {
       this.eventSource.unbindKeydownHandler(this.keydownHandler);
     }
-  $('body').removeClass('showAttributeDialog');
+    $('body').removeClass('showAttributeDialog');
     console.log('dialog complete method called, triggering dialog close');
-  $('body').trigger('dialogDismiss');
-  this.dgDom.trapper.close();
+    $('body').trigger('dialogDismiss');
+    this.dgDom.trapper.close();
   }
 
     // ### _bindComponentNames
     // helper method to give components class names based on their static configuration
   _bindComponentNames() {
     this.components.forEach((component) => {
-  var nm = component.smoName + 'Ctrl';
+      var nm = component.smoName + 'Ctrl';
       this[nm] = component;
-  });
+    });
   }
 
    // ### display
    // make3 the modal visible.  bind events and elements.
   display() {
-  $('body').addClass('showAttributeDialog');
-  this.components.forEach((component) => {
-  component.bind();
-  });
-  this._bindElements();
+    $('body').addClass('showAttributeDialog');
+    this.components.forEach((component) => {
+      component.bind();
+    });
+    this._bindElements();
     if (this.modifier && this.modifier.renderedBox) {
       this.position(this.modifier.renderedBox);
     }
     this.tracker.scroller.scrollVisibleBox(
-        svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
+      svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
     );
 
-  var cb = function (x, y) {}
-  htmlHelpers.draggable({
-  parent: $(this.dgDom.element).find('.attributeModal'),
-  handle: $(this.dgDom.element).find('.jsDbMove'),
-            animateDiv:'.draganime',
-  cb: cb,
-  moveParent: true
-  });
+    var cb = function (x, y) {}
+    htmlHelpers.draggable({
+      parent: $(this.dgDom.element).find('.attributeModal'),
+      handle: $(this.dgDom.element).find('.jsDbMove'),
+      animateDiv:'.draganime',
+      cb: cb,
+      moveParent: true
+    });
   }
 
   // ### handleKeydown
@@ -23110,6 +23192,9 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       layoutDebug.addDialogDebug('text transform db: startEditSession');
       this.textEditorCtrl.startEditSession();
     }
+    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this,'mouseMove');
+    this.mouseUpHandler = this.eventSource.bindMouseUpHandler(this,'mouseUp');
+    this.mouseDownHandler = this.eventSource.bindMouseDownHandler(this,'mouseDown');
   }
   // ### handleKeydown
   // allow a dialog to be dismissed by esc.
@@ -23124,6 +23209,32 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     return;
   }
 
+  mouseUp(ev) {
+    if (this.textResizerCtrl && this.textResizerCtrl.running) {
+      this.textResizerCtrl.mouseUp();
+    }
+    else if (this.textDraggerCtrl && this.textDraggerCtrl.running) {
+      this.textDraggerCtrl.mouseUp();
+    }
+  }
+
+  mouseMove(ev) {
+    if (this.textResizerCtrl && this.textResizerCtrl.running) {
+      this.textResizerCtrl.mouseMove(ev);
+    }
+    else if (this.textDraggerCtrl && this.textDraggerCtrl.running) {
+      this.textDraggerCtrl.mouseMove(ev);
+    }
+  }
+
+  mouseDown(ev) {
+    if (this.textResizerCtrl && this.textResizerCtrl.running) {
+      this.textResizerCtrl.mouseDown(ev);
+    }
+    else if (this.textDraggerCtrl && this.textDraggerCtrl.running) {
+      this.textDraggerCtrl.mouseDown(ev);
+    }
+  }
   changed() {
     var textEditor = this.components.find((c) => c.smoName === 'textEditor');
     if (textEditor.editor) {
@@ -23143,14 +23254,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         this.modifier.height = this.modifier.logicalBox.height;
       }
     }
-    // If we resized the text, set the size components from the actual text
-    // object that was resized.
-    if (this.textResizerCtrl.changeFlag) {
-      this.xCtrl.setValue(this.modifier.x);
-      this.yCtrl.setValue(this.modifier.y);
-      this.scaleXCtrl.setValue(this.modifier.scaleX);
-      this.scaleYCtrl.setValue(this.modifier.scaleY);
-    }
+
     this.components.find((x) => {
     if (typeof(x['getValue'])=='function') {
         if (x.parameterName.indexOf('scale') == 0) {
@@ -23163,11 +23267,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 
     var xcomp = this.components.find((x) => x.smoName === 'x');
     var ycomp = this.components.find((x) => x.smoName === 'y');
-    if (this.textDraggerCtrl.dragging) {
-      var val = this.textDraggerCtrl.getValue();
-      xcomp.setValue(val.x);
-      ycomp.setValue(val.y);
-    }
     this.modifier.x=xcomp.getValue();
     this.modifier.y=ycomp.getValue();
 
@@ -23245,6 +23344,11 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   _complete() {
     this.tracker.updateMap(); // update the text map
     this.layout.setDirty();
+    this.eventSource.unbindMouseDownHandler(this.mouseDownHandler);
+    this.eventSource.unbindMouseUpHandler(this.mouseUpHandler);
+    this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
+    $('body').removeClass('showAttributeDialog');
+    $('body').removeClass('textEditor');
     this.complete();
   }
 
@@ -23257,20 +23361,14 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     fontComp.setValue(this.activeScoreText.fontInfo.family);
 
   	$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-      self.textEditorCtrl.endSession();
-      self.textDraggerCtrl.endSession();
   		self._complete();
   	});
 
   	$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-      self.textEditorCtrl.endSession();
-      self.textDraggerCtrl.endSession();
       self.modifier.restoreParams();
   		self._complete();
   	});
   	$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-      self.textEditorCtrl.endSession();
-      self.textDraggerCtrl.endSession();
       SmoUndoable.scoreOp(self.layout.score,'removeScoreText',self.modifier,self.undo,'remove text from dialog');
   		self._complete();
     });
@@ -24396,241 +24494,6 @@ class SuiRockerComponent extends SuiComponentBase {
     }
 }
 
-// ## SuiDragText
-// A component that lets you drag the text you are editing to anywhere on the score.
-// The text is not really part of the dialog but the location of the text appears
-// in other dialog fields.
-class SuiDragText extends SuiComponentBase {
-  constructor(dialog,parameter) {
-    super();
-    smoSerialize.filteredMerge(
-        ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
-    if (!this.defaultValue) {
-        this.defaultValue = 0;
-    }
-    this.dragging=false;
-
-    this.dialog = dialog;
-    this.value='';
-  }
-
-  get html() {
-    var b = htmlHelpers.buildDom;
-    var id = this.parameterId;
-    var r = b('div').classes('cbDragTextDialog smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
-      .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
-        .attr('id', id + '-input').append(
-        b('span').classes('icon icon-move'))
-        .append(
-        b('label').attr('for', id + '-input').text(this.label)));
-    return r;
-  }
-  get parameterId() {
-    return this.dialog.id + '-' + this.parameterName;
-  }
-  endSession() {
-    $('body').removeClass('text-move');
-    $(this._getInputElement()).find('label').text(this.label);
-    if (this.editor) {
-      this.dragging = false;
-      this.editor.stopSession();
-      this.dragger.disconnect();
-      var button = document.getElementById(this.parameterId);
-      $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-move');
-      $('.dom-container .textEdit').addClass('hide').removeClass('icon-move');
-      this.editor = null;
-    }
-  }
-  getValue() {
-    return this.value;
-  }
-  _getInputElement() {
-    var pid = this.parameterId;
-    return $(this.dialog.dgDom.element).find('#' + pid).find('button');
-  }
-  _handleEndDrag() {
-    var svgBox = svgHelpers.clientToLogical(this.dialog.layout.svg,svgHelpers.smoBox(this.editor.editText.getRenderedBox()));
-    var offsetBox = this.editor.editText.getBBox();
-    var x = svgBox.x;
-    var y = svgBox.y+svgBox.height;
-    console.log('new box ' + svgHelpers.stringify(svgBox));
-    // the translate from the drag happens in the client space happens at scale of 1,
-    // where in the svg space the translate is scaled by the scale.  So adjust for that.
-    x = this.oldBox.x + (x - this.oldBox.x)/this.dialog.modifier.scaleX;
-    y = this.oldBox.y + (y - this.oldBox.y)/this.dialog.modifier.scaleY;
-    this.textElement.setAttributeNS('', 'x', '' + x);
-    this.textElement.setAttributeNS('', 'y', '' + y);
-    this.oldBox.x = x;
-    this.oldBox.y = y;
-    this.value = {x:x,y:y};
-    this.dialog.changed();
-  }
-  startDrag() {
-    $('body').addClass('text-move');
-    $(this._getInputElement()).find('label').text('Done Moving Text Block');
-    if (!this.dragging) {
-    var self=this;
-    this.dragging = true;
-    var dragCb = function() {
-      self._handleEndDrag();
-    }
-
-    var modifier = this.dialog.modifier;
-    this.value = {x:modifier.x,y:modifier.y};
-    this.editor = new SuiTextSession({context : this.dialog.layout.context,
-      scroller: this.dialog.tracker.scroller,
-      layout: this.dialog.layout,
-      score: this.dialog.layout.score,
-      x: modifier.x,
-      y: modifier.y,
-      textGroup: modifier
-    });
-    var button = document.getElementById(this.parameterId);
-    $(button).find('span.icon').removeClass('icon-move').addClass('icon-checkmark');
-    $('.textEdit').removeClass('hide');
-    $('.textEdit span.icon-move').removeClass('hide');
-    this.dragger = htmlHelpers.draggable({
-		parent: $('.dom-container .textEdit'),
-		handle: $('.dom-container .textEdit'),
-      animateDiv:'.draganime',
-		cb: dragCb,
-		moveParent: true,
-    dragParent: true
-	});
-    } else {
-      this.endSession();
-    }
-  }
-
-  bind() {
-    var self=this;
-    this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.activeScoreText.attrs.id)[0];
-    $(this._getInputElement()).off('click').on('click',function(ev) {
-      self.startDrag();
-    });
-  }
-}
-
-// ## TBD: do this.
-class SuiResizeTextBox extends SuiComponentBase {
-    constructor(dialog,parameter) {
-        super();
-        smoSerialize.filteredMerge(
-            ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
-        if (!this.defaultValue) {
-            this.defaultValue = 0;
-        }
-        this.editMode=false;
-        this.resizing = false;
-
-        this.dialog = dialog;
-        this.value='';
-    }
-
-    get html() {
-        var b = htmlHelpers.buildDom;
-        var id = this.parameterId;
-        var r = b('div').classes('cbResizeTextBox smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
-            .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
-                .attr('id', id + '-input').append(
-                b('span').classes('icon icon-enlarge'))
-                .append(
-                b('label').attr('for', id + '-input').text(this.label)));
-        return r;
-    }
-    get parameterId() {
-        return this.dialog.id + '-' + this.parameterName;
-    }
-  setSizedValue() {
-    var newBox = svgHelpers.smoBox($('.textEdit')[0].getBoundingClientRect());
-    if (this.dialog.modifier.boxModel == SmoScoreText.boxModels.none) {
-      this.dialog.modifier.scaleXInPlace(this.dialog.modifier.scaleX * (newBox.width / this.originalBox.width));
-      this.dialog.modifier.scaleYInPlace(this.dialog.modifier.scaleY * (newBox.height / this.originalBox.height));
-    } else {
-      var svgBox = svgHelpers.clientToLogical(this.dialog.layout.svg,svgHelpers.smoBox(newBox));
-      this.dialog.modifier.width = svgBox.width;
-      this.dialog.modifier.height = svgBox.height;
-      this.dialog.modifier.transateX = 0;this.dialog.modifier.transateY = 0;
-      this.dialog.modifier.scaleX = 1;this.dialog.modifier.scaleY = 1;
-    }
-  }
-  endSession() {
-    this.setSizedValue();
-    this.resizing = false;
-    $('body').removeClass('text-resize');
-    $('.textEdit').addClass('hide');
-    $(this._getInputElement()).find('label').text('Resize Text');
-    $(this._getInputElement()).find('span.icon').removeClass('icon-checkmark').addClass('icon-enlarge');
-    this.changeFlag = true;
-    this.dialog.changed();
-    this.bind();
-  }
-  getValue() {
-    return this.value;
-  }
-  _getInputElement() {
-    var pid = this.parameterId;
-    return $(this.dialog.dgDom.element).find('#' + pid).find('button');
-  }
-  _setEditTextSize(shadowText) {
-    var textNode = $('.textEdit svg text')[0];
-    var tx = this.shadowText.translateX; // - modifier.backup.translateX;
-    var ty = this.shadowText.translateY; // - modifier.backup.translateY;
-    textNode.setAttributeNS('','transform','translate('+tx+' '+ty+') scale ('+this.shadowText.scaleX+' '+this.shadowText.scaleY+')');
-
-    var svg = $('.textEdit svg')[0];
-    svg.viewBox.baseVal.x=this.shadowText.translateX;
-    svg.viewBox.baseVal.y=this.shadowText.translateY;
-  }
-  _resizeEditNode() {
-    var textNode = $('.textEdit svg text')[0];
-    var newBox = svgHelpers.smoBox($('.textEdit')[0].getBoundingClientRect());
-    this.shadowText.scaleXInPlace(this.shadowText.scaleX * (newBox.width / this.shadowBox.width));
-    this.shadowText.scaleYInPlace(this.shadowText.scaleY * (newBox.height / this.shadowBox.height));
-    this.shadowBox.width = newBox.width;this.shadowBox.height = newBox.height;
-    this._setEditTextSize(this.shadowText);
-  }
-    startEditSession() {
-        var self = this;
-        this.resizing = true;
-        var modifier = this.dialog.modifier;
-        var ser = modifier.serialize();
-        this.shadowText = new SmoScoreText(ser);
-
-
-        this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
-        /* this.editor = new editSvgText({target:this.textElement,
-            xOffset:modifier.translateX,yOffset:modifier.translateY,
-            layout:this.dialog.layout,fontInfo:modifier.fontInfo});   */
-
-        $('body').addClass('text-resize');
-        $(this._getInputElement()).find('label').text('Done Resizing Text Block');
-        $(this._getInputElement()).find('span.icon').removeClass('icon-enlarge').addClass('icon-checkmark');
-
-        $('.textEdit').removeClass('hide');
-        this.originalBox = svgHelpers.smoBox($('.textEdit')[0].getBoundingClientRect());
-        this.shadowBox = JSON.parse(JSON.stringify(this.originalBox));
-
-        this._setEditTextSize(modifier);
-
-        $(this._getInputElement()).off('click').on('click',function(ev) {
-          self.endSession();
-        });
-        $('.textEdit').off('mouseup').on('mouseup',function(ev) {
-          self._resizeEditNode();
-        });
-    }
-
-  bind() {
-      var self=this;
-      this.textElement=$(this.dialog.layout.svg).find('.'+this.dialog.activeScoreText.attrs.id)[0];
-      this.fontInfo = JSON.parse(JSON.stringify(this.dialog.activeScoreText.fontInfo));
-      this.value = this.textElement.textContent;
-      $(this._getInputElement()).off('click').on('click',function(ev) {
-        self.startEditSession();
-      });
-    }
-}
 
 // ## SuiTextInPlace
 // Edit the text in an SVG element, in the same scale etc. as the text in the score SVG DOM.
@@ -24667,10 +24530,15 @@ class SuiTextInPlace extends SuiComponentBase {
     return this.dialog.id + '-' + this.parameterName;
   }
   endSession() {
+    var self = this;
+    var render = () => {
+      this.dialog.layout.setRefresh();
+    }
     if (this.editor) {
       this.value=this.editor.textGroup;
-      this.editor.stopSession();
+      this.editor.stopSession().then(render);
     }
+    $('body').removeClass('text-edit');
   }
   getValue() {
     return this.value;
@@ -24694,6 +24562,7 @@ class SuiTextInPlace extends SuiComponentBase {
         y: modifier.y,
         textGroup: modifier
       });
+      $('body').addClass('text-edit');
       this.value = this.editor.textGroup;
       var button = document.getElementById(this.parameterId);
       $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
@@ -24720,7 +24589,11 @@ class SuiTextInPlace extends SuiComponentBase {
     this.fontInfo = JSON.parse(JSON.stringify(this.activeScoreText.fontInfo));
     this.value = this.dialog.modifier;
     $(this._getInputElement()).off('click').on('click',function(ev) {
-      self.startEditSession();
+      if (self.editor && self.editor.state === SuiTextSession.States.RUNNING) {
+        self.endSession();
+      } else {
+        self.startEditSession();
+      }
     });
   }
 }
@@ -25130,6 +25003,184 @@ class SuiDropdownComponent  extends SuiComponentBase{
             function (ev) {
             self.handleChanged();
         });
+    }
+}
+;// ## SuiDragText
+// A component that lets you drag the text you are editing to anywhere on the score.
+// The text is not really part of the dialog but the location of the text appears
+// in other dialog fields.
+class SuiDragText extends SuiComponentBase {
+  constructor(dialog,parameter) {
+    super();
+    smoSerialize.filteredMerge(
+        ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
+    if (!this.defaultValue) {
+        this.defaultValue = 0;
+    }
+    this.dragging=false;
+    this.running = false;
+
+    this.dialog = dialog;
+    this.value='';
+  }
+
+  get html() {
+    var b = htmlHelpers.buildDom;
+    var id = this.parameterId;
+    var r = b('div').classes('cbDragTextDialog smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+      .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
+        .attr('id', id + '-input').append(
+        b('span').classes('icon icon-move'))
+        .append(
+        b('label').attr('for', id + '-input').text(this.label)));
+    return r;
+  }
+  get parameterId() {
+    return this.dialog.id + '-' + this.parameterName;
+  }
+
+  getValue() {
+    return this.dialog.modifier;
+  }
+  _getInputElement() {
+    var pid = this.parameterId;
+    return $(this.dialog.dgDom.element).find('#' + pid).find('button');
+  }
+  stopEditSession() {
+    $('body').removeClass('text-move');
+    if (this.editor && this.editor.dragging) {
+      this.editor.dragging = false;
+    }
+    this.running = false;
+  }
+  startEditSession() {
+    $('body').addClass('text-move');
+    this.editor = new SuiDragSession({
+      textGroup: this.dialog.modifier,
+      context: this.dialog.layout.context,
+      scroller: this.dialog.tracker.scroller
+    });
+    $(this._getInputElement()).find('label').text('Done Moving Text Block');
+    $(this._getInputElement()).find('span.icon').removeClass('icon-enlarge').addClass('icon-checkmark');
+    this.running = true;
+  }
+  mouseMove(e) {
+    if (this.editor && this.editor.dragging) {
+      this.editor.mouseMove(e);
+    }
+  }
+  mouseDown(e) {
+    if (this.editor && !this.editor.dragging) {
+      this.editor.startDrag(e);
+      this.dragging = true;
+    }
+  }
+  mouseUp(e) {
+    if (this.editor && this.editor.dragging) {
+      this.editor.endDrag(e);
+      this.dragging = false;
+      this.dialog.changed();
+    }
+  }
+
+  bind() {
+    var self=this;
+    $(this._getInputElement()).off('click').on('click',function(ev) {
+      if (self.running) {
+        self.stopEditSession();
+      } else {
+        self.startEditSession();
+      }
+    });
+  }
+}
+
+// ## TBD: do this.
+class SuiResizeTextBox extends SuiComponentBase {
+  constructor(dialog,parameter) {
+    super();
+    smoSerialize.filteredMerge(
+      ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
+    if (!this.defaultValue) {
+      this.defaultValue = 0;
+    }
+    this.resizing = false;
+    this.running = false;
+
+    this.dialog = dialog;
+    this.value='';
+  }
+
+  get html() {
+    var b = htmlHelpers.buildDom;
+    var id = this.parameterId;
+    var r = b('div').classes('cbResizeTextBox smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+      .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
+          .attr('id', id + '-input').append(
+          b('span').classes('icon icon-enlarge'))
+          .append(
+          b('label').attr('for', id + '-input').text(this.label)));
+    return r;
+  }
+  get parameterId() {
+    return this.dialog.id + '-' + this.parameterName;
+  }
+
+  stopEditSession() {
+    $('body').removeClass('text-resize');
+    if (this.editor && this.editor.dragging) {
+      this.editor.dragging = false;
+      this.dragging = false;
+    }
+    this.running = false;
+  }
+  getValue() {
+    return this.value;
+  }
+  _getInputElement() {
+    var pid = this.parameterId;
+    return $(this.dialog.dgDom.element).find('#' + pid).find('button');
+  }
+  mouseUp(e) {
+    if (this.editor && this.editor.dragging) {
+      this.editor.endDrag(e);
+      this.dragging = false;
+      this.dialog.changed();
+    }
+  }
+  mouseMove(e) {
+    if (this.editor && this.editor.dragging) {
+      this.editor.mouseMove(e);
+    }
+  }
+
+  startEditSession() {
+    $('body').addClass('text-resize');
+    this.editor = new SuiResizeTextSession({
+      textGroup: this.dialog.modifier,
+      context: this.dialog.layout.context,
+      scroller: this.dialog.tracker.scroller
+    });
+    this.running = true;
+    $(this._getInputElement()).find('label').text('Done Resizing Text Block');
+    $(this._getInputElement()).find('span.icon').removeClass('icon-enlarge').addClass('icon-checkmark');
+  }
+  mouseDown(e) {
+    if (this.editor && !this.editor.dragging) {
+      this.editor.startDrag(e);
+      this.dragging = true;
+    }
+  }
+
+  bind() {
+      var self=this;
+      $(this._getInputElement()).off('click').on('click',function(ev) {
+        if (self.running) {
+          self.stopEditSession();
+        } else {
+          self.startEditSession();
+        }
+      });
     }
 }
 ;
@@ -28746,6 +28797,9 @@ class suiController {
       layoutDebug.addDialogDebug('controller: unbindKeyboardForModal resolve')
 		}
     this.eventSource.unbindKeydownHandler(this.keydownHandler);
+    this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
+    this.eventSource.unbindClickHandler(this.mouseClickHandler);
+
 		dialog.closeModalPromise.then(rebind);
 	}
 
@@ -28821,8 +28875,8 @@ class suiController {
 		$('body').off('forceResizeEvent').on('forceResizeEvent',function() {
 			self.resizeEvent();
 		});
-    this.eventSource.bindMouseMoveHandler(this,'mouseMove');
-    this.eventSource.bindMouseClickHandler(this,'mouseClick');
+    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this,'mouseMove');
+    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this,'mouseClick');
 
 		/* $(this.renderElement).off('mousemove').on('mousemove', function (ev) {
 			tracker.intersectingArtifact({

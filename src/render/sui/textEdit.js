@@ -638,6 +638,7 @@ class SuiResizeTextSession {
     Vex.Merge(this,params);
     this.textObject = SuiTextBlock.fromTextGroup(this.textGroup,this.context); // SuiTextBlock
     this.startBox = this.textObject.getLogicalBox();
+    this.clientBox = this.textObject.getRenderedBox();
     this.startBox.y += this.textObject.maxFontHeight(1);
     this.currentBox = svgHelpers.smoBox(this.startBox);
 
@@ -653,6 +654,10 @@ class SuiResizeTextSession {
   }
 
   startDrag(e) {
+    if (!svgHelpers.containsPoint(this.clientBox,{x: e.clientX,y: e.clientY}, this.scroller.netScroll)) {
+      return;
+    }
+
     this.dragging = true;
     this.startDragPoint = {x: e.clientX, y: e.clientY };
     this.deltaDrag = null;
@@ -713,6 +718,9 @@ class SuiDragSession {
   }
 
   startDrag(e) {
+    if (!svgHelpers.containsPoint(this.currentClientBox,{x: e.clientX,y: e.clientY}, this.scroller.netScroll)) {
+      return;
+    }
     this.dragging = true;
     // calculate offset of mouse start vs. box UL
     this.yOffset = this.currentClientBox.y - e.clientY;

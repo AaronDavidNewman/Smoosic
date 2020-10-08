@@ -215,44 +215,44 @@ class SuiDialogBase {
     if (this.boundKeyboard) {
       this.eventSource.unbindKeydownHandler(this.keydownHandler);
     }
-  $('body').removeClass('showAttributeDialog');
+    $('body').removeClass('showAttributeDialog');
     console.log('dialog complete method called, triggering dialog close');
-  $('body').trigger('dialogDismiss');
-  this.dgDom.trapper.close();
+    $('body').trigger('dialogDismiss');
+    this.dgDom.trapper.close();
   }
 
     // ### _bindComponentNames
     // helper method to give components class names based on their static configuration
   _bindComponentNames() {
     this.components.forEach((component) => {
-  var nm = component.smoName + 'Ctrl';
+      var nm = component.smoName + 'Ctrl';
       this[nm] = component;
-  });
+    });
   }
 
    // ### display
    // make3 the modal visible.  bind events and elements.
   display() {
-  $('body').addClass('showAttributeDialog');
-  this.components.forEach((component) => {
-  component.bind();
-  });
-  this._bindElements();
+    $('body').addClass('showAttributeDialog');
+    this.components.forEach((component) => {
+      component.bind();
+    });
+    this._bindElements();
     if (this.modifier && this.modifier.renderedBox) {
       this.position(this.modifier.renderedBox);
     }
     this.tracker.scroller.scrollVisibleBox(
-        svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
+      svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
     );
 
-  var cb = function (x, y) {}
-  htmlHelpers.draggable({
-  parent: $(this.dgDom.element).find('.attributeModal'),
-  handle: $(this.dgDom.element).find('.jsDbMove'),
-            animateDiv:'.draganime',
-  cb: cb,
-  moveParent: true
-  });
+    var cb = function (x, y) {}
+    htmlHelpers.draggable({
+      parent: $(this.dgDom.element).find('.attributeModal'),
+      handle: $(this.dgDom.element).find('.jsDbMove'),
+      animateDiv:'.draganime',
+      cb: cb,
+      moveParent: true
+    });
   }
 
   // ### handleKeydown

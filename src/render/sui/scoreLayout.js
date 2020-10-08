@@ -23,47 +23,47 @@ class suiScoreLayout extends suiLayoutBase {
   // to get the score to appear, a div and a score object are required.  The layout takes care of creating the
   // svg element in the dom and interacting with the vex library.
   static createScoreLayout(renderElement,score, layoutParams) {
-  var ctorObj = {
-  elementId: renderElement,
-  score: score
-  };
-  if (layoutParams) {
-  Vex.Merge(ctorObj, layoutParams);
-  }
-  var layout = new suiScoreLayout(ctorObj);
-  return layout;
+    var ctorObj = {
+      elementId: renderElement,
+      score: score
+    };
+    if (layoutParams) {
+      Vex.Merge(ctorObj, layoutParams);
+    }
+    var layout = new suiScoreLayout(ctorObj);
+      return layout;
   }
   static get defaults() {
-  return {
-  clefWidth: 70,
-  staffWidth: 250,
-  totalWidth: 250,
-  pageWidth: 8 * 96 + 48,
-  pageHeight: 11 * 96,
-  svgScale: 0.7,
-  font: {
-  typeface: "Arial",
-  pointSize: 10,
-  fillStyle: '#eed'
-  }
-  };
+    return {
+      clefWidth: 70,
+      staffWidth: 250,
+      totalWidth: 250,
+      pageWidth: 8 * 96 + 48,
+      pageHeight: 11 * 96,
+      svgScale: 0.7,
+      font: {
+        typeface: "Arial",
+        pointSize: 10,
+        fillStyle: '#eed'
+      }
+    };
   }
 
   // ### unrenderAll
   // ### Description:
   // Delete all the svg elements associated with the score.
   unrenderAll() {
-  this._score.staves.forEach((staff) => {
-  this.unrenderStaff(staff);
-  });
-  $(this.renderer.getContext().svg).find('g.lineBracket').remove();
+    this._score.staves.forEach((staff) => {
+      this.unrenderStaff(staff);
+    });
+    $(this.renderer.getContext().svg).find('g.lineBracket').remove();
   }
 
   get logicalPageWidth() {
-  return this.pageMarginWidth;
+    return this.pageMarginWidth;
   }
   get logicalPageHeight() {
-  return this.pageMarginHeigh;
+    return this.pageMarginHeigh;
   }
 
   // ### _measureToLeft
@@ -72,12 +72,15 @@ class suiScoreLayout extends suiLayoutBase {
   _measureToLeft(measure) {
     var j = measure.measureNumber.staffId;
     var i = measure.measureNumber.measureIndex;
-   return (i > 0 ? this._score.staves[j].measures[i - 1] :null);
+    return (i > 0 ? this._score.staves[j].measures[i - 1] :null);
   }
 
   renderTextGroup(gg) {
     this._score.textGroups.forEach((tg) => {
-      SuiTextBlock.fromTextGroup(tg,this.context).render();
+      const textBlock = SuiTextBlock.fromTextGroup(tg,this.context);
+      textBlock.render();
+      tg.renderedBox = textBlock.renderedBox;
+      tg.logicalBox = textBlock.logicalBox;
     });
   }
 

@@ -44,7 +44,7 @@ class suiTracker extends suiMapper {
       if (this.layout.passState == suiLayoutBase.passStates.replace ||
         this.layout.passState == suiLayoutBase.passStates.clean) {
         console.log('tracker: rerender conflicting map');
-  			this.layout.remapAll();
+        this.layout.remapAll();
       }
       if (!preventScroll) {
         console.log('prevent scroll conflicting map');
@@ -140,71 +140,70 @@ class suiTracker extends suiMapper {
     }
 
   _updateModifiers() {
-  this.modifierTabs = [];
-  this.modifierBoxes = [];
-  var modMap = {};
-  var ix=0;
+    this.modifierTabs = [];
+    this.modifierBoxes = [];
+    var modMap = {};
+    var ix=0;
     this.layout.score.scoreText.forEach((modifier) => {
       if (!modMap[modifier.attrs.id]) {
         this.modifierTabs.push({
           modifier: modifier,
-  selection: null,
-  box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
-  index:ix
-          });
-          ix += 1;
+          selection: null,
+          box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
+          index:ix
+        });
+        ix += 1;
       }
     });
     this.layout.score.textGroups.forEach((modifier) => {
       if (!modMap[modifier.attrs.id]) {
         this.modifierTabs.push({
           modifier: modifier,
-  selection: null,
-  box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
-  index:ix
-          });
-          ix += 1;
-        }
-      });
+          selection: null,
+          box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
+          index:ix
+        });
+        ix += 1;
+      }
+    });
     var keys = Object.keys(this.measureNoteMap);
     keys.forEach((selKey) => {
       var selection = this.measureNoteMap[selKey];
       selection.staff.modifiers.forEach((modifier) => {
-  if (SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
-  if (!modMap[modifier.attrs.id]) {
+        if (SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
+          if (!modMap[modifier.attrs.id]) {
             if (modifier.renderedBox) {
-  						this.modifierTabs.push({
-  							modifier: modifier,
-  							selection: selection,
-  							box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
-  							index:ix
-  						});
-  						ix += 1;
-  						modMap[modifier.attrs.id] = {
-    exists: true
-    };
+              this.modifierTabs.push({
+                modifier: modifier,
+                selection: selection,
+                box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
+                index:ix
+              });
+              ix += 1;
+              modMap[modifier.attrs.id] = {exists: true };
+              }
             }
-    }
-    }
-    });
-    selection.measure.modifiers.forEach((modifier) => {
-  if (modifier.attrs.id && !modMap[modifier.attrs.id]
-                   && modifier.renderedBox) {
-  this.modifierTabs.push({
-  modifier: modifier,
-  selection: selection,
-  box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
-  index:ix
-  });
-  ix += 1;
-  modMap[modifier.attrs.id] = {
-  exists: true
-  };
-    }
-    });
-    selection.note.textModifiers.forEach((modifier) => {
+          }
+        });
+        selection.measure.modifiers.forEach((modifier) => {
+        if (modifier.attrs.id
+          && !modMap[modifier.attrs.id]
+          && modifier.renderedBox) {
+          this.modifierTabs.push({
+            modifier: modifier,
+            selection: selection,
+            box:svgHelpers.adjustScroll(modifier.renderedBox,this.scroller.netScroll),
+            index:ix
+          });
+          ix += 1;
+          modMap[modifier.attrs.id] = {
+            exists: true
+          };
+        }
+      });
+      selection.note.textModifiers.forEach((modifier) => {
         ix = this._updateNoteModifier(selection,modMap,modifier,ix);
-  });
+      });
 
       selection.note.graceNotes.forEach((modifier) => {
         ix = this._updateNoteModifier(selection,modMap,modifier,ix);
@@ -722,7 +721,7 @@ class suiTracker extends suiMapper {
   if (this.modifierSuggestion >= 0) {
   if (this['suggestFadeTimer']) {
      clearTimeout(this.suggestFadeTimer);
-  		}
+      }
   this.modifierIndex = -1;
       this.modifierSelections = [this.modifierTabs[this.modifierSuggestion]];
   this.modifierSuggestion = -1;

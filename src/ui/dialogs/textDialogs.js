@@ -449,6 +449,9 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       layoutDebug.addDialogDebug('text transform db: startEditSession');
       this.textEditorCtrl.startEditSession();
     }
+    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this,'mouseMove');
+    this.mouseUpHandler = this.eventSource.bindMouseUpHandler(this,'mouseUp');
+    this.mouseDownHandler = this.eventSource.bindMouseDownHandler(this,'mouseDown');
   }
   // ### handleKeydown
   // allow a dialog to be dismissed by esc.
@@ -463,6 +466,32 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     return;
   }
 
+  mouseUp(ev) {
+    if (this.textResizerCtrl && this.textResizerCtrl.running) {
+      this.textResizerCtrl.mouseUp();
+    }
+    else if (this.textDraggerCtrl && this.textDraggerCtrl.running) {
+      this.textDraggerCtrl.mouseUp();
+    }
+  }
+
+  mouseMove(ev) {
+    if (this.textResizerCtrl && this.textResizerCtrl.running) {
+      this.textResizerCtrl.mouseMove(ev);
+    }
+    else if (this.textDraggerCtrl && this.textDraggerCtrl.running) {
+      this.textDraggerCtrl.mouseMove(ev);
+    }
+  }
+
+  mouseDown(ev) {
+    if (this.textResizerCtrl && this.textResizerCtrl.running) {
+      this.textResizerCtrl.mouseDown(ev);
+    }
+    else if (this.textDraggerCtrl && this.textDraggerCtrl.running) {
+      this.textDraggerCtrl.mouseDown(ev);
+    }
+  }
   changed() {
     var textEditor = this.components.find((c) => c.smoName === 'textEditor');
     if (textEditor.editor) {
@@ -482,14 +511,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         this.modifier.height = this.modifier.logicalBox.height;
       }
     }
-    // If we resized the text, set the size components from the actual text
-    // object that was resized.
-    if (this.textResizerCtrl.changeFlag) {
-      this.xCtrl.setValue(this.modifier.x);
-      this.yCtrl.setValue(this.modifier.y);
-      this.scaleXCtrl.setValue(this.modifier.scaleX);
-      this.scaleYCtrl.setValue(this.modifier.scaleY);
-    }
+
     this.components.find((x) => {
     if (typeof(x['getValue'])=='function') {
         if (x.parameterName.indexOf('scale') == 0) {
@@ -502,11 +524,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 
     var xcomp = this.components.find((x) => x.smoName === 'x');
     var ycomp = this.components.find((x) => x.smoName === 'y');
-    if (this.textDraggerCtrl.dragging) {
-      var val = this.textDraggerCtrl.getValue();
-      xcomp.setValue(val.x);
-      ycomp.setValue(val.y);
-    }
     this.modifier.x=xcomp.getValue();
     this.modifier.y=ycomp.getValue();
 
@@ -584,6 +601,11 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   _complete() {
     this.tracker.updateMap(); // update the text map
     this.layout.setDirty();
+    this.eventSource.unbindMouseDownHandler(this.mouseDownHandler);
+    this.eventSource.unbindMouseUpHandler(this.mouseUpHandler);
+    this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
+    $('body').removeClass('showAttributeDialog');
+    $('body').removeClass('textEditor');
     this.complete();
   }
 
@@ -596,20 +618,14 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     fontComp.setValue(this.activeScoreText.fontInfo.family);
 
   	$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-      self.textEditorCtrl.endSession();
-      self.textDraggerCtrl.endSession();
   		self._complete();
   	});
 
   	$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-      self.textEditorCtrl.endSession();
-      self.textDraggerCtrl.endSession();
       self.modifier.restoreParams();
   		self._complete();
   	});
   	$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-      self.textEditorCtrl.endSession();
-      self.textDraggerCtrl.endSession();
       SmoUndoable.scoreOp(self.layout.score,'removeScoreText',self.modifier,self.undo,'remove text from dialog');
   		self._complete();
     });
