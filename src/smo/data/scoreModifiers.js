@@ -112,11 +112,11 @@ class SmoTextGroup extends SmoScoreModifierBase {
   }
   static deserialize(jObj) {
     var blocks = [];
-    jObj.forEach((st) => {
+    jObj.textBlocks.forEach((st) => {
       var tx = new SmoScoreText(st.text);
-      blocks.push({scoreText:tx, position: st.position});
+      blocks.push({text: tx, position: st.position});
     });
-    return new SmoTextGroup(blocks);
+    return new SmoTextGroup({blocks: blocks});
   }
   serialize() {
     smoSerialize.serializedMergeNonDefault(SmoTextGroup.defaults,SmoTextGroup.attributes,this,params);

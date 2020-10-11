@@ -76,11 +76,14 @@ class suiScoreLayout extends suiLayoutBase {
   }
 
   renderTextGroup(gg) {
-    this._score.textGroups.forEach((tg) => {
-      const textBlock = SuiTextBlock.fromTextGroup(tg,this.context);
-      textBlock.render();
-      tg.renderedBox = textBlock.renderedBox;
-      tg.logicalBox = textBlock.logicalBox;
+    const textBlock = SuiTextBlock.fromTextGroup(gg,this.context);
+    textBlock.render();
+    gg.renderedBox = textBlock.renderedBox;
+    gg.logicalBox = textBlock.logicalBox;
+    gg.textBlocks.forEach((block) => {
+      const it = textBlock.inlineBlocks.find((ib) => ib.text.attrs.id === block.text.attrs.id).text;
+      block.text.renderedBox = svgHelpers.smoBox(it.renderedBox);
+      block.text.logicalBox = svgHelpers.smoBox(it.logicalBox);
     });
   }
 

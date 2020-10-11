@@ -442,7 +442,7 @@ class SmoScore {
   removeTextGroup(textGroup) {
     var tgid = typeof(textGroup) === 'string' ? textGroup :
       textGroup.attrs.id;
-      _updateTextGroup(textGroup,false);
+      this._updateTextGroup(textGroup,false);
   }
 
   addScoreText(textObject) {

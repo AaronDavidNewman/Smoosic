@@ -9241,7 +9241,7 @@ class SmoScore {
   removeTextGroup(textGroup) {
     var tgid = typeof(textGroup) === 'string' ? textGroup :
       textGroup.attrs.id;
-      _updateTextGroup(textGroup,false);
+      this._updateTextGroup(textGroup,false);
   }
 
   addScoreText(textObject) {
@@ -9608,11 +9608,11 @@ class SmoTextGroup extends SmoScoreModifierBase {
   }
   static deserialize(jObj) {
     var blocks = [];
-    jObj.forEach((st) => {
+    jObj.textBlocks.forEach((st) => {
       var tx = new SmoScoreText(st.text);
-      blocks.push({scoreText:tx, position: st.position});
+      blocks.push({text: tx, position: st.position});
     });
-    return new SmoTextGroup(blocks);
+    return new SmoTextGroup({blocks: blocks});
   }
   serialize() {
     smoSerialize.serializedMergeNonDefault(SmoTextGroup.defaults,SmoTextGroup.attributes,this,params);
@@ -17054,11 +17054,14 @@ class suiScoreLayout extends suiLayoutBase {
   }
 
   renderTextGroup(gg) {
-    this._score.textGroups.forEach((tg) => {
-      const textBlock = SuiTextBlock.fromTextGroup(tg,this.context);
-      textBlock.render();
-      tg.renderedBox = textBlock.renderedBox;
-      tg.logicalBox = textBlock.logicalBox;
+    const textBlock = SuiTextBlock.fromTextGroup(gg,this.context);
+    textBlock.render();
+    gg.renderedBox = textBlock.renderedBox;
+    gg.logicalBox = textBlock.logicalBox;
+    gg.textBlocks.forEach((block) => {
+      const it = textBlock.inlineBlocks.find((ib) => ib.text.attrs.id === block.text.attrs.id).text;
+      block.text.renderedBox = svgHelpers.smoBox(it.renderedBox);
+      block.text.logicalBox = svgHelpers.smoBox(it.logicalBox);
     });
   }
 
@@ -21330,6 +21333,10 @@ class SuiExceptionHandler {
 	}
     exceptionHandler(e) {
         var self = this;
+        if (this.thrown) {
+          return;
+        }
+        this.thrown = true;
         if (window['suiController'] && window['suiController'].reentry) {
             return;
         }
@@ -21339,7 +21346,7 @@ class SuiExceptionHandler {
         }
         var scoreString = 'Could not serialize score.';
         try {
-            scoreString = this.score.serialize();
+            scoreString = this.layout.score.serialize();
         } catch (e) {
             scoreString += ' ' + e.message;
         }
@@ -23145,6 +23152,9 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     this.paginationsComponent.setValue(this.activeScoreText.pagination);
 
     this._bindElements();
+    if (!this.activeScoreText.renderedBox) {
+      this.layout.renderTextGroup(this.modifier);
+    }
     this.position(this.activeScoreText.renderedBox);
 
     var cb = function (x, y) {}
@@ -23264,8 +23274,20 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 
     var xcomp = this.components.find((x) => x.smoName === 'x');
     var ycomp = this.components.find((x) => x.smoName === 'y');
-    this.modifier.x=xcomp.getValue();
-    this.modifier.y=ycomp.getValue();
+    const pos = this.modifier.ul();
+
+    // position can change from drag or by dialog - only update from
+    // dialog entries if that changed.
+    if (this.xCtrl.changeFlag) {
+      this.modifier.offsetX(this.xCtrl.getValue() - pos.x);
+    }
+    if (this.yCtrl.changeFlag) {
+      this.modifier.offsetY(this.yCtrl.getValue() - pos.y);
+    }
+    if (this.textDraggerCtrl.changeFlag) {
+      this.xCtrl.setValue(pos.x);
+      this.yCtrl.setValue(pos.y);
+    }
 
     var fontComp = this.components.find((c) => c.smoName === 'fontFamily');
     if (fontComp && this.textEditorCtrl.editor) {
@@ -23299,9 +23321,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       var newText =  new SmoScoreText({position:SmoScoreText.positions.custom});
       var newGroup = new SmoTextGroup({blocks:[newText]});
       parameters.modifier = newGroup;
-      parameters.scoreText = newText;
-      tracker.layout.score.addTextGroup(newGroup);
-      SmoUndoable.scoreOp(parameters.layout.score,'addScoreText',
+      parameters.activeScoreText = newText;
+      SmoUndoable.scoreOp(parameters.layout.score,'addTextGroup',
         parameters.modifier,  parameters.undoBuffer,'Text Menu Command');
       parameters.layout.setRefresh();
     } else if (parameters.modifier.ctor === 'SmoScoreText') {
@@ -23321,13 +23342,10 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     scrollPosition.x = scrollPosition.x / (layout.svgScale * layout.zoomScale);
     console.log('text ribbon: converted scroll y is '+scrollPosition.y);
 
-    parameters.modifier.x = scrollPosition.x + 100;
-    parameters.modifier.y = scrollPosition.y + 100;
-
     super(SuiTextTransformDialog.dialogElements, {
       id: 'dialog-' + parameters.modifier.attrs.id,
-      top: parameters.modifier.y,
-      left: parameters.modifier.x,
+      top: scrollPosition.y + 100,
+      left: scrollPosition.x + 100,
       ...parameters
     });
 
@@ -23367,7 +23385,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       self._complete();
     });
     $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-      SmoUndoable.scoreOp(self.layout.score,'removeScoreText',self.modifier,self.undo,'remove text from dialog');
+      SmoUndoable.scoreOp(self.layout.score,'removeTextGroup',self.modifier,self.undo,'remove text from dialog');
       self._complete();
     });
   }
@@ -24974,13 +24992,14 @@ class SuiTextInPlace extends SuiComponentBase {
     $(this._getInputElement()).find('label').text('Done Editing Text Block');
     if (!this.editor) {
       var modifier = this.dialog.modifier;
+      const ul = modifier.ul();
       // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
       this.editor = new SuiTextSession({context : this.dialog.layout.context,
         scroller: this.dialog.tracker.scroller,
         layout: this.dialog.layout,
         score: this.dialog.layout.score,
-        x: modifier.x,
-        y: modifier.y,
+        x: ul.x,
+        y: ul.y,
         textGroup: modifier
       });
       $('body').addClass('text-edit');
@@ -25093,7 +25112,7 @@ class SuiDragText extends SuiComponentBase {
     if (this.editor && this.editor.dragging) {
       this.editor.endDrag(e);
       this.dragging = false;
-      this.dialog.changed();
+      this.handleChanged();
     }
   }
 

@@ -70,13 +70,14 @@ class SuiTextInPlace extends SuiComponentBase {
     $(this._getInputElement()).find('label').text('Done Editing Text Block');
     if (!this.editor) {
       var modifier = this.dialog.modifier;
+      const ul = modifier.ul();
       // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
       this.editor = new SuiTextSession({context : this.dialog.layout.context,
         scroller: this.dialog.tracker.scroller,
         layout: this.dialog.layout,
         score: this.dialog.layout.score,
-        x: modifier.x,
-        y: modifier.y,
+        x: ul.x,
+        y: ul.y,
         textGroup: modifier
       });
       $('body').addClass('text-edit');
@@ -189,7 +190,7 @@ class SuiDragText extends SuiComponentBase {
     if (this.editor && this.editor.dragging) {
       this.editor.endDrag(e);
       this.dragging = false;
-      this.dialog.changed();
+      this.handleChanged();
     }
   }
 
