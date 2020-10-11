@@ -7,7 +7,7 @@ class browserEventSource {
   constructor(evMask) {
     this.keydownHandlers = [];
     this.mouseMoveHandlers = [];
-    this.clickHandlers = [];
+    this.mouseClickHandlers = [];
     this.mouseUpHandlers = [];
     this.mouseDownHandlers = [];
     this.domTriggers = [];
@@ -30,7 +30,7 @@ class browserEventSource {
   }
 
   mouseClick(event) {
-    this.clickHandlers.forEach((handler) => {
+    this.mouseClickHandlers.forEach((handler) => {
       handler.sink[handler.method](event);
     });
   }
@@ -83,9 +83,9 @@ class browserEventSource {
     this._unbindHandlerArray(this.mouseUpHandlers,handlers,handler);
     this.mouseUpHandlers = handlers;
   }
-  unbindClickHandler(handler) {
+  unbindMouseClickHandler(handler) {
     var handlers = [];
-    this._unbindHandlerArray(this.clickHandlers,handlers,handler);
+    this._unbindHandlerArray(this.mouseClickHandlers,handlers,handler);
     this.clickHandlers = handlers;
   }
 
@@ -128,7 +128,7 @@ class browserEventSource {
 
   bindMouseClickHandler(sink, method) {
     var handler = {symbol: Symbol(), sink, method};
-    this.clickHandlers.push(handler);
+    this.mouseClickHandlers.push(handler);
     return handler;
   }
 

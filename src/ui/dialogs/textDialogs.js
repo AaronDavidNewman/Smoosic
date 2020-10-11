@@ -61,12 +61,12 @@ class SuiLyricDialog extends SuiDialogBase {
     const _class = eval(p.ctor);
     const dialogElements = _class['dialogElements'];
 
-  	super(dialogElements, {
-  		id: 'dialog-lyrics',
-  		top: (p.layout.score.layout.pageWidth / 2) - 200,
-  		left: (p.layout.score.layout.pageHeight / 2) - 200,
-  		...p
-  	});
+    super(dialogElements, {
+      id: 'dialog-lyrics',
+      top: (p.layout.score.layout.pageWidth / 2) - 200,
+      left: (p.layout.score.layout.pageHeight / 2) - 200,
+      ...p
+    });
 
     // If we are editing existing lyrics, make sure it is the same type of session.
     // Note: the actual lyric (modifier) is picked later from the selection. We just
@@ -108,7 +108,7 @@ class SuiLyricDialog extends SuiDialogBase {
       parent: $(this.dgDom.element).find('.attributeModal'),
       handle: $(this.dgDom.element).find('.jsDbMove'),
             animateDiv:'.draganime',
-      			cb: cb,
+            cb: cb,
       moveParent: true
   });
   }
@@ -253,86 +253,63 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     SuiTextTransformDialog._dialogElements = SuiTextTransformDialog._dialogElements ? SuiTextTransformDialog._dialogElements :
       [
       {
-  			smoName: 'textEditor',
-  			parameterName: 'text',
-  			defaultValue: 0,
-  			control: 'SuiTextInPlace',
-  			label:'Edit Text',
-  			options: []
-  		},{
-  			smoName: 'textDragger',
-  			parameterName: 'textLocation',
-  			defaultValue: 0,
-  			control: 'SuiDragText',
-  			label:'Move Text',
-  			options: []
-  		},{
-  			smoName: 'textResizer',
-  			parameterName: 'textBox',
-  			defaultValue: 0,
-  			control: 'SuiResizeTextBox',
-  			label:'Resize Text',
-  			options: []
-  		},
-            {
-  			smoName: 'x',
-  			parameterName: 'x',
-  			defaultValue: 0,
-  			control: 'SuiRockerComponent',
-  			label: 'X Position (Px)',
-                startRow:true,
-  			type: 'int'
-  		},{
-  			smoName: 'y',
-  			parameterName: 'y',
-  			defaultValue: 0,
-  			control: 'SuiRockerComponent',
-  			label: 'Y Position (Px)',
-                startRow:true,
-  			type: 'int'
-  		}, {
-  			smoName: 'scaleX',
-  			parameterName: 'scaleX',
-  			defaultValue: 100,
-  			control: 'SuiRockerComponent',
-  			label: 'Horizontal Scale (%)',
-                startRow:true,
-  			type: 'percent'
-  		}, {
-  			smoName: 'scaleY',
-  			parameterName: 'scaleY',
-  			defaultValue: 100,
-  			control: 'SuiRockerComponent',
-  			label: 'Vertical Scale (%)',
-                startRow:true,
-  			type: 'percent'
-  		}, {
-  			smoName: 'justification',
-  			parameterName: 'justification',
-  			defaultValue: SmoScoreText.justifications.left,
-  			control: 'SuiDropdownComponent',
-  			label:'Justification',
-                startRow:true,
-  			options: [{
-  					value: 'left',
-  					label: 'Left'
-  				}, {
-  					value: 'right',
-  					label: 'Right'
-  				}, {
-  					value: 'center',
-  					label: 'Center'
-  				}
-  			]
-  		},
+        smoName: 'textEditor',
+        parameterName: 'text',
+        defaultValue: 0,
+        control: 'SuiTextInPlace',
+        label:'Edit Text',
+        options: []
+      },{
+        smoName: 'textDragger',
+        parameterName: 'textLocation',
+        defaultValue: 0,
+        control: 'SuiDragText',
+        label:'Move Text',
+        options: []
+      },
       {
-  			smoName: 'fontFamily',
-  			parameterName: 'fontFamily',
-  			defaultValue: SmoScoreText.fontFamilies.times,
-  			control: 'SuiDropdownComponent',
-  			label:'Font Family',
+        smoName: 'x',
+        parameterName: 'x',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'X Position (Px)',
+                startRow:true,
+        type: 'int'
+      },{
+        smoName: 'y',
+        parameterName: 'y',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'Y Position (Px)',
+                startRow:true,
+        type: 'int'
+      }, {
+        smoName: 'justification',
+        parameterName: 'justification',
+        defaultValue: SmoScoreText.justifications.left,
+        control: 'SuiDropdownComponent',
+        label:'Justification',
+                startRow:true,
+        options: [{
+            value: 'left',
+            label: 'Left'
+          }, {
+            value: 'right',
+            label: 'Right'
+          }, {
+            value: 'center',
+            label: 'Center'
+          }
+        ]
+      },
+      {
+        smoName: 'fontFamily',
+        parameterName: 'fontFamily',
+        defaultValue: SmoScoreText.fontFamilies.times,
+        control: 'SuiDropdownComponent',
+        label:'Font Family',
         startRow:true,
-  			options: [{value:SmoScoreText.fontFamilies.serif,label:'Serif'},
+        options: [{value:SmoScoreText.fontFamilies.serif,label:'Serif'},
           {value:SmoScoreText.fontFamilies.sansSerif,label:'Sans-Serif'},
           {label:'Monospace',value:SmoScoreText.fontFamilies.monospace},
           {label:'Cursive',value:SmoScoreText.fontFamilies.cursive},
@@ -340,45 +317,45 @@ class SuiTextTransformDialog  extends SuiDialogBase {
           {label:'arial',value:SmoScoreText.fontFamilies.arial},
           {label:'Helvetica',value:'Helvetica'}
         ]
-  		},
+      },
       {
-  			smoName: 'fontSize',
-  			parameterName: 'fontSize',
-  			defaultValue: 1,
-  			control: 'SuiRockerComponent',
-  			label: 'Font Size',
-  			type: 'float',
+        smoName: 'fontSize',
+        parameterName: 'fontSize',
+        defaultValue: 1,
+        control: 'SuiRockerComponent',
+        label: 'Font Size',
+        type: 'float',
         increment:0.1
-  		},
+      },
       {
-  			smoName: 'fontUnit',
-  			parameterName: 'fontUnit',
-  			defaultValue: 'em',
-  			control: 'SuiDropdownComponent',
-  			label: 'Units',
+        smoName: 'fontUnit',
+        parameterName: 'fontUnit',
+        defaultValue: 'em',
+        control: 'SuiDropdownComponent',
+        label: 'Units',
         options: [{value:'em',label:'em'},{value:'px',label:'px'},{value:'pt',label:'pt'}]
-  		},
+      },
       {
-  			smoName: 'wrap',
-  			parameterName: 'wrap',
+        smoName: 'wrap',
+        parameterName: 'wrap',
         defaultValue: false,
-    	  control:'SuiToggleComponent',
-  			label: 'Wrap Text'
-  		},
+        control:'SuiToggleComponent',
+        label: 'Wrap Text'
+      },
       { // {every:'every',even:'even',odd:'odd',once:'once'}
-  			smoName: 'pagination',
-  			parameterName: 'pagination',
-  			defaultValue: SmoScoreText.paginations.every,
-  			control: 'SuiDropdownComponent',
-  			label:'Page Behavior',
+        smoName: 'pagination',
+        parameterName: 'pagination',
+        defaultValue: SmoScoreText.paginations.every,
+        control: 'SuiDropdownComponent',
+        label:'Page Behavior',
         startRow:true,
-  			options: [{value:'once',label:'Once'},
+        options: [{value:'once',label:'Once'},
           {value:'every',label:'Every'},
           {label:'Even',value:'even'},
           {label:'Odd',value:'odd'},
           {label:'Subsequent',value:'subsequent'}
         ]
-  		}, {
+      }, {
         staticText: [
           {label : 'Text Properties' }
         ]
@@ -392,14 +369,14 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     console.log('text box creationg complete')
     this.textElement=$(this.layout.context.svg).find('.' + this.modifier.attrs.id)[0];
 
-  	$('body').addClass('showAttributeDialog');
+    $('body').addClass('showAttributeDialog');
     $('body').addClass('textEditor');
-  	this.components.forEach((component) => {
-  		component.bind();
+    this.components.forEach((component) => {
+      component.bind();
       if (typeof(component['setValue'])=='function' && this.modifier[component.parameterName]) {
-  		  component.setValue(this.modifier[component.parameterName]);
+        component.setValue(this.modifier[component.parameterName]);
       }
-  	});
+    });
     this._bindComponentNames();
 
     var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
@@ -414,17 +391,17 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     this.paginationsComponent = this.components.find((c) => c.smoName == 'pagination');
     this.paginationsComponent.setValue(this.activeScoreText.pagination);
 
-  	this._bindElements();
-  	this.position(this.activeScoreText.renderedBox);
+    this._bindElements();
+    this.position(this.activeScoreText.renderedBox);
 
-  	var cb = function (x, y) {}
-  	htmlHelpers.draggable({
-  		parent: $(this.dgDom.element).find('.attributeModal'),
-  		handle: $(this.dgDom.element).find('span.jsDbMove'),
+    var cb = function (x, y) {}
+    htmlHelpers.draggable({
+      parent: $(this.dgDom.element).find('.attributeModal'),
+      handle: $(this.dgDom.element).find('span.jsDbMove'),
       animateDiv:'.draganime',
-  		cb: cb,
-  		moveParent: true
-  	});
+      cb: cb,
+      moveParent: true
+    });
     $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
       if ($(ctrl).hasClass('cbTextInPlace')) {
        $(ctrl).addClass('fold-textmove');
@@ -452,6 +429,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this,'mouseMove');
     this.mouseUpHandler = this.eventSource.bindMouseUpHandler(this,'mouseUp');
     this.mouseDownHandler = this.eventSource.bindMouseDownHandler(this,'mouseDown');
+    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this,'mouseClick');
   }
   // ### handleKeydown
   // allow a dialog to be dismissed by esc.
@@ -481,6 +459,15 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     }
     else if (this.textDraggerCtrl && this.textDraggerCtrl.running) {
       this.textDraggerCtrl.mouseMove(ev);
+    } else if (this.textEditorCtrl && this.textEditorCtrl.isRunning) {
+      this.textEditorCtrl.mouseMove(ev);
+    }
+  }
+
+  mouseClick(ev) {
+    if (this.textEditorCtrl && this.textEditorCtrl.isRunning) {
+      this.textEditorCtrl.mouseClick(ev);
+      ev.stopPropagation();
     }
   }
 
@@ -604,6 +591,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     this.eventSource.unbindMouseDownHandler(this.mouseDownHandler);
     this.eventSource.unbindMouseUpHandler(this.mouseUpHandler);
     this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
+    this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
     $('body').removeClass('showAttributeDialog');
     $('body').removeClass('textEditor');
     this.complete();
@@ -612,22 +600,22 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   _bindElements() {
     var self = this;
     this.bindKeyboard();
-  	var dgDom = this.dgDom;
+    var dgDom = this.dgDom;
     var fontComp = this.components.find((c) => c.smoName === 'fontFamily');
 
     fontComp.setValue(this.activeScoreText.fontInfo.family);
 
-  	$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-  		self._complete();
-  	});
+    $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+      self._complete();
+    });
 
-  	$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+    $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
       self.modifier.restoreParams();
-  		self._complete();
-  	});
-  	$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
+      self._complete();
+    });
+    $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
       SmoUndoable.scoreOp(self.layout.score,'removeScoreText',self.modifier,self.undo,'remove text from dialog');
-  		self._complete();
+      self._complete();
     });
   }
 }

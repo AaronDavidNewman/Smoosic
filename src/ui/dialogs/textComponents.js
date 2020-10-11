@@ -1,3 +1,120 @@
+
+// ## SuiTextInPlace
+// Edit the text in an SVG element, in the same scale etc. as the text in the score SVG DOM.
+// This component just manages the text editing component of hte renderer.
+class SuiTextInPlace extends SuiComponentBase {
+  constructor(dialog,parameter) {
+    super();
+    smoSerialize.filteredMerge(
+        ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
+    if (!this.defaultValue) {
+        this.defaultValue = 0;
+    }
+    this.editMode=false;
+    this.dialog = dialog;
+    this.value='';
+    var modifier = this.dialog.modifier;
+
+    this.activeScoreText = dialog.activeScoreText;
+    this.value = modifier;
+  }
+
+  get html() {
+    var b = htmlHelpers.buildDom;
+    var id = this.parameterId;
+    var r = b('div').classes('cbTextInPlace smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+      .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
+        .attr('id', id + '-input').append(
+        b('span').classes('icon icon-pencil'))
+        .append(
+        b('label').attr('for', id + '-input').text(this.label)));
+    return r;
+  }
+  get parameterId() {
+    return this.dialog.id + '-' + this.parameterName;
+  }
+  endSession() {
+    var self = this;
+    var render = () => {
+      this.dialog.layout.setRefresh();
+    }
+    if (this.editor) {
+      this.value=this.editor.textGroup;
+      this.editor.stopSession().then(render);
+    }
+    $('body').removeClass('text-edit');
+  }
+  get isRunning() {
+    return this.editor && this.editor.isRunning;
+  }
+  getValue() {
+    return this.value;
+  }
+  _getInputElement() {
+    var pid = this.parameterId;
+    return $(this.dialog.dgDom.element).find('#' + pid).find('button');
+  }
+  mouseMove(ev) {
+    if (this.editor && this.editor.isRunning) {
+      this.editor.handleMouseEvent(ev);
+    }
+  }
+
+  mouseClick(ev) {
+    if (this.editor && this.editor.isRunning) {
+      this.editor.handleMouseEvent(ev);
+    }
+  }
+  startEditSession() {
+    var self=this;
+    $(this._getInputElement()).find('label').text('Done Editing Text Block');
+    if (!this.editor) {
+      var modifier = this.dialog.modifier;
+      // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
+      this.editor = new SuiTextSession({context : this.dialog.layout.context,
+        scroller: this.dialog.tracker.scroller,
+        layout: this.dialog.layout,
+        score: this.dialog.layout.score,
+        x: modifier.x,
+        y: modifier.y,
+        textGroup: modifier
+      });
+      $('body').addClass('text-edit');
+      this.value = this.editor.textGroup;
+      var button = document.getElementById(this.parameterId);
+      $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
+      this.editor.startSession();
+    } else {
+      var button = document.getElementById(this.parameterId);
+      this.value=this.editor.textGroup;
+      $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
+      this.editor.stopSession();
+      $('.textEdit').addClass('hide');
+      $('body').removeClass('text-edit');
+      $(this._getInputElement()).find('label').text(this.label);
+      this.handleChanged();
+    }
+  }
+  evKey(evdata) {
+    if (this.editor) {
+      this.editor.evKey(evdata);
+    }
+  }
+
+  bind() {
+    var self=this;
+    this.fontInfo = JSON.parse(JSON.stringify(this.activeScoreText.fontInfo));
+    this.value = this.dialog.modifier;
+    $(this._getInputElement()).off('click').on('click',function(ev) {
+      if (self.editor && self.editor.state === SuiTextSession.States.RUNNING) {
+        self.endSession();
+      } else {
+        self.startEditSession();
+      }
+    });
+  }
+}
+
 // ## SuiDragText
 // A component that lets you drag the text you are editing to anywhere on the score.
 // The text is not really part of the dialog but the location of the text appears
@@ -88,7 +205,7 @@ class SuiDragText extends SuiComponentBase {
   }
 }
 
-// ## TBD: do this.
+// ## Removing this for now...
 class SuiResizeTextBox extends SuiComponentBase {
   constructor(dialog,parameter) {
     super();

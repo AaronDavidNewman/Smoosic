@@ -813,6 +813,10 @@ class SuiTextSession {
     return this.state === SuiTextSession.States.STOPPED;
   }
 
+  get isRunning() {
+    return this.state === SuiTextSession.States.RUNNING;
+  }
+
   _markStopped() {
     this.state = SuiTextSession.States.STOPPED;
   }
@@ -861,6 +865,12 @@ class SuiTextSession {
     const rv = this.editor.evKey(evdata);
     if (rv) {
       this._removeScoreText();
+    }
+  }
+
+  handleMouseEvent(ev) {
+    if (this.isRunning) {
+      this.editor.handleMouseEvent(ev);
     }
   }
 }

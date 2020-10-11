@@ -275,7 +275,7 @@ class suiController {
 		}
     this.eventSource.unbindKeydownHandler(this.keydownHandler);
     this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
-    this.eventSource.unbindClickHandler(this.mouseClickHandler);
+    this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
 
 		dialog.closeModalPromise.then(rebind);
 	}
