@@ -82,6 +82,9 @@ class SmoTranslationEditor {
       });
       return container;
     }
+    static getStaticText(dialogElements,label) {
+      return dialogElements.find((x) => x.staticText).staticText.find((x) => x[label]);
+    }
     static getButtonTranslateHtml(enStrings,langStrings,transContainer) {
       var b = htmlHelpers.buildDom;
       var buttonDom = b('div').classes('ribbon-translate-container')

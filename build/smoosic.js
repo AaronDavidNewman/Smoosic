@@ -23117,13 +23117,19 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         ]
       }, {
         staticText: [
-          {label : 'Text Properties' }
+          {label : 'Text Properties' },
+          {editorLabel: 'Done Editing Text Block' },
+          {draggerLabel: 'Done Dragging Text'}
         ]
       }
     ];
 
     return SuiTextTransformDialog._dialogElements;
   }
+  static getStaticText(label) {
+    return SuiTextTransformDialog.dialogElements.find((x) => x.staticText).staticText.find((x) => x[label])[label];
+  }
+
 
   display() {
     console.log('text box creationg complete')
@@ -23131,13 +23137,11 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 
     $('body').addClass('showAttributeDialog');
     $('body').addClass('textEditor');
+    this._bindComponentNames();
+
     this.components.forEach((component) => {
       component.bind();
-      if (typeof(component['setValue'])=='function' && this.modifier[component.parameterName]) {
-        component.setValue(this.modifier[component.parameterName]);
-      }
     });
-    this._bindComponentNames();
 
     var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
     var dbFontUnit  = this.components.find((c) => c.smoName === 'fontUnit');
@@ -23156,6 +23160,9 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       this.layout.renderTextGroup(this.modifier);
     }
     this.position(this.activeScoreText.renderedBox);
+    const ul = this.modifier.ul();
+    this.xCtrl.setValue(ul.x);
+    this.yCtrl.setValue(ul.y);
 
     var cb = function (x, y) {}
     htmlHelpers.draggable({
@@ -23262,16 +23269,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       }
     }
 
-    this.components.find((x) => {
-    if (typeof(x['getValue'])=='function') {
-        if (x.parameterName.indexOf('scale') == 0) {
-           var val = x.getValue();
-            var fcn = x.parameterName+'InPlace';
-            this.modifier[fcn](val);
-        }
-      }
-    });
-
     var xcomp = this.components.find((x) => x.smoName === 'x');
     var ycomp = this.components.find((x) => x.smoName === 'y');
     const pos = this.modifier.ul();
@@ -23289,19 +23286,24 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       this.yCtrl.setValue(pos.y);
     }
 
-    var fontComp = this.components.find((c) => c.smoName === 'fontFamily');
-    if (fontComp && this.textEditorCtrl.editor) {
-     this.textEditorCtrl.editor.scoreText.fontInfo.family = fontComp.getValue();
+    if (this.fontFamilyCtrl.changeFlag) {
+      const family = this.fontFamilyCtrl.getValue();
+      this.activeScoreText.fontInfo.family = family;
+      if (this.textEditorCtrl.editor) {
+        this.textEditorCtrl.editor.scoreText.fontInfo.family = family;
+      }
     }
 
     if (this.paginationsComponent.changeFlag && this.textEditorCtrl.editor) {
       this.textEditorCtrl.editor.scoreText.pagination = this.paginationsComponent.getValue();
     }
 
-    var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
-    var dbFontUnit  = this.components.find((c) => c.smoName === 'fontUnit');
-    if (this.textEditorCtrl.editor) {
-      this.textEditorCtrl.editor.scoreText.fontInfo.size=''+dbFontSize.getValue()+dbFontUnit.getValue();
+    if (this.fontSizeCtrl.changeFlag) {
+      const fontSize = '' + this.fontSizeCtrl.getValue() + this.fontUnitCtrl.getValue();
+      this.activeScoreText.fontInfo.size = fontSize;
+      if (this.textEditorCtrl.editor) {
+        this.textEditorCtrl.editor.scoreText.fontInfo.size = fontSize;
+      }
     }
 
     // Use layout context because render may have reset svg.
@@ -24939,6 +24941,7 @@ class SuiTextInPlace extends SuiComponentBase {
 
     this.activeScoreText = dialog.activeScoreText;
     this.value = modifier;
+    this.altLabel = SuiTextTransformDialog.getStaticText('editorLabel');
   }
 
   get html() {
@@ -24957,6 +24960,10 @@ class SuiTextInPlace extends SuiComponentBase {
   }
   endSession() {
     var self = this;
+    $(this._getInputElement()).find('label').text(this.label);
+    const button = document.getElementById(this.parameterId);
+    $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
+
     var render = () => {
       this.dialog.layout.setRefresh();
     }
@@ -24989,34 +24996,23 @@ class SuiTextInPlace extends SuiComponentBase {
   }
   startEditSession() {
     var self=this;
-    $(this._getInputElement()).find('label').text('Done Editing Text Block');
-    if (!this.editor) {
-      var modifier = this.dialog.modifier;
-      const ul = modifier.ul();
-      // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
-      this.editor = new SuiTextSession({context : this.dialog.layout.context,
-        scroller: this.dialog.tracker.scroller,
-        layout: this.dialog.layout,
-        score: this.dialog.layout.score,
-        x: ul.x,
-        y: ul.y,
-        textGroup: modifier
-      });
-      $('body').addClass('text-edit');
-      this.value = this.editor.textGroup;
-      var button = document.getElementById(this.parameterId);
-      $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
-      this.editor.startSession();
-    } else {
-      var button = document.getElementById(this.parameterId);
-      this.value=this.editor.textGroup;
-      $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
-      this.editor.stopSession();
-      $('.textEdit').addClass('hide');
-      $('body').removeClass('text-edit');
-      $(this._getInputElement()).find('label').text(this.label);
-      this.handleChanged();
-    }
+    $(this._getInputElement()).find('label').text(this.altLabel);
+    var modifier = this.dialog.modifier;
+    const ul = modifier.ul();
+    // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
+    this.editor = new SuiTextSession({context : this.dialog.layout.context,
+      scroller: this.dialog.tracker.scroller,
+      layout: this.dialog.layout,
+      score: this.dialog.layout.score,
+      x: ul.x,
+      y: ul.y,
+      textGroup: modifier
+    });
+    $('body').addClass('text-edit');
+    this.value = this.editor.textGroup;
+    var button = document.getElementById(this.parameterId);
+    $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
+    this.editor.startSession();
   }
   evKey(evdata) {
     if (this.editor) {
@@ -25054,6 +25050,7 @@ class SuiDragText extends SuiComponentBase {
     this.running = false;
 
     this.dialog = dialog;
+    this.altLabel = SuiTextTransformDialog.getStaticText('draggerLabel');
     this.value='';
   }
 
@@ -25081,6 +25078,7 @@ class SuiDragText extends SuiComponentBase {
   }
   stopEditSession() {
     $('body').removeClass('text-move');
+    $(this._getInputElement()).find('span.icon').removeClass('icon-checkmark').addClass('icon-move');
     if (this.editor && this.editor.dragging) {
       this.editor.dragging = false;
     }
@@ -25093,7 +25091,7 @@ class SuiDragText extends SuiComponentBase {
       context: this.dialog.layout.context,
       scroller: this.dialog.tracker.scroller
     });
-    $(this._getInputElement()).find('label').text('Done Moving Text Block');
+    $(this._getInputElement()).find('label').text(this.altLabel);
     $(this._getInputElement()).find('span.icon').removeClass('icon-enlarge').addClass('icon-checkmark');
     this.running = true;
   }
@@ -29018,6 +29016,9 @@ class SmoTranslationEditor {
         $(menuItemsDom).append(menuItemDom);
       });
       return container;
+    }
+    static getStaticText(dialogElements,label) {
+      return dialogElements.find((x) => x.staticText).staticText.find((x) => x[label]);
     }
     static getButtonTranslateHtml(enStrings,langStrings,transContainer) {
       var b = htmlHelpers.buildDom;

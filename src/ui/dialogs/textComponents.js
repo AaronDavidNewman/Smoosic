@@ -17,6 +17,7 @@ class SuiTextInPlace extends SuiComponentBase {
 
     this.activeScoreText = dialog.activeScoreText;
     this.value = modifier;
+    this.altLabel = SuiTextTransformDialog.getStaticText('editorLabel');
   }
 
   get html() {
@@ -35,6 +36,10 @@ class SuiTextInPlace extends SuiComponentBase {
   }
   endSession() {
     var self = this;
+    $(this._getInputElement()).find('label').text(this.label);
+    const button = document.getElementById(this.parameterId);
+    $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
+
     var render = () => {
       this.dialog.layout.setRefresh();
     }
@@ -67,34 +72,23 @@ class SuiTextInPlace extends SuiComponentBase {
   }
   startEditSession() {
     var self=this;
-    $(this._getInputElement()).find('label').text('Done Editing Text Block');
-    if (!this.editor) {
-      var modifier = this.dialog.modifier;
-      const ul = modifier.ul();
-      // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
-      this.editor = new SuiTextSession({context : this.dialog.layout.context,
-        scroller: this.dialog.tracker.scroller,
-        layout: this.dialog.layout,
-        score: this.dialog.layout.score,
-        x: ul.x,
-        y: ul.y,
-        textGroup: modifier
-      });
-      $('body').addClass('text-edit');
-      this.value = this.editor.textGroup;
-      var button = document.getElementById(this.parameterId);
-      $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
-      this.editor.startSession();
-    } else {
-      var button = document.getElementById(this.parameterId);
-      this.value=this.editor.textGroup;
-      $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
-      this.editor.stopSession();
-      $('.textEdit').addClass('hide');
-      $('body').removeClass('text-edit');
-      $(this._getInputElement()).find('label').text(this.label);
-      this.handleChanged();
-    }
+    $(this._getInputElement()).find('label').text(this.altLabel);
+    var modifier = this.dialog.modifier;
+    const ul = modifier.ul();
+    // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
+    this.editor = new SuiTextSession({context : this.dialog.layout.context,
+      scroller: this.dialog.tracker.scroller,
+      layout: this.dialog.layout,
+      score: this.dialog.layout.score,
+      x: ul.x,
+      y: ul.y,
+      textGroup: modifier
+    });
+    $('body').addClass('text-edit');
+    this.value = this.editor.textGroup;
+    var button = document.getElementById(this.parameterId);
+    $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
+    this.editor.startSession();
   }
   evKey(evdata) {
     if (this.editor) {
@@ -132,6 +126,7 @@ class SuiDragText extends SuiComponentBase {
     this.running = false;
 
     this.dialog = dialog;
+    this.altLabel = SuiTextTransformDialog.getStaticText('draggerLabel');
     this.value='';
   }
 
@@ -159,6 +154,7 @@ class SuiDragText extends SuiComponentBase {
   }
   stopEditSession() {
     $('body').removeClass('text-move');
+    $(this._getInputElement()).find('span.icon').removeClass('icon-checkmark').addClass('icon-move');
     if (this.editor && this.editor.dragging) {
       this.editor.dragging = false;
     }
@@ -171,7 +167,7 @@ class SuiDragText extends SuiComponentBase {
       context: this.dialog.layout.context,
       scroller: this.dialog.tracker.scroller
     });
-    $(this._getInputElement()).find('label').text('Done Moving Text Block');
+    $(this._getInputElement()).find('label').text(this.altLabel);
     $(this._getInputElement()).find('span.icon').removeClass('icon-enlarge').addClass('icon-checkmark');
     this.running = true;
   }

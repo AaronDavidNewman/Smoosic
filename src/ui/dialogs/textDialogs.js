@@ -357,13 +357,19 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         ]
       }, {
         staticText: [
-          {label : 'Text Properties' }
+          {label : 'Text Properties' },
+          {editorLabel: 'Done Editing Text Block' },
+          {draggerLabel: 'Done Dragging Text'}
         ]
       }
     ];
 
     return SuiTextTransformDialog._dialogElements;
   }
+  static getStaticText(label) {
+    return SuiTextTransformDialog.dialogElements.find((x) => x.staticText).staticText.find((x) => x[label])[label];
+  }
+
 
   display() {
     console.log('text box creationg complete')
@@ -371,13 +377,11 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 
     $('body').addClass('showAttributeDialog');
     $('body').addClass('textEditor');
+    this._bindComponentNames();
+
     this.components.forEach((component) => {
       component.bind();
-      if (typeof(component['setValue'])=='function' && this.modifier[component.parameterName]) {
-        component.setValue(this.modifier[component.parameterName]);
-      }
     });
-    this._bindComponentNames();
 
     var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
     var dbFontUnit  = this.components.find((c) => c.smoName === 'fontUnit');
@@ -396,6 +400,9 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       this.layout.renderTextGroup(this.modifier);
     }
     this.position(this.activeScoreText.renderedBox);
+    const ul = this.modifier.ul();
+    this.xCtrl.setValue(ul.x);
+    this.yCtrl.setValue(ul.y);
 
     var cb = function (x, y) {}
     htmlHelpers.draggable({
@@ -502,16 +509,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       }
     }
 
-    this.components.find((x) => {
-    if (typeof(x['getValue'])=='function') {
-        if (x.parameterName.indexOf('scale') == 0) {
-           var val = x.getValue();
-            var fcn = x.parameterName+'InPlace';
-            this.modifier[fcn](val);
-        }
-      }
-    });
-
     var xcomp = this.components.find((x) => x.smoName === 'x');
     var ycomp = this.components.find((x) => x.smoName === 'y');
     const pos = this.modifier.ul();
@@ -529,19 +526,24 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       this.yCtrl.setValue(pos.y);
     }
 
-    var fontComp = this.components.find((c) => c.smoName === 'fontFamily');
-    if (fontComp && this.textEditorCtrl.editor) {
-     this.textEditorCtrl.editor.scoreText.fontInfo.family = fontComp.getValue();
+    if (this.fontFamilyCtrl.changeFlag) {
+      const family = this.fontFamilyCtrl.getValue();
+      this.activeScoreText.fontInfo.family = family;
+      if (this.textEditorCtrl.editor) {
+        this.textEditorCtrl.editor.scoreText.fontInfo.family = family;
+      }
     }
 
     if (this.paginationsComponent.changeFlag && this.textEditorCtrl.editor) {
       this.textEditorCtrl.editor.scoreText.pagination = this.paginationsComponent.getValue();
     }
 
-    var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
-    var dbFontUnit  = this.components.find((c) => c.smoName === 'fontUnit');
-    if (this.textEditorCtrl.editor) {
-      this.textEditorCtrl.editor.scoreText.fontInfo.size=''+dbFontSize.getValue()+dbFontUnit.getValue();
+    if (this.fontSizeCtrl.changeFlag) {
+      const fontSize = '' + this.fontSizeCtrl.getValue() + this.fontUnitCtrl.getValue();
+      this.activeScoreText.fontInfo.size = fontSize;
+      if (this.textEditorCtrl.editor) {
+        this.textEditorCtrl.editor.scoreText.fontInfo.size = fontSize;
+      }
     }
 
     // Use layout context because render may have reset svg.
