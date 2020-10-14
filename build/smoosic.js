@@ -19131,7 +19131,7 @@ class SuiLyricSession {
     return PromiseHelpers.makePromise(this,'_isRendered','_markStopped',null,100);
   }
 
-  // ### _startSessionForNote
+  // ### _advanceSelection
   // Based on a skip character, move the editor forward/back one note.
   _advanceSelection(isShift) {
     const nextSelection = isShift ? SmoSelection.lastNoteSelectionFromSelector(this.score,this.selector)
@@ -19149,6 +19149,22 @@ class SuiLyricSession {
       PromiseHelpers.promiseChainThen(conditionArray);
     }
   }
+
+  // ### advanceSelection
+  // external interfoace to move to next/last note
+  advanceSelection(isShift) {
+    if (this.isRunning) {
+      this._updateLyricFromEditor();
+      this._advanceSelection(isShift);
+    }
+  }
+
+  removeLyric() {
+    if (this.selection && this.lyric) {
+      this.selection.note.removeLyric(this.lyric);
+    }
+  }
+
 
   // ### _updateLyricFromEditor
   // The editor is done running, so update the lyric now.
@@ -19790,7 +19806,7 @@ class browserEventSource {
   unbindMouseClickHandler(handler) {
     var handlers = [];
     this._unbindHandlerArray(this.mouseClickHandlers,handlers,handler);
-    this.clickHandlers = handlers;
+    this.mouseClickHandlers = handlers;
   }
 
   unbindKeydownHandler(handler) {
@@ -25214,13 +25230,26 @@ class SuiLyricComponent extends SuiComponentBase {
   get html() {
     var b = htmlHelpers.buildDom;
     var id = this.parameterId;
-    var r = b('div').classes('cbTextInPlace smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
-      .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
-        .attr('id', id + '-input').append(
-        b('span').classes('icon icon-pencil'))
-        .append(
-        b('label').attr('for', id + '-input').text(this.label)));
+    var r = b('div').classes('cbLyricEdit smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+      .append(b('div').classes('toggleEdit')
+        .append(b('button').classes('toggleTextEdit')
+          .attr('id', id + '-toggleInput').append(
+          b('span').classes('icon icon-pencil'))).append(
+          b('label').attr('for', id + '-toggleInput').text(this.label)))
+
+      .append(b('div').classes('controlDiv')
+        .append(b('span')
+          .append(
+            b('button').attr('id', id + '-left').classes('icon-arrow-left buttonComponent')))
+        .append(b('span')
+          .append(
+            b('button').attr('id', id + '-right').classes('icon-arrow-right buttonComponent')))
+        .append(b('span')
+          .append(
+            b('button').attr('id', id + '-remove').classes('icon-cross buttonComponent')))
+      );
     return r;
+
   }
   get parameterId() {
     return this.dialog.id + '-' + this.parameterName;
@@ -25286,6 +25315,16 @@ class SuiLyricComponent extends SuiComponentBase {
     }
   }
 
+  moveSelectionRight() {
+      this.editor.advanceSelection(false);
+  }
+  moveSelectionLeft() {
+    this.editor.advanceSelection(true);
+  }
+  removeText() {
+    this.editor.removeLyric();
+  }
+
   bind() {
     var self=this;
     $(this._getInputElement()).off('click').on('click',function(ev) {
@@ -25294,6 +25333,16 @@ class SuiLyricComponent extends SuiComponentBase {
       } else {
         self.startEditSession();
       }
+    });
+    var self=this;
+    $('#'+this.parameterId+'-left').off('click').on('click',function() {
+      self.moveSelectionLeft();
+    });
+    $('#'+this.parameterId+'-right').off('click').on('click',function() {
+      self.moveSelectionRight();
+    });
+    $('#'+this.parameterId+'-remove').off('click').on('click',function() {
+      self.removeText();
     });
   }
 }

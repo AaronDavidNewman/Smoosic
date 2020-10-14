@@ -992,7 +992,7 @@ class SuiLyricSession {
     return PromiseHelpers.makePromise(this,'_isRendered','_markStopped',null,100);
   }
 
-  // ### _startSessionForNote
+  // ### _advanceSelection
   // Based on a skip character, move the editor forward/back one note.
   _advanceSelection(isShift) {
     const nextSelection = isShift ? SmoSelection.lastNoteSelectionFromSelector(this.score,this.selector)
@@ -1010,6 +1010,22 @@ class SuiLyricSession {
       PromiseHelpers.promiseChainThen(conditionArray);
     }
   }
+
+  // ### advanceSelection
+  // external interfoace to move to next/last note
+  advanceSelection(isShift) {
+    if (this.isRunning) {
+      this._updateLyricFromEditor();
+      this._advanceSelection(isShift);
+    }
+  }
+
+  removeLyric() {
+    if (this.selection && this.lyric) {
+      this.selection.note.removeLyric(this.lyric);
+    }
+  }
+
 
   // ### _updateLyricFromEditor
   // The editor is done running, so update the lyric now.

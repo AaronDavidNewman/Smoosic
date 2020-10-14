@@ -86,7 +86,7 @@ class browserEventSource {
   unbindMouseClickHandler(handler) {
     var handlers = [];
     this._unbindHandlerArray(this.mouseClickHandlers,handlers,handler);
-    this.clickHandlers = handlers;
+    this.mouseClickHandlers = handlers;
   }
 
   unbindKeydownHandler(handler) {
