@@ -38,11 +38,11 @@ class SuiLyricDialog extends SuiDialogBase {
       label: 'Y Adjustment (Px)',
       type: 'int'
     }, {
-      smoName: 'textEditor',
+      smoName: 'lyricEditor',
       parameterName: 'text',
       defaultValue: 0,
-      control: 'SuiLyricEditComponent',
-      label:'Edit Text',
+      control: 'SuiLyricComponent',
+      label:'Edit Lyrics',
       options: []
     }, {
     staticText: [
@@ -53,6 +53,13 @@ class SuiLyricDialog extends SuiDialogBase {
   ];
 
     return SuiLyricDialog._dialogElements;
+  }
+
+
+  // ### getStaticText
+  // given 'foo' return dialogElements.staticText value that has key of 'foo'
+  static getStaticText(label) {
+    return SuiLyricDialog.dialogElements.find((x) => x.staticText).staticText.find((x) => x[label])[label];
   }
 
   constructor(parameters) {
@@ -81,15 +88,15 @@ class SuiLyricDialog extends SuiDialogBase {
   display() {
     $('body').addClass('showAttributeDialog');
     $('body').addClass('textEditor');
-  this.components.forEach((component) => {
-  component.bind();
-  });
+    this.components.forEach((component) => {
+      component.bind();
+    });
 
     this._bindComponentNames();
 
     // this.editor = this.components.find((c) => c.smoName === 'textEditor');
     this.verse = this.components.find((c) => c.smoName === 'verse');
-  this._bindElements();
+    this._bindElements();
 
     // make sure keyboard is unbound or we get dupicate key events.
     var self=this;
@@ -110,49 +117,74 @@ class SuiLyricDialog extends SuiDialogBase {
             animateDiv:'.draganime',
             cb: cb,
       moveParent: true
-  });
+    });
+    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this,'mouseMove');
+    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this,'mouseClick');
+    this.bindKeyboard();
   }
   _focusSelection() {
-    if (this.textEditorCtrl.editor.selection &&
-      this.textEditorCtrl.editor.selection.note &&
-      this.textEditorCtrl.editor.selection.note.renderedBox) {
-      this.tracker.scroller.scrollVisibleBox(this.textEditorCtrl.editor.selection.note.renderedBox);
+    if (this.lyricEditorCtrl.editor.selection &&
+      this.lyricEditorCtrl.editor.selection.note &&
+      this.lyricEditorCtrl.editor.selection.note.renderedBox) {
+      this.tracker.scroller.scrollVisibleBox(this.lyricEditorCtrl.editor.selection.note.renderedBox);
     }
   }
   changed() {
-    this.textEditorCtrl.verse = this.verse.getValue();
-    // Note, when selection changes, we need to wait for the text edit session
-    // to start on the new selection.  Then this.editor.changeFlag is set and
-    // we can focus on the selection if it is not visible.
-    if (this.textEditorCtrl.changeFlag && this.textEditorCtrl.selection) {
-      this.textEditorCtrl.setSelection(this.textEditorCtrl.selection.selector);
-      this._focusSelection();
-    }
-
-    if (this.translateYCtrl.changeFlag) {
-      this.textEditorCtrl.setYOffset(this.translateYCtrl.getValue());
-    } else {
-      this.translateYCtrl.setValue(this.textEditorCtrl.getYOffset());
-    }
+    this.lyricEditorCtrl.verse = this.verse.getValue();
   }
   _bindElements() {
     var self = this;
     var dgDom = this.dgDom;
 
-  $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+    $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
       self.tracker.replaceSelectedMeasures();
       self.tracker.layout.setDirty();
-      self.complete();
-  });
+      self._complete();
+    });
     $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
       self.editor.undo();
       self.tracker.layout.setDirty();
-      self.complete();
-  });
+      self._complete();
+    });
     $(dgDom.element).find('.remove-button').remove();
-    this.textEditorCtrl.eventSource = this.eventSource;
-    this.textEditorCtrl.startEditSession();
+    this.lyricEditorCtrl.eventSource = this.eventSource;
+    this.lyricEditorCtrl.startEditSession();
   }
+  // ### handleKeydown
+  // allow a dialog to be dismissed by esc.
+  evKey(evdata) {
+    if (evdata.key == 'Escape') {
+      $(this.dgDom.element).find('.cancel-button').click();
+      evdata.preventDefault();
+      return;
+    } else {
+      this.lyricEditorCtrl.evKey(evdata);
+    }
+  }
+
+  _complete() {
+    this.layout.setDirty();
+    this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
+    this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
+    $('body').removeClass('showAttributeDialog');
+    $('body').removeClass('textEditor');
+    this.complete();
+  }
+
+
+  mouseMove(ev) {
+    if (this.lyricEditorCtrl && this.lyricEditorCtrl.running) {
+      this.lyricEditorCtrl.mouseMove(ev);
+    }
+  }
+
+  mouseClick(ev) {
+    if (this.lyricEditorCtrl && this.lyricEditorCtrl.running) {
+      this.lyricEditorCtrl.mouseClick(ev);
+      ev.stopPropagation();
+    }
+  }
+
 }
 
 class SuiChordChangeDialog extends SuiLyricDialog {
@@ -175,45 +207,45 @@ class SuiChordChangeDialog extends SuiLyricDialog {
   static get dialogElements() {
     SuiChordChangeDialog._dialogElements = SuiChordChangeDialog._dialogElements ? SuiChordChangeDialog._dialogElements :
       [{
-      smoName: 'verse',
-      parameterName: 'verse',
-      defaultValue: 0,
-      control: 'SuiDropdownComponent',
-      label:'Ordinality',
-      startRow:true,
-      options: [{
-          value: 0,
-          label: '1'
-        }, {
-          value: 1,
-          label: '2'
-        }, {
-          value: 2,
-          label: '3'
-        }
-      ]
-    },{
-      smoName: 'translateY',
-      parameterName: 'translateY',
-      defaultValue: 0,
-      control: 'SuiRockerComponent',
-      label: 'Y Adjustment (Px)',
-      type: 'int'
-    }, {
-      smoName: 'textEditor',
-      parameterName: 'text',
-      defaultValue: 0,
-      control: 'SuiLyricEditComponent',
-      label:'Edit Text',
-      options: []
-    }, {
-      staticText: [
-        {label : 'Edit Chord Symbol'},
-        {undo: 'Undo Chord Symbols'},
-        {doneEditing : 'Done Editing Chord Symbols' }
-      ]
-    }
-  ];
+        smoName: 'verse',
+        parameterName: 'verse',
+        defaultValue: 0,
+        control: 'SuiDropdownComponent',
+        label:'Ordinality',
+        startRow:true,
+        options: [{
+            value: 0,
+            label: '1'
+          }, {
+            value: 1,
+            label: '2'
+          }, {
+            value: 2,
+            label: '3'
+          }
+        ]
+      },{
+        smoName: 'translateY',
+        parameterName: 'translateY',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'Y Adjustment (Px)',
+        type: 'int'
+      }, {
+        smoName: 'textEditor',
+        parameterName: 'text',
+        defaultValue: 0,
+        control: 'SuiLyricEditComponent',
+        label:'Edit Text',
+        options: []
+      }, {
+        staticText: [
+          {label : 'Edit Chord Symbol'},
+          {undo: 'Undo Chord Symbols'},
+          {doneEditing : 'Done Editing Chord Symbols' }
+        ]
+      }
+    ];
 
     return SuiChordChangeDialog._dialogElements;
   }
