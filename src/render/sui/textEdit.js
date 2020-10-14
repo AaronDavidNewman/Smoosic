@@ -420,6 +420,7 @@ class SuiTextBlockEditor extends SuiTextEditor {
     this.svgText.unrender();
   }
 }
+
 class SuiLyricEditor extends SuiTextEditor {
   static get States() {
     return { RUNNING: 1, STOPPING: 2, STOPPED: 4 };
@@ -942,6 +943,10 @@ class SuiLyricSession {
     return this.state === SuiLyricSession.States.STOPPED;
   }
 
+  get isRunning() {
+    return this.state === SuiLyricSession.States.RUNNING;
+  }
+
   // ### _markStopped
   // Indicate this editor session is done running
   _markStopped() {
@@ -1050,6 +1055,7 @@ class SuiChordSession extends SuiLyricSession {
     super(params);
     this.parser = SmoLyric.parsers.chord;
   }
+
   // ### evKey
   // Key handler (pass to editor)
   evKey(evdata) {

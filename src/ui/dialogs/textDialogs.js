@@ -164,6 +164,9 @@ class SuiLyricDialog extends SuiDialogBase {
 
   _complete() {
     this.layout.setDirty();
+    if (this.lyricEditorCtrl.running) {
+      this.lyricEditorCtrl.endSession();
+    }
     this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
     this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
     $('body').removeClass('showAttributeDialog');
@@ -187,7 +190,7 @@ class SuiLyricDialog extends SuiDialogBase {
 
 }
 
-class SuiChordChangeDialog extends SuiLyricDialog {
+class SuiChordChangeDialog  extends SuiDialogBase {
   static get ctor() {
     return 'SuiChordChangeDialog';
   }
@@ -198,11 +201,20 @@ class SuiChordChangeDialog extends SuiLyricDialog {
   static createAndDisplay(parameters) {
     var dg = new SuiChordChangeDialog(parameters);
     dg.display();
-      return dg;
+    return dg;
   }
   constructor(parameters) {
     parameters.ctor = 'SuiChordChangeDialog';
-    super(parameters);
+    const p = parameters;
+    const _class = eval(p.ctor);
+    const dialogElements = _class['dialogElements'];
+
+    super(dialogElements, {
+      id: 'dialog-lyrics',
+      top: (p.layout.score.layout.pageWidth / 2) - 200,
+      left: (p.layout.score.layout.pageHeight / 2) - 200,
+      ...p
+    });
   }
   static get dialogElements() {
     SuiChordChangeDialog._dialogElements = SuiChordChangeDialog._dialogElements ? SuiChordChangeDialog._dialogElements :
@@ -232,10 +244,10 @@ class SuiChordChangeDialog extends SuiLyricDialog {
         label: 'Y Adjustment (Px)',
         type: 'int'
       }, {
-        smoName: 'textEditor',
+        smoName: 'chordEditor',
         parameterName: 'text',
         defaultValue: 0,
-        control: 'SuiLyricEditComponent',
+        control: 'SuiChordComponent',
         label:'Edit Text',
         options: []
       }, {
@@ -250,20 +262,108 @@ class SuiChordChangeDialog extends SuiLyricDialog {
     return SuiChordChangeDialog._dialogElements;
   }
   changed() {
-    this.textEditorCtrl.verse = this.verse.getValue();
-    // Note, when selection changes, we need to wait for the text edit session
-    // to start on the new selection.  Then this.editor.changeFlag is set and
-    // we can focus on the selection if it is not visible.
-    if (this.textEditorCtrl.changeFlag && this.textEditorCtrl.selection) {
-      this.textEditorCtrl.setSelection(this.textEditorCtrl.selection.selector);
-      this._focusSelection();
-    }
+    this.chordEditorCtrl.verse = this.verse.getValue();
 
     if (this.translateYCtrl.changeFlag) {
-      this.textEditorCtrl.setYOffset(this.translateYCtrl.getValue());
+      this.chordEditorCtrl.setYOffset(this.translateYCtrl.getValue());
       this.tracker.replaceSelectedMeasures();
     } else {
       this.translateYCtrl.setValue(this.textEditorCtrl.getYOffset());
+    }
+  }
+
+  display() {
+    $('body').addClass('showAttributeDialog');
+    $('body').addClass('textEditor');
+    this.components.forEach((component) => {
+      component.bind();
+    });
+
+    this._bindComponentNames();
+
+    // this.editor = this.components.find((c) => c.smoName === 'textEditor');
+    this.verse = this.components.find((c) => c.smoName === 'verse');
+    this._bindElements();
+
+    // make sure keyboard is unbound or we get dupicate key events.
+    var self=this;
+    this.completeNotifier.unbindKeyboardForModal(this);
+
+    $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
+        if (!$(ctrl).hasClass('cbLyricEdit')) {
+          $(ctrl).addClass('fold-textedit');
+        }
+    });
+
+    this.position(this.tracker.selections[0].note.renderedBox);
+
+    var cb = function (x, y) {}
+    htmlHelpers.draggable({
+      parent: $(this.dgDom.element).find('.attributeModal'),
+      handle: $(this.dgDom.element).find('.jsDbMove'),
+            animateDiv:'.draganime',
+            cb: cb,
+      moveParent: true
+    });
+    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this,'mouseMove');
+    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this,'mouseClick');
+    this.bindKeyboard();
+  }
+
+  _bindElements() {
+    var self = this;
+    var dgDom = this.dgDom;
+
+    $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+      self.tracker.replaceSelectedMeasures();
+      self.tracker.layout.setDirty();
+      self._complete();
+    });
+    $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+      self.editor.undo();
+      self.tracker.layout.setDirty();
+      self._complete();
+    });
+    $(dgDom.element).find('.remove-button').remove();
+    this.chordEditorCtrl.eventSource = this.eventSource;
+    this.chordEditorCtrl.startEditSession();
+  }
+
+  // ### handleKeydown
+  // allow a dialog to be dismissed by esc.
+  evKey(evdata) {
+    if (evdata.key == 'Escape') {
+      $(this.dgDom.element).find('.cancel-button').click();
+      evdata.preventDefault();
+      return;
+    } else {
+      this.chordEditorCtrl.evKey(evdata);
+    }
+  }
+
+  _complete() {
+    if (this.chordEditorCtrl.running) {
+      this.chordEditorCtrl.endSession();
+    }
+    this.layout.setDirty();
+    this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
+    this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
+    $('body').removeClass('showAttributeDialog');
+    $('body').removeClass('textEditor');
+    this.complete();
+  }
+
+
+  mouseMove(ev) {
+    if (this.chordEditorCtrl && this.chordEditorCtrl.running) {
+      this.chordEditorCtrl.mouseMove(ev);
+    }
+  }
+
+  mouseClick(ev) {
+    if (this.chordEditorCtrl && this.chordEditorCtrl.running) {
+      this.chordEditorCtrl.mouseClick(ev);
+      ev.stopPropagation();
     }
   }
 }
@@ -486,6 +586,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     return;
   }
 
+  // ### Event handlers, passed from dialog
   mouseUp(ev) {
     if (this.textResizerCtrl && this.textResizerCtrl.running) {
       this.textResizerCtrl.mouseUp();
