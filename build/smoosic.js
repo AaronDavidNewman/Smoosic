@@ -18258,8 +18258,8 @@ class SuiTextEditor {
           this._setSelectionToSugggestion();
         }
         handled = true;
+        this.svgText.render();
       }
-      this.svgText.render();
       return handled;
     }
     handled = true;
@@ -18630,12 +18630,12 @@ class SuiChordEditor extends SuiTextEditor {
   parseBlocks() {
     let readGlyph = false;
     let curGlyph = '';
-    let blockIx = 0;
+    let blockIx = 0; // so we skip modifier characters
     this.svgText = new SuiInlineText({ context: this.context,startX: this.x, startY: this.y });
 
     for (var i =0;i < this.text.length; ++i) {
       let char = this.text[i];
-      if (!this._setSymbolModifier(char)) {
+      if (this._setSymbolModifier(char)) {
       } else if (char === '@') {
         if (!readGlyph) {
           readGlyph = true;
@@ -18643,17 +18643,19 @@ class SuiChordEditor extends SuiTextEditor {
         } else {
           this._addGlyphAt(blockIx,curGlyph);
           blockIx += 1;
+          readGlyph = false;
         }
     } else {
       if (readGlyph) {
         curGlyph = curGlyph + char;
       } else {
-        this.svgText.addTextBlockAt(i,{text:char, textType: this.textType});
+        this.svgText.addTextBlockAt(blockIx,{text:char, textType: this.textType});
+        blockIx += 1;
       }
     }
       this.empty = false;
     }
-    this.textPos = this.text.length;
+    this.textPos = blockIx;
     this.state = SuiLyricEditor.States.RUNNING;
     this.svgText.render();
   }
@@ -19127,6 +19129,7 @@ class SuiLyricSession {
     console.log('stopSession');
     if (this.editor && !this._endLyricCondition) {
       this._updateLyricFromEditor();
+      this.editor.stopEditor()
     }
     return PromiseHelpers.makePromise(this,'_isRendered','_markStopped',null,100);
   }
@@ -25209,21 +25212,90 @@ class SuiTextInPlace extends SuiComponentBase {
   }
 }
 
+// ## SuiNoteTextComponent
+// Base class for text editor components that navigate to
+// different notes.
+class SuiNoteTextComponent extends SuiComponentBase {
+  constructor(dialog, parameter) {
+    super();
+
+    this.selection = dialog.tracker.selections[0];
+    this.selector = JSON.parse(JSON.stringify(this.selection.selector));
+    this.dialog = dialog;
+  }
+  get parameterId() {
+    return this.dialog.id + '-' + this.parameterName;
+  }
+  mouseMove(ev) {
+    if (this.editor && this.editor.isRunning) {
+      this.editor.handleMouseEvent(ev);
+    }
+  }
+
+  mouseClick(ev) {
+    if (this.editor && this.editor.isRunning) {
+      this.editor.handleMouseEvent(ev);
+    }
+  }
+  _getInputElement() {
+    var pid = this.parameterId;
+    return $(this.dialog.dgDom.element).find('#' + pid).find('button');
+  }
+  get running() {
+    return this.editor && this.editor.isRunning;
+  }
+  evKey(evdata) {
+    if (this.editor) {
+      this.editor.evKey(evdata);
+    }
+  }
+
+  moveSelectionRight() {
+      this.editor.advanceSelection(false);
+  }
+  moveSelectionLeft() {
+    this.editor.advanceSelection(true);
+  }
+  removeText() {
+    this.editor.removeLyric();
+  }
+
+  _bind() {
+    var self=this;
+    $(this._getInputElement()).off('click').on('click',function(ev) {
+      if (self.editor && self.editor.state === SuiLyricEditor.States.RUNNING) {
+        self.endSession();
+      } else {
+        self.startEditSession();
+      }
+    });
+    var self=this;
+    $('#'+this.parameterId+'-left').off('click').on('click',function() {
+      self.moveSelectionLeft();
+    });
+    $('#'+this.parameterId+'-right').off('click').on('click',function() {
+      self.moveSelectionRight();
+    });
+    $('#'+this.parameterId+'-remove').off('click').on('click',function() {
+      self.removeText();
+    });
+  }
+  getValue() {
+    return this.value;
+  }
+}
+
 // ## SuiLyricComponent
 // manage a lyric session that moves from note to note and adds lyrics.
-class SuiLyricComponent extends SuiComponentBase {
+class SuiLyricComponent extends SuiNoteTextComponent {
   constructor(dialog,parameter) {
-    super();
+    super(dialog,parameter);
     smoSerialize.filteredMerge(
         ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
     if (!this.defaultValue) {
         this.defaultValue = 0;
     }
     this.editor = null;
-    this.dialog = dialog;
-
-    this.selection = dialog.tracker.selections[0];
-    this.selector = JSON.parse(JSON.stringify(this.selection.selector));
     this.altLabel = SuiLyricDialog.getStaticText('doneEditing');
   }
 
@@ -25249,11 +25321,8 @@ class SuiLyricComponent extends SuiComponentBase {
             b('button').attr('id', id + '-remove').classes('icon-cross buttonComponent')))
       );
     return r;
+  }
 
-  }
-  get parameterId() {
-    return this.dialog.id + '-' + this.parameterName;
-  }
   endSession() {
     var self = this;
     $(this._getInputElement()).find('label').text(this.label);
@@ -25269,27 +25338,7 @@ class SuiLyricComponent extends SuiComponentBase {
     }
     $('body').removeClass('text-edit');
   }
-  get running() {
-    return this.editor && this.editor.isRunning;
-  }
-  getValue() {
-    return this.value;
-  }
-  _getInputElement() {
-    var pid = this.parameterId;
-    return $(this.dialog.dgDom.element).find('#' + pid).find('button');
-  }
-  mouseMove(ev) {
-    if (this.editor && this.editor.isRunning) {
-      this.editor.handleMouseEvent(ev);
-    }
-  }
 
-  mouseClick(ev) {
-    if (this.editor && this.editor.isRunning) {
-      this.editor.handleMouseEvent(ev);
-    }
-  }
   startEditSession() {
     var self=this;
     $(this._getInputElement()).find('label').text(this.altLabel);
@@ -25309,49 +25358,17 @@ class SuiLyricComponent extends SuiComponentBase {
     $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
     this.editor.startSession();
   }
-  evKey(evdata) {
-    if (this.editor) {
-      this.editor.evKey(evdata);
-    }
-  }
-
-  moveSelectionRight() {
-      this.editor.advanceSelection(false);
-  }
-  moveSelectionLeft() {
-    this.editor.advanceSelection(true);
-  }
-  removeText() {
-    this.editor.removeLyric();
-  }
 
   bind() {
-    var self=this;
-    $(this._getInputElement()).off('click').on('click',function(ev) {
-      if (self.editor && self.editor.state === SuiLyricEditor.States.RUNNING) {
-        self.endSession();
-      } else {
-        self.startEditSession();
-      }
-    });
-    var self=this;
-    $('#'+this.parameterId+'-left').off('click').on('click',function() {
-      self.moveSelectionLeft();
-    });
-    $('#'+this.parameterId+'-right').off('click').on('click',function() {
-      self.moveSelectionRight();
-    });
-    $('#'+this.parameterId+'-remove').off('click').on('click',function() {
-      self.removeText();
-    });
+    this._bind();
   }
 }
 
 // ## SuiChordComponent
 // manage a chord editing session that moves from note to note and adds chord symbols.
-class SuiChordComponent extends SuiComponentBase {
+class SuiChordComponent extends SuiNoteTextComponent {
   constructor(dialog,parameter) {
-    super();
+    super(dialog, parameter);
     smoSerialize.filteredMerge(
         ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
     if (!this.defaultValue) {
@@ -25368,17 +25385,27 @@ class SuiChordComponent extends SuiComponentBase {
   get html() {
     var b = htmlHelpers.buildDom;
     var id = this.parameterId;
-    var r = b('div').classes('cbTextInPlace smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
-      .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
-        .attr('id', id + '-input').append(
-        b('span').classes('icon icon-pencil'))
-        .append(
-        b('label').attr('for', id + '-input').text(this.label)));
+    var r = b('div').classes('cbChordEdit smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+      .append(b('div').classes('toggleEdit')
+        .append(b('button').classes('toggleTextEdit')
+          .attr('id', id + '-toggleInput').append(
+          b('span').classes('icon icon-pencil'))).append(
+          b('label').attr('for', id + '-toggleInput').text(this.label)))
+
+      .append(b('div').classes('controlDiv')
+        .append(b('span')
+          .append(
+            b('button').attr('id', id + '-left').classes('icon-arrow-left buttonComponent')))
+        .append(b('span')
+          .append(
+            b('button').attr('id', id + '-right').classes('icon-arrow-right buttonComponent')))
+        .append(b('span')
+          .append(
+            b('button').attr('id', id + '-remove').classes('icon-cross buttonComponent')))
+      );
     return r;
   }
-  get parameterId() {
-    return this.dialog.id + '-' + this.parameterName;
-  }
+
   endSession() {
     var self = this;
     $(this._getInputElement()).find('label').text(this.label);
@@ -25393,27 +25420,6 @@ class SuiChordComponent extends SuiComponentBase {
       this.editor.stopSession().then(render);
     }
     $('body').removeClass('text-edit');
-  }
-  get running() {
-    return this.editor && this.editor.isRunning;
-  }
-  getValue() {
-    return this.value;
-  }
-  _getInputElement() {
-    var pid = this.parameterId;
-    return $(this.dialog.dgDom.element).find('#' + pid).find('button');
-  }
-  mouseMove(ev) {
-    if (this.editor && this.editor.isRunning) {
-      this.editor.handleMouseEvent(ev);
-    }
-  }
-
-  mouseClick(ev) {
-    if (this.editor && this.editor.isRunning) {
-      this.editor.handleMouseEvent(ev);
-    }
   }
   startEditSession() {
     var self=this;
@@ -25434,21 +25440,8 @@ class SuiChordComponent extends SuiComponentBase {
     $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
     this.editor.startSession();
   }
-  evKey(evdata) {
-    if (this.editor) {
-      this.editor.evKey(evdata);
-    }
-  }
-
   bind() {
-    var self=this;
-    $(this._getInputElement()).off('click').on('click',function(ev) {
-      if (self.editor && self.editor.state === SuiLyricEditor.States.RUNNING) {
-        self.endSession();
-      } else {
-        self.startEditSession();
-      }
-    });
+    this._bind();
   }
 }
 

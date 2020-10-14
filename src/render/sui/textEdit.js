@@ -119,8 +119,8 @@ class SuiTextEditor {
           this._setSelectionToSugggestion();
         }
         handled = true;
+        this.svgText.render();
       }
-      this.svgText.render();
       return handled;
     }
     handled = true;
@@ -491,12 +491,12 @@ class SuiChordEditor extends SuiTextEditor {
   parseBlocks() {
     let readGlyph = false;
     let curGlyph = '';
-    let blockIx = 0;
+    let blockIx = 0; // so we skip modifier characters
     this.svgText = new SuiInlineText({ context: this.context,startX: this.x, startY: this.y });
 
     for (var i =0;i < this.text.length; ++i) {
       let char = this.text[i];
-      if (!this._setSymbolModifier(char)) {
+      if (this._setSymbolModifier(char)) {
       } else if (char === '@') {
         if (!readGlyph) {
           readGlyph = true;
@@ -504,17 +504,19 @@ class SuiChordEditor extends SuiTextEditor {
         } else {
           this._addGlyphAt(blockIx,curGlyph);
           blockIx += 1;
+          readGlyph = false;
         }
     } else {
       if (readGlyph) {
         curGlyph = curGlyph + char;
       } else {
-        this.svgText.addTextBlockAt(i,{text:char, textType: this.textType});
+        this.svgText.addTextBlockAt(blockIx,{text:char, textType: this.textType});
+        blockIx += 1;
       }
     }
       this.empty = false;
     }
-    this.textPos = this.text.length;
+    this.textPos = blockIx;
     this.state = SuiLyricEditor.States.RUNNING;
     this.svgText.render();
   }
@@ -988,6 +990,7 @@ class SuiLyricSession {
     console.log('stopSession');
     if (this.editor && !this._endLyricCondition) {
       this._updateLyricFromEditor();
+      this.editor.stopEditor()
     }
     return PromiseHelpers.makePromise(this,'_isRendered','_markStopped',null,100);
   }
