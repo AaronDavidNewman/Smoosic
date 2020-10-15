@@ -142,7 +142,7 @@ class SuiLyricDialog extends SuiDialogBase {
       self._complete();
     });
     $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-      self.editor.undo();
+      self.keyCommands.undo();
       self.tracker.layout.setDirty();
       self._complete();
     });
@@ -320,7 +320,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
       self._complete();
     });
     $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-      self.editor.undo();
+      self.keyCommands.undo();
       self.tracker.layout.setDirty();
       self._complete();
     });

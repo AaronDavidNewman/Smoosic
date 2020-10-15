@@ -76,7 +76,7 @@ class SuiDialogBase {
     this.tracker = parameters.tracker;
     this.completeNotifier = parameters.completeNotifier;
     this.undoBuffer = parameters.undoBuffer;
-    this.editor = parameters.editor;
+    this.keyCommands = parameters.keyCommands;
     this.label = this.staticText.label;
     this.modifier = parameters.modifier;
     this.activeScoreText = parameters.activeScoreText;

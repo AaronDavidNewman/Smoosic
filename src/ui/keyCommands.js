@@ -1,9 +1,9 @@
 
 
 // ## suiEditor
-// Editor handles key events and converts them into commands, updating the score and
+// KeyCommands object handles key events and converts them into commands, updating the score and
 // display
-class suiEditor {
+class SuiKeyCommands {
   constructor(params) {
     Vex.Merge(this, params);
     this.slashMode = false;

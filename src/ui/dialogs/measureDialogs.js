@@ -72,12 +72,6 @@ class SuiMeasureDialog extends SuiDialogBase {
   			control:'SuiToggleComponent',
   			label:'Pad all measures in system'
   		},{
-				smoName: 'measureText',
-				parameterName: 'measureText',
-				defaultValue: '',
-				control: 'SuiTextInputComponent',
-				label:'Measure Text'
-  		},{
         smoName: 'measureTextPosition',
         parameterName: 'measureTextPosition',
         defaultValue: SmoMeasureText.positions.above,
@@ -147,21 +141,6 @@ class SuiMeasureDialog extends SuiDialogBase {
       SmoUndoable.padMeasuresLeft(selections,this.padLeftCtrl.getValue(),this.undoBuffer);
       this.tracker.replaceSelectedMeasures();
     }
-    if (this.measureTextCtrl.changeFlag || this.measureTextPositionCtrl.changeFlag) {
-      var position = this.measureTextPositionCtrl.getValue();
-      var text = this.measureTextCtrl.getValue();
-      if (text.length == 0) {
-        var tms = this.selection.measure.getMeasureText();
-        tms.forEach((tm) => {
-          SmoUndoable.measureSelectionOp(this.layout.score,
-            this.selection,'removeMeasureText',tm,this.undoBuffer,'Remove measure text');
-        });
-      } else {
-        var mt = new SmoMeasureText({position:parseInt(position),text:this.measureTextCtrl.getValue()});
-        SmoUndoable.measureSelectionOp(this.layout.score,this.selection,'addMeasureText',mt,this.undoBuffer,'Add measure text');
-      }
-      this.tracker.replaceSelectedMeasures();
-    }
     //
     this._updateConditionals();
   }
@@ -215,12 +194,6 @@ class SuiMeasureDialog extends SuiDialogBase {
     } else {
       $('.attributeDialog .attributeModal').removeClass('pickup-select');
     }
-    var str = this.measureTextCtrl.getValue();
-    if (str && str.length) {
-      $('.attributeDialog .attributeModal').addClass('measure-text-set');
-    } else {
-      $('.attributeDialog .attributeModal').removeClass('measure-text-set');
-    }
   }
   populateInitial() {
     this.padLeftCtrl.setValue(this.measure.padLeft);
@@ -240,10 +213,6 @@ class SuiMeasureDialog extends SuiDialogBase {
 
     // TODO: handle multiples (above/below)
     var texts = this.measure.getMeasureText();
-    if (texts.length) {
-      this.measureTextCtrl.setValue(texts[0].text);
-      this.measureTextPositionCtrl.setValue(texts[0].position);
-    }
   }
   _cancelEdits() {
     this.measure.customStretch = this.originalStretch;
@@ -398,7 +367,7 @@ class SuiInstrumentDialog extends SuiDialogBase {
       ...parameters
     });
     this.measure = measure;
-    this.score = this.editor.score;
+    this.score = this.keyCommands.score;
     this.refresh = false;
     this.startPromise=parameters.closeMenuPromise;
     Vex.Merge(this, parameters);

@@ -16450,13 +16450,13 @@ class suiPiano {
       }
     });
     $('#piano-xpose-up').off('click').on('click',function() {
-      self.editor.transposeUp();
+      self.keyCommands.transposeUp();
     });
     $('#piano-xpose-down').off('click').on('click',function() {
-      self.editor.transposeDown();
+      self.keyCommands.transposeDown();
     });
     $('#piano-enharmonic').off('click').on('click',function() {
-      self.editor.toggleEnharmonic();
+      self.keyCommands.toggleEnharmonic();
     });
     $('button.jsLeft').off('click').on('click',function() {
       self.tracker.moveSelectionLeft();
@@ -16465,16 +16465,16 @@ class suiPiano {
       self.tracker.moveSelectionRight();
     });
     $('button.jsGrowDuration').off('click').on('click',function() {
-      self.editor.doubleDuration();
+      self.keyCommands.doubleDuration();
     });
     $('button.jsGrowDot').off('click').on('click',function() {
-      self.editor.dotDuration();
+      self.keyCommands.dotDuration();
     });
     $('button.jsShrinkDuration').off('click').on('click',function() {
-      self.editor.halveDuration();
+      self.keyCommands.halveDuration();
     });
     $('button.jsShrinkDot').off('click').on('click',function() {
-      self.editor.undotDuration();
+      self.keyCommands.undotDuration();
     });
     $('button.jsChord').off('click').on('click',function() {
       $(this).toggleClass('activated');
@@ -18137,7 +18137,19 @@ class suiTextLayout {
 	}
 
 }
-;
+;// The heirarchy of text editing objects goes:
+// dialog -> component -> session -> editor
+//
+// Editors and Sessions are defined in this module.
+// ### editor
+//  handles low-level events and renders the preview using one
+// of the text layout objects.
+//
+// ### session
+// creates and destroys editors, e.g. for lyrics that have a Different
+// editor instance for each note.
+//
+
 
 // ## SuiTextEditor
 // Next-gen text editor.  The base text editor handles the positioning and inserting
@@ -18147,6 +18159,9 @@ class suiTextLayout {
 class SuiTextEditor {
   static get attributes() {
     return ['svgText','context','x','y','text','textPos','selectionStart','selectionLength','empty','suggestionIndex'];
+  }
+  static get States() {
+    return { RUNNING: 1, STOPPING: 2, STOPPED: 4, PENDING_EDITOR: 8 };
   }
   static get defaults() {
     return {
@@ -18435,7 +18450,7 @@ class SuiTextEditor {
       this.empty = false;
     }
     this.textPos = this.text.length;
-    this.state = SuiLyricEditor.States.RUNNING;
+    this.state = SuiTextEditor.States.RUNNING;
     this.svgText.render();
   }
   // ### evKey
@@ -18553,7 +18568,7 @@ class SuiTextBlockEditor extends SuiTextEditor {
   }
 
   stopEditor() {
-    this.state = SuiLyricEditor.States.STOPPING;
+    this.state = SuiTextEditor.States.STOPPING;
     $(this.context.svg).find('g.vf-' + 'text-highlight').remove();
     this.stopCursor();
     this.svgText.unrender();
@@ -18571,7 +18586,7 @@ class SuiLyricEditor extends SuiTextEditor {
       this.empty = false;
     }
     this.textPos = this.text.length;
-    this.state = SuiLyricEditor.States.RUNNING;
+    this.state = SuiTextEditor.States.RUNNING;
     this.svgText.render();
   }
 
@@ -18591,7 +18606,7 @@ class SuiLyricEditor extends SuiTextEditor {
   }
 
   stopEditor() {
-    this.state = SuiLyricEditor.States.STOPPING;
+    this.state = SuiTextEditor.States.STOPPING;
     this.stopCursor();
     this.svgText.unrender();
   }
@@ -18656,7 +18671,7 @@ class SuiChordEditor extends SuiTextEditor {
       this.empty = false;
     }
     this.textPos = blockIx;
-    this.state = SuiLyricEditor.States.RUNNING;
+    this.state = SuiTextEditor.States.RUNNING;
     this.svgText.render();
   }
 
@@ -18747,7 +18762,7 @@ class SuiChordEditor extends SuiTextEditor {
   }
 
   stopEditor() {
-    this.state = SuiLyricEditor.States.STOPPING;
+    this.state = SuiTextEditor.States.STOPPING;
     this.stopCursor();
     this.svgText.unrender();
   }
@@ -18755,7 +18770,7 @@ class SuiChordEditor extends SuiTextEditor {
   // ### _markStopped
   // Indicate this editor session is done running
   _markStopped() {
-    this.state = SuiLyricSession.States.STOPPED;
+    this.state = SuiTextEditor.States.STOPPED;
   }
 }
 
@@ -18952,15 +18967,15 @@ class SuiTextSession {
   }
 
   get isStopped() {
-    return this.state === SuiTextSession.States.STOPPED;
+    return this.state === SuiTextEditor.States.STOPPED;
   }
 
   get isRunning() {
-    return this.state === SuiTextSession.States.RUNNING;
+    return this.state === SuiTextEditor.States.RUNNING;
   }
 
   _markStopped() {
-    this.state = SuiTextSession.States.STOPPED;
+    this.state = SuiTextEditor.States.STOPPED;
   }
 
   // ### _isRendered
@@ -18983,7 +18998,7 @@ class SuiTextSession {
      fontFamily: this.fontFamily, fontSize: this.fontSize, fontWeight: this.fontWeight
      ,text: this.scoreText.text});
     this.cursorPromise = this.editor.startCursorPromise();
-    this.state = SuiTextSession.States.RUNNING;
+    this.state = SuiTextEditor.States.RUNNING;
     this._removeScoreText();
   }
 
@@ -19001,7 +19016,7 @@ class SuiTextSession {
   // ### evKey
   // Key handler (pass to editor)
   evKey(evdata) {
-    if (this.state !== SuiTextSession.States.RUNNING) {
+    if (this.state !== SuiTextEditor.States.RUNNING) {
       return false;
     }
     const rv = this.editor.evKey(evdata);
@@ -19053,7 +19068,7 @@ class SuiLyricSession {
   // ### _endLyricCondition
   // Lyric editor has stopped running (promise condition)
   get _endLyricCondition()  {
-    return this.editor.state !== SuiLyricEditor.States.RUNNING;
+    return this.editor.state !== SuiTextEditor.States.RUNNING;
   }
 
   // ### _endLyricCondition
@@ -19069,7 +19084,7 @@ class SuiLyricSession {
   }
 
   get _pendingEditor() {
-    return this.state !== SuiLyricSession.States.PENDING_EDITOR;
+    return this.state !== SuiTextEditor.States.PENDING_EDITOR;
   }
 
   // ### _hideLyric
@@ -19081,17 +19096,17 @@ class SuiLyricSession {
   }
 
   get isStopped() {
-    return this.state === SuiLyricSession.States.STOPPED;
+    return this.state === SuiTextEditor.States.STOPPED;
   }
 
   get isRunning() {
-    return this.state === SuiLyricSession.States.RUNNING;
+    return this.state === SuiTextEditor.States.RUNNING;
   }
 
   // ### _markStopped
   // Indicate this editor session is done running
   _markStopped() {
-    this.state = SuiLyricSession.States.STOPPED;
+    this.state = SuiTextEditor.States.STOPPED;
   }
 
   // ### _startSessionForNote
@@ -19104,7 +19119,7 @@ class SuiLyricSession {
           this.note.logicalBox.y + this.note.logicalBox.height;
     this.editor = new SuiLyricEditor({context : this.layout.context,
       lyric: this.lyric, x: startX, y: startY, scroller: this.scroller});
-    this.state = SuiLyricSession.States.RUNNING;
+    this.state = SuiTextEditor.States.RUNNING;
     if (!lyricRendered) {
       const delta = 2 * this.editor.svgText.maxFontHeight(1.0) * (this.lyric.verse + 1)
       this.editor.svgText.offsetStartY(delta);
@@ -19120,7 +19135,7 @@ class SuiLyricSession {
     this._startSessionForNote();
     console.log('startSession');
 
-    this.state = SuiLyricSession.States.RUNNING;
+    this.state = SuiTextEditor.States.RUNNING;
   }
 
   // ### _startSessionForNote
@@ -19146,7 +19161,7 @@ class SuiLyricSession {
       this.note = nextSelection.note;
       this._setLyricForNote();
       const conditionArray = [];
-      this.state = SuiLyricSession.States.PENDING_EDITOR;
+      this.state = SuiTextEditor.States.PENDING_EDITOR;
       conditionArray.push(PromiseHelpers.makePromiseObj(this,'_endLyricCondition',null,null,100));
       conditionArray.push(PromiseHelpers.makePromiseObj(this,'_isRefreshed','_startSessionForNote',null,100));
       PromiseHelpers.promiseChainThen(conditionArray);
@@ -19180,7 +19195,7 @@ class SuiLyricSession {
   // ### evKey
   // Key handler (pass to editor)
   evKey(evdata) {
-    if (this.state !== SuiLyricSession.States.RUNNING) {
+    if (this.state !== SuiTextEditor.States.RUNNING) {
       return;
     }
     var str = evdata.key;
@@ -19201,7 +19216,7 @@ class SuiLyricSession {
   // ### handleMouseEvent
   // Mouse event (send to editor)
   handleMouseEvent(ev) {
-    if (this.state !== SuiLyricSession.States.RUNNING) {
+    if (this.state !== SuiTextEditor.States.RUNNING) {
       return;
     }
     return this.editor.handleMouseEvent(ev);
@@ -19217,7 +19232,7 @@ class SuiChordSession extends SuiLyricSession {
   // ### evKey
   // Key handler (pass to editor)
   evKey(evdata) {
-    if (this.state !== SuiLyricSession.States.RUNNING) {
+    if (this.state !== SuiTextEditor.States.RUNNING) {
       return;
     }
     if (evdata.code === 'Enter') {
@@ -19251,7 +19266,7 @@ class SuiChordSession extends SuiLyricSession {
           this.selection.measure.logicalBox.y + this.selection.measure.logicalBox.height - 70;
     this.editor = new SuiChordEditor({context : this.layout.context,
       lyric: this.lyric, x: startX, y: startY, scroller: this.scroller});
-    this.state = SuiLyricSession.States.RUNNING;
+    this.state = SuiTextEditor.States.RUNNING;
     if (!lyricRendered) {
       const delta = (-1) * this.editor.svgText.maxFontHeight(1.0) * (this.lyric.verse + 1)
       this.editor.svgText.offsetStartY(delta);
@@ -19864,9 +19879,9 @@ class browserEventSource {
 ;
 
 // ## suiEditor
-// Editor handles key events and converts them into commands, updating the score and
+// KeyCommands object handles key events and converts them into commands, updating the score and
 // display
-class suiEditor {
+class SuiKeyCommands {
   constructor(params) {
     Vex.Merge(this, params);
     this.slashMode = false;
@@ -20509,7 +20524,7 @@ class suiMenuManager {
     this.menu = new ctor({
       position: this.menuPosition,
       tracker: this.tracker,
-      editor: this.editor,
+      keyCommands: this.keyCommands,
       score: this.score,
       completeNotifier:this.controller,
       closePromise:this.closeMenuPromise,
@@ -20674,9 +20689,9 @@ class SuiFileMenu extends suiMenuBase {
       SuiSaveFileDialog.createAndDisplay({
         completeNotifier:this.completeNotifier,
         tracker:this.tracker,
-        undoBuffer:this.editor.undoBuffer,
+        undoBuffer:this.keyCommands.undoBuffer,
         eventSource:this.eventSource,
-        editor:this.editor,
+        keyCommands:this.keyCommands,
         layout:this.layout,
         closeMenuPromise:this.closePromise
     });
@@ -20686,7 +20701,7 @@ class SuiFileMenu extends suiMenuBase {
         tracker:this.tracker,
         undoBuffer:this.undoBuffer,
         eventSource:this.eventSource,
-        editor:this.editor,
+        editor:this.keyCommands,
         layout:this.layout,
         closeMenuPromise:this.closePromise
      });
@@ -20809,7 +20824,7 @@ class SuiDynamicsMenu extends suiMenuBase {
   text: text,
   yOffsetLine: 11,
   fontSize: 38
-  }), this.editor.undoBuffer);
+  }), this.keyCommands.undoBuffer);
     this.tracker.replaceSelectedMeasures();
   this.complete();
   }
@@ -20987,7 +21002,7 @@ class SuiKeySignatureMenu extends suiMenuBase {
     this.tracker.selections.forEach((sel) => {
       if (changed.indexOf(sel.selector.measure) === -1) {
         changed.push(sel.selector.measure);
-        SmoUndoable.addKeySignature(this.score, sel, keySig, this.editor.undoBuffer);
+        SmoUndoable.addKeySignature(this.score, sel, keySig, this.keyCommands.undoBuffer);
         }
     });
 
@@ -21050,7 +21065,7 @@ class SuiStaffModifierMenu extends suiMenuBase {
 
     if (op === 'ending') {
       SmoUndoable.scoreOp(this.score,'addEnding',
-        new SmoVolta({startBar:ft.selector.measure,endBar:tt.selector.measure,number:1}),this.editor.undoBuffer,'add ending');
+        new SmoVolta({startBar:ft.selector.measure,endBar:tt.selector.measure,number:1}),this.keyCommands.undoBuffer,'add ending');
       this.complete();
     return;
     }
@@ -21059,7 +21074,7 @@ class SuiStaffModifierMenu extends suiMenuBase {
       return;
     }
 
-    SmoUndoable[op](ft, tt, this.editor.undoBuffer);
+    SmoUndoable[op](ft, tt, this.keyCommands.undoBuffer);
     this.tracker.replaceSelectedMeasures();
     this.complete();
   }
@@ -21180,15 +21195,15 @@ class SuiMeasureMenu extends suiMenuBase {
       return;
     }
     if (text === 'addMenuBeforeCmd') {
-      this.editor.addMeasure({shiftKey:false});
+      this.keyCommands.addMeasure({shiftKey:false});
       this.complete();
     }
     if (text === 'addMenuAfterCmd') {
-      this.editor.addMeasure({shiftKey:true});
+      this.keyCommands.addMeasure({shiftKey:true});
       this.complete();
     }
     if (text === 'deleteSelected') {
-      this.editor.deleteMeasure();
+      this.keyCommands.deleteMeasure();
     }
     this.complete();
   }
@@ -21288,14 +21303,14 @@ class SuiAddStaffMenu extends suiMenuBase {
     if (op == 'remove') {
       if (this.score.staves.length > 1 && this.tracker.selections.length > 0) {
         this.tracker.layout.unrenderAll();
-        SmoUndoable.removeStaff(this.score, this.tracker.selections[0].selector.staff, this.editor.undoBuffer);
+        SmoUndoable.removeStaff(this.score, this.tracker.selections[0].selector.staff, this.keyCommands.undoBuffer);
         this.tracker.layout.setRefresh();
       }
     } else if (op === 'cancel') {
       this.complete();
     } else {
       var instrument = SuiAddStaffMenu.instrumentMap[op];
-      SmoUndoable.addStaff(this.score, instrument, this.editor.undoBuffer);
+      SmoUndoable.addStaff(this.score, instrument, this.keyCommands.undoBuffer);
       this.tracker.layout.setRefresh();
     }
     this.layout.setRefresh();
@@ -22090,7 +22105,7 @@ class SuiDialogBase {
     this.tracker = parameters.tracker;
     this.completeNotifier = parameters.completeNotifier;
     this.undoBuffer = parameters.undoBuffer;
-    this.editor = parameters.editor;
+    this.keyCommands = parameters.keyCommands;
     this.label = this.staticText.label;
     this.modifier = parameters.modifier;
     this.activeScoreText = parameters.activeScoreText;
@@ -22927,7 +22942,7 @@ class SuiSaveFileDialog extends SuiFileDialog {
       self._complete();
     });
     $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-      self.editor.undo();
+      self.keyCommands.undo();
       self.tracker.layout.setDirty();
       self._complete();
     });
@@ -23105,7 +23120,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
       self._complete();
     });
     $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-      self.editor.undo();
+      self.keyCommands.undo();
       self.tracker.layout.setDirty();
       self._complete();
     });
@@ -23742,12 +23757,6 @@ class SuiMeasureDialog extends SuiDialogBase {
   			control:'SuiToggleComponent',
   			label:'Pad all measures in system'
   		},{
-				smoName: 'measureText',
-				parameterName: 'measureText',
-				defaultValue: '',
-				control: 'SuiTextInputComponent',
-				label:'Measure Text'
-  		},{
         smoName: 'measureTextPosition',
         parameterName: 'measureTextPosition',
         defaultValue: SmoMeasureText.positions.above,
@@ -23817,21 +23826,6 @@ class SuiMeasureDialog extends SuiDialogBase {
       SmoUndoable.padMeasuresLeft(selections,this.padLeftCtrl.getValue(),this.undoBuffer);
       this.tracker.replaceSelectedMeasures();
     }
-    if (this.measureTextCtrl.changeFlag || this.measureTextPositionCtrl.changeFlag) {
-      var position = this.measureTextPositionCtrl.getValue();
-      var text = this.measureTextCtrl.getValue();
-      if (text.length == 0) {
-        var tms = this.selection.measure.getMeasureText();
-        tms.forEach((tm) => {
-          SmoUndoable.measureSelectionOp(this.layout.score,
-            this.selection,'removeMeasureText',tm,this.undoBuffer,'Remove measure text');
-        });
-      } else {
-        var mt = new SmoMeasureText({position:parseInt(position),text:this.measureTextCtrl.getValue()});
-        SmoUndoable.measureSelectionOp(this.layout.score,this.selection,'addMeasureText',mt,this.undoBuffer,'Add measure text');
-      }
-      this.tracker.replaceSelectedMeasures();
-    }
     //
     this._updateConditionals();
   }
@@ -23885,12 +23879,6 @@ class SuiMeasureDialog extends SuiDialogBase {
     } else {
       $('.attributeDialog .attributeModal').removeClass('pickup-select');
     }
-    var str = this.measureTextCtrl.getValue();
-    if (str && str.length) {
-      $('.attributeDialog .attributeModal').addClass('measure-text-set');
-    } else {
-      $('.attributeDialog .attributeModal').removeClass('measure-text-set');
-    }
   }
   populateInitial() {
     this.padLeftCtrl.setValue(this.measure.padLeft);
@@ -23910,10 +23898,6 @@ class SuiMeasureDialog extends SuiDialogBase {
 
     // TODO: handle multiples (above/below)
     var texts = this.measure.getMeasureText();
-    if (texts.length) {
-      this.measureTextCtrl.setValue(texts[0].text);
-      this.measureTextPositionCtrl.setValue(texts[0].position);
-    }
   }
   _cancelEdits() {
     this.measure.customStretch = this.originalStretch;
@@ -24068,7 +24052,7 @@ class SuiInstrumentDialog extends SuiDialogBase {
       ...parameters
     });
     this.measure = measure;
-    this.score = this.editor.score;
+    this.score = this.keyCommands.score;
     this.refresh = false;
     this.startPromise=parameters.closeMenuPromise;
     Vex.Merge(this, parameters);
@@ -24670,209 +24654,6 @@ class SuiRockerComponent extends SuiComponentBase {
     }
 }
 
-
-
-
-class SuiLyricEditComponent extends SuiComponentBase {
-  constructor(dialog,parameter) {
-    super();
-    smoSerialize.filteredMerge(
-        ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
-    if (!this.defaultValue) {
-        this.defaultValue = 0;
-    }
-    this._verse = 0;
-
-    this.dialog = dialog;
-    this.selection = null;
-    this.value='';
-  }
-
-  set verse(val) {
-    this._verse = val;
-  }
-
-  get verse() {
-    return this._verse;
-  }
-
-  get html() {
-    var b = htmlHelpers.buildDom;
-    var id = this.parameterId;
-    var r = b('div').classes('cbLyricEdit smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
-      .append(b('div').classes('toggleEdit')
-        .append(b('button').classes('toggleTextEdit')
-          .attr('id', id + '-toggleInput').append(
-          b('span').classes('icon icon-pencil'))).append(
-          b('label').attr('for', id + '-toggleInput').text(this.label)))
-
-      .append(b('div').classes('controlDiv')
-        .append(b('span')
-          .append(
-            b('button').attr('id', id + '-left').classes('icon-arrow-left buttonComponent')))
-        .append(b('span')
-          .append(
-            b('button').attr('id', id + '-right').classes('icon-arrow-right buttonComponent')))
-        .append(b('span')
-          .append(
-            b('button').attr('id', id + '-remove').classes('icon-cross buttonComponent')))
-      );
-    return r;
-  }
-  get parameterId() {
-      return this.dialog.id + '-' + this.parameterName;
-  }
-
-  // If the user pressed esc., force the end of the session
-  endSessionDom() {
-    var elementDom = $('#'+this.parameterId);
-    $(elementDom).find('label').text('Edit'); // TODO: i18n this and also specific text
-    $(this.editorButton).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
-    $('body').removeClass('text-edit');
-    $('div.textEdit').addClass('hide');
-  }
-  getValue() {
-    return this.value;
-  }
-  _getInputElement() {
-    var pid = this.parameterId;
-    return $(this.dialog.dgDom.element).find('#' + pid).find('button.toggleTextEdit');
-  }
-
-  notifySelectionChanged(selection) {
-    if (selection) {
-      layoutDebug.addTextDebug('SuiLyricEditComponent: lyric notification for ' + selection.note.attrs.id);
-    } else {
-      layoutDebug.addTextDebug('SuiLyricEditComponent: no selection');
-    }
-    if (this.selection == null || SmoSelector.neq(selection.selector,this.selection.selector)) {
-      this.selection = selection;
-      this.handleChanged();
-    }
-    if (!this.editor.isRunning) {
-      this.endSessionDom();
-    }
-  }
-
-  moveSelectionRight() {
-    this.editor.moveSelectionRight();
-  }
-  moveSelectionLeft() {
-    this.editor.moveSelectionLeft();
-  }
-  removeText() {
-    this.editor.removeText();
-  }
-
-  _startEditorDom() {
-    var elementDom = $('#'+this.parameterId);
-    var button = $(elementDom).find('button.toggleTextEdit');
-    layoutDebug.addTextDebug('SuiLyricEditComponent: create editor for ' + this.tracker.selections[0].note.attrs.id);
-    $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
-    $(elementDom).find('label').text('Done Editing Lyrics');
-  }
-  get editorButton() {
-    var elementDom = $('#'+this.parameterId);
-    var button = $(elementDom).find('button.toggleTextEdit');
-    return button;
-  }
-  toggleSessionButton() {
-    this.handleChanged();
-    if (!this.editor.isRunning) {
-      this.editor.verse = this.verse;
-      this._startEditorDom();
-      layoutDebug.addTextDebug('SuiLyricEditComponent: restarting button');
-     } else {
-       this.endSessionDom();
-       layoutDebug.addTextDebug('SuiLyricEditComponent: stopping editor button');
-     }
-     this.editor.toggleSessionStateEvent();
-  }
-  getYOffset() {
-    if (this.editor) {
-      return this.editor.getYOffset();
-    }
-    return 0;
-  }
-
-  setYOffset(val) {
-    if (this.editor) {
-      this.editor.setYOffset(val);
-    }
-  }
-  startEditSession(selection) {
-    var self=this;
-    layoutDebug.addTextDebug('SuiLyricEditComponent: create editor request');
-    this._startEditorDom();
-    this.editor = new noteTextEditSession(this,this.tracker,this.verse,this.selection,this.eventSource,this.dialog.parser);
-    this.editor.startEditingSession();
-    this._bind();
-  }
-  bind() {
-    this.tracker = this.dialog.tracker;
-    this.selection = this.dialog.selection;
-    this.controller = this.dialog.controller; // do we need this
-  }
-
-  _bind() {
-    var self=this;
-    $('#'+this.parameterId+'-left').off('click').on('click',function() {
-      self.moveSelectionLeft();
-    });
-    $('#'+this.parameterId+'-right').off('click').on('click',function() {
-      self.moveSelectionRight();
-    });
-    $('#'+this.parameterId+'-remove').off('click').on('click',function() {
-      self.removeText();
-    });
-    $(this.editorButton).off('click').on('click',function() {
-      self.toggleSessionButton();
-    });
-  }
-}
-
-// ## SuiTextInputComponent
-// Just get text from an input, such as a filename.
-class SuiTextInputComponent extends SuiComponentBase {
-    constructor(dialog, parameter) {
-        super();
-        smoSerialize.filteredMerge(
-            ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
-        if (!this.defaultValue) {
-            this.defaultValue = 0;
-        }
-        this.dialog = dialog;
-        this.value='';
-    }
-    get parameterId() {
-        return this.dialog.id + '-' + this.parameterName;
-    }
-    get html() {
-        var b = htmlHelpers.buildDom;
-        var id = this.parameterId;
-        var r = b('div').classes('text-input smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
-            .append(b('input').attr('type', 'text').classes('file-name')
-                .attr('id', id + '-input')).append(
-                b('label').attr('for', id + '-input').text(this.label));
-        return r;
-    }
-
-    getValue() {
-        return this.value;
-    }
-    setValue(val) {
-        this.value = val;
-        $('#'+this.parameterId).find('input').val(val);
-    }
-    bind() {
-        var self=this;
-        $('#'+this.parameterId).find('input').off('change').on('change',function(e) {
-            self.value = $(this).val();
-            self.handleChanged();
-        });
-    }
-}
-
 // ## SuiFileDownloadComponent
 // Download a test file using the file input.
 class SuiFileDownloadComponent extends SuiComponentBase {
@@ -25081,7 +24862,8 @@ class SuiDropdownComponent  extends SuiComponentBase{
     }
 }
 ;
-// ## This has the text editing dialog components.  Unlike components that are
+// ## textComponents module
+// This has the text editing dialog components.  Unlike components that are
 // actual dialog controls, these actually run a text editing session of some kind.
 //
 // The heirarchy of text editing objects goes:
@@ -25091,7 +24873,8 @@ class SuiDropdownComponent  extends SuiComponentBase{
 //  handles low-level events and renders the preview using one
 // of the text layout objects.
 //
-// ### session creates and destroys editors, e.g. for lyrics that have a Different
+// ### session
+// creates and destroys editors, e.g. for lyrics that have a Different
 // editor instance for each note.
 //
 // ### component
@@ -25145,14 +24928,14 @@ class SuiTextInPlace extends SuiComponentBase {
     var render = () => {
       this.dialog.layout.setRefresh();
     }
-    if (this.editor) {
-      this.value=this.editor.textGroup;
-      this.editor.stopSession().then(render);
+    if (this.session) {
+      this.value=this.session.textGroup;
+      this.session.stopSession().then(render);
     }
     $('body').removeClass('text-edit');
   }
   get isRunning() {
-    return this.editor && this.editor.isRunning;
+    return this.session && this.session.isRunning;
   }
   getValue() {
     return this.value;
@@ -25162,14 +24945,14 @@ class SuiTextInPlace extends SuiComponentBase {
     return $(this.dialog.dgDom.element).find('#' + pid).find('button');
   }
   mouseMove(ev) {
-    if (this.editor && this.editor.isRunning) {
-      this.editor.handleMouseEvent(ev);
+    if (this.session && this.session.isRunning) {
+      this.session.handleMouseEvent(ev);
     }
   }
 
   mouseClick(ev) {
-    if (this.editor && this.editor.isRunning) {
-      this.editor.handleMouseEvent(ev);
+    if (this.session && this.session.isRunning) {
+      this.session.handleMouseEvent(ev);
     }
   }
   startEditSession() {
@@ -25178,7 +24961,7 @@ class SuiTextInPlace extends SuiComponentBase {
     var modifier = this.dialog.modifier;
     const ul = modifier.ul();
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
-    this.editor = new SuiTextSession({context : this.dialog.layout.context,
+    this.session = new SuiTextSession({context : this.dialog.layout.context,
       scroller: this.dialog.tracker.scroller,
       layout: this.dialog.layout,
       score: this.dialog.layout.score,
@@ -25187,14 +24970,14 @@ class SuiTextInPlace extends SuiComponentBase {
       textGroup: modifier
     });
     $('body').addClass('text-edit');
-    this.value = this.editor.textGroup;
+    this.value = this.session.textGroup;
     var button = document.getElementById(this.parameterId);
     $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
-    this.editor.startSession();
+    this.session.startSession();
   }
   evKey(evdata) {
-    if (this.editor) {
-      this.editor.evKey(evdata);
+    if (this.session) {
+      this.session.evKey(evdata);
     }
   }
 
@@ -25203,7 +24986,7 @@ class SuiTextInPlace extends SuiComponentBase {
     this.fontInfo = JSON.parse(JSON.stringify(this.activeScoreText.fontInfo));
     this.value = this.dialog.modifier;
     $(this._getInputElement()).off('click').on('click',function(ev) {
-      if (self.editor && self.editor.state === SuiTextSession.States.RUNNING) {
+      if (self.session && self.session.isRunning) {
         self.endSession();
       } else {
         self.startEditSession();
@@ -25227,14 +25010,14 @@ class SuiNoteTextComponent extends SuiComponentBase {
     return this.dialog.id + '-' + this.parameterName;
   }
   mouseMove(ev) {
-    if (this.editor && this.editor.isRunning) {
-      this.editor.handleMouseEvent(ev);
+    if (this.session && this.session.isRunning) {
+      this.session.handleMouseEvent(ev);
     }
   }
 
   mouseClick(ev) {
-    if (this.editor && this.editor.isRunning) {
-      this.editor.handleMouseEvent(ev);
+    if (this.session && this.session.isRunning) {
+      this.session.handleMouseEvent(ev);
     }
   }
   _getInputElement() {
@@ -25242,28 +25025,28 @@ class SuiNoteTextComponent extends SuiComponentBase {
     return $(this.dialog.dgDom.element).find('#' + pid).find('button');
   }
   get running() {
-    return this.editor && this.editor.isRunning;
+    return this.session && this.session.isRunning;
   }
   evKey(evdata) {
-    if (this.editor) {
-      this.editor.evKey(evdata);
+    if (this.session) {
+      this.session.evKey(evdata);
     }
   }
 
   moveSelectionRight() {
-      this.editor.advanceSelection(false);
+      this.session.advanceSelection(false);
   }
   moveSelectionLeft() {
-    this.editor.advanceSelection(true);
+    this.session.advanceSelection(true);
   }
   removeText() {
-    this.editor.removeLyric();
+    this.session.removeLyric();
   }
 
   _bind() {
     var self=this;
     $(this._getInputElement()).off('click').on('click',function(ev) {
-      if (self.editor && self.editor.state === SuiLyricEditor.States.RUNNING) {
+      if (self.session && self.session.isRunning) {
         self.endSession();
       } else {
         self.startEditSession();
@@ -25295,7 +25078,7 @@ class SuiLyricComponent extends SuiNoteTextComponent {
     if (!this.defaultValue) {
         this.defaultValue = 0;
     }
-    this.editor = null;
+    this.session = null;
     this.altLabel = SuiLyricDialog.getStaticText('doneEditing');
   }
 
@@ -25332,9 +25115,9 @@ class SuiLyricComponent extends SuiNoteTextComponent {
     var render = () => {
       this.dialog.layout.setRefresh();
     }
-    if (this.editor) {
-      this.value=this.editor.textGroup;
-      this.editor.stopSession().then(render);
+    if (this.session) {
+      this.value=this.session.textGroup;
+      this.session.stopSession().then(render);
     }
     $('body').removeClass('text-edit');
   }
@@ -25344,7 +25127,7 @@ class SuiLyricComponent extends SuiNoteTextComponent {
     $(this._getInputElement()).find('label').text(this.altLabel);
     var modifier = this.dialog.modifier;
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
-    this.editor = new SuiLyricSession({
+    this.session = new SuiLyricSession({
        context : this.dialog.layout.context,
        selector: this.selector,
        scroller: this.dialog.tracker.scroller,
@@ -25356,7 +25139,7 @@ class SuiLyricComponent extends SuiNoteTextComponent {
     $('body').addClass('text-edit');
     var button = document.getElementById(this.parameterId);
     $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
-    this.editor.startSession();
+    this.session.startSession();
   }
 
   bind() {
@@ -25374,7 +25157,7 @@ class SuiChordComponent extends SuiNoteTextComponent {
     if (!this.defaultValue) {
         this.defaultValue = 0;
     }
-    this.editor = null;
+    this.session = null;
     this.dialog = dialog;
 
     this.selection = dialog.tracker.selections[0];
@@ -25415,9 +25198,9 @@ class SuiChordComponent extends SuiNoteTextComponent {
     var render = () => {
       this.dialog.layout.setRefresh();
     }
-    if (this.editor) {
-      this.value=this.editor.textGroup;
-      this.editor.stopSession().then(render);
+    if (this.session) {
+      this.value=this.session.textGroup;
+      this.session.stopSession().then(render);
     }
     $('body').removeClass('text-edit');
   }
@@ -25426,7 +25209,7 @@ class SuiChordComponent extends SuiNoteTextComponent {
     $(this._getInputElement()).find('label').text(this.altLabel);
     var modifier = this.dialog.modifier;
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
-    this.editor = new SuiChordSession({
+    this.session = new SuiChordSession({
        context : this.dialog.layout.context,
        selector: this.selector,
        scroller: this.dialog.tracker.scroller,
@@ -25438,7 +25221,7 @@ class SuiChordComponent extends SuiNoteTextComponent {
     $('body').addClass('text-edit');
     var button = document.getElementById(this.parameterId);
     $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
-    this.editor.startSession();
+    this.session.startSession();
   }
   bind() {
     this._bind();
@@ -25490,14 +25273,14 @@ class SuiDragText extends SuiComponentBase {
   stopEditSession() {
     $('body').removeClass('text-move');
     $(this._getInputElement()).find('span.icon').removeClass('icon-checkmark').addClass('icon-move');
-    if (this.editor && this.editor.dragging) {
-      this.editor.dragging = false;
+    if (this.session && this.session.dragging) {
+      this.session.dragging = false;
     }
     this.running = false;
   }
   startEditSession() {
     $('body').addClass('text-move');
-    this.editor = new SuiDragSession({
+    this.session = new SuiDragSession({
       textGroup: this.dialog.modifier,
       context: this.dialog.layout.context,
       scroller: this.dialog.tracker.scroller
@@ -25507,19 +25290,19 @@ class SuiDragText extends SuiComponentBase {
     this.running = true;
   }
   mouseMove(e) {
-    if (this.editor && this.editor.dragging) {
-      this.editor.mouseMove(e);
+    if (this.session && this.session.dragging) {
+      this.session.mouseMove(e);
     }
   }
   mouseDown(e) {
-    if (this.editor && !this.editor.dragging) {
-      this.editor.startDrag(e);
+    if (this.session && !this.session.dragging) {
+      this.session.startDrag(e);
       this.dragging = true;
     }
   }
   mouseUp(e) {
-    if (this.editor && this.editor.dragging) {
-      this.editor.endDrag(e);
+    if (this.session && this.session.dragging) {
+      this.session.endDrag(e);
       this.dragging = false;
       this.handleChanged();
     }
@@ -25570,8 +25353,8 @@ class SuiResizeTextBox extends SuiComponentBase {
 
   stopEditSession() {
     $('body').removeClass('text-resize');
-    if (this.editor && this.editor.dragging) {
-      this.editor.dragging = false;
+    if (this.session && this.session.dragging) {
+      this.session.dragging = false;
       this.dragging = false;
     }
     this.running = false;
@@ -25584,21 +25367,21 @@ class SuiResizeTextBox extends SuiComponentBase {
     return $(this.dialog.dgDom.element).find('#' + pid).find('button');
   }
   mouseUp(e) {
-    if (this.editor && this.editor.dragging) {
-      this.editor.endDrag(e);
+    if (this.session && this.session.dragging) {
+      this.session.endDrag(e);
       this.dragging = false;
-      this.dialog.changed();
+      this.session.changed();
     }
   }
   mouseMove(e) {
-    if (this.editor && this.editor.dragging) {
-      this.editor.mouseMove(e);
+    if (this.session && this.session.dragging) {
+      this.session.mouseMove(e);
     }
   }
 
   startEditSession() {
     $('body').addClass('text-resize');
-    this.editor = new SuiResizeTextSession({
+    this.session = new SuiResizeTextSession({
       textGroup: this.dialog.modifier,
       context: this.dialog.layout.context,
       scroller: this.dialog.tracker.scroller
@@ -25608,8 +25391,8 @@ class SuiResizeTextBox extends SuiComponentBase {
     $(this._getInputElement()).find('span.icon').removeClass('icon-enlarge').addClass('icon-checkmark');
   }
   mouseDown(e) {
-    if (this.editor && !this.editor.dragging) {
-      this.editor.startDrag(e);
+    if (this.session && !this.session.dragging) {
+      this.session.startDrag(e);
       this.dragging = true;
     }
   }
@@ -27441,7 +27224,7 @@ var sixTestJson = `{"a":{"b":{"c":30,"d":30,"e":40,"f":40,"g":816,"h":1056,"i":0
 // ---
 class RibbonButtons {
 	static get paramArray() {
-		return ['ribbonButtons', 'ribbons', 'editor', 'controller', 'tracker', 'menus','layout','eventSource'];
+		return ['ribbonButtons', 'ribbons', 'keyCommands', 'controller', 'tracker', 'menus','layout','eventSource'];
 	}
 	static _buttonHtml(containerClass,buttonId, buttonClass, buttonText, buttonIcon, buttonKey) {
 		var b = htmlHelpers.buildDom;
@@ -27470,9 +27253,9 @@ class RibbonButtons {
 		ctor.createAndDisplay(
       {
         tracker:this.tracker,
-        undoBuffer:this.editor.undoBuffer,
+        undoBuffer:this.keyCommands.undoBuffer,
         eventSource:this.eventSource,
-        editor:this.editor,
+        keyCommands:this.keyCommands,
         completeNotifier: this.controller,
         layout: this.layout
       }
@@ -27579,12 +27362,12 @@ class RibbonButtons {
           		this.collapsables.push(new CollapseRibbonControl({
           				ribbonButtons: this.ribbonButtons,
                   layout:this.layout,
-                  undoBuffer:this.editor.undoBuffer,
+                  undoBuffer:this.keyCommands.undoBuffer,
           				menus: this.menus,
                   eventSource:this.eventSource,
           				tracker: this.tracker,
           				controller: this.controller,
-          				editor: this.editor,
+          				keyCommands: this.keyCommands,
           				buttonElement: buttonElement,
           				buttonData: buttonData
           			}));
@@ -27617,7 +27400,7 @@ class DebugButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
 		this.buttonData = parameters.buttonData;
-		this.editor = parameters.editor;
+		this.keyCommands = parameters.keyCommands;
 	}
 	bind() {
 		var self = this;
@@ -27631,7 +27414,7 @@ class ExtendedCollapseParent {
     constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
 		this.buttonData = parameters.buttonData;
-		this.editor = parameters.editor;
+		this.keyCommands = parameters.keyCommands;
 	}
     bind() {
 		var self = this;
@@ -27644,15 +27427,15 @@ class BeamButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
 		this.buttonData = parameters.buttonData;
-		this.editor = parameters.editor;
+		this.keyCommands = parameters.keyCommands;
 	}
     operation() {
         if (this.buttonData.id === 'breakBeam') {
-			this.editor.toggleBeamGroup();
+			this.keyCommands.toggleBeamGroup();
         } else if (this.buttonData.id === 'beamSelections') {
-            this.editor.beamSelections();
+            this.keyCommands.beamSelections();
         } else if (this.buttonData.id === 'toggleBeamDirection') {
-            this.editor.toggleBeamDirection();
+            this.keyCommands.toggleBeamDirection();
         }
     }
 	bind() {
@@ -27666,7 +27449,7 @@ class MicrotoneButtons {
     constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
 		this.buttonData = parameters.buttonData;
-		this.editor = parameters.editor;
+		this.keyCommands = parameters.keyCommands;
         this.tracker = parameters.tracker
 	}
     applyButton(el) {
@@ -27679,7 +27462,7 @@ class MicrotoneButtons {
         }
         var tn = new SmoMicrotone({tone:el.id,pitch:pitch});
         SmoUndoable.multiSelectionOperation(this.tracker.layout.score,
-             this.tracker.selections,'addRemoveMicrotone',tn,this.editor.undoBuffer);
+             this.tracker.selections,'addRemoveMicrotone',tn,this.keyCommands.undoBuffer);
         suiOscillator.playSelectionNow(this.tracker.selections[0]);
         this.tracker.layout.addToReplaceQueue(this.tracker.selections[0]);
     }
@@ -27694,25 +27477,25 @@ class DurationButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
 		this.buttonData = parameters.buttonData;
-		this.editor = parameters.editor;
+		this.keyCommands = parameters.keyCommands;
 	}
 	setDuration() {
 		if (this.buttonData.id === 'GrowDuration') {
-			this.editor.doubleDuration();
+			this.keyCommands.doubleDuration();
 		} else if (this.buttonData.id === 'LessDuration') {
-			this.editor.halveDuration();
+			this.keyCommands.halveDuration();
 		} else if (this.buttonData.id === 'GrowDurationDot') {
-			this.editor.dotDuration();
+			this.keyCommands.dotDuration();
 		} else if (this.buttonData.id === 'LessDurationDot') {
-			this.editor.undotDuration();
+			this.keyCommands.undotDuration();
 		} else if (this.buttonData.id === 'TripletButton') {
-			this.editor.makeTupletCommand(3);
+			this.keyCommands.makeTupletCommand(3);
 		} else if (this.buttonData.id === 'QuintupletButton') {
-			this.editor.makeTupletCommand(5);
+			this.keyCommands.makeTupletCommand(5);
 		} else if (this.buttonData.id === 'SeptupletButton') {
-			this.editor.makeTupletCommand(7);
+			this.keyCommands.makeTupletCommand(7);
 		} else if (this.buttonData.id === 'NoTupletButton') {
-			this.editor.unmakeTuplet();
+			this.keyCommands.unmakeTuplet();
 		}
 	}
 	bind() {
@@ -27727,14 +27510,14 @@ class VoiceButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
 		this.buttonData = parameters.buttonData;
-		this.editor = parameters.editor;
+		this.keyCommands = parameters.keyCommands;
         this.tracker = parameters.tracker;
 	}
     _depopulateVoice() {
         var selections = SmoSelection.getMeasureList(this.tracker.selections);
         selections.forEach((selection) => {
             SmoUndoable.depopulateVoice([selection],selection.measure.getActiveVoice(),
-               this.editor.undoBuffer);
+               this.keyCommands.undoBuffer);
             selection.measure.setChanged();
         });
         this.tracker.replaceSelectedMeasures();
@@ -27752,15 +27535,15 @@ class VoiceButtons {
 		} else if (this.buttonData.id === 'V2Button') {
 			voiceIx = 1;
 		} else if (this.buttonData.id === 'V3Button') {
-			this.editor.upOctave();
+			this.keyCommands.upOctave();
             voiceIx = 2;
 		} else if (this.buttonData.id === 'V4Button') {
-			this.editor.downOctave();
+			this.keyCommands.downOctave();
             voiceIx = 3;
 		} else if (this.buttonData.id === 'VXButton') {
         	return this._depopulateVoice();
         }
-        SmoUndoable.populateVoice(this.tracker.selections,voiceIx,this.editor.undoBuffer);
+        SmoUndoable.populateVoice(this.tracker.selections,voiceIx,this.keyCommands.undoBuffer);
         SmoOperation.setActiveVoice(this.tracker.layout.score,voiceIx);
         this.tracker.replaceSelectedMeasures();
     }
@@ -27775,33 +27558,33 @@ class NoteButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
 		this.buttonData = parameters.buttonData;
-		this.editor = parameters.editor;
+		this.keyCommands = parameters.keyCommands;
 	}
 	setPitch() {
 		if (this.buttonData.id === 'UpNoteButton') {
-			this.editor.transposeUp();
+			this.keyCommands.transposeUp();
 		} else if (this.buttonData.id === 'DownNoteButton') {
-			this.editor.transposeDown();
+			this.keyCommands.transposeDown();
 		} else if (this.buttonData.id === 'UpOctaveButton') {
-			this.editor.upOctave();
+			this.keyCommands.upOctave();
 		} else if (this.buttonData.id === 'DownOctaveButton') {
-			this.editor.downOctave();
+			this.keyCommands.downOctave();
 		} else if (this.buttonData.id === 'ToggleAccidental') {
-			this.editor.toggleEnharmonic();
+			this.keyCommands.toggleEnharmonic();
 		} else if (this.buttonData.id === 'ToggleCourtesy') {
-			this.editor.toggleCourtesyAccidental();
+			this.keyCommands.toggleCourtesyAccidental();
 		} else if (this.buttonData.id === 'ToggleRestButton') {
-			this.editor.makeRest();
+			this.keyCommands.makeRest();
 		} else if (this.buttonData.id === 'AddGraceNote') {
-			this.editor.addGraceNote();
+			this.keyCommands.addGraceNote();
 		} else if (this.buttonData.id === 'SlashGraceNote') {
-      this.editor.slashGraceNotes();
+      this.keyCommands.slashGraceNotes();
     } else if (this.buttonData.id === 'RemoveGraceNote') {
-			this.editor.removeGraceNote();
+			this.keyCommands.removeGraceNote();
 		} else if (this.buttonData.id === 'XNoteHead') {
-      this.editor.setNoteHead();
+      this.keyCommands.setNoteHead();
     } else {
-			this.editor.setPitchCommand(this.buttonData.rightText);
+			this.keyCommands.setPitchCommand(this.buttonData.rightText);
 		}
 	}
 	bind() {
@@ -27816,7 +27599,7 @@ class ChordButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
 		this.buttonData = parameters.buttonData;
-		this.editor = parameters.editor;
+		this.keyCommands = parameters.keyCommands;
 		this.tracker = parameters.tracker;
 		this.score = parameters.score;
 		this.interval = parseInt($(this.buttonElement).attr('data-interval'));
@@ -27830,10 +27613,10 @@ class ChordButtons {
 	}
 	static get intervalButtonMap() {}
 	collapseChord() {
-		this.editor.collapseChord();
+		this.keyCommands.collapseChord();
 	}
 	setInterval() {
-		this.editor.intervalAdd(this.interval, this.direction);
+		this.keyCommands.intervalAdd(this.interval, this.direction);
 	}
 	bind() {
 		var self = this;
@@ -27865,7 +27648,7 @@ class StaveButtons {
 		measures.forEach((measure) => {
 			selections.push(SmoSelection.measureSelection(this.tracker.layout.score,staff,measure.measureNumber.measureIndex));
 		});
-		SmoUndoable.changeInstrument(this.tracker.layout.score,instrument,selections,this.editor.undoBuffer);
+		SmoUndoable.changeInstrument(this.tracker.layout.score,instrument,selections,this.keyCommands.undoBuffer);
 		this.tracker.replaceSelectedMeasures();
 	}
 	clefTreble() {
@@ -27882,7 +27665,7 @@ class StaveButtons {
 	}
     _clefMove(index,direction) {
         SmoUndoable.scoreSelectionOp(this.tracker.layout.score,this.tracker.selections[0],'moveStaffUpDown',
-           index,this.editor.undoBuffer,'Move staff '+direction);
+           index,this.keyCommands.undoBuffer,'Move staff '+direction);
         this.tracker.layout.rerenderAll();
     }
     clefMoveUp() {
@@ -27896,7 +27679,7 @@ class StaveButtons {
             this.tracker.selections,
         {mapType:SmoSystemGroup.mapTypes.allMeasures,leftConnector:type,
             rightConnector:SmoSystemGroup.connectorTypes.single},
-            this.editor.undoBuffer);
+            this.keyCommands.undoBuffer);
     }
     staffBraceLower() {
         this._addStaffGroup(SmoSystemGroup.connectorTypes.brace);
@@ -27931,15 +27714,15 @@ class MeasureButtons {
         }
     }*/
 	setEnding(startBar,endBar,number) {
-		this.editor.scoreOperation('addEnding',new SmoVolta({startBar:startBar,endBar:endBar,number:number}));
+		this.keyCommands.scoreOperation('addEnding',new SmoVolta({startBar:startBar,endBar:endBar,number:number}));
 
 	}
 	setBarline(selection,position,barline,description) {
-		this.editor.scoreSelectionOperation(selection, 'setMeasureBarline', new SmoBarline({position:position,barline:barline})
+		this.keyCommands.scoreSelectionOperation(selection, 'setMeasureBarline', new SmoBarline({position:position,barline:barline})
 		    ,description);
 	}
 	setSymbol(selection,position,symbol,description) {
-		this.editor.scoreSelectionOperation(selection, 'setRepeatSymbol', new SmoRepeatSymbol({position:position,symbol:symbol})
+		this.keyCommands.scoreSelectionOperation(selection, 'setRepeatSymbol', new SmoRepeatSymbol({position:position,symbol:symbol})
 		    ,description);
 	}
 	endRepeat() {
@@ -28020,13 +27803,13 @@ class PlayerButtons {
     Vex.Merge(this,parameters);
   }
   playButton() {
-    this.editor.playScore();
+    this.keyCommands.playScore();
   }
   stopButton() {
-    this.editor.stopPlayer();
+    this.keyCommands.stopPlayer();
   }
   pauseButton() {
-    this.editor.pausePlayer();
+    this.keyCommands.pausePlayer();
   }
   bind() {
     this.eventSource.domClick(this.buttonElement,this,this.buttonData.id);
@@ -28055,10 +27838,10 @@ class DisplaySettings {
       this.layout.setRefresh();
   }
   playButton2() {
-    this.editor.playScore();
+    this.keyCommands.playScore();
   }
   stopButton2() {
-    this.editor.stopPlayer();
+    this.keyCommands.stopPlayer();
   }
 
 
@@ -28079,9 +27862,9 @@ class TextButtons {
         completeNotifier:this.controller,
         tracker: this.tracker,
         layout:this.layout,
-        undoBuffer:this.editor.undoBuffer,
+        undoBuffer:this.keyCommands.undoBuffer,
         eventSource:this.eventSource,
-        editor:this.editor,
+        keyCommands:this.keyCommands,
         parser:SmoLyric.parsers.lyric
       }
     );
@@ -28095,9 +27878,9 @@ class TextButtons {
         completeNotifier:this.controller,
         tracker: this.tracker,
         layout:this.layout,
-        undoBuffer:this.editor.undoBuffer,
+        undoBuffer:this.keyCommands.undoBuffer,
         eventSource:this.eventSource,
-        editor:this.editor,
+        keyCommands:this.keyCommands,
         parser:SmoLyric.parsers.chord
       }
     );
@@ -28105,7 +27888,7 @@ class TextButtons {
   rehearsalMark() {
     var selection = this.tracker.getExtremeSelection(-1);
     var cmd = selection.measure.getRehearsalMark() ? 'removeRehearsalMark' : 'addRehearsalMark';
-    this.editor.scoreSelectionOperation(selection, cmd, new SmoRehearsalMark());
+    this.keyCommands.scoreSelectionOperation(selection, cmd, new SmoRehearsalMark());
   }
   _invokeMenu(cmd) {
     this.menus.slashMenuMode(this.controller);
@@ -28120,9 +27903,9 @@ class TextButtons {
         completeNotifier:this.controller,
         tracker: this.tracker,
         layout:this.layout,
-        undoBuffer:this.editor.undoBuffer,
+        undoBuffer:this.keyCommands.undoBuffer,
         eventSource:this.eventSource,
-        editor:this.editor
+        keyCommands:this.keyCommands
     });
   }
 	addDynamicsMenu() {
@@ -28203,14 +27986,14 @@ class ArticulationButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
 		this.buttonData = parameters.buttonData;
-		this.editor = parameters.editor;
+		this.keyCommands = parameters.keyCommands;
 		this.articulation = ArticulationButtons.articulationIdMap[this.buttonData.id];
     this.eventSource = parameters.eventSource;
     this.ctor = ArticulationButtons.constructors[this.buttonData.id];
 	}
 	_toggleArticulation() {
 		this.showState = !this.showState;
-		this.editor.toggleArticulationCommand(this.articulation, this.ctor);
+		this.keyCommands.toggleArticulationCommand(this.articulation, this.ctor);
 	}
 	bind() {
 		var self = this;
@@ -28221,7 +28004,7 @@ class ArticulationButtons {
 
 class CollapseRibbonControl {
 	static get paramArray() {
-		return ['ribbonButtons', 'editor', 'controller', 'tracker', 'menus', 'buttonData', 'buttonElement',
+		return ['ribbonButtons', 'keyCommands', 'controller', 'tracker', 'menus', 'buttonData', 'buttonElement',
     'layout','eventSource','undoBuffer'];
 	}
 	constructor(parameters) {
@@ -28265,7 +28048,7 @@ class CollapseRibbonControl {
 			var btn = new ctor({
 					buttonData: cb,
 					buttonElement: el,
-					editor: this.editor,
+					keyCommands: this.keyCommands,
 					tracker: this.tracker,
 					controller: this.controller,
           layout:this.layout,
@@ -28988,9 +28771,9 @@ class suiController {
     this.eventSource = params.eventSource;
 		this.pasteBuffer = this.tracker.pasteBuffer;
     this.tracker.setDialogModifier(this);
-		this.editor.controller = this;
-		this.editor.undoBuffer = this.undoBuffer;
-		this.editor.pasteBuffer = this.pasteBuffer;
+		this.keyCommands.controller = this;
+		this.keyCommands.undoBuffer = this.undoBuffer;
+		this.keyCommands.pasteBuffer = this.pasteBuffer;
 		this.resizing = false;
 		this.undoStatus=0;
 		this.trackScrolling = false;
@@ -29001,7 +28784,7 @@ class suiController {
 			ribbons: defaultRibbonLayout.ribbons,
 			ribbonButtons: defaultRibbonLayout.ribbonButtons,
 			menus: this.menus,
-			editor: this.editor,
+			keyCommands: this.keyCommands,
 			tracker: this.tracker,
 			score: this.score,
 			controller: this,
@@ -29073,7 +28856,7 @@ class suiController {
 			ribbons: defaultRibbonLayout.ribbons,
 			ribbonButtons: defaultRibbonLayout.ribbonButtons,
 			menus: this.menus,
-			editor: this.editor,
+			keyCommands: this.keyCommands,
 			tracker: this.tracker,
 			score: this.score,
 			controller: this,
@@ -29107,7 +28890,7 @@ class suiController {
   createModifierDialog(modifierSelection) {
     var parameters = {
       modifier:modifierSelection.modifier, context:this.tracker.context, tracker:this.tracker, layout:this.layout, undoBuffer:this.undoBuffer,eventSource:this.eventSource,
-         completeNotifier:this,editor:this.editor
+         completeNotifier:this,keyCommands:this.keyCommands
     }
     SuiModifierDialogFactory.createDialog(modifierSelection.modifier,parameters);
   }
@@ -29173,7 +28956,7 @@ class suiController {
 	static get keyBindingDefaults() {
 		var editorKeys = suiController.editorKeyBindingDefaults;
 		editorKeys.forEach((key) => {
-			key.module = 'editor'
+			key.module = 'keyCommands'
 		});
 		var trackerKeys = suiController.trackerKeyBindingDefaults;
 		trackerKeys.forEach((key) => {
@@ -29730,7 +29513,7 @@ class SmoTranslationEditor {
       scoreLoadOrder:['library'],
       scoreLoadJson:'emptyScoreJson',
       ribbon:false,
-      editor:false,
+      keyCommands:false,
       menus:false,
       controller:'utController',
       domSource:'UtDom',
@@ -29751,7 +29534,7 @@ class SmoTranslationEditor {
       vexDomContainer:'boo',
       domSource:'SuiDom',
       ribbon:true,
-      editor:true,
+      keyCommands:true,
       menus:true,
       title:'Smoosic',
       languageDir:'ltr'
@@ -29778,8 +29561,8 @@ class SmoTranslationEditor {
     params.scroller = new suiScroller();
     params.tracker = new suiTracker(params.layout,params.scroller);
     params.layout.setMeasureMapper(params.tracker);
-    if (SmoConfig.editor) {
-      params.editor = new suiEditor(params);
+    if (SmoConfig.keyCommands) {
+      params.keyCommands = new SuiKeyCommands(params);
     }
     if (SmoConfig.menus) {
       params.menus = new suiMenuManager(params);

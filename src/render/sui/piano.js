@@ -91,13 +91,13 @@ class suiPiano {
       }
     });
     $('#piano-xpose-up').off('click').on('click',function() {
-      self.editor.transposeUp();
+      self.keyCommands.transposeUp();
     });
     $('#piano-xpose-down').off('click').on('click',function() {
-      self.editor.transposeDown();
+      self.keyCommands.transposeDown();
     });
     $('#piano-enharmonic').off('click').on('click',function() {
-      self.editor.toggleEnharmonic();
+      self.keyCommands.toggleEnharmonic();
     });
     $('button.jsLeft').off('click').on('click',function() {
       self.tracker.moveSelectionLeft();
@@ -106,16 +106,16 @@ class suiPiano {
       self.tracker.moveSelectionRight();
     });
     $('button.jsGrowDuration').off('click').on('click',function() {
-      self.editor.doubleDuration();
+      self.keyCommands.doubleDuration();
     });
     $('button.jsGrowDot').off('click').on('click',function() {
-      self.editor.dotDuration();
+      self.keyCommands.dotDuration();
     });
     $('button.jsShrinkDuration').off('click').on('click',function() {
-      self.editor.halveDuration();
+      self.keyCommands.halveDuration();
     });
     $('button.jsShrinkDot').off('click').on('click',function() {
-      self.editor.undotDuration();
+      self.keyCommands.undotDuration();
     });
     $('button.jsChord').off('click').on('click',function() {
       $(this).toggleClass('activated');

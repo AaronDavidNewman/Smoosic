@@ -1,5 +1,6 @@
 
-// ## This has the text editing dialog components.  Unlike components that are
+// ## textComponents module
+// This has the text editing dialog components.  Unlike components that are
 // actual dialog controls, these actually run a text editing session of some kind.
 //
 // The heirarchy of text editing objects goes:
@@ -9,7 +10,8 @@
 //  handles low-level events and renders the preview using one
 // of the text layout objects.
 //
-// ### session creates and destroys editors, e.g. for lyrics that have a Different
+// ### session
+// creates and destroys editors, e.g. for lyrics that have a Different
 // editor instance for each note.
 //
 // ### component
@@ -63,14 +65,14 @@ class SuiTextInPlace extends SuiComponentBase {
     var render = () => {
       this.dialog.layout.setRefresh();
     }
-    if (this.editor) {
-      this.value=this.editor.textGroup;
-      this.editor.stopSession().then(render);
+    if (this.session) {
+      this.value=this.session.textGroup;
+      this.session.stopSession().then(render);
     }
     $('body').removeClass('text-edit');
   }
   get isRunning() {
-    return this.editor && this.editor.isRunning;
+    return this.session && this.session.isRunning;
   }
   getValue() {
     return this.value;
@@ -80,14 +82,14 @@ class SuiTextInPlace extends SuiComponentBase {
     return $(this.dialog.dgDom.element).find('#' + pid).find('button');
   }
   mouseMove(ev) {
-    if (this.editor && this.editor.isRunning) {
-      this.editor.handleMouseEvent(ev);
+    if (this.session && this.session.isRunning) {
+      this.session.handleMouseEvent(ev);
     }
   }
 
   mouseClick(ev) {
-    if (this.editor && this.editor.isRunning) {
-      this.editor.handleMouseEvent(ev);
+    if (this.session && this.session.isRunning) {
+      this.session.handleMouseEvent(ev);
     }
   }
   startEditSession() {
@@ -96,7 +98,7 @@ class SuiTextInPlace extends SuiComponentBase {
     var modifier = this.dialog.modifier;
     const ul = modifier.ul();
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
-    this.editor = new SuiTextSession({context : this.dialog.layout.context,
+    this.session = new SuiTextSession({context : this.dialog.layout.context,
       scroller: this.dialog.tracker.scroller,
       layout: this.dialog.layout,
       score: this.dialog.layout.score,
@@ -105,14 +107,14 @@ class SuiTextInPlace extends SuiComponentBase {
       textGroup: modifier
     });
     $('body').addClass('text-edit');
-    this.value = this.editor.textGroup;
+    this.value = this.session.textGroup;
     var button = document.getElementById(this.parameterId);
     $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
-    this.editor.startSession();
+    this.session.startSession();
   }
   evKey(evdata) {
-    if (this.editor) {
-      this.editor.evKey(evdata);
+    if (this.session) {
+      this.session.evKey(evdata);
     }
   }
 
@@ -121,7 +123,7 @@ class SuiTextInPlace extends SuiComponentBase {
     this.fontInfo = JSON.parse(JSON.stringify(this.activeScoreText.fontInfo));
     this.value = this.dialog.modifier;
     $(this._getInputElement()).off('click').on('click',function(ev) {
-      if (self.editor && self.editor.state === SuiTextSession.States.RUNNING) {
+      if (self.session && self.session.isRunning) {
         self.endSession();
       } else {
         self.startEditSession();
@@ -145,14 +147,14 @@ class SuiNoteTextComponent extends SuiComponentBase {
     return this.dialog.id + '-' + this.parameterName;
   }
   mouseMove(ev) {
-    if (this.editor && this.editor.isRunning) {
-      this.editor.handleMouseEvent(ev);
+    if (this.session && this.session.isRunning) {
+      this.session.handleMouseEvent(ev);
     }
   }
 
   mouseClick(ev) {
-    if (this.editor && this.editor.isRunning) {
-      this.editor.handleMouseEvent(ev);
+    if (this.session && this.session.isRunning) {
+      this.session.handleMouseEvent(ev);
     }
   }
   _getInputElement() {
@@ -160,28 +162,28 @@ class SuiNoteTextComponent extends SuiComponentBase {
     return $(this.dialog.dgDom.element).find('#' + pid).find('button');
   }
   get running() {
-    return this.editor && this.editor.isRunning;
+    return this.session && this.session.isRunning;
   }
   evKey(evdata) {
-    if (this.editor) {
-      this.editor.evKey(evdata);
+    if (this.session) {
+      this.session.evKey(evdata);
     }
   }
 
   moveSelectionRight() {
-      this.editor.advanceSelection(false);
+      this.session.advanceSelection(false);
   }
   moveSelectionLeft() {
-    this.editor.advanceSelection(true);
+    this.session.advanceSelection(true);
   }
   removeText() {
-    this.editor.removeLyric();
+    this.session.removeLyric();
   }
 
   _bind() {
     var self=this;
     $(this._getInputElement()).off('click').on('click',function(ev) {
-      if (self.editor && self.editor.state === SuiLyricEditor.States.RUNNING) {
+      if (self.session && self.session.isRunning) {
         self.endSession();
       } else {
         self.startEditSession();
@@ -213,7 +215,7 @@ class SuiLyricComponent extends SuiNoteTextComponent {
     if (!this.defaultValue) {
         this.defaultValue = 0;
     }
-    this.editor = null;
+    this.session = null;
     this.altLabel = SuiLyricDialog.getStaticText('doneEditing');
   }
 
@@ -250,9 +252,9 @@ class SuiLyricComponent extends SuiNoteTextComponent {
     var render = () => {
       this.dialog.layout.setRefresh();
     }
-    if (this.editor) {
-      this.value=this.editor.textGroup;
-      this.editor.stopSession().then(render);
+    if (this.session) {
+      this.value=this.session.textGroup;
+      this.session.stopSession().then(render);
     }
     $('body').removeClass('text-edit');
   }
@@ -262,7 +264,7 @@ class SuiLyricComponent extends SuiNoteTextComponent {
     $(this._getInputElement()).find('label').text(this.altLabel);
     var modifier = this.dialog.modifier;
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
-    this.editor = new SuiLyricSession({
+    this.session = new SuiLyricSession({
        context : this.dialog.layout.context,
        selector: this.selector,
        scroller: this.dialog.tracker.scroller,
@@ -274,7 +276,7 @@ class SuiLyricComponent extends SuiNoteTextComponent {
     $('body').addClass('text-edit');
     var button = document.getElementById(this.parameterId);
     $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
-    this.editor.startSession();
+    this.session.startSession();
   }
 
   bind() {
@@ -292,7 +294,7 @@ class SuiChordComponent extends SuiNoteTextComponent {
     if (!this.defaultValue) {
         this.defaultValue = 0;
     }
-    this.editor = null;
+    this.session = null;
     this.dialog = dialog;
 
     this.selection = dialog.tracker.selections[0];
@@ -333,9 +335,9 @@ class SuiChordComponent extends SuiNoteTextComponent {
     var render = () => {
       this.dialog.layout.setRefresh();
     }
-    if (this.editor) {
-      this.value=this.editor.textGroup;
-      this.editor.stopSession().then(render);
+    if (this.session) {
+      this.value=this.session.textGroup;
+      this.session.stopSession().then(render);
     }
     $('body').removeClass('text-edit');
   }
@@ -344,7 +346,7 @@ class SuiChordComponent extends SuiNoteTextComponent {
     $(this._getInputElement()).find('label').text(this.altLabel);
     var modifier = this.dialog.modifier;
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
-    this.editor = new SuiChordSession({
+    this.session = new SuiChordSession({
        context : this.dialog.layout.context,
        selector: this.selector,
        scroller: this.dialog.tracker.scroller,
@@ -356,7 +358,7 @@ class SuiChordComponent extends SuiNoteTextComponent {
     $('body').addClass('text-edit');
     var button = document.getElementById(this.parameterId);
     $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
-    this.editor.startSession();
+    this.session.startSession();
   }
   bind() {
     this._bind();
@@ -408,14 +410,14 @@ class SuiDragText extends SuiComponentBase {
   stopEditSession() {
     $('body').removeClass('text-move');
     $(this._getInputElement()).find('span.icon').removeClass('icon-checkmark').addClass('icon-move');
-    if (this.editor && this.editor.dragging) {
-      this.editor.dragging = false;
+    if (this.session && this.session.dragging) {
+      this.session.dragging = false;
     }
     this.running = false;
   }
   startEditSession() {
     $('body').addClass('text-move');
-    this.editor = new SuiDragSession({
+    this.session = new SuiDragSession({
       textGroup: this.dialog.modifier,
       context: this.dialog.layout.context,
       scroller: this.dialog.tracker.scroller
@@ -425,19 +427,19 @@ class SuiDragText extends SuiComponentBase {
     this.running = true;
   }
   mouseMove(e) {
-    if (this.editor && this.editor.dragging) {
-      this.editor.mouseMove(e);
+    if (this.session && this.session.dragging) {
+      this.session.mouseMove(e);
     }
   }
   mouseDown(e) {
-    if (this.editor && !this.editor.dragging) {
-      this.editor.startDrag(e);
+    if (this.session && !this.session.dragging) {
+      this.session.startDrag(e);
       this.dragging = true;
     }
   }
   mouseUp(e) {
-    if (this.editor && this.editor.dragging) {
-      this.editor.endDrag(e);
+    if (this.session && this.session.dragging) {
+      this.session.endDrag(e);
       this.dragging = false;
       this.handleChanged();
     }
@@ -488,8 +490,8 @@ class SuiResizeTextBox extends SuiComponentBase {
 
   stopEditSession() {
     $('body').removeClass('text-resize');
-    if (this.editor && this.editor.dragging) {
-      this.editor.dragging = false;
+    if (this.session && this.session.dragging) {
+      this.session.dragging = false;
       this.dragging = false;
     }
     this.running = false;
@@ -502,21 +504,21 @@ class SuiResizeTextBox extends SuiComponentBase {
     return $(this.dialog.dgDom.element).find('#' + pid).find('button');
   }
   mouseUp(e) {
-    if (this.editor && this.editor.dragging) {
-      this.editor.endDrag(e);
+    if (this.session && this.session.dragging) {
+      this.session.endDrag(e);
       this.dragging = false;
-      this.dialog.changed();
+      this.session.changed();
     }
   }
   mouseMove(e) {
-    if (this.editor && this.editor.dragging) {
-      this.editor.mouseMove(e);
+    if (this.session && this.session.dragging) {
+      this.session.mouseMove(e);
     }
   }
 
   startEditSession() {
     $('body').addClass('text-resize');
-    this.editor = new SuiResizeTextSession({
+    this.session = new SuiResizeTextSession({
       textGroup: this.dialog.modifier,
       context: this.dialog.layout.context,
       scroller: this.dialog.tracker.scroller
@@ -526,8 +528,8 @@ class SuiResizeTextBox extends SuiComponentBase {
     $(this._getInputElement()).find('span.icon').removeClass('icon-enlarge').addClass('icon-checkmark');
   }
   mouseDown(e) {
-    if (this.editor && !this.editor.dragging) {
-      this.editor.startDrag(e);
+    if (this.session && !this.session.dragging) {
+      this.session.startDrag(e);
       this.dragging = true;
     }
   }

@@ -7,7 +7,7 @@
 // ---
 class RibbonButtons {
 	static get paramArray() {
-		return ['ribbonButtons', 'ribbons', 'editor', 'controller', 'tracker', 'menus','layout','eventSource'];
+		return ['ribbonButtons', 'ribbons', 'keyCommands', 'controller', 'tracker', 'menus','layout','eventSource'];
 	}
 	static _buttonHtml(containerClass,buttonId, buttonClass, buttonText, buttonIcon, buttonKey) {
 		var b = htmlHelpers.buildDom;
@@ -36,9 +36,9 @@ class RibbonButtons {
 		ctor.createAndDisplay(
       {
         tracker:this.tracker,
-        undoBuffer:this.editor.undoBuffer,
+        undoBuffer:this.keyCommands.undoBuffer,
         eventSource:this.eventSource,
-        editor:this.editor,
+        keyCommands:this.keyCommands,
         completeNotifier: this.controller,
         layout: this.layout
       }
@@ -145,12 +145,12 @@ class RibbonButtons {
           		this.collapsables.push(new CollapseRibbonControl({
           				ribbonButtons: this.ribbonButtons,
                   layout:this.layout,
-                  undoBuffer:this.editor.undoBuffer,
+                  undoBuffer:this.keyCommands.undoBuffer,
           				menus: this.menus,
                   eventSource:this.eventSource,
           				tracker: this.tracker,
           				controller: this.controller,
-          				editor: this.editor,
+          				keyCommands: this.keyCommands,
           				buttonElement: buttonElement,
           				buttonData: buttonData
           			}));
@@ -183,7 +183,7 @@ class DebugButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
 		this.buttonData = parameters.buttonData;
-		this.editor = parameters.editor;
+		this.keyCommands = parameters.keyCommands;
 	}
 	bind() {
 		var self = this;
@@ -197,7 +197,7 @@ class ExtendedCollapseParent {
     constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
 		this.buttonData = parameters.buttonData;
-		this.editor = parameters.editor;
+		this.keyCommands = parameters.keyCommands;
 	}
     bind() {
 		var self = this;
@@ -210,15 +210,15 @@ class BeamButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
 		this.buttonData = parameters.buttonData;
-		this.editor = parameters.editor;
+		this.keyCommands = parameters.keyCommands;
 	}
     operation() {
         if (this.buttonData.id === 'breakBeam') {
-			this.editor.toggleBeamGroup();
+			this.keyCommands.toggleBeamGroup();
         } else if (this.buttonData.id === 'beamSelections') {
-            this.editor.beamSelections();
+            this.keyCommands.beamSelections();
         } else if (this.buttonData.id === 'toggleBeamDirection') {
-            this.editor.toggleBeamDirection();
+            this.keyCommands.toggleBeamDirection();
         }
     }
 	bind() {
@@ -232,7 +232,7 @@ class MicrotoneButtons {
     constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
 		this.buttonData = parameters.buttonData;
-		this.editor = parameters.editor;
+		this.keyCommands = parameters.keyCommands;
         this.tracker = parameters.tracker
 	}
     applyButton(el) {
@@ -245,7 +245,7 @@ class MicrotoneButtons {
         }
         var tn = new SmoMicrotone({tone:el.id,pitch:pitch});
         SmoUndoable.multiSelectionOperation(this.tracker.layout.score,
-             this.tracker.selections,'addRemoveMicrotone',tn,this.editor.undoBuffer);
+             this.tracker.selections,'addRemoveMicrotone',tn,this.keyCommands.undoBuffer);
         suiOscillator.playSelectionNow(this.tracker.selections[0]);
         this.tracker.layout.addToReplaceQueue(this.tracker.selections[0]);
     }
@@ -260,25 +260,25 @@ class DurationButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
 		this.buttonData = parameters.buttonData;
-		this.editor = parameters.editor;
+		this.keyCommands = parameters.keyCommands;
 	}
 	setDuration() {
 		if (this.buttonData.id === 'GrowDuration') {
-			this.editor.doubleDuration();
+			this.keyCommands.doubleDuration();
 		} else if (this.buttonData.id === 'LessDuration') {
-			this.editor.halveDuration();
+			this.keyCommands.halveDuration();
 		} else if (this.buttonData.id === 'GrowDurationDot') {
-			this.editor.dotDuration();
+			this.keyCommands.dotDuration();
 		} else if (this.buttonData.id === 'LessDurationDot') {
-			this.editor.undotDuration();
+			this.keyCommands.undotDuration();
 		} else if (this.buttonData.id === 'TripletButton') {
-			this.editor.makeTupletCommand(3);
+			this.keyCommands.makeTupletCommand(3);
 		} else if (this.buttonData.id === 'QuintupletButton') {
-			this.editor.makeTupletCommand(5);
+			this.keyCommands.makeTupletCommand(5);
 		} else if (this.buttonData.id === 'SeptupletButton') {
-			this.editor.makeTupletCommand(7);
+			this.keyCommands.makeTupletCommand(7);
 		} else if (this.buttonData.id === 'NoTupletButton') {
-			this.editor.unmakeTuplet();
+			this.keyCommands.unmakeTuplet();
 		}
 	}
 	bind() {
@@ -293,14 +293,14 @@ class VoiceButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
 		this.buttonData = parameters.buttonData;
-		this.editor = parameters.editor;
+		this.keyCommands = parameters.keyCommands;
         this.tracker = parameters.tracker;
 	}
     _depopulateVoice() {
         var selections = SmoSelection.getMeasureList(this.tracker.selections);
         selections.forEach((selection) => {
             SmoUndoable.depopulateVoice([selection],selection.measure.getActiveVoice(),
-               this.editor.undoBuffer);
+               this.keyCommands.undoBuffer);
             selection.measure.setChanged();
         });
         this.tracker.replaceSelectedMeasures();
@@ -318,15 +318,15 @@ class VoiceButtons {
 		} else if (this.buttonData.id === 'V2Button') {
 			voiceIx = 1;
 		} else if (this.buttonData.id === 'V3Button') {
-			this.editor.upOctave();
+			this.keyCommands.upOctave();
             voiceIx = 2;
 		} else if (this.buttonData.id === 'V4Button') {
-			this.editor.downOctave();
+			this.keyCommands.downOctave();
             voiceIx = 3;
 		} else if (this.buttonData.id === 'VXButton') {
         	return this._depopulateVoice();
         }
-        SmoUndoable.populateVoice(this.tracker.selections,voiceIx,this.editor.undoBuffer);
+        SmoUndoable.populateVoice(this.tracker.selections,voiceIx,this.keyCommands.undoBuffer);
         SmoOperation.setActiveVoice(this.tracker.layout.score,voiceIx);
         this.tracker.replaceSelectedMeasures();
     }
@@ -341,33 +341,33 @@ class NoteButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
 		this.buttonData = parameters.buttonData;
-		this.editor = parameters.editor;
+		this.keyCommands = parameters.keyCommands;
 	}
 	setPitch() {
 		if (this.buttonData.id === 'UpNoteButton') {
-			this.editor.transposeUp();
+			this.keyCommands.transposeUp();
 		} else if (this.buttonData.id === 'DownNoteButton') {
-			this.editor.transposeDown();
+			this.keyCommands.transposeDown();
 		} else if (this.buttonData.id === 'UpOctaveButton') {
-			this.editor.upOctave();
+			this.keyCommands.upOctave();
 		} else if (this.buttonData.id === 'DownOctaveButton') {
-			this.editor.downOctave();
+			this.keyCommands.downOctave();
 		} else if (this.buttonData.id === 'ToggleAccidental') {
-			this.editor.toggleEnharmonic();
+			this.keyCommands.toggleEnharmonic();
 		} else if (this.buttonData.id === 'ToggleCourtesy') {
-			this.editor.toggleCourtesyAccidental();
+			this.keyCommands.toggleCourtesyAccidental();
 		} else if (this.buttonData.id === 'ToggleRestButton') {
-			this.editor.makeRest();
+			this.keyCommands.makeRest();
 		} else if (this.buttonData.id === 'AddGraceNote') {
-			this.editor.addGraceNote();
+			this.keyCommands.addGraceNote();
 		} else if (this.buttonData.id === 'SlashGraceNote') {
-      this.editor.slashGraceNotes();
+      this.keyCommands.slashGraceNotes();
     } else if (this.buttonData.id === 'RemoveGraceNote') {
-			this.editor.removeGraceNote();
+			this.keyCommands.removeGraceNote();
 		} else if (this.buttonData.id === 'XNoteHead') {
-      this.editor.setNoteHead();
+      this.keyCommands.setNoteHead();
     } else {
-			this.editor.setPitchCommand(this.buttonData.rightText);
+			this.keyCommands.setPitchCommand(this.buttonData.rightText);
 		}
 	}
 	bind() {
@@ -382,7 +382,7 @@ class ChordButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
 		this.buttonData = parameters.buttonData;
-		this.editor = parameters.editor;
+		this.keyCommands = parameters.keyCommands;
 		this.tracker = parameters.tracker;
 		this.score = parameters.score;
 		this.interval = parseInt($(this.buttonElement).attr('data-interval'));
@@ -396,10 +396,10 @@ class ChordButtons {
 	}
 	static get intervalButtonMap() {}
 	collapseChord() {
-		this.editor.collapseChord();
+		this.keyCommands.collapseChord();
 	}
 	setInterval() {
-		this.editor.intervalAdd(this.interval, this.direction);
+		this.keyCommands.intervalAdd(this.interval, this.direction);
 	}
 	bind() {
 		var self = this;
@@ -431,7 +431,7 @@ class StaveButtons {
 		measures.forEach((measure) => {
 			selections.push(SmoSelection.measureSelection(this.tracker.layout.score,staff,measure.measureNumber.measureIndex));
 		});
-		SmoUndoable.changeInstrument(this.tracker.layout.score,instrument,selections,this.editor.undoBuffer);
+		SmoUndoable.changeInstrument(this.tracker.layout.score,instrument,selections,this.keyCommands.undoBuffer);
 		this.tracker.replaceSelectedMeasures();
 	}
 	clefTreble() {
@@ -448,7 +448,7 @@ class StaveButtons {
 	}
     _clefMove(index,direction) {
         SmoUndoable.scoreSelectionOp(this.tracker.layout.score,this.tracker.selections[0],'moveStaffUpDown',
-           index,this.editor.undoBuffer,'Move staff '+direction);
+           index,this.keyCommands.undoBuffer,'Move staff '+direction);
         this.tracker.layout.rerenderAll();
     }
     clefMoveUp() {
@@ -462,7 +462,7 @@ class StaveButtons {
             this.tracker.selections,
         {mapType:SmoSystemGroup.mapTypes.allMeasures,leftConnector:type,
             rightConnector:SmoSystemGroup.connectorTypes.single},
-            this.editor.undoBuffer);
+            this.keyCommands.undoBuffer);
     }
     staffBraceLower() {
         this._addStaffGroup(SmoSystemGroup.connectorTypes.brace);
@@ -497,15 +497,15 @@ class MeasureButtons {
         }
     }*/
 	setEnding(startBar,endBar,number) {
-		this.editor.scoreOperation('addEnding',new SmoVolta({startBar:startBar,endBar:endBar,number:number}));
+		this.keyCommands.scoreOperation('addEnding',new SmoVolta({startBar:startBar,endBar:endBar,number:number}));
 
 	}
 	setBarline(selection,position,barline,description) {
-		this.editor.scoreSelectionOperation(selection, 'setMeasureBarline', new SmoBarline({position:position,barline:barline})
+		this.keyCommands.scoreSelectionOperation(selection, 'setMeasureBarline', new SmoBarline({position:position,barline:barline})
 		    ,description);
 	}
 	setSymbol(selection,position,symbol,description) {
-		this.editor.scoreSelectionOperation(selection, 'setRepeatSymbol', new SmoRepeatSymbol({position:position,symbol:symbol})
+		this.keyCommands.scoreSelectionOperation(selection, 'setRepeatSymbol', new SmoRepeatSymbol({position:position,symbol:symbol})
 		    ,description);
 	}
 	endRepeat() {
@@ -586,13 +586,13 @@ class PlayerButtons {
     Vex.Merge(this,parameters);
   }
   playButton() {
-    this.editor.playScore();
+    this.keyCommands.playScore();
   }
   stopButton() {
-    this.editor.stopPlayer();
+    this.keyCommands.stopPlayer();
   }
   pauseButton() {
-    this.editor.pausePlayer();
+    this.keyCommands.pausePlayer();
   }
   bind() {
     this.eventSource.domClick(this.buttonElement,this,this.buttonData.id);
@@ -621,10 +621,10 @@ class DisplaySettings {
       this.layout.setRefresh();
   }
   playButton2() {
-    this.editor.playScore();
+    this.keyCommands.playScore();
   }
   stopButton2() {
-    this.editor.stopPlayer();
+    this.keyCommands.stopPlayer();
   }
 
 
@@ -645,9 +645,9 @@ class TextButtons {
         completeNotifier:this.controller,
         tracker: this.tracker,
         layout:this.layout,
-        undoBuffer:this.editor.undoBuffer,
+        undoBuffer:this.keyCommands.undoBuffer,
         eventSource:this.eventSource,
-        editor:this.editor,
+        keyCommands:this.keyCommands,
         parser:SmoLyric.parsers.lyric
       }
     );
@@ -661,9 +661,9 @@ class TextButtons {
         completeNotifier:this.controller,
         tracker: this.tracker,
         layout:this.layout,
-        undoBuffer:this.editor.undoBuffer,
+        undoBuffer:this.keyCommands.undoBuffer,
         eventSource:this.eventSource,
-        editor:this.editor,
+        keyCommands:this.keyCommands,
         parser:SmoLyric.parsers.chord
       }
     );
@@ -671,7 +671,7 @@ class TextButtons {
   rehearsalMark() {
     var selection = this.tracker.getExtremeSelection(-1);
     var cmd = selection.measure.getRehearsalMark() ? 'removeRehearsalMark' : 'addRehearsalMark';
-    this.editor.scoreSelectionOperation(selection, cmd, new SmoRehearsalMark());
+    this.keyCommands.scoreSelectionOperation(selection, cmd, new SmoRehearsalMark());
   }
   _invokeMenu(cmd) {
     this.menus.slashMenuMode(this.controller);
@@ -686,9 +686,9 @@ class TextButtons {
         completeNotifier:this.controller,
         tracker: this.tracker,
         layout:this.layout,
-        undoBuffer:this.editor.undoBuffer,
+        undoBuffer:this.keyCommands.undoBuffer,
         eventSource:this.eventSource,
-        editor:this.editor
+        keyCommands:this.keyCommands
     });
   }
 	addDynamicsMenu() {
@@ -769,14 +769,14 @@ class ArticulationButtons {
 	constructor(parameters) {
 		this.buttonElement = parameters.buttonElement;
 		this.buttonData = parameters.buttonData;
-		this.editor = parameters.editor;
+		this.keyCommands = parameters.keyCommands;
 		this.articulation = ArticulationButtons.articulationIdMap[this.buttonData.id];
     this.eventSource = parameters.eventSource;
     this.ctor = ArticulationButtons.constructors[this.buttonData.id];
 	}
 	_toggleArticulation() {
 		this.showState = !this.showState;
-		this.editor.toggleArticulationCommand(this.articulation, this.ctor);
+		this.keyCommands.toggleArticulationCommand(this.articulation, this.ctor);
 	}
 	bind() {
 		var self = this;
@@ -787,7 +787,7 @@ class ArticulationButtons {
 
 class CollapseRibbonControl {
 	static get paramArray() {
-		return ['ribbonButtons', 'editor', 'controller', 'tracker', 'menus', 'buttonData', 'buttonElement',
+		return ['ribbonButtons', 'keyCommands', 'controller', 'tracker', 'menus', 'buttonData', 'buttonElement',
     'layout','eventSource','undoBuffer'];
 	}
 	constructor(parameters) {
@@ -831,7 +831,7 @@ class CollapseRibbonControl {
 			var btn = new ctor({
 					buttonData: cb,
 					buttonElement: el,
-					editor: this.editor,
+					keyCommands: this.keyCommands,
 					tracker: this.tracker,
 					controller: this.controller,
           layout:this.layout,

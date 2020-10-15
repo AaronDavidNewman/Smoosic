@@ -23,9 +23,9 @@ class suiController {
     this.eventSource = params.eventSource;
 		this.pasteBuffer = this.tracker.pasteBuffer;
     this.tracker.setDialogModifier(this);
-		this.editor.controller = this;
-		this.editor.undoBuffer = this.undoBuffer;
-		this.editor.pasteBuffer = this.pasteBuffer;
+		this.keyCommands.controller = this;
+		this.keyCommands.undoBuffer = this.undoBuffer;
+		this.keyCommands.pasteBuffer = this.pasteBuffer;
 		this.resizing = false;
 		this.undoStatus=0;
 		this.trackScrolling = false;
@@ -36,7 +36,7 @@ class suiController {
 			ribbons: defaultRibbonLayout.ribbons,
 			ribbonButtons: defaultRibbonLayout.ribbonButtons,
 			menus: this.menus,
-			editor: this.editor,
+			keyCommands: this.keyCommands,
 			tracker: this.tracker,
 			score: this.score,
 			controller: this,
@@ -108,7 +108,7 @@ class suiController {
 			ribbons: defaultRibbonLayout.ribbons,
 			ribbonButtons: defaultRibbonLayout.ribbonButtons,
 			menus: this.menus,
-			editor: this.editor,
+			keyCommands: this.keyCommands,
 			tracker: this.tracker,
 			score: this.score,
 			controller: this,
@@ -142,7 +142,7 @@ class suiController {
   createModifierDialog(modifierSelection) {
     var parameters = {
       modifier:modifierSelection.modifier, context:this.tracker.context, tracker:this.tracker, layout:this.layout, undoBuffer:this.undoBuffer,eventSource:this.eventSource,
-         completeNotifier:this,editor:this.editor
+         completeNotifier:this,keyCommands:this.keyCommands
     }
     SuiModifierDialogFactory.createDialog(modifierSelection.modifier,parameters);
   }
@@ -208,7 +208,7 @@ class suiController {
 	static get keyBindingDefaults() {
 		var editorKeys = suiController.editorKeyBindingDefaults;
 		editorKeys.forEach((key) => {
-			key.module = 'editor'
+			key.module = 'keyCommands'
 		});
 		var trackerKeys = suiController.trackerKeyBindingDefaults;
 		trackerKeys.forEach((key) => {

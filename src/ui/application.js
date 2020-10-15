@@ -8,7 +8,7 @@ class SuiApplication {
       scoreLoadOrder:['library'],
       scoreLoadJson:'emptyScoreJson',
       ribbon:false,
-      editor:false,
+      keyCommands:false,
       menus:false,
       controller:'utController',
       domSource:'UtDom',
@@ -29,7 +29,7 @@ class SuiApplication {
       vexDomContainer:'boo',
       domSource:'SuiDom',
       ribbon:true,
-      editor:true,
+      keyCommands:true,
       menus:true,
       title:'Smoosic',
       languageDir:'ltr'
@@ -56,8 +56,8 @@ class SuiApplication {
     params.scroller = new suiScroller();
     params.tracker = new suiTracker(params.layout,params.scroller);
     params.layout.setMeasureMapper(params.tracker);
-    if (SmoConfig.editor) {
-      params.editor = new suiEditor(params);
+    if (SmoConfig.keyCommands) {
+      params.keyCommands = new SuiKeyCommands(params);
     }
     if (SmoConfig.menus) {
       params.menus = new suiMenuManager(params);
