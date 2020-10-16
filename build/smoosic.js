@@ -18505,18 +18505,40 @@ class SuiChordEditor extends SuiTextEditor {
   }
 
 
+  // Handle the case where user changed super/subscript in the middle of the
+  // string.
+  _updateSymbolModifiers() {
+    let change = this.textPos;
+    let render = false;
+    for (var i = this.textPos; i < this.svgText.blocks.length; ++i) {
+      const block = this.svgText.blocks[i];
+      if (block.textType !== this.textType &&
+        block.textTYpe !== change) {
+        change = block.textType;
+        block.textType = this.textType;
+        render = true;
+      } else {
+        break;
+      }
+    }
+    if (render) {
+      this.svgText.render();
+    }
+  }
   _setSymbolModifier(char) {
     if (char === '^') {
       this.textType =
         this.textType ===  SuiInlineText.textTypes.superScript
           ? SuiInlineText.textTypes.none
           : SuiInlineText.textTypes.superScript;
+      this._updateSymbolModifiers();
       return true;
     } else if (char === '%') {
       this.textType =
         this.textType ===  SuiInlineText.textTypes.subScript
           ? SuiInlineText.textTypes.none
           : SuiInlineText.textTypes.subScript;
+      this._updateSymbolModifiers();
       return true;
     }
     return false;
