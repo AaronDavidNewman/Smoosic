@@ -4657,9 +4657,13 @@ class smoSerialize {
       "ce": "engravingFont",
       "de": "customProportion",
       "ee": "columnAttributeMap",
-      "fe": "tempo"
-    }`
-      ;
+      "fe": "tempo",
+      "ge": "textGroups",
+       "he": "textBlocks",
+       "ie": "backupBlocks",
+       "je": "blocks"
+     }`
+     ;
      return JSON.parse(_tm);
     }
 
@@ -6893,6 +6897,7 @@ class SmoLyric extends SmoNoteModifierBase {
   	super('SmoLyric');
   	smoSerialize.serializedMerge(SmoLyric.parameterArray, SmoLyric.defaults,this);
   	smoSerialize.serializedMerge(SmoLyric.parameterArray, parameters, this);
+    this.skipRender = false;
 
     // backwards-compatibility for lyric text
     if (parameters.text) {
@@ -12983,6 +12988,9 @@ class VxMeasure {
 
     }
     _addLyricAnnotationToNote(vexNote,lyric) {
+      if (lyric.skipRender) {
+        return;
+      }
       var y = lyric.verse*10;
       var vexL = new VF.Annotation(lyric.getText()).setReportWidth(false);
       vexL.setAttribute(lyric.attrs.id); //
@@ -14481,32 +14489,32 @@ class suiScroller  {
 // Map the notes in the svg so the can respond to events and interact
 // with the mouse/keyboard
 class suiMapper {
-    constructor(layout,scroller) {
-        // layout renders the music when it changes
-  this.layout = layout;
+  constructor(layout,scroller) {
+    // layout renders the music when it changes
+    this.layout = layout;
 
-        // measure to selector map
-        this.measureMap = {};
-        this.measureNoteMap = {}; // Map for tracker
-        this.scroller = scroller;
+    // measure to selector map
+    this.measureMap = {};
+    this.measureNoteMap = {}; // Map for tracker
+    this.scroller = scroller;
 
-        // notes currently selected.  Something is always selected
-  this.selections = [];
-        // modifiers (text etc.) that have been selected
-        this.modifierSelections = [];
-        // all the modifiers
-  this.modifierTabs = [];
-        // the index of the currently selected modifier
-  this.modifierIndex = -1;
-        // The list of modifiers near the current selection
-        this.localModifiers = [];
-        // mouse-over that might be selected soon
-  this.modifierSuggestion=-1;
-  this.suggestion = {};
-        // index if a single pitch of a chord is selected
-  this.pitchIndex = -1;
-        // the current selection, which is also the copy/paste destination
-  this.pasteBuffer = new PasteBuffer();
+    // notes currently selected.  Something is always selected
+    this.selections = [];
+    // modifiers (text etc.) that have been selected
+    this.modifierSelections = [];
+    // all the modifiers
+    this.modifierTabs = [];
+    // the index of the currently selected modifier
+    this.modifierIndex = -1;
+    // The list of modifiers near the current selection
+    this.localModifiers = [];
+    // mouse-over that might be selected soon
+    this.modifierSuggestion=-1;
+    this.suggestion = {};
+    // index if a single pitch of a chord is selected
+    this.pitchIndex = -1;
+    // the current selection, which is also the copy/paste destination
+    this.pasteBuffer = new PasteBuffer();
   }
 
     // ### loadScore
@@ -16984,16 +16992,16 @@ class suiLayoutAdjuster {
 // there may be other layouts for parts view, or output to other media.
 class suiScoreLayout extends suiLayoutBase {
   constructor(params) {
-  super('suiScoreLayout');
-  Vex.Merge(this, suiLayoutBase.defaults);
-  Vex.Merge(this, params);
+    super('suiScoreLayout');
+    Vex.Merge(this, suiLayoutBase.defaults);
+    Vex.Merge(this, params);
 
-  this.setViewport(true);
+    this.setViewport(true);
 
-  this.attrs = {
-  id: VF.Element.newID(),
-  type: 'testLayout'
-  };
+    this.attrs = {
+      id: VF.Element.newID(),
+      type: 'testLayout'
+    };
   }
 
   // ### createScoreLayout
@@ -17054,15 +17062,22 @@ class suiScoreLayout extends suiLayoutBase {
   }
 
   renderTextGroup(gg) {
-    const textBlock = SuiTextBlock.fromTextGroup(gg,this.context);
-    textBlock.render();
-    gg.renderedBox = textBlock.renderedBox;
-    gg.logicalBox = textBlock.logicalBox;
+    if (gg.skipRender) {
+      return;
+    }
+    gg.renderedBox = {};
+    gg.logicalBox = {};
     gg.textBlocks.forEach((block) => {
-      const it = textBlock.inlineBlocks.find((ib) => ib.text.attrs.id === block.text.attrs.id).text;
-      block.text.renderedBox = svgHelpers.smoBox(it.renderedBox);
-      block.text.logicalBox = svgHelpers.smoBox(it.logicalBox);
+      this.renderScoreText(block.text);
+      if (typeof(gg.renderedBox.x) === 'undefined') {
+        gg.renderedBox = block.text.renderedBox;
+        gg.logicalBox =  block.text.logicalBox;
+      } else {
+        gg.renderedBox = svgHelpers.unionRect(gg.renderedBox, block.text.renderedBox);
+        gg.logicalBox = svgHelpers.unionRect(gg.logicalBox, block.text.logicalBox);
+      }
     });
+    gg.renderedBox.y = gg.renderedBox.y + gg.renderedBox.height;
   }
 
   renderScoreText(tt) {
@@ -17072,16 +17087,15 @@ class suiScoreLayout extends suiLayoutBase {
     var text = tt.text.replace('###',1); /// page number
     text = text.replace('@@@',scoreLayout.pages); /// page number
     var args = {svg:this.svg,width:tt.width,height:tt.height,layout:this._score.layout,text:text};
-    const block = SuiInlineText.fromScoreText(tt,this.context);
-    const blocks = [{ text: block, position: SmoTextGroup.relativePosition.RIGHT }];
-
-    const svgText = new SuiTextBlock({blocks: blocks, context: this.context} );
-    svgText.render();
-    tt.renderedBox = svgText.getRenderedBox();
-
-    // Update paginated score text
-    if (tt.pagination != SmoScoreText.paginations.once) {
-      for (var i = 1;i<scoreLayout.pages;++i) {
+    if (tt.pagination === SmoScoreText.paginations.once) {
+      const block = SuiInlineText.fromScoreText(tt,this.context);
+      const blocks = [{ text: block, position: SmoTextGroup.relativePosition.RIGHT }];
+      const svgText = new SuiTextBlock({blocks: blocks, context: this.context} );
+      svgText.render();
+      tt.renderedBox = svgText.getRenderedBox();
+    }  else {
+      var boxed = false;
+      for (var i = 0;i<scoreLayout.pages;++i) {
         if (tt.pagination == SmoScoreText.paginations.even &&
           i % 2 > 0)  {
             continue;
@@ -17101,7 +17115,15 @@ class suiScoreLayout extends suiLayoutBase {
         xx.text = xx.text.replace('@@@',scoreLayout.pages); /// page number
         xx.y += scoreLayout.pageHeight*i;
         args.text = xx.text;
-        suiTextLayout.placeText(xx,args);
+        const block = SuiInlineText.fromScoreText(xx,this.context);
+        const blocks = [{ text: block, position: SmoTextGroup.relativePosition.RIGHT }];
+        const svgText = new SuiTextBlock({blocks: blocks, context: this.context} );
+        svgText.render();
+        // Base the rendered box on the first instance
+        if (!boxed) {
+          tt.renderedBox = svgText.getRenderedBox();
+          boxed = true;
+        }
       }
     }
   }
@@ -17804,6 +17826,7 @@ class SuiTextBlock {
   constructor(params) {
     this.inlineBlocks = [];
     this.context = params.context;
+    this.skipRender = false; // used when editing the text
     if (!params.blocks) {
       const inst = new SuiInlineText(params);
       params.blocks = [{ text: inst, position: SmoTextGroup.relativePosition.RIGHT }];
@@ -17993,149 +18016,6 @@ class SuiTextBlock {
     this.currentBlockIndex += 1;
     this._justify();
   }
-}
-
-class suiTextLayout {
-
-	static _getTextBox(scoreText,parameters) {
-		var svg = parameters.svg;
-		if (scoreText.width && scoreText.height && scoreText.boxModel == SmoScoreText.boxModels.wrap) {
-			return svgHelpers.boxPoints(scoreText.x,scoreText.y,scoreText.width,scoreText.height);
-		}
-		return svgHelpers.getTextBox(svg,scoreText.toSvgAttributes(),scoreText.classes,scoreText.text);
-	}
-	static _saveBox(scoreText,parameters,el) {
-		var svg = parameters.svg;
-		 var box = svgHelpers.smoBox(el.getBoundingClientRect());
-		 var lbox = svgHelpers.clientToLogical(svg,box);
-		 scoreText.renderedBox = {
-			x: box.x,
-			y: box.y,
-			height: box.height,
-			width: box.width
-		};
-		scoreText.logicalBox = lbox;
-	}
-	static titleTextPlacement(scoreText,parameters) {
-		var svg = parameters.svg;
-		var bbox = suiTextLayout._getTextBox(scoreText,parameters);
-		scoreText.x=parameters.width/2-(bbox.width/2);
-		scoreText.y=parameters.layout.topMargin;
-		parameters.layout.topMargin += bbox.height;
-		scoreText.autoLayout=false; // use custom placement or calculated placement next time
-		suiTextLayout.placeText(scoreText,parameters);
-	}
-
-	static headerTextPlacement(scoreText,parameters) {
-		var svg = parameters.svg;
-		var bbox = suiTextLayout._getTextBox(scoreText,parameters);
-		scoreText.x=parameters.width/2-(bbox.width/2);
-		scoreText.y=10;
-		scoreText.autoLayout=false;
-		suiTextLayout.placeText(scoreText,parameters);
-	}
-
-	static footerTextPlacement(scoreText,parameters) {
-		var svg = parameters.svg;
-		var bbox = suiTextLayout._getTextBox(scoreText,parameters);
-		scoreText.x=parameters.width/2-(bbox.width/2);
-		scoreText.y=parameters.height-(bbox.height+10);
-		scoreText.autoLayout=false;
-		suiTextLayout.placeText(scoreText,parameters);
-	}
-
-	static copyrightTextPlacement(scoreText,parameters) {
-		var svg = parameters.svg;
-		var bbox = suiTextLayout._getTextBox(scoreText,parameters);
-		scoreText.x=parameters.width-(bbox.width+10);
-		scoreText.y=10;
-		suiTextLayout.placeText(scoreText,parameters);
-		scoreText.autoLayout=false;
-	}
-
-	static placeText(scoreText,parameters) {
-		var svg = parameters.svg;
-		if (scoreText.width && scoreText.height && scoreText.boxModel == SmoScoreText.boxModels.wrap) {
-    		suiTextLayout.placeWithWrap(scoreText,parameters);
-		} else {
-			var el = svgHelpers.placeSvgText(svg,scoreText.toSvgAttributes(),scoreText.classes,parameters.text,scoreText.attrs.id);
-            suiTextLayout._saveBox(scoreText,parameters,el);
-		}
-	}
-
-
-	static _placeWithWrap(scoreText,parameters,justification) {
-		var justifyOnly=false;
-		if (!justification.length) {
-			justifyOnly=true;
-		}
-		var svg = parameters.svg;
-		var words = scoreText.text.split(' ');
-		var curx = scoreText.x;
-		var left = curx;
-		var right = scoreText.x+scoreText.width;
-		var top = scoreText.y;
-		var params = scoreText.backupParams();
-		var cury = scoreText.y;
-		var width=	scoreText.width;
-		var height = scoreText.height;
-		var delta = 0;
-		params.boxModel = SmoScoreText.boxModels.none;
-		params.width=0;
-		params.height = 0;
-		scoreText.logicalBox=svgHelpers.boxPoints(scoreText.x,scoreText.y,scoreText.width,scoreText.height);
-		scoreText.renderedBox = svgHelpers.logicalToClient(svg,scoreText.logicalBox);
-		var justifyAmount = justifyOnly ? 0 : justification[0];
-		if(!justifyOnly) {
-		    justification.splice(0,1);
-		}
-
-		words.forEach((word) => {
-			var bbox = svgHelpers.getTextBox(svg,SmoScoreText.toSvgAttributes(params),scoreText.classes,word);
-			delta = right - (bbox.width + bbox.x);
-			if (delta > 0) {
-				params.x=bbox.x;
-				params.y=cury;
-				if (!justifyOnly) {
-                   params.x += justifyAmount;
-				   svgHelpers.placeSvgText(svg,SmoScoreText.toSvgAttributes(params),scoreText.classes,word);
-				}
-			} else {
-				if (!justifyOnly) {
-					justifyAmount = justification[0];
-				    justification.splice(0,1);
-				} else {
-					// If we are computing for justification, do that.
-					delta = right - bbox.x;
-					delta = scoreText.justification === SmoScoreText.justifications.right ? delta :
-					    (scoreText.justification === SmoScoreText.justifications.center ? delta/2 : 0);
-					justification.push(delta);
-				}
-				cury += bbox.height;
-				curx = left;
-				params.x=curx + justifyAmount;
-				params.y=cury;
-				if (!justifyOnly) {
-				    svgHelpers.placeSvgText(svg,SmoScoreText.toSvgAttributes(params),scoreText.classes,word);
-				}
-			}
-			curx += bbox.width + 5;
-			params.x = curx;
-			// calculate delta in case this is last time
-			delta = right - curx;
-		});
-		delta = scoreText.justification === SmoScoreText.justifications.right ? delta :
-					    (scoreText.justification === SmoScoreText.justifications.center ? delta/2 : 0);
-        justification.push(delta-5);
-	}
-	static placeWithWrap(scoreText,parameters) {
-		var justification=[];
-
-		// One pass is to compute justification for the box model.
-		suiTextLayout._placeWithWrap(scoreText,parameters,justification);
-		suiTextLayout._placeWithWrap(scoreText,parameters,justification);
-	}
-
 }
 ;// The heirarchy of text editing objects goes:
 // dialog -> component -> session -> editor
@@ -19113,6 +18993,7 @@ class SuiLyricSession {
   // Start the lyric editor for a note (current selected note)
   _startSessionForNote() {
     console.log('_startSessionForNote');
+    this.lyric.skipRender = true;
     const lyricRendered = this.lyric._text.length && this.lyric.logicalBox;
     const startX = lyricRendered ? this.lyric.logicalBox.x : this.note.logicalBox.x;
     const startY = lyricRendered ? this.lyric.logicalBox.y + this.lyric.adjY + this.lyric.logicalBox.height :
@@ -19189,6 +19070,7 @@ class SuiLyricSession {
   _updateLyricFromEditor() {
     const txt = this.editor.getText();
     this.lyric.setText(txt);
+    this.lyric.skipRender = false;
     this.editor.stopEditor();
     this.layout.addToReplaceQueue(this.selection);
   }
@@ -19276,465 +19158,6 @@ class SuiChordSession extends SuiLyricSession {
   }
 
 
-}
-
-// ## editSvgText
-// A class that implements very basic text editing behavior in an svg text node
-// params must supply the following:
-// 1. target: an svg text element
-// 2. textObject: a text object described below.
-// 3. layout: the page layout information, used to create the shadow editor in the DOM
-// The textObject must have the following attributes:
-// 1. getText returns the text (the text to render initially)
-// 2. translateX, translateY, scaleX, scaleY for svg text element
-// 3. fontInfo from smoScoreText and other text objects
-class editSvgText {
-  constructor(params) {
-    this.target = params.target;
-    var ns = svgHelpers.namespace;
-    this.layout = params.layout;
-    this.fontInfo = params.textObject.fontInfo;
-		this.svg = document.createElementNS(ns, 'svg');
-    this.editText = document.createElementNS(ns, 'text');
-    this.textObject = params.textObject;
-    this.attrAr = [];
-    this.id = VF.Element.newID();
-
-    // create a mirror of the node under edit by copying attributes
-    // and setting up a similarly-dimensioned viewbox
-    editSvgText.textAttrs.forEach((attr) => {
-  		if (this.target.attributes[attr]) {
-         		var val = this.target.attributes[attr].value;
-  			this.editText.setAttributeNS('',attr,val);
-  			this.attrAr.push(JSON.parse('{"'+attr+'":"'+val+'"}'));
-  		}
-    });
-    this.editing = this.running=false;
-
-    // Hide the original - TODO, handle non-white background.
-    this.oldFill = this.target.getAttributeNS(null,'fill');
-    this.target.setAttributeNS(null,'fill','#fff');
-
-    this.editText.textContent=this.textObject.getText();
-    this._value = this.textObject.getText();
-    var svgBox = svgHelpers.smoBox(this.target.getBBox());
-    this.clientBox = svgHelpers.smoBox(svgHelpers.smoBox(this.target.getBoundingClientRect()));
-    if (this.textObject.boxModel != 'none') {
-      svgBox = svgHelpers.boxPoints(this.textObject.x,this.textObject.y,this.textObject.width,this.textObject.height);
-      var boxDims = svgHelpers.logicalToClient(this.svg,svgBox);
-      this.clientBox.width = boxDims.width;
-      this.clientBox.height = boxDims.height;
-    }
-    this.editText.setAttributeNS('','y',svgBox.height);
-
-    $('.textEdit').html('');
-    this.svg.appendChild(this.editText);
-    var b = htmlHelpers.buildDom;
-    var r = b('span').classes('hide icon-move');
-    $('.textEdit').append(r.dom());
-    $('.textEdit').append(this.svg);
-    $('.textEdit').removeClass('hide').attr('contentEditable','true');
-    this.setEditorPosition(this.clientBox,svgBox,params);
-    layoutDebug.addTextDebug('editSvgText: ctor '+this.id);
-  }
-
-  setEditorPosition(clientBox,svgBox) {
-    var box = svgHelpers.pointBox(this.layout.pageWidth, this.layout.pageHeight);
-    svgHelpers.svgViewport(this.svg, this.textObject.translateX,this.textObject.translateY, box.x,box.y,this.layout.svgScale);
-
-    $('.textEdit').css('top',this.clientBox.y-5)
-      .css('left',this.clientBox.x-5)
-      .width(this.clientBox.width+10)
-      .height(this.clientBox.height+10);
-  }
-
-  endSession() {
-    this.editing = false;
-    layoutDebug.addTextDebug('editSvgText: endSession for '+this.id);
-    this.target.setAttributeNS(null,'fill',this.oldFill);
-  }
-
-  get value() {
-    return this._value;
-  }
-
-  _updateText() {
-    $('.textEdit').focus();
-
-    if (this.editText.textContent &&
-      this.editText.textContent.length &&
-      this._value != this.editText.textContent) {
-      this.target.textContent = this._value = this.editText.textContent;
-      this._value = this.target.textContent;
-      var fontAttr = svgHelpers.fontIntoToSvgAttributes(this.fontInfo);
-      var svgBox = svgHelpers.getTextBox(this.svg,this.attrAr,null,this._value);
-      var nbox = svgHelpers.logicalToClient(this.svg,svgBox);
-      if (nbox.width > this.clientBox.width) {
-         this.clientBox.width = nbox.width + nbox.width*.3;
-         this.clientBox.height = nbox.height;
-         this.setEditorPosition(this.clientBox,svgBox,{xOffset:0,yOffset:0});
-       }
-    }
-    if (!this.editText.textContent) {
-       this.editText.textContent='\xa0';
-    }
-  }
-
-  // ### endTextEditSessionPromise
-  // return a promise that is resolved when the current text edit session ends.
-  endTextEditSessionPromise() {
-      var self=this;
-      $('body').addClass('text-edit');
-
-      this.editing=true;
-      this.running = true;
-      layoutDebug.addTextDebug('editSvgText: create endTextEditSessionPromise '+this.id);
-      const promise = new Promise((resolve, reject) => {
-        function editTimer() {
-          setTimeout(function() {
-            self._updateText();
-            if (self.editing) {
-              editTimer();
-            } else {
-              self._updateText();
-              layoutDebug.addTextDebug('editSvgText: resolve endTextEditSessionPromise promise '+self.id);
-              resolve();
-            }
-          },25);
-        }
-        editTimer();
-	  });
-
-    return promise;
-  }
-
-    static get textAttrs() {
-      return ['font-size','font-family','font-weight','fill','transform'];
-    }
-}
-
-// ## editLyricSession
-// Another interface between UI and renderer, let the user enter lyrics while
-// navigating through the notes.  This class handles the session of editing
-// a single note, and also the logic of skipping from note to note.
-class editLyricSession {
-	static get states() {
-    return {stopped:0,started:1,minus:2,space:3,backSpace:4,stopping:5};
-  }
-	// tracker, selection, controller
-  constructor(parameters) {
-    this.tracker = parameters.tracker;
-    this.selection = parameters.selection;
-    this.completeNotifier = parameters.completeNotifier;
-    this.eventSource = parameters.eventSource;
-    this.verse=parameters.verse;
-    this.notifier = parameters.notifier;
-	  this.bound = false;
-    this.state=editLyricSession.states.stopped;
-    this.parser = parameters.parser;
-    layoutDebug.addTextDebug('editLyricSession: create note '+this.selection.note.attrs.id);
-  }
-
-  detach() {
-    layoutDebug.addTextDebug('editLyricSession: detach() from '+this.selection.note.attrs.id);
-    this.state = editLyricSession.states.stopping;
-    this.editor.endSession();
-    this.lyric.setText(this.editor.value);
-		this.eventSource.unbindKeydownHandler( this.keydownHandler, true);
-    if (this.selection) {
-      this.selection.measure.changed=true;
-    }
-  }
-
-  // ### detachEditorCompletePromise
-  // A promise that is resolved when SVG editor is fully detached.
-  detachEditorCompletePromise() {
-    var self=this;
-    layoutDebug.addTextDebug('editLyricSession:create detachEditorCompletePromise from '+this.selection.note.attrs.id);
-    return new Promise((resolve) => {
-      var waiter = () => {
-      setTimeout(() => {
-        if (self.state == editLyricSession.states.stopping ||
-          self.state == editLyricSession.states.stopped) {
-          layoutDebug.addTextDebug('editLyricSession:resolve detachEditorCompletePromise promise from '+self.selection.note.attrs.id);
-          resolve();
-         } else {
-           waiter();
-         }
-        },50);
-      };
-      waiter();
-    });
-  }
-
-    // ### _lyricAddedPromise
-    // Don't edit the lyric until the DOM part has been added by the editor, so pend on a promise that has happened.
-  _lyricAddedPromise() {
-    var self=this;
-    layoutDebug.addTextDebug('editLyricSession:create _lyricAddedPromise promise from '+self.selection.note.attrs.id);
-    return new Promise((resolve) => {
-      var checkAdd = function() {
-        setTimeout(function() {
-          self.textElement = $(self.tracker.layout.svg).find('#'+self.selection.note.renderId).find(self.lyric.getClassSelector())[0];
-          if (self.textElement) {
-              layoutDebug.addTextDebug('editLyricSession:resolve _lyricAddedPromise promise for  '+self.selection.note.attrs.id);
-              resolve();
-          } else {
-              checkAdd();
-          }
-        },50);
-      }
-      checkAdd();
-    });
-  }
-
-    // ### _editCurrentLyric
-    // The DOM is ready.  Create the editor and wait for it to finish.
-  _editCurrentLyric() {
-    this.textElement = $(this.tracker.layout.svg).find('#'+this.selection.note.renderId).find(this.lyric.getClassSelector())[0];
-    if (this.editor) {
-      layoutDebug.addTextDebug('editLyricSession: _editCurrentLyric dispense with editor ' + this.editor.id);
-    }
-    this.editor = new editSvgText({target:this.textElement,
-      textObject:this.lyric,
-      layout:this.tracker.layout});
-    this.state = editLyricSession.states.started;
-    var self = this;
-    function handleSkip() {
-      layoutDebug.addTextDebug('editLyricSession:_editCurrentLyric endTextEditSessionPromise rcvd, editor is done, handleSkip for  '+self.selection.note.attrs.id);
-      // Only skip to the next lyric if the session is still going on.
-      if (self.state != editLyricSession.states.stopped && self.state != editLyricSession.states.stopping) {
-          self._handleSkip();
-      } else {  // session is stopping due to esc.
-          self.notifier.detachCompleteEvent();
-      }
-    }
-
-    this.editor.endTextEditSessionPromise().then(handleSkip);
-  }
-
-    // Start the editing session by creating editor, and wait for the editor to create the DOM element.
-	_editingSession() {
-    var self = this;
-		if (!this.bound) {
-			this.bindEvents();
-		}
-    function editCurrent() {
-      layoutDebug.addTextDebug('editLyricSession:_lyricAddedPromise rcvd, _editCurrentLyric for  '+self.selection.note.attrs.id);
-      self._editCurrentLyric();
-    }
-    this._lyricAddedPromise().then(editCurrent);
-	}
-
-  _getOrCreateLyric(note) {
-    var lyrics =  note.getLyricForVerse(this.verse,this.parser);
-    layoutDebug.addTextDebug('editLyricSession:new lyric created  ');
-    if (!lyrics.length) {
-			this.lyric = new SmoLyric({verse:this.verse,parser:this.parser});
-    } else {
-	   this.lyric = lyrics[0];
-    }
-  }
-  removeLyric() {
-    if (this.selection && this.lyric) {
-      this.selection.note.removeLyric(this.lyric);
-      this.tracker.replaceSelectedMeasures();
-      this._deferSkip();
-    }
-  }
-
-  _handleSkip() {
-    // var tag = this.state == editLyricSession.states.minus ? '-' :'';
-    this.lyric.setText(this.editor.value);
-    this.selection.measure.changed = true;
-    if (this.state != editLyricSession.states.stopping) {
-      var func = (this.state == editLyricSession.states.backSpace) ? 'lastNoteSelection' : 'nextNoteSelection';
-      var sel = SmoSelection[func](
-      this.tracker.layout.score, this.selection.selector.staff,
-      this.selection.selector.measure, this.selection.selector.voice, this.selection.selector.tick);
-      if (sel) {
-        layoutDebug.addTextDebug('editLyricSession:_handleSkip,  moving on to '+sel.note.attrs.id);
-        this.selection=sel;
-        this.notifier.notifySelectionChanged(this.selection);
-        this.editNote();
-      }
-    } else {
-      layoutDebug.addTextDebug('editLyricSession:_handleSkip, no more lyrics');
-      this.detach();
-    }
-  }
-
-  editNote() {
-  	var self=this;
-  	function _startEditing() {
-  		self._editingSession();
-  	}
-    this._getOrCreateLyric(this.selection.note)
-  	this.fontInfo = JSON.parse(JSON.stringify(this.lyric.fontInfo));
-    this.selection.note.addLyric(this.lyric);
-    this.selection.measure.changed = true;
-    this.tracker.replaceSelectedMeasures();
-    _startEditing();
-    return this.detachEditorCompletePromise();
-  }
-
-    // ### _deferSkip
-    // skip to the next word, but not in the current call stack.  Used to handl
-    // interactions with the dialog, where the dialog must reset changed flags
-    // before  selection is changed
-  _deferSkip() {
-    var self=this;
-    setTimeout(function() {
-      self._handleSkip();
-    },1);
-  }
-
-    // ### moveSelectionRight
-    // Selection can move automatically based on key events, but there are Also
-    // UI ways to force it.
-  moveSelectionRight() {
-    this.state = editLyricSession.states.space;
-    this._deferSkip();
-  }
-
-  moveSelectionLeft() {
-    this.state = editLyricSession.states.backSpace;
-    this._deferSkip();
-  }
-
-	evKey(event) {
-		console.log("Lyric KeyboardEvent: key='" + event.key + "' | code='" +
-			event.code + "'"
-			 + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
-
-    if (suiController.keyboardWidget) {
-     Qwerty.handleKeyEvent(event);
-    }
-
-    var isSkip = this.parser === SmoLyric.parsers.lyric ?
-        ['Space', 'Minus'].indexOf(event.code) >= 0 : ['Space'].indexOf(event.code) >= 0;
-
-		if (isSkip) {
-      if (editLyricSession.states.minus && event.shiftKey) {
-          // allow underscore
-      } else {
-        this.state =  (event.code == 'Minus') ? editLyricSession.states.minus :  editLyricSession.states.space;
-        this.state = (this.state === editLyricSession.states.space && event.shiftKey)
-		     ? editLyricSession.states.backSpace :  this.state;
-        layoutDebug.addTextDebug('editLyricSession:  handleKeydown skip key for  '+this.selection.note.attrs.id);
-        this.editor.endSession();
-        return;
-      }
-		}
-
-		if (event.code == 'Escape') {
-      this.state = editLyricSession.states.stopping;
-      this.editor.endSession();
-      return;
-		}
-    layoutDebug.addTextDebug('editLyricSession:  handleKeydown pass on event for  '+this.selection.note.attrs.id);
-    this.selection.measure.changed=true;
-	}
-
-  bindEvents() {
-		var self = this;
-
-		if (!this.bound) {
-      this.keydownHandler = this.eventSource.bindKeydownHandler(this,'evKey');
-			this.bound = true;
-		}
-	}
-}
-
-// ## editNoteText
-// Manage editing text for a note, and navigating, adding and removing.
-class noteTextEditSession {
-  constructor(changeNotifier,tracker,verse,selection,eventSource,parser) {
-    this.notifier = changeNotifier;
-    this.tracker = tracker;
-    this.verse = verse;
-    this.selection = selection;
-    this.eventSource = eventSource;
-    this.parser = parser;
-  }
-
-  get isRunning() {
-    return !(this.editor === null || (
-      this.editor.state === editLyricSession.states.stopped ||
-      this.editor.state === editLyricSession.states.stopping ));
-  }
-
-  notifySelectionChanged(selection) {
-    if (selection) {
-        layoutDebug.addTextDebug('SuiLyricEditComponent: lyric notification for ' + selection.note.attrs.id);
-    } else {
-        layoutDebug.addTextDebug('SuiLyricEditComponent: no selection');
-    }
-    if (this.selection == null || SmoSelector.neq(selection.selector,this.selection.selector)) {
-        this.selection = selection;
-        this.notifier.notifySelectionChanged();
-    }
-  }
-
-  removeText() {
-      this.editor.removeLyric();
-  }
-
-  moveSelectionRight() {
-    this.editor.moveSelectionRight();
-  }
-
-  moveSelectionLeft() {
-    this.editor.moveSelectionLeft();
-  }
-
-  setYOffset(y) {
-    if (this.editor && this.editor.lyric) {
-      this.editor.lyric.translateY = y;
-    }
-  }
-
-  getYOffset() {
-    if (this.editor && this.editor.lyric) {
-      return this.editor.lyric.translateY;
-    }
-    return 0;
-  }
-
-  toggleSessionStateEvent() {
-    if (this.editor.state == editLyricSession.states.stopped ||
-        this.editor.state == editLyricSession.states.stopping)  {
-        layoutDebug.addTextDebug('SuiLyricEditComponent: restarting button');
-        this.startEditingSession();
-    } else {
-        layoutDebug.addTextDebug('SuiLyricEditComponent: stopping editor button');
-        this.forceEndSessionEvent();
-    }
-  }
-
-  // Inform client that the edit session is complete
-  detachCompleteEvent() {
-    this.notifier.notifySelectionChanged();
-  }
-
-  startEditingSession() {
-    layoutDebug.addTextDebug('SuiLyricEditComponent: initial create editor request');
-    this.editor = new editLyricSession(
-      {
-        tracker:this.tracker,
-        verse:this.verse,
-        selection:this.tracker.selections[0],
-        completeNotifier:this.completeNotifier,
-        notifier:this,
-        eventSource:this.eventSource,
-        parser:this.parser
-      }
-    );
-    this.editor.editNote();
-  }
-  forceEndSessionEvent() {
-    this.editor.detach();
-  }
 }
 ;
 
@@ -24925,6 +24348,8 @@ class SuiTextInPlace extends SuiComponentBase {
     const button = document.getElementById(this.parameterId);
     $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
 
+    this.dialog.modifier.skipRender = false;
+
     var render = () => {
       this.dialog.layout.setRefresh();
     }
@@ -24959,6 +24384,9 @@ class SuiTextInPlace extends SuiComponentBase {
     var self=this;
     $(this._getInputElement()).find('label').text(this.altLabel);
     var modifier = this.dialog.modifier;
+    modifier.skipRender = true;
+    $(this.dialog.context.svg).find('#'+modifier.attrs.id).remove();
+
     const ul = modifier.ul();
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
     this.session = new SuiTextSession({context : this.dialog.layout.context,
@@ -25125,7 +24553,6 @@ class SuiLyricComponent extends SuiNoteTextComponent {
   startEditSession() {
     var self=this;
     $(this._getInputElement()).find('label').text(this.altLabel);
-    var modifier = this.dialog.modifier;
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
     this.session = new SuiLyricSession({
        context : this.dialog.layout.context,
@@ -25208,6 +24635,7 @@ class SuiChordComponent extends SuiNoteTextComponent {
     var self=this;
     $(this._getInputElement()).find('label').text(this.altLabel);
     var modifier = this.dialog.modifier;
+
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
     this.session = new SuiChordSession({
        context : this.dialog.layout.context,

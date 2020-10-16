@@ -422,6 +422,7 @@ class SmoLyric extends SmoNoteModifierBase {
   	super('SmoLyric');
   	smoSerialize.serializedMerge(SmoLyric.parameterArray, SmoLyric.defaults,this);
   	smoSerialize.serializedMerge(SmoLyric.parameterArray, parameters, this);
+    this.skipRender = false;
 
     // backwards-compatibility for lyric text
     if (parameters.text) {

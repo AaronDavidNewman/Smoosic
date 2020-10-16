@@ -4,32 +4,32 @@
 // Map the notes in the svg so the can respond to events and interact
 // with the mouse/keyboard
 class suiMapper {
-    constructor(layout,scroller) {
-        // layout renders the music when it changes
-  this.layout = layout;
+  constructor(layout,scroller) {
+    // layout renders the music when it changes
+    this.layout = layout;
 
-        // measure to selector map
-        this.measureMap = {};
-        this.measureNoteMap = {}; // Map for tracker
-        this.scroller = scroller;
+    // measure to selector map
+    this.measureMap = {};
+    this.measureNoteMap = {}; // Map for tracker
+    this.scroller = scroller;
 
-        // notes currently selected.  Something is always selected
-  this.selections = [];
-        // modifiers (text etc.) that have been selected
-        this.modifierSelections = [];
-        // all the modifiers
-  this.modifierTabs = [];
-        // the index of the currently selected modifier
-  this.modifierIndex = -1;
-        // The list of modifiers near the current selection
-        this.localModifiers = [];
-        // mouse-over that might be selected soon
-  this.modifierSuggestion=-1;
-  this.suggestion = {};
-        // index if a single pitch of a chord is selected
-  this.pitchIndex = -1;
-        // the current selection, which is also the copy/paste destination
-  this.pasteBuffer = new PasteBuffer();
+    // notes currently selected.  Something is always selected
+    this.selections = [];
+    // modifiers (text etc.) that have been selected
+    this.modifierSelections = [];
+    // all the modifiers
+    this.modifierTabs = [];
+    // the index of the currently selected modifier
+    this.modifierIndex = -1;
+    // The list of modifiers near the current selection
+    this.localModifiers = [];
+    // mouse-over that might be selected soon
+    this.modifierSuggestion=-1;
+    this.suggestion = {};
+    // index if a single pitch of a chord is selected
+    this.pitchIndex = -1;
+    // the current selection, which is also the copy/paste destination
+    this.pasteBuffer = new PasteBuffer();
   }
 
     // ### loadScore

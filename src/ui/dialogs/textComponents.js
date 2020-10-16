@@ -62,6 +62,8 @@ class SuiTextInPlace extends SuiComponentBase {
     const button = document.getElementById(this.parameterId);
     $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
 
+    this.dialog.modifier.skipRender = false;
+
     var render = () => {
       this.dialog.layout.setRefresh();
     }
@@ -96,6 +98,9 @@ class SuiTextInPlace extends SuiComponentBase {
     var self=this;
     $(this._getInputElement()).find('label').text(this.altLabel);
     var modifier = this.dialog.modifier;
+    modifier.skipRender = true;
+    $(this.dialog.context.svg).find('#'+modifier.attrs.id).remove();
+
     const ul = modifier.ul();
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
     this.session = new SuiTextSession({context : this.dialog.layout.context,
@@ -262,7 +267,6 @@ class SuiLyricComponent extends SuiNoteTextComponent {
   startEditSession() {
     var self=this;
     $(this._getInputElement()).find('label').text(this.altLabel);
-    var modifier = this.dialog.modifier;
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
     this.session = new SuiLyricSession({
        context : this.dialog.layout.context,
@@ -345,6 +349,7 @@ class SuiChordComponent extends SuiNoteTextComponent {
     var self=this;
     $(this._getInputElement()).find('label').text(this.altLabel);
     var modifier = this.dialog.modifier;
+
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
     this.session = new SuiChordSession({
        context : this.dialog.layout.context,

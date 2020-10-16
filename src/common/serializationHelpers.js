@@ -163,9 +163,13 @@ class smoSerialize {
       "ce": "engravingFont",
       "de": "customProportion",
       "ee": "columnAttributeMap",
-      "fe": "tempo"
-    }`
-      ;
+      "fe": "tempo",
+      "ge": "textGroups",
+       "he": "textBlocks",
+       "ie": "backupBlocks",
+       "je": "blocks"
+     }`
+     ;
      return JSON.parse(_tm);
     }
 

@@ -6,16 +6,16 @@
 // there may be other layouts for parts view, or output to other media.
 class suiScoreLayout extends suiLayoutBase {
   constructor(params) {
-  super('suiScoreLayout');
-  Vex.Merge(this, suiLayoutBase.defaults);
-  Vex.Merge(this, params);
+    super('suiScoreLayout');
+    Vex.Merge(this, suiLayoutBase.defaults);
+    Vex.Merge(this, params);
 
-  this.setViewport(true);
+    this.setViewport(true);
 
-  this.attrs = {
-  id: VF.Element.newID(),
-  type: 'testLayout'
-  };
+    this.attrs = {
+      id: VF.Element.newID(),
+      type: 'testLayout'
+    };
   }
 
   // ### createScoreLayout
@@ -76,15 +76,22 @@ class suiScoreLayout extends suiLayoutBase {
   }
 
   renderTextGroup(gg) {
-    const textBlock = SuiTextBlock.fromTextGroup(gg,this.context);
-    textBlock.render();
-    gg.renderedBox = textBlock.renderedBox;
-    gg.logicalBox = textBlock.logicalBox;
+    if (gg.skipRender) {
+      return;
+    }
+    gg.renderedBox = {};
+    gg.logicalBox = {};
     gg.textBlocks.forEach((block) => {
-      const it = textBlock.inlineBlocks.find((ib) => ib.text.attrs.id === block.text.attrs.id).text;
-      block.text.renderedBox = svgHelpers.smoBox(it.renderedBox);
-      block.text.logicalBox = svgHelpers.smoBox(it.logicalBox);
+      this.renderScoreText(block.text);
+      if (typeof(gg.renderedBox.x) === 'undefined') {
+        gg.renderedBox = block.text.renderedBox;
+        gg.logicalBox =  block.text.logicalBox;
+      } else {
+        gg.renderedBox = svgHelpers.unionRect(gg.renderedBox, block.text.renderedBox);
+        gg.logicalBox = svgHelpers.unionRect(gg.logicalBox, block.text.logicalBox);
+      }
     });
+    gg.renderedBox.y = gg.renderedBox.y + gg.renderedBox.height;
   }
 
   renderScoreText(tt) {
@@ -94,16 +101,15 @@ class suiScoreLayout extends suiLayoutBase {
     var text = tt.text.replace('###',1); /// page number
     text = text.replace('@@@',scoreLayout.pages); /// page number
     var args = {svg:this.svg,width:tt.width,height:tt.height,layout:this._score.layout,text:text};
-    const block = SuiInlineText.fromScoreText(tt,this.context);
-    const blocks = [{ text: block, position: SmoTextGroup.relativePosition.RIGHT }];
-
-    const svgText = new SuiTextBlock({blocks: blocks, context: this.context} );
-    svgText.render();
-    tt.renderedBox = svgText.getRenderedBox();
-
-    // Update paginated score text
-    if (tt.pagination != SmoScoreText.paginations.once) {
-      for (var i = 1;i<scoreLayout.pages;++i) {
+    if (tt.pagination === SmoScoreText.paginations.once) {
+      const block = SuiInlineText.fromScoreText(tt,this.context);
+      const blocks = [{ text: block, position: SmoTextGroup.relativePosition.RIGHT }];
+      const svgText = new SuiTextBlock({blocks: blocks, context: this.context} );
+      svgText.render();
+      tt.renderedBox = svgText.getRenderedBox();
+    }  else {
+      var boxed = false;
+      for (var i = 0;i<scoreLayout.pages;++i) {
         if (tt.pagination == SmoScoreText.paginations.even &&
           i % 2 > 0)  {
             continue;
@@ -123,7 +129,15 @@ class suiScoreLayout extends suiLayoutBase {
         xx.text = xx.text.replace('@@@',scoreLayout.pages); /// page number
         xx.y += scoreLayout.pageHeight*i;
         args.text = xx.text;
-        suiTextLayout.placeText(xx,args);
+        const block = SuiInlineText.fromScoreText(xx,this.context);
+        const blocks = [{ text: block, position: SmoTextGroup.relativePosition.RIGHT }];
+        const svgText = new SuiTextBlock({blocks: blocks, context: this.context} );
+        svgText.render();
+        // Base the rendered box on the first instance
+        if (!boxed) {
+          tt.renderedBox = svgText.getRenderedBox();
+          boxed = true;
+        }
       }
     }
   }
