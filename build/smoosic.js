@@ -13118,7 +13118,7 @@ class VxMeasure {
 	}
 
 	_renderNoteGlyph(smoNote,textObj) {
-		var x = this.noteToVexMap[smoNote.attrs.id].getAbsoluteX();
+		var x = smoNote.renderedBox.x;
 		// the -3 is copied from vexflow textDynamics
 		var y=this.stave.getYForLine(textObj.yOffsetLine-3) + textObj.yOffsetPixels;
 		var group = this.context.openGroup();
@@ -13151,7 +13151,7 @@ class VxMeasure {
 
     // ## Description:
     // create an a array of VF.StaveNote objects to render the active voice.
-    createVexNotes(voiceIx,active) {
+    createVexNotes(voiceIx) {
         this.vexNotes = [];
         this.noteToVexMap = {};
         var voice =  this.smoMeasure.voices[voiceIx];
@@ -13373,7 +13373,7 @@ class VxMeasure {
     // If there are multiple voices, add them all to the formatter at the same time so they don't collide
     for (var j = 0; j < this.smoMeasure.voices.length; ++j) {
 
-      this.createVexNotes(j,this.smoMeasure.getActiveVoice());
+      this.createVexNotes(j);
       this.createVexTuplets(j);
       this.createVexBeamGroups(j);
 

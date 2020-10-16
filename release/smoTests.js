@@ -1964,16 +1964,15 @@ class TrackerTest {
 		score.addDefaultMeasureWithNotes(1, {});
 		score.addDefaultMeasureWithNotes(2, {});
 		var timeTest = () => {
-      layout.forceRender();
+    layout.forceRender();
 
-			const promise = new Promise((resolve, reject) => {
-					setTimeout(() => {
-						resolve();
-					},
-						200);
-				});
-			return promise;
-		}
+		const promise = new Promise((resolve, reject) => {
+ 			setTimeout(() => {
+ 				resolve();
+  			},200);
+  		});
+  		return promise;
+	  }
 
 		var subTitle = (txt) => {
 			$('.subTitle').text(txt);
@@ -2387,16 +2386,388 @@ class TestAll {
 			.then(TextTest.CommonTests).then(TrackerTest.CommonTests);
 	}
 };
+
+class TextEditTest {
+
+	static async CommonTests() {
+
+    var application = SuiApplication.createUtApplication({scoreLoadJson:'emptyScoreJson'});
+
+		var keys = application.controller;
+		var score = keys.layout.score;
+		var layout = keys.layout;
+    var testTime = 200;
+    var eventSource = new browserEventSource();
+
+		// score.addDefaultMeasureWithNotes(0, {});
+
+    var lyric =  new SmoLyric({_text:'' });
+    var editor = new SuiLyricEditor(
+      {context : keys.layout.context,
+      lyric:lyric,
+      x: 100,
+      y:40,
+      scroller:
+      keys.scroller});
+    var cursorPromise = editor.startCursorPromise();
+    var lyricSession = null;
+    var startString = new SmoScoreText({text : "ab", x: 50, y: 120,
+    });
+    var startGroup = new SmoTextGroup({blocks:[startString]});
+    score.addTextGroup(startGroup);
+
+		var timeTest = () => {
+      // layout.forceRender();
+
+  		const promise = new Promise((resolve, reject) => {
+   			setTimeout(() => {
+   				resolve();
+        }, testTime);
+    		});
+    		return promise;
+	  }
+
+		var subTitle = (txt) => {
+			$('.subTitle').text(txt);
+		}
+
+		var signalComplete = () => {
+			subTitle('');
+			return timeTest();
+		}
+    var makekey = (data) => {
+      var rv = {
+        shift:false,
+        ctrl: false,
+        alt:false,
+        key:'',
+        code:''
+      };
+
+      Vex.Merge(rv,data);
+      return rv;
+    }
+
+    var tests = [];
+
+    tests.push( async () => {
+      subTitle('key: a');
+      editor.evKey(makekey({'key':'a'}));
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      subTitle('key: c');
+      editor.evKey(makekey({'key':'c'}));
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      subTitle('left arrow');
+      editor.evKey(makekey({'code':'ArrowLeft'}));
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      subTitle('keys: bb');
+      editor.evKey(makekey({'key':'b'}));
+      editor.evKey(makekey({'key':'b'}));
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      subTitle('shift-left sel. 2nd b');
+      editor.evKey(makekey({'code':'ArrowLeft',shiftKey: true}));
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      editor.evKey(makekey({'code':'ArrowLeft',shiftKey: true}));
+      subTitle('shift left sel other b');
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      editor.evKey(makekey({'key':'X',shiftKey: true}));
+      subTitle('key: X ends up with aXc');
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      editor.evKey(makekey({'code':'ArrowLeft'}));
+      editor.evKey(makekey({'code':'ArrowLeft'}));
+      editor.evKey(makekey({'key':'1'}));
+      subTitle('arrow left, insert 1 before start');
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      editor.evKey(makekey({'code':'ArrowRight', shiftKey: true }));
+      subTitle('select and replace a with A, right select');
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      editor.evKey(makekey({'key':'A'}));
+      subTitle('select and replace a with A, right select');
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      subTitle('simulate mouse hover');
+      var pt = {
+        clientX: editor.svgText.artifacts[1].box.x + 5,
+        clientY: editor.svgText.artifacts[1].box.y + 5,
+        shiftKey: false,
+        type: 'mouseover'
+      };
+      editor.handleMouseEvent(pt);
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      subTitle('simulate mouse click');
+      var pt = {
+        clientX: editor.svgText.artifacts[1].box.x + 5,
+        clientY: editor.svgText.artifacts[1].box.y + 5,
+        shiftKey: false,
+        type: 'click'
+      };
+      editor.handleMouseEvent(pt);
+      return timeTest();
+    });
+
+    tests.push( async () =>  {
+      editor.stopCursor();
+      return cursorPromise;
+    });
+
+    tests.push( async () => {
+      testTime = 500;
+      subTitle('drag start test');
+      lyricSession = new SuiResizeTextSession({
+        textGroup: startGroup,
+        context: keys.layout.context,
+        scroller: keys.scroller
+        }
+      );
+      lyricSession.startDrag({clientX: lyricSession.currentClientBox.x + 5, clientY: lyricSession.currentClientBox.y + 5});
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      subTitle('drag text');
+      lyricSession.mouseMove({clientX: lyricSession.currentClientBox.x + 10, clientY: lyricSession.currentClientBox.y + 10});
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      subTitle('drag text');
+      lyricSession.mouseMove({clientX: lyricSession.currentClientBox.x + 15, clientY: lyricSession.currentClientBox.y + 15});
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      subTitle('drag text');
+      lyricSession.endDrag({clientX: lyricSession.currentClientBox.x + 15, clientY: lyricSession.currentClientBox.y + 15});
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      testTime = 500;
+      subTitle('drag start test');
+      lyricSession = new SuiDragSession({
+        textGroup: startGroup,
+        context: keys.layout.context,
+        scroller: keys.scroller
+        }
+      );
+      lyricSession.startDrag({clientX: lyricSession.currentClientBox.x + 5, clientY: lyricSession.currentClientBox.y + 5});
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      subTitle('drag text');
+      lyricSession.mouseMove({clientX: lyricSession.currentClientBox.x + 20, clientY: lyricSession.currentClientBox.y + 10});
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      subTitle('drag text 2');
+      lyricSession.mouseMove({clientX: lyricSession.currentClientBox.x + 20, clientY: lyricSession.currentClientBox.y + 10});
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      subTitle('end drag');
+      lyricSession.endDrag();
+      return timeTest();
+    });
+
+    tests.push( async () =>  {
+      subTitle('create lyric session');
+      testTime = 100;
+      var selector = {staff: 0, measure: 0, voice: 0, tick: 1};
+      lyricSession = new SuiLyricSession({
+        context : keys.layout.context,
+        selector: selector,
+        scroller: keys.scroller,
+        layout: keys.layout,
+        verse: 0,
+        score: score
+        }
+      );
+      lyricSession.startSession();
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      subTitle('add lyric');
+      console.log('add lyric test');
+      testTime = 100;
+      lyricSession.evKey(makekey({'key':'d'}));
+      lyricSession.evKey(makekey({'key':'o'}));
+      return PromiseHelpers.makePromise(lyricSession,'_pendingEditor',null,null,100);
+    });
+
+    tests.push( async () => {
+      subTitle('advance lyric');
+      console.log('advance lyric test');
+      lyricSession.evKey(makekey({'key':'-'}));
+      return PromiseHelpers.makePromise(lyricSession,'_pendingEditor',null,null,100);
+    });
+
+    tests.push( async () => {
+      subTitle('advance lyric');
+      console.log('advance lyric test 2');
+      lyricSession.evKey(makekey({'key':'i'}));
+      lyricSession.evKey(makekey({'key':'t'}));
+      return PromiseHelpers.makePromise(lyricSession,'_pendingEditor',null,null,100);
+    });
+
+    tests.push( async () => {
+      subTitle('add lyric and stop session');
+      lyricSession.stopSession();
+      return PromiseHelpers.makePromise(lyricSession,'isStopped',null,null,100);
+    });
+
+    var makeKeyTest = (key,i) => {
+      tests.push( async () => {
+        subTitle("edit key "+i);
+        testTime = 100;
+        lyricSession.evKey(makekey({'key':key}));
+        return timeTest();
+      });
+    }
+
+    tests.push( async () => {
+      subTitle('render initial text');
+      keys.layout.setRefresh();
+      return timeTest();
+    });
+
+    tests.push( async () => {
+      subTitle('start text session');
+      const ul = startGroup.ul();
+      lyricSession = new SuiTextSession({
+        context : keys.layout.context,
+        scroller: keys.scroller,
+        layout: keys.layout,
+        score: score,
+        x:ul.x, y:ul.y,
+        textGroup:startGroup
+        }
+      );
+      lyricSession.startSession();
+      // eventSource.bindKeydownHandler(lyricSession,'evKey');
+
+      return timeTest();
+    });
+
+    const testStr = 'Score Text Editor';
+
+    for (var i = 0;i < testStr.length; ++i) {
+      makeKeyTest(testStr[i],i);
+    }
+
+    tests.push( async () => {
+      subTitle('stop text edit session');
+      lyricSession.stopSession();
+      return PromiseHelpers.makePromise(lyricSession,'isStopped',null,null,100);
+    });
+
+    tests.push( async () => {
+      subTitle('update score from text session');
+      score.addTextGroup(lyricSession.textGroup);
+      keys.layout.setRefresh();
+      return PromiseHelpers.makePromise(lyricSession,'_isRendered',null,null,100);
+    });
+
+    tests.push( async () => {
+      subTitle('start chord session');
+      console.log('start chord session');
+      var selector = {staff: 0, measure: 0, voice: 0, tick: 1};
+      lyricSession = new SuiChordSession({
+        context : keys.layout.context,
+        selector: selector,
+        scroller: keys.scroller,
+        layout: keys.layout,
+        verse: 0,
+        score: score
+        }
+      );
+      lyricSession.startSession();
+      // eventSource.bindKeydownHandler(lyricSession,'evKey');
+      return timeTest();
+    });
+
+    const chordStr = 'Ab7(^#11%b9%)';
+
+    for (var i =0;i < chordStr.length; ++i) {
+      makeKeyTest(chordStr[i],i);
+    }
+
+    tests.push( async () => {
+      subTitle('chord change submit');
+      lyricSession.evKey(makekey({'key':'Enter', 'code': 'Enter'}));
+      return PromiseHelpers.makePromise(lyricSession,'_pendingEditor',null,null,100);
+    });
+
+    tests.push( async () => {
+      subTitle('stop session');
+      lyricSession.stopSession();
+      return PromiseHelpers.makePromise(lyricSession,'isStopped',null,null,100);
+    });
+
+
+    let result;
+    for (const f of tests) {
+      result = await f(result);
+    }
+
+		return result;
+	}
+}
+;
 class TextTest {
   static CommonTests() {
     var application = SuiApplication.createUtApplication();
     var keys = application.controller;
     var score = keys.layout.score;
+    var context = keys.layout.context;
+    var editText = new SuiInlineText({context:context,startY:200});
+
     score.addDefaultMeasureWithNotes(0,{});
     score.addDefaultMeasureWithNotes(1,{});
     score.addDefaultMeasureWithNotes(2,{});
 		var undo = keys.undoBuffer;
 		var tt = new SmoScoreText({text:'Hello world',x:240,y:30});
+    var tg1 = new SmoScoreText({text:'My Song',x:500,y:30});
+    var tg2 = new SmoScoreText({text:'Below My Song',x:240,y:30});
+    var tg = new SmoTextGroup({blocks: [
+      {text: tg1,position: SmoTextGroup.relativePosition.LEFT},
+      {text: tg2,position: SmoTextGroup.relativePosition.BELOW}
+    ], justification: SmoTextGroup.justifications.LEFT } );
 		var mt=new SmoMeasureText({position:SmoMeasureText.positions.left,text:'Measure Text'});
 		var delay=250;
 		// var measure = SmoSelection.measureSelection(score, 0, 0).measure;
@@ -2427,35 +2798,65 @@ class TextTest {
 		}
 
 		var scoreText1 = () => {
+      subTitle('scoreText1');
 			SmoUndoable.scoreOp(score,'addScoreText',tt,undo,'Score Text Test 1');
 			score.addScoreText(tt);
 			keys.render();
-            return timeTest();
+      return timeTest();
 		}
 
+    var inlineText = () => {
+      subTitle('inlineText');
+      editText.addTextBlockAt(0,{text:'A'});
+      editText.addTextBlockAt(1,{text:'l'});
+      editText.addTextBlockAt(1,{text:'l'});
+      editText.addTextBlockAt(3,{text:'O',textType:SuiInlineText.textTypes.superScript});
+      editText.addGlyphBlockAt(4,{glyphCode: 'csymMajorSeventh',textType:SuiInlineText.textTypes.superScript});
+      editText.render();
+      editText.renderCursorAt(2);
+      editText.renderCursorAt(-1);
+      return timeTest();
+    }
+
+    var cursor2 = () => {
+      editText.renderCursorAt(2);
+      return timeTest();
+    }
+
+    var removeCursor = () => {
+      editText.removeCursor();
+      return timeTest();
+    }
+
+    var inlineText2 = () => {
+      subTitle('inlineText2');
+      var textBlock =  new SuiInlineText({context:context,startX:400,startY: 50});
+      textBlock.addTextBlockAt(0,{text:'Hello Inline World'} );
+      textBlock.render();
+      return timeTest();
+    }
+
 		var scoreText2 = () => {
-			tt = score.getScoreText(tt.attrs.id);
-			tt.boxModel=SmoScoreText.boxModels.spacing;
-			tt.width=100;
+      subTitle('scoreText2');
+
+			score.removeScoreText(tt);
+      score.addTextGroup(tg);
 			keys.render();
-            return timeTest();
+      return timeTest();
 		}
 
 		var scoreText3 = () => {
-			tt = score.getScoreText(tt.attrs.id);
-			tt.boxModel=SmoScoreText.boxModels.spacingAndGlyphs;
-			tt.fontInfo.size=20;
-			tt.width=100;
+      subTitle('scoreText3');
+      tg.justification = SmoTextGroup.justifications.RIGHT;
 			keys.render();
-            return timeTest();
+      return timeTest();
 		}
 
 		var scoreText4 = () => {
-			tt = score.getScoreText(tt.attrs.id);
-			tt.fontInfo.family='Arial';
-			tt.scaleInPlace(1.5);
+      subTitle('scoreText4');
+      tg.justification = SmoTextGroup.justifications.CENTER;
 			keys.render();
-            return timeTest();
+      return timeTest();
 		}
 
 		var _scaleUp = () => {
@@ -2466,6 +2867,7 @@ class TextTest {
 		}
 
 		var scaleUp = () => {
+      subTitle('scaleUp');
 			var p = _scaleUp();
 			return p.then(_scaleUp).then(timeTest); // .then(_scaleUp);
 		}
@@ -2474,9 +2876,10 @@ class TextTest {
 			tt = score.getScoreText(tt.attrs.id);
 			tt.scaleInPlace(0.8);
 			keys.render();
-            return timeTest();
+      return timeTest();
 		}
 		var scaleDown = () => {
+      subTitle('scaleDown');
 			var p = _scaleDown();
 			return p.then(_scaleDown).then(timeTest); // .then(_scaleUp);
 		}
@@ -2486,61 +2889,37 @@ class TextTest {
 			tt.x = tt.x + 30;
 			tt.y = tt.y + 10;
 			keys.render();
-            return timeTest();
+      return timeTest();
 		}
 
 		var moveText  = () => {
+      subTitle('moveText');
 			var p = _moveText();
 			return p.then(_moveText).then(timeTest); // .then(_scaleUp);
 		}
 
 
-        var rehearsalMarkTest= () => {
-            var rh=new SmoRehearsalMark();
-			var selection = SmoSelection.measureSelection(score, 0, 0);
-			SmoUndoable.scoreSelectionOp(score,selection,'addRehearsalMark',rh,undo,'test rehearsal mark');
-			keys.render();
-            return timeTest();
-        }
-
-         var rehearsalMarkTest2= () => {
-            var rh=new SmoRehearsalMark();
-			var selection = SmoSelection.measureSelection(score, 0, 1);
-			SmoUndoable.scoreSelectionOp(score,selection,'addRehearsalMark',rh,undo,'test rehearsal mark2.1');
-            selection = SmoSelection.measureSelection(score, 0, 2);
-            rh=new SmoRehearsalMark();
-			SmoUndoable.scoreSelectionOp(score,selection,'addRehearsalMark',rh,undo,'test rehearsal mark2.2');
-			keys.render();
-            return timeTest();
-        }
-
-         var rehearsalMarkTest3= () => {
-            var rh=new SmoRehearsalMark();
-			var selection = SmoSelection.measureSelection(score, 0, 1);
-			SmoUndoable.scoreSelectionOp(score,selection,'removeRehearsalMark',null,undo,'test rehearsal mark2');
-			keys.render();
-            return timeTest();
-        }
-
-        var tempoTest = () => {
-            var selection = SmoSelection.measureSelection(score, 0, 0);
+    var tempoTest = () => {
+      var selection = SmoSelection.measureSelection(score, 0, 0);
 			SmoUndoable.scoreSelectionOp(score,selection,'removeRehearsalMark',null,undo,'tempo test 1.1');
-            selection = SmoSelection.measureSelection(score, 0, 2);
-            SmoUndoable.scoreSelectionOp(score,selection,'removeRehearsalMark',null,undo,'tempo test 1.2');
+      selection = SmoSelection.measureSelection(score, 0, 2);
+      SmoUndoable.scoreSelectionOp(score,selection,'removeRehearsalMark',null,undo,'tempo test 1.2');
 
-            selection = SmoSelection.measureSelection(score, 0, 0);
-            SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
-              new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
-            selection = SmoSelection.measureSelection(score, 0, 1);
-            SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
-              new SmoTempoText({tempoMode: SmoTempoText.tempoModes.textMode,
-                  tempoText:SmoTempoText.tempoTexts.adagio,bpm:120}),undo,'tempo test 1.3');
+      selection = SmoSelection.measureSelection(score, 0, 0);
+      SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
+        new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
+      selection = SmoSelection.measureSelection(score, 0, 1);
+      SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
+        new SmoTempoText({tempoMode: SmoTempoText.tempoModes.textMode,
+        tempoText:SmoTempoText.tempoTexts.adagio,bpm:120}),undo,'tempo test 1.3');
 			keys.render();
-            return timeTest();
+      return timeTest();
 
-        }
+    }
 
 		var lyricTest = () => {
+      subTitle('lyricTest');
+
 			var s1 = SmoSelection.noteSelection(score,0,0,0,1);
 			var s2 = SmoSelection.noteSelection(score,0,0,0,2);
 			var s3 = SmoSelection.noteSelection(score,0,0,0,3);
@@ -2555,94 +2934,7 @@ class TextTest {
 			SmoUndoable.measureSelectionOp(score,s3,'addLyric',new SmoLyric({verse:1,text:'Fine'}),undo,'lyric test 3');
 			SmoUndoable.measureSelectionOp(score,s4,'addLyric',new SmoLyric({verse:1,text:'Always'}),undo,'lyric test 4');
 			keys.render()
-            return timeTest();
-		}
-
-         /* var rehearsalMarkTest4= () => {
-            var rh=new SmoRehearsalMark();
-			var selection = SmoSelection.measureSelection(score, 0, 1);
-			SmoUndoable.scoreSelectionOp(score,selection,'addRehearsalMark',rh,undo,'test rehearsal mark2');
-			return layout.render().then(timeTest);
-        }    */
-
-		var measureText1 = () => {
-			tt = score.getScoreText(tt.attrs.id);
-			tt.x = 240;
-			tt.y = 30;
-			tt.scaleX=1.0;
-			tt.scaleY=1.0;
-			tt.translateX=0;
-			tt.translateY=0;
-            delay = 500;
-
-			mt = new SmoMeasureText({position:SmoMeasureText.positions.left,text:'Measure Text'});
-			var selection = SmoSelection.measureSelection(score, 0, 0);
-            selection.measure.padLeft = 12;
-			SmoUndoable.measureSelectionOp(score,selection,'addMeasureText',mt,undo,'test measureText1');
-
-			keys.render()
-            return timeTest();
-		}
-
-		var measureText2 = () => {
-
-			mt.position = SmoMeasureText.positions.above;
-			mt.fontInfo.size='7';
-			var selection = SmoSelection.measureSelection(score, 0, 0);
-			SmoUndoable.scoreSelectionOp(score,selection,'addMeasureText',mt,undo,'test measureText2');
-
-			keys.render();
-            return timeTest();
-		}
-
-
-		var measureText3 = () => {
-
-			mt.position = SmoMeasureText.positions.below;
-			var selection = SmoSelection.measureSelection(score, 0, 0);
-			SmoUndoable.scoreSelectionOp(score,selection,'addMeasureText',mt,undo,'test measureText3');
-
-			keys.render();
-            return timeTest();
-		}
-
-		var measureText4 = () => {
-
-			mt.position = SmoMeasureText.positions.right;
-			var selection = SmoSelection.measureSelection(score, 0, 0);
-			SmoUndoable.scoreSelectionOp(score,selection,'addMeasureText',mt,undo,'test measureText4');
-
-			keys.render();
-            return timeTest();
-		}
-
-		var titleText1 = () => {
-            delay = 250;
-			SmoUndoable.scoreOp(score,'removeScoreText',tt,undo,'remove text titelText1');
-			tt = new SmoScoreText({text:'My Song',position:'title'});
-			var selection = SmoSelection.measureSelection(score, 0, 0);
-			SmoUndoable.scoreSelectionOp(score,selection,'removeMeasureText',mt,undo,'test measureText3');
-			SmoUndoable.scoreOp(score,'addScoreText',tt,undo,'Score Title Test 1');
-			keys.render();
-            return timeTest();
-		}
-
-		var titleText2 = () => {
-			delay=500;
-			tt = new SmoScoreText({text:'My Foot',position:'footer'});
-			SmoUndoable.scoreOp(score,'addScoreText',tt,undo,'Score Title Test 2');
-			keys.render();
-            return timeTest();
-		}
-
-		var titleText3 = () => {
-			// score.removeScoreText(tt);
-			tt = new SmoScoreText({text:'My Head',position:'header'});
-			// var selection = SmoSelection.measureSelection(score, 0, 0);
-			// selection.measure.removeMeasureText(mt.attrs.id);
-			SmoUndoable.scoreOp(score,'addScoreText',tt,undo,'Score Title Test 3');
-			keys.render();
-            return timeTest();
+      return timeTest();
 		}
 
 		var copyText1 = () => {
@@ -2659,14 +2951,20 @@ class TextTest {
 			    boxModel: SmoScoreText.boxModels.wrap,width:100,height:100,justification:'center'});
 			SmoUndoable.scoreOp(score,'addScoreText',tt,undo,'Copy Text Test 1');
 			keys.render();
-            return timeTest();
+      return timeTest();
 		}
 
-        return drawDefaults().then(scoreText1).then(scoreText2).then(scoreText3).then(scoreText3).then(scoreText4).
+        return drawDefaults().then(scoreText1)
+          .then(scaleUp).then(scaleDown).then(moveText)
+          .then(scoreText2).then(scoreText3).then(scoreText4).then(lyricTest).then(tempoTest)
+          .then(inlineText).then(removeCursor).then(cursor2).then(removeCursor)
+          /* .then(scoreText2).then(scoreText3).then(scoreText4)  */
+          .then(signalComplete);
+        /* then(scoreText2).then(scoreText3).then(scoreText3).then(scoreText4).
 		   then(scaleUp).then(scaleDown).then(moveText).then(lyricTest).then(rehearsalMarkTest).then(rehearsalMarkTest2)
            .then(rehearsalMarkTest3).then(tempoTest).then(measureText1).
 		   then(measureText2).then(measureText3).then(measureText4)
-		   .then(titleText1).then(titleText2).then(titleText3).then(copyText1).then(copyText2).then(signalComplete);
+		   .then(titleText1).then(titleText2).then(titleText3).then(copyText1).then(copyText2).then(signalComplete);  */
     }
 }
 
