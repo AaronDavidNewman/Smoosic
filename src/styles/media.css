@@ -1,7 +1,7 @@
 
 
 @font-face {
-    font-family: 'petalumaScript';
+    font-family: 'Petaluma Script';
     src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/petalumascript-webfont.woff2') format('woff2'),
          url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/petalumascript-webfont.woff') format('woff');
     font-weight: normal;
@@ -9,7 +9,7 @@
 }
 
 @font-face {
-    font-family: 'robotoSlab';
+    font-family: 'Roboto Slab';
     src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/robotoslab-webfont.woff2') format('woff2'),
          url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/robotoslab-webfont.woff') format('woff');
     font-weight: normal;
@@ -17,6 +17,8 @@
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Merriweather');
+@import url('https://fonts.googleapis.com/css2?family=Commissioner');
+@import url('https://fonts.googleapis.com/css2?family=ConcertOne');
 
 
 body {

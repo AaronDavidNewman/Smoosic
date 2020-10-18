@@ -41,6 +41,7 @@ class SuiApplication {
     Vex.Merge(config,SuiApplication.defaultConfig);
     Vex.Merge(config,params);
     window.SmoConfig = config;
+    this.registerFonts();
     this.start();
   }
   // ## createUi
@@ -71,6 +72,51 @@ class SuiApplication {
     params.layout.score = score;
     eval(SmoConfig.domSource).splash();
     this.controller = controller;
+  }
+  registerFonts() {
+    VF.TextFont.registerFont({
+      name: Commissioner_MediumFont.name,
+      resolution: Commissioner_MediumFont.resolution,
+      glyphs: Commissioner_MediumFont.glyphs,
+      family: Commissioner_MediumFont.fontFamily,
+      serifs: false,
+      monospaced: false,
+      italic: false,
+      bold: false,
+      maxSizeGlyph: 'H',
+      superscriptOffset: 0.66,
+      subscriptOffset: 0.66,
+      description: 'Low-contrast sans-serif text font',
+    });
+    VF.TextFont.registerFont({
+      name: Concert_OneFont.name,
+      resolution: Concert_OneFont.resolution,
+      glyphs: Concert_OneFont.glyphs,
+      family: Concert_OneFont.fontFamily,
+      serifs: false,
+      monospaced: false,
+      italic: false,
+      bold: false,
+      maxSizeGlyph: 'H',
+      superscriptOffset: 0.66,
+      subscriptOffset: 0.66,
+      description: 'Rounded grotesque typeface inspired by 19th century 3D l',
+    });
+    VF.TextFont.registerFont({
+      name: MerriweatherFont.name,
+      resolution: MerriweatherFont.resolution,
+      glyphs: MerriweatherFont.glyphs,
+      family: MerriweatherFont.fontFamily,
+      serifs: true,
+      monospaced: false,
+      italic: false,
+      bold: false,
+      maxSizeGlyph: 'H',
+      superscriptOffset: 0.66,
+      subscriptOffset: 0.66,
+      description: 'Serif screen font from Sorkin Type',
+    });
+
   }
 
   static _nvQueryPair(str) {

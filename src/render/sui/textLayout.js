@@ -22,14 +22,14 @@ class SuiInlineText {
   }
 
   get spacing() {
-    return this.fontMetrics.spacing / this.fontMetrics.resolution;
+    return this.textFont.spacing / this.textFont.resolution;
   }
 
 
   static get defaults() {
     return {
       blocks: [],
-      fontFamily: 'robotoSlab',
+      fontFamily: 'Merriweather',
       fontSize: 14,
       startX: 100,
       startY: 100,
@@ -39,6 +39,14 @@ class SuiInlineText {
       artifacts: [],
       updatedMetrics: false
     };
+  }
+
+  updateFontInfo() {
+    this.textFont = VF.TextFont.getTextFontFromVexFontData({
+      family: this.fontFamily,
+      weight: this.fontWeight,
+      size: this.fontSize
+    });
   }
   // ### constructor just creates an empty svg
   constructor(params) {
@@ -52,6 +60,7 @@ class SuiInlineText {
     if (!this.context) {
       throw('context for SVG must be set');
     }
+    this.updateFontInfo();
   }
 
   static fromScoreText(scoreText,context) {
@@ -67,8 +76,7 @@ class SuiInlineText {
   }
 
   get fontMetrics() {
-    return VF.DEFAULT_FONT_STACK[0].name === 'Petaluma' ?
-      VF.PetalumaScriptMetrics : VF.RobotoSlabMetrics;
+    return this;
   }
 
   static get blockDefaults() {
@@ -82,7 +90,7 @@ class SuiInlineText {
   // ### pointsToPixels
   // The font size is specified in points, convert to 'pixels' in the svg space
   get pointsToPixels() {
-    return (this.fontSize / 72) / (1 / 96);
+    return this.textFont.pointsToPixels;
   }
 
   offsetStartX(offset) {
@@ -99,8 +107,7 @@ class SuiInlineText {
     });
   }
   maxFontHeight(scale) {
-    const glyph = this.fontMetrics.glyphs['H'];
-    return  (glyph.ha / this.fontMetrics.resolution) *  this.pointsToPixels * scale;
+    return this.textFont.maxHeight * scale;
   }
 
   _glyphOffset(block) {
@@ -132,12 +139,11 @@ class SuiInlineText {
       block.x = curX;
       if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
         for (var i = 0;i < block.text.length;++i) {
-          const metrics = this.fontMetrics;
           const ch = block.text[i];
 
-          const glyph = metrics.glyphs[ch] ? metrics.glyphs[ch] : metrics.glyphs['H'];
-          block.width += ((glyph.advanceWidth) / metrics.resolution) * this.pointsToPixels * block.scale * subAdj;
-          const blockHeight = (glyph.ha / metrics.resolution) *  this.pointsToPixels * block.scale;
+          const glyph = this.textFont.getMetricForCharacter(ch);
+          block.width += ((glyph.advanceWidth) / this.textFont.resolution) * this.pointsToPixels * block.scale * subAdj;
+          const blockHeight = (glyph.ha / this.textFont.resolution) *  this.pointsToPixels * block.scale;
           block.height = block.height < blockHeight ? blockHeight : block.height;
           block.y = this.startY +  (subOffset * block.scale);
         }
@@ -227,7 +233,7 @@ class SuiInlineText {
     // For glyph, add y adj back to the cursor since it's not a glyph
     const adjY = block.symbolType === SuiInlineText.symbolTypes.GLYPH ? block.y - this._glyphOffset(block) :
       block.y;
-    svgHelpers.renderCursor(group, block.x + block.width,adjY - (adjH * block.scale), adjH * block.scale);
+    svgHelpers.renderCursor(group, block.x + block.width, adjY - (adjH * block.scale), adjH * block.scale);
     this.context.closeGroup();
   }
   removeCursor() {

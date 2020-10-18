@@ -441,13 +441,12 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         control: 'SuiDropdownComponent',
         label:'Font Family',
         startRow:true,
-        options: [{value:SmoScoreText.fontFamilies.serif,label:'Serif'},
-          {value:SmoScoreText.fontFamilies.sansSerif,label:'Sans-Serif'},
-          {label:'Monospace',value:SmoScoreText.fontFamilies.monospace},
-          {label:'Cursive',value:SmoScoreText.fontFamilies.cursive},
-          {label:'times',value:SmoScoreText.fontFamilies.times},
-          {label:'arial',value:SmoScoreText.fontFamilies.arial},
-          {label:'Helvetica',value:'Helvetica'}
+        options: [
+          {label: 'Roboto Slab', value: 'Roboto Slab'},
+          {label: 'Petaluma', value: 'Petaluma Script'},
+          {label: 'Commissioner',value: 'Commissioner'},
+          {label: 'Concert One', value: 'ConcertOne'},
+          {label: 'Merriweather',value: 'Merriweather'}
         ]
       },
       {

@@ -36,7 +36,8 @@ module.exports = function (grunt) {
                     'src/music/yama.js','src/music/invention.js','src/music/basic.js','src/music/jesuBambino.js','src/music/microtone.js','src/music/preciousLord.js',
                     'src/ui/ribbon.js','src/ui/dialog.js', 'src/ui/dialogs/staffDialogs.js','src/ui/qwerty.js', 'src/ui/help.js', 'src/ui/dom.js','src/ui/controller.js',
                     'src/ui/i18n/translationEditor.js',
-                  'src/ui/application.js'],
+                  'src/ui/application.js',
+                'src/styles/font_metrics/Commissioner-Medium-Metrics.js','src/styles/font_metrics/ConcertOne-Regular.js','src/styles/font_metrics/Merriweather-Regular.js'],
                 dest: 'build/<%= pkg.name %>.js'
             },
             tests: {
