@@ -16,10 +16,29 @@
     font-style: normal;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Merriweather');
-@import url('https://fonts.googleapis.com/css2?family=Commissioner');
-@import url('https://fonts.googleapis.com/css2?family=ConcertOne');
+@font-face {
+    font-family: 'Merriweather';
+    src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/Merriweather-Regular.woff2') format('woff2'),
+         url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/Merriweather-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
 
+@font-face {
+    font-family: 'Commissioner';
+    src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/Commissioner-Medium.woff2') format('woff2'),
+         url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/Commissioner-Medium.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'ConcertOne';
+    src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/ConcertOne-Regular.woff2') format('woff2'),
+         url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/ConcertOne-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
 
 body {
 	margin:0;

@@ -109,7 +109,8 @@ class SuiTextInPlace extends SuiComponentBase {
       score: this.dialog.layout.score,
       x: ul.x,
       y: ul.y,
-      textGroup: modifier
+      textGroup: modifier,
+      scoreText: this.activeScoreText
     });
     $('body').addClass('text-edit');
     this.value = this.session.textGroup;

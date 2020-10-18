@@ -305,7 +305,8 @@ class SuiTextEditor {
   // THis can be overridden by the base class to create the correct combination
   // of text and glyph blocks based on the underlying text
   parseBlocks() {
-    this.svgText = new SuiInlineText({ context: this.context,startX: this.x, startY: this.y });
+    this.svgText = new SuiInlineText({ context: this.context,startX: this.x, startY: this.y,
+      fontFamily: this.fontFamily, fontSize: this.fontSize, fontWeight: this.fontWeight });
     for (var i =0;i < this.text.length; ++i) {
       this.svgText.addTextBlockAt(i,{text:this.text[i]});
       this.empty = false;
@@ -819,13 +820,6 @@ class SuiTextSession {
     this.y = params.y;
     this.textGroup = params.textGroup;
     this.scoreText = params.scoreText;
-    this.fontFamily = params.fontFamily ? params.fontFamily :
-      SuiInlineText.defaults.fontFamily;
-    this.fontSize = params.fontSize ? params.fontSize :
-      SuiInlineText.defaults.fontSize;
-    this.fontWeight = params.fontSize ? params.fontSize :
-        SuiInlineText.defaults.fontSize;
-
     // Create a text group if one was not a startup parameter
     if (!this.textGroup) {
       this.textGroup = new SmoTextGroup();
@@ -840,6 +834,9 @@ class SuiTextSession {
         this.textGroup.addScoreText(this.scoreText,null,SmoTextGroup.relativePosition.RIGHT);
       }
     }
+    this.fontFamily = this.scoreText.fontInfo.family;
+    this.fontWeight = this.scoreText.fontInfo.weight;
+    this.fontSize = SmoScoreText.fontPointSize(this.scoreText.fontInfo.size);
     this.text = this.scoreText.text;
   }
 

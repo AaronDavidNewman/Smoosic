@@ -75,6 +75,34 @@ class SuiApplication {
   }
   registerFonts() {
     VF.TextFont.registerFont({
+      name: ArialFont.name,
+      resolution: ArialFont.resolution,
+      glyphs: ArialFont.glyphs,
+      family: ArialFont.fontFamily,
+      serifs: false,
+      monospaced: false,
+      italic: true,
+      bold: true,
+      maxSizeGlyph: 'H',
+      superscriptOffset: 0.66,
+      subscriptOffset: 0.66,
+      description: 'Built-in sans font',
+    });
+    VF.TextFont.registerFont({
+      name: TimesFont.name,
+      resolution: TimesFont.resolution,
+      glyphs: TimesFont.glyphs,
+      family: TimesFont.fontFamily,
+      serifs: false,
+      monospaced: false,
+      italic: true,
+      bold: true,
+      maxSizeGlyph: 'H',
+      superscriptOffset: 0.66,
+      subscriptOffset: 0.66,
+      description: 'Built-in sans font',
+    });
+    VF.TextFont.registerFont({
       name: Commissioner_MediumFont.name,
       resolution: Commissioner_MediumFont.resolution,
       glyphs: Commissioner_MediumFont.glyphs,

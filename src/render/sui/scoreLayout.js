@@ -107,6 +107,7 @@ class suiScoreLayout extends suiLayoutBase {
       const svgText = new SuiTextBlock({blocks: blocks, context: this.context} );
       svgText.render();
       tt.renderedBox = svgText.getRenderedBox();
+      tt.logicalBox = svgText.getLogicalBox();
     }  else {
       var boxed = false;
       for (var i = 0;i<scoreLayout.pages;++i) {
@@ -136,6 +137,7 @@ class suiScoreLayout extends suiLayoutBase {
         // Base the rendered box on the first instance
         if (!boxed) {
           tt.renderedBox = svgText.getRenderedBox();
+          tt.logicalBox = svgText.getLogicalBox();
           boxed = true;
         }
       }

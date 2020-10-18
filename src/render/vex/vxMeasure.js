@@ -117,7 +117,7 @@ class VxMeasure {
     var o = smoNote.getJazzOrnaments();
     var ix = 0;
     o.forEach((ll) => {
-      var mod = new VF.JazzTechnique(ll.toVex());
+      var mod = new VF.Ornament(ll.toVex());
       vexNote.addModifier(0,mod);
     });
   }

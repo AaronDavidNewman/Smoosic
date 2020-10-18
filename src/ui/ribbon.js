@@ -738,7 +738,7 @@ class ArticulationButtons {
       mordentInvertedButton:SmoOrnament.ornaments.mordentInverted,
       trillButton: SmoOrnament.ornaments.trill,
       scoopButton: SmoOrnament.ornaments.scoop,
-      dropButton: SmoOrnament.ornaments.drop,
+      dropButton: SmoOrnament.ornaments.fall_short,
       dropLongButton: SmoOrnament.ornaments.dropLong,
       doitButton: SmoOrnament.ornaments.doit,
       doitLongButton: SmoOrnament.ornaments.doitLong,

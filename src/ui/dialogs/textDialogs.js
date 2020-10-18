@@ -442,6 +442,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         label:'Font Family',
         startRow:true,
         options: [
+          {label: 'Arial', value: 'Arial'},
+          {label: 'Times', value: 'Times'},
           {label: 'Roboto Slab', value: 'Roboto Slab'},
           {label: 'Petaluma', value: 'Petaluma Script'},
           {label: 'Commissioner',value: 'Commissioner'},

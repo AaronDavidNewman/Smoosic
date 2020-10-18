@@ -37,7 +37,8 @@ module.exports = function (grunt) {
                     'src/ui/ribbon.js','src/ui/dialog.js', 'src/ui/dialogs/staffDialogs.js','src/ui/qwerty.js', 'src/ui/help.js', 'src/ui/dom.js','src/ui/controller.js',
                     'src/ui/i18n/translationEditor.js',
                   'src/ui/application.js',
-                'src/styles/font_metrics/Commissioner-Medium-Metrics.js','src/styles/font_metrics/ConcertOne-Regular.js','src/styles/font_metrics/Merriweather-Regular.js'],
+                'src/styles/font_metrics/Commissioner-Medium-Metrics.js','src/styles/font_metrics/ConcertOne-Regular.js','src/styles/font_metrics/Merriweather-Regular.js',
+                'src/styles/font_metrics/arial_metrics.js','src/styles/font_metrics/times_metrics.js'],
                 dest: 'build/<%= pkg.name %>.js'
             },
             tests: {
