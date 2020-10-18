@@ -565,9 +565,9 @@ class VxMeasure {
         this.vexTuplets.forEach(function (tuplet) {
             tuplet.setContext(self.context).draw();
         });
-        this.renderDynamics();
         this._updateLyricDomSelectors();
         this._setModifierBoxes();
+        this.renderDynamics();
         // this.smoMeasure.adjX = this.stave.start_x - (this.smoMeasure.staffX);
 
         this.context.closeGroup();
