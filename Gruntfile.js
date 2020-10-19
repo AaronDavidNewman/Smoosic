@@ -1,83 +1,60 @@
 module.exports = function (grunt) {
+  // Used for eslint and docco
+  const LINTS = ['src/render/vex/vxMeasure.js']
+  const SOURCES = ['src/**/*.js','!src/test/*.js'];
+  const TESTSRC = ['src/test/*.js']
 
     // Project configuration.
-    grunt.initConfig({
-        pkg: grunt.file.readJSON('package.json'),
-        concat: {
-            options: {
-                separator: ';',
-                sourceMap: true
-            },
-            dist: {
-                src: ['src/ui/i18n/language_de.js','src/ui/i18n/language_ar.js','src/ui/i18n/language_en.js','src/ui/i18n/language.js',
-                    'src/common/promiseHelpers.js',
-                       'src/common/musicHelpers.js', 'src/common/serializationHelpers.js','src/common/svgHelpers.js', 'src/common/htmlHelpers.js',
-                    'src/smo/data/note.js', 'src/smo/data/tuplet.js', 'src/smo/data/noteModifiers.js',
-                    'src/smo/data/measure.js', 'src/smo/data/measureModifiers.js', 'src/smo/data/systemStaff.js',
-                    'src/smo/data/score.js', 'src/smo/data/staffModifiers.js','src/smo/data/scoreModifiers.js',
+  grunt.initConfig({
+    pkg: grunt.file.readJSON('package.json'),
+    concat: {
+      options: {
+        separator: ';',
+        sourceMap: true
+      },
+    dist: {
+      src: [SOURCES],
+      dest: 'build/<%= pkg.name %>.js'
+    },
+    tests: {
+        src: [TESTSRC],
+        dest: 'build/smoTests.js'
 
-                    'src/smo/xform/iterator.js', 'src/smo/xform/beamers.js', 'src/smo/xform/tickDuration.js', 'src/smo/xform/selections.js',
-                    'src/smo/xform/operations.js', 'src/smo/xform/undo.js', 'src/smo/xform/copypaste.js',
-                    'src/render/vex/vxMeasure.js', 'src/render/vex/vxSystem.js',
-                    'src/render/audio/oscillator.js','src/render/audio/player.js',
-                     'src/render/sui/scroller.js','src/render/sui/mapper.js','src/render/sui/tracker.js',
-                     'src/render/sui/layoutDebug.js','src/render/sui/layout.js', 'src/render/sui/piano.js',
-                    'src/render/sui/layoutDemon.js',
-					'src/render/sui/adjuster.js','src/render/sui/scoreLayout.js','src/render/sui/textLayout.js','src/render/sui/textEdit.js',
-          'src/ui/eventSource.js',
-					'src/ui/keyCommands.js', 'src/ui/menus.js', 'src/ui/utController.js',
-					'src/ui/exceptions.js',
-					'src/ui/keyBindings/default/editorKeys.js','src/ui/keyBindings/default/trackerKeys.js',
-					'src/ui/dialog.js','src/ui/dialogs/scoreDialogs.js',
-                    'src/ui/dialogs/fileDialogs.js','src/ui/dialogs/textDialogs.js','src/ui/dialogs/measureDialogs.js',
-                    'src/ui/dialogComponents.js','src/ui/dialogs/textComponents.js',
-					'src/ui/ribbonLayout/default/defaultRibbon.js',
-					'src/render/vex/glyphDimensions.js',
-                    'src/music/yama.js','src/music/invention.js','src/music/basic.js','src/music/jesuBambino.js','src/music/microtone.js','src/music/preciousLord.js',
-                    'src/ui/ribbon.js','src/ui/dialog.js', 'src/ui/dialogs/staffDialogs.js','src/ui/qwerty.js', 'src/ui/help.js', 'src/ui/dom.js','src/ui/controller.js',
-                    'src/ui/i18n/translationEditor.js',
-                  'src/ui/application.js',
-                'src/styles/font_metrics/Commissioner-Medium-Metrics.js','src/styles/font_metrics/ConcertOne-Regular.js','src/styles/font_metrics/Merriweather-Regular.js',
-                'src/styles/font_metrics/arial_metrics.js','src/styles/font_metrics/times_metrics.js'],
-                dest: 'build/<%= pkg.name %>.js'
-            },
-            tests: {
-                src: ['src/test/chordTest.js', 'src/test/undoTest.js', 'src/test/timeSignatureTest.js',
-                    'src/test/keySignatureTest.js',
-                    'src/test/tupletTest.js', 'src/test/serializeTestJson.js', 'src/test/pasteTest.js',
-                    'src/test/voiceTest.js', 'src/test/trackerTest.js', 'src/test/clefTest.js','src/test/measureTest.js','src/test/testAll.js',
-					'src/test/textEditTest.js','src/test/textTest.js'],
-                dest: 'build/smoTests.js'
+    }
+  },
+  eslint: {
+    target: LINTS,
+  },
 
-            }
-        },
-        copy: {
-            dist: {
-                files: [{
-                        expand: true,
-                        cwd: 'src/styles/',
-                        src: ['*.*', '**/*'],
-                        dest: 'build/styles/'
-                    }, {
-                        expand: true,
-                        cwd: 'docs/',
-                        src: ['*.*', '**/*'],
-                        dest: 'build/docs/'
-                    }, {
-                        expand: true,
-                        cwd: 'html/',
-                        src: ['*.*', '**/*'],
-                        dest: 'build/html/'
-                    }
-                ]
-            }
+  copy: {
+    dist: {
+      files: [{
+          expand: true,
+          cwd: 'src/styles/',
+          src: ['*.*', '**/*'],
+          dest: 'build/styles/'
+        }, {
+          expand: true,
+          cwd: 'docs/',
+          src: ['*.*', '**/*'],
+          dest: 'build/docs/'
+        }, {
+          expand: true,
+          cwd: 'html/',
+          src: ['*.*', '**/*'],
+          dest: 'build/html/'
         }
+      ]
+    }
+  }
 
     });
 
-    // Load the plugin that provides the "uglify" task.
-    grunt.loadNpmTasks('grunt-contrib-concat');
-    grunt.loadNpmTasks('grunt-contrib-copy');
-    // Default task(s).
-    grunt.registerTask('default', ['concat', 'copy']);
+  // Load the plugin that provides the "uglify" task.
+  grunt.loadNpmTasks('grunt-eslint');
+  grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-contrib-copy');
+
+  // Default task(s).
+  grunt.registerTask('default', ['eslint', 'concat', 'copy']);
 };

@@ -2,6 +2,7 @@
     "name": "smoosic",
     "version": "0.1.0",
     "devDependencies": {
+        "eslint": "^7.11.0",
         "grunt": "^1.2.1",
         "grunt-contrib-concat": "~1.0.1",
         "grunt-contrib-copy": "^1.0.0",
@@ -9,5 +10,9 @@
         "grunt-contrib-nodeunit": "~2.0.0",
         "grunt-contrib-uglify": "~4.0.1"
     },
-    "dependencies": {}
+    "dependencies": {
+        "eslint-config-airbnb-base": "^14.2.0",
+        "eslint-plugin-import": "^2.22.1",
+        "grunt-eslint": "^23.0.0"
+    }
 }
