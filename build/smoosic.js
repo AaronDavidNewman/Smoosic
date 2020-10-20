@@ -7480,211 +7480,210 @@ class suiTracker extends suiMapper {
     svgHelpers.outlineRect(this._suggestionParameters(bb,stroke));
   }
 }
-;
-
+;// eslint-disable-next-line no-unused-vars
 class vexGlyph {
   static accidental(a) {
-       return vexGlyph.accidentals[a];
+    return vexGlyph.accidentals[a];
   }
   static barWidth(b) {
-    var str = SmoBarline.barlineString(b);
-    var cc = vexGlyph.dimensions[str];
-    return cc.width+cc.spacingRight;
+    const str = SmoBarline.barlineString(b);
+    const cc = vexGlyph.dimensions[str];
+    return cc.width + cc.spacingRight;
   }
   static get accidentals() {
     return {
-    'b':vexGlyph.dimensions.flat,
-    '#':vexGlyph.dimensions.sharp,
-    'bb':vexGlyph.dimensions.doubleFlat,
-    '##':vexGlyph.dimensions.doubleSharp,
-    'n':vexGlyph.dimensions.natural
+      'b': vexGlyph.dimensions.flat,
+      '#': vexGlyph.dimensions.sharp,
+      'bb': vexGlyph.dimensions.doubleFlat,
+      '##': vexGlyph.dimensions.doubleSharp,
+      'n': vexGlyph.dimensions.natural
     };
   }
 
-    static get tempo() {
-        return vexGlyph.dimensions['tempo'];
-    }
+  static get tempo() {
+    return vexGlyph.dimensions.tempo;
+  }
   static keySignatureLength(key) {
-    return smoMusic.getSharpsInKeySignature(key)*vexGlyph.dimensions['sharp'].width +
-      smoMusic.getFlatsInKeySignature(key)*vexGlyph.dimensions['flat'].width +
-      vexGlyph.dimensions['keySignature'].spacingRight;
+    return smoMusic.getSharpsInKeySignature(key) * vexGlyph.dimensions.sharp.width +
+      smoMusic.getFlatsInKeySignature(key) * vexGlyph.dimensions.flat.width +
+      vexGlyph.dimensions.keySignature.spacingRight;
   }
   static get timeSignature() {
-    return vexGlyph.dimensions['timeSignature'];
+    return vexGlyph.dimensions.timeSignature;
   }
   static get dot() {
-    return vexGlyph.dimensions['dot'];
+    return vexGlyph.dimensions.dot;
   }
 
   static get tupletBeam() {
-    return vexGlyph.dimensions['tupletBeam'];
+    return vexGlyph.dimensions.tupletBeam;
   }
 
   static get stem() {
-      return vexGlyph.dimensions['stem'];
+    return vexGlyph.dimensions.stem;
   }
   static get flag() {
-      return vexGlyph.dimensions['flag'];
+    return vexGlyph.dimensions.flag;
   }
 
   static clef(c) {
-    var key = c.toLowerCase()+'Clef';
+    const key = c.toLowerCase() + 'Clef';
     if (!vexGlyph.dimensions[key]) {
-      return vexGlyph.dimensions['tenorClef'];
+      return vexGlyph.dimensions.tenorClef;
     }
     return vexGlyph.dimensions[key];
   }
   static get dimensions() {
     return {
       tupletBeam: {
-        width:5,
-        height:6,
-        yTop:0,
-        yBottom:0,
-        spacingRight:5
+        width: 5,
+        height: 6,
+        yTop: 0,
+        yBottom: 0,
+        spacingRight: 5
       },
       singleBar: {
-        width:1,
-        height:41,
-        yTop:0,
-        yBottom:0,
-        spacingRight:5
+        width: 1,
+        height: 41,
+        yTop: 0,
+        yBottom: 0,
+        spacingRight: 5
       },
       endBar: {
-        width:5.22,
-        height:40.99,
-        yTop:0,
-        yBottom:0,
-        spacingRight:10
+        width: 5.22,
+        height: 40.99,
+        yTop: 0,
+        yBottom: 0,
+        spacingRight: 10
       },
       doubleBar: {
-        width:3.22,
-        height:40.99,
-        yTop:0,
-        yBottom:0,
-        spacingRight:0
+        width: 3.22,
+        height: 40.99,
+        yTop: 0,
+        yBottom: 0,
+        spacingRight: 0
       },
       endRepeat: {
-        width:6,
-        height:40.99,
-        yTop:0,
-        yBottom:0,
-        spacingRight:0,
+        width: 6,
+        height: 40.99,
+        yTop: 0,
+        yBottom: 0,
+        spacingRight: 0,
       },
       startRepeat: {
-        width:6,
-        height:40.99,
-        yTop:0,
-        yBottom:0,
-        spacingRight:5,
+        width: 6,
+        height: 40.99,
+        yTop: 0,
+        yBottom: 0,
+        spacingRight: 5,
       },
       noteHead: {
-        width:12.02,
-        height:10.48,
-        yTop:0,
-        yBottom:0,
-        spacingRight:10,
+        width: 12.02,
+        height: 10.48,
+        yTop: 0,
+        yBottom: 0,
+        spacingRight: 10,
       },
       dot: {
-        width:5,
-        height:5,
-        spacingRight:2
+        width: 5,
+        height: 5,
+        spacingRight: 2
       },
       trebleClef: {
         width: 25.5,
         height: 68.32,
-        yTop:14,
-        yBottom:14,
+        yTop: 14,
+        yBottom: 14,
         spacingRight: 10,
       },
       bassClef: {
         width: 25,
         height: 31.88,
-        yTop:0,
-        yBottom:0,
+        yTop: 0,
+        yBottom: 0,
         spacingRight: 5,
       },
       altoClef: {
         width: 31.5,
-        yTop:0,
-        yBottom:0,
+        yTop: 0,
+        yBottom: 0,
         height: 85.5,
         spacingRight: 10
       },
       tenorClef: {
         width: 31.5,
-        yTop:10,
-        yBottom:0,
+        yTop: 10,
+        yBottom: 0,
         height: 41,
         spacingRight: 10
       },
       timeSignature: {
         width: 13.48,
         height: 85,
-        yTop:0,
-        yBottom:0,
+        yTop: 0,
+        yBottom: 0,
         spacingRight: 5
       },
-      tempo : {
-        width:10,
-        height:37,
-        yTop:37,
-        yBottom:0,
-        spacingRight:0
+      tempo: {
+        width: 10,
+        height: 37,
+        yTop: 37,
+        yBottom: 0,
+        spacingRight: 0
       },
       flat: {
         width: 7.44,
         height: 23.55,
-        yTop:0,
-        yBottom:0,
+        yTop: 0,
+        yBottom: 0,
         spacingRight: 2
       },
       keySignature: {
         width: 0,
         height: 85.5,
-        yTop:0,
-        yBottom:0,
+        yTop: 0,
+        yBottom: 0,
         spacingRight: 10
       },
       sharp: {
         width: 8.84,
         height: 62,
-        yTop:0,
-        yBottom:0,
+        yTop: 0,
+        yBottom: 0,
         spacingRight: 2
       },
       natural: {
         width: 6.54,
         height: 53.35,
-        yTop:0,
-        yBottom:0,
+        yTop: 0,
+        yBottom: 0,
         spacingRight: 2
       },
       doubleSharp: {
         height: 10.04,
         width: 21.63,
-        yTop:0,
-        yBottom:0,
+        yTop: 0,
+        yBottom: 0,
         spacingRight: 2
       },
       doubleFlat: {
         width: 13.79,
         height: 49.65,
-        yTop:0,
-        yBottom:0,
-        spacingRight:2
-      },stem: {
-        width:1,
-        height:35,
-        yTop:0,
-        yBottom:0,
-        spacingRight:0
-      },flag: {
-        width:10,
-        height:35,
-        yTop:0,
-        yBottom:0,
-        spacingRight:0
+        yTop: 0,
+        yBottom: 0,
+        spacingRight: 2
+      }, stem: {
+        width: 1,
+        height: 35,
+        yTop: 0,
+        yBottom: 0,
+        spacingRight: 0
+      }, flag: {
+        width: 10,
+        height: 35,
+        yTop: 0,
+        yBottom: 0,
+        spacingRight: 0
       }
     };
   }
@@ -8274,8 +8273,9 @@ class VxMeasure {
 //  num_beats:num_beats,
 //  timeSignature: '4/4',
 //  smoMeasures: []
+// eslint-disable-next-line no-unused-vars
 class VxSystem {
-  constructor(context, topY, lineIndex,score) {
+  constructor(context, topY, lineIndex, score) {
     this.context = context;
     this.leftConnector = [null, null];
     this.lineIndex = lineIndex;
@@ -8303,8 +8303,9 @@ class VxSystem {
   }
 
   getVxMeasure(smoMeasure) {
-    for (var i = 0; i < this.vxMeasures.length; ++i) {
-      var vm = this.vxMeasures[i];
+    let i = 0;
+    for (i = 0; i < this.vxMeasures.length; ++i) {
+      const vm = this.vxMeasures[i];
       if (vm.smoMeasure.attrs.id === smoMeasure.attrs.id) {
         return vm;
       }
@@ -8314,12 +8315,12 @@ class VxSystem {
   }
 
   getVxNote(smoNote) {
-    var note;
+    let i = 0;
     if (!smoNote) {
       return null;
     }
-    for (var i = 0; i < this.measures.length; ++i) {
-      var mm = this.measures[i];
+    for (i = 0; i < this.measures.length; ++i) {
+      const mm = this.measures[i];
       if (mm.noteToVexMap[smoNote.attrs.id]) {
         return mm.noteToVexMap[smoNote.attrs.id];
       }
@@ -8328,11 +8329,12 @@ class VxSystem {
   }
 
   _updateChordOffsets(note) {
-    for (var i =0;i<3;++i) {
-      var chords = note.getLyricForVerse(i,SmoLyric.parsers.chord);
+    var i = 0;
+    for (i = 0; i < 3; ++i) {
+      const chords = note.getLyricForVerse(i, SmoLyric.parsers.chord);
       chords.forEach((chord) => {
         var dom = $(this.context.svg).find(chord.selector)[0];
-        dom.setAttributeNS('','transform','translate('+chord.translateX+' '+(-1*chord.translateY)+')');
+        dom.setAttributeNS('', 'transform', 'translate(' + chord.translateX + ' ' + (-1 * chord.translateY) + ')');
       });
     }
   }
@@ -8340,20 +8342,23 @@ class VxSystem {
   // ### updateLyricOffsets
   // Adjust the y position for all lyrics in the line so they are even.
   // Also replace '-' with a longer dash do indicate 'until the next measure'
+  /* global svgHelpers */
   updateLyricOffsets() {
-    for (var i = 0;i < this.score.staves.length;++i) {
+    let i = 0;
+    let j = 0;
+    const lyricsDash = [];
+    const verseLimits = {};
+    const lyricVerseMap = {};
+    const lyrics = [];
+    for (i = 0; i < this.score.staves.length; ++i) {
+      const tmpI = i;
       // is this necessary? They should all be from the current line
-      var vxMeasures = this.vxMeasures.filter((vx) => {
-        return vx.smoMeasure.measureNumber.staffId == i;
-      });
+      const vxMeasures = this.vxMeasures.filter((vx) =>
+        vx.smoMeasure.measureNumber.staffId === tmpI
+      );
+
       // All the lyrics on this line
-      var lyrics=[];
-      var lyricsDash = [];
-
       // The vertical bounds on each line
-      var verseLimits={};
-
-      var lyricVerseMap = {};
       vxMeasures.forEach((mm) => {
         var smoMeasure = mm.smoMeasure;
 
@@ -8373,66 +8378,65 @@ class VxSystem {
           });
         });
       });
-      var vkey = Object.keys(lyricVerseMap).sort((a,b) => a-b);
+      const vkey = Object.keys(lyricVerseMap).sort((a, b) => a - b);
       vkey.forEach((verse) => {
-        verseLimits[verse] = {highest:-1,bottom:-1};
+        verseLimits[verse] = { highest: -1, bottom: -1 };
         lyricVerseMap[verse].forEach((ll) => {
-          verseLimits[verse].highest = Math.round(Math.max(ll.logicalBox.height,verseLimits[verse].highest));
-          verseLimits[verse].bottom = Math.round(Math.max(ll.logicalBox.y + ll.logicalBox.height,verseLimits[verse].bottom));
+          verseLimits[verse].highest = Math.round(Math.max(ll.logicalBox.height, verseLimits[verse].highest));
+          verseLimits[verse].bottom = Math.round(Math.max(ll.logicalBox.y + ll.logicalBox.height, verseLimits[verse].bottom));
         });
       });
-      for (var j = 1; j < vkey.length;++j) {
-        verseLimits[j].bottom = verseLimits[j-1].bottom + verseLimits[j-1].highest;
+      for (j = 1; j < vkey.length; ++j) {
+        verseLimits[j].bottom = verseLimits[j - 1].bottom + verseLimits[j - 1].highest;
       }
       lyrics.forEach((lyric) => {
-        lyric.adjY = Math.round(verseLimits[lyric.verse].bottom -  lyric.logicalBox.y);
-        var dom = $(this.context.svg).find(lyric.selector)[0];
-        dom.setAttributeNS('','transform','translate('+lyric.adjX+' '+lyric.adjY+')');
+        lyric.adjY = Math.round(verseLimits[lyric.verse].bottom - lyric.logicalBox.y);
+        const dom = $(this.context.svg).find(lyric.selector)[0];
+        dom.setAttributeNS('', 'transform', 'translate(' + lyric.adjX + ' ' + lyric.adjY + ')');
         // Keep track of lyrics that are 'dash'
-        if (lyric.getText().trim() == '-') {
+        if (lyric.getText().trim() === '-') {
           lyricsDash.push(lyric);
         }
       });
 
       lyricsDash.forEach((lyric) => {
-        var parent = $(this.context.svg).find(lyric.selector)[0];
-        var line = document.createElementNS(svgHelpers.namespace,'line');
-        var ymax = Math.round(lyric.logicalBox.y + lyric.logicalBox.height/2);
-        var offset = Math.round(lyric.logicalBox.width/2);
+        const parent = $(this.context.svg).find(lyric.selector)[0];
+        const line = document.createElementNS(svgHelpers.namespace, 'line');
+        const ymax = Math.round(lyric.logicalBox.y + lyric.logicalBox.height / 2);
+        const offset = Math.round(lyric.logicalBox.width / 2);
         line.setAttributeNS('', 'x1', lyric.logicalBox.x - offset);
         line.setAttributeNS('', 'y1', ymax);
         line.setAttributeNS('', 'x2', lyric.logicalBox.x + lyric.logicalBox.width + offset);
         line.setAttributeNS('', 'y2', ymax);
-        line.setAttributeNS('','stroke-width',1);
-        line.setAttributeNS('','fill','none');
-        line.setAttributeNS('','stroke','#999999');
+        line.setAttributeNS('', 'stroke-width', 1);
+        line.setAttributeNS('', 'fill', 'none');
+        line.setAttributeNS('', 'stroke', '#999999');
         parent.appendChild(line);
-        var text = $(this.context.svg).find(lyric.selector).find('text')[0];
-        text.setAttributeNS('','fill','#fff');
+        const text = $(this.context.svg).find(lyric.selector).find('text')[0];
+        text.setAttributeNS('', 'fill', '#fff');
       });
     }
   }
 
   // ### renderModifier
   // render a line-type modifier that is associated with a staff (e.g. slur)
-  renderModifier(modifier, vxStart, vxEnd,smoStart,smoEnd) {
+  renderModifier(modifier, vxStart, vxEnd, smoStart) {
+    let xoffset = 0;
     // if it is split between lines, render one artifact for each line, with a common class for
     // both if it is removed.
     if (vxStart) {
       $(this.context.svg).find('g.' +  modifier.attrs.id).remove();
     }
-    var artifactId = modifier.attrs.id + '-' + this.lineIndex;
-    var group = this.context.openGroup();
-    var xtranslate = 0;
-    var ytranslate = 0;
+    const artifactId = modifier.attrs.id + '-' + this.lineIndex;
+    const group = this.context.openGroup();
     group.classList.add(modifier.attrs.id);
     group.classList.add(artifactId);
-    if ((modifier.ctor == 'SmoStaffHairpin' && modifier.hairpinType == SmoStaffHairpin.types.CRESCENDO) ||
-      (modifier.ctor == 'SmoStaffHairpin' && modifier.hairpinType == SmoStaffHairpin.types.DECRESCENDO)) {
-      var hairpin = new VF.StaveHairpin({
+    if ((modifier.ctor === 'SmoStaffHairpin' && modifier.hairpinType === SmoStaffHairpin.types.CRESCENDO) ||
+      (modifier.ctor === 'SmoStaffHairpin' && modifier.hairpinType === SmoStaffHairpin.types.DECRESCENDO)) {
+      const hairpin = new VF.StaveHairpin({
         first_note: vxStart,
         last_note: vxEnd
-        }, modifier.hairpinType);
+      }, modifier.hairpinType);
       hairpin.setRenderOptions({
         height: modifier.height,
         y_shift: modifier.yOffset,
@@ -8440,21 +8444,20 @@ class VxSystem {
         right_shift_px: modifier.xOffsetRight
       });
       hairpin.setContext(this.context).setPosition(modifier.position).draw();
-    } else if (modifier.ctor == 'SmoSlur') {
-      var lyric = smoStart.note.longestLyric();
-      var xoffset = 0;
+    } else if (modifier.ctor === 'SmoSlur') {
+      const lyric = smoStart.note.longestLyric();
       if (lyric && lyric.getText()) {
         // If there is a lyric, the bounding box of the start note is stretched to the right.
         // slide the slur left, and also make it a bit wider.
-        xtranslate = (-1*lyric.getText().length * 6);
-        xoffset += (xtranslate/2) - SmoSlur.defaults.xOffset;
+        const xtranslate = (-1 * lyric.getText().length * 6);
+        xoffset += (xtranslate / 2) - SmoSlur.defaults.xOffset;
       }
-      var curve = new VF.Curve(vxStart, vxEnd,
+      const curve = new VF.Curve(vxStart, vxEnd,
         {
           thickness: modifier.thickness,
           x_shift: modifier.xOffset,
           y_shift: modifier.yOffset,
-          spacing:modifier.spacing,
+          spacing: modifier.spacing,
           cps: modifier.controlPoints,
           invert: modifier.invert,
           position: modifier.position
@@ -8464,32 +8467,33 @@ class VxSystem {
 
     this.context.closeGroup();
     if (xoffset) {
-      var slurBox = $('.'+artifactId)[0];
-      svgHelpers.translateElement(slurBox,xoffset,0);
+      const slurBox = $('.' + artifactId)[0];
+      svgHelpers.translateElement(slurBox, xoffset, 0);
     }
     return svgHelpers.smoBox(group.getBoundingClientRect());
   }
 
   renderEndings() {
+    let i = 0;
     this.smoMeasures.forEach((smoMeasure) => {
-      var staffId = smoMeasure.measureNumber.staffId;
-      var endings = smoMeasure.getNthEndings();
+      const staffId = smoMeasure.measureNumber.staffId;
+      const endings = smoMeasure.getNthEndings();
       endings.forEach((ending) => {
         $(this.context.svg).find('g.' + ending.attrs.id).remove();
-        var group = this.context.openGroup(null,ending.attrs.id);
-        var voAr=[];
+        const group = this.context.openGroup(null, ending.attrs.id);
+        const voAr = [];
         group.classList.add(ending.attrs.id);
         group.classList.add(ending.endingId);
 
-        for (var i = ending.startBar; i <= ending.endBar; ++i) {
-          var endMeasure = this.getMeasureByIndex(i,staffId);
+        for (i = ending.startBar; i <= ending.endBar; ++i) {
+          const endMeasure = this.getMeasureByIndex(i, staffId);
           if (!endMeasure) {
             continue;
           }
           voAr.push(endMeasure);
-          var vxMeasure = this.getVxMeasure(endMeasure);
-          var vtype = ending.toVexVolta(endMeasure.measureNumber.measureNumber);
-          var vxVolta = new VF.Volta(vtype, ending.number,ending.xOffsetStart, ending.yOffset);
+          const vxMeasure = this.getVxMeasure(endMeasure);
+          const vtype = ending.toVexVolta(endMeasure.measureNumber.measureNumber);
+          const vxVolta = new VF.Volta(vtype, ending.number, ending.xOffsetStart, ending.yOffset);
           vxMeasure.stave.modifiers.push(vxVolta);
           vxVolta.setContext(this.context).draw(vxMeasure.stave, endMeasure.staffX);
         }
@@ -8499,20 +8503,21 @@ class VxSystem {
 
         // Adjust real height of measure to match volta height
         voAr.forEach((mm) => {
-          var delta =  mm.logicalBox.y - ending.logicalBox.y;
+          const delta =  mm.logicalBox.y - ending.logicalBox.y;
           if (delta > 0) {
             mm.setBox(svgHelpers.boxPoints(
-              mm.logicalBox.x,mm.logicalBox.y - delta,mm.logicalBox.width,mm.logicalBox.height+delta),
-              'vxSystem adjust for volta');
+              mm.logicalBox.x, mm.logicalBox.y - delta, mm.logicalBox.width, mm.logicalBox.height + delta),
+            'vxSystem adjust for volta');
           }
         });
       });
     });
   }
 
-  getMeasureByIndex(measureIndex,staffId) {
-    for (var i = 0; i < this.smoMeasures.length; ++i) {
-      var mm = this.smoMeasures[i];
+  getMeasureByIndex(measureIndex, staffId) {
+    let i = 0;
+    for (i = 0; i < this.smoMeasures.length; ++i) {
+      const mm = this.smoMeasures[i];
       if (measureIndex === mm.measureNumber.measureNumber && staffId === mm.measureNumber.staffId) {
         return mm;
       }
@@ -8524,43 +8529,41 @@ class VxSystem {
   // ## Description:
   // Create the graphical (VX) notes and render them on svg.  Also render the tuplets and beam
   // groups
-  renderMeasure(smoMeasure,measureMapper,noJustify) {
-    var staff = this.score.staves[smoMeasure.measureNumber.staffId];
-    var staffId = staff.staffId;
-    var systemIndex = smoMeasure.measureNumber.systemIndex;
-    var selection = SmoSelection.measureSelection(this.score,staff.staffId,smoMeasure.measureNumber.measureIndex);
+  renderMeasure(smoMeasure, measureMapper, noJustify) {
+    let brackets = false;
+    const staff = this.score.staves[smoMeasure.measureNumber.staffId];
+    const staffId = staff.staffId;
+    const systemIndex = smoMeasure.measureNumber.systemIndex;
+    const selection = SmoSelection.measureSelection(this.score, staff.staffId, smoMeasure.measureNumber.measureIndex);
     this.smoMeasures.push(smoMeasure);
     if (this.staves.length <= staffId) {
       this.staves.push(staff);
     }
 
-    var vxMeasure = new VxMeasure(this.context, {
-        selection: selection
-    });
+    const vxMeasure = new VxMeasure(this.context, { selection });
 
     // create the vex notes, beam groups etc. for the measure
     vxMeasure.preFormat();
     this.vxMeasures.push(vxMeasure);
 
-    var lastStaff = (staffId == this.score.staves.length-1) || noJustify;
-    var smoGroupMap = {};
+    const lastStaff = (staffId === this.score.staves.length - 1) || noJustify;
+    const smoGroupMap = {};
 
     // If this is the last staff in the column, render the column with justification
     if (lastStaff) {
-    var ar = vxMeasure.voiceAr;
-    this.vxMeasures.forEach((vv) => {
-      if (!vv.rendered) {
-        var systemGroup = this.score.getSystemGroupForStaff(vv.selection);
-        var justifyGroup = systemGroup ? systemGroup.attrs.id : vv.selection.staff.attrs.id;
-        if (!smoGroupMap[justifyGroup]) {
-          smoGroupMap[justifyGroup] = {firstMeasure:vv,voices:[]};
-        }
-        smoGroupMap[justifyGroup].voices =
-          smoGroupMap[justifyGroup].voices.concat(vv.voiceAr);
+      this.vxMeasures.forEach((vv) => {
+        if (!vv.rendered) {
+          const systemGroup = this.score.getSystemGroupForStaff(vv.selection);
+          const justifyGroup = systemGroup ? systemGroup.attrs.id : vv.selection.staff.attrs.id;
+          if (!smoGroupMap[justifyGroup]) {
+            smoGroupMap[justifyGroup] = { firstMeasure: vv, voices: [] };
+          }
+          smoGroupMap[justifyGroup].voices =
+            smoGroupMap[justifyGroup].voices.concat(vv.voiceAr);
         }
       });
     }
-    var keys = Object.keys(smoGroupMap);
+    const keys = Object.keys(smoGroupMap);
     keys.forEach((key) => {
       smoGroupMap[key].firstMeasure.format(smoGroupMap[key].voices);
     });
@@ -8570,30 +8573,29 @@ class VxSystem {
           vv.render();
           // unit test codes don't have tracker.
           if (measureMapper) {
-            var tmpStaff = this.staves.find((ss) => ss.staffId == vv.smoMeasure.measureNumber.staffId);
-            measureMapper.mapMeasure(tmpStaff,vv.smoMeasure);
+            const tmpStaff = this.staves.find((ss) => ss.staffId === vv.smoMeasure.measureNumber.staffId);
+            measureMapper.mapMeasure(tmpStaff, vv.smoMeasure);
           }
         }
       });
     }
 
     // Keep track of the y coordinate for the nth staff
-    var renderedConnection = {};
-    var brackets = false;
+    const renderedConnection = {};
 
-    if (systemIndex == 0 && lastStaff) {
+    if (systemIndex === 0 && lastStaff) {
       $(this.context.svg).find('g.lineBracket-' + this.lineIndex).remove();
-      var group = this.context.openGroup();
+      const group = this.context.openGroup();
       group.classList.add('lineBracket-' + this.lineIndex);
       group.classList.add('lineBracket');
       this.vxMeasures.forEach((vv) => {
-        var systemGroup = this.score.getSystemGroupForStaff(vv.selection);
+        const systemGroup = this.score.getSystemGroupForStaff(vv.selection);
         if (systemGroup && !renderedConnection[systemGroup.attrs.id]) {
           renderedConnection[systemGroup.attrs.id] = 1;
-          var startSel = this.vxMeasures[systemGroup.startSelector.staff];
-          var endSel = this.vxMeasures[systemGroup.endSelector.staff];
+          const startSel = this.vxMeasures[systemGroup.startSelector.staff];
+          const endSel = this.vxMeasures[systemGroup.endSelector.staff];
           if (startSel && endSel) {
-            var c1 = new VF.StaveConnector(startSel.stave, endSel.stave)
+            const c1 = new VF.StaveConnector(startSel.stave, endSel.stave)
               .setType(systemGroup.leftConnectorVx());
             c1.setContext(this.context).draw();
             brackets = true;
@@ -8602,28 +8604,28 @@ class VxSystem {
       });
 
       if (!brackets && this.vxMeasures.length > 1)  {
-        var c2 = new VF.StaveConnector(this.vxMeasures[0].stave,this.vxMeasures[this.vxMeasures.length - 1].stave,
+        const c2 = new VF.StaveConnector(this.vxMeasures[0].stave, this.vxMeasures[this.vxMeasures.length - 1].stave,
           VF.StaveConnector.type.SINGLE_LEFT);
         c2.setContext(this.context).draw();
       }
-        this.context.closeGroup();
-      } else if (lastStaff && smoMeasure.measureNumber.measureIndex + 1 < staff.measures.length) {
-        if (staff.measures[smoMeasure.measureNumber.measureIndex + 1].measureNumber.systemIndex == 0) {
-          var endMeasure = vxMeasure;
-          var startMeasure = this.vxMeasures.find((vv) => vv.selection.selector.staff == 0 &&
-            vv.selection.selector.measure == vxMeasure.selection.selector.measure);
-          if (endMeasure && startMeasure) {
-            $(this.context.svg).find('g.endBracket-' + this.lineIndex).remove();
-            var group = this.context.openGroup();
-            group.classList.add('endBracket-' + this.lineIndex);
-            group.classList.add('endBracket');
-            var c2 = new VF.StaveConnector(startMeasure.stave,endMeasure.stave)
-               .setType(VF.StaveConnector.type.SINGLE_RIGHT);
-            c2.setContext(this.context).draw();
-            this.context.closeGroup();
-          }
-       }
-     }
+      this.context.closeGroup();
+    } else if (lastStaff && smoMeasure.measureNumber.measureIndex + 1 < staff.measures.length) {
+      if (staff.measures[smoMeasure.measureNumber.measureIndex + 1].measureNumber.systemIndex === 0) {
+        const endMeasure = vxMeasure;
+        const startMeasure = this.vxMeasures.find((vv) => vv.selection.selector.staff === 0 &&
+          vv.selection.selector.measure === vxMeasure.selection.selector.measure);
+        if (endMeasure && startMeasure) {
+          $(this.context.svg).find('g.endBracket-' + this.lineIndex).remove();
+          const group = this.context.openGroup();
+          group.classList.add('endBracket-' + this.lineIndex);
+          group.classList.add('endBracket');
+          const c2 = new VF.StaveConnector(startMeasure.stave, endMeasure.stave)
+            .setType(VF.StaveConnector.type.SINGLE_RIGHT);
+          c2.setContext(this.context).draw();
+          this.context.closeGroup();
+        }
+      }
+    }
 
     // keep track of left-hand side for system connectors
     if (systemIndex === 0) {
@@ -8641,7 +8643,6 @@ class VxSystem {
       this.endcaps.push(vxMeasure.stave);
     }
     this.measures.push(vxMeasure);
-    // this._adjustBox(vxMeasure.renderedSize);
   }
 }
 ;// This is a WIP to handle parts, instruments, etc.
@@ -8679,103 +8680,102 @@ class SmoComposition {
     }
 
 }
-;
-// ## SmoMeasure - data for a measure of music
+;// ## SmoMeasure - data for a measure of music
 // Many rules of musical engraving are enforced at a measure level, e.g. the duration of
 // notes, accidentals, etc.
 // ### See Also:
 // Measures contain *notes*, *tuplets*, and *beam groups*.  So see `SmoNote`, etc.
 // Measures are contained in staves, see also `SystemStaff.js`
 // ## SmoMeasure Methods:
+// eslint-disable-next-line no-unused-vars
 class SmoMeasure {
-	constructor(params) {
-		this.tuplets = [];
+  constructor(params) {
+    this.tuplets = [];
     this.svg = {};
-		this.beamGroups = [];
-		this.modifiers = [];
+    this.beamGroups = [];
+    this.modifiers = [];
     this.pageGap = 0;
-		this.changed = true;
-    this.timestamp=0;
+    this.changed = true;
+    this.timestamp = 0;
     this.prevY = 0;
     this.prevX = 0;
-    this.padLeft=0;
-    this.prevFrame=0;
-    this.svg.staffWidth=200;
+    this.padLeft = 0;
+    this.prevFrame = 0;
+    this.svg.staffWidth = 200;
     this.svg.staffX = 0;
     this.svg.staffY = 0;
-    this.svg.history=[];
-    this.svg.logicalBox={};
+    this.svg.history = [];
+    this.svg.logicalBox = {};
     this.svg.yTop = 0;
 
-		var defaults = SmoMeasure.defaults;
+    const defaults = SmoMeasure.defaults;
 
-		smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, defaults, this);
-		smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, params, this);
-		this.voices = params.voices ? params.voices : [];
-		this.tuplets = params.tuplets ? params.tuplets : [];
-		this.modifiers = params.modifiers ? params.modifiers : defaults.modifiers;
+    smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, defaults, this);
+    smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, params, this);
+    this.voices = params.voices ? params.voices : [];
+    this.tuplets = params.tuplets ? params.tuplets : [];
+    this.modifiers = params.modifiers ? params.modifiers : defaults.modifiers;
 
     this.setDefaultBarlines();
 
-		if (!this['attrs']) {
-			this.attrs = {
-				id: VF.Element.newID(),
-				type: 'SmoMeasure'
-			};
-		} else {
-			// inherit attrs id for deserialized
-		}
-	}
+    if (!this.attrs) {
+      this.attrs = {
+        id: VF.Element.newID(),
+        type: 'SmoMeasure'
+      };
+    } else {
+      // inherit attrs id for deserialized
+    }
+  }
 
-
-	// ### defaultAttributes
-	// attributes that are to be serialized for a measure.
-	static get defaultAttributes() {
-		return [
-			'timeSignature', 'keySignature','systemBreak','pageBreak',
-			'measureNumber',
-			'activeVoice', 'clef', 'transposeIndex',
-      'adjX','customStretch','customProportion','padLeft', 'padRight', 'rightMargin'
+  // ### defaultAttributes
+  // attributes that are to be serialized for a measure.
+  static get defaultAttributes() {
+    return [
+      'timeSignature', 'keySignature', 'systemBreak', 'pageBreak',
+      'measureNumber',
+      'activeVoice', 'clef', 'transposeIndex',
+      'adjX', 'customStretch', 'customProportion', 'padLeft', 'padRight', 'rightMargin'
     ];
-	}
+  }
 
   static get formattingOptions() {
-    return ['customStretch','customProportion'];
+    return ['customStretch', 'customProportion'];
   }
   static get systemOptions() {
-    return ['systemBreak','pageBreak'];
+    return ['systemBreak', 'pageBreak'];
   }
   static get columnMappedAttributes() {
-    return ['timeSignature','keySignature','tempo'];
+    return ['timeSignature', 'keySignature', 'tempo'];
   }
   static get serializableAttributes() {
-    var rv = [];
+    const rv = [];
     SmoMeasure.defaultAttributes.forEach((attr) => {
       if (SmoMeasure.columnMappedAttributes.indexOf(attr) < 0) {
         rv.push(attr);
       }
     });
-      return rv;
+    return rv;
   }
 
   // ### serializeColumnMapped
   // Some measure attributes that apply to the entire column are serialized
   // separately.  Serialize those attributes, but only add them to the
   // hash if they already exist for an earlier measure
-  serializeColumnMapped(attrColumnHash,attrCurrentValue) {
+  serializeColumnMapped(attrColumnHash, attrCurrentValue) {
     SmoMeasure.columnMappedAttributes.forEach((attr) => {
       if (this[attr]) {
         if (!attrColumnHash[attr]) {
           attrColumnHash[attr] = {};
           attrCurrentValue[attr] = {};
         }
-        var curAttrHash  = attrColumnHash[attr];
-        if (this[attr].ctor && this[attr].ctor == 'SmoTempoText') {
+        const curAttrHash  = attrColumnHash[attr];
+        if (this[attr].ctor && this[attr].ctor === 'SmoTempoText') {
           if (this[attr].compare(attrCurrentValue[attr]) === false) {
             curAttrHash[this.measureNumber.measureIndex] = this[attr];
             attrCurrentValue[attr] = this[attr];
           }
-        } else if (attrCurrentValue[attr] != this[attr]) {
+        } else if (attrCurrentValue[attr] !== this[attr]) {
           curAttrHash[this.measureNumber.measureIndex] = this[attr];
           attrCurrentValue[attr] = this[attr];
         }
@@ -8783,185 +8783,182 @@ class SmoMeasure {
     });
   }
 
-	// ### serialize
-	// Convert this measure object to a JSON object, recursively serializing all the notes,
-	// note modifiers, etc.
-	serialize() {
-		var params = {};
-		smoSerialize.serializedMergeNonDefault(SmoMeasure.defaults,SmoMeasure.serializableAttributes, this, params);
-		params.tuplets = [];
-		params.voices = [];
-		params.modifiers=[];
+  // ### serialize
+  // Convert this measure object to a JSON object, recursively serializing all the notes,
+  // note modifiers, etc.
+  serialize() {
+    const params = {};
+    let ser = true;
+    smoSerialize.serializedMergeNonDefault(SmoMeasure.defaults, SmoMeasure.serializableAttributes, this, params);
+    params.tuplets = [];
+    params.voices = [];
+    params.modifiers = [];
 
-		this.tuplets.forEach((tuplet) => {
-			params.tuplets.push(tuplet.serialize());
-		});
+    this.tuplets.forEach((tuplet) => {
+      params.tuplets.push(tuplet.serialize());
+    });
 
-		this.voices.forEach((voice) => {
-			var obj = {
-				notes: []
-			};
-			voice.notes.forEach((note) => {
-				obj.notes.push(note.serialize());
-			});
-			params.voices.push(obj);
-		});
+    this.voices.forEach((voice) => {
+      const obj = {
+        notes: []
+      };
+      voice.notes.forEach((note) => {
+        obj.notes.push(note.serialize());
+      });
+      params.voices.push(obj);
+    });
 
-		this.modifiers.forEach((modifier) => {
+    this.modifiers.forEach((modifier) => {
+      ser = true;
       /* don't serialize default modifiers */
-      if (modifier.ctor == 'SmoBarline' && modifier.position == SmoBarline.positions.start && modifier.barline == SmoBarline.barlines.singleBar) {
-          ;
+      if (modifier.ctor === 'SmoBarline' && modifier.position === SmoBarline.positions.start &&
+        modifier.barline === SmoBarline.barlines.singleBar) {
+        ser = false;
+      } else if (modifier.ctor === 'SmoBarline' && modifier.position === SmoBarline.positions.end
+        && modifier.barline === SmoBarline.barlines.singleBar) {
+        ser = false;
+      } else if (modifier.ctor === 'SmoTempoText') {
+        // we don't save tempo text as a modifier anymore
+        ser = false;
+      } else if (modifier.ctor === 'SmoRepeatSymbol' && modifier.position === SmoRepeatSymbol.positions.start
+        && modifier.symbol === SmoRepeatSymbol.symbols.None) {
+        ser = false;
       }
-      else if (modifier.ctor == 'SmoBarline' && modifier.position == SmoBarline.positions.end && modifier.barline == SmoBarline.barlines.singleBar) {
-          ;
-      }
-      // we don't save tempo text as a modifier anymore
-      else if (modifier.ctor == 'SmoTempoText') {
-          ;
-      }
-      else if (modifier.ctor == 'SmoRepeatSymbol' && modifier.position == SmoRepeatSymbol.positions.start && modifier.symbol == SmoRepeatSymbol.symbols.None) {
-          ;
-      } else {
+      if (ser) {
         params.modifiers.push(modifier.serialize());
       }
-		});
-		return params;
-	}
+    });
+    return params;
+  }
 
-	// ### deserialize
-	// restore a serialized measure object.  Usually called as part of deserializing a score,
-	// but can also be used to restore a measure due to an undo operation.
-	static deserialize(jsonObj) {
-		var voices = [];
-        var noteSum = [];
-		for (var j = 0; j < jsonObj.voices.length; ++j) {
-			var voice = jsonObj.voices[j];
-			var notes = [];
-			voices.push({
-				notes: notes
-			});
-			for (var i = 0; i < voice.notes.length; ++i) {
-				var noteParams = voice.notes[i];
-				var smoNote = SmoNote.deserialize(noteParams);
-				notes.push(smoNote);
-                noteSum.push(smoNote);
-			}
-		}
-
-		var tuplets = [];
-		for (j = 0; j < jsonObj.tuplets.length; ++j) {
-      var tupJson = jsonObj.tuplets[j];
-      var noteAr = noteSum.filter((nn) => {
-          return nn.isTuplet && nn.tuplet.id === tupJson.attrs.id;
+  // ### deserialize
+  // restore a serialized measure object.  Usually called as part of deserializing a score,
+  // but can also be used to restore a measure due to an undo operation.
+  static deserialize(jsonObj) {
+    let j = 0;
+    let i = 0;
+    const voices = [];
+    const noteSum = [];
+    for (j = 0; j < jsonObj.voices.length; ++j) {
+      const voice = jsonObj.voices[j];
+      const notes = [];
+      voices.push({
+        notes
       });
+      for (i = 0; i < voice.notes.length; ++i) {
+        const noteParams = voice.notes[i];
+        const smoNote = SmoNote.deserialize(noteParams);
+        notes.push(smoNote);
+        noteSum.push(smoNote);
+      }
+    }
+
+    const tuplets = [];
+    for (j = 0; j < jsonObj.tuplets.length; ++j) {
+      const tupJson = jsonObj.tuplets[j];
+      const noteAr = noteSum.filter((nn) =>
+        nn.isTuplet && nn.tuplet.id === tupJson.attrs.id);
 
       // Bug fix:  A tuplet with no notes may be been overwritten
       // in a copy/paste operation
       if (noteAr.length > 0) {
         tupJson.notes = noteAr;
-  			var tuplet = new SmoTuplet(tupJson);
-  			tuplets.push(tuplet);
+        const tuplet = new SmoTuplet(tupJson);
+        tuplets.push(tuplet);
       }
-		}
-
-		/* var beamGroups = [];
-		for (j = 0; j < jsonObj.beamGroups.length; ++j) {
-			var smoBeam = new SmoBeamGroup(jsonObj.beamGroups[j]);
-			beamGroups.push(smoBeam);
-		}  */
-
-		var modifiers = [];
-		jsonObj.modifiers.forEach((modParams) => {
-			var ctor = eval(modParams.ctor);
-			var modifier = new ctor(modParams);
-			modifiers.push(modifier);
-		});
-
-		var params = {
-			voices: voices,
-			tuplets: tuplets,
-			beamGroups: [],
-			modifiers:modifiers
-		};
-
-		smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, jsonObj, params);
-        var rv = new SmoMeasure(params);
-        if (jsonObj.tempo) {
-            rv.tempo = new SmoTempoText(jsonObj.tempo);
-        }
-
-        // Handle migration for measure-mapped parameters
-        rv.modifiers.forEach((mod) => {
-            if (mod.ctor == 'SmoTempoText') {
-                rv.tempo = mod;
-            }
-        });
-
-		return rv;
     }
 
-    // ### defaultPitchForClef
-	// Accessor for clef objects, which are set at a measure level.
-	// #### TODO: learn what all these clefs are
-	static get defaultPitchForClef() {
-		return {
-			'treble': {
-				letter: 'b',
-				accidental: 'n',
-				octave: 4
-			},
-			'bass': {
-				letter: 'd',
-				accidental: 'n',
-				octave: 3
-			},
-			'tenor': {
-				letter: 'a',
-				accidental: 'n',
-				octave: 3
-			},
-			'alto': {
-				letter: 'c',
-				accidental: 'n',
-				octave: 4
-			},
-			'soprano': {
-				letter: 'b',
-				accidental: 'n',
-				octave: 4
-			},
-			'percussion': {
-				letter: 'b',
-				accidental: 'n',
-				octave: 4
-			},
-			'mezzo-soprano': {
-				letter: 'b',
-				accidental: 'n',
-				octave: 4
-			},
-			'baritone-c': {
-				letter: 'b',
-				accidental: 'n',
-				octave: 3
-			},
-			'baritone-f': {
-				letter: 'e',
-				accidental: 'n',
-				octave: 3
-			},
-			'subbass': {
-				letter: 'd',
-				accidental: '',
-				octave: 2
-			},
-			'french': {
-				letter: 'b',
-				accidental: '',
-				octave: 4
-			} // no idea
-		}
-	}
+    const modifiers = [];
+    jsonObj.modifiers.forEach((modParams) => {
+      const ctor = eval(modParams.ctor);
+      const modifier = new ctor(modParams);
+      modifiers.push(modifier);
+    });
+
+    const params = {
+      voices,
+      tuplets,
+      beamGroups: [],
+      modifiers
+    };
+
+    smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, jsonObj, params);
+    const rv = new SmoMeasure(params);
+    if (jsonObj.tempo) {
+      rv.tempo = new SmoTempoText(jsonObj.tempo);
+    }
+
+    // Handle migration for measure-mapped parameters
+    rv.modifiers.forEach((mod) => {
+      if (mod.ctor === 'SmoTempoText') {
+        rv.tempo = mod;
+      }
+    });
+    return rv;
+  }
+
+  // ### defaultPitchForClef
+  // Accessor for clef objects, which are set at a measure level.
+  // #### TODO: learn what all these clefs are
+  static get defaultPitchForClef() {
+    return {
+      'treble': {
+        letter: 'b',
+        accidental: 'n',
+        octave: 4
+      },
+      'bass': {
+        letter: 'd',
+        accidental: 'n',
+        octave: 3
+      },
+      'tenor': {
+        letter: 'a',
+        accidental: 'n',
+        octave: 3
+      },
+      'alto': {
+        letter: 'c',
+        accidental: 'n',
+        octave: 4
+      },
+      'soprano': {
+        letter: 'b',
+        accidental: 'n',
+        octave: 4
+      },
+      'percussion': {
+        letter: 'b',
+        accidental: 'n',
+        octave: 4
+      },
+      'mezzo-soprano': {
+        letter: 'b',
+        accidental: 'n',
+        octave: 4
+      },
+      'baritone-c': {
+        letter: 'b',
+        accidental: 'n',
+        octave: 3
+      },
+      'baritone-f': {
+        letter: 'e',
+        accidental: 'n',
+        octave: 3
+      },
+      'subbass': {
+        letter: 'd',
+        accidental: '',
+        octave: 2
+      },
+      'french': {
+        letter: 'b',
+        accidental: '',
+        octave: 4
+      } // no idea
+    };
+  }
   static set emptyMeasureNoteType(tt) {
     SmoMeasure._emptyMeasureNoteType = tt;
   }
@@ -8969,654 +8966,655 @@ class SmoMeasure {
     SmoMeasure._emptyMeasureNoteType = SmoMeasure._emptyMeasureNoteType ? SmoMeasure._emptyMeasureNoteType : 'r';
     return SmoMeasure._emptyMeasureNoteType;
   }
-	// ### getDefaultNotes
-	// Get a measure full of default notes for a given timeSignature/clef.
-	// returns 8th notes for triple-time meters, etc.
-	static getDefaultNotes(params) {
-		if (params == null) {
-			params = {};
-		}
-		params.timeSignature = params.timeSignature ? params.timeSignature : '4/4';
-		params.clef = params.clef ? params.clef : 'treble';
-		var meterNumbers = params.timeSignature.split('/').map(number => parseInt(number, 10));
-		var ticks = {
-			numerator: 4096,
-			denominator: 1,
-			remainder: 0
-		};
-    var beamBeats = ticks.numerator;
-		if (meterNumbers[1]  == 8) {
-			ticks = {
-				numerator: 2048,
-				denominator: 1,
-				remainder: 0
-			};
-      beamBeats = 2048*3;
-		}
-		var pitches =
-     JSON.parse(JSON.stringify(SmoMeasure.defaultPitchForClef[params.clef]));
-		var rv = [];
-    var beats = meterNumbers[0];
+  // ### getDefaultNotes
+  // Get a measure full of default notes for a given timeSignature/clef.
+  // returns 8th notes for triple-time meters, etc.
+  static getDefaultNotes(params) {
+    let beamBeats = 0;
+    let beats = 0;
+    let i = 0;
+    let ticks = {
+      numerator: 4096,
+      denominator: 1,
+      remainder: 0
+    };
+    if (params === null) {
+      params = {};
+    }
+    params.timeSignature = params.timeSignature ? params.timeSignature : '4/4';
+    params.clef = params.clef ? params.clef : 'treble';
+    const meterNumbers = params.timeSignature.split('/').map(number => parseInt(number, 10));
+    beamBeats = ticks.numerator;
+    if (meterNumbers[1] === 8) {
+      ticks = {
+        numerator: 2048,
+        denominator: 1,
+        remainder: 0
+      };
+      beamBeats = 2048 * 3;
+    }
+    const pitches =
+      JSON.parse(JSON.stringify(SmoMeasure.defaultPitchForClef[params.clef]));
+    const rv = [];
+    beats = meterNumbers[0];
 
     // Treat 2/2 like 4/4 time.
-    if (meterNumbers[1] == 2) {
+    if (meterNumbers[1] === 2) {
       beats = beats * 2;
     }
 
-		for (var i = 0; i < beats; ++i) {
-      var note = new SmoNote({
-				clef: params.clef,
-				pitches: [pitches],
-				ticks: ticks,
-				timeSignature: params.timeSignature,
-        beamBeats:beamBeats,
-        noteType:SmoMeasure.emptyMeasureNoteType
-			});
+    for (i = 0; i < beats; ++i) {
+      const note = new SmoNote({
+        clef: params.clef,
+        pitches: [pitches],
+        ticks,
+        timeSignature: params.timeSignature,
+        beamBeats,
+        noteType: SmoMeasure.emptyMeasureNoteType
+      });
       rv.push(note);
-		}
-		return rv;
-	}
+    }
+    return rv;
+  }
 
-	// ### getDefaultMeasure
-	// For create the initial or new measure, get a measure with notes.
-	static getDefaultMeasure(params) {
-		var obj = {};
-		smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, SmoMeasure.defaults, obj);
-		smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, params, obj);
-		return new SmoMeasure(obj);
-	}
+  // ### getDefaultMeasure
+  // For create the initial or new measure, get a measure with notes.
+  static getDefaultMeasure(params) {
+    const obj = {};
+    smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, SmoMeasure.defaults, obj);
+    smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, params, obj);
+    return new SmoMeasure(obj);
+  }
 
-	// ### SmoMeasure.getDefaultMeasureWithNotes
-	// Get a new measure with the appropriate notes for the supplied clef, instrument
-	static getDefaultMeasureWithNotes(params) {
-		var measure = SmoMeasure.getDefaultMeasure(params);
-		measure.voices.push({
-			notes: SmoMeasure.getDefaultNotes(params)
-		});
-		return measure;
-	}
+  // ### SmoMeasure.getDefaultMeasureWithNotes
+  // Get a new measure with the appropriate notes for the supplied clef, instrument
+  static getDefaultMeasureWithNotes(params) {
+    var measure = SmoMeasure.getDefaultMeasure(params);
+    measure.voices.push({
+      notes: SmoMeasure.getDefaultNotes(params)
+    });
+    return measure;
+  }
 
+  static get defaultVoice44() {
+    return SmoMeasure.getDefaultNotes({
+      clef: 'treble',
+      timeSignature: '4/4'
+    });
+  }
 
-	static get defaultVoice44() {
-		return SmoMeasure.getDefaultNotes({
-			clef: 'treble',
-			timeSignature: '4/4'
-		});
-	}
+  setDefaultBarlines() {
+    if (!this.getStartBarline()) {
+      this.modifiers.push(new SmoBarline({
+        position: SmoBarline.positions.start,
+        barline: SmoBarline.barlines.singleBar
+      }));
+    }
+    if (!this.getEndBarline()) {
+      this.modifiers.push(new SmoBarline({
+        position: SmoBarline.positions.end,
+        barline: SmoBarline.barlines.singleBar
+      }));
+    }
+  }
+  static get defaults() {
+    // var noteDefault = SmoMeasure.defaultVoice44;
+    const modifiers = [];
+    modifiers.push(new SmoBarline({
+      position: SmoBarline.positions.start,
+      barline: SmoBarline.barlines.singleBar
+    }));
+    modifiers.push(new SmoBarline({
+      position: SmoBarline.positions.end,
+      barline: SmoBarline.barlines.singleBar
+    }));
+    modifiers.push(new SmoRepeatSymbol({
+      position: SmoRepeatSymbol.positions.start,
+      symbol: SmoRepeatSymbol.symbols.None
+    }));
 
-    setDefaultBarlines() {
-        if (!this.getStartBarline()) {
-            this.modifiers.push(new SmoBarline({
-    				position: SmoBarline.positions.start,
-    				barline: SmoBarline.barlines.singleBar
-    			}));
+    return {
+      timeSignature: '4/4',
+      keySignature: 'C',
+      canceledKeySignature: null,
+      adjX: 0,
+      pageBreak: false,
+      systemBreak: false,
+      adjRight: 0,
+      padRight: 10,
+      padLeft: 0,
+      tuplets: [],
+      transposeIndex: 0,
+      customStretch: 0,
+      customProportion: 2,
+      modifiers,
+      autoJustify: false,
+      rightMargin: 2,
+      staffY: 40,
+      // bars: [1, 1], // follows enumeration in VF.Barline
+      measureNumber: {
+        localIndex: 0,
+        systemIndex: 0,
+        measureNumber: 0,
+        staffId: 0
+      },
+      clef: 'treble',
+      changed: true,
+      forceClef: false,
+      forceKeySignature: false,
+      forceTimeSignature: false,
+      voices: [],
+      activeVoice: 0,
+      tempo: new SmoTempoText()
+    };
+  }
+
+  setForcePageBreak(val) {
+    this.pageBreak = val;
+  }
+
+  setForceSystemBreak(val) {
+    this.systemBreak = val;
+  }
+
+  getForceSystemBreak() {
+    return this.systemBreak;
+  }
+
+  getForcePageBreak() {
+    return this.pageBreak;
+  }
+
+  // ###   SVG mixins
+  // We store some rendering data in the instance for UI mapping.
+  get staffWidth() {
+    return this.svg.staffWidth;
+  }
+
+  setWidth(width, description) {
+    if (layoutDebug.flagSet('measureHistory')) {
+      this.svg.history.push('setWidth ' + this.staffWidth + '=> ' + width + ' ' + description);
+    }
+    this.svg.staffWidth = width;
+  }
+
+  get staffX() {
+    return this.svg.staffX;
+  }
+
+  setX(x, description) {
+    layoutDebug.measureHistory(this, 'staffX', x, description);
+    this.svg.staffX = Math.round(x);
+  }
+
+  get staffY() {
+    return this.svg.staffY;
+  }
+
+  setY(y, description) {
+    layoutDebug.measureHistory(this, 'staffY', y, description);
+    this.svg.staffY = Math.round(y);
+  }
+
+  get logicalBox() {
+    return typeof(this.svg.logicalBox.x) === 'number' ? this.svg.logicalBox : null;
+  }
+
+  get yTop() {
+    return this.svg.yTop;
+  }
+
+  setYTop(y, description) {
+    layoutDebug.measureHistory(this, 'yTop', y, description);
+    this.svg.yTop = y;
+  }
+
+  deleteLogicalBox(description) {
+    this.svg.logicalBox = {};
+    this.svg.history.push('delete box ' + description);
+  }
+
+  setBox(box, description) {
+    layoutDebug.measureHistory(this, 'logicalBox', box, description);
+    this.svg.logicalBox = svgHelpers.smoBox(box);
+  }
+
+  saveUnjustifiedWidth() {
+    this.svg.unjustifiedWidth = this.svg.staffWidth;
+  }
+
+  // ### getClassId
+  // create a identifier unique to this measure index so it can be easily removed.
+  getClassId() {
+    return 'mm-' + this.measureNumber.staffId + '-' + this.measureNumber.measureIndex;
+  }
+
+  pickupMeasure(duration) {
+    const proto = SmoMeasure.deserialize(this.serialize());
+    proto.attrs.id =  VF.Element.newID();
+    const note = proto.voices[0].notes[0];
+    proto.voices = [];
+    note.pitches = [note.pitches[0]];
+    note.ticks.numerator = duration;
+    note.makeRest();
+    proto.voices.push({ notes: [note] });
+    return proto;
+  }
+
+  // ### getRenderedNote
+  // The renderer puts a mapping between rendered svg groups and
+  // the logical notes in SMO.  The UI needs this mapping to be interactive,
+  // figure out where a note is rendered, what its bounding box is, etc.
+  getRenderedNote(id) {
+    let j = 0;
+    let i = 0;
+    for (j = 0; j < this.voices.length; ++j) {
+      const voice = this.voices[j];
+      for (i = 0; i < voice.notes.length; ++i) {
+        const note = voice.notes[i];
+        if (note.renderId === id) {
+          return {
+            smoNote: note,
+            voice: j,
+            tick: i
+          };
         }
-        if (!this.getEndBarline()) {
-            this.modifiers.push(new SmoBarline({
-    				position: SmoBarline.positions.end,
-    				barline: SmoBarline.barlines.singleBar
-    			}));
+      }
+    }
+    return null;
+  }
+
+  getNotes() {
+    return this.voices[this.activeVoice].notes;
+  }
+
+  getActiveVoice() {
+    return this.activeVoice;
+  }
+
+  setActiveVoice(vix) {
+    if (vix >= 0 && vix < this.voices.length) {
+      this.activeVoice = vix;
+    }
+  }
+
+  tickmapForVoice(voiceIx) {
+    const tickmap = new smoTickIterator(this, { voice: voiceIx });
+    tickmap.iterate(smoTickIterator.nullActor, this);
+    return tickmap;
+  }
+
+  // ### createMeasureTickmaps
+  // A tickmap is a map of notes to ticks for the measure.  It is speciifc per-voice
+  // since each voice may have different numbers of ticks.  The accidental map is
+  // overall since accidentals in one voice apply to accidentals in the other
+  // voices.  So we return the tickmaps and the overall accidental map.
+  createMeasureTickmaps() {
+    let i = 0;
+    const tickmapArray = [];
+    const accidentalMap = {};
+    for (i = 0; i < this.voices.length; ++i) {
+      tickmapArray.push(this.tickmapForVoice(i));
+    }
+
+    for (i = 0; i < this.voices.length; ++i) {
+      const tickmap = tickmapArray[i];
+      const durationKeys = Object.keys(tickmap.durationAccidentalMap);
+
+      durationKeys.forEach((durationKey) => {
+        if (!accidentalMap[durationKey]) {
+          accidentalMap[durationKey] = tickmap.durationAccidentalMap[durationKey];
+        } else {
+          const amap = accidentalMap[durationKey];
+          const pitchKeys = Object.keys(tickmap.durationAccidentalMap[durationKey]);
+          pitchKeys.forEach((pitchKey) => {
+            if (!amap[pitchKey]) {
+              amap[pitchKey] = tickmap.durationAccidentalMap[durationKey][pitchKey];
+            }
+          });
         }
+      });
     }
-	static get defaults() {
-		// var noteDefault = SmoMeasure.defaultVoice44;
-		const modifiers = [];
-		modifiers.push(new SmoBarline({
-				position: SmoBarline.positions.start,
-				barline: SmoBarline.barlines.singleBar
-			}));
-		modifiers.push(new SmoBarline({
-				position: SmoBarline.positions.end,
-				barline: SmoBarline.barlines.singleBar
-			}));
-		modifiers.push(new SmoRepeatSymbol({
-				position: SmoRepeatSymbol.positions.start,
-				symbol: SmoRepeatSymbol.symbols.None
-			}));
-	    // modifiers.push(new SmoTempoText({tempoMode:SmoTempoText.tempoModes.textMode}));
-		// modifiers.push(new SmoRepeatSymbol({symbol:SmoRepeatSymbol.symbols.None});
-		return {
-			timeSignature: '4/4',
-			keySignature: "C",
-			canceledKeySignature: null,
-			adjX: 0,
-      pageBreak:false,
-      systemBreak:false,
-			adjRight:0,
-			padRight: 10,
-      padLeft:0,
-      tuplets:[],
-			transposeIndex: 0,
-      customStretch:0,
-      customProportion:2,
-			modifiers: modifiers,
-      autoJustify:false,
-			rightMargin: 2,
-			staffY: 40,
-			// bars: [1, 1], // follows enumeration in VF.Barline
-			measureNumber: {
-				localIndex: 0,
-				systemIndex: 0,
-				measureNumber: 0,
-				staffId: 0
-			},
-			clef: 'treble',
-			changed: true,
-			forceClef: false,
-			forceKeySignature: false,
-			forceTimeSignature: false,
-			voices: [],
-			activeVoice: 0,
-      tempo:new SmoTempoText()
-		};
-	}
+    const accidentalArray = [];
+    Object.keys(accidentalMap).forEach((durationKey) => {
+      accidentalArray.push({ duration: durationKey, pitches: accidentalMap[durationKey] });
+    });
+    return {
+      tickmaps: tickmapArray,
+      accidentalMap,
+      accidentalArray
+    };
+  }
 
-    setForcePageBreak(val) {
-        this.pageBreak = val;
-    }
+  getTicksFromVoice() {
+    let ticks = 0;
+    this.voices[0].notes.forEach((note) => {
+      ticks += note.tickCount;
+    });
+    return ticks;
+  }
 
-    setForceSystemBreak(val) {
-        this.systemBreak = val;
-    }
+  isPickup() {
+    const ticks = this.getTicksFromVoice();
+    const goal = smoMusic.timeSignatureToTicks(this.timeSignature);
+    return (ticks < goal);
+  }
 
-    getForceSystemBreak() {
-        return this.systemBreak;
-    }
-
-    getForcePageBreak() {
-        return this.pageBreak;
-    }
-
-    // ###   SVG mixins
-    // We store some rendering data in the instance for UI mapping.
-    get staffWidth() {
-        return this.svg.staffWidth;
-    }
-
-    setWidth(width,description) {
-        if (layoutDebug.flagSet('measureHistory')) {
-           this.svg.history.push('setWidth '+this.staffWidth+'=> '+width + ' ' + description);
+  // ### getDynamicMap
+  // ### Description:
+  // returns the dynamic text for each tick index.  If
+  // there are no dynamics, the empty array is returned.
+  getDynamicMap() {
+    const rv = [];
+    let hasDynamic = false;
+    this.voices.forEach((voice) => {
+      voice.notes.forEach((note) => {
+        if (note.dynamicText) {
+          rv.push({
+            note,
+            text: note.dynamicText
+          });
+          hasDynamic = true;
+        } else {
+          rv.push({
+            note,
+            text: ''
+          });
         }
-        this.svg.staffWidth = width;
+      });
+    });
+
+    if (hasDynamic) {
+      return rv;
     }
+    return [];
+  }
 
-    get staffX() {
-        return this.svg.staffX;
-    }
+  clearBeamGroups() {
+    this.beamGroups = [];
+  }
 
-    setX(x,description) {
-        layoutDebug.measureHistory(this,'staffX',x,description);
-        this.svg.staffX = Math.round(x);
-    }
-
-    get staffY() {
-        return this.svg.staffY;
-    }
-
-    setY(y,description) {
-        layoutDebug.measureHistory(this,'staffY',y,description);
-        this.svg.staffY = Math.round(y);
-    }
-
-    get logicalBox() {
-        return typeof(this.svg.logicalBox['x']) == 'number'  ? this.svg.logicalBox : null;
-    }
-
-    get yTop() {
-        return this.svg.yTop;
-    }
-
-    setYTop(y,description) {
-        layoutDebug.measureHistory(this,'yTop',y,description);
-        this.svg.yTop = y;
-    }
-
-    deleteLogicalBox(description) {
-        this.svg.logicalBox = {};
-        this.svg.history.push('delete box ' +description);
-    }
-
-    setBox(box,description) {
-        layoutDebug.measureHistory(this,'logicalBox',box,description);
-        this.svg.logicalBox = svgHelpers.smoBox(box);
-    }
-
-    saveUnjustifiedWidth() {
-        this.svg.unjustifiedWidth = this.svg.staffWidth;
-    }
-
-    // ### getClassId
-    // create a identifier unique to this measure index so it can be easily removed.
-    getClassId() {
-        return 'mm-'+this.measureNumber.staffId+'-'+this.measureNumber.measureIndex;
-    }
-
-    pickupMeasure(duration) {
-        var proto = SmoMeasure.deserialize(this.serialize());
-        proto.attrs.id =  VF.Element.newID();
-        var note = proto.voices[0].notes[0];
-        proto.voices = [];
-        note.pitches = [note.pitches[0]];
-        note.ticks.numerator = duration;
-        note.makeRest();
-        proto.voices.push({notes:[note]});
-        return proto;
-    }
-
-	// ### getRenderedNote
-	// The renderer puts a mapping between rendered svg groups and
-	// the logical notes in SMO.  The UI needs this mapping to be interactive,
-	// figure out where a note is rendered, what its bounding box is, etc.
-	getRenderedNote(id) {
-		for (var j = 0; j < this.voices.length; ++j) {
-			var voice = this.voices[j];
-			for (var i = 0; i < voice.notes.length; ++i) {
-				var note = voice.notes[i];
-				if (note.renderId === id) {
-					return {
-						smoNote: note,
-						voice: j,
-						tick: i
-					};
-				}
-			}
-		}
-		return null;
-	}
-
-	/* set notes(val) {
-		this.voices[this.activeVoice].notes = val;
-	}  */
-
-    getNotes() {
-        return this.voices[this.activeVoice].notes;
-    }
-
-    getActiveVoice() {
-        return this.activeVoice;
-    }
-
-    setActiveVoice(vix) {
-        if (vix >= 0 && vix < this.voices.length) {
-            this.activeVoice=vix;
+  // ### tuplet methods.
+  //
+  // #### tupletNotes
+  tupletNotes(tuplet) {
+    let j = 0;
+    let i = 0;
+    let notes = [];
+    for (j = 0; j < this.voices.length; ++j) {
+      notes = this.voices[j].notes;
+      for (i = 0; i < notes.length; ++i) {
+        if (notes[i].tuplet && notes[i].tuplet.id === tuplet.attrs.id) {
+          notes.push(notes[i]);
         }
+      }
     }
+    return notes;
+  }
 
-
-
-    tickmapForVoice(voiceIx) {
-        var tickmap = new smoTickIterator(this,{voice:voiceIx});
-        tickmap.iterate(smoTickIterator.nullActor,this);
-        return tickmap;
-    }
-
-    // ### createMeasureTickmaps
-    // A tickmap is a map of notes to ticks for the measure.  It is speciifc per-voice
-    // since each voice may have different numbers of ticks.  The accidental map is
-    // overall since accidentals in one voice apply to accidentals in the other
-    // voices.  So we return the tickmaps and the overall accidental map.
-    createMeasureTickmaps() {
-        var tickmapArray=[];
-        var accidentalMap = {};
-        for (var i = 0;i< this.voices.length;++i) {
-            tickmapArray.push(this.tickmapForVoice(i));
+  // #### tupletIndex
+  // return the index of the given tuplet
+  tupletIndex(tuplet) {
+    let j = 0;
+    let i = 0;
+    for (j = 0; j < this.voices.length; ++j) {
+      const notes = this.voices[j].notes;
+      for (i = 0; i < notes.length; ++i) {
+        if (notes[i].tuplet && notes[i].tuplet.id === tuplet.attrs.id) {
+          return i;
         }
+      }
+    }
+    return -1;
+  }
 
-        for (var i = 0;i< this.voices.length;++i) {
-            var voice = this.voices[i];
-            var tickmap = tickmapArray[i];
-            var durationKeys = Object.keys(tickmap.durationAccidentalMap)
+  // #### getTupletForNote
+  // Finds the tuplet for a given note, or null if there isn't one.
+  getTupletForNote(note) {
+    let i = 0;
+    if (!note.isTuplet) {
+      return null;
+    }
+    for (i = 0; i < this.tuplets.length; ++i) {
+      const tuplet = this.tuplets[i];
+      if (tuplet.attrs.id === note.tuplet.id) {
+        return tuplet;
+      }
+    }
+    return null;
+  }
 
-            durationKeys.forEach((durationKey) => {
-                if (!accidentalMap[durationKey]) {
-                    accidentalMap[durationKey] = tickmap.durationAccidentalMap[durationKey];
-                } else {
-                    var amap = accidentalMap[durationKey];
-                    var amapKeys = Object.keys(amap);
-                    var pitchKeys = Object.keys(tickmap.durationAccidentalMap[durationKey]);
-                    pitchKeys.forEach((pitchKey) => {
-                        if (!amap[pitchKey]) {
-                            amap[pitchKey] = tickmap.durationAccidentalMap[durationKey][pitchKey];
-                        }
-                    });
-                }
-            });
+  removeTupletForNote(note) {
+    let i = 0;
+    const tuplets = [];
+    for (i = 0; i < this.tuplets.length; ++i) {
+      const tuplet = this.tuplets[i];
+      if (note.tuplet.id !== tuplet.attrs.id) {
+        tuplets.push(tuplet);
+      }
+    }
+    this.tuplets = tuplets;
+  }
+
+  // ### populateVoice
+  // Create a new voice in this measure, and populate it with the default note
+  // for this measure/key/clef
+  populateVoice(index) {
+    if (index !==  this.voices.length) {
+      return;
+    }
+    this.voices.push({ notes: SmoMeasure.getDefaultNotes(this) });
+    this.activeVoice = index;
+    this.changed = true;
+  }
+
+  // ### measure modifier mixins
+  _addSingletonModifier(name, parameters) {
+    const ctor = eval(name);
+    const ar = this.modifiers.filter(obj => obj.attrs.type !== name);
+    this.modifiers = ar;
+    this.modifiers.push(new ctor(parameters));
+  }
+  _removeSingletonModifier(name) {
+    const ar = this.modifiers.filter(obj => obj.attrs.type !== name);
+    this.modifiers = ar;
+  }
+
+  _getSingletonModifier(name) {
+    return this.modifiers.find(obj => obj.attrs.type === name);
+  }
+
+  addRehearsalMark(parameters) {
+    this._addSingletonModifier('SmoRehearsalMark', parameters);
+  }
+  removeRehearsalMark() {
+    this._removeSingletonModifier('SmoRehearsalMark');
+  }
+  getRehearsalMark() {
+    return this._getSingletonModifier('SmoRehearsalMark');
+  }
+  getModifiersByType(type) {
+    return this.modifiers.filter((mm) => type === mm.attrs.type);
+  }
+
+  addTempo(params) {
+    this.tempo = new SmoTempoText(params);
+  }
+  removeTempo() {
+    this.tempo = new SmoTempoText();
+  }
+  getTempo() {
+    return this.tempo;
+  }
+  addMeasureText(mod) {
+    var exist = this.modifiers.filter((mm) =>
+      mm.attrs.id === mod.attrs.id
+    );
+    if (exist.length) {
+      this.setChanged(); // already added but set changed===true to re-justify
+      return;
+    }
+    this.modifiers.push(mod);
+    this.setChanged();
+  }
+
+  getMeasureText() {
+    return this.modifiers.filter(obj => obj.ctor === 'SmoMeasureText');
+  }
+
+  removeMeasureText(id) {
+    var ar = this.modifiers.filter(obj => obj.attrs.id !== id);
+    this.modifiers = ar;
+    this.setChanged();
+  }
+
+  setRepeatSymbol(rs) {
+    const ar = [];
+    let toAdd = true;
+    const exSymbol = this.getRepeatSymbol();
+    if (exSymbol && exSymbol.symbol === rs.symbol) {
+      toAdd = false;
+    }
+    this.modifiers.forEach((modifier) => {
+      if (modifier.ctor !== 'SmoRepeatSymbol') {
+        ar.push(modifier);
+      }
+    });
+    this.modifiers = ar;
+    if (toAdd) {
+      ar.push(rs);
+    }
+  }
+  getRepeatSymbol() {
+    const rv = this.modifiers.filter(obj => obj.ctor === 'SmoRepeatSymbol');
+    return rv.length ? rv[0] : null;
+  }
+  clearRepeatSymbols() {
+    const ar = [];
+    this.modifiers.forEach((modifier) => {
+      if (modifier.ctor !== 'SmoRepeatSymbol') {
+        ar.push(modifier);
+      }
+    });
+    this.modifiers = ar;
+  }
+
+  setBarline(barline) {
+    var ar = [];
+    this.modifiers.forEach((modifier) => {
+      if (modifier.ctor !== 'SmoBarline' || modifier.position !== barline.position) {
+        ar.push(modifier);
+      }
+    });
+    this.modifiers = ar;
+    ar.push(barline);
+  }
+
+  _getBarline(pos) {
+    let rv = null;
+    this.modifiers.forEach((modifier) => {
+      if (modifier.ctor === 'SmoBarline' && modifier.position === pos) {
+        rv = modifier;
+      }
+    });
+    return rv;
+  }
+  getEndBarline() {
+    return this._getBarline(SmoBarline.positions.end);
+  }
+  getStartBarline() {
+    return this._getBarline(SmoBarline.positions.start);
+  }
+
+  addNthEnding(ending) {
+    const mods = [];
+    this.modifiers.forEach((modifier) => {
+      if (modifier.ctor !== 'SmoVolta' || modifier.startBar !== ending.startBar || modifier.endBar !== ending.endBar) {
+        mods.push(modifier);
+      }
+    });
+    mods.push(ending);
+    this.modifiers = mods;
+  }
+
+  removeNthEnding(number) {
+    const mods = [];
+    this.modifiers.forEach((modifier) => {
+      if (modifier.ctor !== 'SmoVolta' || modifier.number !== number) {
+        mods.push(modifier);
+      }
+    });
+    this.modifiers = mods;
+  }
+
+  getNthEndings() {
+    const rv = [];
+    this.modifiers.forEach((modifier) => {
+      if (modifier.ctor === 'SmoVolta') {
+        rv.push(modifier);
+      }
+    });
+    return rv;
+  }
+  getEndEndings() {
+    const rv = null;
+    this.modifiers.forEach((modifier) => {
+      if (modifier.ctor === 'SmoVolta' && modifier.endBar === this.measureNumber.systemIndex
+         && modifier.startBar !== this.measureNumber.systemIdnex) {
+        rv.push(modifier);
+      }
+    });
+    return rv;
+  }
+  getMidEndings() {
+    const rv = null;
+    this.modifiers.forEach((modifier) => {
+      if (modifier.ctor === 'SmoVolta' && modifier.endBar > this.measureNumber.systemIndex
+         && modifier.startBar < this.measureNumber.systemIndex) {
+        rv.push(modifier);
+      }
+    });
+    return rv;
+  }
+
+  get numBeats() {
+    return this.timeSignature.split('/').map(number => parseInt(number, 10))[0];
+  }
+  setKeySignature(sig) {
+    this.keySignature = sig;
+    this.setChanged();
+    this.voices.forEach((voice) => {
+      voice.notes.forEach((note) => {
+        note.keySignature = sig;
+      });
+    });
+  }
+  setChanged() {
+    this.changed = true;
+    this.prevFrame = 0;
+    this.timestamp = Date.now();
+  }
+  get beatValue() {
+    return this.timeSignature.split('/').map(number => parseInt(number, 10))[1];
+  }
+
+  setMeasureNumber(num) {
+    this.measureNumber = num;
+  }
+
+  getBeamGroupForNote(note) {
+    let i = 0;
+    let j = 0;
+    for (i = 0; i < this.beamGroups.length; ++i) {
+      const bg = this.beamGroups[i];
+      for (j = 0; j < bg.notes.length; ++j) {
+        if (bg.notes[j].attrs.id === note.attrs.id) {
+          return bg;
         }
-        var accidentalArray = [];
-        Object.keys(accidentalMap).forEach((durationKey) => {
-            accidentalArray.push({duration:durationKey,pitches:accidentalMap[durationKey]});
-        });
-        return {
-            tickmaps:tickmapArray,
-            accidentalMap:accidentalMap,
-            accidentalArray:accidentalArray
-        };
+      }
     }
-
-    getTicksFromVoice() {
-        var ticks = 0;
-        this.voices[0].notes.forEach((note) => {
-            ticks += note.tickCount;
-        });
-        return ticks;
-    }
-
-    isPickup() {
-        var ticks = this.getTicksFromVoice();
-        var goal = smoMusic.timeSignatureToTicks(this.timeSignature);
-        return (ticks < goal);
-    }
-
-	// ### getDynamicMap
-	// ### Description:
-	// returns the dynamic text for each tick index.  If
-	// there are no dynamics, the empty array is returned.
-	getDynamicMap() {
-		var rv = [];
-		var hasDynamic = false;
-		this.voices.forEach((voice) => {
-			voice.notes.forEach((note) => {
-				if (note.dynamicText) {
-					rv.push({
-						note: note,
-						text: note.dynamicText
-					});
-					hasDynamic = true;
-				} else {
-					rv.push({
-						note: note,
-						text: ''
-					});
-				}
-			});
-		});
-
-		if (hasDynamic) {
-			return rv;
-		}
-		return [];
-	}
-
-	clearBeamGroups() {
-		this.beamGroups = [];
-	}
-
-    // ### tuplet methods.
-
-    // #### tupletNotes
-	tupletNotes(tuplet) {
-		var notes = [];
-		for (var j = 0; j < this.voices.length; ++j) {
-			var notes = this.voices[j].notes;
-			for (var i = 0; i < notes.length; ++i) {
-				if (notes[i]['tuplet'] && notes[i].tuplet.id === tuplet.attrs.id) {
-					notes.push(notes[i]);
-				}
-			}
-		}
-		return notes;
-	}
-
-    // #### tupletIndex
-    // return the index of the given tuplet
-	tupletIndex(tuplet) {
-		for (var j = 0; j < this.voices.length; ++j) {
-			var notes = this.voices[j].notes;
-			for (var i = 0; i < notes.length; ++i) {
-				if (notes[i]['tuplet'] && notes[i].tuplet.id === tuplet.attrs.id) {
-					return i;
-				}
-			}
-		}
-		return -1;
-	}
-
-    // #### getTupletForNote
-    // Finds the tuplet for a given note, or null if there isn't one.
-    getTupletForNote(note) {
-		if (!note.isTuplet) {
-			return null;
-		}
-		for (var i = 0; i < this.tuplets.length; ++i) {
-			var tuplet = this.tuplets[i];
-			if (tuplet.attrs.id === note.tuplet.id) {
-				return tuplet;
-			}
-		}
-		return null;
-	}
-	removeTupletForNote(note) {
-		var tuplets = [];
-		for (var i = 0; i < this.tuplets.length; ++i) {
-			var tuplet = this.tuplets[i];
-			if (note.tuplet.id !== tuplet.attrs.id) {
-				tuplets.push(tuplet);
-			}
-		}
-		this.tuplets = tuplets;
-	}
-
-    // ### populateVoice
-    // Create a new voice in this measure, and populate it with the default note
-    // for this measure/key/clef
-    populateVoice(index) {
-        if (index !=  this.voices.length ) {
-            return;
-        }
-        this.voices.push({notes:SmoMeasure.getDefaultNotes(this)});
-        this.activeVoice = index;
-        this.changed = true;
-    }
-
-    // ### measure modifier mixins
-    _addSingletonModifier(name,parameters) {
-        var ctor = eval(name);
-        var ar= this.modifiers.filter(obj => obj.attrs.type != name);
-        this.modifiers=ar;
-        this.modifiers.push(new ctor(parameters));
-    }
-    _removeSingletonModifier(name) {
-        var ar= this.modifiers.filter(obj => obj.attrs.type != name);
-        this.modifiers=ar;
-    }
-
-    _getSingletonModifier(name) {
-        return this.modifiers.find(obj => obj.attrs.type == name);
-    }
-
-    addRehearsalMark(parameters) {
-        this._addSingletonModifier('SmoRehearsalMark',parameters);
-    }
-	removeRehearsalMark() {
-        this._removeSingletonModifier('SmoRehearsalMark');
-    }
-    getRehearsalMark() {
-        return this._getSingletonModifier('SmoRehearsalMark');
-    }
-    getModifiersByType(type) {
-        return this.modifiers.filter((mm) => {
-            return type == mm.attrs.type;
-        });
-    }
-
-    addTempo(params) {
-        this.tempo = new SmoTempoText(params);
-    }
-    removeTempo(params) {
-        this.tempo = new SmoTempoText();
-    }
-    getTempo() {
-        return this.tempo;
-    }
-	addMeasureText(mod) {
-		var added = false;
-		var exist = this.modifiers.filter((mm) => {
-			return mm.attrs.id === mod.attrs.id;
-		});
-		if (exist.length) {
-			this.setChanged(); // already added but set changed===true to re-justify
-			return;
-		}
-		this.modifiers.push(mod);
-		this.setChanged();
-	}
-
-	getMeasureText() {
-		return this.modifiers.filter(obj => obj.ctor === 'SmoMeasureText');
-	}
-
-	removeMeasureText(id) {
-		var ar= this.modifiers.filter(obj => obj.attrs.id != id);
-		this.modifiers=ar;
-		this.setChanged();
-	}
-
-	setRepeatSymbol(rs) {
-		var ar = [];
-		var toAdd = true;
-		var exSymbol = this.getRepeatSymbol();
-		if (exSymbol && exSymbol.symbol === rs.symbol) {
-			toAdd = false;
-		}
-		this.modifiers.forEach((modifier) => {
-			if (modifier.ctor != 'SmoRepeatSymbol') {
-				ar.push(modifier);
-			}
-		});
-		this.modifiers = ar;
-		if (toAdd) {
-			ar.push(rs);
-		}
-	}
-	getRepeatSymbol() {
-		var rv = this.modifiers.filter(obj => obj.ctor === 'SmoRepeatSymbol');
-		return rv.length ? rv[0] : null;
-	}
-	clearRepeatSymbols() {
-		var ar = [];
-		this.modifiers.forEach((modifier) => {
-			if (modifier.ctor != 'SmoRepeatSymbol') {
-				ar.push(modifier);
-			}
-		});
-		this.modifiers = ar;
-	}
-	setBarline(barline) {
-		var ar = [];
-		this.modifiers.forEach((modifier) => {
-			if (modifier.ctor != 'SmoBarline' || modifier.position != barline.position) {
-				ar.push(modifier);
-			}
-		});
-		this.modifiers = ar;
-		ar.push(barline);
-	}
-
-	_getBarline(pos) {
-		var rv = null;
-		this.modifiers.forEach((modifier) => {
-			if (modifier.ctor === 'SmoBarline' && modifier.position === pos) {
-				rv = modifier;
-			}
-		});
-		return rv;
-	}
-	getEndBarline() {
-		return this._getBarline(SmoBarline.positions.end);
-	}
-	getStartBarline() {
-		return this._getBarline(SmoBarline.positions.start);
-	}
-
-	addNthEnding(ending) {
-		var mods = [];
-		this.modifiers.forEach((modifier) => {
-			if (modifier.ctor != 'SmoVolta' || modifier.startBar != ending.startBar || modifier.endBar != ending.endBar) {
-				mods.push(modifier);
-			}
-		});
-		mods.push(ending);
-		this.modifiers = mods;
-	}
-
-	removeNthEnding(number) {
-		var mods = [];
-		this.modifiers.forEach((modifier) => {
-			if (modifier.ctor != 'SmoVolta' || modifier.number != number) {
-				mods.push(modifier);
-			}
-		});
-		this.modifiers = mods;
-	}
-
-	getNthEndings() {
-		var rv = [];
-		this.modifiers.forEach((modifier) => {
-			if (modifier.ctor === 'SmoVolta') {
-				rv.push(modifier);
-			}
-		});
-		return rv;
-	}
-	getEndEndings() {
-		var rv = null;
-		this.modifiers.forEach((modifier) => {
-			if (modifier.ctor === 'SmoVolta' && modifier.endBar === this.measureNumber.systemIndex
-				 && modifier.startBar != this.measureNumber.systemIdnex) {
-				rv.push(modifier);
-			}
-		});
-		return rv;
-	}
-	getMidEndings() {
-		var rv = null;
-		this.modifiers.forEach((modifier) => {
-			if (modifier.ctor === 'SmoVolta' && modifier.endBar > this.measureNumber.systemIndex
-				 && modifier.startBar < this.measureNumber.systemIndex) {
-				rv.push(modifier);
-			}
-		});
-		return rv;
-	}
-
-
-
-	get numBeats() {
-		return this.timeSignature.split('/').map(number => parseInt(number, 10))[0];
-	}
-	setKeySignature(sig) {
-		this.keySignature = sig;
-		this.setChanged();
-		this.voices.forEach((voice) => {
-			voice.notes.forEach((note) => {
-				note.keySignature = sig;
-			});
-		});
-	}
-    setChanged() {
-        this.changed = true;
-        this.prevFrame=0;
-        this.timestamp = Date.now();
-    }
-	get beatValue() {
-		return this.timeSignature.split('/').map(number => parseInt(number, 10))[1];
-	}
-
-	setMeasureNumber(num) {
-		this.measureNumber = num;
-	}
-
-	getBeamGroupForNote(note) {
-		for (var i = 0; i < this.beamGroups.length; ++i) {
-			var bg = this.beamGroups[i];
-			for (var j = 0; j < bg.notes.length; ++j) {
-				if (bg.notes[j].attrs.id === note.attrs.id) {
-					return bg;
-				}
-			}
-		}
-		return null;
-	}
+    return null;
+  }
 }
 ;
 // ## Measure modifiers are elements that are attached to the bar itself, like barlines or measure-specific text,
@@ -10098,140 +10096,133 @@ class SmoTempoText extends SmoMeasureModifierBase {
 // Basic note information.  Leaf node of the SMO dependency tree (so far)
 // ## SmoNote Methods
 // ---
+// eslint-disable-next-line no-unused-vars
 class SmoNote {
-    // ### Description:
-    // see defaults for params format.
-    constructor(params) {
-        Vex.Merge(this, SmoNote.defaults);
-        smoSerialize.serializedMerge(SmoNote.parameterArray, params, this);
+  // ### Description:
+  // see defaults for params format.
+  constructor(params) {
+    Vex.Merge(this, SmoNote.defaults);
+    smoSerialize.serializedMerge(SmoNote.parameterArray, params, this);
 
-        // this.keys=JSON.parse(JSON.stringify(this.keys));
+    // this.keys=JSON.parse(JSON.stringify(this.keys));
 
-        if (!this['attrs']) {
-            this.attrs = {
-                id: VF.Element.newID(),
-                type: 'SmoNote'
-            };
-        } else {
-            // inherit attrs id for deserialized
-        }
-    }
-    static get flagStates() {
-        return {auto:0,up:1,down:2};
-    }
-    static get parameterArray() {
-        return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef', 'endBeam','beamBeats','flagState','noteHead'];
-    }
+    if (!this.attrs) {
+      this.attrs = {
+        id: VF.Element.newID(),
+        type: 'SmoNote'
+      };
+    } // else inherit
+  }
+  static get flagStates() {
+    return { auto: 0, up: 1, down: 2 };
+  }
+  static get parameterArray() {
+    return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef', 'endBeam', 'beamBeats', 'flagState', 'noteHead'];
+  }
 
-    toggleFlagState() {
-        this.flagState = (this.flagState + 1) % 3;
-    }
+  toggleFlagState() {
+    this.flagState = (this.flagState + 1) % 3;
+  }
 
-    toVexStemDirection() {
-        return (this.flagState == SmoNote.flagStates.up ? VF.Stem.UP : VF.Stem.DOWN);
+  toVexStemDirection() {
+    return (this.flagState === SmoNote.flagStates.up ? VF.Stem.UP : VF.Stem.DOWN);
+  }
+  get id() {
+    return this.attrs.id;
+  }
 
+  get dots() {
+    if (this.isTuplet) {
+      return 0;
     }
-    get id() {
-        return this.attrs.id;
+    const vexDuration = smoMusic.ticksToDuration[this.tickCount];
+    if (!vexDuration) {
+      return 0;
     }
+    return vexDuration.split('d').length - 1;
+  }
 
-    get dots() {
-        if (this.isTuplet) {
-            return 0;
-        }
-        var vexDuration = smoMusic.ticksToDuration[this.tickCount];
-        if (!vexDuration) {
-            return 0;
-        }
-        return vexDuration.split('d').length - 1;
-    }
-
-    set dots(value) {
-        // ignore - dots are a function of duration only.
-    }
-
-    // ### _addModifier
-    // ### Description
-    // add or remove sFz, mp, etc.
-    _addModifier(dynamic, toAdd) {
-        var tms = [];
-        this.textModifiers.forEach((tm) => {
-            if (tm.attrs.type != dynamic.attrs.type) {
-                tms.push(tm);
-            }
-        });
-        if (toAdd) {
-            tms.push(dynamic);
-        }
-        this.textModifiers = tms;
-    }
-
-    _addArticulation(articulation, toAdd) {
-        var tms = [];
-        this.articulations.forEach((tm) => {
-            if (tm.articulation != articulation.articulation) {
-                tms.push(tm);
-            }
-        });
-        if (toAdd) {
-            tms.push(articulation);
-        }
-        this.articulations = tms;
-    }
-
-    addModifier(dynamic) {
-        this._addModifier(dynamic, true);
-    }
-    removeModifier(dynamic) {
-        this._addModifier(dynamic, false);
-    }
-    getModifiers(type) {
-        var ms = this.textModifiers.filter((mod)=> {
-            return mod.attrs.type === type;
-        });
-        return ms;
-    }
-
-    longestLyric() {
-      var tms = this.textModifiers.filter((mod) => {
-        return mod.attrs.type == 'SmoLyric' && mod.parser === SmoLyric.parsers.lyric;
-      });
-      if (!tms.length) {
-        return null;
+  // ### _addModifier
+  // ### Description
+  // add or remove sFz, mp, etc.
+  _addModifier(dynamic, toAdd) {
+    var tms = [];
+    this.textModifiers.forEach((tm) => {
+      if (tm.attrs.type !== dynamic.attrs.type) {
+        tms.push(tm);
       }
-      return tms.reduce((m1,m2) => {
-        return m1.text.length > m2.text.length;
-      });
+    });
+    if (toAdd) {
+      tms.push(dynamic);
     }
+    this.textModifiers = tms;
+  }
+
+  _addArticulation(articulation, toAdd) {
+    var tms = [];
+    this.articulations.forEach((tm) => {
+      if (tm.articulation !== articulation.articulation) {
+        tms.push(tm);
+      }
+    });
+    if (toAdd) {
+      tms.push(articulation);
+    }
+    this.articulations = tms;
+  }
+
+  addModifier(dynamic) {
+    this._addModifier(dynamic, true);
+  }
+  removeModifier(dynamic) {
+    this._addModifier(dynamic, false);
+  }
+  getModifiers(type) {
+    var ms = this.textModifiers.filter((mod) =>
+      mod.attrs.type === type
+    );
+    return ms;
+  }
+
+  longestLyric() {
+    const tms = this.textModifiers.filter((mod) =>
+      mod.attrs.type === 'SmoLyric' && mod.parser === SmoLyric.parsers.lyric
+    );
+    if (!tms.length) {
+      return null;
+    }
+    return tms.reduce((m1, m2) =>
+      m1.text.length > m2.text.length
+    );
+  }
 
   addLyric(lyric) {
-    var tms = this.textModifiers.filter((mod) => {
-      return mod.attrs.type != 'SmoLyric' || mod.parser !==lyric.parser ||
-        mod.verse != lyric.verse;
-    });
+    const tms = this.textModifiers.filter((mod) =>
+      mod.attrs.type !== 'SmoLyric' || mod.parser !== lyric.parser ||
+        mod.verse !== lyric.verse
+    );
     tms.push(lyric);
     this.textModifiers = tms;
   }
 
   getTrueLyrics() {
-    var ms = this.textModifiers.filter((mod)=> {
-      return mod.attrs.type === 'SmoLyric' && mod.parser === SmoLyric.parsers.lyric;
-    });
+    const ms = this.textModifiers.filter((mod) =>
+      mod.attrs.type === 'SmoLyric' && mod.parser === SmoLyric.parsers.lyric
+    );
     return ms;
   }
 
-
   removeLyric(lyric) {
-    var tms = this.textModifiers.filter((mod) => {
-      return mod.attrs.type != 'SmoLyric' || mod.verse != lyric.verse || mod.parser != lyric.parser;
-    });
+    const tms = this.textModifiers.filter((mod) =>
+      mod.attrs.type !== 'SmoLyric' || mod.verse !== lyric.verse || mod.parser !== lyric.parser
+    );
     this.textModifiers = tms;
   }
 
-  getLyricForVerse(verse,parser) {
-      return this.textModifiers.filter((mod) => {
-        return mod.attrs.type == 'SmoLyric' && mod.parser === parser && mod.verse === verse;
-      });
+  getLyricForVerse(verse, parser) {
+    return this.textModifiers.filter((mod) =>
+      mod.attrs.type === 'SmoLyric' && mod.parser === parser && mod.verse === verse
+    );
   }
 
   getOrnaments() {
@@ -10243,258 +10234,249 @@ class SmoNote {
   }
 
   toggleOrnament(ornament) {
-    var aix = this.ornaments.filter((a) => {
-      return a.attrs.type === 'SmoOrnament' && a.ornament === ornament.ornament;
-    });
+    const aix = this.ornaments.filter((a) =>
+      a.attrs.type === 'SmoOrnament' && a.ornament === ornament.ornament
+    );
     if (!aix.length) {
       this.ornaments.push(ornament);
     } else {
-      this.ornaments=[];
+      this.ornaments = [];
     }
   }
 
-    // Toggle between articulation above, below, or remove
-    toggleArticulation(articulation) {
-        var aix = this.articulations.findIndex((a) => {
-                return a.articulation === articulation.articulation;
-            });
-        if (aix >= 0) {
-            var cur = this.articulations[aix];
-            if (cur.position == SmoArticulation.positions.above) {
-                cur.position = SmoArticulation.positions.below;
-                return;
-            }
-            else {
-                this._addArticulation(articulation,false);
-                return;
-            }
-        }
-        this._addArticulation(articulation, true);
-    }
-
-    static _sortPitches(note) {
-        var canon = VF.Music.canonical_notes;
-        var keyIndex = ((pitch) => {
-            return canon.indexOf(pitch.letter) + pitch.octave * 12;
-        });
-        note.pitches.sort((a, b) => {
-            return keyIndex(a) - keyIndex(b);
-        });
-    }
-    setNoteHead(noteHead) {
-      if (this.noteHead === noteHead) {
-        this.noteHead = '';
+  // Toggle between articulation above, below, or remove
+  toggleArticulation(articulation) {
+    var aix = this.articulations.findIndex((a) =>
+      a.articulation === articulation.articulation
+    );
+    if (aix >= 0) {
+      const cur = this.articulations[aix];
+      if (cur.position === SmoArticulation.positions.above) {
+        cur.position = SmoArticulation.positions.below;
+        return;
       } else {
-        this.noteHead = noteHead;
+        this._addArticulation(articulation, false);
+        return;
       }
     }
-    addGraceNote(params,offset) {
-        params.clef = this.clef;
-        if (this.graceNotes.length > offset) {
-            this.graceNotes[offset]= new SmoGraceNote(params);
-        } else {
-            this.graceNotes.push(new SmoGraceNote(params));
+    this._addArticulation(articulation, true);
+  }
+
+  static _sortPitches(note) {
+    const canon = VF.Music.canonical_notes;
+    const keyIndex = ((pitch) =>
+      canon.indexOf(pitch.letter) + pitch.octave * 12
+    );
+    note.pitches.sort((a, b) => keyIndex(a) - keyIndex(b));
+  }
+  setNoteHead(noteHead) {
+    if (this.noteHead === noteHead) {
+      this.noteHead = '';
+    } else {
+      this.noteHead = noteHead;
+    }
+  }
+  addGraceNote(params, offset) {
+    params.clef = this.clef;
+    if (this.graceNotes.length > offset) {
+      this.graceNotes[offset] = new SmoGraceNote(params);
+    } else {
+      this.graceNotes.push(new SmoGraceNote(params));
+    }
+  }
+  removeGraceNote(offset) {
+    if (offset >= this.graceNotes.length) {
+      return;
+    }
+    this.graceNotes.splice(offset, 1);
+  }
+  getGraceNotes() {
+    return this.graceNotes;
+  }
+  addPitchOffset(offset) {
+    if (this.pitches.length === 0) {
+      return;
+    }
+    this.noteType = 'n';
+    const pitch = this.pitches[0];
+    this.pitches.push(smoMusic.getKeyOffset(pitch, offset));
+    SmoNote._sortPitches(this);
+  }
+
+  makeRest() {
+    this.noteType = (this.noteType === 'r' ? 'n' : 'r');
+  }
+
+  makeNote() {
+    this.noteType = 'n';
+  }
+
+  get isTuplet() {
+    return this.tuplet && this.tuplet.id;
+  }
+
+  addMicrotone(tone) {
+    const ar = this.tones.filter((tn) => tn.pitch !== tone.pitch);
+    ar.push(tone);
+    this.tones = ar;
+  }
+  removeMicrotone(tone) {
+    const ar = this.tones.filter((tn) => tn.pitch !== tone.pitch
+      && tone.tone !== tn.tone);
+    this.tones = ar;
+  }
+
+  getMicrotones() {
+    return this.tones;
+  }
+
+  transpose(pitchArray, offset, keySignature) {
+    return SmoNote._transpose(this, pitchArray, offset, keySignature);
+  }
+  static _transpose(note, pitchArray, offset, keySignature) {
+    let index = 0;
+    let j = 0;
+    let letterKey = 'a';
+    note.noteType = 'n';
+    if (pitchArray.length === 0) {
+      note.pitches.forEach((m) => {
+        pitchArray.push(note.pitches.indexOf(m));
+      });
+    }
+    for (j = 0; j < pitchArray.length; ++j) {
+      index = pitchArray[j];
+      if (index + 1 > note.pitches.length) {
+        note.addPitchOffset(offset);
+      } else {
+        const pitch = smoMusic.getKeyOffset(note.pitches[index], offset);
+        if (keySignature) {
+          letterKey = pitch.letter + pitch.accidental;
+          letterKey = smoMusic.getKeyFriendlyEnharmonic(letterKey, keySignature);
+          pitch.letter = letterKey[0];
+          if (letterKey.length < 2) {
+            pitch.accidental = 'n';
+          } else {
+            pitch.accidental = letterKey.substring(1);
+          }
         }
-    }
-    removeGraceNote(offset) {
-        if (offset >= this.graceNotes.length) {
-            return;
-        }
-        this.graceNotes.splice(offset,1);
-    }
-    getGraceNotes() {
-        return this.graceNotes;
-    }
-    addPitchOffset(offset) {
-      if (this.pitches.length == 0) {
-          return this;
+        note.pitches[index] = pitch;
       }
-      this.noteType = 'n';
-      var pitch = this.pitches[0];
-      this.pitches.push(smoMusic.getKeyOffset(pitch, offset));
-
-      SmoNote._sortPitches(this);
     }
+    SmoNote._sortPitches(note);
+    return note;
+  }
+  get tickCount() {
+    return this.ticks.numerator / this.ticks.denominator + this.ticks.remainder;
+  }
 
-    makeRest() {
-        this.noteType = (this.noteType == 'r' ? 'n' : 'r');
+  static clone(note) {
+    var rv = SmoNote.deserialize(note.serialize());
+
+    // make sure id is unique
+    rv.attrs = {
+      id: VF.Element.newID(),
+      type: 'SmoNote'
+    };
+    return rv;
+  }
+
+  // ## Description:
+  // Clone the note, but use the different duration.  Changes the length
+  // of the note but nothing else.
+  static cloneWithDuration(note, ticks) {
+    if (typeof(ticks) === 'number') {
+      ticks = { numerator: ticks, denominator: 1, remainder: 0 };
     }
+    const rv = SmoNote.clone(note);
+    rv.ticks = ticks;
+    return rv;
+  }
 
-    makeNote() {
-        this.noteType = 'n';
-    }
-
-    get isTuplet() {
-        return this['tuplet'] && this.tuplet['id'];
-    }
-
-    addMicrotone(tone) {
-        var ar = this.tones.filter((tn) => tn.pitch != tone.pitch);
-        ar.push(tone);
-        this.tones = ar;
-    }
-    removeMicrotone(tone) {
-        var ar = this.tones.filter((tn) => tn.pitch != tone.pitch
-            && tone.tone != tn.tone);
-        this.tones = ar;
-    }
-
-    getMicrotones() {
-        return this.tones;
-    }
-
-    transpose(pitchArray, offset, keySignature) {
-        return SmoNote._transpose(this,pitchArray,offset,keySignature);
-    }
-    static _transpose(note,pitchArray, offset, keySignature) {
-        var pitches = [];
-        note.noteType = 'n';
-        if (pitchArray.length == 0) {
-            note.pitches.forEach((m) => {
-                pitchArray.push(note.pitches.indexOf(m));
-            });
-        }
-        for (var j = 0; j < pitchArray.length; ++j) {
-            var index = pitchArray[j];
-            if (index + 1 > note.pitches.length) {
-                note.addPitchOffset(offset);
-            } else {
-                var pitch = smoMusic.getKeyOffset(note.pitches[index], offset);
-                if (keySignature) {
-                    var letterKey = pitch.letter + pitch.accidental;
-                    letterKey = smoMusic.getKeyFriendlyEnharmonic(letterKey, keySignature);
-                    pitch.letter = letterKey[0];
-                    if (letterKey.length < 2) {
-                        pitch.accidental = 'n';
-                    } else {
-                        pitch.accidental = letterKey.substring(1);
-                    }
-                }
-                note.pitches[index] = pitch;
-            }
-        }
-        SmoNote._sortPitches(note);
-        return note;
-    }
-    get tickCount() {
-        return this.ticks.numerator / this.ticks.denominator + this.ticks.remainder;
-    }
-
-    describe() {
-        return this.attrs.id + ' ' + this.tickCount;
-    }
-
-    static clone(note) {
-        var rv = SmoNote.deserialize(note.serialize());
-
-        // make sure id is unique
-        rv.attrs = {
-            id: VF.Element.newID(),
-            type: 'SmoNote'
-        };
-        return rv;
-    }
-
-    // ## Description:
-    // Clone the note, but use the different duration.  Changes the length
-    // of the note but nothing else.
-    static cloneWithDuration(note, ticks) {
-        if (typeof(ticks) === 'number') {
-            ticks = {numerator:ticks,denominator:1,remainder:0};
-        }
-        var rv = SmoNote.clone(note);
-
-        rv.ticks = ticks;
-
-        return rv;
-    }
-
-    _serializeModifiers(params) {
-        ['textModifiers','graceNotes','articulations','ornaments','tones'].forEach((attr) => {
-            if (this[attr] && this[attr].length) {
-                params[attr] = [];
-                this[attr].forEach((mod) => {
-                    params[attr].push(mod.serialize());
-                });
-            }
+  _serializeModifiers(params) {
+    ['textModifiers', 'graceNotes', 'articulations', 'ornaments', 'tones'].forEach((attr) => {
+      if (this[attr] && this[attr].length) {
+        params[attr] = [];
+        this[attr].forEach((mod) => {
+          params[attr].push(mod.serialize());
         });
+      }
+    });
+  }
+  serialize() {
+    var params = {};
+    smoSerialize.serializedMergeNonDefault(SmoNote.defaults, SmoNote.parameterArray, this, params);
+    if (params.ticks) {
+      params.ticks = JSON.parse(JSON.stringify(params.ticks));
     }
-    serialize() {
-        var params = {};
-        smoSerialize.serializedMergeNonDefault(SmoNote.defaults,SmoNote.parameterArray, this, params);
-        if (params.ticks) {
-            params.ticks = JSON.parse(JSON.stringify(params.ticks));
-        }
-        this._serializeModifiers(params);
-        return params;
-    }
+    this._serializeModifiers(params);
+    return params;
+  }
 
-    static get defaults() {
-        return {
-            noteType: 'n',
-            noteHead: 'n',
-            textModifiers: [],
-            articulations: [],
-            graceNotes:[],
-            ornaments:[],
-            tones:[],
-            endBeam: false,
-            beamBeats:4096,
-            flagState:SmoNote.flagStates.auto,
-            ticks: {
-                numerator: 4096,
-                denominator: 1,
-                remainder: 0
-            },
-            pitches: [{
-                    letter: 'b',
-                    octave: 4,
-                    accidental: ''
-                }
-            ],
-        }
-    }
-    static deserialize(jsonObj) {
-        var note = new SmoNote(jsonObj);
-        ['textModifiers','graceNotes','ornaments','articulations','tones'].forEach((attr) =>
-        {
-            if (!jsonObj[attr]) {
-                note[attr] = [];
-            } else {
-                jsonObj[attr].forEach((mod) => {
-                    note[attr].push(SmoNoteModifierBase.deserialize(mod));
-                });
-            }
+  static get defaults() {
+    return {
+      noteType: 'n',
+      noteHead: 'n',
+      textModifiers: [],
+      articulations: [],
+      graceNotes: [],
+      ornaments: [],
+      tones: [],
+      endBeam: false,
+      beamBeats: 4096,
+      flagState: SmoNote.flagStates.auto,
+      ticks: {
+        numerator: 4096,
+        denominator: 1,
+        remainder: 0
+      },
+      pitches: [{
+        letter: 'b',
+        octave: 4,
+        accidental: ''
+      }],
+    };
+  }
+  static deserialize(jsonObj) {
+    var note = new SmoNote(jsonObj);
+    ['textModifiers', 'graceNotes', 'ornaments', 'articulations', 'tones'].forEach((attr) => {
+      if (!jsonObj[attr]) {
+        note[attr] = [];
+      } else {
+        jsonObj[attr].forEach((mod) => {
+          note[attr].push(SmoNoteModifierBase.deserialize(mod));
         });
-        // Due to a bug, text modifiers were serialized into noteModifiers array
-        if (jsonObj.noteModifiers) {
-            jsonObj.noteModifiers.forEach((mod) => {
-                note.textModifiers.push(mod);
-            });
-        }
-
-        return note;
+      }
+    });
+    // Due to a bug, text modifiers were serialized into noteModifiers array
+    if (jsonObj.noteModifiers) {
+      jsonObj.noteModifiers.forEach((mod) => {
+        note.textModifiers.push(mod);
+      });
     }
+    return note;
+  }
 }
 
+// eslint-disable-next-line no-unused-vars
 class SmoBeamGroup {
-    constructor(params) {
-        this.notes = params.notes;
-        Vex.Merge(this, params);
+  constructor(params) {
+    let i = 0;
+    this.notes = params.notes;
+    Vex.Merge(this, params);
 
-        if (!this['attrs']) {
-            this.attrs = {
-                id: VF.Element.newID(),
-                type: 'SmoBeamGroup'
-            };
-        } else {
-        }
-        for (var i = 0; i < this.notes.length; ++i) {
-            var note = this.notes[i];
-            if (note.tickCount < 4096)
-                note.beam_group = this.attrs;
-        }
+    if (!this.attrs) {
+      this.attrs = {
+        id: VF.Element.newID(),
+        type: 'SmoBeamGroup'
+      };
     }
+    for (i = 0; i < this.notes.length; ++i) {
+      const note = this.notes[i];
+      if (note.tickCount < 4096) {
+        note.beam_group = this.attrs;
+      }
+    }
+  }
 }
 ;
 class SmoNoteModifierBase {
