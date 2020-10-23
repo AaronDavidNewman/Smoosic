@@ -210,7 +210,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     const dialogElements = _class['dialogElements'];
 
     super(dialogElements, {
-      id: 'dialog-lyrics',
+      id: 'dialog-chords',
       top: (p.layout.score.layout.pageWidth / 2) - 200,
       left: (p.layout.score.layout.pageHeight / 2) - 200,
       ...p
@@ -251,6 +251,26 @@ class SuiChordChangeDialog  extends SuiDialogBase {
         label:'Edit Text',
         options: []
       }, {
+       smoName: 'chordSymbol',
+       parameterName: 'chordSymbol',
+       defaultValue: '',
+       control: 'SuiDropdownComponent',
+       label: 'Chord Symbol',
+       startRow: true,
+       options: [{
+            value: 'csymDiminished',
+            label: 'Dim'
+         }, {
+            value: 'csymHalfDiminished',
+            label: 'Half dim'
+         }, {
+            value: 'csymDiagonalArrangementSlash',
+            label: 'Slash'
+          }, {
+             value: 'csymMajorSeventh',
+             label: 'Maj7'
+           }]
+         },{
         staticText: [
           {label : 'Edit Chord Symbol'},
           {undo: 'Undo Chord Symbols'},
@@ -268,7 +288,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
       this.chordEditorCtrl.setYOffset(this.translateYCtrl.getValue());
       this.tracker.replaceSelectedMeasures();
     } else {
-      this.translateYCtrl.setValue(this.textEditorCtrl.getYOffset());
+      this.translateYCtrl.setValue(this.chordEditorCtrl.getYOffset());
     }
   }
 

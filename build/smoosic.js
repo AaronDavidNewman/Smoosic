@@ -20645,21 +20645,17 @@ class suiController {
 // ## SuiModifierDialogFactory
 // Automatic dialog constructors for dialogs without too many parameters
 // that operated on a selection.
+// eslint-disable-next-line no-unused-vars
 class SuiModifierDialogFactory {
-
   static createDialog(modifier, parameters) {
-    var dbType = SuiModifierDialogFactory.modifierDialogMap[modifier.attrs.type];
-      if (dbType === 'SuiLyricDialog' && modifier.parser === SmoLyric.parsers.chord) {
-        dbType = 'SuiChordChangeDialog';
-      }
-      var ctor = eval(dbType);
-      if (!ctor) {
-      console.warn('no dialog for modifier ' + modifier.type);
-      return;
+    let dbType = SuiModifierDialogFactory.modifierDialogMap[modifier.attrs.type];
+    if (dbType === 'SuiLyricDialog' && modifier.parser === SmoLyric.parsers.chord) {
+      dbType = 'SuiChordChangeDialog';
     }
+    const ctor = eval(dbType);
     return ctor.createAndDisplay({
-    modifier: modifier,
-        ...parameters
+      modifier,
+      ...parameters
     });
   }
   static get modifierDialogMap() {
@@ -20671,41 +20667,39 @@ class SuiModifierDialogFactory {
       SmoScoreText: 'SuiTextTransformDialog',
       SmoTextGroup: 'SuiTextTransformDialog',
       SmoLoadScore: 'SuiLoadFileDialog',
-      SmoLyric:'SuiLyricDialog'
+      SmoLyric: 'SuiLyricDialog'
     };
   }
 }
 
 // ## SuiDialogBase
 // Base class for dialogs.
+// eslint-disable-next-line no-unused-vars
 class SuiDialogBase {
-    // ### SuiDialogBase ctor
-    // Creates the DOM element for the dialog and gets some initial elements
+  // ### SuiDialogBase ctor
+  // Creates the DOM element for the dialog and gets some initial elements
   constructor(dialogElements, parameters) {
     this.id = parameters.id;
     this.boundKeyboard = false;
     this.components = [];
 
-    console.log('creating close dialog promise in SuiDialogBase');
-    this.closeDialogPromise = new Promise((resolve, reject) => {
-      $('body').off('dialogDismiss').on('dialogDismiss', function () {
-          console.log('dialog dismiss DOM event received, resolve closeDialogPromise');
-          resolve();
+    this.closeDialogPromise = new Promise((resolve) => {
+      $('body').off('dialogDismiss').on('dialogDismiss', () => {
+        resolve();
       });
     });
 
     const staticText = dialogElements.find((xx) => xx.staticText);
     if (!staticText) {
-      throw('dialog ' + this.ctor+ ' needs a static text section');
+      throw 'dialog ' + this.ctor + ' needs a static text section';
     }
     this.staticText = {};
     staticText.staticText.forEach((st) => {
       const key = Object.keys(st)[0];
       this.staticText[key] = st[key];
-
     });
 
-    this.initialLeft = parameters.left
+    this.initialLeft = parameters.left;
     this.initialTop = parameters.top;
 
     // If this dialog was spawned by a menu, wait for the menu to dismiss
@@ -20723,13 +20717,13 @@ class SuiDialogBase {
     this.modifier = parameters.modifier;
     this.activeScoreText = parameters.activeScoreText;
 
-    var top = parameters.top - this.tracker.scroller.netScroll.y;
-    var left = parameters.left - this.tracker.scroller.netScroll.x;
+    const top = parameters.top - this.tracker.scroller.netScroll.y;
+    const left = parameters.left - this.tracker.scroller.netScroll.x;
 
     this.dgDom = this._constructDialog(dialogElements, {
       id: 'dialog-' + this.id,
-      top: top,
-      left: left,
+      top,
+      left,
       label: this.label
     });
 
@@ -20739,10 +20733,10 @@ class SuiDialogBase {
   // ### printXlate
   // print json with string labels to use as a translation file seed.
   static printTranslate(_class) {
-    var output = [];
-    var xx = eval(_class);
-    xx['dialogElements'].forEach((element) => {
-      var component = {};
+    const output = [];
+    const xx = eval(_class);
+    xx.dialogElements.forEach((element) => {
+      const component = {};
       if (element.label) {
         component.label = element.label;
         component.id = element.smoName;
@@ -20750,7 +20744,7 @@ class SuiDialogBase {
           component.options = [];
 
           element.options.forEach((option) => {
-            component.options.push({value:option.value,label:option.label})
+            component.options.push({ value: option.value, label: option.label });
           });
         }
       }
@@ -20763,7 +20757,7 @@ class SuiDialogBase {
       }
       output.push(component);
     });
-    return {ctor:xx['ctor'],dialogElements:output};
+    return { ctor: xx.ctor, dialogElements: output };
   }
 
   get closeModalPromise() {
@@ -20773,47 +20767,48 @@ class SuiDialogBase {
   // ### position
   // For dialogs based on selections, tries to place the dialog near the selection and also
   // to scroll so the dialog is in view
-  static position(box,dgDom,scroller) {
-    var y = (box.y + box.height) - scroller.netScroll.y;
+  static position(box, dgDom, scroller) {
+    let y = (box.y + box.height) - scroller.netScroll.y;
+    let x = 0;
 
-  	// TODO: adjust if db is clipped by the browser.
-    var dge = $(dgDom.element).find('.attributeModal');
-    var dgeHeight = $(dge).height();
-    var maxY =  $('.musicRelief').height();
-    var maxX = $('.musicRelief').width();
-    var offset = $('.dom-container').offset();
+    // TODO: adjust if db is clipped by the browser.
+    const dge = $(dgDom.element).find('.attributeModal');
+    const dgeHeight = $(dge).height();
+    const maxY =  $('.musicRelief').height();
+    const maxX = $('.musicRelief').width();
+    const offset = $('.dom-container').offset();
     y = y - offset.top;
 
-    var offsetY = dgeHeight + y > window.innerHeight ? (dgeHeight + y) -  window.innerHeight : 0;
+    const offsetY = dgeHeight + y > window.innerHeight ? (dgeHeight + y) -  window.innerHeight : 0;
     y = (y < 0) ? -y : y - offsetY;
 
     y = (y > maxY || y < 0) ? maxY / 2 : y;
 
-  	$(dge).css('top', '' + y + 'px');
+    $(dge).css('top', '' + y + 'px');
 
-    var x = box.x - scroller.netScroll.x;
+    x = box.x - scroller.netScroll.x;
     x = x - offset.left;
-    var w = $(dge).width();
-    x = (x > window.innerWidth /2)  ? x - (w+25) : x + (w+25);
+    const w = $(dge).width();
+    x = (x > window.innerWidth / 2)  ? x - (w + 25) : x + (w + 25);
 
-    x = (x < 0 || x > maxX) ? maxX/2 : x;
+    x = (x < 0 || x > maxX) ? maxX / 2 : x;
     $(dge).css('left', '' + x + 'px');
   }
 
-    // ### position
-    // Position the dialog near a selection.  If the dialog is not visible due
-    // to scrolling, make sure it is visible.
+  // ### position
+  // Position the dialog near a selection.  If the dialog is not visible due
+  // to scrolling, make sure it is visible.
   position(box) {
-    SuiDialogBase.position(box,this.dgDom,this.tracker.scroller);
+    SuiDialogBase.position(box, this.dgDom, this.tracker.scroller);
   }
-    // ### build the html for the dialog, based on the instance-specific components.
+  // ### build the html for the dialog, based on the instance-specific components.
   _constructDialog(dialogElements, parameters) {
-    var id = parameters.id;
-    var b = htmlHelpers.buildDom;
-    var r = b('div').classes('attributeModal').attr('id','attr-modal-'+id)
+    const id = parameters.id;
+    const b = htmlHelpers.buildDom;
+    const r = b('div').classes('attributeModal').attr('id', 'attr-modal-' + id)
       .css('top', parameters.top + 'px').css('left', parameters.left + 'px')
-    .append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move jsDbMove')))
-    .append(b('h2').classes('dialog-label').text(this.staticText.label));
+      .append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move jsDbMove')))
+      .append(b('h2').classes('dialog-label').text(this.staticText.label));
 
     var ctrl = b('div').classes('smoControlContainer');
     dialogElements.filter((de) => de.control).forEach((de) => {
@@ -20824,20 +20819,20 @@ class SuiDialogBase {
     });
     r.append(ctrl);
     r.append(
-    b('div').classes('buttonContainer').append(
-    b('button').classes('ok-button button-left').text('OK')).append(
-    b('button').classes('cancel-button button-center').text('Cancel')).append(
-    b('button').classes('remove-button button-right').text('Remove').append(
-    b('span').classes('icon icon-cancel-circle'))));
+      b('div').classes('buttonContainer').append(
+        b('button').classes('ok-button button-left').text('OK')).append(
+        b('button').classes('cancel-button button-center').text('Cancel')).append(
+        b('button').classes('remove-button button-right').text('Remove').append(
+          b('span').classes('icon icon-cancel-circle'))));
     $('.attributeDialog').html('');
 
     $('.attributeDialog').append(r.dom());
 
-    var trapper = htmlHelpers.inputTrapper('.attributeDialog');
+    const trapper = htmlHelpers.inputTrapper('.attributeDialog');
     $('.attributeDialog').find('.cancel-button').focus();
     return {
       element: $('.attributeDialog'),
-      trapper: trapper
+      trapper
     };
   }
 
@@ -20850,21 +20845,20 @@ class SuiDialogBase {
     });
   }
 
-     // ### Complete
-     // Dialogs take over the keyboard, so release that and trigger an event
-     // that the dialog is closing that can resolve any outstanding promises.
+  // ### Complete
+  // Dialogs take over the keyboard, so release that and trigger an event
+  // that the dialog is closing that can resolve any outstanding promises.
   complete() {
     if (this.boundKeyboard) {
       this.eventSource.unbindKeydownHandler(this.keydownHandler);
     }
     $('body').removeClass('showAttributeDialog');
-    console.log('dialog complete method called, triggering dialog close');
     $('body').trigger('dialogDismiss');
     this.dgDom.trapper.close();
   }
 
-    // ### _bindComponentNames
-    // helper method to give components class names based on their static configuration
+  // ### _bindComponentNames
+  // helper method to give components class names based on their static configuration
   _bindComponentNames() {
     this.components.forEach((component) => {
       var nm = component.smoName + 'Ctrl';
@@ -20872,8 +20866,8 @@ class SuiDialogBase {
     });
   }
 
-   // ### display
-   // make3 the modal visible.  bind events and elements.
+  // ### display
+  // make3 the modal visible.  bind events and elements.
   display() {
     $('body').addClass('showAttributeDialog');
     this.components.forEach((component) => {
@@ -20887,12 +20881,12 @@ class SuiDialogBase {
       svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
     );
 
-    var cb = function (x, y) {}
+    const cb = () => {};
     htmlHelpers.draggable({
       parent: $(this.dgDom.element).find('.attributeModal'),
       handle: $(this.dgDom.element).find('.jsDbMove'),
-      animateDiv:'.draganime',
-      cb: cb,
+      animateDiv: '.draganime',
+      cb,
       moveParent: true
     });
   }
@@ -20900,41 +20894,39 @@ class SuiDialogBase {
   // ### handleKeydown
   // allow a dialog to be dismissed by esc.
   evKey(evdata) {
-    if (evdata.key == 'Escape') {
+    if (evdata.key === 'Escape') {
       $(this.dgDom.element).find('.cancel-button').click();
       evdata.preventDefault();
-      return;
     }
-    return;
   }
 
   // ### bindKeyboard
   // generic logic to grab keyboard elements for modal
   bindKeyboard() {
-      this.boundKeyboard = true;
-      this.keydownHandler = this.eventSource.bindKeydownHandler(this,'evKey');
+    this.boundKeyboard = true;
+    this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
   }
 
-   // ### _bindElements
-   // bing the generic controls in most dialogs.
+  // ### _bindElements
+  // bing the generic controls in most dialogs.
   _bindElements() {
-  var self = this;
-  var dgDom = this.dgDom;
-        this.bindKeyboard();
+    var self = this;
+    var dgDom = this.dgDom;
+    this.bindKeyboard();
 
-  $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-  self._commit();
-  self.complete();
-  });
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      self._commit();
+      self.complete();
+    });
 
-  $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-  self.modifier.restoreOriginal();
-  self.complete();
-  });
-  $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-  self.handleRemove();
-  self.complete();
-  });
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      self.modifier.restoreOriginal();
+      self.complete();
+    });
+    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
+      self.handleRemove();
+      self.complete();
+    });
   }
 }
 ;// # dbComponents - components of modal dialogs.
@@ -23711,7 +23703,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     const dialogElements = _class['dialogElements'];
 
     super(dialogElements, {
-      id: 'dialog-lyrics',
+      id: 'dialog-chords',
       top: (p.layout.score.layout.pageWidth / 2) - 200,
       left: (p.layout.score.layout.pageHeight / 2) - 200,
       ...p
@@ -23752,6 +23744,26 @@ class SuiChordChangeDialog  extends SuiDialogBase {
         label:'Edit Text',
         options: []
       }, {
+       smoName: 'chordSymbol',
+       parameterName: 'chordSymbol',
+       defaultValue: '',
+       control: 'SuiDropdownComponent',
+       label: 'Chord Symbol',
+       startRow: true,
+       options: [{
+            value: 'csymDiminished',
+            label: 'Dim'
+         }, {
+            value: 'csymHalfDiminished',
+            label: 'Half dim'
+         }, {
+            value: 'csymDiagonalArrangementSlash',
+            label: 'Slash'
+          }, {
+             value: 'csymMajorSeventh',
+             label: 'Maj7'
+           }]
+         },{
         staticText: [
           {label : 'Edit Chord Symbol'},
           {undo: 'Undo Chord Symbols'},
@@ -23769,7 +23781,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
       this.chordEditorCtrl.setYOffset(this.translateYCtrl.getValue());
       this.tracker.replaceSelectedMeasures();
     } else {
-      this.translateYCtrl.setValue(this.textEditorCtrl.getYOffset());
+      this.translateYCtrl.setValue(this.chordEditorCtrl.getYOffset());
     }
   }
 

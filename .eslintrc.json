@@ -19,6 +19,9 @@
     "comma-dangle": [
       0
     ],
+    "newline-per-chained-call": [
+      0
+    ],
     "no-eval": [
       0
     ],
