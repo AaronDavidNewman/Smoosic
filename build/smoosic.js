@@ -23775,13 +23775,11 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     return SuiChordChangeDialog._dialogElements;
   }
   changed() {
-    this.chordEditorCtrl.verse = this.verse.getValue();
-
-    if (this.translateYCtrl.changeFlag) {
-      this.chordEditorCtrl.setYOffset(this.translateYCtrl.getValue());
-      this.tracker.replaceSelectedMeasures();
-    } else {
-      this.translateYCtrl.setValue(this.chordEditorCtrl.getYOffset());
+    if (this.chordSymbolCtrl.changeFlag && this.chordEditorCtrl.running)   {
+      const val = '@' + this.chordSymbolCtrl.getValue() + '@';
+      this.chordEditorCtrl.evKey({
+        key: val
+      });
     }
   }
 

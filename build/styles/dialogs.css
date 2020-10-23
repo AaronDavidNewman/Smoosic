@@ -11,7 +11,8 @@
 	z-index:11;
 }
 
-#dialog-lyrics-text .controlDiv  {
+#dialog-lyrics-text .controlDiv,
+#dialog-chords-text .controlDiv {
   display:none;
 }
 
@@ -21,12 +22,14 @@
     flex:1 1 auto;
 }
 
-
-body.text-edit #dialog-lyrics-verse {
+body.text-edit #dialog-lyrics-verse,
+body.text-edit #dialog-chords-verse {
     display:none;
 }
 
-body.text-edit #dialog-lyrics-text {
+body.text-edit #dialog-lyrics-text,
+body.text-edit #dialog-chords-text,
+body.text-edit #dialog-chords-chordSymbol {
   display:flex;
   flex-flow: row wrap;
 }
