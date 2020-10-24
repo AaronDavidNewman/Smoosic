@@ -12,6 +12,7 @@
 }
 
 #dialog-lyrics-text .controlDiv,
+#dialog-chords-text .controlDiv,
 #dialog-chords-text .controlDiv {
   display:none;
 }
