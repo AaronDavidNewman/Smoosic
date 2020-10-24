@@ -345,3 +345,46 @@ class SuiDropdownComponent  extends SuiComponentBase{
         });
     }
 }
+
+// ## SuiTextInputComponent
+// Just get text from an input, such as a filename.
+// Note: this is HTML input, not for SVG/score editing
+class SuiTextInputComponent extends SuiComponentBase {
+    constructor(dialog, parameter) {
+        super();
+        smoSerialize.filteredMerge(
+            ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
+        if (!this.defaultValue) {
+            this.defaultValue = 0;
+        }
+        this.dialog = dialog;
+        this.value='';
+    }
+    get parameterId() {
+        return this.dialog.id + '-' + this.parameterName;
+    }
+    get html() {
+        var b = htmlHelpers.buildDom;
+        var id = this.parameterId;
+        var r = b('div').classes('text-input smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+            .append(b('input').attr('type', 'text').classes('file-name')
+                .attr('id', id + '-input')).append(
+                b('label').attr('for', id + '-input').text(this.label));
+        return r;
+    }
+
+    getValue() {
+        return this.value;
+    }
+    setValue(val) {
+        this.value = val;
+        $('#'+this.parameterId).find('input').val(val);
+    }
+    bind() {
+        var self=this;
+        $('#'+this.parameterId).find('input').off('change').on('change',function(e) {
+            self.value = $(this).val();
+            self.handleChanged();
+        });
+    }
+}

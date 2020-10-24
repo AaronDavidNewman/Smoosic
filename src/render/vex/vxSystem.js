@@ -100,10 +100,10 @@ class VxSystem {
           voice.notes.forEach((note) => {
             this._updateChordOffsets(note);
             note.getTrueLyrics().forEach((ll) => {
-              if (!lyricVerseMap[ll.verse]) {
+              if (ll._text.trim().length > 0 && !lyricVerseMap[ll.verse]) {
                 lyricVerseMap[ll.verse] = [];
               }
-              if (ll.logicalBox) {
+              if (ll._text.trim().length > 0 && ll.logicalBox) {
                 lyricVerseMap[ll.verse].push(ll);
                 lyrics.push(ll);
               }
