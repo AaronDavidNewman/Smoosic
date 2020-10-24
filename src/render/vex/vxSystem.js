@@ -79,12 +79,12 @@ class VxSystem {
   updateLyricOffsets() {
     let i = 0;
     let j = 0;
-    const lyricsDash = [];
-    const verseLimits = {};
-    const lyricVerseMap = {};
-    const lyrics = [];
     for (i = 0; i < this.score.staves.length; ++i) {
       const tmpI = i;
+      const lyricsDash = [];
+      const verseLimits = {};
+      const lyricVerseMap = {};
+      const lyrics = [];
       // is this necessary? They should all be from the current line
       const vxMeasures = this.vxMeasures.filter((vx) =>
         vx.smoMeasure.measureNumber.staffId === tmpI
