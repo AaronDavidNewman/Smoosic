@@ -1,7 +1,7 @@
 
 
 @font-face {
-    font-family: 'petalumaScript';
+    font-family: 'Petaluma Script';
     src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/petalumascript-webfont.woff2') format('woff2'),
          url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/petalumascript-webfont.woff') format('woff');
     font-weight: normal;
@@ -9,15 +9,36 @@
 }
 
 @font-face {
-    font-family: 'robotoSlab';
+    font-family: 'Roboto Slab';
     src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/robotoslab-webfont.woff2') format('woff2'),
          url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/robotoslab-webfont.woff') format('woff');
     font-weight: normal;
     font-style: normal;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Merriweather');
+@font-face {
+    font-family: 'Merriweather';
+    src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/Merriweather-Regular.woff2') format('woff2'),
+         url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/Merriweather-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
 
+@font-face {
+    font-family: 'Commissioner';
+    src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/Commissioner-Medium.woff2') format('woff2'),
+         url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/Commissioner-Medium.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'ConcertOne';
+    src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/ConcertOne-Regular.woff2') format('woff2'),
+         url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/ConcertOne-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
 
 body {
 	margin:0;
@@ -125,7 +146,7 @@ h1 {
 }
 
 body.print-render .measure-format {
-    dislay:none;
+    display:none;
 }
 
 body.printing .piano-container {
@@ -230,6 +251,11 @@ body.printing .printFrame {
 
 .overlay {
 	display:none;
+}
+
+.vf-lyric.under-edit {
+  fill: none;
+  stroke: #fff;
 }
 
 .separator {

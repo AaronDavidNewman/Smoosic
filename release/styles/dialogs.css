@@ -11,45 +11,36 @@
 	z-index:11;
 }
 
-#dialog-lyrics-text .controlDiv  {
+.show-when-editing {
   display:none;
 }
 
-#dialog-lyrics-text,
-#dialog-lyrics-verse {
-    display:flex;
-    flex:1 1 auto;
-}
-
-
-body.text-edit #dialog-lyrics-verse {
+body.text-edit .hide-when-editing,
+body.text-move .hide-when-moving {
     display:none;
 }
 
-body.text-edit #dialog-lyrics-text {
+body.text-edit .show-when-editing,
+body.text-move .show-when-moving {
   display:flex;
   flex-flow: row wrap;
 }
-body.text-edit #dialog-lyrics-text div.toggleEdit,
-body.text-edit #dialog-lyrics-text div.controlDiv {
+body.text-edit .show-when-editing div.controlDiv,
+body.text-move .show-when-moving div.controlDiv {
     display:flex;
     flex: 0 0 100%;
     justify-content:center;
     align-items:center;
 }
 
-body.text-edit #dialog-lyrics-text div.controlDiv span {
+
+body.text-edit .show-when-editing div.controlDiv span,
+body.text-edit .show-always div.controlDiv span {
   display:flex;
   flex:1 1 auto;
   justify-content:center;
   align-items:center;
   margin:5px;
-}
-
-body.text-edit .fold-textedit,
-body.text-move .fold-textmove,
-body.text-resize .fold-textresize {
-    display:none;
 }
 
 body.text-resize .textEdit {

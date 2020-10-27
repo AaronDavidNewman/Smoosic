@@ -26,7 +26,7 @@
 // This component just manages the text editing component of hte renderer.
 class SuiTextInPlace extends SuiComponentBase {
   constructor(dialog,parameter) {
-    super();
+    super(parameter);
     smoSerialize.filteredMerge(
         ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
     if (!this.defaultValue) {
@@ -45,7 +45,7 @@ class SuiTextInPlace extends SuiComponentBase {
   get html() {
     var b = htmlHelpers.buildDom;
     var id = this.parameterId;
-    var r = b('div').classes('cbTextInPlace smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+    var r = b('div').classes(this.makeClasses('cbTextInPlace smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
       .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
         .attr('id', id + '-input').append(
         b('span').classes('icon icon-pencil'))
@@ -143,7 +143,7 @@ class SuiTextInPlace extends SuiComponentBase {
 // different notes.
 class SuiNoteTextComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
-    super();
+    super(parameter);
 
     this.selection = dialog.tracker.selections[0];
     this.selector = JSON.parse(JSON.stringify(this.selection.selector));
@@ -172,8 +172,9 @@ class SuiNoteTextComponent extends SuiComponentBase {
   }
   evKey(evdata) {
     if (this.session) {
-      this.session.evKey(evdata);
+      return this.session.evKey(evdata);
     }
+    return false;
   }
 
   moveSelectionRight() {
@@ -196,13 +197,13 @@ class SuiNoteTextComponent extends SuiComponentBase {
       }
     });
     var self=this;
-    $('#'+this.parameterId+'-left').off('click').on('click',function() {
+    $('#' + this.parameterId+'-left').off('click').on('click',function() {
       self.moveSelectionLeft();
     });
-    $('#'+this.parameterId+'-right').off('click').on('click',function() {
+    $('#' + this.parameterId+'-right').off('click').on('click',function() {
       self.moveSelectionRight();
     });
-    $('#'+this.parameterId+'-remove').off('click').on('click',function() {
+    $('#' + this.parameterId+'-remove').off('click').on('click',function() {
       self.removeText();
     });
   }
@@ -228,14 +229,14 @@ class SuiLyricComponent extends SuiNoteTextComponent {
   get html() {
     var b = htmlHelpers.buildDom;
     var id = this.parameterId;
-    var r = b('div').classes('cbLyricEdit smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+    var r = b('div').classes(this.makeClasses('cbLyricEdit smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
       .append(b('div').classes('toggleEdit')
         .append(b('button').classes('toggleTextEdit')
           .attr('id', id + '-toggleInput').append(
           b('span').classes('icon icon-pencil'))).append(
           b('label').attr('for', id + '-toggleInput').text(this.label)))
 
-      .append(b('div').classes('controlDiv')
+      .append(b('div').classes('show-when-editing')
         .append(b('span')
           .append(
             b('button').attr('id', id + '-left').classes('icon-arrow-left buttonComponent')))
@@ -310,14 +311,14 @@ class SuiChordComponent extends SuiNoteTextComponent {
   get html() {
     var b = htmlHelpers.buildDom;
     var id = this.parameterId;
-    var r = b('div').classes('cbChordEdit smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+    var r = b('div').classes(this.makeClasses('cbChordEdit smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
       .append(b('div').classes('toggleEdit')
         .append(b('button').classes('toggleTextEdit')
           .attr('id', id + '-toggleInput').append(
           b('span').classes('icon icon-pencil'))).append(
           b('label').attr('for', id + '-toggleInput').text(this.label)))
 
-      .append(b('div').classes('controlDiv')
+      .append(b('div').classes('show-when-editing')
         .append(b('span')
           .append(
             b('button').attr('id', id + '-left').classes('icon-arrow-left buttonComponent')))
@@ -369,6 +370,13 @@ class SuiChordComponent extends SuiNoteTextComponent {
   bind() {
     this._bind();
   }
+  setTextType(type) {
+    this.session.textType = parseInt(type, 10);
+  }
+  getTextType(type) {
+    return this.session.textType;
+  }
+
 }
 
 // ## SuiDragText
@@ -377,7 +385,7 @@ class SuiChordComponent extends SuiNoteTextComponent {
 // in other dialog fields.
 class SuiDragText extends SuiComponentBase {
   constructor(dialog,parameter) {
-    super();
+    super(parameter);
     smoSerialize.filteredMerge(
         ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
     if (!this.defaultValue) {
@@ -394,7 +402,7 @@ class SuiDragText extends SuiComponentBase {
   get html() {
     var b = htmlHelpers.buildDom;
     var id = this.parameterId;
-    var r = b('div').classes('cbDragTextDialog smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+    var r = b('div').classes(this.makeClasses('cbDragTextDialog smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
       .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
         .attr('id', id + '-input').append(
         b('span').classes('icon icon-move'))
@@ -466,7 +474,7 @@ class SuiDragText extends SuiComponentBase {
 // ## Removing this for now...
 class SuiResizeTextBox extends SuiComponentBase {
   constructor(dialog,parameter) {
-    super();
+    super(parameter);
     smoSerialize.filteredMerge(
       ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
     if (!this.defaultValue) {
@@ -482,7 +490,7 @@ class SuiResizeTextBox extends SuiComponentBase {
   get html() {
     var b = htmlHelpers.buildDom;
     var id = this.parameterId;
-    var r = b('div').classes('cbResizeTextBox smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+    var r = b('div').classes(this.makeClasses('cbResizeTextBox smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
       .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
           .attr('id', id + '-input').append(
           b('span').classes('icon icon-enlarge'))

@@ -156,18 +156,20 @@ class smoSerialize {
     "vd": "bracketed",
     "wd": "ratioed",
     "xd": "location",
-     "yd": "systemGroups",
-     "zd": "leftConnector",
-     "ae": "padLeft",
-     "be": "customStretch",
-      "ce": "engravingFont",
-      "de": "customProportion",
-      "ee": "columnAttributeMap",
-      "fe": "tempo",
-      "ge": "textGroups",
-       "he": "textBlocks",
-       "ie": "backupBlocks",
-       "je": "blocks"
+    "yd": "systemGroups",
+    "zd": "leftConnector",
+    "ae": "padLeft",
+    "be": "customStretch",
+    "ce": "engravingFont",
+    "de": "customProportion",
+    "ee": "columnAttributeMap",
+    "fe": "tempo",
+    "ge": "textGroups",
+      "he": "textBlocks",
+      "ie": "backupBlocks",
+      "je": "blocks",
+      "ke": "_text",
+      "le": "parser"
      }`
      ;
      return JSON.parse(_tm);

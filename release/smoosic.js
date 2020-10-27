@@ -1193,18 +1193,20 @@ class smoSerialize {
     "vd": "bracketed",
     "wd": "ratioed",
     "xd": "location",
-     "yd": "systemGroups",
-     "zd": "leftConnector",
-     "ae": "padLeft",
-     "be": "customStretch",
-      "ce": "engravingFont",
-      "de": "customProportion",
-      "ee": "columnAttributeMap",
-      "fe": "tempo",
-      "ge": "textGroups",
-       "he": "textBlocks",
-       "ie": "backupBlocks",
-       "je": "blocks"
+    "yd": "systemGroups",
+    "zd": "leftConnector",
+    "ae": "padLeft",
+    "be": "customStretch",
+    "ce": "engravingFont",
+    "de": "customProportion",
+    "ee": "columnAttributeMap",
+    "fe": "tempo",
+    "ge": "textGroups",
+      "he": "textBlocks",
+      "ie": "backupBlocks",
+      "je": "blocks",
+      "ke": "_text",
+      "le": "parser"
      }`
      ;
      return JSON.parse(_tm);
@@ -4787,20 +4789,41 @@ class suiScroller  {
 // creates and destroys editors, e.g. for lyrics that have a Different
 // editor instance for each note.
 //
-
-
 // ## SuiTextEditor
 // Next-gen text editor.  The base text editor handles the positioning and inserting
 // of text blocks into the text area.  The derived class shoud interpret key events.
 // A container class will manage the session for starting/stopping the editor
 // and retrieving the results into the target object.
+// eslint-disable-next-line no-unused-vars
 class SuiTextEditor {
   static get attributes() {
-    return ['svgText','context','x','y','text','textPos','selectionStart','selectionLength','empty','suggestionIndex'];
+    return ['svgText', 'context', 'x', 'y', 'text',
+      'textPos', 'selectionStart', 'selectionLength', 'empty', 'suggestionIndex'];
   }
   static get States() {
     return { RUNNING: 1, STOPPING: 2, STOPPED: 4, PENDING_EDITOR: 8 };
   }
+  // parsers use this convention to represent text types (superscript)
+  static textTypeToChar(textType) {
+    if (textType === SuiInlineText.textTypes.superScript) {
+      return '^';
+    }
+    if (textType === SuiInlineText.textTypes.subScript) {
+      return '%';
+    }
+    return '';
+  }
+
+  static textTypeFromChar(char) {
+    if (char === '^') {
+      return SuiInlineText.textTypes.superScript;
+    }
+    if (char === '%') {
+      return SuiInlineText.textTypes.subScript;
+    }
+    return SuiInlineText.textTypes.normal;
+  }
+
   static get defaults() {
     return {
       svgText: null,
@@ -4812,13 +4835,13 @@ class SuiTextEditor {
       selectionStart: -1,
       selectionLength: 0,
       empty: true,
-      suggestionIndex:-1,
+      suggestionIndex: -1,
       textType: SuiInlineText.textTypes.normal
-    }
+    };
   }
   constructor(params) {
-    Vex.Merge(this,SuiTextEditor.defaults);
-    Vex.Merge(this,params);
+    Vex.Merge(this, SuiTextEditor.defaults);
+    Vex.Merge(this, params);
     this.context = params.context;
   }
 
@@ -4834,29 +4857,29 @@ class SuiTextEditor {
         'stroke': '#99d',
         'stroke-width': 1,
         'fill': 'none'
-      },'text-highlight': {
+      }, 'text-highlight': {
         'stroke': '#dd9',
         'stroke-width': 1,
         'stroke-dasharray': '4,1',
         'fill': 'none'
-      },'text-drag' : {
+      }, 'text-drag': {
         'stroke': '#d99',
         'stroke-width': 1,
         'stroke-dasharray': '2,1',
         'fill': '#eee',
-        'opacity' : '0.3'
+        'opacity': '0.3'
       }
-    }
+    };
   }
 
   // ### _suggestionParameters
   // Create the svg text outline parameters
-  _suggestionParameters(box,strokeName) {
+  _suggestionParameters(box, strokeName) {
     const outlineStroke = SuiTextEditor.strokes[strokeName];
     return {
-      context: this.context, box: box,classes: strokeName,
-         outlineStroke, scroller: this.scroller
-    }
+      context: this.context, box, classes: strokeName,
+      outlineStroke, scroller: this.scroller
+    };
   }
 
   // ### _expandSelectionToSuggestion
@@ -4874,7 +4897,6 @@ class SuiTextEditor {
       this.selectionLength = (oldStart - this.selectionStart) + this.selectionLength;
     }  else if (this.selectionStart < this.suggestionIndex
         && this.selectionStart > this.selectionStart + this.selectionLength) {
-      const oldStart = this.selectionStart;
       this.selectionLength = (this.suggestionIndex - this.selectionStart) + 1;
     }
     this._updateSelections();
@@ -4897,11 +4919,11 @@ class SuiTextEditor {
     var blocks = this.svgText.getIntersectingBlocks({
       x: ev.clientX,
       y: ev.clientY
-    }, this.scroller.netScroll );
+    }, this.scroller.netScroll);
 
     // The mouse is not over the text
     if (!blocks.length) {
-      svgHelpers.eraseOutline(this.context,'text-suggestion');
+      svgHelpers.eraseOutline(this.context, 'text-suggestion');
 
       // If the user clicks and there was a previous selection, treat it as selected
       if (ev.type === 'click' && this.suggestionIndex >= 0) {
@@ -4919,12 +4941,12 @@ class SuiTextEditor {
     // outline the text that is hovered.  Since mouse is a point
     // there should only be 1
     blocks.forEach((block) => {
-      svgHelpers.outlineRect(this._suggestionParameters(block.box,'text-suggestion'));
+      svgHelpers.outlineRect(this._suggestionParameters(block.box, 'text-suggestion'));
       this.suggestionIndex = block.index;
     });
     // if the user clicked on it, add it to the selection.
     if (ev.type === 'click') {
-      svgHelpers.eraseOutline(this.context,'text-suggestion');
+      svgHelpers.eraseOutline(this.context, 'text-suggestion');
       if (ev.shiftKey) {
         this._expandSelectionToSuggestion();
       } else {
@@ -4939,7 +4961,7 @@ class SuiTextEditor {
   // Flash the cursor as a background task
   _serviceCursor() {
     if (this.cursorState) {
-      this.svgText.renderCursorAt(this.textPos - 1);
+      this.svgText.renderCursorAt(this.textPos - 1, this.textType);
     } else {
       this.svgText.removeCursor();
     }
@@ -4974,7 +4996,7 @@ class SuiTextEditor {
     this.cursorRunning = true;
     this.cursorState = true;
     self.svgText.renderCursorAt(this.textPos);
-    return PromiseHelpers.makePromise(this,'_endCursorCondition','_cursorPreResolve','_cursorPoll',333);
+    return PromiseHelpers.makePromise(this, '_endCursorCondition', '_cursorPreResolve', '_cursorPoll', 333);
   }
   stopCursor() {
     this.cursorRunning = false;
@@ -5009,7 +5031,7 @@ class SuiTextEditor {
     const start =  this.selectionStart;
     this.svgText.blocks.forEach((block) => {
       const val = start >= 0 && i >= start && i < end;
-      this.svgText.setHighlight(block,val);
+      this.svgText.setHighlight(block, val);
       ++i;
     });
   }
@@ -5069,8 +5091,9 @@ class SuiTextEditor {
   // ### deleteSelections
   // delete the selected blocks of text/glyphs
   deleteSelections() {
+    let i = 0;
     const blockPos = this.selectionStart;
-    for (var i = 0;i < this.selectionLength; ++i) {
+    for (i = 0; i < this.selectionLength; ++i) {
       this.svgText.removeBlockAt(blockPos); // delete shifts blocks so keep index the same.
     }
     this.setTextPos(blockPos);
@@ -5082,10 +5105,11 @@ class SuiTextEditor {
   // THis can be overridden by the base class to create the correct combination
   // of text and glyph blocks based on the underlying text
   parseBlocks() {
-    this.svgText = new SuiInlineText({ context: this.context,startX: this.x, startY: this.y,
+    let i = 0;
+    this.svgText = new SuiInlineText({ context: this.context, startX: this.x, startY: this.y,
       fontFamily: this.fontFamily, fontSize: this.fontSize, fontWeight: this.fontWeight });
-    for (var i =0;i < this.text.length; ++i) {
-      this.svgText.addTextBlockAt(i,{text:this.text[i]});
+    for (i = 0; i < this.text.length; ++i) {
+      this.svgText.addTextBlockAt(i, { text: this.text[i] });
       this.empty = false;
     }
     this.textPos = this.text.length;
@@ -5143,13 +5167,13 @@ class SuiTextEditor {
       if (this.empty) {
         this.svgText.removeBlockAt(0);
         this.empty = false;
-        this.svgText.addTextBlockAt(0,{text: evdata.key});
+        this.svgText.addTextBlockAt(0, { text: evdata.key });
         this.setTextPos(1);
       } else {
         if (this.selectionStart >= 0) {
           this.deleteSelections();
         }
-        this.svgText.addTextBlockAt(this.textPos,{ text: evdata.key, textType:this.textType});
+        this.svgText.addTextBlockAt(this.textPos, { text: evdata.key, textType: this.textType });
         this.setTextPos(this.textPos + 1);
       }
       this.svgText.render();
@@ -5158,6 +5182,7 @@ class SuiTextEditor {
     return false;
   }
 }
+// eslint-disable-next-line no-unused-vars
 class SuiTextBlockEditor extends SuiTextEditor {
   // ### ctor
   // ### args
@@ -5171,11 +5196,11 @@ class SuiTextBlockEditor extends SuiTextEditor {
     if (this.svgText.blocks.length === 0) {
       return;
     }
-    var bbox = this.svgText.getLogicalBox();
+    const bbox = this.svgText.getLogicalBox();
     const outlineStroke = SuiTextEditor.strokes['text-highlight'];
     const obj = {
-      context: this.context, box: bbox,classes: 'text-highlight',
-         outlineStroke, scroller: this.scroller
+      context: this.context, box: bbox, classes: 'text-highlight',
+      outlineStroke, scroller: this.scroller
     };
     svgHelpers.outlineLogicalRect(obj);
   }
@@ -5185,17 +5210,17 @@ class SuiTextBlockEditor extends SuiTextEditor {
   }
 
   evKey(evdata) {
-    if (evdata.key.charCodeAt(0) == 32) {
+    if (evdata.key.charCodeAt(0) === 32) {
       if (this.empty) {
         this.svgText.removeBlockAt(0);
         this.empty = false;
-        this.svgText.addTextBlockAt(0,{text: ' '});
+        this.svgText.addTextBlockAt(0, { text: ' ' });
         this.setTextPos(1);
       } else {
         if (this.selectionStart >= 0) {
           this.deleteSelections();
         }
-        this.svgText.addTextBlockAt(this.textPos,{ text: ' ', textType:this.textType});
+        this.svgText.addTextBlockAt(this.textPos, { text: ' ', textType: this.textType });
         this.setTextPos(this.textPos + 1);
       }
       this.svgText.render();
@@ -5208,20 +5233,22 @@ class SuiTextBlockEditor extends SuiTextEditor {
 
   stopEditor() {
     this.state = SuiTextEditor.States.STOPPING;
-    $(this.context.svg).find('g.vf-' + 'text-highlight').remove();
+    $(this.context.svg).find('g.vf-text-highlight').remove();
     this.stopCursor();
     this.svgText.unrender();
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 class SuiLyricEditor extends SuiTextEditor {
   static get States() {
     return { RUNNING: 1, STOPPING: 2, STOPPED: 4 };
   }
   parseBlocks() {
-    this.svgText = new SuiInlineText({ context: this.context,startX: this.x, startY: this.y });
-    for (var i =0;i < this.text.length; ++i) {
-      this.svgText.addTextBlockAt(i,{text:this.text[i]});
+    let i = 0;
+    this.svgText = new SuiInlineText({ context: this.context, startX: this.x, startY: this.y });
+    for (i = 0; i < this.text.length; ++i) {
+      this.svgText.addTextBlockAt(i, { text: this.text[i] });
       this.empty = false;
     }
     this.textPos = this.text.length;
@@ -5240,7 +5267,6 @@ class SuiLyricEditor extends SuiTextEditor {
     super(params);
     this.text = params.lyric._text;
     this.lyric = params.lyric;
-    this.sessionNotifier = params.sessionNotifier;
     this.parseBlocks();
   }
 
@@ -5251,6 +5277,7 @@ class SuiLyricEditor extends SuiTextEditor {
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 class SuiChordEditor extends SuiTextEditor {
   static get States() {
     return { RUNNING: 1, STOPPING: 2, STOPPED: 4 };
@@ -5263,16 +5290,33 @@ class SuiChordEditor extends SuiTextEditor {
     };
   }
 
+  // ### toTextTypeChar
+  // Given an old text type and a desited new text type,
+  // return what the new text type character should be
+  static toTextTypeChar(oldTextType, newTextType) {
+    const tt = SuiInlineText.getTextTypeResult(oldTextType, newTextType);
+    return SuiTextEditor.textTypeToChar(tt);
+  }
+
+  static toTextTypeTransition(oldTextType, result) {
+    const tt = SuiInlineText.getTextTypeTransition(oldTextType, result);
+    return SuiTextEditor.textTypeToChar(tt);
+  }
+
+  setTextType(textType) {
+    this.textType = textType;
+  }
 
   // Handle the case where user changed super/subscript in the middle of the
   // string.
   _updateSymbolModifiers() {
     let change = this.textPos;
     let render = false;
-    for (var i = this.textPos; i < this.svgText.blocks.length; ++i) {
+    let i = 0;
+    for (i = this.textPos; i < this.svgText.blocks.length; ++i) {
       const block = this.svgText.blocks[i];
       if (block.textType !== this.textType &&
-        block.textTYpe !== change) {
+        block.textType !== change) {
         change = block.textType;
         block.textType = this.textType;
         render = true;
@@ -5285,75 +5329,48 @@ class SuiChordEditor extends SuiTextEditor {
     }
   }
   _setSymbolModifier(char) {
-    if (char === '^') {
-      this.textType =
-        this.textType ===  SuiInlineText.textTypes.superScript
-          ? SuiInlineText.textTypes.none
-          : SuiInlineText.textTypes.superScript;
-      this._updateSymbolModifiers();
-      return true;
-    } else if (char === '%') {
-      this.textType =
-        this.textType ===  SuiInlineText.textTypes.subScript
-          ? SuiInlineText.textTypes.none
-          : SuiInlineText.textTypes.subScript;
-      this._updateSymbolModifiers();
-      return true;
+    if (['^', '%'].indexOf(char) < 0) {
+      return false;
     }
-    return false;
+    const currentTextType = this.textType;
+    const transitionType = SuiTextEditor.textTypeFromChar(char);
+    this.textType = SuiInlineText.getTextTypeResult(currentTextType, transitionType);
+    this._updateSymbolModifiers();
+    return true;
   }
 
   parseBlocks() {
     let readGlyph = false;
     let curGlyph = '';
     let blockIx = 0; // so we skip modifier characters
-    this.svgText = new SuiInlineText({ context: this.context,startX: this.x, startY: this.y });
+    let i = 0;
+    this.svgText = new SuiInlineText({ context: this.context, startX: this.x, startY: this.y });
 
-    for (var i =0;i < this.text.length; ++i) {
-      let char = this.text[i];
-      if (this._setSymbolModifier(char)) {
-      } else if (char === '@') {
+    for (i = 0; i < this.text.length; ++i) {
+      const char = this.text[i];
+      const isSymbolModifier = this._setSymbolModifier(char);
+      if (char === '@') {
         if (!readGlyph) {
           readGlyph = true;
           curGlyph = '';
         } else {
-          this._addGlyphAt(blockIx,curGlyph);
+          this._addGlyphAt(blockIx, curGlyph);
           blockIx += 1;
           readGlyph = false;
         }
-    } else {
-      if (readGlyph) {
-        curGlyph = curGlyph + char;
-      } else {
-        this.svgText.addTextBlockAt(blockIx,{text:char, textType: this.textType});
-        blockIx += 1;
+      } else if (!isSymbolModifier) {
+        if (readGlyph) {
+          curGlyph = curGlyph + char;
+        } else {
+          this.svgText.addTextBlockAt(blockIx, { text: char, textType: this.textType });
+          blockIx += 1;
+        }
       }
-    }
       this.empty = false;
     }
     this.textPos = blockIx;
     this.state = SuiTextEditor.States.RUNNING;
     this.svgText.render();
-  }
-
-  _toTextTypeChar(oldTextType, newTextType) {
-    if (newTextType === SuiInlineText.textTypes.subScript) {
-      return '%';
-    }
-
-    if (newTextType === SuiInlineText.textTypes.superScript) {
-      return '^';
-    }
-
-    if (oldTextType === SuiInlineText.textTypes.superScript &&
-         newTextType === SuiInlineText.textTypes.normal)  {
-      return '^';
-    }
-    if (oldTextType === SuiInlineText.textTypes.subScript &&
-         newTextType === SuiInlineText.textTypes.normal)  {
-      return '%';
-    }
-    return '';
   }
 
   // ### getText
@@ -5365,8 +5382,8 @@ class SuiChordEditor extends SuiTextEditor {
     let text = '';
     let textType = this.svgText.blocks[0].textType;
     this.svgText.blocks.forEach((block) => {
-      if (block.textType != textType) {
-        text += this._toTextTypeChar(textType,block.textType);
+      if (block.textType !== textType) {
+        text += SuiChordEditor.toTextTypeTransition(textType, block.textType);
         textType = block.textType;
       }
       if (block.symbolType === SuiInlineText.symbolTypes.GLYPH) {
@@ -5378,35 +5395,37 @@ class SuiChordEditor extends SuiTextEditor {
     return text;
   }
 
-  _addGlyphAt(ix,code) {
+  _addGlyphAt(ix, code) {
     if (this.selectionStart >= 0) {
       this.deleteSelections();
     }
-    this.svgText.addGlyphBlockAt(ix,{glyphCode:code,textType:this.textType});
+    this.svgText.addGlyphBlockAt(ix, { glyphCode: code, textType: this.textType });
     this.textPos += 1;
   }
 
   evKey(evdata) {
+    let edited = false;
     if (this._setSymbolModifier(evdata.key)) {
       return true;
     }
     // Dialog gives us a specific glyph code
     if (evdata.key[0] === '@' && evdata.key.length > 2) {
-      const glyph = evdata.key.substr(1,evdata.key.length - 2);
-      this._addGlyphAt(this.textPos,glyph);
+      const glyph = evdata.key.substr(1, evdata.key.length - 2);
+      this._addGlyphAt(this.textPos, glyph);
       this.svgText.render();
+      edited  = true;
     } else if (VF.ChordSymbol.glyphs[evdata.key[0]]) { // glyph shortcut like 'b'
-      this._addGlyphAt(this.textPos,VF.ChordSymbol.glyphs[evdata.key[0]].code);
+      this._addGlyphAt(this.textPos, VF.ChordSymbol.glyphs[evdata.key[0]].code);
       this.svgText.render();
+      edited = true;
     } else {
       // some ordinary key
-      super.evKey(evdata);
+      edited = super.evKey(evdata);
     }
     if (this.svgText.blocks.length > this.textPos && this.textPos >= 0) {
       this.textType = this.svgText.blocks[this.textPos].textType;
     }
-    // if (evdata.substr)
-
+    return edited;
   }
 
   // ### ctor
@@ -5416,9 +5435,7 @@ class SuiChordEditor extends SuiTextEditor {
     super(params);
     this.text = params.lyric._text;
     this.lyric = params.lyric;
-    this.sessionNotifier = params.sessionNotifier;
-    this.textTypes = SuiInlineText.textTypes.none;
-    this.glyphCur = '';
+    this.textType = SuiInlineText.textTypes.normal;
     this.parseBlocks();
   }
 
@@ -5435,49 +5452,49 @@ class SuiChordEditor extends SuiTextEditor {
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 class SuiResizeTextSession {
-
   static get defaultSpring() {
     return 0.1;
   }
   static get resizeModes() {
-    return {BOX: 1, FONT: 2}
+    return { BOX: 1, FONT: 2 };
   }
-  static get defaults () {
+  static get defaults() {
     return {
-      spring : 0.1,
-      resizeMode : SuiResizeTextSession.resizeModes.FONT,
+      spring: 0.1,
+      resizeMode: SuiResizeTextSession.resizeModes.FONT,
       dragging: false,
-      startDragPoint: { x: -1, y: -1}
-    }
+      startDragPoint: { x: -1, y: -1 }
+    };
   }
   constructor(params) {
-    Vex.Merge(this,SuiResizeTextSession.defaults);
-    Vex.Merge(this,params);
-    this.textObject = SuiTextBlock.fromTextGroup(this.textGroup,this.context); // SuiTextBlock
+    Vex.Merge(this, SuiResizeTextSession.defaults);
+    Vex.Merge(this, params);
+    this.textObject = SuiTextBlock.fromTextGroup(this.textGroup, this.context); // SuiTextBlock
     this.startBox = this.textObject.getLogicalBox();
     this.clientBox = this.textObject.getRenderedBox();
     this.startBox.y += this.textObject.maxFontHeight(1);
     this.currentBox = svgHelpers.smoBox(this.startBox);
 
-    this.currentClientBox = svgHelpers.adjustScroll(svgHelpers.logicalToClient(this.context.svg, this.currentBox),this.scroller.netScroll);
+    this.currentClientBox = svgHelpers.adjustScroll(svgHelpers.logicalToClient(this.context.svg, this.currentBox), this.scroller.netScroll);
   }
   _outlineBox() {
     const outlineStroke = SuiTextEditor.strokes['text-drag'];
     const obj = {
-      context: this.context, box: this.currentBox,classes: 'text-drag',
-         outlineStroke, scroller: this.scroller
+      context: this.context, box: this.currentBox, classes: 'text-drag',
+      outlineStroke, scroller: this.scroller
     };
     svgHelpers.outlineLogicalRect(obj);
   }
 
   startDrag(e) {
-    if (!svgHelpers.containsPoint(this.clientBox,{x: e.clientX,y: e.clientY}, this.scroller.netScroll)) {
+    if (!svgHelpers.containsPoint(this.clientBox, { x: e.clientX, y: e.clientY }, this.scroller.netScroll)) {
       return;
     }
 
     this.dragging = true;
-    this.startDragPoint = {x: e.clientX, y: e.clientY };
+    this.startDragPoint = { x: e.clientX, y: e.clientY };
     this.deltaDrag = null;
     // calculate offset of mouse start vs. box UL
     this._outlineBox();
@@ -5492,25 +5509,27 @@ class SuiResizeTextSession {
     const xdelta = e.clientX - clientX;
     const ydelta = e.clientY - clientY;
     if (!this.deltaDrag) {
-      this.deltaDrag = {x: xdelta, y: ydelta};
+      this.deltaDrag = { x: xdelta, y: ydelta };
       return;
     }
     const dragDiff = Math.abs(xdelta) - Math.abs(this.deltaDrag.x);
     const coeff = dragDiff > 0 ? 2 : 0.5;
     const  absRate = 1 + (this.spring * coeff);
-    const rate = xdelta > 0 ? absRate : 1/absRate;
+    const rate = xdelta > 0 ? absRate : 1 / absRate;
     this.textGroup.scaleInPlace(rate);
     this.textObject.rescale(rate);
     this.textObject.render();
     this._outlineBox();
-    this.deltaDrag = {x: xdelta, y: ydelta};
+    this.deltaDrag = { x: xdelta, y: ydelta };
   }
-  endDrag(e) {
+  endDrag() {
     this.dragging = false;
-    svgHelpers.eraseOutline(this.context,'text-drag');
+    svgHelpers.eraseOutline(this.context, 'text-drag');
     this.textObject.render();
   }
 }
+
+// eslint-disable-next-line no-unused-vars
 class SuiDragSession {
   constructor(params) {
     this.textGroup = params.textGroup;
@@ -5518,25 +5537,25 @@ class SuiDragSession {
     this.scroller = params.scroller;
     this.xOffset = 0;
     this.yOffset = 0;
-    this.textObject = SuiTextBlock.fromTextGroup(this.textGroup,this.context); // SuiTextBlock
+    this.textObject = SuiTextBlock.fromTextGroup(this.textGroup, this.context); // SuiTextBlock
     this.dragging = false;
     this.startBox = this.textObject.getLogicalBox();
     this.startBox.y += this.textObject.maxFontHeight(1);
     this.currentBox = svgHelpers.smoBox(this.startBox);
-    this.currentClientBox = svgHelpers.adjustScroll(svgHelpers.logicalToClient(this.context.svg, this.currentBox),this.scroller.netScroll);
+    this.currentClientBox = svgHelpers.adjustScroll(svgHelpers.logicalToClient(this.context.svg, this.currentBox), this.scroller.netScroll);
   }
 
   _outlineBox() {
     const outlineStroke = SuiTextEditor.strokes['text-drag'];
     const obj = {
-      context: this.context, box: this.currentBox,classes: 'text-drag',
-         outlineStroke, scroller: this.scroller
+      context: this.context, box: this.currentBox, classes: 'text-drag',
+      outlineStroke, scroller: this.scroller
     };
     svgHelpers.outlineLogicalRect(obj);
   }
 
   startDrag(e) {
-    if (!svgHelpers.containsPoint(this.currentClientBox,{x: e.clientX,y: e.clientY}, this.scroller.netScroll)) {
+    if (!svgHelpers.containsPoint(this.currentClientBox, { x: e.clientX, y: e.clientY }, this.scroller.netScroll)) {
       return;
     }
     this.dragging = true;
@@ -5552,12 +5571,9 @@ class SuiDragSession {
     }
     const svgX = this.currentBox.x;
     const svgY = this.currentBox.y;
-    const clientX = this.currentClientBox.x;
-    const clientY = this.currentClientBox.y;
-
     this.currentClientBox.x = e.clientX - this.xOffset;
     this.currentClientBox.y = e.clientY - this.yOffset;
-    const coor = svgHelpers.clientToLogical(this.context.svg, {x: this.currentClientBox.x, y: this.currentClientBox.y });
+    const coor = svgHelpers.clientToLogical(this.context.svg, { x: this.currentClientBox.x, y: this.currentClientBox.y });
     this.currentBox.x = coor.x;
     this.currentBox.y = coor.y;
     this.textObject.offsetStartX(this.currentBox.x - svgX);
@@ -5572,8 +5588,8 @@ class SuiDragSession {
     return this.currentBox.y - this.startBox.y;
   }
 
-  endDrag(ev) {
-    svgHelpers.eraseOutline(this.context,'text-drag');
+  endDrag() {
+    svgHelpers.eraseOutline(this.context, 'text-drag');
     this.textObject.render();
     this.textGroup.offsetX(this.deltaX);
     this.textGroup.offsetY(this.deltaY);
@@ -5583,6 +5599,7 @@ class SuiDragSession {
 
 // ## SuiTextSession
 // session for editing plain text
+// eslint-disable-next-line no-unused-vars
 class SuiTextSession {
   static get States() {
     return { RUNNING: 1, STOPPING: 2, STOPPED: 4, PENDING_EDITOR: 8 };
@@ -5597,6 +5614,7 @@ class SuiTextSession {
     this.y = params.y;
     this.textGroup = params.textGroup;
     this.scoreText = params.scoreText;
+
     // Create a text group if one was not a startup parameter
     if (!this.textGroup) {
       this.textGroup = new SmoTextGroup();
@@ -5607,8 +5625,8 @@ class SuiTextSession {
       if (this.textGroup && this.textGroup.textBlocks.length) {
         this.scoreText = this.textGroup.textBlocks[0].text;
       } else {
-        this.scoreText = new SmoScoreText({x: this.x,y: this.y});
-        this.textGroup.addScoreText(this.scoreText,null,SmoTextGroup.relativePosition.RIGHT);
+        this.scoreText = new SmoScoreText({ x: this.x, y: this.y });
+        this.textGroup.addScoreText(this.scoreText, null, SmoTextGroup.relativePosition.RIGHT);
       }
     }
     this.fontFamily = this.scoreText.fontInfo.family;
@@ -5649,11 +5667,10 @@ class SuiTextSession {
   // ### _startSessionForNote
   // Start the lyric session
   startSession() {
-    console.log('startSession');
-    this.editor = new SuiTextBlockEditor({context : this.layout.context,
-       x: this.x, y: this.y, scroller: this.scroller,
-     fontFamily: this.fontFamily, fontSize: this.fontSize, fontWeight: this.fontWeight
-     ,text: this.scoreText.text});
+    this.editor = new SuiTextBlockEditor({ context: this.layout.context,
+      x: this.x, y: this.y, scroller: this.scroller,
+      fontFamily: this.fontFamily, fontSize: this.fontSize, fontWeight: this.fontWeight,
+      text: this.scoreText.text });
     this.cursorPromise = this.editor.startCursorPromise();
     this.state = SuiTextEditor.States.RUNNING;
     this._removeScoreText();
@@ -5662,12 +5679,11 @@ class SuiTextSession {
   // ### _startSessionForNote
   // Stop the lyric session, return promise for done
   stopSession() {
-    console.log('stopSession');
     if (this.editor) {
       this.scoreText.text = this.editor.getText();
       this.editor.stopEditor();
     }
-    return PromiseHelpers.makePromise(this,'_isRendered','_markStopped',null,100);
+    return PromiseHelpers.makePromise(this, '_isRendered', '_markStopped', null, 100);
   }
 
   // ### evKey
@@ -5680,6 +5696,7 @@ class SuiTextSession {
     if (rv) {
       this._removeScoreText();
     }
+    return rv;
   }
 
   handleMouseEvent(ev) {
@@ -5690,8 +5707,8 @@ class SuiTextSession {
 }
 // ## SuiLyricSession
 // Manage editor for lyrics, jupmping from note to note if asked
+// eslint-disable-next-line no-unused-vars
 class SuiLyricSession {
-
   static get States() {
     return { RUNNING: 1, STOPPING: 2, STOPPED: 4, PENDING_EDITOR: 8 };
   }
@@ -5710,13 +5727,12 @@ class SuiLyricSession {
   // Get the text from the editor and update the lyric with it.
   _setLyricForNote() {
     this.lyric = null;
-    console.log('_setLyricForNote');
-    const lar = this.note.getLyricForVerse(this.verse,SmoLyric.parsers.lyric);
+    const lar = this.note.getLyricForVerse(this.verse, SmoLyric.parsers.lyric);
     if (lar.length) {
       this.lyric = lar[0];
     }
     if (!this.lyric) {
-      this.lyric =  new SmoLyric({_text:'',verse: this.verse });
+      this.lyric = new SmoLyric({  _text: '', verse: this.verse });
       this.note.addLyric(this.lyric);
     }
     this.text = this.lyric._text;
@@ -5769,17 +5785,16 @@ class SuiLyricSession {
   // ### _startSessionForNote
   // Start the lyric editor for a note (current selected note)
   _startSessionForNote() {
-    console.log('_startSessionForNote');
     this.lyric.skipRender = true;
     const lyricRendered = this.lyric._text.length && this.lyric.logicalBox;
     const startX = lyricRendered ? this.lyric.logicalBox.x : this.note.logicalBox.x;
     const startY = lyricRendered ? this.lyric.logicalBox.y + this.lyric.adjY + this.lyric.logicalBox.height :
-          this.note.logicalBox.y + this.note.logicalBox.height;
-    this.editor = new SuiLyricEditor({context : this.layout.context,
-      lyric: this.lyric, x: startX, y: startY, scroller: this.scroller});
+      this.note.logicalBox.y + this.note.logicalBox.height;
+    this.editor = new SuiLyricEditor({ context: this.layout.context,
+      lyric: this.lyric, x: startX, y: startY, scroller: this.scroller });
     this.state = SuiTextEditor.States.RUNNING;
     if (!lyricRendered) {
-      const delta = 2 * this.editor.svgText.maxFontHeight(1.0) * (this.lyric.verse + 1)
+      const delta = 2 * this.editor.svgText.maxFontHeight(1.0) * (this.lyric.verse + 1);
       this.editor.svgText.offsetStartY(delta);
     }
     this.cursorPromise = this.editor.startCursorPromise();
@@ -5791,37 +5806,33 @@ class SuiLyricSession {
   startSession() {
     this._setLyricForNote();
     this._startSessionForNote();
-    console.log('startSession');
-
     this.state = SuiTextEditor.States.RUNNING;
   }
 
   // ### _startSessionForNote
   // Stop the lyric session, return promise for done
   stopSession() {
-    console.log('stopSession');
     if (this.editor && !this._endLyricCondition) {
       this._updateLyricFromEditor();
-      this.editor.stopEditor()
+      this.editor.stopEditor();
     }
-    return PromiseHelpers.makePromise(this,'_isRendered','_markStopped',null,100);
+    return PromiseHelpers.makePromise(this, '_isRendered', '_markStopped', null, 100);
   }
 
   // ### _advanceSelection
   // Based on a skip character, move the editor forward/back one note.
   _advanceSelection(isShift) {
-    const nextSelection = isShift ? SmoSelection.lastNoteSelectionFromSelector(this.score,this.selector)
-     : SmoSelection.nextNoteSelectionFromSelector(this.score,this.selector);
+    const nextSelection = isShift ? SmoSelection.lastNoteSelectionFromSelector(this.score, this.selector)
+      : SmoSelection.nextNoteSelectionFromSelector(this.score, this.selector);
     if (nextSelection) {
-      console.log('_advanceSelection');
       this.selector = nextSelection.selector;
       this.selection = nextSelection;
       this.note = nextSelection.note;
       this._setLyricForNote();
       const conditionArray = [];
       this.state = SuiTextEditor.States.PENDING_EDITOR;
-      conditionArray.push(PromiseHelpers.makePromiseObj(this,'_endLyricCondition',null,null,100));
-      conditionArray.push(PromiseHelpers.makePromiseObj(this,'_isRefreshed','_startSessionForNote',null,100));
+      conditionArray.push(PromiseHelpers.makePromiseObj(this, '_endLyricCondition', null, null, 100));
+      conditionArray.push(PromiseHelpers.makePromiseObj(this, '_isRefreshed', '_startSessionForNote', null, 100));
       PromiseHelpers.promiseChainThen(conditionArray);
     }
   }
@@ -5841,7 +5852,6 @@ class SuiLyricSession {
     }
   }
 
-
   // ### _updateLyricFromEditor
   // The editor is done running, so update the lyric now.
   _updateLyricFromEditor() {
@@ -5857,7 +5867,6 @@ class SuiLyricSession {
     if (this.state !== SuiTextEditor.States.RUNNING) {
       return;
     }
-    var str = evdata.key;
     if (evdata.key === '-' || evdata.key === ' ') {
       // skip
       const back = evdata.shiftKey && evdata.key === ' ';
@@ -5878,28 +5887,43 @@ class SuiLyricSession {
     if (this.state !== SuiTextEditor.States.RUNNING) {
       return;
     }
-    return this.editor.handleMouseEvent(ev);
+    this.editor.handleMouseEvent(ev);
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 class SuiChordSession extends SuiLyricSession {
   constructor(params) {
     super(params);
     this.parser = SmoLyric.parsers.chord;
   }
+  get textType() {
+    if (this.isRunning) {
+      return this.editor.textType;
+    }
+    return SuiInlineText.textTypes.normal;
+  }
+
+  set textType(type) {
+    this.editor.setTextType(type);
+  }
 
   // ### evKey
   // Key handler (pass to editor)
   evKey(evdata) {
+    let edited = false;
     if (this.state !== SuiTextEditor.States.RUNNING) {
-      return;
+      return false;
     }
     if (evdata.code === 'Enter') {
       this._updateLyricFromEditor();
       this._advanceSelection(evdata.shiftKey);
+      edited = true;
+    } else {
+      edited = this.editor.evKey(evdata);
     }
-    this.editor.evKey(evdata);
     this._hideLyric();
+    return edited;
   }
 
   // ### _setLyricForNote
@@ -5911,7 +5935,7 @@ class SuiChordSession extends SuiLyricSession {
       this.lyric = lar[0];
     }
     if (!this.lyric) {
-      this.lyric =  new SmoLyric({_text:'',verse: this.verse, parser: this.parser});
+      this.lyric = new SmoLyric({ _text: '', verse: this.verse, parser: this.parser });
       this.note.addLyric(this.lyric);
     }
     this.text = this.lyric._text;
@@ -5922,19 +5946,17 @@ class SuiChordSession extends SuiLyricSession {
     const lyricRendered = this.lyric._text.length && this.lyric.logicalBox;
     const startX = lyricRendered ? this.lyric.logicalBox.x : this.note.logicalBox.x;
     const startY = lyricRendered ? this.lyric.logicalBox.y + this.lyric.adjY + this.lyric.logicalBox.height :
-          this.selection.measure.logicalBox.y + this.selection.measure.logicalBox.height - 70;
-    this.editor = new SuiChordEditor({context : this.layout.context,
-      lyric: this.lyric, x: startX, y: startY, scroller: this.scroller});
+      this.selection.measure.logicalBox.y + this.selection.measure.logicalBox.height - 70;
+    this.editor = new SuiChordEditor({ context: this.layout.context,
+      lyric: this.lyric, x: startX, y: startY, scroller: this.scroller });
     this.state = SuiTextEditor.States.RUNNING;
     if (!lyricRendered) {
-      const delta = (-1) * this.editor.svgText.maxFontHeight(1.0) * (this.lyric.verse + 1)
+      const delta = (-1) * this.editor.svgText.maxFontHeight(1.0) * (this.lyric.verse + 1);
       this.editor.svgText.offsetStartY(delta);
     }
     this.cursorPromise = this.editor.startCursorPromise();
     this._hideLyric();
   }
-
-
 }
 ;// ## SuiInlineText
 // Inline text is a block of SVG text with the same font.  Each block can
@@ -5942,7 +5964,7 @@ class SuiChordSession extends SuiLyricSession {
 // metrics so we can support inline svg text editors (cursor).
 class SuiInlineText {
   static get textTypes() {
-    return {normal:0,superScript:1,subScript:2};
+    return { normal: 0, superScript: 1, subScript: 2 };
   }
   static get symbolTypes() {
     return {
@@ -5950,6 +5972,57 @@ class SuiInlineText {
       TEXT: 2,
       LINE: 3
     };
+  }
+
+  // List height top to bottom
+  static get textTypeRelativeHeight() {
+    const rv = {};
+    rv[SuiInlineText.textTypes.superScript] = 1;
+    rv[SuiInlineText.textTypes.normal] = 0;
+    rv[SuiInlineText.textTypes.subScript] = -1;
+  }
+
+  // ### textTypeTransitions
+  // Given a current text type and a type change request, what is the result
+  // text type?  This truth table tells you.
+  static get textTypeTransitions() {
+    return [
+      [1, 1, 0],
+      [1, 0, 1],
+      [1, 2, 2],
+      [2, 2, 0],
+      [2, 0, 2],
+      [2, 1, 1],
+      [0, 1, 1],
+      [0, 0, 0],
+      [0, 2, 2]
+    ];
+  }
+
+  static getTextTypeResult(oldType, newType) {
+    let rv = SuiInlineText.textTypes.normal;
+    let i = 0;
+    for (i = 0;i < SuiInlineText.textTypeTransitions.length; ++i) {
+      const tt = SuiInlineText.textTypeTransitions[i];
+      if (tt[0] === oldType && tt[1] === newType) {
+        rv = tt[2];
+        break;
+      }
+    }
+    return rv;
+  }
+
+  static getTextTypeTransition(oldType, result) {
+    let rv = SuiInlineText.textTypes.normal;
+    let i = 0;
+    for (i = 0;i < SuiInlineText.textTypeTransitions.length; ++i) {
+      const tt = SuiInlineText.textTypeTransitions[i];
+      if (tt[0] === oldType && tt[2] === result) {
+        rv = tt[1];
+        break;
+      }
+    }
+    return rv;
   }
   static get superscriptOffset() {
     return VF.ChordSymbol.chordSymbolMetrics.global.superscriptOffset / VF.ChordSymbol.engravingFontResolution;
@@ -6061,6 +6134,7 @@ class SuiInlineText {
     let superXAlign = 0;
     let superXWidth = 0;
     let prevBlock = null;
+    let i = 0;
     this.blocks.forEach((block) => {
       // super/subscript
       const sp = this.isSuperscript(block);
@@ -6076,7 +6150,7 @@ class SuiInlineText {
       const glyphAdj = block.symbolType === SuiInlineText.symbolTypes.GLYPH ? 2.0 : 1.0;
       block.x = curX;
       if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
-        for (var i = 0;i < block.text.length;++i) {
+        for (i = 0;i < block.text.length;++i) {
           const ch = block.text[i];
 
           const glyph = this.textFont.getMetricForCharacter(ch);
@@ -6154,7 +6228,9 @@ class SuiInlineText {
   }
   // ### renderCursorAt
   // When we are using textLayout to render editor, create a cursor that adjusts it's size
-  renderCursorAt(position) {
+  renderCursorAt(position, textType) {
+    let adjH = 0;
+    let adjY = 0;
     if (!this.updatedMetrics) {
       this._calculateBlockIndex();
     }
@@ -6167,10 +6243,21 @@ class SuiInlineText {
       return;
     }
     var block = this.blocks[position];
-    const adjH = block.symbolType === SuiInlineText.symbolTypes.GLYPH ? h/2 : h;
+    adjH = block.symbolType === SuiInlineText.symbolTypes.GLYPH ? h/2 : h;
     // For glyph, add y adj back to the cursor since it's not a glyph
-    const adjY = block.symbolType === SuiInlineText.symbolTypes.GLYPH ? block.y - this._glyphOffset(block) :
+    adjY = block.symbolType === SuiInlineText.symbolTypes.GLYPH ? block.y - this._glyphOffset(block) :
       block.y;
+    if (typeof(textType) === 'number' && textType != SuiInlineText.textTypes.normal) {
+      const ratio = textType !== SuiInlineText.textTypes.normal ? VF.ChordSymbol.superSubRatio : 1.0 ;
+      adjH = adjH * ratio;
+      if (textType !== block.textType) {
+        if (textType === SuiInlineText.textTypes.superScript) {
+          adjY -= h / 2;
+        } else {
+          adjY += h / 2;
+        }
+      }
+    }
     svgHelpers.renderCursor(group, block.x + block.width, adjY - (adjH * block.scale), adjH * block.scale);
     this.context.closeGroup();
   }
@@ -20935,394 +21022,408 @@ class SuiDialogBase {
   }
 }
 ;// # dbComponents - components of modal dialogs.
-
+// eslint-disable-next-line no-unused-vars
 class SuiComponentBase {
-    constructor() {
-        this.changeFlag = false;
+  constructor(parameters) {
+    this.changeFlag = false;
+    this.css = parameters.classes;
+  }
+  handleChanged() {
+    this.changeFlag = true;
+    this.dialog.changed();
+    this.changeFlag = false;
+  }
+  // ### makeClasses
+  // Allow specific dialogs to add css to components so they can
+  // be conditionally displayed
+  makeClasses(classes) {
+    if (this.css) {
+      return classes + ' ' + this.css;
     }
-    handleChanged() {
-        this.changeFlag = true;
-        this.dialog.changed();
-        this.changeFlag = false;
-    }
+    return classes;
+  }
 }
+
 // ## SuiRockerComponent
 // A numeric input box with +- buttons.   Adjustable type and scale
+// eslint-disable-next-line no-unused-vars
 class SuiRockerComponent extends SuiComponentBase {
-	static get dataTypes() {
-		return ['int','float','percent'];
-	}
-	static get increments() {
-		return {'int':1,'float':0.1,'percent':10}
-	}
-	static get parsers() {
-		return {'int':'_getIntValue','float':'_getFloatValue','percent':'_getPercentValue'};
-	}
-    constructor(dialog, parameter) {
-        super();
-        smoSerialize.filteredMerge(
-            ['parameterName', 'smoName', 'defaultValue', 'control', 'label','increment','type'], parameter, this);
-        if (!this.defaultValue) {
-            this.defaultValue = 0;
+  static get dataTypes() {
+    return ['int', 'float', 'percent'];
+  }
+  static get increments() {
+    return { 'int': 1, 'float': 0.1, 'percent': 10 };
+  }
+  static get parsers() {
+    return { 'int': '_getIntValue', 'float': '_getFloatValue', 'percent': '_getPercentValue' };
+  }
+  constructor(dialog, parameter) {
+    super(parameter);
+    smoSerialize.filteredMerge(
+      ['parameterName', 'smoName', 'defaultValue', 'control', 'label', 'increment', 'type'], parameter, this);
+    if (!this.defaultValue) {
+      this.defaultValue = 0;
+    }
+    if (!this.type) {
+      this.type = 'int';
+    }
+    if (!this.increment) {
+      this.increment = SuiRockerComponent.increments[this.type];
+    }
+    if (SuiRockerComponent.dataTypes.indexOf(this.type) < 0) {
+      throw new Error('dialog element invalid type ' + this.type);
+    }
+
+    this.id = this.id ? this.id : '';
+
+    if (this.type === 'percent') {
+      this.defaultValue = 100 * this.defaultValue;
+    }
+    this.parser = SuiRockerComponent.parsers[this.type];
+    this.dialog = dialog;
+  }
+
+  get html() {
+    const b = htmlHelpers.buildDom;
+    const id = this.parameterId;
+    const r = b('div').classes(this.makeClasses('rockerControl smoControl')).attr('id', id).attr('data-param', this.parameterName)
+      .append(
+        b('button').classes('increment').append(
+          b('span').classes('icon icon-circle-up'))).append(
+        b('button').classes('decrement').append(
+          b('span').classes('icon icon-circle-down'))).append(
+        b('input').attr('type', 'text').classes('rockerInput')
+          .attr('id', id + '-input')).append(
+        b('label').attr('for', id + '-input').text(this.label));
+    return r;
+  }
+
+  get parameterId() {
+    return this.dialog.id + '-' + this.parameterName;
+  }
+  handleChange() {
+    this.changeFlag = true;
+    this.dialog.changed();
+    this.changeFlag = false;
+  }
+
+  bind() {
+    const pid = this.parameterId;
+    const input = this._getInputElement();
+    let val = 0;
+    this.setValue(this.defaultValue);
+    const self = this;
+    $('#' + pid).find('button.increment').off('click').on('click',
+      () => {
+        val = self[self.parser]();
+        if (self.type === 'percent') {
+          val = 100 * val;
         }
-		if (!this.type) {
-			this.type='int';
-		}
-		if (!this.increment) {
-		    this.increment = SuiRockerComponent.increments[this.type];
-		}
-		if (SuiRockerComponent.dataTypes.indexOf(this.type) < 0) {
-			throw new Error('dialog element invalid type '+this.type);
-		}
+        $(input).val(val + self.increment);
+        self.handleChanged();
+      }
+    );
+    $('#' + pid).find('button.decrement').off('click').on('click',
+      () => {
+        val = self[self.parser]();
+        if (self.type === 'percent') {
+          val = 100 * val;
+        }
+        $(input).val(val - self.increment);
+        self.handleChanged();
+      }
+    );
+    $(input).off('blur').on('blur',
+      () => {
+        self.handleChanged();
+      }
+    );
+  }
 
-        this.id = this.id ? this.id : '';
-
-		if (this.type === 'percent') {
-			this.defaultValue = 100*this.defaultValue;
-		}
-		this.parser=SuiRockerComponent.parsers[this.type];
-        this.dialog = dialog;
+  _getInputElement() {
+    const pid = this.parameterId;
+    return $(this.dialog.dgDom.element).find('#' + pid).find('input');
+  }
+  _getIntValue() {
+    let val = parseInt(this._getInputElement().val(), 10);
+    val = isNaN(val) ? 0 : val;
+    return val;
+  }
+  _getFloatValue() {
+    let val = parseFloat(this._getInputElement().val(), 10);
+    val = isNaN(val) ? 1.0 : val;
+    return val;
+  }
+  _getPercentValue() {
+    let val = parseFloat(this._getInputElement().val(), 10);
+    val = isNaN(val) ? 1 : val;
+    return val / 100;
+  }
+  _setIntValue(val) {
+    this._getInputElement().val(val);
+  }
+  setValue(value) {
+    if (this.type === 'percent') {
+      value = value * 100;
     }
-
-    get html() {
-        var b = htmlHelpers.buildDom;
-        var id = this.parameterId;
-        var r = b('div').classes('rockerControl smoControl').attr('id', id).attr('data-param', this.parameterName)
-            .append(
-                b('button').classes('increment').append(
-                    b('span').classes('icon icon-circle-up'))).append(
-                b('button').classes('decrement').append(
-                    b('span').classes('icon icon-circle-down'))).append(
-                b('input').attr('type', 'text').classes('rockerInput')
-                .attr('id', id + '-input')).append(
-                b('label').attr('for', id + '-input').text(this.label));
-        return r;
-    }
-
-    get parameterId() {
-        return this.dialog.id + '-' + this.parameterName;
-    }
-    handleChange() {
-        this.changeFlag = true;
-        this.dialog.changed();
-        this.changeFlag = false;
-    }
-
-    bind() {
-        var dialog = this.dialog;
-        var pid = this.parameterId;
-        var input = this._getInputElement();
-        this.setValue(this.defaultValue);
-        var self = this;
-        $('#' + pid).find('button.increment').off('click').on('click',
-            function (ev) {
-            var val = self[self.parser]();
-			if (self.type === 'percent') {
-			    val = 100*val;
-     		}
-            $(input).val(val + self.increment);
-            self.handleChanged();
-        });
-        $('#' + pid).find('button.decrement').off('click').on('click',
-            function (ev) {
-            var val = self[self.parser]();
-			if (self.type === 'percent') {
-			    val = 100*val;
-     		}
-            $(input).val(val - self.increment);
-            self.handleChanged();
-        });
-        $(input).off('blur').on('blur',
-            function (ev) {
-            self.handleChanged();
-        });
-    }
-
-    _getInputElement() {
-        var pid = this.parameterId;
-        return $(this.dialog.dgDom.element).find('#' + pid).find('input');
-    }
-    _getIntValue() {
-        var pid = this.parameterId;
-        var val = parseInt(this._getInputElement().val());
-        val = isNaN(val) ? 0 : val;
-        return val;
-    }
-	 _getFloatValue() {
-        var pid = this.parameterId;
-        var val = parseFloat(this._getInputElement().val());
-        val = isNaN(val) ? 1.0 : val;
-        return val;
-    }
-	_getPercentValue() {
-        var pid = this.parameterId;
-        var val = parseFloat(this._getInputElement().val());
-        val = isNaN(val) ? 1 : val;
-        return val/100;
-	}
-    _setIntValue(val) {
-        this._getInputElement().val(val);
-    }
-    setValue(value) {
-		if (this.type === 'percent') {
-			value = value * 100;
-		}
-        this._setIntValue(value);
-    }
-    getValue() {
-        return this[this.parser]();
-    }
+    this._setIntValue(value);
+  }
+  getValue() {
+    return this[this.parser]();
+  }
 }
 
 // ## SuiFileDownloadComponent
 // Download a test file using the file input.
+// eslint-disable-next-line no-unused-vars
 class SuiFileDownloadComponent extends SuiComponentBase {
-    constructor(dialog, parameter) {
-        super();
-        smoSerialize.filteredMerge(
-            ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
-        if (!this.defaultValue) {
-            this.defaultValue = 0;
-        }
-        this.dialog = dialog;
-        this.value='';
+  constructor(dialog, parameter) {
+    super(parameter);
+    smoSerialize.filteredMerge(
+      ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
+    if (!this.defaultValue) {
+      this.defaultValue = 0;
     }
-    get parameterId() {
-        return this.dialog.id + '-' + this.parameterName;
-    }
-    get html() {
-        var b = htmlHelpers.buildDom;
-        var id = this.parameterId;
-        var r = b('div').classes('select-file').attr('id', this.parameterId).attr('data-param', this.parameterName)
-            .append(b('input').attr('type', 'file').classes('file-button')
-                .attr('id', id + '-input')).append(
-                b('label').attr('for', id + '-input').text(this.label));
-        return r;
-    }
+    this.dialog = dialog;
+    this.value = '';
+  }
+  get parameterId() {
+    return this.dialog.id + '-' + this.parameterName;
+  }
+  get html() {
+    const b = htmlHelpers.buildDom;
+    const id = this.parameterId;
+    var r = b('div').classes(this.makeClasses('select-file')).attr('id', this.parameterId).attr('data-param', this.parameterName)
+      .append(b('input').attr('type', 'file').classes('file-button')
+        .attr('id', id + '-input')).append(
+        b('label').attr('for', id + '-input').text(this.label));
+    return r;
+  }
 
-    _handleUploadedFiles(evt)  {
-        var reader = new FileReader();
-        var self=this;
-        reader.onload = function(file) {
-            self.value = file.target.result;
-            self.handleChanged();
-        }
-        reader.readAsText(evt.target.files[0]);
-    }
-    getValue() {
-        return this.value;
-    }
-    bind() {
-        var self=this;
-        $('#'+this.parameterId).find('input').off('change').on('change',function(e) {
-            self._handleUploadedFiles(e);
-        });
-    }
-
+  _handleUploadedFiles(evt)  {
+    const reader = new FileReader();
+    const self = this;
+    reader.onload = (file) => {
+      self.value = file.target.result;
+      self.handleChanged();
+    };
+    reader.readAsText(evt.target.files[0]);
+  }
+  getValue() {
+    return this.value;
+  }
+  bind() {
+    const self = this;
+    $('#' + this.parameterId).find('input').off('change').on('change', (e) => {
+      self._handleUploadedFiles(e);
+    });
+  }
 }
 
 // ## SuiToggleComponent
 // Simple on/off behavior
+// eslint-disable-next-line no-unused-vars
 class SuiToggleComponent extends SuiComponentBase {
-    constructor(dialog, parameter) {
-        super();
-        smoSerialize.filteredMerge(
-            ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
-        if (!this.defaultValue) {
-            this.defaultValue = 0;
-        }
-        this.dialog = dialog;
+  constructor(dialog, parameter) {
+    super(parameter);
+    smoSerialize.filteredMerge(
+      ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
+    if (!this.defaultValue) {
+      this.defaultValue = 0;
     }
-    get html() {
-        var b = htmlHelpers.buildDom;
-        var id = this.parameterId;
-        var r = b('div').classes('toggleControl smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
-            .append(b('input').attr('type', 'checkbox').classes('toggleInput')
-                .attr('id', id + '-input')).append(
-                b('label').attr('for', id + '-input').text(this.label));
-        return r;
-    }
-    _getInputElement() {
-        var pid = this.parameterId;
-        return $(this.dialog.dgDom.element).find('#' + pid).find('input');
-    }
-    get parameterId() {
-        return this.dialog.id + '-' + this.parameterName;
-    }
+    this.dialog = dialog;
+  }
+  get html() {
+    const b = htmlHelpers.buildDom;
+    const id = this.parameterId;
+    const r = b('div').classes(this.makeClasses('toggleControl smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
+      .append(b('input').attr('type', 'checkbox').classes('toggleInput')
+        .attr('id', id + '-input')).append(
+        b('label').attr('for', id + '-input').text(this.label));
+    return r;
+  }
+  _getInputElement() {
+    const pid = this.parameterId;
+    return $(this.dialog.dgDom.element).find('#' + pid).find('input');
+  }
+  get parameterId() {
+    return this.dialog.id + '-' + this.parameterName;
+  }
 
-    setValue(value) {
-        $(this._getInputElement()).prop('checked', value);
-    }
-    getValue() {
-        return $(this._getInputElement()).prop('checked');
-    }
+  setValue(value) {
+    $(this._getInputElement()).prop('checked', value);
+  }
+  getValue() {
+    return $(this._getInputElement()).prop('checked');
+  }
 
-    bind() {
-        var dialog = this.dialog;
-        var pid = this.parameterId;
-        var input = this._getInputElement();
-        this.setValue(this.defaultValue);
-        var self = this;
-        $(input).off('change').on('change',
-            function (ev) {
-            self.handleChanged();
-        });
-    }
+  bind() {
+    const input = this._getInputElement();
+    this.setValue(this.defaultValue);
+    const self = this;
+    $(input).off('change').on('change',
+      () => {
+        self.handleChanged();
+      });
+  }
 }
 
 // ## SuiToggleComponent
 // Simple on/off behavior
+// eslint-disable-next-line no-unused-vars
 class SuiButtonComponent extends SuiComponentBase {
-    constructor(dialog, parameter) {
-        super();
-        smoSerialize.filteredMerge(
-            ['parameterName', 'smoName', 'defaultValue', 'control', 'label','additionalClasses'], parameter, this);
-        if (!this.defaultValue) {
-            this.defaultValue = 0;
-        }
-        this.dialog = dialog;
+  constructor(dialog, parameter) {
+    super(parameter);
+    smoSerialize.filteredMerge(
+      ['parameterName', 'smoName', 'defaultValue', 'control', 'label', 'additionalClasses'], parameter, this);
+    if (!this.defaultValue) {
+      this.defaultValue = 0;
     }
-    get html() {
-        var b = htmlHelpers.buildDom;
-        var id = this.parameterId;
-        var classNames = this['additionalClasses'] ? this['additionalClasses'] + ' buttonComponent' : 'buttonComponent';
-        var r = b('div').classes('buttonControl smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
-            .append(b('button').attr('type', 'button').classes(classNames)
-                .attr('id', id + '-input')).append(
-                b('label').attr('for', id + '-input').text(this.label));
-        return r;
-    }
-    _getInputElement() {
-        var pid = this.parameterId;
-        return $(this.dialog.dgDom.element).find('#' + pid).find('button');
-    }
-    get parameterId() {
-        return this.dialog.id + '-' + this.parameterName;
-    }
+    this.dialog = dialog;
+  }
+  get html() {
+    const b = htmlHelpers.buildDom;
+    const id = this.parameterId;
+    const classNames = this.additionalClasses ? this.additionalClasses + ' buttonComponent' : 'buttonComponent';
+    var r = b('div').classes(this.makeClasses('buttonControl smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
+      .append(b('button').attr('type', 'button').classes(classNames)
+        .attr('id', id + '-input')).append(
+        b('label').attr('for', id + '-input').text(this.label));
+    return r;
+  }
+  _getInputElement() {
+    var pid = this.parameterId;
+    return $(this.dialog.dgDom.element).find('#' + pid).find('button');
+  }
+  get parameterId() {
+    return this.dialog.id + '-' + this.parameterName;
+  }
 
-    setValue(value) {
-        return;
-    }
-    getValue() {
-        return null;
-    }
+  setValue() {
+  }
+  getValue() {
+    return null;
+  }
 
-    bind() {
-        var dialog = this.dialog;
-        var pid = this.parameterId;
-        var input = this._getInputElement();
-        this.setValue(this.defaultValue);
-        var self = this;
-        $(input).off('click').on('click',
-            function (ev) {
-            self.handleChanged();
-        });
-    }
+  bind() {
+    const input = this._getInputElement();
+    this.setValue(this.defaultValue);
+    const self = this;
+    $(input).off('click').on('click',
+      () => {
+        self.handleChanged();
+      });
+  }
 }
 
-class SuiDropdownComponent  extends SuiComponentBase{
-    constructor(dialog, parameter) {
-        super();
-        smoSerialize.filteredMerge(
-            ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label','dataType'], parameter, this);
-        if (!this.defaultValue) {
-            this.defaultValue = 0;
-        }
-		if (!this.dataType) {
-			this.dataType = 'string';
-		}
+// ### SuiDropdownComponent
+// simple dropdown select list.
+// eslint-disable-next-line no-unused-vars
+class SuiDropdownComponent extends SuiComponentBase {
+  constructor(dialog, parameter) {
+    super(parameter);
+    smoSerialize.filteredMerge(
+      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
+    if (!this.defaultValue) {
+      this.defaultValue = 0;
+    }
+    if (!this.dataType) {
+      this.dataType = 'string';
+    }
+    this.dialog = dialog;
+  }
 
-        this.dialog = dialog;
-    }
+  get parameterId() {
+    return this.dialog.id + '-' + this.parameterName;
+  }
 
-    get parameterId() {
-        return this.dialog.id + '-' + this.parameterName;
-    }
+  get html() {
+    const b = htmlHelpers.buildDom;
+    const id = this.parameterId;
+    const r = b('div').classes(this.makeClasses('dropdownControl smoControl')).attr('id', id).attr('data-param', this.parameterName);
+    const s = b('select');
+    this.options.forEach((option) => {
+      s.append(
+        b('option').attr('value', option.value).text(option.label));
+    });
+    r.append(s).append(
+      b('label').attr('for', id + '-input').text(this.label));
+    return r;
+  }
 
-    get html() {
-        var b = htmlHelpers.buildDom;
-        var id = this.parameterId;
-        var r = b('div').classes('dropdownControl smoControl').attr('id', id).attr('data-param', this.parameterName);
-        var s = b('select');
-        this.options.forEach((option) => {
-            s.append(
-                b('option').attr('value', option.value).text(option.label));
-        });
-        r.append(s).append(
-            b('label').attr('for', id + '-input').text(this.label));
+  _getInputElement() {
+    var pid = this.parameterId;
+    return $(this.dialog.dgDom.element).find('#' + pid).find('select');
+  }
+  getValue() {
+    const option = this._getInputElement().find('option:selected');
+    let val = $(option).val();
+    val = (this.dataType.toLowerCase() === 'int') ?  parseInt(val, 10) : val;
+    val = (this.dataType.toLowerCase() === 'float') ?  parseFloat(val, 10) : val;
+    return val;
+  }
+  setValue(value) {
+    const input = this._getInputElement();
+    $(input).val(value);
+  }
 
-        return r;
-    }
-
-    _getInputElement() {
-        var pid = this.parameterId;
-        return $(this.dialog.dgDom.element).find('#' + pid).find('select');
-    }
-    getValue() {
-        var input = this._getInputElement();
-        var option = this._getInputElement().find('option:selected');
-		var val = $(option).val();
-		val = (this.dataType.toLowerCase() === 'int') ?	parseInt(val) : val;
-		val = (this.dataType.toLowerCase() === 'float') ?	parseFloat(val) : val;
-        return val;
-    }
-    setValue(value) {
-        var input = this._getInputElement();
-        $(input).val(value);
-    }
-
-    bind() {
-        var input = this._getInputElement();
-        this.setValue(this.defaultValue);
-        var self = this;
-        $(input).off('change').on('change',
-            function (ev) {
-            self.handleChanged();
-        });
-    }
+  bind() {
+    const input = this._getInputElement();
+    this.setValue(this.defaultValue);
+    const self = this;
+    $(input).off('change').on('change',
+      () => {
+        self.handleChanged();
+      });
+  }
 }
 
 // ## SuiTextInputComponent
 // Just get text from an input, such as a filename.
 // Note: this is HTML input, not for SVG/score editing
+// eslint-disable-next-line no-unused-vars
 class SuiTextInputComponent extends SuiComponentBase {
-    constructor(dialog, parameter) {
-        super();
-        smoSerialize.filteredMerge(
-            ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
-        if (!this.defaultValue) {
-            this.defaultValue = 0;
-        }
-        this.dialog = dialog;
-        this.value='';
+  constructor(dialog, parameter) {
+    super(parameter);
+    smoSerialize.filteredMerge(
+      ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
+    if (!this.defaultValue) {
+      this.defaultValue = 0;
     }
-    get parameterId() {
-        return this.dialog.id + '-' + this.parameterName;
-    }
-    get html() {
-        var b = htmlHelpers.buildDom;
-        var id = this.parameterId;
-        var r = b('div').classes('text-input smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
-            .append(b('input').attr('type', 'text').classes('file-name')
-                .attr('id', id + '-input')).append(
-                b('label').attr('for', id + '-input').text(this.label));
-        return r;
-    }
+    this.dialog = dialog;
+    this.value = '';
+  }
+  get parameterId() {
+    return this.dialog.id + '-' + this.parameterName;
+  }
+  get html() {
+    const b = htmlHelpers.buildDom;
+    const id = this.parameterId;
+    const r = b('div').classes(this.makeClasses('text-input smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
+      .append(b('input').attr('type', 'text').classes('file-name')
+        .attr('id', id + '-input')).append(
+        b('label').attr('for', id + '-input').text(this.label));
+    return r;
+  }
 
-    getValue() {
-        return this.value;
-    }
-    setValue(val) {
-        this.value = val;
-        $('#'+this.parameterId).find('input').val(val);
-    }
-    bind() {
-        var self=this;
-        $('#'+this.parameterId).find('input').off('change').on('change',function(e) {
-            self.value = $(this).val();
-            self.handleChanged();
-        });
-    }
+  getValue() {
+    return this.value;
+  }
+  setValue(val) {
+    this.value = val;
+    $('#' + this.parameterId).find('input').val(val);
+  }
+  _getInputElement() {
+    const pid = this.parameterId;
+    return $(this.dialog.dgDom.element).find('#' + pid).find('input');
+  }
+  bind() {
+    const self = this;
+    $('#' + this.parameterId).find('input').off('change').on('change', () => {
+      self.value = $(this._getInputElement()).val();
+      self.handleChanged();
+    });
+  }
 }
 ;
 class SuiFileDialog extends SuiDialogBase {
@@ -23014,7 +23115,7 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
 // This component just manages the text editing component of hte renderer.
 class SuiTextInPlace extends SuiComponentBase {
   constructor(dialog,parameter) {
-    super();
+    super(parameter);
     smoSerialize.filteredMerge(
         ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
     if (!this.defaultValue) {
@@ -23033,7 +23134,7 @@ class SuiTextInPlace extends SuiComponentBase {
   get html() {
     var b = htmlHelpers.buildDom;
     var id = this.parameterId;
-    var r = b('div').classes('cbTextInPlace smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+    var r = b('div').classes(this.makeClasses('cbTextInPlace smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
       .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
         .attr('id', id + '-input').append(
         b('span').classes('icon icon-pencil'))
@@ -23131,7 +23232,7 @@ class SuiTextInPlace extends SuiComponentBase {
 // different notes.
 class SuiNoteTextComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
-    super();
+    super(parameter);
 
     this.selection = dialog.tracker.selections[0];
     this.selector = JSON.parse(JSON.stringify(this.selection.selector));
@@ -23160,8 +23261,9 @@ class SuiNoteTextComponent extends SuiComponentBase {
   }
   evKey(evdata) {
     if (this.session) {
-      this.session.evKey(evdata);
+      return this.session.evKey(evdata);
     }
+    return false;
   }
 
   moveSelectionRight() {
@@ -23184,13 +23286,13 @@ class SuiNoteTextComponent extends SuiComponentBase {
       }
     });
     var self=this;
-    $('#'+this.parameterId+'-left').off('click').on('click',function() {
+    $('#' + this.parameterId+'-left').off('click').on('click',function() {
       self.moveSelectionLeft();
     });
-    $('#'+this.parameterId+'-right').off('click').on('click',function() {
+    $('#' + this.parameterId+'-right').off('click').on('click',function() {
       self.moveSelectionRight();
     });
-    $('#'+this.parameterId+'-remove').off('click').on('click',function() {
+    $('#' + this.parameterId+'-remove').off('click').on('click',function() {
       self.removeText();
     });
   }
@@ -23216,14 +23318,14 @@ class SuiLyricComponent extends SuiNoteTextComponent {
   get html() {
     var b = htmlHelpers.buildDom;
     var id = this.parameterId;
-    var r = b('div').classes('cbLyricEdit smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+    var r = b('div').classes(this.makeClasses('cbLyricEdit smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
       .append(b('div').classes('toggleEdit')
         .append(b('button').classes('toggleTextEdit')
           .attr('id', id + '-toggleInput').append(
           b('span').classes('icon icon-pencil'))).append(
           b('label').attr('for', id + '-toggleInput').text(this.label)))
 
-      .append(b('div').classes('controlDiv')
+      .append(b('div').classes('show-when-editing')
         .append(b('span')
           .append(
             b('button').attr('id', id + '-left').classes('icon-arrow-left buttonComponent')))
@@ -23298,14 +23400,14 @@ class SuiChordComponent extends SuiNoteTextComponent {
   get html() {
     var b = htmlHelpers.buildDom;
     var id = this.parameterId;
-    var r = b('div').classes('cbChordEdit smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+    var r = b('div').classes(this.makeClasses('cbChordEdit smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
       .append(b('div').classes('toggleEdit')
         .append(b('button').classes('toggleTextEdit')
           .attr('id', id + '-toggleInput').append(
           b('span').classes('icon icon-pencil'))).append(
           b('label').attr('for', id + '-toggleInput').text(this.label)))
 
-      .append(b('div').classes('controlDiv')
+      .append(b('div').classes('show-when-editing')
         .append(b('span')
           .append(
             b('button').attr('id', id + '-left').classes('icon-arrow-left buttonComponent')))
@@ -23357,6 +23459,13 @@ class SuiChordComponent extends SuiNoteTextComponent {
   bind() {
     this._bind();
   }
+  setTextType(type) {
+    this.session.textType = parseInt(type, 10);
+  }
+  getTextType(type) {
+    return this.session.textType;
+  }
+
 }
 
 // ## SuiDragText
@@ -23365,7 +23474,7 @@ class SuiChordComponent extends SuiNoteTextComponent {
 // in other dialog fields.
 class SuiDragText extends SuiComponentBase {
   constructor(dialog,parameter) {
-    super();
+    super(parameter);
     smoSerialize.filteredMerge(
         ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
     if (!this.defaultValue) {
@@ -23382,7 +23491,7 @@ class SuiDragText extends SuiComponentBase {
   get html() {
     var b = htmlHelpers.buildDom;
     var id = this.parameterId;
-    var r = b('div').classes('cbDragTextDialog smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+    var r = b('div').classes(this.makeClasses('cbDragTextDialog smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
       .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
         .attr('id', id + '-input').append(
         b('span').classes('icon icon-move'))
@@ -23454,7 +23563,7 @@ class SuiDragText extends SuiComponentBase {
 // ## Removing this for now...
 class SuiResizeTextBox extends SuiComponentBase {
   constructor(dialog,parameter) {
-    super();
+    super(parameter);
     smoSerialize.filteredMerge(
       ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
     if (!this.defaultValue) {
@@ -23470,7 +23579,7 @@ class SuiResizeTextBox extends SuiComponentBase {
   get html() {
     var b = htmlHelpers.buildDom;
     var id = this.parameterId;
-    var r = b('div').classes('cbResizeTextBox smoControl').attr('id', this.parameterId).attr('data-param', this.parameterName)
+    var r = b('div').classes(this.makeClasses('cbResizeTextBox smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
       .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
           .attr('id', id + '-input').append(
           b('span').classes('icon icon-enlarge'))
@@ -23559,7 +23668,8 @@ class SuiResizeTextBox extends SuiComponentBase {
       defaultValue: 0,
       control: 'SuiDropdownComponent',
       label:'Verse',
-      startRow:true,
+      classes: 'hide-when-editing',
+      startRow: true,
       options: [{
           value: 0,
           label: '1'
@@ -23571,9 +23681,10 @@ class SuiResizeTextBox extends SuiComponentBase {
           label: '3'
         }
       ]
-    },{
+    }, {
       smoName: 'translateY',
       parameterName: 'translateY',
+      classes: 'hide-when-editing',
       defaultValue: 0,
       control: 'SuiRockerComponent',
       label: 'Y Adjustment (Px)',
@@ -23582,6 +23693,7 @@ class SuiResizeTextBox extends SuiComponentBase {
       smoName: 'lyricEditor',
       parameterName: 'text',
       defaultValue: 0,
+      classes: 'show-always',
       control: 'SuiLyricComponent',
       label:'Edit Lyrics',
       options: []
@@ -23699,7 +23811,10 @@ class SuiResizeTextBox extends SuiComponentBase {
       evdata.preventDefault();
       return;
     } else {
-      this.lyricEditorCtrl.evKey(evdata);
+      const edited = this.lyricEditorCtrl.evKey(evdata);
+      if (edited) {
+        evdata.stopPropagation();
+      }
     }
   }
 
@@ -23764,8 +23879,9 @@ class SuiChordChangeDialog  extends SuiDialogBase {
         parameterName: 'verse',
         defaultValue: 0,
         control: 'SuiDropdownComponent',
-        label:'Ordinality',
-        startRow:true,
+        label: 'Ordinality',
+        classes: 'hide-when-editing',
+        startRow: true,
         options: [{
             value: 0,
             label: '1'
@@ -23781,6 +23897,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
         smoName: 'translateY',
         parameterName: 'translateY',
         defaultValue: 0,
+        classes: 'hide-when-editing',
         control: 'SuiRockerComponent',
         label: 'Y Adjustment (Px)',
         type: 'int'
@@ -23788,6 +23905,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
         smoName: 'chordEditor',
         parameterName: 'text',
         defaultValue: 0,
+        classes: 'show-always',
         control: 'SuiChordComponent',
         label:'Edit Text',
         options: []
@@ -23795,6 +23913,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
        smoName: 'chordSymbol',
        parameterName: 'chordSymbol',
        defaultValue: '',
+       classes: 'show-when-editing',
        control: 'SuiDropdownComponent',
        label: 'Chord Symbol',
        startRow: true,
@@ -23811,7 +23930,27 @@ class SuiChordChangeDialog  extends SuiDialogBase {
              value: 'csymMajorSeventh',
              label: 'Maj7'
            }]
-         },{
+         },
+         {
+         smoName: 'textPosition',
+         parameterName: 'textPosition',
+         defaultValue: SuiInlineText.textTypes.normal,
+         classes: 'show-when-editing',
+         control: 'SuiDropdownComponent',
+         label: 'Text Position',
+         startRow: true,
+         options: [{
+              value: SuiInlineText.textTypes.superScript,
+              label: 'Superscript'
+           }, {
+              value: SuiInlineText.textTypes.subScript,
+              label: 'Subscript'
+           }, {
+              value: SuiInlineText.textTypes.normal,
+              label: 'Normal'
+            }]
+           },
+           {
         staticText: [
           {label : 'Edit Chord Symbol'},
           {undo: 'Undo Chord Symbols'},
@@ -23823,11 +23962,20 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     return SuiChordChangeDialog._dialogElements;
   }
   changed() {
+    let val = '';
     if (this.chordSymbolCtrl.changeFlag && this.chordEditorCtrl.running)   {
-      const val = '@' + this.chordSymbolCtrl.getValue() + '@';
+      val = '@' + this.chordSymbolCtrl.getValue() + '@';
       this.chordEditorCtrl.evKey({
         key: val
       });
+      // Move focus outside the element so it doesn't intercept keys
+      $(this.chordSymbolCtrl._getInputElement())[0].selectedIndex = -1
+      $(this.chordSymbolCtrl._getInputElement()).blur();
+    }
+    if (this.textPositionCtrl.changeFlag && this.chordEditorCtrl.running) {
+      this.chordEditorCtrl.setTextType(this.textPositionCtrl.getValue());
+      $(this.textPositionCtrl._getInputElement())[0].selectedIndex = -1
+      $(this.textPositionCtrl._getInputElement()).blur();
     }
   }
 
@@ -23894,9 +24042,11 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     if (evdata.key == 'Escape') {
       $(this.dgDom.element).find('.cancel-button').click();
       evdata.preventDefault();
-      return;
     } else {
-      this.chordEditorCtrl.evKey(evdata);
+      const edited = this.chordEditorCtrl.evKey(evdata);
+      if (edited) {
+        evdata.stopPropagation();
+      }
     }
   }
 
@@ -23948,11 +24098,13 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         parameterName: 'text',
         defaultValue: 0,
         control: 'SuiTextInPlace',
+        classes: 'show-always hide-when-moving',
         label:'Edit Text',
         options: []
       },{
         smoName: 'textDragger',
         parameterName: 'textLocation',
+        classes: 'hide-when-editing show-when-moving',
         defaultValue: 0,
         control: 'SuiDragText',
         label:'Move Text',
@@ -23962,6 +24114,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         smoName: 'x',
         parameterName: 'x',
         defaultValue: 0,
+        classes: 'hide-when-editing hide-when-moving',
         control: 'SuiRockerComponent',
         label: 'X Position (Px)',
                 startRow:true,
@@ -23970,6 +24123,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         smoName: 'y',
         parameterName: 'y',
         defaultValue: 0,
+        classes: 'hide-when-editing hide-when-moving',
         control: 'SuiRockerComponent',
         label: 'Y Position (Px)',
                 startRow:true,
@@ -23978,6 +24132,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         smoName: 'justification',
         parameterName: 'justification',
         defaultValue: SmoScoreText.justifications.left,
+        classes: 'hide-when-editing hide-when-moving',
         control: 'SuiDropdownComponent',
         label:'Justification',
                 startRow:true,
@@ -23996,6 +24151,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       {
         smoName: 'fontFamily',
         parameterName: 'fontFamily',
+        classes: 'hide-when-editing hide-when-moving',
         defaultValue: SmoScoreText.fontFamilies.times,
         control: 'SuiDropdownComponent',
         label:'Font Family',
@@ -24014,6 +24170,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         smoName: 'fontSize',
         parameterName: 'fontSize',
         defaultValue: 1,
+        classes: 'hide-when-editing hide-when-moving',
         control: 'SuiRockerComponent',
         label: 'Font Size',
         type: 'float',
@@ -24023,6 +24180,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         smoName: 'fontUnit',
         parameterName: 'fontUnit',
         defaultValue: 'em',
+        classes: 'hide-when-editing hide-when-moving',
         control: 'SuiDropdownComponent',
         label: 'Units',
         options: [{value:'em',label:'em'},{value:'px',label:'px'},{value:'pt',label:'pt'}]
@@ -24031,6 +24189,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         smoName: 'wrap',
         parameterName: 'wrap',
         defaultValue: false,
+        classes: 'hide-when-editing hide-when-moving',
         control:'SuiToggleComponent',
         label: 'Wrap Text'
       },
@@ -24038,6 +24197,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         smoName: 'pagination',
         parameterName: 'pagination',
         defaultValue: SmoScoreText.paginations.every,
+        classes: 'hide-when-editing hide-when-moving',
         control: 'SuiDropdownComponent',
         label:'Page Behavior',
         startRow:true,

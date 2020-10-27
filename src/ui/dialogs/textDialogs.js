@@ -18,7 +18,8 @@ class SuiLyricDialog extends SuiDialogBase {
       defaultValue: 0,
       control: 'SuiDropdownComponent',
       label:'Verse',
-      startRow:true,
+      classes: 'hide-when-editing',
+      startRow: true,
       options: [{
           value: 0,
           label: '1'
@@ -30,9 +31,10 @@ class SuiLyricDialog extends SuiDialogBase {
           label: '3'
         }
       ]
-    },{
+    }, {
       smoName: 'translateY',
       parameterName: 'translateY',
+      classes: 'hide-when-editing',
       defaultValue: 0,
       control: 'SuiRockerComponent',
       label: 'Y Adjustment (Px)',
@@ -41,6 +43,7 @@ class SuiLyricDialog extends SuiDialogBase {
       smoName: 'lyricEditor',
       parameterName: 'text',
       defaultValue: 0,
+      classes: 'show-always',
       control: 'SuiLyricComponent',
       label:'Edit Lyrics',
       options: []
@@ -158,7 +161,10 @@ class SuiLyricDialog extends SuiDialogBase {
       evdata.preventDefault();
       return;
     } else {
-      this.lyricEditorCtrl.evKey(evdata);
+      const edited = this.lyricEditorCtrl.evKey(evdata);
+      if (edited) {
+        evdata.stopPropagation();
+      }
     }
   }
 
@@ -223,8 +229,9 @@ class SuiChordChangeDialog  extends SuiDialogBase {
         parameterName: 'verse',
         defaultValue: 0,
         control: 'SuiDropdownComponent',
-        label:'Ordinality',
-        startRow:true,
+        label: 'Ordinality',
+        classes: 'hide-when-editing',
+        startRow: true,
         options: [{
             value: 0,
             label: '1'
@@ -240,6 +247,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
         smoName: 'translateY',
         parameterName: 'translateY',
         defaultValue: 0,
+        classes: 'hide-when-editing',
         control: 'SuiRockerComponent',
         label: 'Y Adjustment (Px)',
         type: 'int'
@@ -247,6 +255,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
         smoName: 'chordEditor',
         parameterName: 'text',
         defaultValue: 0,
+        classes: 'show-always',
         control: 'SuiChordComponent',
         label:'Edit Text',
         options: []
@@ -254,6 +263,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
        smoName: 'chordSymbol',
        parameterName: 'chordSymbol',
        defaultValue: '',
+       classes: 'show-when-editing',
        control: 'SuiDropdownComponent',
        label: 'Chord Symbol',
        startRow: true,
@@ -270,7 +280,27 @@ class SuiChordChangeDialog  extends SuiDialogBase {
              value: 'csymMajorSeventh',
              label: 'Maj7'
            }]
-         },{
+         },
+         {
+         smoName: 'textPosition',
+         parameterName: 'textPosition',
+         defaultValue: SuiInlineText.textTypes.normal,
+         classes: 'show-when-editing',
+         control: 'SuiDropdownComponent',
+         label: 'Text Position',
+         startRow: true,
+         options: [{
+              value: SuiInlineText.textTypes.superScript,
+              label: 'Superscript'
+           }, {
+              value: SuiInlineText.textTypes.subScript,
+              label: 'Subscript'
+           }, {
+              value: SuiInlineText.textTypes.normal,
+              label: 'Normal'
+            }]
+           },
+           {
         staticText: [
           {label : 'Edit Chord Symbol'},
           {undo: 'Undo Chord Symbols'},
@@ -282,11 +312,20 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     return SuiChordChangeDialog._dialogElements;
   }
   changed() {
+    let val = '';
     if (this.chordSymbolCtrl.changeFlag && this.chordEditorCtrl.running)   {
-      const val = '@' + this.chordSymbolCtrl.getValue() + '@';
+      val = '@' + this.chordSymbolCtrl.getValue() + '@';
       this.chordEditorCtrl.evKey({
         key: val
       });
+      // Move focus outside the element so it doesn't intercept keys
+      $(this.chordSymbolCtrl._getInputElement())[0].selectedIndex = -1
+      $(this.chordSymbolCtrl._getInputElement()).blur();
+    }
+    if (this.textPositionCtrl.changeFlag && this.chordEditorCtrl.running) {
+      this.chordEditorCtrl.setTextType(this.textPositionCtrl.getValue());
+      $(this.textPositionCtrl._getInputElement())[0].selectedIndex = -1
+      $(this.textPositionCtrl._getInputElement()).blur();
     }
   }
 
@@ -353,9 +392,11 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     if (evdata.key == 'Escape') {
       $(this.dgDom.element).find('.cancel-button').click();
       evdata.preventDefault();
-      return;
     } else {
-      this.chordEditorCtrl.evKey(evdata);
+      const edited = this.chordEditorCtrl.evKey(evdata);
+      if (edited) {
+        evdata.stopPropagation();
+      }
     }
   }
 
@@ -407,11 +448,13 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         parameterName: 'text',
         defaultValue: 0,
         control: 'SuiTextInPlace',
+        classes: 'show-always hide-when-moving',
         label:'Edit Text',
         options: []
       },{
         smoName: 'textDragger',
         parameterName: 'textLocation',
+        classes: 'hide-when-editing show-when-moving',
         defaultValue: 0,
         control: 'SuiDragText',
         label:'Move Text',
@@ -421,6 +464,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         smoName: 'x',
         parameterName: 'x',
         defaultValue: 0,
+        classes: 'hide-when-editing hide-when-moving',
         control: 'SuiRockerComponent',
         label: 'X Position (Px)',
                 startRow:true,
@@ -429,6 +473,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         smoName: 'y',
         parameterName: 'y',
         defaultValue: 0,
+        classes: 'hide-when-editing hide-when-moving',
         control: 'SuiRockerComponent',
         label: 'Y Position (Px)',
                 startRow:true,
@@ -437,6 +482,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         smoName: 'justification',
         parameterName: 'justification',
         defaultValue: SmoScoreText.justifications.left,
+        classes: 'hide-when-editing hide-when-moving',
         control: 'SuiDropdownComponent',
         label:'Justification',
                 startRow:true,
@@ -455,6 +501,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       {
         smoName: 'fontFamily',
         parameterName: 'fontFamily',
+        classes: 'hide-when-editing hide-when-moving',
         defaultValue: SmoScoreText.fontFamilies.times,
         control: 'SuiDropdownComponent',
         label:'Font Family',
@@ -473,6 +520,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         smoName: 'fontSize',
         parameterName: 'fontSize',
         defaultValue: 1,
+        classes: 'hide-when-editing hide-when-moving',
         control: 'SuiRockerComponent',
         label: 'Font Size',
         type: 'float',
@@ -482,6 +530,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         smoName: 'fontUnit',
         parameterName: 'fontUnit',
         defaultValue: 'em',
+        classes: 'hide-when-editing hide-when-moving',
         control: 'SuiDropdownComponent',
         label: 'Units',
         options: [{value:'em',label:'em'},{value:'px',label:'px'},{value:'pt',label:'pt'}]
@@ -490,6 +539,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         smoName: 'wrap',
         parameterName: 'wrap',
         defaultValue: false,
+        classes: 'hide-when-editing hide-when-moving',
         control:'SuiToggleComponent',
         label: 'Wrap Text'
       },
@@ -497,6 +547,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         smoName: 'pagination',
         parameterName: 'pagination',
         defaultValue: SmoScoreText.paginations.every,
+        classes: 'hide-when-editing hide-when-moving',
         control: 'SuiDropdownComponent',
         label:'Page Behavior',
         startRow:true,

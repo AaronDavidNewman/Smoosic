@@ -4,7 +4,7 @@
 // metrics so we can support inline svg text editors (cursor).
 class SuiInlineText {
   static get textTypes() {
-    return {normal:0,superScript:1,subScript:2};
+    return { normal: 0, superScript: 1, subScript: 2 };
   }
   static get symbolTypes() {
     return {
@@ -12,6 +12,57 @@ class SuiInlineText {
       TEXT: 2,
       LINE: 3
     };
+  }
+
+  // List height top to bottom
+  static get textTypeRelativeHeight() {
+    const rv = {};
+    rv[SuiInlineText.textTypes.superScript] = 1;
+    rv[SuiInlineText.textTypes.normal] = 0;
+    rv[SuiInlineText.textTypes.subScript] = -1;
+  }
+
+  // ### textTypeTransitions
+  // Given a current text type and a type change request, what is the result
+  // text type?  This truth table tells you.
+  static get textTypeTransitions() {
+    return [
+      [1, 1, 0],
+      [1, 0, 1],
+      [1, 2, 2],
+      [2, 2, 0],
+      [2, 0, 2],
+      [2, 1, 1],
+      [0, 1, 1],
+      [0, 0, 0],
+      [0, 2, 2]
+    ];
+  }
+
+  static getTextTypeResult(oldType, newType) {
+    let rv = SuiInlineText.textTypes.normal;
+    let i = 0;
+    for (i = 0;i < SuiInlineText.textTypeTransitions.length; ++i) {
+      const tt = SuiInlineText.textTypeTransitions[i];
+      if (tt[0] === oldType && tt[1] === newType) {
+        rv = tt[2];
+        break;
+      }
+    }
+    return rv;
+  }
+
+  static getTextTypeTransition(oldType, result) {
+    let rv = SuiInlineText.textTypes.normal;
+    let i = 0;
+    for (i = 0;i < SuiInlineText.textTypeTransitions.length; ++i) {
+      const tt = SuiInlineText.textTypeTransitions[i];
+      if (tt[0] === oldType && tt[2] === result) {
+        rv = tt[1];
+        break;
+      }
+    }
+    return rv;
   }
   static get superscriptOffset() {
     return VF.ChordSymbol.chordSymbolMetrics.global.superscriptOffset / VF.ChordSymbol.engravingFontResolution;
@@ -123,6 +174,7 @@ class SuiInlineText {
     let superXAlign = 0;
     let superXWidth = 0;
     let prevBlock = null;
+    let i = 0;
     this.blocks.forEach((block) => {
       // super/subscript
       const sp = this.isSuperscript(block);
@@ -138,7 +190,7 @@ class SuiInlineText {
       const glyphAdj = block.symbolType === SuiInlineText.symbolTypes.GLYPH ? 2.0 : 1.0;
       block.x = curX;
       if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
-        for (var i = 0;i < block.text.length;++i) {
+        for (i = 0;i < block.text.length;++i) {
           const ch = block.text[i];
 
           const glyph = this.textFont.getMetricForCharacter(ch);
@@ -216,7 +268,9 @@ class SuiInlineText {
   }
   // ### renderCursorAt
   // When we are using textLayout to render editor, create a cursor that adjusts it's size
-  renderCursorAt(position) {
+  renderCursorAt(position, textType) {
+    let adjH = 0;
+    let adjY = 0;
     if (!this.updatedMetrics) {
       this._calculateBlockIndex();
     }
@@ -229,10 +283,21 @@ class SuiInlineText {
       return;
     }
     var block = this.blocks[position];
-    const adjH = block.symbolType === SuiInlineText.symbolTypes.GLYPH ? h/2 : h;
+    adjH = block.symbolType === SuiInlineText.symbolTypes.GLYPH ? h/2 : h;
     // For glyph, add y adj back to the cursor since it's not a glyph
-    const adjY = block.symbolType === SuiInlineText.symbolTypes.GLYPH ? block.y - this._glyphOffset(block) :
+    adjY = block.symbolType === SuiInlineText.symbolTypes.GLYPH ? block.y - this._glyphOffset(block) :
       block.y;
+    if (typeof(textType) === 'number' && textType != SuiInlineText.textTypes.normal) {
+      const ratio = textType !== SuiInlineText.textTypes.normal ? VF.ChordSymbol.superSubRatio : 1.0 ;
+      adjH = adjH * ratio;
+      if (textType !== block.textType) {
+        if (textType === SuiInlineText.textTypes.superScript) {
+          adjY -= h / 2;
+        } else {
+          adjY += h / 2;
+        }
+      }
+    }
     svgHelpers.renderCursor(group, block.x + block.width, adjY - (adjH * block.scale), adjH * block.scale);
     this.context.closeGroup();
   }
