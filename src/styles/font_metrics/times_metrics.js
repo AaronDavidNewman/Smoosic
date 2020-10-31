@@ -1,6 +1,6 @@
 const TimesFont = {
   smufl: false,
-  name: "Times",
+  name: "Times New Roman",
   spacing: 50,
   Description: 'Built-in serif font',
   bold: true,

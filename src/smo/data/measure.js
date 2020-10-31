@@ -652,6 +652,16 @@ class SmoMeasure {
     this.beamGroups = [];
   }
 
+  // ### updateLyricFont
+  // Update the lyric font, which is the same for all lyrics.
+  setLyricFont(fontInfo) {
+    this.voices.forEach((voice) => {
+      voice.notes.forEach((note) => {
+        note.setLyricFont(fontInfo);
+      });
+    });
+  }
+
   // ### tuplet methods.
   //
   // #### tupletNotes

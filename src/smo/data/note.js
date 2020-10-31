@@ -133,6 +133,14 @@ class SmoNote {
     );
   }
 
+  setLyricFont(fontInfo) {
+    const lyrics = this.getTrueLyrics();
+
+    lyrics.forEach((lyric) => {
+      lyric.fontInfo = JSON.parse(JSON.stringify(fontInfo));
+    });
+  }
+
   getOrnaments() {
     return this.ornaments.filter((oo) => oo.isJazz() === false);
   }

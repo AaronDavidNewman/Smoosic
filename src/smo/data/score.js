@@ -21,6 +21,9 @@ class SmoScore {
   static get zoomModes() {
     return { fitWidth: 0, wholePage: 1, zoomScale: 2 };
   }
+  static get fontPurposes() {
+    return { ENGRAVING: 1, SCORE: 2, CHORDS: 3, LYRICS: 4 };
+  }
   static get defaults() {
     return {
       layout: {
@@ -38,7 +41,12 @@ class SmoScore {
         zoomMode: SmoScore.zoomModes.fitWidth,
         pages: 1
       },
-      engravingFont: SmoScore.engravingFonts.Bravura,
+      fonts: [
+        { name: 'engraving', purpose: SmoScore.fontPurposes.ENGRAVING, family: 'Bravura', size: 1, custom: false },
+        { name: 'score', purpose: SmoScore.fontPurposes.SCORE, family: 'Merriweather', size: 14, custom: false },
+        { name: 'chords', purpose: SmoScore.fontPurposes.CHORDS, family: 'Roboto Slab', size: 14, custom: false  },
+        { name: 'lyrics', purpose: SmoScore.fontPurposes.LYRICS, family: 'Merriweather', size: 12, custom: false }
+      ],
       staffWidth: 1600,
       startIndex: 0,
       renumberingMap: {},
@@ -71,7 +79,7 @@ class SmoScore {
   }
 
   static get defaultAttributes() {
-    return ['layout', 'startIndex', 'renumberingMap', 'renumberIndex', 'engravingFont'];
+    return ['layout', 'startIndex', 'renumberingMap', 'renumberIndex', 'fonts'];
   }
 
   serializeColumnMapped() {
@@ -82,6 +90,7 @@ class SmoScore {
     });
     return attrColumnHash;
   }
+
   // ### deserializeColumnMapped
   // Column-mapped attributes stay the same in each measure until
   // changed, like key-signatures.  We don't store each measure value to
@@ -467,6 +476,14 @@ class SmoScore {
 
   removeScoreText(textObject) {
     this._updateScoreText(textObject, false);
+  }
+
+  // ### setLyricFont
+  // set the font for lyrics, which are the same for all lyrics in the score
+  setLyricFont(fontInfo) {
+    this.staves.forEach((staff) => {
+      staff.setLyricFont(fontInfo);
+    });
   }
 
   get measures() {

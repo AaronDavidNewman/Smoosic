@@ -165,11 +165,15 @@ class smoSerialize {
     "ee": "columnAttributeMap",
     "fe": "tempo",
     "ge": "textGroups",
-      "he": "textBlocks",
-      "ie": "backupBlocks",
-      "je": "blocks",
-      "ke": "_text",
-      "le": "parser"
+    "he": "textBlocks",
+    "ie": "backupBlocks",
+    "je": "blocks",
+    "ke": "_text",
+    "le": "parser",
+     "me": "fonts",
+     "ne": "name",
+     "oe": "purpose",
+     "pe": "custom"
      }`
      ;
      return JSON.parse(_tm);

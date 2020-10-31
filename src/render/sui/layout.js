@@ -284,13 +284,14 @@ class suiLayoutBase {
   }
 
   set score(score) {
-    var shouldReset = false;
+    let shouldReset = false;
     if (this._score) {
       shouldReset = true;
     }
     this.setPassState(suiLayoutBase.passStates.initial,'load score');
-    suiLayoutBase.setFont(score.engravingFont);
-    this.dirty=true;
+    const font = score.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
+    suiLayoutBase.setFont(font.family);
+    this.dirty = true;
     this._score = score;
     if (shouldReset) {
       if (this.measureMapper) {

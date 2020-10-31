@@ -1202,11 +1202,15 @@ class smoSerialize {
     "ee": "columnAttributeMap",
     "fe": "tempo",
     "ge": "textGroups",
-      "he": "textBlocks",
-      "ie": "backupBlocks",
-      "je": "blocks",
-      "ke": "_text",
-      "le": "parser"
+    "he": "textBlocks",
+    "ie": "backupBlocks",
+    "je": "blocks",
+    "ke": "_text",
+    "le": "parser",
+     "me": "fonts",
+     "ne": "name",
+     "oe": "purpose",
+     "pe": "custom"
      }`
      ;
      return JSON.parse(_tm);
@@ -1453,9 +1457,9 @@ class smoSerialize {
 class svgHelpers {
 
 
-	static get namespace() {
-		return "http://www.w3.org/2000/svg";
-	}
+  static get namespace() {
+    return "http://www.w3.org/2000/svg";
+  }
 
   // ### gradient
   // Create an svg linear gradient.
@@ -1521,84 +1525,84 @@ class svgHelpers {
     svg.appendChild(e);
   }
 
-	static buildSvg(el) {
+  static buildSvg(el) {
 
-		var smoSvgBuilder = function (el) {
-			var ns = svgHelpers.namespace;
-			this.e = document.createElementNS(ns, el);
-			var self = this;
-			this.classes = function (cl) {
-				self.e.setAttributeNS('', 'class', cl);
-				return self;
-			}
-			this.attr = function (name, value) {
-				self.e.setAttributeNS('', name, value);
-				return self;
-			}
+    var smoSvgBuilder = function (el) {
+      var ns = svgHelpers.namespace;
+      this.e = document.createElementNS(ns, el);
+      var self = this;
+      this.classes = function (cl) {
+        self.e.setAttributeNS('', 'class', cl);
+        return self;
+      }
+      this.attr = function (name, value) {
+        self.e.setAttributeNS('', name, value);
+        return self;
+      }
 
-			this.text = function (x, y, classes, text) {
-				x = typeof(x) == 'string' ? x : x.toString();
-				y = typeof(y) == 'string' ? y : y.toString();
-				this.e.setAttributeNS('', 'class', classes);
-				this.e.setAttributeNS('', 'x', x);
-				this.e.setAttributeNS('', 'y', y);
+      this.text = function (x, y, classes, text) {
+        x = typeof(x) == 'string' ? x : x.toString();
+        y = typeof(y) == 'string' ? y : y.toString();
+        this.e.setAttributeNS('', 'class', classes);
+        this.e.setAttributeNS('', 'x', x);
+        this.e.setAttributeNS('', 'y', y);
 
-				this.e.textContent = text;
-				return this;
-			}
-			this.rect = function (x, y, width, height, classes) {
-				x = typeof(x) == 'string' ? x : x.toString();
-				y = typeof(y) == 'string' ? y : y.toString();
-				width = typeof(width) == 'string' ? width : width.toString();
-				height = typeof(height) == 'string' ? height : height.toString();
-				this.e.setAttributeNS('', 'x', x);
-				this.e.setAttributeNS('', 'y', y);
-				this.e.setAttributeNS('', 'width', width);
-				this.e.setAttributeNS('', 'height', height);
-				if (classes) {
-					this.e.setAttributeNS('', 'class', classes);
-				}
-				return this;
-			}
-			this.line = function (x1, y1, x2, y2, classes) {
-				x1 = typeof(x1) == 'string' ? x1 : x1.toString();
-				y1 = typeof(y1) == 'string' ? y1 : y1.toString();
-				x2 = typeof(x2) == 'string' ? x2 : x2.toString();
-				y2 = typeof(y2) == 'string' ? y2 : y2.toString();
+        this.e.textContent = text;
+        return this;
+      }
+      this.rect = function (x, y, width, height, classes) {
+        x = typeof(x) == 'string' ? x : x.toString();
+        y = typeof(y) == 'string' ? y : y.toString();
+        width = typeof(width) == 'string' ? width : width.toString();
+        height = typeof(height) == 'string' ? height : height.toString();
+        this.e.setAttributeNS('', 'x', x);
+        this.e.setAttributeNS('', 'y', y);
+        this.e.setAttributeNS('', 'width', width);
+        this.e.setAttributeNS('', 'height', height);
+        if (classes) {
+          this.e.setAttributeNS('', 'class', classes);
+        }
+        return this;
+      }
+      this.line = function (x1, y1, x2, y2, classes) {
+        x1 = typeof(x1) == 'string' ? x1 : x1.toString();
+        y1 = typeof(y1) == 'string' ? y1 : y1.toString();
+        x2 = typeof(x2) == 'string' ? x2 : x2.toString();
+        y2 = typeof(y2) == 'string' ? y2 : y2.toString();
 
-				this.e.setAttributeNS('', 'x1', x1);
-				this.e.setAttributeNS('', 'y1', y1);
-				this.e.setAttributeNS('', 'x2', x2);
-				this.e.setAttributeNS('', 'y2', y2);
-				if (classes) {
-					this.e.setAttributeNS('', 'class', classes);
-				}
-				return this;
-			}
-			this.append = function (el) {
-				self.e.appendChild(el.e);
-				return self;
-			}
-			this.dom = function () {
-				return self.e;
-			}
-			return this;
-		}
-		return new smoSvgBuilder(el);
-	}
+        this.e.setAttributeNS('', 'x1', x1);
+        this.e.setAttributeNS('', 'y1', y1);
+        this.e.setAttributeNS('', 'x2', x2);
+        this.e.setAttributeNS('', 'y2', y2);
+        if (classes) {
+          this.e.setAttributeNS('', 'class', classes);
+        }
+        return this;
+      }
+      this.append = function (el) {
+        self.e.appendChild(el.e);
+        return self;
+      }
+      this.dom = function () {
+        return self.e;
+      }
+      return this;
+    }
+    return new smoSvgBuilder(el);
+  }
 
-	// ### boxNote
-	// update the note geometry based on current viewbox conditions.
-	// This may not be the appropriate place for this...maybe in layout
-	static updateArtifactBox(svg,element,artifact) {
-		artifact.renderedBox = svgHelpers.smoBox(element.getBoundingClientRect());
-		artifact.logicalBox = svgHelpers.smoBox(element.getBBox());
-	}
+  // ### boxNote
+  // update the note geometry based on current viewbox conditions.
+  // This may not be the appropriate place for this...maybe in layout
+  static updateArtifactBox(svg,element,artifact) {
+    artifact.renderedBox = svgHelpers.smoBox(element.getBoundingClientRect());
+    artifact.logicalBox = svgHelpers.smoBox(element.getBBox());
+  }
 
   // ### eraseOutline
   // Erases old outlineRects.
   static eraseOutline(context,style) {
-  		$(context.svg).find('g.vf-' + style).remove();
+      $(context.svg).find('g.vf-' + style).remove();
   }
 
   static _outlineRect(params) {
@@ -1689,65 +1693,65 @@ class svgHelpers {
   }
 
 
-	// ### getTextBox
-	// Get the logical bounding box of the text for placement.
-	static getTextBox(svg,attributes,classes,text) {
-		var el = svgHelpers.placeSvgText(svg,attributes,classes,text);
-		var box = el.getBBox();
-		svg.removeChild(el);
-		return box;
-	}
+  // ### getTextBox
+  // Get the logical bounding box of the text for placement.
+  static getTextBox(svg,attributes,classes,text) {
+    var el = svgHelpers.placeSvgText(svg,attributes,classes,text);
+    var box = el.getBBox();
+    svg.removeChild(el);
+    return box;
+  }
 
-	static debugBox(svg, box, classes, voffset) {
-		voffset = voffset ? voffset : 0;
-		classes = classes ? classes : '';
+  static debugBox(svg, box, classes, voffset) {
+    voffset = voffset ? voffset : 0;
+    classes = classes ? classes : '';
         if (!box)
            return;
-		classes += ' svg-debug-box';
-		var b = svgHelpers.buildSvg;
-		var mid = box.x + box.width / 2;
-		var xtext = 'x1: ' + Math.round(box.x);
-		var wtext = 'x2: ' + Math.round(box.width+box.x);
-		var ytext = 'y1: ' + Math.round(box.y);
-		var htext = 'y2: ' + Math.round(box.height+box.y);
-		var ytextp = Math.round(box.y+box.height);
-		var ytextp2 = Math.round(box.y+box.height-30);
+    classes += ' svg-debug-box';
+    var b = svgHelpers.buildSvg;
+    var mid = box.x + box.width / 2;
+    var xtext = 'x1: ' + Math.round(box.x);
+    var wtext = 'x2: ' + Math.round(box.width+box.x);
+    var ytext = 'y1: ' + Math.round(box.y);
+    var htext = 'y2: ' + Math.round(box.height+box.y);
+    var ytextp = Math.round(box.y+box.height);
+    var ytextp2 = Math.round(box.y+box.height-30);
 
-		var r = b('g').classes(classes)
-			.append(
-				b('text').text(box.x + 20, box.y - 14+voffset, 'svg-debug-text', xtext))
-			.append(
-				b('text').text(mid - 20, box.y - 14+voffset, 'svg-debug-text', wtext))
-			.append(
-				b('line').line(box.x, box.y - 2, box.x + box.width, box.y - 2))
-			.append(
-				b('line').line(box.x, box.y - 8, box.x, box.y + 5))
-			.append(
-				b('line').line(box.x + box.width, box.y - 8, box.x + box.width, box.y + 5))
-			.append(
-				b('text').text(Math.round(box.x-14+voffset), ytextp, 'svg-vdebug-text', ytext)
-				  .attr('transform','rotate(-90,'+Math.round(box.x-14+voffset)+','+ytextp+')'));
-		if (box.height > 2) {
-			r.append(
-				b('text').text(Math.round(box.x-14+voffset), ytextp2, 'svg-vdebug-text', htext)
-				  .attr('transform','rotate(-90,'+Math.round(box.x-14+voffset)+','+(ytextp2)+')'))
-				  .append(
-				b('line').line(Math.round(box.x-2), Math.round(box.y +box.height),box.x-2,box.y))
-				  .append(
-				b('line').line(Math.round(box.x-8), Math.round(box.y +box.height),box.x+6,Math.round(box.y+box.height)))
-				  .append(
-				b('line').line(Math.round(box.x-8), Math.round(box.y),Math.round(box.x+6),Math.round(box.y)));
-		}
-		svg.appendChild(r.dom());
-	}
+    var r = b('g').classes(classes)
+      .append(
+        b('text').text(box.x + 20, box.y - 14+voffset, 'svg-debug-text', xtext))
+      .append(
+        b('text').text(mid - 20, box.y - 14+voffset, 'svg-debug-text', wtext))
+      .append(
+        b('line').line(box.x, box.y - 2, box.x + box.width, box.y - 2))
+      .append(
+        b('line').line(box.x, box.y - 8, box.x, box.y + 5))
+      .append(
+        b('line').line(box.x + box.width, box.y - 8, box.x + box.width, box.y + 5))
+      .append(
+        b('text').text(Math.round(box.x-14+voffset), ytextp, 'svg-vdebug-text', ytext)
+          .attr('transform','rotate(-90,'+Math.round(box.x-14+voffset)+','+ytextp+')'));
+    if (box.height > 2) {
+      r.append(
+        b('text').text(Math.round(box.x-14+voffset), ytextp2, 'svg-vdebug-text', htext)
+          .attr('transform','rotate(-90,'+Math.round(box.x-14+voffset)+','+(ytextp2)+')'))
+          .append(
+        b('line').line(Math.round(box.x-2), Math.round(box.y +box.height),box.x-2,box.y))
+          .append(
+        b('line').line(Math.round(box.x-8), Math.round(box.y +box.height),box.x+6,Math.round(box.y+box.height)))
+          .append(
+        b('line').line(Math.round(box.x-8), Math.round(box.y),Math.round(box.x+6),Math.round(box.y)));
+    }
+    svg.appendChild(r.dom());
+  }
 
   static fontIntoToSvgAttributes(fontInfo) {
     var rv = [];
     var fkeys = Object.keys(fontInfo);
-  	fkeys.forEach((key) => {
-  		var n='{"font-'+key+'":"'+fontInfo[key]+'"}';
-  		rv.push(JSON.parse(n));
-  	});
+    fkeys.forEach((key) => {
+      var n='{"font-'+key+'":"'+fontInfo[key]+'"}';
+      rv.push(JSON.parse(n));
+    });
       return rv;
   }
 
@@ -1787,50 +1791,50 @@ class svgHelpers {
     return metrics;
   }
 
-	static placeSvgText(svg,attributes,classes,text,id) {
-		var ns = svgHelpers.namespace;
-		var e = document.createElementNS(ns, 'text');
-		attributes.forEach((attr) => {
-			var key = Object.keys(attr)[0];
-		    e.setAttributeNS('', key, attr[key]);
-		})
-		if (classes) {
-			e.setAttributeNS('', 'class', classes);
-		}
+  static placeSvgText(svg,attributes,classes,text,id) {
+    var ns = svgHelpers.namespace;
+    var e = document.createElementNS(ns, 'text');
+    attributes.forEach((attr) => {
+      var key = Object.keys(attr)[0];
+        e.setAttributeNS('', key, attr[key]);
+    })
+    if (classes) {
+      e.setAttributeNS('', 'class', classes);
+    }
     var dp = new DOMParser();
     var id = id ? id : 'smootext';
     var tn = dp.parseFromString('<tspan xmlns="http://www.w3.org/2000/svg" id="'+id+'">'+text+'</tspan>','application/xml');
     var st = tn.getElementById(id);
-		e.appendChild(st);
-		svg.appendChild(e);
-		return e;
-	}
+    e.appendChild(st);
+    svg.appendChild(e);
+    return e;
+  }
 
     // ### findIntersectingArtifactFromMap
     // Same as findIntersectionArtifact but uses a map of keys instead of an array
     static findIntersectingArtifactFromMap(clientBox,map,netScroll) {
         var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
 
-		// box.y = box.y - this.renderElement.offsetTop;
-		// box.x = box.x - this.renderElement.offsetLeft;
-		var rv = [];
+    // box.y = box.y - this.renderElement.offsetTop;
+    // box.x = box.x - this.renderElement.offsetLeft;
+    var rv = [];
 
-		Object.keys(map).forEach((k) => {
+    Object.keys(map).forEach((k) => {
             var object = map[k];
-			// Measure has been updated, but not drawn.
-			if (!object.box) {
-				// console.log('there is no box');
-			} else {
-				var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box),netScroll);
-				var i1 = box.x - obox.x; // handle edge not believe in x and y
-				var i2 = box.y - obox.y;
-				if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
-					rv.push(object);
-				}
-			}
-		});
+      // Measure has been updated, but not drawn.
+      if (!object.box) {
+        // console.log('there is no box');
+      } else {
+        var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box),netScroll);
+        var i1 = box.x - obox.x; // handle edge not believe in x and y
+        var i2 = box.y - obox.y;
+        if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
+          rv.push(object);
+        }
+      }
+    });
 
-		return rv;
+    return rv;
 
     }
 
@@ -1844,157 +1848,157 @@ class svgHelpers {
     return false;
   }
 
-	// ### findIntersectionArtifact
-	// find all object that intersect with the rectangle
-	static findIntersectingArtifact(clientBox, objects,netScroll) {
-		var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
+  // ### findIntersectionArtifact
+  // find all object that intersect with the rectangle
+  static findIntersectingArtifact(clientBox, objects,netScroll) {
+    var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
 
-		// box.y = box.y - this.renderElement.offsetTop;
-		// box.x = box.x - this.renderElement.offsetLeft;
-		var rv = [];
-		if (typeof(objects['forEach']) != 'function') {
-			console.log('corrupt objects in findIntersectingArtifact');
-		}
-		objects.forEach((object) => {
-			// Measure has been updated, but not drawn.
-			if (!object.box) {
-				// console.log('there is no box');
-			} else {
-				var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box),netScroll);
-				var i1 = box.x - obox.x; // handle edge not believe in x and y
-				var i2 = box.y - obox.y;
-				if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
-					rv.push(object);
-				}
-			}
-		});
+    // box.y = box.y - this.renderElement.offsetTop;
+    // box.x = box.x - this.renderElement.offsetLeft;
+    var rv = [];
+    if (typeof(objects['forEach']) != 'function') {
+      console.log('corrupt objects in findIntersectingArtifact');
+    }
+    objects.forEach((object) => {
+      // Measure has been updated, but not drawn.
+      if (!object.box) {
+        // console.log('there is no box');
+      } else {
+        var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box),netScroll);
+        var i1 = box.x - obox.x; // handle edge not believe in x and y
+        var i2 = box.y - obox.y;
+        if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
+          rv.push(object);
+        }
+      }
+    });
 
-		return rv;
-	}
-	static findSmallestIntersection(clientBox, objects, netScroll) {
-		var ar = svgHelpers.findIntersectingArtifact(clientBox, objects, netScroll);
-		if (!ar.length) {
-			return null;
-		}
-		var rv = ar[0];
-		var min = ar[0].box.width * ar[0].box.height;
-		ar.forEach((obj) => {
-			var tst = obj.box.width * obj.box.height;
-			if (tst < min) {
-				rv = obj;
-				min = tst;
-			}
-		});
-		return rv;
-	}
+    return rv;
+  }
+  static findSmallestIntersection(clientBox, objects, netScroll) {
+    var ar = svgHelpers.findIntersectingArtifact(clientBox, objects, netScroll);
+    if (!ar.length) {
+      return null;
+    }
+    var rv = ar[0];
+    var min = ar[0].box.width * ar[0].box.height;
+    ar.forEach((obj) => {
+      var tst = obj.box.width * obj.box.height;
+      if (tst < min) {
+        rv = obj;
+        min = tst;
+      }
+    });
+    return rv;
+  }
 
     static translateElement(g,x,y) {
         g.setAttributeNS('','transform','translate('+x+' '+y+')');
     }
 
-	// ### measureBBox
-	// Return the bounding box of the measure
-	static measureBBox(b1, measure, staff) {
-		if (measure.renderedBox) {
-			if (b1['width']) {
-				return svgHelpers.unionRect(b1, measure.renderedBox);
-			} else {
-				return measure.renderedBox;
-			}
-		} else {
-			var mbox = {
-				x: measure.staffX,
-				y: staff.staffY,
-				width: measure.staffWidth,
-				height: staff.staffHeight
-			};
-			if (b1['width']) {
-				return mbox;
-			}
-			return svgHelpers.unionRect(b1, mbox);
-		}
-	}
-    // ### measurePerInch
-    // Supported font units
-    static get unitsPerInch() {
-        var rv = {};
-
-        rv['pt']=72.0;
-        rv['px']=96.0;
-        rv['em']=6.0;
-        return rv;
+  // ### measureBBox
+  // Return the bounding box of the measure
+  static measureBBox(b1, measure, staff) {
+    if (measure.renderedBox) {
+      if (b1['width']) {
+        return svgHelpers.unionRect(b1, measure.renderedBox);
+      } else {
+        return measure.renderedBox;
+      }
+    } else {
+      var mbox = {
+        x: measure.staffX,
+        y: staff.staffY,
+        width: measure.staffWidth,
+        height: staff.staffHeight
+      };
+      if (b1['width']) {
+        return mbox;
+      }
+      return svgHelpers.unionRect(b1, mbox);
     }
+  }
+  // ### measurePerInch
+  // Supported font units
+  static get unitsPerInch() {
+    var rv = {};
 
-    // ### getFontSize
-    // Given '1em' return {size:1.0,unit:em}
-    static getFontSize(fs) {
-        var size=parseFloat(fs);
-        var measure = fs.substr(fs.length-2,2);
-        return {size:size,unit:measure};
+    rv['pt'] = 72.0;
+    rv['px'] = 96.0;
+    rv['em'] = 6.0;
+    return rv;
+  }
+
+  // ### getFontSize
+  // Given '1em' return {size:1.0,unit:em}
+  static getFontSize(fs) {
+    var size=parseFloat(fs);
+    var measure = fs.substr(fs.length - 2, 2);
+    return { size:size, unit:measure };
+  }
+
+  static convertFont(size,o,n) {
+    return size * (svgHelpers.unitsPerInch[n] / svgHelpers.unitsPerInch[o]);
+  }
+
+  static stringify(box) {
+    if (box['width']) {
+
+      return JSON.stringify({
+        x: box.x,
+        y: box.y,
+        width: box.width,
+        height: box.height
+      }, null, ' ');
+    } else {
+      return JSON.stringify({
+        x: box.x,
+        y: box.y
+      }, null, ' ');
     }
+  }
 
-    static convertFont(size,o,n) {
-        return size*(svgHelpers.unitsPerInch[o]/svgHelpers.unitsPerInch[n]);
+  static log(box) {
+    if (box['width']) {
+      console.log(JSON.stringify({
+          x: box.x,
+          y: box.y,
+          width: box.width,
+          height: box.height
+        }, null, ' '));
+    } else {
+      console.log('{}');
     }
+  }
 
-	static stringify(box) {
-		if (box['width']) {
-
-			return JSON.stringify({
-				x: box.x,
-				y: box.y,
-				width: box.width,
-				height: box.height
-			}, null, ' ');
-		} else {
-			return JSON.stringify({
-				x: box.x,
-				y: box.y
-			}, null, ' ');
-		}
-	}
-
-	static log(box) {
-		if (box['width']) {
-			console.log(JSON.stringify({
-					x: box.x,
-					y: box.y,
-					width: box.width,
-					height: box.height
-				}, null, ' '));
-		} else {
-			console.log('{}');
-		}
-	}
-
-	// ### pointBox
-	// return a point-sized box at the given coordinate
-	static pointBox(x, y) {
-		return {
-			x: x,
-			y: y,
-			width: 0,
-			height: 0
-		};
-	}
+  // ### pointBox
+  // return a point-sized box at the given coordinate
+  static pointBox(x, y) {
+    return {
+      x: x,
+      y: y,
+      width: 0,
+      height: 0
+    };
+  }
 
 
-	// ### smoBox:
-	// return a simple box object that can be serialized, copied
-	// (from svg DOM box)
-	static smoBox(box) {
+  // ### smoBox:
+  // return a simple box object that can be serialized, copied
+  // (from svg DOM box)
+  static smoBox(box) {
     var hround = (f) => {
       return Math.round((f + Number.EPSILON) * 100) / 100;
     }
         var x = typeof(box.x) == 'undefined' ? hround(box.left) : hround(box.x);
         var y = typeof(box.y) == 'undefined' ? hround(box.top) : hround(box.y);
-		return ({
-			x: hround(x),
-			y: hround(y),
-			width: hround(box.width),
-			height: hround(box.height)
-		});
-	}
+    return ({
+      x: hround(x),
+      y: hround(y),
+      width: hround(box.width),
+      height: hround(box.height)
+    });
+  }
   // ### unionRect
   // grow the bounding box two objects to include both.
   static unionRect(b1, b2) {
@@ -2023,99 +2027,99 @@ class svgHelpers {
         // return box;
     }
 
-	static boxPoints(x, y, w, h) {
-		return ({
-			x: x,
-			y: y,
-			width: w,
-			height: h
-		});
-	}
+  static boxPoints(x, y, w, h) {
+    return ({
+      x: x,
+      y: y,
+      width: w,
+      height: h
+    });
+  }
 
-	static copyBox(box) {
+  static copyBox(box) {
         box = svgHelpers.smoBox(box);
-		return {
-			x: box.x,
-			y: box.y,
-			width: box.width,
-			height: box.height
-		};
-	}
+    return {
+      x: box.x,
+      y: box.y,
+      width: box.width,
+      height: box.height
+    };
+  }
 
-	// ### svgViewport
-	// set `svg` element to `width`,`height` and viewport `scale`
-	static svgViewport(svg, xOffset,yOffset,width, height, scale) {
-		svg.setAttributeNS('', 'width', '' + width);
-		svg.setAttributeNS('', 'height', '' + height);
-		svg.setAttributeNS('', 'viewBox', ''+xOffset + ' ' + yOffset + ' ' + Math.round(width / scale) + ' ' +
-			Math.round(height / scale));
-	}
+  // ### svgViewport
+  // set `svg` element to `width`,`height` and viewport `scale`
+  static svgViewport(svg, xOffset,yOffset,width, height, scale) {
+    svg.setAttributeNS('', 'width', '' + width);
+    svg.setAttributeNS('', 'height', '' + height);
+    svg.setAttributeNS('', 'viewBox', ''+xOffset + ' ' + yOffset + ' ' + Math.round(width / scale) + ' ' +
+      Math.round(height / scale));
+  }
 
-	// ### logicalToClient
-	// Convert a point from logical (pixels) to actual screen dimensions based on current
-	// zoom, aspect ratio
-	/* static logicalToClient(svg, logicalPoint) {
-	var rect = svg.getBoundingClientRect();
-	var rv = svgHelpers.copyBox(logicalPoint);
-	rv.x += rect.x;
-	rv.y += rect.y;
-	return rv;
-	}   */
+  // ### logicalToClient
+  // Convert a point from logical (pixels) to actual screen dimensions based on current
+  // zoom, aspect ratio
+  /* static logicalToClient(svg, logicalPoint) {
+  var rect = svg.getBoundingClientRect();
+  var rv = svgHelpers.copyBox(logicalPoint);
+  rv.x += rect.x;
+  rv.y += rect.y;
+  return rv;
+  }   */
 
-	// ### clientToLogical
-	// return a box or point in svg coordintes from screen coordinates
-	static clientToLogical(svg, point) {
-		var pt = svg.createSVGPoint();
+  // ### clientToLogical
+  // return a box or point in svg coordintes from screen coordinates
+  static clientToLogical(svg, point) {
+    var pt = svg.createSVGPoint();
         if (!point)
            return;
         var x = typeof(point.x) != 'undefined' ? point.x : point.left;
         var y = typeof(point.y) != 'undefined' ? point.y : point.top;
-		pt.x = x;
-		pt.y = y;
-		var sp = pt.matrixTransform(svg.getScreenCTM().inverse());
-		if (typeof(point['width']) == 'undefined') {
-			return {
-				x: sp.x,
-				y: sp.y
-			};
-		}
+    pt.x = x;
+    pt.y = y;
+    var sp = pt.matrixTransform(svg.getScreenCTM().inverse());
+    if (typeof(point['width']) == 'undefined') {
+      return {
+        x: sp.x,
+        y: sp.y
+      };
+    }
 
-		var endPt = svg.createSVGPoint();
-		endPt.x = pt.x + point.width;
-		endPt.y = pt.y + point.height;
-		var ep = endPt.matrixTransform(svg.getScreenCTM().inverse());
-		return {
-			x: sp.x,
-			y: sp.y,
-			width: ep.x - sp.x,
-			height: ep.y - sp.y
-		};
-	}
+    var endPt = svg.createSVGPoint();
+    endPt.x = pt.x + point.width;
+    endPt.y = pt.y + point.height;
+    var ep = endPt.matrixTransform(svg.getScreenCTM().inverse());
+    return {
+      x: sp.x,
+      y: sp.y,
+      width: ep.x - sp.x,
+      height: ep.y - sp.y
+    };
+  }
 
-	// ### logicalToClient
-	// return a box or point in screen coordinates from svg coordinates
-	static logicalToClient(svg, point) {
-		var pt = svg.createSVGPoint();
-		pt.x = point.x;
-		pt.y = point.y;
-		var sp = pt.matrixTransform(svg.getScreenCTM());
-		if (!point['width']) {
-			return {
-				x: sp.x,
-				y: sp.y
-			};
-		}
-		var endPt = svg.createSVGPoint();
-		endPt.x = pt.x + point.width;
-		endPt.y = pt.y + point.height;
-		var ep = endPt.matrixTransform(svg.getScreenCTM());
-		return {
-			x: sp.x,
-			y: sp.y,
-			width: ep.x - sp.x,
-			height: ep.y - sp.y
-		};
-	}
+  // ### logicalToClient
+  // return a box or point in screen coordinates from svg coordinates
+  static logicalToClient(svg, point) {
+    var pt = svg.createSVGPoint();
+    pt.x = point.x;
+    pt.y = point.y;
+    var sp = pt.matrixTransform(svg.getScreenCTM());
+    if (!point['width']) {
+      return {
+        x: sp.x,
+        y: sp.y
+      };
+    }
+    var endPt = svg.createSVGPoint();
+    endPt.x = pt.x + point.width;
+    endPt.y = pt.y + point.height;
+    var ep = endPt.matrixTransform(svg.getScreenCTM());
+    return {
+      x: sp.x,
+      y: sp.y,
+      width: ep.x - sp.x,
+      height: ep.y - sp.y
+    };
+  }
 }
 ;var basicJson = `{"score":{"layout":{"leftMargin":30,"rightMargin":30,"topMargin":40,"bottomMargin":40,"pageWidth":816,"pageHeight":1056,"orientation":0,"interGap":30,"intraGap":10,"svgScale":1,"zoomScale":2.107843137254902,"zoomMode":0,"pages":1},"startIndex":0,"renumberingMap":{}},"staves":[{"staffId":0,"staffX":10,"staffY":40,"adjY":0,"staffWidth":1600,"staffHeight":90,"startIndex":0,"renumberingMap":{},"keySignatureMap":{},"instrumentInfo":{"instrumentName":"Treble Instrument","keyOffset":"0","clef":"treble"},"modifiers":[],"measures":[{"timeSignature":"4/4","keySignature":"C","staffY":41,"measureNumber":{"measureNumber":0,"measureIndex":0,"systemIndex":0,"staffId":0},"activeVoice":0,"clef":"treble","transposeIndex":0,"adjX":64.98,"padLeft":0,"adjRight":11,"padRight":10,"rightMargin":2,"tuplets":[],"beamGroups":[],"voices":[{"notes":[{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318077","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"d","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318078","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"e","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318079","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"f","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318080","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"g","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318081","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"a","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318082","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"b","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318083","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"noteType":"n","attrs":{"id":"auto318084","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"b","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318085","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"a","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318086","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"g","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318087","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"f","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318088","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"e","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318089","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"d","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto318090","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]}]}],"modifiers":[{"position":0,"barline":0,"ctor":"SmoBarline"},{"position":1,"barline":0,"ctor":"SmoBarline"},{"symbol":0,"xOffset":0,"yOffset":30,"position":0,"ctor":"SmoRepeatSymbol"}]},{"timeSignature":"4/4","keySignature":"C","staffY":41,"measureNumber":{"measureNumber":1,"measureIndex":1,"systemIndex":1,"staffId":0},"activeVoice":0,"clef":"treble","transposeIndex":0,"adjX":11,"padLeft":0,"adjRight":11,"padRight":10,"rightMargin":2,"tuplets":[],"beamGroups":[],"voices":[{"notes":[{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto358929","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"e","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto360328","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"g","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto360329","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"noteType":"n","attrs":{"id":"auto372785","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"g","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto374186","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":1024,"denominator":1,"remainder":0},"pitches":[{"letter":"e","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto374187","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto381535","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"b","accidental":"n","octave":3}],"noteType":"n","attrs":{"id":"auto354946","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]},{"ticks":{"numerator":4096,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":4}],"noteType":"n","attrs":{"id":"auto389896","type":"SmoNote"},"clef":"treble","endBeam":false,"beamBeats":4096,"flagState":0,"noteModifiers":[],"graceNotes":[],"articulations":[],"ornaments":[]}]}],"modifiers":[{"position":0,"barline":0,"ctor":"SmoBarline"},{"position":1,"barline":0,"ctor":"SmoBarline"},{"symbol":0,"xOffset":0,"yOffset":30,"position":0,"ctor":"SmoRepeatSymbol"}]}]}],"scoreText":[]}`;
 
@@ -3149,13 +3153,14 @@ class suiLayoutBase {
   }
 
   set score(score) {
-    var shouldReset = false;
+    let shouldReset = false;
     if (this._score) {
       shouldReset = true;
     }
     this.setPassState(suiLayoutBase.passStates.initial,'load score');
-    suiLayoutBase.setFont(score.engravingFont);
-    this.dirty=true;
+    const font = score.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
+    suiLayoutBase.setFont(font.family);
+    this.dirty = true;
     this._score = score;
     if (shouldReset) {
       if (this.measureMapper) {
@@ -6135,6 +6140,7 @@ class SuiInlineText {
     let superXWidth = 0;
     let prevBlock = null;
     let i = 0;
+    this.textFont.setFontSize(this.fontSize);
     this.blocks.forEach((block) => {
       // super/subscript
       const sp = this.isSuperscript(block);
@@ -9421,6 +9427,16 @@ class SmoMeasure {
     this.beamGroups = [];
   }
 
+  // ### updateLyricFont
+  // Update the lyric font, which is the same for all lyrics.
+  setLyricFont(fontInfo) {
+    this.voices.forEach((voice) => {
+      voice.notes.forEach((note) => {
+        note.setLyricFont(fontInfo);
+      });
+    });
+  }
+
   // ### tuplet methods.
   //
   // #### tupletNotes
@@ -10312,6 +10328,14 @@ class SmoNote {
     );
   }
 
+  setLyricFont(fontInfo) {
+    const lyrics = this.getTrueLyrics();
+
+    lyrics.forEach((lyric) => {
+      lyric.fontInfo = JSON.parse(JSON.stringify(fontInfo));
+    });
+  }
+
   getOrnaments() {
     return this.ornaments.filter((oo) => oo.isJazz() === false);
   }
@@ -10565,145 +10589,157 @@ class SmoBeamGroup {
     }
   }
 }
-;
+;// ## SmoNoteModifierBase
+// A note modifier is anything that is mapped to the note, but not part of the
+// pitch itself.  This includes grace notes, and note-text like lyrics
+// eslint-disable-next-line no-unused-vars
 class SmoNoteModifierBase {
-	constructor(ctor) {
-        this.attrs = {
-            id: VF.Element.newID(),
-            type: ctor
-        };
-		this.ctor = ctor;
-	}
-	static deserialize(jsonObj) {
-		var ctor = eval(jsonObj.ctor);
-		var rv = new ctor(jsonObj);
-		return rv;
-	}
+  constructor(ctor) {
+    this.attrs = {
+      id: VF.Element.newID(),
+      type: ctor
+    };
+    this.ctor = ctor;
+  }
+  static deserialize(jsonObj) {
+    const ctor = eval(jsonObj.ctor);
+    const rv = new ctor(jsonObj);
+    return rv;
+  }
 }
 
+// eslint-disable-next-line no-unused-vars
 class SmoGraceNote extends SmoNoteModifierBase {
-    static get defaults() {
-        return {
-            flagState:SmoGraceNote.flagStates.auto,
-            noteType: 'n',
-            beamBeats:4096,
-            endBeam:false,
-            clef:'treble',
-            slash:false,
+  static get defaults() {
+    return {
+      flagState: SmoGraceNote.flagStates.auto,
+      noteType: 'n',
+      beamBeats: 4096,
+      endBeam: false,
+      clef: 'treble',
+      slash: false,
+      ticks: {
+        numerator: 4096,
+        denominator: 1,
+        remainder: 0
+      },
+      pitches: [{
+        letter: 'b',
+        octave: 4,
+        accidental: ''
+      }
+      ],
+    };
+  }
+  // TODO: Matches SmoNote - move to smoMusic?
+  static get flagStates() {
+    return { auto: 0, up: 1, down: 2 };
+  }
+  static get parameterArray() {
+    return ['ticks', 'pitches', 'noteType', 'clef', 'endBeam', 'beamBeats', 'flagState', 'slash', 'ctor'];
+  }
+  tickCount() {
+    return this.ticks.numerator / this.ticks.denominator + this.ticks.remainder;
+  }
 
-            ticks: {
-                numerator: 4096,
-                denominator: 1,
-                remainder: 0
-            },
-            pitches: [{
-                    letter: 'b',
-                    octave: 4,
-                    accidental: ''
-                }
-            ],
-        }
-    }
-    // TODO: Matches SmoNote - move to smoMusic?
-    static get flagStates() {
-        return {auto:0,up:1,down:2};
-    }
-    static get parameterArray() {
-        return ['ticks', 'pitches', 'noteType', 'clef', 'endBeam','beamBeats','flagState','slash','ctor'];
-    }
-    tickCount() {
-        return this.ticks.numerator / this.ticks.denominator + this.ticks.remainder;
-    }
+  toVexGraceNote() {
+    const p = smoMusic.smoPitchesToVex(this.pitches);
+    const rv = { duration: smoMusic.closestVexDuration(this.tickCount()), keys: p, slash: this.slash };
+    return rv;
+  }
 
-    toVexGraceNote() {
-        var p = smoMusic.smoPitchesToVex(this.pitches);
-        var rv = {duration:smoMusic.closestVexDuration(this.tickCount()),keys:p, slash: this.slash };
-        return rv;
-    }
+  serialize() {
+    const params = {};
+    smoSerialize.serializedMergeNonDefault(SmoGraceNote.defaults,
+      SmoGraceNote.parameterArray, this, params);
+    return params;
+  }
 
-    serialize() {
-        var params = {};
-        smoSerialize.serializedMergeNonDefault(SmoGraceNote.defaults,
-           SmoGraceNote.parameterArray,this,params);
-        return params;
-    }
-
-    constructor(parameters) {
-        super('SmoGraceNote');
-    	smoSerialize.serializedMerge(SmoGraceNote.parameterArray,SmoGraceNote.defaults,this);
-		smoSerialize.serializedMerge(SmoGraceNote.parameterArray, parameters, this);
-    }
-
+  constructor(parameters) {
+    super('SmoGraceNote');
+    smoSerialize.serializedMerge(SmoGraceNote.parameterArray, SmoGraceNote.defaults, this);
+    smoSerialize.serializedMerge(SmoGraceNote.parameterArray, parameters, this);
+  }
 }
 
+// ## SmoMicrotone
+// Microtones are treated similarly to ornaments at this time.  There are not
+// rules for persisting throughout a measure.
+// eslint-disable-next-line no-unused-vars
 class SmoMicrotone extends SmoNoteModifierBase {
-    static get smoToVex() {
-        return {
-            flat75sz:'db',
-            flat25sz:'d',
-            flat25ar:'bs',
-            flat125ar:'afhf',
-            sharp75:'++',
-            sharp125:'ashs',
-            sharp25:'+',
-            sori:'o',
-            koron:'k'
-        }
-    }
+  // This is how VexFlow notates them
+  static get smoToVex() {
+    return {
+      flat75sz: 'db',
+      flat25sz: 'd',
+      flat25ar: 'bs',
+      flat125ar: 'afhf',
+      sharp75: '++',
+      sharp125: 'ashs',
+      sharp25: '+',
+      sori: 'o',
+      koron: 'k'
+    };
+  }
 
-    static get pitchCoeff() {
-        return {
-        flat75sz:-1.5,
-        flat25sz:-0.5,
-        flat25ar:-0.5,
-        flat125ar:-2.5,
-        sharp75:1.5,
-        sharp125:2.5,
-        sharp25:0.5,
-        sori:0.5,
-        koron:-0.5
-        };
-    }
+  // The audio frequency offsets
+  static get pitchCoeff() {
+    return {
+      flat75sz: -1.5,
+      flat25sz: -0.5,
+      flat25ar: -0.5,
+      flat125ar: -2.5,
+      sharp75: 1.5,
+      sharp125: 2.5,
+      sharp25: 0.5,
+      sori: 0.5,
+      koron: -0.5
+    };
+  }
 
-    get toPitchCoeff() {
-        return SmoMicrotone.pitchCoeff[this.tone];
-    }
+  get toPitchCoeff() {
+    return SmoMicrotone.pitchCoeff[this.tone];
+  }
 
-    get toVex() {
-        return SmoMicrotone.smoToVex[this.tone];
-    }
-    static get defaults() {
-        return {
-            tone:'flat25sz',
-            pitch:0
-        };
-    }
-    static get parameterArray() {
-		return ['tone', 'pitch','ctor'];
-	}
-    serialize() {
-        var params = {};
-        smoSerialize.serializedMergeNonDefault(SmoMicrotone.defaults,
-           SmoMicrotone.parameterArray,this,params);
-        return params;
-    }
-    constructor(parameters) {
-        super('SmoMicrotone');
-        smoSerialize.serializedMerge(SmoMicrotone.parameterArray,SmoMicrotone.defaults,this);
-        smoSerialize.serializedMerge(SmoMicrotone.parameterArray, parameters, this);
-    }
+  get toVex() {
+    return SmoMicrotone.smoToVex[this.tone];
+  }
+  static get defaults() {
+    return {
+      tone: 'flat25sz',
+      pitch: 0
+    };
+  }
+  static get parameterArray() {
+    return ['tone', 'pitch', 'ctor'];
+  }
+  serialize() {
+    var params = {};
+    smoSerialize.serializedMergeNonDefault(SmoMicrotone.defaults,
+      SmoMicrotone.parameterArray, this, params);
+    return params;
+  }
+  constructor(parameters) {
+    super('SmoMicrotone');
+    smoSerialize.serializedMerge(SmoMicrotone.parameterArray, SmoMicrotone.defaults, this);
+    smoSerialize.serializedMerge(SmoMicrotone.parameterArray, parameters, this);
+  }
 }
+
+// ## SmoOrnament
+// Maps to a vexflow ornament like trill etc.
+// eslint-disable-next-line no-unused-vars
 class SmoOrnament extends SmoNoteModifierBase {
-    static get ornaments() {
-		return {
-			mordent: 'mordent',
-			mordentInverted: 'mordent_inverted',
-			turn: 'turn',
-			turnInverted: 'turn_inverted',
-			trill: 'tr',
-			upprail: 'upprail',
-			prailup: 'prailup',
-			praildown: 'praildown',
+  static get ornaments() {
+    return {
+      mordent: 'mordent',
+      mordentInverted: 'mordent_inverted',
+      turn: 'turn',
+      turnInverted: 'turn_inverted',
+      trill: 'tr',
+      upprail: 'upprail',
+      prailup: 'prailup',
+      praildown: 'praildown',
       upmordent: 'upmordent',
       downmordent: 'downmordent',
       lineprail: 'linepraile',
@@ -10715,10 +10751,10 @@ class SmoOrnament extends SmoNoteModifierBase {
       doitLong: 'doitLong',
       flip: 'flip',
       smear: 'smear'
-		};
-	}
+    };
+  }
   static get jazzOrnaments() {
-    return ['SCOOP','FALL_SHORT','FALL_LONG','DOIT','LIFT','FLIP','SMEAR'];
+    return ['SCOOP', 'FALL_SHORT', 'FALL_LONG', 'DOIT', 'LIFT', 'FLIP', 'SMEAR'];
   }
   toVex() {
     return SmoOrnament.ornaments[this.ornament.toLowerCase()];
@@ -10729,143 +10765,148 @@ class SmoOrnament extends SmoNoteModifierBase {
   }
 
   static get parameterArray() {
-		return ['position', 'offset','ornament','ctor'];
-	}
+    return ['position', 'offset', 'ornament', 'ctor'];
+  }
 
-    static get positions() {
-		return {
-			above: 'above',
-			below: 'below'
-		};
-	}
-    static get offsets() {
-		return {
-			on: 'on',
-			after: 'after'
-		};
-	}
-    static get defaults() {
-        return {
-            ornament:SmoOrnament.ornaments.mordent,
-            position:SmoOrnament.positions.above,
-            offset:SmoOrnament.offsets.on
-        };
-    }
-    serialize() {
-        var params = {};
-        smoSerialize.serializedMergeNonDefault(SmoOrnament.defaults,
-           SmoOrnament.parameterArray,this,params);
-        return params;
-    }
-    constructor(parameters) {
-		super('SmoOrnament');
-		smoSerialize.serializedMerge(SmoOrnament.parameterArray,SmoOrnament.defaults,this);
-		smoSerialize.serializedMerge(SmoOrnament.parameterArray, parameters, this);
-		this.selector = parameters.selector;
-	}
+  static get positions() {
+    return {
+      above: 'above',
+      below: 'below'
+    };
+  }
+  static get offsets() {
+    return {
+      on: 'on',
+      after: 'after'
+    };
+  }
+  static get defaults() {
+    return {
+      ornament: SmoOrnament.ornaments.mordent,
+      position: SmoOrnament.positions.above,
+      offset: SmoOrnament.offsets.on
+    };
+  }
+  serialize() {
+    const params = {};
+    smoSerialize.serializedMergeNonDefault(SmoOrnament.defaults,
+      SmoOrnament.parameterArray, this, params);
+    return params;
+  }
+  constructor(parameters) {
+    super('SmoOrnament');
+    smoSerialize.serializedMerge(SmoOrnament.parameterArray, SmoOrnament.defaults, this);
+    smoSerialize.serializedMerge(SmoOrnament.parameterArray, parameters, this);
+    this.selector = parameters.selector;
+  }
 }
+
+// eslint-disable-next-line no-unused-vars
 class SmoArticulation extends SmoNoteModifierBase {
-	static get articulations() {
-		return {
-			accent: 'accent',
-			staccato: 'staccato',
-			marcato: 'marcato',
-			tenuto: 'tenuto',
-			upStroke: 'upStroke',
-			downStroke: 'downStroke',
-			pizzicato: 'pizzicato',
-			fermata: 'fermata'
-		};
-	}
-	static get positions() {
-		return {
-			above: 'above',
-			below: 'below'
-		};
-	}
-	static get articulationToVex() {
-		return {
-			accent: 'a>',
-			staccato: 'a.',
-			marcato: 'a^',
-			tenuto: 'a-',
-			upStroke: 'a|',
-			downStroke: 'am',
-			pizzicato: 'ao',
-			fermata: 'a@a'
-		};
-	}
+  static get articulations() {
+    return {
+      accent: 'accent',
+      staccato: 'staccato',
+      marcato: 'marcato',
+      tenuto: 'tenuto',
+      upStroke: 'upStroke',
+      downStroke: 'downStroke',
+      pizzicato: 'pizzicato',
+      fermata: 'fermata'
+    };
+  }
+  static get positions() {
+    return {
+      above: 'above',
+      below: 'below'
+    };
+  }
+  static get articulationToVex() {
+    return {
+      accent: 'a>',
+      staccato: 'a.',
+      marcato: 'a^',
+      tenuto: 'a-',
+      upStroke: 'a|',
+      downStroke: 'am',
+      pizzicato: 'ao',
+      fermata: 'a@a'
+    };
+  }
 
-	static get vexToArticulation() {
-		return {
-			"a>": "accent",
-			"a.": "staccato",
-			"a^": "marcato",
-			"a-": "tenuto",
-			"a|": "upStroke",
-			"am": "downStroke",
-			"ao": "pizzicato",
-			'a@a': "fermata"
-		};
-	}
-	static get parameterArray() {
-		return ['position', 'articulation','ctor'];
-	}
+  static get vexToArticulation() {
+    return {
+      'a>': 'accent',
+      'a.': 'staccato',
+      'a^': 'marcato',
+      'a-': 'tenuto',
+      'a|': 'upStroke',
+      'am': 'downStroke',
+      'ao': 'pizzicato',
+      'a@a': 'fermata'
+    };
+  }
+  static get parameterArray() {
+    return ['position', 'articulation', 'ctor'];
+  }
 
-	static get positionToVex() {
-		return {
-			'above': 3,
-			'below': 4
-		};
-	}
-	static get defaults() {
-		return {
-			position: SmoArticulation.positions.above,
-			articulation: SmoArticulation.articulations.accent
-		};
-
-	}
-    serialize() {
-        var params = {};
-        smoSerialize.serializedMergeNonDefault(SmoArticulation.defaults,
-           SmoArticulation.parameterArray,this,params);
-        return params;
-    }
-	constructor(parameters) {
-		super('SmoArticulation');
-		smoSerialize.serializedMerge(SmoArticulation.parameterArray,SmoArticulation.defaults,this);
-		smoSerialize.serializedMerge(SmoArticulation.parameterArray, parameters, this);
-		this.selector = parameters.selector;
-        this.adjX = 0;
-	}
-
+  static get positionToVex() {
+    return {
+      'above': 3,
+      'below': 4
+    };
+  }
+  static get defaults() {
+    return {
+      position: SmoArticulation.positions.above,
+      articulation: SmoArticulation.articulations.accent
+    };
+  }
+  serialize() {
+    var params = {};
+    smoSerialize.serializedMergeNonDefault(SmoArticulation.defaults,
+      SmoArticulation.parameterArray, this, params);
+    return params;
+  }
+  constructor(parameters) {
+    super('SmoArticulation');
+    smoSerialize.serializedMerge(SmoArticulation.parameterArray, SmoArticulation.defaults, this);
+    smoSerialize.serializedMerge(SmoArticulation.parameterArray, parameters, this);
+    this.selector = parameters.selector;
+    this.adjX = 0;
+  }
 }
 
+// ## SmoLyric
+// Lyrics and Chords are both notated represented by
+// instances of this class.  The parser enum says
+// which is which
+// eslint-disable-next-line no-unused-vars
 class SmoLyric extends SmoNoteModifierBase {
-	static get defaults() {
-		return {
-      _text:'\xa0',
-      endChar:'',
-      verse:0,
-			fontInfo: {
-				size: 12,
-				family: 'times',
-				style: 'normal',
-				weight: 'normal'
-			},
-      fill:'black',
-			rotate:0,
-			classes:'score-text',
-			scaleX:1.0,
-			scaleY:1.0,
-			translateX:0,
-			translateY:0,
-      symbolBlocks:[],
-      parser:SmoLyric.parsers.lyric
-		};
-	}
+  static get defaults() {
+    return {
+      _text: '\xa0',
+      endChar: '',
+      verse: 0,
+      fontInfo: {
+        size: 12,
+        family: 'times',
+        style: 'normal',
+        weight: 'normal'
+      },
+      fill: 'black',
+      rotate: 0,
+      classes: 'score-text',
+      scaleX: 1.0,
+      scaleY: 1.0,
+      translateX: 0,
+      translateY: 0,
+      symbolBlocks: [],
+      parser: SmoLyric.parsers.lyric
+    };
+  }
   static get parsers() {
-    return {lyric:0,anaylysis:1,chord:2}
+    return { lyric: 0, anaylysis: 1, chord: 2 };
   }
   static get symbolPosition() {
     return {
@@ -10885,13 +10926,13 @@ class SmoLyric extends SmoNoteModifierBase {
   }
 
   static get parameterArray() {
-    return ['endChar','fontInfo','classes','verse','parser',
-    'fill','scaleX','scaleY','translateX','translateY','ctor','_text'];
+    return ['endChar', 'fontInfo', 'classes', 'verse', 'parser',
+      'fill', 'scaleX', 'scaleY', 'translateX', 'translateY', 'ctor', '_text'];
   }
   serialize() {
     var params = {};
     smoSerialize.serializedMergeNonDefault(SmoLyric.defaults,
-       SmoLyric.parameterArray,this,params);
+      SmoLyric.parameterArray, this, params);
     return params;
   }
 
@@ -10899,14 +10940,14 @@ class SmoLyric extends SmoNoteModifierBase {
   // returns a selector used to find this text block within a note.
   getClassSelector() {
     var parser = (this.parser === SmoLyric.parsers.lyric ? 'lyric' : 'chord');
-    return 'g.'+parser+'-'+this.verse;
+    return 'g.' + parser + '-' + this.verse;
   }
 
   setText(text) {
     // For chords, trim all whitespace
     if (this.parser !== SmoLyric.parsers.lyric) {
       if (text.trim().length) {
-        text.replace(/\s/g,'');
+        text.replace(/\s/g, '');
       }
     }
     this._text = text;
@@ -10917,12 +10958,12 @@ class SmoLyric extends SmoNoteModifierBase {
   }
 
   static _chordGlyphFromCode(code) {
-    const obj = Object.keys(VF.ChordSymbol.glyphs).find((glyph)=> VF.ChordSymbol.glyphs[glyph].code === code)
+    const obj = Object.keys(VF.ChordSymbol.glyphs).find((glyph) => VF.ChordSymbol.glyphs[glyph].code === code);
     return obj;
   }
   static _tokenizeChordString(str) {
     // var str = this._text;
-    let reg = /^([A-Z|a-z|0-9|]+)/g;
+    const reg = /^([A-Z|a-z|0-9|]+)/g;
     let mmm = str.match(reg);
     let tokeType = '';
     let toke = '';
@@ -10931,10 +10972,10 @@ class SmoLyric extends SmoNoteModifierBase {
       if (!mmm) {
         tokeType = str[0];
         tokens.push(tokeType);
-        str = str.slice(1,str.length);
+        str = str.slice(1, str.length);
       } else {
-        toke = mmm[0].substr(0,mmm[0].length);
-        str = str.slice(toke.length,str.length);
+        toke = mmm[0].substr(0, mmm[0].length);
+        str = str.slice(toke.length, str.length);
         tokens.push(toke);
         tokeType = '';
         toke = '';
@@ -10948,36 +10989,34 @@ class SmoLyric extends SmoNoteModifierBase {
     let mod = VF.ChordSymbol.symbolModifiers.NONE;
     let isGlyph = false;
     const tokens = SmoLyric._tokenizeChordString(this._text);
-    let blocks = [];
+    const blocks = [];
     tokens.forEach((token) => {
       if (token === '^') {
         mod = (mod === VF.ChordSymbol.symbolModifiers.SUPERSCRIPT) ?
           VF.ChordSymbol.symbolModifiers.NONE : VF.ChordSymbol.symbolModifiers.SUPERSCRIPT;
-      }
-      else if (token === '%') {
+      } else if (token === '%') {
         mod = (mod === VF.ChordSymbol.symbolModifiers.SUBSCRIPT) ?
           VF.ChordSymbol.symbolModifiers.NONE : VF.ChordSymbol.symbolModifiers.SUBSCRIPT;
-       }
-      else if (token === '@') {
-         isGlyph = !isGlyph;
-       } else if (token.length) {
-         if (isGlyph) {
-           const glyph = SmoLyric._chordGlyphFromCode(token);
-           blocks.push({glyph: glyph, symbolModifier: mod,
-            symbolType: VF.ChordSymbol.symbolTypes.GLYPH});
-         } else {
-           blocks.push({text: token, symbolModifier: mod,
-            symbolType: VF.ChordSymbol.symbolTypes.TEXT});
-         }
-       }
+      } else if (token === '@') {
+        isGlyph = !isGlyph;
+      } else if (token.length) {
+        if (isGlyph) {
+          const glyph = SmoLyric._chordGlyphFromCode(token);
+          blocks.push({ glyph, symbolModifier: mod,
+            symbolType: VF.ChordSymbol.symbolTypes.GLYPH });
+        } else {
+          blocks.push({ text: token, symbolModifier: mod,
+            symbolType: VF.ChordSymbol.symbolTypes.TEXT });
+        }
+      }
     });
     return blocks;
   }
 
   constructor(parameters) {
-  	super('SmoLyric');
-  	smoSerialize.serializedMerge(SmoLyric.parameterArray, SmoLyric.defaults,this);
-  	smoSerialize.serializedMerge(SmoLyric.parameterArray, parameters, this);
+    super('SmoLyric');
+    smoSerialize.serializedMerge(SmoLyric.parameterArray, SmoLyric.defaults, this);
+    smoSerialize.serializedMerge(SmoLyric.parameterArray, parameters, this);
     this.skipRender = false;
 
     // backwards-compatibility for lyric text
@@ -10991,87 +11030,86 @@ class SmoLyric extends SmoNoteModifierBase {
     this.boxModel = 'none';
 
     // calculated adjustments for alignment purposes
-	  this.adjY=0;
+    this.adjY = 0;
     this.adjX = 0;
+    this.verse = parseInt(this.verse, 10);
 
-	  if (!this['attrs']) {
-		  this.attrs = {
-			  id: VF.Element.newID(),
-			  type: 'SmoLyric'
-		  };
-  	} else {
-
-  	}
-	}
+    if (!this.attrs) {
+      this.attrs = {
+        id: VF.Element.newID(),
+        type: 'SmoLyric'
+      };
+    }
+  }
 }
 
 // ## SmoDynamicText
 // ## Description:
 // standard dynamics text
+// eslint-disable-next-line no-unused-vars
 class SmoDynamicText extends SmoNoteModifierBase {
-	static get defaults() {
-		return {
-			xOffset: 0,
-			fontSize: 38,
-			yOffsetLine: 11,
-			yOffsetPixels: 0,
-			text: SmoDynamicText.dynamics.MP,
-		};
-	}
+  static get defaults() {
+    return {
+      xOffset: 0,
+      fontSize: 38,
+      yOffsetLine: 11,
+      yOffsetPixels: 0,
+      text: SmoDynamicText.dynamics.MP,
+    };
+  }
 
-	static get dynamics() {
-		// matches VF.modifier
-		return {
-			PP: 'pp',
-			P: 'p',
-			MP: 'mp',
-			MF: 'mf',
-			F: 'f',
-			FF: 'ff',
-			SFZ: 'sfz'
-		};
-	}
+  static get dynamics() {
+    // matches VF.modifier
+    return {
+      PP: 'pp',
+      P: 'p',
+      MP: 'mp',
+      MF: 'mf',
+      F: 'f',
+      FF: 'ff',
+      SFZ: 'sfz'
+    };
+  }
 
   serialize() {
-    var params = {};
+    const params = {};
     smoSerialize.serializedMergeNonDefault(SmoDynamicText.defaults,
-      SmoDynamicText.parameterArray,this,params);
+      SmoDynamicText.parameterArray, this, params);
     return params;
   }
-	constructor(parameters) {
-		super('SmoDynamicText');
-		Vex.Merge(this, SmoDynamicText.defaults);
-		smoSerialize.filteredMerge(SmoDynamicText.parameterArray, parameters, this);
-		this.selector = parameters.selector;
+  constructor(parameters) {
+    super('SmoDynamicText');
+    Vex.Merge(this, SmoDynamicText.defaults);
+    smoSerialize.filteredMerge(SmoDynamicText.parameterArray, parameters, this);
+    this.selector = parameters.selector;
 
-		if (!this['attrs']) {
-			this.attrs = {
-				id: VF.Element.newID(),
-				type: 'SmoDynamicText'
-			};
-		} else {
-		}
-	}
+    if (!this.attrs) {
+      this.attrs = {
+        id: VF.Element.newID(),
+        type: 'SmoDynamicText'
+      };
+    }
+  }
 
-	static get parameterArray() {
-		return ['xOffset', 'fontSize', 'yOffsetLine', 'yOffsetPixels', 'text','ctor'];
-	}
-	backupOriginal() {
-		if (!this['original']) {
-			this.original = {};
-			smoSerialize.filteredMerge(
-				SmoDynamicText.parameterArray,
-				this, this.original);
-		}
-	}
-	restoreOriginal() {
-		if (this['original']) {
-			smoSerialize.filteredMerge(
-				SmoDynamicText.parameterArray,
-				this.original, this);
-			this.original = null;
-		}
-	}
+  static get parameterArray() {
+    return ['xOffset', 'fontSize', 'yOffsetLine', 'yOffsetPixels', 'text', 'ctor'];
+  }
+  backupOriginal() {
+    if (!this.original) {
+      this.original = {};
+      smoSerialize.filteredMerge(
+        SmoDynamicText.parameterArray,
+        this, this.original);
+    }
+  }
+  restoreOriginal() {
+    if (this.original) {
+      smoSerialize.filteredMerge(
+        SmoDynamicText.parameterArray,
+        this.original, this);
+      this.original = null;
+    }
+  }
 }
 ;// ## SmoScore
 // ## Description:
@@ -11096,6 +11134,9 @@ class SmoScore {
   static get zoomModes() {
     return { fitWidth: 0, wholePage: 1, zoomScale: 2 };
   }
+  static get fontPurposes() {
+    return { ENGRAVING: 1, SCORE: 2, CHORDS: 3, LYRICS: 4 };
+  }
   static get defaults() {
     return {
       layout: {
@@ -11113,7 +11154,12 @@ class SmoScore {
         zoomMode: SmoScore.zoomModes.fitWidth,
         pages: 1
       },
-      engravingFont: SmoScore.engravingFonts.Bravura,
+      fonts: [
+        { name: 'engraving', purpose: SmoScore.fontPurposes.ENGRAVING, family: 'Bravura', size: 1, custom: false },
+        { name: 'score', purpose: SmoScore.fontPurposes.SCORE, family: 'Merriweather', size: 14, custom: false },
+        { name: 'chords', purpose: SmoScore.fontPurposes.CHORDS, family: 'Roboto Slab', size: 14, custom: false  },
+        { name: 'lyrics', purpose: SmoScore.fontPurposes.LYRICS, family: 'Merriweather', size: 12, custom: false }
+      ],
       staffWidth: 1600,
       startIndex: 0,
       renumberingMap: {},
@@ -11146,7 +11192,7 @@ class SmoScore {
   }
 
   static get defaultAttributes() {
-    return ['layout', 'startIndex', 'renumberingMap', 'renumberIndex', 'engravingFont'];
+    return ['layout', 'startIndex', 'renumberingMap', 'renumberIndex', 'fonts'];
   }
 
   serializeColumnMapped() {
@@ -11157,6 +11203,7 @@ class SmoScore {
     });
     return attrColumnHash;
   }
+
   // ### deserializeColumnMapped
   // Column-mapped attributes stay the same in each measure until
   // changed, like key-signatures.  We don't store each measure value to
@@ -11544,6 +11591,14 @@ class SmoScore {
     this._updateScoreText(textObject, false);
   }
 
+  // ### setLyricFont
+  // set the font for lyrics, which are the same for all lyrics in the score
+  setLyricFont(fontInfo) {
+    this.staves.forEach((staff) => {
+      staff.setLyricFont(fontInfo);
+    });
+  }
+
   get measures() {
     if (this.staves.length === 0) {
       return [];
@@ -11639,31 +11694,31 @@ class SmoSystemGroup extends SmoScoreModifierBase {
       return VF.StaveConnector.type.BRACKET;
     };
   }
-    rightConnectorVx() {
-        switch (this.rightConnector) {
-            case SmoSystemGroup.connectorTypes.single:
-               return StaveConnector.type.SINGLE_RIGHT;
-            case SmoSystemGroup.connectorTypes.double:
-            default:
-               return StaveConnector.type.DOUBLE_RIGHT;
-        };
-    }
-    static get connectorTypes() {
-        return {brace:0,bracket:1,single:2,double:3};
-    }
-    static get mapTypes() {
-        return {allMeasures:0,range:1};
-    }
-    static get attributes() {
-        return ['leftConnector', 'rightConnector','text','shortText','justify',
-       'startSelector','endSelector','mapType'];
-    }
+  rightConnectorVx() {
+    switch (this.rightConnector) {
+      case SmoSystemGroup.connectorTypes.single:
+       return StaveConnector.type.SINGLE_RIGHT;
+      case SmoSystemGroup.connectorTypes.double:
+      default:
+       return StaveConnector.type.DOUBLE_RIGHT;
+    };
+  }
+  static get connectorTypes() {
+    return {brace:0,bracket:1,single:2,double:3};
+  }
+  static get mapTypes() {
+    return {allMeasures:0,range:1};
+  }
+  static get attributes() {
+    return ['leftConnector', 'rightConnector','text','shortText','justify',
+      'startSelector','endSelector','mapType'];
+  }
   serialize() {
-		var params = {};
+    var params = {};
     smoSerialize.serializedMergeNonDefault(SmoSystemGroup.defaults,SmoSystemGroup.attributes,this,params);
     params.ctor = 'SmoSystemGroup';
     return params;
-	}
+  }
 }
 
 // ## SmoTextGroup
@@ -11811,91 +11866,91 @@ class SmoScoreText extends SmoScoreModifierBase {
   }
 
   static get paginations() {
-		return {every:'every',even:'even',odd:'odd',once:'once',subsequent:'subsequent'}
-	}
-	static get positions() {
-		return {title:'title',copyright:'copyright',footer:'footer',header:'header',custom:'custom'};
-	}
-	static get justifications() {
-		return {left:'left',right:'right',center:'center'};
-	}
+    return {every:'every',even:'even',odd:'odd',once:'once',subsequent:'subsequent'}
+  }
+  static get positions() {
+    return {title:'title',copyright:'copyright',footer:'footer',header:'header',custom:'custom'};
+  }
+  static get justifications() {
+    return {left:'left',right:'right',center:'center'};
+  }
   static get fontFamilies() {
     return {serif:'Merriweather,serif',sansSerif:'Roboto,sans-serif',monospace:'monospace',cursive:'cursive',
       times:'Merriweather',arial:'Arial',helvitica:'Helvitica'};
   }
-	// If box model is 'none', the font and location determine the size.
-	// spacing and spacingGlyph fit the box into a container based on the svg policy
-	static get boxModels() {
-		return {none:'none',spacing:'spacing',spacingAndGlyphs:'spacingAndGlyphs',wrap:'wrap'};
-	}
+  // If box model is 'none', the font and location determine the size.
+  // spacing and spacingGlyph fit the box into a container based on the svg policy
+  static get boxModels() {
+    return {none:'none',spacing:'spacing',spacingAndGlyphs:'spacingAndGlyphs',wrap:'wrap'};
+  }
   static get defaults() {
-      return {
-          x:15,
-		y:15,
-		width:0,
-		height:0,
-          text: 'Smoosic',
-		fontInfo: {
-			size: '1em',
-			family:SmoScoreText.fontFamilies.times,
-			style:'normal',
-			weight:'normal'
-		},
-		fill:'black',
-		rotate:0,
-		justification:SmoScoreText.justifications.left,
-		classes:'score-text',
-		boxModel:'none',
-		scaleX:1.0,
-		scaleY:1.0,
-		translateX:0,
-		translateY:0,
-		pagination:'once',
-		position:'custom',
-		autoLayout:false // set to true if one of the pre-canned positions are used.
+    return {
+      x: 15,
+      y: 15,
+      width: 0,
+      height: 0,
+      text: 'Smoosic',
+      fontInfo: {
+        size: '1em',
+        family: SmoScoreText.fontFamilies.times,
+        style:'normal',
+        weight:'normal'
+      },
+      fill:'black',
+      rotate: 0,
+      justification: SmoScoreText.justifications.left,
+      classes: 'score-text',
+      boxModel: 'none',
+      scaleX: 1.0,
+      scaleY: 1.0,
+      translateX: 0,
+      translateY: 0,
+      pagination: 'once',
+      position: 'custom',
+      autoLayout: false // set to true if one of the pre-canned positions are used.
     };
   }
-	static toSvgAttributes(inst) {
-		var rv=[];
-		var fkeys = Object.keys(inst.fontInfo);
+  static toSvgAttributes(inst) {
+    var rv=[];
+    var fkeys = Object.keys(inst.fontInfo);
     var fontFamily = SmoScoreText[inst.fontInfo.family] ? SmoScoreText[inst.fontInfo.family] : inst.fontInfo.family;
     fkeys.forEach((key) => {
-			var n=JSON.parse('{"font-'+key+'":"'+inst.fontInfo[key]+'"}');
+      var n=JSON.parse('{"font-'+key+'":"'+inst.fontInfo[key]+'"}');
       if (n['font-family']) {
         n['font-family'] = fontFamily;
       }
-			rv.push(n);
-		});
+      rv.push(n);
+    });
 
-		var attrs = SmoScoreText.attributes.filter((x) => {return x != 'fontInfo' && x != 'boxModel'});
-		rv.push({fill:inst.fill});
-		rv.push({x:inst.x});
-		rv.push({y:inst.y});
-		if (inst.boxModel != 'none' && inst.width) {
-			var len = ''+inst.width+'px';
-			rv.push({textLength:len});
-			// rv.push({lengthAdjust:inst.boxModel});
-		}
-		rv.push({transform:'translate ('+inst.translateX+' '+inst.translateY+') scale ('+
-		    inst.scaleX+' '+inst.scaleY+')'});
-		return rv;
-	}
+    var attrs = SmoScoreText.attributes.filter((x) => {return x !== 'fontInfo' && x != 'boxModel'});
+    rv.push({fill:inst.fill});
+    rv.push({x:inst.x});
+    rv.push({y:inst.y});
+    if (inst.boxModel !== 'none' && inst.width) {
+      var len = ''+inst.width+'px';
+      rv.push({textLength:len});
+      // rv.push({lengthAdjust:inst.boxModel});
+    }
+    rv.push({ transform: 'translate (' + inst.translateX + ' ' + inst.translateY + ') scale (' +
+        inst.scaleX + ' ' + inst.scaleY + ')'} );
+    return rv;
+  }
 
   getText() {
     return this.text;
   }
 
-	toSvgAttributes() {
-		return SmoScoreText.toSvgAttributes(this);
-	}
+  toSvgAttributes() {
+    return SmoScoreText.toSvgAttributes(this);
+  }
 
-	// ### backupParams
-	// For animation or estimation, create a copy of the attributes that can be modified without affecting settings.
-	backupParams() {
-		this.backup={};
-		smoSerialize.serializedMerge(SmoScoreText.attributes, this, this.backup);
-		return this.backup;
-	}
+  // ### backupParams
+  // For animation or estimation, create a copy of the attributes that can be modified without affecting settings.
+  backupParams() {
+    this.backup={};
+    smoSerialize.serializedMerge(SmoScoreText.attributes, this, this.backup);
+    return this.backup;
+  }
 
   restoreParams() {
     smoSerialize.serializedMerge(SmoScoreText.attributes, this.backup, this);
@@ -11908,30 +11963,30 @@ class SmoScoreText extends SmoScoreModifierBase {
     this.y += offset;
   }
 
-	serialize() {
-	var params = {};
+  serialize() {
+  var params = {};
     smoSerialize.serializedMergeNonDefault(SmoScoreText.defaults,SmoScoreText.attributes,this,params);
     params.ctor = 'SmoScoreText';
     return params;
-	}
+  }
   static get attributes() {
     return ['x','y','text','pagination','position','fontInfo','classes',
     'boxModel','justification','fill','width','height','scaleX','scaleY','translateX','translateY','autoLayout'];
   }
 
-	// scale the text without moving it.
-	scaleInPlace(factor) {
+  // scale the text without moving it.
+  scaleInPlace(factor) {
     this.fontInfo.size = SmoScoreText.fontPointSize(this.fontInfo.size) * factor;
-	}
+  }
   scaleXInPlace(factor) {
-		this.scaleX = factor;
-		var deltax = this.x - this.x*this.scaleX;
-		this.translateX = deltax;
+    this.scaleX = factor;
+    var deltax = this.x - this.x*this.scaleX;
+    this.translateX = deltax;
   }
   scaleYInPlace(factor) {
-		this.scaleY = factor;
-		var deltay = this.y - this.y*this.scaleY;
-		this.translateY = deltay;
+    this.scaleY = factor;
+    var deltay = this.y - this.y*this.scaleY;
+    this.translateY = deltay;
   }
   constructor(parameters) {
     super('SmoScoreText');
@@ -11939,31 +11994,31 @@ class SmoScoreText extends SmoScoreModifierBase {
     this.backup={};
     this.edited = false; // indicate to UI that the actual text has not been edited.
 
-		smoSerialize.serializedMerge(SmoScoreText.attributes, SmoScoreText.defaults, this);
+    smoSerialize.serializedMerge(SmoScoreText.attributes, SmoScoreText.defaults, this);
     smoSerialize.serializedMerge(SmoScoreText.attributes, parameters, this);
-		if (!this.classes) {
-			this.classes='';
-		}
+    if (!this.classes) {
+      this.classes='';
+    }
     if (this.classes.indexOf(this.attrs.id) < 0) {
       this.classes += ' '+this.attrs.id;
     }
-		if (this.boxModel === SmoScoreText.boxModels.wrap) {
-			this.width = parameters.width ? this.width : 200;
-			this.height = parameters.height ? this.height : 150;
-			if (!parameters.justification) {
-				this.justification = this.position === SmoScoreText.positions.copyright
-						? SmoScoreText.justifications.right : SmoScoreText.justifications.center;
+    if (this.boxModel === SmoScoreText.boxModels.wrap) {
+      this.width = parameters.width ? this.width : 200;
+      this.height = parameters.height ? this.height : 150;
+      if (!parameters.justification) {
+        this.justification = this.position === SmoScoreText.positions.copyright
+            ? SmoScoreText.justifications.right : SmoScoreText.justifications.center;
 
-			}
-		}
-		if (this.position != SmoScoreText.positions.custom && !parameters['autoLayout']) {
-			this.autoLayout = true;
-			if (this.position == SmoScoreText.positions.title) {
-				this.fontInfo.size='1.8em';
-			} else {
-				this.fontInfo.size='.6em';
-			}
-		}
+      }
+    }
+    if (this.position != SmoScoreText.positions.custom && !parameters['autoLayout']) {
+      this.autoLayout = true;
+      if (this.position == SmoScoreText.positions.title) {
+        this.fontInfo.size='1.8em';
+      } else {
+        this.fontInfo.size='.6em';
+      }
+    }
   }
 }
 ;
@@ -12189,11 +12244,11 @@ class SmoSystemStaff {
 
     // ### defaultParameters
     // the parameters that get saved with the score.
-	static get defaultParameters() {
-		return [
-		'staffId','staffX','staffY','adjY','staffWidth','staffHeight','startIndex',
+  static get defaultParameters() {
+    return [
+    'staffId','staffX','staffY','adjY','staffWidth','staffHeight','startIndex',
             'renumberingMap','keySignatureMap','instrumentInfo'];
-	}
+  }
 
     // ### defaults
     // default values for all instances
@@ -12205,7 +12260,7 @@ class SmoSystemStaff {
             staffWidth: 1600,
             staffHeight: 90,
             startIndex: 0,
-			staffId:0,
+      staffId:0,
             renumberingMap: {},
             keySignatureMap: {},
             instrumentInfo: {
@@ -12220,23 +12275,23 @@ class SmoSystemStaff {
 
     // ### serialize
     // JSONify self.
-	serialize() {
-		var params={};
-		smoSerialize.serializedMerge(SmoSystemStaff.defaultParameters,this,params);
-		params.modifiers=[];
-		params.measures=[];
+  serialize() {
+    var params={};
+    smoSerialize.serializedMerge(SmoSystemStaff.defaultParameters,this,params);
+    params.modifiers=[];
+    params.measures=[];
 
 
-		this.measures.forEach((measure) => {
-			params.measures.push(measure.serialize());
-		});
+    this.measures.forEach((measure) => {
+      params.measures.push(measure.serialize());
+    });
 
-		this.modifiers.forEach((modifier) => {
-			params.modifiers.push(modifier.serialize());
-		});
+    this.modifiers.forEach((modifier) => {
+      params.modifiers.push(modifier.serialize());
+    });
 
-		return params;
-	}
+    return params;
+  }
 
      // ### deserialize
      // parse formerly serialized staff.
@@ -12259,7 +12314,7 @@ class SmoSystemStaff {
                 rv.modifiers.push(mod);
             });
         }
-		return rv;
+    return rv;
     }
 
    // ### addStaffModifier
@@ -12284,15 +12339,21 @@ class SmoSystemStaff {
 
     // ### getModifiersAt
     // get any modifiers at the selected location
-	getModifiersAt(selector) {
-		var rv = [];
-		this.modifiers.forEach((mod) => {
-			if (SmoSelector.sameNote(mod.startSelector,selector)) {
-				rv.push(mod);
-			}
-		});
-		return rv;
-	}
+  getModifiersAt(selector) {
+    var rv = [];
+    this.modifiers.forEach((mod) => {
+      if (SmoSelector.sameNote(mod.startSelector,selector)) {
+        rv.push(mod);
+      }
+    });
+    return rv;
+  }
+
+  setLyricFont(fontInfo) {
+    this.measures.forEach((measure) => {
+      measure.setLyricFont(fontInfo);
+    });
+  }
 
     // ### getSlursStartingAt
     // like it says.  Used by audio player to slur notes
@@ -12422,41 +12483,41 @@ class SmoSystemStaff {
 
     // ### deleteMeasure
     // delete the measure, and any staff modifiers that start/end there.
-	deleteMeasure(index) {
-		if (this.measures.length < 2) {
-			return; // don't delete last measure.
-		}
-		var nm=[];
-		this.measures.forEach((measure) => {
-			if (measure.measureNumber.measureIndex != index) {
-				nm.push(measure);
-			}
-		});
-		var sm=[];
-		this.modifiers.forEach((mod)=> {
+  deleteMeasure(index) {
+    if (this.measures.length < 2) {
+      return; // don't delete last measure.
+    }
+    var nm=[];
+    this.measures.forEach((measure) => {
+      if (measure.measureNumber.measureIndex != index) {
+        nm.push(measure);
+      }
+    });
+    var sm=[];
+    this.modifiers.forEach((mod)=> {
             // Bug: if we are deleting a measure before the selector, change the measure number.
-			if (mod.startSelector.measure != index && mod.endSelector.measure != index) {
+      if (mod.startSelector.measure != index && mod.endSelector.measure != index) {
                 if (index < mod.startSelector.measure) {
                     mod.startSelector.measure -= 1;
                 }
                 if (index < mod.endSelector.measure) {
                     mod.endSelector.measure -= 1;
                 }
-				sm.push(mod);
-			}
-		});
-		this.measures=nm;
-		this.modifiers=sm;
-		this.numberMeasures();
-	}
+        sm.push(mod);
+      }
+    });
+    this.measures=nm;
+    this.modifiers=sm;
+    this.numberMeasures();
+  }
 
     // ### addKeySignature
     // Add key signature to the given measure and update map so we know
     // when it changes, cancels etc.
     addKeySignature(measureIndex, key) {
         this.keySignatureMap[measureIndex] = key;
-		var target = this.measures[measureIndex];
-		target.keySignature = key;
+    var target = this.measures[measureIndex];
+    target.keySignature = key;
         // this._updateKeySignatures();
     }
 
@@ -12504,11 +12565,11 @@ class SmoSystemStaff {
                 measureNumber: localIndex,
                 measureIndex: i + this.startIndex,
                 systemIndex: i,
-				staffId:this.staffId
+        staffId:this.staffId
             }
             measure.setMeasureNumber(numberObj);
-			// If we are renumbering measures, we assume we want to redo the layout so set measures to changed.
-			measure.changed=true;
+      // If we are renumbering measures, we assume we want to redo the layout so set measures to changed.
+      measure.changed=true;
         }
     }
     getSelection(measureNumber, voice, tick, pitches) {
@@ -19255,7 +19316,7 @@ class SmoUndoable {
 };
 ;const TimesFont = {
   smufl: false,
-  name: "Times",
+  name: "Times New Roman",
   spacing: 50,
   Description: 'Built-in serif font',
   bold: true,
@@ -21356,10 +21417,15 @@ class SuiDropdownComponent extends SuiComponentBase {
     return $(this.dialog.dgDom.element).find('#' + pid).find('select');
   }
   getValue() {
-    const option = this._getInputElement().find('option:selected');
+    const input = this._getInputElement();
+    const option = input.find('option:selected');
     let val = $(option).val();
     val = (this.dataType.toLowerCase() === 'int') ?  parseInt(val, 10) : val;
     val = (this.dataType.toLowerCase() === 'float') ?  parseFloat(val, 10) : val;
+    if (typeof(val) === 'undefined') {
+      val = $(input).find('option:first').val();
+      $(input).find('option:first').prop('selected', true);
+    }
     return val;
   }
   setValue(value) {
@@ -21375,6 +21441,124 @@ class SuiDropdownComponent extends SuiComponentBase {
       () => {
         self.handleChanged();
       });
+  }
+}
+
+// ### SuiDropdownComposite
+// Dropdown component that can be part of a composite control.
+class SuiDropdownComposite extends SuiDropdownComponent {
+  constructor(dialog, parameters) {
+    super(dialog, parameters);
+    this.parentControl = parameters.parentControl;
+  }
+
+  handleChanged() {
+    this.changeFlag = true;
+    this.parentControl.changed();
+    this.changeFlag = false;
+  }
+}
+
+class SuiRockerComposite extends SuiRockerComponent {
+  constructor(dialog, parameters) {
+    super(dialog, parameters);
+    this.parentControl = parameters.parentControl;
+  }
+
+  handleChanged() {
+    this.changeFlag = true;
+    this.parentControl.changed();
+    this.changeFlag = false;
+  }
+}
+
+// eslint-disable-next-line no-unused-vars
+class SuiFontComponent extends SuiComponentBase {
+  constructor(dialog, parameter) {
+    super(parameter);
+    smoSerialize.filteredMerge(
+      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
+    if (!this.defaultValue) {
+      this.defaultValue = 0;
+    }
+    if (!this.dataType) {
+      this.dataType = 'string';
+    }
+    this.dialog = dialog;
+    this.familyPart = new SuiDropdownComposite(this.dialog,
+      {
+        smoName: 'fontFamily',
+        parameterName: 'fontFamily',
+        classes: 'hide-when-editing hide-when-moving',
+        defaultValue: SmoScoreText.fontFamilies.times,
+        control: 'SuiDropdownComponent',
+        label: 'Font Family',
+        startRow: true,
+        parentControl: this,
+        options: [
+          { label: 'Arial', value: 'Arial' },
+          { label: 'Times New Roman', value: 'Times New Roman' },
+          { label: 'Roboto Slab', value: 'Roboto Slab' },
+          { label: 'Petaluma', value: 'Petaluma Script' },
+          { label: 'Commissioner', value: 'Commissioner' },
+          { label: 'Concert One', value: 'ConcertOne' },
+          { label: 'Merriweather', value: 'Merriweather' }
+        ]
+      });
+    this.sizePart = new SuiRockerComposite(
+      this.dialog,
+      {
+        smoName: 'fontSize',
+        parameterName: 'fontSize',
+        defaultValue: 1,
+        parentControl: this,
+        classes: 'hide-when-editing hide-when-moving',
+        control: 'SuiRockerComponent',
+        label: 'Font Size',
+        type: 'float',
+        increment: 0.1
+      },
+    );
+  }
+  changed() {
+    this.handleChanged();
+  }
+
+  get parameterId() {
+    return this.dialog.id + '-' + this.parameterName;
+  }
+
+  get html() {
+    const b = htmlHelpers.buildDom;
+    const q = b('div').classes(this.makeClasses('multiControl smoControl'));
+    q.append(this.familyPart.html);
+    q.append(this.sizePart.html);
+
+    return q;
+  }
+
+  _getInputElement() {
+    var pid = this.parameterId;
+    return $(this.dialog.dgDom.element).find('#' + pid).find('select');
+  }
+  getValue() {
+    return {
+      family: this.familyPart.getValue(),
+      size: {
+        size: this.sizePart.getValue(),
+        unit: 'pt'
+      }
+    };
+  }
+  setValue(value) {
+    this.familyPart.setValue(value.family);
+    this.sizePart.setValue(
+      svgHelpers.convertFont(value.size.size, value.size.unit, 'pt'));
+  }
+
+  bind() {
+    this.familyPart.bind();
+    this.sizePart.bind();
   }
 }
 
@@ -22471,11 +22655,10 @@ class SuiTempoDialog extends SuiDialogBase {
         this.completeNotifier.unbindKeyboardForModal(this);
     }
 }
-;
-// ## SuiLayoutDialog
+;// ## SuiLayoutDialog
 // The layout dialog has page layout and zoom logic.  It is not based on a selection but score-wide
+// eslint-disable-next-line no-unused-vars
 class SuiLayoutDialog extends SuiDialogBase {
-
   static get ctor() {
     return 'SuiLayoutDialog';
   }
@@ -22483,31 +22666,31 @@ class SuiLayoutDialog extends SuiDialogBase {
     return SuiLayoutDialog.ctor;
   }
 
-   // ### dialogElements
-   // all dialogs have elements define the controls of the dialog.
+  // ### dialogElements
+  // all dialogs have elements define the controls of the dialog.
   static get dialogElements() {
     SuiLayoutDialog._dialogElements = SuiLayoutDialog._dialogElements ? SuiLayoutDialog._dialogElements :
-     [
-       {
-        smoName: 'pageSize',
-        parameterName: 'pageSize',
-        defaultValue: SmoScore.pageSizes.letter,
-        control: 'SuiDropdownComponent',
-        label:'Page Size',
-        options: [{
-            value: 'letter',
-            label: 'Letter'
+      [
+        {
+          smoName: 'pageSize',
+          parameterName: 'pageSize',
+          defaultValue: SmoScore.pageSizes.letter,
+          control: 'SuiDropdownComponent',
+          label: 'Page Size',
+          options: [
+            {
+              value: 'letter',
+              label: 'Letter'
             }, {
-            value: 'tabloid',
-            label: 'Tabloid (11x17)'
+              value: 'tabloid',
+              label: 'Tabloid (11x17)'
             }, {
-            value: 'A4',
-            label: 'A4'
+              value: 'A4',
+              label: 'A4'
             }, {
-            value: 'custom',
-            label: 'Custom'
-            }
-          ]
+              value: 'custom',
+              label: 'Custom'
+            }]
         }, {
           smoName: 'pageWidth',
           parameterName: 'pageWidth',
@@ -22526,32 +22709,32 @@ class SuiLayoutDialog extends SuiDialogBase {
           defaultValue: SmoScore.orientations.portrait,
           control: 'SuiDropdownComponent',
           label: 'Orientation',
-          dataType:'int',
-          options:[{
-              value:SmoScore.orientations.portrait,
-              label:'Portrait'
-            }, {
-              value:SmoScore.orientations.landscape,
-              label:'Landscape'
+          dataType: 'int',
+          options: [{
+            value: SmoScore.orientations.portrait,
+            label: 'Portrait'
+          }, {
+            value: SmoScore.orientations.landscape,
+            label: 'Landscape'
           }]
         }, {
           smoName: 'engravingFont',
           parameterName: 'engravingFont',
           defaultValue: SmoScore.engravingFonts.Bravura,
           control: 'SuiDropdownComponent',
-          label:'Engraving Font',
+          label: 'Engraving Font',
           options: [{
-              value: 'Bravura',
-              label: 'Bravura'
-            }, {
-              value: 'Gonville',
-              label: 'Gonville'
-            }, {
-              value: 'Petaluma',
-              label: 'Petaluma'
-            }
+            value: 'Bravura',
+            label: 'Bravura'
+          }, {
+            value: 'Gonville',
+            label: 'Gonville'
+          }, {
+            value: 'Petaluma',
+            label: 'Petaluma'
+          }
           ]
-        },{
+        }, {
           smoName: 'leftMargin',
           parameterName: 'leftMargin',
           defaultValue: SmoScore.defaults.layout.leftMargin,
@@ -22596,42 +22779,43 @@ class SuiLayoutDialog extends SuiDialogBase {
           label: '% Note size',
           type: 'percent'
         },
-        {staticText:[
-          {label : 'Score Layout'}
-        ]}
+        { staticText: [
+          { label: 'Score Layout' }
+        ] }
       ];
 
     return SuiLayoutDialog._dialogElements;
   }
-    // ### backupOriginal
-    // backup the original layout parameters for trial period
+
+  // ### backupOriginal
+  // backup the original layout parameters for trial period
   backupOriginal() {
     this.backup = JSON.parse(JSON.stringify(this.modifier));
   }
   display() {
     $('body').addClass('showAttributeDialog');
     this.components.forEach((component) => {
-    component.bind();
-  });
-  this.components.forEach((component) => {
-    var val = this.modifier[component.parameterName];
-    component.setValue(val);
-  });
-  this._setPageSizeDefault();
-  this._bindElements();
+      component.bind();
+    });
+    this.components.forEach((component) => {
+      var val = this.modifier[component.parameterName];
+      component.setValue(val);
+    });
+    this._setPageSizeDefault();
+    this._bindElements();
 
-  var cb = function (x, y) {}
-  htmlHelpers.draggable({
-  parent: $(this.dgDom.element).find('.attributeModal'),
-  handle: $(this.dgDom.element).find('.icon-move'),
-            animateDiv:'.draganime',
-  cb: cb,
-  moveParent: true
-  });
-  this.completeNotifier.unbindKeyboardForModal(this);
+    const cb = () => {};
+    htmlHelpers.draggable({
+      parent: $(this.dgDom.element).find('.attributeModal'),
+      handle: $(this.dgDom.element).find('.icon-move'),
+      animateDiv: '.draganime',
+      cb,
+      moveParent: true
+    });
+    this.completeNotifier.unbindKeyboardForModal(this);
 
-    var box = svgHelpers.boxPoints(250,250,1,1);
-    SuiDialogBase.position(box,this.dgDom,this.tracker.scroller);
+    const box = svgHelpers.boxPoints(250, 250, 1, 1);
+    SuiDialogBase.position(box, this.dgDom, this.tracker.scroller);
   }
   // ### _updateLayout
   // even if the layout is not changed, we re-render the entire score by resetting
@@ -22640,94 +22824,93 @@ class SuiLayoutDialog extends SuiDialogBase {
     this.layout.rerenderAll();
   }
   _handleCancel() {
-  this.layout.score.layout = this.backup;
-  this._updateLayout();
-  this.complete();
+    this.layout.score.layout = this.backup;
+    this._updateLayout();
+    this.complete();
   }
   _bindElements() {
-  var self = this;
-  var dgDom = this.dgDom;
-        this.bindKeyboard();
-        this._bindComponentNames();
+    const self = this;
+    const dgDom = this.dgDom;
+    this.bindKeyboard();
+    this._bindComponentNames();
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      // TODO:  allow user to select a zoom mode.
+      self.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
+      self._updateLayout();
+      self.complete();
+    });
 
-  $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      self._handleCancel();
+    });
 
-  // TODO:  allow user to select a zoom mode.
-  self.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
-  self._updateLayout();
-  self.complete();
-  });
-
-  $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-  self._handleCancel();
-  });
-
-  $(dgDom.element).find('.remove-button').remove();
+    $(dgDom.element).find('.remove-button').remove();
   }
   _setPageSizeDefault() {
-  var value = 'custom';
-  var scoreDims = this.layout.score.layout;
-  SmoScore.pageSizes.forEach((sz) => {
-  var dim = SmoScore.pageDimensions[sz];
-  if (scoreDims.pageWidth === dim.width && scoreDims.pageHeight === dim.height) {
-  value = sz;
-  } else if (scoreDims.pageHeight === dim.width && scoreDims.pageWidth === dim.height) {
-  value = sz;
-  }
-  });
-  this.components.find((x)=>{return x.parameterName==='pageSize'}).setValue(value);
-  }
-    // ### _handlePageSizeChange
-    // see if the dimensions have changed.
-  _handlePageSizeChange() {
-  var pageSizeComp = this.components.find((x)=>{return x.parameterName==='pageSize'});
-  var sel = pageSizeComp.getValue();
-  if (sel === 'custom') {
-  $('.attributeModal').addClass('customPage');
-  } else {
-  $('.attributeModal').removeClass('customPage');
-  var dim = SmoScore.pageDimensions[sel];
-  var hComp = this.components.find((x)=>{return x.parameterName==='pageHeight'});
-  var wComp = this.components.find((x)=>{return x.parameterName==='pageWidth'});
-  hComp.setValue(dim.height);
-  wComp.setValue(dim.width);
-  }
-  }
-    // ### changed
-    // One of the components has had a changed value.
-  changed() {
-  // this.modifier.backupOriginal();
-  this._handlePageSizeChange();
-  this.components.forEach((component) => {
-      if (typeof(this.layout.score.layout[component.smoName]) != 'undefined') {
-      this.layout.score.layout[component.smoName] = component.getValue();
+    var value = 'custom';
+    var scoreDims = this.layout.score.layout;
+    SmoScore.pageSizes.forEach((sz) => {
+      var dim = SmoScore.pageDimensions[sz];
+      if (scoreDims.pageWidth === dim.width && scoreDims.pageHeight === dim.height) {
+        value = sz;
+      } else if (scoreDims.pageHeight === dim.width && scoreDims.pageWidth === dim.height) {
+        value = sz;
       }
-  });
-    if (this.engravingFontCtrl.changeFlag)  {
-      this.layout.score.engravingFont = this.engravingFontCtrl.getValue();
-      suiLayoutBase.setFont(this.layout.score.engravingFont);
+    });
+    this.components.find((x) => x.parameterName === 'pageSize').setValue(value);
+  }
+  // ### _handlePageSizeChange
+  // see if the dimensions have changed.
+  _handlePageSizeChange() {
+    const pageSizeComp = this.components.find((x) => x.parameterName === 'pageSize');
+    const sel = pageSizeComp.getValue();
+    if (sel === 'custom') {
+      $('.attributeModal').addClass('customPage');
+    } else {
+      $('.attributeModal').removeClass('customPage');
+      const dim = SmoScore.pageDimensions[sel];
+      const hComp = this.components.find((x) =>  x.parameterName === 'pageHeight');
+      const wComp = this.components.find((x) => x.parameterName === 'pageWidth');
+      hComp.setValue(dim.height);
+      wComp.setValue(dim.width);
     }
-  this.layout.setViewport();
+  }
+
+  // ### changed
+  // One of the components has had a changed value.
+  changed() {
+    this._handlePageSizeChange();
+    this.components.forEach((component) => {
+      if (typeof(this.layout.score.layout[component.smoName]) !== 'undefined') {
+        this.layout.score.layout[component.smoName] = component.getValue();
+      }
+    });
+    if (this.engravingFontCtrl.changeFlag)  {
+      const engrave = this.score.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
+      engrave.family = this.engravingFontCtrl.getValue();
+      suiLayoutBase.setFont(engrave.family);
+    }
+    this.layout.setViewport();
   }
 
   // ### createAndDisplay
   // static method to create the object and then display it.
   static createAndDisplay(parameters) {
-  var dg = new SuiLayoutDialog(parameters);
-  dg.display();
+    const dg = new SuiLayoutDialog(parameters);
+    dg.display();
   }
   constructor(parameters) {
-  var p = parameters;
-
-  super(SuiLayoutDialog.dialogElements, {
-  id: 'dialog-layout',
-  top: (p.layout.score.layout.pageWidth / 2) - 200,
-  left: (p.layout.score.layout.pageHeight / 2) - 200,
+    var p = parameters;
+    super(SuiLayoutDialog.dialogElements, {
+      id: 'dialog-layout',
+      top: (p.layout.score.layout.pageWidth / 2) - 200,
+      left: (p.layout.score.layout.pageHeight / 2) - 200,
       ...parameters
-  });
-  this.layout = p.layout;
-  this.modifier = this.layout.score.layout;
-  this.backupOriginal();
+    });
+    this.layout = p.layout;
+    this.score = p.layout.score;
+    this.modifier = this.layout.score.layout;
+    this.backupOriginal();
   }
 }
 ;class SuiStaffModifierDialog extends SuiDialogBase {
@@ -23313,6 +23496,9 @@ class SuiLyricComponent extends SuiNoteTextComponent {
     }
     this.session = null;
     this.altLabel = SuiLyricDialog.getStaticText('doneEditing');
+    if (!this.verse) {
+      this.verse = 0;
+    }
   }
 
   get html() {
@@ -23364,7 +23550,7 @@ class SuiLyricComponent extends SuiNoteTextComponent {
        selector: this.selector,
        scroller: this.dialog.tracker.scroller,
        layout: this.dialog.layout,
-       verse: 0,
+       verse: this.verse,
        score: this.dialog.layout.score
        }
      );
@@ -23690,6 +23876,13 @@ class SuiResizeTextBox extends SuiComponentBase {
       label: 'Y Adjustment (Px)',
       type: 'int'
     }, {
+      smoName: 'font',
+      parameterName: 'font',
+      classes: 'hide-when-editing',
+      defaultValue: 0,
+      control: 'SuiFontComponent',
+      label: 'Font'
+    }, {
       smoName: 'lyricEditor',
       parameterName: 'text',
       defaultValue: 0,
@@ -23739,6 +23932,7 @@ class SuiResizeTextBox extends SuiComponentBase {
     SmoUndoable.noop(this.layout.score,this.undoBuffer,'Undo lyrics');
   }
   display() {
+    let fontSize;
     $('body').addClass('showAttributeDialog');
     $('body').addClass('textEditor');
     this.components.forEach((component) => {
@@ -23773,6 +23967,17 @@ class SuiResizeTextBox extends SuiComponentBase {
     });
     this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this,'mouseMove');
     this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this,'mouseClick');
+
+    if (this.lyricEditorCtrl && this.lyricEditorCtrl.session && this.lyricEditorCtrl.session.lyric) {
+      const lyric = this.lyricEditorCtrl.session.lyric;
+      this.fontCtrl.setValue({
+        family: lyric.fontInfo.family,
+        size: {
+          size: lyric.fontInfo.size,
+          unit: 'pt'
+        }
+      });
+    }
     this.bindKeyboard();
   }
   _focusSelection() {
@@ -23783,7 +23988,12 @@ class SuiResizeTextBox extends SuiComponentBase {
     }
   }
   changed() {
-    this.lyricEditorCtrl.verse = this.verse.getValue();
+    this.lyricEditorCtrl.verse = parseInt(this.verse.getValue());
+
+    if (this.fontCtrl.changeFlag) {
+      const fontInfo = this.fontCtrl.getValue();
+      this.layout.score.setLyricFont({ 'family': fontInfo.family, size: fontInfo.size.size });
+    }
   }
   _bindElements() {
     var self = this;
@@ -24117,7 +24327,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         classes: 'hide-when-editing hide-when-moving',
         control: 'SuiRockerComponent',
         label: 'X Position (Px)',
-                startRow:true,
         type: 'int'
       },{
         smoName: 'y',
@@ -24126,9 +24335,17 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         classes: 'hide-when-editing hide-when-moving',
         control: 'SuiRockerComponent',
         label: 'Y Position (Px)',
-                startRow:true,
         type: 'int'
-      }, {
+      },
+      {
+        smoName: 'font',
+        parameterName: 'font',
+        classes: 'hide-when-editing hide-when-moving',
+        defaultValue: SmoScoreText.fontFamilies.times,
+        control: 'SuiFontComponent',
+        label:'Font Information'
+      }
+      , {
         smoName: 'justification',
         parameterName: 'justification',
         defaultValue: SmoScoreText.justifications.left,
@@ -24147,43 +24364,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
             label: 'Center'
           }
         ]
-      },
-      {
-        smoName: 'fontFamily',
-        parameterName: 'fontFamily',
-        classes: 'hide-when-editing hide-when-moving',
-        defaultValue: SmoScoreText.fontFamilies.times,
-        control: 'SuiDropdownComponent',
-        label:'Font Family',
-        startRow:true,
-        options: [
-          {label: 'Arial', value: 'Arial'},
-          {label: 'Times', value: 'Times'},
-          {label: 'Roboto Slab', value: 'Roboto Slab'},
-          {label: 'Petaluma', value: 'Petaluma Script'},
-          {label: 'Commissioner',value: 'Commissioner'},
-          {label: 'Concert One', value: 'ConcertOne'},
-          {label: 'Merriweather',value: 'Merriweather'}
-        ]
-      },
-      {
-        smoName: 'fontSize',
-        parameterName: 'fontSize',
-        defaultValue: 1,
-        classes: 'hide-when-editing hide-when-moving',
-        control: 'SuiRockerComponent',
-        label: 'Font Size',
-        type: 'float',
-        increment:0.1
-      },
-      {
-        smoName: 'fontUnit',
-        parameterName: 'fontUnit',
-        defaultValue: 'em',
-        classes: 'hide-when-editing hide-when-moving',
-        control: 'SuiDropdownComponent',
-        label: 'Units',
-        options: [{value:'em',label:'em'},{value:'px',label:'px'},{value:'pt',label:'pt'}]
       },
       {
         smoName: 'wrap',
@@ -24224,7 +24404,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 
 
   display() {
-    console.log('text box creationg complete')
+    console.log('text box creationg complete');
     this.textElement=$(this.layout.context.svg).find('.' + this.modifier.attrs.id)[0];
 
     $('body').addClass('showAttributeDialog');
@@ -24234,13 +24414,15 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     this.components.forEach((component) => {
       component.bind();
     });
+    const dbFont = this.fontCtrl.getValue();
 
-    var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
-    var dbFontUnit  = this.components.find((c) => c.smoName === 'fontUnit');
-    var fontSize = this.activeScoreText.fontInfo.size;
-    fontSize=svgHelpers.getFontSize(fontSize);
-    dbFontSize.setValue(fontSize.size);
-    dbFontUnit.setValue(fontSize.unit);
+    const fontFamily = this.activeScoreText.fontInfo.family;
+    var dbFontUnit  = 'pt';
+    const fontSize = svgHelpers.getFontSize(this.activeScoreText.fontInfo.size);
+    this.fontCtrl.setValue({
+      family: fontFamily,
+      size: fontSize
+    });
 
     this.wrapCtrl.setValue(this.activeScoreText.boxModel != SmoScoreText.boxModels.none);
 
@@ -24379,24 +24561,16 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       this.yCtrl.setValue(pos.y);
     }
 
-    if (this.fontFamilyCtrl.changeFlag) {
-      const family = this.fontFamilyCtrl.getValue();
-      this.activeScoreText.fontInfo.family = family;
-      if (this.textEditorCtrl.editor) {
-        this.textEditorCtrl.editor.scoreText.fontInfo.family = family;
-      }
-    }
-
     if (this.paginationsComponent.changeFlag && this.textEditorCtrl.editor) {
       this.textEditorCtrl.editor.scoreText.pagination = this.paginationsComponent.getValue();
     }
 
-    if (this.fontSizeCtrl.changeFlag) {
-      const fontSize = '' + this.fontSizeCtrl.getValue() + this.fontUnitCtrl.getValue();
-      this.activeScoreText.fontInfo.size = fontSize;
-      if (this.textEditorCtrl.editor) {
-        this.textEditorCtrl.editor.scoreText.fontInfo.size = fontSize;
-      }
+    if (this.fontCtrl.changeFlag) {
+      const fontInfo = this.fontCtrl.getValue();
+      this.activeScoreText.fontInfo.family = fontInfo.family;
+      // transitioning away from non-point-based font size units
+      this.activeScoreText.fontInfo.size = '' + fontInfo.size.size + fontInfo.size.unit;
+      this.activeScoreText.fontInfo.pointSize = fontInfo.size.size;
     }
 
     // Use layout context because render may have reset svg.
@@ -24467,9 +24641,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     var self = this;
     this.bindKeyboard();
     var dgDom = this.dgDom;
-    var fontComp = this.components.find((c) => c.smoName === 'fontFamily');
-
-    fontComp.setValue(this.activeScoreText.fontInfo.family);
 
     $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
       self._complete();

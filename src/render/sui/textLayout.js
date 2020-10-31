@@ -175,6 +175,7 @@ class SuiInlineText {
     let superXWidth = 0;
     let prevBlock = null;
     let i = 0;
+    this.textFont.setFontSize(this.fontSize);
     this.blocks.forEach((block) => {
       // super/subscript
       const sp = this.isSuperscript(block);

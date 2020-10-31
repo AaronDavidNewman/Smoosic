@@ -24,11 +24,11 @@ class SmoSystemStaff {
 
     // ### defaultParameters
     // the parameters that get saved with the score.
-	static get defaultParameters() {
-		return [
-		'staffId','staffX','staffY','adjY','staffWidth','staffHeight','startIndex',
+  static get defaultParameters() {
+    return [
+    'staffId','staffX','staffY','adjY','staffWidth','staffHeight','startIndex',
             'renumberingMap','keySignatureMap','instrumentInfo'];
-	}
+  }
 
     // ### defaults
     // default values for all instances
@@ -40,7 +40,7 @@ class SmoSystemStaff {
             staffWidth: 1600,
             staffHeight: 90,
             startIndex: 0,
-			staffId:0,
+      staffId:0,
             renumberingMap: {},
             keySignatureMap: {},
             instrumentInfo: {
@@ -55,23 +55,23 @@ class SmoSystemStaff {
 
     // ### serialize
     // JSONify self.
-	serialize() {
-		var params={};
-		smoSerialize.serializedMerge(SmoSystemStaff.defaultParameters,this,params);
-		params.modifiers=[];
-		params.measures=[];
+  serialize() {
+    var params={};
+    smoSerialize.serializedMerge(SmoSystemStaff.defaultParameters,this,params);
+    params.modifiers=[];
+    params.measures=[];
 
 
-		this.measures.forEach((measure) => {
-			params.measures.push(measure.serialize());
-		});
+    this.measures.forEach((measure) => {
+      params.measures.push(measure.serialize());
+    });
 
-		this.modifiers.forEach((modifier) => {
-			params.modifiers.push(modifier.serialize());
-		});
+    this.modifiers.forEach((modifier) => {
+      params.modifiers.push(modifier.serialize());
+    });
 
-		return params;
-	}
+    return params;
+  }
 
      // ### deserialize
      // parse formerly serialized staff.
@@ -94,7 +94,7 @@ class SmoSystemStaff {
                 rv.modifiers.push(mod);
             });
         }
-		return rv;
+    return rv;
     }
 
    // ### addStaffModifier
@@ -119,15 +119,21 @@ class SmoSystemStaff {
 
     // ### getModifiersAt
     // get any modifiers at the selected location
-	getModifiersAt(selector) {
-		var rv = [];
-		this.modifiers.forEach((mod) => {
-			if (SmoSelector.sameNote(mod.startSelector,selector)) {
-				rv.push(mod);
-			}
-		});
-		return rv;
-	}
+  getModifiersAt(selector) {
+    var rv = [];
+    this.modifiers.forEach((mod) => {
+      if (SmoSelector.sameNote(mod.startSelector,selector)) {
+        rv.push(mod);
+      }
+    });
+    return rv;
+  }
+
+  setLyricFont(fontInfo) {
+    this.measures.forEach((measure) => {
+      measure.setLyricFont(fontInfo);
+    });
+  }
 
     // ### getSlursStartingAt
     // like it says.  Used by audio player to slur notes
@@ -257,41 +263,41 @@ class SmoSystemStaff {
 
     // ### deleteMeasure
     // delete the measure, and any staff modifiers that start/end there.
-	deleteMeasure(index) {
-		if (this.measures.length < 2) {
-			return; // don't delete last measure.
-		}
-		var nm=[];
-		this.measures.forEach((measure) => {
-			if (measure.measureNumber.measureIndex != index) {
-				nm.push(measure);
-			}
-		});
-		var sm=[];
-		this.modifiers.forEach((mod)=> {
+  deleteMeasure(index) {
+    if (this.measures.length < 2) {
+      return; // don't delete last measure.
+    }
+    var nm=[];
+    this.measures.forEach((measure) => {
+      if (measure.measureNumber.measureIndex != index) {
+        nm.push(measure);
+      }
+    });
+    var sm=[];
+    this.modifiers.forEach((mod)=> {
             // Bug: if we are deleting a measure before the selector, change the measure number.
-			if (mod.startSelector.measure != index && mod.endSelector.measure != index) {
+      if (mod.startSelector.measure != index && mod.endSelector.measure != index) {
                 if (index < mod.startSelector.measure) {
                     mod.startSelector.measure -= 1;
                 }
                 if (index < mod.endSelector.measure) {
                     mod.endSelector.measure -= 1;
                 }
-				sm.push(mod);
-			}
-		});
-		this.measures=nm;
-		this.modifiers=sm;
-		this.numberMeasures();
-	}
+        sm.push(mod);
+      }
+    });
+    this.measures=nm;
+    this.modifiers=sm;
+    this.numberMeasures();
+  }
 
     // ### addKeySignature
     // Add key signature to the given measure and update map so we know
     // when it changes, cancels etc.
     addKeySignature(measureIndex, key) {
         this.keySignatureMap[measureIndex] = key;
-		var target = this.measures[measureIndex];
-		target.keySignature = key;
+    var target = this.measures[measureIndex];
+    target.keySignature = key;
         // this._updateKeySignatures();
     }
 
@@ -339,11 +345,11 @@ class SmoSystemStaff {
                 measureNumber: localIndex,
                 measureIndex: i + this.startIndex,
                 systemIndex: i,
-				staffId:this.staffId
+        staffId:this.staffId
             }
             measure.setMeasureNumber(numberObj);
-			// If we are renumbering measures, we assume we want to redo the layout so set measures to changed.
-			measure.changed=true;
+      // If we are renumbering measures, we assume we want to redo the layout so set measures to changed.
+      measure.changed=true;
         }
     }
     getSelection(measureNumber, voice, tick, pitches) {

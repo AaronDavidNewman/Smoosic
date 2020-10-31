@@ -224,6 +224,9 @@ class SuiLyricComponent extends SuiNoteTextComponent {
     }
     this.session = null;
     this.altLabel = SuiLyricDialog.getStaticText('doneEditing');
+    if (!this.verse) {
+      this.verse = 0;
+    }
   }
 
   get html() {
@@ -275,7 +278,7 @@ class SuiLyricComponent extends SuiNoteTextComponent {
        selector: this.selector,
        scroller: this.dialog.tracker.scroller,
        layout: this.dialog.layout,
-       verse: 0,
+       verse: this.verse,
        score: this.dialog.layout.score
        }
      );

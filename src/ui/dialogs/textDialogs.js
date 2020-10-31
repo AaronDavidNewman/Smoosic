@@ -40,6 +40,13 @@ class SuiLyricDialog extends SuiDialogBase {
       label: 'Y Adjustment (Px)',
       type: 'int'
     }, {
+      smoName: 'font',
+      parameterName: 'font',
+      classes: 'hide-when-editing',
+      defaultValue: 0,
+      control: 'SuiFontComponent',
+      label: 'Font'
+    }, {
       smoName: 'lyricEditor',
       parameterName: 'text',
       defaultValue: 0,
@@ -89,6 +96,7 @@ class SuiLyricDialog extends SuiDialogBase {
     SmoUndoable.noop(this.layout.score,this.undoBuffer,'Undo lyrics');
   }
   display() {
+    let fontSize;
     $('body').addClass('showAttributeDialog');
     $('body').addClass('textEditor');
     this.components.forEach((component) => {
@@ -123,6 +131,17 @@ class SuiLyricDialog extends SuiDialogBase {
     });
     this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this,'mouseMove');
     this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this,'mouseClick');
+
+    if (this.lyricEditorCtrl && this.lyricEditorCtrl.session && this.lyricEditorCtrl.session.lyric) {
+      const lyric = this.lyricEditorCtrl.session.lyric;
+      this.fontCtrl.setValue({
+        family: lyric.fontInfo.family,
+        size: {
+          size: lyric.fontInfo.size,
+          unit: 'pt'
+        }
+      });
+    }
     this.bindKeyboard();
   }
   _focusSelection() {
@@ -133,7 +152,12 @@ class SuiLyricDialog extends SuiDialogBase {
     }
   }
   changed() {
-    this.lyricEditorCtrl.verse = this.verse.getValue();
+    this.lyricEditorCtrl.verse = parseInt(this.verse.getValue());
+
+    if (this.fontCtrl.changeFlag) {
+      const fontInfo = this.fontCtrl.getValue();
+      this.layout.score.setLyricFont({ 'family': fontInfo.family, size: fontInfo.size.size });
+    }
   }
   _bindElements() {
     var self = this;
@@ -467,7 +491,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         classes: 'hide-when-editing hide-when-moving',
         control: 'SuiRockerComponent',
         label: 'X Position (Px)',
-                startRow:true,
         type: 'int'
       },{
         smoName: 'y',
@@ -476,9 +499,17 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         classes: 'hide-when-editing hide-when-moving',
         control: 'SuiRockerComponent',
         label: 'Y Position (Px)',
-                startRow:true,
         type: 'int'
-      }, {
+      },
+      {
+        smoName: 'font',
+        parameterName: 'font',
+        classes: 'hide-when-editing hide-when-moving',
+        defaultValue: SmoScoreText.fontFamilies.times,
+        control: 'SuiFontComponent',
+        label:'Font Information'
+      }
+      , {
         smoName: 'justification',
         parameterName: 'justification',
         defaultValue: SmoScoreText.justifications.left,
@@ -497,43 +528,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
             label: 'Center'
           }
         ]
-      },
-      {
-        smoName: 'fontFamily',
-        parameterName: 'fontFamily',
-        classes: 'hide-when-editing hide-when-moving',
-        defaultValue: SmoScoreText.fontFamilies.times,
-        control: 'SuiDropdownComponent',
-        label:'Font Family',
-        startRow:true,
-        options: [
-          {label: 'Arial', value: 'Arial'},
-          {label: 'Times', value: 'Times'},
-          {label: 'Roboto Slab', value: 'Roboto Slab'},
-          {label: 'Petaluma', value: 'Petaluma Script'},
-          {label: 'Commissioner',value: 'Commissioner'},
-          {label: 'Concert One', value: 'ConcertOne'},
-          {label: 'Merriweather',value: 'Merriweather'}
-        ]
-      },
-      {
-        smoName: 'fontSize',
-        parameterName: 'fontSize',
-        defaultValue: 1,
-        classes: 'hide-when-editing hide-when-moving',
-        control: 'SuiRockerComponent',
-        label: 'Font Size',
-        type: 'float',
-        increment:0.1
-      },
-      {
-        smoName: 'fontUnit',
-        parameterName: 'fontUnit',
-        defaultValue: 'em',
-        classes: 'hide-when-editing hide-when-moving',
-        control: 'SuiDropdownComponent',
-        label: 'Units',
-        options: [{value:'em',label:'em'},{value:'px',label:'px'},{value:'pt',label:'pt'}]
       },
       {
         smoName: 'wrap',
@@ -574,7 +568,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 
 
   display() {
-    console.log('text box creationg complete')
+    console.log('text box creationg complete');
     this.textElement=$(this.layout.context.svg).find('.' + this.modifier.attrs.id)[0];
 
     $('body').addClass('showAttributeDialog');
@@ -584,13 +578,15 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     this.components.forEach((component) => {
       component.bind();
     });
+    const dbFont = this.fontCtrl.getValue();
 
-    var dbFontSize = this.components.find((c) => c.smoName === 'fontSize');
-    var dbFontUnit  = this.components.find((c) => c.smoName === 'fontUnit');
-    var fontSize = this.activeScoreText.fontInfo.size;
-    fontSize=svgHelpers.getFontSize(fontSize);
-    dbFontSize.setValue(fontSize.size);
-    dbFontUnit.setValue(fontSize.unit);
+    const fontFamily = this.activeScoreText.fontInfo.family;
+    var dbFontUnit  = 'pt';
+    const fontSize = svgHelpers.getFontSize(this.activeScoreText.fontInfo.size);
+    this.fontCtrl.setValue({
+      family: fontFamily,
+      size: fontSize
+    });
 
     this.wrapCtrl.setValue(this.activeScoreText.boxModel != SmoScoreText.boxModels.none);
 
@@ -729,24 +725,16 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       this.yCtrl.setValue(pos.y);
     }
 
-    if (this.fontFamilyCtrl.changeFlag) {
-      const family = this.fontFamilyCtrl.getValue();
-      this.activeScoreText.fontInfo.family = family;
-      if (this.textEditorCtrl.editor) {
-        this.textEditorCtrl.editor.scoreText.fontInfo.family = family;
-      }
-    }
-
     if (this.paginationsComponent.changeFlag && this.textEditorCtrl.editor) {
       this.textEditorCtrl.editor.scoreText.pagination = this.paginationsComponent.getValue();
     }
 
-    if (this.fontSizeCtrl.changeFlag) {
-      const fontSize = '' + this.fontSizeCtrl.getValue() + this.fontUnitCtrl.getValue();
-      this.activeScoreText.fontInfo.size = fontSize;
-      if (this.textEditorCtrl.editor) {
-        this.textEditorCtrl.editor.scoreText.fontInfo.size = fontSize;
-      }
+    if (this.fontCtrl.changeFlag) {
+      const fontInfo = this.fontCtrl.getValue();
+      this.activeScoreText.fontInfo.family = fontInfo.family;
+      // transitioning away from non-point-based font size units
+      this.activeScoreText.fontInfo.size = '' + fontInfo.size.size + fontInfo.size.unit;
+      this.activeScoreText.fontInfo.pointSize = fontInfo.size.size;
     }
 
     // Use layout context because render may have reset svg.
@@ -817,9 +805,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     var self = this;
     this.bindKeyboard();
     var dgDom = this.dgDom;
-    var fontComp = this.components.find((c) => c.smoName === 'fontFamily');
-
-    fontComp.setValue(this.activeScoreText.fontInfo.family);
 
     $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
       self._complete();
