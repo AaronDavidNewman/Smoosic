@@ -484,6 +484,17 @@ class SmoScore {
     this.staves.forEach((staff) => {
       staff.setLyricFont(fontInfo);
     });
+
+    const fontInst = this.fonts.find((fn) => fn.name === 'lyrics');
+    fontInst.family = fontInfo.family;
+    fontInst.size = fontInfo.size;
+    fontInst.custom = true;
+  }
+
+  setChordFont(fontInfo) {
+    this.staves.forEach((staff) => {
+      staff.setChordFont(fontInfo);
+    });
   }
 
   get measures() {

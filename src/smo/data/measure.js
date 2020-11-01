@@ -662,6 +662,16 @@ class SmoMeasure {
     });
   }
 
+  // ### updateLyricFont
+  // Update the lyric font, which is the same for all lyrics.
+  setChordFont(fontInfo) {
+    this.voices.forEach((voice) => {
+      voice.notes.forEach((note) => {
+        note.setChordFont(fontInfo);
+      });
+    });
+  }
+
   // ### tuplet methods.
   //
   // #### tupletNotes

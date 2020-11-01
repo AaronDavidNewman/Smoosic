@@ -299,7 +299,7 @@ class SuiChordComponent extends SuiNoteTextComponent {
   constructor(dialog,parameter) {
     super(dialog, parameter);
     smoSerialize.filteredMerge(
-        ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
+      ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
     if (!this.defaultValue) {
         this.defaultValue = 0;
     }
@@ -309,12 +309,15 @@ class SuiChordComponent extends SuiNoteTextComponent {
     this.selection = dialog.tracker.selections[0];
     this.selector = JSON.parse(JSON.stringify(this.selection.selector));
     this.altLabel = SuiLyricDialog.getStaticText('doneEditing');
+    if (!this.verse) {
+      this.verse = 0;
+    }
   }
 
   get html() {
-    var b = htmlHelpers.buildDom;
-    var id = this.parameterId;
-    var r = b('div').classes(this.makeClasses('cbChordEdit smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
+    const b = htmlHelpers.buildDom;
+    const id = this.parameterId;
+    const r = b('div').classes(this.makeClasses('cbChordEdit smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
       .append(b('div').classes('toggleEdit')
         .append(b('button').classes('toggleTextEdit')
           .attr('id', id + '-toggleInput').append(

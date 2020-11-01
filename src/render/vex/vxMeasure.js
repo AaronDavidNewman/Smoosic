@@ -165,7 +165,7 @@ class VxMeasure {
         cs.addGlyphOrText(block.text, block);
       }
     });
-    cs.setFontSize(14).setReportWidth(false);
+    cs.setFont(lyric.fontInfo.family, lyric.fontInfo.size).setReportWidth(false);
     vexNote.addModifier(0, cs);
     const classString = 'chord chord-' + lyric.verse;
     cs.addClass(classString);

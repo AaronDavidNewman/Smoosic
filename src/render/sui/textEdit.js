@@ -953,7 +953,9 @@ class SuiLyricSession {
       this.lyric = lar[0];
     }
     if (!this.lyric) {
-      this.lyric = new SmoLyric({  _text: '', verse: this.verse });
+      const scoreFont = this.score.fonts.find((fn) => fn.name === 'lyrics');
+      const fontInfo = JSON.parse(JSON.stringify(scoreFont));
+      this.lyric = new SmoLyric({  _text: '', verse: this.verse, fontInfo });
       this.note.addLyric(this.lyric);
     }
     this.text = this.lyric._text;
@@ -1156,7 +1158,9 @@ class SuiChordSession extends SuiLyricSession {
       this.lyric = lar[0];
     }
     if (!this.lyric) {
-      this.lyric = new SmoLyric({ _text: '', verse: this.verse, parser: this.parser });
+      const scoreFont = this.score.fonts.find((fn) => fn.name === 'chords');
+      const fontInfo = JSON.parse(JSON.stringify(scoreFont));
+      this.lyric = new SmoLyric({ _text: '', verse: this.verse, parser: this.parser, fontInfo });
       this.note.addLyric(this.lyric);
     }
     this.text = this.lyric._text;

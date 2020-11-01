@@ -120,6 +120,13 @@ class SmoNote {
     return ms;
   }
 
+  getChords() {
+    const ms = this.textModifiers.filter((mod) =>
+      mod.attrs.type === 'SmoLyric' && mod.parser === SmoLyric.parsers.chord
+    );
+    return ms;
+  }
+
   removeLyric(lyric) {
     const tms = this.textModifiers.filter((mod) =>
       mod.attrs.type !== 'SmoLyric' || mod.verse !== lyric.verse || mod.parser !== lyric.parser
@@ -138,6 +145,13 @@ class SmoNote {
 
     lyrics.forEach((lyric) => {
       lyric.fontInfo = JSON.parse(JSON.stringify(fontInfo));
+    });
+  }
+
+  setChordFont(fontInfo) {
+    const chords = this.getChords();
+    chords.forEach((chord) => {
+      chord.fontInfo = JSON.parse(JSON.stringify(fontInfo));
     });
   }
 

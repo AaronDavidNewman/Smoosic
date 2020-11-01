@@ -204,7 +204,6 @@ class SuiLyricDialog extends SuiDialogBase {
     this.complete();
   }
 
-
   mouseMove(ev) {
     if (this.lyricEditorCtrl && this.lyricEditorCtrl.running) {
       this.lyricEditorCtrl.mouseMove(ev);
@@ -323,6 +322,13 @@ class SuiChordChangeDialog  extends SuiDialogBase {
               value: SuiInlineText.textTypes.normal,
               label: 'Normal'
             }]
+           }, {
+             smoName: 'font',
+             parameterName: 'font',
+             classes: 'hide-when-editing',
+             defaultValue: 0,
+             control: 'SuiFontComponent',
+             label: 'Font'
            },
            {
         staticText: [
@@ -350,6 +356,11 @@ class SuiChordChangeDialog  extends SuiDialogBase {
       this.chordEditorCtrl.setTextType(this.textPositionCtrl.getValue());
       $(this.textPositionCtrl._getInputElement())[0].selectedIndex = -1
       $(this.textPositionCtrl._getInputElement()).blur();
+    }
+    if (this.fontCtrl.changeFlag) {
+      const fontInfo = this.fontCtrl.getValue();
+      this.layout.score.setChordFont(
+        { 'family': fontInfo.family, size: fontInfo.size.size });
     }
   }
 
@@ -388,6 +399,16 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     });
     this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this,'mouseMove');
     this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this,'mouseClick');
+    if (this.chordEditorCtrl && this.chordEditorCtrl.session && this.chordEditorCtrl.session.lyric) {
+      const lyric = this.chordEditorCtrl.session.lyric;
+      this.fontCtrl.setValue({
+        family: lyric.fontInfo.family,
+        size: {
+          size: lyric.fontInfo.size,
+          unit: 'pt'
+        }
+      });
+    }
     this.bindKeyboard();
   }
 
@@ -435,7 +456,6 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     $('body').removeClass('textEditor');
     this.complete();
   }
-
 
   mouseMove(ev) {
     if (this.chordEditorCtrl && this.chordEditorCtrl.running) {

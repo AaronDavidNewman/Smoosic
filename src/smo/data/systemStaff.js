@@ -134,6 +134,11 @@ class SmoSystemStaff {
       measure.setLyricFont(fontInfo);
     });
   }
+  setChordFont(fontInfo) {
+    this.measures.forEach((measure) => {
+      measure.setChordFont(fontInfo);
+    });
+  }
 
     // ### getSlursStartingAt
     // like it says.  Used by audio player to slur notes

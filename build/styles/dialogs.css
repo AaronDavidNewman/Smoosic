@@ -11,7 +11,7 @@
 	z-index:11;
 }
 
-.show-when-editing {
+body .attributeModal .show-when-editing {
   display:none;
 }
 
@@ -357,7 +357,7 @@ body.showAttributeDialog .attributeDialog {
   flex-flow: row nowrap;
 }
 .attributeModal .smoControl.multiControl .smoControl {
-  flex-flow: row nowrap;  
+  flex-flow: row nowrap;
 }
 .attributeModal .smoControl {
   display:flex;
