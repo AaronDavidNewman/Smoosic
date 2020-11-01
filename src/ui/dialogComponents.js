@@ -328,6 +328,11 @@ class SuiDropdownComponent extends SuiComponentBase {
     return r;
   }
 
+  unselect() {
+    $(this._getInputElement())[0].selectedIndex = -1;
+    $(this._getInputElement()).blur();
+  }
+
   _getInputElement() {
     var pid = this.parameterId;
     return $(this.dialog.dgDom.element).find('#' + pid).find('select');

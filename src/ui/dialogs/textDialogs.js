@@ -349,8 +349,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
         key: val
       });
       // Move focus outside the element so it doesn't intercept keys
-      $(this.chordSymbolCtrl._getInputElement())[0].selectedIndex = -1
-      $(this.chordSymbolCtrl._getInputElement()).blur();
+      this.chordSymbolCtrl.unselect();
     }
     if (this.textPositionCtrl.changeFlag && this.chordEditorCtrl.running) {
       this.chordEditorCtrl.setTextType(this.textPositionCtrl.getValue());
@@ -495,7 +494,18 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         classes: 'show-always hide-when-moving',
         label:'Edit Text',
         options: []
-      },{
+      }, {
+         smoName: 'insertCode',
+         parameterName: 'insertCode',
+         defaultValue: false,
+         classes: 'show-when-editing hide-when-moving',
+         control:'SuiDropdownComponent',
+         label: 'Insert Special',
+         options: [
+           { value: '@@@', label: 'Pages' },
+           { value: '###', label: 'Page Number' }
+         ]
+       }, {
         smoName: 'textDragger',
         parameterName: 'textLocation',
         classes: 'hide-when-editing show-when-moving',
@@ -565,16 +575,16 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         control: 'SuiDropdownComponent',
         label:'Page Behavior',
         startRow:true,
-        options: [{value:'once',label:'Once'},
-          {value:'every',label:'Every'},
-          {label:'Even',value:'even'},
-          {label:'Odd',value:'odd'},
-          {label:'Subsequent',value:'subsequent'}
+        options: [{ value: 'once', label: 'Once' },
+          { value: 'every', label: 'Every' },
+          { label: 'Even', value: 'even' },
+          { label: 'Odd', value: 'odd' },
+          { label: 'Subsequent', value: 'subsequent' }
         ]
       }, {
         staticText: [
           {label : 'Text Properties' },
-          {editorLabel: 'Done Editing Text Block' },
+          {editorLabel: 'Done Editing Text' },
           {draggerLabel: 'Done Dragging Text'}
         ]
       }
@@ -709,11 +719,12 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     }
   }
   changed() {
-    var textEditor = this.components.find((c) => c.smoName === 'textEditor');
-    if (textEditor.editor) {
-      this.modifier = textEditor.editor.textGroup;
-    } else {
-      this.modifier = textEditor.value;
+    if (this.insertCodeCtrl.changeFlag && this.textEditorCtrl.session) {
+      const val = this.insertCodeCtrl.getValue().split('');
+      val.forEach((key) => {
+        this.evKey({ key });
+      });
+      this.insertCodeCtrl.unselect();
     }
 
     if (this.wrapCtrl.changeFlag) {
@@ -728,8 +739,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       }
     }
 
-    var xcomp = this.components.find((x) => x.smoName === 'x');
-    var ycomp = this.components.find((x) => x.smoName === 'y');
     const pos = this.modifier.ul();
 
     // position can change from drag or by dialog - only update from
@@ -745,8 +754,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       this.yCtrl.setValue(pos.y);
     }
 
-    if (this.paginationsComponent.changeFlag && this.textEditorCtrl.editor) {
-      this.textEditorCtrl.editor.scoreText.pagination = this.paginationsComponent.getValue();
+    if (this.paginationsComponent.changeFlag) {
+      this.activeScoreText.pagination = this.paginationsComponent.getValue();
     }
 
     if (this.fontCtrl.changeFlag) {

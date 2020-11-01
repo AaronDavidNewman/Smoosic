@@ -4281,6 +4281,9 @@ class suiScoreLayout extends suiLayoutBase {
     }
     gg.renderedBox = {};
     gg.logicalBox = {};
+    const group = this.context.openGroup();
+    group.id = gg.attrs.id;
+
     gg.textBlocks.forEach((block) => {
       this.renderScoreText(block.text);
       if (typeof(gg.renderedBox.x) === 'undefined') {
@@ -4292,6 +4295,7 @@ class suiScoreLayout extends suiLayoutBase {
       }
     });
     gg.renderedBox.y = gg.renderedBox.y + gg.renderedBox.height;
+    this.context.closeGroup();
   }
 
   renderScoreText(tt) {
@@ -4345,13 +4349,18 @@ class suiScoreLayout extends suiLayoutBase {
   }
   _renderScoreModifiers() {
     var svg = this.context.svg;
-    $(this.renderer.getContext().svg).find('text.score-text').remove();
+    $(this.renderer.getContext().svg).find('.all-score-text').remove();
+    const group = this.context.openGroup();
+    group.classList.add('all-score-text');
+
     this._score.scoreText.forEach((tt) => {
       this.renderScoreText(tt);
     });
+
     this._score.textGroups.forEach((tg) => {
       this.renderTextGroup(tg);
     });
+    this.context.closeGroup();
   }
 
 
@@ -11675,53 +11684,55 @@ class SmoScore {
     return null;
   }
 }
-;
+;// ## SmoScoreModifierBase
+// A score modifier is something that appears in the score, but not
+// associated with a measure of music.
+// eslint-disable-next-line no-unused-vars
 class SmoScoreModifierBase {
   constructor(ctor) {
     this.ctor = ctor;
-    if (!this['attrs']) {
+    if (!this.attrs) {
       this.attrs = {
         id: VF.Element.newID(),
         type: ctor
       };
-    } else {
-            console.log('inherit attrs');
     }
   }
 
   static deserialize(jsonObj) {
-    var ctor = eval(jsonObj.ctor);
-    var rv = new ctor(jsonObj);
+    const ctor = eval(jsonObj.ctor);
+    const rv = new ctor(jsonObj);
     return rv;
   }
 }
 
+// ## SmoSystemGroup
+// System group is the grouping of staves into a system.
+// eslint-disable-next-line no-unused-vars
 class SmoSystemGroup extends SmoScoreModifierBase {
   constructor(params) {
     super('SmoSystemGroup');
-    smoSerialize.serializedMerge(SmoSystemGroup.attributes,SmoSystemGroup.defaults,this);
+    smoSerialize.serializedMerge(SmoSystemGroup.attributes, SmoSystemGroup.defaults, this);
     smoSerialize.serializedMerge(SmoSystemGroup.attributes, params, this);
 
-    if (!this['attrs']) {
+    if (!this.attrs) {
       this.attrs = {
         id: VF.Element.newID(),
         type: 'SmoStaffHairpin'
       };
-    } else {
-      console.log('inherit attrs');
     }
   }
   static get defaults() {
     return {
-      leftConnector:SmoSystemGroup.connectorTypes.single,
-      rightConnector:SmoSystemGroup.connectorTypes.single,
-      mapType:SmoSystemGroup.mapTypes.allMeasures,
-      text:'',
-      shortText:'',
-      justify:true,
-      startSelector:{staff:0,measure:0},
-      endSelector:{staff:0,measure:0}
-    }
+      leftConnector: SmoSystemGroup.connectorTypes.single,
+      rightConnector: SmoSystemGroup.connectorTypes.single,
+      mapType: SmoSystemGroup.mapTypes.allMeasures,
+      text: '',
+      shortText: '',
+      justify: true,
+      startSelector: { staff: 0, measure: 0 },
+      endSelector: { staff: 0, measure: 0 }
+    };
   }
   leftConnectorVx() {
     switch (this.leftConnector) {
@@ -11731,33 +11742,33 @@ class SmoSystemGroup extends SmoScoreModifierBase {
         return VF.StaveConnector.type.DOUBLE_LEFT;
       case SmoSystemGroup.connectorTypes.brace:
         return VF.StaveConnector.type.BRACE;
-     case SmoSystemGroup.connectorTypes.bracket:
-     default:
-      return VF.StaveConnector.type.BRACKET;
-    };
+      case SmoSystemGroup.connectorTypes.bracket:
+      default:
+        return VF.StaveConnector.type.BRACKET;
+    }
   }
   rightConnectorVx() {
     switch (this.rightConnector) {
       case SmoSystemGroup.connectorTypes.single:
-       return StaveConnector.type.SINGLE_RIGHT;
+        return StaveConnector.type.SINGLE_RIGHT;
       case SmoSystemGroup.connectorTypes.double:
       default:
-       return StaveConnector.type.DOUBLE_RIGHT;
-    };
+        return StaveConnector.type.DOUBLE_RIGHT;
+    }
   }
   static get connectorTypes() {
-    return {brace:0,bracket:1,single:2,double:3};
+    return { brace: 0, bracket: 1, single: 2, double: 3 };
   }
   static get mapTypes() {
-    return {allMeasures:0,range:1};
+    return { allMeasures: 0, range: 1 };
   }
   static get attributes() {
-    return ['leftConnector', 'rightConnector','text','shortText','justify',
-      'startSelector','endSelector','mapType'];
+    return ['leftConnector', 'rightConnector', 'text', 'shortText', 'justify',
+      'startSelector', 'endSelector', 'mapType'];
   }
   serialize() {
-    var params = {};
-    smoSerialize.serializedMergeNonDefault(SmoSystemGroup.defaults,SmoSystemGroup.attributes,this,params);
+    const params = {};
+    smoSerialize.serializedMergeNonDefault(SmoSystemGroup.defaults, SmoSystemGroup.attributes, this, params);
     params.ctor = 'SmoSystemGroup';
     return params;
   }
@@ -11766,6 +11777,7 @@ class SmoSystemGroup extends SmoScoreModifierBase {
 // ## SmoTextGroup
 // A grouping of text that can be used as a block for
 // justification, alignment etc.
+// eslint-disable-next-line no-unused-vars
 class SmoTextGroup extends SmoScoreModifierBase {
   static get justifications() {
     return {
@@ -11780,23 +11792,23 @@ class SmoTextGroup extends SmoScoreModifierBase {
     return { ABOVE: 1, BELOW: 2, LEFT: 3, RIGHT: 4 };
   }
   static get defaults() {
-    return { textBlocks:[],
+    return { textBlocks: [],
       justification: SmoTextGroup.justifications.LEFT
     };
   }
   static get attributes() {
-    return ['textBlocks','justification'];
+    return ['textBlocks', 'justification'];
   }
   static deserialize(jObj) {
-    var blocks = [];
+    const blocks = [];
     jObj.textBlocks.forEach((st) => {
-      var tx = new SmoScoreText(st.text);
-      blocks.push({text: tx, position: st.position});
+      const tx = new SmoScoreText(st.text);
+      blocks.push({ text: tx, position: st.position });
     });
-    return new SmoTextGroup({blocks: blocks});
+    return new SmoTextGroup({ blocks });
   }
   serialize() {
-    smoSerialize.serializedMergeNonDefault(SmoTextGroup.defaults,SmoTextGroup.attributes,this,params);
+    smoSerialize.serializedMergeNonDefault(SmoTextGroup.defaults, SmoTextGroup.attributes, this, params);
     params.ctor = 'SmoTextGroup';
     return params;
   }
@@ -11804,38 +11816,37 @@ class SmoTextGroup extends SmoScoreModifierBase {
     return st.ctor && st.ctor === 'SmoScoreText';
   }
   constructor(params) {
-    params = params ? params : {};
     super('SmoTextGroup');
     this.textBlocks = [];
     this.backupBlocks = [];
-    Vex.Merge(this,SmoTextGroup.defaults);
-    Vex.Merge(this,params);
+    Vex.Merge(this, SmoTextGroup.defaults);
+    Vex.Merge(this, params);
     if (params.blocks) {
       params.blocks.forEach((block) => {
         if (this._isScoreText(block)) {
-          this.textBlocks.push({text: block, position: SmoTextGroup.relativePosition.RIGHT});
+          this.textBlocks.push({ text: block, position: SmoTextGroup.relativePosition.RIGHT });
         } else if (this._isScoreText(block.text)) {
           this.textBlocks.push(block);
         } else {
-          throw("Invalid object in SmoTextGroup");
+          throw 'Invalid object in SmoTextGroup';
         }
       });
     }
   }
-  addScoreText(scoreText,prevBlock,position) {
+  addScoreText(scoreText, prevBlock, position) {
     if (!this._isScoreText(scoreText)) {
-      throw('Need SmoScoreText to add to TextGroup');
+      throw 'Need SmoScoreText to add to TextGroup';
     }
     if (!prevBlock) {
-      this.textBlocks.push({text:scoreText,position: position});
+      this.textBlocks.push({ text: scoreText, position });
     } else {
-      var bbid =  (typeof(prevBlock) === 'string') ? prevBlock : prevBlock.attrs.id;
-      var ix = this.textBlocks.findIndex((bb) => bb.attrs.id === bbid);
-      this.textBlocks.splice(ix,0,nextBlock);
+      const bbid =  (typeof(prevBlock) === 'string') ? prevBlock : prevBlock.attrs.id;
+      const ix = this.textBlocks.findIndex((bb) => bb.attrs.id === bbid);
+      this.textBlocks.splice(ix, 0, nextBlock);
     }
   }
   ul() {
-    var rv = {x:0,y:0};
+    const rv = { x: 0, y: 0 };
     this.textBlocks.forEach((block) => {
       rv.x = block.text.x > rv.x ? block.text.x : rv.x;
       rv.y = block.text.y > rv.y ? block.text.y : rv.y;
@@ -11844,11 +11855,11 @@ class SmoTextGroup extends SmoScoreModifierBase {
   }
   removeBlock(scoreText) {
     if (!this._isScoreText(scoreText)) {
-      throw('Need SmoScoreText to add to TextGroup');
+      throw 'Need SmoScoreText to add to TextGroup';
     }
-    var bbid =  (typeof(scoreText) === 'string') ? scoreText : scoreText.attrs.id;
-    var ix = this.textBlocks.findIndex((bb) => bb.attrs.id === bbid);
-    this.textBlocks.splice(ix,1);
+    const bbid = (typeof(scoreText) === 'string') ? scoreText : scoreText.attrs.id;
+    const ix = this.textBlocks.findIndex((bb) => bb.attrs.id === bbid);
+    this.textBlocks.splice(ix, 1);
   }
   offsetX(offset) {
     this.textBlocks.forEach((block) => {
@@ -11892,38 +11903,41 @@ class SmoTextGroup extends SmoScoreModifierBase {
 // ## SmoScoreText
 // Identify some text in the score, not associated with any musical element, like page
 // decorations, titles etc.
+// eslint-disable-next-line no-unused-vars
 class SmoScoreText extends SmoScoreModifierBase {
-
-  static _pointFromEm(size) {
-    var ptString = size.substring(0,scoreText.fontInfo.size.length - 2);
-    return parseFloat(ptString) * 14;
-  }
   // convert EM to a number, or leave as a number etc.
   static fontPointSize(size) {
+    let rv = 12;
     if (typeof(size) === 'number') {
       return size;
     }
-    var ptString = size.substring(0,size.length - 2); // TODO: work with px, pt
-    return parseFloat(ptString) * 14;
+    const ptString = size.substring(0, size.length - 2);
+    rv = parseFloat(ptString);
+    if (size.indexOf('em') > 0) {
+      rv *= 14;
+    } else if (size.indexOf('px') > 0) {
+      rv *= (96.0 / 72.0);
+    }
+    return rv;
   }
 
   static get paginations() {
-    return {every:'every',even:'even',odd:'odd',once:'once',subsequent:'subsequent'}
+    return { every: 'every', even: 'even', odd: 'odd', once: 'once', subsequent: 'subsequent' };
   }
   static get positions() {
-    return {title:'title',copyright:'copyright',footer:'footer',header:'header',custom:'custom'};
+    return { title: 'title', copyright: 'copyright', footer: 'footer', header: 'header', custom: 'custom' };
   }
   static get justifications() {
-    return {left:'left',right:'right',center:'center'};
+    return { left: 'left', right: 'right', center: 'center' };
   }
   static get fontFamilies() {
-    return {serif:'Merriweather,serif',sansSerif:'Roboto,sans-serif',monospace:'monospace',cursive:'cursive',
-      times:'Merriweather',arial:'Arial',helvitica:'Helvitica'};
+    return { serif: 'Merriweather', sansSerif: 'Roboto,sans-serif', monospace: 'monospace', cursive: 'cursive',
+      times: 'Merriweather', arial: 'Arial' };
   }
   // If box model is 'none', the font and location determine the size.
   // spacing and spacingGlyph fit the box into a container based on the svg policy
   static get boxModels() {
-    return {none:'none',spacing:'spacing',spacingAndGlyphs:'spacingAndGlyphs',wrap:'wrap'};
+    return { none: 'none', spacing: 'spacing', spacingAndGlyphs: 'spacingAndGlyphs', wrap: 'wrap' };
   }
   static get defaults() {
     return {
@@ -11934,11 +11948,11 @@ class SmoScoreText extends SmoScoreModifierBase {
       text: 'Smoosic',
       fontInfo: {
         size: '1em',
-        family: SmoScoreText.fontFamilies.times,
-        style:'normal',
-        weight:'normal'
+        family: SmoScoreText.fontFamilies.serif,
+        style: 'normal',
+        weight: 'normal'
       },
-      fill:'black',
+      fill: 'black',
       rotate: 0,
       justification: SmoScoreText.justifications.left,
       classes: 'score-text',
@@ -11953,28 +11967,26 @@ class SmoScoreText extends SmoScoreModifierBase {
     };
   }
   static toSvgAttributes(inst) {
-    var rv=[];
-    var fkeys = Object.keys(inst.fontInfo);
-    var fontFamily = SmoScoreText[inst.fontInfo.family] ? SmoScoreText[inst.fontInfo.family] : inst.fontInfo.family;
+    const rv = [];
+    const fkeys = Object.keys(inst.fontInfo);
+    const fontFamily = SmoScoreText[inst.fontInfo.family] ? SmoScoreText[inst.fontInfo.family] : inst.fontInfo.family;
     fkeys.forEach((key) => {
-      var n=JSON.parse('{"font-'+key+'":"'+inst.fontInfo[key]+'"}');
+      var n = JSON.parse('{"font-' + key + '":"' + inst.fontInfo[key] + '"}');
       if (n['font-family']) {
         n['font-family'] = fontFamily;
       }
       rv.push(n);
     });
 
-    var attrs = SmoScoreText.attributes.filter((x) => {return x !== 'fontInfo' && x != 'boxModel'});
-    rv.push({fill:inst.fill});
-    rv.push({x:inst.x});
-    rv.push({y:inst.y});
+    rv.push({ fill: inst.fill });
+    rv.push({ x: inst.x });
+    rv.push({ y: inst.y });
     if (inst.boxModel !== 'none' && inst.width) {
-      var len = ''+inst.width+'px';
-      rv.push({textLength:len});
-      // rv.push({lengthAdjust:inst.boxModel});
+      const len = '' + inst.width + 'px';
+      rv.push({ textLength: len });
     }
     rv.push({ transform: 'translate (' + inst.translateX + ' ' + inst.translateY + ') scale (' +
-        inst.scaleX + ' ' + inst.scaleY + ')'} );
+        inst.scaleX + ' ' + inst.scaleY + ')' });
     return rv;
   }
 
@@ -11989,14 +12001,14 @@ class SmoScoreText extends SmoScoreModifierBase {
   // ### backupParams
   // For animation or estimation, create a copy of the attributes that can be modified without affecting settings.
   backupParams() {
-    this.backup={};
+    this.backup = {};
     smoSerialize.serializedMerge(SmoScoreText.attributes, this, this.backup);
     return this.backup;
   }
 
   restoreParams() {
     smoSerialize.serializedMerge(SmoScoreText.attributes, this.backup, this);
-  }//
+  }
 
   offsetX(offset) {
     this.x += offset;
@@ -12006,14 +12018,15 @@ class SmoScoreText extends SmoScoreModifierBase {
   }
 
   serialize() {
-  var params = {};
-    smoSerialize.serializedMergeNonDefault(SmoScoreText.defaults,SmoScoreText.attributes,this,params);
+    const params = {};
+    smoSerialize.serializedMergeNonDefault(SmoScoreText.defaults, SmoScoreText.attributes, this, params);
     params.ctor = 'SmoScoreText';
     return params;
   }
   static get attributes() {
-    return ['x','y','text','pagination','position','fontInfo','classes',
-    'boxModel','justification','fill','width','height','scaleX','scaleY','translateX','translateY','autoLayout'];
+    return ['x', 'y', 'text', 'pagination', 'position', 'fontInfo', 'classes',
+      'boxModel', 'justification', 'fill', 'width', 'height', 'scaleX', 'scaleY',
+      'translateX', 'translateY', 'autoLayout'];
   }
 
   // scale the text without moving it.
@@ -12022,43 +12035,41 @@ class SmoScoreText extends SmoScoreModifierBase {
   }
   scaleXInPlace(factor) {
     this.scaleX = factor;
-    var deltax = this.x - this.x*this.scaleX;
+    const deltax = this.x - this.x * this.scaleX;
     this.translateX = deltax;
   }
   scaleYInPlace(factor) {
     this.scaleY = factor;
-    var deltay = this.y - this.y*this.scaleY;
+    const deltay = this.y - this.y * this.scaleY;
     this.translateY = deltay;
   }
   constructor(parameters) {
     super('SmoScoreText');
-    parameters = parameters ? parameters : {};
-    this.backup={};
+    this.backup = {};
     this.edited = false; // indicate to UI that the actual text has not been edited.
 
     smoSerialize.serializedMerge(SmoScoreText.attributes, SmoScoreText.defaults, this);
     smoSerialize.serializedMerge(SmoScoreText.attributes, parameters, this);
     if (!this.classes) {
-      this.classes='';
+      this.classes = '';
     }
     if (this.classes.indexOf(this.attrs.id) < 0) {
-      this.classes += ' '+this.attrs.id;
+      this.classes += ' ' + this.attrs.id;
     }
     if (this.boxModel === SmoScoreText.boxModels.wrap) {
       this.width = parameters.width ? this.width : 200;
       this.height = parameters.height ? this.height : 150;
       if (!parameters.justification) {
         this.justification = this.position === SmoScoreText.positions.copyright
-            ? SmoScoreText.justifications.right : SmoScoreText.justifications.center;
-
+          ? SmoScoreText.justifications.right : SmoScoreText.justifications.center;
       }
     }
-    if (this.position != SmoScoreText.positions.custom && !parameters['autoLayout']) {
+    if (this.position !== SmoScoreText.positions.custom && !parameters.autoLayout) {
       this.autoLayout = true;
-      if (this.position == SmoScoreText.positions.title) {
-        this.fontInfo.size='1.8em';
+      if (this.position === SmoScoreText.positions.title) {
+        this.fontInfo.size = '1.8em';
       } else {
-        this.fontInfo.size='.6em';
+        this.fontInfo.size = '.6em';
       }
     }
   }
@@ -21459,6 +21470,11 @@ class SuiDropdownComponent extends SuiComponentBase {
     return r;
   }
 
+  unselect() {
+    $(this._getInputElement())[0].selectedIndex = -1;
+    $(this._getInputElement()).blur();
+  }
+
   _getInputElement() {
     var pid = this.parameterId;
     return $(this.dialog.dgDom.element).find('#' + pid).find('select');
@@ -24235,8 +24251,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
         key: val
       });
       // Move focus outside the element so it doesn't intercept keys
-      $(this.chordSymbolCtrl._getInputElement())[0].selectedIndex = -1
-      $(this.chordSymbolCtrl._getInputElement()).blur();
+      this.chordSymbolCtrl.unselect();
     }
     if (this.textPositionCtrl.changeFlag && this.chordEditorCtrl.running) {
       this.chordEditorCtrl.setTextType(this.textPositionCtrl.getValue());
@@ -24381,7 +24396,18 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         classes: 'show-always hide-when-moving',
         label:'Edit Text',
         options: []
-      },{
+      }, {
+         smoName: 'insertCode',
+         parameterName: 'insertCode',
+         defaultValue: false,
+         classes: 'show-when-editing hide-when-moving',
+         control:'SuiDropdownComponent',
+         label: 'Insert Special',
+         options: [
+           { value: '@@@', label: 'Pages' },
+           { value: '###', label: 'Page Number' }
+         ]
+       }, {
         smoName: 'textDragger',
         parameterName: 'textLocation',
         classes: 'hide-when-editing show-when-moving',
@@ -24451,16 +24477,16 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         control: 'SuiDropdownComponent',
         label:'Page Behavior',
         startRow:true,
-        options: [{value:'once',label:'Once'},
-          {value:'every',label:'Every'},
-          {label:'Even',value:'even'},
-          {label:'Odd',value:'odd'},
-          {label:'Subsequent',value:'subsequent'}
+        options: [{ value: 'once', label: 'Once' },
+          { value: 'every', label: 'Every' },
+          { label: 'Even', value: 'even' },
+          { label: 'Odd', value: 'odd' },
+          { label: 'Subsequent', value: 'subsequent' }
         ]
       }, {
         staticText: [
           {label : 'Text Properties' },
-          {editorLabel: 'Done Editing Text Block' },
+          {editorLabel: 'Done Editing Text' },
           {draggerLabel: 'Done Dragging Text'}
         ]
       }
@@ -24595,11 +24621,12 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     }
   }
   changed() {
-    var textEditor = this.components.find((c) => c.smoName === 'textEditor');
-    if (textEditor.editor) {
-      this.modifier = textEditor.editor.textGroup;
-    } else {
-      this.modifier = textEditor.value;
+    if (this.insertCodeCtrl.changeFlag && this.textEditorCtrl.session) {
+      const val = this.insertCodeCtrl.getValue().split('');
+      val.forEach((key) => {
+        this.evKey({ key });
+      });
+      this.insertCodeCtrl.unselect();
     }
 
     if (this.wrapCtrl.changeFlag) {
@@ -24614,8 +24641,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       }
     }
 
-    var xcomp = this.components.find((x) => x.smoName === 'x');
-    var ycomp = this.components.find((x) => x.smoName === 'y');
     const pos = this.modifier.ul();
 
     // position can change from drag or by dialog - only update from
@@ -24631,8 +24656,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       this.yCtrl.setValue(pos.y);
     }
 
-    if (this.paginationsComponent.changeFlag && this.textEditorCtrl.editor) {
-      this.textEditorCtrl.editor.scoreText.pagination = this.paginationsComponent.getValue();
+    if (this.paginationsComponent.changeFlag) {
+      this.activeScoreText.pagination = this.paginationsComponent.getValue();
     }
 
     if (this.fontCtrl.changeFlag) {

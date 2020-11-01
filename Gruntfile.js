@@ -1,7 +1,8 @@
 module.exports = function (grunt) {
   // Used for eslint and docco
   const LINTS = ['src/smo/data/measure.js','src/smo/data/note.js','src/smo/data/score.js',
-  'src/smo/data/noteModifiers.js','src/render/vex/vxMeasure.js',
+  'src/smo/data/noteModifiers.js','src/smo/data/scoreModifiers.js',
+  'src/render/vex/vxMeasure.js',
   'src/render/vex/vxSystem.js', 'src/render/vex/glyphDimensions.js',
   'src/render/sui/textEdit.js',
    'src/ui/dialog.js', 'src/ui/dialogComponents.js', 'src/ui/dialogs/scoreDialogs.js' ]

@@ -81,6 +81,9 @@ class suiScoreLayout extends suiLayoutBase {
     }
     gg.renderedBox = {};
     gg.logicalBox = {};
+    const group = this.context.openGroup();
+    group.id = gg.attrs.id;
+
     gg.textBlocks.forEach((block) => {
       this.renderScoreText(block.text);
       if (typeof(gg.renderedBox.x) === 'undefined') {
@@ -92,6 +95,7 @@ class suiScoreLayout extends suiLayoutBase {
       }
     });
     gg.renderedBox.y = gg.renderedBox.y + gg.renderedBox.height;
+    this.context.closeGroup();
   }
 
   renderScoreText(tt) {
@@ -145,13 +149,18 @@ class suiScoreLayout extends suiLayoutBase {
   }
   _renderScoreModifiers() {
     var svg = this.context.svg;
-    $(this.renderer.getContext().svg).find('text.score-text').remove();
+    $(this.renderer.getContext().svg).find('.all-score-text').remove();
+    const group = this.context.openGroup();
+    group.classList.add('all-score-text');
+
     this._score.scoreText.forEach((tt) => {
       this.renderScoreText(tt);
     });
+
     this._score.textGroups.forEach((tg) => {
       this.renderTextGroup(tg);
     });
+    this.context.closeGroup();
   }
 
 

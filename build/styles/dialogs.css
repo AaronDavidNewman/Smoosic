@@ -43,6 +43,9 @@ body.text-edit .show-always div.controlDiv span {
   margin:5px;
 }
 
+body.text-edit .show-always {
+  flex: 1 0 100%;
+}
 body.text-resize .textEdit {
   resize: both;
 }
